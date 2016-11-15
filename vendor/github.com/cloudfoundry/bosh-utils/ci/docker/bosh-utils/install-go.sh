@@ -3,7 +3,7 @@
 set -ex
 
 GOROOT=/usr/local/go
-GO_ARCHIVE_URL=https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
+GO_ARCHIVE_URL=https://storage.googleapis.com/golang/go1.7.3.linux-amd64.tar.gz
 GO_ARCHIVE=$(basename $GO_ARCHIVE_URL)
 
 echo "Downloading go..."

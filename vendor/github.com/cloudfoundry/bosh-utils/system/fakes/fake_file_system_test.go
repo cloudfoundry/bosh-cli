@@ -210,6 +210,23 @@ var _ = Describe("FakeFileSystem", func() {
 				Expect(targetPath).To(Equal("non-existant-target"))
 			})
 		})
+
+		Context("when there are intermediate symlinks", func() {
+			It("returns the target", func() {
+				err := fs.WriteFileString("foobarbaz", "asdfghjk")
+				Expect(err).ToNot(HaveOccurred())
+
+				err = fs.Symlink("foobarbaz", "foobarbazmid")
+				Expect(err).ToNot(HaveOccurred())
+
+				err = fs.Symlink("foobarbazmid", "foobar")
+				Expect(err).ToNot(HaveOccurred())
+
+				targetPath, err := fs.ReadAndFollowLink("foobar")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(targetPath).To(Equal("foobarbaz"))
+			})
+		})
 	})
 
 	Describe("Readlink", func() {

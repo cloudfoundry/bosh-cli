@@ -10,8 +10,8 @@ cd $env:GOPATH/src/github.com/cloudfoundry/bosh-utils
 
 if ((Get-Command "go.exe" -ErrorAction SilentlyContinue) -eq $null)
 {
-  Write-Host "Installing Go 1.6.3!"
-  Invoke-WebRequest https://storage.googleapis.com/golang/go1.6.3.windows-amd64.msi -OutFile go.msi
+  Write-Host "Installing Go 1.7.3!"
+  Invoke-WebRequest https://storage.googleapis.com/golang/go1.7.3.windows-amd64.msi -OutFile go.msi
 
   $p = Start-Process -FilePath "msiexec" -ArgumentList "/passive /norestart /i go.msi" -Wait -PassThru
 

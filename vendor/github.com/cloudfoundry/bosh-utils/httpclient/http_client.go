@@ -29,6 +29,11 @@ type httpClient struct {
 	client Client
 	logger boshlog.Logger
 	logTag string
+	opts Opts
+}
+
+type Opts struct {
+	SanitizeUrlQuery bool
 }
 
 func NewHTTPClient(client Client, logger boshlog.Logger) HTTPClient {
@@ -39,6 +44,15 @@ func NewHTTPClient(client Client, logger boshlog.Logger) HTTPClient {
 	}
 }
 
+func NewHTTPClientOpts(client Client, logger boshlog.Logger, opts Opts) HTTPClient {
+	return httpClient{
+		client: client,
+		logger: logger,
+		logTag: "httpClient",
+		opts: opts,
+	}
+}
+
 func (c httpClient) Post(endpoint string, payload []byte) (*http.Response, error) {
 	return c.PostCustomized(endpoint, payload, nil)
 }
@@ -46,7 +60,13 @@ func (c httpClient) Post(endpoint string, payload []byte) (*http.Response, error
 func (c httpClient) PostCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error) {
 	postPayload := strings.NewReader(string(payload))
 
-	c.logger.Debug(c.logTag, "Sending POST request to endpoint '%s' with body '%s'", scrubEndpointQuery(endpoint), payload)
+	redactedEndpoint := endpoint
+
+	if c.opts.SanitizeUrlQuery {
+		redactedEndpoint = scrubEndpointQuery(endpoint)
+	}
+
+	c.logger.Debug(c.logTag, "Sending POST request to endpoint '%s'", redactedEndpoint)
 
 	request, err := http.NewRequest("POST", endpoint, postPayload)
 	if err != nil {
@@ -72,7 +92,13 @@ func (c httpClient) Put(endpoint string, payload []byte) (*http.Response, error)
 func (c httpClient) PutCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error) {
 	putPayload := strings.NewReader(string(payload))
 
-	c.logger.Debug(c.logTag, "Sending PUT request to endpoint '%s' with body '%s'", scrubEndpointQuery(endpoint), payload)
+	redactedEndpoint := endpoint
+
+	if c.opts.SanitizeUrlQuery {
+		redactedEndpoint = scrubEndpointQuery(endpoint)
+	}
+
+	c.logger.Debug(c.logTag, "Sending PUT request to endpoint '%s'", redactedEndpoint)
 
 	request, err := http.NewRequest("PUT", endpoint, putPayload)
 	if err != nil {
@@ -96,7 +122,13 @@ func (c httpClient) Get(endpoint string) (*http.Response, error) {
 }
 
 func (c httpClient) GetCustomized(endpoint string, f func(*http.Request)) (*http.Response, error) {
-	c.logger.Debug(c.logTag, "Sending GET request to endpoint '%s'", scrubEndpointQuery(endpoint))
+	redactedEndpoint := endpoint
+
+	if c.opts.SanitizeUrlQuery {
+		redactedEndpoint = scrubEndpointQuery(endpoint)
+	}
+
+	c.logger.Debug(c.logTag, "Sending GET request to endpoint '%s'", redactedEndpoint)
 
 	request, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
@@ -116,7 +148,13 @@ func (c httpClient) GetCustomized(endpoint string, f func(*http.Request)) (*http
 }
 
 func (c httpClient) Delete(endpoint string) (*http.Response, error) {
-	c.logger.Debug(c.logTag, "Sending DELETE request with endpoint %s", endpoint)
+	redactedEndpoint := endpoint
+
+	if c.opts.SanitizeUrlQuery {
+		redactedEndpoint = scrubEndpointQuery(endpoint)
+	}
+
+	c.logger.Debug(c.logTag, "Sending DELETE request with endpoint %s", redactedEndpoint)
 
 	request, err := http.NewRequest("DELETE", endpoint, nil)
 	if err != nil {
@@ -139,7 +177,10 @@ func scrubEndpointQuery(endpoint string) string {
 	}
 
 	query := parsedURL.Query()
-	query["refresh_token"] = []string{"<redacted>"}
+	for key, _ := range query {
+		query[key] = []string{"<redacted>"}
+	}
+
 	parsedURL.RawQuery = query.Encode()
 
 	unescapedEndpoint, _ := url.QueryUnescape(parsedURL.String())

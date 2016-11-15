@@ -581,9 +581,13 @@ func (fs *FakeFileSystem) ReadAndFollowLink(symlinkPath string) (string, error) 
 	stat := fs.GetFileTestStat(symlinkPath)
 	if stat != nil {
 		targetStat := fs.GetFileTestStat(stat.SymlinkTarget)
+
 		if targetStat == nil {
 			return stat.SymlinkTarget, os.ErrNotExist
+		} else if FakeFileTypeSymlink == targetStat.FileType {
+			return fs.ReadAndFollowLink(stat.SymlinkTarget)
 		}
+
 		return stat.SymlinkTarget, nil
 	}
 

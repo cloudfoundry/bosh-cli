@@ -1,6 +1,6 @@
 github.com/cloudfoundry/bosh-agent/...:50d8e5d
 github.com/cloudfoundry/bosh-davcli/...:37f54c6
-github.com/cloudfoundry/bosh-utils/...:70d7d64
+github.com/cloudfoundry/bosh-utils/...:4ffc4d1
 github.com/golang/mock/gomock:15f8b22
 github.com/mitchellh/mapstructure:2caf8ef
 github.com/onsi/ginkgo:fbb6632
@@ -26,4 +26,3 @@ github.com/cppforlife/go-patch/patch:829c0e7
 github.com/pivotal-golang/s3cli:90561c0
 github.com/golang/protobuf/proto:98fa357
 github.com/aws/aws-sdk-go:1a651d9
-github.com/cloudfoundry/bosh-utils/httpclient:3e632c0
