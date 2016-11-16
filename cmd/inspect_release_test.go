@@ -54,6 +54,13 @@ var _ = Describe("InspectReleaseCmd", func() {
 
 						BlobstoreID: "some-job-blob-id",
 						SHA1:        "some-job-blob-sha1",
+
+						LinksConsumed: []boshdir.Link{
+							{Name: "some-link"},
+						},
+						LinksProvided: []boshdir.Link{
+							{Name: "some-other-link"},
+						},
 					},
 				}, nil
 			}
@@ -99,7 +106,7 @@ var _ = Describe("InspectReleaseCmd", func() {
 				{
 					Content: "jobs",
 
-					Header: []string{"Job", "Blobstore ID", "SHA1"},
+					Header: []string{"Job", "Blobstore ID", "SHA1", "Links Consumed", "Links Provided"},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 
@@ -108,6 +115,8 @@ var _ = Describe("InspectReleaseCmd", func() {
 							boshtbl.NewValueString("some-job-name/some-job-fingerprint"),
 							boshtbl.NewValueString("some-job-blob-id"),
 							boshtbl.NewValueString("some-job-blob-sha1"),
+							boshtbl.NewValueInterface([]boshdir.Link{{Name: "some-link"}}),
+							boshtbl.NewValueInterface([]boshdir.Link{{Name: "some-other-link"}}),
 						},
 					},
 				},

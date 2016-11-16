@@ -25,7 +25,7 @@ func (c InspectReleaseCmd) Run(opts InspectReleaseOpts) error {
 
 	jobsTable := boshtbl.Table{
 		Content: "jobs",
-		Header:  []string{"Job", "Blobstore ID", "SHA1"},
+		Header:  []string{"Job", "Blobstore ID", "SHA1", "Links Consumed", "Links Provided"},
 		SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 	}
 
@@ -39,6 +39,8 @@ func (c InspectReleaseCmd) Run(opts InspectReleaseOpts) error {
 			boshtbl.NewValueString(fmt.Sprintf("%s/%s", j.Name, j.Fingerprint)),
 			boshtbl.NewValueString(j.BlobstoreID),
 			boshtbl.NewValueString(j.SHA1),
+			boshtbl.NewValueInterface(j.LinksConsumed),
+			boshtbl.NewValueInterface(j.LinksProvided),
 		})
 	}
 

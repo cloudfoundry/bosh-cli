@@ -147,6 +147,8 @@ func (t ValueInterface) String() string {
 
 	if val.Kind() == reflect.Map && val.Len() == 0 {
 		return ""
+	} else if val.Kind() == reflect.Slice && val.Len() == 0 {
+		return ""
 	}
 
 	bytes, err := yaml.Marshal(t.I)

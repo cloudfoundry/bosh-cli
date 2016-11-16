@@ -228,6 +228,11 @@ var _ = Describe("ValueInterface", func() {
 		i := map[string]interface{}{}
 		Expect(ValueInterface{I: i}.String()).To(Equal(""))
 	})
+
+	It("returns an empty slice as blank string", func() {
+		i := []string{}
+		Expect(ValueInterface{I: i}.String()).To(Equal(""))
+	})
 })
 
 var _ = Describe("ValueSuffix", func() {

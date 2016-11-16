@@ -99,6 +99,15 @@ type Job struct {
 
 	BlobstoreID string `json:"blobstore_id"`
 	SHA1        string `json:"sha1"`
+
+	LinksConsumed []Link `json:"consumes"`
+	LinksProvided []Link `json:"provides"`
+}
+
+type Link struct {
+	Name     string `json:"name"`
+	Type     string `json:"type"`
+	Optional bool   `json:"optional" yaml:",omitempty"`
 }
 
 type Package struct {
