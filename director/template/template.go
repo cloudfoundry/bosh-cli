@@ -70,7 +70,7 @@ func (t Template) interpolateRoot(obj interface{}, tracker varsTracker) (interfa
 		return nil, err
 	}
 
-	obj, err = interpolator{}.Interpolate(obj, tracker)
+	obj, err = interpolator{}.Interpolate(obj, varsLookup{tracker})
 	if err != nil {
 		return nil, err
 	}
@@ -81,20 +81,20 @@ func (t Template) interpolateRoot(obj interface{}, tracker varsTracker) (interfa
 type interpolator struct{}
 
 var (
-	interpolationRegex         = regexp.MustCompile(`\(\((!?[-\w\p{L}]+)\)\)`)
+	interpolationRegex         = regexp.MustCompile(`\(\((!?[-\.\w\pL]+)\)\)`)
 	interpolationAnchoredRegex = regexp.MustCompile("\\A" + interpolationRegex.String() + "\\z")
 )
 
-func (i interpolator) Interpolate(node interface{}, tracker varsTracker) (interface{}, error) {
+func (i interpolator) Interpolate(node interface{}, varsLookup varsLookup) (interface{}, error) {
 	switch typedNode := node.(type) {
 	case map[interface{}]interface{}:
 		for k, v := range typedNode {
-			evaluatedValue, err := i.Interpolate(v, tracker)
+			evaluatedValue, err := i.Interpolate(v, varsLookup)
 			if err != nil {
 				return nil, err
 			}
 
-			evaluatedKey, err := i.Interpolate(k, tracker)
+			evaluatedKey, err := i.Interpolate(k, varsLookup)
 			if err != nil {
 				return nil, err
 			}
@@ -106,7 +106,7 @@ func (i interpolator) Interpolate(node interface{}, tracker varsTracker) (interf
 	case []interface{}:
 		for idx, x := range typedNode {
 			var err error
-			typedNode[idx], err = i.Interpolate(x, tracker)
+			typedNode[idx], err = i.Interpolate(x, varsLookup)
 			if err != nil {
 				return nil, err
 			}
@@ -114,7 +114,7 @@ func (i interpolator) Interpolate(node interface{}, tracker varsTracker) (interf
 
 	case string:
 		for _, name := range i.extractVarNames(typedNode) {
-			foundVal, found, err := tracker.Get(name)
+			foundVal, found, err := varsLookup.Get(name)
 			if err != nil {
 				return nil, bosherr.WrapErrorf(err, "Finding variable '%s'", name)
 			}
@@ -153,6 +153,38 @@ func (i interpolator) extractVarNames(value string) []string {
 	return names
 }
 
+type varsLookup struct {
+	varsTracker
+}
+
+func (l varsLookup) Get(name string) (interface{}, bool, error) {
+	splitName := strings.Split(name, ".")
+
+	val, found, err := l.varsTracker.Get(splitName[0])
+	if !found || err != nil {
+		return val, found, err
+	}
+
+	if len(splitName) > 1 {
+		tokens := []patch.Token{patch.RootToken{}}
+
+		for _, token := range splitName[1:] {
+			tokens = append(tokens, patch.KeyToken{Key: token})
+		}
+
+		findOp := patch.FindOp{
+			Path: patch.NewPointer(tokens),
+		}
+
+		val, err = findOp.Apply(val)
+		if err != nil {
+			return nil, false, err
+		}
+	}
+
+	return val, true, err
+}
+
 type varsTracker struct {
 	vars Variables
 	defs varDefinitions
@@ -180,7 +212,7 @@ func (t varsTracker) Get(name string) (interface{}, bool, error) {
 
 	def := t.defs.Find(name)
 
-	def.Options, err = interpolator{}.Interpolate(def.Options, defVarTracker)
+	def.Options, err = interpolator{}.Interpolate(def.Options, varsLookup{defVarTracker})
 	if err != nil {
 		return nil, false, bosherr.WrapErrorf(err, "Interpolating variable '%s' definition options", name)
 	}

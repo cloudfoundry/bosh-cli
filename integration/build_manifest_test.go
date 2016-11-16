@@ -98,7 +98,12 @@ variables:
 	})
 
 	It("generates and stores missing certificate variable when --vars-store is provided", func() {
-		err := fs.WriteFileString("/file", `server: ((server))
+		err := fs.WriteFileString("/file", `
+ca:
+  certificate: ((ca.certificate))
+server:
+  certificate: ((server.certificate))
+
 variables:
 - name: ca
   type: certificate
@@ -119,10 +124,6 @@ variables:
 		Expect(err).ToNot(HaveOccurred())
 		Expect(ui.Blocks).To(HaveLen(1))
 
-		contents, err := fs.ReadFileString("/vars")
-		Expect(err).ToNot(HaveOccurred())
-		Expect(contents).ToNot(BeEmpty())
-
 		type expectedCert struct {
 			Certificate string
 		}
@@ -132,27 +133,41 @@ variables:
 			Server expectedCert
 		}
 
-		var store expectedStore
+		var store, output expectedStore
 
-		err = yaml.Unmarshal([]byte(contents), &store)
-		Expect(err).ToNot(HaveOccurred())
+		{
+			contents, err := fs.ReadFileString("/vars")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(contents).ToNot(BeEmpty())
 
-		roots := x509.NewCertPool()
+			err = yaml.Unmarshal([]byte(contents), &store)
+			Expect(err).ToNot(HaveOccurred())
 
-		ok := roots.AppendCertsFromPEM([]byte(store.CA.Certificate))
-		Expect(ok).To(BeTrue())
+			err = yaml.Unmarshal([]byte(ui.Blocks[0]), &output)
+			Expect(err).ToNot(HaveOccurred())
 
-		block, _ := pem.Decode([]byte(store.Server.Certificate))
-		Expect(block).ToNot(BeNil())
+			Expect(output.CA.Certificate).To(Equal(store.CA.Certificate))
+			Expect(output.Server.Certificate).To(Equal(store.Server.Certificate))
+		}
 
-		cert, err := x509.ParseCertificate(block.Bytes)
-		Expect(err).ToNot(HaveOccurred())
+		{
+			roots := x509.NewCertPool()
 
-		_, err = cert.Verify(x509.VerifyOptions{DNSName: "test.com", Roots: roots})
-		Expect(err).ToNot(HaveOccurred())
+			ok := roots.AppendCertsFromPEM([]byte(store.CA.Certificate))
+			Expect(ok).To(BeTrue())
 
-		_, err = cert.Verify(x509.VerifyOptions{DNSName: "not-test.com", Roots: roots})
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("certificate is valid"))
+			block, _ := pem.Decode([]byte(store.Server.Certificate))
+			Expect(block).ToNot(BeNil())
+
+			cert, err := x509.ParseCertificate(block.Bytes)
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = cert.Verify(x509.VerifyOptions{DNSName: "test.com", Roots: roots})
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = cert.Verify(x509.VerifyOptions{DNSName: "not-test.com", Roots: roots})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("certificate is valid"))
+		}
 	})
 })

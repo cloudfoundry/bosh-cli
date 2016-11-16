@@ -583,6 +583,80 @@ variables:
 		Expect(err).ToNot(HaveOccurred())
 	})
 
+	It("allows to access sub key of an interpolated value via dot syntax", func() {
+		template := NewTemplate([]byte("((key.subkey))"))
+		vars := StaticVariables{
+			"key": map[interface{}]interface{}{"subkey": "e"},
+		}
+
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("e\n")))
+	})
+
+	It("allows to generate variables that use sub key via dot syntax", func() {
+		template := NewTemplate([]byte(`ca: ((cert.private_key))
+variables:
+- name: cert
+  type: cert-type
+  options:
+    cert-opt: cert-opt-val
+    key1: ((key1.subkey))
+`))
+
+		vars := &FakeVariables{
+			GetFunc: func(varDef VariableDefinition) (interface{}, bool, error) {
+				switch varDef.Name {
+				case "cert":
+					Expect(varDef).To(Equal(VariableDefinition{
+						Name: "cert",
+						Type: "cert-type",
+						Options: map[interface{}]interface{}{
+							"cert-opt": "cert-opt-val",
+							"key1":     "key1-subkey",
+						},
+					}))
+					return map[interface{}]interface{}{"private_key": "private-key-val"}, true, nil
+
+				case "key1":
+					Expect(varDef).To(Equal(VariableDefinition{Name: "key1"}))
+					return map[interface{}]interface{}{"subkey": "key1-subkey"}, true, nil
+
+				default:
+					panic(fmt.Sprintf("Unexpected variable definiton: %#v", varDef))
+				}
+			},
+		}
+
+		opts := EvaluateOpts{
+			PostVarSubstitutionOp: patch.FindOp{Path: patch.MustNewPointerFromString("/ca")},
+		}
+
+		result, err := template.Evaluate(vars, nil, opts)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("private-key-val\n")))
+	})
+
+	It("returns an error if variable is not found and is being used with a sub key", func() {
+		template := NewTemplate([]byte("((key.subkey_not_found))"))
+		vars := StaticVariables{}
+
+		_, err := template.Evaluate(vars, nil, EvaluateOpts{ExpectAllKeys: true})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("Expected to find variables: key"))
+	})
+
+	It("returns an error if accessing sub key of an interpolated value fails", func() {
+		template := NewTemplate([]byte("((key.subkey_not_found))"))
+		vars := StaticVariables{
+			"key": map[interface{}]interface{}{"subkey": "e"},
+		}
+
+		_, err := template.Evaluate(vars, nil, EvaluateOpts{ExpectAllKeys: true})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("Expected to find a map key 'subkey_not_found'"))
+	})
+
 	It("returns error if finding variable fails", func() {
 		template := NewTemplate([]byte("((key))"))
 		vars := &FakeVariables{GetErr: errors.New("fake-err")}
