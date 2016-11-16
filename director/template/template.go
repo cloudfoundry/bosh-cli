@@ -245,7 +245,7 @@ func (t *varsTracker) ExtractDefinitions(obj interface{}) error {
 }
 
 func (t varsTracker) MissingError() error {
-	if !t.expectAll {
+	if !t.expectAll || len(t.missing) == 0 {
 		return nil
 	}
 
@@ -255,10 +255,12 @@ func (t varsTracker) MissingError() error {
 	}
 	sort.Strings(names)
 
-	if len(names) > 0 {
-		return fmt.Errorf("Expected to find variables: %s", strings.Join(names, ", "))
+	var errs []error
+	for _, name := range names {
+		errs = append(errs, bosherr.Error(name))
 	}
-	return nil
+
+	return bosherr.WrapError(bosherr.NewMultiError(errs...), "Expected to find variables")
 }
 
 type varDefinitions struct {

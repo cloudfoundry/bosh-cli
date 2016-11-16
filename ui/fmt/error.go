@@ -7,20 +7,26 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
-var Indent = "  "
+const (
+	Indent = "  "
+	Bullet = "- "
+)
 
 func MultilineError(err error) string {
-	return prefixingMultilineError(err, "")
+	return prefixingMultilineError(err, "", "")
 }
 
-func prefixingMultilineError(err error, prefix string) string {
+func prefixingMultilineError(err error, prefix string, bullet string) string {
+	currPrefix := prefix + bullet
+	prefix = prefix + strings.Repeat(" ", len(bullet))
+
 	switch specificErr := err.(type) {
 	case bosherr.ComplexError:
-		return prefix + specificErr.Err.Error() + ":\n" + prefixingMultilineError(specificErr.Cause, prefix+Indent)
+		return currPrefix + specificErr.Err.Error() + ":\n" + prefixingMultilineError(specificErr.Cause, prefix+Indent, "")
 	case bosherr.MultiError:
 		lines := make([]string, len(specificErr.Errors), len(specificErr.Errors))
 		for i, sibling := range specificErr.Errors {
-			lines[i] = prefixingMultilineError(sibling, prefix)
+			lines[i] = prefixingMultilineError(sibling, prefix, Bullet)
 		}
 		return strings.Join(lines, "\n")
 	case boshsys.ExecError:
@@ -34,7 +40,7 @@ func prefixingMultilineError(err error, prefix string) string {
 		}
 		return prefixEachLine(strings.Join(lines, "\n"), prefix)
 	default:
-		return prefix + specificErr.Error()
+		return currPrefix + specificErr.Error()
 	}
 }
 

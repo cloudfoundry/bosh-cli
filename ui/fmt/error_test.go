@@ -39,19 +39,19 @@ var _ = Describe("MultilineError", func() {
 	Context("when given an explainable error", func() {
 		It("returns a multi-line message string with sibling errors at the same indentation", func() {
 			err = bosherr.NewMultiError(bosherr.Error("a"), bosherr.Error("b"))
-			Expect(MultilineError(err)).To(Equal("a\nb"))
+			Expect(MultilineError(err)).To(Equal("- a\n- b"))
 		})
 
 		It("returns a multi-line message string with sibling errors at the same indentation", func() {
 			complex := bosherr.WrapError(bosherr.Error("inner a"), "outer a")
 			err = bosherr.NewMultiError(complex, bosherr.Error("b"))
-			Expect(MultilineError(err)).To(Equal("outer a:\n  inner a\nb"))
+			Expect(MultilineError(err)).To(Equal("- outer a:\n    inner a\n- b"))
 		})
 
 		It("returns a multi-line message string with sibling errors at the same indentation", func() {
 			complex := bosherr.WrapError(bosherr.Error("inner b"), "outer b")
 			err = bosherr.NewMultiError(bosherr.Error("a"), complex)
-			Expect(MultilineError(err)).To(Equal("a\nouter b:\n  inner b"))
+			Expect(MultilineError(err)).To(Equal("- a\n- outer b:\n    inner b"))
 		})
 	})
 
@@ -59,7 +59,7 @@ var _ = Describe("MultilineError", func() {
 		It("returns a multi-line message string with sibling errors at the same indentation", func() {
 			multi := bosherr.NewMultiError(bosherr.Error("inner a"), bosherr.Error("inner b"))
 			err = bosherr.WrapError(multi, "outer omg")
-			Expect(MultilineError(err)).To(Equal("outer omg:\n  inner a\n  inner b"))
+			Expect(MultilineError(err)).To(Equal("outer omg:\n  - inner a\n  - inner b"))
 		})
 	})
 

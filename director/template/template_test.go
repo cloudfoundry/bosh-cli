@@ -91,7 +91,7 @@ dup-key: ((key3))
 
 		_, err := template.Evaluate(vars, nil, EvaluateOpts{ExpectAllKeys: true})
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(Equal("Expected to find variables: key, key2, key4, key_in_array"))
+		Expect(err.Error()).To(Equal("Expected to find variables: key\nkey2\nkey4\nkey_in_array"))
 	})
 
 	It("does not return error if there are missing variable keys and ExpectAllKeys is false", func() {
@@ -536,9 +536,8 @@ variables:
 
 		_, err := template.Evaluate(vars, nil, EvaluateOpts{ExpectAllKeys: true})
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(Equal("Expected to find variables: key1, other_key"))
+		Expect(err.Error()).To(Equal("Expected to find variables: key1\nother_key"))
 
-		// Expect(queriedNames).To(Equal([]string{"key1", "other_key", "key1", "key1"}))
 		Expect(queriedNames).To(ContainElement("key1"))
 		Expect(queriedNames).To(ContainElement("other_key"))
 		Expect(queriedNames).ToNot(ContainElement("key2"), "because it depends on presence of key1 which is not found")
