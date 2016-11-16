@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"math/big"
 	"time"
+	"net"
 
 	"github.com/cloudfoundry/bosh-utils/errors"
 )
@@ -51,9 +52,9 @@ func (cfg CertificateGenerator) Generate(parameters interface{}) (interface{}, e
 	cParams := CertParams{CommonName: commonName, AlternativeName: alternativeNames, CA: ca}
 
 	if len(cParams.CA) > 0 {
-		return cfg.generateCert(cParams)	
+		return cfg.generateCert(cParams)
 	}
-	
+
 	return cfg.generateCACert(cParams)
 }
 
@@ -99,7 +100,12 @@ func (cfg CertificateGenerator) generateCert(cParams CertParams) (CertResponse, 
 	}
 
 	for _, altName := range cParams.AlternativeName {
-		template.DNSNames = append(template.DNSNames, altName)
+		possibleIP := net.ParseIP(altName)
+		if possibleIP == nil {
+			template.DNSNames = append(template.DNSNames, altName)
+		} else {
+			template.IPAddresses = append(template.IPAddresses, possibleIP)
+		}
 	}
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, rootCA, &privateKey.PublicKey, rootCAKey)
