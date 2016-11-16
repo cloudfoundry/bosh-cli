@@ -32,7 +32,7 @@ func (c EventsCmd) Run(opts EventsOpts) error {
 
 	table := boshtbl.Table{
 		Content: "events",
-		Header:  []string{"ID", "Time", "User", "Action", "Object Type", "Object ID", "Task ID", "Deployment", "Instance", "Context"},
+		Header:  []string{"ID", "Time", "User", "Action", "Object Type", "Object ID", "Task ID", "Deployment", "Instance", "Context", "Error"},
 	}
 
 	for _, e := range events {
@@ -53,6 +53,7 @@ func (c EventsCmd) Run(opts EventsOpts) error {
 			boshtbl.NewValueString(e.DeploymentName()),
 			boshtbl.NewValueString(e.Instance()),
 			boshtbl.NewValueInterface(e.Context()),
+			boshtbl.NewValueString(e.Error()),
 		})
 	}
 

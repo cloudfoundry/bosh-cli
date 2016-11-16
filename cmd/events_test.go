@@ -41,6 +41,7 @@ var _ = Describe("EventsCmd", func() {
 				DeploymentNameStub: func() string { return "deployment" },
 				InstanceStub:       func() string { return "instance" },
 				ContextStub:        func() map[string]interface{} { return map[string]interface{}{"user": "bosh_z$"} },
+				ErrorStub:          func() string { return "" },
 			},
 			&fakedir.FakeEvent{
 				IDStub:        func() string { return "5" },
@@ -55,6 +56,7 @@ var _ = Describe("EventsCmd", func() {
 				DeploymentNameStub: func() string { return "deployment2" },
 				InstanceStub:       func() string { return "instance2" },
 				ContextStub:        func() map[string]interface{} { return make(map[string]interface{}) },
+				ErrorStub:          func() string { return "some-error" },
 			},
 		}
 	})
@@ -75,7 +77,7 @@ var _ = Describe("EventsCmd", func() {
 			Expect(ui.Table).To(Equal(boshtbl.Table{
 				Content: "events",
 
-				Header: []string{"ID", "Time", "User", "Action", "Object Type", "Object ID", "Task ID", "Deployment", "Instance", "Context"},
+				Header: []string{"ID", "Time", "User", "Action", "Object Type", "Object ID", "Task ID", "Deployment", "Instance", "Context", "Error"},
 
 				Rows: [][]boshtbl.Value{
 					{
@@ -89,6 +91,7 @@ var _ = Describe("EventsCmd", func() {
 						boshtbl.NewValueString("deployment"),
 						boshtbl.NewValueString("instance"),
 						boshtbl.NewValueInterface(map[string]interface{}{"user": "bosh_z$"}),
+						boshtbl.NewValueString(""),
 					},
 					{
 						boshtbl.NewValueString("5"),
@@ -101,6 +104,7 @@ var _ = Describe("EventsCmd", func() {
 						boshtbl.NewValueString("deployment2"),
 						boshtbl.NewValueString("instance2"),
 						boshtbl.NewValueInterface(map[string]interface{}{}),
+						boshtbl.NewValueString("some-error"),
 					},
 				},
 			}))

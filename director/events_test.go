@@ -86,6 +86,32 @@ var _ = Describe("Director", func() {
 			Expect(events[1].Context()).To(BeNil())
 		})
 
+		It("returns event with error", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/events", ""),
+					ghttp.RespondWith(http.StatusOK, `[
+					  {
+						"id": "3",
+						"timestamp": 1455635708,
+						"user": "admin",
+						"action": "rename",
+						"error": "Something went wrong",
+						"object_type": "deployment",
+						"object_name": "depl1",
+						"task": "6",
+						"context": {"new name": "depl2"}
+					  }
+					]`),
+				),
+			)
+
+			events, err := director.Events(EventsFilter{})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(events[0].Error()).To(Equal("Something went wrong"))
+		})
+
 		It("filters events based on 'before-id' option", func() {
 			opts := EventsFilter{BeforeID: "3"}
 

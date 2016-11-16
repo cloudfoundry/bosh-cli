@@ -75,6 +75,12 @@ type FakeEvent struct {
 	contextReturns     struct {
 		result1 map[string]interface{}
 	}
+	ErrorStub        func() string
+	errorMutex       sync.RWMutex
+	errorArgsForCall []struct{}
+	errorReturns     struct {
+		result1 string
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -354,6 +360,31 @@ func (fake *FakeEvent) ContextReturns(result1 map[string]interface{}) {
 	}{result1}
 }
 
+func (fake *FakeEvent) Error() string {
+	fake.errorMutex.Lock()
+	fake.errorArgsForCall = append(fake.errorArgsForCall, struct{}{})
+	fake.recordInvocation("Error", []interface{}{})
+	fake.errorMutex.Unlock()
+	if fake.ErrorStub != nil {
+		return fake.ErrorStub()
+	} else {
+		return fake.errorReturns.result1
+	}
+}
+
+func (fake *FakeEvent) ErrorCallCount() int {
+	fake.errorMutex.RLock()
+	defer fake.errorMutex.RUnlock()
+	return len(fake.errorArgsForCall)
+}
+
+func (fake *FakeEvent) ErrorReturns(result1 string) {
+	fake.ErrorStub = nil
+	fake.errorReturns = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeEvent) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -379,6 +410,8 @@ func (fake *FakeEvent) Invocations() map[string][][]interface{} {
 	defer fake.instanceMutex.RUnlock()
 	fake.contextMutex.RLock()
 	defer fake.contextMutex.RUnlock()
+	fake.errorMutex.RLock()
+	defer fake.errorMutex.RUnlock()
 	return fake.invocations
 }
 

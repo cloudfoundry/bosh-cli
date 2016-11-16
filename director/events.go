@@ -21,6 +21,7 @@ type EventImpl struct {
 	deploymentName string
 	instance       string
 	context        map[string]interface{}
+	error          string
 }
 
 type EventResp struct {
@@ -35,6 +36,7 @@ type EventResp struct {
 	Instance       string                 `json:"instance"`
 	ParentID       string                 `json:"parent_id,omitempty"`
 	Context        map[string]interface{} `json:"context"`
+	Error          string                 `json:"error"`
 }
 
 func (e EventImpl) ID() string                      { return e.id }
@@ -48,6 +50,7 @@ func (e EventImpl) TaskID() string                  { return e.taskID }
 func (e EventImpl) DeploymentName() string          { return e.deploymentName }
 func (e EventImpl) Instance() string                { return e.instance }
 func (e EventImpl) Context() map[string]interface{} { return e.context }
+func (e EventImpl) Error() string                   { return e.error }
 
 func NewEventFromResp(client Client, r EventResp) EventImpl {
 	return EventImpl{
@@ -64,6 +67,7 @@ func NewEventFromResp(client Client, r EventResp) EventImpl {
 		deploymentName: r.DeploymentName,
 		instance:       r.Instance,
 		context:        r.Context,
+		error:          r.Error,
 	}
 }
 

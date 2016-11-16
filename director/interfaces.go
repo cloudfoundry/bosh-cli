@@ -277,4 +277,5 @@ type Event interface {
 	DeploymentName() string
 	Instance() string
 	Context() map[string]interface{}
+	Error() string
 }
