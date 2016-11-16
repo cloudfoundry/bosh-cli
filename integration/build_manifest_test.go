@@ -108,11 +108,11 @@ variables:
   type: certificate
   options:
     ca: ca
-    common_name: test.com
+    common_name: ((common_name))
 `)
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{"build-manifest", "/file", "--vars-store", "/vars"})
+		cmd, err := cmdFactory.New([]string{"build-manifest", "/file", "--vars-store", "/vars", "-v", "common_name=test.com"})
 		Expect(err).ToNot(HaveOccurred())
 
 		err = cmd.Execute()

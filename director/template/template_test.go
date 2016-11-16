@@ -469,6 +469,121 @@ variables:
 		Expect(interpolationOrder).To(Equal([]string{"key2"}))
 	})
 
+	It("returns error if any variable interpolation failed inside of variable definition option section", func() {
+		template := NewTemplate([]byte(`
+variables:
+- name: key2
+  type: key2-type
+  options:
+    var: ((key1))
+`))
+
+		var interpolationOrder []string
+
+		vars := &FakeVariables{
+			GetFunc: func(varDef VariableDefinition) (interface{}, bool, error) {
+				interpolationOrder = append(interpolationOrder, varDef.Name)
+				return nil, true, errors.New("fake-err")
+			},
+		}
+
+		_, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("Interpolating variable 'key2' definition options"))
+		Expect(err.Error()).To(ContainSubstring("fake-err"))
+	})
+
+	It("returns error if any variable interpolation failed inside of variable definition option section", func() {
+		template := NewTemplate([]byte(`
+variables:
+- name: key2
+  type: key2-type
+  options:
+    var: ((key1))
+`))
+
+		vars := &FakeVariables{
+			GetFunc: func(varDef VariableDefinition) (interface{}, bool, error) {
+				return nil, true, errors.New("fake-err")
+			},
+		}
+
+		_, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("Interpolating variable 'key2' definition options"))
+		Expect(err.Error()).To(ContainSubstring("fake-err"))
+	})
+
+	It("returns error if any variable interpolation failed inside of variable definition option section", func() {
+		template := NewTemplate([]byte(`
+other_key: ((other_key))
+key2: ((key2))
+variables:
+- name: key2
+  type: key2-type
+  options:
+    var: ((key1))
+`))
+
+		var queriedNames []string
+
+		vars := &FakeVariables{
+			GetFunc: func(varDef VariableDefinition) (interface{}, bool, error) {
+				queriedNames = append(queriedNames, varDef.Name)
+				return nil, false, nil
+			},
+		}
+
+		_, err := template.Evaluate(vars, nil, EvaluateOpts{ExpectAllKeys: true})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Expected to find variables: key1, other_key"))
+
+		// Expect(queriedNames).To(Equal([]string{"key1", "other_key", "key1", "key1"}))
+		Expect(queriedNames).To(ContainElement("key1"))
+		Expect(queriedNames).To(ContainElement("other_key"))
+		Expect(queriedNames).ToNot(ContainElement("key2"), "because it depends on presence of key1 which is not found")
+	})
+
+	It("returns error if variables are recursively defined", func() {
+		template := NewTemplate([]byte(`
+variables:
+- name: key1
+  type: key1-type
+  options:
+    var: ((key2))
+- name: key2
+  type: key2-type
+  options:
+    var: ((key1))
+`))
+
+		_, err := template.Evaluate(StaticVariables{}, nil, EvaluateOpts{ExpectAllKeys: true})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("Detected recursion"))
+		Expect(err.Error()).To(ContainSubstring("Interpolating variable 'key1' definition options"))
+		Expect(err.Error()).To(ContainSubstring("Interpolating variable 'key2' definition options"))
+	})
+
+	It("returns error if variables are referenced multiple times (when checking for recursion)", func() {
+		template := NewTemplate([]byte(`
+top_level: ((top_level))
+top_level2: ((top_level))
+variables:
+- name: key1
+  type: key1-type
+  options:
+    options_level: ((options_level))
+    options_level2: ((options_level))
+- name: key2
+  type: key2-type
+  options:
+    var: ((key1))
+`))
+
+		_, err := template.Evaluate(StaticVariables{}, nil, EvaluateOpts{})
+		Expect(err).ToNot(HaveOccurred())
+	})
+
 	It("returns error if finding variable fails", func() {
 		template := NewTemplate([]byte("((key))"))
 		vars := &FakeVariables{GetErr: errors.New("fake-err")}

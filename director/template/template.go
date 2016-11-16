@@ -11,11 +11,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var (
-	templateFormatRegex         = regexp.MustCompile(`\(\((!?[-\w\p{L}]+)\)\)`)
-	templateFormatAnchoredRegex = regexp.MustCompile("\\A" + templateFormatRegex.String() + "\\z")
-)
-
 type Template struct {
 	bytes []byte
 }
@@ -45,7 +40,7 @@ func (t Template) Evaluate(vars Variables, op patch.Op, opts EvaluateOpts) ([]by
 		}
 	}
 
-	obj, err = t.interpolateRoot(obj, varsTracker{vars: vars, expectAll: opts.ExpectAllKeys})
+	obj, err = t.interpolateRoot(obj, newVarsTracker(vars, opts.ExpectAllKeys))
 	if err != nil {
 		return []byte{}, err
 	}
@@ -75,7 +70,7 @@ func (t Template) interpolateRoot(obj interface{}, tracker varsTracker) (interfa
 		return nil, err
 	}
 
-	obj, err = t.interpolate(obj, tracker)
+	obj, err = interpolator{}.Interpolate(obj, tracker)
 	if err != nil {
 		return nil, err
 	}
@@ -83,16 +78,23 @@ func (t Template) interpolateRoot(obj interface{}, tracker varsTracker) (interfa
 	return obj, tracker.MissingError()
 }
 
-func (t Template) interpolate(node interface{}, tracker varsTracker) (interface{}, error) {
+type interpolator struct{}
+
+var (
+	interpolationRegex         = regexp.MustCompile(`\(\((!?[-\w\p{L}]+)\)\)`)
+	interpolationAnchoredRegex = regexp.MustCompile("\\A" + interpolationRegex.String() + "\\z")
+)
+
+func (i interpolator) Interpolate(node interface{}, tracker varsTracker) (interface{}, error) {
 	switch typedNode := node.(type) {
 	case map[interface{}]interface{}:
 		for k, v := range typedNode {
-			evaluatedValue, err := t.interpolate(v, tracker)
+			evaluatedValue, err := i.Interpolate(v, tracker)
 			if err != nil {
 				return nil, err
 			}
 
-			evaluatedKey, err := t.interpolate(k, tracker)
+			evaluatedKey, err := i.Interpolate(k, tracker)
 			if err != nil {
 				return nil, err
 			}
@@ -102,16 +104,16 @@ func (t Template) interpolate(node interface{}, tracker varsTracker) (interface{
 		}
 
 	case []interface{}:
-		for i, x := range typedNode {
+		for idx, x := range typedNode {
 			var err error
-			typedNode[i], err = t.interpolate(x, tracker)
+			typedNode[idx], err = i.Interpolate(x, tracker)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 	case string:
-		for _, name := range t.extractVarNames(typedNode) {
+		for _, name := range i.extractVarNames(typedNode) {
 			foundVal, found, err := tracker.Get(name)
 			if err != nil {
 				return nil, bosherr.WrapErrorf(err, "Finding variable '%s'", name)
@@ -119,7 +121,7 @@ func (t Template) interpolate(node interface{}, tracker varsTracker) (interface{
 
 			if found {
 				// ensure that value type is preserved when replacing the entire field
-				if templateFormatAnchoredRegex.MatchString(typedNode) {
+				if interpolationAnchoredRegex.MatchString(typedNode) {
 					return foundVal, nil
 				}
 
@@ -141,10 +143,10 @@ func (t Template) interpolate(node interface{}, tracker varsTracker) (interface{
 	return node, nil
 }
 
-func (t Template) extractVarNames(value string) []string {
+func (i interpolator) extractVarNames(value string) []string {
 	var names []string
 
-	for _, match := range templateFormatRegex.FindAllSubmatch([]byte(value), -1) {
+	for _, match := range interpolationRegex.FindAllSubmatch([]byte(value), -1) {
 		names = append(names, strings.TrimPrefix(string(match[1]), "!"))
 	}
 
@@ -156,11 +158,42 @@ type varsTracker struct {
 	defs varDefinitions
 
 	expectAll bool
-	missing   map[string]struct{}
+
+	missing map[string]struct{}
+	visited map[string]struct{}
+}
+
+func newVarsTracker(vars Variables, expectAll bool) varsTracker {
+	return varsTracker{
+		vars:      vars,
+		expectAll: expectAll,
+		missing:   map[string]struct{}{},
+		visited:   map[string]struct{}{},
+	}
 }
 
 func (t varsTracker) Get(name string) (interface{}, bool, error) {
-	val, found, err := t.vars.Get(t.defs.Find(name))
+	defVarTracker, err := t.scopedVarsTracker(name)
+	if err != nil {
+		return nil, false, err
+	}
+
+	def := t.defs.Find(name)
+
+	def.Options, err = interpolator{}.Interpolate(def.Options, defVarTracker)
+	if err != nil {
+		return nil, false, bosherr.WrapErrorf(err, "Interpolating variable '%s' definition options", name)
+	}
+
+	if len(defVarTracker.missing) > 0 {
+		return nil, false, nil
+	}
+
+	for name, _ := range defVarTracker.missing {
+		t.missing[name] = struct{}{}
+	}
+
+	val, found, err := t.vars.Get(def)
 	if !found {
 		t.missing[name] = struct{}{}
 	}
@@ -168,9 +201,23 @@ func (t varsTracker) Get(name string) (interface{}, bool, error) {
 	return val, found, err
 }
 
-func (t *varsTracker) ExtractDefinitions(obj interface{}) error {
-	t.missing = map[string]struct{}{}
+func (t varsTracker) scopedVarsTracker(name string) (varsTracker, error) {
+	if _, found := t.visited[name]; found {
+		return varsTracker{}, bosherr.Error("Detected recursion")
+	}
 
+	varsTracker := newVarsTracker(t.vars, t.expectAll)
+	varsTracker.defs = t.defs
+	varsTracker.visited[name] = struct{}{}
+
+	for k, _ := range t.visited {
+		varsTracker.visited[k] = struct{}{}
+	}
+
+	return varsTracker, nil
+}
+
+func (t *varsTracker) ExtractDefinitions(obj interface{}) error {
 	if _, isMap := obj.(map[interface{}]interface{}); isMap {
 		defsBytes, err := yaml.Marshal(obj)
 		if err != nil {
