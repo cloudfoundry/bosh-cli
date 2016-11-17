@@ -506,7 +506,7 @@ func (fs *FakeFileSystem) ReadFile(path string) ([]byte, error) {
 	}
 
 	return nil, bosherr.ComplexError{
-		Err: bosherr.Error("Not found:"),
+		Err: bosherr.Error("Not found"),
 		Cause: &os.PathError{
 			Op:   "open",
 			Path: path,

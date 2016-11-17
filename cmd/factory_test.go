@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
@@ -157,6 +158,43 @@ var _ = Describe("Factory", func() {
 			_, err := factory.New([]string{"ssh", "--unknown-flag"})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown flag `unknown-flag'"))
+		})
+	})
+
+	Describe("deploy command", func() {
+		BeforeEach(func() {
+			err := fs.WriteFileString("/file", "")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("parses multiple skip-drain flags", func() {
+			cmd, err := factory.New([]string{"deploy", "--skip-drain=job1", "--skip-drain=job2", "/file"})
+			Expect(err).ToNot(HaveOccurred())
+
+			slug1, _ := boshdir.NewInstanceGroupOrInstanceSlugFromString("job1")
+			slug2, _ := boshdir.NewInstanceGroupOrInstanceSlugFromString("job2")
+
+			opts := cmd.Opts.(*DeployOpts)
+			Expect(opts.SkipDrain).To(Equal([]boshdir.SkipDrain{
+				{Slug: slug1},
+				{Slug: slug2},
+			}))
+		})
+
+		It("errors when excluding = from --skip-drain", func() {
+			_, err := factory.New([]string{"deploy", "--skip-drain", "job1", "/file"})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Not found: open job1: no such file or directory"))
+		})
+
+		It("defaults --skip-drain option value to all", func() {
+			cmd, err := factory.New([]string{"deploy", "--skip-drain", "/file"})
+			Expect(err).ToNot(HaveOccurred())
+
+			opts := cmd.Opts.(*DeployOpts)
+			Expect(opts.SkipDrain).To(Equal([]boshdir.SkipDrain{
+				{All: true},
+			}))
 		})
 	})
 
