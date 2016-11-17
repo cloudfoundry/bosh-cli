@@ -1,48 +1,39 @@
 package director
 
-import (
-	"strings"
-)
+import "strings"
+
+type SkipDrains []SkipDrain
 
 type SkipDrain struct {
-	All   bool
-	Slugs []InstanceGroupOrInstanceSlug
+	All  bool
+	Slug InstanceGroupOrInstanceSlug
 }
 
-func (s SkipDrain) AsQueryValue() string {
-	if s.All {
-		return "*"
+func (s SkipDrains) AsQueryValue() string {
+	skips := []string{}
+
+	for _, skipDrain := range s {
+		if skipDrain.All {
+			return "*"
+		}
+
+		skips = append(skips, skipDrain.Slug.String())
 	}
 
-	pieces := []string{}
-
-	for _, slug := range s.Slugs {
-		pieces = append(pieces, slug.String())
-	}
-
-	return strings.Join(pieces, ",")
+	return strings.Join(skips, ",")
 }
 
 func (s *SkipDrain) UnmarshalFlag(data string) error {
-	if len(data) == 0 {
-		*s = SkipDrain{All: true}
-		return nil
-	}
+	if data == "*" || data == "" {
+		s.All = true
+	} else {
+		var err error
 
-	sd := SkipDrain{}
-
-	pieces := strings.Split(data, ",")
-
-	for _, p := range pieces {
-		slug, err := NewInstanceGroupOrInstanceSlugFromString(p)
+		s.Slug, err = NewInstanceGroupOrInstanceSlugFromString(data)
 		if err != nil {
 			return err
 		}
-
-		sd.Slugs = append(sd.Slugs, slug)
 	}
-
-	*s = sd
 
 	return nil
 }

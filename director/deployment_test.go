@@ -344,7 +344,6 @@ var _ = Describe("Deployment", func() {
 	Describe("job states", func() {
 		var (
 			slug         AllOrInstanceGroupOrInstanceSlug
-			sd           SkipDrain
 			force        bool
 			dryRun       bool
 			startOpts    StartOpts
@@ -356,18 +355,17 @@ var _ = Describe("Deployment", func() {
 
 		BeforeEach(func() {
 			slug = AllOrInstanceGroupOrInstanceSlug{}
-			sd = SkipDrain{}
 			force = false
 			dryRun = false
 
 			startOpts = StartOpts{}
 			stopOpts = StopOpts{
-				SkipDrain: sd,
+				SkipDrain: false,
 				Force:     force,
 			}
 			detachedOpts = StopOpts{
 				Hard:      true,
-				SkipDrain: sd,
+				SkipDrain: false,
 				Force:     force,
 			}
 			restartOpts = RestartOpts{}
@@ -530,25 +528,24 @@ var _ = Describe("Deployment", func() {
 				if state != "started" {
 					It("changes state with skipping drain and forcing", func() {
 						slug = NewAllOrInstanceGroupOrInstanceSlug("", "")
-						sd = SkipDrain{All: true}
 						force = true
 
 						switch state {
 						case "recreate":
-							recreateOpts.SkipDrain = sd
+							recreateOpts.SkipDrain = true
 							recreateOpts.Force = force
 						case "stopped":
-							stopOpts.SkipDrain = sd
+							stopOpts.SkipDrain = true
 							stopOpts.Force = force
 						case "detached":
-							detachedOpts.SkipDrain = sd
+							detachedOpts.SkipDrain = true
 							detachedOpts.Force = force
 						case "restart":
-							restartOpts.SkipDrain = sd
+							restartOpts.SkipDrain = true
 							restartOpts.Force = force
 						}
 
-						query := fmt.Sprintf("state=%s&skip_drain=*&force=true", state)
+						query := fmt.Sprintf("state=%s&skip_drain=true&force=true", state)
 
 						ConfigureTaskResult(
 							ghttp.CombineHandlers(
@@ -672,7 +669,7 @@ var _ = Describe("Deployment", func() {
 			updateOpts := UpdateOpts{
 				Recreate:  true,
 				Fix:       true,
-				SkipDrain: SkipDrain{All: true},
+				SkipDrain: SkipDrains{SkipDrain{All: true}},
 			}
 			err := deployment.Update([]byte("manifest"), updateOpts)
 			Expect(err).ToNot(HaveOccurred())

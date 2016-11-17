@@ -48,12 +48,12 @@ var _ = Describe("RestartCmd", func() {
 
 			slug, restartOpts := deployment.RestartArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
-			Expect(restartOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
+			Expect(restartOpts.SkipDrain).To(BeFalse())
 			Expect(restartOpts.Force).To(BeFalse())
 		})
 
 		It("restarts allowing to skip drain scripts", func() {
-			opts.SkipDrain = boshdir.SkipDrain{All: true}
+			opts.SkipDrain = true
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -62,7 +62,7 @@ var _ = Describe("RestartCmd", func() {
 
 			slug, restartOpts := deployment.RestartArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
-			Expect(restartOpts.SkipDrain).To(Equal(boshdir.SkipDrain{All: true}))
+			Expect(restartOpts.SkipDrain).To(BeTrue())
 			Expect(restartOpts.Force).To(BeFalse())
 		})
 
@@ -100,7 +100,7 @@ var _ = Describe("RestartCmd", func() {
 
 			slug, restartOpts := deployment.RestartArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
-			Expect(restartOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
+			Expect(restartOpts.SkipDrain).To(BeFalse())
 			Expect(restartOpts.Force).To(BeTrue())
 		})
 

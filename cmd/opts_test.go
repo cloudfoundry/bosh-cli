@@ -1138,7 +1138,7 @@ var _ = Describe("Opts", func() {
 		Describe("SkipDrain", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
-					`long:"skip-drain" description:"Skip running drain scripts"`,
+					`long:"skip-drain" value-name:"JOB-NAME" description:"Skip running drain scripts for specific jobs" optional:"true" optional-value:"*"`,
 				))
 			})
 		})

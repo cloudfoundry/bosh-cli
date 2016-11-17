@@ -49,7 +49,7 @@ var _ = Describe("StopCmd", func() {
 			slug, stopOpts := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(stopOpts.Hard).To(BeFalse())
-			Expect(stopOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
+			Expect(stopOpts.SkipDrain).To(BeFalse())
 			Expect(stopOpts.Force).To(BeFalse())
 		})
 
@@ -64,12 +64,12 @@ var _ = Describe("StopCmd", func() {
 			slug, stopOpts := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(stopOpts.Hard).To(BeTrue())
-			Expect(stopOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
+			Expect(stopOpts.SkipDrain).To(BeFalse())
 			Expect(stopOpts.Force).To(BeFalse())
 		})
 
 		It("stops allowing to skip drain scripts", func() {
-			opts.SkipDrain = boshdir.SkipDrain{All: true}
+			opts.SkipDrain = true
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -79,7 +79,7 @@ var _ = Describe("StopCmd", func() {
 			slug, stopOpts := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(stopOpts.Hard).To(BeFalse())
-			Expect(stopOpts.SkipDrain).To(Equal(boshdir.SkipDrain{All: true}))
+			Expect(stopOpts.SkipDrain).To(BeTrue())
 			Expect(stopOpts.Force).To(BeFalse())
 		})
 
@@ -94,7 +94,7 @@ var _ = Describe("StopCmd", func() {
 			slug, stopOpts := deployment.StopArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(stopOpts.Hard).To(BeFalse())
-			Expect(stopOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
+			Expect(stopOpts.SkipDrain).To(BeFalse())
 			Expect(stopOpts.Force).To(BeTrue())
 		})
 

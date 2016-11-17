@@ -139,7 +139,7 @@ type StopOpts struct {
 	Canaries    string
 	MaxInFlight string
 	Force       bool
-	SkipDrain   SkipDrain
+	SkipDrain   bool
 	Hard        bool
 }
 
@@ -147,7 +147,7 @@ type RestartOpts struct {
 	Canaries    string
 	MaxInFlight string
 	Force       bool
-	SkipDrain   SkipDrain
+	SkipDrain   bool
 }
 
 type RecreateOpts struct {
@@ -155,14 +155,14 @@ type RecreateOpts struct {
 	MaxInFlight string
 	Force       bool
 	Fix         bool
-	SkipDrain   SkipDrain
+	SkipDrain   bool
 	DryRun      bool
 }
 
 type UpdateOpts struct {
 	Recreate    bool
 	Fix         bool
-	SkipDrain   SkipDrain
+	SkipDrain   SkipDrains
 	Canaries    string
 	MaxInFlight string
 	DryRun      bool

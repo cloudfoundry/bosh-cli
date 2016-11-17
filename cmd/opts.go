@@ -352,9 +352,9 @@ type DeployOpts struct {
 
 	NoRedact bool `long:"no-redact" description:"Show non-redacted manifest diff"`
 
-	Recreate  bool              `long:"recreate"   description:"Recreate all VMs in deployment"`
-	Fix       bool              `long:"fix"        description:"Recreate unresponsive instances"`
-	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
+	Recreate  bool                `long:"recreate"                          description:"Recreate all VMs in deployment"`
+	Fix       bool                `long:"fix"                               description:"Recreate unresponsive instances"`
+	SkipDrain []boshdir.SkipDrain `long:"skip-drain" value-name:"JOB-NAME"  description:"Skip running drain scripts for specific jobs" optional:"true" optional-value:"*"`
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
@@ -635,8 +635,8 @@ type StopOpts struct {
 	Soft bool `long:"soft" description:"Stop process only (default)"`
 	Hard bool `long:"hard" description:"Delete VM (but keep persistent disk)"`
 
-	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
-	Force     bool              `long:"force"      description:"No-op for backwards compatibility"`
+	SkipDrain bool `long:"skip-drain" description:"Skip running drain scripts"`
+	Force     bool `long:"force"      description:"No-op for backwards compatibility"`
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
@@ -647,8 +647,8 @@ type StopOpts struct {
 type RestartOpts struct {
 	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
 
-	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
-	Force     bool              `long:"force"      description:"No-op for backwards compatibility"`
+	SkipDrain bool `long:"skip-drain" description:"Skip running drain scripts"`
+	Force     bool `long:"force"      description:"No-op for backwards compatibility"`
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
@@ -659,9 +659,9 @@ type RestartOpts struct {
 type RecreateOpts struct {
 	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
 
-	SkipDrain boshdir.SkipDrain `long:"skip-drain" description:"Skip running drain scripts"`
-	Force     bool              `long:"force"      description:"No-op for backwards compatibility"`
-	Fix       bool              `long:"fix"      description:"Fix unresponsive VMs"`
+	SkipDrain bool `long:"skip-drain" description:"Skip running drain scripts"`
+	Force     bool `long:"force"      description:"No-op for backwards compatibility"`
+	Fix       bool `long:"fix"        description:"Fix unresponsive VMs"`
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`

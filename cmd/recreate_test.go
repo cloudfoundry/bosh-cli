@@ -48,12 +48,12 @@ var _ = Describe("RecreateCmd", func() {
 
 			slug, recreateOpts := deployment.RecreateArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
-			Expect(recreateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
+			Expect(recreateOpts.SkipDrain).To(BeFalse())
 			Expect(recreateOpts.Force).To(BeFalse())
 		})
 
 		It("recreate allowing to skip drain scripts", func() {
-			opts.SkipDrain = boshdir.SkipDrain{All: true}
+			opts.SkipDrain = true
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -62,7 +62,7 @@ var _ = Describe("RecreateCmd", func() {
 
 			slug, recreateOpts := deployment.RecreateArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
-			Expect(recreateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{All: true}))
+			Expect(recreateOpts.SkipDrain).To(BeTrue())
 			Expect(recreateOpts.Force).To(BeFalse())
 		})
 
@@ -124,7 +124,7 @@ var _ = Describe("RecreateCmd", func() {
 
 			slug, recreateOpts := deployment.RecreateArgsForCall(0)
 			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
-			Expect(recreateOpts.SkipDrain).To(Equal(boshdir.SkipDrain{}))
+			Expect(recreateOpts.SkipDrain).To(BeFalse())
 			Expect(recreateOpts.Force).To(BeTrue())
 		})
 
