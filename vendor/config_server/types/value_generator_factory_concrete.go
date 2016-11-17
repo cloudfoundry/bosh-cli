@@ -16,6 +16,10 @@ func (vgc ValueGeneratorConcrete) GetGenerator(valueType string) (ValueGenerator
 	switch valueType {
 	case "password":
 		return NewPasswordGenerator(), nil
+	case "ssh":
+		return NewSSHKeyGenerator(), nil
+	case "rsa":
+		return NewRSAKeyGenerator(), nil
 	case "certificate":
 		return NewCertificateGenerator(vgc.loader), nil
 	default:
