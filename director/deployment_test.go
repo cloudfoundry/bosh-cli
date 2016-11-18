@@ -194,7 +194,29 @@ var _ = Describe("Deployment", func() {
 				),
 			)
 
-			result, err := deployment.FetchLogs(NewInstanceSlug("job", "id"), nil, false)
+			result, err := deployment.FetchLogs(NewAllOrInstanceGroupOrInstanceSlug("job", "id"), nil, false)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(LogsResult{BlobstoreID: "logs-blob-id", SHA1: ""}))
+		})
+
+		It("returns logs result for all deplotment", func() {
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/deployments/dep/jobs/*/*/logs", "type=job"),
+					ghttp.VerifyBasicAuth("username", "password"),
+				),
+				``,
+				server,
+			)
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/123"),
+					ghttp.RespondWith(http.StatusOK, `{"result":"logs-blob-id"}`),
+				),
+			)
+
+			result, err := deployment.FetchLogs(NewAllOrInstanceGroupOrInstanceSlug("", ""), nil, false)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(Equal(LogsResult{BlobstoreID: "logs-blob-id", SHA1: ""}))
 		})
@@ -217,7 +239,7 @@ var _ = Describe("Deployment", func() {
 			)
 
 			result, err := deployment.FetchLogs(
-				NewInstanceSlug("job", "id"), []string{"f1", "f2"}, true)
+				NewAllOrInstanceGroupOrInstanceSlug("job", "id"), []string{"f1", "f2"}, true)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(Equal(LogsResult{BlobstoreID: "logs-blob-id", SHA1: ""}))
 		})
@@ -234,7 +256,7 @@ var _ = Describe("Deployment", func() {
 
 			AppendBadRequest(ghttp.VerifyRequest("GET", "/tasks/123"), server)
 
-			_, err := deployment.FetchLogs(NewInstanceSlug("job", "id"), nil, false)
+			_, err := deployment.FetchLogs(NewAllOrInstanceGroupOrInstanceSlug("job", "id"), nil, false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Finding task '123'"))
 		})
@@ -242,7 +264,7 @@ var _ = Describe("Deployment", func() {
 		It("returns error if response is non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("GET", "/deployments/dep/jobs/job/id/logs", "type=job"), server)
 
-			_, err := deployment.FetchLogs(NewInstanceSlug("job", "id"), nil, false)
+			_, err := deployment.FetchLogs(NewAllOrInstanceGroupOrInstanceSlug("job", "id"), nil, false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Fetching logs"))
 		})

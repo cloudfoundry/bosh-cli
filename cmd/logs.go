@@ -113,9 +113,15 @@ func (c LogsCmd) buildTailCmd(opts LogsOpts) []string {
 }
 
 func (c LogsCmd) fetch(opts LogsOpts) error {
-	slug, ok := opts.Args.Slug.InstanceSlug()
-	if !ok {
-		return bosherr.Errorf("Expected single instance for fetching logs")
+	slug := opts.Args.Slug
+	name := c.deployment.Name()
+
+	if len(slug.Name()) > 0 {
+		name += "." + slug.Name()
+	}
+
+	if len(slug.IndexOrID()) > 0 {
+		name += "." + slug.IndexOrID()
 	}
 
 	result, err := c.deployment.FetchLogs(slug, opts.Filters, opts.Agent)
@@ -126,7 +132,7 @@ func (c LogsCmd) fetch(opts LogsOpts) error {
 	err = c.downloader.Download(
 		result.BlobstoreID,
 		result.SHA1,
-		opts.Args.Slug.Name(),
+		name,
 		opts.Directory.Path,
 	)
 	if err != nil {

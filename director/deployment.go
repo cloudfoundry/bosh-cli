@@ -107,7 +107,7 @@ func (d DeploymentImpl) Manifest() (string, error) {
 	return resp.Manifest, nil
 }
 
-func (d DeploymentImpl) FetchLogs(slug InstanceSlug, filters []string, agent bool) (LogsResult, error) {
+func (d DeploymentImpl) FetchLogs(slug AllOrInstanceGroupOrInstanceSlug, filters []string, agent bool) (LogsResult, error) {
 	blobID, sha1, err := d.client.FetchLogs(d.name, slug.Name(), slug.IndexOrID(), filters, agent)
 	if err != nil {
 		return LogsResult{}, err
@@ -211,11 +211,11 @@ func (c Client) FetchLogs(deploymentName, job, indexOrID string, filters []strin
 	}
 
 	if len(job) == 0 {
-		return "", "", bosherr.Error("Expected non-empty job name")
+		job = "*"
 	}
 
 	if len(indexOrID) == 0 {
-		return "", "", bosherr.Error("Expected non-empty index or ID")
+		indexOrID = "*"
 	}
 
 	query := gourl.Values{}

@@ -25,7 +25,9 @@ var _ = Describe("LogsCmd", func() {
 	)
 
 	BeforeEach(func() {
-		deployment = &fakedir.FakeDeployment{}
+		deployment = &fakedir.FakeDeployment{
+			NameStub: func() string { return "dep" },
+		}
 		downloader = &fakecmd.FakeDownloader{}
 		uuidGen = &fakeuuid.FakeGenerator{}
 		nonIntSSHRunner = &fakessh.FakeRunner{}
@@ -60,7 +62,7 @@ var _ = Describe("LogsCmd", func() {
 				Expect(deployment.FetchLogsCallCount()).To(Equal(1))
 
 				slug, filters, agent := deployment.FetchLogsArgsForCall(0)
-				Expect(slug).To(Equal(boshdir.NewInstanceSlug("job", "index")))
+				Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
 				Expect(filters).To(BeEmpty())
 				Expect(agent).To(BeFalse())
 
@@ -69,7 +71,7 @@ var _ = Describe("LogsCmd", func() {
 				blobID, sha1, prefix, dstDirPath := downloader.DownloadArgsForCall(0)
 				Expect(blobID).To(Equal("blob-id"))
 				Expect(sha1).To(Equal("sha1"))
-				Expect(prefix).To(Equal("job"))
+				Expect(prefix).To(Equal("dep.job.index"))
 				Expect(dstDirPath).To(Equal("/fake-dir"))
 			})
 
@@ -85,17 +87,29 @@ var _ = Describe("LogsCmd", func() {
 				Expect(deployment.FetchLogsCallCount()).To(Equal(1))
 
 				slug, filters, agent := deployment.FetchLogsArgsForCall(0)
-				Expect(slug).To(Equal(boshdir.NewInstanceSlug("job", "index")))
+				Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
 				Expect(filters).To(Equal([]string{"filter1", "filter2"}))
 				Expect(agent).To(BeTrue())
 			})
 
-			It("returns error if trying to fetch logs for more than one instance", func() {
-				opts.Args.Slug = boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "")
+			It("fetches logs for more than one instance", func() {
+				opts.Args.Slug = boshdir.NewAllOrInstanceGroupOrInstanceSlug("", "")
+
+				result := boshdir.LogsResult{BlobstoreID: "blob-id", SHA1: "sha1"}
+				deployment.FetchLogsReturns(result, nil)
 
 				err := act()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Expected single instance for fetching logs"))
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deployment.FetchLogsCallCount()).To(Equal(1))
+
+				Expect(downloader.DownloadCallCount()).To(Equal(1))
+
+				blobID, sha1, prefix, dstDirPath := downloader.DownloadArgsForCall(0)
+				Expect(blobID).To(Equal("blob-id"))
+				Expect(sha1).To(Equal("sha1"))
+				Expect(prefix).To(Equal("dep"))
+				Expect(dstDirPath).To(Equal("/fake-dir"))
 			})
 
 			It("returns error if fetching logs failed", func() {

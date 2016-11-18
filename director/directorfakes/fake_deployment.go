@@ -198,10 +198,10 @@ type FakeDeployment struct {
 	cleanUpSSHReturns struct {
 		result1 error
 	}
-	FetchLogsStub        func(director.InstanceSlug, []string, bool) (director.LogsResult, error)
+	FetchLogsStub        func(director.AllOrInstanceGroupOrInstanceSlug, []string, bool) (director.LogsResult, error)
 	fetchLogsMutex       sync.RWMutex
 	fetchLogsArgsForCall []struct {
-		arg1 director.InstanceSlug
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
 		arg2 []string
 		arg3 bool
 	}
@@ -993,7 +993,7 @@ func (fake *FakeDeployment) CleanUpSSHReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) FetchLogs(arg1 director.InstanceSlug, arg2 []string, arg3 bool) (director.LogsResult, error) {
+func (fake *FakeDeployment) FetchLogs(arg1 director.AllOrInstanceGroupOrInstanceSlug, arg2 []string, arg3 bool) (director.LogsResult, error) {
 	var arg2Copy []string
 	if arg2 != nil {
 		arg2Copy = make([]string, len(arg2))
@@ -1001,7 +1001,7 @@ func (fake *FakeDeployment) FetchLogs(arg1 director.InstanceSlug, arg2 []string,
 	}
 	fake.fetchLogsMutex.Lock()
 	fake.fetchLogsArgsForCall = append(fake.fetchLogsArgsForCall, struct {
-		arg1 director.InstanceSlug
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
 		arg2 []string
 		arg3 bool
 	}{arg1, arg2Copy, arg3})
@@ -1020,7 +1020,7 @@ func (fake *FakeDeployment) FetchLogsCallCount() int {
 	return len(fake.fetchLogsArgsForCall)
 }
 
-func (fake *FakeDeployment) FetchLogsArgsForCall(i int) (director.InstanceSlug, []string, bool) {
+func (fake *FakeDeployment) FetchLogsArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, []string, bool) {
 	fake.fetchLogsMutex.RLock()
 	defer fake.fetchLogsMutex.RUnlock()
 	return fake.fetchLogsArgsForCall[i].arg1, fake.fetchLogsArgsForCall[i].arg2, fake.fetchLogsArgsForCall[i].arg3
