@@ -21,28 +21,44 @@ var _ = Describe("FSConfig", func() {
 		config = NewFSConfig("/dir/public.yml", "/dir/private.yml", fs)
 	})
 
-	Describe("FinalName", func() {
-		It("returns final name from public config", func() {
-			fs.WriteFileString("/dir/public.yml", "final_name: name")
+	Describe("Name", func() {
+		It("returns name from public config", func() {
+			fs.WriteFileString("/dir/public.yml", "name: name")
 
-			name, err := config.FinalName()
+			name, err := config.Name()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(name).To(Equal("name"))
 		})
 
-		It("returns error if name is empty", func() {
+		It("returns final_name from public config", func() {
+			fs.WriteFileString("/dir/public.yml", "final_name: name")
+
+			name, err := config.Name()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(name).To(Equal("name"))
+		})
+
+		It("returns error if name and final_name are empty", func() {
 			fs.WriteFileString("/dir/public.yml", "")
 
-			_, err := config.FinalName()
+			_, err := config.Name()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Expected non-empty 'final_name' in config '/dir/public.yml'"))
+			Expect(err.Error()).To(Equal("Expected non-empty 'name' in config '/dir/public.yml'"))
+		})
+
+		It("returns error if both name and final_name are non-empty", func() {
+			fs.WriteFileString("/dir/public.yml", "final_name: name\nname: name")
+
+			_, err := config.Name()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Expected 'name' or 'final_name' but not both in config '/dir/public.yml'"))
 		})
 
 		It("returns error if cannot read public config", func() {
 			fs.WriteFileString("/dir/public.yml", "-")
 			fs.RegisterReadFileError("/dir/public.yml", errors.New("fake-err"))
 
-			_, err := config.FinalName()
+			_, err := config.Name()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
@@ -50,7 +66,7 @@ var _ = Describe("FSConfig", func() {
 		It("returns error if cannot unmarshal public config", func() {
 			fs.WriteFileString("/dir/public.yml", "-")
 
-			_, err := config.FinalName()
+			_, err := config.Name()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("line 1"))
 		})
@@ -59,7 +75,7 @@ var _ = Describe("FSConfig", func() {
 			fs.WriteFileString("/dir/private.yml", "-")
 			fs.RegisterReadFileError("/dir/private.yml", errors.New("fake-err"))
 
-			_, err := config.FinalName()
+			_, err := config.Name()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
@@ -67,7 +83,7 @@ var _ = Describe("FSConfig", func() {
 		It("returns error if cannot unmarshal private config", func() {
 			fs.WriteFileString("/dir/private.yml", "-")
 
-			_, err := config.FinalName()
+			_, err := config.Name()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("line 1"))
 		})
@@ -149,38 +165,47 @@ var _ = Describe("FSConfig", func() {
 		})
 	})
 
-	Describe("SaveFinalName", func() {
+	Describe("SaveName", func() {
 		It("writes new config with name if config does not exist", func() {
-			err := config.SaveFinalName("new-name")
+			err := config.SaveName("new-name")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fs.ReadFileString("/dir/public.yml")).To(Equal("final_name: new-name\n"))
+			Expect(fs.ReadFileString("/dir/public.yml")).To(Equal("name: new-name\n"))
 		})
 
 		It("adds name to public config keeping other entries", func() {
-			fs.WriteFileString("/dir/public.yml", "final_name: name")
+			fs.WriteFileString("/dir/public.yml", "name: name")
 
-			err := config.SaveFinalName("new-name")
+			err := config.SaveName("new-name")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fs.ReadFileString("/dir/public.yml")).To(Equal("final_name: new-name\n"))
+			Expect(fs.ReadFileString("/dir/public.yml")).To(Equal("name: new-name\n"))
 		})
 
 		It("overwrites existing name in public config keeping other entries", func() {
-			fs.WriteFileString("/dir/public.yml", "final_name: name\nblobstore: {provider: s3}")
+			fs.WriteFileString("/dir/public.yml", "name: name\nblobstore: {provider: s3}")
 
-			err := config.SaveFinalName("new-name")
+			err := config.SaveName("new-name")
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fs.ReadFileString("/dir/public.yml")).To(Equal(
-				"final_name: new-name\nblobstore:\n  provider: s3\n"))
+				"name: new-name\nblobstore:\n  provider: s3\n"))
+		})
+
+		It("migrates final_name to name", func() {
+			fs.WriteFileString("/dir/public.yml", "final_name: name")
+
+			err := config.SaveName("new-name")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/public.yml")).To(Equal("name: new-name\n"))
 		})
 
 		It("returns error if cannot read public config", func() {
 			fs.WriteFileString("/dir/public.yml", "-")
 			fs.RegisterReadFileError("/dir/public.yml", errors.New("fake-err"))
 
-			err := config.SaveFinalName("new-name")
+			err := config.SaveName("new-name")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
@@ -188,7 +213,7 @@ var _ = Describe("FSConfig", func() {
 		It("returns error if cannot unmarshal public config", func() {
 			fs.WriteFileString("/dir/public.yml", "-")
 
-			err := config.SaveFinalName("new-name")
+			err := config.SaveName("new-name")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("line 1"))
 		})
@@ -197,7 +222,7 @@ var _ = Describe("FSConfig", func() {
 			fs.WriteFileString("/dir/private.yml", "-")
 			fs.RegisterReadFileError("/dir/private.yml", errors.New("fake-err"))
 
-			err := config.SaveFinalName("new-name")
+			err := config.SaveName("new-name")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
@@ -205,7 +230,7 @@ var _ = Describe("FSConfig", func() {
 		It("returns error if cannot unmarshal private config", func() {
 			fs.WriteFileString("/dir/private.yml", "-")
 
-			err := config.SaveFinalName("new-name")
+			err := config.SaveName("new-name")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("line 1"))
 		})
@@ -213,7 +238,7 @@ var _ = Describe("FSConfig", func() {
 		It("returns error if cannot write public config", func() {
 			fs.WriteFileError = errors.New("fake-err")
 
-			err := config.SaveFinalName("new-name")
+			err := config.SaveName("new-name")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})

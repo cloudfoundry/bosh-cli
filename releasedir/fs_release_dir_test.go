@@ -77,8 +77,8 @@ var _ = Describe("FSGenerator", func() {
 			err := releaseDir.Init(true)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(config.SaveFinalNameCallCount()).To(Equal(1))
-			Expect(config.SaveFinalNameArgsForCall(0)).To(Equal("dir"))
+			Expect(config.SaveNameCallCount()).To(Equal(1))
+			Expect(config.SaveNameArgsForCall(0)).To(Equal("dir"))
 		})
 
 		It("saves release name to directory base name stripping '-release' suffix from the name", func() {
@@ -88,12 +88,12 @@ var _ = Describe("FSGenerator", func() {
 			err := releaseDir.Init(true)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(config.SaveFinalNameCallCount()).To(Equal(1))
-			Expect(config.SaveFinalNameArgsForCall(0)).To(Equal("dir"))
+			Expect(config.SaveNameCallCount()).To(Equal(1))
+			Expect(config.SaveNameArgsForCall(0)).To(Equal("dir"))
 		})
 
 		It("returns error if saving final name fails", func() {
-			config.SaveFinalNameReturns(errors.New("fake-err"))
+			config.SaveNameReturns(errors.New("fake-err"))
 
 			err := releaseDir.Init(true)
 			Expect(err).To(HaveOccurred())
@@ -185,7 +185,7 @@ var _ = Describe("FSGenerator", func() {
 
 	Describe("DefaultName", func() {
 		It("delegates to config", func() {
-			config.FinalNameReturns("name", errors.New("fake-err"))
+			config.NameReturns("name", errors.New("fake-err"))
 
 			name, err := releaseDir.DefaultName()
 			Expect(name).To(Equal("name"))
@@ -349,7 +349,7 @@ var _ = Describe("FSGenerator", func() {
 		)
 
 		BeforeEach(func() {
-			config.FinalNameReturns("rel1", nil)
+			config.NameReturns("rel1", nil)
 
 			expectedRelease = &fakerel.FakeRelease{
 				NameStub: func() string { return "rel1" },
@@ -483,7 +483,7 @@ var _ = Describe("FSGenerator", func() {
 		})
 
 		It("retuns error if cannot determine final name", func() {
-			config.FinalNameReturns("", errors.New("fake-err"))
+			config.NameReturns("", errors.New("fake-err"))
 
 			_, err := releaseDir.LastRelease()
 			Expect(err).To(HaveOccurred())

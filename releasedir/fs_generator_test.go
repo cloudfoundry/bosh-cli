@@ -24,7 +24,7 @@ var _ = Describe("FSGenerator", func() {
 
 	Describe("GenerateJob", func() {
 		It("makes job directory", func() {
-			fs.WriteFileString("/dir/public.yml", "final_name: name")
+			fs.WriteFileString("/dir/public.yml", "name: name")
 
 			err := gen.GenerateJob("job1")
 			Expect(err).ToNot(HaveOccurred())
@@ -63,7 +63,7 @@ properties: {}
 
 	Describe("GeneratePackage", func() {
 		It("makes package directory", func() {
-			fs.WriteFileString("/dir/public.yml", "final_name: name")
+			fs.WriteFileString("/dir/public.yml", "name: name")
 
 			err := gen.GeneratePackage("pkg1")
 			Expect(err).ToNot(HaveOccurred())
