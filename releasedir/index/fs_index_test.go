@@ -145,7 +145,8 @@ format-version: "2"`)
 
 	Describe("Add", func() {
 		It("adds new entry when no index file exists", func() {
-			blobs.AddStub = func(path, sha1 string) (string, string, error) {
+			blobs.AddStub = func(name, path, sha1 string) (string, string, error) {
+				Expect(name).To(Equal("name/fp"))
 				Expect(path).To(Equal("path"))
 				Expect(sha1).To(Equal("sha1"))
 				return "blob-id", "blob-path", nil
