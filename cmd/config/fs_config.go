@@ -1,8 +1,6 @@
 package config
 
 import (
-	"strings"
-
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
@@ -91,7 +89,7 @@ func (c FSConfig) AliasEnvironment(url, alias, caCert string) (Config, error) {
 
 	i, tg := config.findOrCreateEnvironment(url)
 	tg.Alias = alias
-	tg.CACert = c.readCACert(caCert)
+	tg.CACert = caCert
 	config.schema.Environments[i] = tg
 
 	return config, nil
@@ -100,20 +98,7 @@ func (c FSConfig) AliasEnvironment(url, alias, caCert string) (Config, error) {
 func (c FSConfig) CACert(urlOrAlias string) string {
 	_, tg := c.findOrCreateEnvironment(urlOrAlias)
 
-	return c.readCACert(tg.CACert)
-}
-
-func (c FSConfig) readCACert(caCert string) string {
-	if strings.Contains(caCert, "BEGIN") {
-		return caCert
-	}
-
-	readCACert, err := c.fs.ReadFileString(caCert)
-	if err != nil {
-		return ""
-	}
-
-	return readCACert
+	return tg.CACert
 }
 
 func (c FSConfig) Credentials(urlOrAlias string) Creds {

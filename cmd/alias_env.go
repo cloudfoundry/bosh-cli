@@ -21,7 +21,7 @@ func NewAliasEnvCmd(
 }
 
 func (c AliasEnvCmd) Run(opts AliasEnvOpts) error {
-	updatedConfig, err := c.config.AliasEnvironment(opts.URL, opts.Args.Alias, opts.CACert)
+	updatedConfig, err := c.config.AliasEnvironment(opts.URL, opts.Args.Alias, opts.CACert.Content)
 	if err != nil {
 		return err
 	}

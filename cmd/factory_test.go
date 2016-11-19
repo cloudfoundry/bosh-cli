@@ -218,11 +218,12 @@ var _ = Describe("Factory", func() {
 		})
 
 		It("is passed the global CA cert", func() {
-			cmd, err := factory.New([]string{"alias-env", "--ca-cert", "ca-cert", "alias"})
+			cmd, err := factory.New([]string{"alias-env", "--ca-cert", "BEGIN ca-cert", "alias"})
 			Expect(err).ToNot(HaveOccurred())
 
 			opts := cmd.Opts.(*AliasEnvOpts)
-			Expect(opts.CACert).To(Equal("ca-cert"))
+			opts.CACert.FS = nil
+			Expect(opts.CACert).To(Equal(CACertArg{Content: "BEGIN ca-cert"}))
 		})
 	})
 
@@ -302,7 +303,8 @@ var _ = Describe("Factory", func() {
 
 	Describe("global options", func() {
 		clearNonGlobalOpts := func(boshOpts BoshOpts) BoshOpts {
-			boshOpts.VersionOpt = nil // can't compare functions
+			boshOpts.VersionOpt = nil   // can't compare functions
+			boshOpts.CACertOpt.FS = nil // fs is populated by factory.New
 			boshOpts.UploadRelease = UploadReleaseOpts{}
 			boshOpts.ExportRelease = ExportReleaseOpts{}
 			boshOpts.RunErrand = RunErrandOpts{}
@@ -336,7 +338,7 @@ var _ = Describe("Factory", func() {
 			opts := []string{
 				"--config", "config",
 				"--environment", "env",
-				"--ca-cert", "ca-cert",
+				"--ca-cert", "BEGIN ca-cert",
 				"--user", "user",
 				"--password", "password",
 				"--uaa-client", "uaa-client",
@@ -355,7 +357,7 @@ var _ = Describe("Factory", func() {
 			Expect(clearNonGlobalOpts(cmd.BoshOpts)).To(Equal(BoshOpts{
 				ConfigPathOpt:      "config",
 				EnvironmentOpt:     "env",
-				CACertOpt:          "ca-cert",
+				CACertOpt:          CACertArg{Content: "BEGIN ca-cert"},
 				UsernameOpt:        "user",
 				PasswordOpt:        "password",
 				UAAClientOpt:       "uaa-client",

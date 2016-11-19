@@ -46,19 +46,8 @@ func (c SessionContextImpl) Credentials() cmdconf.Creds {
 }
 
 func (c SessionContextImpl) CACert() string {
-	caCert := c.opts.CACertOpt
-
-	if len(caCert) > 0 {
-		if c.isFilePath(caCert) {
-			readCACert, err := c.fs.ReadFileString(caCert)
-			if err != nil {
-				return ""
-			}
-
-			return readCACert
-		}
-
-		return caCert
+	if len(c.opts.CACertOpt.Content) > 0 {
+		return c.opts.CACertOpt.Content
 	}
 
 	return c.config.CACert(c.Environment())
@@ -66,13 +55,4 @@ func (c SessionContextImpl) CACert() string {
 
 func (c SessionContextImpl) Deployment() string {
 	return c.opts.DeploymentOpt
-}
-
-func (c SessionContextImpl) isFilePath(path string) bool {
-	fullPath, err := c.fs.ExpandPath(path)
-	if err != nil {
-		return false
-	}
-
-	return c.fs.FileExists(fullPath)
 }
