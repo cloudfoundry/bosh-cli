@@ -67,7 +67,7 @@ var _ = Describe("AliasEnvCmd", func() {
 
 			opts.URL = "environment-url"
 			opts.Args.Alias = "environment-alias"
-			opts.CACert = "environment-ca-cert"
+			opts.CACert = CACertArg{Content: "environment-ca-cert"}
 
 			updatedConfig = &fakecmdconf.FakeConfig2{
 				Existing: fakecmdconf.ConfigContents{

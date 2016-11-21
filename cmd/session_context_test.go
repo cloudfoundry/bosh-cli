@@ -1,8 +1,6 @@
 package cmd_test
 
 import (
-	"errors"
-
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -111,36 +109,19 @@ var _ = Describe("SessionContextImpl", func() {
 			opts.EnvironmentOpt = "opt-url"
 		})
 
-		It("returns global option if provided as non-file-path", func() {
+		It("returns global option if provided", func() {
 			config.CACertReturns("config-cert")
-
-			opts.CACertOpt = "opt-cert"
-
+			opts.CACertOpt = CACertArg{Content: "opt-cert"}
 			Expect(build().CACert()).To(Equal("opt-cert"))
 		})
 
-		It("returns global option as value if provided as file path", func() {
-			fs.WriteFileString("/cert", "file-cert")
-
+		It("returns config value if global option is not set", func() {
 			config.CACertReturns("config-cert")
-
-			opts.CACertOpt = "/cert"
-
-			Expect(build().CACert()).To(Equal("file-cert"))
+			opts.CACertOpt = CACertArg{}
+			Expect(build().CACert()).To(Equal("config-cert"))
 		})
 
-		It("returns empty value if provided file path cannot be read", func() {
-			fs.WriteFileString("/cert", "file-cert")
-			fs.ReadFileError = errors.New("fake-err")
-
-			config.CACertReturns("config-cert")
-
-			opts.CACertOpt = "/cert"
-
-			Expect(build().CACert()).To(Equal(""))
-		})
-
-		It("returns empty string if global option is not set", func() {
+		It("returns empty string if global option or config value is not set", func() {
 			Expect(build().CACert()).To(Equal(""))
 		})
 	})

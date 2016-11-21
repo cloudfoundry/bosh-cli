@@ -173,21 +173,18 @@ var _ = Describe("FSConfig", func() {
 			Expect(reloadedConfig.CACert("url")).To(Equal(""))
 		})
 
-		// Valid from pov of FSConfig
-		validCACert := "BEGIN\nca-cert"
-
 		It("saves non-empty CA certificate and then unsets it", func() {
-			updatedConfig, err := config.AliasEnvironment("url", "alias", validCACert)
+			updatedConfig, err := config.AliasEnvironment("url", "alias", "ca-cert")
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(updatedConfig.ResolveEnvironment("url")).To(Equal("url"))
-			Expect(updatedConfig.CACert("url")).To(Equal(validCACert))
+			Expect(updatedConfig.CACert("url")).To(Equal("ca-cert"))
 
 			err = updatedConfig.Save()
 			Expect(err).ToNot(HaveOccurred())
 
 			reloadedConfig := readConfig()
-			Expect(reloadedConfig.CACert("url")).To(Equal(validCACert))
+			Expect(reloadedConfig.CACert("url")).To(Equal("ca-cert"))
 
 			updatedConfig, err = reloadedConfig.AliasEnvironment("url", "alias", "")
 			Expect(err).ToNot(HaveOccurred())
@@ -202,36 +199,18 @@ var _ = Describe("FSConfig", func() {
 			Expect(reloadedConfig.CACert("url")).To(Equal(""))
 		})
 
-		It("saves CA cert via file path and does not need file system later", func() {
-			fs.WriteFileString("/ca-cert", validCACert)
-
-			updatedConfig, err := config.AliasEnvironment("url", "alias", "/ca-cert")
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(updatedConfig.CACert("url")).To(Equal(validCACert))
-
-			err = updatedConfig.Save()
-			Expect(err).ToNot(HaveOccurred())
-
-			err = fs.RemoveAll("/ca-cert")
-			Expect(err).ToNot(HaveOccurred())
-
-			reloadedConfig := readConfig()
-			Expect(reloadedConfig.CACert("url")).To(Equal(validCACert))
-		})
-
 		It("returns CA cert for alias", func() {
-			updatedConfig, err := config.AliasEnvironment("url", "alias", validCACert)
+			updatedConfig, err := config.AliasEnvironment("url", "alias", "ca-cert")
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(updatedConfig.ResolveEnvironment("url")).To(Equal("url"))
-			Expect(updatedConfig.CACert("alias")).To(Equal(validCACert))
+			Expect(updatedConfig.CACert("alias")).To(Equal("ca-cert"))
 
 			err = updatedConfig.Save()
 			Expect(err).ToNot(HaveOccurred())
 
 			reloadedConfig := readConfig()
-			Expect(reloadedConfig.CACert("alias")).To(Equal(validCACert))
+			Expect(reloadedConfig.CACert("alias")).To(Equal("ca-cert"))
 
 			updatedConfig, err = reloadedConfig.AliasEnvironment("url", "alias", "")
 			Expect(err).ToNot(HaveOccurred())
