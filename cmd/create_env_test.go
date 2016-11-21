@@ -453,9 +453,8 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			Context("when state file is specified", func() {
 				It("prints specified state file path", func() {
-					specifiedStateFilePath := "/specified/path/to/cool-state.json"
 					createEnvOptsWithStateFile := bicmd.CreateEnvOpts{
-						StateFile: &specifiedStateFilePath,
+						StateFile: "/specified/path/to/cool-state.json",
 						Args: bicmd.CreateEnvArgs{
 							Manifest: bicmd.FileBytesWithPathArg{Path: deploymentManifestPath},
 						},

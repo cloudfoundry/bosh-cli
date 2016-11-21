@@ -87,12 +87,10 @@ var _ = Describe("DeleteCmd", func() {
 		})
 
 		Context("state path is specified", func() {
-			statePath := "/new/state/file/path/state.json"
-
 			It("sends the manifest on to the deleter", func() {
 				mockDeploymentDeleter.EXPECT().DeleteDeployment(fakeStage).Return(nil)
 				newDeleteCmd().Run(fakeStage, bicmd.DeleteEnvOpts{
-					StateFile: &statePath,
+					StateFile: "/new/state/file/path/state.json",
 					Args: bicmd.DeleteEnvArgs{
 						Manifest: bicmd.FileBytesWithPathArg{Path: deploymentManifestPath},
 					},
@@ -106,7 +104,7 @@ var _ = Describe("DeleteCmd", func() {
 					},
 				})
 
-				Expect(stateFilePath).To(Equal(statePath))
+				Expect(stateFilePath).To(Equal("/new/state/file/path/state.json"))
 			})
 		})
 

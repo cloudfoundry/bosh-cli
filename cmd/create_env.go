@@ -19,13 +19,8 @@ func NewCreateEnvCmd(ui boshui.UI, envProvider func(string, string, boshtpl.Vari
 func (c *CreateEnvCmd) Run(stage boshui.Stage, opts CreateEnvOpts) error {
 	c.ui.BeginLinef("Deployment manifest: '%s'\n", opts.Args.Manifest.Path)
 
-	stateFile := ""
-	if opts.StateFile != nil {
-		stateFile = *opts.StateFile
-	}
-
 	depPreparer := c.envProvider(
-		opts.Args.Manifest.Path, stateFile, opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp())
+		opts.Args.Manifest.Path, opts.StateFile, opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp())
 
 	return depPreparer.PrepareDeployment(stage)
 }

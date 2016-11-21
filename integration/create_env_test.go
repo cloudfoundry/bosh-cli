@@ -934,5 +934,5 @@ cloud_provider:
 })
 
 func newDeployOpts(manifestPath string, stateFile string) CreateEnvOpts {
-	return CreateEnvOpts{StateFile: &stateFile, Args: CreateEnvArgs{Manifest: FileBytesWithPathArg{Path: manifestPath}}}
+	return CreateEnvOpts{StateFile: stateFile, Args: CreateEnvArgs{Manifest: FileBytesWithPathArg{Path: manifestPath}}}
 }
