@@ -55,16 +55,16 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewEnvironmentsCmd(c.config(), deps.UI).Run()
 
 	case *CreateEnvOpts:
-		envProvider := func(path string, vars boshtpl.Variables, op patch.Op) DeploymentPreparer {
-			return NewEnvFactory(deps, path, vars, op).Preparer()
+		envProvider := func(manifestPath string, statePath string, vars boshtpl.Variables, op patch.Op) DeploymentPreparer {
+			return NewEnvFactory(deps, manifestPath, statePath, vars, op).Preparer()
 		}
 
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
 		return NewCreateEnvCmd(deps.UI, envProvider).Run(stage, *opts)
 
 	case *DeleteEnvOpts:
-		envProvider := func(path string, vars boshtpl.Variables, op patch.Op) DeploymentDeleter {
-			return NewEnvFactory(deps, path, vars, op).Deleter()
+		envProvider := func(manifestPath string, vars boshtpl.Variables, op patch.Op) DeploymentDeleter {
+			return NewEnvFactory(deps, manifestPath, "", vars, op).Deleter()
 		}
 
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)

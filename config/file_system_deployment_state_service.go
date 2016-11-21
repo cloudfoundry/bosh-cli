@@ -30,9 +30,19 @@ func NewFileSystemDeploymentStateService(fs boshsys.FileSystem, uuidGenerator bo
 	}
 }
 
-func DeploymentStatePath(deploymentManifestPath string) string {
+func DeploymentStatePath(deploymentManifestPath string, deploymentStatePath string) string {
+	path := filepath.Dir(deploymentManifestPath)
 	baseFileName := filepath.Base(strings.TrimSuffix(deploymentManifestPath, filepath.Ext(deploymentManifestPath)))
-	return filepath.Join(filepath.Dir(deploymentManifestPath), fmt.Sprintf("%s-state.json", baseFileName))
+
+	if deploymentStatePath != "" {
+		path = filepath.Dir(deploymentStatePath)
+
+		if deploymentStatePath[len(deploymentStatePath)-1:] != "/" {
+			baseFileName := filepath.Base(strings.TrimSuffix(deploymentStatePath, filepath.Ext(deploymentStatePath)))
+			return filepath.Join(path, fmt.Sprintf("%s.json", baseFileName))
+		}
+	}
+	return filepath.Join(path, fmt.Sprintf("%s-state.json", baseFileName))
 }
 
 func (s *fileSystemDeploymentStateService) Path() string {

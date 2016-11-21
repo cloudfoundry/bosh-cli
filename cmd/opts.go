@@ -159,6 +159,7 @@ type CreateEnvOpts struct {
 	Args CreateEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
+	StateFile *string `long:"state" short:"s" value-name:"PATH" description:"Path where state file should be saved"`
 	cmd
 }
 

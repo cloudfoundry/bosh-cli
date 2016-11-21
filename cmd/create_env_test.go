@@ -196,7 +196,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			configUUIDGenerator = &fakeuuid.FakeGenerator{}
 			configUUIDGenerator.GeneratedUUID = directorID
-			setupDeploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
+			setupDeploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, ""))
 
 			fakeDeploymentValidator = fakebideplval.NewFakeValidator()
 
@@ -313,8 +313,8 @@ var _ = Describe("CreateEnvCmd", func() {
 		})
 
 		JustBeforeEach(func() {
-			doGet := func(deploymentManifestPath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) bicmd.DeploymentPreparer {
-				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
+			doGet := func(deploymentManifestPath string, stateFilePath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) bicmd.DeploymentPreparer {
+				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, stateFilePath))
 				deploymentRepo := biconfig.NewDeploymentRepo(deploymentStateService)
 				releaseRepo := biconfig.NewReleaseRepo(deploymentStateService, fakeUUIDGenerator)
 				stemcellRepo := biconfig.NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
@@ -436,12 +436,36 @@ var _ = Describe("CreateEnvCmd", func() {
 			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(cloud, nil).AnyTimes()
 		})
 
-		It("prints the deployment manifest and state file", func() {
-			err := command.Run(fakeStage, defaultCreateEnvOpts)
-			Expect(err).NotTo(HaveOccurred())
+		Describe("prints the deployment manifest and state file", func() {
+			It("prints the deployment manifest", func() {
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(stdOut).To(gbytes.Say("Deployment manifest: '/path/to/manifest.yml'"))
+			})
 
-			Expect(stdOut).To(gbytes.Say("Deployment manifest: '/path/to/manifest.yml'"))
-			Expect(stdOut).To(gbytes.Say("Deployment state: '/path/to/manifest-state.json'"))
+			Context("when state file is NOT specified", func() {
+				It("prints the default state file path", func() {
+					err := command.Run(fakeStage, defaultCreateEnvOpts)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(stdOut).To(gbytes.Say("Deployment state: '/path/to/manifest-state.json'"))
+				})
+			})
+
+			Context("when state file is specified", func() {
+				It("prints specified state file path", func() {
+					specifiedStateFilePath := "/specified/path/to/cool-state.json"
+					createEnvOptsWithStateFile := bicmd.CreateEnvOpts{
+						StateFile: &specifiedStateFilePath,
+						Args: bicmd.CreateEnvArgs{
+							Manifest: bicmd.FileBytesWithPathArg{Path: deploymentManifestPath},
+						},
+					}
+
+					err := command.Run(fakeStage, createEnvOptsWithStateFile)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(stdOut).To(gbytes.Say("Deployment state: '/specified/path/to/cool-state.json'"))
+				})
+			})
 		})
 
 		It("does not migrate the legacy bosh-deployments.yml if manifest-state.json exists", func() {

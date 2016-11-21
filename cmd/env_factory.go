@@ -66,7 +66,7 @@ type envFactory struct {
 	deploymentRecord   bidepl.Record
 }
 
-func NewEnvFactory(deps BasicDeps, manifestPath string, manifestVars boshtpl.Variables, manifestOp patch.Op) *envFactory {
+func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manifestVars boshtpl.Variables, manifestOp patch.Op) *envFactory {
 	f := envFactory{
 		deps:         deps,
 		manifestPath: manifestPath,
@@ -106,7 +106,7 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, manifestVars boshtpl.Var
 	}
 
 	f.deploymentStateService = biconfig.NewFileSystemDeploymentStateService(
-		deps.FS, deps.UUIDGen, deps.Logger, biconfig.DeploymentStatePath(manifestPath))
+		deps.FS, deps.UUIDGen, deps.Logger, biconfig.DeploymentStatePath(manifestPath, statePath))
 
 	{
 		registryServer := biregistry.NewServerManager(deps.Logger)
