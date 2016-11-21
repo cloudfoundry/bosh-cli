@@ -9,18 +9,23 @@ import (
 
 type DeleteCmd struct {
 	ui          boshui.UI
-	envProvider func(string, boshtpl.Variables, patch.Op) DeploymentDeleter
+	envProvider func(string, string, boshtpl.Variables, patch.Op) DeploymentDeleter
 }
 
-func NewDeleteCmd(ui boshui.UI, envProvider func(string, boshtpl.Variables, patch.Op) DeploymentDeleter) *DeleteCmd {
+func NewDeleteCmd(ui boshui.UI, envProvider func(string, string, boshtpl.Variables, patch.Op) DeploymentDeleter) *DeleteCmd {
 	return &DeleteCmd{ui: ui, envProvider: envProvider}
 }
 
 func (c *DeleteCmd) Run(stage boshui.Stage, opts DeleteEnvOpts) error {
 	c.ui.BeginLinef("Deployment manifest: '%s'\n", opts.Args.Manifest.Path)
 
+	stateFile := ""
+	if opts.StateFile != nil {
+		stateFile = *opts.StateFile
+	}
+
 	depDeleter := c.envProvider(
-		opts.Args.Manifest.Path, opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp())
+		opts.Args.Manifest.Path, stateFile, opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp())
 
 	return depDeleter.DeleteDeployment(stage)
 }

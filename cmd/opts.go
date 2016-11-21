@@ -171,6 +171,7 @@ type DeleteEnvOpts struct {
 	Args DeleteEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
+	StateFile *string `long:"state" short:"s" value-name:"PATH" description:"State file path"`
 	cmd
 }
 

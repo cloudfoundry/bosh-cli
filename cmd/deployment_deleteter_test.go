@@ -227,7 +227,6 @@ cloud_provider:
 			if defaultUninstallerUsed {
 				mockCpiUninstaller.EXPECT().Uninstall(gomock.Any()).Return(nil)
 			}
-
 		}
 
 		var expectCleanup = func() {
@@ -280,8 +279,8 @@ cloud_provider:
 			fs.EnableStrictTempRootBehavior()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			setupDeploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, ""))
 			deploymentStatePath = biconfig.DeploymentStatePath(deploymentManifestPath, "")
+			setupDeploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, deploymentStatePath)
 			setupDeploymentStateService.Load()
 
 			fakeUI = &fakeui.FakeUI{}
