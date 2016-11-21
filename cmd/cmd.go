@@ -198,8 +198,8 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *DeleteVMOpts:
 		return NewDeleteVMCmd(deps.UI, c.deployment()).Run(*opts)
 
-	case *BuildManifestOpts:
-		return NewBuildManifestCmd(deps.UI).Run(*opts)
+	case *InterpolateOpts:
+		return NewInterpolateCmd(deps.UI).Run(*opts)
 
 	case *CloudConfigOpts:
 		return NewCloudConfigCmd(deps.UI, c.director()).Run()

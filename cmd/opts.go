@@ -81,7 +81,7 @@ type BoshOpts struct {
 	Deploy   DeployOpts   `command:"deploy"   alias:"d"                                       description:"Deploy according to the currently selected deployment manifest"`
 	Manifest ManifestOpts `command:"manifest" alias:"m" alias:"man" alias:"download-manifest" description:"Download deployment manifest locally"`
 
-	BuildManifest BuildManifestOpts `command:"build-manifest" alias:"bm" description:"Interpolates variables into a manifest"`
+	Interpolate InterpolateOpts `command:"interpolate" alias:"int" description:"Interpolates variables into a manifest"`
 
 	// Events
 	Events EventsOpts `command:"events" description:"List events"`
@@ -272,8 +272,8 @@ type AttachDiskArgs struct {
 	DiskCID string               `positional-arg-name:"DISK-CID"`
 }
 
-type BuildManifestOpts struct {
-	Args BuildManifestArgs `positional-args:"true" required:"true"`
+type InterpolateOpts struct {
+	Args InterpolateArgs `positional-args:"true" required:"true"`
 
 	VarFlags
 	OpsFlags
@@ -284,7 +284,7 @@ type BuildManifestOpts struct {
 	cmd
 }
 
-type BuildManifestArgs struct {
+type InterpolateArgs struct {
 	Manifest FileBytesArg `positional-arg-name:"PATH" description:"Path to a template that will be interpolated"`
 }
 

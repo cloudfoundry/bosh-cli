@@ -37,7 +37,7 @@ var _ = Describe("Cmd", func() {
 
 	Describe("Execute", func() {
 		It("succeeds executing at least one command", func() {
-			cmd.Opts = &BuildManifestOpts{}
+			cmd.Opts = &InterpolateOpts{}
 
 			err := cmd.Execute()
 			Expect(err).ToNot(HaveOccurred())
@@ -56,7 +56,7 @@ var _ = Describe("Cmd", func() {
 
 		It("allows to enable json output", func() {
 			cmd.BoshOpts = BoshOpts{JSONOpt: true}
-			cmd.Opts = &BuildManifestOpts{}
+			cmd.Opts = &InterpolateOpts{}
 
 			err := cmd.Execute()
 			Expect(err).ToNot(HaveOccurred())
@@ -77,7 +77,7 @@ var _ = Describe("Cmd", func() {
 
 			It("has color in the output enabled by default", func() {
 				cmd.BoshOpts = BoshOpts{}
-				cmd.Opts = &BuildManifestOpts{}
+				cmd.Opts = &InterpolateOpts{}
 
 				executeCmdAndPrintTable()
 
@@ -87,7 +87,7 @@ var _ = Describe("Cmd", func() {
 
 			It("allows to disable color in the output", func() {
 				cmd.BoshOpts = BoshOpts{NoColorOpt: true}
-				cmd.Opts = &BuildManifestOpts{}
+				cmd.Opts = &InterpolateOpts{}
 
 				executeCmdAndPrintTable()
 

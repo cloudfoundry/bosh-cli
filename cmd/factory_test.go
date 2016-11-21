@@ -43,7 +43,7 @@ var _ = Describe("Factory", func() {
 			"add-blob":              []string{"/file", "directory"},
 			"attach-disk":           []string{"instance/abad1dea", "disk-cid-123"},
 			"blobs":                 []string{},
-			"build-manifest":        []string{"/file"},
+			"interpolate":           []string{"/file"},
 			"cancel-task":           []string{"1234"},
 			"clean-up":              []string{},
 			"cloud-check":           []string{},
@@ -309,7 +309,7 @@ var _ = Describe("Factory", func() {
 			boshOpts.ExportRelease = ExportReleaseOpts{}
 			boshOpts.RunErrand = RunErrandOpts{}
 			boshOpts.Logs = LogsOpts{}
-			boshOpts.BuildManifest = BuildManifestOpts{}
+			boshOpts.Interpolate = InterpolateOpts{}
 			boshOpts.InitRelease = InitReleaseOpts{}
 			boshOpts.ResetRelease = ResetReleaseOpts{}
 			boshOpts.GenerateJob = GenerateJobOpts{}

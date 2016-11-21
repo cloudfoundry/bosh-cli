@@ -7,15 +7,15 @@ import (
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
-type BuildManifestCmd struct {
+type InterpolateCmd struct {
 	ui boshui.UI
 }
 
-func NewBuildManifestCmd(ui boshui.UI) BuildManifestCmd {
-	return BuildManifestCmd{ui: ui}
+func NewInterpolateCmd(ui boshui.UI) InterpolateCmd {
+	return InterpolateCmd{ui: ui}
 }
 
-func (c BuildManifestCmd) Run(opts BuildManifestOpts) error {
+func (c InterpolateCmd) Run(opts InterpolateOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.Manifest.Bytes)
 
 	vars := opts.VarFlags.AsVariables()

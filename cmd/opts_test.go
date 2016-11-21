@@ -288,10 +288,10 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("BuildManifest", func() {
+		Describe("Interpolate", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("BuildManifest", opts)).To(Equal(
-					`command:"build-manifest" alias:"bm" description:"Interpolates variables into a manifest"`,
+				Expect(getStructTagForName("Interpolate", opts)).To(Equal(
+					`command:"interpolate" alias:"int" description:"Interpolates variables into a manifest"`,
 				))
 			})
 		})
@@ -1000,11 +1000,11 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
-	Describe("BuildManifestOpts", func() {
-		var opts *BuildManifestOpts
+	Describe("InterpolateOpts", func() {
+		var opts *InterpolateOpts
 
 		BeforeEach(func() {
-			opts = &BuildManifestOpts{}
+			opts = &InterpolateOpts{}
 		})
 
 		Describe("Args", func() {
@@ -1030,11 +1030,11 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
-	Describe("BuildManifestArgs", func() {
-		var opts *BuildManifestArgs
+	Describe("InterpolateArgs", func() {
+		var opts *InterpolateArgs
 
 		BeforeEach(func() {
-			opts = &BuildManifestArgs{}
+			opts = &InterpolateArgs{}
 		})
 
 		Describe("Manifest", func() {

@@ -15,7 +15,7 @@ import (
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
-var _ = Describe("build-manifest command", func() {
+var _ = Describe("interpolate command", func() {
 	var (
 		ui         *fakeui.FakeUI
 		fs         *fakesys.FakeFileSystem
@@ -39,7 +39,7 @@ var _ = Describe("build-manifest command", func() {
 		err := fs.WriteFileString("/file", "file: ((key))")
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{"build-manifest", "/file", "-v", "key=val"})
+		cmd, err := cmdFactory.New([]string{"interpolate", "/file", "-v", "key=val"})
 		Expect(err).ToNot(HaveOccurred())
 
 		err = cmd.Execute()
@@ -51,7 +51,7 @@ var _ = Describe("build-manifest command", func() {
 		err := fs.WriteFileString("/file", "file: ((key))")
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{"build-manifest", "/file", "-v", `key={"nested": true}`, "--path", "/file/nested"})
+		cmd, err := cmdFactory.New([]string{"interpolate", "/file", "-v", `key={"nested": true}`, "--path", "/file/nested"})
 		Expect(err).ToNot(HaveOccurred())
 
 		err = cmd.Execute()
@@ -70,7 +70,7 @@ variables:
 		var genedPass string
 
 		{ // running command first time
-			cmd, err := cmdFactory.New([]string{"build-manifest", "/file", "--vars-store", "/vars", "--path", "/password"})
+			cmd, err := cmdFactory.New([]string{"interpolate", "/file", "--vars-store", "/vars", "--path", "/password"})
 			Expect(err).ToNot(HaveOccurred())
 
 			err = cmd.Execute()
@@ -88,7 +88,7 @@ variables:
 		ui.Blocks = []string{}
 
 		{ // running command second time
-			cmd, err := cmdFactory.New([]string{"build-manifest", "/file", "--vars-store", "/vars", "--path", "/password"})
+			cmd, err := cmdFactory.New([]string{"interpolate", "/file", "--vars-store", "/vars", "--path", "/password"})
 			Expect(err).ToNot(HaveOccurred())
 
 			err = cmd.Execute()
@@ -117,7 +117,7 @@ variables:
 `)
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{"build-manifest", "/file", "--vars-store", "/vars", "-v", "common_name=test.com"})
+		cmd, err := cmdFactory.New([]string{"interpolate", "/file", "--vars-store", "/vars", "-v", "common_name=test.com"})
 		Expect(err).ToNot(HaveOccurred())
 
 		err = cmd.Execute()

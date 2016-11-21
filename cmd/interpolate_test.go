@@ -10,24 +10,24 @@ import (
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
-var _ = Describe("BuildManifestCmd", func() {
+var _ = Describe("InterpolateCmd", func() {
 	var (
 		ui      *fakeui.FakeUI
-		command BuildManifestCmd
+		command InterpolateCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
-		command = NewBuildManifestCmd(ui)
+		command = NewInterpolateCmd(ui)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts BuildManifestOpts
+			opts InterpolateOpts
 		)
 
 		BeforeEach(func() {
-			opts = BuildManifestOpts{}
+			opts = InterpolateOpts{}
 		})
 
 		act := func() error { return command.Run(opts) }
