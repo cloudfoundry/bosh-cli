@@ -355,9 +355,9 @@ cloud_provider:
 			deploymentFactory := bidepl.NewFactory(pingTimeout, pingDelay)
 
 			ui := biui.NewWriterUI(stdOut, stdErr, logger)
-			doGet := func(deploymentManifestPath string, stateFilePath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) DeploymentPreparer {
+			doGet := func(deploymentManifestPath string, statePath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) DeploymentPreparer {
 				// todo: figure this out?
-				deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, stateFilePath))
+				deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, statePath))
 				vmRepo = biconfig.NewVMRepo(deploymentStateService)
 				diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeRepoUUIDGenerator)
 				stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeRepoUUIDGenerator)
@@ -779,7 +779,7 @@ cloud_provider:
 		})
 
 		Context("when the deployment state file does not exist", func() {
-			createsStateFile := func(statePath string, createdStateFile string) {
+			createsStatePath := func(statePath string, createdStatePath string) {
 				expectDeployFlow()
 
 				// new directorID will be generated
@@ -788,7 +788,7 @@ cloud_provider:
 				err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, statePath))
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fs.FileExists(createdStateFile)).To(BeTrue())
+				Expect(fs.FileExists(createdStatePath)).To(BeTrue())
 
 				deploymentState, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
@@ -804,7 +804,7 @@ cloud_provider:
 				})
 
 				It("creates one", func() {
-					createsStateFile("", deploymentStatePath)
+					createsStatePath("", deploymentStatePath)
 				})
 			})
 
@@ -817,7 +817,7 @@ cloud_provider:
 				})
 
 				It("creates one", func() {
-					createsStateFile("/tmp/new/state/path/state", "/tmp/new/state/path/state")
+					createsStatePath("/tmp/new/state/path/state", "/tmp/new/state/path/state")
 				})
 			})
 		})
@@ -933,6 +933,6 @@ cloud_provider:
 	})
 })
 
-func newDeployOpts(manifestPath string, stateFile string) CreateEnvOpts {
-	return CreateEnvOpts{StateFile: stateFile, Args: CreateEnvArgs{Manifest: FileBytesWithPathArg{Path: manifestPath}}}
+func newDeployOpts(manifestPath string, statePath string) CreateEnvOpts {
+	return CreateEnvOpts{StatePath: statePath, Args: CreateEnvArgs{Manifest: FileBytesWithPathArg{Path: manifestPath}}}
 }

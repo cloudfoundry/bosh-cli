@@ -313,8 +313,8 @@ var _ = Describe("CreateEnvCmd", func() {
 		})
 
 		JustBeforeEach(func() {
-			doGet := func(deploymentManifestPath string, stateFilePath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) bicmd.DeploymentPreparer {
-				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, stateFilePath))
+			doGet := func(deploymentManifestPath string, statePath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) bicmd.DeploymentPreparer {
+				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, statePath))
 				deploymentRepo := biconfig.NewDeploymentRepo(deploymentStateService)
 				releaseRepo := biconfig.NewReleaseRepo(deploymentStateService, fakeUUIDGenerator)
 				stemcellRepo := biconfig.NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
@@ -453,14 +453,14 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			Context("when state file is specified", func() {
 				It("prints specified state file path", func() {
-					createEnvOptsWithStateFile := bicmd.CreateEnvOpts{
-						StateFile: "/specified/path/to/cool-state.json",
+					createEnvOptsWithStatePath := bicmd.CreateEnvOpts{
+						StatePath: "/specified/path/to/cool-state.json",
 						Args: bicmd.CreateEnvArgs{
 							Manifest: bicmd.FileBytesWithPathArg{Path: deploymentManifestPath},
 						},
 					}
 
-					err := command.Run(fakeStage, createEnvOptsWithStateFile)
+					err := command.Run(fakeStage, createEnvOptsWithStatePath)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(stdOut).To(gbytes.Say("Deployment state: '/specified/path/to/cool-state.json'"))
 				})

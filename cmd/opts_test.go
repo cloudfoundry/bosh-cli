@@ -733,6 +733,12 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
 		})
+
+		It("has --state", func() {
+			Expect(getStructTagForName("StatePath", opts)).To(Equal(
+				`long:"state" value-name:"PATH" description:"State file path"`,
+			))
+		})
 	})
 
 	Describe("CreateEnvArgs", func() {
@@ -762,6 +768,12 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
+		})
+
+		It("has --state", func() {
+			Expect(getStructTagForName("StatePath", opts)).To(Equal(
+				`long:"state" value-name:"PATH" description:"State file path"`,
+			))
 		})
 	})
 

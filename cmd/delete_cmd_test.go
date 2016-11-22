@@ -37,15 +37,15 @@ var _ = Describe("DeleteCmd", func() {
 			fakeUI                 *fakeui.FakeUI
 			fakeStage              *fakebiui.FakeStage
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
-			stateFilePath          string
+			statePath              string
 		)
 
 		var newDeleteCmd = func() *bicmd.DeleteCmd {
-			doGetFunc := func(manifestPath string, statePath string, vars boshtpl.Variables, op patch.Op) bicmd.DeploymentDeleter {
+			doGetFunc := func(manifestPath string, statePath_ string, vars boshtpl.Variables, op patch.Op) bicmd.DeploymentDeleter {
 				Expect(manifestPath).To(Equal(deploymentManifestPath))
 				Expect(vars).To(Equal(boshtpl.NewMultiVars([]boshtpl.Variables{boshtpl.StaticVariables{"key": "value"}})))
 				Expect(op).To(Equal(patch.Ops{patch.ErrOp{}}))
-				stateFilePath = statePath
+				statePath = statePath_
 				return mockDeploymentDeleter
 			}
 
@@ -82,7 +82,7 @@ var _ = Describe("DeleteCmd", func() {
 					},
 				})
 
-				Expect(stateFilePath).To(Equal(""))
+				Expect(statePath).To(Equal(""))
 			})
 		})
 
@@ -90,7 +90,7 @@ var _ = Describe("DeleteCmd", func() {
 			It("sends the manifest on to the deleter", func() {
 				mockDeploymentDeleter.EXPECT().DeleteDeployment(fakeStage).Return(nil)
 				newDeleteCmd().Run(fakeStage, bicmd.DeleteEnvOpts{
-					StateFile: "/new/state/file/path/state.json",
+					StatePath: "/new/state/file/path/state.json",
 					Args: bicmd.DeleteEnvArgs{
 						Manifest: bicmd.FileBytesWithPathArg{Path: deploymentManifestPath},
 					},
@@ -104,7 +104,7 @@ var _ = Describe("DeleteCmd", func() {
 					},
 				})
 
-				Expect(stateFilePath).To(Equal("/new/state/file/path/state.json"))
+				Expect(statePath).To(Equal("/new/state/file/path/state.json"))
 			})
 		})
 

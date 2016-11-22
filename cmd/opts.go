@@ -159,7 +159,7 @@ type CreateEnvOpts struct {
 	Args CreateEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
-	StateFile string `long:"state" value-name:"PATH" description:"State file path"`
+	StatePath string `long:"state" value-name:"PATH" description:"State file path"`
 	cmd
 }
 
@@ -171,7 +171,7 @@ type DeleteEnvOpts struct {
 	Args DeleteEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
-	StateFile string `long:"state" value-name:"PATH" description:"State file path"`
+	StatePath string `long:"state" value-name:"PATH" description:"State file path"`
 	cmd
 }
 
