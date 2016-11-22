@@ -817,7 +817,7 @@ cloud_provider:
 				})
 
 				It("creates one", func() {
-					createsStateFile("/tmp/new/state/path/state", "/tmp/new/state/path/state.json")
+					createsStateFile("/tmp/new/state/path/state", "/tmp/new/state/path/state")
 				})
 			})
 		})

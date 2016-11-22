@@ -42,15 +42,7 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 		Describe("statePath is specified", func() {
 			Context("and is a file", func() {
 				It("is based on the manifest path and name", func() {
-					Expect(DeploymentStatePath("/path/to/some-manifest.yml", "/state/path/cool-state.yml")).To(Equal("/state/path/cool-state.json"))
-					Expect(DeploymentStatePath("/path/to/some-manifest", "/state/path/cool-2")).To(Equal("/state/path/cool-2.json"))
-					Expect(DeploymentStatePath("/path/to/some-manifest", "/state/path/cool-3.json")).To(Equal("/state/path/cool-3.json"))
-				})
-			})
-
-			Context("and is a directory", func() {
-				It("is based on the manifest path and name", func() {
-					Expect(DeploymentStatePath("/path/to/some-manifest.yml", "/state/path/cool/")).To(Equal("/state/path/cool/some-manifest-state.json"))
+					Expect(DeploymentStatePath("/path/to/some-manifest.yml", "/whatever/they/pass")).To(Equal("/whatever/they/pass"))
 				})
 			})
 		})
