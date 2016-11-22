@@ -355,9 +355,9 @@ cloud_provider:
 			deploymentFactory := bidepl.NewFactory(pingTimeout, pingDelay)
 
 			ui := biui.NewWriterUI(stdOut, stdErr, logger)
-			doGet := func(deploymentManifestPath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) DeploymentPreparer {
+			doGet := func(deploymentManifestPath string, stateFilePath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) DeploymentPreparer {
 				// todo: figure this out?
-				deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
+				deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, stateFilePath))
 				vmRepo = biconfig.NewVMRepo(deploymentStateService)
 				diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeRepoUUIDGenerator)
 				stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeRepoUUIDGenerator)
@@ -678,7 +678,7 @@ cloud_provider:
 
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			setupDeploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath))
+			setupDeploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, ""))
 			deploymentState, err := setupDeploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
 			directorID = deploymentState.DirectorID
@@ -735,7 +735,7 @@ cloud_provider:
 		It("executes the cloud & agent client calls in the expected order", func() {
 			expectDeployFlow()
 
-			err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
+			err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -773,33 +773,52 @@ cloud_provider:
 			It("extracts all provided releases & finds the cpi release before executing the expected cloud & agent client commands", func() {
 				expectDeployFlow()
 
-				err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
+				err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 
 		Context("when the deployment state file does not exist", func() {
-			BeforeEach(func() {
-				err := fs.RemoveAll(deploymentStatePath)
-				Expect(err).ToNot(HaveOccurred())
-
-				directorID = "fake-uuid-1"
-			})
-
-			It("creates one", func() {
+			createsStateFile := func(statePath string, createdStateFile string) {
 				expectDeployFlow()
 
 				// new directorID will be generated
 				mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), mbusURL).Return(mockAgentClient)
 
-				err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
+				err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, statePath))
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fs.FileExists(deploymentStatePath)).To(BeTrue())
+				Expect(fs.FileExists(createdStateFile)).To(BeTrue())
 
 				deploymentState, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(deploymentState.DirectorID).To(Equal(directorID))
+			}
+
+			Context("and it's NOT specified", func() {
+				BeforeEach(func() {
+					err := fs.RemoveAll(deploymentStatePath)
+					Expect(err).ToNot(HaveOccurred())
+
+					directorID = "fake-uuid-1"
+				})
+
+				It("creates one", func() {
+					createsStateFile("", deploymentStatePath)
+				})
+			})
+
+			Context("and it's specified", func() {
+				BeforeEach(func() {
+					err := fs.RemoveAll("/tmp/new/state/path/state")
+					Expect(err).ToNot(HaveOccurred())
+
+					directorID = "fake-uuid-1"
+				})
+
+				It("creates one", func() {
+					createsStateFile("/tmp/new/state/path/state", "/tmp/new/state/path/state")
+				})
 			})
 		})
 
@@ -807,7 +826,7 @@ cloud_provider:
 			JustBeforeEach(func() {
 				expectDeployFlow()
 
-				err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
+				err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -819,7 +838,7 @@ cloud_provider:
 				It("migrates the disk content", func() {
 					expectDeployWithDiskMigration()
 
-					err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
+					err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 					Expect(err).ToNot(HaveOccurred())
 				})
 
@@ -827,7 +846,7 @@ cloud_provider:
 					It("migrates the disk content, but does not shutdown the old VM", func() {
 						expectDeployWithDiskMigrationMissingVM()
 
-						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
+						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 						Expect(err).ToNot(HaveOccurred())
 					})
 
@@ -839,7 +858,7 @@ cloud_provider:
 							Message: "fake-vm-not-found-message",
 						}))
 
-						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
+						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 						Expect(err).ToNot(HaveOccurred())
 					})
 				})
@@ -850,7 +869,7 @@ cloud_provider:
 					It("returns an error when attach_disk fails with a DiskNotFound error", func() {
 						expectDeployWithNoDiskToMigrate()
 
-						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
+						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-disk-not-found-message"))
 					})
@@ -860,7 +879,7 @@ cloud_provider:
 					JustBeforeEach(func() {
 						expectDeployWithDiskMigrationFailure()
 
-						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
+						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-migration-error"))
 
@@ -874,7 +893,7 @@ cloud_provider:
 
 						mockCloud.EXPECT().DeleteDisk("fake-disk-cid-2")
 
-						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
+						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 						Expect(err).ToNot(HaveOccurred())
 
 						diskRecord, found, err := diskRepo.FindCurrent()
@@ -905,7 +924,7 @@ cloud_provider:
 				It("skips the deploy", func() {
 					expectNoDeployHappened()
 
-					err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath))
+					err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 					Expect(err).ToNot(HaveOccurred())
 					Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 				})
@@ -914,6 +933,6 @@ cloud_provider:
 	})
 })
 
-func newDeployOpts(path string) CreateEnvOpts {
-	return CreateEnvOpts{Args: CreateEnvArgs{Manifest: FileBytesWithPathArg{Path: path}}}
+func newDeployOpts(manifestPath string, stateFile string) CreateEnvOpts {
+	return CreateEnvOpts{StateFile: stateFile, Args: CreateEnvArgs{Manifest: FileBytesWithPathArg{Path: manifestPath}}}
 }
