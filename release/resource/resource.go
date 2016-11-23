@@ -93,10 +93,11 @@ func (r *ResourceImpl) Build(devIndex, finalIndex ArchiveIndex) error {
 }
 
 func (r *ResourceImpl) Finalize(finalIndex ArchiveIndex) error {
-	finalPath, _, err := finalIndex.Find(r.name, r.fingerprint)
+	finalPath, finalSHA1, err := finalIndex.Find(r.name, r.fingerprint)
 	if err != nil {
 		return err
 	} else if len(finalPath) > 0 {
+		r.attachArchive(finalPath, finalSHA1)
 		return nil
 	}
 

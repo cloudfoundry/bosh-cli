@@ -125,15 +125,19 @@ var _ = Describe("NewResource", func() {
 	})
 
 	Describe("Finalize", func() {
-		It("does nothing when there is already finalized resource", func() {
+		It("uses existing resource asset (path/sha1) when there is already finalized resource", func() {
+			resource = NewResourceWithBuiltArchive("name", "fp", "/prev-path", "prev-sha1")
+
 			finalIndex.FindStub = func(name, fp string) (string, string, error) {
 				Expect(name).To(Equal("name"))
 				Expect(fp).To(Equal("fp"))
-				return "/found", "", nil
+				return "/found", "found-sha1", nil
 			}
 
 			Expect(resource.Finalize(finalIndex)).ToNot(HaveOccurred())
 			Expect(finalIndex.AddCallCount()).To(Equal(0))
+			Expect(resource.ArchivePath()).To(Equal("/found"))
+			Expect(resource.ArchiveSHA1()).To(Equal("found-sha1"))
 		})
 
 		It("returns error when final index check fails", func() {
