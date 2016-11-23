@@ -14,7 +14,7 @@ import (
 
 var _ = Describe("VarFlags", func() {
 	Describe("AsVariables", func() {
-		It("uses kvs, then files, then env variables (without fs store)", func() {
+		It("prefers kvs, to var files, to vars files, to env variables (without fs store)", func() {
 			flags := VarFlags{
 				VarKVs: []VarKV{
 					{Name: "kv", Value: "kv"},
@@ -24,10 +24,21 @@ var _ = Describe("VarFlags", func() {
 					{Name: "kv_file_precedence", Value: "kv"},
 					{Name: "kv_file_env_precedence", Value: "kv"},
 				},
+				VarFiles: []VarFileArg{
+					{Vars: StaticVariables{
+						"var_file":                 "var_file",
+						"var_file_precedence":      "var_file",
+						"var_file_file_precedence": "var_file",
+					}},
+					{Vars: StaticVariables{
+						"var_file_precedence": "var_file2",
+					}},
+				},
 				VarsFiles: []VarsFileArg{
 					{Vars: StaticVariables{
-						"file":            "file",
-						"file_precedence": "file",
+						"file":                     "file",
+						"file_precedence":          "file",
+						"var_file_file_precedence": "file",
 					}},
 					{Vars: StaticVariables{
 						"file_env_precedence":    "file2",
@@ -55,8 +66,11 @@ var _ = Describe("VarFlags", func() {
 			vars := flags.AsVariables()
 
 			expectedVals := map[string]string{
-				"kv":                     "kv",
-				"kv_precedence":          "kv2",
+				"kv":                       "kv",
+				"kv_precedence":            "kv2",
+				"var_file":                 "var_file",
+				"var_file_precedence":      "var_file2",
+				"var_file_file_precedence": "var_file",
 				"file":                   "file",
 				"file_precedence":        "file2",
 				"kv_file_precedence":     "kv",
@@ -83,12 +97,21 @@ var _ = Describe("VarFlags", func() {
 			err := varsStore.UnmarshalFlag("/file")
 			Expect(err).ToNot(HaveOccurred())
 
-			err = varsStore.FS.WriteFileString("/file", "store: store\nkv: store\nfile: store\nenv: store\n")
+			err = varsStore.FS.WriteFileString("/file", `
+store: store
+kv: store
+var_file: var_file
+file: store
+env: store
+`)
 			Expect(err).ToNot(HaveOccurred())
 
 			flags := VarFlags{
 				VarKVs: []VarKV{
 					{Name: "kv", Value: "kv"},
+				},
+				VarFiles: []VarFileArg{
+					{Vars: StaticVariables{"var_file": "var_file"}},
 				},
 				VarsFiles: []VarsFileArg{
 					{Vars: StaticVariables{"file": "file"}},
@@ -102,10 +125,11 @@ var _ = Describe("VarFlags", func() {
 			vars := flags.AsVariables()
 
 			expectedVals := map[string]string{
-				"kv":    "kv",
-				"file":  "file",
-				"env":   "env",
-				"store": "store",
+				"kv":       "kv",
+				"var_file": "var_file",
+				"file":     "file",
+				"env":      "env",
+				"store":    "store",
 			}
 
 			for key, expectedVal := range expectedVals {
