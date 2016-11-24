@@ -148,6 +148,9 @@ type BoshOpts struct {
 	RemoveBlob  RemoveBlobOpts  `command:"remove-blob"  description:"Remove blob"`
 	SyncBlobs   SyncBlobsOpts   `command:"sync-blobs"   description:"Sync blobs"`
 	UploadBlobs UploadBlobsOpts `command:"upload-blobs" description:"Upload blobs"`
+
+	// Placeholder vars
+	Vars VarsOpts 				`command:"vars"       description:"Show variable id/name mappings"`
 }
 
 type HelpOpts struct {
@@ -834,6 +837,11 @@ type UploadBlobsOpts struct {
 // MessageOpts is used for version and help flags
 type MessageOpts struct {
 	Message string
+}
+
+type VarsOpts struct {
+	Deployment string
+	cmd
 }
 
 type cmd struct{}

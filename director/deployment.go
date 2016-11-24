@@ -40,6 +40,11 @@ type LogsResult struct {
 	SHA1        string
 }
 
+type ConfigVarsResult struct {
+	PlaceholderID   string `json:"placeholder_id"`
+	PlaceholderName string `json:"placeholder_name"`
+}
+
 func (d DeploymentImpl) Name() string { return d.name }
 
 func (d *DeploymentImpl) CloudConfig() (string, error) {
@@ -203,6 +208,17 @@ func (d DeploymentImpl) IsInProgress() (bool, error) {
 	}
 
 	return false, nil
+}
+
+func (d DeploymentImpl) ConfigVars() ([]ConfigVarsResult, error) {
+	path := fmt.Sprintf("/deployments/%s/config_vars", d.name)
+	response := []ConfigVarsResult{}
+
+	if err := d.client.clientRequest.Get(path, &response); err != nil {
+		return nil, bosherr.WrapErrorf(err, "Error fetching vars for deployment '%s'", d.name)
+	}
+
+	return response, nil
 }
 
 func (c Client) FetchLogs(deploymentName, job, indexOrID string, filters []string, agent bool) (string, string, error) {

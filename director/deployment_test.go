@@ -12,6 +12,7 @@ import (
 	"github.com/onsi/gomega/ghttp"
 
 	. "github.com/cloudfoundry/bosh-cli/director"
+	"strconv"
 )
 
 var _ = Describe("Deployment", func() {
@@ -884,4 +885,52 @@ var _ = Describe("Deployment", func() {
 		})
 	})
 
+	Describe("Vars", func() {
+		It("returns the list of config vars", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/deployments/dep/config_vars"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[{"placeholder_name": "foo-1", "placeholder_id": "1"},
+						{"placeholder_name": "foo-2", "placeholder_id": "2"}]`),
+				),
+			)
+
+			result, err := deployment.ConfigVars()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(result)).To(Equal(2))
+
+			for i := 0; i < len(result); i++ {
+				Expect(result[i].PlaceholderName).To(Equal("foo-" + strconv.Itoa(i+1)))
+				Expect(result[i].PlaceholderID).To(Equal(strconv.Itoa(i + 1)))
+			}
+		})
+
+		It("returns an empty list if there are no config vars", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/deployments/dep/config_vars"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[]`),
+				),
+			)
+
+			result, err := deployment.ConfigVars()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(result)).To(Equal(0))
+		})
+
+		It("throws an error if fetching config vars for deployment fails", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/deployments/dep/config_vars"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusInternalServerError, ""),
+				))
+
+			_, err := deployment.ConfigVars()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("Error fetching vars for deployment 'dep'"))
+		})
+	})
 })
