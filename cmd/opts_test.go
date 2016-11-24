@@ -347,7 +347,7 @@ var _ = Describe("Opts", func() {
 		Describe("Deployment", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Deployment", opts)).To(Equal(
-					`command:"deployment" alias:"dep" description:"Show deployment"`,
+					`command:"deployment" alias:"dep" description:"Show deployment information"`,
 				))
 			})
 		})

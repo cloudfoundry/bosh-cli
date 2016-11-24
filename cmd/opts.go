@@ -74,7 +74,7 @@ type BoshOpts struct {
 	UpdateRuntimeConfig UpdateRuntimeConfigOpts `command:"update-runtime-config" alias:"urc" description:"Update current runtime config"`
 
 	// Deployments
-	Deployment       DeploymentOpts       `command:"deployment"        alias:"dep"             description:"Show deployment"`
+	Deployment       DeploymentOpts       `command:"deployment"        alias:"dep"             description:"Show deployment information"`
 	Deployments      DeploymentsOpts      `command:"deployments"       alias:"ds" alias:"deps" description:"List deployments"`
 	DeleteDeployment DeleteDeploymentOpts `command:"delete-deployment" alias:"deld"            description:"Delete deployment"`
 
