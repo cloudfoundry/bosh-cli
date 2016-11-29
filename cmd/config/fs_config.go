@@ -87,7 +87,8 @@ func (c FSConfig) AliasEnvironment(url, alias, caCert string) (Config, error) {
 
 	config := c.deepCopy()
 
-	i, tg := config.findOrCreateEnvironment(url)
+	i, tg := config.findOrCreateEnvironmentByUrlOrAlias(url, alias)
+	tg.URL = url
 	tg.Alias = alias
 	tg.CACert = caCert
 	config.schema.Environments[i] = tg
@@ -160,7 +161,23 @@ func (c *FSConfig) findOrCreateEnvironment(urlOrAlias string) (int, fsConfigSche
 		}
 	}
 
-	tg := fsConfigSchema_Environment{URL: urlOrAlias}
+	return c.appendNewEnvironmentWithURL(urlOrAlias)
+}
+
+func (c *FSConfig) findOrCreateEnvironmentByUrlOrAlias(url, alias string) (int, fsConfigSchema_Environment) {
+	for i, tg := range c.schema.Environments {
+		if url == tg.URL || alias == tg.Alias {
+			return i, tg
+		}
+	}
+
+	i, tg := c.appendNewEnvironmentWithURL(url)
+	tg.Alias = alias
+	return i, tg
+}
+
+func (c *FSConfig) appendNewEnvironmentWithURL(url string) (int, fsConfigSchema_Environment) {
+	tg := fsConfigSchema_Environment{URL: url}
 	c.schema.Environments = append(c.schema.Environments, tg)
 	return len(c.schema.Environments) - 1, tg
 }

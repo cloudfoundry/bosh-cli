@@ -63,7 +63,7 @@ var _ = Describe("NewFSConfigFromPath", func() {
 var _ = Describe("FSConfig", func() {
 	var (
 		fs     *fakesys.FakeFileSystem
-		config FSConfig
+		config Config
 	)
 
 	readConfig := func() FSConfig {
@@ -120,6 +120,31 @@ var _ = Describe("FSConfig", func() {
 			_, err := config.AliasEnvironment("", "alias", "ca-cert")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Expected non-empty environment URL"))
+		})
+
+		It("overwrites when an entry with the given url is already present", func() {
+			config, err := config.AliasEnvironment("url", "alias", "")
+			Expect(err).ToNot(HaveOccurred())
+
+			config, err = config.AliasEnvironment("url", "different-alias", "")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(config.Environments()).To(HaveLen(1))
+			Expect(config.Environments()[0].Alias).To(Equal("different-alias"))
+			Expect(config.Environments()[0].URL).To(Equal("url"))
+
+		})
+
+		It("overwrites whent an entry with the given alias is already present", func() {
+			config, err := config.AliasEnvironment("url", "alias", "ca")
+			Expect(err).ToNot(HaveOccurred())
+
+			config, err = config.AliasEnvironment("different-url", "alias", "diff-ca")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(config.Environments()).To(HaveLen(1))
+			Expect(config.Environments()[0].Alias).To(Equal("alias"))
+			Expect(config.Environments()[0].URL).To(Equal("different-url"))
 		})
 
 		It("returns error if alias is empty", func() {
