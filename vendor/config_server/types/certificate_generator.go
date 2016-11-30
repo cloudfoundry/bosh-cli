@@ -6,9 +6,10 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"fmt"
 	"math/big"
-	"time"
 	"net"
+	"time"
 
 	"github.com/cloudfoundry/bosh-utils/errors"
 )
@@ -27,6 +28,7 @@ type CertParams struct {
 	CommonName      string
 	AlternativeName []string
 	CA              string // todo
+	ExtKeyUsage     []x509.ExtKeyUsage
 }
 
 func NewCertificateGenerator(loader CertsLoader) CertificateGenerator {
@@ -49,7 +51,31 @@ func (cfg CertificateGenerator) Generate(parameters interface{}) (interface{}, e
 		ca = params["ca"].(string)
 	}
 
-	cParams := CertParams{CommonName: commonName, AlternativeName: alternativeNames, CA: ca}
+	extKeyUsages := []x509.ExtKeyUsage{}
+
+	if _, ok := params["ext_key_usage"]; ok {
+		for _, extKeyUsage := range params["ext_key_usage"].([]interface{}) {
+			extKeyUsageString := extKeyUsage.(string)
+
+			switch extKeyUsageString {
+			case "client_auth":
+				extKeyUsages = append(extKeyUsages, x509.ExtKeyUsageClientAuth)
+			case "server_auth":
+				extKeyUsages = append(extKeyUsages, x509.ExtKeyUsageServerAuth)
+			default:
+				return nil, fmt.Errorf("Unsupported extended key usage value: %s", extKeyUsageString)
+			}
+		}
+	} else {
+		extKeyUsages = append(extKeyUsages, x509.ExtKeyUsageServerAuth)
+	}
+
+	cParams := CertParams{
+		CommonName:      commonName,
+		AlternativeName: alternativeNames,
+		CA:              ca,
+		ExtKeyUsage:     extKeyUsages,
+	}
 
 	if len(cParams.CA) > 0 {
 		return cfg.generateCert(cParams)
@@ -94,7 +120,7 @@ func (cfg CertificateGenerator) generateCert(cParams CertParams) (CertResponse, 
 		NotBefore:             now,
 		NotAfter:              notAfter,
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		ExtKeyUsage:           cParams.ExtKeyUsage,
 		BasicConstraintsValid: true,
 		IsCA: false,
 	}
@@ -152,7 +178,7 @@ func (cfg CertificateGenerator) generateCACert(cParams CertParams) (CertResponse
 		},
 		NotBefore:             now,
 		NotAfter:              notAfter,
-		KeyUsage:               x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		ExtKeyUsage:           []x509.ExtKeyUsage{},
 		BasicConstraintsValid: true,
 		IsCA: true,
