@@ -150,7 +150,7 @@ type BoshOpts struct {
 	UploadBlobs UploadBlobsOpts `command:"upload-blobs" description:"Upload blobs"`
 
 	// Placeholder vars
-	Vars VarsOpts 				`command:"vars"       description:"Show variable id/name mappings"`
+	Vars VarsOpts `command:"vars"       description:"Show variable id/name mappings"`
 }
 
 type HelpOpts struct {
