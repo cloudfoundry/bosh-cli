@@ -109,7 +109,7 @@ type Deployment interface {
 	DeleteSnapshots() error
 	DeleteVM(string) error
 
-	ConfigVars() ([]ConfigVarsResult, error)
+	Vars() ([]VarsResult, error)
 
 	// Deployment, pool or instance specifics
 	Start(slug AllOrInstanceGroupOrInstanceSlug, opts StartOpts) error

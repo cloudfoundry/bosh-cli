@@ -17,7 +17,7 @@ func NewVarsCmd(ui boshui.UI, deployment boshdir.Deployment) VarsCmd {
 
 func (c VarsCmd) Run() error {
 
-	vars, err := c.deployment.ConfigVars()
+	varsResults, err := c.deployment.Vars()
 	if err != nil {
 		return err
 	}
@@ -31,10 +31,10 @@ func (c VarsCmd) Run() error {
 		},
 	}
 
-	for _, configVar := range vars {
+	for _, varsResult := range varsResults {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.NewValueString(configVar.PlaceholderID),
-			boshtbl.NewValueString(configVar.PlaceholderName),
+			boshtbl.NewValueString(varsResult.ID),
+			boshtbl.NewValueString(varsResult.Name),
 		})
 	}
 

@@ -28,20 +28,19 @@ var _ = Describe("VarsCmd", func() {
 	Describe("Run", func() {
 		act := func() error { return command.Run() }
 
-		It("lists config vars", func() {
-			configVarsResults := []boshdir.ConfigVarsResult{
-				{PlaceholderID: "1", PlaceholderName: "foo-1"},
-				{PlaceholderID: "2", PlaceholderName: "foo-2"},
-				{PlaceholderID: "3", PlaceholderName: "foo-3"},
-				{PlaceholderID: "4", PlaceholderName: "foo-4"},
+		It("lists placeholder variables (ID and Name)", func() {
+			varsResults := []boshdir.VarsResult{
+				{ID: "1", Name: "foo-1"},
+				{ID: "2", Name: "foo-2"},
+				{ID: "3", Name: "foo-3"},
+				{ID: "4", Name: "foo-4"},
 			}
-			deployment.ConfigVarsReturns(configVarsResults, nil)
+			deployment.VarsReturns(varsResults, nil)
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(ui.Table).To(Equal(boshtbl.Table{
-				//Content: "vars",
 
 				Header: []string{"ID", "Name"},
 
@@ -71,8 +70,8 @@ var _ = Describe("VarsCmd", func() {
 			}))
 		})
 
-		It("returns error if getting config vars fails", func() {
-			deployment.ConfigVarsReturns(nil, errors.New("fake-err"))
+		It("errors if getting placeholder variables fails", func() {
+			deployment.VarsReturns(nil, errors.New("fake-err"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())
