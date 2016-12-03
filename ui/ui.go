@@ -101,7 +101,7 @@ func (ui *WriterUI) PrintTable(table Table) {
 func (ui *WriterUI) AskForText(label string) (string, error) {
 	var text string
 
-	err := interact.NewInteraction(label).Resolve(interact.Required(&text))
+	err := interact.NewInteraction(label).Resolve(&text)
 	if err != nil {
 		return "", bosherr.WrapError(err, "Asking for text")
 	}
@@ -129,7 +129,7 @@ func (ui *WriterUI) AskForChoice(label string, options []string) (int, error) {
 func (ui *WriterUI) AskForPassword(label string) (string, error) {
 	var password interact.Password
 
-	err := interact.NewInteraction(label).Resolve(interact.Required(&password))
+	err := interact.NewInteraction(label).Resolve(&password)
 	if err != nil {
 		return "", bosherr.WrapError(err, "Asking for password")
 	}

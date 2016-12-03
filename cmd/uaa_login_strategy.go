@@ -103,9 +103,10 @@ func (c UAALoginStrategy) tryUserOnce(environment string, prompts []boshuaa.Prom
 			return false, err
 		}
 
-		answer := boshuaa.PromptAnswer{Key: prompt.Key, Value: value}
-
-		answers = append(answers, answer)
+		if value != "" {
+			answer := boshuaa.PromptAnswer{Key: prompt.Key, Value: value}
+			answers = append(answers, answer)
+		}
 	}
 
 	accessToken, err := uaa.OwnerPasswordCredentialsGrant(answers)
