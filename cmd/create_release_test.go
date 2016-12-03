@@ -14,6 +14,7 @@ import (
 	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("CreateReleaseCmd", func() {
@@ -21,6 +22,8 @@ var _ = Describe("CreateReleaseCmd", func() {
 		releaseReader *fakerel.FakeReader
 		releaseDir    *fakereldir.FakeReleaseDir
 		ui            *fakeui.FakeUI
+		fakeFS        *fakesys.FakeFileSystem
+		fakeWriter    *fakerel.FakeWriter
 		command       CreateReleaseCmd
 	)
 
@@ -33,9 +36,10 @@ var _ = Describe("CreateReleaseCmd", func() {
 			return releaseReader, releaseDir
 		}
 
+		fakeWriter = &fakerel.FakeWriter{}
+		fakeFS = fakesys.NewFakeFileSystem()
 		ui = &fakeui.FakeUI{}
-
-		command = NewCreateReleaseCmd(releaseDirFactory, ui)
+		command = NewCreateReleaseCmd(releaseDirFactory, fakeWriter, fakeFS, ui)
 	})
 
 	Describe("Run", func() {
@@ -67,19 +71,14 @@ var _ = Describe("CreateReleaseCmd", func() {
 		Context("when manifest path is provided", func() {
 			BeforeEach(func() {
 				opts.Args.Manifest = FileBytesWithPathArg{Path: "/manifest-path"}
-			})
 
-			It("builds release and release archive based on manifest path", func() {
 				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
 					Expect(path).To(Equal("/manifest-path"))
 					return release, nil
 				}
+			})
 
-				releaseDir.BuildReleaseArchiveStub = func(rel boshrel.Release) (string, error) {
-					Expect(rel).To(Equal(release))
-					return "/archive-path", nil
-				}
-
+			It("builds release and release archive based on manifest path", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
@@ -88,7 +87,6 @@ var _ = Describe("CreateReleaseCmd", func() {
 						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("rel")},
 						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("ver")},
 						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
-						{boshtbl.NewValueString("Archive"), boshtbl.NewValueString("/archive-path")},
 					},
 				}))
 			})
@@ -101,13 +99,62 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 			})
 
-			It("returns error if building release archive fails", func() {
-				releaseReader.ReadReturns(release, nil)
-				releaseDir.BuildReleaseArchiveReturns("", errors.New("fake-err"))
+			Context("with tarball", func() {
+				BeforeEach(func() {
+					opts.Tarball = "/tarball-destination.tgz"
+				})
 
-				err := act()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-err"))
+				It("builds release and release archive based on manifest path", func() {
+					fakeWriter.WriteStub = func(rel boshrel.Release, skipPkgs []string) (string, error) {
+						Expect(rel).To(Equal(release))
+
+						fakeFS.WriteFileString("/temp-tarball.tgz", "release content blah")
+						return "/temp-tarball.tgz", nil
+					}
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+						Rows: [][]boshtbl.Value{
+							{boshtbl.NewValueString("Name"), boshtbl.NewValueString("rel")},
+							{boshtbl.NewValueString("Version"), boshtbl.NewValueString("ver")},
+							{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
+							{boshtbl.NewValueString("Archive"), boshtbl.NewValueString("/tarball-destination.tgz")},
+						},
+					}))
+
+					Expect(fakeFS.FileExists("/temp-tarball.tgz")).To(BeFalse())
+					content, err := fakeFS.ReadFileString("/tarball-destination.tgz")
+					Expect(err).ToNot(HaveOccurred())
+					Expect(content).To(Equal("release content blah"))
+				})
+
+				It("returns error if building release archive fails", func() {
+					releaseReader.ReadReturns(release, nil)
+
+					fakeWriter.WriteStub = func(rel boshrel.Release, skipPkgs []string) (string, error) {
+						Expect(rel).To(Equal(release))
+						return "", errors.New("fake-err")
+					}
+
+					err := act()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+				})
+
+				It("returns error moving the archive fails", func() {
+					fakeWriter.WriteStub = func(rel boshrel.Release, skipPkgs []string) (string, error) {
+						fakeFS.WriteFileString("/temp-tarball.tgz", "release content blah")
+						return "/temp-tarball.tgz", nil
+					}
+
+					fakeFS.RenameError = errors.New("fake-err")
+
+					err := act()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+				})
 			})
 		})
 
@@ -262,7 +309,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 
 			It("builds release and archive if building archive is requested", func() {
 				opts.Final = true
-				opts.Tarball = true
+				opts.Tarball = "/archive-path"
 
 				releaseDir.DefaultNameReturns("default-rel-name", nil)
 				releaseDir.NextDevVersionReturns(semver.MustNewVersionFromString("next-dev+ver"), nil)
@@ -275,9 +322,11 @@ var _ = Describe("CreateReleaseCmd", func() {
 					return release, nil
 				}
 
-				releaseDir.BuildReleaseArchiveStub = func(rel boshrel.Release) (string, error) {
+				fakeWriter.WriteStub = func(rel boshrel.Release, skipPkgs []string) (string, error) {
 					Expect(rel).To(Equal(release))
-					return "/archive-path", nil
+
+					fakeFS.WriteFileString("/temp-tarball.tgz", "release content blah")
+					return "/temp-tarball.tgz", nil
 				}
 
 				err := act()
@@ -291,6 +340,11 @@ var _ = Describe("CreateReleaseCmd", func() {
 						{boshtbl.NewValueString("Archive"), boshtbl.NewValueString("/archive-path")},
 					},
 				}))
+
+				Expect(fakeFS.FileExists("/temp-tarball.tgz")).To(BeFalse())
+				content, err := fakeFS.ReadFileString("/archive-path")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(content).To(Equal("release content blah"))
 			})
 
 			It("returns error if retrieving default release name fails", func() {
@@ -321,11 +375,14 @@ var _ = Describe("CreateReleaseCmd", func() {
 			})
 
 			It("returns error if building release archive fails", func() {
-				opts.Tarball = true
+				opts.Tarball = "/tarball/dest/path.tgz"
+
+				fakeWriter.WriteStub = func(rel boshrel.Release, skipPkgs []string) (string, error) {
+					return "", errors.New("fake-err")
+				}
 
 				releaseDir.DefaultNameReturns("default-rel-name", nil)
 				releaseDir.NextDevVersionReturns(semver.MustNewVersionFromString("next-dev+ver"), nil)
-				releaseDir.BuildReleaseArchiveReturns("", errors.New("fake-err"))
 
 				err := act()
 				Expect(err).To(HaveOccurred())

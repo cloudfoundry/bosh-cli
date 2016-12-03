@@ -6,18 +6,25 @@ import (
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type CreateReleaseCmd struct {
 	releaseDirFactory func(DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir)
+	releaseWriter     boshrel.Writer
+	fs                boshsys.FileSystem
 	ui                boshui.UI
 }
 
 func NewCreateReleaseCmd(
 	releaseDirFactory func(DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir),
+	releaseWriter boshrel.Writer,
+	fs boshsys.FileSystem,
 	ui boshui.UI,
 ) CreateReleaseCmd {
-	return CreateReleaseCmd{releaseDirFactory, ui}
+	return CreateReleaseCmd{releaseDirFactory, releaseWriter, fs, ui}
 }
 
 func (c CreateReleaseCmd) Run(opts CreateReleaseOpts) (boshrel.Release, error) {
@@ -48,10 +55,17 @@ func (c CreateReleaseCmd) Run(opts CreateReleaseOpts) (boshrel.Release, error) {
 
 	var archivePath string
 
-	if manifestGiven || opts.Tarball {
-		archivePath, err = releaseDir.BuildReleaseArchive(release)
+	if opts.Tarball != "" {
+		path, err := c.releaseWriter.Write(release, nil)
 		if err != nil {
 			return nil, err
+		}
+
+		archivePath = opts.Tarball
+
+		err = boshfu.NewFileMover(c.fs).Move(path, archivePath)
+		if err != nil {
+			return nil, bosherr.WrapErrorf(err, "Moving release archive to final destination")
 		}
 	}
 

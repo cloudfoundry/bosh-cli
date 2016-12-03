@@ -46,15 +46,6 @@ type FakeReleaseIndex struct {
 	manifestPathReturns struct {
 		result1 string
 	}
-	ArchivePathStub        func(release.Release) (string, error)
-	archivePathMutex       sync.RWMutex
-	archivePathArgsForCall []struct {
-		arg1 release.Release
-	}
-	archivePathReturns struct {
-		result1 string
-		result2 error
-	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -194,40 +185,6 @@ func (fake *FakeReleaseIndex) ManifestPathReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeReleaseIndex) ArchivePath(arg1 release.Release) (string, error) {
-	fake.archivePathMutex.Lock()
-	fake.archivePathArgsForCall = append(fake.archivePathArgsForCall, struct {
-		arg1 release.Release
-	}{arg1})
-	fake.recordInvocation("ArchivePath", []interface{}{arg1})
-	fake.archivePathMutex.Unlock()
-	if fake.ArchivePathStub != nil {
-		return fake.ArchivePathStub(arg1)
-	} else {
-		return fake.archivePathReturns.result1, fake.archivePathReturns.result2
-	}
-}
-
-func (fake *FakeReleaseIndex) ArchivePathCallCount() int {
-	fake.archivePathMutex.RLock()
-	defer fake.archivePathMutex.RUnlock()
-	return len(fake.archivePathArgsForCall)
-}
-
-func (fake *FakeReleaseIndex) ArchivePathArgsForCall(i int) release.Release {
-	fake.archivePathMutex.RLock()
-	defer fake.archivePathMutex.RUnlock()
-	return fake.archivePathArgsForCall[i].arg1
-}
-
-func (fake *FakeReleaseIndex) ArchivePathReturns(result1 string, result2 error) {
-	fake.ArchivePathStub = nil
-	fake.archivePathReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeReleaseIndex) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -239,8 +196,6 @@ func (fake *FakeReleaseIndex) Invocations() map[string][][]interface{} {
 	defer fake.addMutex.RUnlock()
 	fake.manifestPathMutex.RLock()
 	defer fake.manifestPathMutex.RUnlock()
-	fake.archivePathMutex.RLock()
-	defer fake.archivePathMutex.RUnlock()
 	return fake.invocations
 }
 

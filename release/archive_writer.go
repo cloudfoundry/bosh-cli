@@ -35,11 +35,12 @@ func (w ArchiveWriter) Write(release Release, pkgFpsToSkip []string) (string, er
 		return "", bosherr.WrapErrorf(err, "Creating staging release dir")
 	}
 
+	defer w.cleanUp(stagingDir)
+
 	w.logger.Info(w.logTag, "Writing release tarball into '%s'", stagingDir)
 
 	manifestBytes, err := yaml.Marshal(release.Manifest())
 	if err != nil {
-		w.cleanUp(stagingDir)
 		return "", bosherr.WrapError(err, "Marshalling release manifest")
 	}
 
@@ -47,7 +48,6 @@ func (w ArchiveWriter) Write(release Release, pkgFpsToSkip []string) (string, er
 
 	err = w.fs.WriteFile(manifestPath, manifestBytes)
 	if err != nil {
-		w.cleanUp(stagingDir)
 		return "", bosherr.WrapErrorf(err, "Writing release manifest '%s'", manifestPath)
 	}
 
@@ -55,7 +55,6 @@ func (w ArchiveWriter) Write(release Release, pkgFpsToSkip []string) (string, er
 
 	jobsFiles, err := w.writeJobs(release.Jobs(), stagingDir)
 	if err != nil {
-		w.cleanUp(stagingDir)
 		return "", bosherr.WrapError(err, "Writing jobs")
 	}
 
@@ -63,7 +62,6 @@ func (w ArchiveWriter) Write(release Release, pkgFpsToSkip []string) (string, er
 
 	packagesFiles, err := w.writePackages(release.Packages(), pkgFpsToSkip, stagingDir)
 	if err != nil {
-		w.cleanUp(stagingDir)
 		return "", bosherr.WrapError(err, "Writing packages")
 	}
 
@@ -71,7 +69,6 @@ func (w ArchiveWriter) Write(release Release, pkgFpsToSkip []string) (string, er
 
 	compiledPackagesFiles, err := w.writeCompiledPackages(release.CompiledPackages(), pkgFpsToSkip, stagingDir)
 	if err != nil {
-		w.cleanUp(stagingDir)
 		return "", bosherr.WrapError(err, "Writing compiled packages")
 	}
 
@@ -79,7 +76,6 @@ func (w ArchiveWriter) Write(release Release, pkgFpsToSkip []string) (string, er
 
 	licenseFiles, err := w.writeLicense(release.License(), stagingDir)
 	if err != nil {
-		w.cleanUp(stagingDir)
 		return "", bosherr.WrapError(err, "Writing license")
 	}
 
@@ -89,11 +85,8 @@ func (w ArchiveWriter) Write(release Release, pkgFpsToSkip []string) (string, er
 	path, err := w.compressor.CompressSpecificFilesInDir(stagingDir, files)
 
 	if err != nil {
-		w.cleanUp(stagingDir)
 		return "", bosherr.WrapError(err, "Compressing release")
 	}
-
-	w.cleanUp(stagingDir)
 
 	return path, nil
 }

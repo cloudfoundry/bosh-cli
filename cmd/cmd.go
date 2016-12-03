@@ -311,7 +311,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewFinalizeReleaseCmd(releaseReader, releaseDir, deps.UI).Run(*opts)
 
 	case *CreateReleaseOpts:
-		_, relDirProv := c.releaseProviders()
+		relProv, relDirProv := c.releaseProviders()
 
 		releaseDirFactory := func(dir DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir) {
 			releaseReader := relDirProv.NewReleaseReader(dir.Path)
@@ -319,7 +319,7 @@ func (c Cmd) Execute() (cmdErr error) {
 			return releaseReader, releaseDir
 		}
 
-		_, err := NewCreateReleaseCmd(releaseDirFactory, deps.UI).Run(*opts)
+		_, err := NewCreateReleaseCmd(releaseDirFactory, relProv.NewArchiveWriter(), c.deps.FS, deps.UI).Run(*opts)
 		return err
 
 	case *BlobsOpts:
@@ -434,9 +434,9 @@ func (c Cmd) releaseManager(director boshdir.Director) ReleaseManager {
 		return releaseReader, releaseDir
 	}
 
-	createReleaseCmd := NewCreateReleaseCmd(releaseDirFactory, c.deps.UI)
-
 	releaseWriter := relProv.NewArchiveWriter()
+
+	createReleaseCmd := NewCreateReleaseCmd(releaseDirFactory, releaseWriter, c.deps.FS, c.deps.UI)
 
 	releaseArchiveFactory := func(path string) boshdir.ReleaseArchive {
 		return boshdir.NewFSReleaseArchive(path, c.deps.FS)

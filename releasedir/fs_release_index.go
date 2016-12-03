@@ -2,7 +2,6 @@ package releasedir
 
 import (
 	"fmt"
-	"os"
 	"path"
 	"sort"
 
@@ -166,27 +165,6 @@ func (i FSReleaseIndex) ManifestPath(name, version string) string {
 	fileName := fmt.Sprintf("%s-%s.yml", name, version)
 
 	return path.Join(i.dirPath, name, fileName)
-}
-
-func (i FSReleaseIndex) ArchivePath(release boshrel.Release) (string, error) {
-	if len(release.Name()) == 0 {
-		return "", bosherr.Error("Expected non-empty release name")
-	}
-
-	if len(release.Version()) == 0 {
-		return "", bosherr.Error("Expected non-empty release version")
-	}
-
-	fileName := fmt.Sprintf("%s-%s.tgz", release.Name(), release.Version())
-
-	archivePath := path.Join(i.dirPath, release.Name(), fileName)
-
-	err := i.fs.MkdirAll(path.Dir(archivePath), os.ModePerm)
-	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Creating release directory")
-	}
-
-	return archivePath, nil
 }
 
 func (i FSReleaseIndex) indexPath(name string) string {

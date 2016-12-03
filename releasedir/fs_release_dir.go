@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 	"github.com/pivotal-golang/clock"
@@ -50,7 +49,6 @@ func NewFSReleaseDir(
 	finalReleases ReleaseIndex,
 	finalIndicies boshrel.ArchiveIndicies,
 	releaseReader boshrel.Reader,
-	releaseArchiveWriter boshrel.Writer,
 	timeService clock.Clock,
 	fs boshsys.FileSystem,
 ) FSReleaseDir {
@@ -66,8 +64,7 @@ func NewFSReleaseDir(
 		finalReleases: finalReleases,
 		finalIndicies: finalIndicies,
 
-		releaseReader:        releaseReader,
-		releaseArchiveWriter: releaseArchiveWriter,
+		releaseReader: releaseReader,
 
 		timeService: timeService,
 		fs:          fs,
@@ -242,38 +239,6 @@ func (d FSReleaseDir) FinalizeRelease(release boshrel.Release, force bool) error
 	}
 
 	return d.finalReleases.Add(release.Manifest())
-}
-
-func (d FSReleaseDir) BuildReleaseArchive(release boshrel.Release) (string, error) {
-	path, err := d.releaseArchiveWriter.Write(release, nil)
-	if err != nil {
-		return "", err
-	}
-
-	ver, err := semver.NewVersionFromString(release.Version())
-	if err != nil {
-		return "", err
-	}
-
-	var relIndex ReleaseIndex
-
-	if strings.Contains(ver.PostRelease.AsString(), "dev") {
-		relIndex = d.devReleases
-	} else {
-		relIndex = d.finalReleases
-	}
-
-	dstPath, err := relIndex.ArchivePath(release)
-	if err != nil {
-		return "", err
-	}
-
-	err = boshfu.NewFileMover(d.fs).Move(path, dstPath)
-	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Moving release archive to final destination")
-	}
-
-	return dstPath, nil
 }
 
 func (d FSReleaseDir) lastDevOrFinalVersion(name string) (*semver.Version, ReleaseIndex, error) {

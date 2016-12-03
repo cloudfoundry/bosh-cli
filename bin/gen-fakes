@@ -35,11 +35,11 @@ counterfeiter uaa UAA
 counterfeiter uaa Token
 counterfeiter uaa AccessToken
 
-#counterfeiter releasedir ReleaseDir
-#do not gen releasedir due to import conflict bug in counterfeiter
 counterfeiter releasedir Config
 counterfeiter releasedir Generator
 counterfeiter releasedir GitRepo
+#do not gen releasedir due to import conflict bug in counterfeiter
+#counterfeiter releasedir ReleaseDir
 counterfeiter releasedir ReleaseIndex
 counterfeiter releasedir ReleaseIndexReporter
 counterfeiter releasedir BlobsDir

@@ -2426,7 +2426,7 @@ var _ = Describe("Opts", func() {
 		Describe("Tarball", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Tarball", opts)).To(Equal(
-					`long:"tarball" description:"Create release tarball"`,
+					`long:"tarball" description:"Create release tarball at path (e.g. /tmp/release.tgz)"`,
 				))
 			})
 		})

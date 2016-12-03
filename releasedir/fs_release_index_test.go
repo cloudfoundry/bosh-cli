@@ -320,48 +320,4 @@ format-version: "2"`)
 			Expect(index.ManifestPath("name", "ver1")).To(Equal("/dir/name/name-ver1.yml"))
 		})
 	})
-
-	Describe("ArchivePath", func() {
-		var (
-			release *fakerel.FakeRelease
-		)
-
-		BeforeEach(func() {
-			release = &fakerel.FakeRelease{}
-			release.NameReturns("name")
-			release.VersionReturns("ver1")
-		})
-
-		It("returns archive path and creates parent directory", func() {
-			path, err := index.ArchivePath(release)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(path).To(Equal("/dir/name/name-ver1.tgz"))
-
-			Expect(fs.FileExists("/dir/name")).To(BeTrue())
-		})
-
-		It("returns error if name is empty", func() {
-			release.NameReturns("")
-
-			_, err := index.ArchivePath(release)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Expected non-empty release name"))
-		})
-
-		It("returns error if version is empty", func() {
-			release.VersionReturns("")
-
-			_, err := index.ArchivePath(release)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Expected non-empty release version"))
-		})
-
-		It("returns error if creating directory fails", func() {
-			fs.MkdirAllError = errors.New("fake-err")
-
-			_, err := index.ArchivePath(release)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
-		})
-	})
 })

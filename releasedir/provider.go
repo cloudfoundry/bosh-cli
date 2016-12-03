@@ -70,10 +70,9 @@ func (p Provider) NewFSReleaseDir(dirPath string) FSReleaseDir {
 	_, finalIndex := indiciesProvider.DevAndFinalIndicies(dirPath)
 
 	releaseReader := p.NewReleaseReader(dirPath)
-	archiveWriter := p.releaseProvider.NewArchiveWriter()
 
 	return NewFSReleaseDir(dirPath, p.newConfig(dirPath), gitRepo, blobsDir,
-		generator, devReleases, finalReleases, finalIndex, releaseReader, archiveWriter, p.timeService, p.fs)
+		generator, devReleases, finalReleases, finalIndex, releaseReader, p.timeService, p.fs)
 }
 
 func (p Provider) NewFSBlobsDir(dirPath string) FSBlobsDir {

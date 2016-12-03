@@ -93,15 +93,6 @@ type FakeReleaseDir struct {
 	finalizeReleaseReturns struct {
 		result1 error
 	}
-	BuildReleaseArchiveStub        func(birel.Release) (string, error)
-	buildReleaseArchiveMutex       sync.RWMutex
-	buildReleaseArchiveArgsForCall []struct {
-		arg1 birel.Release
-	}
-	buildReleaseArchiveReturns struct {
-		result1 string
-		result2 error
-	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -421,40 +412,6 @@ func (fake *FakeReleaseDir) FinalizeReleaseReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeReleaseDir) BuildReleaseArchive(arg1 birel.Release) (string, error) {
-	fake.buildReleaseArchiveMutex.Lock()
-	fake.buildReleaseArchiveArgsForCall = append(fake.buildReleaseArchiveArgsForCall, struct {
-		arg1 birel.Release
-	}{arg1})
-	fake.recordInvocation("BuildReleaseArchive", []interface{}{arg1})
-	fake.buildReleaseArchiveMutex.Unlock()
-	if fake.BuildReleaseArchiveStub != nil {
-		return fake.BuildReleaseArchiveStub(arg1)
-	} else {
-		return fake.buildReleaseArchiveReturns.result1, fake.buildReleaseArchiveReturns.result2
-	}
-}
-
-func (fake *FakeReleaseDir) BuildReleaseArchiveCallCount() int {
-	fake.buildReleaseArchiveMutex.RLock()
-	defer fake.buildReleaseArchiveMutex.RUnlock()
-	return len(fake.buildReleaseArchiveArgsForCall)
-}
-
-func (fake *FakeReleaseDir) BuildReleaseArchiveArgsForCall(i int) birel.Release {
-	fake.buildReleaseArchiveMutex.RLock()
-	defer fake.buildReleaseArchiveMutex.RUnlock()
-	return fake.buildReleaseArchiveArgsForCall[i].arg1
-}
-
-func (fake *FakeReleaseDir) BuildReleaseArchiveReturns(result1 string, result2 error) {
-	fake.BuildReleaseArchiveStub = nil
-	fake.buildReleaseArchiveReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeReleaseDir) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -478,8 +435,6 @@ func (fake *FakeReleaseDir) Invocations() map[string][][]interface{} {
 	defer fake.buildReleaseMutex.RUnlock()
 	fake.finalizeReleaseMutex.RLock()
 	defer fake.finalizeReleaseMutex.RUnlock()
-	fake.buildReleaseArchiveMutex.RLock()
-	defer fake.buildReleaseArchiveMutex.RUnlock()
 	return fake.invocations
 }
 

@@ -35,9 +35,6 @@ type ReleaseDir interface {
 
 	// FinalizeRelease adds the Release to the final list so that it's consumable by others.
 	FinalizeRelease(release boshrel.Release, force bool) error
-
-	// BuildReleaseArchive does not care about current state of the release directory.
-	BuildReleaseArchive(boshrel.Release) (string, error)
 }
 
 //go:generate counterfeiter . Config
@@ -104,7 +101,6 @@ type ReleaseIndex interface {
 	Add(boshrelman.Manifest) error
 
 	ManifestPath(name, version string) string
-	ArchivePath(boshrel.Release) (string, error)
 }
 
 //go:generate counterfeiter . ReleaseIndexReporter
