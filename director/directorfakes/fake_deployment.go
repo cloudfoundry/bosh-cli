@@ -143,11 +143,11 @@ type FakeDeployment struct {
 	deleteVMReturns struct {
 		result1 error
 	}
-	VarsStub        func() ([]director.VarsResult, error)
-	varsMutex       sync.RWMutex
-	varsArgsForCall []struct{}
-	varsReturns     struct {
-		result1 []director.VarsResult
+	ConfigVarsStub        func() ([]director.ConfigVarsResult, error)
+	configVarsMutex       sync.RWMutex
+	configVarsArgsForCall []struct{}
+	configVarsReturns     struct {
+		result1 []director.ConfigVarsResult
 		result2 error
 	}
 	StartStub        func(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.StartOpts) error
@@ -765,27 +765,27 @@ func (fake *FakeDeployment) DeleteVMReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Vars() ([]director.VarsResult, error) {
-	fake.varsMutex.Lock()
-	fake.varsArgsForCall = append(fake.varsArgsForCall, struct{}{})
-	fake.varsMutex.Unlock()
-	if fake.VarsStub != nil {
-		return fake.VarsStub()
+func (fake *FakeDeployment) ConfigVars() ([]director.ConfigVarsResult, error) {
+	fake.configVarsMutex.Lock()
+	fake.configVarsArgsForCall = append(fake.configVarsArgsForCall, struct{}{})
+	fake.configVarsMutex.Unlock()
+	if fake.ConfigVarsStub != nil {
+		return fake.ConfigVarsStub()
 	} else {
-		return fake.varsReturns.result1, fake.varsReturns.result2
+		return fake.configVarsReturns.result1, fake.configVarsReturns.result2
 	}
 }
 
-func (fake *FakeDeployment) VarsCallCount() int {
-	fake.varsMutex.RLock()
-	defer fake.varsMutex.RUnlock()
-	return len(fake.varsArgsForCall)
+func (fake *FakeDeployment) ConfigVarsCallCount() int {
+	fake.configVarsMutex.RLock()
+	defer fake.configVarsMutex.RUnlock()
+	return len(fake.configVarsArgsForCall)
 }
 
-func (fake *FakeDeployment) VarsReturns(result1 []director.VarsResult, result2 error) {
-	fake.VarsStub = nil
-	fake.varsReturns = struct {
-		result1 []director.VarsResult
+func (fake *FakeDeployment) ConfigVarsReturns(result1 []director.ConfigVarsResult, result2 error) {
+	fake.ConfigVarsStub = nil
+	fake.configVarsReturns = struct {
+		result1 []director.ConfigVarsResult
 		result2 error
 	}{result1, result2}
 }
