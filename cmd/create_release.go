@@ -56,12 +56,16 @@ func (c CreateReleaseCmd) Run(opts CreateReleaseOpts) (boshrel.Release, error) {
 	var archivePath string
 
 	if opts.Tarball != "" {
-		path, err := c.releaseWriter.Write(release, nil)
+
+		archivePath, err = c.fs.ExpandPath(opts.Tarball)
 		if err != nil {
 			return nil, err
 		}
 
-		archivePath = opts.Tarball
+		path, err := c.releaseWriter.Write(release, nil)
+		if err != nil {
+			return nil, err
+		}
 
 		err = boshfu.NewFileMover(c.fs).Move(path, archivePath)
 		if err != nil {
