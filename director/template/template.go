@@ -17,6 +17,7 @@ type Template struct {
 
 type EvaluateOpts struct {
 	ExpectAllKeys         bool
+	ExpectAllVarsUsed     bool
 	PostVarSubstitutionOp patch.Op
 	UnescapedMultiline    bool
 }
@@ -40,7 +41,7 @@ func (t Template) Evaluate(vars Variables, op patch.Op, opts EvaluateOpts) ([]by
 		}
 	}
 
-	obj, err = t.interpolateRoot(obj, newVarsTracker(vars, opts.ExpectAllKeys))
+	obj, err = t.interpolateRoot(obj, newVarsTracker(vars, opts.ExpectAllKeys, opts.ExpectAllVarsUsed))
 	if err != nil {
 		return []byte{}, err
 	}
@@ -75,7 +76,7 @@ func (t Template) interpolateRoot(obj interface{}, tracker varsTracker) (interfa
 		return nil, err
 	}
 
-	return obj, tracker.MissingError()
+	return obj, tracker.Error()
 }
 
 type interpolator struct{}
@@ -189,22 +190,28 @@ type varsTracker struct {
 	vars Variables
 	defs varDefinitions
 
-	expectAll bool
+	expectAllFound bool
+	expectAllUsed  bool
 
-	missing map[string]struct{}
-	visited map[string]struct{}
+	missing    map[string]struct{} // track missing var names
+	visited    map[string]struct{}
+	visitedAll map[string]struct{} // track all var names that were accessed
 }
 
-func newVarsTracker(vars Variables, expectAll bool) varsTracker {
+func newVarsTracker(vars Variables, expectAllFound, expectAllUsed bool) varsTracker {
 	return varsTracker{
-		vars:      vars,
-		expectAll: expectAll,
-		missing:   map[string]struct{}{},
-		visited:   map[string]struct{}{},
+		vars:           vars,
+		expectAllFound: expectAllFound,
+		expectAllUsed:  expectAllUsed,
+		missing:        map[string]struct{}{},
+		visited:        map[string]struct{}{},
+		visitedAll:     map[string]struct{}{},
 	}
 }
 
 func (t varsTracker) Get(name string) (interface{}, bool, error) {
+	t.visitedAll[name] = struct{}{}
+
 	defVarTracker, err := t.scopedVarsTracker(name)
 	if err != nil {
 		return nil, false, err
@@ -238,7 +245,7 @@ func (t varsTracker) scopedVarsTracker(name string) (varsTracker, error) {
 		return varsTracker{}, bosherr.Error("Detected recursion")
 	}
 
-	varsTracker := newVarsTracker(t.vars, t.expectAll)
+	varsTracker := newVarsTracker(t.vars, t.expectAllFound, t.expectAllUsed)
 	varsTracker.defs = t.defs
 	varsTracker.visited[name] = struct{}{}
 
@@ -276,13 +283,62 @@ func (t *varsTracker) ExtractDefinitions(obj interface{}) error {
 	return nil
 }
 
+func (t varsTracker) Error() error {
+	var errs []error
+
+	missingErr := t.MissingError()
+	if missingErr != nil {
+		errs = append(errs, missingErr)
+	}
+
+	extraErr := t.ExtraError()
+	if extraErr != nil {
+		errs = append(errs, extraErr)
+	}
+
+	if len(errs) > 0 {
+		return bosherr.NewMultiError(errs...)
+	}
+
+	return nil
+}
+
 func (t varsTracker) MissingError() error {
-	if !t.expectAll || len(t.missing) == 0 {
+	if !t.expectAllFound || len(t.missing) == 0 {
 		return nil
 	}
 
+	return bosherr.WrapError(t.multiErr(t.missing), "Expected to find variables")
+}
+
+func (t varsTracker) ExtraError() error {
+	if !t.expectAllUsed {
+		return nil
+	}
+
+	allDefs, err := t.vars.List()
+	if err != nil {
+		return err
+	}
+
+	unusedNames := map[string]struct{}{}
+
+	for _, def := range allDefs {
+		if _, found := t.visitedAll[def.Name]; !found {
+			unusedNames[def.Name] = struct{}{}
+		}
+	}
+
+	if len(unusedNames) == 0 {
+		return nil
+	}
+
+	return bosherr.WrapError(t.multiErr(unusedNames), "Expected to use variables")
+}
+
+func (t varsTracker) multiErr(mapWithNames map[string]struct{}) error {
 	var names []string
-	for name, _ := range t.missing {
+	for name, _ := range mapWithNames {
 		names = append(names, name)
 	}
 	sort.Strings(names)
@@ -291,8 +347,7 @@ func (t varsTracker) MissingError() error {
 	for _, name := range names {
 		errs = append(errs, bosherr.Error(name))
 	}
-
-	return bosherr.WrapError(bosherr.NewMultiError(errs...), "Expected to find variables")
+	return bosherr.NewMultiError(errs...)
 }
 
 type varDefinitions struct {

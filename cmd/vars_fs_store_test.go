@@ -122,6 +122,44 @@ var _ = Describe("VarsFSStore", func() {
 		})
 	})
 
+	Describe("List", func() {
+		BeforeEach(func() {
+			err := (&store).UnmarshalFlag("/file")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns list of names without considering nested keys", func() {
+			fs.WriteFileString("/file", "key1: val\nkey2: {key3: nested}")
+
+			defs, err := store.List()
+			Expect(defs).To(ConsistOf([]boshtpl.VariableDefinition{{Name: "key1"}, {Name: "key2"}}))
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns empty list if backing file does not exist", func() {
+			defs, err := store.List()
+			Expect(defs).To(BeEmpty())
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns an error if parsing file fails", func() {
+			fs.WriteFileString("/file", "content")
+
+			_, err := store.List()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Deserializing variables file store '/file'"))
+		})
+
+		It("returns error if reading file fails", func() {
+			fs.WriteFileString("/file", "contents")
+			fs.ReadFileError = errors.New("fake-err")
+
+			_, err := store.List()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+	})
+
 	Describe("IsSet", func() {
 		It("returns true if store is configured with file path", func() {
 			err := (&store).UnmarshalFlag("/file")

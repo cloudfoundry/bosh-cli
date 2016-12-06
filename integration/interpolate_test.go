@@ -170,4 +170,75 @@ variables:
 			Expect(err.Error()).To(ContainSubstring("certificate is valid"))
 		}
 	})
+
+	It("returns errors if there are missing variables and --var-errs is provided", func() {
+		err := fs.WriteFileString("/file", `
+ca: ((ca2.certificate))
+used_key: ((missing_key))
+
+variables:
+- name: ca
+  type: certificate
+  options:
+    common_name: ca
+- name: server
+  type: certificate
+  options:
+    ca: ca
+    common_name: ((common_name))
+`)
+		Expect(err).ToNot(HaveOccurred())
+
+		err = fs.WriteFileString("/ro-vars", "used_key: true\nunused_file: true")
+		Expect(err).ToNot(HaveOccurred())
+
+		cmd, err := cmdFactory.New([]string{
+			"interpolate", "/file",
+			"-v", "used_key=val",
+			"--vars-store", "/vars",
+			"--var-errs",
+		})
+		Expect(err).ToNot(HaveOccurred())
+
+		err = cmd.Execute()
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Expected to find variables: ca2\ncommon_name\nmissing_key"))
+	})
+
+	It("returns errors if there are unused variables and --var-errs-unused is provided", func() {
+		err := fs.WriteFileString("/file", `
+ca: ((ca.certificate))
+used_key: ((used_key))
+
+variables:
+- name: ca
+  type: certificate
+  options:
+    common_name: ca
+- name: server
+  type: certificate
+  options:
+    ca: ca
+    common_name: ((common_name))
+`)
+		Expect(err).ToNot(HaveOccurred())
+
+		err = fs.WriteFileString("/ro-vars", "used_key: true\nunused_file: true")
+		Expect(err).ToNot(HaveOccurred())
+
+		cmd, err := cmdFactory.New([]string{
+			"interpolate", "/file",
+			"-v", "common_name=name",
+			"-v", "used_key=val",
+			"-v", "unused_flag=val",
+			"-l", "/ro-vars",
+			"--vars-store", "/vars",
+			"--var-errs-unused",
+		})
+		Expect(err).ToNot(HaveOccurred())
+
+		err = cmd.Execute()
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Expected to use variables: unused_file\nunused_flag"))
+	})
 })
