@@ -27,4 +27,16 @@ var _ = Describe("StaticVariables", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
+
+	Describe("List", func() {
+		It("returns list of names", func() {
+			defs, err := StaticVariables{}.List()
+			Expect(defs).To(BeEmpty())
+			Expect(err).ToNot(HaveOccurred())
+
+			defs, err = StaticVariables{"a": "1", "b": "2"}.List()
+			Expect(defs).To(ConsistOf([]VariableDefinition{{Name: "a"}, {Name: "b"}}))
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
 })

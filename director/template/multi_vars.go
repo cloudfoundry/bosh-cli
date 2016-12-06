@@ -20,3 +20,18 @@ func (m MultiVars) Get(varDef VariableDefinition) (interface{}, bool, error) {
 
 	return nil, false, nil
 }
+
+func (m MultiVars) List() ([]VariableDefinition, error) {
+	var allDefs []VariableDefinition
+
+	for _, vars := range m.varss {
+		defs, err := vars.List()
+		if err != nil {
+			return nil, err
+		}
+
+		allDefs = append(allDefs, defs...)
+	}
+
+	return allDefs, nil
+}

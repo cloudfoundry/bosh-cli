@@ -44,6 +44,15 @@ func (s VarsFSStore) Get(varDef boshtpl.VariableDefinition) (interface{}, bool, 
 	return val, true, nil
 }
 
+func (s VarsFSStore) List() ([]boshtpl.VariableDefinition, error) {
+	vars, err := s.load()
+	if err != nil {
+		return nil, err
+	}
+
+	return vars.List()
+}
+
 func (s VarsFSStore) generateAndSet(varDef boshtpl.VariableDefinition) (interface{}, error) {
 	generator, err := s.ValueGeneratorFactory.GetGenerator(varDef.Type)
 	if err != nil {

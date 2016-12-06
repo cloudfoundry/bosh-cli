@@ -69,4 +69,18 @@ var _ = Describe("MultiVariables", func() {
 			Expect(vars1.GetVarDef).To(Equal(VariableDefinition{Name: "key2", Type: "type", Options: "opts"}))
 		})
 	})
+
+	Describe("List", func() {
+		It("returns list of names from multiple vars with duplicates", func() {
+			defs, err := NewMultiVars(nil).List()
+			Expect(defs).To(BeEmpty())
+			Expect(err).ToNot(HaveOccurred())
+
+			vars := NewMultiVars([]Variables{StaticVariables{"a": "1", "b": "2"}, StaticVariables{"b": "3", "c": "4"}})
+
+			defs, err = vars.List()
+			Expect(defs).To(ConsistOf([]VariableDefinition{{Name: "a"}, {Name: "b"}, {Name: "b"}, {Name: "c"}}))
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
 })

@@ -20,7 +20,10 @@ func (c InterpolateCmd) Run(opts InterpolateOpts) error {
 
 	vars := opts.VarFlags.AsVariables()
 	op := opts.OpsFlags.AsOp()
-	evalOpts := boshtpl.EvaluateOpts{ExpectAllKeys: opts.VarErrors}
+	evalOpts := boshtpl.EvaluateOpts{
+		ExpectAllKeys:     opts.VarErrors,
+		ExpectAllVarsUsed: opts.VarErrorsUnused,
+	}
 
 	if opts.Path.IsSet() {
 		evalOpts.PostVarSubstitutionOp = patch.FindOp{Path: opts.Path}

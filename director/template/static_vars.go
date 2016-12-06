@@ -8,3 +8,13 @@ func (v StaticVariables) Get(varDef VariableDefinition) (interface{}, bool, erro
 	val, found := v[varDef.Name]
 	return val, found, nil
 }
+
+func (v StaticVariables) List() ([]VariableDefinition, error) {
+	var defs []VariableDefinition
+
+	for name, _ := range v {
+		defs = append(defs, VariableDefinition{Name: name})
+	}
+
+	return defs, nil
+}

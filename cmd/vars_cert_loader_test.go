@@ -98,3 +98,7 @@ type FakeVariables struct {
 func (v *FakeVariables) Get(varDef boshtpl.VariableDefinition) (interface{}, bool, error) {
 	return nil, false, v.GetErr
 }
+
+func (v *FakeVariables) List() ([]boshtpl.VariableDefinition, error) {
+	return nil, nil
+}

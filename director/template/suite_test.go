@@ -28,3 +28,7 @@ func (v *FakeVariables) Get(varDef VariableDefinition) (interface{}, bool, error
 	}
 	return nil, false, v.GetErr
 }
+
+func (v *FakeVariables) List() ([]VariableDefinition, error) {
+	return nil, nil
+}

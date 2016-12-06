@@ -117,7 +117,7 @@ var _ = Describe("InterpolateCmd", func() {
 			Expect(ui.Blocks).To(Equal([]string{"subkey:\n  subsubkey: key\n"}))
 		})
 
-		It("returns error if variables are not found in templated manifest if var-errors flag is set", func() {
+		It("returns error if variables are not found in templated manifest if var-errs flag is set", func() {
 			opts.Args.Manifest = FileBytesArg{
 				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
 			}
@@ -131,6 +131,22 @@ var _ = Describe("InterpolateCmd", func() {
 			err := act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Expected to find variables: name2"))
+		})
+
+		It("returns error if variables are not used in templated manifest if var-errs-unused flag is set", func() {
+			opts.Args.Manifest = FileBytesArg{
+				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
+			}
+
+			opts.VarKVs = []boshtpl.VarKV{
+				{Name: "name3", Value: "val3-from-kv"},
+			}
+
+			opts.VarErrorsUnused = true
+
+			err := act()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Expected to use variables: name3"))
 		})
 	})
 })

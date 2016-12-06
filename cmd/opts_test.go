@@ -1013,32 +1013,28 @@ var _ = Describe("Opts", func() {
 	})
 
 	Describe("InterpolateOpts", func() {
-		var opts *InterpolateOpts
+		var opts InterpolateOpts
 
-		BeforeEach(func() {
-			opts = &InterpolateOpts{}
+		It("has Args", func() {
+			Expect(getStructTagForName("Args", &opts)).To(Equal(`positional-args:"true" required:"true"`))
 		})
 
-		Describe("Args", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
-			})
+		It("has Path", func() {
+			Expect(getStructTagForName("Path", &opts)).To(Equal(
+				`long:"path" value-name:"OP-PATH" description:"Extract value out of template (e.g.: /private_key)"`,
+			))
 		})
 
-		Describe("Path", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Path", opts)).To(Equal(
-					`long:"path" value-name:"OP-PATH" description:"Extract value out of template (e.g.: /private_key)"`,
-				))
-			})
+		It("has VarErrors", func() {
+			Expect(getStructTagForName("VarErrors", &opts)).To(Equal(
+				`long:"var-errs" description:"Expect all variables to be found, otherwise error"`,
+			))
 		})
 
-		Describe("VarErrors", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("VarErrors", opts)).To(Equal(
-					`long:"var-errs" description:"Expect all variables to be found, otherwise error"`,
-				))
-			})
+		It("has VarErrorsUnused", func() {
+			Expect(getStructTagForName("VarErrorsUnused", &opts)).To(Equal(
+				`long:"var-errs-unused" description:"Expect all variables to be used, otherwise error"`,
+			))
 		})
 	})
 
