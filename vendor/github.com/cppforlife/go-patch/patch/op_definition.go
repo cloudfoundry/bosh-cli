@@ -1,37 +1,45 @@
 package patch
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // OpDefinition struct is useful for JSON and YAML unmarshaling
 type OpDefinition struct {
-	Type  string
-	Path  *string
-	Value *interface{}
+	Type  string       `json:",omitempty"`
+	Path  *string      `json:",omitempty"`
+	Value *interface{} `json:",omitempty"`
 }
+
+type parser struct{}
 
 func NewOpsFromDefinitions(opDefs []OpDefinition) (Ops, error) {
 	var ops []Op
-	var op Op
-	var err error
+	var p parser
 
 	for i, opDef := range opDefs {
+		var op Op
+		var err error
+
+		opFmt := p.fmtOpDef(opDef)
+
 		switch opDef.Type {
 		case "replace":
-			op, err = newReplaceOp(opDef)
+			op, err = p.newReplaceOp(opDef)
 			if err != nil {
-				return nil, fmt.Errorf("Replace operation [%d]: %s", i, err)
+				return nil, fmt.Errorf("Replace operation [%d]: %s within\n%s", i, err, opFmt)
 			}
 
 		case "remove":
-			op, err = newRemoveOp(opDef)
+			op, err = p.newRemoveOp(opDef)
 			if err != nil {
-				return nil, fmt.Errorf("Remove operation [%d]: %s", i, err)
+				return nil, fmt.Errorf("Remove operation [%d]: %s within\n%s", i, err, opFmt)
 			}
 
 		default:
-			return nil, fmt.Errorf("Unknown operation [%d] with type '%s'", i, opDef.Type)
+			return nil, fmt.Errorf("Unknown operation [%d] with type '%s' within\n%s", i, opDef.Type, opFmt)
 		}
 
 		ops = append(ops, op)
@@ -40,7 +48,7 @@ func NewOpsFromDefinitions(opDefs []OpDefinition) (Ops, error) {
 	return Ops(ops), nil
 }
 
-func newReplaceOp(opDef OpDefinition) (ReplaceOp, error) {
+func (parser) newReplaceOp(opDef OpDefinition) (ReplaceOp, error) {
 	if opDef.Path == nil {
 		return ReplaceOp{}, fmt.Errorf("Missing path")
 	}
@@ -57,7 +65,7 @@ func newReplaceOp(opDef OpDefinition) (ReplaceOp, error) {
 	return ReplaceOp{Path: ptr, Value: *opDef.Value}, nil
 }
 
-func newRemoveOp(opDef OpDefinition) (RemoveOp, error) {
+func (parser) newRemoveOp(opDef OpDefinition) (RemoveOp, error) {
 	if opDef.Path == nil {
 		return RemoveOp{}, fmt.Errorf("Missing path")
 	}
@@ -72,4 +80,23 @@ func newRemoveOp(opDef OpDefinition) (RemoveOp, error) {
 	}
 
 	return RemoveOp{Path: ptr}, nil
+}
+
+func (parser) fmtOpDef(opDef OpDefinition) string {
+	var (
+		redactedVal interface{} = "<redacted>"
+		htmlDecoder             = strings.NewReplacer("\\u003c", "<", "\\u003e", ">")
+	)
+
+	if opDef.Value != nil {
+		// can't JSON serialize generic interface{} anyway
+		opDef.Value = &redactedVal
+	}
+
+	bytes, err := json.MarshalIndent(opDef, "", "  ")
+	if err != nil {
+		return "<unknown>"
+	}
+
+	return htmlDecoder.Replace(string(bytes))
 }

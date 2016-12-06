@@ -45,7 +45,10 @@ var _ = Describe("OpsFileArg", func() {
 
 			err := (&arg).UnmarshalFlag("/some/path")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Building ops: Unknown operation [0] with type 'unknown'"))
+			Expect(err.Error()).To(Equal(`Building ops: Unknown operation [0] with type 'unknown' within
+{
+  "Type": "unknown"
+}`))
 		})
 
 		It("returns an error if reading file fails", func() {
