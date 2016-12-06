@@ -4,7 +4,6 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"gopkg.in/yaml.v2"
 
 	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
 	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
@@ -22,24 +21,16 @@ type ManifestReader struct {
 
 func NewManifestReader(fs boshsys.FileSystem, logger boshlog.Logger) ManifestReader {
 	return ManifestReader{
-		fs: fs,
-
+		fs:     fs,
 		logTag: "release.ManifestReader",
 		logger: logger,
 	}
 }
 
 func (r ManifestReader) Read(path string) (Release, error) {
-	var manifest boshman.Manifest
-
-	bytes, err := r.fs.ReadFile(path)
+	manifest, err := boshman.NewManifestFromPath(path, r.fs)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Reading manifest '%s'", path)
-	}
-
-	err = yaml.Unmarshal(bytes, &manifest)
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Parsing release manifest")
+		return nil, err
 	}
 
 	release, err := r.newRelease(manifest)

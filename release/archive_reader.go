@@ -7,7 +7,6 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"gopkg.in/yaml.v2"
 
 	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
 	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
@@ -62,18 +61,10 @@ func (r ArchiveReader) Read(path string) (Release, error) {
 
 	manifestPath := gopath.Join(extractPath, "release.MF")
 
-	manifestBytes, err := r.fs.ReadFile(manifestPath)
+	manifest, err := boshman.NewManifestFromPath(manifestPath, r.fs)
 	if err != nil {
 		r.cleanUp(extractPath)
-		return nil, bosherr.WrapErrorf(err, "Reading release manifest '%s'", manifestPath)
-	}
-
-	var manifest boshman.Manifest
-
-	err = yaml.Unmarshal(manifestBytes, &manifest)
-	if err != nil {
-		r.cleanUp(extractPath)
-		return nil, bosherr.WrapError(err, "Parsing release manifest")
+		return nil, err
 	}
 
 	release, err := r.newRelease(manifest, extractPath)

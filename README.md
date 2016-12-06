@@ -16,13 +16,6 @@ This project includes [`director`](director/interfaces.go) and [`uaa`](uaa/inter
 
 See [docs/example.go](docs/example.go) for a live short usage example.
 
-## YAML Encoding Issues
-
-Some older versions of the ruby `bosh` CLI wrote non-standard YAML files which this CLI cannot parse. You can migrate those files with the following command and commit them to your repository. They will continue to work with older ruby `bosh` CLI.
-
-    $ cd your-release-directory
-    $ ruby -e 'require "YAML"; `grep -rl "binary |-" releases/*.yml .final_builds`.split("\n").each{|file| yaml = YAML.load(File.read(file)); File.write(file, YAML.dump(yaml)) }'
-
 ## Developer Notes
 
 - [Workstation setup docs](docs/build.md)

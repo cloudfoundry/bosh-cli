@@ -30,7 +30,7 @@ var _ = Describe("ManifestReader", func() {
 	Describe("Read", func() {
 		act := func() (Release, error) { return reader.Read("/release.yml") }
 
-		Context("when manifest that includes jobs and packages", func() {
+		Context("when manifest includes jobs and packages", func() {
 			It("returns release with jobs and packages", func() {
 				fs.WriteFileString("/release.yml", `---
 name: release
@@ -109,7 +109,7 @@ packages:
 			})
 		})
 
-		Context("when manifest that includes jobs and compiled packages and license", func() {
+		Context("when manifest includes jobs and compiled packages and license", func() {
 			It("returns a release with jobs, compiled packages and license", func() {
 				fs.WriteFileString("/release.yml", `---
 name: release

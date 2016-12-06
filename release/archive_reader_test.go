@@ -371,7 +371,7 @@ compiled_packages:
 					fs.RemoveAll("/extracted/release/release.MF")
 					_, err := act()
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Reading release manifest"))
+					Expect(err.Error()).To(ContainSubstring("Reading manifest"))
 				})
 
 				It("deletes extracted release", func() {
