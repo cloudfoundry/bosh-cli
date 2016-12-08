@@ -120,6 +120,22 @@ var _ = Describe("UAALoginStrategy", func() {
 						Expect(ui.AskedPasswordLabels).To(Equal([]string{"password-label"}))
 					})
 
+					It("does not use empty answers to retrieve token", func() {
+						ui.AskedText = []fakeui.Answer{
+							{Text: ""},
+							{Text: "asked-username2"},
+							{Text: "asked-username3"},
+						}
+
+						err := act()
+						Expect(err).ToNot(HaveOccurred())
+
+						answers := uaa.OwnerPasswordCredentialsGrantArgsForCall(0)
+						Expect(answers).To(Equal([]boshuaa.PromptAnswer{
+							{Key: "password", Value: "asked-password1"},
+						}))
+					})
+
 					It("successfully logs in", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
