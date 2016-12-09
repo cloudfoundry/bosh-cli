@@ -33,6 +33,19 @@ var _ = Describe("VarsFileArg", func() {
 			}))
 		})
 
+		It("sets scoped vars", func() {
+			fs.WriteFileString("/some/path", "name1: var1\nname2: var2")
+
+			err := (&arg).UnmarshalFlag("scope=/some/path")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(arg.Vars).To(Equal(StaticVariables{
+				"scope": map[interface{}]interface{}{
+					"name1": "var1",
+					"name2": "var2",
+				},
+			}))
+		})
+
 		It("returns objects", func() {
 			fs.WriteFileString("/some/path", "name1: \n  key: value")
 
