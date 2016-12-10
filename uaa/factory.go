@@ -2,6 +2,7 @@ package uaa
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -54,7 +55,7 @@ func (f Factory) httpClient(config Config) (Client, error) {
 
 	endpoint := url.URL{
 		Scheme: "https",
-		Host:   fmt.Sprintf("%s:%d", config.Host, config.Port),
+		Host:   net.JoinHostPort(config.Host, fmt.Sprintf("%d", config.Port)),
 		Path:   config.Path,
 	}
 

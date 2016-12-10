@@ -38,6 +38,12 @@ var _ = Describe("NewConfigFromURL", func() {
 		Expect(config).To(Equal(Config{Host: "host", Port: 4443, Path: "/zakrules"}))
 	})
 
+	It("works with ipv6 hosts", func() {
+		config, err := NewConfigFromURL("https://[2600:1f17:a63:5c00:5a20:7eec:cf9:e31f]:4443")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(config).To(Equal(Config{Host: "2600:1f17:a63:5c00:5a20:7eec:cf9:e31f", Port: 4443}))
+	})
+
 	It("returns error if url is empty", func() {
 		_, err := NewConfigFromURL("")
 		Expect(err).To(HaveOccurred())

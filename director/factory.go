@@ -2,6 +2,7 @@ package director
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 
@@ -66,7 +67,7 @@ func (f Factory) httpClient(config Config, taskReporter TaskReporter, fileReport
 			return err
 		}
 
-		req.URL.Host = fmt.Sprintf("%s:%d", config.Host, config.Port)
+		req.URL.Host = net.JoinHostPort(config.Host, fmt.Sprintf("%d", config.Port))
 
 		req.Header.Del("Referer")
 
@@ -80,7 +81,7 @@ func (f Factory) httpClient(config Config, taskReporter TaskReporter, fileReport
 
 	endpoint := url.URL{
 		Scheme: "https",
-		Host:   fmt.Sprintf("%s:%d", config.Host, config.Port),
+		Host:   net.JoinHostPort(config.Host, fmt.Sprintf("%d", config.Port)),
 	}
 
 	return NewClient(endpoint.String(), httpClient, taskReporter, fileReporter, f.logger), nil
