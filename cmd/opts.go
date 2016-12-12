@@ -149,8 +149,7 @@ type BoshOpts struct {
 	SyncBlobs   SyncBlobsOpts   `command:"sync-blobs"   description:"Sync blobs"`
 	UploadBlobs UploadBlobsOpts `command:"upload-blobs" description:"Upload blobs"`
 
-	// Placeholder variables
-	Variables VariablesOpts `command:"variables"   alias:"vars"    description:"Show variable id/name mappings"`
+	Variables VariablesOpts `command:"variables" alias:"vars" description:"List variables"`
 }
 
 type HelpOpts struct {
