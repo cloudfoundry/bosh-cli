@@ -40,9 +40,9 @@ type LogsResult struct {
 	SHA1        string
 }
 
-type ConfigVarsResult struct {
-	PlaceholderID   string `json:"placeholder_id"`
-	PlaceholderName string `json:"placeholder_name"`
+type VariableResult struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 func (d DeploymentImpl) Name() string { return d.name }
@@ -210,12 +210,12 @@ func (d DeploymentImpl) IsInProgress() (bool, error) {
 	return false, nil
 }
 
-func (d DeploymentImpl) ConfigVars() ([]ConfigVarsResult, error) {
-	path := fmt.Sprintf("/deployments/%s/config_vars", d.name)
-	response := []ConfigVarsResult{}
+func (d DeploymentImpl) Variables() ([]VariableResult, error) {
+	path := fmt.Sprintf("/deployments/%s/variables", d.name)
+	response := []VariableResult{}
 
 	if err := d.client.clientRequest.Get(path, &response); err != nil {
-		return nil, bosherr.WrapErrorf(err, "Error fetching vars for deployment '%s'", d.name)
+		return nil, bosherr.WrapErrorf(err, "Error fetching variables for deployment '%s'", d.name)
 	}
 
 	return response, nil

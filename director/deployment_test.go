@@ -12,7 +12,6 @@ import (
 	"github.com/onsi/gomega/ghttp"
 
 	. "github.com/cloudfoundry/bosh-cli/director"
-	"strconv"
 )
 
 var _ = Describe("Deployment", func() {
@@ -885,52 +884,55 @@ var _ = Describe("Deployment", func() {
 		})
 	})
 
-	Describe("Vars", func() {
-		It("returns the list of config vars", func() {
+	Describe("Variables", func() {
+		It("returns the list of placeholder variables", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/config_vars"),
+					ghttp.VerifyRequest("GET", "/deployments/dep/variables"),
 					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusOK, `[{"placeholder_name": "foo-1", "placeholder_id": "1"},
-						{"placeholder_name": "foo-2", "placeholder_id": "2"}]`),
+					ghttp.RespondWith(http.StatusOK, `[
+						{"id": "1", "name": "foo-1"},
+						{"id": "2", "name": "foo-2"}
+					]`),
 				),
 			)
 
-			result, err := deployment.ConfigVars()
+			result, err := deployment.Variables()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(result)).To(Equal(2))
 
-			for i := 0; i < len(result); i++ {
-				Expect(result[i].PlaceholderName).To(Equal("foo-" + strconv.Itoa(i+1)))
-				Expect(result[i].PlaceholderID).To(Equal(strconv.Itoa(i + 1)))
-			}
+			Expect(result[0].ID).To(Equal("1"))
+			Expect(result[0].Name).To(Equal("foo-1"))
+
+			Expect(result[1].ID).To(Equal("2"))
+			Expect(result[1].Name).To(Equal("foo-2"))
 		})
 
-		It("returns an empty list if there are no config vars", func() {
+		It("returns an empty list if there are no placeholder variables", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/config_vars"),
+					ghttp.VerifyRequest("GET", "/deployments/dep/variables"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `[]`),
 				),
 			)
 
-			result, err := deployment.ConfigVars()
+			result, err := deployment.Variables()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(result)).To(Equal(0))
 		})
 
-		It("throws an error if fetching config vars for deployment fails", func() {
+		It("errors if fetching placeholder variables fails", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/config_vars"),
+					ghttp.VerifyRequest("GET", "/deployments/dep/variables"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusInternalServerError, ""),
 				))
 
-			_, err := deployment.ConfigVars()
+			_, err := deployment.Variables()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).Should(ContainSubstring("Error fetching vars for deployment 'dep'"))
+			Expect(err.Error()).Should(ContainSubstring("Error fetching variables for deployment 'dep'"))
 		})
 	})
 })

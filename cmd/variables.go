@@ -6,18 +6,18 @@ import (
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
-type VarsCmd struct {
+type VariablesCmd struct {
 	ui         boshui.UI
 	deployment boshdir.Deployment
 }
 
-func NewVarsCmd(ui boshui.UI, deployment boshdir.Deployment) VarsCmd {
-	return VarsCmd{ui: ui, deployment: deployment}
+func NewVariablesCmd(ui boshui.UI, deployment boshdir.Deployment) VariablesCmd {
+	return VariablesCmd{ui: ui, deployment: deployment}
 }
 
-func (c VarsCmd) Run() error {
+func (c VariablesCmd) Run() error {
 
-	vars, err := c.deployment.ConfigVars()
+	variables, err := c.deployment.Variables()
 	if err != nil {
 		return err
 	}
@@ -31,10 +31,10 @@ func (c VarsCmd) Run() error {
 		},
 	}
 
-	for _, configVar := range vars {
+	for _, variable := range variables {
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.NewValueString(configVar.PlaceholderID),
-			boshtbl.NewValueString(configVar.PlaceholderName),
+			boshtbl.NewValueString(variable.ID),
+			boshtbl.NewValueString(variable.Name),
 		})
 	}
 

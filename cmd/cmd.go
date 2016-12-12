@@ -341,8 +341,8 @@ func (c Cmd) Execute() (cmdErr error) {
 		deps.UI.PrintBlock(opts.Message)
 		return nil
 
-	case *VarsOpts:
-		return NewVarsCmd(deps.UI, c.deployment()).Run()
+	case *VariablesOpts:
+		return NewVariablesCmd(deps.UI, c.deployment()).Run()
 
 	default:
 		return fmt.Errorf("Unhandled command: %#v", c.Opts)
