@@ -26,8 +26,9 @@ type ReleaseDir interface {
 	NextDevVersion(name string, timestamp bool) (semver.Version, error)
 	NextFinalVersion(name string) (semver.Version, error)
 
-	// LastRelease returns last dev or final release from the release directory.
-	LastRelease() (boshrel.Release, error)
+	// FindRelease returns last dev or final release version if it's empty;
+	// otherwise it finds a release by given name and version.
+	FindRelease(name string, version semver.Version) (boshrel.Release, error)
 
 	// BuildRelease builds a new version of the Release
 	// from the release directory by looking at jobs, packages, etc. directories.

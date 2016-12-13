@@ -9,19 +9,14 @@ import (
 )
 
 type FSGitRepo struct {
-	dirPath    string
-	gitDirPath string // .git dir
-	runner     boshsys.CmdRunner
-	fs         boshsys.FileSystem
+	// Will use CmdRunner's WorkingDir when exec-ing to avoid --git-dir weirdness
+	dirPath string
+	runner  boshsys.CmdRunner
+	fs      boshsys.FileSystem
 }
 
 func NewFSGitRepo(dirPath string, runner boshsys.CmdRunner, fs boshsys.FileSystem) FSGitRepo {
-	return FSGitRepo{
-		dirPath:    dirPath,
-		gitDirPath: gopath.Join(dirPath, ".git"),
-		runner:     runner,
-		fs:         fs,
-	}
+	return FSGitRepo{dirPath: dirPath, runner: runner, fs: fs}
 }
 
 func (r FSGitRepo) Init() error {
@@ -55,8 +50,12 @@ releases/**/*.tgz
 }
 
 func (r FSGitRepo) LastCommitSHA() (string, error) {
-	stdout, stderr, _, err := r.runner.RunCommand(
-		"git", "--git-dir", r.gitDirPath, "rev-parse", "--short", "HEAD")
+	cmd := boshsys.Command{
+		Name:       "git",
+		Args:       []string{"rev-parse", "--short", "HEAD"},
+		WorkingDir: r.dirPath,
+	}
+	stdout, stderr, _, err := r.runner.RunComplexCommand(cmd)
 	if err != nil {
 		if r.isNotGitRepo(stderr) {
 			return "non-git", nil
@@ -73,8 +72,12 @@ func (r FSGitRepo) LastCommitSHA() (string, error) {
 }
 
 func (r FSGitRepo) MustNotBeDirty(force bool) (bool, error) {
-	stdout, stderr, _, err := r.runner.RunCommand(
-		"git", "--git-dir", r.gitDirPath, "status", "--short")
+	cmd := boshsys.Command{
+		Name:       "git",
+		Args:       []string{"status", "--short"},
+		WorkingDir: r.dirPath,
+	}
+	stdout, stderr, _, err := r.runner.RunComplexCommand(cmd)
 	if err != nil {
 		if r.isNotGitRepo(stderr) {
 			return false, nil

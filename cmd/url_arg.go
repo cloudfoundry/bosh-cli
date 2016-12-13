@@ -11,10 +11,17 @@ func (a URLArg) IsEmpty() bool {
 }
 
 func (a URLArg) IsRemote() bool {
-	return strings.HasPrefix(string(a), "https://") ||
-		strings.HasPrefix(string(a), "http://")
+	return strings.HasPrefix(string(a), "https://") || strings.HasPrefix(string(a), "http://")
 }
 
 func (a URLArg) FilePath() string {
-	return strings.Replace(string(a), "file://", "", -1)
+	return strings.TrimPrefix(string(a), "file://")
+}
+
+func (a URLArg) IsGit() bool {
+	return strings.HasPrefix(string(a), "git://") || strings.HasPrefix(string(a), "git+")
+}
+
+func (a URLArg) GitRepo() string {
+	return strings.TrimPrefix(string(a), "git+")
 }

@@ -40,7 +40,7 @@ func TestIntegration(t *testing.T) {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	RunSpecs(t, "Integration Suite")
+	RunSpecs(t, "integration")
 }
 
 var _ = BeforeSuite(func() {
