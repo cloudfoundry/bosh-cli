@@ -14,9 +14,9 @@ import (
 
 var _ = Describe("SessionImpl", func() {
 	var (
-		connOpts       ConnectionOpts
-		sessOpts       SessionImplOpts
-		result         boshdir.SSHResult
+		connOpts ConnectionOpts
+		sessOpts SessionImplOpts
+		result boshdir.SSHResult
 		privKeyFile    *fakesys.FakeFile
 		knownHostsFile *fakesys.FakeFile
 		fs             *fakesys.FakeFileSystem
@@ -33,6 +33,9 @@ var _ = Describe("SessionImpl", func() {
 		fs.ReturnTempFilesByPrefix = map[string]boshsys.File{
 			"ssh-priv-key":    privKeyFile,
 			"ssh-known-hosts": knownHostsFile,
+		}
+		result.Hosts = []boshdir.Host{
+			{Host: "127.0.0.1", HostPublicKey: "pub-key1"},
 		}
 		session = NewSessionImpl(connOpts, sessOpts, result, fs)
 	})
@@ -219,6 +222,22 @@ var _ = Describe("SessionImpl", func() {
 			result.GatewayHost = "gw-host"
 
 			cmdOpts, err := act().Start()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(cmdOpts).To(Equal([]string{
+				"-o", "ServerAliveInterval=30",
+				"-o", "ForwardAgent=no",
+				"-o", "PasswordAuthentication=no",
+				"-o", "IdentitiesOnly=yes",
+				"-o", "IdentityFile=/tmp/priv-key",
+				"-o", "StrictHostKeyChecking=yes",
+				"-o", "UserKnownHostsFile=/tmp/known-hosts",
+			}))
+		})
+		It("returns ssh options without UserKnownHostsFile settings if there is no public key", func() {
+			result.Hosts = []boshdir.Host{
+				{Host: "127.0.0.1"},
+			}
+			cmdOpts, err := session.Start()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cmdOpts).To(Equal([]string{
 				"-o", "ServerAliveInterval=30",
