@@ -58,6 +58,15 @@ type FakeDirector struct {
 		result1 director.Task
 		result2 error
 	}
+	FindTasksByContextIdStub        func(string) ([]director.Task, error)
+	findTasksByContextIdMutex       sync.RWMutex
+	findTasksByContextIdArgsForCall []struct {
+		arg1 string
+	}
+	findTasksByContextIdReturns struct {
+		result1 []director.Task
+		result2 error
+	}
 	EventsStub        func(director.EventsFilter) ([]director.Event, error)
 	eventsMutex       sync.RWMutex
 	eventsArgsForCall []struct {
@@ -461,6 +470,40 @@ func (fake *FakeDirector) FindTaskReturns(result1 director.Task, result2 error) 
 	fake.FindTaskStub = nil
 	fake.findTaskReturns = struct {
 		result1 director.Task
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) FindTasksByContextId(arg1 string) ([]director.Task, error) {
+	fake.findTasksByContextIdMutex.Lock()
+	fake.findTasksByContextIdArgsForCall = append(fake.findTasksByContextIdArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("FindTasksByContextId", []interface{}{arg1})
+	fake.findTasksByContextIdMutex.Unlock()
+	if fake.FindTasksByContextIdStub != nil {
+		return fake.FindTasksByContextIdStub(arg1)
+	} else {
+		return fake.findTasksByContextIdReturns.result1, fake.findTasksByContextIdReturns.result2
+	}
+}
+
+func (fake *FakeDirector) FindTasksByContextIdCallCount() int {
+	fake.findTasksByContextIdMutex.RLock()
+	defer fake.findTasksByContextIdMutex.RUnlock()
+	return len(fake.findTasksByContextIdArgsForCall)
+}
+
+func (fake *FakeDirector) FindTasksByContextIdArgsForCall(i int) string {
+	fake.findTasksByContextIdMutex.RLock()
+	defer fake.findTasksByContextIdMutex.RUnlock()
+	return fake.findTasksByContextIdArgsForCall[i].arg1
+}
+
+func (fake *FakeDirector) FindTasksByContextIdReturns(result1 []director.Task, result2 error) {
+	fake.FindTasksByContextIdStub = nil
+	fake.findTasksByContextIdReturns = struct {
+		result1 []director.Task
 		result2 error
 	}{result1, result2}
 }
@@ -1325,6 +1368,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.recentTasksMutex.RUnlock()
 	fake.findTaskMutex.RLock()
 	defer fake.findTaskMutex.RUnlock()
+	fake.findTasksByContextIdMutex.RLock()
+	defer fake.findTasksByContextIdMutex.RUnlock()
 	fake.eventsMutex.RLock()
 	defer fake.eventsMutex.RUnlock()
 	fake.deploymentsMutex.RLock()

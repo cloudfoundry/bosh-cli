@@ -19,6 +19,7 @@ type Director interface {
 	CurrentTasks(TasksFilter) ([]Task, error)
 	RecentTasks(int, TasksFilter) ([]Task, error)
 	FindTask(int) (Task, error)
+	FindTasksByContextId(string) ([]Task, error)
 
 	Events(EventsFilter) ([]Event, error)
 
@@ -221,6 +222,7 @@ type Task interface {
 	IsError() bool
 	User() string
 	DeploymentName() string
+	ContextID() string
 
 	Description() string
 	Result() string
