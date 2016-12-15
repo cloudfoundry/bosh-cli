@@ -339,10 +339,8 @@ var _ = Describe("Factory", func() {
 				"--config", "config",
 				"--environment", "env",
 				"--ca-cert", "BEGIN ca-cert",
-				"--user", "user",
-				"--password", "password",
-				"--uaa-client", "uaa-client",
-				"--uaa-client-secret", "uaa-client-secret",
+				"--client", "client",
+				"--client-secret", "client-secret",
 				"--deployment", "dep",
 				"--json",
 				"--tty",
@@ -355,18 +353,16 @@ var _ = Describe("Factory", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(clearNonGlobalOpts(cmd.BoshOpts)).To(Equal(BoshOpts{
-				ConfigPathOpt:      "config",
-				EnvironmentOpt:     "env",
-				CACertOpt:          CACertArg{Content: "BEGIN ca-cert"},
-				UsernameOpt:        "user",
-				PasswordOpt:        "password",
-				UAAClientOpt:       "uaa-client",
-				UAAClientSecretOpt: "uaa-client-secret",
-				DeploymentOpt:      "dep",
-				JSONOpt:            true,
-				TTYOpt:             true,
-				NoColorOpt:         true,
-				NonInteractiveOpt:  true,
+				ConfigPathOpt:     "config",
+				EnvironmentOpt:    "env",
+				CACertOpt:         CACertArg{Content: "BEGIN ca-cert"},
+				ClientOpt:         "client",
+				ClientSecretOpt:   "client-secret",
+				DeploymentOpt:     "dep",
+				JSONOpt:           true,
+				TTYOpt:            true,
+				NoColorOpt:        true,
+				NonInteractiveOpt: true,
 			}))
 		})
 	})

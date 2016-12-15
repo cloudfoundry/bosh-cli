@@ -53,7 +53,7 @@ func (f Factory) httpClient(config Config, taskReporter TaskReporter, fileReport
 	rawClient := boshhttp.CreateDefaultClient(certPool)
 
 	authAdjustment := NewAuthRequestAdjustment(
-		config.TokenFunc, config.Username, config.Password)
+		config.TokenFunc, config.Client, config.ClientSecret)
 
 	rawClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		if len(via) > 10 {

@@ -8,28 +8,12 @@ import (
 )
 
 var _ = Describe("Creds", func() {
-	Describe("IsBasic", func() {
-		It("returns true when username is non-empty", func() {
-			Expect(Creds{Username: ""}.IsBasic()).To(BeFalse())
-			Expect(Creds{Username: "user"}.IsBasic()).To(BeTrue())
-		})
-	})
-
 	Describe("IsBasicComplete", func() {
 		It("returns true if both username and password are non-empty", func() {
-			Expect(Creds{Username: "", Password: ""}.IsBasicComplete()).To(BeFalse())
-			Expect(Creds{Username: "user", Password: ""}.IsBasicComplete()).To(BeFalse())
-			Expect(Creds{Username: "", Password: "pass"}.IsBasicComplete()).To(BeFalse())
-			Expect(Creds{Username: "user", Password: "pass"}.IsBasicComplete()).To(BeTrue())
-		})
-	})
-
-	Describe("IsUAA", func() {
-		It("returns true if both client or refresh token are non-empty", func() {
-			Expect(Creds{Client: "", RefreshToken: ""}.IsUAA()).To(BeFalse())
-			Expect(Creds{Client: "cli", RefreshToken: ""}.IsUAA()).To(BeTrue())
-			Expect(Creds{Client: "", RefreshToken: "token"}.IsUAA()).To(BeTrue())
-			Expect(Creds{Client: "cli", RefreshToken: "token"}.IsUAA()).To(BeTrue())
+			Expect(Creds{Client: "", ClientSecret: ""}.IsBasicComplete()).To(BeFalse())
+			Expect(Creds{Client: "user", ClientSecret: ""}.IsBasicComplete()).To(BeFalse())
+			Expect(Creds{Client: "", ClientSecret: "pass"}.IsBasicComplete()).To(BeFalse())
+			Expect(Creds{Client: "user", ClientSecret: "pass"}.IsBasicComplete()).To(BeTrue())
 		})
 	})
 
@@ -47,7 +31,6 @@ var _ = Describe("Creds", func() {
 
 		It("returns description", func() {
 			Expect(Creds{}.Description()).To(Equal("anonymous user"))
-			Expect(Creds{Username: "admin"}.Description()).To(Equal("user 'admin'"))
 			Expect(Creds{RefreshToken: "token"}.Description()).To(Equal("'?'"))
 			Expect(Creds{RefreshToken: token}.Description()).To(Equal("user 'admin' (openid, bosh.admin)"))
 			Expect(Creds{Client: "cli"}.Description()).To(Equal("client 'cli'"))

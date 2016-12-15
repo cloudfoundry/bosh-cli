@@ -25,8 +25,8 @@ func BuildServer() (Director, *ghttp.Server) {
 	config, err := NewConfigFromURL(server.URL())
 	Expect(err).ToNot(HaveOccurred())
 
-	config.Username = "username"
-	config.Password = "password"
+	config.Client = "username"
+	config.ClientSecret = "password"
 	config.CACert = validCACert
 
 	logger := boshlog.NewLogger(boshlog.LevelNone)

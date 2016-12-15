@@ -80,8 +80,8 @@ var _ = Describe("Factory", func() {
 				config, err := NewConfigFromURL(server.URL())
 				Expect(err).ToNot(HaveOccurred())
 
-				config.Username = "username"
-				config.Password = "password"
+				config.Client = "username"
+				config.ClientSecret = "password"
 				config.CACert = validCACert
 
 				logger := boshlog.NewLogger(boshlog.LevelNone)
@@ -112,8 +112,8 @@ var _ = Describe("Factory", func() {
 				config, err := NewConfigFromURL(server.URL())
 				Expect(err).ToNot(HaveOccurred())
 
-				config.Username = "username"
-				config.Password = "password"
+				config.Client = "username"
+				config.ClientSecret = "password"
 				config.CACert = validCACert
 
 				director, err := NewFactory(logger).New(config, nil, nil)

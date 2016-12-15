@@ -18,8 +18,8 @@ type Config struct {
 	// CA certificate is not required
 	CACert string
 
-	Username string
-	Password string
+	Client       string
+	ClientSecret string
 
 	TokenFunc func(bool) (string, error)
 }

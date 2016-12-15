@@ -50,28 +50,12 @@ var _ = Describe("SessionContextImpl", func() {
 		It("defaults to config credentials for environment global option", func() {
 			config.CredentialsStub = func(environment string) cmdconf.Creds {
 				Expect(environment).To(Equal("opt-alias"))
-				return cmdconf.Creds{Username: "config-username"}
+				return cmdconf.Creds{Client: "config-username"}
 			}
 
 			opts.EnvironmentOpt = "opt-alias"
 
-			Expect(build().Credentials()).To(Equal(cmdconf.Creds{Username: "config-username"}))
-		})
-
-		It("overrides username with username global option", func() {
-			config.CredentialsReturns(cmdconf.Creds{Username: "config-username"})
-
-			opts.UsernameOpt = "opt-username"
-
-			Expect(build().Credentials()).To(Equal(cmdconf.Creds{Username: "opt-username"}))
-		})
-
-		It("overrides password with password global option", func() {
-			config.CredentialsReturns(cmdconf.Creds{Password: "config-password"})
-
-			opts.PasswordOpt = "opt-password"
-
-			Expect(build().Credentials()).To(Equal(cmdconf.Creds{Password: "opt-password"}))
+			Expect(build().Credentials()).To(Equal(cmdconf.Creds{Client: "config-username"}))
 		})
 
 		It("overrides uaa client and resets secret if uaa client global option is provided", func() {
@@ -80,7 +64,7 @@ var _ = Describe("SessionContextImpl", func() {
 				ClientSecret: "config-client-secret",
 			})
 
-			opts.UAAClientOpt = "opt-client"
+			opts.ClientOpt = "opt-client"
 
 			Expect(build().Credentials()).To(Equal(cmdconf.Creds{
 				Client:       "opt-client",
@@ -94,8 +78,8 @@ var _ = Describe("SessionContextImpl", func() {
 				ClientSecret: "config-client-secret",
 			})
 
-			opts.UAAClientOpt = "opt-client"
-			opts.UAAClientSecretOpt = "opt-client-secret"
+			opts.ClientOpt = "opt-client"
+			opts.ClientSecretOpt = "opt-client-secret"
 
 			Expect(build().Credentials()).To(Equal(cmdconf.Creds{
 				Client:       "opt-client",

@@ -83,8 +83,8 @@ var _ = Describe("BasicLoginStrategy", func() {
 
 					Expect(updatedConfig.SaveCallCount()).To(Equal(1))
 					Expect(updatedConfig.Credentials(expectedEnvironment)).To(Equal(cmdconf.Creds{
-						Username: expectedUsername,
-						Password: expectedPassword,
+						Client:       expectedUsername,
+						ClientSecret: expectedPassword,
 					}))
 				})
 			})
@@ -134,8 +134,8 @@ var _ = Describe("BasicLoginStrategy", func() {
 
 					Expect(updatedConfig.SaveCallCount()).To(Equal(1))
 					Expect(updatedConfig.Credentials(expectedEnvironment)).To(Equal(cmdconf.Creds{
-						Username: expectedUsername,
-						Password: expectedPassword,
+						Client:       expectedUsername,
+						ClientSecret: expectedPassword,
 					}))
 				})
 			})
@@ -187,8 +187,8 @@ var _ = Describe("BasicLoginStrategy", func() {
 			BeforeEach(func() {
 				initialSession.CredentialsStub = func() cmdconf.Creds {
 					return cmdconf.Creds{
-						Username: "global-username",
-						Password: "global-password",
+						Client:       "global-username",
+						ClientSecret: "global-password",
 					}
 				}
 			})

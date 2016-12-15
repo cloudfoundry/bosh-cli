@@ -106,8 +106,8 @@ func (c FSConfig) Credentials(urlOrAlias string) Creds {
 	_, tg := c.findOrCreateEnvironment(urlOrAlias)
 
 	return Creds{
-		Username: tg.Username,
-		Password: tg.Password,
+		Client:       tg.Username,
+		ClientSecret: tg.Password,
 
 		RefreshToken: tg.RefreshToken,
 	}
@@ -117,8 +117,8 @@ func (c FSConfig) SetCredentials(urlOrAlias string, creds Creds) Config {
 	config := c.deepCopy()
 
 	i, tg := config.findOrCreateEnvironment(urlOrAlias)
-	tg.Username = creds.Username
-	tg.Password = creds.Password
+	tg.Username = creds.Client
+	tg.Password = creds.ClientSecret
 	tg.RefreshToken = creds.RefreshToken
 	config.schema.Environments[i] = tg
 

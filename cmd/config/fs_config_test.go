@@ -309,14 +309,14 @@ var _ = Describe("FSConfig", func() {
 			updatedConfig, err := config.AliasEnvironment("url", "alias", "")
 			Expect(err).ToNot(HaveOccurred())
 
-			updatedConfig = config.SetCredentials("url", Creds{Username: "user", Password: "pass"})
-			Expect(updatedConfig.Credentials("url")).To(Equal(Creds{Username: "user", Password: "pass"}))
+			updatedConfig = config.SetCredentials("url", Creds{Client: "user", ClientSecret: "pass"})
+			Expect(updatedConfig.Credentials("url")).To(Equal(Creds{Client: "user", ClientSecret: "pass"}))
 
 			err = updatedConfig.Save()
 			Expect(err).ToNot(HaveOccurred())
 
 			reloadedConfig := readConfig()
-			Expect(reloadedConfig.Credentials("url")).To(Equal(Creds{Username: "user", Password: "pass"}))
+			Expect(reloadedConfig.Credentials("url")).To(Equal(Creds{Client: "user", ClientSecret: "pass"}))
 
 			updatedConfig = reloadedConfig.UnsetCredentials("url")
 			Expect(updatedConfig.Credentials("url")).To(Equal(Creds{}))
@@ -378,8 +378,8 @@ var _ = Describe("FSConfig", func() {
 			updatedConfig, err := config.AliasEnvironment("url", "alias", "")
 			Expect(err).ToNot(HaveOccurred())
 
-			updatedConfig = config.SetCredentials("url", Creds{Username: "user"})
-			Expect(updatedConfig.Credentials("url")).To(Equal(Creds{Username: "user"}))
+			updatedConfig = config.SetCredentials("url", Creds{Client: "user"})
+			Expect(updatedConfig.Credentials("url")).To(Equal(Creds{Client: "user"}))
 
 			err = updatedConfig.Save()
 			Expect(err).ToNot(HaveOccurred())

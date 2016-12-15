@@ -120,34 +120,18 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("UsernameOpt", func() {
+		Describe("ClientOpt", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("UsernameOpt", opts)).To(Equal(
-					`long:"user" description:"Override username" env:"BOSH_USER"`,
+				Expect(getStructTagForName("ClientOpt", opts)).To(Equal(
+					`long:"client" description:"Override username or UAA client" env:"BOSH_CLIENT"`,
 				))
 			})
 		})
 
-		Describe("PasswordOpt", func() {
+		Describe("ClientSecretOpt", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("PasswordOpt", opts)).To(Equal(
-					`long:"password" description:"Override password" env:"BOSH_PASSWORD"`,
-				))
-			})
-		})
-
-		Describe("UAAClientOpt", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("UAAClientOpt", opts)).To(Equal(
-					`long:"uaa-client" description:"Override UAA client" env:"BOSH_CLIENT"`,
-				))
-			})
-		})
-
-		Describe("UAAClientSecretOpt", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("UAAClientSecretOpt", opts)).To(Equal(
-					`long:"uaa-client-secret" description:"Override UAA client secret" env:"BOSH_CLIENT_SECRET"`,
+				Expect(getStructTagForName("ClientSecretOpt", opts)).To(Equal(
+					`long:"client-secret" description:"Override password or UAA client secret" env:"BOSH_CLIENT_SECRET"`,
 				))
 			})
 		})

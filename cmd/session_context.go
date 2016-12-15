@@ -29,17 +29,9 @@ func (c SessionContextImpl) Environment() string {
 func (c SessionContextImpl) Credentials() cmdconf.Creds {
 	creds := c.config.Credentials(c.Environment())
 
-	if len(c.opts.UsernameOpt) > 0 {
-		creds.Username = c.opts.UsernameOpt
-	}
-
-	if len(c.opts.PasswordOpt) > 0 {
-		creds.Password = c.opts.PasswordOpt
-	}
-
-	if len(c.opts.UAAClientOpt) > 0 {
-		creds.Client = c.opts.UAAClientOpt
-		creds.ClientSecret = c.opts.UAAClientSecretOpt
+	if len(c.opts.ClientOpt) > 0 {
+		creds.Client = c.opts.ClientOpt
+		creds.ClientSecret = c.opts.ClientSecretOpt
 	}
 
 	return creds

@@ -63,6 +63,8 @@ var _ = Describe("SessionImpl", func() {
 				),
 			)
 
+			sess.SetDirectorInfo()
+
 			uaa, err := sess.UAA()
 			Expect(err).ToNot(HaveOccurred())
 
@@ -97,6 +99,8 @@ var _ = Describe("SessionImpl", func() {
 				),
 			)
 
+			sess.SetDirectorInfo()
+
 			uaa, err := sess.UAA()
 			Expect(err).ToNot(HaveOccurred())
 
@@ -115,110 +119,129 @@ var _ = Describe("SessionImpl", func() {
 	})
 
 	Describe("Director", func() {
-		It("returns basic authed access to the Director", func() {
-			server, caCert := BuildSSLServer()
-			defer server.Close()
+		var server *ghttp.Server
+		var caCert string
 
-			context.EnvironmentReturns(server.URL())
-			context.CACertReturns(caCert)
-			context.CredentialsReturns(cmdconf.Creds{Username: "username", Password: "password"})
+		Context("director is configured for basic auth", func() {
+			It("returns basic authed access to the Director", func() {
+				server, caCert = BuildSSLServer()
+				defer server.Close()
 
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/locks"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusOK, "[]"),
-				),
-			)
+				context.EnvironmentReturns(server.URL())
+				context.CACertReturns(caCert)
+				context.CredentialsReturns(cmdconf.Creds{Client: "username", ClientSecret: "password"})
 
-			dir, err := sess.Director()
-			Expect(err).ToNot(HaveOccurred())
+				server.AppendHandlers(
+					// Anon info request to Director
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/info"),
+						func(_ http.ResponseWriter, req *http.Request) {
+							auth := req.Header.Get("Authorization")
+							Expect(auth).To(BeEmpty(), "Authorization header must empty")
+						},
+						ghttp.RespondWith(http.StatusOK, fmt.Sprintf(
+							`{"user_authentication":{"type":"basic","options":{}}}`)),
+					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/locks"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.RespondWith(http.StatusOK, "[]"),
+					),
+				)
 
-			_, err = dir.Locks()
-			Expect(err).ToNot(HaveOccurred())
+				dir, err := sess.Director()
+				Expect(err).ToNot(HaveOccurred())
+
+				_, err = dir.Locks()
+				Expect(err).ToNot(HaveOccurred())
+			})
 		})
 
-		It("returns UAA authed access to the Director with client and client secret", func() {
-			server, caCert := BuildSSLServer()
-			defer server.Close()
+		Context("director is configured for UAA client/secret login", func() {
+			It("returns UAA authed access to the Director with client and client secret", func() {
+				server, caCert = BuildSSLServer()
+				defer server.Close()
 
-			context.EnvironmentReturns(server.URL())
-			context.CACertReturns(caCert)
-			context.CredentialsReturns(cmdconf.Creds{Client: "client", ClientSecret: "client-secret"})
+				context.EnvironmentReturns(server.URL())
+				context.CACertReturns(caCert)
+				context.CredentialsReturns(cmdconf.Creds{Client: "client", ClientSecret: "client-secret"})
 
-			server.AppendHandlers(
-				// Anon info request to Director
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/info"),
-					func(_ http.ResponseWriter, req *http.Request) {
-						auth := req.Header.Get("Authorization")
-						Expect(auth).To(BeEmpty(), "Authorization header must empty")
-					},
-					ghttp.RespondWith(http.StatusOK, fmt.Sprintf(
-						`{"user_authentication":{"type":"uaa","options":{"url":"%s"}}}`, server.URL())),
-				),
-				// Token request to UAA
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
-					ghttp.VerifyBasicAuth("client", "client-secret"),
-					ghttp.VerifyHeader(http.Header{"Accept": []string{"application/json"}}),
-					ghttp.RespondWith(http.StatusOK, `{"token_type":"bearer","access_token":"access-token"}`),
-				),
-				// Authed info request to Director
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/locks"),
-					ghttp.VerifyHeader(http.Header{"Authorization": []string{"bearer access-token"}}),
-					ghttp.RespondWith(http.StatusOK, "[]"),
-				),
-			)
+				server.AppendHandlers(
+					// Anon info request to Director
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/info"),
+						func(_ http.ResponseWriter, req *http.Request) {
+							auth := req.Header.Get("Authorization")
+							Expect(auth).To(BeEmpty(), "Authorization header must empty")
+						},
+						ghttp.RespondWith(http.StatusOK, fmt.Sprintf(
+							`{"user_authentication":{"type":"uaa","options":{"url":"%s"}}}`, server.URL())),
+					),
+					// Token request to UAA
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+						ghttp.VerifyBasicAuth("client", "client-secret"),
+						ghttp.VerifyHeader(http.Header{"Accept": []string{"application/json"}}),
+						ghttp.RespondWith(http.StatusOK, `{"token_type":"bearer","access_token":"access-token"}`),
+					),
+					// Authed info request to Director
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/locks"),
+						ghttp.VerifyHeader(http.Header{"Authorization": []string{"bearer access-token"}}),
+						ghttp.RespondWith(http.StatusOK, "[]"),
+					),
+				)
 
-			dir, err := sess.Director()
-			Expect(err).ToNot(HaveOccurred())
+				dir, err := sess.Director()
+				Expect(err).ToNot(HaveOccurred())
 
-			_, err = dir.Locks()
-			Expect(err).ToNot(HaveOccurred())
+				_, err = dir.Locks()
+				Expect(err).ToNot(HaveOccurred())
+			})
 		})
 
-		It("returns UAA authed access to the Director with default client (bosh_cli)", func() {
-			server, caCert := BuildSSLServer()
-			defer server.Close()
+		Context("director is configured for UAA client/secret login", func() {
+			It("returns UAA authed access to the Director with default client (bosh_cli)", func() {
+				server, caCert = BuildSSLServer()
+				defer server.Close()
 
-			context.EnvironmentReturns(server.URL())
-			context.CACertReturns(caCert)
-			context.CredentialsReturns(cmdconf.Creds{RefreshToken: "bearer rt-val"})
+				context.EnvironmentReturns(server.URL())
+				context.CACertReturns(caCert)
+				context.CredentialsReturns(cmdconf.Creds{RefreshToken: "bearer rt-val"})
 
-			server.AppendHandlers(
-				// Anon info request to Director
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/info"),
-					func(_ http.ResponseWriter, req *http.Request) {
-						auth := req.Header.Get("Authorization")
-						Expect(auth).To(BeEmpty(), "Authorization header must empty")
-					},
-					ghttp.RespondWith(http.StatusOK, fmt.Sprintf(
-						`{"user_authentication":{"type":"uaa","options":{"url":"%s"}}}`, server.URL())),
-				),
-				// Token request to UAA
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=refresh_token&refresh_token=bearer%20rt-val"),
-					ghttp.VerifyBasicAuth("bosh_cli", ""),
-					ghttp.VerifyHeader(http.Header{"Accept": []string{"application/json"}}),
-					ghttp.RespondWith(http.StatusOK, `{"token_type":"bearer","access_token":"access-token"}`),
-				),
-				// Authed info request to Director
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/locks"),
-					ghttp.VerifyHeader(http.Header{"Authorization": []string{"bearer access-token"}}),
-					ghttp.RespondWith(http.StatusOK, "[]"),
-				),
-			)
+				server.AppendHandlers(
+					// Anon info request to Director
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/info"),
+						func(_ http.ResponseWriter, req *http.Request) {
+							auth := req.Header.Get("Authorization")
+							Expect(auth).To(BeEmpty(), "Authorization header must empty")
+						},
+						ghttp.RespondWith(http.StatusOK, fmt.Sprintf(
+							`{"user_authentication":{"type":"uaa","options":{"url":"%s"}}}`, server.URL())),
+					),
+					// Token request to UAA
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=refresh_token&refresh_token=bearer%20rt-val"),
+						ghttp.VerifyBasicAuth("bosh_cli", ""),
+						ghttp.VerifyHeader(http.Header{"Accept": []string{"application/json"}}),
+						ghttp.RespondWith(http.StatusOK, `{"token_type":"bearer","access_token":"access-token"}`),
+					),
+					// Authed info request to Director
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/locks"),
+						ghttp.VerifyHeader(http.Header{"Authorization": []string{"bearer access-token"}}),
+						ghttp.RespondWith(http.StatusOK, "[]"),
+					),
+				)
 
-			dir, err := sess.Director()
-			Expect(err).ToNot(HaveOccurred())
+				dir, err := sess.Director()
+				Expect(err).ToNot(HaveOccurred())
 
-			// Use a different request than Info
-			_, err = dir.Locks()
-			Expect(err).ToNot(HaveOccurred())
+				// Use a different request than Info
+				_, err = dir.Locks()
+				Expect(err).ToNot(HaveOccurred())
+			})
 		})
 
 		It("returns error if Director configuration fails", func() {
@@ -274,10 +297,19 @@ var _ = Describe("SessionImpl", func() {
 
 			context.EnvironmentReturns(server.URL())
 			context.CACertReturns(caCert)
-			context.CredentialsReturns(cmdconf.Creds{Username: "username", Password: "password"})
+			context.CredentialsReturns(cmdconf.Creds{Client: "username", ClientSecret: "password"})
 			context.DeploymentReturns("config-dep")
 
 			server.AppendHandlers(
+				// Anon info request to Director
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/info"),
+					func(_ http.ResponseWriter, req *http.Request) {
+						auth := req.Header.Get("Authorization")
+						Expect(auth).To(BeEmpty(), "Authorization header must empty")
+					},
+					ghttp.RespondWith(http.StatusOK, `{"user_authentication":{"type":"basic","options":{}}}`),
+				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/deployments/config-dep"),
 					ghttp.VerifyBasicAuth("username", "password"),
@@ -302,8 +334,25 @@ var _ = Describe("SessionImpl", func() {
 		})
 
 		It("returns error if deployment fails", func() {
-			context.EnvironmentReturns("config-url")
+			server, caCert := BuildSSLServer()
+			defer server.Close()
+
+			context.EnvironmentReturns(server.URL())
+			context.CACertReturns(caCert)
+			context.CredentialsReturns(cmdconf.Creds{Client: "username", ClientSecret: "password"})
 			context.DeploymentReturns("")
+
+			server.AppendHandlers(
+				// Anon info request to Director
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/info"),
+					func(_ http.ResponseWriter, req *http.Request) {
+						auth := req.Header.Get("Authorization")
+						Expect(auth).To(BeEmpty(), "Authorization header must empty")
+					},
+					ghttp.RespondWith(http.StatusOK, `{"user_authentication":{"type":"basic","options":{}}}`),
+				),
+			)
 
 			_, err := sess.Deployment()
 			Expect(err).To(HaveOccurred())

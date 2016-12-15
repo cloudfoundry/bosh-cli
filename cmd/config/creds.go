@@ -7,10 +7,7 @@ import (
 )
 
 type Creds struct {
-	Username string
-	Password string
-
-	// For UAA clients
+	// Basic auth username/password or UAA client creds
 	Client       string
 	ClientSecret string
 
@@ -18,16 +15,8 @@ type Creds struct {
 	RefreshToken string
 }
 
-func (c Creds) IsBasic() bool {
-	return len(c.Username) > 0
-}
-
 func (c Creds) IsBasicComplete() bool {
-	return len(c.Username) > 0 && len(c.Password) > 0
-}
-
-func (c Creds) IsUAA() bool {
-	return len(c.Client) > 0 || len(c.RefreshToken) > 0
+	return len(c.Client) > 0 && len(c.ClientSecret) > 0
 }
 
 func (c Creds) IsUAAClient() bool {
@@ -36,9 +25,9 @@ func (c Creds) IsUAAClient() bool {
 }
 
 func (c Creds) Description() string {
-	if len(c.Username) > 0 {
-		return credsDesc{name: c.Username, kind: "user"}.String()
-	}
+	// if len(c.Username) > 0 {
+	// 	return credsDesc{name: c.Username, kind: "user"}.String()
+	// }
 
 	if len(c.RefreshToken) > 0 {
 		info, err := boshuaa.NewTokenInfoFromValue(c.RefreshToken)

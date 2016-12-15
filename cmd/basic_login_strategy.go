@@ -83,22 +83,22 @@ func (s BasicLoginStrategy) tryOnce(environment string, creds cmdconf.Creds) (bo
 }
 
 func (s BasicLoginStrategy) askForCreds(creds cmdconf.Creds) (cmdconf.Creds, error) {
-	if len(creds.Username) == 0 {
+	if len(creds.Client) == 0 {
 		username, err := s.ui.AskForText("Username")
 		if err != nil {
 			return cmdconf.Creds{}, err
 		}
 
-		creds.Username = username
+		creds.Client = username
 	}
 
-	if len(creds.Password) == 0 {
+	if len(creds.ClientSecret) == 0 {
 		password, err := s.ui.AskForPassword("Password")
 		if err != nil {
 			return cmdconf.Creds{}, err
 		}
 
-		creds.Password = password
+		creds.ClientSecret = password
 	}
 
 	return creds, nil
