@@ -23,6 +23,10 @@ func (c EventsCmd) Run(opts EventsOpts) error {
 		Deployment: opts.Deployment,
 		Task:       opts.Task,
 		Instance:   opts.Instance,
+		User:       opts.User,
+		Action:     opts.Action,
+		ObjectType: opts.ObjectType,
+		ObjectName: opts.ObjectName,
 	}
 
 	events, err := c.director.Events(filter)

@@ -114,6 +114,19 @@ func (c Client) Events(opts EventsFilter) ([]EventResp, error) {
 	if len(opts.Instance) > 0 {
 		q.Set("instance", opts.Instance)
 	}
+	if len(opts.User) > 0 {
+		q.Set("user", opts.User)
+	}
+	if len(opts.Action) > 0 {
+		q.Set("action", opts.Action)
+	}
+	if len(opts.ObjectType) > 0 {
+		q.Set("object_type", opts.ObjectType)
+	}
+	if len(opts.ObjectName) > 0 {
+		q.Set("object_name", opts.ObjectName)
+	}
+
 	u.RawQuery = q.Encode()
 
 	path := u.String()

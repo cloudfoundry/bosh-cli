@@ -117,6 +117,10 @@ var _ = Describe("EventsCmd", func() {
 			opts.Deployment = "deployment"
 			opts.Task = "task"
 			opts.Instance = "instance2"
+			opts.User = "user2"
+			opts.Action = "action2"
+			opts.ObjectName = "object-name2"
+			opts.ObjectType = "object-type2"
 
 			director.EventsReturns(nil, nil)
 
@@ -130,6 +134,10 @@ var _ = Describe("EventsCmd", func() {
 				Deployment: "deployment",
 				Task:       "task",
 				Instance:   "instance2",
+				User:       "user2",
+				Action:     "action2",
+				ObjectName: "object-name2",
+				ObjectType: "object-type2",
 			}))
 		})
 

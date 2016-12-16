@@ -192,6 +192,58 @@ var _ = Describe("Director", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		It("filters events based on 'user' option", func() {
+			opts := EventsFilter{User: "user2"}
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/events", "user=user2"),
+					ghttp.RespondWith(http.StatusOK, `[]`),
+				),
+			)
+
+			_, err := director.Events(opts)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("filters events based on 'action' option", func() {
+			opts := EventsFilter{Action: "action2"}
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/events", "action=action2"),
+					ghttp.RespondWith(http.StatusOK, `[]`),
+				),
+			)
+
+			_, err := director.Events(opts)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("filters events based on 'object-type' option", func() {
+			opts := EventsFilter{ObjectType: "object-type2"}
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/events", "object_type=object-type2"),
+					ghttp.RespondWith(http.StatusOK, `[]`),
+				),
+			)
+
+			_, err := director.Events(opts)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("filters events based on 'object-id' option", func() {
+			opts := EventsFilter{ObjectName: "object-name2"}
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/events", "object_name=object-name2"),
+					ghttp.RespondWith(http.StatusOK, `[]`),
+				),
+			)
+
+			_, err := director.Events(opts)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
 		It("returns a single event based on multiple options", func() {
 			opts := EventsFilter{
 				Instance:   "fake-instance-2",
