@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -81,6 +82,10 @@ func (f Factory) New(args []string) (Cmd, error) {
 	parser.WriteHelp(helpText)
 
 	_, err := parser.ParseArgs(args)
+
+	if boshOpts.UsernameOpt != "" {
+		return Cmd{}, errors.New("BOSH_USER is deprecated use BOSH_CLIENT instead")
+	}
 
 	// --help and --version result in errors; turn them into successful output cmds
 	if typedErr, ok := err.(*goflags.Error); ok {

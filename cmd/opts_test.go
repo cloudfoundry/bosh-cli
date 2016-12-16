@@ -120,6 +120,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("UsernameOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("UsernameOpt", opts)).To(Equal(
+					`long:"user" hidden:"true" env:"BOSH_USER"`,
+				))
+			})
+		})
+
 		Describe("ClientOpt", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("ClientOpt", opts)).To(Equal(

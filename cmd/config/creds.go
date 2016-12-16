@@ -25,10 +25,6 @@ func (c Creds) IsUAAClient() bool {
 }
 
 func (c Creds) Description() string {
-	// if len(c.Username) > 0 {
-	// 	return credsDesc{name: c.Username, kind: "user"}.String()
-	// }
-
 	if len(c.RefreshToken) > 0 {
 		info, err := boshuaa.NewTokenInfoFromValue(c.RefreshToken)
 		if err != nil {

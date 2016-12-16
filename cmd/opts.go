@@ -17,6 +17,9 @@ type BoshOpts struct {
 	EnvironmentOpt string    `long:"environment" short:"e" description:"Director environment name or URL" env:"BOSH_ENVIRONMENT"`
 	CACertOpt      CACertArg `long:"ca-cert"               description:"Director CA certificate path or value" env:"BOSH_CA_CERT"`
 
+	// Hidden
+	UsernameOpt string `long:"user" hidden:"true" env:"BOSH_USER"`
+
 	// Specify client credentials
 	ClientOpt       string `long:"client"        description:"Override username or UAA client"        env:"BOSH_CLIENT"`
 	ClientSecretOpt string `long:"client-secret" description:"Override password or UAA client secret" env:"BOSH_CLIENT_SECRET"`
