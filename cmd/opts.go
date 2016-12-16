@@ -384,12 +384,16 @@ type DeleteDeploymentOpts struct {
 
 // Events
 type EventsOpts struct {
-	BeforeID   string `long:"before-id"  description:"Show events with ID less than the given ID"`
-	Before     string `long:"before"     description:"Show events before the given timestamp (ex: 2016-05-08 17:26:32)"`
-	After      string `long:"after"      description:"Show events after the given timestamp (ex: 2016-05-08 17:26:32)"`
+	BeforeID   string `long:"before-id"    description:"Show events with ID less than the given ID"`
+	Before     string `long:"before"       description:"Show events before the given timestamp (ex: 2016-05-08 17:26:32)"`
+	After      string `long:"after"        description:"Show events after the given timestamp (ex: 2016-05-08 17:26:32)"`
 	Deployment string
-	Task       string `long:"task"       description:"Show events with the given task ID"`
-	Instance   string `long:"instance"   description:"Show events with given instance"`
+	Task       string `long:"task"         description:"Show events with the given task ID"`
+	Instance   string `long:"instance"     description:"Show events with given instance"`
+	User       string `long:"event-user"   description:"Show events with given user"`
+	Action     string `long:"action"       description:"Show events with given action"`
+	ObjectType string `long:"object-type"  description:"Show events with given object type"`
+	ObjectName string `long:"object-id"    description:"Show events with given object ID"`
 
 	cmd
 }

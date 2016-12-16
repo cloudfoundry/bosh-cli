@@ -263,6 +263,10 @@ type EventsFilter struct {
 	Deployment string
 	Task       string
 	Instance   string
+	User       string
+	Action     string
+	ObjectType string
+	ObjectName string
 }
 
 //go:generate counterfeiter . Event
