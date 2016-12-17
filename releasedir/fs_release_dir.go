@@ -170,20 +170,29 @@ func (d FSReleaseDir) NextDevVersion(name string, timestamp bool) (semver.Versio
 	return incVer, nil
 }
 
-func (d FSReleaseDir) LastRelease() (boshrel.Release, error) {
-	name, err := d.DefaultName()
-	if err != nil {
-		return nil, err
+func (d FSReleaseDir) FindRelease(name string, version semver.Version) (boshrel.Release, error) {
+	if len(name) == 0 {
+		defaultName, err := d.DefaultName()
+		if err != nil {
+			return nil, err
+		}
+		name = defaultName
 	}
 
-	lastVer, relIndex, err := d.lastDevOrFinalVersion(name)
-	if err != nil {
-		return nil, err
-	} else if lastVer == nil {
-		return nil, bosherr.Errorf("Expected to find at least one dev or final version")
+	relIndex := d.finalReleases
+
+	if version.Empty() {
+		lastVer, lastRelIndex, err := d.lastDevOrFinalVersion(name)
+		if err != nil {
+			return nil, err
+		} else if lastVer == nil {
+			return nil, bosherr.Errorf("Expected to find at least one dev or final version")
+		}
+		version = *lastVer
+		relIndex = lastRelIndex
 	}
 
-	return d.releaseReader.Read(relIndex.ManifestPath(name, lastVer.AsString()))
+	return d.releaseReader.Read(relIndex.ManifestPath(name, version.AsString()))
 }
 
 func (d FSReleaseDir) BuildRelease(name string, version semver.Version, force bool) (boshrel.Release, error) {

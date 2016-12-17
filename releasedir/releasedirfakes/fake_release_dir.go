@@ -66,10 +66,13 @@ type FakeReleaseDir struct {
 		result1 gssver.Version
 		result2 error
 	}
-	LastReleaseStub        func() (birel.Release, error)
-	lastReleaseMutex       sync.RWMutex
-	lastReleaseArgsForCall []struct{}
-	lastReleaseReturns     struct {
+	FindReleaseStub        func(name string, version gssver.Version) (birel.Release, error)
+	findReleaseMutex       sync.RWMutex
+	findReleaseArgsForCall []struct {
+		name    string
+		version gssver.Version
+	}
+	findReleaseReturns struct {
 		result1 birel.Release
 		result2 error
 	}
@@ -316,27 +319,36 @@ func (fake *FakeReleaseDir) NextFinalVersionReturns(result1 gssver.Version, resu
 	}{result1, result2}
 }
 
-func (fake *FakeReleaseDir) LastRelease() (birel.Release, error) {
-	fake.lastReleaseMutex.Lock()
-	fake.lastReleaseArgsForCall = append(fake.lastReleaseArgsForCall, struct{}{})
-	fake.recordInvocation("LastRelease", []interface{}{})
-	fake.lastReleaseMutex.Unlock()
-	if fake.LastReleaseStub != nil {
-		return fake.LastReleaseStub()
+func (fake *FakeReleaseDir) FindRelease(name string, version gssver.Version) (birel.Release, error) {
+	fake.findReleaseMutex.Lock()
+	fake.findReleaseArgsForCall = append(fake.findReleaseArgsForCall, struct {
+		name    string
+		version gssver.Version
+	}{name, version})
+	fake.recordInvocation("FindRelease", []interface{}{name, version})
+	fake.findReleaseMutex.Unlock()
+	if fake.FindReleaseStub != nil {
+		return fake.FindReleaseStub(name, version)
 	} else {
-		return fake.lastReleaseReturns.result1, fake.lastReleaseReturns.result2
+		return fake.findReleaseReturns.result1, fake.findReleaseReturns.result2
 	}
 }
 
-func (fake *FakeReleaseDir) LastReleaseCallCount() int {
-	fake.lastReleaseMutex.RLock()
-	defer fake.lastReleaseMutex.RUnlock()
-	return len(fake.lastReleaseArgsForCall)
+func (fake *FakeReleaseDir) FindReleaseCallCount() int {
+	fake.findReleaseMutex.RLock()
+	defer fake.findReleaseMutex.RUnlock()
+	return len(fake.findReleaseArgsForCall)
 }
 
-func (fake *FakeReleaseDir) LastReleaseReturns(result1 birel.Release, result2 error) {
-	fake.LastReleaseStub = nil
-	fake.lastReleaseReturns = struct {
+func (fake *FakeReleaseDir) FindReleaseArgsForCall(i int) (string, gssver.Version) {
+	fake.findReleaseMutex.RLock()
+	defer fake.findReleaseMutex.RUnlock()
+	return fake.findReleaseArgsForCall[i].name, fake.findReleaseArgsForCall[i].version
+}
+
+func (fake *FakeReleaseDir) FindReleaseReturns(result1 birel.Release, result2 error) {
+	fake.FindReleaseStub = nil
+	fake.findReleaseReturns = struct {
 		result1 birel.Release
 		result2 error
 	}{result1, result2}
@@ -429,8 +441,8 @@ func (fake *FakeReleaseDir) Invocations() map[string][][]interface{} {
 	defer fake.nextDevVersionMutex.RUnlock()
 	fake.nextFinalVersionMutex.RLock()
 	defer fake.nextFinalVersionMutex.RUnlock()
-	fake.lastReleaseMutex.RLock()
-	defer fake.lastReleaseMutex.RUnlock()
+	fake.findReleaseMutex.RLock()
+	defer fake.findReleaseMutex.RUnlock()
 	fake.buildReleaseMutex.RLock()
 	defer fake.buildReleaseMutex.RUnlock()
 	fake.finalizeReleaseMutex.RLock()

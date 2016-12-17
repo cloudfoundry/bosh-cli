@@ -23,16 +23,12 @@ var _ = Describe("interpolate command", func() {
 	)
 
 	BeforeEach(func() {
-		fs = fakesys.NewFakeFileSystem()
-
 		ui = &fakeui.FakeUI{}
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		confUI := boshui.NewWrappingConfUI(ui, logger)
 
-		deps := NewBasicDeps(confUI, logger)
-		deps.FS = fs
-
-		cmdFactory = NewFactory(deps)
+		fs = fakesys.NewFakeFileSystem()
+		cmdFactory = NewFactory(NewBasicDepsWithFS(confUI, fs, logger))
 	})
 
 	It("interpolates manifest with variables", func() {

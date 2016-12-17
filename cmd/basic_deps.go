@@ -25,8 +25,10 @@ type BasicDeps struct {
 }
 
 func NewBasicDeps(ui *boshui.ConfUI, logger boshlog.Logger) BasicDeps {
-	fs := boshsys.NewOsFileSystemWithStrictTempRoot(logger)
+	return NewBasicDepsWithFS(ui, boshsys.NewOsFileSystemWithStrictTempRoot(logger), logger)
+}
 
+func NewBasicDepsWithFS(ui *boshui.ConfUI, fs boshsys.FileSystem, logger boshlog.Logger) BasicDeps {
 	cmdRunner := boshsys.NewExecCmdRunner(logger)
 
 	return BasicDeps{

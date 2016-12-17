@@ -143,7 +143,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		}
 
 		cmd := NewUploadReleaseCmd(
-			releaseDirFactory, releaseWriter, c.director(), releaseArchiveFactory, deps.UI)
+			releaseDirFactory, releaseWriter, c.director(), releaseArchiveFactory, deps.CmdRunner, deps.FS, deps.UI)
 
 		return cmd.Run(*opts)
 
@@ -443,7 +443,7 @@ func (c Cmd) releaseManager(director boshdir.Director) ReleaseManager {
 	}
 
 	uploadReleaseCmd := NewUploadReleaseCmd(
-		releaseDirFactory, releaseWriter, director, releaseArchiveFactory, c.deps.UI)
+		releaseDirFactory, releaseWriter, director, releaseArchiveFactory, c.deps.CmdRunner, c.deps.FS, c.deps.UI)
 
 	return NewReleaseManager(createReleaseCmd, uploadReleaseCmd)
 }

@@ -339,151 +339,174 @@ var _ = Describe("FSGenerator", func() {
 		})
 	})
 
-	Describe("LastRelease", func() {
+	Describe("FindRelease", func() {
 		var (
 			expectedRelease *fakerel.FakeRelease
 		)
 
 		BeforeEach(func() {
-			config.NameReturns("rel1", nil)
-
 			expectedRelease = &fakerel.FakeRelease{
 				NameStub: func() string { return "rel1" },
 			}
 		})
 
-		It("returns last final release for specific release name", func() {
-			finalReleases.LastVersionStub = func(name string) (*semver.Version, error) {
-				Expect(name).To(Equal("rel1"))
-				lastVer := semver.MustNewVersionFromString("1.1")
-				return &lastVer, nil
-			}
+		Context("when name and version are not specified", func() {
+			BeforeEach(func() {
+				config.NameReturns("rel1", nil)
+			})
 
-			finalReleases.ManifestPathStub = func(name, ver string) string {
-				Expect(name).To(Equal("rel1"))
-				Expect(ver).To(Equal("1.1"))
-				return "manifest-path"
-			}
+			It("returns last final release for specific release name", func() {
+				finalReleases.LastVersionStub = func(name string) (*semver.Version, error) {
+					Expect(name).To(Equal("rel1"))
+					lastVer := semver.MustNewVersionFromString("1.1")
+					return &lastVer, nil
+				}
 
-			reader.ReadStub = func(path string) (boshrel.Release, error) {
-				Expect(path).To(Equal("manifest-path"))
-				return expectedRelease, nil
-			}
+				finalReleases.ManifestPathStub = func(name, ver string) string {
+					Expect(name).To(Equal("rel1"))
+					Expect(ver).To(Equal("1.1"))
+					return "manifest-path"
+				}
 
-			release, err := releaseDir.LastRelease()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(release).To(Equal(expectedRelease))
+				reader.ReadStub = func(path string) (boshrel.Release, error) {
+					Expect(path).To(Equal("manifest-path"))
+					return expectedRelease, nil
+				}
+
+				release, err := releaseDir.FindRelease("", semver.Version{})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(release).To(Equal(expectedRelease))
+			})
+
+			It("returns last dev release for specific release name", func() {
+				devReleases.LastVersionStub = func(name string) (*semver.Version, error) {
+					Expect(name).To(Equal("rel1"))
+					lastVer := semver.MustNewVersionFromString("1.1+dev.1")
+					return &lastVer, nil
+				}
+
+				devReleases.ManifestPathStub = func(name, ver string) string {
+					Expect(name).To(Equal("rel1"))
+					Expect(ver).To(Equal("1.1+dev.1"))
+					return "manifest-path"
+				}
+
+				reader.ReadStub = func(path string) (boshrel.Release, error) {
+					Expect(path).To(Equal("manifest-path"))
+					return expectedRelease, nil
+				}
+
+				release, err := releaseDir.FindRelease("", semver.Version{})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(release).To(Equal(expectedRelease))
+			})
+
+			It("returns greater dev release compared to final release for specific release name", func() {
+				finalReleases.LastVersionStub = func(name string) (*semver.Version, error) {
+					Expect(name).To(Equal("rel1"))
+					lastVer := semver.MustNewVersionFromString("1.1")
+					return &lastVer, nil
+				}
+
+				devReleases.LastVersionStub = func(name string) (*semver.Version, error) {
+					Expect(name).To(Equal("rel1"))
+					lastVer := semver.MustNewVersionFromString("1.1+dev.1")
+					return &lastVer, nil
+				}
+
+				devReleases.ManifestPathStub = func(name, ver string) string {
+					Expect(name).To(Equal("rel1"))
+					Expect(ver).To(Equal("1.1+dev.1"))
+					return "manifest-path"
+				}
+
+				reader.ReadStub = func(path string) (boshrel.Release, error) {
+					Expect(path).To(Equal("manifest-path"))
+					return expectedRelease, nil
+				}
+
+				release, err := releaseDir.FindRelease("", semver.Version{})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(release).To(Equal(expectedRelease))
+			})
+
+			It("returns greater final release compared to dev release for specific release name", func() {
+				finalReleases.LastVersionStub = func(name string) (*semver.Version, error) {
+					Expect(name).To(Equal("rel1"))
+					lastVer := semver.MustNewVersionFromString("1.2")
+					return &lastVer, nil
+				}
+
+				devReleases.LastVersionStub = func(name string) (*semver.Version, error) {
+					Expect(name).To(Equal("rel1"))
+					lastVer := semver.MustNewVersionFromString("1.1+dev.1")
+					return &lastVer, nil
+				}
+
+				finalReleases.ManifestPathStub = func(name, ver string) string {
+					Expect(name).To(Equal("rel1"))
+					Expect(ver).To(Equal("1.2"))
+					return "manifest-path"
+				}
+
+				reader.ReadStub = func(path string) (boshrel.Release, error) {
+					Expect(path).To(Equal("manifest-path"))
+					return expectedRelease, nil
+				}
+
+				release, err := releaseDir.FindRelease("", semver.Version{})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(release).To(Equal(expectedRelease))
+			})
+
+			It("returns error if there are no dev or final versions", func() {
+				_, err := releaseDir.FindRelease("", semver.Version{})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Expected to find at least one dev or final version"))
+			})
+
+			It("returns error if cannot find out last dev version", func() {
+				devReleases.LastVersionReturns(nil, errors.New("fake-err"))
+
+				_, err := releaseDir.FindRelease("", semver.Version{})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+
+			It("returns error if cannot find out last final version", func() {
+				finalReleases.LastVersionReturns(nil, errors.New("fake-err"))
+
+				_, err := releaseDir.FindRelease("", semver.Version{})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+
+			It("retuns error if cannot determine final name", func() {
+				config.NameReturns("", errors.New("fake-err"))
+
+				_, err := releaseDir.FindRelease("", semver.Version{})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
 		})
 
-		It("returns last dev release for specific release name", func() {
-			devReleases.LastVersionStub = func(name string) (*semver.Version, error) {
-				Expect(name).To(Equal("rel1"))
-				lastVer := semver.MustNewVersionFromString("1.1+dev.1")
-				return &lastVer, nil
-			}
+		Context("when name and version is specified", func() {
+			It("returns final release for specific release name and version", func() {
+				finalReleases.ManifestPathStub = func(name, ver string) string {
+					Expect(name).To(Equal("rel1"))
+					Expect(ver).To(Equal("1.1"))
+					return "manifest-path"
+				}
 
-			devReleases.ManifestPathStub = func(name, ver string) string {
-				Expect(name).To(Equal("rel1"))
-				Expect(ver).To(Equal("1.1+dev.1"))
-				return "manifest-path"
-			}
+				reader.ReadStub = func(path string) (boshrel.Release, error) {
+					Expect(path).To(Equal("manifest-path"))
+					return expectedRelease, nil
+				}
 
-			reader.ReadStub = func(path string) (boshrel.Release, error) {
-				Expect(path).To(Equal("manifest-path"))
-				return expectedRelease, nil
-			}
-
-			release, err := releaseDir.LastRelease()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(release).To(Equal(expectedRelease))
-		})
-
-		It("returns greater dev release compared to final release for specific release name", func() {
-			finalReleases.LastVersionStub = func(name string) (*semver.Version, error) {
-				Expect(name).To(Equal("rel1"))
-				lastVer := semver.MustNewVersionFromString("1.1")
-				return &lastVer, nil
-			}
-
-			devReleases.LastVersionStub = func(name string) (*semver.Version, error) {
-				Expect(name).To(Equal("rel1"))
-				lastVer := semver.MustNewVersionFromString("1.1+dev.1")
-				return &lastVer, nil
-			}
-
-			devReleases.ManifestPathStub = func(name, ver string) string {
-				Expect(name).To(Equal("rel1"))
-				Expect(ver).To(Equal("1.1+dev.1"))
-				return "manifest-path"
-			}
-
-			reader.ReadStub = func(path string) (boshrel.Release, error) {
-				Expect(path).To(Equal("manifest-path"))
-				return expectedRelease, nil
-			}
-
-			release, err := releaseDir.LastRelease()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(release).To(Equal(expectedRelease))
-		})
-
-		It("returns greater final release compared to dev release for specific release name", func() {
-			finalReleases.LastVersionStub = func(name string) (*semver.Version, error) {
-				Expect(name).To(Equal("rel1"))
-				lastVer := semver.MustNewVersionFromString("1.2")
-				return &lastVer, nil
-			}
-
-			devReleases.LastVersionStub = func(name string) (*semver.Version, error) {
-				Expect(name).To(Equal("rel1"))
-				lastVer := semver.MustNewVersionFromString("1.1+dev.1")
-				return &lastVer, nil
-			}
-
-			finalReleases.ManifestPathStub = func(name, ver string) string {
-				Expect(name).To(Equal("rel1"))
-				Expect(ver).To(Equal("1.2"))
-				return "manifest-path"
-			}
-
-			reader.ReadStub = func(path string) (boshrel.Release, error) {
-				Expect(path).To(Equal("manifest-path"))
-				return expectedRelease, nil
-			}
-
-			release, err := releaseDir.LastRelease()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(release).To(Equal(expectedRelease))
-		})
-
-		It("returns error if there are no dev or final versions", func() {
-			_, err := releaseDir.LastRelease()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Expected to find at least one dev or final version"))
-		})
-
-		It("returns error if cannot find out last dev version", func() {
-			devReleases.LastVersionReturns(nil, errors.New("fake-err"))
-
-			_, err := releaseDir.LastRelease()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
-		})
-
-		It("returns error if cannot find out last final version", func() {
-			finalReleases.LastVersionReturns(nil, errors.New("fake-err"))
-
-			_, err := releaseDir.LastRelease()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
-		})
-
-		It("retuns error if cannot determine final name", func() {
-			config.NameReturns("", errors.New("fake-err"))
-
-			_, err := releaseDir.LastRelease()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
+				release, err := releaseDir.FindRelease("rel1", semver.MustNewVersionFromString("1.1"))
+				Expect(err).ToNot(HaveOccurred())
+				Expect(release).To(Equal(expectedRelease))
+			})
 		})
 	})
 

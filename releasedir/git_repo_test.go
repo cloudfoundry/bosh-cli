@@ -3,6 +3,7 @@ package releasedir_test
 import (
 	"errors"
 
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -66,7 +67,7 @@ releases/**/*.tgz
 	})
 
 	Describe("LastCommitSHA", func() {
-		cmd := "git --git-dir /dir/.git rev-parse --short HEAD"
+		cmd := "git rev-parse --short HEAD"
 
 		It("returns last commit", func() {
 			cmdRunner.AddCmdResult(cmd, fakesys.FakeCmdResult{
@@ -75,6 +76,12 @@ releases/**/*.tgz
 			commit, err := gitRepo.LastCommitSHA()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(commit).To(Equal("commit"))
+
+			Expect(cmdRunner.RunComplexCommands).To(Equal([]boshsys.Command{{
+				Name:       "git",
+				Args:       []string{"rev-parse", "--short", "HEAD"},
+				WorkingDir: "/dir",
+			}}))
 		})
 
 		It("returns 'non-git' if it's not a git repo", func() {
@@ -108,13 +115,19 @@ releases/**/*.tgz
 	})
 
 	Describe("MustNotBeDirty", func() {
-		cmd := "git --git-dir /dir/.git status --short"
+		cmd := "git status --short"
 
 		It("returns false if there are no changes", func() {
 			cmdRunner.AddCmdResult(cmd, fakesys.FakeCmdResult{Stdout: ""})
 			dirty, err := gitRepo.MustNotBeDirty(false)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(dirty).To(BeFalse())
+
+			Expect(cmdRunner.RunComplexCommands).To(Equal([]boshsys.Command{{
+				Name:       "git",
+				Args:       []string{"status", "--short"},
+				WorkingDir: "/dir",
+			}}))
 		})
 
 		It("returns true if there are changes", func() {

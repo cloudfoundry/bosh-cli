@@ -2,6 +2,7 @@ package cmd
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
@@ -17,7 +18,9 @@ type UploadReleaseCmd struct {
 	director              boshdir.Director
 	releaseArchiveFactory func(string) boshdir.ReleaseArchive
 
-	ui boshui.UI
+	cmdRunner boshsys.CmdRunner
+	fs        boshsys.FileSystem
+	ui        boshui.UI
 }
 
 func NewUploadReleaseCmd(
@@ -25,6 +28,8 @@ func NewUploadReleaseCmd(
 	releaseArchiveWriter boshrel.Writer,
 	director boshdir.Director,
 	releaseArchiveFactory func(string) boshdir.ReleaseArchive,
+	cmdRunner boshsys.CmdRunner,
+	fs boshsys.FileSystem,
 	ui boshui.UI,
 ) UploadReleaseCmd {
 	return UploadReleaseCmd{
@@ -34,38 +39,55 @@ func NewUploadReleaseCmd(
 		director:              director,
 		releaseArchiveFactory: releaseArchiveFactory,
 
-		ui: ui,
+		cmdRunner: cmdRunner,
+		fs:        fs,
+		ui:        ui,
 	}
 }
 
 func (c UploadReleaseCmd) Run(opts UploadReleaseOpts) error {
-	if opts.Release != nil {
+	switch {
+	case opts.Release != nil:
 		return c.uploadRelease(opts.Release, opts)
+	case opts.Args.URL.IsRemote():
+		return c.uploadIfNecessary(opts, c.uploadRemote)
+	case opts.Args.URL.IsGit():
+		return c.uploadIfNecessary(opts, c.uploadGit)
+	default:
+		return c.uploadFile(opts)
 	}
-
-	if opts.Args.URL.IsRemote() {
-		return c.uploadRemote(string(opts.Args.URL), opts)
-	}
-
-	return c.uploadFile(opts)
 }
 
-func (c UploadReleaseCmd) uploadRemote(url string, opts UploadReleaseOpts) error {
-	version := semver.Version(opts.Version)
+func (c UploadReleaseCmd) uploadRemote(opts UploadReleaseOpts) error {
+	return c.director.UploadReleaseURL(string(opts.Args.URL), opts.SHA1, opts.Rebase, opts.Fix)
+}
 
-	necessary, err := c.needToUpload(opts.Name, version.AsString(), opts.Fix)
-	if err != nil || !necessary {
-		return err
+func (c UploadReleaseCmd) uploadGit(opts UploadReleaseOpts) error {
+	repoPath, err := c.fs.TempDir("bosh-upload-release-git-clone")
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Creating tmp dir for git cloning")
 	}
 
-	return c.director.UploadReleaseURL(url, opts.SHA1, opts.Rebase, opts.Fix)
+	defer c.fs.RemoveAll(repoPath)
+
+	_, _, _, err = c.cmdRunner.RunCommand("git", "clone", opts.Args.URL.GitRepo(), "--depth", "1", repoPath)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Cloning git repo")
+	}
+
+	newOpts := UploadReleaseOpts{
+		Directory: DirOrCWDArg{Path: repoPath},
+		Name:      opts.Name,
+		Version:   opts.Version,
+		Fix:       opts.Fix,
+	}
+
+	return c.uploadFile(newOpts)
 }
 
 func (c UploadReleaseCmd) uploadFile(opts UploadReleaseOpts) error {
-	path := opts.Args.URL.FilePath()
-
 	if c.releaseDirFactory == nil {
-		return bosherr.Errorf("Cannot upload non-remote release '%s'", path)
+		return bosherr.Errorf("Cannot upload non-remote release")
 	}
 
 	releaseReader, releaseDir := c.releaseDirFactory(opts.Directory)
@@ -73,13 +95,15 @@ func (c UploadReleaseCmd) uploadFile(opts UploadReleaseOpts) error {
 	var release boshrel.Release
 	var err error
 
+	path := opts.Args.URL.FilePath()
+
 	if len(path) > 0 {
 		release, err = releaseReader.Read(path)
 		if err != nil {
 			return err
 		}
 	} else {
-		release, err = releaseDir.LastRelease()
+		release, err = releaseDir.FindRelease(opts.Name, semver.Version(opts.Version))
 		if err != nil {
 			return err
 		}
@@ -112,18 +136,28 @@ func (c UploadReleaseCmd) uploadRelease(release boshrel.Release, opts UploadRele
 	return c.director.UploadReleaseFile(file, opts.Rebase, opts.Fix)
 }
 
-func (c UploadReleaseCmd) needToUpload(name, version string, fix bool) (bool, error) {
-	if fix {
+func (c UploadReleaseCmd) uploadIfNecessary(opts UploadReleaseOpts, uploadFunc func(UploadReleaseOpts) error) error {
+	necessary, err := c.needToUpload(opts)
+	if err != nil || !necessary {
+		return err
+	}
+	return uploadFunc(opts)
+}
+
+func (c UploadReleaseCmd) needToUpload(opts UploadReleaseOpts) (bool, error) {
+	if opts.Fix {
 		return true, nil
 	}
 
-	found, err := c.director.HasRelease(name, version)
+	version := semver.Version(opts.Version).AsString()
+
+	found, err := c.director.HasRelease(opts.Name, version)
 	if err != nil {
 		return true, err
 	}
 
 	if found {
-		c.ui.PrintLinef("Release '%s/%s' already exists.", name, version)
+		c.ui.PrintLinef("Release '%s/%s' already exists.", opts.Name, version)
 		return false, nil
 	}
 

@@ -25,6 +25,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 		releaseWriter *fakerel.FakeWriter
 		releaseDir    *fakereldir.FakeReleaseDir
 		director      *fakedir.FakeDirector
+		cmdRunner     *fakesys.FakeCmdRunner
 		fs            *fakesys.FakeFileSystem
 		archive       *fakedir.FakeReleaseArchive
 		ui            *fakeui.FakeUI
@@ -42,6 +43,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 
 		releaseWriter = &fakerel.FakeWriter{}
 		director = &fakedir.FakeDirector{}
+		cmdRunner = fakesys.NewFakeCmdRunner()
 		fs = fakesys.NewFakeFileSystem()
 
 		archive = &fakedir.FakeReleaseArchive{}
@@ -57,7 +59,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 
 		ui = &fakeui.FakeUI{}
 
-		command = NewUploadReleaseCmd(releaseDirFactory, releaseWriter, director, releaseArchiveFactory, ui)
+		command = NewUploadReleaseCmd(releaseDirFactory, releaseWriter, director, releaseArchiveFactory, cmdRunner, fs, ui)
 	})
 
 	Describe("Run", func() {
@@ -92,7 +94,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("uploads given release even if reader is nil", func() {
-				command = NewUploadReleaseCmd(nil, nil, director, nil, ui)
+				command = NewUploadReleaseCmd(nil, nil, director, nil, nil, nil, ui)
 
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
@@ -212,11 +214,11 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("returns an error if reader is nil", func() {
-				command = NewUploadReleaseCmd(nil, nil, director, nil, ui)
+				command = NewUploadReleaseCmd(nil, nil, director, nil, nil, nil, ui)
 
 				err := command.Run(opts)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Cannot upload non-remote release './some-file.tgz'"))
+				Expect(err.Error()).To(Equal("Cannot upload non-remote release"))
 			})
 
 			It("uploads given release", func() {
@@ -299,6 +301,163 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 		})
 
+		Context("when url is a git repo", func() {
+			var (
+				release *fakerel.FakeRelease
+			)
+
+			BeforeEach(func() {
+				// Command's --dir flag is not used
+				opts.Args.URL = "git://./some-repo"
+				opts.Directory = DirOrCWDArg{Path: "/dir-that-does-not-matter"}
+
+				// Destination for git clone
+				fs.TempDirDir = "/dir"
+
+				release = &fakerel.FakeRelease{
+					NameStub: func() string { return "rel" },
+					ManifestStub: func() boshman.Manifest {
+						return boshman.Manifest{Name: "rel"}
+					},
+				}
+			})
+
+			It("returns an error if reader is nil", func() {
+				command = NewUploadReleaseCmd(nil, nil, director, nil, cmdRunner, fs, ui)
+
+				err := command.Run(opts)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("Cannot upload non-remote release"))
+			})
+
+			It("uploads given release", func() {
+				opts.Name = "rel1"
+				opts.Version = VersionArg(semver.MustNewVersionFromString("1.1"))
+				afterClone := false
+
+				cmdRunner.SetCmdCallback("git clone git://./some-repo --depth 1 /dir", func() {
+					afterClone = true
+				})
+
+				releaseDir.FindReleaseStub = func(name string, version semver.Version) (boshrel.Release, error) {
+					Expect(afterClone).To(BeTrue())
+					Expect(name).To(Equal("rel1"))
+					Expect(version).To(Equal(semver.MustNewVersionFromString("1.1")))
+					return release, nil
+				}
+
+				director.MatchPackagesStub = func(manifest interface{}, compiled bool) ([]string, error) {
+					Expect(manifest).To(Equal(boshman.Manifest{Name: "rel"}))
+					Expect(compiled).To(BeFalse())
+					return []string{"skip-pkg1-fp"}, nil
+				}
+
+				releaseWriter.WriteStub = func(rel boshrel.Release, pkgFpsToSkip []string) (string, error) {
+					Expect(rel).To(Equal(release))
+					Expect(pkgFpsToSkip).To(Equal([]string{"skip-pkg1-fp"}))
+					return "/archive-path", nil
+				}
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(director.MatchPackagesCallCount()).To(Equal(1))
+				Expect(director.UploadReleaseFileCallCount()).To(Equal(1))
+
+				file, rebase, fix := director.UploadReleaseFileArgsForCall(0)
+				Expect(file.(*fakesys.FakeFile).Name()).To(Equal("/archive-path"))
+				Expect(rebase).To(BeFalse())
+				Expect(fix).To(BeFalse())
+			})
+
+			It("uploads given release with a fix flag hence does not filter out any packages", func() {
+				opts.Fix = true
+
+				releaseDir.FindReleaseStub = func(name string, version semver.Version) (boshrel.Release, error) {
+					Expect(name).To(Equal(""))
+					Expect(version).To(Equal(semver.Version{}))
+					return release, nil
+				}
+
+				releaseWriter.WriteStub = func(rel boshrel.Release, pkgFpsToSkip []string) (string, error) {
+					Expect(rel).To(Equal(release))
+					Expect(pkgFpsToSkip).To(BeEmpty())
+					return "/archive-path", nil
+				}
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(director.MatchPackagesCallCount()).To(Equal(0))
+				Expect(director.UploadReleaseFileCallCount()).To(Equal(1))
+
+				file, rebase, fix := director.UploadReleaseFileArgsForCall(0)
+				Expect(file.(*fakesys.FakeFile).Name()).To(Equal("/archive-path"))
+				Expect(rebase).To(BeFalse())
+				Expect(fix).To(BeTrue())
+			})
+
+			It("does not upload release if name and version match existing release", func() {
+				opts.Name = "existing-name"
+				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
+
+				director.HasReleaseReturns(true, nil)
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(director.UploadReleaseURLCallCount()).To(Equal(0))
+
+				name, version := director.HasReleaseArgsForCall(0)
+				Expect(name).To(Equal("existing-name"))
+				Expect(version).To(Equal("existing-ver"))
+
+				Expect(ui.Said).To(Equal(
+					[]string{"Release 'existing-name/existing-ver' already exists."}))
+			})
+
+			It("returns error if opening file fails", func() {
+				releaseDir.FindReleaseReturns(release, nil)
+
+				archive.FileStub = func() (boshdir.UploadFile, error) {
+					return nil, errors.New("fake-err")
+				}
+
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+
+				Expect(director.UploadReleaseFileCallCount()).To(Equal(0))
+			})
+
+			It("returns error if creating temporary director failed", func() {
+				fs.TempDirError = errors.New("fake-err")
+
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+
+			It("returns error if git cloning failed", func() {
+				cmdRunner.AddCmdResult("git clone git://./some-repo --depth 1 /dir", fakesys.FakeCmdResult{
+					Error: errors.New("fake-err"),
+				})
+
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+
+			It("returns error if uploading release failed", func() {
+				releaseDir.FindReleaseReturns(release, nil)
+				director.UploadReleaseFileReturns(errors.New("fake-err"))
+
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+		})
+
 		Context("when url is empty", func() {
 			var (
 				release *fakerel.FakeRelease
@@ -316,8 +475,15 @@ var _ = Describe("UploadReleaseCmd", func() {
 				}
 			})
 
-			It("uploads highest numbered release", func() {
-				releaseDir.LastReleaseReturns(release, nil)
+			It("uploads found release based on name and version", func() {
+				opts.Name = "rel1"
+				opts.Version = VersionArg(semver.MustNewVersionFromString("1.1"))
+
+				releaseDir.FindReleaseStub = func(name string, version semver.Version) (boshrel.Release, error) {
+					Expect(name).To(Equal("rel1"))
+					Expect(version).To(Equal(semver.MustNewVersionFromString("1.1")))
+					return release, nil
+				}
 
 				director.MatchPackagesStub = func(manifest interface{}, compiled bool) ([]string, error) {
 					Expect(manifest).To(Equal(boshman.Manifest{Name: "rel"}))
@@ -346,7 +512,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 			It("uploads given release with a fix flag and does not try to repack release", func() {
 				opts.Fix = true
 
-				releaseDir.LastReleaseReturns(release, nil)
+				releaseDir.FindReleaseReturns(release, nil)
 
 				releaseWriter.WriteStub = func(rel boshrel.Release, pkgFpsToSkip []string) (string, error) {
 					Expect(rel).To(Equal(release))
@@ -366,8 +532,8 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(fix).To(BeTrue())
 			})
 
-			It("returns error if retrieving last release fails", func() {
-				releaseDir.LastReleaseReturns(nil, errors.New("fake-err"))
+			It("returns error if finding release fails", func() {
+				releaseDir.FindReleaseReturns(nil, errors.New("fake-err"))
 
 				err := act()
 				Expect(err).To(HaveOccurred())
@@ -377,7 +543,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("returns error if uploading release failed", func() {
-				releaseDir.LastReleaseReturns(release, nil)
+				releaseDir.FindReleaseReturns(release, nil)
 				director.UploadReleaseFileReturns(errors.New("fake-err"))
 
 				err := act()
