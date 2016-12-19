@@ -13,6 +13,10 @@ type DirectorImpl struct {
 	client Client
 }
 
+func (d DirectorImpl) WithContext(id string) Director {
+	return DirectorImpl{client: d.client.WithContext(id)}
+}
+
 func (d DirectorImpl) EnableResurrection(enabled bool) error {
 	return d.client.EnableResurrectionAll(enabled)
 }

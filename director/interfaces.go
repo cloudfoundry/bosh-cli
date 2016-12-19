@@ -12,6 +12,7 @@ import (
 
 type Director interface {
 	IsAuthenticated() (bool, error)
+	WithContext(id string) Director
 	Info() (Info, error)
 
 	Locks() ([]Lock, error)

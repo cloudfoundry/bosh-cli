@@ -145,4 +145,23 @@ var _ = Describe("Director", func() {
 			Expect(err.Error()).To(ContainSubstring("Downloading resource 'blob-id'"))
 		})
 	})
+
+	Describe("With Context", func() {
+		It("Adds the context id to requests", func() {
+			buf := bytes.NewBufferString("")
+			contextId := "example-context-id"
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/resources/blob-id"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeaderKV("X-Bosh-Context-Id", contextId),
+					ghttp.RespondWith(http.StatusOK, contextId),
+				),
+			)
+
+			director = director.WithContext(contextId)
+			err := director.DownloadResourceUnchecked("blob-id", buf)
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
 })

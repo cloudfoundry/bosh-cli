@@ -23,3 +23,12 @@ func NewClient(
 	taskClientRequest := NewTaskClientRequest(clientRequest, taskReporter, 500*time.Millisecond)
 	return Client{clientRequest, taskClientRequest}
 }
+
+func (c Client) WithContext(contextId string) Client {
+	clientRequest := c.clientRequest.WithContext(contextId)
+
+	taskClientRequest := c.taskClientRequest
+	taskClientRequest.clientRequest = clientRequest
+
+	return Client{clientRequest, taskClientRequest}
+}

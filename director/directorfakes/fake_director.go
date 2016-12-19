@@ -16,6 +16,14 @@ type FakeDirector struct {
 		result1 bool
 		result2 error
 	}
+	WithContextStub        func(id string) director.Director
+	withContextMutex       sync.RWMutex
+	withContextArgsForCall []struct {
+		id string
+	}
+	withContextReturns struct {
+		result1 director.Director
+	}
 	InfoStub        func() (director.Info, error)
 	infoMutex       sync.RWMutex
 	infoArgsForCall []struct{}
@@ -317,6 +325,39 @@ func (fake *FakeDirector) IsAuthenticatedReturns(result1 bool, result2 error) {
 		result1 bool
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeDirector) WithContext(id string) director.Director {
+	fake.withContextMutex.Lock()
+	fake.withContextArgsForCall = append(fake.withContextArgsForCall, struct {
+		id string
+	}{id})
+	fake.recordInvocation("WithContext", []interface{}{id})
+	fake.withContextMutex.Unlock()
+	if fake.WithContextStub != nil {
+		return fake.WithContextStub(id)
+	} else {
+		return fake.withContextReturns.result1
+	}
+}
+
+func (fake *FakeDirector) WithContextCallCount() int {
+	fake.withContextMutex.RLock()
+	defer fake.withContextMutex.RUnlock()
+	return len(fake.withContextArgsForCall)
+}
+
+func (fake *FakeDirector) WithContextArgsForCall(i int) string {
+	fake.withContextMutex.RLock()
+	defer fake.withContextMutex.RUnlock()
+	return fake.withContextArgsForCall[i].id
+}
+
+func (fake *FakeDirector) WithContextReturns(result1 director.Director) {
+	fake.WithContextStub = nil
+	fake.withContextReturns = struct {
+		result1 director.Director
+	}{result1}
 }
 
 func (fake *FakeDirector) Info() (director.Info, error) {
@@ -1358,6 +1399,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.isAuthenticatedMutex.RLock()
 	defer fake.isAuthenticatedMutex.RUnlock()
+	fake.withContextMutex.RLock()
+	defer fake.withContextMutex.RUnlock()
 	fake.infoMutex.RLock()
 	defer fake.infoMutex.RUnlock()
 	fake.locksMutex.RLock()
