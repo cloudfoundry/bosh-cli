@@ -127,6 +127,10 @@ blobstore:
 
 			director.AppendHandlers(
 				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/info"),
+					ghttp.RespondWith(http.StatusOK, `{"user_authentication":{"type":"basic","options":{}}}`),
+				),
+				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/releases"),
 					ghttp.RespondWith(http.StatusOK, "[]"),
 				),
