@@ -24,6 +24,10 @@ func (c Creds) IsUAAClient() bool {
 	return len(c.Client) > 0
 }
 
+func (c Creds) IsUAA() bool {
+	return c.IsUAAClient() || len(c.RefreshToken) > 0
+}
+
 func (c Creds) Description() string {
 	if len(c.RefreshToken) > 0 {
 		info, err := boshuaa.NewTokenInfoFromValue(c.RefreshToken)

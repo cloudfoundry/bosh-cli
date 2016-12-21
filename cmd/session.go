@@ -57,7 +57,7 @@ func (c SessionImpl) UAA() (boshuaa.UAA, error) {
 
 	uaaURLStr, ok := uaaURL.(string)
 	if !ok {
-		return nil, bosherr.Errorf("Exected URL '%s' to be a string", uaaURL)
+		return nil, bosherr.Errorf("Expected URL '%s' to be a string", uaaURL)
 	}
 
 	uaaConfig, err := boshuaa.NewConfigFromURL(uaaURLStr)
@@ -102,7 +102,7 @@ func (c *SessionImpl) Director() (boshdir.Director, error) {
 	if c.directorInfo.Auth.Type != "uaa" {
 		dirConfig.Client = creds.Client
 		dirConfig.ClientSecret = creds.ClientSecret
-	} else {
+	} else if creds.IsUAA() {
 		uaa, err := c.UAA()
 		if err != nil {
 			return nil, err
