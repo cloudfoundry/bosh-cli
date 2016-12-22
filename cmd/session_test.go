@@ -63,8 +63,6 @@ var _ = Describe("SessionImpl", func() {
 				),
 			)
 
-			sess.SetDirectorInfo()
-
 			uaa, err := sess.UAA()
 			Expect(err).ToNot(HaveOccurred())
 
@@ -98,8 +96,6 @@ var _ = Describe("SessionImpl", func() {
 					ghttp.RespondWith(http.StatusOK, `{"token_type":"bearer","access_token":"access-token"}`),
 				),
 			)
-
-			sess.SetDirectorInfo()
 
 			uaa, err := sess.UAA()
 			Expect(err).ToNot(HaveOccurred())

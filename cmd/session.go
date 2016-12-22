@@ -48,7 +48,7 @@ func (c SessionImpl) Environment() string        { return c.context.Environment(
 func (c SessionImpl) Credentials() cmdconf.Creds { return c.context.Credentials() }
 
 func (c SessionImpl) UAA() (boshuaa.UAA, error) {
-	_, err := c.AnonymousDirector()
+	err := c.setDirectorInfo()
 	if err != nil {
 		return nil, err
 	}
@@ -92,11 +92,9 @@ func (c *SessionImpl) Director() (boshdir.Director, error) {
 
 	creds := c.Credentials()
 
-	if !c.directorInfoSet {
-		err = c.SetDirectorInfo()
-		if err != nil {
-			return nil, err
-		}
+	err = c.setDirectorInfo()
+	if err != nil {
+		return nil, err
 	}
 
 	if c.directorInfo.Auth.Type != "uaa" {
@@ -134,7 +132,11 @@ func (c *SessionImpl) Director() (boshdir.Director, error) {
 	return c.director, nil
 }
 
-func (c *SessionImpl) SetDirectorInfo() error {
+func (c *SessionImpl) setDirectorInfo() error {
+	if c.directorInfoSet {
+		return nil
+	}
+
 	director, err := c.AnonymousDirector()
 	if err != nil {
 		return err
@@ -150,7 +152,7 @@ func (c *SessionImpl) SetDirectorInfo() error {
 	return nil
 }
 
-func (c SessionImpl) AnonymousDirector() (boshdir.Director, error) {
+func (c *SessionImpl) AnonymousDirector() (boshdir.Director, error) {
 	dirConfig, err := boshdir.NewConfigFromURL(c.Environment())
 	if err != nil {
 		return nil, err
