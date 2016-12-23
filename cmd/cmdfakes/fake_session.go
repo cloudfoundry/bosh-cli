@@ -30,12 +30,6 @@ type FakeSession struct {
 		result1 uaa.UAA
 		result2 error
 	}
-	SetDirectorInfoStub        func() error
-	setDirectorInfoMutex       sync.RWMutex
-	setDirectorInfoArgsForCall []struct{}
-	setDirectorInfoReturns     struct {
-		result1 error
-	}
 	DirectorStub        func() (director.Director, error)
 	directorMutex       sync.RWMutex
 	directorArgsForCall []struct{}
@@ -137,31 +131,6 @@ func (fake *FakeSession) UAAReturns(result1 uaa.UAA, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeSession) SetDirectorInfo() error {
-	fake.setDirectorInfoMutex.Lock()
-	fake.setDirectorInfoArgsForCall = append(fake.setDirectorInfoArgsForCall, struct{}{})
-	fake.recordInvocation("SetDirectorInfo", []interface{}{})
-	fake.setDirectorInfoMutex.Unlock()
-	if fake.SetDirectorInfoStub != nil {
-		return fake.SetDirectorInfoStub()
-	} else {
-		return fake.setDirectorInfoReturns.result1
-	}
-}
-
-func (fake *FakeSession) SetDirectorInfoCallCount() int {
-	fake.setDirectorInfoMutex.RLock()
-	defer fake.setDirectorInfoMutex.RUnlock()
-	return len(fake.setDirectorInfoArgsForCall)
-}
-
-func (fake *FakeSession) SetDirectorInfoReturns(result1 error) {
-	fake.SetDirectorInfoStub = nil
-	fake.setDirectorInfoReturns = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeSession) Director() (director.Director, error) {
 	fake.directorMutex.Lock()
 	fake.directorArgsForCall = append(fake.directorArgsForCall, struct{}{})
@@ -249,8 +218,6 @@ func (fake *FakeSession) Invocations() map[string][][]interface{} {
 	defer fake.credentialsMutex.RUnlock()
 	fake.uAAMutex.RLock()
 	defer fake.uAAMutex.RUnlock()
-	fake.setDirectorInfoMutex.RLock()
-	defer fake.setDirectorInfoMutex.RUnlock()
 	fake.directorMutex.RLock()
 	defer fake.directorMutex.RUnlock()
 	fake.anonymousDirectorMutex.RLock()

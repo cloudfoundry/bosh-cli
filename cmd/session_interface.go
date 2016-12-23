@@ -24,8 +24,6 @@ type Session interface {
 
 	UAA() (boshuaa.UAA, error)
 
-	SetDirectorInfo() error
-
 	Director() (boshdir.Director, error)
 	AnonymousDirector() (boshdir.Director, error)
 

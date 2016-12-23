@@ -43,11 +43,6 @@ func NewUAALoginStrategy(
 func (c UAALoginStrategy) Try() error {
 	sess := c.sessionFactory(c.config)
 
-	err := sess.SetDirectorInfo()
-	if err != nil {
-		return err
-	}
-
 	uaa, err := sess.UAA()
 	if err != nil {
 		return err
