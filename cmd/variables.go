@@ -23,11 +23,12 @@ func (c VariablesCmd) Run() error {
 	}
 
 	table := boshtbl.Table{
+		Content: "variables",
+
 		Header: []string{"ID", "Name"},
 
 		SortBy: []boshtbl.ColumnSort{
-			{Column: 0, Asc: true},
-			{Column: 1},
+			{Column: 1, Asc: true},
 		},
 	}
 

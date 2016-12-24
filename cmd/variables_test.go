@@ -1,10 +1,11 @@
 package cmd_test
 
 import (
+	"errors"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"errors"
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
@@ -28,7 +29,7 @@ var _ = Describe("VariablesCmd", func() {
 	Describe("Run", func() {
 		act := func() error { return command.Run() }
 
-		It("lists placeholder variables (ID and Name)", func() {
+		It("lists variables", func() {
 			variables := []boshdir.VariableResult{
 				{ID: "1", Name: "foo-1"},
 				{ID: "2", Name: "foo-2"},
@@ -41,12 +42,12 @@ var _ = Describe("VariablesCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(ui.Table).To(Equal(boshtbl.Table{
+				Content: "variables",
 
 				Header: []string{"ID", "Name"},
 
 				SortBy: []boshtbl.ColumnSort{
-					{Column: 0, Asc: true},
-					{Column: 1},
+					{Column: 1, Asc: true},
 				},
 
 				Rows: [][]boshtbl.Value{
@@ -70,7 +71,7 @@ var _ = Describe("VariablesCmd", func() {
 			}))
 		})
 
-		It("errors if getting placeholder variables fails", func() {
+		It("returns error if getting variables fails", func() {
 			deployment.VariablesReturns(nil, errors.New("fake-err"))
 
 			err := act()
