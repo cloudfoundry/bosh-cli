@@ -66,8 +66,12 @@ var _ = Describe("ValueBytes", func() {
 		Expect(ValueBytes{1}.String()).To(Equal("1 B"))
 	})
 
-	It("returns formatted megabytes", func() {
-		Expect(NewValueMegaBytes(1).String()).To(Equal("1.0 MB"))
+	It("returns formatted mebibytes", func() {
+		Expect(NewValueMegaBytes(1).String()).To(Equal("1.0 MiB"))
+	})
+
+	It("returns formatted gibibytes", func() {
+		Expect(NewValueMegaBytes(131072).String()).To(Equal("128 GiB"))
 	})
 
 	It("returns itself", func() {
