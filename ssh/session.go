@@ -11,14 +11,14 @@ import (
 )
 
 type SessionImpl struct {
-	connOpts ConnectionOpts
-	sessOpts SessionImplOpts
-	result   boshdir.SSHResult
+	connOpts       ConnectionOpts
+	sessOpts       SessionImplOpts
+	result         boshdir.SSHResult
 
 	privKeyFile    boshsys.File
 	knownHostsFile boshsys.File
 
-	fs boshsys.FileSystem
+	fs             boshsys.FileSystem
 }
 
 type SessionImplOpts struct {
@@ -26,10 +26,10 @@ type SessionImplOpts struct {
 }
 
 func NewSessionImpl(
-	connOpts ConnectionOpts,
-	sessOpts SessionImplOpts,
-	result boshdir.SSHResult,
-	fs boshsys.FileSystem,
+connOpts ConnectionOpts,
+sessOpts SessionImplOpts,
+result boshdir.SSHResult,
+fs boshsys.FileSystem,
 ) *SessionImpl {
 	return &SessionImpl{connOpts: connOpts, sessOpts: sessOpts, result: result, fs: fs}
 }
@@ -62,9 +62,13 @@ func (r *SessionImpl) Start() ([]string, error) {
 		"-o", "IdentitiesOnly=yes",
 		"-o", "IdentityFile=" + r.privKeyFile.Name(),
 		"-o", "StrictHostKeyChecking=yes",
-		"-o", "UserKnownHostsFile=" + r.knownHostsFile.Name(),
 	}...)
-
+	statHostFile, _ := r.knownHostsFile.Stat()
+	if statHostFile.Size() != 0 {
+		cmdOpts = append(cmdOpts, []string{
+			"-o", "UserKnownHostsFile=" + r.knownHostsFile.Name(),
+		}...)
+	}
 	gwUsername, gwHost, gwPrivKeyPath := r.gwOpts(r.connOpts, r.result)
 
 	if len(gwHost) > 0 {
@@ -84,7 +88,7 @@ func (r *SessionImpl) Start() ([]string, error) {
 				gwCmdOpts,
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
-				"-o", "IdentityFile="+gwPrivKeyPath,
+				"-o", "IdentityFile=" + gwPrivKeyPath,
 			)
 		}
 
