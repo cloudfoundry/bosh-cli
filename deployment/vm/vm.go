@@ -14,8 +14,12 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"github.com/pivotal-golang/clock"
 )
+
+type Clock interface {
+	Sleep(time.Duration)
+	Now() time.Time
+}
 
 type VM interface {
 	CID() string
@@ -44,6 +48,7 @@ type vm struct {
 	diskDeployer DiskDeployer
 	agentClient  biagentclient.AgentClient
 	cloud        bicloud.Cloud
+	timeService  Clock
 	fs           boshsys.FileSystem
 	logger       boshlog.Logger
 	logTag       string
@@ -56,6 +61,7 @@ func NewVM(
 	diskDeployer DiskDeployer,
 	agentClient biagentclient.AgentClient,
 	cloud bicloud.Cloud,
+	timeService Clock,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) VM {
@@ -66,6 +72,7 @@ func NewVM(
 		diskDeployer: diskDeployer,
 		agentClient:  agentClient,
 		cloud:        cloud,
+		timeService:  timeService,
 		fs:           fs,
 		logger:       logger,
 		logTag:       "vm",
@@ -90,8 +97,7 @@ func (vm *vm) AgentClient() biagentclient.AgentClient {
 
 func (vm *vm) WaitUntilReady(timeout time.Duration, delay time.Duration) error {
 	agentPingRetryable := biagentclient.NewPingRetryable(vm.agentClient)
-	timeService := clock.NewClock() //TODO: inject timeService
-	agentPingRetryStrategy := boshretry.NewTimeoutRetryStrategy(timeout, delay, agentPingRetryable, timeService, vm.logger)
+	agentPingRetryStrategy := boshretry.NewTimeoutRetryStrategy(timeout, delay, agentPingRetryable, vm.timeService, vm.logger)
 	return agentPingRetryStrategy.Try()
 }
 
@@ -145,6 +151,11 @@ func (vm *vm) AttachDisk(disk bidisk.Disk) error {
 		return bosherr.WrapError(err, "Attaching disk in the cloud")
 	}
 
+	err = vm.WaitUntilReady(10*time.Minute, 500*time.Millisecond)
+	if err != nil {
+		return bosherr.WrapError(err, "Waiting for agent to be accessible after attaching disk")
+	}
+
 	err = vm.agentClient.MountDisk(disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Mounting disk")
@@ -157,6 +168,11 @@ func (vm *vm) DetachDisk(disk bidisk.Disk) error {
 	err := vm.cloud.DetachDisk(vm.cid, disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Detaching disk in the cloud")
+	}
+
+	err = vm.WaitUntilReady(10*time.Minute, 500*time.Millisecond)
+	if err != nil {
+		return bosherr.WrapError(err, "Waiting for agent to be accessible after detaching disk")
 	}
 
 	return nil
