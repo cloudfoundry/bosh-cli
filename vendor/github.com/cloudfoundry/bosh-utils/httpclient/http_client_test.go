@@ -21,7 +21,7 @@ var _ = Describe("HTTPClient", func() {
 	var (
 		httpClient HTTPClient
 		server     *ghttp.Server
-		logger loggerfakes.FakeLogger
+		logger     loggerfakes.FakeLogger
 	)
 
 	BeforeEach(func() {
@@ -209,7 +209,31 @@ var _ = Describe("HTTPClient", func() {
 		})
 	})
 
-	Describe("Delete", func() {
+	Describe("Delete/DeleteCustomized", func() {
+		It("allows to override request", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("DELETE", "/path"),
+					ghttp.VerifyHeader(http.Header{
+						"X-Custom": []string{"custom"},
+					}),
+					ghttp.RespondWith(http.StatusOK, ""),
+				),
+			)
+
+			url := server.URL() + "/path"
+
+			setHeaders := func(r *http.Request) {
+				r.Header.Add("X-Custom", "custom")
+			}
+
+			response, err := httpClient.DeleteCustomized(url, setHeaders)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(response.StatusCode).To(Equal(200))
+
+			Expect(server.ReceivedRequests()).To(HaveLen(1))
+		})
+
 		Describe("httpclient opts", func() {
 			var opts Opts
 

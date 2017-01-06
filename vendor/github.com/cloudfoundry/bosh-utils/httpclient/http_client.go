@@ -23,13 +23,14 @@ type HTTPClient interface {
 	GetCustomized(endpoint string, f func(*http.Request)) (*http.Response, error)
 
 	Delete(endpoint string) (*http.Response, error)
+	DeleteCustomized(endpoint string, f func(*http.Request)) (*http.Response, error)
 }
 
 type httpClient struct {
 	client Client
 	logger boshlog.Logger
 	logTag string
-	opts Opts
+	opts   Opts
 }
 
 type Opts struct {
@@ -49,7 +50,7 @@ func NewHTTPClientOpts(client Client, logger boshlog.Logger, opts Opts) HTTPClie
 		client: client,
 		logger: logger,
 		logTag: "httpClient",
-		opts: opts,
+		opts:   opts,
 	}
 }
 
@@ -148,6 +149,10 @@ func (c httpClient) GetCustomized(endpoint string, f func(*http.Request)) (*http
 }
 
 func (c httpClient) Delete(endpoint string) (*http.Response, error) {
+	return c.DeleteCustomized(endpoint, nil)
+}
+
+func (c httpClient) DeleteCustomized(endpoint string, f func(*http.Request)) (*http.Response, error) {
 	redactedEndpoint := endpoint
 
 	if !c.opts.NoRedactUrlQuery {
@@ -159,6 +164,10 @@ func (c httpClient) Delete(endpoint string) (*http.Response, error) {
 	request, err := http.NewRequest("DELETE", endpoint, nil)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Creating DELETE request")
+	}
+
+	if f != nil {
+		f(request)
 	}
 
 	response, err := c.client.Do(request)
