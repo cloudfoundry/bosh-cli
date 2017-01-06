@@ -935,4 +935,37 @@ var _ = Describe("Deployment", func() {
 			Expect(err.Error()).Should(ContainSubstring("Error fetching variables for deployment 'dep'"))
 		})
 	})
+
+	Describe("using a director with context", func() {
+		contextId := "example-context-id"
+
+		BeforeEach(func() {
+			var err error
+			directorWithContextId := director.WithContext(contextId)
+
+			deployment, err = directorWithContextId.FindDeployment("dep")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("adds context to request headers", func() {
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments", ""),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type":      []string{"text/yaml"},
+						"X-Bosh-Context-Id": []string{contextId},
+					}),
+					ghttp.VerifyBody([]byte("manifest")),
+				),
+				``,
+				server,
+			)
+
+			err := deployment.Update([]byte("manifest"), UpdateOpts{})
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+	})
+
 })

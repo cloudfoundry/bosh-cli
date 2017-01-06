@@ -205,6 +205,30 @@ var _ = Describe("ClientRequest", func() {
 
 				Expect(otherBuf.String()).To(Equal("body"))
 			})
+
+			Context("when context id is not set", func() {
+				It("does not set a X-Bosh-Context-Id header", func() {
+					verifyContextIdNotSet := func(_ http.ResponseWriter, req *http.Request) {
+						_, found := req.Header["X-Bosh-Context-Id"]
+						Expect(found).To(BeFalse())
+					}
+
+					server.WrapHandler(0, verifyContextIdNotSet)
+
+					_, _, err := req.RawGet("/path", nil, nil)
+					Expect(err).ToNot(HaveOccurred())
+				})
+			})
+
+			Context("when context id set", func() {
+				It("does set a X-Bosh-Context-Id header", func() {
+					contextId := "example-context-id"
+					req = req.WithContext(contextId)
+					server.WrapHandler(0, ghttp.VerifyHeaderKV("X-Bosh-Context-Id", contextId))
+					_, _, err := req.RawGet("/path", nil, nil)
+					Expect(err).ToNot(HaveOccurred())
+				})
+			})
 		})
 
 		Describe("Request logging", func() {
@@ -396,6 +420,43 @@ var _ = Describe("ClientRequest", func() {
 				Expect(fileReporter.TrackUploadCallCount()).To(Equal(0))
 			})
 		})
+
+		Context("when context id is not set", func() {
+			It("does not set a X-Bosh-Context-Id header", func() {
+				verifyContextIdNotSet := func(_ http.ResponseWriter, req *http.Request) {
+					_, found := req.Header["X-Bosh-Context-Id"]
+					Expect(found).To(BeFalse())
+				}
+
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/path"),
+						verifyContextIdNotSet,
+						ghttp.RespondWith(http.StatusOK, "body"),
+					),
+				)
+
+				_, _, err := req.RawPost("/path", nil, nil)
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Context("when context id set", func() {
+			It("does set a X-Bosh-Context-Id header", func() {
+				contextId := "example-context-id"
+				req = req.WithContext(contextId)
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/path"),
+						ghttp.VerifyHeaderKV("X-Bosh-Context-Id", contextId),
+						ghttp.RespondWith(http.StatusOK, "body"),
+					),
+				)
+				_, _, err := req.RawPost("/path", nil, nil)
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
 	})
 
 	Describe("Put", func() {
@@ -431,6 +492,48 @@ var _ = Describe("ClientRequest", func() {
 					err := act()
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Unmarshaling Director response"))
+				})
+
+				Context("when context id is not set", func() {
+					verifyContextIdNotSet := func(_ http.ResponseWriter, req *http.Request) {
+						_, found := req.Header["X-Bosh-Context-Id"]
+						Expect(found).To(BeFalse())
+					}
+
+					It("does not set a X-Bosh-Context-Id header", func() {
+						server.AppendHandlers(
+							ghttp.CombineHandlers(
+								ghttp.VerifyRequest("PUT", "/path"),
+								ghttp.VerifyBody([]byte("req-body")),
+								verifyContextIdNotSet,
+								ghttp.RespondWith(code, `["val"]`),
+							),
+						)
+
+						err := act()
+						Expect(err).ToNot(HaveOccurred())
+					})
+				})
+
+				Context("when context id set", func() {
+					contextId := "example-context-id"
+					BeforeEach(func() {
+						req = req.WithContext(contextId)
+					})
+
+					It("makes request with correct header", func() {
+						server.AppendHandlers(
+							ghttp.CombineHandlers(
+								ghttp.VerifyRequest("PUT", "/path"),
+								ghttp.VerifyBody([]byte("req-body")),
+								ghttp.VerifyHeaderKV("X-Bosh-Context-Id", contextId),
+								ghttp.RespondWith(code, `["val"]`),
+							),
+						)
+
+						err := act()
+						Expect(err).ToNot(HaveOccurred())
+					})
 				})
 			})
 		}

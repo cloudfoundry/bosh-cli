@@ -21,9 +21,11 @@ type TaskImpl struct {
 
 	description string
 	result      string
+	contextId   string
 }
 
 func (t TaskImpl) ID() int                   { return t.id }
+func (t TaskImpl) ContextID() string         { return t.contextId }
 func (t TaskImpl) StartedAt() time.Time      { return t.startedAt }
 func (t TaskImpl) LastActivityAt() time.Time { return t.lastActivityAt }
 
@@ -53,6 +55,7 @@ type TaskResp struct {
 
 	Description string // e.g. "create release"
 	Result      string // e.g. "Created release `bosh-ui/0+dev.17'"
+	ContextId   string `json:"context_id"`
 }
 
 func NewTaskFromResp(client Client, r TaskResp) TaskImpl {
@@ -70,6 +73,7 @@ func NewTaskFromResp(client Client, r TaskResp) TaskImpl {
 
 		description: r.Description,
 		result:      r.Result,
+		contextId:   r.ContextId,
 	}
 }
 
@@ -110,6 +114,21 @@ func (d DirectorImpl) FindTask(id int) (Task, error) {
 	}
 
 	return NewTaskFromResp(d.client, taskResp), nil
+}
+
+func (d DirectorImpl) FindTasksByContextId(contextId string) ([]Task, error) {
+	tasks := []Task{}
+
+	taskResps, err := d.client.FindTasksByContextId(contextId)
+	if err != nil {
+		return tasks, err
+	}
+
+	for _, r := range taskResps {
+		tasks = append(tasks, NewTaskFromResp(d.client, r))
+	}
+
+	return tasks, nil
 }
 
 func (t TaskImpl) EventOutput(taskReporter TaskReporter) error {
@@ -167,6 +186,23 @@ func (c Client) RecentTasks(limit int, filter TasksFilter) ([]TaskResp, error) {
 	err := c.clientRequest.Get(path, &tasks)
 	if err != nil {
 		return tasks, bosherr.WrapErrorf(err, "Finding recent tasks")
+	}
+
+	return tasks, nil
+}
+
+func (c Client) FindTasksByContextId(contextId string) ([]TaskResp, error) {
+	var tasks []TaskResp
+
+	query := gourl.Values{}
+
+	query.Add("context_id", contextId)
+
+	path := fmt.Sprintf("/tasks?%s", query.Encode())
+
+	err := c.clientRequest.Get(path, &tasks)
+	if err != nil {
+		return tasks, bosherr.WrapErrorf(err, "Finding tasks by context_id:'%s'", contextId)
 	}
 
 	return tasks, nil

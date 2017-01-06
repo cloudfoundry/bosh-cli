@@ -51,6 +51,12 @@ type FakeTask struct {
 	deploymentNameReturns     struct {
 		result1 string
 	}
+	ContextIDStub        func() string
+	contextIDMutex       sync.RWMutex
+	contextIDArgsForCall []struct{}
+	contextIDReturns     struct {
+		result1 string
+	}
 	DescriptionStub        func() string
 	descriptionMutex       sync.RWMutex
 	descriptionArgsForCall []struct{}
@@ -280,6 +286,31 @@ func (fake *FakeTask) DeploymentNameReturns(result1 string) {
 	}{result1}
 }
 
+func (fake *FakeTask) ContextID() string {
+	fake.contextIDMutex.Lock()
+	fake.contextIDArgsForCall = append(fake.contextIDArgsForCall, struct{}{})
+	fake.recordInvocation("ContextID", []interface{}{})
+	fake.contextIDMutex.Unlock()
+	if fake.ContextIDStub != nil {
+		return fake.ContextIDStub()
+	} else {
+		return fake.contextIDReturns.result1
+	}
+}
+
+func (fake *FakeTask) ContextIDCallCount() int {
+	fake.contextIDMutex.RLock()
+	defer fake.contextIDMutex.RUnlock()
+	return len(fake.contextIDArgsForCall)
+}
+
+func (fake *FakeTask) ContextIDReturns(result1 string) {
+	fake.ContextIDStub = nil
+	fake.contextIDReturns = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeTask) Description() string {
 	fake.descriptionMutex.Lock()
 	fake.descriptionArgsForCall = append(fake.descriptionArgsForCall, struct{}{})
@@ -504,6 +535,8 @@ func (fake *FakeTask) Invocations() map[string][][]interface{} {
 	defer fake.userMutex.RUnlock()
 	fake.deploymentNameMutex.RLock()
 	defer fake.deploymentNameMutex.RUnlock()
+	fake.contextIDMutex.RLock()
+	defer fake.contextIDMutex.RUnlock()
 	fake.descriptionMutex.RLock()
 	defer fake.descriptionMutex.RUnlock()
 	fake.resultMutex.RLock()
