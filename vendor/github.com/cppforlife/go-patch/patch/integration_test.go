@@ -159,4 +159,36 @@ jobs:
 
 		Expect(res).To(Equal(out))
 	})
+
+	It("shows custom error messages", func() {
+		inStr := `
+releases:
+- name: capi
+  version: 0.1
+`
+
+		var in interface{}
+
+		err := yaml.Unmarshal([]byte(inStr), &in)
+		Expect(err).ToNot(HaveOccurred())
+
+		opsStr := `
+- type: remove
+  path: /releases/0/not-there
+  error: "Custom error message"
+`
+
+		var opDefs []OpDefinition
+
+		err = yaml.Unmarshal([]byte(opsStr), &opDefs)
+		Expect(err).ToNot(HaveOccurred())
+
+		ops, err := NewOpsFromDefinitions(opDefs)
+		Expect(err).ToNot(HaveOccurred())
+
+		_, err = ops.Apply(in)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal(
+			"Error 'Custom error message': Expected to find a map key 'not-there' for path '/releases/0/not-there' (found map keys: 'name', 'version')"))
+	})
 })

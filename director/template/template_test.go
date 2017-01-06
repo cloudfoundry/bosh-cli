@@ -337,7 +337,7 @@ dup-key: ((key3))
 
 		_, err := template.Evaluate(vars, ops, EvaluateOpts{})
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(Equal("Expected to find a map key 'x' for path '/x'"))
+		Expect(err.Error()).To(Equal("Expected to find a map key 'x' for path '/x' (found map keys: 'a')"))
 	})
 
 	It("runs PostVarSubstitutionOp after running regular operations and interpolation", func() {
@@ -365,7 +365,7 @@ dup-key: ((key3))
 
 		_, err := template.Evaluate(vars, nil, opts)
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(Equal("Expected to find a map key 'x' for path '/x'"))
+		Expect(err.Error()).To(Equal("Expected to find a map key 'x' for path '/x' (found map keys: 'a')"))
 	})
 
 	It("returns raw bytes of a string if UnescapedMultiline is true", func() {

@@ -11,6 +11,7 @@ var _ Op = Ops{}
 var _ Op = ReplaceOp{}
 var _ Op = RemoveOp{}
 var _ Op = FindOp{}
+var _ Op = DescriptiveOp{}
 var _ Op = ErrOp{}
 
 func (ops Ops) Apply(doc interface{}) (interface{}, error) {

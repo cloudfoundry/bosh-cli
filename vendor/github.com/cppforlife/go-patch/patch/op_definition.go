@@ -11,6 +11,8 @@ type OpDefinition struct {
 	Type  string       `json:",omitempty"`
 	Path  *string      `json:",omitempty"`
 	Value *interface{} `json:",omitempty"`
+
+	Error *string `json:",omitempty"`
 }
 
 type parser struct{}
@@ -40,6 +42,10 @@ func NewOpsFromDefinitions(opDefs []OpDefinition) (Ops, error) {
 
 		default:
 			return nil, fmt.Errorf("Unknown operation [%d] with type '%s' within\n%s", i, opDef.Type, opFmt)
+		}
+
+		if opDef.Error != nil {
+			op = DescriptiveOp{Op: op, ErrorMsg: *opDef.Error}
 		}
 
 		ops = append(ops, op)
