@@ -69,7 +69,7 @@ func (t ValueInt) Compare(other Value) int {
 func NewValueBytes(i uint64) ValueBytes     { return ValueBytes{I: i} }
 func NewValueMegaBytes(i uint64) ValueBytes { return ValueBytes{I: i * 1024 * 1024} }
 
-func (t ValueBytes) String() string { return humanize.Bytes(t.I) }
+func (t ValueBytes) String() string { return humanize.IBytes(t.I) }
 func (t ValueBytes) Value() Value   { return t }
 
 func (t ValueBytes) Compare(other Value) int {
