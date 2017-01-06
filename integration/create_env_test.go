@@ -458,6 +458,7 @@ cloud_provider:
 
 				mockCloud.EXPECT().CreateDisk(diskSize, diskCloudProperties, vmCID).Return(diskCID, nil),
 				mockCloud.EXPECT().AttachDisk(vmCID, diskCID),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(diskCID),
 
 				mockAgentClient.EXPECT().Apply(applySpec),
@@ -498,12 +499,15 @@ cloud_provider:
 
 				// attach both disks and migrate
 				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
 				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
 				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(newDiskCID),
 				mockAgentClient.EXPECT().MigrateDisk(),
 				mockCloud.EXPECT().DetachDisk(newVMCID, oldDiskCID),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockCloud.EXPECT().DeleteDisk(oldDiskCID),
 
 				// start jobs & wait for running
@@ -541,12 +545,15 @@ cloud_provider:
 
 				// attach both disks and migrate
 				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
 				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
 				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(newDiskCID),
 				mockAgentClient.EXPECT().MigrateDisk(),
 				mockCloud.EXPECT().DetachDisk(newVMCID, oldDiskCID),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockCloud.EXPECT().DeleteDisk(oldDiskCID),
 
 				// start jobs & wait for running
@@ -617,9 +624,11 @@ cloud_provider:
 
 				// attach both disks and migrate (with error)
 				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
 				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
 				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(newDiskCID),
 				mockAgentClient.EXPECT().MigrateDisk().Return(
 					bosherr.Error("fake-migration-error"),
@@ -652,12 +661,15 @@ cloud_provider:
 
 				// attach both disks and migrate
 				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
 				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
 				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(newDiskCID),
 				mockAgentClient.EXPECT().MigrateDisk(),
 				mockCloud.EXPECT().DetachDisk(newVMCID, oldDiskCID),
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockCloud.EXPECT().DeleteDisk(oldDiskCID),
 
 				// start jobs & wait for running

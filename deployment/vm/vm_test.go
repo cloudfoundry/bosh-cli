@@ -2,6 +2,7 @@ package vm_test
 
 import (
 	"errors"
+	"time"
 
 	. "github.com/cloudfoundry/bosh-cli/deployment/vm"
 	. "github.com/onsi/ginkgo"
@@ -35,12 +36,14 @@ var _ = Describe("VM", func() {
 		fakeCloud        *fakebicloud.FakeCloud
 		applySpec        bias.ApplySpec
 		diskPool         bideplmanifest.DiskPool
+		timeService      *FakeClock
 		fs               *fakesys.FakeFileSystem
 		logger           boshlog.Logger
 	)
 
 	BeforeEach(func() {
 		fakeAgentClient = &fakebiagentclient.FakeAgentClient{}
+		timeService = &FakeClock{Times: []time.Time{time.Now(), time.Now().Add(10 * time.Minute)}}
 
 		// apply spec is only being passed to the agent client, so it doesn't need much content for testing
 		applySpec = bias.ApplySpec{
@@ -68,6 +71,7 @@ var _ = Describe("VM", func() {
 			fakeDiskDeployer,
 			fakeAgentClient,
 			fakeCloud,
+			timeService,
 			fs,
 			logger,
 		)
@@ -227,9 +231,10 @@ var _ = Describe("VM", func() {
 			}))
 		})
 
-		It("sends mount disk to the agent", func() {
+		It("sends mount disk to the agent after pinging the agent", func() {
 			err := vm.AttachDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.PingCallCount()).To(Equal(1))
 			Expect(fakeAgentClient.MountDiskArgsForCall(0)).To(Equal("fake-disk-cid"))
 		})
 
@@ -242,6 +247,8 @@ var _ = Describe("VM", func() {
 				err := vm.AttachDisk(disk)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-attach-error"))
+
+				Expect(fakeAgentClient.PingCallCount()).To(Equal(0))
 			})
 		})
 
@@ -255,6 +262,16 @@ var _ = Describe("VM", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-mount-error"))
 			})
+		})
+
+		It("returns an error if pinging fails", func() {
+			fakeAgentClient.PingReturns("", errors.New("fake-error"))
+
+			err := vm.AttachDisk(disk)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-error"))
+
+			Expect(fakeAgentClient.MountDiskCallCount()).To(Equal(0))
 		})
 	})
 
@@ -272,6 +289,7 @@ var _ = Describe("VM", func() {
 				VMCID:   "fake-vm-cid",
 				DiskCID: "fake-disk-cid",
 			}))
+			Expect(fakeAgentClient.PingCallCount()).To(Equal(1))
 		})
 
 		Context("when detaching disk to cloud fails", func() {
@@ -283,7 +301,17 @@ var _ = Describe("VM", func() {
 				err := vm.DetachDisk(disk)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-detach-error"))
+
+				Expect(fakeAgentClient.PingCallCount()).To(Equal(0))
 			})
+		})
+
+		It("returns an error if pinging fails", func() {
+			fakeAgentClient.PingReturns("", errors.New("fake-error"))
+
+			err := vm.DetachDisk(disk)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-error"))
 		})
 	})
 
@@ -439,3 +467,15 @@ var _ = Describe("VM", func() {
 		})
 	})
 })
+
+type FakeClock struct {
+	Times []time.Time
+}
+
+func (c *FakeClock) Sleep(_ time.Duration) {}
+
+func (c *FakeClock) Now() time.Time {
+	t1 := c.Times[0]
+	c.Times = c.Times[1:]
+	return t1
+}

@@ -12,6 +12,7 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	"github.com/pivotal-golang/clock"
 )
 
 type Manager interface {
@@ -72,6 +73,7 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 		m.diskDeployer,
 		m.agentClient,
 		m.cloud,
+		clock.NewClock(),
 		m.fs,
 		m.logger,
 	)
@@ -125,6 +127,7 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		m.diskDeployer,
 		m.agentClient,
 		m.cloud,
+		clock.NewClock(),
 		m.fs,
 		m.logger,
 	)
