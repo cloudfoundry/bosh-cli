@@ -11,6 +11,7 @@ var _ = Describe("NewOpsFromDefinitions", func() {
 	var (
 		path                    = "/abc"
 		invalidPath             = "abc"
+		errorMsg                = "error"
 		val         interface{} = 123
 		complexVal  interface{} = map[interface{}]interface{}{123: 123}
 	)
@@ -57,6 +58,20 @@ var _ = Describe("NewOpsFromDefinitions", func() {
 	})
 
 	Describe("replace", func() {
+		It("allows error description", func() {
+			opDefs := []OpDefinition{{Type: "replace", Path: &path, Value: &val, Error: &errorMsg}}
+
+			ops, err := NewOpsFromDefinitions(opDefs)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(ops).To(Equal(Ops([]Op{
+				DescriptiveOp{
+					Op:       ReplaceOp{Path: MustNewPointerFromString("/abc"), Value: 123},
+					ErrorMsg: errorMsg,
+				},
+			})))
+		})
+
 		It("requires path", func() {
 			_, err := NewOpsFromDefinitions([]OpDefinition{{Type: "replace"}})
 			Expect(err).To(HaveOccurred())
@@ -89,6 +104,20 @@ var _ = Describe("NewOpsFromDefinitions", func() {
 	})
 
 	Describe("remove", func() {
+		It("allows error description", func() {
+			opDefs := []OpDefinition{{Type: "remove", Path: &path, Error: &errorMsg}}
+
+			ops, err := NewOpsFromDefinitions(opDefs)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(ops).To(Equal(Ops([]Op{
+				DescriptiveOp{
+					Op:       RemoveOp{Path: MustNewPointerFromString("/abc")},
+					ErrorMsg: errorMsg,
+				},
+			})))
+		})
+
 		It("requires path", func() {
 			_, err := NewOpsFromDefinitions([]OpDefinition{{Type: "remove"}})
 			Expect(err).To(HaveOccurred())

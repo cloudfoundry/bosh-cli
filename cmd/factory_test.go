@@ -248,6 +248,16 @@ var _ = Describe("Factory", func() {
 		})
 	})
 
+	Describe("instances command", func() {
+		It("is passed the deployment flag", func() {
+			cmd, err := factory.New([]string{"instances", "--deployment", "deployment"})
+			Expect(err).ToNot(HaveOccurred())
+
+			opts := cmd.Opts.(*InstancesOpts)
+			Expect(opts.Deployment).To(Equal("deployment"))
+		})
+	})
+
 	Describe("tasks command", func() {
 		It("is passed the deployment flag", func() {
 			cmd, err := factory.New([]string{"tasks", "--deployment", "deployment"})

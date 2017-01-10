@@ -16,6 +16,14 @@ type FakeDirector struct {
 		result1 bool
 		result2 error
 	}
+	WithContextStub        func(id string) director.Director
+	withContextMutex       sync.RWMutex
+	withContextArgsForCall []struct {
+		id string
+	}
+	withContextReturns struct {
+		result1 director.Director
+	}
 	InfoStub        func() (director.Info, error)
 	infoMutex       sync.RWMutex
 	infoArgsForCall []struct{}
@@ -56,6 +64,15 @@ type FakeDirector struct {
 	}
 	findTaskReturns struct {
 		result1 director.Task
+		result2 error
+	}
+	FindTasksByContextIdStub        func(string) ([]director.Task, error)
+	findTasksByContextIdMutex       sync.RWMutex
+	findTasksByContextIdArgsForCall []struct {
+		arg1 string
+	}
+	findTasksByContextIdReturns struct {
+		result1 []director.Task
 		result2 error
 	}
 	EventsStub        func(director.EventsFilter) ([]director.Event, error)
@@ -310,6 +327,39 @@ func (fake *FakeDirector) IsAuthenticatedReturns(result1 bool, result2 error) {
 	}{result1, result2}
 }
 
+func (fake *FakeDirector) WithContext(id string) director.Director {
+	fake.withContextMutex.Lock()
+	fake.withContextArgsForCall = append(fake.withContextArgsForCall, struct {
+		id string
+	}{id})
+	fake.recordInvocation("WithContext", []interface{}{id})
+	fake.withContextMutex.Unlock()
+	if fake.WithContextStub != nil {
+		return fake.WithContextStub(id)
+	} else {
+		return fake.withContextReturns.result1
+	}
+}
+
+func (fake *FakeDirector) WithContextCallCount() int {
+	fake.withContextMutex.RLock()
+	defer fake.withContextMutex.RUnlock()
+	return len(fake.withContextArgsForCall)
+}
+
+func (fake *FakeDirector) WithContextArgsForCall(i int) string {
+	fake.withContextMutex.RLock()
+	defer fake.withContextMutex.RUnlock()
+	return fake.withContextArgsForCall[i].id
+}
+
+func (fake *FakeDirector) WithContextReturns(result1 director.Director) {
+	fake.WithContextStub = nil
+	fake.withContextReturns = struct {
+		result1 director.Director
+	}{result1}
+}
+
 func (fake *FakeDirector) Info() (director.Info, error) {
 	fake.infoMutex.Lock()
 	fake.infoArgsForCall = append(fake.infoArgsForCall, struct{}{})
@@ -461,6 +511,40 @@ func (fake *FakeDirector) FindTaskReturns(result1 director.Task, result2 error) 
 	fake.FindTaskStub = nil
 	fake.findTaskReturns = struct {
 		result1 director.Task
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) FindTasksByContextId(arg1 string) ([]director.Task, error) {
+	fake.findTasksByContextIdMutex.Lock()
+	fake.findTasksByContextIdArgsForCall = append(fake.findTasksByContextIdArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("FindTasksByContextId", []interface{}{arg1})
+	fake.findTasksByContextIdMutex.Unlock()
+	if fake.FindTasksByContextIdStub != nil {
+		return fake.FindTasksByContextIdStub(arg1)
+	} else {
+		return fake.findTasksByContextIdReturns.result1, fake.findTasksByContextIdReturns.result2
+	}
+}
+
+func (fake *FakeDirector) FindTasksByContextIdCallCount() int {
+	fake.findTasksByContextIdMutex.RLock()
+	defer fake.findTasksByContextIdMutex.RUnlock()
+	return len(fake.findTasksByContextIdArgsForCall)
+}
+
+func (fake *FakeDirector) FindTasksByContextIdArgsForCall(i int) string {
+	fake.findTasksByContextIdMutex.RLock()
+	defer fake.findTasksByContextIdMutex.RUnlock()
+	return fake.findTasksByContextIdArgsForCall[i].arg1
+}
+
+func (fake *FakeDirector) FindTasksByContextIdReturns(result1 []director.Task, result2 error) {
+	fake.FindTasksByContextIdStub = nil
+	fake.findTasksByContextIdReturns = struct {
+		result1 []director.Task
 		result2 error
 	}{result1, result2}
 }
@@ -1315,6 +1399,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.isAuthenticatedMutex.RLock()
 	defer fake.isAuthenticatedMutex.RUnlock()
+	fake.withContextMutex.RLock()
+	defer fake.withContextMutex.RUnlock()
 	fake.infoMutex.RLock()
 	defer fake.infoMutex.RUnlock()
 	fake.locksMutex.RLock()
@@ -1325,6 +1411,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.recentTasksMutex.RUnlock()
 	fake.findTaskMutex.RLock()
 	defer fake.findTaskMutex.RUnlock()
+	fake.findTasksByContextIdMutex.RLock()
+	defer fake.findTasksByContextIdMutex.RUnlock()
 	fake.eventsMutex.RLock()
 	defer fake.eventsMutex.RUnlock()
 	fake.deploymentsMutex.RLock()

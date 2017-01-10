@@ -15,6 +15,7 @@ import (
 
 type ClientRequest struct {
 	endpoint     string
+	contextId    string
 	httpClient   boshhttp.HTTPClient
 	fileReporter FileReporter
 	logger       boshlog.Logger
@@ -32,6 +33,11 @@ func NewClientRequest(
 		fileReporter: fileReporter,
 		logger:       logger,
 	}
+}
+func (r ClientRequest) WithContext(contextId string) ClientRequest {
+	// returns a copy of the ClientRequest
+	r.contextId = contextId
+	return r
 }
 
 func (r ClientRequest) Get(path string, response interface{}) error {
@@ -93,7 +99,9 @@ func (r ClientRequest) Delete(path string, response interface{}) error {
 func (r ClientRequest) RawGet(path string, out io.Writer, f func(*http.Request)) ([]byte, *http.Response, error) {
 	url := fmt.Sprintf("%s%s", r.endpoint, path)
 
-	resp, err := r.httpClient.GetCustomized(url, f)
+	wrapperFunc := r.setContextIDHeader(f)
+
+	resp, err := r.httpClient.GetCustomized(url, wrapperFunc)
 	if err != nil {
 		return nil, nil, bosherr.WrapErrorf(err, "Performing request GET '%s'", url)
 	}
@@ -117,6 +125,8 @@ func (r ClientRequest) RawPost(path string, payload []byte, f func(*http.Request
 		}
 	}
 
+	wrapperFunc = r.setContextIDHeader(wrapperFunc)
+
 	resp, err := r.httpClient.PostCustomized(url, payload, wrapperFunc)
 	if err != nil {
 		return nil, nil, bosherr.WrapErrorf(err, "Performing request POST '%s'", url)
@@ -129,7 +139,9 @@ func (r ClientRequest) RawPost(path string, payload []byte, f func(*http.Request
 func (r ClientRequest) RawPut(path string, payload []byte, f func(*http.Request)) ([]byte, *http.Response, error) {
 	url := fmt.Sprintf("%s%s", r.endpoint, path)
 
-	resp, err := r.httpClient.PutCustomized(url, payload, f)
+	wrapperFunc := r.setContextIDHeader(f)
+
+	resp, err := r.httpClient.PutCustomized(url, payload, wrapperFunc)
 	if err != nil {
 		return nil, nil, bosherr.WrapErrorf(err, "Performing request PUT '%s'", url)
 	}
@@ -147,6 +159,17 @@ func (r ClientRequest) RawDelete(path string) ([]byte, *http.Response, error) {
 	}
 
 	return r.optionallyFollowResponse(url, resp)
+}
+
+func (r ClientRequest) setContextIDHeader(f func(*http.Request)) func(*http.Request) {
+	return func(req *http.Request) {
+		if f != nil {
+			f(req)
+		}
+		if r.contextId != "" {
+			req.Header.Set("X-Bosh-Context-Id", r.contextId)
+		}
+	}
 }
 
 func (r ClientRequest) optionallyFollowResponse(url string, resp *http.Response) ([]byte, *http.Response, error) {

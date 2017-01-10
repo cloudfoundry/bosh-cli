@@ -32,8 +32,7 @@ func (op ReplaceOp) Apply(doc interface{}) (interface{}, error) {
 			}
 
 			if idx >= len(typedObj) {
-				errMsg := "Expected to find array index '%d' but found array of length '%d'"
-				return nil, fmt.Errorf(errMsg, idx, len(typedObj))
+				return nil, opMissingIndexErr{idx, typedObj}
 			}
 
 			if isLast {
@@ -78,8 +77,7 @@ func (op ReplaceOp) Apply(doc interface{}) (interface{}, error) {
 				// no need to change prevUpdate since matching item can only be a map
 			} else {
 				if len(idxs) != 1 {
-					errMsg := "Expected to find exactly one matching array item for path '%s' but found %d"
-					return nil, fmt.Errorf(errMsg, NewPointer(tokens[:i+2]), len(idxs))
+					return nil, opMultipleMatchingIndexErr{NewPointer(tokens[:i+2]), idxs}
 				}
 
 				idx := idxs[0]
@@ -102,8 +100,7 @@ func (op ReplaceOp) Apply(doc interface{}) (interface{}, error) {
 
 			obj, found = typedObj[typedToken.Key]
 			if !found && !typedToken.Optional {
-				errMsg := "Expected to find a map key '%s' for path '%s'"
-				return nil, fmt.Errorf(errMsg, typedToken.Key, NewPointer(tokens[:i+2]))
+				return nil, opMissingMapKeyErr{typedToken.Key, NewPointer(tokens[:i+2]), typedObj}
 			}
 
 			if isLast {
@@ -130,7 +127,7 @@ func (op ReplaceOp) Apply(doc interface{}) (interface{}, error) {
 			}
 
 		default:
-			return nil, fmt.Errorf("Expected to not find token '%T' at '%s'", token, NewPointer(tokens[:i+2]))
+			return nil, opUnexpectedTokenErr{token, NewPointer(tokens[:i+2])}
 		}
 	}
 

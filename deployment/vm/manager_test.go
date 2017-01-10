@@ -18,6 +18,7 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pivotal-golang/clock"
 )
 
 var _ = Describe("Manager", func() {
@@ -123,6 +124,7 @@ var _ = Describe("Manager", func() {
 				fakeDiskDeployer,
 				fakeAgentClient,
 				fakeCloud,
+				clock.NewClock(),
 				fs,
 				logger,
 			)

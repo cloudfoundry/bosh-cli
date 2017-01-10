@@ -249,7 +249,8 @@ var _ = Describe("Director", func() {
 	"user": "user1",
 	"deployment": "deployment1",
 	"description": "desc1",
-	"result": "result1"
+	"result": "result1",
+	"context_id": "context_id1"
 }`),
 				),
 			)
@@ -266,6 +267,7 @@ var _ = Describe("Director", func() {
 			Expect(task.DeploymentName()).To(Equal("deployment1"))
 			Expect(task.Description()).To(Equal("desc1"))
 			Expect(task.Result()).To(Equal("result1"))
+			Expect(task.ContextID()).To(Equal("context_id1"))
 		})
 
 		for _, state := range []string{"error", "timeout", "cancelled"} {
@@ -307,6 +309,35 @@ var _ = Describe("Director", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Finding task '123': Unmarshaling Director response"))
+		})
+	})
+
+	Describe("FindTasksByContextId", func() {
+		It("returns task", func() {
+			contextId := "example-context-id"
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks", fmt.Sprintf("context_id=%s", contextId)),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[{
+	"id": 123,
+	"started_at": 1440318199,
+	"timestamp": 1440318200,
+	"state": "state1",
+	"user": "user1",
+	"deployment": "deployment1",
+	"description": "desc1",
+	"result": "result1",
+	"context_id": "`+contextId+`"
+}]`),
+				),
+			)
+
+			tasks, err := director.FindTasksByContextId(contextId)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(tasks).To(HaveLen(1))
+			Expect(tasks[0].ID()).To(Equal(123))
+			Expect(tasks[0].ContextID()).To(Equal(contextId))
 		})
 	})
 })

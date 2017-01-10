@@ -1,26 +1,23 @@
 package cmd
 
 import (
+	"fmt"
+
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 type InstancesCmd struct {
-	ui         boshui.UI
-	deployment boshdir.Deployment
+	ui       boshui.UI
+	director boshdir.Director
 }
 
-func NewInstancesCmd(ui boshui.UI, deployment boshdir.Deployment) InstancesCmd {
-	return InstancesCmd{ui: ui, deployment: deployment}
+func NewInstancesCmd(ui boshui.UI, director boshdir.Director) InstancesCmd {
+	return InstancesCmd{ui: ui, director: director}
 }
 
 func (c InstancesCmd) Run(opts InstancesOpts) error {
-	instanceInfos, err := c.deployment.InstanceInfos()
-	if err != nil {
-		return err
-	}
-
 	instTable := InstanceTable{
 		Processes: opts.Processes,
 		Details:   opts.Details,
@@ -28,7 +25,43 @@ func (c InstancesCmd) Run(opts InstancesOpts) error {
 		Vitals:    opts.Vitals,
 	}
 
+	if len(opts.Deployment) > 0 {
+		dep, err := c.director.FindDeployment(opts.Deployment)
+		if err != nil {
+			return err
+		}
+
+		return c.printDeployment(dep, instTable, opts)
+	}
+
+	return c.printDeployments(instTable, opts)
+}
+
+func (c InstancesCmd) printDeployments(instTable InstanceTable, opts InstancesOpts) error {
+	deployments, err := c.director.Deployments()
+	if err != nil {
+		return err
+	}
+
+	for _, dep := range deployments {
+		err := c.printDeployment(dep, instTable, opts)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c InstancesCmd) printDeployment(dep boshdir.Deployment, instTable InstanceTable, opts InstancesOpts) error {
+	instanceInfos, err := dep.InstanceInfos()
+	if err != nil {
+		return err
+	}
+
 	table := boshtbl.Table{
+		Title: fmt.Sprintf("Deployment '%s'", dep.Name()),
+
 		Content: "instances",
 
 		HeaderVals: instTable.AsValues(instTable.Header()),
@@ -37,8 +70,6 @@ func (c InstancesCmd) Run(opts InstancesOpts) error {
 			{Column: 0, Asc: true},
 			{Column: 1, Asc: true}, // sort by process so that VM row is first
 		},
-
-		Notes: []string{""},
 	}
 
 	for _, info := range instanceInfos {
