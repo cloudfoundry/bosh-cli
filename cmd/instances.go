@@ -70,8 +70,6 @@ func (c InstancesCmd) printDeployment(dep boshdir.Deployment, instTable Instance
 			{Column: 0, Asc: true},
 			{Column: 1, Asc: true}, // sort by process so that VM row is first
 		},
-
-		Notes: []string{""},
 	}
 
 	for _, info := range instanceInfos {

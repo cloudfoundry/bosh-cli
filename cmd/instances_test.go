@@ -208,8 +208,6 @@ var _ = Describe("InstancesCmd", func() {
 									},
 								},
 							},
-
-							Notes: []string{""},
 						},
 						{
 							Title: "Deployment 'dep2'",
@@ -241,8 +239,6 @@ var _ = Describe("InstancesCmd", func() {
 									},
 								},
 							},
-
-							Notes: []string{""},
 						},
 					}))
 				})
@@ -346,8 +342,6 @@ var _ = Describe("InstancesCmd", func() {
 								},
 							},
 						},
-
-						Notes: []string{""},
 					}))
 				})
 
@@ -432,8 +426,6 @@ var _ = Describe("InstancesCmd", func() {
 								},
 							},
 						},
-
-						Notes: []string{""},
 					}))
 				})
 
@@ -529,8 +521,6 @@ var _ = Describe("InstancesCmd", func() {
 								},
 							},
 						},
-
-						Notes: []string{""},
 					}))
 				})
 
@@ -594,8 +584,6 @@ var _ = Describe("InstancesCmd", func() {
 								},
 							},
 						},
-
-						Notes: []string{""},
 					}))
 				})
 
@@ -758,8 +746,6 @@ var _ = Describe("InstancesCmd", func() {
 								},
 							},
 						},
-
-						Notes: []string{""},
 					}))
 				})
 
@@ -812,8 +798,6 @@ var _ = Describe("InstancesCmd", func() {
 								},
 							},
 						},
-
-						Notes: []string{""},
 					}))
 				})
 
@@ -880,8 +864,6 @@ var _ = Describe("InstancesCmd", func() {
 								},
 							},
 						},
-
-						Notes: []string{""},
 					}))
 				})
 			})

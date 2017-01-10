@@ -69,8 +69,6 @@ func (c VMsCmd) printDeployment(dep boshdir.Deployment, instTable InstanceTable)
 		HeaderVals: instTable.AsValues(instTable.Header()),
 
 		SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
-
-		Notes: []string{""},
 	}
 
 	for _, info := range vmInfos {

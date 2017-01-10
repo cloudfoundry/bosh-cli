@@ -169,8 +169,6 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.ValueString{},
 							},
 						},
-
-						Notes: []string{""},
 					}))
 				})
 
@@ -225,8 +223,6 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.ValueStrings{},
 							},
 						},
-
-						Notes: []string{""},
 					}))
 				})
 
@@ -321,8 +317,6 @@ var _ = Describe("VMsCmd", func() {
 								ValueDiskSize{},
 							},
 						},
-
-						Notes: []string{""},
 					}))
 				})
 			})
@@ -408,8 +402,6 @@ var _ = Describe("VMsCmd", func() {
 							boshtbl.ValueString{},
 						},
 					},
-
-					Notes: []string{""},
 				}))
 			})
 
