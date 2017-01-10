@@ -54,6 +54,10 @@ func (f Factory) New(args []string) (Cmd, error) {
 			opts.Deployment = boshOpts.DeploymentOpt
 		}
 
+		if opts, ok := command.(*InstancesOpts); ok {
+			opts.Deployment = boshOpts.DeploymentOpt
+		}
+
 		if opts, ok := command.(*TasksOpts); ok {
 			opts.Deployment = boshOpts.DeploymentOpt
 		}
