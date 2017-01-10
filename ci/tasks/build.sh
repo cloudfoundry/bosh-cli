@@ -11,6 +11,10 @@ semver=`cat version-semver/number`
 timestamp=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 filename="bosh-cli-${semver}-${GOOS}-${GOARCH}"
 
+if [[ $GOOS = 'windows' ]]; then
+  filename="${filename}.exe"
+fi
+
 cd gopath/src/github.com/cloudfoundry/bosh-cli
 bin/require-ci-golang-version
 
