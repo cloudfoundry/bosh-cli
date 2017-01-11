@@ -72,21 +72,16 @@ func (f Factory) New(args []string) (Cmd, error) {
 		return nil
 	}
 
+	boshOpts.SSH.GatewayFlags.UUIDGen = f.deps.UUIDGen
+	boshOpts.SCP.GatewayFlags.UUIDGen = f.deps.UUIDGen
+	boshOpts.Logs.GatewayFlags.UUIDGen = f.deps.UUIDGen
+
 	goflags.FactoryFunc = func(val interface{}) {
 		stype := reflect.Indirect(reflect.ValueOf(val))
 		if stype.Kind() == reflect.Struct {
-			{
-				field := stype.FieldByName("FS")
-				if field.IsValid() {
-					field.Set(reflect.ValueOf(f.deps.FS))
-				}
-			}
-
-			{
-				field := stype.FieldByName("UUIDGen")
-				if field.IsValid() {
-					field.Set(reflect.ValueOf(f.deps.UUIDGen))
-				}
+			field := stype.FieldByName("FS")
+			if field.IsValid() {
+				field.Set(reflect.ValueOf(f.deps.FS))
 			}
 		}
 	}
