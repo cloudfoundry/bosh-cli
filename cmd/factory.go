@@ -75,9 +75,18 @@ func (f Factory) New(args []string) (Cmd, error) {
 	goflags.FactoryFunc = func(val interface{}) {
 		stype := reflect.Indirect(reflect.ValueOf(val))
 		if stype.Kind() == reflect.Struct {
-			field := stype.FieldByName("FS")
-			if field.IsValid() {
-				field.Set(reflect.ValueOf(f.deps.FS))
+			{
+				field := stype.FieldByName("FS")
+				if field.IsValid() {
+					field.Set(reflect.ValueOf(f.deps.FS))
+				}
+			}
+
+			{
+				field := stype.FieldByName("UUIDGen")
+				if field.IsValid() {
+					field.Set(reflect.ValueOf(f.deps.UUIDGen))
+				}
 			}
 		}
 	}

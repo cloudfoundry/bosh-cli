@@ -47,6 +47,10 @@ var _ = Describe("SSHCmd", func() {
 				Args: AllOrInstanceGroupOrInstanceSlugArgs{
 					Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("job-name", ""),
 				},
+
+				GatewayFlags: GatewayFlags{
+					UUIDGen: uuidGen,
+				},
 			}
 
 			uuidGen.GeneratedUUID = "8c5ff117-9572-45c5-8564-8bcf076ecafa"
@@ -95,6 +99,13 @@ var _ = Describe("SSHCmd", func() {
 					Expect(err.Error()).To(ContainSubstring("fake-err"))
 				})
 
+				It("returns an error if generating SSH options fails", func() {
+					uuidGen.GenerateError = errors.New("fake-err")
+					err := act()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+				})
+
 				It("runs non-interactive SSH session with flags, and command", func() {
 					result := boshdir.SSHResult{Hosts: []boshdir.Host{{Host: "ip1"}}}
 					deployment.SetUpSSHReturns(result, nil)
@@ -104,6 +115,7 @@ var _ = Describe("SSHCmd", func() {
 					opts.GatewayFlags.Username = "gw-username"
 					opts.GatewayFlags.Host = "gw-host"
 					opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
+					opts.GatewayFlags.SOCKS5Proxy = "socks5"
 
 					Expect(act()).ToNot(HaveOccurred())
 
@@ -116,6 +128,7 @@ var _ = Describe("SSHCmd", func() {
 					Expect(runConnOpts.GatewayUsername).To(Equal("gw-username"))
 					Expect(runConnOpts.GatewayHost).To(Equal("gw-host"))
 					Expect(runConnOpts.GatewayPrivateKeyPath).To(Equal("gw-private-key"))
+					Expect(runConnOpts.SOCKS5Proxy).To(Equal("socks5"))
 					Expect(runResult).To(Equal(boshdir.SSHResult{Hosts: []boshdir.Host{{Host: "ip1"}}}))
 					Expect(runCommand).To(Equal([]string{"cmd", "arg1"}))
 				})

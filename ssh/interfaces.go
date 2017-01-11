@@ -27,6 +27,8 @@ type ConnectionOpts struct {
 	GatewayHost           string
 	GatewayPrivateKeyPath string
 
+	SOCKS5Proxy string
+
 	RawOpts []string
 }
 

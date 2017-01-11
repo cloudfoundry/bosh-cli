@@ -43,22 +43,12 @@ func (c SSHCmd) Run(opts SSHOpts) error {
 		}
 	}
 
-	sshOpts, privKey, err := boshdir.NewSSHOpts(c.uuidGen)
+	sshOpts, connOpts, err := opts.GatewayFlags.AsSSHOpts()
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Generating SSH options")
+		return err
 	}
 
-	connOpts := boshssh.ConnectionOpts{
-		PrivateKey: privKey,
-
-		GatewayDisable: opts.GatewayFlags.Disable,
-
-		GatewayUsername:       opts.GatewayFlags.Username,
-		GatewayHost:           opts.GatewayFlags.Host,
-		GatewayPrivateKeyPath: opts.GatewayFlags.PrivateKeyPath,
-
-		RawOpts: opts.RawOpts.AsStrings(),
-	}
+	connOpts.RawOpts = opts.RawOpts.AsStrings()
 
 	result, err := c.deployment.SetUpSSH(opts.Args.Slug, sshOpts)
 	if err != nil {

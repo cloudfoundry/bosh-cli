@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/cppforlife/go-patch/patch"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
@@ -713,11 +714,15 @@ type SCPArgs struct {
 }
 
 type GatewayFlags struct {
+	UUIDGen boshuuid.Generator
+
 	Disable bool `long:"gw-disable" description:"Disable usage of gateway connection" env:"BOSH_GW_DISABLE"`
 
 	Username       string `long:"gw-user"        description:"Username for gateway connection" env:"BOSH_GW_USER"`
 	Host           string `long:"gw-host"        description:"Host for gateway connection" env:"BOSH_GW_HOST"`
 	PrivateKeyPath string `long:"gw-private-key" description:"Private key path for gateway connection" env:"BOSH_GW_PRIVATE_KEY"` // todo private file?
+
+	SOCKS5Proxy string `long:"gw-socks5" description:"SOCKS5 URL" env:"BOSH_ALL_PROXY"`
 }
 
 // Release creation
