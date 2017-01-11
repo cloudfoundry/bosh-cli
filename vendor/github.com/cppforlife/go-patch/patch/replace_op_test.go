@@ -233,9 +233,7 @@ var _ = Describe("ReplaceOp.Apply", func() {
 				map[interface{}]interface{}{"xyz": "xyz"},
 				map[interface{}]interface{}{
 					"name": "val",
-					"efg": []interface{}{
-						map[interface{}]interface{}{"name": "val"},
-					},
+					"efg": []interface{}{1},
 				},
 			}))
 		})

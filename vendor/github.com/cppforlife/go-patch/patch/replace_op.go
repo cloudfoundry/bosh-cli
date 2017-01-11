@@ -72,9 +72,13 @@ func (op ReplaceOp) Apply(doc interface{}) (interface{}, error) {
 			}
 
 			if typedToken.Optional && len(idxs) == 0 {
-				obj = map[interface{}]interface{}{typedToken.Key: typedToken.Value}
-				prevUpdate(append(typedObj, obj))
-				// no need to change prevUpdate since matching item can only be a map
+				if isLast {
+					prevUpdate(append(typedObj, op.Value))
+				} else {
+					obj = map[interface{}]interface{}{typedToken.Key: typedToken.Value}
+					prevUpdate(append(typedObj, obj))
+					// no need to change prevUpdate since matching item can only be a map
+				}
 			} else {
 				if len(idxs) != 1 {
 					return nil, opMultipleMatchingIndexErr{NewPointer(tokens[:i+2]), idxs}
