@@ -33,9 +33,26 @@ format-version: "2"
 */
 
 type fsReleaseIndexSchema struct {
-	Builds map[string]fsReleaseIndexSchema_Entry `yaml:"builds"`
+	Builds fsReleaseIndexSchema_SortedEntries `yaml:"builds"`
 
 	FormatVersion string `yaml:"format-version"`
+}
+
+type fsReleaseIndexSchema_SortedEntries map[string]fsReleaseIndexSchema_Entry
+
+var _ yaml.Marshaler = fsReleaseIndexSchema_SortedEntries{}
+
+func (e fsReleaseIndexSchema_SortedEntries) MarshalYAML() (interface{}, error) {
+	var keys []string
+	for k, _ := range e {
+		keys = append(keys, k)
+	}
+	sort.Sort(sort.StringSlice(keys))
+	var sortedEntries []yaml.MapItem
+	for _, k := range keys {
+		sortedEntries = append(sortedEntries, yaml.MapItem{Key: k, Value: e[k]})
+	}
+	return sortedEntries, nil
 }
 
 type fsReleaseIndexSchema_Entry struct {
@@ -175,7 +192,7 @@ func (i FSReleaseIndex) read(name string) (fsReleaseIndexSchema, error) {
 	var schema fsReleaseIndexSchema
 
 	// Default to an empty map
-	schema.Builds = map[string]fsReleaseIndexSchema_Entry{}
+	schema.Builds = fsReleaseIndexSchema_SortedEntries{}
 
 	indexPath := i.indexPath(name)
 
