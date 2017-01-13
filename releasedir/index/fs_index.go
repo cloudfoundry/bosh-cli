@@ -3,6 +3,7 @@ package index
 import (
 	"fmt"
 	"path"
+	"sort"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -45,9 +46,26 @@ format-version: '2'
 */
 
 type fsIndexSchema struct {
-	Builds map[string]fsIndexSchema_Entry `yaml:"builds"`
+	Builds fsIndexSchema_SortedEntries `yaml:"builds"`
 
 	FormatVersion string `yaml:"format-version"`
+}
+
+type fsIndexSchema_SortedEntries map[string]fsIndexSchema_Entry
+
+var _ yaml.Marshaler = fsIndexSchema_SortedEntries{}
+
+func (e fsIndexSchema_SortedEntries) MarshalYAML() (interface{}, error) {
+	var keys []string
+	for k, _ := range e {
+		keys = append(keys, k)
+	}
+	sort.Sort(sort.StringSlice(keys))
+	var sortedEntries []yaml.MapItem
+	for _, k := range keys {
+		sortedEntries = append(sortedEntries, yaml.MapItem{Key: k, Value: e[k]})
+	}
+	return sortedEntries, nil
 }
 
 type fsIndexSchema_Entry struct {
@@ -203,7 +221,7 @@ func (i FSIndex) entries(name string) ([]indexEntry, error) {
 
 func (i FSIndex) save(name string, entries []indexEntry) error {
 	schema := fsIndexSchema{
-		Builds:        map[string]fsIndexSchema_Entry{},
+		Builds:        fsIndexSchema_SortedEntries{},
 		FormatVersion: "2",
 	}
 
