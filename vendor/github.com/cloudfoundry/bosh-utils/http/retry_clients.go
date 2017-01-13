@@ -7,6 +7,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
 	"github.com/cloudfoundry/bosh-utils/errors"
+	"io/ioutil"
 )
 
 type retryClient struct {
@@ -52,7 +53,11 @@ func NewNetworkSafeRetryClient(
 
 			for _, errorCode := range directorErrorCodes {
 				if resp.StatusCode == errorCode {
-					return false, errors.Errorf("Director responded with non-successful status code HTTP %d. Not attempting to retry...", resp.StatusCode)
+					body, err := ioutil.ReadAll(resp.Body)
+					if err != nil {
+						body = []byte{}
+					}
+					return false, errors.Errorf("Director responded with non-successful status code HTTP %d. Not attempting to retry... \nResponse was: %s", resp.StatusCode, string(body))
 				}
 			}
 

@@ -67,7 +67,6 @@ var _ = Describe("RetryClients", func() {
 				Expect(fakeClient.CallCount).To(Equal(maxAttempts))
 				Expect(fakeClient.Requests).To(ContainElement(req))
 			})
-
 		})
 	})
 
@@ -98,6 +97,23 @@ var _ = Describe("RetryClients", func() {
 				Expect(readString(resp.Body)).To(Equal("fake-response-body"))
 				Expect(resp.StatusCode).To(Equal(204))
 			})
+
+			directorErrorCodes := []int{400, 401, 403, 404, 500}
+			for _, code := range directorErrorCodes {
+				It(fmt.Sprintf("attemps once if request is %d", code), func() {
+					fakeClient.StatusCode = code
+					fakeClient.SetMessage("this is a mistake")
+
+					req := &http.Request{}
+					resp, err := retryClient.Do(req)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("this is a mistake"))
+					Expect(resp.StatusCode).To(Equal(code))
+
+					Expect(fakeClient.CallCount).To(Equal(1))
+					Expect(fakeClient.Requests).To(ContainElement(req))
+				})
+			}
 
 			for code := 200; code < 400; code++ {
 				successHttpCode := code
