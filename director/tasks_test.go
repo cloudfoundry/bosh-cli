@@ -113,7 +113,7 @@ var _ = Describe("Director", func() {
 			_, err := director.CurrentTasks(TasksFilter{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Finding current tasks: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {
@@ -217,7 +217,7 @@ var _ = Describe("Director", func() {
 			_, err := director.RecentTasks(10, TasksFilter{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Finding recent tasks: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {
@@ -294,7 +294,7 @@ var _ = Describe("Director", func() {
 			_, err := director.FindTask(123)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Finding task '123': Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {
@@ -445,7 +445,7 @@ var _ = Describe("Task", func() {
 			err := task.Cancel()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Cancelling task '123': Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 	})
 })

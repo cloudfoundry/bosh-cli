@@ -361,7 +361,7 @@ var _ = Describe("VMs", func() {
 			_, err := deployment.VMInfos()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Listing deployment 'dep' vms infos: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if infos cannot be unmarshalled", func() {

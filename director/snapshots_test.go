@@ -93,7 +93,7 @@ var _ = Describe("Director", func() {
 			_, err := deployment.Snapshots()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Finding snapshots: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {

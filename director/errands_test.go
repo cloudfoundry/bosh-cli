@@ -57,7 +57,7 @@ var _ = Describe("Director", func() {
 			_, err := deployment.Errands()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Finding errands: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {
@@ -137,7 +137,7 @@ var _ = Describe("Director", func() {
 			_, err := deployment.RunErrand("errand1", false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Running errand 'errand1': Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if task result cannot be unmarshalled", func() {

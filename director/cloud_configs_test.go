@@ -62,7 +62,7 @@ var _ = Describe("Director", func() {
 			_, err := director.LatestCloudConfig()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Finding cloud configs: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if info cannot be unmarshalled", func() {
@@ -103,7 +103,7 @@ var _ = Describe("Director", func() {
 			err := director.UpdateCloudConfig(nil)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Updating cloud config: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 	})
 })

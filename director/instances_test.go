@@ -157,7 +157,7 @@ var _ = Describe("Instances", func() {
 			_, err := deployment.InstanceInfos()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Listing deployment 'dep' instances infos: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if infos cannot be unmarshalled", func() {

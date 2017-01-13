@@ -90,7 +90,7 @@ var _ = Describe("Director", func() {
 			_, err := director.Stemcells()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Finding stemcells: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {
@@ -161,7 +161,7 @@ var _ = Describe("Director", func() {
 			_, err := act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Finding stemcells: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {
@@ -225,7 +225,7 @@ var _ = Describe("Director", func() {
 			err := director.UploadStemcellURL("url", "", false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Uploading remote stemcell 'url': Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {
@@ -300,7 +300,7 @@ var _ = Describe("Director", func() {
 			err := director.UploadStemcellFile(file, true)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Uploading stemcell file: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {
@@ -393,7 +393,7 @@ var _ = Describe("Stemcell", func() {
 			err := stemcell.Delete(false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Deleting stemcell 'name/ver': Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns delete error if response is non-200 and stemcell still exists", func() {
@@ -410,7 +410,7 @@ var _ = Describe("Stemcell", func() {
 			err := stemcell.Delete(false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Deleting stemcell 'name/ver': Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 	})
 })

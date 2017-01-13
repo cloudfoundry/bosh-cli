@@ -107,7 +107,7 @@ var _ = Describe("Director", func() {
 			_, err := director.Releases()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Finding releases: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {
@@ -178,7 +178,7 @@ var _ = Describe("Director", func() {
 			_, err := act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Finding releases: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {
@@ -242,7 +242,7 @@ var _ = Describe("Director", func() {
 			err := director.UploadReleaseURL("url", "", false, false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Uploading remote release 'url': Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {
@@ -317,7 +317,7 @@ var _ = Describe("Director", func() {
 			err := director.UploadReleaseFile(file, false, false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Uploading release file: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {
@@ -410,7 +410,7 @@ var _ = Describe("Release", func() {
 			err := release.Delete(false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Deleting release or series 'name[/ver]': Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns delete error if response is non-200 and release still exists", func() {
@@ -427,7 +427,7 @@ var _ = Describe("Release", func() {
 			err := release.Delete(false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Deleting release or series 'name[/ver]': Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 	})
 })

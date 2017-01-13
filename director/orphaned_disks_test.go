@@ -87,7 +87,7 @@ var _ = Describe("Director", func() {
 			_, err := director.OrphanedDisks()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Finding orphaned disks: Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {
@@ -172,7 +172,7 @@ var _ = Describe("OrphanedDisk", func() {
 			err := disk.Delete()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Deleting orphaned disk 'cid': Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response is non-200 and disk still exists", func() {
@@ -191,7 +191,7 @@ var _ = Describe("OrphanedDisk", func() {
 			err := disk.Delete()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Deleting orphaned disk 'cid': Director responded with non-successful status code"))
+				"Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled and disk still exists", func() {

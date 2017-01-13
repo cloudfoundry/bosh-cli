@@ -12,6 +12,7 @@ import (
 
 func BuildServer() (Director, *ghttp.Server) {
 	server := ghttp.NewUnstartedServer()
+	server.AllowUnhandledRequests = true
 
 	cert, err := tls.X509KeyPair(validCert, validKey)
 	Expect(err).ToNot(HaveOccurred())

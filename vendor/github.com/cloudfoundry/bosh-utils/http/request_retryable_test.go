@@ -64,7 +64,7 @@ var _ = Describe("RequestRetryable", func() {
 				Body: ioutil.NopCloser(strings.NewReader("fake-request-body")),
 			}
 
-			requestRetryable = NewRequestRetryable(request, fakeClient, logger)
+			requestRetryable = NewRequestRetryable(request, fakeClient, logger, nil)
 		})
 
 		It("calls Do on the delegate", func() {
@@ -113,7 +113,7 @@ var _ = Describe("RequestRetryable", func() {
 				request = &http.Request{
 					Body: seekableReaderCloser,
 				}
-				requestRetryable = NewRequestRetryable(request, fakeClient, logger)
+				requestRetryable = NewRequestRetryable(request, fakeClient, logger, nil)
 			})
 
 			Context("when the response status code is success", func() {
