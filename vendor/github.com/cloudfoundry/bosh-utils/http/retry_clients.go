@@ -48,11 +48,15 @@ func NewNetworkSafeRetryClient(
 				return true, errors.WrapError(err,"Retry")
 			}
 
-			if resp.StatusCode >= 200 && resp.StatusCode < 400 {
-				return false, nil
+			directorErrorCodes := []int{400, 401, 403, 404, 500}
+
+			for _, errorCode := range directorErrorCodes {
+				if resp.StatusCode == errorCode {
+					return false, errors.Errorf("Director responded with non-successful status code HTTP %d. Not attempting to retry...", resp.StatusCode)
+				}
 			}
 
-			return false, errors.Errorf("Director responded with non-successful status code HTTP %d. Not attempting to retry...", resp.StatusCode)
+			return false, nil
 		},
 	}
 }
