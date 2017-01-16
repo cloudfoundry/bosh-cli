@@ -9,8 +9,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-utils/http"
 	"fmt"
+
+	. "github.com/cloudfoundry/bosh-utils/http"
 )
 
 var _ = Describe("RetryClients", func() {
@@ -102,12 +103,10 @@ var _ = Describe("RetryClients", func() {
 			for _, code := range directorErrorCodes {
 				It(fmt.Sprintf("attemps once if request is %d", code), func() {
 					fakeClient.StatusCode = code
-					fakeClient.SetMessage("this is a mistake")
 
 					req := &http.Request{}
 					resp, err := retryClient.Do(req)
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("this is a mistake"))
 					Expect(resp.StatusCode).To(Equal(code))
 
 					Expect(fakeClient.CallCount).To(Equal(1))
