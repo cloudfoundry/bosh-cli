@@ -40,7 +40,7 @@ func (a FSArchiveWithMetadata) Info() (string, string, error) {
 }
 
 func (a FSArchiveWithMetadata) File() (UploadFile, error) {
-	file, err := a.fs.OpenFile(a.path, os.O_RDWR, 0)
+	file, err := a.fs.OpenFile(a.path, os.O_RDONLY, 0)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Opening archive")
 	}
