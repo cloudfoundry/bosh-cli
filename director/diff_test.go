@@ -90,7 +90,7 @@ var _ = Describe("Deployment", func() {
 
 				_, err := deployment.Diff([]byte(""), false)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Director responded with non-successful status code HTTP 400"))
+				Expect(err.Error()).To(ContainSubstring("Director responded with non-successful status code '400'"))
 			})
 
 			It("returns error if task result cannot be unmarshalled", func() {

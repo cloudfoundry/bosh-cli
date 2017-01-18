@@ -257,7 +257,6 @@ var _ = Describe("Factory", func() {
 
 				_, err = director.Info()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Not attempting to retry..."))
 				Expect(len(server.ReceivedRequests())).To(Equal(2))
 			})
 
