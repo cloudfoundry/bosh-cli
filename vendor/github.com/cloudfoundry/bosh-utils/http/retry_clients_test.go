@@ -106,7 +106,7 @@ var _ = Describe("RetryClients", func() {
 
 					req := &http.Request{}
 					resp, err := retryClient.Do(req)
-					Expect(err).To(HaveOccurred())
+					Expect(err).ToNot(HaveOccurred())
 					Expect(resp.StatusCode).To(Equal(code))
 
 					Expect(fakeClient.CallCount).To(Equal(1))
