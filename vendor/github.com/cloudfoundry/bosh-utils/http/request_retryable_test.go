@@ -101,7 +101,7 @@ var _ = Describe("RequestRetryable", func() {
 			)
 
 			It("os.File conforms to the Seekable interface", func() {
-				var seekable Seekable
+				var seekable io.ReadSeeker
 				seekable, err := ioutil.TempFile(os.TempDir(), "seekable")
 				Expect(err).ToNot(HaveOccurred())
 				_, err = seekable.Seek(0, 0)

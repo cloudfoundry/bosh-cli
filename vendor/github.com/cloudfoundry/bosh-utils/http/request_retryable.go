@@ -56,10 +56,6 @@ func NewRequestRetryable(
 	}
 }
 
-type Seekable interface {
-	Seek(offset int64, whence int) (ret int64, err error)
-}
-
 func (r *requestRetryable) Attempt() (bool, error) {
 	var err error
 
@@ -70,18 +66,18 @@ func (r *requestRetryable) Attempt() (bool, error) {
 		}
 	}
 
-	_, implementsSeekable := r.request.Body.(Seekable)
+	_, implementsSeekable := r.request.Body.(io.ReadSeeker)
 	if r.seekableRequestBody != nil || implementsSeekable {
 		if r.seekableRequestBody == nil {
 			r.seekableRequestBody = r.request.Body
 		}
 
-		seekable, ok := r.seekableRequestBody.(Seekable)
+		seekable, ok := r.seekableRequestBody.(io.ReadSeeker)
 		if !ok {
 			return false, errors.New("Should never happen")
 		}
 		_, err := seekable.Seek(0, 0)
-		r.request.Body = ioutil.NopCloser(r.seekableRequestBody)
+		r.request.Body = ioutil.NopCloser(seekable)
 
 		if err != nil {
 			return false, bosherr.WrapErrorf(err, "Seeking to begining of seekable request body during attempt %d", r.attempt)
