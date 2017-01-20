@@ -101,7 +101,7 @@ var _ = Describe("Director", func() {
 			_, err := deployment.ScanForProblems()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Director responded with non-successful status code"))
+				"Performing a scan on deployment 'dep1': Director responded with non-successful status code"))
 		})
 
 		It("returns error if listing problems response is non-200", func() {
@@ -122,7 +122,7 @@ var _ = Describe("Director", func() {
 			_, err := deployment.ScanForProblems()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Director responded with non-successful status code"))
+				"Listing problems for deployment 'dep1': Director responded with non-successful status code"))
 		})
 
 		It("returns error if response cannot be unmarshalled", func() {
@@ -192,7 +192,7 @@ var _ = Describe("Director", func() {
 			err := deployment.ResolveProblems(nil)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Director responded with non-successful status code"))
+				"Resolving problems for deployment 'dep1': Director responded with non-successful status code"))
 		})
 	})
 })

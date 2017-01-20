@@ -62,7 +62,7 @@ var _ = Describe("Director", func() {
 			_, err := director.LatestRuntimeConfig()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Director responded with non-successful status code"))
+				"Finding runtime configs: Director responded with non-successful status code"))
 		})
 
 		It("returns error if info cannot be unmarshalled", func() {
@@ -103,7 +103,7 @@ var _ = Describe("Director", func() {
 			err := director.UpdateRuntimeConfig(nil)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Director responded with non-successful status code"))
+				"Updating runtime config: Director responded with non-successful status code"))
 		})
 	})
 })

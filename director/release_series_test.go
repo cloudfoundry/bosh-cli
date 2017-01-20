@@ -96,7 +96,7 @@ var _ = Describe("ReleaseSeries", func() {
 			err := series.Delete(false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Director responded with non-successful status code"))
+				"Deleting release or series 'name[/]': Director responded with non-successful status code"))
 		})
 
 		It("returns delete error if response is non-200 and release still exists", func() {
@@ -113,7 +113,7 @@ var _ = Describe("ReleaseSeries", func() {
 			err := series.Delete(false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Director responded with non-successful status code"))
+				"Deleting release or series 'name[/]': Director responded with non-successful status code"))
 		})
 	})
 })

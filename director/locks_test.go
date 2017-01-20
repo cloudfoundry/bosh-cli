@@ -88,7 +88,7 @@ var _ = Describe("Director", func() {
 			_, err := director.Locks()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Director responded with non-successful status code"))
+				"Finding locks: Director responded with non-successful status code"))
 		})
 
 		It("returns error if info cannot be unmarshalled", func() {
