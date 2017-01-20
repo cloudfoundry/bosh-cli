@@ -108,6 +108,7 @@ jobs:
           trigger: true
         - get: version-semver
           params: {bump: patch}
+        - get: homebrew-tap
       - {put: version-semver, params: {file: version-semver/number}}
       - aggregate:
         - task: build-linux
@@ -128,6 +129,12 @@ jobs:
         - {put: release-bucket-darwin, params: {file: compiled-darwin/bosh-cli-*-darwin-amd64}}
         - {put: release-bucket-windows, params: {file: compiled-windows/bosh-cli-*-windows-amd64.exe}}
         - {put: bosh-cli-promoted, params: {repository: bosh-cli, tag: version-semver/number, tag_prefix: v}}
+
+      - task: update-homebrew-formula
+        file: bosh-cli/ci/tasks/update-homebrew-formula.yml
+      - put: homebrew-tap
+        params:
+          repository: update-brew-formula-output/homebrew-tap
 
   - name: bump-minor
     public: true
@@ -208,3 +215,10 @@ resources:
       bucket: {{aws_s3_release_bucket}}
       access_key_id: {{aws_s3_release_bucket_access_key}}
       secret_access_key: {{aws_s3_release_bucket_secret_key}}
+
+  - name: homebrew-tap
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry/homebrew-tap
+      branch: master
+      private_key: {{cloudfoundry_homebrew_tap_deploy_key}}
