@@ -257,6 +257,7 @@ var _ = Describe("Factory", func() {
 
 				_, err = director.Info()
 				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Fetching info: Director responded with non-successful status code"))
 				Expect(len(server.ReceivedRequests())).To(Equal(2))
 			})
 

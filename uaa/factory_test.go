@@ -34,7 +34,7 @@ var _ = Describe("Factory", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			config.Client = "client"
-			config.ClientSecret = "client-secret"
+			config.ClientSecret = "fake-client-secret"
 
 			uaa, err := NewFactory(logger).New(config)
 			Expect(err).ToNot(HaveOccurred())
@@ -60,7 +60,7 @@ var _ = Describe("Factory", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			config.Client = "client"
-			config.ClientSecret = "client-secret"
+			config.ClientSecret = "fake-client-secret"
 			config.CACert = validCACert
 
 			uaa, err := NewFactory(logger).New(config)
@@ -69,7 +69,7 @@ var _ = Describe("Factory", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
-					ghttp.VerifyBasicAuth("client", "client-secret"),
+					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
 					ghttp.RespondWith(http.StatusOK, `{}`),
 				),
 			)
@@ -97,7 +97,7 @@ var _ = Describe("Factory", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				config.Client = "client"
-				config.ClientSecret = "client-secret"
+				config.ClientSecret = "fake-client-secret"
 				config.CACert = validCACert
 
 				uaa, err := NewFactory(logger).New(config)
@@ -106,7 +106,7 @@ var _ = Describe("Factory", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("POST", "/test_path/oauth/token", "grant_type=client_credentials"),
-						ghttp.VerifyBasicAuth("client", "client-secret"),
+						ghttp.VerifyBasicAuth("client", "fake-client-secret"),
 						ghttp.RespondWith(http.StatusOK, `{}`),
 					),
 				)
@@ -116,5 +116,92 @@ var _ = Describe("Factory", func() {
 
 			})
 		})
+
+		It("retries request 3 times if a StatusGatewayTimeout returned", func() {
+			server := ghttp.NewUnstartedServer()
+
+			cert, err := tls.X509KeyPair(validCert, validKey)
+			Expect(err).ToNot(HaveOccurred())
+
+			server.HTTPTestServer.TLS = &tls.Config{
+				Certificates: []tls.Certificate{cert},
+			}
+
+			server.HTTPTestServer.StartTLS()
+
+			config, err := NewConfigFromURL(server.URL())
+			Expect(err).ToNot(HaveOccurred())
+
+			config.Client = "client"
+			config.ClientSecret = "fake-client-secret"
+			config.CACert = validCACert
+
+			uaa, err := NewFactory(logger).New(config)
+			Expect(err).ToNot(HaveOccurred())
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
+					ghttp.RespondWith(http.StatusGatewayTimeout, nil),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
+					ghttp.RespondWith(http.StatusGatewayTimeout, nil),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
+					ghttp.RespondWith(http.StatusOK, `{}`),
+				),
+			)
+
+			_, err = uaa.ClientCredentialsGrant()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(server.ReceivedRequests())).To(Equal(3))
+		})
+
+		It("does not retry on non-successful http status codes", func() {
+			server := ghttp.NewUnstartedServer()
+
+			cert, err := tls.X509KeyPair(validCert, validKey)
+			Expect(err).ToNot(HaveOccurred())
+
+			server.HTTPTestServer.TLS = &tls.Config{
+				Certificates: []tls.Certificate{cert},
+			}
+
+			server.HTTPTestServer.StartTLS()
+
+			config, err := NewConfigFromURL(server.URL())
+			Expect(err).ToNot(HaveOccurred())
+
+			config.Client = "client"
+			config.ClientSecret = "fake-client-secret"
+			config.CACert = validCACert
+
+			uaa, err := NewFactory(logger).New(config)
+			Expect(err).ToNot(HaveOccurred())
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
+					ghttp.RespondWith(http.StatusGatewayTimeout, nil),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
+					ghttp.RespondWith(http.StatusUnauthorized, `{"no"=>"access"}`),
+				),
+			)
+
+			_, err = uaa.ClientCredentialsGrant()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(`Requesting token via client credentials grant: UAA responded with non-successful status code '401' response '{"no"=>"access"}'`))
+			Expect(len(server.ReceivedRequests())).To(Equal(2))
+		})
+
 	})
 })
