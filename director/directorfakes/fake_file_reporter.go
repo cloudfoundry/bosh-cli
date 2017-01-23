@@ -6,17 +6,18 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/director"
+	"github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type FakeFileReporter struct {
-	TrackUploadStub        func(int64, io.ReadCloser) io.ReadCloser
+	TrackUploadStub        func(int64, io.ReadCloser) ui.ReadSeekCloser
 	trackUploadMutex       sync.RWMutex
 	trackUploadArgsForCall []struct {
 		arg1 int64
 		arg2 io.ReadCloser
 	}
 	trackUploadReturns struct {
-		result1 io.ReadCloser
+		result1 ui.ReadSeekCloser
 	}
 	TrackDownloadStub        func(int64, io.Writer) io.Writer
 	trackDownloadMutex       sync.RWMutex
@@ -31,7 +32,7 @@ type FakeFileReporter struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeFileReporter) TrackUpload(arg1 int64, arg2 io.ReadCloser) io.ReadCloser {
+func (fake *FakeFileReporter) TrackUpload(arg1 int64, arg2 io.ReadCloser) ui.ReadSeekCloser {
 	fake.trackUploadMutex.Lock()
 	fake.trackUploadArgsForCall = append(fake.trackUploadArgsForCall, struct {
 		arg1 int64
@@ -58,10 +59,10 @@ func (fake *FakeFileReporter) TrackUploadArgsForCall(i int) (int64, io.ReadClose
 	return fake.trackUploadArgsForCall[i].arg1, fake.trackUploadArgsForCall[i].arg2
 }
 
-func (fake *FakeFileReporter) TrackUploadReturns(result1 io.ReadCloser) {
+func (fake *FakeFileReporter) TrackUploadReturns(result1 ui.ReadSeekCloser) {
 	fake.TrackUploadStub = nil
 	fake.trackUploadReturns = struct {
-		result1 io.ReadCloser
+		result1 ui.ReadSeekCloser
 	}{result1}
 }
 

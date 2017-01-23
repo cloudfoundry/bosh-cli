@@ -14,7 +14,12 @@ func NewFileReporter(ui UI) FileReporter {
 	return FileReporter{ui: ui}
 }
 
-func (r FileReporter) TrackUpload(size int64, reader io.ReadCloser) io.ReadCloser {
+type ReadSeekCloser interface {
+	io.Seeker
+	io.ReadCloser
+}
+
+func (r FileReporter) TrackUpload(size int64, reader io.ReadCloser) ReadSeekCloser {
 	return &ReadCloserProxy{reader: reader, bar: r.buildBar(size)}
 }
 
@@ -38,6 +43,15 @@ func (r FileReporter) buildBar(size int64) *pb.ProgressBar {
 type ReadCloserProxy struct {
 	reader io.ReadCloser
 	bar    *pb.ProgressBar
+}
+
+func (p ReadCloserProxy) Seek(offset int64, whence int) (int64, error) {
+	seeker, ok := p.reader.(io.Seeker)
+	if ok {
+		return seeker.Seek(offset, whence)
+	}
+
+	return 0, nil
 }
 
 func (p *ReadCloserProxy) Read(bs []byte) (int, error) {

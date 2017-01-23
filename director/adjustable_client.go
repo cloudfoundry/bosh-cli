@@ -34,6 +34,7 @@ func (c AdjustableClient) Do(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 
+	requestBodyBeforeAdjustment := req.Body
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return resp, err
@@ -46,6 +47,7 @@ func (c AdjustableClient) Do(req *http.Request) (*http.Response, error) {
 		}
 
 		// Try one more time again after an adjustment
+		req.Body = requestBodyBeforeAdjustment
 		return c.client.Do(req)
 	}
 
