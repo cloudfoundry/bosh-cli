@@ -157,6 +157,8 @@ func (p *provider) downloadRetryable(source Source) boshretry.Retryable {
 			return true, bosherr.Errorf("SHA1 of downloaded file '%s' does not match expected SHA1 '%s'", downloadedSha1, source.GetSHA1())
 		}
 
+		downloadedFile.Close()
+
 		err = p.cache.Save(downloadedFile.Name(), source)
 		if err != nil {
 			return true, bosherr.WrapError(err, "Saving downloaded file in cache")
