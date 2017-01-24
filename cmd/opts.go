@@ -502,7 +502,8 @@ type ErrandsOpts struct {
 type RunErrandOpts struct {
 	Args RunErrandArgs `positional-args:"true" required:"true"`
 
-	KeepAlive bool `long:"keep-alive" description:"Use existing VM to run an errand and keep it after completion"`
+	KeepAlive   bool `long:"keep-alive" description:"Use existing VM to run an errand and keep it after completion"`
+	WhenChanged bool `long:"when-changed" description:"Run errand only if errand configuration has changed or if the previous run was unsuccessful"`
 
 	DownloadLogs  bool        `long:"download-logs" description:"Download logs"`
 	LogsDirectory DirOrCWDArg `long:"logs-dir" description:"Destination directory for logs" default:"."`

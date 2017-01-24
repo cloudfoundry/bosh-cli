@@ -38,8 +38,8 @@ func (d DeploymentImpl) Errands() ([]Errand, error) {
 	return d.client.Errands(d.name)
 }
 
-func (d DeploymentImpl) RunErrand(name string, keepAlive bool) (ErrandResult, error) {
-	resp, err := d.client.RunErrand(d.name, name, keepAlive)
+func (d DeploymentImpl) RunErrand(name string, keepAlive bool, whenChanged bool) (ErrandResult, error) {
+	resp, err := d.client.RunErrand(d.name, name, keepAlive, whenChanged)
 	if err != nil {
 		return ErrandResult{}, err
 	}
@@ -74,7 +74,7 @@ func (c Client) Errands(deploymentName string) ([]Errand, error) {
 	return errands, nil
 }
 
-func (c Client) RunErrand(deploymentName, name string, keepAlive bool) (ErrandRunResp, error) {
+func (c Client) RunErrand(deploymentName, name string, keepAlive bool, whenChanged bool) (ErrandRunResp, error) {
 	var resp ErrandRunResp
 
 	if len(deploymentName) == 0 {
@@ -87,7 +87,7 @@ func (c Client) RunErrand(deploymentName, name string, keepAlive bool) (ErrandRu
 
 	path := fmt.Sprintf("/deployments/%s/errands/%s/runs", deploymentName, name)
 
-	body := map[string]bool{"keep-alive": keepAlive}
+	body := map[string]bool{"keep-alive": keepAlive, "when-changed": whenChanged}
 
 	reqBody, err := json.Marshal(body)
 	if err != nil {

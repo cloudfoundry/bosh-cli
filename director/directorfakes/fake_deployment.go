@@ -83,11 +83,12 @@ type FakeDeployment struct {
 		result1 []director.Errand
 		result2 error
 	}
-	RunErrandStub        func(string, bool) (director.ErrandResult, error)
+	RunErrandStub        func(string, bool, bool) (director.ErrandResult, error)
 	runErrandMutex       sync.RWMutex
 	runErrandArgsForCall []struct {
 		arg1 string
 		arg2 bool
+		arg3 bool
 	}
 	runErrandReturns struct {
 		result1 director.ErrandResult
@@ -554,16 +555,17 @@ func (fake *FakeDeployment) ErrandsReturns(result1 []director.Errand, result2 er
 	}{result1, result2}
 }
 
-func (fake *FakeDeployment) RunErrand(arg1 string, arg2 bool) (director.ErrandResult, error) {
+func (fake *FakeDeployment) RunErrand(arg1 string, arg2 bool, arg3 bool) (director.ErrandResult, error) {
 	fake.runErrandMutex.Lock()
 	fake.runErrandArgsForCall = append(fake.runErrandArgsForCall, struct {
 		arg1 string
 		arg2 bool
-	}{arg1, arg2})
-	fake.recordInvocation("RunErrand", []interface{}{arg1, arg2})
+		arg3 bool
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("RunErrand", []interface{}{arg1, arg2, arg3})
 	fake.runErrandMutex.Unlock()
 	if fake.RunErrandStub != nil {
-		return fake.RunErrandStub(arg1, arg2)
+		return fake.RunErrandStub(arg1, arg2, arg3)
 	} else {
 		return fake.runErrandReturns.result1, fake.runErrandReturns.result2
 	}
@@ -575,10 +577,10 @@ func (fake *FakeDeployment) RunErrandCallCount() int {
 	return len(fake.runErrandArgsForCall)
 }
 
-func (fake *FakeDeployment) RunErrandArgsForCall(i int) (string, bool) {
+func (fake *FakeDeployment) RunErrandArgsForCall(i int) (string, bool, bool) {
 	fake.runErrandMutex.RLock()
 	defer fake.runErrandMutex.RUnlock()
-	return fake.runErrandArgsForCall[i].arg1, fake.runErrandArgsForCall[i].arg2
+	return fake.runErrandArgsForCall[i].arg1, fake.runErrandArgsForCall[i].arg2, fake.runErrandArgsForCall[i].arg3
 }
 
 func (fake *FakeDeployment) RunErrandReturns(result1 director.ErrandResult, result2 error) {

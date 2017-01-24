@@ -24,7 +24,7 @@ func NewRunErrandCmd(
 }
 
 func (c RunErrandCmd) Run(opts RunErrandOpts) error {
-	result, err := c.deployment.RunErrand(opts.Args.Name, opts.KeepAlive)
+	result, err := c.deployment.RunErrand(opts.Args.Name, opts.KeepAlive, opts.WhenChanged)
 	if err != nil {
 		return err
 	}

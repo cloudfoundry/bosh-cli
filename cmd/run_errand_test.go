@@ -35,8 +35,9 @@ var _ = Describe("RunErrandCmd", func() {
 
 		BeforeEach(func() {
 			opts = RunErrandOpts{
-				Args:      RunErrandArgs{Name: "errand-name"},
-				KeepAlive: true,
+				Args:        RunErrandArgs{Name: "errand-name"},
+				KeepAlive:   true,
+				WhenChanged: true,
 			}
 		})
 
@@ -51,9 +52,10 @@ var _ = Describe("RunErrandCmd", func() {
 
 				Expect(deployment.RunErrandCallCount()).To(Equal(1))
 
-				name, keepAlive := deployment.RunErrandArgsForCall(0)
+				name, keepAlive, whenChanged := deployment.RunErrandArgsForCall(0)
 				Expect(name).To(Equal("errand-name"))
 				Expect(keepAlive).To(BeTrue())
+				Expect(whenChanged).To(BeTrue())
 			})
 
 			It("downloads logs if requested", func() {

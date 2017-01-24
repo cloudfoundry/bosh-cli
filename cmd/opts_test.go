@@ -1513,6 +1513,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("WhenChanged", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("WhenChanged", opts)).To(Equal(
+					`long:"when-changed" description:"Run errand only if errand configuration has changed or if the previous run was unsuccessful"`,
+				))
+			})
+		})
+
 		Describe("DownloadLogs", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("DownloadLogs", opts)).To(Equal(
