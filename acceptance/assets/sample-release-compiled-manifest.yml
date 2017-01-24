@@ -40,6 +40,7 @@ cloud_provider:
   mbus: https://admin:admin@10.244.0.42:6868
   properties:
     warden_cpi: &warden_cpi
+      enable_registry: true
       warden:
         connect_network: tcp
         connect_address: 0.0.0.0:7777
