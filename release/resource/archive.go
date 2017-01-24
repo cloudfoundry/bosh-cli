@@ -176,7 +176,16 @@ func (a ArchiveImpl) copyFile(sourceFile File, stagingDir string) error {
 		}
 
 		// Be very explicit about changing permissions for copied file
-		return a.fs.Chmod(dstPath, sourceFileStat.Mode())
+		// Only pay attention to whether the source file is executable
+		return a.fs.Chmod(dstPath, getFilePerms(sourceFileStat))
+	}
+}
+
+func getFilePerms(stat os.FileInfo) os.FileMode {
+	if (stat.Mode() | 0100) == stat.Mode() {
+		return 0755
+	} else {
+		return 0644
 	}
 }
 

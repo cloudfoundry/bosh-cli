@@ -105,13 +105,16 @@ var _ = Describe("Archive", func() {
 			err = fs.WriteFileString(uniqueDir+"/file1", "file1")
 			Expect(err).ToNot(HaveOccurred())
 
-			err = fs.MkdirAll(uniqueDir+"/dir", os.FileMode(0744))
+			err = fs.Chmod(uniqueDir+"/file1", os.FileMode(0600))
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.MkdirAll(uniqueDir+"/dir", os.FileMode(0777))
 			Expect(err).ToNot(HaveOccurred())
 
 			err = fs.WriteFileString(uniqueDir+"/dir/file2", "file2")
 			Expect(err).ToNot(HaveOccurred())
 
-			err = fs.Chmod(uniqueDir+"/dir/file2", os.FileMode(0745))
+			err = fs.Chmod(uniqueDir+"/dir/file2", os.FileMode(0744))
 			Expect(err).ToNot(HaveOccurred())
 
 			err = fs.WriteFileString(uniqueDir+"/dir/file3", "file3")
@@ -216,12 +219,18 @@ var _ = Describe("Archive", func() {
 				// Dir permissions
 				stat, err = fs.Stat(decompPath + "/dir")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(modeAsStr(stat.Mode())).To(Equal("020000000744")) // 02... is for directory
+				Expect(modeAsStr(stat.Mode())).To(Equal("020000000755")) // 02... is for directory
 
 				// File permissions
+				stat, err = fs.Stat(decompPath + "/file1")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(modeAsStr(stat.Mode())).To(Equal("0644"))
+				stat, err = fs.Stat(decompPath + "/dir")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(modeAsStr(stat.Mode())).To(Equal("020000000755"))
 				stat, err = fs.Stat(decompPath + "/dir/file2")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(modeAsStr(stat.Mode())).To(Equal("0745"))
+				Expect(modeAsStr(stat.Mode())).To(Equal("0755"))
 			}
 
 			{
