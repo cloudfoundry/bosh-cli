@@ -42,9 +42,8 @@ func (fake *FakeFingerprinter) Calculate(arg1 []resource.File, arg2 []string) (s
 	fake.calculateMutex.Unlock()
 	if fake.CalculateStub != nil {
 		return fake.CalculateStub(arg1, arg2)
-	} else {
-		return fake.calculateReturns.result1, fake.calculateReturns.result2
 	}
+	return fake.calculateReturns.result1, fake.calculateReturns.result2
 }
 
 func (fake *FakeFingerprinter) CalculateCallCount() int {

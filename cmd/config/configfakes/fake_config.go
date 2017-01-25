@@ -83,9 +83,8 @@ func (fake *FakeConfig) Environments() []config.Environment {
 	fake.environmentsMutex.Unlock()
 	if fake.EnvironmentsStub != nil {
 		return fake.EnvironmentsStub()
-	} else {
-		return fake.environmentsReturns.result1
 	}
+	return fake.environmentsReturns.result1
 }
 
 func (fake *FakeConfig) EnvironmentsCallCount() int {
@@ -110,9 +109,8 @@ func (fake *FakeConfig) ResolveEnvironment(urlOrAlias string) string {
 	fake.resolveEnvironmentMutex.Unlock()
 	if fake.ResolveEnvironmentStub != nil {
 		return fake.ResolveEnvironmentStub(urlOrAlias)
-	} else {
-		return fake.resolveEnvironmentReturns.result1
 	}
+	return fake.resolveEnvironmentReturns.result1
 }
 
 func (fake *FakeConfig) ResolveEnvironmentCallCount() int {
@@ -145,9 +143,8 @@ func (fake *FakeConfig) AliasEnvironment(url string, alias string, caCert string
 	fake.aliasEnvironmentMutex.Unlock()
 	if fake.AliasEnvironmentStub != nil {
 		return fake.AliasEnvironmentStub(url, alias, caCert)
-	} else {
-		return fake.aliasEnvironmentReturns.result1, fake.aliasEnvironmentReturns.result2
 	}
+	return fake.aliasEnvironmentReturns.result1, fake.aliasEnvironmentReturns.result2
 }
 
 func (fake *FakeConfig) AliasEnvironmentCallCount() int {
@@ -179,9 +176,8 @@ func (fake *FakeConfig) CACert(url string) string {
 	fake.cACertMutex.Unlock()
 	if fake.CACertStub != nil {
 		return fake.CACertStub(url)
-	} else {
-		return fake.cACertReturns.result1
 	}
+	return fake.cACertReturns.result1
 }
 
 func (fake *FakeConfig) CACertCallCount() int {
@@ -212,9 +208,8 @@ func (fake *FakeConfig) Credentials(url string) config.Creds {
 	fake.credentialsMutex.Unlock()
 	if fake.CredentialsStub != nil {
 		return fake.CredentialsStub(url)
-	} else {
-		return fake.credentialsReturns.result1
 	}
+	return fake.credentialsReturns.result1
 }
 
 func (fake *FakeConfig) CredentialsCallCount() int {
@@ -246,9 +241,8 @@ func (fake *FakeConfig) SetCredentials(url string, creds config.Creds) config.Co
 	fake.setCredentialsMutex.Unlock()
 	if fake.SetCredentialsStub != nil {
 		return fake.SetCredentialsStub(url, creds)
-	} else {
-		return fake.setCredentialsReturns.result1
 	}
+	return fake.setCredentialsReturns.result1
 }
 
 func (fake *FakeConfig) SetCredentialsCallCount() int {
@@ -279,9 +273,8 @@ func (fake *FakeConfig) UnsetCredentials(url string) config.Config {
 	fake.unsetCredentialsMutex.Unlock()
 	if fake.UnsetCredentialsStub != nil {
 		return fake.UnsetCredentialsStub(url)
-	} else {
-		return fake.unsetCredentialsReturns.result1
 	}
+	return fake.unsetCredentialsReturns.result1
 }
 
 func (fake *FakeConfig) UnsetCredentialsCallCount() int {
@@ -310,9 +303,8 @@ func (fake *FakeConfig) Save() error {
 	fake.saveMutex.Unlock()
 	if fake.SaveStub != nil {
 		return fake.SaveStub()
-	} else {
-		return fake.saveReturns.result1
 	}
+	return fake.saveReturns.result1
 }
 
 func (fake *FakeConfig) SaveCallCount() int {

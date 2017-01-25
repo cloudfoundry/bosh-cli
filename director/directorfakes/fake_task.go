@@ -118,9 +118,8 @@ func (fake *FakeTask) ID() int {
 	fake.iDMutex.Unlock()
 	if fake.IDStub != nil {
 		return fake.IDStub()
-	} else {
-		return fake.iDReturns.result1
 	}
+	return fake.iDReturns.result1
 }
 
 func (fake *FakeTask) IDCallCount() int {
@@ -143,9 +142,8 @@ func (fake *FakeTask) StartedAt() time.Time {
 	fake.startedAtMutex.Unlock()
 	if fake.StartedAtStub != nil {
 		return fake.StartedAtStub()
-	} else {
-		return fake.startedAtReturns.result1
 	}
+	return fake.startedAtReturns.result1
 }
 
 func (fake *FakeTask) StartedAtCallCount() int {
@@ -168,9 +166,8 @@ func (fake *FakeTask) LastActivityAt() time.Time {
 	fake.lastActivityAtMutex.Unlock()
 	if fake.LastActivityAtStub != nil {
 		return fake.LastActivityAtStub()
-	} else {
-		return fake.lastActivityAtReturns.result1
 	}
+	return fake.lastActivityAtReturns.result1
 }
 
 func (fake *FakeTask) LastActivityAtCallCount() int {
@@ -193,9 +190,8 @@ func (fake *FakeTask) State() string {
 	fake.stateMutex.Unlock()
 	if fake.StateStub != nil {
 		return fake.StateStub()
-	} else {
-		return fake.stateReturns.result1
 	}
+	return fake.stateReturns.result1
 }
 
 func (fake *FakeTask) StateCallCount() int {
@@ -218,9 +214,8 @@ func (fake *FakeTask) IsError() bool {
 	fake.isErrorMutex.Unlock()
 	if fake.IsErrorStub != nil {
 		return fake.IsErrorStub()
-	} else {
-		return fake.isErrorReturns.result1
 	}
+	return fake.isErrorReturns.result1
 }
 
 func (fake *FakeTask) IsErrorCallCount() int {
@@ -243,9 +238,8 @@ func (fake *FakeTask) User() string {
 	fake.userMutex.Unlock()
 	if fake.UserStub != nil {
 		return fake.UserStub()
-	} else {
-		return fake.userReturns.result1
 	}
+	return fake.userReturns.result1
 }
 
 func (fake *FakeTask) UserCallCount() int {
@@ -268,9 +262,8 @@ func (fake *FakeTask) DeploymentName() string {
 	fake.deploymentNameMutex.Unlock()
 	if fake.DeploymentNameStub != nil {
 		return fake.DeploymentNameStub()
-	} else {
-		return fake.deploymentNameReturns.result1
 	}
+	return fake.deploymentNameReturns.result1
 }
 
 func (fake *FakeTask) DeploymentNameCallCount() int {
@@ -293,9 +286,8 @@ func (fake *FakeTask) ContextID() string {
 	fake.contextIDMutex.Unlock()
 	if fake.ContextIDStub != nil {
 		return fake.ContextIDStub()
-	} else {
-		return fake.contextIDReturns.result1
 	}
+	return fake.contextIDReturns.result1
 }
 
 func (fake *FakeTask) ContextIDCallCount() int {
@@ -318,9 +310,8 @@ func (fake *FakeTask) Description() string {
 	fake.descriptionMutex.Unlock()
 	if fake.DescriptionStub != nil {
 		return fake.DescriptionStub()
-	} else {
-		return fake.descriptionReturns.result1
 	}
+	return fake.descriptionReturns.result1
 }
 
 func (fake *FakeTask) DescriptionCallCount() int {
@@ -343,9 +334,8 @@ func (fake *FakeTask) Result() string {
 	fake.resultMutex.Unlock()
 	if fake.ResultStub != nil {
 		return fake.ResultStub()
-	} else {
-		return fake.resultReturns.result1
 	}
+	return fake.resultReturns.result1
 }
 
 func (fake *FakeTask) ResultCallCount() int {
@@ -370,9 +360,8 @@ func (fake *FakeTask) EventOutput(arg1 director.TaskReporter) error {
 	fake.eventOutputMutex.Unlock()
 	if fake.EventOutputStub != nil {
 		return fake.EventOutputStub(arg1)
-	} else {
-		return fake.eventOutputReturns.result1
 	}
+	return fake.eventOutputReturns.result1
 }
 
 func (fake *FakeTask) EventOutputCallCount() int {
@@ -403,9 +392,8 @@ func (fake *FakeTask) CPIOutput(arg1 director.TaskReporter) error {
 	fake.cPIOutputMutex.Unlock()
 	if fake.CPIOutputStub != nil {
 		return fake.CPIOutputStub(arg1)
-	} else {
-		return fake.cPIOutputReturns.result1
 	}
+	return fake.cPIOutputReturns.result1
 }
 
 func (fake *FakeTask) CPIOutputCallCount() int {
@@ -436,9 +424,8 @@ func (fake *FakeTask) DebugOutput(arg1 director.TaskReporter) error {
 	fake.debugOutputMutex.Unlock()
 	if fake.DebugOutputStub != nil {
 		return fake.DebugOutputStub(arg1)
-	} else {
-		return fake.debugOutputReturns.result1
 	}
+	return fake.debugOutputReturns.result1
 }
 
 func (fake *FakeTask) DebugOutputCallCount() int {
@@ -469,9 +456,8 @@ func (fake *FakeTask) ResultOutput(arg1 director.TaskReporter) error {
 	fake.resultOutputMutex.Unlock()
 	if fake.ResultOutputStub != nil {
 		return fake.ResultOutputStub(arg1)
-	} else {
-		return fake.resultOutputReturns.result1
 	}
+	return fake.resultOutputReturns.result1
 }
 
 func (fake *FakeTask) ResultOutputCallCount() int {
@@ -500,9 +486,8 @@ func (fake *FakeTask) Cancel() error {
 	fake.cancelMutex.Unlock()
 	if fake.CancelStub != nil {
 		return fake.CancelStub()
-	} else {
-		return fake.cancelReturns.result1
 	}
+	return fake.cancelReturns.result1
 }
 
 func (fake *FakeTask) CancelCallCount() int {

@@ -32,9 +32,8 @@ func (fake *FakeSession) Start() ([]string, error) {
 	fake.startMutex.Unlock()
 	if fake.StartStub != nil {
 		return fake.StartStub()
-	} else {
-		return fake.startReturns.result1, fake.startReturns.result2
 	}
+	return fake.startReturns.result1, fake.startReturns.result2
 }
 
 func (fake *FakeSession) StartCallCount() int {
@@ -58,9 +57,8 @@ func (fake *FakeSession) Finish() error {
 	fake.finishMutex.Unlock()
 	if fake.FinishStub != nil {
 		return fake.FinishStub()
-	} else {
-		return fake.finishReturns.result1
 	}
+	return fake.finishReturns.result1
 }
 
 func (fake *FakeSession) FinishCallCount() int {

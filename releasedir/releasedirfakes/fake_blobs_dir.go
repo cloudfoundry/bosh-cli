@@ -65,9 +65,8 @@ func (fake *FakeBlobsDir) Init() error {
 	fake.initMutex.Unlock()
 	if fake.InitStub != nil {
 		return fake.InitStub()
-	} else {
-		return fake.initReturns.result1
 	}
+	return fake.initReturns.result1
 }
 
 func (fake *FakeBlobsDir) InitCallCount() int {
@@ -90,9 +89,8 @@ func (fake *FakeBlobsDir) Blobs() ([]releasedir.Blob, error) {
 	fake.blobsMutex.Unlock()
 	if fake.BlobsStub != nil {
 		return fake.BlobsStub()
-	} else {
-		return fake.blobsReturns.result1, fake.blobsReturns.result2
 	}
+	return fake.blobsReturns.result1, fake.blobsReturns.result2
 }
 
 func (fake *FakeBlobsDir) BlobsCallCount() int {
@@ -118,9 +116,8 @@ func (fake *FakeBlobsDir) DownloadBlobs(numOfParallelWorkers int) error {
 	fake.downloadBlobsMutex.Unlock()
 	if fake.DownloadBlobsStub != nil {
 		return fake.DownloadBlobsStub(numOfParallelWorkers)
-	} else {
-		return fake.downloadBlobsReturns.result1
 	}
+	return fake.downloadBlobsReturns.result1
 }
 
 func (fake *FakeBlobsDir) DownloadBlobsCallCount() int {
@@ -149,9 +146,8 @@ func (fake *FakeBlobsDir) UploadBlobs() error {
 	fake.uploadBlobsMutex.Unlock()
 	if fake.UploadBlobsStub != nil {
 		return fake.UploadBlobsStub()
-	} else {
-		return fake.uploadBlobsReturns.result1
 	}
+	return fake.uploadBlobsReturns.result1
 }
 
 func (fake *FakeBlobsDir) UploadBlobsCallCount() int {
@@ -177,9 +173,8 @@ func (fake *FakeBlobsDir) TrackBlob(arg1 string, arg2 io.ReadCloser) (releasedir
 	fake.trackBlobMutex.Unlock()
 	if fake.TrackBlobStub != nil {
 		return fake.TrackBlobStub(arg1, arg2)
-	} else {
-		return fake.trackBlobReturns.result1, fake.trackBlobReturns.result2
 	}
+	return fake.trackBlobReturns.result1, fake.trackBlobReturns.result2
 }
 
 func (fake *FakeBlobsDir) TrackBlobCallCount() int {
@@ -211,9 +206,8 @@ func (fake *FakeBlobsDir) UntrackBlob(arg1 string) error {
 	fake.untrackBlobMutex.Unlock()
 	if fake.UntrackBlobStub != nil {
 		return fake.UntrackBlobStub(arg1)
-	} else {
-		return fake.untrackBlobReturns.result1
 	}
+	return fake.untrackBlobReturns.result1
 }
 
 func (fake *FakeBlobsDir) UntrackBlobCallCount() int {

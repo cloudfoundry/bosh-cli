@@ -52,9 +52,8 @@ func (fake *FakeUAA) NewStaleAccessToken(refreshValue string) uaa.StaleAccessTok
 	fake.newStaleAccessTokenMutex.Unlock()
 	if fake.NewStaleAccessTokenStub != nil {
 		return fake.NewStaleAccessTokenStub(refreshValue)
-	} else {
-		return fake.newStaleAccessTokenReturns.result1
 	}
+	return fake.newStaleAccessTokenReturns.result1
 }
 
 func (fake *FakeUAA) NewStaleAccessTokenCallCount() int {
@@ -83,9 +82,8 @@ func (fake *FakeUAA) Prompts() ([]uaa.Prompt, error) {
 	fake.promptsMutex.Unlock()
 	if fake.PromptsStub != nil {
 		return fake.PromptsStub()
-	} else {
-		return fake.promptsReturns.result1, fake.promptsReturns.result2
 	}
+	return fake.promptsReturns.result1, fake.promptsReturns.result2
 }
 
 func (fake *FakeUAA) PromptsCallCount() int {
@@ -109,9 +107,8 @@ func (fake *FakeUAA) ClientCredentialsGrant() (uaa.Token, error) {
 	fake.clientCredentialsGrantMutex.Unlock()
 	if fake.ClientCredentialsGrantStub != nil {
 		return fake.ClientCredentialsGrantStub()
-	} else {
-		return fake.clientCredentialsGrantReturns.result1, fake.clientCredentialsGrantReturns.result2
 	}
+	return fake.clientCredentialsGrantReturns.result1, fake.clientCredentialsGrantReturns.result2
 }
 
 func (fake *FakeUAA) ClientCredentialsGrantCallCount() int {
@@ -142,9 +139,8 @@ func (fake *FakeUAA) OwnerPasswordCredentialsGrant(arg1 []uaa.PromptAnswer) (uaa
 	fake.ownerPasswordCredentialsGrantMutex.Unlock()
 	if fake.OwnerPasswordCredentialsGrantStub != nil {
 		return fake.OwnerPasswordCredentialsGrantStub(arg1)
-	} else {
-		return fake.ownerPasswordCredentialsGrantReturns.result1, fake.ownerPasswordCredentialsGrantReturns.result2
 	}
+	return fake.ownerPasswordCredentialsGrantReturns.result1, fake.ownerPasswordCredentialsGrantReturns.result2
 }
 
 func (fake *FakeUAA) OwnerPasswordCredentialsGrantCallCount() int {

@@ -5,14 +5,14 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/deployment/manifest"
-	"github.com/cloudfoundry/bosh-cli/deployment/template"
+	bidepltpl "github.com/cloudfoundry/bosh-cli/deployment/template"
 )
 
 type FakeParser struct {
-	ParseStub        func(interpolatedTemplate template.InterpolatedTemplate, path string) (manifest.Manifest, error)
+	ParseStub        func(interpolatedTemplate bidepltpl.InterpolatedTemplate, path string) (manifest.Manifest, error)
 	parseMutex       sync.RWMutex
 	parseArgsForCall []struct {
-		interpolatedTemplate template.InterpolatedTemplate
+		interpolatedTemplate bidepltpl.InterpolatedTemplate
 		path                 string
 	}
 	parseReturns struct {
@@ -23,19 +23,18 @@ type FakeParser struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeParser) Parse(interpolatedTemplate template.InterpolatedTemplate, path string) (manifest.Manifest, error) {
+func (fake *FakeParser) Parse(interpolatedTemplate bidepltpl.InterpolatedTemplate, path string) (manifest.Manifest, error) {
 	fake.parseMutex.Lock()
 	fake.parseArgsForCall = append(fake.parseArgsForCall, struct {
-		interpolatedTemplate template.InterpolatedTemplate
+		interpolatedTemplate bidepltpl.InterpolatedTemplate
 		path                 string
 	}{interpolatedTemplate, path})
 	fake.recordInvocation("Parse", []interface{}{interpolatedTemplate, path})
 	fake.parseMutex.Unlock()
 	if fake.ParseStub != nil {
 		return fake.ParseStub(interpolatedTemplate, path)
-	} else {
-		return fake.parseReturns.result1, fake.parseReturns.result2
 	}
+	return fake.parseReturns.result1, fake.parseReturns.result2
 }
 
 func (fake *FakeParser) ParseCallCount() int {
@@ -44,7 +43,7 @@ func (fake *FakeParser) ParseCallCount() int {
 	return len(fake.parseArgsForCall)
 }
 
-func (fake *FakeParser) ParseArgsForCall(i int) (template.InterpolatedTemplate, string) {
+func (fake *FakeParser) ParseArgsForCall(i int) (bidepltpl.InterpolatedTemplate, string) {
 	fake.parseMutex.RLock()
 	defer fake.parseMutex.RUnlock()
 	return fake.parseArgsForCall[i].interpolatedTemplate, fake.parseArgsForCall[i].path

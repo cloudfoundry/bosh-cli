@@ -25,9 +25,8 @@ func (fake *FakeLoginStrategy) Try() error {
 	fake.tryMutex.Unlock()
 	if fake.TryStub != nil {
 		return fake.TryStub()
-	} else {
-		return fake.tryReturns.result1
 	}
+	return fake.tryReturns.result1
 }
 
 func (fake *FakeLoginStrategy) TryCallCount() int {

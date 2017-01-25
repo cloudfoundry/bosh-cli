@@ -5,14 +5,14 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/release/job"
-	"github.com/cloudfoundry/bosh-cli/release/manifest"
+	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
 )
 
 type FakeArchiveReader struct {
-	ReadStub        func(manifest.JobRef, string) (*job.Job, error)
+	ReadStub        func(boshman.JobRef, string) (*job.Job, error)
 	readMutex       sync.RWMutex
 	readArgsForCall []struct {
-		arg1 manifest.JobRef
+		arg1 boshman.JobRef
 		arg2 string
 	}
 	readReturns struct {
@@ -23,19 +23,18 @@ type FakeArchiveReader struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeArchiveReader) Read(arg1 manifest.JobRef, arg2 string) (*job.Job, error) {
+func (fake *FakeArchiveReader) Read(arg1 boshman.JobRef, arg2 string) (*job.Job, error) {
 	fake.readMutex.Lock()
 	fake.readArgsForCall = append(fake.readArgsForCall, struct {
-		arg1 manifest.JobRef
+		arg1 boshman.JobRef
 		arg2 string
 	}{arg1, arg2})
 	fake.recordInvocation("Read", []interface{}{arg1, arg2})
 	fake.readMutex.Unlock()
 	if fake.ReadStub != nil {
 		return fake.ReadStub(arg1, arg2)
-	} else {
-		return fake.readReturns.result1, fake.readReturns.result2
 	}
+	return fake.readReturns.result1, fake.readReturns.result2
 }
 
 func (fake *FakeArchiveReader) ReadCallCount() int {
@@ -44,7 +43,7 @@ func (fake *FakeArchiveReader) ReadCallCount() int {
 	return len(fake.readArgsForCall)
 }
 
-func (fake *FakeArchiveReader) ReadArgsForCall(i int) (manifest.JobRef, string) {
+func (fake *FakeArchiveReader) ReadArgsForCall(i int) (boshman.JobRef, string) {
 	fake.readMutex.RLock()
 	defer fake.readMutex.RUnlock()
 	return fake.readArgsForCall[i].arg1, fake.readArgsForCall[i].arg2

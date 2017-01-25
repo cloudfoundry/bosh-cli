@@ -55,9 +55,8 @@ func (fake *FakeCompilable) Name() string {
 	fake.nameMutex.Unlock()
 	if fake.NameStub != nil {
 		return fake.NameStub()
-	} else {
-		return fake.nameReturns.result1
 	}
+	return fake.nameReturns.result1
 }
 
 func (fake *FakeCompilable) NameCallCount() int {
@@ -80,9 +79,8 @@ func (fake *FakeCompilable) Fingerprint() string {
 	fake.fingerprintMutex.Unlock()
 	if fake.FingerprintStub != nil {
 		return fake.FingerprintStub()
-	} else {
-		return fake.fingerprintReturns.result1
 	}
+	return fake.fingerprintReturns.result1
 }
 
 func (fake *FakeCompilable) FingerprintCallCount() int {
@@ -105,9 +103,8 @@ func (fake *FakeCompilable) ArchivePath() string {
 	fake.archivePathMutex.Unlock()
 	if fake.ArchivePathStub != nil {
 		return fake.ArchivePathStub()
-	} else {
-		return fake.archivePathReturns.result1
 	}
+	return fake.archivePathReturns.result1
 }
 
 func (fake *FakeCompilable) ArchivePathCallCount() int {
@@ -130,9 +127,8 @@ func (fake *FakeCompilable) ArchiveSHA1() string {
 	fake.archiveSHA1Mutex.Unlock()
 	if fake.ArchiveSHA1Stub != nil {
 		return fake.ArchiveSHA1Stub()
-	} else {
-		return fake.archiveSHA1Returns.result1
 	}
+	return fake.archiveSHA1Returns.result1
 }
 
 func (fake *FakeCompilable) ArchiveSHA1CallCount() int {
@@ -155,9 +151,8 @@ func (fake *FakeCompilable) IsCompiled() bool {
 	fake.isCompiledMutex.Unlock()
 	if fake.IsCompiledStub != nil {
 		return fake.IsCompiledStub()
-	} else {
-		return fake.isCompiledReturns.result1
 	}
+	return fake.isCompiledReturns.result1
 }
 
 func (fake *FakeCompilable) IsCompiledCallCount() int {
@@ -180,9 +175,8 @@ func (fake *FakeCompilable) Deps() []pkg.Compilable {
 	fake.depsMutex.Unlock()
 	if fake.DepsStub != nil {
 		return fake.DepsStub()
-	} else {
-		return fake.depsReturns.result1
 	}
+	return fake.depsReturns.result1
 }
 
 func (fake *FakeCompilable) DepsCallCount() int {

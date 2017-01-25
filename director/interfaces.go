@@ -98,6 +98,7 @@ type Deployment interface {
 
 	Stemcells() ([]Stemcell, error)
 	VMInfos() ([]VMInfo, error)
+	Instances() ([]Instance, error)
 	InstanceInfos() ([]VMInfo, error)
 
 	Errands() ([]Errand, error)
