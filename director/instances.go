@@ -6,14 +6,22 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
-type Instance VMInfo
+type Instance struct {
+	AgentID string `json:"agent_id"`
+	VMID    string `json:"cid"`
+
+	ID    string `json:"id"`
+	Group string `json:"job"`
+
+	AZ        string `json:"az"`
+	ExpectsVM bool   `json:"expects_vm"`
+}
 
 func (d DeploymentImpl) InstanceInfos() ([]VMInfo, error) {
 	infos, err := d.client.DeploymentInstanceInfos(d.name)
 	if err != nil {
 		return nil, err
 	}
-
 	return infos, nil
 }
 
