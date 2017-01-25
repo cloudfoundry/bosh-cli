@@ -3,6 +3,7 @@ package logger_test
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"runtime"
 	"strconv"
 	"strings"
@@ -19,9 +20,11 @@ func expectedLogFormat(tag, msg string) string {
 	return fmt.Sprintf("\\[%s\\] [0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} %s\n", tag, msg)
 }
 
-type LogFunc func(tag, msg string, args ...interface{})
+func testConcurrentPrefix(newLogger func(lv LogLevel, out, err io.Writer) Logger) {
+	var out blockingWriter
+	var err blockingWriter
+	logger := newLogger(LevelDebug, &out, &err)
 
-func testConcurrentPrefix(context string, buf *bytes.Buffer, printf LogFunc) {
 	const tagLen = 5
 	const msgLen = 20
 
@@ -36,26 +39,32 @@ func testConcurrentPrefix(context string, buf *bytes.Buffer, printf LogFunc) {
 			msg := strings.Repeat(s, msgLen) + "\n"
 			<-start
 			for i := 0; i < 1000; i++ {
-				printf(tag, msg)
+				logger.Debug(tag, msg)
+				logger.Error(tag, msg)
 			}
 		}(i)
 	}
 	close(start)
 	wg.Wait()
 
-	lines := strings.Split(buf.String(), "\n")
-	for _, line := range lines {
-		if len(line) < msgLen+tagLen {
-			continue
+	testOutput := func(context, output string) {
+		lines := strings.Split(output, "\n")
+		for _, line := range lines {
+			if len(line) < msgLen+tagLen {
+				continue
+			}
+			c := line[2:3]
+
+			prefix := fmt.Sprintf("[%s] ", strings.Repeat(c, tagLen))
+			Expect(line[:len(prefix)]).To(Equal(prefix), context)
+
+			suffix := strings.Repeat(c, msgLen)
+			Expect(line[len(line)-len(suffix):]).To(Equal(suffix), context)
 		}
-		c := line[2:3]
-
-		prefix := fmt.Sprintf("[%s] ", strings.Repeat(c, tagLen))
-		Expect(line[:len(prefix)]).To(Equal(prefix), context)
-
-		suffix := strings.Repeat(c, msgLen)
-		Expect(line[len(line)-len(suffix):]).To(Equal(suffix), context)
 	}
+
+	testOutput("out", out.String())
+	testOutput("err", err.String())
 }
 
 var _ = Describe("Levelify", func() {
@@ -197,9 +206,7 @@ var _ = Describe("Logger", func() {
 	})
 
 	It("prints the correct prefix during concurrent writes", func() {
-		logger := NewWriterLogger(LevelDebug, outBuf, errBuf)
-		testConcurrentPrefix("out", outBuf, logger.Debug)
-		testConcurrentPrefix("err", errBuf, logger.Error)
+		testConcurrentPrefix(NewWriterLogger)
 	})
 
 	It("log level debug", func() {

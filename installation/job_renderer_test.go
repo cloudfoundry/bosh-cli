@@ -18,6 +18,7 @@ import (
 	bitemplate "github.com/cloudfoundry/bosh-cli/templatescompiler"
 	mock_template "github.com/cloudfoundry/bosh-cli/templatescompiler/mocks"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 var _ = Describe("JobRenderer", func() {
@@ -34,7 +35,7 @@ var _ = Describe("JobRenderer", func() {
 	var (
 		mockJobListRenderer *mock_template.MockJobListRenderer
 		fakeCompressor      *fakeboshcmd.FakeCompressor
-		fakeBlobstore       *fakeboshblob.FakeBlobstore
+		fakeBlobstore       *fakeboshblob.FakeDigestBlobstore
 
 		fs *fakeboshsys.FakeFileSystem
 
@@ -54,7 +55,7 @@ var _ = Describe("JobRenderer", func() {
 	BeforeEach(func() {
 		mockJobListRenderer = mock_template.NewMockJobListRenderer(mockCtrl)
 		fakeCompressor = fakeboshcmd.NewFakeCompressor()
-		fakeBlobstore = fakeboshblob.NewFakeBlobstore()
+		fakeBlobstore = &fakeboshblob.FakeDigestBlobstore{}
 
 		fs = fakeboshsys.NewFakeFileSystem()
 
@@ -108,9 +109,8 @@ var _ = Describe("JobRenderer", func() {
 		mockJobListRenderer.EXPECT().Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, address).Return(renderedJobList, nil).AnyTimes()
 
 		fakeCompressor.CompressFilesInDirTarballPath = "/fake-rendered-job-tarball-cpi.tgz"
-
-		fakeBlobstore.CreateBlobIDs = []string{"fake-rendered-job-tarball-blobstore-id-cpi"}
-		fakeBlobstore.CreateFingerprints = []string{"fake-rendered-job-tarball-sha1-cpi"}
+		multiDigest := boshcrypto.MustParseMultipleDigest("fake-rendered-job-tarball-sha1-cpi")
+		fakeBlobstore.CreateReturns("fake-rendered-job-tarball-blobstore-id-cpi", multiDigest, nil)
 	})
 
 	Describe("RenderAndUploadFrom", func() {
@@ -129,8 +129,16 @@ var _ = Describe("JobRenderer", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeCompressor.CompressFilesInDirDir).To(Equal("/fake-rendered-job-cpi"))
-			Expect(fakeBlobstore.CreateFileNames).To(Equal([]string{"/fake-rendered-job-tarball-cpi.tgz"}))
+			Expect(fakeBlobstore.CreateArgsForCall(0)).To(Equal("/fake-rendered-job-tarball-cpi.tgz"))
 			Expect(fakeCompressor.CleanUpTarballPath).To(Equal("/fake-rendered-job-tarball-cpi.tgz"))
+		})
+
+		It("returns an error when looking up the SHA1 of the created blob", func() {
+			multiDigest := boshcrypto.MultipleDigest{}
+			fakeBlobstore.CreateReturns("fake-rendered-job-tarball-blobstore-id-cpi", multiDigest, nil)
+			_, err := renderer.RenderAndUploadFrom(manifest, releaseJobs, fakeStage)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Looking up SHA1 from blob digest"))
 		})
 
 		It("returns rendered job refs", func() {

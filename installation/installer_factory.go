@@ -12,6 +12,7 @@ import (
 	bierbrenderer "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -90,7 +91,7 @@ type installerFactoryContext struct {
 
 	jobDependencyCompiler bistatejob.DependencyCompiler
 	packageCompiler       bistatepkg.Compiler
-	blobstore             boshblob.Blobstore
+	blobstore             boshblob.DigestBlobstore
 	blobExtractor         blobextract.Extractor
 	compiledPackageRepo   bistatepkg.CompiledPackageRepo
 }
@@ -151,14 +152,15 @@ func (c *installerFactoryContext) InstallationStatePackageCompiler() bistatepkg.
 	return c.packageCompiler
 }
 
-func (c *installerFactoryContext) Blobstore() boshblob.Blobstore {
+func (c *installerFactoryContext) Blobstore() boshblob.DigestBlobstore {
 	if c.blobstore != nil {
 		return c.blobstore
 	}
 
 	options := map[string]interface{}{"blobstore_path": c.target.BlobstorePath()}
 	localBlobstore := boshblob.NewLocalBlobstore(c.fs, c.uuidGenerator, options)
-	c.blobstore = boshblob.NewSHA1VerifiableBlobstore(localBlobstore)
+	createAlgos := []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1}
+	c.blobstore = boshblob.NewDigestVerifiableBlobstore(localBlobstore, c.fs, createAlgos)
 
 	return c.blobstore
 }

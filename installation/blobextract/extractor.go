@@ -4,6 +4,7 @@ import (
 	"os"
 
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -20,7 +21,7 @@ type Extractor interface {
 type extractor struct {
 	fs         boshsys.FileSystem
 	compressor boshcmd.Compressor
-	blobstore  boshblob.Blobstore
+	blobstore  boshblob.DigestBlobstore
 	logger     boshlog.Logger
 	logTag     string
 }
@@ -28,7 +29,7 @@ type extractor struct {
 func NewExtractor(
 	fs boshsys.FileSystem,
 	compressor boshcmd.Compressor,
-	blobstore boshblob.Blobstore,
+	blobstore boshblob.DigestBlobstore,
 	logger boshlog.Logger,
 ) Extractor {
 	return &extractor{
@@ -42,7 +43,7 @@ func NewExtractor(
 
 func (e *extractor) Extract(blobID string, blobSHA1 string, targetDir string) error {
 	// Retrieve a temp copy of blob
-	filePath, err := e.blobstore.Get(blobID, blobSHA1)
+	filePath, err := e.blobstore.Get(blobID, boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, blobSHA1))
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Getting object from blobstore: %s", blobID)
 	}

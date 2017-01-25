@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -20,7 +21,7 @@ type FSBlobsDir struct {
 	dirPath   string
 
 	reporter  BlobsDirReporter
-	blobstore boshblob.Blobstore
+	blobstore boshblob.DigestBlobstore
 	sha1calc  bicrypto.SHA1Calculator
 	fs        boshsys.FileSystem
 }
@@ -45,7 +46,7 @@ type fsBlobsDirSchema_Blob struct {
 func NewFSBlobsDir(
 	dirPath string,
 	reporter BlobsDirReporter,
-	blobstore boshblob.Blobstore,
+	blobstore boshblob.DigestBlobstore,
 	sha1calc bicrypto.SHA1Calculator,
 	fs boshsys.FileSystem,
 ) FSBlobsDir {
@@ -260,7 +261,7 @@ func (d FSBlobsDir) downloadBlob(blob Blob) error {
 
 	d.reporter.BlobDownloadStarted(blob.Path, blob.Size, blob.BlobstoreID, blob.SHA1)
 
-	path, err := d.blobstore.Get(blob.BlobstoreID, blob.SHA1)
+	path, err := d.blobstore.Get(blob.BlobstoreID, boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, blob.SHA1))
 	if err != nil {
 		d.reporter.BlobDownloadFinished(blob.Path, blob.BlobstoreID, err)
 		return bosherr.WrapErrorf(

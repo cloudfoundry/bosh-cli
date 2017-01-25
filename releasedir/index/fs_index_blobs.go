@@ -6,6 +6,7 @@ import (
 	gopath "path"
 
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -17,7 +18,7 @@ type FSIndexBlobs struct {
 	dirPath  string
 	reporter Reporter
 
-	blobstore boshblob.Blobstore
+	blobstore boshblob.DigestBlobstore
 	sha1calc  bicrypto.SHA1Calculator
 	fs        boshsys.FileSystem
 }
@@ -25,7 +26,7 @@ type FSIndexBlobs struct {
 func NewFSIndexBlobs(
 	dirPath string,
 	reporter Reporter,
-	blobstore boshblob.Blobstore,
+	blobstore boshblob.DigestBlobstore,
 	sha1calc bicrypto.SHA1Calculator,
 	fs boshsys.FileSystem,
 ) FSIndexBlobs {
@@ -66,7 +67,7 @@ func (c FSIndexBlobs) Get(name string, blobID string, sha1 string) (string, erro
 		c.reporter.IndexEntryDownloadStarted(name, desc)
 
 		// SHA1 expected to be checked via blobstore
-		path, err := c.blobstore.Get(blobID, sha1)
+		path, err := c.blobstore.Get(blobID, boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, sha1))
 		if err != nil {
 			c.reporter.IndexEntryDownloadFinished(name, desc, err)
 			return "", bosherr.WrapErrorf(err, "Downloading blob '%s' with SHA1 '%s'", blobID, sha1)

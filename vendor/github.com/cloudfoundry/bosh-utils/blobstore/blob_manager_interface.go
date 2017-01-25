@@ -2,6 +2,7 @@ package blobstore
 
 import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	"io"
 )
 
@@ -10,7 +11,9 @@ type BlobManagerInterface interface {
 
 	Write(blobID string, reader io.Reader) error
 
-	GetPath(blobID string) (string, error)
+	GetPath(blobID string, digest boshcrypto.Digest) (string, error)
 
 	Delete(blobID string) error
+
+	BlobExists(blobID string) bool
 }

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -41,7 +42,7 @@ var _ = Describe("PackageCompiler", func() {
 		fs                      *fakesys.FakeFileSystem
 		compressor              *fakecmd.FakeCompressor
 		packagesDir             string
-		blobstore               *fakeblobstore.FakeBlobstore
+		blobstore               *fakeblobstore.FakeDigestBlobstore
 		mockCompiledPackageRepo *mock_state_package.MockCompiledPackageRepo
 
 		fakeExtractor *fakeblobextract.FakeExtractor
@@ -59,9 +60,10 @@ var _ = Describe("PackageCompiler", func() {
 
 		fakeExtractor = &fakeblobextract.FakeExtractor{}
 
-		blobstore = fakeblobstore.NewFakeBlobstore()
-		blobstore.CreateFingerprint = "fake-fingerprint"
-		blobstore.CreateBlobID = "fake-blob-id"
+		blobstore = &fakeblobstore.FakeDigestBlobstore{}
+		digest := boshcrypto.MustParseMultipleDigest("fake-fingerprint")
+
+		blobstore.CreateReturns("fake-blob-id", digest, nil)
 
 		mockCompiledPackageRepo = mock_state_package.NewMockCompiledPackageRepo(mockCtrl)
 
@@ -191,7 +193,7 @@ var _ = Describe("PackageCompiler", func() {
 			_, _, err := compiler.Compile(pkg)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(blobstore.CreateFileNames).To(Equal([]string{compiledPackageTarballPath}))
+			Expect(blobstore.CreateArgsForCall(0)).To(Equal(compiledPackageTarballPath))
 		})
 
 		It("stores the compiled package blobID and fingerprint into the compile package repo", func() {
@@ -274,7 +276,7 @@ var _ = Describe("PackageCompiler", func() {
 
 		Context("when adding to blobstore fails", func() {
 			JustBeforeEach(func() {
-				blobstore.CreateErr = errors.New("fake-error")
+				blobstore.CreateReturns("", boshcrypto.MultipleDigest{}, errors.New("fake-error"))
 			})
 
 			It("returns error", func() {
@@ -282,6 +284,19 @@ var _ = Describe("PackageCompiler", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Creating blob"))
 				Expect(err.Error()).To(ContainSubstring("fake-error"))
+			})
+		})
+
+		Context("when looking up the SHA1 of the created blob fails", func() {
+			JustBeforeEach(func() {
+				blobstore.CreateReturns("blob-id", boshcrypto.MultipleDigest{}, nil)
+			})
+
+			It("returns error", func() {
+				_, _, err := compiler.Compile(pkg)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Looking up SHA1 of blob digest"))
+				Expect(err.Error()).To(ContainSubstring("digest-for-algorithm-not-present"))
 			})
 		})
 

@@ -12,14 +12,14 @@ import (
 
 type Provider struct {
 	reporter  Reporter
-	blobstore boshblob.Blobstore
+	blobstore boshblob.DigestBlobstore
 	sha1calc  bicrypto.SHA1Calculator
 	fs        boshsys.FileSystem
 }
 
 func NewProvider(
 	reporter Reporter,
-	blobstore boshblob.Blobstore,
+	blobstore boshblob.DigestBlobstore,
 	sha1calc bicrypto.SHA1Calculator,
 	fs boshsys.FileSystem,
 ) Provider {

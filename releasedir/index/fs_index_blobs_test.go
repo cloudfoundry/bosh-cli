@@ -13,12 +13,14 @@ import (
 	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
 	boshidx "github.com/cloudfoundry/bosh-cli/releasedir/index"
 	fakeidx "github.com/cloudfoundry/bosh-cli/releasedir/index/indexfakes"
+
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 var _ = Describe("FSIndexBlobs", func() {
 	var (
 		reporter  *fakeidx.FakeReporter
-		blobstore *fakeblob.FakeBlobstore
+		blobstore *fakeblob.FakeDigestBlobstore
 		sha1calc  *fakecrypto.FakeSha1Calculator
 		fs        *fakesys.FakeFileSystem
 		blobs     boshidx.FSIndexBlobs
@@ -123,14 +125,14 @@ var _ = Describe("FSIndexBlobs", func() {
 
 		Context("when configured with a blobstore", func() {
 			BeforeEach(func() {
-				blobstore = fakeblob.NewFakeBlobstore()
+				blobstore = &fakeblob.FakeDigestBlobstore{}
 				blobs = boshidx.NewFSIndexBlobs("/dir/sub-dir", reporter, blobstore, sha1calc, fs)
 			})
 
 			itChecksIfFileIsAlreadyDownloaded()
 
 			It("downloads blob and places it into a cache", func() {
-				blobstore.GetFileName = "/tmp/downloaded-path"
+				blobstore.GetReturns("/tmp/downloaded-path", nil)
 				fs.WriteFileString("/tmp/downloaded-path", "blob")
 
 				path, err := blobs.Get("name", "blob-id", "sha1")
@@ -155,7 +157,7 @@ var _ = Describe("FSIndexBlobs", func() {
 
 			Context("when downloading blob fails", func() {
 				It("returns error", func() {
-					blobstore.GetError = errors.New("fake-err")
+					blobstore.GetReturns("", errors.New("fake-err"))
 
 					_, err := blobs.Get("name", "blob-id", "sha1")
 					Expect(err).To(HaveOccurred())
@@ -207,7 +209,7 @@ var _ = Describe("FSIndexBlobs", func() {
 				})
 
 				It("It successfully moves blob", func() {
-					blobstore.GetFileName = "/tmp/downloaded-path"
+					blobstore.GetReturns("/tmp/downloaded-path", nil)
 					fs.WriteFileString("/tmp/downloaded-path", "blob")
 
 					path, err := blobs.Get("name", "blob-id", "sha1")
@@ -325,21 +327,22 @@ var _ = Describe("FSIndexBlobs", func() {
 
 		Context("when configured with a blobstore", func() {
 			BeforeEach(func() {
-				blobstore = fakeblob.NewFakeBlobstore()
+				blobstore = &fakeblob.FakeDigestBlobstore{}
 				blobs = boshidx.NewFSIndexBlobs("/dir/sub-dir", reporter, blobstore, sha1calc, fs)
 			})
 
 			itCopiesFileIntoDir()
 
 			It("uploads blob and returns blob id", func() {
-				blobstore.CreateBlobID = "blob-id"
+				digest := boshcrypto.MustParseMultipleDigest("sha1")
+				blobstore.CreateReturns("blob-id", digest, nil)
 
 				blobID, path, err := blobs.Add("name", "/tmp/sha1", "sha1")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(blobID).To(Equal("blob-id"))
 				Expect(path).To(Equal("/dir/sub-dir/sha1"))
 
-				Expect(blobstore.CreateFileNames).To(Equal([]string{"/tmp/sha1"}))
+				Expect(blobstore.CreateArgsForCall(0)).To(Equal("/tmp/sha1"))
 
 				Expect(reporter.IndexEntryUploadStartedCallCount()).To(Equal(1))
 				Expect(reporter.IndexEntryUploadFinishedCallCount()).To(Equal(1))
@@ -355,7 +358,7 @@ var _ = Describe("FSIndexBlobs", func() {
 			})
 
 			It("returns error if uploading blob fails", func() {
-				blobstore.CreateErr = errors.New("fake-err")
+				blobstore.CreateReturns("", boshcrypto.MultipleDigest{}, errors.New("fake-err"))
 
 				_, _, err := blobs.Add("name", "/tmp/sha1", "sha1")
 				Expect(err).To(HaveOccurred())

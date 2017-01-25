@@ -30,7 +30,7 @@ func NewS3Blobstore(
 	}
 }
 
-func (b S3Blobstore) Get(blobID, _ string) (string, error) {
+func (b S3Blobstore) Get(blobID string) (string, error) {
 	client, err := b.client()
 	if err != nil {
 		return "", err
@@ -51,30 +51,30 @@ func (b S3Blobstore) Get(blobID, _ string) (string, error) {
 	return file.Name(), nil
 }
 
-func (b S3Blobstore) Create(path string) (string, string, error) {
+func (b S3Blobstore) Create(path string) (string, error) {
 	client, err := b.client()
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	blobID, err := b.uuidGen.Generate()
 	if err != nil {
-		return "", "", bosherr.WrapError(err, "Generating blobstore ID")
+		return "", bosherr.WrapError(err, "Generating blobstore ID")
 	}
 
 	file, err := b.fs.OpenFile(path, os.O_RDONLY, 0)
 	if err != nil {
-		return "", "", bosherr.WrapError(err, "Opening source file")
+		return "", bosherr.WrapError(err, "Opening source file")
 	}
 
 	defer file.Close()
 
 	err = client.Put(file, blobID)
 	if err != nil {
-		return "", "", bosherr.WrapError(err, "Generating blobstore ID")
+		return "", bosherr.WrapError(err, "Generating blobstore ID")
 	}
 
-	return blobID, "", nil
+	return blobID, nil
 }
 
 func (b S3Blobstore) CleanUp(path string) error {

@@ -37,6 +37,20 @@ func (w *blockingWriter) Write(p []byte) (int, error) {
 	return n, err
 }
 
+func (w *blockingWriter) Len() int {
+	w.Lock()
+	n := w.buf.Len()
+	w.Unlock()
+	return n
+}
+
+func (w *blockingWriter) String() string {
+	w.Lock()
+	s := w.buf.String()
+	w.Unlock()
+	return s
+}
+
 var _ = Describe("Logger", func() {
 	var (
 		outBuf = new(bytes.Buffer)
@@ -108,7 +122,7 @@ var _ = Describe("Logger", func() {
 			}
 			Expect(out.buf.Len()).To(Equal(0))
 			out.Unlock()
-			Eventually(out.buf.Len).ShouldNot(Equal(0))
+			Eventually(out.Len).ShouldNot(Equal(0))
 		})
 
 		It("flushes with a timeout", func() {
@@ -192,9 +206,7 @@ var _ = Describe("Logger", func() {
 		It("prints the correct prefix during concurrent writes", func() {
 			ch := make(chan struct{}, 1)
 			go func() {
-				logger := NewAsyncWriterLogger(LevelDebug, outBuf, errBuf)
-				testConcurrentPrefix("out", outBuf, logger.Debug)
-				testConcurrentPrefix("err", errBuf, logger.Error)
+				testConcurrentPrefix(NewAsyncWriterLogger)
 				ch <- struct{}{}
 			}()
 			Eventually(ch, time.Second*5).Should(Receive())

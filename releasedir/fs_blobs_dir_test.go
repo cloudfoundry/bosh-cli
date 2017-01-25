@@ -9,6 +9,7 @@ import (
 
 	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
 	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -21,7 +22,7 @@ var _ = Describe("FSBlobsDir", func() {
 	var (
 		fs        *fakesys.FakeFileSystem
 		reporter  *fakereldir.FakeBlobsDirReporter
-		blobstore *fakeblob.FakeBlobstore
+		blobstore *fakeblob.FakeDigestBlobstore
 		sha1calc  *fakecrypto.FakeSha1Calculator
 		blobsDir  FSBlobsDir
 	)
@@ -29,7 +30,7 @@ var _ = Describe("FSBlobsDir", func() {
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		reporter = &fakereldir.FakeBlobsDirReporter{}
-		blobstore = fakeblob.NewFakeBlobstore()
+		blobstore = &fakeblob.FakeDigestBlobstore{}
 		sha1calc = fakecrypto.NewFakeSha1Calculator()
 		blobsDir = NewFSBlobsDir("/dir", reporter, blobstore, sha1calc, fs)
 	})
@@ -128,22 +129,24 @@ already-downloaded.tgz:
 			fs.WriteFileString("/blob2-tmp", "blob2-content")
 			fs.WriteFileString("/dir/blobs/already-downloaded.tgz", "blob3-content")
 
-			blobstore.GetFileNames = []string{"/blob1-tmp", "/blob2-tmp"}
+			times := 0
+			blobstore.GetStub = func(blobID string, digest boshcrypto.Digest) (string, error) {
+				defer func() { times += 1 }()
+				return []string{"/blob1-tmp", "/blob2-tmp"}[times], nil
+			}
 		})
 
 		Context("Multiple workers used to download blobs", func() {
 			It("downloads all blobs without local blob copy, skipping non-uploaded blobs", func() {
-				// Order of blobstore.Get calls may be done in any order
-				blobstore := FakeConcurrentBlobstore{
-					GetCallback: func(blobID, fingerprint string) (string, error) {
-						if blobID == "blob1" && fingerprint == "blob1-sha" {
-							return "/blob1-tmp", nil
-						} else if blobID == "blob2" && fingerprint == "blob2-sha" {
-							return "/blob2-tmp", nil
-						} else {
-							panic("Received non-matching blobstore.Get call")
-						}
-					},
+
+				blobstore.GetStub = func(blobID string, digest boshcrypto.Digest) (fileName string, err error) {
+					if blobID == "blob1" && digest.String() == "blob1-sha" {
+						return "/blob1-tmp", nil
+					} else if blobID == "blob2" && digest.String() == "blob2-sha" {
+						return "/blob2-tmp", nil
+					} else {
+						panic("Received non-matching blobstore.Get call")
+					}
 				}
 
 				blobsDir = NewFSBlobsDir("/dir", reporter, blobstore, sha1calc, fs)
@@ -162,8 +165,13 @@ already-downloaded.tgz:
 				err := act(1)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(blobstore.GetBlobIDs).To(Equal([]string{"blob1", "blob2"}))
-				Expect(blobstore.GetFingerprints).To(Equal([]string{"blob1-sha", "blob2-sha"}))
+				id1, digest1 := blobstore.GetArgsForCall(0)
+				Expect(id1).To(Equal("blob1"))
+				Expect(digest1).To(Equal(boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, "blob1-sha")))
+
+				id2, digest2 := blobstore.GetArgsForCall(1)
+				Expect(id2).To(Equal("blob2"))
+				Expect(digest2).To(Equal(boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, "blob2-sha")))
 
 				Expect(fs.FileExists("/dir/blobs/dir")).To(BeTrue())
 				Expect(fs.ReadFileString("/dir/blobs/dir/file-in-directory.tgz")).To(Equal("blob1-content"))
@@ -208,7 +216,7 @@ already-downloaded.tgz:
 
 		Context("downloading fails", func() {
 			It("reports error", func() {
-				blobstore.GetErrs = []error{errors.New("fake-err")}
+				blobstore.GetReturns("", errors.New("fake-err"))
 
 				err := act(1)
 				Expect(err).To(HaveOccurred())
@@ -220,7 +228,11 @@ already-downloaded.tgz:
 
 			Context("when more than one blob fails to download", func() {
 				It("reports error", func() {
-					blobstore.GetErrs = []error{errors.New("fake-err1"), errors.New("fake-err2")}
+					times := 0
+					blobstore.GetStub = func(blobID string, digest boshcrypto.Digest) (string, error) {
+						defer func() { times += 1 }()
+						return []string{"/blob1-tmp", "/blob2-tmp"}[times], []error{errors.New("fake-err1"), errors.New("fake-err2")}[times]
+					}
 
 					err := act(1)
 					Expect(err).To(HaveOccurred())
@@ -236,7 +248,7 @@ already-downloaded.tgz:
 
 			Context("without creating any blob sub-dirs", func() {
 				It("returns error", func() {
-					blobstore.GetErrs = []error{errors.New("fake-err"), errors.New("fake-err")}
+					blobstore.GetReturns("", errors.New("fake-err"))
 
 					err := act(1)
 					Expect(err).To(HaveOccurred())
@@ -250,7 +262,13 @@ already-downloaded.tgz:
 
 			Context("without placing any local blobs", func() {
 				It("returns error", func() {
-					blobstore.GetErrs = []error{nil, errors.New("fake-err")}
+					times := 0
+					blobstore.GetStub = func(blobID string, digest boshcrypto.Digest) (string, error) {
+						defer func() { times += 1 }()
+						path := []string{"/blob1-tmp", "/blob2-tmp"}[times]
+						err := []error{nil, errors.New("fake-err")}[times]
+						return path, err
+					}
 
 					err := act(1)
 					Expect(err).To(HaveOccurred())
@@ -556,15 +574,22 @@ non-uploaded2.tgz:
   sha: blob5-sha
 `)
 
-			blobstore.CreateBlobIDs = []string{"blob2", "blob5"}
+			times := 0
+			blobstore.CreateStub = func(fileName string) (string, boshcrypto.MultipleDigest, error) {
+				defer func() { times += 1 }()
+				multiDigest := boshcrypto.MustNewMultipleDigest(
+					boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, "whatever"),
+				)
+				return []string{"blob2", "blob5"}[times], multiDigest, nil
+			}
 		})
 
 		It("uploads non-uploaded blobs", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(blobstore.CreateFileNames).To(Equal(
-				[]string{"/dir/blobs/non-uploaded.tgz", "/dir/blobs/non-uploaded2.tgz"}))
+			Expect(blobstore.CreateArgsForCall(0)).To(Equal("/dir/blobs/non-uploaded.tgz"))
+			Expect(blobstore.CreateArgsForCall(1)).To(Equal("/dir/blobs/non-uploaded2.tgz"))
 
 			Expect(blobsDir.Blobs()).To(Equal([]Blob{
 				{Path: "already-downloaded.tgz", Size: 245, BlobstoreID: "blob4", SHA1: "blob4-sha"},
@@ -609,7 +634,7 @@ non-uploaded2.tgz:
 		})
 
 		It("returns error if uploading fails and does not change blobs.yml", func() {
-			blobstore.CreateErrs = []error{errors.New("fake-err")}
+			blobstore.CreateReturns("", boshcrypto.MultipleDigest{}, errors.New("fake-err"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())
@@ -625,8 +650,7 @@ non-uploaded2.tgz:
 		})
 
 		It("reports error if uploading fails", func() {
-			blobstore.CreateErrs = []error{errors.New("fake-err")}
-			blobstore.CreateBlobIDs = []string{}
+			blobstore.CreateReturns("", boshcrypto.MultipleDigest{}, errors.New("fake-err"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())
@@ -660,7 +684,13 @@ non-uploaded2.tgz:
 		})
 
 		It("returns error if uploading fails and saves blob id for successfully uploaded blobs", func() {
-			blobstore.CreateErrs = []error{nil, errors.New("fake-err")}
+			times := 0
+			blobstore.CreateStub = func(fileName string) (string, boshcrypto.MultipleDigest, error) {
+				defer func() { times += 1 }()
+				blobID := []string{"blob2", "blob5"}[times]
+				err := []error{nil, errors.New("fake-err")}[times]
+				return blobID, boshcrypto.MultipleDigest{}, err
+			}
 
 			err := act()
 			Expect(err).To(HaveOccurred())
@@ -676,16 +706,3 @@ non-uploaded2.tgz:
 		})
 	})
 })
-
-type FakeConcurrentBlobstore struct {
-	GetCallback func(blobID, fingerprint string) (string, error)
-}
-
-func (bs FakeConcurrentBlobstore) Get(blobID, fingerprint string) (string, error) {
-	return bs.GetCallback(blobID, fingerprint)
-}
-
-func (bs FakeConcurrentBlobstore) CleanUp(fileName string) error                  { return nil }
-func (bs FakeConcurrentBlobstore) Delete(blobId string) error                     { return nil }
-func (bs FakeConcurrentBlobstore) Create(fileName string) (string, string, error) { return "", "", nil }
-func (bs FakeConcurrentBlobstore) Validate() error                                { return nil }

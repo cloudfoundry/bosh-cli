@@ -13,6 +13,7 @@ import (
 	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshidx "github.com/cloudfoundry/bosh-cli/releasedir/index"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 type Provider struct {
@@ -86,7 +87,7 @@ func (p Provider) NewReleaseReader(dirPath string) boshrel.BuiltReader {
 	return boshrel.NewBuiltReader(multiReader, devIndex, finalIndex)
 }
 
-func (p Provider) newBlobstore(dirPath string) boshblob.Blobstore {
+func (p Provider) newBlobstore(dirPath string) boshblob.DigestBlobstore {
 	provider, options, err := p.newConfig(dirPath).Blobstore()
 	if err != nil {
 		return NewErrBlobstore(err)
@@ -103,15 +104,16 @@ func (p Provider) newBlobstore(dirPath string) boshblob.Blobstore {
 		return NewErrBlobstore(bosherr.Error("Expected release blobstore to be configured"))
 	}
 
-	blobstore = boshblob.NewSHA1VerifiableBlobstore(blobstore)
-	blobstore = boshblob.NewRetryableBlobstore(blobstore, 3, p.logger)
+	createAlgos := []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1}
+	digestBlobstore := boshblob.NewDigestVerifiableBlobstore(blobstore, p.fs, createAlgos)
+	digestBlobstore = boshblob.NewRetryableBlobstore(digestBlobstore, 3, p.logger)
 
-	err = blobstore.Validate()
+	err = digestBlobstore.Validate()
 	if err != nil {
 		return NewErrBlobstore(err)
 	}
 
-	return blobstore
+	return digestBlobstore
 }
 
 func (p Provider) newConfig(dirPath string) FSConfig {

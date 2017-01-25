@@ -5,13 +5,15 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-utils/blobstore"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
-type FakeBlobstore struct {
-	GetStub        func(blobID string) (fileName string, err error)
+type FakeDigestBlobstore struct {
+	GetStub        func(blobID string, digest boshcrypto.Digest) (fileName string, err error)
 	getMutex       sync.RWMutex
 	getArgsForCall []struct {
 		blobID string
+		digest boshcrypto.Digest
 	}
 	getReturns struct {
 		result1 string
@@ -25,14 +27,15 @@ type FakeBlobstore struct {
 	cleanUpReturns struct {
 		result1 error
 	}
-	CreateStub        func(fileName string) (blobID string, err error)
+	CreateStub        func(fileName string) (blobID string, digest boshcrypto.MultipleDigest, err error)
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
 		fileName string
 	}
 	createReturns struct {
 		result1 string
-		result2 error
+		result2 boshcrypto.MultipleDigest
+		result3 error
 	}
 	ValidateStub        func() (err error)
 	validateMutex       sync.RWMutex
@@ -52,32 +55,33 @@ type FakeBlobstore struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeBlobstore) Get(blobID string) (fileName string, err error) {
+func (fake *FakeDigestBlobstore) Get(blobID string, digest boshcrypto.Digest) (fileName string, err error) {
 	fake.getMutex.Lock()
 	fake.getArgsForCall = append(fake.getArgsForCall, struct {
 		blobID string
-	}{blobID})
-	fake.recordInvocation("Get", []interface{}{blobID})
+		digest boshcrypto.Digest
+	}{blobID, digest})
+	fake.recordInvocation("Get", []interface{}{blobID, digest})
 	fake.getMutex.Unlock()
 	if fake.GetStub != nil {
-		return fake.GetStub(blobID)
+		return fake.GetStub(blobID, digest)
 	}
 	return fake.getReturns.result1, fake.getReturns.result2
 }
 
-func (fake *FakeBlobstore) GetCallCount() int {
+func (fake *FakeDigestBlobstore) GetCallCount() int {
 	fake.getMutex.RLock()
 	defer fake.getMutex.RUnlock()
 	return len(fake.getArgsForCall)
 }
 
-func (fake *FakeBlobstore) GetArgsForCall(i int) string {
+func (fake *FakeDigestBlobstore) GetArgsForCall(i int) (string, boshcrypto.Digest) {
 	fake.getMutex.RLock()
 	defer fake.getMutex.RUnlock()
-	return fake.getArgsForCall[i].blobID
+	return fake.getArgsForCall[i].blobID, fake.getArgsForCall[i].digest
 }
 
-func (fake *FakeBlobstore) GetReturns(result1 string, result2 error) {
+func (fake *FakeDigestBlobstore) GetReturns(result1 string, result2 error) {
 	fake.GetStub = nil
 	fake.getReturns = struct {
 		result1 string
@@ -85,7 +89,7 @@ func (fake *FakeBlobstore) GetReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeBlobstore) CleanUp(fileName string) (err error) {
+func (fake *FakeDigestBlobstore) CleanUp(fileName string) (err error) {
 	fake.cleanUpMutex.Lock()
 	fake.cleanUpArgsForCall = append(fake.cleanUpArgsForCall, struct {
 		fileName string
@@ -98,26 +102,26 @@ func (fake *FakeBlobstore) CleanUp(fileName string) (err error) {
 	return fake.cleanUpReturns.result1
 }
 
-func (fake *FakeBlobstore) CleanUpCallCount() int {
+func (fake *FakeDigestBlobstore) CleanUpCallCount() int {
 	fake.cleanUpMutex.RLock()
 	defer fake.cleanUpMutex.RUnlock()
 	return len(fake.cleanUpArgsForCall)
 }
 
-func (fake *FakeBlobstore) CleanUpArgsForCall(i int) string {
+func (fake *FakeDigestBlobstore) CleanUpArgsForCall(i int) string {
 	fake.cleanUpMutex.RLock()
 	defer fake.cleanUpMutex.RUnlock()
 	return fake.cleanUpArgsForCall[i].fileName
 }
 
-func (fake *FakeBlobstore) CleanUpReturns(result1 error) {
+func (fake *FakeDigestBlobstore) CleanUpReturns(result1 error) {
 	fake.CleanUpStub = nil
 	fake.cleanUpReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeBlobstore) Create(fileName string) (blobID string, err error) {
+func (fake *FakeDigestBlobstore) Create(fileName string) (blobID string, digest boshcrypto.MultipleDigest, err error) {
 	fake.createMutex.Lock()
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
 		fileName string
@@ -127,30 +131,31 @@ func (fake *FakeBlobstore) Create(fileName string) (blobID string, err error) {
 	if fake.CreateStub != nil {
 		return fake.CreateStub(fileName)
 	}
-	return fake.createReturns.result1, fake.createReturns.result2
+	return fake.createReturns.result1, fake.createReturns.result2, fake.createReturns.result3
 }
 
-func (fake *FakeBlobstore) CreateCallCount() int {
+func (fake *FakeDigestBlobstore) CreateCallCount() int {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
 	return len(fake.createArgsForCall)
 }
 
-func (fake *FakeBlobstore) CreateArgsForCall(i int) string {
+func (fake *FakeDigestBlobstore) CreateArgsForCall(i int) string {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
 	return fake.createArgsForCall[i].fileName
 }
 
-func (fake *FakeBlobstore) CreateReturns(result1 string, result2 error) {
+func (fake *FakeDigestBlobstore) CreateReturns(result1 string, result2 boshcrypto.MultipleDigest, result3 error) {
 	fake.CreateStub = nil
 	fake.createReturns = struct {
 		result1 string
-		result2 error
-	}{result1, result2}
+		result2 boshcrypto.MultipleDigest
+		result3 error
+	}{result1, result2, result3}
 }
 
-func (fake *FakeBlobstore) Validate() (err error) {
+func (fake *FakeDigestBlobstore) Validate() (err error) {
 	fake.validateMutex.Lock()
 	fake.validateArgsForCall = append(fake.validateArgsForCall, struct{}{})
 	fake.recordInvocation("Validate", []interface{}{})
@@ -161,20 +166,20 @@ func (fake *FakeBlobstore) Validate() (err error) {
 	return fake.validateReturns.result1
 }
 
-func (fake *FakeBlobstore) ValidateCallCount() int {
+func (fake *FakeDigestBlobstore) ValidateCallCount() int {
 	fake.validateMutex.RLock()
 	defer fake.validateMutex.RUnlock()
 	return len(fake.validateArgsForCall)
 }
 
-func (fake *FakeBlobstore) ValidateReturns(result1 error) {
+func (fake *FakeDigestBlobstore) ValidateReturns(result1 error) {
 	fake.ValidateStub = nil
 	fake.validateReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeBlobstore) Delete(blobId string) (err error) {
+func (fake *FakeDigestBlobstore) Delete(blobId string) (err error) {
 	fake.deleteMutex.Lock()
 	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
 		blobId string
@@ -187,26 +192,26 @@ func (fake *FakeBlobstore) Delete(blobId string) (err error) {
 	return fake.deleteReturns.result1
 }
 
-func (fake *FakeBlobstore) DeleteCallCount() int {
+func (fake *FakeDigestBlobstore) DeleteCallCount() int {
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
 	return len(fake.deleteArgsForCall)
 }
 
-func (fake *FakeBlobstore) DeleteArgsForCall(i int) string {
+func (fake *FakeDigestBlobstore) DeleteArgsForCall(i int) string {
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
 	return fake.deleteArgsForCall[i].blobId
 }
 
-func (fake *FakeBlobstore) DeleteReturns(result1 error) {
+func (fake *FakeDigestBlobstore) DeleteReturns(result1 error) {
 	fake.DeleteStub = nil
 	fake.deleteReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeBlobstore) Invocations() map[string][][]interface{} {
+func (fake *FakeDigestBlobstore) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.getMutex.RLock()
@@ -222,7 +227,7 @@ func (fake *FakeBlobstore) Invocations() map[string][][]interface{} {
 	return fake.invocations
 }
 
-func (fake *FakeBlobstore) recordInvocation(key string, args []interface{}) {
+func (fake *FakeDigestBlobstore) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -234,4 +239,4 @@ func (fake *FakeBlobstore) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ blobstore.Blobstore = new(FakeBlobstore)
+var _ blobstore.DigestBlobstore = new(FakeDigestBlobstore)
