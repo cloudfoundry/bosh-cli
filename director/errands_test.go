@@ -77,15 +77,7 @@ var _ = Describe("Director", func() {
 
 	Describe("RunErrand", func() {
 		It("runs errand and returns result", func() {
-			respBody := `{
-	"exit_code":1,
-	"stdout":"stdout",
-	"stderr":"stderr",
-	"logs": {
-		"blobstore_id": "logs-blob-id",
-		"sha1": "logs-sha1"
-	}
-}`
+			respBody := `{ "exit_code":1, "stdout":"stdout", "stderr":"stderr", "logs": { "blobstore_id": "logs-blob-id", "sha1": "logs-sha1" } }`
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/deployments/dep1/errands/errand1/runs"),
@@ -101,11 +93,55 @@ var _ = Describe("Director", func() {
 
 			result, err := deployment.RunErrand("errand1", false, false)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(result).To(Equal(ErrandResult{
+			Expect(result).To(HaveLen(1))
+			Expect(result).To(ContainElement(ErrandResult{
 				ExitCode: 1,
 
 				Stdout: "stdout",
 				Stderr: "stderr",
+
+				LogsBlobstoreID: "logs-blob-id",
+				LogsSHA1:        "logs-sha1",
+			}))
+		})
+
+		It("runs multiple errands and returns result", func() {
+			respBody := "{\"exit_code\":1,\"stdout\":\"Wed Jan 25 01:57:27 UTC 2017 all good\",\"stderr\":\"\",\"logs\":{\"blobstore_id\":\"logs-blob-id\"}}\n" +
+				"{\"exit_code\":0, \"stdout\":\"next_stdout\", \"stderr\":\"next_stderr\", \"logs\": { \"blobstore_id\": \"logs-blob-id\", \"sha1\": \"logs-sha1\" } }"
+
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments/dep1/errands/errand1/runs"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"application/json"},
+					}),
+					ghttp.VerifyBody([]byte(`{"keep-alive":false,"when-changed":false}`)),
+				),
+				respBody,
+				server,
+			)
+
+			var result []ErrandResult
+			result, err := deployment.RunErrand("errand1", false, false)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(result).To(HaveLen(2))
+			Expect(result).To(ContainElement(ErrandResult{
+				ExitCode: 1,
+
+				Stdout: "Wed Jan 25 01:57:27 UTC 2017 all good",
+				Stderr: "",
+
+				LogsBlobstoreID: "logs-blob-id",
+				LogsSHA1:        "",
+			}))
+
+			Expect(result).To(ContainElement(ErrandResult{
+				ExitCode: 0,
+
+				Stdout: "next_stdout",
+				Stderr: "next_stderr",
 
 				LogsBlobstoreID: "logs-blob-id",
 				LogsSHA1:        "logs-sha1",
@@ -128,7 +164,8 @@ var _ = Describe("Director", func() {
 
 			result, err := deployment.RunErrand("errand1", true, false)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(result).To(Equal(ErrandResult{ExitCode: 1}))
+			Expect(result).To(HaveLen(1))
+			Expect(result).To(ContainElement(ErrandResult{ExitCode: 1}))
 		})
 
 		It("runs errand, when changed and returns result", func() {
@@ -147,7 +184,8 @@ var _ = Describe("Director", func() {
 
 			result, err := deployment.RunErrand("errand1", false, true)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(result).To(Equal(ErrandResult{ExitCode: 1}))
+			Expect(result).To(HaveLen(1))
+			Expect(result).To(ContainElement(ErrandResult{ExitCode: 1}))
 		})
 
 		It("returns error if response is non-200", func() {
@@ -160,7 +198,7 @@ var _ = Describe("Director", func() {
 		})
 
 		It("returns error if task result cannot be unmarshalled", func() {
-			ConfigureTaskResult(ghttp.VerifyRequest("POST", "/deployments/dep1/errands/errand1/runs"), "", server)
+			ConfigureTaskResult(ghttp.VerifyRequest("POST", "/deployments/dep1/errands/errand1/runs"), "bad JSON", server)
 
 			_, err := deployment.RunErrand("errand1", false, false)
 			Expect(err).To(HaveOccurred())

@@ -11,6 +11,7 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 var _ = Describe("RunErrandCmd", func() {
@@ -44,8 +45,111 @@ var _ = Describe("RunErrandCmd", func() {
 		act := func() error { return command.Run(opts) }
 
 		Context("when errand succeeds", func() {
+			Context("when multiple errands return", func() {
+				It("downloads logs if requested", func() {
+					opts.DownloadLogs = true
+					opts.LogsDirectory = DirOrCWDArg{Path: "/fake-dir"}
+
+					result := []boshdir.ErrandResult{{
+						ExitCode:        0,
+						LogsBlobstoreID: "logs-blob-id",
+						LogsSHA1:        "logs-sha1",
+					}, {
+						ExitCode:        0,
+						LogsBlobstoreID: "logs-blob-id2",
+						LogsSHA1:        "logs-sha2",
+					}}
+
+					deployment.RunErrandReturns(result, nil)
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(downloader.DownloadCallCount()).To(Equal(2))
+
+					blobID, sha1, prefix, dstDirPath := downloader.DownloadArgsForCall(0)
+					Expect(blobID).To(Equal("logs-blob-id"))
+					Expect(sha1).To(Equal("logs-sha1"))
+					Expect(prefix).To(Equal("errand-name"))
+					Expect(dstDirPath).To(Equal("/fake-dir"))
+
+					blobID, sha1, prefix, dstDirPath = downloader.DownloadArgsForCall(1)
+					Expect(blobID).To(Equal("logs-blob-id2"))
+					Expect(sha1).To(Equal("logs-sha2"))
+					Expect(prefix).To(Equal("errand-name"))
+					Expect(dstDirPath).To(Equal("/fake-dir"))
+				})
+
+				It("does not download logs if not requested", func() {
+					opts.DownloadLogs = false
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(downloader.DownloadCallCount()).To(Equal(0))
+				})
+
+				It("does not download logs if requested and not logs blob returned", func() {
+					opts.DownloadLogs = true
+					opts.LogsDirectory = DirOrCWDArg{Path: "/fake-dir"}
+
+					result := []boshdir.ErrandResult{{ExitCode: 0}}
+
+					deployment.RunErrandReturns(result, nil)
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(downloader.DownloadCallCount()).To(Equal(0))
+				})
+
+				It("runs errand and outputs both stdout and stderr", func() {
+					result := []boshdir.ErrandResult{{
+						ExitCode: 0,
+						Stdout:   "stdout-content",
+						Stderr:   "",
+					}, {
+						ExitCode: 129,
+						Stdout:   "",
+						Stderr:   "stderr-content",
+					}}
+
+					deployment.RunErrandReturns(result, nil)
+
+					err := act()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("Errand 'errand-name' was canceled (exit code 129)"))
+
+					Expect(ui.Table).To(Equal(
+						boshtbl.Table{
+							Content: "errands",
+
+							Header: []string{"Exit Code", "Stdout", "Stderr"},
+
+							SortBy: []boshtbl.ColumnSort{
+								{Column: 0, Asc: true},
+							},
+
+							Rows: [][]boshtbl.Value{
+								{
+									boshtbl.NewValueInt(0),
+									boshtbl.NewValueString("stdout-content"),
+									boshtbl.NewValueString(""),
+								}, {
+									boshtbl.NewValueInt(129),
+									boshtbl.NewValueString(""),
+									boshtbl.NewValueString("stderr-content"),
+								},
+							},
+
+							Notes: []string{},
+						}))
+				})
+
+			})
+
 			It("runs errand with given name", func() {
-				deployment.RunErrandReturns(boshdir.ErrandResult{ExitCode: 0}, nil)
+				deployment.RunErrandReturns([]boshdir.ErrandResult{{ExitCode: 0}}, nil)
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -62,11 +166,11 @@ var _ = Describe("RunErrandCmd", func() {
 				opts.DownloadLogs = true
 				opts.LogsDirectory = DirOrCWDArg{Path: "/fake-dir"}
 
-				result := boshdir.ErrandResult{
+				result := []boshdir.ErrandResult{{
 					ExitCode:        0,
 					LogsBlobstoreID: "logs-blob-id",
 					LogsSHA1:        "logs-sha1",
-				}
+				}}
 
 				deployment.RunErrandReturns(result, nil)
 
@@ -95,7 +199,7 @@ var _ = Describe("RunErrandCmd", func() {
 				opts.DownloadLogs = true
 				opts.LogsDirectory = DirOrCWDArg{Path: "/fake-dir"}
 
-				result := boshdir.ErrandResult{ExitCode: 0}
+				result := []boshdir.ErrandResult{{ExitCode: 0}}
 
 				deployment.RunErrandReturns(result, nil)
 
@@ -104,78 +208,43 @@ var _ = Describe("RunErrandCmd", func() {
 
 				Expect(downloader.DownloadCallCount()).To(Equal(0))
 			})
-
-			It("runs errand and outputs both stdout and stderr", func() {
-				result := boshdir.ErrandResult{
-					ExitCode: 0,
-					Stdout:   "stdout-content",
-					Stderr:   "stderr-content",
-				}
-
-				deployment.RunErrandReturns(result, nil)
-
-				err := act()
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(ui.Said).To(Equal([]string{
-					"[stdout]",
-					"stdout-content",
-					"[stderr]",
-					"stderr-content",
-					"Errand 'errand-name' completed successfully (exit code 0)",
-				}))
-			})
-
-			It("runs errand only outputting stdout", func() {
-				result := boshdir.ErrandResult{
-					ExitCode: 0,
-					Stdout:   "stdout-content",
-				}
-
-				deployment.RunErrandReturns(result, nil)
-
-				err := act()
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(ui.Said).To(Equal([]string{
-					"[stdout]",
-					"stdout-content",
-					"Errand 'errand-name' completed successfully (exit code 0)",
-				}))
-			})
-
-			It("runs errand only outputting stdout", func() {
-				result := boshdir.ErrandResult{
-					ExitCode: 0,
-					Stderr:   "stderr-content",
-				}
-
-				deployment.RunErrandReturns(result, nil)
-
-				err := act()
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(ui.Said).To(Equal([]string{
-					"[stderr]",
-					"stderr-content",
-					"Errand 'errand-name' completed successfully (exit code 0)",
-				}))
-			})
 		})
 
 		Context("when errand fails (exit code is non-0)", func() {
 			It("returns error", func() {
-				deployment.RunErrandReturns(boshdir.ErrandResult{ExitCode: 1}, nil)
+				deployment.RunErrandReturns([]boshdir.ErrandResult{{ExitCode: 1}}, nil)
 
 				err := act()
 				Expect(err).To(HaveOccurred())
+
+				Expect(ui.Table).To(Equal(
+					boshtbl.Table{
+						Content: "errands",
+
+						Header: []string{"Exit Code", "Stdout", "Stderr"},
+
+						SortBy: []boshtbl.ColumnSort{
+							{Column: 0, Asc: true},
+						},
+
+						Rows: [][]boshtbl.Value{
+							{
+								boshtbl.NewValueInt(1),
+								boshtbl.NewValueString(""),
+								boshtbl.NewValueString(""),
+							},
+						},
+
+						Notes: []string{},
+					}))
+
 				Expect(err.Error()).To(Equal("Errand 'errand-name' completed with error (exit code 1)"))
 			})
 		})
 
 		Context("when errand is canceled (exit code > 128)", func() {
 			It("returns error", func() {
-				deployment.RunErrandReturns(boshdir.ErrandResult{ExitCode: 129}, nil)
+				deployment.RunErrandReturns([]boshdir.ErrandResult{{ExitCode: 129}}, nil)
 
 				err := act()
 				Expect(err).To(HaveOccurred())
@@ -184,7 +253,7 @@ var _ = Describe("RunErrandCmd", func() {
 		})
 
 		It("returns error if running errand failed", func() {
-			deployment.RunErrandReturns(boshdir.ErrandResult{}, errors.New("fake-err"))
+			deployment.RunErrandReturns([]boshdir.ErrandResult{{}}, errors.New("fake-err"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())

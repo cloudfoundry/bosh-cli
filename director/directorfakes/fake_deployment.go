@@ -90,7 +90,7 @@ type FakeDeployment struct {
 		result1 []director.Errand
 		result2 error
 	}
-	RunErrandStub        func(string, bool, bool) (director.ErrandResult, error)
+	RunErrandStub        func(string, bool, bool) ([]director.ErrandResult, error)
 	runErrandMutex       sync.RWMutex
 	runErrandArgsForCall []struct {
 		arg1 string
@@ -98,7 +98,7 @@ type FakeDeployment struct {
 		arg3 bool
 	}
 	runErrandReturns struct {
-		result1 director.ErrandResult
+		result1 []director.ErrandResult
 		result2 error
 	}
 	ScanForProblemsStub        func() ([]director.Problem, error)
@@ -577,7 +577,7 @@ func (fake *FakeDeployment) ErrandsReturns(result1 []director.Errand, result2 er
 	}{result1, result2}
 }
 
-func (fake *FakeDeployment) RunErrand(arg1 string, arg2 bool, arg3 bool) (director.ErrandResult, error) {
+func (fake *FakeDeployment) RunErrand(arg1 string, arg2 bool, arg3 bool) ([]director.ErrandResult, error) {
 	fake.runErrandMutex.Lock()
 	fake.runErrandArgsForCall = append(fake.runErrandArgsForCall, struct {
 		arg1 string
@@ -604,10 +604,10 @@ func (fake *FakeDeployment) RunErrandArgsForCall(i int) (string, bool, bool) {
 	return fake.runErrandArgsForCall[i].arg1, fake.runErrandArgsForCall[i].arg2, fake.runErrandArgsForCall[i].arg3
 }
 
-func (fake *FakeDeployment) RunErrandReturns(result1 director.ErrandResult, result2 error) {
+func (fake *FakeDeployment) RunErrandReturns(result1 []director.ErrandResult, result2 error) {
 	fake.RunErrandStub = nil
 	fake.runErrandReturns = struct {
-		result1 director.ErrandResult
+		result1 []director.ErrandResult
 		result2 error
 	}{result1, result2}
 }

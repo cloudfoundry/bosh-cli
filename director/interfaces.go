@@ -102,7 +102,7 @@ type Deployment interface {
 	InstanceInfos() ([]VMInfo, error)
 
 	Errands() ([]Errand, error)
-	RunErrand(string, bool, bool) (ErrandResult, error)
+	RunErrand(string, bool, bool) ([]ErrandResult, error)
 
 	ScanForProblems() ([]Problem, error)
 	ResolveProblems([]ProblemAnswer) error
