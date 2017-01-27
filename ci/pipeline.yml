@@ -196,7 +196,7 @@ resources:
   - name: release-bucket-windows
     type: s3
     source:
-      regexp: bosh-cli-(.*)-windows-amd64
+      regexp: bosh-cli-(.*)-windows-amd64.exe
       bucket: {{aws_s3_release_bucket}}
       region_name: {{aws_s3_release_bucket_region}}
       access_key_id: {{aws_s3_release_bucket_access_key}}
