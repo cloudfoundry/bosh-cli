@@ -129,7 +129,6 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bidep
 		compiledPackages:       compiledDeploymentPackageRefs,
 		renderedJobs:           renderedJobRefs,
 		renderedJobListArchive: renderedJobListArchiveBlobRef,
-		hash: renderedJobTemplates.Archive.Fingerprint(),
 	}, nil
 }
 

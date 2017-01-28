@@ -1,9 +1,14 @@
 package crypto
 
-import "io"
+import (
+	"io"
+
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+)
 
 type Digest interface {
 	Verify(io.Reader) error
+	VerifyFilePath(filePath string, fs boshsys.FileSystem) error
 	Algorithm() Algorithm
 	String() string
 }

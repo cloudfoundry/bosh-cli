@@ -24,7 +24,6 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	bicpirel "github.com/cloudfoundry/bosh-cli/cpi/release"
-	fakebicrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
 	mock_deployment "github.com/cloudfoundry/bosh-cli/deployment/mocks"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	biinstall "github.com/cloudfoundry/bosh-cli/installation"
@@ -168,8 +167,7 @@ cloud_provider:
 			installationParser := biinstallmanifest.NewParser(fs, fakeUUIDGenerator, logger, installationValidator)
 			fakeHTTPClient := fakebihttpclient.NewFakeHTTPClient()
 			tarballCache := bitarball.NewCache("fake-base-path", fs, logger)
-			fakeSHA1Calculator := fakebicrypto.NewFakeSha1Calculator()
-			tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, fakeSHA1Calculator, 1, 0, logger)
+			tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, 1, 0, logger)
 			deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, ""))
 
 			cpiInstaller := bicpirel.CpiInstaller{

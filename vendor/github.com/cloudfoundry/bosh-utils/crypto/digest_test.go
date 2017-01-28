@@ -6,6 +6,14 @@ import (
 
 	. "github.com/cloudfoundry/bosh-utils/crypto"
 	"strings"
+	"io/ioutil"
+	"fmt"
+	"os"
+	"errors"
+
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("digestImpl", func() {
@@ -58,6 +66,40 @@ var _ = Describe("digestImpl", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Expected stream to have digest 'sha512:309ecc489c12d6eb4cc40f50c902f2b4d0ed77ee511a7c7a9bcd3ca86d4cd86f989dd35bc5ff499670da34255b45b0cfd830e81f605dcf7dc5542e93ae9cd76f' but was 'sha512:a1eb442d3b6c9680e95b73033968223e6ea5fbff7c3d6ed8f6f9ec38cec74cad307f5b8662291323c65e81cc2ec1d24384e4c1a165aed36d9874efecf976b2c4'"))
 			})
+		})
+	})
+
+	Describe("VerifyFilePath", func() {
+		var (
+			file *os.File
+			digest Digest
+		)
+
+		BeforeEach(func() {
+			var err error
+			file, err = ioutil.TempFile("", "multiple-digest")
+			Expect(err).ToNot(HaveOccurred())
+			defer file.Close()
+			file.Write([]byte("fake-contents"))
+
+			digest = NewDigest(DigestAlgorithmSHA1, "978ad524a02039f261773fe93d94973ae7de6470")
+		})
+
+		It("can read a file and verify its content aginst the digest", func() {
+			logger := boshlog.NewLogger(boshlog.LevelNone)
+			fileSystem := boshsys.NewOsFileSystem(logger)
+
+			err := digest.VerifyFilePath(file.Name(), fileSystem)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns an error if the file cannot be opened", func() {
+			fileSystem := fakesys.NewFakeFileSystem()
+			fileSystem.OpenFileErr = errors.New("nope")
+
+			err := digest.VerifyFilePath(file.Name(), fileSystem)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal(fmt.Sprintf("Calculating digest of '%s': nope", file.Name())))
 		})
 	})
 

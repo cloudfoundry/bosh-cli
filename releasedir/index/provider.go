@@ -11,31 +11,31 @@ import (
 )
 
 type Provider struct {
-	reporter  Reporter
-	blobstore boshblob.DigestBlobstore
-	sha1calc  bicrypto.SHA1Calculator
-	fs        boshsys.FileSystem
+	reporter         Reporter
+	blobstore        boshblob.DigestBlobstore
+	digestCalculator bicrypto.DigestCalculator
+	fs               boshsys.FileSystem
 }
 
 func NewProvider(
 	reporter Reporter,
 	blobstore boshblob.DigestBlobstore,
-	sha1calc bicrypto.SHA1Calculator,
+	digestCalculator bicrypto.DigestCalculator,
 	fs boshsys.FileSystem,
 ) Provider {
 	return Provider{
-		reporter:  reporter,
-		blobstore: blobstore,
-		sha1calc:  sha1calc,
-		fs:        fs,
+		reporter:          reporter,
+		blobstore:         blobstore,
+		digestCalculator:  digestCalculator,
+		fs:                fs,
 	}
 }
 
 func (p Provider) DevAndFinalIndicies(dirPath string) (boshrel.ArchiveIndicies, boshrel.ArchiveIndicies) {
 	cachePath := gopath.Join("~", ".bosh", "cache")
 
-	devBlobsCache := NewFSIndexBlobs(cachePath, p.reporter, nil, p.sha1calc, p.fs)
-	finalBlobsCache := NewFSIndexBlobs(cachePath, p.reporter, p.blobstore, p.sha1calc, p.fs)
+	devBlobsCache := NewFSIndexBlobs(cachePath, p.reporter, nil, p.fs)
+	finalBlobsCache := NewFSIndexBlobs(cachePath, p.reporter, p.blobstore, p.fs)
 
 	devJobsPath := gopath.Join(dirPath, ".dev_builds", "jobs")
 	devPkgsPath := gopath.Join(dirPath, ".dev_builds", "packages")

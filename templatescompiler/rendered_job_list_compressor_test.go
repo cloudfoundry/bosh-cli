@@ -124,19 +124,6 @@ var _ = Describe("RenderedJobListCompressor", func() {
 				renderedJobListCompressor = NewRenderedJobListCompressor(fakeFS, fakeCompressor, fakeSHA1Calculator, logger)
 			})
 
-			It("calculates the fingerprint of the rendered", func() {
-				fakeFS.TempDirDir = "fake-rendered-job-list-path"
-
-				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
-					"fake-rendered-job-list-path": fakebicrypto.CalculateInput{Sha1: "fake-sha1"},
-				})
-
-				archive, err := renderedJobListCompressor.Compress(renderedJobList)
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(archive.Fingerprint()).To(Equal("fake-sha1"))
-			})
-
 			It("calculates the SHA1 of the archive", func() {
 				fakeCompressor.CompressFilesInDirTarballPath = "fake-archive-path"
 

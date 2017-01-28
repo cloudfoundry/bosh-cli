@@ -137,6 +137,7 @@ var _ = Describe("Builder", func() {
 						},
 					},
 				},
+				ConfigurationHash: "unused-configuration-hash",
 			}))
 		})
 	})
@@ -290,7 +291,6 @@ var _ = Describe("Builder", func() {
 
 			mockRenderedJobListArchive.EXPECT().Path().Return("fake-rendered-job-list-archive-path")
 			mockRenderedJobListArchive.EXPECT().SHA1().Return("fake-rendered-job-list-archive-sha1")
-			mockRenderedJobListArchive.EXPECT().Fingerprint().Return("fake-rendered-job-list-fingerprint")
 
 			mockBlobstore.EXPECT().Add("fake-rendered-job-list-archive-path").Return("fake-rendered-job-list-archive-blob-id", nil)
 		})
@@ -557,7 +557,7 @@ var _ = Describe("Builder", func() {
 					BlobstoreID: "fake-rendered-job-list-archive-blob-id",
 					SHA1:        "fake-rendered-job-list-archive-sha1",
 				},
-				ConfigurationHash: "fake-rendered-job-list-fingerprint",
+				ConfigurationHash: "unused-configuration-hash",
 			}))
 		})
 	})

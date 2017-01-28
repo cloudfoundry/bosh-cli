@@ -117,7 +117,7 @@ var _ = Describe("checksumVerifiableBlobstore", func() {
 			Expect(blobID).To(Equal("fake-blob-id"))
 
 			Expect(innerBlobstore.CreateArgsForCall(0)).To(Equal(fixturePath))
-			Expect(multipleDigest.FullString()).To(Equal("b153af8b5f71cf357896988886a76e9fe59b1e2e;sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"))
+			Expect(multipleDigest.String()).To(Equal("b153af8b5f71cf357896988886a76e9fe59b1e2e;sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"))
 		})
 
 		It("returns error if blob cannot be opened by filesystem", func () {
@@ -137,7 +137,7 @@ var _ = Describe("checksumVerifiableBlobstore", func() {
 			_, _, err := checksumVerifiableBlobstore.Create(fixturePath)
 
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Unable to create digest of unkown algorithm 'who'"))
+			Expect(err.Error()).To(Equal("Unable to create digest of unknown algorithm 'who'"))
 		})
 
 		It("returns error if inner blobstore blob creation fails", func() {

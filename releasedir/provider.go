@@ -21,7 +21,7 @@ type Provider struct {
 	releaseIndexReporter ReleaseIndexReporter
 	blobsReporter        BlobsDirReporter
 	releaseProvider      boshrel.Provider
-	sha1calc             bicrypto.SHA1Calculator
+	digestCalculator     bicrypto.DigestCalculator
 
 	cmdRunner   boshsys.CmdRunner
 	uuidGen     boshuuid.Generator
@@ -35,7 +35,7 @@ func NewProvider(
 	releaseIndexReporter ReleaseIndexReporter,
 	blobsReporter BlobsDirReporter,
 	releaseProvider boshrel.Provider,
-	sha1calc bicrypto.SHA1Calculator,
+	digestCalculator bicrypto.DigestCalculator,
 	cmdRunner boshsys.CmdRunner,
 	uuidGen boshuuid.Generator,
 	timeService clock.Clock,
@@ -47,7 +47,7 @@ func NewProvider(
 		releaseIndexReporter: releaseIndexReporter,
 		blobsReporter:        blobsReporter,
 		releaseProvider:      releaseProvider,
-		sha1calc:             sha1calc,
+		digestCalculator:     digestCalculator,
 		cmdRunner:            cmdRunner,
 		uuidGen:              uuidGen,
 		timeService:          timeService,
@@ -67,7 +67,7 @@ func (p Provider) NewFSReleaseDir(dirPath string) FSReleaseDir {
 	finalRelsPath := gopath.Join(dirPath, "releases")
 	finalReleases := NewFSReleaseIndex("final", finalRelsPath, p.releaseIndexReporter, p.uuidGen, p.fs)
 
-	indiciesProvider := boshidx.NewProvider(p.indexReporter, p.newBlobstore(dirPath), p.sha1calc, p.fs)
+	indiciesProvider := boshidx.NewProvider(p.indexReporter, p.newBlobstore(dirPath), p.digestCalculator, p.fs)
 	_, finalIndex := indiciesProvider.DevAndFinalIndicies(dirPath)
 
 	releaseReader := p.NewReleaseReader(dirPath)
@@ -77,12 +77,12 @@ func (p Provider) NewFSReleaseDir(dirPath string) FSReleaseDir {
 }
 
 func (p Provider) NewFSBlobsDir(dirPath string) FSBlobsDir {
-	return NewFSBlobsDir(dirPath, p.blobsReporter, p.newBlobstore(dirPath), p.sha1calc, p.fs)
+	return NewFSBlobsDir(dirPath, p.blobsReporter, p.newBlobstore(dirPath), p.digestCalculator, p.fs)
 }
 
 func (p Provider) NewReleaseReader(dirPath string) boshrel.BuiltReader {
 	multiReader := p.releaseProvider.NewMultiReader(dirPath)
-	indiciesProvider := boshidx.NewProvider(p.indexReporter, p.newBlobstore(dirPath), p.sha1calc, p.fs)
+	indiciesProvider := boshidx.NewProvider(p.indexReporter, p.newBlobstore(dirPath), p.digestCalculator, p.fs)
 	devIndex, finalIndex := indiciesProvider.DevAndFinalIndicies(dirPath)
 	return boshrel.NewBuiltReader(multiReader, devIndex, finalIndex)
 }

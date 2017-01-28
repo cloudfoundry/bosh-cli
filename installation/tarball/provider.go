@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -42,7 +42,6 @@ type provider struct {
 	cache            Cache
 	fs               boshsys.FileSystem
 	httpClient       bihttpclient.HTTPClient
-	sha1Calculator   bicrypto.SHA1Calculator
 	downloadAttempts int
 	delayTimeout     time.Duration
 	logger           boshlog.Logger
@@ -53,7 +52,6 @@ func NewProvider(
 	cache Cache,
 	fs boshsys.FileSystem,
 	httpClient bihttpclient.HTTPClient,
-	sha1Calculator bicrypto.SHA1Calculator,
 	downloadAttempts int,
 	delayTimeout time.Duration,
 	logger boshlog.Logger,
@@ -62,7 +60,6 @@ func NewProvider(
 		cache:            cache,
 		fs:               fs,
 		httpClient:       httpClient,
-		sha1Calculator:   sha1Calculator,
 		downloadAttempts: downloadAttempts,
 		delayTimeout:     delayTimeout,
 
@@ -148,13 +145,14 @@ func (p *provider) downloadRetryable(source Source) boshretry.Retryable {
 			return true, bosherr.WrapError(err, "Saving downloaded bits to temporary file")
 		}
 
-		downloadedSha1, err := p.sha1Calculator.Calculate(downloadedFile.Name())
+		digest, err := boshcrypto.ParseMultipleDigest(source.GetSHA1())
 		if err != nil {
-			return true, bosherr.WrapError(err, "Calculating sha1 for downloaded file")
+			return true, err
 		}
 
-		if downloadedSha1 != source.GetSHA1() {
-			return true, bosherr.Errorf("SHA1 of downloaded file '%s' does not match expected SHA1 '%s'", downloadedSha1, source.GetSHA1())
+		err = digest.VerifyFilePath(downloadedFile.Name(), p.fs)
+		if err != nil {
+			return true, bosherr.WrapError(err, "Verifying digest for downloaded file")
 		}
 
 		err = p.cache.Save(downloadedFile.Name(), source)

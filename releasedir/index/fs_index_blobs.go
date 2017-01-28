@@ -10,8 +10,6 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-
-	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
 )
 
 type FSIndexBlobs struct {
@@ -19,7 +17,6 @@ type FSIndexBlobs struct {
 	reporter Reporter
 
 	blobstore boshblob.DigestBlobstore
-	sha1calc  bicrypto.SHA1Calculator
 	fs        boshsys.FileSystem
 }
 
@@ -27,7 +24,6 @@ func NewFSIndexBlobs(
 	dirPath string,
 	reporter Reporter,
 	blobstore boshblob.DigestBlobstore,
-	sha1calc bicrypto.SHA1Calculator,
 	fs boshsys.FileSystem,
 ) FSIndexBlobs {
 	return FSIndexBlobs{
@@ -35,7 +31,6 @@ func NewFSIndexBlobs(
 		reporter: reporter,
 
 		blobstore: blobstore,
-		sha1calc:  sha1calc,
 		fs:        fs,
 	}
 }
@@ -48,14 +43,15 @@ func (c FSIndexBlobs) Get(name string, blobID string, sha1 string) (string, erro
 	}
 
 	if c.fs.FileExists(dstPath) {
-		actualSHA1, err := c.sha1calc.Calculate(dstPath)
+		digest, err := boshcrypto.ParseMultipleDigest(sha1)
 		if err != nil {
-			return "", bosherr.WrapErrorf(err, "Calculating SHA1 of local copy '%s'", dstPath)
+			return "", err
 		}
 
-		if sha1 != actualSHA1 {
-			errMsg := "Expected local copy ('%s') of blob '%s' to have SHA1 '%s' but was '%s'"
-			return "", bosherr.Errorf(errMsg, dstPath, blobID, sha1, actualSHA1)
+		err = digest.VerifyFilePath(dstPath, c.fs)
+		if err != nil {
+			errMsg := "Local copy ('%s') of blob '%s' digest verification error"
+			return "", bosherr.WrapErrorf(err, errMsg, dstPath, blobID)
 		}
 
 		return dstPath, nil

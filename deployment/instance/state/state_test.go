@@ -97,7 +97,7 @@ var _ = Describe("State", func() {
 					BlobstoreID: "fake-rendered-job-list-archive-blob-id",
 					SHA1:        "fake-rendered-job-list-archive-blob-sha1",
 				},
-				ConfigurationHash: "fake-state-hash",
+				ConfigurationHash: "unused-configuration-hash",
 			}))
 		})
 	})

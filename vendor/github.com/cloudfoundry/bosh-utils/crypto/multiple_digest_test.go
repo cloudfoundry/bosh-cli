@@ -3,11 +3,18 @@ package crypto_test
 import (
 	"encoding/json"
 	"strings"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	. "github.com/cloudfoundry/bosh-utils/crypto"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"os"
+	"io/ioutil"
+	"io"
+
+	"errors"
+	"fmt"
 )
 
 var _ = Describe("MultipleDigest", func() {
@@ -17,6 +24,59 @@ var _ = Describe("MultipleDigest", func() {
 
 	BeforeEach(func() {
 		digest = MultipleDigest{}
+	})
+
+	Describe("ParseMultipleDigest", func() {
+		It("parses a sha1 json digest string", func() {
+			digest, err := ParseMultipleDigest("sha1string")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(digest.String()).To(Equal("sha1string"))
+			Expect(digest.Algorithm()).To(Equal(DigestAlgorithmSHA1))
+		})
+
+		It("parses a multiple digest json digest string", func() {
+			digest, err := ParseMultipleDigest("sha1string;sha512:sha512string")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(digest.String()).To(Equal("sha1string;sha512:sha512string"))
+			Expect(digest.Algorithm()).To(Equal(DigestAlgorithmSHA512))
+		})
+
+		It("returns error if unmarshalling fails", func() {
+			_, err := ParseMultipleDigest("")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("No recognizable digest algorithm found. Supported algorithms: sha1, sha256, sha512"))
+		})
+	})
+
+	Describe("VerifyFilePath", func() {
+		var file *os.File
+
+		BeforeEach(func() {
+			var err error
+			file, err = ioutil.TempFile("", "multiple-digest")
+			Expect(err).ToNot(HaveOccurred())
+			defer file.Close()
+			file.Write([]byte("fake-contents"))
+		})
+
+		It("can read a file and verify its content aginst the digest", func() {
+			logger := boshlog.NewLogger(boshlog.LevelNone)
+			fileSystem := boshsys.NewOsFileSystem(logger)
+			sha1Digest := NewDigest(DigestAlgorithmSHA1, "978ad524a02039f261773fe93d94973ae7de6470")
+
+			digest = MustNewMultipleDigest(sha1Digest)
+			err := digest.VerifyFilePath(file.Name(), fileSystem)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns an error if the file cannot be opened", func() {
+			fileSystem := fakesys.NewFakeFileSystem()
+			fileSystem.OpenFileErr = errors.New("nope")
+
+			err := digest.VerifyFilePath(file.Name(), fileSystem)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal(fmt.Sprintf("Calculating digest of '%s': nope", file.Name())))
+		})
 	})
 
 	Describe("Verify", func() {
@@ -110,7 +170,7 @@ var _ = Describe("MultipleDigest", func() {
 
 				err := digest.Verify(strings.NewReader("strong digest content"))
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Computing digest from stream: Unable to create digest of unkown algorithm 'unknown1'"))
+				Expect(err.Error()).To(Equal("Computing digest from stream: Unable to create digest of unknown algorithm 'unknown1'"))
 			})
 
 			Context("when two of the digests are the same algorithm", func() {
@@ -135,13 +195,13 @@ var _ = Describe("MultipleDigest", func() {
 		})
 	})
 
-	Describe("FullString", func() {
-		It("returns the digest matching the algorithm", func() {
+	Describe("String", func() {
+		It("returns the concatenated digest string", func() {
 			digest1 := NewDigest(DigestAlgorithmSHA1, "sha1digestval")
 			digest2 := NewDigest(DigestAlgorithmSHA256, "sha256digestval")
 			digest := MustNewMultipleDigest(digest1, digest2)
 
-			fullString := digest.FullString()
+			fullString := digest.String()
 			Expect(fullString).To(Equal("sha1digestval;sha256:sha256digestval"))
 		})
 	})
@@ -172,6 +232,107 @@ var _ = Describe("MultipleDigest", func() {
 				_, err := digests.DigestFor(DigestAlgorithmSHA512)
 				Expect(err).To(HaveOccurred())
 			})
+		})
+	})
+
+	Describe("NewMultipleDigestFromPath", func() {
+		It("returns a multi digest with provided algorithms", func() {
+			file, err := ioutil.TempFile("", "multiple-digest")
+			Expect(err).ToNot(HaveOccurred())
+			defer file.Close()
+			file.Write([]byte("fake-readSeeker-2-contents"))
+			algos := []Algorithm{
+				DigestAlgorithmSHA1,
+				DigestAlgorithmSHA256,
+			}
+
+			logger := boshlog.NewLogger(boshlog.LevelNone)
+			fileSystem := boshsys.NewOsFileSystem(logger)
+			digest, err := NewMultipleDigestFromPath(file.Name(), fileSystem, algos)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(digest.String()).To(Equal("aa64cc884828ae6e8f3d1a24f889e5b43843981f;sha256:e0403fc138c62c89c6d9c81fe6982565d065af71677f8d29942e396406289f76"))
+		})
+
+		It("return an error when calculation the digest fails", func() {
+			file, err := ioutil.TempFile("", "multiple-digest")
+			Expect(err).ToNot(HaveOccurred())
+			defer file.Close()
+			file.Write([]byte("fake-readSeeker-2-contents"))
+			algos := []Algorithm{
+				DigestAlgorithmSHA1,
+				DigestAlgorithmSHA256,
+				NewUnknownAlgorithm("such wow"),
+			}
+
+			logger := boshlog.NewLogger(boshlog.LevelNone)
+			fileSystem := boshsys.NewOsFileSystem(logger)
+			_, err = NewMultipleDigestFromPath(file.Name(), fileSystem, algos)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("such wow"))
+		})
+
+		It("returns an error when the file cannot be opened", func() {
+			algos := []Algorithm{}
+			fs := fakesys.NewFakeFileSystem()
+			fs.OpenFileErr = errors.New("nope nope")
+
+			_, err := NewMultipleDigestFromPath("file-path", fs, algos)
+
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("nope nope"))
+		})
+
+		It("returns an error if no algorithms are supplied", func() {
+			algos := []Algorithm{}
+			_, err := NewMultipleDigestFromPath("file-path", fakesys.NewFakeFileSystem(), algos)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("must provide at least one algorithm"))
+		})
+	})
+
+	Describe("NewMultipleDigest", func() {
+		var (
+			readSeeker io.ReadSeeker
+			file *os.File
+		)
+
+		BeforeEach(func() {
+			file, err := ioutil.TempFile("", "multiple-digest")
+			Expect(err).ToNot(HaveOccurred())
+			file.Write([]byte("fake-readSeeker-2-contents"))
+			readSeeker = file
+		})
+
+		AfterEach(func() {
+			file.Close()
+		})
+
+		It("returns a multi digest with provided algorithms", func() {
+			algos := []Algorithm{
+				DigestAlgorithmSHA1,
+				DigestAlgorithmSHA256,
+			}
+			digest, err := NewMultipleDigest(readSeeker, algos)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(digest.String()).To(Equal("aa64cc884828ae6e8f3d1a24f889e5b43843981f;sha256:e0403fc138c62c89c6d9c81fe6982565d065af71677f8d29942e396406289f76"))
+		})
+
+		It("returns an error if an error occurs calculating the digest", func() {
+			algos := []Algorithm{
+				DigestAlgorithmSHA1,
+				DigestAlgorithmSHA256,
+				NewUnknownAlgorithm("such wow"),
+			}
+			_, err := NewMultipleDigest(readSeeker, algos)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Unable to create digest of unknown algorithm 'such wow'"))
+		})
+
+		It("returns and error if no algorithms are supplied", func() {
+			algos := []Algorithm{}
+			_, err := NewMultipleDigest(readSeeker, algos)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("must provide at least one algorithm"))
 		})
 	})
 
@@ -227,7 +388,7 @@ var _ = Describe("MultipleDigest", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(digest.Algorithm().Name()).To(Equal(DigestAlgorithmSHA256.Name()))
-			Expect(digest.String()).To(Equal("sha256:1bf4b70c96b9d4e8f473ac6b7e6b5b965ab3497287a86eb2ed1b263287c78038"))
+			Expect(digest.String()).To(Equal("abcdefg;sha256:1bf4b70c96b9d4e8f473ac6b7e6b5b965ab3497287a86eb2ed1b263287c78038"))
 			Expect(digest.Verify(strings.NewReader("content to be verified"))).ToNot(HaveOccurred())
 		})
 
@@ -263,7 +424,7 @@ var _ = Describe("MultipleDigest", func() {
 			err := json.Unmarshal([]byte(`"unknown1:val1;unknown2:val2"`), &digest)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(digest.Algorithm().Name()).To(Equal("unknown1"))
-			Expect(digest.String()).To(Equal("unknown1:val1"))
+			Expect(digest.String()).To(Equal("unknown1:val1;unknown2:val2"))
 		})
 
 		It("does not error when the json contains a valid digest and an unknown digest", func() {
@@ -271,7 +432,7 @@ var _ = Describe("MultipleDigest", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(digest.Algorithm().Name()).To(Equal(DigestAlgorithmSHA256.Name()))
-			Expect(digest.String()).To(Equal("sha256:1bf4b70c96b9d4e8f473ac6b7e6b5b965ab3497287a86eb2ed1b263287c78038"))
+			Expect(digest.String()).To(Equal("unknown1:val1;sha256:1bf4b70c96b9d4e8f473ac6b7e6b5b965ab3497287a86eb2ed1b263287c78038"))
 			Expect(digest.Verify(strings.NewReader("content to be verified"))).ToNot(HaveOccurred())
 		})
 

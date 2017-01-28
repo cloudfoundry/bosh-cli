@@ -13,12 +13,12 @@ import (
 )
 
 type FingerprinterImpl struct {
-	sha1calc bicrypto.SHA1Calculator
-	fs       boshsys.FileSystem
+	digestCalculator bicrypto.DigestCalculator
+	fs               boshsys.FileSystem
 }
 
-func NewFingerprinterImpl(sha1calc bicrypto.SHA1Calculator, fs boshsys.FileSystem) FingerprinterImpl {
-	return FingerprinterImpl{sha1calc: sha1calc, fs: fs}
+func NewFingerprinterImpl(digestCalculator bicrypto.DigestCalculator, fs boshsys.FileSystem) FingerprinterImpl {
+	return FingerprinterImpl{digestCalculator: digestCalculator, fs: fs}
 }
 
 func (f FingerprinterImpl) Calculate(files []File, additionalChunks []string) (string, error) {
@@ -47,7 +47,7 @@ func (f FingerprinterImpl) Calculate(files []File, additionalChunks []string) (s
 		chunks = append(chunks, strings.Join(sortedAdditionalChunks, ","))
 	}
 
-	return f.sha1calc.CalculateString(strings.Join(chunks, "")), nil
+	return f.digestCalculator.CalculateString(strings.Join(chunks, "")), nil
 }
 
 // fingerprintPath currently works with:
@@ -77,11 +77,13 @@ func (f FingerprinterImpl) fingerprintPath(file File) (string, error) {
 			return "", err
 		}
 
-		sha1 := f.sha1calc.CalculateString(symlinkTarget)
+		//generation of digest string
+		sha1 := f.digestCalculator.CalculateString(symlinkTarget)
 
 		result += sha1
-	} else if !fileInfo.IsDir() {
-		sha1, err := f.sha1calc.Calculate(file.Path)
+	} else {
+		//generation of digest string
+		sha1, err := f.digestCalculator.Calculate(file.Path)
 		if err != nil {
 			return "", err
 		}

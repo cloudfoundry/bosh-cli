@@ -19,7 +19,7 @@ type Provider struct {
 
 	cmdRunner  boshsys.CmdRunner
 	compressor boshcmd.Compressor
-	sha1calc   bicrypto.SHA1Calculator
+	sha1calc   bicrypto.DigestCalculator
 	fs         boshsys.FileSystem
 	logger     boshlog.Logger
 }
@@ -27,7 +27,7 @@ type Provider struct {
 func NewProvider(
 	cmdRunner boshsys.CmdRunner,
 	compressor boshcmd.Compressor,
-	sha1calc bicrypto.SHA1Calculator,
+	sha1calc bicrypto.DigestCalculator,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) Provider {

@@ -37,7 +37,6 @@ var _ = Describe("RenderedJobListArchive", func() {
 		mockRenderedJobList *mock_template.MockRenderedJobList
 
 		renderedJobListArchivePath string
-		renderedJobListFingerprint string
 		renderedJobListArchiveSHA1 string
 
 		renderedJobListArchive RenderedJobListArchive
@@ -53,13 +52,11 @@ var _ = Describe("RenderedJobListArchive", func() {
 		mockRenderedJobList = mock_template.NewMockRenderedJobList(mockCtrl)
 
 		renderedJobListArchivePath = "fake-archive-path"
-		renderedJobListFingerprint = "fake-fingerprint"
 		renderedJobListArchiveSHA1 = "fake-sha1"
 
 		renderedJobListArchive = NewRenderedJobListArchive(
 			mockRenderedJobList,
 			renderedJobListArchivePath,
-			renderedJobListFingerprint,
 			renderedJobListArchiveSHA1,
 			fs, logger)
 	})
@@ -73,12 +70,6 @@ var _ = Describe("RenderedJobListArchive", func() {
 	Describe("Path", func() {
 		It("returns the rendered job list archive path", func() {
 			Expect(renderedJobListArchive.Path()).To(Equal(renderedJobListArchivePath))
-		})
-	})
-
-	Describe("Fingerprint", func() {
-		It("returns the rendered job list fingerprint", func() {
-			Expect(renderedJobListArchive.Fingerprint()).To(Equal(renderedJobListFingerprint))
 		})
 	})
 

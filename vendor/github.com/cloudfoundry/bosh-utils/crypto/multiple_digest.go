@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"os"
 )
 
 type MultipleDigest struct {
@@ -21,16 +23,63 @@ func MustNewMultipleDigest(digests ...Digest) MultipleDigest {
 }
 
 func MustParseMultipleDigest(json string) MultipleDigest {
-	var digest MultipleDigest
-	err := (&digest).UnmarshalJSON([]byte(json))
+	digest, err := ParseMultipleDigest(json)
 	if err != nil {
 		panic(fmt.Sprintf("Parsing multiple digest: %s", err))
 	}
 	return digest
 }
 
-func (m MultipleDigest) String() string       { return m.strongestDigest().String() }
+func ParseMultipleDigest(json string) (MultipleDigest, error) {
+	var digest MultipleDigest
+	err := (&digest).UnmarshalJSON([]byte(json))
+	if err != nil {
+		return MultipleDigest{}, err
+	}
+	return digest, nil
+}
+
+func NewMultipleDigestFromPath(filePath string, fs boshsys.FileSystem, algos []Algorithm) (MultipleDigest, error) {
+	file, err := fs.OpenFile(filePath, os.O_RDONLY, 0)
+	if err != nil {
+		return MultipleDigest{}, bosherr.WrapErrorf(err, "Calculating digest of '%s'", filePath)
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+
+	return NewMultipleDigest(file, algos)
+}
+
+func NewMultipleDigest(stream io.ReadSeeker, algos []Algorithm) (MultipleDigest, error) {
+	if len(algos) == 0 {
+		return MultipleDigest{}, errors.New("must provide at least one algorithm")
+ 	}
+
+	digests := []Digest{}
+	for _, algo := range algos {
+		stream.Seek(0, 0)
+		digest, err := algo.CreateDigest(stream)
+		if err != nil {
+			return MultipleDigest{}, err
+		}
+		digests = append(digests, digest)
+
+	}
+	return MultipleDigest{digests}, nil
+}
+
 func (m MultipleDigest) Algorithm() Algorithm { return m.strongestDigest().Algorithm() }
+
+func (m MultipleDigest) String() string       {
+	var result []string
+
+	for _, digest := range m.digests {
+		result = append(result, digest.String())
+	}
+
+	return strings.Join(result, ";")
+}
 
 func (m MultipleDigest) Verify(reader io.Reader) error {
 	err := m.validate()
@@ -39,6 +88,17 @@ func (m MultipleDigest) Verify(reader io.Reader) error {
 	}
 
 	return m.strongestDigest().Verify(reader)
+}
+
+func (m MultipleDigest) VerifyFilePath(filePath string, fs boshsys.FileSystem) error {
+	file, err := fs.OpenFile(filePath, os.O_RDONLY, 0)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Calculating digest of '%s'", filePath)
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+	return m.Verify(file)
 }
 
 func (m MultipleDigest) validate() error {
@@ -52,7 +112,7 @@ func (m MultipleDigest) validate() error {
 		algoName := digest.Algorithm().Name()
 
 		if _, found := algosUsed[algoName]; found {
-			return bosherr.Errorf("Multiple digests of the same algorithm '%s' found in digests '%s'", algoName, m.FullString())
+			return bosherr.Errorf("Multiple digests of the same algorithm '%s' found in digests '%s'", algoName, m.String())
 		}
 
 		algosUsed[algoName] = struct{}{}
@@ -108,22 +168,12 @@ func (m *MultipleDigest) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (m MultipleDigest) FullString() string {
-	var result []string
-
-	for _, digest := range m.digests {
-		result = append(result, digest.String())
-	}
-
-	return strings.Join(result, ";")
-}
-
 func (m MultipleDigest) MarshalJSON() ([]byte, error) {
 	if len(m.digests) == 0 {
 		return nil, errors.New("no digests have been provided")
 	}
 
-	return []byte(fmt.Sprintf(`"%s"`, m.FullString())), nil
+	return []byte(fmt.Sprintf(`"%s"`, m.String())), nil
 }
 
 func (m MultipleDigest) parseMultipleDigestString(multipleDigest string) (MultipleDigest, error) {

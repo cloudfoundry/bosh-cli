@@ -47,7 +47,6 @@ type state struct {
 	renderedJobs           []JobRef
 	compiledPackages       []PackageRef
 	renderedJobListArchive BlobRef
-	hash                   string
 }
 
 func NewState(
@@ -68,7 +67,6 @@ func NewState(
 		renderedJobs:           renderedJobs,
 		compiledPackages:       compiledPackages,
 		renderedJobListArchive: renderedJobListArchive,
-		hash: hash,
 	}
 }
 
@@ -117,6 +115,6 @@ func (s *state) ToApplySpec() bias.ApplySpec {
 			BlobstoreID: s.renderedJobListArchive.BlobstoreID,
 			SHA1:        s.renderedJobListArchive.SHA1,
 		},
-		ConfigurationHash: s.hash,
+		ConfigurationHash: "unused-configuration-hash",
 	}
 }

@@ -5,6 +5,8 @@ import (
 	"io"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"os"
 )
 
 type digestImpl struct {
@@ -40,4 +42,15 @@ func (c digestImpl) Verify(reader io.Reader) error {
 	}
 
 	return nil
+}
+
+func (m digestImpl) VerifyFilePath(filePath string, fs boshsys.FileSystem) error {
+	file, err := fs.OpenFile(filePath, os.O_RDONLY, 0)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Calculating digest of '%s'", filePath)
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+	return m.Verify(file)
 }

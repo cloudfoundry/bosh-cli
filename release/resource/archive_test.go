@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -84,8 +85,8 @@ var _ = Describe("Archive", func() {
 			uniqueDir string
 			fs        boshsys.FileSystem
 
-			compressor boshcmd.Compressor
-			sha1calc   bicrypto.SHA1Calculator
+			compressor       boshcmd.Compressor
+			digestCalculator bicrypto.DigestCalculator
 		)
 
 		BeforeEach(func() {
@@ -141,8 +142,8 @@ var _ = Describe("Archive", func() {
 			err = fs.WriteFileString(uniqueDir+"/run-file3", "rm dir/file3")
 			Expect(err).ToNot(HaveOccurred())
 
-			sha1calc = bicrypto.NewSha1Calculator(fs)
-			fingerprinter := NewFingerprinterImpl(sha1calc, fs)
+			digestCalculator = bicrypto.NewDigestCalculator(fs, []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1})
+			fingerprinter := NewFingerprinterImpl(digestCalculator, fs)
 			cmdRunner := boshsys.NewExecCmdRunner(logger)
 			compressor = boshcmd.NewTarballCompressor(cmdRunner, fs)
 
@@ -164,7 +165,7 @@ var _ = Describe("Archive", func() {
 				releaseDirPath,
 				fingerprinter,
 				compressor,
-				sha1calc,
+				digestCalculator,
 				cmdRunner,
 				fs,
 			)
@@ -184,7 +185,7 @@ var _ = Describe("Archive", func() {
 			archivePath, archiveSHA1, err := archive.Build("31a86e1b2b76e47ca5455645bb35018fe7f73e5d")
 			Expect(err).ToNot(HaveOccurred())
 
-			actualArchiveSHA1, err := sha1calc.Calculate(archivePath)
+			actualArchiveSHA1, err := digestCalculator.Calculate(archivePath)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actualArchiveSHA1).To(Equal(archiveSHA1))
 

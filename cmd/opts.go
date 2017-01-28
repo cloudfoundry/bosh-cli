@@ -777,6 +777,7 @@ type CreateReleaseOpts struct {
 	Final   bool   `long:"final"   description:"Make it a final release"`
 	Tarball string `long:"tarball" description:"Create release tarball at path (e.g. /tmp/release.tgz)"`
 	Force   bool   `long:"force"   description:"Ignore Git dirty state check"`
+	Sha2    bool   `long:"sha2"    description:"Use sha256 checksums. Requires recent director and stemcells."`
 
 	cmd
 }

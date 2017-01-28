@@ -378,7 +378,7 @@ cloud_provider:
 				)
 				fakeHTTPClient := fakebihttpclient.NewFakeHTTPClient()
 				tarballCache := bitarball.NewCache("fake-base-path", fs, logger)
-				tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, fakeSHA1Calculator, 1, 0, logger)
+				tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, 1, 0, logger)
 
 				cpiInstaller := bicpirel.CpiInstaller{
 					ReleaseManager:   releaseManager,

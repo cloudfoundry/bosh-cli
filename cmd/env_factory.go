@@ -7,6 +7,8 @@ import (
 
 	"github.com/cppforlife/go-patch/patch"
 
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
+
 	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
 	biblobstore "github.com/cloudfoundry/bosh-cli/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
@@ -85,10 +87,11 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manife
 		tarballCache := bitarball.NewCache(tarballCacheBasePath, deps.FS, deps.Logger)
 		httpClient := bihttpclient.NewHTTPClient(bitarball.HTTPClient, deps.Logger)
 		tarballProvider := bitarball.NewProvider(
-			tarballCache, deps.FS, httpClient, deps.SHA1Calc, 3, 500*time.Millisecond, deps.Logger)
+			tarballCache, deps.FS, httpClient, 3, 500*time.Millisecond, deps.Logger)
 
+		digestCalculator := deps.DigestCalc([]boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1})
 		releaseProvider := boshrel.NewProvider(
-			deps.CmdRunner, deps.Compressor, deps.SHA1Calc, deps.FS, deps.Logger)
+			deps.CmdRunner, deps.Compressor, digestCalculator, deps.FS, deps.Logger)
 
 		f.releaseFetcher = boshinst.NewReleaseFetcher(
 			tarballProvider,
@@ -149,6 +152,7 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manife
 	}
 
 	{
+		digestCalculator := deps.DigestCalc([]boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1})
 		erbRenderer := bitemplateerb.NewERBRenderer(deps.FS, deps.CmdRunner, deps.Logger)
 		jobRenderer := bitemplate.NewJobRenderer(erbRenderer, deps.FS, deps.UUIDGen, deps.Logger)
 
@@ -156,7 +160,7 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manife
 			bistatepkg.NewCompiledPackageRepo(biindex.NewInMemoryIndex()),
 			releaseJobResolver,
 			bitemplate.NewJobListRenderer(jobRenderer, deps.Logger),
-			bitemplate.NewRenderedJobListCompressor(deps.FS, deps.Compressor, deps.SHA1Calc, deps.Logger),
+			bitemplate.NewRenderedJobListCompressor(deps.FS, deps.Compressor, digestCalculator, deps.Logger),
 			deps.Logger,
 		)
 

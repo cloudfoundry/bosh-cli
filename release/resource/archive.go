@@ -18,11 +18,11 @@ type ArchiveImpl struct {
 	additionalChunks []string
 	releaseDirPath   string
 
-	fingerprinter Fingerprinter
-	compressor    boshcmd.Compressor
-	sha1calc      bicrypto.SHA1Calculator
-	cmdRunner     boshsys.CmdRunner
-	fs            boshsys.FileSystem
+	fingerprinter    Fingerprinter
+	compressor       boshcmd.Compressor
+	digestCalculator bicrypto.DigestCalculator
+	cmdRunner        boshsys.CmdRunner
+	fs               boshsys.FileSystem
 }
 
 func NewArchiveImpl(
@@ -32,7 +32,7 @@ func NewArchiveImpl(
 	releaseDirPath string,
 	fingerprinter Fingerprinter,
 	compressor boshcmd.Compressor,
-	sha1calc bicrypto.SHA1Calculator,
+	digestCalculator bicrypto.DigestCalculator,
 	cmdRunner boshsys.CmdRunner,
 	fs boshsys.FileSystem,
 ) ArchiveImpl {
@@ -42,11 +42,11 @@ func NewArchiveImpl(
 		additionalChunks: additionalChunks,
 		releaseDirPath:   releaseDirPath,
 
-		fingerprinter: fingerprinter,
-		compressor:    compressor,
-		sha1calc:      sha1calc,
-		cmdRunner:     cmdRunner,
-		fs:            fs,
+		fingerprinter:    fingerprinter,
+		compressor:       compressor,
+		digestCalculator: digestCalculator,
+		cmdRunner:        cmdRunner,
+		fs:               fs,
 	}
 }
 
@@ -96,7 +96,8 @@ func (a ArchiveImpl) Build(expectedFp string) (string, string, error) {
 		return "", "", bosherr.WrapError(err, "Compressing staging directory")
 	}
 
-	archiveSHA1, err := a.sha1calc.Calculate(archivePath)
+	//generation of digest string
+	archiveSHA1, err := a.digestCalculator.Calculate(archivePath)
 	if err != nil {
 		_ = a.compressor.CleanUp(archivePath)
 		return "", "", bosherr.WrapError(err, "Calculating archive SHA1")
