@@ -30,8 +30,8 @@ func NewRenderedJobListCompressor(
 	logger boshlog.Logger,
 ) RenderedJobListCompressor {
 	return &renderedJobListCompressor{
-		fs:             fs,
-		compressor:     compressor,
+		fs:               fs,
+		compressor:       compressor,
 		digestCalculator: digestCalculator,
 
 		logTag: "renderedJobListCompressor",

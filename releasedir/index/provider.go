@@ -24,10 +24,10 @@ func NewProvider(
 	fs boshsys.FileSystem,
 ) Provider {
 	return Provider{
-		reporter:          reporter,
-		blobstore:         blobstore,
-		digestCalculator:  digestCalculator,
-		fs:                fs,
+		reporter:         reporter,
+		blobstore:        blobstore,
+		digestCalculator: digestCalculator,
+		fs:               fs,
 	}
 }
 

@@ -54,10 +54,10 @@ func NewFSBlobsDir(
 		indexPath: gopath.Join(dirPath, "config", "blobs.yml"),
 		dirPath:   gopath.Join(dirPath, "blobs"),
 
-		reporter:  reporter,
-		blobstore: blobstore,
-		digestCalculator:  digestCalculator,
-		fs:        fs,
+		reporter:         reporter,
+		blobstore:        blobstore,
+		digestCalculator: digestCalculator,
+		fs:               fs,
 	}
 }
 

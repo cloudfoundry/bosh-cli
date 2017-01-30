@@ -167,11 +167,11 @@ already-downloaded.tgz:
 
 				id1, digest1 := blobstore.GetArgsForCall(0)
 				Expect(id1).To(Equal("blob1"))
-				Expect(digest1).To(Equal(boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, "blob1-sha")))
+				Expect(digest1).To(Equal(boshcrypto.MustParseMultipleDigest("blob1-sha")))
 
 				id2, digest2 := blobstore.GetArgsForCall(1)
 				Expect(id2).To(Equal("blob2"))
-				Expect(digest2).To(Equal(boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, "blob2-sha")))
+				Expect(digest2).To(Equal(boshcrypto.MustParseMultipleDigest("blob2-sha")))
 
 				Expect(fs.FileExists("/dir/blobs/dir")).To(BeTrue())
 				Expect(fs.ReadFileString("/dir/blobs/dir/file-in-directory.tgz")).To(Equal("blob1-content"))
