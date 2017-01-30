@@ -17,10 +17,13 @@ class BoshCli < Formula
 
   depends_on :arch => :x86_64
 
+  option "without-gosh", "Don't rename binary to 'gosh'. Useful if the old Ruby CLI is not needed."
+
   def install
-    bin.install "bosh-cli-#{version}-darwin-amd64" => "gosh"
+    binary_name = build.without?("gosh") ? "bosh" : "gosh"
+    bin.install "bosh-cli-#{version}-darwin-amd64" => binary_name
     (bash_completion/"bosh-cli").write <<-completion
-      _gosh() {
+      _#{binary_name}() {
           # All arguments except the first one
           args=("\${COMP_WORDS[@]:1:\$COMP_CWORD}")
           # Only split on newlines
@@ -30,12 +33,12 @@ class BoshCli < Formula
           COMPREPLY=(\$(GO_FLAGS_COMPLETION=1 \${COMP_WORDS[0]} "\${args[@]}"))
           return 0
       }
-      complete -F _gosh gosh
+      complete -F _#{binary_name} #{binary_name}
     completion
   end
 
   test do
-    system "#{bin}/gosh --help"
+    system "#{bin}/#{binary_name} --help"
   end
 end
 EOF
