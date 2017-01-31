@@ -2,6 +2,7 @@ package state
 
 import (
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	"strconv"
 )
 
 type State interface {
@@ -103,9 +104,12 @@ func (s *state) ToApplySpec() bias.ApplySpec {
 	}
 
 	return bias.ApplySpec{
-		Deployment: s.deploymentName,
-		Index:      s.id,
-		Networks:   networkMap,
+		Deployment:       s.deploymentName,
+		NodeID:           strconv.Itoa(s.id),
+		AvailabilityZone: "unknown",
+		Name:             s.name,
+		Index:            s.id,
+		Networks:         networkMap,
 		Job: bias.Job{
 			Name:      s.name,
 			Templates: jobTemplateList,

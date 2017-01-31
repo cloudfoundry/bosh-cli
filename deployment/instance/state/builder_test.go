@@ -120,8 +120,11 @@ var _ = Describe("Builder", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.ToApplySpec()).To(Equal(bias.ApplySpec{
-				Deployment: "fake-deployment-name",
-				Index:      0,
+				Name:             "fake-deployment-job-name",
+				NodeID:           "0",
+				AvailabilityZone: "unknown",
+				Deployment:       "fake-deployment-name",
+				Index:            0,
 				Job: bias.Job{
 					Name:      "fake-deployment-job-name",
 					Templates: []bias.Blob{},
@@ -512,8 +515,11 @@ var _ = Describe("Builder", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.ToApplySpec()).To(Equal(bias.ApplySpec{
-				Deployment: "fake-deployment-name",
-				Index:      0,
+				Name:             "fake-deployment-job-name",
+				NodeID:           "0",
+				AvailabilityZone: "unknown",
+				Deployment:       "fake-deployment-name",
+				Index:            0,
 				Networks: map[string]interface{}{
 					"fake-network-name": map[string]interface{}{
 						"type":    "fake-network-type",

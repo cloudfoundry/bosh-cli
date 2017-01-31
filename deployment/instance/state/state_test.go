@@ -62,8 +62,11 @@ var _ = Describe("State", func() {
 			applySpec := state.ToApplySpec()
 
 			Expect(applySpec).To(Equal(bias.ApplySpec{
-				Deployment: "fake-deployment-name",
-				Index:      0,
+				Name:             "fake-job-name",
+				Deployment:       "fake-deployment-name",
+				Index:            0,
+				NodeID:           "0",
+				AvailabilityZone: "unknown",
 				Networks: map[string]interface{}{
 					"fake-network-name": map[string]interface{}{
 						"ip":   "fake-ip",
