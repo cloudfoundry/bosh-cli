@@ -20,19 +20,19 @@ import (
 
 var _ = Describe("FSBlobsDir", func() {
 	var (
-		fs        *fakesys.FakeFileSystem
-		reporter  *fakereldir.FakeBlobsDirReporter
-		blobstore *fakeblob.FakeDigestBlobstore
-		sha1calc  *fakecrypto.FakeSha1Calculator
-		blobsDir  FSBlobsDir
+		fs               *fakesys.FakeFileSystem
+		reporter         *fakereldir.FakeBlobsDirReporter
+		blobstore        *fakeblob.FakeDigestBlobstore
+		digestCalculator *fakecrypto.FakeDigestCalculator
+		blobsDir         FSBlobsDir
 	)
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		reporter = &fakereldir.FakeBlobsDirReporter{}
 		blobstore = &fakeblob.FakeDigestBlobstore{}
-		sha1calc = fakecrypto.NewFakeSha1Calculator()
-		blobsDir = NewFSBlobsDir("/dir", reporter, blobstore, sha1calc, fs)
+		digestCalculator = fakecrypto.NewFakeDigestCalculator()
+		blobsDir = NewFSBlobsDir("/dir", reporter, blobstore, digestCalculator, fs)
 	})
 
 	Describe("Blobs", func() {
@@ -149,7 +149,7 @@ already-downloaded.tgz:
 					}
 				}
 
-				blobsDir = NewFSBlobsDir("/dir", reporter, blobstore, sha1calc, fs)
+				blobsDir = NewFSBlobsDir("/dir", reporter, blobstore, digestCalculator, fs)
 
 				err := act(4)
 				Expect(err).ToNot(HaveOccurred())
@@ -336,8 +336,8 @@ already-downloaded.tgz:
 
 			fs.ReturnTempFile = fakesys.NewFakeFile("/tmp-file", fs)
 
-			sha1calc.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-				"/tmp-file": fakecrypto.CalculateInput{Sha1: "content-sha1"},
+			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
+				"/tmp-file": fakecrypto.CalculateInput{DigestStr: "content-sha1"},
 			})
 		})
 
@@ -426,7 +426,7 @@ file2.tgz:
 		})
 
 		It("returns error and does not update blobs.yml if calculating sha1 fails", func() {
-			sha1calc.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
+			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
 				"/tmp-file": fakecrypto.CalculateInput{Err: errors.New("fake-err")},
 			})
 

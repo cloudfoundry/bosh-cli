@@ -96,7 +96,7 @@ var _ = Describe("bosh", func() {
 			fakeRegistryUUIDGenerator     *fakeuuid.FakeGenerator
 			fakeRepoUUIDGenerator         *fakeuuid.FakeGenerator
 			fakeAgentIDGenerator          *fakeuuid.FakeGenerator
-			fakeSHA1Calculator            *fakebicrypto.FakeSha1Calculator
+			fakeDigestCalculator          *fakebicrypto.FakeDigestCalculator
 			legacyDeploymentStateMigrator biconfig.LegacyDeploymentStateMigrator
 			deploymentStateService        biconfig.DeploymentStateService
 			vmRepo                        biconfig.VMRepo
@@ -204,8 +204,8 @@ cloud_provider:
 			}
 			updateManifest(context)
 
-			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
-				deploymentManifestPath: {Sha1: "fake-deployment-sha1-1"},
+			fakeDigestCalculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
+				deploymentManifestPath: {DigestStr: "fake-deployment-sha1-1"},
 			})
 		}
 
@@ -215,8 +215,8 @@ cloud_provider:
 			}
 			updateManifest(context)
 
-			fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
-				deploymentManifestPath: {Sha1: "fake-deployment-sha1-2"},
+			fakeDigestCalculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
+				deploymentManifestPath: {DigestStr: "fake-deployment-sha1-2"},
 			})
 		}
 
@@ -697,7 +697,7 @@ cloud_provider:
 
 			fakeAgentIDGenerator = fakeuuid.NewFakeGenerator()
 
-			fakeSHA1Calculator = fakebicrypto.NewFakeSha1Calculator()
+			fakeDigestCalculator = fakebicrypto.NewFakeDigestCalculator()
 
 			mockInstaller = mock_install.NewMockInstaller(mockCtrl)
 			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)

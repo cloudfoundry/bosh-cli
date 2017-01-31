@@ -25,7 +25,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 		errBuffer *bytes.Buffer
 		logger    boshlog.Logger
 
-		fakeSHA1Calculator *fakebicrypto.FakeSha1Calculator
+		fakeSHA1Calculator *fakebicrypto.FakeDigestCalculator
 
 		renderedJobList RenderedJobList
 
@@ -37,7 +37,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 		errBuffer = bytes.NewBufferString("")
 		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer, errBuffer)
 
-		fakeSHA1Calculator = fakebicrypto.NewFakeSha1Calculator()
+		fakeSHA1Calculator = fakebicrypto.NewFakeDigestCalculator()
 
 		renderedJobList = NewRenderedJobList()
 	})
@@ -128,7 +128,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 				fakeCompressor.CompressFilesInDirTarballPath = "fake-archive-path"
 
 				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
-					"fake-archive-path": fakebicrypto.CalculateInput{Sha1: "fake-sha1"},
+					"fake-archive-path": fakebicrypto.CalculateInput{DigestStr: "fake-sha1"},
 				})
 
 				archive, err := renderedJobListCompressor.Compress(renderedJobList)

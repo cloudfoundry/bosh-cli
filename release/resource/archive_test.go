@@ -32,17 +32,17 @@ var _ = Describe("Archive", func() {
 
 	Describe("Fingerprint", func() {
 		var (
-			fingerprinter *fakeres.FakeFingerprinter
-			sha1calc      *fakecrypto.FakeSha1Calculator
-			compressor    *fakecmd.FakeCompressor
-			cmdRunner     *fakesys.FakeCmdRunner
-			fs            *fakesys.FakeFileSystem
+			fingerprinter    *fakeres.FakeFingerprinter
+			digestCalculator *fakecrypto.FakeDigestCalculator
+			compressor       *fakecmd.FakeCompressor
+			cmdRunner        *fakesys.FakeCmdRunner
+			fs               *fakesys.FakeFileSystem
 		)
 
 		BeforeEach(func() {
 			releaseDirPath := "/tmp/release"
 			fingerprinter = &fakeres.FakeFingerprinter{}
-			sha1calc = fakecrypto.NewFakeSha1Calculator()
+			digestCalculator = fakecrypto.NewFakeDigestCalculator()
 			compressor = fakecmd.NewFakeCompressor()
 			cmdRunner = fakesys.NewFakeCmdRunner()
 			fs = fakesys.NewFakeFileSystem()
@@ -53,7 +53,7 @@ var _ = Describe("Archive", func() {
 				releaseDirPath,
 				fingerprinter,
 				compressor,
-				sha1calc,
+				digestCalculator,
 				cmdRunner,
 				fs,
 			)

@@ -2,9 +2,11 @@ package resource
 
 import (
 	"os"
-	gopath "path"
+	"regexp"
 	"sort"
 	"strings"
+
+	gopath "path"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -47,7 +49,15 @@ func (f FingerprinterImpl) Calculate(files []File, additionalChunks []string) (s
 		chunks = append(chunks, strings.Join(sortedAdditionalChunks, ","))
 	}
 
-	return f.digestCalculator.CalculateString(strings.Join(chunks, "")), nil
+	digestStr := f.digestCalculator.CalculateString(strings.Join(chunks, ""))
+	trimmedDigestStr := strings.TrimPrefix(digestStr, "sha256:")
+
+	validID := regexp.MustCompile(`^[0-9A-Za-z]+$`)
+	if !validID.MatchString(trimmedDigestStr) {
+		return "", bosherr.Errorf("Generated fingerprint contains unexpected characters '%s'", trimmedDigestStr)
+	}
+
+	return trimmedDigestStr, nil
 }
 
 // fingerprintPath currently works with:
