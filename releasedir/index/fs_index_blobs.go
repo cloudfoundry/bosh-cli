@@ -35,15 +35,15 @@ func NewFSIndexBlobs(
 	}
 }
 
-// Get gurantees that returned file matches requested SHA1.
-func (c FSIndexBlobs) Get(name string, blobID string, sha1 string) (string, error) {
-	dstPath, err := c.blobPath(sha1)
+// Get gurantees that returned file matches requested digest string.
+func (c FSIndexBlobs) Get(name string, blobID string, digestString string) (string, error) {
+	dstPath, err := c.blobPath(digestString)
 	if err != nil {
 		return "", err
 	}
 
 	if c.fs.FileExists(dstPath) {
-		digest, err := boshcrypto.ParseMultipleDigest(sha1)
+		digest, err := boshcrypto.ParseMultipleDigest(digestString)
 		if err != nil {
 			return "", err
 		}
@@ -58,15 +58,19 @@ func (c FSIndexBlobs) Get(name string, blobID string, sha1 string) (string, erro
 	}
 
 	if c.blobstore != nil && len(blobID) > 0 {
-		desc := fmt.Sprintf("sha1=%s", sha1)
+		desc := fmt.Sprintf("sha1=%s", digestString)
+
+		digest, err := boshcrypto.ParseMultipleDigest(digestString)
+		if err != nil {
+			return "", bosherr.WrapErrorf(err, "Downloading blob '%s' with digest '%s'", blobID, digestString)
+		}
 
 		c.reporter.IndexEntryDownloadStarted(name, desc)
 
-		// SHA1 expected to be checked via blobstore
-		path, err := c.blobstore.Get(blobID, boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, sha1))
+		path, err := c.blobstore.Get(blobID, digest)
 		if err != nil {
 			c.reporter.IndexEntryDownloadFinished(name, desc, err)
-			return "", bosherr.WrapErrorf(err, "Downloading blob '%s' with SHA1 '%s'", blobID, sha1)
+			return "", bosherr.WrapErrorf(err, "Downloading blob '%s' with digest string '%s'", blobID, digestString)
 		}
 
 		err = boshfu.NewFileMover(c.fs).Move(path, dstPath)
@@ -81,10 +85,10 @@ func (c FSIndexBlobs) Get(name string, blobID string, sha1 string) (string, erro
 	}
 
 	if len(blobID) == 0 {
-		return "", bosherr.Errorf("Cannot find blob named '%s' with SHA1 '%s'", name, sha1)
+		return "", bosherr.Errorf("Cannot find blob named '%s' with SHA1 '%s'", name, digestString)
 	}
 
-	return "", bosherr.Errorf("Cannot find blob '%s' with SHA1 '%s'", blobID, sha1)
+	return "", bosherr.Errorf("Cannot find blob '%s' with SHA1 '%s'", blobID, digestString)
 }
 
 // Add adds file to cache and blobstore but does not guarantee

@@ -6,6 +6,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/installation/blobextract"
 	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -70,6 +71,20 @@ var _ = Describe("Extractor", func() {
 				err := extractor.Extract(blobID, blobSHA1, targetDir)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fs.FileExists(targetDir)).To(BeTrue())
+			})
+
+			It("gets the blob out of the blobstore with a parsed digest object", func() {
+				err := extractor.Extract(blobID, "sha-1-digest;sha256:sha-256-digest", targetDir)
+				actualBlobID, actualDigest := blobstore.GetArgsForCall(0)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(actualBlobID).To(Equal(blobID))
+				Expect(actualDigest).To(Equal(boshcrypto.MustParseMultipleDigest("sha-1-digest;sha256:sha-256-digest")))
+			})
+
+			It("returns error when parsing multidigest string fails", func() {
+				err := extractor.Extract(blobID, "", targetDir)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Parsing multiple digest string:"))
 			})
 
 			It("decompresses the blob into the target dir", func() {

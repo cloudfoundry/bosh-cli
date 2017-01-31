@@ -17,6 +17,7 @@ type BoshOpts struct {
 
 	EnvironmentOpt string    `long:"environment" short:"e" description:"Director environment name or URL" env:"BOSH_ENVIRONMENT"`
 	CACertOpt      CACertArg `long:"ca-cert"               description:"Director CA certificate path or value" env:"BOSH_CA_CERT"`
+	Sha2           bool      `long:"sha2"                  description:"Use sha256 checksums. Requires recent director and stemcells."`
 
 	// Hidden
 	UsernameOpt string `long:"user" hidden:"true" env:"BOSH_USER"`
@@ -777,7 +778,6 @@ type CreateReleaseOpts struct {
 	Final   bool   `long:"final"   description:"Make it a final release"`
 	Tarball string `long:"tarball" description:"Create release tarball at path (e.g. /tmp/release.tgz)"`
 	Force   bool   `long:"force"   description:"Ignore Git dirty state check"`
-	Sha2    bool   `long:"sha2"    description:"Use sha256 checksums. Requires recent director and stemcells."`
 
 	cmd
 }

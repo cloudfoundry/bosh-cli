@@ -13,7 +13,6 @@ import (
 	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	boshuit "github.com/cloudfoundry/bosh-cli/ui/task"
-	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 type Cmd struct {
@@ -45,6 +44,10 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	c.configureUI()
 	c.configureFS()
+
+	if c.BoshOpts.Sha2 {
+		c.deps = c.deps.WithSha2CheckSumming()
+	}
 
 	deps := c.deps
 
@@ -129,7 +132,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewReleasesCmd(deps.UI, c.director()).Run()
 
 	case *UploadReleaseOpts:
-		relProv, relDirProv := c.releaseProviders([]boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1})
+		relProv, relDirProv := c.releaseProviders()
 
 		releaseDirFactory := func(dir DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir) {
 			releaseReader := relDirProv.NewReleaseReader(dir.Path)
@@ -306,19 +309,13 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewGeneratePackageCmd(c.releaseDir(opts.Directory)).Run(*opts)
 
 	case *FinalizeReleaseOpts:
-		_, relDirProv := c.releaseProviders([]boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1})
+		_, relDirProv := c.releaseProviders()
 		releaseReader := relDirProv.NewReleaseReader(opts.Directory.Path)
 		releaseDir := relDirProv.NewFSReleaseDir(opts.Directory.Path)
 		return NewFinalizeReleaseCmd(releaseReader, releaseDir, deps.UI).Run(*opts)
 
 	case *CreateReleaseOpts:
-		algos := []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1}
-
-		if opts.Sha2 {
-			algos = append(algos, boshcrypto.DigestAlgorithmSHA256)
-		}
-
-		relProv, relDirProv := c.releaseProviders(algos)
+		relProv, relDirProv := c.releaseProviders()
 
 		releaseDirFactory := func(dir DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir) {
 			releaseReader := relDirProv.NewReleaseReader(dir.Path)
@@ -326,7 +323,7 @@ func (c Cmd) Execute() (cmdErr error) {
 			return releaseReader, releaseDir
 		}
 
-		_, err := NewCreateReleaseCmd(releaseDirFactory, relProv.NewArchiveWriter(), c.deps.FS, deps.UI).Run(*opts)
+		_, err := NewCreateReleaseCmd(releaseDirFactory, relProv.NewArchiveWriter(), c.deps.FS, c.deps.UI).Run(*opts)
 		return err
 
 	case *BlobsOpts:
@@ -417,25 +414,23 @@ func (c Cmd) directorAndDeployment() (boshdir.Director, boshdir.Deployment) {
 	return director, deployment
 }
 
-func (c Cmd) releaseProviders(algos []boshcrypto.Algorithm) (boshrel.Provider, boshreldir.Provider) {
+func (c Cmd) releaseProviders() (boshrel.Provider, boshreldir.Provider) {
 	indexReporter := boshui.NewIndexReporter(c.deps.UI)
 	blobsReporter := boshui.NewBlobsReporter(c.deps.UI)
 	releaseIndexReporter := boshui.NewReleaseIndexReporter(c.deps.UI)
 
-	digestCalculator := c.deps.DigestCalc(algos)
-
 	releaseProvider := boshrel.NewProvider(
-		c.deps.CmdRunner, c.deps.Compressor, digestCalculator, c.deps.FS, c.deps.Logger)
+		c.deps.CmdRunner, c.deps.Compressor, c.deps.DigestCalculator, c.deps.FS, c.deps.Logger)
 
 	releaseDirProvider := boshreldir.NewProvider(
 		indexReporter, releaseIndexReporter, blobsReporter, releaseProvider,
-		digestCalculator, c.deps.CmdRunner, c.deps.UUIDGen, c.deps.Time, c.deps.FS, c.deps.Logger)
+		c.deps.DigestCalculator, c.deps.CmdRunner, c.deps.UUIDGen, c.deps.Time, c.deps.FS, c.deps.DigestCreationAlgorithms, c.deps.Logger)
 
 	return releaseProvider, releaseDirProvider
 }
 
 func (c Cmd) releaseManager(director boshdir.Director) ReleaseManager {
-	relProv, relDirProv := c.releaseProviders([]boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1})
+	relProv, relDirProv := c.releaseProviders()
 
 	releaseDirFactory := func(dir DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir) {
 		releaseReader := relDirProv.NewReleaseReader(dir.Path)
@@ -458,12 +453,12 @@ func (c Cmd) releaseManager(director boshdir.Director) ReleaseManager {
 }
 
 func (c Cmd) blobsDir(dir DirOrCWDArg) boshreldir.BlobsDir {
-	_, relDirProv := c.releaseProviders([]boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1})
+	_, relDirProv := c.releaseProviders()
 	return relDirProv.NewFSBlobsDir(dir.Path)
 }
 
 func (c Cmd) releaseDir(dir DirOrCWDArg) boshreldir.ReleaseDir {
-	_, relDirProv := c.releaseProviders([]boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1})
+	_, relDirProv := c.releaseProviders()
 	return relDirProv.NewFSReleaseDir(dir.Path)
 }
 

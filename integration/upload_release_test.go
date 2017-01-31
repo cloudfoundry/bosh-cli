@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo"
@@ -170,8 +169,7 @@ blobstore:
 		}
 
 		{ // Check contents of uploaded release
-			digestCalculator := deps.DigestCalc([]boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1})
-			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, digestCalculator, deps.FS, deps.Logger)
+			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
 			archiveReader := relProvider.NewExtractingArchiveReader()
 
 			release, err := archiveReader.Read(uploadedReleaseFile)

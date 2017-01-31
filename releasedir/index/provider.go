@@ -6,28 +6,24 @@ import (
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 )
 
 type Provider struct {
-	reporter         Reporter
-	blobstore        boshblob.DigestBlobstore
-	digestCalculator bicrypto.DigestCalculator
-	fs               boshsys.FileSystem
+	reporter  Reporter
+	blobstore boshblob.DigestBlobstore
+	fs        boshsys.FileSystem
 }
 
 func NewProvider(
 	reporter Reporter,
 	blobstore boshblob.DigestBlobstore,
-	digestCalculator bicrypto.DigestCalculator,
 	fs boshsys.FileSystem,
 ) Provider {
 	return Provider{
-		reporter:         reporter,
-		blobstore:        blobstore,
-		digestCalculator: digestCalculator,
-		fs:               fs,
+		reporter:  reporter,
+		blobstore: blobstore,
+		fs:        fs,
 	}
 }
 

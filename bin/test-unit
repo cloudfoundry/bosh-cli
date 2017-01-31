@@ -7,7 +7,7 @@ bin=$(dirname $0)
 reformatted_packages="$($bin/go fmt $($bin/go list github.com/cloudfoundry/bosh-cli/... | grep -v /vendor/))"
 
 if [[ $reformatted_packages = *[![:space:]]* ]]; then
-  echo "go fmt reformatted the following packages, please format and run again:"
+  echo "go fmt reformatted the following packages:"
   echo $reformatted_packages
   exit 1
 fi

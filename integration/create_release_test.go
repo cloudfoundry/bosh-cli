@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"strings"
 
-	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo"
@@ -52,7 +51,7 @@ var _ = Describe("create-release command", func() {
 	expectSha256Checksums := func(filePath string) {
 		contents, err := fs.ReadFileString(filePath)
 		Expect(err).ToNot(HaveOccurred())
-		Expect(contents).To(MatchRegexp("sha1: .*;sha256:.*"))
+		Expect(contents).To(MatchRegexp("sha1: sha256:.*"))
 	}
 
 	It("can iterate on a basic release", func() {
@@ -220,8 +219,7 @@ license:
 			tgzFile := filepath.Join(tmpDir, "release-3.tgz")
 
 			execCmd([]string{"create-release", "--dir", tmpDir, "--tarball", tgzFile})
-			digestCalculator := deps.DigestCalc([]boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1})
-			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, digestCalculator, deps.FS, deps.Logger)
+			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
 			archiveReader := relProvider.NewExtractingArchiveReader()
 
 			release, err := archiveReader.Read(tgzFile)

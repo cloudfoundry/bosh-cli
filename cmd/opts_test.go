@@ -112,6 +112,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("Sha2", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Sha2", opts)).To(Equal(
+					`long:"sha2" description:"Use sha256 checksums. Requires recent director and stemcells."`,
+				))
+			})
+		})
+
 		Describe("CACertOpt", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("CACertOpt", opts)).To(Equal(
@@ -2429,14 +2437,6 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Force", opts)).To(Equal(
 					`long:"force" description:"Ignore Git dirty state check"`,
-				))
-			})
-		})
-
-		Describe("Sha2", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Sha2", opts)).To(Equal(
-					`long:"sha2" description:"Use sha256 checksums. Requires recent director and stemcells."`,
 				))
 			})
 		})

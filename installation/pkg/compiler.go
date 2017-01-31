@@ -9,7 +9,6 @@ import (
 	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
 	bistatepkg "github.com/cloudfoundry/bosh-cli/state/pkg"
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
-	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -124,19 +123,14 @@ func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageR
 		}
 	}()
 
-	blobID, multipleDigest, err := c.blobstore.Create(tarball)
+	blobID, digest, err := c.blobstore.Create(tarball)
 	if err != nil {
 		return record, isCompiledPackage, bosherr.WrapError(err, "Creating blob")
 	}
 
-	sha1Digest, err := multipleDigest.DigestFor(boshcrypto.DigestAlgorithmSHA1)
-	if err != nil {
-		return record, isCompiledPackage, bosherr.WrapError(err, "Looking up SHA1 of blob digest")
-	}
-
 	record = bistatepkg.CompiledPackageRecord{
 		BlobID:   blobID,
-		BlobSHA1: sha1Digest.String(),
+		BlobSHA1: digest.String(),
 	}
 
 	err = c.compiledPackageRepo.Save(pkg, record)

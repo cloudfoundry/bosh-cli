@@ -287,19 +287,6 @@ var _ = Describe("PackageCompiler", func() {
 			})
 		})
 
-		Context("when looking up the SHA1 of the created blob fails", func() {
-			JustBeforeEach(func() {
-				blobstore.CreateReturns("blob-id", boshcrypto.MultipleDigest{}, nil)
-			})
-
-			It("returns error", func() {
-				_, _, err := compiler.Compile(pkg)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Looking up SHA1 of blob digest"))
-				Expect(err.Error()).To(ContainSubstring("digest-for-algorithm-not-present"))
-			})
-		})
-
 		Context("when saving to the compiled package repo fails", func() {
 			JustBeforeEach(func() {
 				expectSave.Return(errors.New("fake-error")).Times(1)

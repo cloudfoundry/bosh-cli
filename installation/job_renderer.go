@@ -6,7 +6,6 @@ import (
 	bitemplate "github.com/cloudfoundry/bosh-cli/templatescompiler"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
-	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -111,14 +110,9 @@ func (b *jobRenderer) compressAndUpload(renderedJob bitemplate.RenderedJob) (Ren
 		_ = b.compressor.CleanUp(tarballPath)
 	}()
 
-	blobID, multiDigest, err := b.blobstore.Create(tarballPath)
+	blobID, digest, err := b.blobstore.Create(tarballPath)
 	if err != nil {
 		return RenderedJobRef{}, bosherr.WrapError(err, "Creating blob")
-	}
-
-	sha1Digest, err := multiDigest.DigestFor(boshcrypto.DigestAlgorithmSHA1)
-	if err != nil {
-		return RenderedJobRef{}, bosherr.WrapError(err, "Looking up SHA1 from blob digest")
 	}
 
 	releaseJob := renderedJob.Job()
@@ -127,6 +121,6 @@ func (b *jobRenderer) compressAndUpload(renderedJob bitemplate.RenderedJob) (Ren
 		Name:        releaseJob.Name(),
 		Version:     releaseJob.Fingerprint(),
 		BlobstoreID: blobID,
-		SHA1:        sha1Digest.String(),
+		SHA1:        digest.String(),
 	}, nil
 }

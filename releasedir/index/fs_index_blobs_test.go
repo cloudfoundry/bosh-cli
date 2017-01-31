@@ -142,6 +142,23 @@ var _ = Describe("FSIndexBlobs", func() {
 				Expect(err).To(BeNil())
 			})
 
+			It("gets the blob out of the blobstore with a parsed digest object", func() {
+				blobs.Get("name", "blob-id", "sha256:3b9c358f36f0a31b6ad3e14f309c7cf198ac9246e8316f9ce543d5b19ac02b80")
+
+				actualBlobID, actualDigest := blobstore.GetArgsForCall(0)
+				Expect(actualBlobID).To(Equal("blob-id"))
+				Expect(actualDigest).To(Equal(boshcrypto.MustParseMultipleDigest("sha256:3b9c358f36f0a31b6ad3e14f309c7cf198ac9246e8316f9ce543d5b19ac02b80")))
+				Expect(reporter.IndexEntryDownloadFinishedCallCount()).To(Equal(1))
+			})
+
+			It("returns error if parsing digest string fails", func() {
+				//currently, the only way to cause a digest parse failure is with an empty string
+				_, err := blobs.Get("name", "blob-id", "")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(
+					"No recognizable digest algorithm found. Supported algorithms: sha1, sha256, sha512"))
+			})
+
 			Context("when downloading blob fails", func() {
 				It("returns error", func() {
 					blobstore.GetReturns("", errors.New("fake-err"))
