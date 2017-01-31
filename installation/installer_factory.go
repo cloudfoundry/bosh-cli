@@ -70,6 +70,7 @@ func (f *installerFactory) NewInstaller(target Target) Installer {
 		uuidGenerator:      f.uuidGenerator,
 		releaseJobResolver: f.releaseJobResolver,
 		fs:                 f.fs,
+		digestCreateAlgorithms: f.digestCreateAlgorithms,
 	}
 
 	return NewInstaller(

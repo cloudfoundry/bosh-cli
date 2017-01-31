@@ -15,6 +15,9 @@ type digestVerifiableBlobstore struct {
 }
 
 func NewDigestVerifiableBlobstore(blobstore Blobstore, fs boshsys.FileSystem, createAlgorithms []boshcrypto.Algorithm) DigestBlobstore {
+	if len(createAlgorithms) == 0 {
+		panic("blobstore must be configured with at least one algorithm")
+	}
 	return digestVerifiableBlobstore{
 		blobstore: blobstore,
 		fs: fs,
