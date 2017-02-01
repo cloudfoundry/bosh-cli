@@ -8,6 +8,23 @@ import (
 )
 
 var _ = Describe("ReplaceOp.Apply", func() {
+	It("returns error if replacement value cloning fails", func() {
+		_, err := ReplaceOp{Path: MustNewPointerFromString(""), Value: func() {}}.Apply("a")
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("ReplaceOp cloning value"))
+	})
+
+	It("uses cloned value for replacement", func() {
+		repVal := map[interface{}]interface{}{"a": "b"}
+
+		res, err := ReplaceOp{Path: MustNewPointerFromString(""), Value: repVal}.Apply("a")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(res).To(Equal(repVal))
+
+		res.(map[interface{}]interface{})["c"] = "d"
+		Expect(res).ToNot(Equal(repVal))
+	})
+
 	It("replaces document if path is for the entire document", func() {
 		res, err := ReplaceOp{Path: MustNewPointerFromString(""), Value: "b"}.Apply("a")
 		Expect(err).ToNot(HaveOccurred())
@@ -233,7 +250,7 @@ var _ = Describe("ReplaceOp.Apply", func() {
 				map[interface{}]interface{}{"xyz": "xyz"},
 				map[interface{}]interface{}{
 					"name": "val",
-					"efg": []interface{}{1},
+					"efg":  []interface{}{1},
 				},
 			}))
 		})
