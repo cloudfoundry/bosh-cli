@@ -51,9 +51,11 @@ type BoshOpts struct {
 	LogOut LogOutOpts `command:"log-out"           alias:"logout" description:"Log out"`
 
 	// Tasks
-	Task       TaskOpts       `command:"task"        alias:"t"  description:"Show task status and start tracking its output"`
-	Tasks      TasksOpts      `command:"tasks"       alias:"ts" description:"List running or recent tasks"`
-	CancelTask CancelTaskOpts `command:"cancel-task" alias:"ct" description:"Cancel task at its next checkpoint"`
+	Task         TaskOpts         `command:"task"        alias:"t"  description:"Show task status and start tracking its output"`
+	Tasks        TasksOpts        `command:"tasks"       alias:"ts" description:"List running or recent tasks"`
+	CancelTask   CancelTaskOpts   `command:"cancel-task" alias:"ct" description:"Cancel task at its next checkpoint"`
+	PauseTasks   PauseTasksOpts   `command:"pause-tasks" alias:"pt" description:"Pause all tasks except urgent"`
+	UnpauseTasks UnpauseTasksOpts `command:"unpause-tasks" alias:"ut" description:"Resume paused tasks"`
 
 	// Misc
 	Locks   LocksOpts   `command:"locks"    description:"List current locks"`
@@ -244,6 +246,14 @@ type TasksOpts struct {
 
 type CancelTaskOpts struct {
 	Args TaskArgs `positional-args:"true" required:"true"`
+	cmd
+}
+
+type PauseTasksOpts struct {
+	cmd
+}
+
+type UnpauseTasksOpts struct {
 	cmd
 }
 

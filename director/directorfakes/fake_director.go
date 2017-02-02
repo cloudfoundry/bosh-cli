@@ -309,6 +309,14 @@ type FakeDirector struct {
 	enableResurrectionReturns struct {
 		result1 error
 	}
+	PauseTasksStub        func(bool) error
+	pauseTasksMutex       sync.RWMutex
+	pauseTasksArgsForCall []struct {
+		arg1 bool
+	}
+	pauseTasksReturns struct {
+		result1 error
+	}
 	CleanUpStub        func(bool) error
 	cleanUpMutex       sync.RWMutex
 	cleanUpArgsForCall []struct {
@@ -1538,6 +1546,36 @@ func (fake *FakeDirector) DownloadResourceUncheckedReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDirector) PauseTasks(arg1 bool) error {
+	fake.pauseTasksMutex.Lock()
+	fake.pauseTasksArgsForCall = append(fake.pauseTasksArgsForCall, struct{ arg1 bool }{})
+	fake.recordInvocation("PauseTasks", []interface{}{arg1})
+	fake.pauseTasksMutex.Unlock()
+	if fake.PauseTasksStub != nil {
+		return fake.PauseTasksStub(arg1)
+	} else {
+		return fake.pauseTasksReturns.result1
+	}
+}
+func (fake *FakeDirector) PauseTasksCallCount() int {
+	fake.pauseTasksMutex.RLock()
+	defer fake.pauseTasksMutex.RUnlock()
+	return len(fake.pauseTasksArgsForCall)
+}
+
+func (fake *FakeDirector) PauseTasksArgsForCall(i int) bool {
+	fake.pauseTasksMutex.RLock()
+	defer fake.pauseTasksMutex.RUnlock()
+	return fake.pauseTasksArgsForCall[i].arg1
+}
+
+func (fake *FakeDirector) PauseTasksReturns(result1 error) {
+	fake.PauseTasksStub = nil
+	fake.pauseTasksReturns = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -1615,6 +1653,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.cleanUpMutex.RUnlock()
 	fake.downloadResourceUncheckedMutex.RLock()
 	defer fake.downloadResourceUncheckedMutex.RUnlock()
+	fake.pauseTasksMutex.RLock()
+	defer fake.pauseTasksMutex.RUnlock()
 	return fake.invocations
 }
 

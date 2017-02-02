@@ -340,6 +340,41 @@ var _ = Describe("Director", func() {
 			Expect(tasks[0].ContextID()).To(Equal(contextId))
 		})
 	})
+
+	Describe("Pause/unpause tasks", func() {
+
+		It("pauses all tasks except urgent and returns without an error", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("PUT", "/tasks"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"application/json"},
+					}),
+					ghttp.VerifyBody([]byte(`{"tasks_paused":true}`)),
+				),
+			)
+
+			err := director.PauseTasks(true)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("unpauses all tasks and returns without an error", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("PUT", "/tasks"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"application/json"},
+					}),
+					ghttp.VerifyBody([]byte(`{"tasks_paused":false}`)),
+				),
+			)
+
+			err := director.PauseTasks(false)
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
 })
 
 var _ = Describe("Task", func() {
