@@ -136,7 +136,6 @@ jobs:
             - -c
             - |
               cp compiled-linux/bosh-cli-* docker-assets/bosh2
-              echo -n 0.0.155 > docker-assets/version
               chmod +x docker-assets/bosh2
 
               cat >docker-assets/Dockerfile <<-FILE
