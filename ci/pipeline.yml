@@ -124,11 +124,54 @@ jobs:
           params:
             BOSHIO_BEARER_TOKEN: {{boshio_bearer_token}}
 
+      - task: create-dockerfile
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: {repository: bosh/cli}
+          run:
+            path: /bin/bash
+            args:
+            - -c
+            - |
+              cp compiled-linux/bosh-cli-* docker-assets/bosh2
+              echo -n 0.0.155 > docker-assets/version
+              chmod +x docker-assets/bosh2
+
+              cat >docker-assets/Dockerfile <<-FILE
+              FROM ubuntu:trusty
+
+              RUN locale-gen en_US.UTF-8
+              RUN dpkg-reconfigure locales
+              ENV LANG en_US.UTF-8
+              ENV LC_ALL en_US.UTF-8
+
+              RUN apt-get update && \
+                apt-get install -y \
+                build-essential zlibc zlib1g-dev ruby ruby-dev openssl \
+                libxslt-dev libxml2-dev libssl-dev libreadline6 libreadline6-dev \
+                libyaml-dev libsqlite3-dev sqlite3 && \
+                apt-get clean
+
+              COPY bosh2 /usr/local/bin/bosh2
+              FILE
+          inputs:
+          - name: compiled-linux
+          outputs:
+          - name: docker-assets
+
       - aggregate:
         - {put: release-bucket-linux, params: {file: compiled-linux/bosh-cli-*-linux-amd64}}
         - {put: release-bucket-darwin, params: {file: compiled-darwin/bosh-cli-*-darwin-amd64}}
         - {put: release-bucket-windows, params: {file: compiled-windows/bosh-cli-*-windows-amd64.exe}}
         - {put: bosh-cli-promoted, params: {repository: bosh-cli, tag: version-semver/number, tag_prefix: v}}
+
+        - put: final-docker
+          params:
+            build: docker-assets
+            tag: version-semver/number
+            tag_as_latest: true
 
       - task: update-homebrew-formula
         file: bosh-cli/ci/tasks/update-homebrew-formula.yml
@@ -222,3 +265,11 @@ resources:
       uri: git@github.com:cloudfoundry/homebrew-tap
       branch: master
       private_key: {{cloudfoundry_homebrew_tap_deploy_key}}
+
+  - name: final-docker
+    type: docker-image
+    source:
+      repository: bosh/cli2
+      username: {{docker_username}}
+      password: {{docker_password}}
+      email: foo@bar.com
