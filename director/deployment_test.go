@@ -613,6 +613,7 @@ var _ = Describe("Deployment", func() {
 "deployment_name":"dep",
 "release_name":"rel",
 "release_version":"1",
+"sha2":true,
 "stemcell_os":"os",
 "stemcell_version":"2"
 }`
