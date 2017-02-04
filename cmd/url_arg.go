@@ -19,7 +19,7 @@ func (a URLArg) FilePath() string {
 }
 
 func (a URLArg) IsGit() bool {
-	return strings.HasPrefix(string(a), "git://") || strings.HasPrefix(string(a), "git+")
+	return strings.HasPrefix(string(a), "git://") || strings.HasPrefix(string(a), "git+") || strings.HasPrefix(string(a), "git@")
 }
 
 func (a URLArg) GitRepo() string {
