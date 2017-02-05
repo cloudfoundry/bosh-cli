@@ -86,6 +86,7 @@ type BoshOpts struct {
 
 	// Events
 	Events EventsOpts `command:"events" description:"List events"`
+	Event  EventOpts  `command:"event" description:"Show event details"`
 
 	// Stemcells
 	Stemcells      StemcellsOpts      `command:"stemcells"       alias:"ss" alias:"stems" description:"List stemcells"`
@@ -397,6 +398,16 @@ type EventsOpts struct {
 	ObjectName string `long:"object-id"    description:"Show events with given object ID"`
 
 	cmd
+}
+
+type EventOpts struct {
+	Args EventArgs `positional-args:"true" required:"true"`
+
+	cmd
+}
+
+type EventArgs struct {
+	ID int `positional-arg-name:"ID"`
 }
 
 // Stemcells

@@ -24,6 +24,7 @@ type Director interface {
 	FindTasksByContextId(string) ([]Task, error)
 
 	Events(EventsFilter) ([]Event, error)
+	Event(int) (Event, error)
 
 	Deployments() ([]Deployment, error)
 	FindDeployment(string) (Deployment, error)
