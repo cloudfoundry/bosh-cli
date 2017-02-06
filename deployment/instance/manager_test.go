@@ -338,7 +338,6 @@ var _ = Describe("Manager", func() {
 					RemoteForwardPort: 124,
 				}))
 				Expect(fakeSSHTunnel.Started).To(BeTrue())
-				Expect(fakeSSHTunnel.Stopped).To(BeTrue())
 			})
 
 			Context("when starting the ssh tunnel fails", func() {
@@ -373,7 +372,6 @@ var _ = Describe("Manager", func() {
 				)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeSSHTunnel.Started).To(BeFalse())
-				Expect(fakeSSHTunnel.Stopped).To(BeFalse())
 			})
 		})
 

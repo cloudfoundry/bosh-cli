@@ -483,7 +483,6 @@ var _ = Describe("Instance", func() {
 					RemoteForwardPort: 125,
 				}))
 				Expect(fakeSSHTunnel.Started).To(BeTrue())
-				Expect(fakeSSHTunnel.Stopped).To(BeTrue())
 			})
 
 			It("waits for the vm", func() {
