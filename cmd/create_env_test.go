@@ -54,8 +54,8 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 	fakebirelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest/fakes"
 	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
-	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/fakes"
 	mock_stemcell "github.com/cloudfoundry/bosh-cli/stemcell/mocks"
+	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )

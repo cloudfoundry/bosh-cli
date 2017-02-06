@@ -1,4 +1,4 @@
-package fakes
+package stemcellfakes
 
 type FakeCloudStemcell struct {
 	cid     string

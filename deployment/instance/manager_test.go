@@ -4,9 +4,10 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/deployment/instance"
 
 	"errors"
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"time"
 
 	mock_agentclient "github.com/cloudfoundry/bosh-cli/agentclient/mocks"
 	mock_blobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
@@ -26,7 +27,7 @@ import (
 	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/fakes"
 	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/fakes"
-	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/fakes"
+	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 

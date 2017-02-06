@@ -62,6 +62,8 @@ counterfeiter release/pkg DirReader
 counterfeiter release/pkg Compilable
 counterfeiter release/license DirReader
 
+counterfeiter stemcell ExtractedStemcell
+
 counterfeiter ssh Runner
 counterfeiter ssh SCPRunner
 counterfeiter ssh Session
