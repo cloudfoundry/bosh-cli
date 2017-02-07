@@ -9,6 +9,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"os"
+	"unicode"
 )
 
 type MultipleDigest struct {
@@ -54,7 +55,7 @@ func NewMultipleDigestFromPath(filePath string, fs boshsys.FileSystem, algos []A
 func NewMultipleDigest(stream io.ReadSeeker, algos []Algorithm) (MultipleDigest, error) {
 	if len(algos) == 0 {
 		return MultipleDigest{}, errors.New("must provide at least one algorithm")
- 	}
+	}
 
 	digests := []Digest{}
 	for _, algo := range algos {
@@ -71,7 +72,7 @@ func NewMultipleDigest(stream io.ReadSeeker, algos []Algorithm) (MultipleDigest,
 
 func (m MultipleDigest) Algorithm() Algorithm { return m.strongestDigest().Algorithm() }
 
-func (m MultipleDigest) String() string       {
+func (m MultipleDigest) String() string {
 	var result []string
 
 	for _, digest := range m.digests {
@@ -139,7 +140,7 @@ func (m MultipleDigest) strongestDigest() Digest {
 	return m.digests[0]
 }
 
-func (m *MultipleDigest) DigestFor(algo Algorithm) (Digest, error){
+func (m *MultipleDigest) DigestFor(algo Algorithm) (Digest, error) {
 	for _, digest := range m.digests {
 		algoName := digest.Algorithm().Name()
 		if algoName == algo.Name() {
@@ -185,22 +186,36 @@ func (m MultipleDigest) parseMultipleDigestString(multipleDigest string) (Multip
 		parsedDigest, err := m.parseDigestString(digest)
 		if err == nil {
 			digests = append(digests, parsedDigest)
+		} else if _, ok := err.(emptyDigestError); !ok {
+			return MultipleDigest{}, err
 		}
 	}
 
 	if len(digests) == 0 {
-		return MultipleDigest{}, errors.New("No recognizable digest algorithm found. Supported algorithms: sha1, sha256, sha512")
+		return MultipleDigest{}, errors.New("No digest algorithm found. Supported algorithms: sha1, sha256, sha512")
 	}
 
 	return MultipleDigest{digests: digests}, nil
 }
 
+type emptyDigestError struct{}
+
+func (e emptyDigestError) Error() string {
+	return "Empty digest parsed from digest string"
+}
+
 func (MultipleDigest) parseDigestString(digest string) (Digest, error) {
 	if len(digest) == 0 {
-		return nil, errors.New("Can not parse empty string.")
+		return nil, emptyDigestError{}
 	}
 
 	pieces := strings.SplitN(digest, ":", 2)
+
+	for _, piece := range pieces {
+		if !isStringAlphanumeric(piece) {
+			return nil, errors.New("Unable to parse digest string. Digest and algorithm key can only contain alpha-numeric characters.")
+		}
+	}
 
 	if len(pieces) == 1 {
 		// historically digests were only sha1 and did not include a prefix.
@@ -218,4 +233,21 @@ func (MultipleDigest) parseDigestString(digest string) (Digest, error) {
 	default:
 		return NewDigest(NewUnknownAlgorithm(pieces[0]), pieces[1]), nil
 	}
+}
+
+func isStringAlphanumeric(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+
+	for _, runes := range s {
+		if !isAlphanumeric(runes) {
+			return false
+		}
+	}
+	return true
+}
+
+func isAlphanumeric(r rune) bool {
+	return unicode.IsLetter(r) || unicode.IsDigit(r)
 }

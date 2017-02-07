@@ -117,13 +117,13 @@ var _ = Describe("Provider", func() {
 
 					Context("when sha1 does not match", func() {
 						BeforeEach(func() {
-							source = newFakeSource("http://fake-url", "expected-sha-1", "fake-description")
+							source = newFakeSource("http://fake-url", "expectedsha1", "fake-description")
 						})
 
 						It("returns an error", func() {
 							_, err := provider.Get(source, fakeStage)
 							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("Failed to download from 'http://fake-url': Verifying digest for downloaded file: Expected stream to have digest 'expected-sha-1' but was 'da39a3ee5e6b4b0d3255bfef95601890afd80709'"))
+							Expect(err.Error()).To(ContainSubstring("Failed to download from 'http://fake-url': Verifying digest for downloaded file: Expected stream to have digest 'expectedsha1' but was 'da39a3ee5e6b4b0d3255bfef95601890afd80709'"))
 						})
 
 						It("retries downloading up to 3 times", func() {

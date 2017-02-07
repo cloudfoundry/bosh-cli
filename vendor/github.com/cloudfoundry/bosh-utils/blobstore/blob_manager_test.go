@@ -99,7 +99,7 @@ var _ = Describe("Blob Manager", func() {
 
 		BeforeEach(func() {
 			blobId = "smurf-24"
-			correctCheckSum :="f2b1b7be7897082d082773a1d1db5a01e8d21f5c"
+			correctCheckSum := "f2b1b7be7897082d082773a1d1db5a01e8d21f5c"
 			sampleDigest = boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, correctCheckSum)
 		})
 

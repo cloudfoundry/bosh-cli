@@ -51,14 +51,14 @@ var _ = Describe("FSIndexBlobs", func() {
 				})
 
 				It("returns error if cannot check local copy's sha1", func() {
-					fs.WriteFileString("/dir/sub-dir/bad-sha-1", "file")
+					fs.WriteFileString("/dir/sub-dir/badsha1", "file")
 
-					fs.WriteFileString("/dir/sub-dir/bad-sha-1", "file")
+					fs.WriteFileString("/dir/sub-dir/badsha1", "file")
 
-					_, err := blobs.Get("name", "blob-id", "bad-sha-1")
+					_, err := blobs.Get("name", "blob-id", "badsha1")
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring(
-						"Local copy ('/dir/sub-dir/bad-sha-1') of blob 'blob-id' digest verification error: Expected stream to have digest 'bad-sha-1' but was '971c419dd609331343dee105fffd0f4608dc0bf2'"))
+						"Local copy ('/dir/sub-dir/badsha1') of blob 'blob-id' digest verification error: Expected stream to have digest 'badsha1' but was '971c419dd609331343dee105fffd0f4608dc0bf2'"))
 				})
 
 				It("expands directory path", func() {
@@ -156,7 +156,7 @@ var _ = Describe("FSIndexBlobs", func() {
 				_, err := blobs.Get("name", "blob-id", "")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(
-					"No recognizable digest algorithm found. Supported algorithms: sha1, sha256, sha512"))
+					"No digest algorithm found. Supported algorithms: sha1, sha256, sha512"))
 			})
 
 			Context("when downloading blob fails", func() {

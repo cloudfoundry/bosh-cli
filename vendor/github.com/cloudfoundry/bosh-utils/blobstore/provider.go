@@ -64,7 +64,7 @@ func (p Provider) Get(storeType string, options map[string]interface{}) (DigestB
 		)
 	}
 
-	createAlgos := []boshcrypto.Algorithm{ boshcrypto.DigestAlgorithmSHA1 }
+	createAlgos := []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1}
 	verifiableBlobstore := NewDigestVerifiableBlobstore(blobstore, p.fs, createAlgos)
 	digestBlobstore := NewRetryableBlobstore(verifiableBlobstore, 3, p.logger)
 

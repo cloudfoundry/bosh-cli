@@ -7,10 +7,9 @@ import (
 	"errors"
 	"regexp"
 
-	"net/url"
-
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"net/url"
 )
 
 type HTTPClient interface {

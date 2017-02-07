@@ -61,7 +61,7 @@ var _ = Describe("PackageCompiler", func() {
 		fakeExtractor = &fakeblobextract.FakeExtractor{}
 
 		blobstore = &fakeblobstore.FakeDigestBlobstore{}
-		digest := boshcrypto.MustParseMultipleDigest("fake-fingerprint")
+		digest := boshcrypto.MustParseMultipleDigest("fakefingerprint")
 
 		blobstore.CreateReturns("fake-blob-id", digest, nil)
 
@@ -123,7 +123,7 @@ var _ = Describe("PackageCompiler", func() {
 
 			record := bistatepkg.CompiledPackageRecord{
 				BlobID:   "fake-blob-id",
-				BlobSHA1: "fake-fingerprint",
+				BlobSHA1: "fakefingerprint",
 			}
 			expectSave = mockCompiledPackageRepo.EXPECT().Save(pkg, record).AnyTimes()
 		})
@@ -131,7 +131,7 @@ var _ = Describe("PackageCompiler", func() {
 		Context("when the compiled package repo already has the package", func() {
 			JustBeforeEach(func() {
 				compiledPkgRecord := bistatepkg.CompiledPackageRecord{
-					BlobSHA1: "fake-fingerprint",
+					BlobSHA1: "fakefingerprint",
 				}
 				expectFind.Return(compiledPkgRecord, true, nil).Times(1)
 			})
@@ -209,7 +209,7 @@ var _ = Describe("PackageCompiler", func() {
 
 			Expect(record).To(Equal(bistatepkg.CompiledPackageRecord{
 				BlobID:   "fake-blob-id",
-				BlobSHA1: "fake-fingerprint",
+				BlobSHA1: "fakefingerprint",
 			}))
 		})
 

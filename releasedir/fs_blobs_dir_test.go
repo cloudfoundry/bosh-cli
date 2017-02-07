@@ -111,18 +111,18 @@ file2.tgz:
 dir/file-in-directory.tgz:
   object_id: blob1
   size: 133
-  sha: blob1-sha
+  sha: blob1sha
 non-uploaded.tgz:
   size: 245
   sha: 345
 file-in-root.tgz:
   object_id: blob2
   size: 245
-  sha: blob2-sha
+  sha: blob2sha
 already-downloaded.tgz:
   object_id: blob3
   size: 245
-  sha: blob2-sha
+  sha: blob2sha
 `)
 
 			fs.WriteFileString("/blob1-tmp", "blob1-content")
@@ -140,9 +140,9 @@ already-downloaded.tgz:
 			It("downloads all blobs without local blob copy, skipping non-uploaded blobs", func() {
 
 				blobstore.GetStub = func(blobID string, digest boshcrypto.Digest) (fileName string, err error) {
-					if blobID == "blob1" && digest.String() == "blob1-sha" {
+					if blobID == "blob1" && digest.String() == "blob1sha" {
 						return "/blob1-tmp", nil
-					} else if blobID == "blob2" && digest.String() == "blob2-sha" {
+					} else if blobID == "blob2" && digest.String() == "blob2sha" {
 						return "/blob2-tmp", nil
 					} else {
 						panic("Received non-matching blobstore.Get call")
@@ -167,11 +167,11 @@ already-downloaded.tgz:
 
 				id1, digest1 := blobstore.GetArgsForCall(0)
 				Expect(id1).To(Equal("blob1"))
-				Expect(digest1).To(Equal(boshcrypto.MustParseMultipleDigest("blob1-sha")))
+				Expect(digest1).To(Equal(boshcrypto.MustParseMultipleDigest("blob1sha")))
 
 				id2, digest2 := blobstore.GetArgsForCall(1)
 				Expect(id2).To(Equal("blob2"))
-				Expect(digest2).To(Equal(boshcrypto.MustParseMultipleDigest("blob2-sha")))
+				Expect(digest2).To(Equal(boshcrypto.MustParseMultipleDigest("blob2sha")))
 
 				Expect(fs.FileExists("/dir/blobs/dir")).To(BeTrue())
 				Expect(fs.ReadFileString("/dir/blobs/dir/file-in-directory.tgz")).To(Equal("blob1-content"))
@@ -189,13 +189,13 @@ already-downloaded.tgz:
 					Expect(path).To(Equal("dir/file-in-directory.tgz"))
 					Expect(size).To(Equal(int64(133)))
 					Expect(blobID).To(Equal("blob1"))
-					Expect(sha1).To(Equal("blob1-sha"))
+					Expect(sha1).To(Equal("blob1sha"))
 
 					path, size, blobID, sha1 = reporter.BlobDownloadStartedArgsForCall(1)
 					Expect(path).To(Equal("file-in-root.tgz"))
 					Expect(size).To(Equal(int64(245)))
 					Expect(blobID).To(Equal("blob2"))
-					Expect(sha1).To(Equal("blob2-sha"))
+					Expect(sha1).To(Equal("blob2sha"))
 				}
 
 				{
@@ -337,7 +337,7 @@ already-downloaded.tgz:
 			fs.ReturnTempFile = fakesys.NewFakeFile("/tmp-file", fs)
 
 			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-				"/tmp-file": fakecrypto.CalculateInput{DigestStr: "content-sha1"},
+				"/tmp-file": fakecrypto.CalculateInput{DigestStr: "contentsha1"},
 			})
 		})
 
@@ -350,10 +350,10 @@ file2.tgz:
 
 			blob, err := act()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(blob).To(Equal(Blob{Path: "dir/file.tgz", Size: 7, SHA1: "content-sha1"}))
+			Expect(blob).To(Equal(Blob{Path: "dir/file.tgz", Size: 7, SHA1: "contentsha1"}))
 
 			Expect(blobsDir.Blobs()).To(Equal([]Blob{
-				{Path: "dir/file.tgz", Size: 7, SHA1: "content-sha1"},
+				{Path: "dir/file.tgz", Size: 7, SHA1: "contentsha1"},
 				{Path: "file2.tgz", Size: 245, SHA1: "345"},
 			}))
 
@@ -372,10 +372,10 @@ file2.tgz:
 
 			blob, err := act()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(blob).To(Equal(Blob{Path: "dir/file.tgz", Size: 7, SHA1: "content-sha1"}))
+			Expect(blob).To(Equal(Blob{Path: "dir/file.tgz", Size: 7, SHA1: "contentsha1"}))
 
 			Expect(blobsDir.Blobs()).To(Equal([]Blob{
-				{Path: "dir/file.tgz", Size: 7, SHA1: "content-sha1"},
+				{Path: "dir/file.tgz", Size: 7, SHA1: "contentsha1"},
 				{Path: "file2.tgz", Size: 245, SHA1: "345"},
 			}))
 
@@ -557,21 +557,21 @@ dir/file.tgz:
 dir/file-in-directory.tgz:
   object_id: blob1
   size: 133
-  sha: blob1-sha
+  sha: blob1sha
 non-uploaded.tgz:
   size: 243
-  sha: blob2-sha
+  sha: blob2sha
 file-in-root.tgz:
   object_id: blob3
   size: 245
-  sha: blob3-sha
+  sha: blob3sha
 already-downloaded.tgz:
   object_id: blob4
   size: 245
-  sha: blob4-sha
+  sha: blob4sha
 non-uploaded2.tgz:
   size: 245
-  sha: blob5-sha
+  sha: blob5sha
 `)
 
 			times := 0
@@ -592,11 +592,11 @@ non-uploaded2.tgz:
 			Expect(blobstore.CreateArgsForCall(1)).To(Equal("/dir/blobs/non-uploaded2.tgz"))
 
 			Expect(blobsDir.Blobs()).To(Equal([]Blob{
-				{Path: "already-downloaded.tgz", Size: 245, BlobstoreID: "blob4", SHA1: "blob4-sha"},
-				{Path: "dir/file-in-directory.tgz", Size: 133, BlobstoreID: "blob1", SHA1: "blob1-sha"},
-				{Path: "file-in-root.tgz", Size: 245, BlobstoreID: "blob3", SHA1: "blob3-sha"},
-				{Path: "non-uploaded.tgz", Size: 243, BlobstoreID: "blob2", SHA1: "blob2-sha"},
-				{Path: "non-uploaded2.tgz", Size: 245, BlobstoreID: "blob5", SHA1: "blob5-sha"},
+				{Path: "already-downloaded.tgz", Size: 245, BlobstoreID: "blob4", SHA1: "blob4sha"},
+				{Path: "dir/file-in-directory.tgz", Size: 133, BlobstoreID: "blob1", SHA1: "blob1sha"},
+				{Path: "file-in-root.tgz", Size: 245, BlobstoreID: "blob3", SHA1: "blob3sha"},
+				{Path: "non-uploaded.tgz", Size: 243, BlobstoreID: "blob2", SHA1: "blob2sha"},
+				{Path: "non-uploaded2.tgz", Size: 245, BlobstoreID: "blob5", SHA1: "blob5sha"},
 			}))
 		})
 
@@ -610,12 +610,12 @@ non-uploaded2.tgz:
 				path, size, sha1 := reporter.BlobUploadStartedArgsForCall(0)
 				Expect(path).To(Equal("non-uploaded.tgz"))
 				Expect(size).To(Equal(int64(243)))
-				Expect(sha1).To(Equal("blob2-sha"))
+				Expect(sha1).To(Equal("blob2sha"))
 
 				path, size, sha1 = reporter.BlobUploadStartedArgsForCall(1)
 				Expect(path).To(Equal("non-uploaded2.tgz"))
 				Expect(size).To(Equal(int64(245)))
-				Expect(sha1).To(Equal("blob5-sha"))
+				Expect(sha1).To(Equal("blob5sha"))
 			}
 
 			{
@@ -641,11 +641,11 @@ non-uploaded2.tgz:
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 
 			Expect(blobsDir.Blobs()).To(Equal([]Blob{
-				{Path: "already-downloaded.tgz", Size: 245, BlobstoreID: "blob4", SHA1: "blob4-sha"},
-				{Path: "dir/file-in-directory.tgz", Size: 133, BlobstoreID: "blob1", SHA1: "blob1-sha"},
-				{Path: "file-in-root.tgz", Size: 245, BlobstoreID: "blob3", SHA1: "blob3-sha"},
-				{Path: "non-uploaded.tgz", Size: 243, SHA1: "blob2-sha"},
-				{Path: "non-uploaded2.tgz", Size: 245, SHA1: "blob5-sha"},
+				{Path: "already-downloaded.tgz", Size: 245, BlobstoreID: "blob4", SHA1: "blob4sha"},
+				{Path: "dir/file-in-directory.tgz", Size: 133, BlobstoreID: "blob1", SHA1: "blob1sha"},
+				{Path: "file-in-root.tgz", Size: 245, BlobstoreID: "blob3", SHA1: "blob3sha"},
+				{Path: "non-uploaded.tgz", Size: 243, SHA1: "blob2sha"},
+				{Path: "non-uploaded2.tgz", Size: 245, SHA1: "blob5sha"},
 			}))
 		})
 
@@ -662,7 +662,7 @@ non-uploaded2.tgz:
 			path, size, sha1 := reporter.BlobUploadStartedArgsForCall(0)
 			Expect(path).To(Equal("non-uploaded.tgz"))
 			Expect(size).To(Equal(int64(243)))
-			Expect(sha1).To(Equal("blob2-sha"))
+			Expect(sha1).To(Equal("blob2sha"))
 
 			path, blobID, err := reporter.BlobUploadFinishedArgsForCall(0)
 			Expect(path).To(Equal("non-uploaded.tgz"))
@@ -697,11 +697,11 @@ non-uploaded2.tgz:
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 
 			Expect(blobsDir.Blobs()).To(Equal([]Blob{
-				{Path: "already-downloaded.tgz", Size: 245, BlobstoreID: "blob4", SHA1: "blob4-sha"},
-				{Path: "dir/file-in-directory.tgz", Size: 133, BlobstoreID: "blob1", SHA1: "blob1-sha"},
-				{Path: "file-in-root.tgz", Size: 245, BlobstoreID: "blob3", SHA1: "blob3-sha"},
-				{Path: "non-uploaded.tgz", Size: 243, BlobstoreID: "blob2", SHA1: "blob2-sha"},
-				{Path: "non-uploaded2.tgz", Size: 245, SHA1: "blob5-sha"},
+				{Path: "already-downloaded.tgz", Size: 245, BlobstoreID: "blob4", SHA1: "blob4sha"},
+				{Path: "dir/file-in-directory.tgz", Size: 133, BlobstoreID: "blob1", SHA1: "blob1sha"},
+				{Path: "file-in-root.tgz", Size: 245, BlobstoreID: "blob3", SHA1: "blob3sha"},
+				{Path: "non-uploaded.tgz", Size: 243, BlobstoreID: "blob2", SHA1: "blob2sha"},
+				{Path: "non-uploaded2.tgz", Size: 245, SHA1: "blob5sha"},
 			}))
 		})
 	})

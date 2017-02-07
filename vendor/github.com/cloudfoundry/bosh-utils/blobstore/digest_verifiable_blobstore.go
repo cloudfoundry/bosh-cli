@@ -9,18 +9,15 @@ import (
 )
 
 type digestVerifiableBlobstore struct {
-	blobstore Blobstore
-	fs boshsys.FileSystem
+	blobstore        Blobstore
+	fs               boshsys.FileSystem
 	createAlgorithms []boshcrypto.Algorithm
 }
 
 func NewDigestVerifiableBlobstore(blobstore Blobstore, fs boshsys.FileSystem, createAlgorithms []boshcrypto.Algorithm) DigestBlobstore {
-	if len(createAlgorithms) == 0 {
-		panic("blobstore must be configured with at least one algorithm")
-	}
 	return digestVerifiableBlobstore{
-		blobstore: blobstore,
-		fs: fs,
+		blobstore:        blobstore,
+		fs:               fs,
 		createAlgorithms: createAlgorithms,
 	}
 }

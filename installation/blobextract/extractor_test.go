@@ -36,7 +36,7 @@ var _ = Describe("Extractor", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		blobID = "fake-blob-id"
-		blobSHA1 = "fake-sha1"
+		blobSHA1 = "fakesha1"
 		fileName = "tarball.tgz"
 		blobstore.GetReturns(fileName, nil)
 		fakeError = errors.New("Initial error")
@@ -74,11 +74,11 @@ var _ = Describe("Extractor", func() {
 			})
 
 			It("gets the blob out of the blobstore with a parsed digest object", func() {
-				err := extractor.Extract(blobID, "sha-1-digest;sha256:sha-256-digest", targetDir)
+				err := extractor.Extract(blobID, "sha1digest;sha256:sha256digest", targetDir)
 				actualBlobID, actualDigest := blobstore.GetArgsForCall(0)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(actualBlobID).To(Equal(blobID))
-				Expect(actualDigest).To(Equal(boshcrypto.MustParseMultipleDigest("sha-1-digest;sha256:sha-256-digest")))
+				Expect(actualDigest).To(Equal(boshcrypto.MustParseMultipleDigest("sha1digest;sha256:sha256digest")))
 			})
 
 			It("returns error when parsing multidigest string fails", func() {
@@ -127,7 +127,7 @@ var _ = Describe("Extractor", func() {
 						Expect(fs.FileExists(targetDir)).To(BeTrue())
 						err := extractor.Extract(blobID, blobSHA1, targetDir)
 						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(Equal("Decompressing compiled package: BlobID: 'fake-blob-id', BlobSHA1: 'fake-sha1': Initial error"))
+						Expect(err.Error()).To(Equal("Decompressing compiled package: BlobID: 'fake-blob-id', BlobSHA1: 'fakesha1': Initial error"))
 						Expect(fs.FileExists(targetDir)).To(BeTrue())
 					})
 				})
@@ -168,7 +168,7 @@ var _ = Describe("Extractor", func() {
 				It("returns an error", func() {
 					err := extractor.Extract(blobID, blobSHA1, targetDir)
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Decompressing compiled package: BlobID: 'fake-blob-id', BlobSHA1: 'fake-sha1'"))
+					Expect(err.Error()).To(ContainSubstring("Decompressing compiled package: BlobID: 'fake-blob-id', BlobSHA1: 'fakesha1'"))
 				})
 
 				It("cleans up the target dir if it was created by this extractor", func() {

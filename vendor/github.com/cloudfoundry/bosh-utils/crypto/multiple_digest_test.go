@@ -2,16 +2,16 @@ package crypto_test
 
 import (
 	"encoding/json"
-	"strings"
+	. "github.com/cloudfoundry/bosh-utils/crypto"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/cloudfoundry/bosh-utils/crypto"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"os"
-	"io/ioutil"
 	"io"
+	"io/ioutil"
+	"os"
+	"strings"
 
 	"errors"
 	"fmt"
@@ -40,11 +40,34 @@ var _ = Describe("MultipleDigest", func() {
 			Expect(digest.String()).To(Equal("sha1string;sha512:sha512string"))
 			Expect(digest.Algorithm()).To(Equal(DigestAlgorithmSHA512))
 		})
+		It("parses a sha1 json digest string with empty components", func() {
+			digest, err := ParseMultipleDigest(";sha1:string;;")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(digest.String()).To(Equal("string"))
+			Expect(digest.Algorithm()).To(Equal(DigestAlgorithmSHA1))
+		})
 
 		It("returns error if unmarshalling fails", func() {
 			_, err := ParseMultipleDigest("")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("No recognizable digest algorithm found. Supported algorithms: sha1, sha256, sha512"))
+			Expect(err.Error()).To(Equal("No digest algorithm found. Supported algorithms: sha1, sha256, sha512"))
+		})
+		It("returns error if digest contains non-alphanumeric characters", func() {
+			_, err := ParseMultipleDigest("sha1:!")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Unable to parse digest string. Digest and algorithm key can only contain alpha-numeric characters."))
+		})
+
+		It("returns error if algorithm key contains non-alphanumeric characters", func() {
+			_, err := ParseMultipleDigest("d!m!tr3:abc")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Unable to parse digest string. Digest and algorithm key can only contain alpha-numeric characters."))
+		})
+
+		It("returns error if algorithm key is empty", func() {
+			_, err := ParseMultipleDigest(":")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Unable to parse digest string. Digest and algorithm key can only contain alpha-numeric characters."))
 		})
 	})
 
@@ -207,7 +230,7 @@ var _ = Describe("MultipleDigest", func() {
 	})
 
 	Describe("DigestFor", func() {
-		Context("when the algorithm matches one of the digests in the multi", func () {
+		Context("when the algorithm matches one of the digests in the multi", func() {
 			It("returns the digest matching the algorithm", func() {
 				digest1 := NewDigest(DigestAlgorithmSHA1, "sha1digestval")
 				digest2 := NewDigest(DigestAlgorithmSHA256, "sha256digestval")
@@ -223,8 +246,8 @@ var _ = Describe("MultipleDigest", func() {
 			})
 		})
 
-		Context("when the algorithm specified does not match any contained digests", func () {
-			It("returns an error", func () {
+		Context("when the algorithm specified does not match any contained digests", func() {
+			It("returns an error", func() {
 				digest1 := NewDigest(DigestAlgorithmSHA1, "sha1digestval")
 				digest2 := NewDigest(DigestAlgorithmSHA256, "sha256digestval")
 				digests := MustNewMultipleDigest(digest1, digest2)
@@ -293,7 +316,7 @@ var _ = Describe("MultipleDigest", func() {
 	Describe("NewMultipleDigest", func() {
 		var (
 			readSeeker io.ReadSeeker
-			file *os.File
+			file       *os.File
 		)
 
 		BeforeEach(func() {
@@ -439,13 +462,13 @@ var _ = Describe("MultipleDigest", func() {
 		It("returns an error if the JSON does not contain any digests", func() {
 			err := json.Unmarshal([]byte(`""`), &digest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("No recognizable digest algorithm found"))
+			Expect(err.Error()).To(ContainSubstring("No digest algorithm found. Supported algorithms: sha1, sha256, sha512"))
 		})
 
 		It("returns an error if the JSON contains only semicolon", func() {
 			err := json.Unmarshal([]byte(`";"`), &digest)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("No recognizable digest algorithm found"))
+			Expect(err.Error()).To(ContainSubstring("No digest algorithm found. Supported algorithms: sha1, sha256, sha512"))
 		})
 	})
 })

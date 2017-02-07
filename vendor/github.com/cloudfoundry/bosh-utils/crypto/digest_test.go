@@ -4,12 +4,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-utils/crypto"
-	"strings"
-	"io/ioutil"
-	"fmt"
-	"os"
 	"errors"
+	"fmt"
+	. "github.com/cloudfoundry/bosh-utils/crypto"
+	"io/ioutil"
+	"os"
+	"strings"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -71,7 +71,7 @@ var _ = Describe("digestImpl", func() {
 
 	Describe("VerifyFilePath", func() {
 		var (
-			file *os.File
+			file   *os.File
 			digest Digest
 		)
 

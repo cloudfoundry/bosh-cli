@@ -109,7 +109,7 @@ var _ = Describe("JobRenderer", func() {
 		mockJobListRenderer.EXPECT().Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, address).Return(renderedJobList, nil).AnyTimes()
 
 		fakeCompressor.CompressFilesInDirTarballPath = "/fake-rendered-job-tarball-cpi.tgz"
-		multiDigest := boshcrypto.MustParseMultipleDigest("fake-rendered-job-tarball-sha1-cpi")
+		multiDigest := boshcrypto.MustParseMultipleDigest("fakerenderedjobtarballsha1cpi")
 		fakeBlobstore.CreateReturns("fake-rendered-job-tarball-blobstore-id-cpi", multiDigest, nil)
 	})
 
@@ -138,7 +138,7 @@ var _ = Describe("JobRenderer", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(jobs).To(Equal([]installation.RenderedJobRef{
-				installation.NewRenderedJobRef("cpi", "fake-release-job-fingerprint", "fake-rendered-job-tarball-blobstore-id-cpi", "fake-rendered-job-tarball-sha1-cpi"),
+				installation.NewRenderedJobRef("cpi", "fake-release-job-fingerprint", "fake-rendered-job-tarball-blobstore-id-cpi", "fakerenderedjobtarballsha1cpi"),
 			}))
 		})
 

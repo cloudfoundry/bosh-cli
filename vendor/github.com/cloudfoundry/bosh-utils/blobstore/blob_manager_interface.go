@@ -1,8 +1,8 @@
 package blobstore
 
 import (
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"io"
 )
 

@@ -28,10 +28,10 @@ type requestRetryable struct {
 	bodyBytes []byte // buffer request body to memory for retries
 	response  *http.Response
 
-	uuidGenerator       boshuuid.Generator
-	seekableRequestBody io.ReadCloser
-	logger              boshlog.Logger
-	logTag              string
+	uuidGenerator         boshuuid.Generator
+	seekableRequestBody   io.ReadCloser
+	logger                boshlog.Logger
+	logTag                string
 	isResponseAttemptable func(*http.Response, error) (bool, error)
 }
 
@@ -46,12 +46,12 @@ func NewRequestRetryable(
 	}
 
 	return &requestRetryable{
-		request:       request,
-		delegate:      delegate,
-		attempt:       0,
-		uuidGenerator: boshuuid.NewGenerator(),
-		logger:        logger,
-		logTag:        "clientRetryable",
+		request:               request,
+		delegate:              delegate,
+		attempt:               0,
+		uuidGenerator:         boshuuid.NewGenerator(),
+		logger:                logger,
+		logTag:                "clientRetryable",
 		isResponseAttemptable: isResponseAttemptable,
 	}
 }

@@ -24,7 +24,7 @@ var _ = Describe("checksumVerifiableBlobstore", func() {
 		innerBlobstore              *fakeblob.FakeBlobstore
 		checksumVerifiableBlobstore boshblob.DigestBlobstore
 		correctDigest               boshcrypto.Digest
-		fs 			    *fakesys.FakeFileSystem
+		fs                          *fakesys.FakeFileSystem
 	)
 
 	BeforeEach(func() {
@@ -120,7 +120,7 @@ var _ = Describe("checksumVerifiableBlobstore", func() {
 			Expect(multipleDigest.String()).To(Equal("b153af8b5f71cf357896988886a76e9fe59b1e2e;sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"))
 		})
 
-		It("returns error if blob cannot be opened by filesystem", func () {
+		It("returns error if blob cannot be opened by filesystem", func() {
 			fs.OpenFileErr = errors.New("no-way")
 
 			_, _, err := checksumVerifiableBlobstore.Create(fixturePath)
