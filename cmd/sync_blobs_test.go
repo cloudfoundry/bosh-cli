@@ -32,12 +32,12 @@ var _ = Describe("SyncBlobsCmd", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(blobsDir.DownloadBlobsCallCount()).To(Equal(1))
-			Expect(blobsDir.DownloadBlobsArgsForCall(0)).To(Equal(5))
+			Expect(blobsDir.SyncBlobsCallCount()).To(Equal(1))
+			Expect(blobsDir.SyncBlobsArgsForCall(0)).To(Equal(5))
 		})
 
 		It("returns error if download fails", func() {
-			blobsDir.DownloadBlobsReturns(errors.New("fake-err"))
+			blobsDir.SyncBlobsReturns(errors.New("fake-err"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())

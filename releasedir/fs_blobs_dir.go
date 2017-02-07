@@ -104,7 +104,7 @@ func (d FSBlobsDir) Blobs() ([]Blob, error) {
 	return blobs, nil
 }
 
-func (d FSBlobsDir) DownloadBlobs(numOfParallelWorkers int) error {
+func (d FSBlobsDir) SyncBlobs(numOfParallelWorkers int) error {
 	blobs, err := d.Blobs()
 	if err != nil {
 		return err

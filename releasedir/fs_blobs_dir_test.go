@@ -101,9 +101,9 @@ file2.tgz:
 		})
 	})
 
-	Describe("DownloadBlobs", func() {
+	Describe("SyncBlobs", func() {
 		act := func(numOfParallelWorkers int) error {
-			return blobsDir.DownloadBlobs(numOfParallelWorkers)
+			return blobsDir.SyncBlobs(numOfParallelWorkers)
 		}
 
 		BeforeEach(func() {
