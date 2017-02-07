@@ -2,6 +2,7 @@ package releasedir_test
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -371,6 +372,35 @@ bad-sha-blob.tgz:
 				err := act(1)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+		})
+
+		Context("when blobs exist on the file system which are not in the blobs.yml", func() {
+			BeforeEach(func() {
+				fs.SetGlob("/dir/blobs/**/*", []string{"/dir/blobs/already-downloaded.tgz"})
+				fs.WriteFileString("/dir/config/blobs.yml", `---`)
+			})
+
+			It("deletes the blobs in the blob dir", func() {
+				err := act(1)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(fs.FileExists("/dir/blobs/already-downloaded.tgz")).To(BeFalse())
+			})
+
+			It("returns an error when the glob fails", func() {
+				fs.GlobStub = func(string) ([]string, error) {
+					return []string{}, errors.New("failed to glob")
+				}
+				err := act(1)
+				Expect(err).To(MatchError("Syncing blobs: Checking for unknown blobs: failed to glob"))
+			})
+
+			It("returns an error when the unknown blob removal fails", func() {
+				fs.RemoveAllStub = func(filename string) error {
+					return fmt.Errorf("failed to remove %s", filename)
+				}
+				err := act(1)
+				Expect(err).To(MatchError("Syncing blobs: Removing unknown blob: failed to remove /dir/blobs/already-downloaded.tgz"))
 			})
 		})
 	})

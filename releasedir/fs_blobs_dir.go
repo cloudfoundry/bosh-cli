@@ -1,19 +1,19 @@
 package releasedir
 
 import (
-	"io"
-	"os"
-	gopath "path"
-	"sort"
-
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
+	"io"
+	"os"
+	gopath "path"
+	"sort"
 
 	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
+	"path/filepath"
 )
 
 type FSBlobsDir struct {
@@ -110,6 +110,10 @@ func (d FSBlobsDir) SyncBlobs(numOfParallelWorkers int) error {
 		return err
 	}
 
+	if err := d.removeUnknownBlobs(blobs); err != nil {
+		return bosherr.WrapErrorf(err, "Syncing blobs")
+	}
+
 	resultsCh := make(chan error, len(blobs))
 	defer close(resultsCh)
 
@@ -135,6 +139,32 @@ func (d FSBlobsDir) SyncBlobs(numOfParallelWorkers int) error {
 
 	if errs != nil {
 		return bosherr.NewMultiError(errs...)
+	}
+
+	return nil
+}
+
+func (d FSBlobsDir) removeUnknownBlobs(blobs []Blob) error {
+	files, err := d.fs.RecursiveGlob(filepath.Join(d.dirPath, "**/*"))
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Checking for unknown blobs")
+	}
+
+	for _, file := range files {
+		found := false
+
+		for _, blob := range blobs {
+			if file == blob.Path {
+				found = true
+				continue
+			}
+		}
+
+		if !found {
+			if err := d.fs.RemoveAll(file); err != nil {
+				return bosherr.WrapErrorf(err, "Removing unknown blob")
+			}
+		}
 	}
 
 	return nil
