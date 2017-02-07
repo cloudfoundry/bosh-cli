@@ -231,5 +231,15 @@ license:
 			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-src"))).To(Equal("in-src"))
 			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-blobs"))).To(Equal("in-blobs"))
 		}
+
+		{ // removes unknown blobs, keeping known blobs
+			blobPath := filepath.Join(tmpDir, "blobs", "unknown-blob.tgz")
+
+			fs.WriteFileString(blobPath, "i don't belong here")
+
+			execCmd([]string{"create-release", "--dir", tmpDir})
+			Expect(fs.FileExists(blobPath)).To(BeFalse())
+			Expect(fs.FileExists(filepath.Join(tmpDir, "blobs", "in-blobs"))).To(BeTrue())
+		}
 	})
 })

@@ -377,14 +377,15 @@ bad-sha-blob.tgz:
 
 		Context("when blobs exist on the file system which are not in the blobs.yml", func() {
 			BeforeEach(func() {
-				fs.SetGlob("/dir/blobs/**/*", []string{"/dir/blobs/already-downloaded.tgz"})
-				fs.WriteFileString("/dir/config/blobs.yml", `---`)
+				fs.SetGlob("/dir/blobs/**/*", []string{"/dir/blobs/already-downloaded.tgz", "/dir/blobs/extra-blob.tgz"})
+				fs.WriteFileString("/dir/blobs/extra-blob.tgz", "I don't belong here")
 			})
 
-			It("deletes the blobs in the blob dir", func() {
+			It("deletes the blobs in the blob dir, leaving correct blobs", func() {
 				err := act(1)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(fs.FileExists("/dir/blobs/already-downloaded.tgz")).To(BeFalse())
+				Expect(fs.FileExists("/dir/blobs/extra-blob.tgz")).To(BeFalse())
+				Expect(fs.FileExists("/dir/blobs/already-downloaded.tgz")).To(BeTrue())
 			})
 
 			It("returns an error when the glob fails", func() {
@@ -400,7 +401,7 @@ bad-sha-blob.tgz:
 					return fmt.Errorf("failed to remove %s", filename)
 				}
 				err := act(1)
-				Expect(err).To(MatchError("Syncing blobs: Removing unknown blob: failed to remove /dir/blobs/already-downloaded.tgz"))
+				Expect(err).To(MatchError("Syncing blobs: Removing unknown blob: failed to remove /dir/blobs/extra-blob.tgz"))
 			})
 		})
 	})
