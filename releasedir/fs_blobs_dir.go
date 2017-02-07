@@ -253,21 +253,32 @@ func (d FSBlobsDir) UploadBlobs() error {
 	return nil
 }
 
+func (d FSBlobsDir) checkBlobExistence(dstPath string, digest boshcrypto.MultipleDigest) bool {
+	if d.fs.FileExists(dstPath) {
+		if err := digest.VerifyFilePath(dstPath, d.fs); err != nil {
+			return false
+		}
+
+		return true
+	}
+
+	return false
+}
+
 func (d FSBlobsDir) downloadBlob(blob Blob) error {
 	dstPath := gopath.Join(d.dirPath, blob.Path)
 
-	if d.fs.FileExists(dstPath) {
+	digest, err := boshcrypto.ParseMultipleDigest(blob.SHA1)
+	if err != nil {
+		return bosherr.WrapErrorf(
+			err, "Generating multi digest for blob '%s' for path '%s' with digest string '%s'", blob.BlobstoreID, blob.Path, blob.SHA1)
+	}
+
+	if d.checkBlobExistence(dstPath, digest) {
 		return nil
 	}
 
 	d.reporter.BlobDownloadStarted(blob.Path, blob.Size, blob.BlobstoreID, blob.SHA1)
-
-	digest, err := boshcrypto.ParseMultipleDigest(blob.SHA1)
-	if err != nil {
-		d.reporter.BlobDownloadFinished(blob.Path, blob.BlobstoreID, err)
-		return bosherr.WrapErrorf(
-			err, "Generating multi digest for blob '%s' for path '%s' with digest string '%s'", blob.BlobstoreID, blob.Path, blob.SHA1)
-	}
 
 	path, err := d.blobstore.Get(blob.BlobstoreID, digest)
 	if err != nil {
