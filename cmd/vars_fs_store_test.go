@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	fakecfgtypes "config_server/types/fakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakecfgtypes "github.com/cloudfoundry/config-server/types/typesfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 

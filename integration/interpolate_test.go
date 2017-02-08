@@ -104,6 +104,7 @@ variables:
 - name: ca
   type: certificate
   options:
+    is_ca: true
     common_name: ca
 - name: server
   type: certificate
@@ -176,6 +177,7 @@ variables:
 - name: ca
   type: certificate
   options:
+    is_ca: true
     common_name: ca
 - name: server
   type: certificate
@@ -210,6 +212,7 @@ variables:
 - name: ca
   type: certificate
   options:
+    is_ca: true
     common_name: ca
 - name: server
   type: certificate

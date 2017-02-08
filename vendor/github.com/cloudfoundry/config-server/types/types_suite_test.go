@@ -3,10 +3,11 @@ package types_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	"testing"
 )
 
-func TestReg(t *testing.T) {
+func TestServer(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "config_server/types")
+	RunSpecs(t, "Types Suite")
 }

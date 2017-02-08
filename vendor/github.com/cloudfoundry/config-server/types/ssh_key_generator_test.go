@@ -10,10 +10,10 @@ import (
 	"golang.org/x/crypto/ssh"
 	"gopkg.in/yaml.v2"
 
-	. "config_server/types"
+	. "github.com/cloudfoundry/config-server/types"
 )
 
-var _ = FDescribe("SSHKeyGenerator", func() {
+var _ = Describe("SSHKeyGenerator", func() {
 	var generator ValueGenerator
 
 	BeforeEach(func() {
