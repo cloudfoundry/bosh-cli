@@ -9,10 +9,10 @@ import (
 	. "github.com/onsi/gomega"
 	"gopkg.in/yaml.v2"
 
-	. "config_server/types"
+	. "github.com/cloudfoundry/config-server/types"
 )
 
-var _ = FDescribe("RSAKeyGenerator", func() {
+var _ = Describe("RSAKeyGenerator", func() {
 	var generator ValueGenerator
 
 	BeforeEach(func() {

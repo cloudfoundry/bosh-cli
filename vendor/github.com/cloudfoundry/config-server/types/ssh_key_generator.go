@@ -14,7 +14,6 @@ import (
 const (
 	sshKeyGeneratorKeyBits          = 2048
 	sshKeyGeneratorHeaderPrivateKey = "RSA PRIVATE KEY"
-	sshKeyGeneratorHeaderPublicKey  = "PUBLIC KEY"
 )
 
 type SSHKeyGenerator struct{}

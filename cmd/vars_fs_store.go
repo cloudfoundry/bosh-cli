@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	cfgtypes "config_server/types"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	cfgtypes "github.com/cloudfoundry/config-server/types"
 	"gopkg.in/yaml.v2"
 
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
