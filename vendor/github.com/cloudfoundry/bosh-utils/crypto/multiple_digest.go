@@ -249,5 +249,5 @@ func isStringAlphanumeric(s string) bool {
 }
 
 func isAlphanumeric(r rune) bool {
-	return unicode.IsLetter(r) || unicode.IsDigit(r)
+	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || unicode.IsDigit(r)
 }
