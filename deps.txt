@@ -29,4 +29,3 @@ github.com/aws/aws-sdk-go:1a651d9
 gopkg.in/yaml.v2:a5b47d3
 github.com/armon/go-socks5/...:e753329
 golang.org/x/net/proxy:60c41d1
-github.com/cloudfoundry/config-server/types/...:973c15a

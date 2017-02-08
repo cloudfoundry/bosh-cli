@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	cfgtypes "github.com/cloudfoundry/config-server/types"
+	cfgtypes "config_server/types"
 
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 )
