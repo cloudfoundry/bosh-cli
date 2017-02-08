@@ -156,7 +156,7 @@ func (d FSBlobsDir) removeUnknownBlobs(blobs []Blob) error {
 		for _, blob := range blobs {
 			if file == filepath.Join(d.dirPath, blob.Path) {
 				found = true
-				continue
+				break
 			}
 		}
 
