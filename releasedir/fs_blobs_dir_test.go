@@ -2,7 +2,6 @@ package releasedir_test
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -11,10 +10,12 @@ import (
 	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
 	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
+	fakelogger "github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"fmt"
 	. "github.com/cloudfoundry/bosh-cli/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
 )
@@ -26,6 +27,7 @@ var _ = Describe("FSBlobsDir", func() {
 		blobstore        *fakeblob.FakeDigestBlobstore
 		digestCalculator *fakecrypto.FakeDigestCalculator
 		blobsDir         FSBlobsDir
+		logger           *fakelogger.FakeLogger
 	)
 
 	BeforeEach(func() {
@@ -33,7 +35,8 @@ var _ = Describe("FSBlobsDir", func() {
 		reporter = &fakereldir.FakeBlobsDirReporter{}
 		blobstore = &fakeblob.FakeDigestBlobstore{}
 		digestCalculator = fakecrypto.NewFakeDigestCalculator()
-		blobsDir = NewFSBlobsDir("/dir", reporter, blobstore, digestCalculator, fs)
+		logger = &fakelogger.FakeLogger{}
+		blobsDir = NewFSBlobsDir("/dir", reporter, blobstore, digestCalculator, fs, logger)
 	})
 
 	Describe("Blobs", func() {
@@ -149,7 +152,7 @@ already-downloaded.tgz:
 					}
 				}
 
-				blobsDir = NewFSBlobsDir("/dir", reporter, blobstore, digestCalculator, fs)
+				blobsDir = NewFSBlobsDir("/dir", reporter, blobstore, digestCalculator, fs, logger)
 
 				err := act(4)
 				Expect(err).ToNot(HaveOccurred())
@@ -309,7 +312,7 @@ bad-sha-blob.tgz:
 				}
 			})
 
-			It("downloads new copy from blobstore", func() {
+			It("downloads new copy from blobstore and logs an error", func() {
 				err := act(1)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -329,6 +332,10 @@ bad-sha-blob.tgz:
 				Expect(fs.ReadFileString("/dir/blobs/dir/file-in-directory.tgz")).To(Equal("blob1-content"))
 				Expect(fs.ReadFileString("/dir/blobs/file-in-root.tgz")).To(Equal("blob2-content"))
 				Expect(fs.ReadFileString("/dir/blobs/already-downloaded.tgz")).To(Equal("blob3-content"))
+
+				tag, message, _ := logger.ErrorArgsForCall(0)
+				Expect(tag).To(Equal("releasedir.FSBlobsDir"))
+				Expect(message).To(Equal("Incorrect SHA sum for blob at '/dir/blobs/already-downloaded.tgz'. Re-downloading from blobstore."))
 			})
 		})
 
@@ -381,11 +388,15 @@ bad-sha-blob.tgz:
 				fs.WriteFileString("/dir/blobs/extra-blob.tgz", "I don't belong here")
 			})
 
-			It("deletes the blobs in the blob dir, leaving correct blobs", func() {
+			It("deletes the blobs in the blob dir, logging a warning for each file deleted, and leaving correct blobs", func() {
 				err := act(1)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fs.FileExists("/dir/blobs/extra-blob.tgz")).To(BeFalse())
 				Expect(fs.FileExists("/dir/blobs/already-downloaded.tgz")).To(BeTrue())
+
+				tag, message, _ := logger.InfoArgsForCall(0)
+				Expect(tag).To(Equal("releasedir.FSBlobsDir"))
+				Expect(message).To(Equal("Deleting blob at '/dir/blobs/extra-blob.tgz' that is not in the blob index."))
 			})
 
 			It("returns an error when the glob fails", func() {

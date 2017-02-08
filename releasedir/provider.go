@@ -80,7 +80,7 @@ func (p Provider) NewFSReleaseDir(dirPath string) FSReleaseDir {
 }
 
 func (p Provider) NewFSBlobsDir(dirPath string) FSBlobsDir {
-	return NewFSBlobsDir(dirPath, p.blobsReporter, p.newBlobstore(dirPath), p.digestCalculator, p.fs)
+	return NewFSBlobsDir(dirPath, p.blobsReporter, p.newBlobstore(dirPath), p.digestCalculator, p.fs, p.logger)
 }
 
 func (p Provider) NewReleaseReader(dirPath string) boshrel.BuiltReader {

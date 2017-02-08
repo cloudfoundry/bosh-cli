@@ -5,6 +5,7 @@ import (
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
 	"io"
@@ -12,6 +13,7 @@ import (
 	gopath "path"
 	"sort"
 
+	"fmt"
 	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
 	"path/filepath"
 )
@@ -24,6 +26,9 @@ type FSBlobsDir struct {
 	blobstore        boshblob.DigestBlobstore
 	digestCalculator bicrypto.DigestCalculator
 	fs               boshsys.FileSystem
+
+	logTag string
+	logger boshlog.Logger
 }
 
 /*
@@ -49,6 +54,7 @@ func NewFSBlobsDir(
 	blobstore boshblob.DigestBlobstore,
 	digestCalculator bicrypto.DigestCalculator,
 	fs boshsys.FileSystem,
+	logger boshlog.Logger,
 ) FSBlobsDir {
 	return FSBlobsDir{
 		indexPath: gopath.Join(dirPath, "config", "blobs.yml"),
@@ -58,6 +64,9 @@ func NewFSBlobsDir(
 		blobstore:        blobstore,
 		digestCalculator: digestCalculator,
 		fs:               fs,
+
+		logTag: "releasedir.FSBlobsDir",
+		logger: logger,
 	}
 }
 
@@ -161,6 +170,7 @@ func (d FSBlobsDir) removeUnknownBlobs(blobs []Blob) error {
 		}
 
 		if !found {
+			d.logger.Info(d.logTag, fmt.Sprintf("Deleting blob at '%s' that is not in the blob index.", file))
 			if err := d.fs.RemoveAll(file); err != nil {
 				return bosherr.WrapErrorf(err, "Removing unknown blob")
 			}
@@ -286,6 +296,7 @@ func (d FSBlobsDir) UploadBlobs() error {
 func (d FSBlobsDir) checkBlobExistence(dstPath string, digest boshcrypto.MultipleDigest) bool {
 	if d.fs.FileExists(dstPath) {
 		if err := digest.VerifyFilePath(dstPath, d.fs); err != nil {
+			d.logger.Error(d.logTag, fmt.Sprintf("Incorrect SHA sum for blob at '%s'. Re-downloading from blobstore.", dstPath))
 			return false
 		}
 
