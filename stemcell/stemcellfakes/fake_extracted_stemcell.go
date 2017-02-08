@@ -26,6 +26,24 @@ type FakeExtractedStemcell struct {
 	osAndVersionReturns     struct {
 		result1 string
 	}
+	SetNameStub        func(string)
+	setNameMutex       sync.RWMutex
+	setNameArgsForCall []struct {
+		arg1 string
+	}
+	SetVersionStub        func(string)
+	setVersionMutex       sync.RWMutex
+	setVersionArgsForCall []struct {
+		arg1 string
+	}
+	SetCloudPropertiesStub        func(string) error
+	setCloudPropertiesMutex       sync.RWMutex
+	setCloudPropertiesArgsForCall []struct {
+		arg1 string
+	}
+	setCloudPropertiesReturns struct {
+		result1 error
+	}
 	StringStub        func() string
 	stringMutex       sync.RWMutex
 	stringArgsForCall []struct{}
@@ -108,6 +126,86 @@ func (fake *FakeExtractedStemcell) OsAndVersionReturns(result1 string) {
 	}{result1}
 }
 
+func (fake *FakeExtractedStemcell) SetName(arg1 string) {
+	fake.setNameMutex.Lock()
+	fake.setNameArgsForCall = append(fake.setNameArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("SetName", []interface{}{arg1})
+	fake.setNameMutex.Unlock()
+	if fake.SetNameStub != nil {
+		fake.SetNameStub(arg1)
+	}
+}
+
+func (fake *FakeExtractedStemcell) SetNameCallCount() int {
+	fake.setNameMutex.RLock()
+	defer fake.setNameMutex.RUnlock()
+	return len(fake.setNameArgsForCall)
+}
+
+func (fake *FakeExtractedStemcell) SetNameArgsForCall(i int) string {
+	fake.setNameMutex.RLock()
+	defer fake.setNameMutex.RUnlock()
+	return fake.setNameArgsForCall[i].arg1
+}
+
+func (fake *FakeExtractedStemcell) SetVersion(arg1 string) {
+	fake.setVersionMutex.Lock()
+	fake.setVersionArgsForCall = append(fake.setVersionArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("SetVersion", []interface{}{arg1})
+	fake.setVersionMutex.Unlock()
+	if fake.SetVersionStub != nil {
+		fake.SetVersionStub(arg1)
+	}
+}
+
+func (fake *FakeExtractedStemcell) SetVersionCallCount() int {
+	fake.setVersionMutex.RLock()
+	defer fake.setVersionMutex.RUnlock()
+	return len(fake.setVersionArgsForCall)
+}
+
+func (fake *FakeExtractedStemcell) SetVersionArgsForCall(i int) string {
+	fake.setVersionMutex.RLock()
+	defer fake.setVersionMutex.RUnlock()
+	return fake.setVersionArgsForCall[i].arg1
+}
+
+func (fake *FakeExtractedStemcell) SetCloudProperties(arg1 string) error {
+	fake.setCloudPropertiesMutex.Lock()
+	fake.setCloudPropertiesArgsForCall = append(fake.setCloudPropertiesArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("SetCloudProperties", []interface{}{arg1})
+	fake.setCloudPropertiesMutex.Unlock()
+	if fake.SetCloudPropertiesStub != nil {
+		return fake.SetCloudPropertiesStub(arg1)
+	}
+	return fake.setCloudPropertiesReturns.result1
+}
+
+func (fake *FakeExtractedStemcell) SetCloudPropertiesCallCount() int {
+	fake.setCloudPropertiesMutex.RLock()
+	defer fake.setCloudPropertiesMutex.RUnlock()
+	return len(fake.setCloudPropertiesArgsForCall)
+}
+
+func (fake *FakeExtractedStemcell) SetCloudPropertiesArgsForCall(i int) string {
+	fake.setCloudPropertiesMutex.RLock()
+	defer fake.setCloudPropertiesMutex.RUnlock()
+	return fake.setCloudPropertiesArgsForCall[i].arg1
+}
+
+func (fake *FakeExtractedStemcell) SetCloudPropertiesReturns(result1 error) {
+	fake.SetCloudPropertiesStub = nil
+	fake.setCloudPropertiesReturns = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeExtractedStemcell) String() string {
 	fake.stringMutex.Lock()
 	fake.stringArgsForCall = append(fake.stringArgsForCall, struct{}{})
@@ -141,6 +239,12 @@ func (fake *FakeExtractedStemcell) Invocations() map[string][][]interface{} {
 	defer fake.deleteMutex.RUnlock()
 	fake.osAndVersionMutex.RLock()
 	defer fake.osAndVersionMutex.RUnlock()
+	fake.setNameMutex.RLock()
+	defer fake.setNameMutex.RUnlock()
+	fake.setVersionMutex.RLock()
+	defer fake.setVersionMutex.RUnlock()
+	fake.setCloudPropertiesMutex.RLock()
+	defer fake.setCloudPropertiesMutex.RUnlock()
 	fake.stringMutex.RLock()
 	defer fake.stringMutex.RUnlock()
 	return fake.invocations

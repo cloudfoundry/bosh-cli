@@ -5,12 +5,17 @@ import (
 
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+
+	yaml "gopkg.in/yaml.v2"
 )
 
 type ExtractedStemcell interface {
 	Manifest() Manifest
 	Delete() error
 	OsAndVersion() string
+	SetName(string)
+	SetVersion(string)
+	SetCloudProperties(string) error
 	fmt.Stringer
 }
 
@@ -44,6 +49,26 @@ func (s *extractedStemcell) String() string {
 
 func (s *extractedStemcell) OsAndVersion() string {
 	return fmt.Sprintf("%s/%s", s.manifest.OS, s.manifest.Version)
+}
+
+func (s *extractedStemcell) SetName(newName string) {
+	s.manifest.Name = newName
+}
+
+func (s *extractedStemcell) SetVersion(newVersion string) {
+	s.manifest.Version = newVersion
+}
+
+func (s *extractedStemcell) SetCloudProperties(newCloudProperties string) error {
+	newProps := new(biproperty.Map)
+
+	err := yaml.Unmarshal([]byte(newCloudProperties), newProps)
+
+	for key, value := range *newProps {
+		s.manifest.CloudProperties[key] = value
+	}
+
+	return err
 }
 
 type Manifest struct {
