@@ -62,8 +62,9 @@ func (fake *FakeOrphanedDisk) CID() string {
 	fake.cIDMutex.Unlock()
 	if fake.CIDStub != nil {
 		return fake.CIDStub()
+	} else {
+		return fake.cIDReturns.result1
 	}
-	return fake.cIDReturns.result1
 }
 
 func (fake *FakeOrphanedDisk) CIDCallCount() int {
@@ -86,8 +87,9 @@ func (fake *FakeOrphanedDisk) Size() uint64 {
 	fake.sizeMutex.Unlock()
 	if fake.SizeStub != nil {
 		return fake.SizeStub()
+	} else {
+		return fake.sizeReturns.result1
 	}
-	return fake.sizeReturns.result1
 }
 
 func (fake *FakeOrphanedDisk) SizeCallCount() int {
@@ -110,8 +112,9 @@ func (fake *FakeOrphanedDisk) Deployment() director.Deployment {
 	fake.deploymentMutex.Unlock()
 	if fake.DeploymentStub != nil {
 		return fake.DeploymentStub()
+	} else {
+		return fake.deploymentReturns.result1
 	}
-	return fake.deploymentReturns.result1
 }
 
 func (fake *FakeOrphanedDisk) DeploymentCallCount() int {
@@ -134,8 +137,9 @@ func (fake *FakeOrphanedDisk) InstanceName() string {
 	fake.instanceNameMutex.Unlock()
 	if fake.InstanceNameStub != nil {
 		return fake.InstanceNameStub()
+	} else {
+		return fake.instanceNameReturns.result1
 	}
-	return fake.instanceNameReturns.result1
 }
 
 func (fake *FakeOrphanedDisk) InstanceNameCallCount() int {
@@ -158,8 +162,9 @@ func (fake *FakeOrphanedDisk) AZName() string {
 	fake.aZNameMutex.Unlock()
 	if fake.AZNameStub != nil {
 		return fake.AZNameStub()
+	} else {
+		return fake.aZNameReturns.result1
 	}
-	return fake.aZNameReturns.result1
 }
 
 func (fake *FakeOrphanedDisk) AZNameCallCount() int {
@@ -182,8 +187,9 @@ func (fake *FakeOrphanedDisk) OrphanedAt() time.Time {
 	fake.orphanedAtMutex.Unlock()
 	if fake.OrphanedAtStub != nil {
 		return fake.OrphanedAtStub()
+	} else {
+		return fake.orphanedAtReturns.result1
 	}
-	return fake.orphanedAtReturns.result1
 }
 
 func (fake *FakeOrphanedDisk) OrphanedAtCallCount() int {
@@ -206,8 +212,9 @@ func (fake *FakeOrphanedDisk) Delete() error {
 	fake.deleteMutex.Unlock()
 	if fake.DeleteStub != nil {
 		return fake.DeleteStub()
+	} else {
+		return fake.deleteReturns.result1
 	}
-	return fake.deleteReturns.result1
 }
 
 func (fake *FakeOrphanedDisk) DeleteCallCount() int {

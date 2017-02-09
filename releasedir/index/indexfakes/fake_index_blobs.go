@@ -46,8 +46,9 @@ func (fake *FakeIndexBlobs) Get(name string, blobID string, sha1 string) (string
 	fake.getMutex.Unlock()
 	if fake.GetStub != nil {
 		return fake.GetStub(name, blobID, sha1)
+	} else {
+		return fake.getReturns.result1, fake.getReturns.result2
 	}
-	return fake.getReturns.result1, fake.getReturns.result2
 }
 
 func (fake *FakeIndexBlobs) GetCallCount() int {
@@ -81,8 +82,9 @@ func (fake *FakeIndexBlobs) Add(name string, path string, sha1 string) (string, 
 	fake.addMutex.Unlock()
 	if fake.AddStub != nil {
 		return fake.AddStub(name, path, sha1)
+	} else {
+		return fake.addReturns.result1, fake.addReturns.result2, fake.addReturns.result3
 	}
-	return fake.addReturns.result1, fake.addReturns.result2, fake.addReturns.result3
 }
 
 func (fake *FakeIndexBlobs) AddCallCount() int {

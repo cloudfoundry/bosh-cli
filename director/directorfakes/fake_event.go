@@ -92,8 +92,9 @@ func (fake *FakeEvent) ID() string {
 	fake.iDMutex.Unlock()
 	if fake.IDStub != nil {
 		return fake.IDStub()
+	} else {
+		return fake.iDReturns.result1
 	}
-	return fake.iDReturns.result1
 }
 
 func (fake *FakeEvent) IDCallCount() int {
@@ -116,8 +117,9 @@ func (fake *FakeEvent) ParentID() string {
 	fake.parentIDMutex.Unlock()
 	if fake.ParentIDStub != nil {
 		return fake.ParentIDStub()
+	} else {
+		return fake.parentIDReturns.result1
 	}
-	return fake.parentIDReturns.result1
 }
 
 func (fake *FakeEvent) ParentIDCallCount() int {
@@ -140,8 +142,9 @@ func (fake *FakeEvent) Timestamp() time.Time {
 	fake.timestampMutex.Unlock()
 	if fake.TimestampStub != nil {
 		return fake.TimestampStub()
+	} else {
+		return fake.timestampReturns.result1
 	}
-	return fake.timestampReturns.result1
 }
 
 func (fake *FakeEvent) TimestampCallCount() int {
@@ -164,8 +167,9 @@ func (fake *FakeEvent) User() string {
 	fake.userMutex.Unlock()
 	if fake.UserStub != nil {
 		return fake.UserStub()
+	} else {
+		return fake.userReturns.result1
 	}
-	return fake.userReturns.result1
 }
 
 func (fake *FakeEvent) UserCallCount() int {
@@ -188,8 +192,9 @@ func (fake *FakeEvent) Action() string {
 	fake.actionMutex.Unlock()
 	if fake.ActionStub != nil {
 		return fake.ActionStub()
+	} else {
+		return fake.actionReturns.result1
 	}
-	return fake.actionReturns.result1
 }
 
 func (fake *FakeEvent) ActionCallCount() int {
@@ -212,8 +217,9 @@ func (fake *FakeEvent) ObjectType() string {
 	fake.objectTypeMutex.Unlock()
 	if fake.ObjectTypeStub != nil {
 		return fake.ObjectTypeStub()
+	} else {
+		return fake.objectTypeReturns.result1
 	}
-	return fake.objectTypeReturns.result1
 }
 
 func (fake *FakeEvent) ObjectTypeCallCount() int {
@@ -236,8 +242,9 @@ func (fake *FakeEvent) ObjectName() string {
 	fake.objectNameMutex.Unlock()
 	if fake.ObjectNameStub != nil {
 		return fake.ObjectNameStub()
+	} else {
+		return fake.objectNameReturns.result1
 	}
-	return fake.objectNameReturns.result1
 }
 
 func (fake *FakeEvent) ObjectNameCallCount() int {
@@ -260,8 +267,9 @@ func (fake *FakeEvent) TaskID() string {
 	fake.taskIDMutex.Unlock()
 	if fake.TaskIDStub != nil {
 		return fake.TaskIDStub()
+	} else {
+		return fake.taskIDReturns.result1
 	}
-	return fake.taskIDReturns.result1
 }
 
 func (fake *FakeEvent) TaskIDCallCount() int {
@@ -284,8 +292,9 @@ func (fake *FakeEvent) DeploymentName() string {
 	fake.deploymentNameMutex.Unlock()
 	if fake.DeploymentNameStub != nil {
 		return fake.DeploymentNameStub()
+	} else {
+		return fake.deploymentNameReturns.result1
 	}
-	return fake.deploymentNameReturns.result1
 }
 
 func (fake *FakeEvent) DeploymentNameCallCount() int {
@@ -308,8 +317,9 @@ func (fake *FakeEvent) Instance() string {
 	fake.instanceMutex.Unlock()
 	if fake.InstanceStub != nil {
 		return fake.InstanceStub()
+	} else {
+		return fake.instanceReturns.result1
 	}
-	return fake.instanceReturns.result1
 }
 
 func (fake *FakeEvent) InstanceCallCount() int {
@@ -332,8 +342,9 @@ func (fake *FakeEvent) Context() map[string]interface{} {
 	fake.contextMutex.Unlock()
 	if fake.ContextStub != nil {
 		return fake.ContextStub()
+	} else {
+		return fake.contextReturns.result1
 	}
-	return fake.contextReturns.result1
 }
 
 func (fake *FakeEvent) ContextCallCount() int {
@@ -356,8 +367,9 @@ func (fake *FakeEvent) Error() string {
 	fake.errorMutex.Unlock()
 	if fake.ErrorStub != nil {
 		return fake.ErrorStub()
+	} else {
+		return fake.errorReturns.result1
 	}
-	return fake.errorReturns.result1
 }
 
 func (fake *FakeEvent) ErrorCallCount() int {

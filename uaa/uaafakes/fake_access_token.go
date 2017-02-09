@@ -44,8 +44,9 @@ func (fake *FakeAccessToken) Type() string {
 	fake.typeMutex.Unlock()
 	if fake.TypeStub != nil {
 		return fake.TypeStub()
+	} else {
+		return fake.typeReturns.result1
 	}
-	return fake.typeReturns.result1
 }
 
 func (fake *FakeAccessToken) TypeCallCount() int {
@@ -68,8 +69,9 @@ func (fake *FakeAccessToken) Value() string {
 	fake.valueMutex.Unlock()
 	if fake.ValueStub != nil {
 		return fake.ValueStub()
+	} else {
+		return fake.valueReturns.result1
 	}
-	return fake.valueReturns.result1
 }
 
 func (fake *FakeAccessToken) ValueCallCount() int {
@@ -92,8 +94,9 @@ func (fake *FakeAccessToken) RefreshToken() uaa.Token {
 	fake.refreshTokenMutex.Unlock()
 	if fake.RefreshTokenStub != nil {
 		return fake.RefreshTokenStub()
+	} else {
+		return fake.refreshTokenReturns.result1
 	}
-	return fake.refreshTokenReturns.result1
 }
 
 func (fake *FakeAccessToken) RefreshTokenCallCount() int {
@@ -116,8 +119,9 @@ func (fake *FakeAccessToken) Refresh() (uaa.AccessToken, error) {
 	fake.refreshMutex.Unlock()
 	if fake.RefreshStub != nil {
 		return fake.RefreshStub()
+	} else {
+		return fake.refreshReturns.result1, fake.refreshReturns.result2
 	}
-	return fake.refreshReturns.result1, fake.refreshReturns.result2
 }
 
 func (fake *FakeAccessToken) RefreshCallCount() int {

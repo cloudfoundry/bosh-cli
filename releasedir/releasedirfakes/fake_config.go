@@ -42,8 +42,9 @@ func (fake *FakeConfig) Name() (string, error) {
 	fake.nameMutex.Unlock()
 	if fake.NameStub != nil {
 		return fake.NameStub()
+	} else {
+		return fake.nameReturns.result1, fake.nameReturns.result2
 	}
-	return fake.nameReturns.result1, fake.nameReturns.result2
 }
 
 func (fake *FakeConfig) NameCallCount() int {
@@ -69,8 +70,9 @@ func (fake *FakeConfig) SaveName(arg1 string) error {
 	fake.saveNameMutex.Unlock()
 	if fake.SaveNameStub != nil {
 		return fake.SaveNameStub(arg1)
+	} else {
+		return fake.saveNameReturns.result1
 	}
-	return fake.saveNameReturns.result1
 }
 
 func (fake *FakeConfig) SaveNameCallCount() int {
@@ -99,8 +101,9 @@ func (fake *FakeConfig) Blobstore() (string, map[string]interface{}, error) {
 	fake.blobstoreMutex.Unlock()
 	if fake.BlobstoreStub != nil {
 		return fake.BlobstoreStub()
+	} else {
+		return fake.blobstoreReturns.result1, fake.blobstoreReturns.result2, fake.blobstoreReturns.result3
 	}
-	return fake.blobstoreReturns.result1, fake.blobstoreReturns.result2, fake.blobstoreReturns.result3
 }
 
 func (fake *FakeConfig) BlobstoreCallCount() int {

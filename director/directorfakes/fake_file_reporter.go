@@ -42,8 +42,9 @@ func (fake *FakeFileReporter) TrackUpload(arg1 int64, arg2 io.ReadCloser) ui.Rea
 	fake.trackUploadMutex.Unlock()
 	if fake.TrackUploadStub != nil {
 		return fake.TrackUploadStub(arg1, arg2)
+	} else {
+		return fake.trackUploadReturns.result1
 	}
-	return fake.trackUploadReturns.result1
 }
 
 func (fake *FakeFileReporter) TrackUploadCallCount() int {
@@ -75,8 +76,9 @@ func (fake *FakeFileReporter) TrackDownload(arg1 int64, arg2 io.Writer) io.Write
 	fake.trackDownloadMutex.Unlock()
 	if fake.TrackDownloadStub != nil {
 		return fake.TrackDownloadStub(arg1, arg2)
+	} else {
+		return fake.trackDownloadReturns.result1
 	}
-	return fake.trackDownloadReturns.result1
 }
 
 func (fake *FakeFileReporter) TrackDownloadCallCount() int {

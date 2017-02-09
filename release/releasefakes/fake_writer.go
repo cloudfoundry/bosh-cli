@@ -37,8 +37,9 @@ func (fake *FakeWriter) Write(arg1 release.Release, arg2 []string) (string, erro
 	fake.writeMutex.Unlock()
 	if fake.WriteStub != nil {
 		return fake.WriteStub(arg1, arg2)
+	} else {
+		return fake.writeReturns.result1, fake.writeReturns.result2
 	}
-	return fake.writeReturns.result1, fake.writeReturns.result2
 }
 
 func (fake *FakeWriter) WriteCallCount() int {

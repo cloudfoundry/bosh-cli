@@ -31,8 +31,9 @@ func (fake *FakeToken) Type() string {
 	fake.typeMutex.Unlock()
 	if fake.TypeStub != nil {
 		return fake.TypeStub()
+	} else {
+		return fake.typeReturns.result1
 	}
-	return fake.typeReturns.result1
 }
 
 func (fake *FakeToken) TypeCallCount() int {
@@ -55,8 +56,9 @@ func (fake *FakeToken) Value() string {
 	fake.valueMutex.Unlock()
 	if fake.ValueStub != nil {
 		return fake.ValueStub()
+	} else {
+		return fake.valueReturns.result1
 	}
-	return fake.valueReturns.result1
 }
 
 func (fake *FakeToken) ValueCallCount() int {

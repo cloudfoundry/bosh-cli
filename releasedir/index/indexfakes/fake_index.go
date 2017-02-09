@@ -46,8 +46,9 @@ func (fake *FakeIndex) Find(name string, version string) (string, string, error)
 	fake.findMutex.Unlock()
 	if fake.FindStub != nil {
 		return fake.FindStub(name, version)
+	} else {
+		return fake.findReturns.result1, fake.findReturns.result2, fake.findReturns.result3
 	}
-	return fake.findReturns.result1, fake.findReturns.result2, fake.findReturns.result3
 }
 
 func (fake *FakeIndex) FindCallCount() int {
@@ -83,8 +84,9 @@ func (fake *FakeIndex) Add(name string, version string, path string, sha1 string
 	fake.addMutex.Unlock()
 	if fake.AddStub != nil {
 		return fake.AddStub(name, version, path, sha1)
+	} else {
+		return fake.addReturns.result1, fake.addReturns.result2, fake.addReturns.result3
 	}
-	return fake.addReturns.result1, fake.addReturns.result2, fake.addReturns.result3
 }
 
 func (fake *FakeIndex) AddCallCount() int {

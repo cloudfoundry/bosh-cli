@@ -5,24 +5,24 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/cmd"
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	"github.com/cloudfoundry/bosh-cli/release"
 )
 
 type FakeReleaseCreatingCmd struct {
-	RunStub        func(cmd.CreateReleaseOpts) (boshrel.Release, error)
+	RunStub        func(cmd.CreateReleaseOpts) (release.Release, error)
 	runMutex       sync.RWMutex
 	runArgsForCall []struct {
 		arg1 cmd.CreateReleaseOpts
 	}
 	runReturns struct {
-		result1 boshrel.Release
+		result1 release.Release
 		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeReleaseCreatingCmd) Run(arg1 cmd.CreateReleaseOpts) (boshrel.Release, error) {
+func (fake *FakeReleaseCreatingCmd) Run(arg1 cmd.CreateReleaseOpts) (release.Release, error) {
 	fake.runMutex.Lock()
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
 		arg1 cmd.CreateReleaseOpts
@@ -31,8 +31,9 @@ func (fake *FakeReleaseCreatingCmd) Run(arg1 cmd.CreateReleaseOpts) (boshrel.Rel
 	fake.runMutex.Unlock()
 	if fake.RunStub != nil {
 		return fake.RunStub(arg1)
+	} else {
+		return fake.runReturns.result1, fake.runReturns.result2
 	}
-	return fake.runReturns.result1, fake.runReturns.result2
 }
 
 func (fake *FakeReleaseCreatingCmd) RunCallCount() int {
@@ -47,10 +48,10 @@ func (fake *FakeReleaseCreatingCmd) RunArgsForCall(i int) cmd.CreateReleaseOpts 
 	return fake.runArgsForCall[i].arg1
 }
 
-func (fake *FakeReleaseCreatingCmd) RunReturns(result1 boshrel.Release, result2 error) {
+func (fake *FakeReleaseCreatingCmd) RunReturns(result1 release.Release, result2 error) {
 	fake.RunStub = nil
 	fake.runReturns = struct {
-		result1 boshrel.Release
+		result1 release.Release
 		result2 error
 	}{result1, result2}
 }

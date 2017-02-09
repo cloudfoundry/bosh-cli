@@ -30,8 +30,9 @@ func (fake *FakeReader) Read(arg1 string) (release.Release, error) {
 	fake.readMutex.Unlock()
 	if fake.ReadStub != nil {
 		return fake.ReadStub(arg1)
+	} else {
+		return fake.readReturns.result1, fake.readReturns.result2
 	}
-	return fake.readReturns.result1, fake.readReturns.result2
 }
 
 func (fake *FakeReader) ReadCallCount() int {

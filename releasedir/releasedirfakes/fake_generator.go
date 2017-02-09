@@ -37,8 +37,9 @@ func (fake *FakeGenerator) GenerateJob(arg1 string) error {
 	fake.generateJobMutex.Unlock()
 	if fake.GenerateJobStub != nil {
 		return fake.GenerateJobStub(arg1)
+	} else {
+		return fake.generateJobReturns.result1
 	}
-	return fake.generateJobReturns.result1
 }
 
 func (fake *FakeGenerator) GenerateJobCallCount() int {
@@ -69,8 +70,9 @@ func (fake *FakeGenerator) GeneratePackage(arg1 string) error {
 	fake.generatePackageMutex.Unlock()
 	if fake.GeneratePackageStub != nil {
 		return fake.GeneratePackageStub(arg1)
+	} else {
+		return fake.generatePackageReturns.result1
 	}
-	return fake.generatePackageReturns.result1
 }
 
 func (fake *FakeGenerator) GeneratePackageCallCount() int {

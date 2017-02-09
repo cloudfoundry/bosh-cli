@@ -4,15 +4,15 @@ package pkgfakes
 import (
 	"sync"
 
-	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	"github.com/cloudfoundry/bosh-cli/release/manifest"
 	"github.com/cloudfoundry/bosh-cli/release/pkg"
 )
 
 type FakeArchiveReader struct {
-	ReadStub        func(boshman.PackageRef, string) (*pkg.Package, error)
+	ReadStub        func(manifest.PackageRef, string) (*pkg.Package, error)
 	readMutex       sync.RWMutex
 	readArgsForCall []struct {
-		arg1 boshman.PackageRef
+		arg1 manifest.PackageRef
 		arg2 string
 	}
 	readReturns struct {
@@ -23,18 +23,19 @@ type FakeArchiveReader struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeArchiveReader) Read(arg1 boshman.PackageRef, arg2 string) (*pkg.Package, error) {
+func (fake *FakeArchiveReader) Read(arg1 manifest.PackageRef, arg2 string) (*pkg.Package, error) {
 	fake.readMutex.Lock()
 	fake.readArgsForCall = append(fake.readArgsForCall, struct {
-		arg1 boshman.PackageRef
+		arg1 manifest.PackageRef
 		arg2 string
 	}{arg1, arg2})
 	fake.recordInvocation("Read", []interface{}{arg1, arg2})
 	fake.readMutex.Unlock()
 	if fake.ReadStub != nil {
 		return fake.ReadStub(arg1, arg2)
+	} else {
+		return fake.readReturns.result1, fake.readReturns.result2
 	}
-	return fake.readReturns.result1, fake.readReturns.result2
 }
 
 func (fake *FakeArchiveReader) ReadCallCount() int {
@@ -43,7 +44,7 @@ func (fake *FakeArchiveReader) ReadCallCount() int {
 	return len(fake.readArgsForCall)
 }
 
-func (fake *FakeArchiveReader) ReadArgsForCall(i int) (boshman.PackageRef, string) {
+func (fake *FakeArchiveReader) ReadArgsForCall(i int) (manifest.PackageRef, string) {
 	fake.readMutex.RLock()
 	defer fake.readMutex.RUnlock()
 	return fake.readArgsForCall[i].arg1, fake.readArgsForCall[i].arg2

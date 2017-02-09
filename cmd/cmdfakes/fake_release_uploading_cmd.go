@@ -29,8 +29,9 @@ func (fake *FakeReleaseUploadingCmd) Run(arg1 cmd.UploadReleaseOpts) error {
 	fake.runMutex.Unlock()
 	if fake.RunStub != nil {
 		return fake.RunStub(arg1)
+	} else {
+		return fake.runReturns.result1
 	}
-	return fake.runReturns.result1
 }
 
 func (fake *FakeReleaseUploadingCmd) RunCallCount() int {

@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/cmd"
-	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
+	"github.com/cloudfoundry/bosh-cli/cmd/config"
 )
 
 type FakeSessionContext struct {
@@ -21,11 +21,11 @@ type FakeSessionContext struct {
 	cACertReturns     struct {
 		result1 string
 	}
-	CredentialsStub        func() cmdconf.Creds
+	CredentialsStub        func() config.Creds
 	credentialsMutex       sync.RWMutex
 	credentialsArgsForCall []struct{}
 	credentialsReturns     struct {
-		result1 cmdconf.Creds
+		result1 config.Creds
 	}
 	DeploymentStub        func() string
 	deploymentMutex       sync.RWMutex
@@ -44,8 +44,9 @@ func (fake *FakeSessionContext) Environment() string {
 	fake.environmentMutex.Unlock()
 	if fake.EnvironmentStub != nil {
 		return fake.EnvironmentStub()
+	} else {
+		return fake.environmentReturns.result1
 	}
-	return fake.environmentReturns.result1
 }
 
 func (fake *FakeSessionContext) EnvironmentCallCount() int {
@@ -68,8 +69,9 @@ func (fake *FakeSessionContext) CACert() string {
 	fake.cACertMutex.Unlock()
 	if fake.CACertStub != nil {
 		return fake.CACertStub()
+	} else {
+		return fake.cACertReturns.result1
 	}
-	return fake.cACertReturns.result1
 }
 
 func (fake *FakeSessionContext) CACertCallCount() int {
@@ -85,15 +87,16 @@ func (fake *FakeSessionContext) CACertReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeSessionContext) Credentials() cmdconf.Creds {
+func (fake *FakeSessionContext) Credentials() config.Creds {
 	fake.credentialsMutex.Lock()
 	fake.credentialsArgsForCall = append(fake.credentialsArgsForCall, struct{}{})
 	fake.recordInvocation("Credentials", []interface{}{})
 	fake.credentialsMutex.Unlock()
 	if fake.CredentialsStub != nil {
 		return fake.CredentialsStub()
+	} else {
+		return fake.credentialsReturns.result1
 	}
-	return fake.credentialsReturns.result1
 }
 
 func (fake *FakeSessionContext) CredentialsCallCount() int {
@@ -102,10 +105,10 @@ func (fake *FakeSessionContext) CredentialsCallCount() int {
 	return len(fake.credentialsArgsForCall)
 }
 
-func (fake *FakeSessionContext) CredentialsReturns(result1 cmdconf.Creds) {
+func (fake *FakeSessionContext) CredentialsReturns(result1 config.Creds) {
 	fake.CredentialsStub = nil
 	fake.credentialsReturns = struct {
-		result1 cmdconf.Creds
+		result1 config.Creds
 	}{result1}
 }
 
@@ -116,8 +119,9 @@ func (fake *FakeSessionContext) Deployment() string {
 	fake.deploymentMutex.Unlock()
 	if fake.DeploymentStub != nil {
 		return fake.DeploymentStub()
+	} else {
+		return fake.deploymentReturns.result1
 	}
-	return fake.deploymentReturns.result1
 }
 
 func (fake *FakeSessionContext) DeploymentCallCount() int {

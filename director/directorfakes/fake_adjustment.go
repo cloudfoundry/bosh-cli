@@ -40,8 +40,9 @@ func (fake *FakeAdjustment) Adjust(req *http.Request, retried bool) error {
 	fake.adjustMutex.Unlock()
 	if fake.AdjustStub != nil {
 		return fake.AdjustStub(req, retried)
+	} else {
+		return fake.adjustReturns.result1
 	}
-	return fake.adjustReturns.result1
 }
 
 func (fake *FakeAdjustment) AdjustCallCount() int {
@@ -72,8 +73,9 @@ func (fake *FakeAdjustment) NeedsReadjustment(arg1 *http.Response) bool {
 	fake.needsReadjustmentMutex.Unlock()
 	if fake.NeedsReadjustmentStub != nil {
 		return fake.NeedsReadjustmentStub(arg1)
+	} else {
+		return fake.needsReadjustmentReturns.result1
 	}
-	return fake.needsReadjustmentReturns.result1
 }
 
 func (fake *FakeAdjustment) NeedsReadjustmentCallCount() int {

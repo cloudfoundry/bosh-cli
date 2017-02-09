@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/director"
-	semver "github.com/cppforlife/go-semi-semantic/version"
+	"github.com/cppforlife/go-semi-semantic/version"
 )
 
 type FakeRelease struct {
@@ -15,11 +15,11 @@ type FakeRelease struct {
 	nameReturns     struct {
 		result1 string
 	}
-	VersionStub        func() semver.Version
+	VersionStub        func() version.Version
 	versionMutex       sync.RWMutex
 	versionArgsForCall []struct{}
 	versionReturns     struct {
-		result1 semver.Version
+		result1 version.Version
 	}
 	VersionMarkStub        func(mark string) string
 	versionMarkMutex       sync.RWMutex
@@ -70,8 +70,9 @@ func (fake *FakeRelease) Name() string {
 	fake.nameMutex.Unlock()
 	if fake.NameStub != nil {
 		return fake.NameStub()
+	} else {
+		return fake.nameReturns.result1
 	}
-	return fake.nameReturns.result1
 }
 
 func (fake *FakeRelease) NameCallCount() int {
@@ -87,15 +88,16 @@ func (fake *FakeRelease) NameReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeRelease) Version() semver.Version {
+func (fake *FakeRelease) Version() version.Version {
 	fake.versionMutex.Lock()
 	fake.versionArgsForCall = append(fake.versionArgsForCall, struct{}{})
 	fake.recordInvocation("Version", []interface{}{})
 	fake.versionMutex.Unlock()
 	if fake.VersionStub != nil {
 		return fake.VersionStub()
+	} else {
+		return fake.versionReturns.result1
 	}
-	return fake.versionReturns.result1
 }
 
 func (fake *FakeRelease) VersionCallCount() int {
@@ -104,10 +106,10 @@ func (fake *FakeRelease) VersionCallCount() int {
 	return len(fake.versionArgsForCall)
 }
 
-func (fake *FakeRelease) VersionReturns(result1 semver.Version) {
+func (fake *FakeRelease) VersionReturns(result1 version.Version) {
 	fake.VersionStub = nil
 	fake.versionReturns = struct {
-		result1 semver.Version
+		result1 version.Version
 	}{result1}
 }
 
@@ -120,8 +122,9 @@ func (fake *FakeRelease) VersionMark(mark string) string {
 	fake.versionMarkMutex.Unlock()
 	if fake.VersionMarkStub != nil {
 		return fake.VersionMarkStub(mark)
+	} else {
+		return fake.versionMarkReturns.result1
 	}
-	return fake.versionMarkReturns.result1
 }
 
 func (fake *FakeRelease) VersionMarkCallCount() int {
@@ -152,8 +155,9 @@ func (fake *FakeRelease) CommitHashWithMark(mark string) string {
 	fake.commitHashWithMarkMutex.Unlock()
 	if fake.CommitHashWithMarkStub != nil {
 		return fake.CommitHashWithMarkStub(mark)
+	} else {
+		return fake.commitHashWithMarkReturns.result1
 	}
-	return fake.commitHashWithMarkReturns.result1
 }
 
 func (fake *FakeRelease) CommitHashWithMarkCallCount() int {
@@ -182,8 +186,9 @@ func (fake *FakeRelease) Jobs() ([]director.Job, error) {
 	fake.jobsMutex.Unlock()
 	if fake.JobsStub != nil {
 		return fake.JobsStub()
+	} else {
+		return fake.jobsReturns.result1, fake.jobsReturns.result2
 	}
-	return fake.jobsReturns.result1, fake.jobsReturns.result2
 }
 
 func (fake *FakeRelease) JobsCallCount() int {
@@ -207,8 +212,9 @@ func (fake *FakeRelease) Packages() ([]director.Package, error) {
 	fake.packagesMutex.Unlock()
 	if fake.PackagesStub != nil {
 		return fake.PackagesStub()
+	} else {
+		return fake.packagesReturns.result1, fake.packagesReturns.result2
 	}
-	return fake.packagesReturns.result1, fake.packagesReturns.result2
 }
 
 func (fake *FakeRelease) PackagesCallCount() int {
@@ -234,8 +240,9 @@ func (fake *FakeRelease) Delete(force bool) error {
 	fake.deleteMutex.Unlock()
 	if fake.DeleteStub != nil {
 		return fake.DeleteStub(force)
+	} else {
+		return fake.deleteReturns.result1
 	}
-	return fake.deleteReturns.result1
 }
 
 func (fake *FakeRelease) DeleteCallCount() int {

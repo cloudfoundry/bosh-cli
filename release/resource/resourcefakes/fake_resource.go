@@ -60,8 +60,9 @@ func (fake *FakeResource) Name() string {
 	fake.nameMutex.Unlock()
 	if fake.NameStub != nil {
 		return fake.NameStub()
+	} else {
+		return fake.nameReturns.result1
 	}
-	return fake.nameReturns.result1
 }
 
 func (fake *FakeResource) NameCallCount() int {
@@ -84,8 +85,9 @@ func (fake *FakeResource) Fingerprint() string {
 	fake.fingerprintMutex.Unlock()
 	if fake.FingerprintStub != nil {
 		return fake.FingerprintStub()
+	} else {
+		return fake.fingerprintReturns.result1
 	}
-	return fake.fingerprintReturns.result1
 }
 
 func (fake *FakeResource) FingerprintCallCount() int {
@@ -108,8 +110,9 @@ func (fake *FakeResource) ArchivePath() string {
 	fake.archivePathMutex.Unlock()
 	if fake.ArchivePathStub != nil {
 		return fake.ArchivePathStub()
+	} else {
+		return fake.archivePathReturns.result1
 	}
-	return fake.archivePathReturns.result1
 }
 
 func (fake *FakeResource) ArchivePathCallCount() int {
@@ -132,8 +135,9 @@ func (fake *FakeResource) ArchiveSHA1() string {
 	fake.archiveSHA1Mutex.Unlock()
 	if fake.ArchiveSHA1Stub != nil {
 		return fake.ArchiveSHA1Stub()
+	} else {
+		return fake.archiveSHA1Returns.result1
 	}
-	return fake.archiveSHA1Returns.result1
 }
 
 func (fake *FakeResource) ArchiveSHA1CallCount() int {
@@ -159,8 +163,9 @@ func (fake *FakeResource) Build(dev resource.ArchiveIndex, final resource.Archiv
 	fake.buildMutex.Unlock()
 	if fake.BuildStub != nil {
 		return fake.BuildStub(dev, final)
+	} else {
+		return fake.buildReturns.result1
 	}
-	return fake.buildReturns.result1
 }
 
 func (fake *FakeResource) BuildCallCount() int {
@@ -191,8 +196,9 @@ func (fake *FakeResource) Finalize(final resource.ArchiveIndex) error {
 	fake.finalizeMutex.Unlock()
 	if fake.FinalizeStub != nil {
 		return fake.FinalizeStub(final)
+	} else {
+		return fake.finalizeReturns.result1
 	}
-	return fake.finalizeReturns.result1
 }
 
 func (fake *FakeResource) FinalizeCallCount() int {
