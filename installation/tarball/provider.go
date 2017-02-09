@@ -155,8 +155,6 @@ func (p *provider) downloadRetryable(source Source) boshretry.Retryable {
 			return true, bosherr.WrapError(err, "Verifying digest for downloaded file")
 		}
 
-		downloadedFile.Close()
-
 		err = p.cache.Save(downloadedFile.Name(), source)
 		if err != nil {
 			return true, bosherr.WrapError(err, "Saving downloaded file in cache")
