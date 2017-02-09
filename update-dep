@@ -17,7 +17,7 @@ package_path=$(echo ${package_name} | sed 's/\.\.\.$//')
 rm -rf vendor/${package_path}
 mkdir -p vendor/${package_path}
 
-cp -r $GOPATH/src/${package_path}/ vendor/${package_path}
+cp -RP $GOPATH/src/${package_path}/ vendor/${package_path}
 
 pushd $GOPATH/src/${package_path}
 set +e
