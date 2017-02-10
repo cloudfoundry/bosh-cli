@@ -57,7 +57,6 @@ var _ = Describe("NewSSHOpts", func() {
 						"command": "setup",
 						"params": map[string]string{
 							"user":       "user",
-							"password":   "p",
 							"public_key": "pub-key",
 						},
 						"deployment_name": "dep",
@@ -75,7 +74,6 @@ var _ = Describe("NewSSHOpts", func() {
 			slug := NewAllOrInstanceGroupOrInstanceSlug("job", "index")
 			opts := SSHOpts{
 				Username:  "user",
-				Password:  "p",
 				PublicKey: "pub-key",
 			}
 
@@ -132,7 +130,6 @@ var _ = Describe("NewSSHOpts", func() {
 			slug := NewAllOrInstanceGroupOrInstanceSlug("job", "index")
 			opts := SSHOpts{
 				Username:  "user",
-				Password:  "p",
 				PublicKey: "pub-key",
 			}
 
@@ -183,7 +180,6 @@ var _ = Describe("NewSSHOpts", func() {
 						"command": "setup",
 						"params": map[string]string{
 							"user":       "user",
-							"password":   "p",
 							"public_key": "pub-key",
 						},
 						"deployment_name": "dep",
@@ -201,7 +197,6 @@ var _ = Describe("NewSSHOpts", func() {
 			slug := NewAllOrInstanceGroupOrInstanceSlug("", "")
 			opts := SSHOpts{
 				Username:  "user",
-				Password:  "p",
 				PublicKey: "pub-key",
 			}
 
@@ -245,7 +240,6 @@ var _ = Describe("NewSSHOpts", func() {
 			slug := NewAllOrInstanceGroupOrInstanceSlug("job", "index")
 			opts := SSHOpts{
 				Username:  "user",
-				Password:  "p",
 				PublicKey: "pub-key",
 			}
 
@@ -361,7 +355,6 @@ var _ = Describe("NewSSHOpts", func() {
 			slug := NewAllOrInstanceGroupOrInstanceSlug("job", "index")
 			opts := SSHOpts{
 				Username:  "user",
-				Password:  "p",
 				PublicKey: "pub-key",
 			}
 
@@ -392,7 +385,6 @@ var _ = Describe("NewSSHOpts", func() {
 			slug := NewAllOrInstanceGroupOrInstanceSlug("", "")
 			opts := SSHOpts{
 				Username:  "user",
-				Password:  "p",
 				PublicKey: "pub-key",
 			}
 

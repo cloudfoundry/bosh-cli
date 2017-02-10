@@ -15,7 +15,6 @@ import (
 
 type SSHOpts struct {
 	Username  string
-	Password  string
 	PublicKey string
 }
 
@@ -35,7 +34,6 @@ func NewSSHOpts(uuidGen boshuuid.Generator) (SSHOpts, string, error) {
 
 	sshOpts := SSHOpts{
 		Username:  "bosh_" + nameSuffix,
-		Password:  "p",
 		PublicKey: string(pubKey),
 	}
 

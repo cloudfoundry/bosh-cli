@@ -106,7 +106,6 @@ func (c Client) SetUpSSH(deploymentName, jobName, indexOrID string, opts SSHOpts
 	body["command"] = "setup"
 	body["params"] = map[string]string{
 		"user":       opts.Username,
-		"password":   opts.Password,
 		"public_key": opts.PublicKey,
 	}
 
