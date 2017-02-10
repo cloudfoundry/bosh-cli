@@ -384,11 +384,12 @@ bad-sha-blob.tgz:
 
 		Context("when blobs exist on the file system which are not in the blobs.yml", func() {
 			BeforeEach(func() {
-				fs.SetGlob("/dir/blobs/**/*", []string{"/dir/blobs/already-downloaded.tgz", "/dir/blobs/extra-blob.tgz"})
+				fs.SetGlob("/dir/blobs/**/*", []string{"/dir/blobs/dir", "/dir/blobs/already-downloaded.tgz", "/dir/blobs/extra-blob.tgz"})
+				fs.MkdirAll("/dir/blobs/dir", os.ModeDir)
 				fs.WriteFileString("/dir/blobs/extra-blob.tgz", "I don't belong here")
 			})
 
-			It("deletes the blobs in the blob dir, logging a warning for each file deleted, and leaving correct blobs", func() {
+			It("deletes the blobs in the blob dir, logging a warning for each file deleted, and leaving correct blobs and directories", func() {
 				err := act(1)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fs.FileExists("/dir/blobs/extra-blob.tgz")).To(BeFalse())
