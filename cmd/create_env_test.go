@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -72,13 +73,13 @@ var _ = Describe("CreateEnvCmd", func() {
 
 	Describe("Run", func() {
 		var (
-			command        *bicmd.CreateEnvCmd
-			fs             *fakesys.FakeFileSystem
-			stdOut         *gbytes.Buffer
-			stdErr         *gbytes.Buffer
-			userInterface  biui.UI
-			sha1Calculator crypto.SHA1Calculator
-			manifestSHA    string
+			command          *bicmd.CreateEnvCmd
+			fs               *fakesys.FakeFileSystem
+			stdOut           *gbytes.Buffer
+			stdErr           *gbytes.Buffer
+			userInterface    biui.UI
+			digestCalculator crypto.DigestCalculator
+			manifestSHA      string
 
 			mockDeployer              *mock_deployment.MockDeployer
 			mockInstaller             *mock_install.MockInstaller
@@ -202,7 +203,8 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			fakeStage = fakebiui.NewFakeStage()
 
-			sha1Calculator = crypto.NewSha1Calculator(fs)
+			algos := []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1}
+			digestCalculator = crypto.NewDigestCalculator(fs, algos)
 			fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 
 			var err error
@@ -322,7 +324,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 				fakeHTTPClient := fakebihttpclient.NewFakeHTTPClient()
 				tarballCache := bitarball.NewCache("fake-base-path", fs, logger)
-				tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, sha1Calculator, 1, 0, logger)
+				tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, 1, 0, logger)
 
 				cpiInstaller := bicpirel.CpiInstaller{
 					ReleaseManager:   releaseManager,

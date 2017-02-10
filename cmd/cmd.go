@@ -45,6 +45,10 @@ func (c Cmd) Execute() (cmdErr error) {
 	c.configureUI()
 	c.configureFS()
 
+	if c.BoshOpts.Sha2 {
+		c.deps = c.deps.WithSha2CheckSumming()
+	}
+
 	deps := c.deps
 
 	switch opts := c.Opts.(type) {
@@ -171,7 +175,7 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *RunErrandOpts:
 		director, deployment := c.directorAndDeployment()
-		downloader := NewUIDownloader(director, deps.SHA1Calc, deps.Time, deps.FS, deps.UI)
+		downloader := NewUIDownloader(director, deps.Time, deps.FS, deps.UI)
 		return NewRunErrandCmd(deployment, downloader, deps.UI).Run(*opts)
 
 	case *AttachDiskOpts:
@@ -270,7 +274,7 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *LogsOpts:
 		director, deployment := c.directorAndDeployment()
-		downloader := NewUIDownloader(director, deps.SHA1Calc, deps.Time, deps.FS, deps.UI)
+		downloader := NewUIDownloader(director, deps.Time, deps.FS, deps.UI)
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
 		nonIntSSHRunner := sshProvider.NewSSHRunner(false)
 		return NewLogsCmd(deployment, downloader, deps.UUIDGen, nonIntSSHRunner).Run(*opts)
@@ -289,7 +293,7 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *ExportReleaseOpts:
 		director, deployment := c.directorAndDeployment()
-		downloader := NewUIDownloader(director, deps.SHA1Calc, deps.Time, deps.FS, deps.UI)
+		downloader := NewUIDownloader(director, deps.Time, deps.FS, deps.UI)
 		return NewExportReleaseCmd(deployment, downloader).Run(*opts)
 
 	case *InitReleaseOpts:
@@ -319,7 +323,7 @@ func (c Cmd) Execute() (cmdErr error) {
 			return releaseReader, releaseDir
 		}
 
-		_, err := NewCreateReleaseCmd(releaseDirFactory, relProv.NewArchiveWriter(), c.deps.FS, deps.UI).Run(*opts)
+		_, err := NewCreateReleaseCmd(releaseDirFactory, relProv.NewArchiveWriter(), c.deps.FS, c.deps.UI).Run(*opts)
 		return err
 
 	case *BlobsOpts:
@@ -416,11 +420,11 @@ func (c Cmd) releaseProviders() (boshrel.Provider, boshreldir.Provider) {
 	releaseIndexReporter := boshui.NewReleaseIndexReporter(c.deps.UI)
 
 	releaseProvider := boshrel.NewProvider(
-		c.deps.CmdRunner, c.deps.Compressor, c.deps.SHA1Calc, c.deps.FS, c.deps.Logger)
+		c.deps.CmdRunner, c.deps.Compressor, c.deps.DigestCalculator, c.deps.FS, c.deps.Logger)
 
 	releaseDirProvider := boshreldir.NewProvider(
 		indexReporter, releaseIndexReporter, blobsReporter, releaseProvider,
-		c.deps.SHA1Calc, c.deps.CmdRunner, c.deps.UUIDGen, c.deps.Time, c.deps.FS, c.deps.Logger)
+		c.deps.DigestCalculator, c.deps.CmdRunner, c.deps.UUIDGen, c.deps.Time, c.deps.FS, c.deps.DigestCreationAlgorithms, c.deps.Logger)
 
 	return releaseProvider, releaseDirProvider
 }

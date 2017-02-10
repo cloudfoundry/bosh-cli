@@ -537,7 +537,7 @@ var _ = Describe("FSGenerator", func() {
 
 			gitRepo.LastCommitSHAReturns("commit", nil)
 
-			blobsDir.DownloadBlobsStub = func(numOfParallelWorkers int) error {
+			blobsDir.SyncBlobsStub = func(numOfParallelWorkers int) error {
 				ops = append(ops, "blobs")
 				return nil
 			}

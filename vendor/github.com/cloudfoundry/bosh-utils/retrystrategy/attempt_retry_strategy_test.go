@@ -2,25 +2,42 @@ package retrystrategy_test
 
 import (
 	"errors"
+	"fmt"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-
+	fakelogger "github.com/cloudfoundry/bosh-utils/logger/fakes"
 	. "github.com/cloudfoundry/bosh-utils/retrystrategy"
 )
 
 var _ = Describe("AttemptRetryStrategy", func() {
 	var (
-		logger boshlog.Logger
+		logger *fakelogger.FakeLogger
 	)
 
 	BeforeEach(func() {
-		logger = boshlog.NewLogger(boshlog.LevelNone)
+		logger = &fakelogger.FakeLogger{}
 	})
 
 	Describe("Try", func() {
+		It("includes type of retryable in log message", func() {
+			retryable := newSimpleRetryable([]attemptOutput{
+				{
+					IsRetryable: true,
+					AttemptErr:  nil,
+				},
+			})
+
+			attemptRetryStrategy := NewAttemptRetryStrategy(3, 0, retryable, logger)
+			err := attemptRetryStrategy.Try()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(logger.DebugCallCount()).To(Equal(1))
+
+			_, message, args := logger.DebugArgsForCall(0)
+			Expect(fmt.Sprintf(message, args...)).To(Equal("Making attempt #0 for *retrystrategy_test.simpleRetryable"))
+		})
+
 		Context("when there are errors during a try", func() {
 			It("retries until the max attempts are used up", func() {
 				retryable := newSimpleRetryable([]attemptOutput{

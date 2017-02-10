@@ -10,16 +10,16 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
 	boshidx "github.com/cloudfoundry/bosh-cli/releasedir/index"
 	fakeidx "github.com/cloudfoundry/bosh-cli/releasedir/index/indexfakes"
+
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 var _ = Describe("FSIndexBlobs", func() {
 	var (
 		reporter  *fakeidx.FakeReporter
-		blobstore *fakeblob.FakeBlobstore
-		sha1calc  *fakecrypto.FakeSha1Calculator
+		blobstore *fakeblob.FakeDigestBlobstore
 		fs        *fakesys.FakeFileSystem
 		blobs     boshidx.FSIndexBlobs
 	)
@@ -27,58 +27,47 @@ var _ = Describe("FSIndexBlobs", func() {
 	BeforeEach(func() {
 		reporter = &fakeidx.FakeReporter{}
 		blobstore = nil
-		sha1calc = fakecrypto.NewFakeSha1Calculator()
 		fs = fakesys.NewFakeFileSystem()
 	})
 
 	Describe("Get", func() {
 		itChecksIfFileIsAlreadyDownloaded := func() {
 			Context("when local copy exists", func() {
-				BeforeEach(func() {
-					sha1calc.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-						"/dir/sub-dir/sha1": fakecrypto.CalculateInput{Sha1: "sha1"},
-						"/full-dir/sha1":    fakecrypto.CalculateInput{Sha1: "sha1"},
-					})
-				})
-
 				It("returns path to a downloaded blob if it already exists", func() {
-					fs.WriteFileString("/dir/sub-dir/sha1", "file")
+					fs.WriteFileString("/dir/sub-dir/971c419dd609331343dee105fffd0f4608dc0bf2", "file")
 
-					path, err := blobs.Get("name", "blob-id", "sha1")
+					path, err := blobs.Get("name", "blob-id", "971c419dd609331343dee105fffd0f4608dc0bf2")
 					Expect(err).ToNot(HaveOccurred())
-					Expect(path).To(Equal("/dir/sub-dir/sha1"))
+					Expect(path).To(Equal("/dir/sub-dir/971c419dd609331343dee105fffd0f4608dc0bf2"))
 				})
 
 				It("returns error if local copy not match expected sha1", func() {
-					sha1calc.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-						"/dir/sub-dir/sha1": fakecrypto.CalculateInput{Sha1: "wrong-sha1"},
-					})
 					fs.WriteFileString("/dir/sub-dir/sha1", "file")
 
 					_, err := blobs.Get("name", "blob-id", "sha1")
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring(
-						"Expected local copy ('/dir/sub-dir/sha1') of blob 'blob-id' to have SHA1 'sha1' but was 'wrong-sha1'"))
+						"Local copy ('/dir/sub-dir/sha1') of blob 'blob-id' digest verification error: Expected stream to have digest 'sha1' but was '971c419dd609331343dee105fffd0f4608dc0bf2'"))
 				})
 
 				It("returns error if cannot check local copy's sha1", func() {
-					sha1calc.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-						"/dir/sub-dir/sha1": fakecrypto.CalculateInput{Err: errors.New("fake-err")},
-					})
-					fs.WriteFileString("/dir/sub-dir/sha1", "file")
+					fs.WriteFileString("/dir/sub-dir/badsha1", "file")
 
-					_, err := blobs.Get("name", "blob-id", "sha1")
+					fs.WriteFileString("/dir/sub-dir/badsha1", "file")
+
+					_, err := blobs.Get("name", "blob-id", "badsha1")
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("fake-err"))
+					Expect(err.Error()).To(ContainSubstring(
+						"Local copy ('/dir/sub-dir/badsha1') of blob 'blob-id' digest verification error: Expected stream to have digest 'badsha1' but was '971c419dd609331343dee105fffd0f4608dc0bf2'"))
 				})
 
 				It("expands directory path", func() {
 					fs.ExpandPathExpanded = "/full-dir"
-					fs.WriteFileString("/full-dir/sha1", "file")
+					fs.WriteFileString("/full-dir/971c419dd609331343dee105fffd0f4608dc0bf2", "file")
 
-					path, err := blobs.Get("name", "blob-id", "sha1")
+					path, err := blobs.Get("name", "blob-id", "971c419dd609331343dee105fffd0f4608dc0bf2")
 					Expect(err).ToNot(HaveOccurred())
-					Expect(path).To(Equal("/full-dir/sha1"))
+					Expect(path).To(Equal("/full-dir/971c419dd609331343dee105fffd0f4608dc0bf2"))
 
 					Expect(fs.ExpandPathPath).To(Equal("/dir/sub-dir"))
 				})
@@ -103,7 +92,7 @@ var _ = Describe("FSIndexBlobs", func() {
 
 		Context("when configured without a blobstore", func() {
 			BeforeEach(func() {
-				blobs = boshidx.NewFSIndexBlobs("/dir/sub-dir", reporter, nil, sha1calc, fs)
+				blobs = boshidx.NewFSIndexBlobs("/dir/sub-dir", reporter, nil, fs)
 			})
 
 			itChecksIfFileIsAlreadyDownloaded()
@@ -123,21 +112,21 @@ var _ = Describe("FSIndexBlobs", func() {
 
 		Context("when configured with a blobstore", func() {
 			BeforeEach(func() {
-				blobstore = fakeblob.NewFakeBlobstore()
-				blobs = boshidx.NewFSIndexBlobs("/dir/sub-dir", reporter, blobstore, sha1calc, fs)
+				blobstore = &fakeblob.FakeDigestBlobstore{}
+				blobs = boshidx.NewFSIndexBlobs("/dir/sub-dir", reporter, blobstore, fs)
 			})
 
 			itChecksIfFileIsAlreadyDownloaded()
 
 			It("downloads blob and places it into a cache", func() {
-				blobstore.GetFileName = "/tmp/downloaded-path"
+				blobstore.GetReturns("/tmp/downloaded-path", nil)
 				fs.WriteFileString("/tmp/downloaded-path", "blob")
 
-				path, err := blobs.Get("name", "blob-id", "sha1")
+				path, err := blobs.Get("name", "blob-id", "971c419dd609331343dee105fffd0f4608dc0bf2")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(path).To(Equal("/dir/sub-dir/sha1"))
+				Expect(path).To(Equal("/dir/sub-dir/971c419dd609331343dee105fffd0f4608dc0bf2"))
 
-				Expect(fs.ReadFileString("/dir/sub-dir/sha1")).To(Equal("blob"))
+				Expect(fs.ReadFileString("/dir/sub-dir/971c419dd609331343dee105fffd0f4608dc0bf2")).To(Equal("blob"))
 				Expect(fs.FileExists("/tmp/downloaded-path")).To(BeFalse())
 
 				Expect(reporter.IndexEntryDownloadStartedCallCount()).To(Equal(1))
@@ -145,17 +134,34 @@ var _ = Describe("FSIndexBlobs", func() {
 
 				kind, desc := reporter.IndexEntryDownloadStartedArgsForCall(0)
 				Expect(kind).To(Equal("name"))
-				Expect(desc).To(Equal("sha1=sha1"))
+				Expect(desc).To(Equal("sha1=971c419dd609331343dee105fffd0f4608dc0bf2"))
 
 				kind, desc, err = reporter.IndexEntryDownloadFinishedArgsForCall(0)
 				Expect(kind).To(Equal("name"))
-				Expect(desc).To(Equal("sha1=sha1"))
+				Expect(desc).To(Equal("sha1=971c419dd609331343dee105fffd0f4608dc0bf2"))
 				Expect(err).To(BeNil())
+			})
+
+			It("gets the blob out of the blobstore with a parsed digest object", func() {
+				blobs.Get("name", "blob-id", "sha256:3b9c358f36f0a31b6ad3e14f309c7cf198ac9246e8316f9ce543d5b19ac02b80")
+
+				actualBlobID, actualDigest := blobstore.GetArgsForCall(0)
+				Expect(actualBlobID).To(Equal("blob-id"))
+				Expect(actualDigest).To(Equal(boshcrypto.MustParseMultipleDigest("sha256:3b9c358f36f0a31b6ad3e14f309c7cf198ac9246e8316f9ce543d5b19ac02b80")))
+				Expect(reporter.IndexEntryDownloadFinishedCallCount()).To(Equal(1))
+			})
+
+			It("returns error if parsing digest string fails", func() {
+				//currently, the only way to cause a digest parse failure is with an empty string
+				_, err := blobs.Get("name", "blob-id", "")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(
+					"No digest algorithm found. Supported algorithms: sha1, sha256, sha512"))
 			})
 
 			Context("when downloading blob fails", func() {
 				It("returns error", func() {
-					blobstore.GetError = errors.New("fake-err")
+					blobstore.GetReturns("", errors.New("fake-err"))
 
 					_, err := blobs.Get("name", "blob-id", "sha1")
 					Expect(err).To(HaveOccurred())
@@ -207,7 +213,7 @@ var _ = Describe("FSIndexBlobs", func() {
 				})
 
 				It("It successfully moves blob", func() {
-					blobstore.GetFileName = "/tmp/downloaded-path"
+					blobstore.GetReturns("/tmp/downloaded-path", nil)
 					fs.WriteFileString("/tmp/downloaded-path", "blob")
 
 					path, err := blobs.Get("name", "blob-id", "sha1")
@@ -317,7 +323,7 @@ var _ = Describe("FSIndexBlobs", func() {
 
 		Context("when configured without a blobstore", func() {
 			BeforeEach(func() {
-				blobs = boshidx.NewFSIndexBlobs("/dir/sub-dir", reporter, nil, sha1calc, fs)
+				blobs = boshidx.NewFSIndexBlobs("/dir/sub-dir", reporter, nil, fs)
 			})
 
 			itCopiesFileIntoDir()
@@ -325,21 +331,22 @@ var _ = Describe("FSIndexBlobs", func() {
 
 		Context("when configured with a blobstore", func() {
 			BeforeEach(func() {
-				blobstore = fakeblob.NewFakeBlobstore()
-				blobs = boshidx.NewFSIndexBlobs("/dir/sub-dir", reporter, blobstore, sha1calc, fs)
+				blobstore = &fakeblob.FakeDigestBlobstore{}
+				blobs = boshidx.NewFSIndexBlobs("/dir/sub-dir", reporter, blobstore, fs)
 			})
 
 			itCopiesFileIntoDir()
 
 			It("uploads blob and returns blob id", func() {
-				blobstore.CreateBlobID = "blob-id"
+				digest := boshcrypto.MustParseMultipleDigest("sha1")
+				blobstore.CreateReturns("blob-id", digest, nil)
 
 				blobID, path, err := blobs.Add("name", "/tmp/sha1", "sha1")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(blobID).To(Equal("blob-id"))
 				Expect(path).To(Equal("/dir/sub-dir/sha1"))
 
-				Expect(blobstore.CreateFileNames).To(Equal([]string{"/tmp/sha1"}))
+				Expect(blobstore.CreateArgsForCall(0)).To(Equal("/tmp/sha1"))
 
 				Expect(reporter.IndexEntryUploadStartedCallCount()).To(Equal(1))
 				Expect(reporter.IndexEntryUploadFinishedCallCount()).To(Equal(1))
@@ -355,7 +362,7 @@ var _ = Describe("FSIndexBlobs", func() {
 			})
 
 			It("returns error if uploading blob fails", func() {
-				blobstore.CreateErr = errors.New("fake-err")
+				blobstore.CreateReturns("", boshcrypto.MultipleDigest{}, errors.New("fake-err"))
 
 				_, _, err := blobs.Add("name", "/tmp/sha1", "sha1")
 				Expect(err).To(HaveOccurred())

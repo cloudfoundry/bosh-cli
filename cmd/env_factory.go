@@ -85,10 +85,10 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manife
 		tarballCache := bitarball.NewCache(tarballCacheBasePath, deps.FS, deps.Logger)
 		httpClient := bihttpclient.NewHTTPClient(bitarball.HTTPClient, deps.Logger)
 		tarballProvider := bitarball.NewProvider(
-			tarballCache, deps.FS, httpClient, deps.SHA1Calc, 3, 500*time.Millisecond, deps.Logger)
+			tarballCache, deps.FS, httpClient, 3, 500*time.Millisecond, deps.Logger)
 
 		releaseProvider := boshrel.NewProvider(
-			deps.CmdRunner, deps.Compressor, deps.SHA1Calc, deps.FS, deps.Logger)
+			deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
 
 		f.releaseFetcher = boshinst.NewReleaseFetcher(
 			tarballProvider,
@@ -112,7 +112,7 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manife
 		registryServer := biregistry.NewServerManager(deps.Logger)
 		installerFactory := boshinst.NewInstallerFactory(
 			deps.UI, deps.CmdRunner, deps.Compressor, releaseJobResolver,
-			deps.UUIDGen, registryServer, deps.Logger, deps.FS)
+			deps.UUIDGen, registryServer, deps.Logger, deps.FS, deps.DigestCreationAlgorithms)
 
 		f.cpiInstaller = bicpirel.CpiInstaller{
 			ReleaseManager:   f.releaseManager,
@@ -156,7 +156,7 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manife
 			bistatepkg.NewCompiledPackageRepo(biindex.NewInMemoryIndex()),
 			releaseJobResolver,
 			bitemplate.NewJobListRenderer(jobRenderer, deps.Logger),
-			bitemplate.NewRenderedJobListCompressor(deps.FS, deps.Compressor, deps.SHA1Calc, deps.Logger),
+			bitemplate.NewRenderedJobListCompressor(deps.FS, deps.Compressor, deps.DigestCalculator, deps.Logger),
 			deps.Logger,
 		)
 

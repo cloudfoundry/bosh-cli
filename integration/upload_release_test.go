@@ -169,7 +169,7 @@ blobstore:
 		}
 
 		{ // Check contents of uploaded release
-			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.SHA1Calc, deps.FS, deps.Logger)
+			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
 			archiveReader := relProvider.NewExtractingArchiveReader()
 
 			release, err := archiveReader.Read(uploadedReleaseFile)

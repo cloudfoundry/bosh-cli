@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-utils/blobstore"
+	"github.com/cloudfoundry/bosh-utils/crypto"
 	"github.com/cloudfoundry/bosh-utils/system"
 )
 
@@ -29,10 +30,11 @@ type FakeBlobManagerInterface struct {
 	writeReturns struct {
 		result1 error
 	}
-	GetPathStub        func(blobID string) (string, error)
+	GetPathStub        func(blobID string, digest crypto.Digest) (string, error)
 	getPathMutex       sync.RWMutex
 	getPathArgsForCall []struct {
 		blobID string
+		digest crypto.Digest
 	}
 	getPathReturns struct {
 		result1 string
@@ -45,6 +47,14 @@ type FakeBlobManagerInterface struct {
 	}
 	deleteReturns struct {
 		result1 error
+	}
+	BlobExistsStub        func(blobID string) bool
+	blobExistsMutex       sync.RWMutex
+	blobExistsArgsForCall []struct {
+		blobID string
+	}
+	blobExistsReturns struct {
+		result1 bool
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -119,15 +129,16 @@ func (fake *FakeBlobManagerInterface) WriteReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeBlobManagerInterface) GetPath(blobID string) (string, error) {
+func (fake *FakeBlobManagerInterface) GetPath(blobID string, digest crypto.Digest) (string, error) {
 	fake.getPathMutex.Lock()
 	fake.getPathArgsForCall = append(fake.getPathArgsForCall, struct {
 		blobID string
-	}{blobID})
-	fake.recordInvocation("GetPath", []interface{}{blobID})
+		digest crypto.Digest
+	}{blobID, digest})
+	fake.recordInvocation("GetPath", []interface{}{blobID, digest})
 	fake.getPathMutex.Unlock()
 	if fake.GetPathStub != nil {
-		return fake.GetPathStub(blobID)
+		return fake.GetPathStub(blobID, digest)
 	} else {
 		return fake.getPathReturns.result1, fake.getPathReturns.result2
 	}
@@ -139,10 +150,10 @@ func (fake *FakeBlobManagerInterface) GetPathCallCount() int {
 	return len(fake.getPathArgsForCall)
 }
 
-func (fake *FakeBlobManagerInterface) GetPathArgsForCall(i int) string {
+func (fake *FakeBlobManagerInterface) GetPathArgsForCall(i int) (string, crypto.Digest) {
 	fake.getPathMutex.RLock()
 	defer fake.getPathMutex.RUnlock()
-	return fake.getPathArgsForCall[i].blobID
+	return fake.getPathArgsForCall[i].blobID, fake.getPathArgsForCall[i].digest
 }
 
 func (fake *FakeBlobManagerInterface) GetPathReturns(result1 string, result2 error) {
@@ -186,6 +197,39 @@ func (fake *FakeBlobManagerInterface) DeleteReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeBlobManagerInterface) BlobExists(blobID string) bool {
+	fake.blobExistsMutex.Lock()
+	fake.blobExistsArgsForCall = append(fake.blobExistsArgsForCall, struct {
+		blobID string
+	}{blobID})
+	fake.recordInvocation("BlobExists", []interface{}{blobID})
+	fake.blobExistsMutex.Unlock()
+	if fake.BlobExistsStub != nil {
+		return fake.BlobExistsStub(blobID)
+	} else {
+		return fake.blobExistsReturns.result1
+	}
+}
+
+func (fake *FakeBlobManagerInterface) BlobExistsCallCount() int {
+	fake.blobExistsMutex.RLock()
+	defer fake.blobExistsMutex.RUnlock()
+	return len(fake.blobExistsArgsForCall)
+}
+
+func (fake *FakeBlobManagerInterface) BlobExistsArgsForCall(i int) string {
+	fake.blobExistsMutex.RLock()
+	defer fake.blobExistsMutex.RUnlock()
+	return fake.blobExistsArgsForCall[i].blobID
+}
+
+func (fake *FakeBlobManagerInterface) BlobExistsReturns(result1 bool) {
+	fake.BlobExistsStub = nil
+	fake.blobExistsReturns = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *FakeBlobManagerInterface) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -197,6 +241,8 @@ func (fake *FakeBlobManagerInterface) Invocations() map[string][][]interface{} {
 	defer fake.getPathMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
+	fake.blobExistsMutex.RLock()
+	defer fake.blobExistsMutex.RUnlock()
 	return fake.invocations
 }
 

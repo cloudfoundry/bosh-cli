@@ -30,9 +30,8 @@ func (fake *FakeDirReader) Read(arg1 string) (*pkg.Package, error) {
 	fake.readMutex.Unlock()
 	if fake.ReadStub != nil {
 		return fake.ReadStub(arg1)
-	} else {
-		return fake.readReturns.result1, fake.readReturns.result2
 	}
+	return fake.readReturns.result1, fake.readReturns.result2
 }
 
 func (fake *FakeDirReader) ReadCallCount() int {

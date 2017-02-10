@@ -4,6 +4,7 @@ import (
 	"os"
 
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -20,7 +21,7 @@ type Extractor interface {
 type extractor struct {
 	fs         boshsys.FileSystem
 	compressor boshcmd.Compressor
-	blobstore  boshblob.Blobstore
+	blobstore  boshblob.DigestBlobstore
 	logger     boshlog.Logger
 	logTag     string
 }
@@ -28,7 +29,7 @@ type extractor struct {
 func NewExtractor(
 	fs boshsys.FileSystem,
 	compressor boshcmd.Compressor,
-	blobstore boshblob.Blobstore,
+	blobstore boshblob.DigestBlobstore,
 	logger boshlog.Logger,
 ) Extractor {
 	return &extractor{
@@ -40,9 +41,15 @@ func NewExtractor(
 	}
 }
 
-func (e *extractor) Extract(blobID string, blobSHA1 string, targetDir string) error {
+func (e *extractor) Extract(blobID string, digestString string, targetDir string) error {
 	// Retrieve a temp copy of blob
-	filePath, err := e.blobstore.Get(blobID, blobSHA1)
+
+	digest, err := boshcrypto.ParseMultipleDigest(digestString)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Parsing multiple digest string: %s", digestString)
+	}
+
+	filePath, err := e.blobstore.Get(blobID, digest)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Getting object from blobstore: %s", blobID)
 	}
@@ -63,7 +70,7 @@ func (e *extractor) Extract(blobID string, blobSHA1 string, targetDir string) er
 			// Clean up extracted contents of blob
 			e.cleanUpFile(targetDir)
 		}
-		return bosherr.WrapErrorf(err, "Decompressing compiled package: BlobID: '%s', BlobSHA1: '%s'", blobID, blobSHA1)
+		return bosherr.WrapErrorf(err, "Decompressing compiled package: BlobID: '%s', BlobSHA1: '%s'", blobID, digestString)
 	}
 	return nil
 }

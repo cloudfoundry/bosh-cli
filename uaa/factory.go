@@ -6,8 +6,10 @@ import (
 	"net/url"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
+	boshhttp "github.com/cloudfoundry/bosh-utils/http"
+	boshhttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"time"
 )
 
 type Factory struct {
@@ -49,9 +51,10 @@ func (f Factory) httpClient(config Config) (Client, error) {
 		f.logger.Debug(f.logTag, "Using custom root CAs")
 	}
 
-	rawClient := boshhttp.CreateDefaultClient(certPool)
+	rawClient := boshhttpclient.CreateDefaultClient(certPool)
+	retryClient := boshhttp.NewNetworkSafeRetryClient(rawClient, 5, 500*time.Millisecond, f.logger)
 
-	httpClient := boshhttp.NewHTTPClient(rawClient, f.logger)
+	httpClient := boshhttpclient.NewHTTPClient(retryClient, f.logger)
 
 	endpoint := url.URL{
 		Scheme: "https",

@@ -5,9 +5,9 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/cmd"
-	"github.com/cloudfoundry/bosh-cli/cmd/config"
-	"github.com/cloudfoundry/bosh-cli/director"
-	"github.com/cloudfoundry/bosh-cli/uaa"
+	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
 )
 
 type FakeSession struct {
@@ -17,38 +17,38 @@ type FakeSession struct {
 	environmentReturns     struct {
 		result1 string
 	}
-	CredentialsStub        func() config.Creds
+	CredentialsStub        func() cmdconf.Creds
 	credentialsMutex       sync.RWMutex
 	credentialsArgsForCall []struct{}
 	credentialsReturns     struct {
-		result1 config.Creds
+		result1 cmdconf.Creds
 	}
-	UAAStub        func() (uaa.UAA, error)
+	UAAStub        func() (boshuaa.UAA, error)
 	uAAMutex       sync.RWMutex
 	uAAArgsForCall []struct{}
 	uAAReturns     struct {
-		result1 uaa.UAA
+		result1 boshuaa.UAA
 		result2 error
 	}
-	DirectorStub        func() (director.Director, error)
+	DirectorStub        func() (boshdir.Director, error)
 	directorMutex       sync.RWMutex
 	directorArgsForCall []struct{}
 	directorReturns     struct {
-		result1 director.Director
+		result1 boshdir.Director
 		result2 error
 	}
-	AnonymousDirectorStub        func() (director.Director, error)
+	AnonymousDirectorStub        func() (boshdir.Director, error)
 	anonymousDirectorMutex       sync.RWMutex
 	anonymousDirectorArgsForCall []struct{}
 	anonymousDirectorReturns     struct {
-		result1 director.Director
+		result1 boshdir.Director
 		result2 error
 	}
-	DeploymentStub        func() (director.Deployment, error)
+	DeploymentStub        func() (boshdir.Deployment, error)
 	deploymentMutex       sync.RWMutex
 	deploymentArgsForCall []struct{}
 	deploymentReturns     struct {
-		result1 director.Deployment
+		result1 boshdir.Deployment
 		result2 error
 	}
 	invocations      map[string][][]interface{}
@@ -62,9 +62,8 @@ func (fake *FakeSession) Environment() string {
 	fake.environmentMutex.Unlock()
 	if fake.EnvironmentStub != nil {
 		return fake.EnvironmentStub()
-	} else {
-		return fake.environmentReturns.result1
 	}
+	return fake.environmentReturns.result1
 }
 
 func (fake *FakeSession) EnvironmentCallCount() int {
@@ -80,16 +79,15 @@ func (fake *FakeSession) EnvironmentReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeSession) Credentials() config.Creds {
+func (fake *FakeSession) Credentials() cmdconf.Creds {
 	fake.credentialsMutex.Lock()
 	fake.credentialsArgsForCall = append(fake.credentialsArgsForCall, struct{}{})
 	fake.recordInvocation("Credentials", []interface{}{})
 	fake.credentialsMutex.Unlock()
 	if fake.CredentialsStub != nil {
 		return fake.CredentialsStub()
-	} else {
-		return fake.credentialsReturns.result1
 	}
+	return fake.credentialsReturns.result1
 }
 
 func (fake *FakeSession) CredentialsCallCount() int {
@@ -98,23 +96,22 @@ func (fake *FakeSession) CredentialsCallCount() int {
 	return len(fake.credentialsArgsForCall)
 }
 
-func (fake *FakeSession) CredentialsReturns(result1 config.Creds) {
+func (fake *FakeSession) CredentialsReturns(result1 cmdconf.Creds) {
 	fake.CredentialsStub = nil
 	fake.credentialsReturns = struct {
-		result1 config.Creds
+		result1 cmdconf.Creds
 	}{result1}
 }
 
-func (fake *FakeSession) UAA() (uaa.UAA, error) {
+func (fake *FakeSession) UAA() (boshuaa.UAA, error) {
 	fake.uAAMutex.Lock()
 	fake.uAAArgsForCall = append(fake.uAAArgsForCall, struct{}{})
 	fake.recordInvocation("UAA", []interface{}{})
 	fake.uAAMutex.Unlock()
 	if fake.UAAStub != nil {
 		return fake.UAAStub()
-	} else {
-		return fake.uAAReturns.result1, fake.uAAReturns.result2
 	}
+	return fake.uAAReturns.result1, fake.uAAReturns.result2
 }
 
 func (fake *FakeSession) UAACallCount() int {
@@ -123,24 +120,23 @@ func (fake *FakeSession) UAACallCount() int {
 	return len(fake.uAAArgsForCall)
 }
 
-func (fake *FakeSession) UAAReturns(result1 uaa.UAA, result2 error) {
+func (fake *FakeSession) UAAReturns(result1 boshuaa.UAA, result2 error) {
 	fake.UAAStub = nil
 	fake.uAAReturns = struct {
-		result1 uaa.UAA
+		result1 boshuaa.UAA
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeSession) Director() (director.Director, error) {
+func (fake *FakeSession) Director() (boshdir.Director, error) {
 	fake.directorMutex.Lock()
 	fake.directorArgsForCall = append(fake.directorArgsForCall, struct{}{})
 	fake.recordInvocation("Director", []interface{}{})
 	fake.directorMutex.Unlock()
 	if fake.DirectorStub != nil {
 		return fake.DirectorStub()
-	} else {
-		return fake.directorReturns.result1, fake.directorReturns.result2
 	}
+	return fake.directorReturns.result1, fake.directorReturns.result2
 }
 
 func (fake *FakeSession) DirectorCallCount() int {
@@ -149,24 +145,23 @@ func (fake *FakeSession) DirectorCallCount() int {
 	return len(fake.directorArgsForCall)
 }
 
-func (fake *FakeSession) DirectorReturns(result1 director.Director, result2 error) {
+func (fake *FakeSession) DirectorReturns(result1 boshdir.Director, result2 error) {
 	fake.DirectorStub = nil
 	fake.directorReturns = struct {
-		result1 director.Director
+		result1 boshdir.Director
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeSession) AnonymousDirector() (director.Director, error) {
+func (fake *FakeSession) AnonymousDirector() (boshdir.Director, error) {
 	fake.anonymousDirectorMutex.Lock()
 	fake.anonymousDirectorArgsForCall = append(fake.anonymousDirectorArgsForCall, struct{}{})
 	fake.recordInvocation("AnonymousDirector", []interface{}{})
 	fake.anonymousDirectorMutex.Unlock()
 	if fake.AnonymousDirectorStub != nil {
 		return fake.AnonymousDirectorStub()
-	} else {
-		return fake.anonymousDirectorReturns.result1, fake.anonymousDirectorReturns.result2
 	}
+	return fake.anonymousDirectorReturns.result1, fake.anonymousDirectorReturns.result2
 }
 
 func (fake *FakeSession) AnonymousDirectorCallCount() int {
@@ -175,24 +170,23 @@ func (fake *FakeSession) AnonymousDirectorCallCount() int {
 	return len(fake.anonymousDirectorArgsForCall)
 }
 
-func (fake *FakeSession) AnonymousDirectorReturns(result1 director.Director, result2 error) {
+func (fake *FakeSession) AnonymousDirectorReturns(result1 boshdir.Director, result2 error) {
 	fake.AnonymousDirectorStub = nil
 	fake.anonymousDirectorReturns = struct {
-		result1 director.Director
+		result1 boshdir.Director
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeSession) Deployment() (director.Deployment, error) {
+func (fake *FakeSession) Deployment() (boshdir.Deployment, error) {
 	fake.deploymentMutex.Lock()
 	fake.deploymentArgsForCall = append(fake.deploymentArgsForCall, struct{}{})
 	fake.recordInvocation("Deployment", []interface{}{})
 	fake.deploymentMutex.Unlock()
 	if fake.DeploymentStub != nil {
 		return fake.DeploymentStub()
-	} else {
-		return fake.deploymentReturns.result1, fake.deploymentReturns.result2
 	}
+	return fake.deploymentReturns.result1, fake.deploymentReturns.result2
 }
 
 func (fake *FakeSession) DeploymentCallCount() int {
@@ -201,10 +195,10 @@ func (fake *FakeSession) DeploymentCallCount() int {
 	return len(fake.deploymentArgsForCall)
 }
 
-func (fake *FakeSession) DeploymentReturns(result1 director.Deployment, result2 error) {
+func (fake *FakeSession) DeploymentReturns(result1 boshdir.Deployment, result2 error) {
 	fake.DeploymentStub = nil
 	fake.deploymentReturns = struct {
-		result1 director.Deployment
+		result1 boshdir.Deployment
 		result2 error
 	}{result1, result2}
 }

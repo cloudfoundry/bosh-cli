@@ -30,9 +30,8 @@ func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPath(path st
 	fake.newDeploymentTemplateFromPathMutex.Unlock()
 	if fake.NewDeploymentTemplateFromPathStub != nil {
 		return fake.NewDeploymentTemplateFromPathStub(path)
-	} else {
-		return fake.newDeploymentTemplateFromPathReturns.result1, fake.newDeploymentTemplateFromPathReturns.result2
 	}
+	return fake.newDeploymentTemplateFromPathReturns.result1, fake.newDeploymentTemplateFromPathReturns.result2
 }
 
 func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPathCallCount() int {

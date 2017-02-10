@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/cppforlife/go-patch/patch"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
@@ -16,6 +17,7 @@ type BoshOpts struct {
 
 	EnvironmentOpt string    `long:"environment" short:"e" description:"Director environment name or URL" env:"BOSH_ENVIRONMENT"`
 	CACertOpt      CACertArg `long:"ca-cert"               description:"Director CA certificate path or value" env:"BOSH_CA_CERT"`
+	Sha2           bool      `long:"sha2"                  description:"Use sha256 checksums. Requires recent director and stemcells."`
 
 	// Hidden
 	UsernameOpt string `long:"user" hidden:"true" env:"BOSH_USER"`
@@ -501,7 +503,8 @@ type ErrandsOpts struct {
 type RunErrandOpts struct {
 	Args RunErrandArgs `positional-args:"true" required:"true"`
 
-	KeepAlive bool `long:"keep-alive" description:"Use existing VM to run an errand and keep it after completion"`
+	KeepAlive   bool `long:"keep-alive" description:"Use existing VM to run an errand and keep it after completion"`
+	WhenChanged bool `long:"when-changed" description:"Run errand only if errand configuration has changed or if the previous run was unsuccessful"`
 
 	DownloadLogs  bool        `long:"download-logs" description:"Download logs"`
 	LogsDirectory DirOrCWDArg `long:"logs-dir" description:"Destination directory for logs" default:"."`
@@ -713,11 +716,15 @@ type SCPArgs struct {
 }
 
 type GatewayFlags struct {
+	UUIDGen boshuuid.Generator
+
 	Disable bool `long:"gw-disable" description:"Disable usage of gateway connection" env:"BOSH_GW_DISABLE"`
 
 	Username       string `long:"gw-user"        description:"Username for gateway connection" env:"BOSH_GW_USER"`
 	Host           string `long:"gw-host"        description:"Host for gateway connection" env:"BOSH_GW_HOST"`
 	PrivateKeyPath string `long:"gw-private-key" description:"Private key path for gateway connection" env:"BOSH_GW_PRIVATE_KEY"` // todo private file?
+
+	SOCKS5Proxy string `long:"gw-socks5" description:"SOCKS5 URL" env:"BOSH_ALL_PROXY"`
 }
 
 // Release creation

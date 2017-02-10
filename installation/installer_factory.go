@@ -12,6 +12,7 @@ import (
 	bierbrenderer "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -23,15 +24,16 @@ type InstallerFactory interface {
 }
 
 type installerFactory struct {
-	ui                    biui.UI
-	runner                boshsys.CmdRunner
-	extractor             boshcmd.Compressor
-	releaseJobResolver    bideplrel.JobResolver
-	uuidGenerator         boshuuid.Generator
-	registryServerManager biregistry.ServerManager
-	logger                boshlog.Logger
-	logTag                string
-	fs                    boshsys.FileSystem
+	ui                     biui.UI
+	runner                 boshsys.CmdRunner
+	extractor              boshcmd.Compressor
+	releaseJobResolver     bideplrel.JobResolver
+	uuidGenerator          boshuuid.Generator
+	registryServerManager  biregistry.ServerManager
+	logger                 boshlog.Logger
+	logTag                 string
+	fs                     boshsys.FileSystem
+	digestCreateAlgorithms []boshcrypto.Algorithm
 }
 
 func NewInstallerFactory(
@@ -43,6 +45,7 @@ func NewInstallerFactory(
 	registryServerManager biregistry.ServerManager,
 	logger boshlog.Logger,
 	fs boshsys.FileSystem,
+	digestCreateAlgorithms []boshcrypto.Algorithm,
 ) InstallerFactory {
 	return &installerFactory{
 		ui:                    ui,
@@ -54,6 +57,7 @@ func NewInstallerFactory(
 		logger:                logger,
 		logTag:                "installer",
 		fs:                    fs,
+		digestCreateAlgorithms: digestCreateAlgorithms,
 	}
 }
 
@@ -66,6 +70,7 @@ func (f *installerFactory) NewInstaller(target Target) Installer {
 		uuidGenerator:      f.uuidGenerator,
 		releaseJobResolver: f.releaseJobResolver,
 		fs:                 f.fs,
+		digestCreateAlgorithms: f.digestCreateAlgorithms,
 	}
 
 	return NewInstaller(
@@ -88,11 +93,12 @@ type installerFactoryContext struct {
 	uuidGenerator      boshuuid.Generator
 	releaseJobResolver bideplrel.JobResolver
 
-	jobDependencyCompiler bistatejob.DependencyCompiler
-	packageCompiler       bistatepkg.Compiler
-	blobstore             boshblob.Blobstore
-	blobExtractor         blobextract.Extractor
-	compiledPackageRepo   bistatepkg.CompiledPackageRepo
+	jobDependencyCompiler  bistatejob.DependencyCompiler
+	packageCompiler        bistatepkg.Compiler
+	blobstore              boshblob.DigestBlobstore
+	blobExtractor          blobextract.Extractor
+	compiledPackageRepo    bistatepkg.CompiledPackageRepo
+	digestCreateAlgorithms []boshcrypto.Algorithm
 }
 
 func (c *installerFactoryContext) JobRenderer() JobRenderer {
@@ -151,14 +157,14 @@ func (c *installerFactoryContext) InstallationStatePackageCompiler() bistatepkg.
 	return c.packageCompiler
 }
 
-func (c *installerFactoryContext) Blobstore() boshblob.Blobstore {
+func (c *installerFactoryContext) Blobstore() boshblob.DigestBlobstore {
 	if c.blobstore != nil {
 		return c.blobstore
 	}
 
 	options := map[string]interface{}{"blobstore_path": c.target.BlobstorePath()}
 	localBlobstore := boshblob.NewLocalBlobstore(c.fs, c.uuidGenerator, options)
-	c.blobstore = boshblob.NewSHA1VerifiableBlobstore(localBlobstore)
+	c.blobstore = boshblob.NewDigestVerifiableBlobstore(localBlobstore, c.fs, c.digestCreateAlgorithms)
 
 	return c.blobstore
 }

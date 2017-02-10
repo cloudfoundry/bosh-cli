@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -31,17 +32,17 @@ var _ = Describe("Archive", func() {
 
 	Describe("Fingerprint", func() {
 		var (
-			fingerprinter *fakeres.FakeFingerprinter
-			sha1calc      *fakecrypto.FakeSha1Calculator
-			compressor    *fakecmd.FakeCompressor
-			cmdRunner     *fakesys.FakeCmdRunner
-			fs            *fakesys.FakeFileSystem
+			fingerprinter    *fakeres.FakeFingerprinter
+			digestCalculator *fakecrypto.FakeDigestCalculator
+			compressor       *fakecmd.FakeCompressor
+			cmdRunner        *fakesys.FakeCmdRunner
+			fs               *fakesys.FakeFileSystem
 		)
 
 		BeforeEach(func() {
 			releaseDirPath := "/tmp/release"
 			fingerprinter = &fakeres.FakeFingerprinter{}
-			sha1calc = fakecrypto.NewFakeSha1Calculator()
+			digestCalculator = fakecrypto.NewFakeDigestCalculator()
 			compressor = fakecmd.NewFakeCompressor()
 			cmdRunner = fakesys.NewFakeCmdRunner()
 			fs = fakesys.NewFakeFileSystem()
@@ -52,7 +53,7 @@ var _ = Describe("Archive", func() {
 				releaseDirPath,
 				fingerprinter,
 				compressor,
-				sha1calc,
+				digestCalculator,
 				cmdRunner,
 				fs,
 			)
@@ -84,8 +85,8 @@ var _ = Describe("Archive", func() {
 			uniqueDir string
 			fs        boshsys.FileSystem
 
-			compressor boshcmd.Compressor
-			sha1calc   bicrypto.SHA1Calculator
+			compressor       boshcmd.Compressor
+			digestCalculator bicrypto.DigestCalculator
 		)
 
 		BeforeEach(func() {
@@ -105,13 +106,16 @@ var _ = Describe("Archive", func() {
 			err = fs.WriteFileString(uniqueDir+"/file1", "file1")
 			Expect(err).ToNot(HaveOccurred())
 
-			err = fs.MkdirAll(uniqueDir+"/dir", os.FileMode(0744))
+			err = fs.Chmod(uniqueDir+"/file1", os.FileMode(0600))
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.MkdirAll(uniqueDir+"/dir", os.FileMode(0777))
 			Expect(err).ToNot(HaveOccurred())
 
 			err = fs.WriteFileString(uniqueDir+"/dir/file2", "file2")
 			Expect(err).ToNot(HaveOccurred())
 
-			err = fs.Chmod(uniqueDir+"/dir/file2", os.FileMode(0745))
+			err = fs.Chmod(uniqueDir+"/dir/file2", os.FileMode(0744))
 			Expect(err).ToNot(HaveOccurred())
 
 			err = fs.WriteFileString(uniqueDir+"/dir/file3", "file3")
@@ -138,8 +142,8 @@ var _ = Describe("Archive", func() {
 			err = fs.WriteFileString(uniqueDir+"/run-file3", "rm dir/file3")
 			Expect(err).ToNot(HaveOccurred())
 
-			sha1calc = bicrypto.NewSha1Calculator(fs)
-			fingerprinter := NewFingerprinterImpl(sha1calc, fs)
+			digestCalculator = bicrypto.NewDigestCalculator(fs, []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1})
+			fingerprinter := NewFingerprinterImpl(digestCalculator, fs)
 			cmdRunner := boshsys.NewExecCmdRunner(logger)
 			compressor = boshcmd.NewTarballCompressor(cmdRunner, fs)
 
@@ -161,7 +165,7 @@ var _ = Describe("Archive", func() {
 				releaseDirPath,
 				fingerprinter,
 				compressor,
-				sha1calc,
+				digestCalculator,
 				cmdRunner,
 				fs,
 			)
@@ -181,7 +185,7 @@ var _ = Describe("Archive", func() {
 			archivePath, archiveSHA1, err := archive.Build("31a86e1b2b76e47ca5455645bb35018fe7f73e5d")
 			Expect(err).ToNot(HaveOccurred())
 
-			actualArchiveSHA1, err := sha1calc.Calculate(archivePath)
+			actualArchiveSHA1, err := digestCalculator.Calculate(archivePath)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actualArchiveSHA1).To(Equal(archiveSHA1))
 
@@ -216,12 +220,18 @@ var _ = Describe("Archive", func() {
 				// Dir permissions
 				stat, err = fs.Stat(decompPath + "/dir")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(modeAsStr(stat.Mode())).To(Equal("020000000744")) // 02... is for directory
+				Expect(modeAsStr(stat.Mode())).To(Equal("020000000755")) // 02... is for directory
 
 				// File permissions
+				stat, err = fs.Stat(decompPath + "/file1")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(modeAsStr(stat.Mode())).To(Equal("0644"))
+				stat, err = fs.Stat(decompPath + "/dir")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(modeAsStr(stat.Mode())).To(Equal("020000000755"))
 				stat, err = fs.Stat(decompPath + "/dir/file2")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(modeAsStr(stat.Mode())).To(Equal("0745"))
+				Expect(modeAsStr(stat.Mode())).To(Equal("0755"))
 			}
 
 			{

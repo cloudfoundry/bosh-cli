@@ -28,7 +28,6 @@ var _ = Describe("NewSSHOpts", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(opts.Username).To(Equal("bosh_2a4e8104dc504ad7"))
-		Expect(opts.Password).To(Equal("p"))
 		Expect(opts.PublicKey).ToNot(BeEmpty())
 		Expect(privKeyStr).ToNot(BeEmpty())
 

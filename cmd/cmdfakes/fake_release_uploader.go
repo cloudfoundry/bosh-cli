@@ -35,9 +35,8 @@ func (fake *FakeReleaseUploader) UploadReleases(arg1 []byte) ([]byte, error) {
 	fake.uploadReleasesMutex.Unlock()
 	if fake.UploadReleasesStub != nil {
 		return fake.UploadReleasesStub(arg1)
-	} else {
-		return fake.uploadReleasesReturns.result1, fake.uploadReleasesReturns.result2
 	}
+	return fake.uploadReleasesReturns.result1, fake.uploadReleasesReturns.result2
 }
 
 func (fake *FakeReleaseUploader) UploadReleasesCallCount() int {

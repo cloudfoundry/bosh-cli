@@ -10,7 +10,9 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
+	"io"
 	"io/ioutil"
+	"strings"
 )
 
 type FakeIOReader struct{}
@@ -45,9 +47,12 @@ var _ = Describe("AdjustableClient", func() {
 		})
 
 		Context("if body is not empty", func() {
+			var nopCloser io.ReadCloser
+
 			BeforeEach(func() {
 				reader := FakeIOReader{}
-				req.Body = ioutil.NopCloser(reader)
+				nopCloser = ioutil.NopCloser(reader)
+				req.Body = nopCloser
 			})
 
 			It("adjusts with retried true", func() {
@@ -63,6 +68,30 @@ var _ = Describe("AdjustableClient", func() {
 					return nil, nil
 				}
 				client.Do(req)
+			})
+
+			Context("request body is type converted by innerclient when it needs adjusting", func() {
+				It("Should reset request body to original before attempting request again", func() {
+					adjustment.NeedsReadjustmentStub = func(respToCheck *http.Response) bool {
+						return true
+					}
+
+					adjustment.AdjustStub = func(reqToAdjust *http.Request, retried bool) error {
+						Expect(retried).To(BeTrue())
+						return nil
+					}
+
+					innerClient.DoStub = func(reqToExec *http.Request) (*http.Response, error) {
+						Expect(reqToExec.Body).To(BeIdenticalTo(nopCloser))
+
+						newReader := strings.NewReader("changed_request_body")
+						newNopCloser := ioutil.NopCloser(newReader)
+
+						reqToExec.Body = newNopCloser
+						return nil, nil
+					}
+					client.Do(req)
+				})
 			})
 		})
 

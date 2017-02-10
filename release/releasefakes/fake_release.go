@@ -5,10 +5,10 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/release"
-	"github.com/cloudfoundry/bosh-cli/release/job"
-	"github.com/cloudfoundry/bosh-cli/release/license"
-	"github.com/cloudfoundry/bosh-cli/release/manifest"
-	"github.com/cloudfoundry/bosh-cli/release/pkg"
+	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
+	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
+	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
 )
 
 type FakeRelease struct {
@@ -52,29 +52,29 @@ type FakeRelease struct {
 	setUncommittedChangesArgsForCall []struct {
 		arg1 bool
 	}
-	JobsStub        func() []*job.Job
+	JobsStub        func() []*boshjob.Job
 	jobsMutex       sync.RWMutex
 	jobsArgsForCall []struct{}
 	jobsReturns     struct {
-		result1 []*job.Job
+		result1 []*boshjob.Job
 	}
-	PackagesStub        func() []*pkg.Package
+	PackagesStub        func() []*boshpkg.Package
 	packagesMutex       sync.RWMutex
 	packagesArgsForCall []struct{}
 	packagesReturns     struct {
-		result1 []*pkg.Package
+		result1 []*boshpkg.Package
 	}
-	CompiledPackagesStub        func() []*pkg.CompiledPackage
+	CompiledPackagesStub        func() []*boshpkg.CompiledPackage
 	compiledPackagesMutex       sync.RWMutex
 	compiledPackagesArgsForCall []struct{}
 	compiledPackagesReturns     struct {
-		result1 []*pkg.CompiledPackage
+		result1 []*boshpkg.CompiledPackage
 	}
-	LicenseStub        func() *license.License
+	LicenseStub        func() *boshlic.License
 	licenseMutex       sync.RWMutex
 	licenseArgsForCall []struct{}
 	licenseReturns     struct {
-		result1 *license.License
+		result1 *boshlic.License
 	}
 	IsCompiledStub        func() bool
 	isCompiledMutex       sync.RWMutex
@@ -82,20 +82,20 @@ type FakeRelease struct {
 	isCompiledReturns     struct {
 		result1 bool
 	}
-	FindJobByNameStub        func(string) (job.Job, bool)
+	FindJobByNameStub        func(string) (boshjob.Job, bool)
 	findJobByNameMutex       sync.RWMutex
 	findJobByNameArgsForCall []struct {
 		arg1 string
 	}
 	findJobByNameReturns struct {
-		result1 job.Job
+		result1 boshjob.Job
 		result2 bool
 	}
-	ManifestStub        func() manifest.Manifest
+	ManifestStub        func() boshman.Manifest
 	manifestMutex       sync.RWMutex
 	manifestArgsForCall []struct{}
 	manifestReturns     struct {
-		result1 manifest.Manifest
+		result1 boshman.Manifest
 	}
 	BuildStub        func(dev, final release.ArchiveIndicies) error
 	buildMutex       sync.RWMutex
@@ -131,9 +131,8 @@ func (fake *FakeRelease) Name() string {
 	fake.nameMutex.Unlock()
 	if fake.NameStub != nil {
 		return fake.NameStub()
-	} else {
-		return fake.nameReturns.result1
 	}
+	return fake.nameReturns.result1
 }
 
 func (fake *FakeRelease) NameCallCount() int {
@@ -180,9 +179,8 @@ func (fake *FakeRelease) Version() string {
 	fake.versionMutex.Unlock()
 	if fake.VersionStub != nil {
 		return fake.VersionStub()
-	} else {
-		return fake.versionReturns.result1
 	}
+	return fake.versionReturns.result1
 }
 
 func (fake *FakeRelease) VersionCallCount() int {
@@ -231,9 +229,8 @@ func (fake *FakeRelease) CommitHashWithMark(arg1 string) string {
 	fake.commitHashWithMarkMutex.Unlock()
 	if fake.CommitHashWithMarkStub != nil {
 		return fake.CommitHashWithMarkStub(arg1)
-	} else {
-		return fake.commitHashWithMarkReturns.result1
 	}
+	return fake.commitHashWithMarkReturns.result1
 }
 
 func (fake *FakeRelease) CommitHashWithMarkCallCount() int {
@@ -303,16 +300,15 @@ func (fake *FakeRelease) SetUncommittedChangesArgsForCall(i int) bool {
 	return fake.setUncommittedChangesArgsForCall[i].arg1
 }
 
-func (fake *FakeRelease) Jobs() []*job.Job {
+func (fake *FakeRelease) Jobs() []*boshjob.Job {
 	fake.jobsMutex.Lock()
 	fake.jobsArgsForCall = append(fake.jobsArgsForCall, struct{}{})
 	fake.recordInvocation("Jobs", []interface{}{})
 	fake.jobsMutex.Unlock()
 	if fake.JobsStub != nil {
 		return fake.JobsStub()
-	} else {
-		return fake.jobsReturns.result1
 	}
+	return fake.jobsReturns.result1
 }
 
 func (fake *FakeRelease) JobsCallCount() int {
@@ -321,23 +317,22 @@ func (fake *FakeRelease) JobsCallCount() int {
 	return len(fake.jobsArgsForCall)
 }
 
-func (fake *FakeRelease) JobsReturns(result1 []*job.Job) {
+func (fake *FakeRelease) JobsReturns(result1 []*boshjob.Job) {
 	fake.JobsStub = nil
 	fake.jobsReturns = struct {
-		result1 []*job.Job
+		result1 []*boshjob.Job
 	}{result1}
 }
 
-func (fake *FakeRelease) Packages() []*pkg.Package {
+func (fake *FakeRelease) Packages() []*boshpkg.Package {
 	fake.packagesMutex.Lock()
 	fake.packagesArgsForCall = append(fake.packagesArgsForCall, struct{}{})
 	fake.recordInvocation("Packages", []interface{}{})
 	fake.packagesMutex.Unlock()
 	if fake.PackagesStub != nil {
 		return fake.PackagesStub()
-	} else {
-		return fake.packagesReturns.result1
 	}
+	return fake.packagesReturns.result1
 }
 
 func (fake *FakeRelease) PackagesCallCount() int {
@@ -346,23 +341,22 @@ func (fake *FakeRelease) PackagesCallCount() int {
 	return len(fake.packagesArgsForCall)
 }
 
-func (fake *FakeRelease) PackagesReturns(result1 []*pkg.Package) {
+func (fake *FakeRelease) PackagesReturns(result1 []*boshpkg.Package) {
 	fake.PackagesStub = nil
 	fake.packagesReturns = struct {
-		result1 []*pkg.Package
+		result1 []*boshpkg.Package
 	}{result1}
 }
 
-func (fake *FakeRelease) CompiledPackages() []*pkg.CompiledPackage {
+func (fake *FakeRelease) CompiledPackages() []*boshpkg.CompiledPackage {
 	fake.compiledPackagesMutex.Lock()
 	fake.compiledPackagesArgsForCall = append(fake.compiledPackagesArgsForCall, struct{}{})
 	fake.recordInvocation("CompiledPackages", []interface{}{})
 	fake.compiledPackagesMutex.Unlock()
 	if fake.CompiledPackagesStub != nil {
 		return fake.CompiledPackagesStub()
-	} else {
-		return fake.compiledPackagesReturns.result1
 	}
+	return fake.compiledPackagesReturns.result1
 }
 
 func (fake *FakeRelease) CompiledPackagesCallCount() int {
@@ -371,23 +365,22 @@ func (fake *FakeRelease) CompiledPackagesCallCount() int {
 	return len(fake.compiledPackagesArgsForCall)
 }
 
-func (fake *FakeRelease) CompiledPackagesReturns(result1 []*pkg.CompiledPackage) {
+func (fake *FakeRelease) CompiledPackagesReturns(result1 []*boshpkg.CompiledPackage) {
 	fake.CompiledPackagesStub = nil
 	fake.compiledPackagesReturns = struct {
-		result1 []*pkg.CompiledPackage
+		result1 []*boshpkg.CompiledPackage
 	}{result1}
 }
 
-func (fake *FakeRelease) License() *license.License {
+func (fake *FakeRelease) License() *boshlic.License {
 	fake.licenseMutex.Lock()
 	fake.licenseArgsForCall = append(fake.licenseArgsForCall, struct{}{})
 	fake.recordInvocation("License", []interface{}{})
 	fake.licenseMutex.Unlock()
 	if fake.LicenseStub != nil {
 		return fake.LicenseStub()
-	} else {
-		return fake.licenseReturns.result1
 	}
+	return fake.licenseReturns.result1
 }
 
 func (fake *FakeRelease) LicenseCallCount() int {
@@ -396,10 +389,10 @@ func (fake *FakeRelease) LicenseCallCount() int {
 	return len(fake.licenseArgsForCall)
 }
 
-func (fake *FakeRelease) LicenseReturns(result1 *license.License) {
+func (fake *FakeRelease) LicenseReturns(result1 *boshlic.License) {
 	fake.LicenseStub = nil
 	fake.licenseReturns = struct {
-		result1 *license.License
+		result1 *boshlic.License
 	}{result1}
 }
 
@@ -410,9 +403,8 @@ func (fake *FakeRelease) IsCompiled() bool {
 	fake.isCompiledMutex.Unlock()
 	if fake.IsCompiledStub != nil {
 		return fake.IsCompiledStub()
-	} else {
-		return fake.isCompiledReturns.result1
 	}
+	return fake.isCompiledReturns.result1
 }
 
 func (fake *FakeRelease) IsCompiledCallCount() int {
@@ -428,7 +420,7 @@ func (fake *FakeRelease) IsCompiledReturns(result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeRelease) FindJobByName(arg1 string) (job.Job, bool) {
+func (fake *FakeRelease) FindJobByName(arg1 string) (boshjob.Job, bool) {
 	fake.findJobByNameMutex.Lock()
 	fake.findJobByNameArgsForCall = append(fake.findJobByNameArgsForCall, struct {
 		arg1 string
@@ -437,9 +429,8 @@ func (fake *FakeRelease) FindJobByName(arg1 string) (job.Job, bool) {
 	fake.findJobByNameMutex.Unlock()
 	if fake.FindJobByNameStub != nil {
 		return fake.FindJobByNameStub(arg1)
-	} else {
-		return fake.findJobByNameReturns.result1, fake.findJobByNameReturns.result2
 	}
+	return fake.findJobByNameReturns.result1, fake.findJobByNameReturns.result2
 }
 
 func (fake *FakeRelease) FindJobByNameCallCount() int {
@@ -454,24 +445,23 @@ func (fake *FakeRelease) FindJobByNameArgsForCall(i int) string {
 	return fake.findJobByNameArgsForCall[i].arg1
 }
 
-func (fake *FakeRelease) FindJobByNameReturns(result1 job.Job, result2 bool) {
+func (fake *FakeRelease) FindJobByNameReturns(result1 boshjob.Job, result2 bool) {
 	fake.FindJobByNameStub = nil
 	fake.findJobByNameReturns = struct {
-		result1 job.Job
+		result1 boshjob.Job
 		result2 bool
 	}{result1, result2}
 }
 
-func (fake *FakeRelease) Manifest() manifest.Manifest {
+func (fake *FakeRelease) Manifest() boshman.Manifest {
 	fake.manifestMutex.Lock()
 	fake.manifestArgsForCall = append(fake.manifestArgsForCall, struct{}{})
 	fake.recordInvocation("Manifest", []interface{}{})
 	fake.manifestMutex.Unlock()
 	if fake.ManifestStub != nil {
 		return fake.ManifestStub()
-	} else {
-		return fake.manifestReturns.result1
 	}
+	return fake.manifestReturns.result1
 }
 
 func (fake *FakeRelease) ManifestCallCount() int {
@@ -480,10 +470,10 @@ func (fake *FakeRelease) ManifestCallCount() int {
 	return len(fake.manifestArgsForCall)
 }
 
-func (fake *FakeRelease) ManifestReturns(result1 manifest.Manifest) {
+func (fake *FakeRelease) ManifestReturns(result1 boshman.Manifest) {
 	fake.ManifestStub = nil
 	fake.manifestReturns = struct {
-		result1 manifest.Manifest
+		result1 boshman.Manifest
 	}{result1}
 }
 
@@ -497,9 +487,8 @@ func (fake *FakeRelease) Build(dev release.ArchiveIndicies, final release.Archiv
 	fake.buildMutex.Unlock()
 	if fake.BuildStub != nil {
 		return fake.BuildStub(dev, final)
-	} else {
-		return fake.buildReturns.result1
 	}
+	return fake.buildReturns.result1
 }
 
 func (fake *FakeRelease) BuildCallCount() int {
@@ -530,9 +519,8 @@ func (fake *FakeRelease) Finalize(final release.ArchiveIndicies) error {
 	fake.finalizeMutex.Unlock()
 	if fake.FinalizeStub != nil {
 		return fake.FinalizeStub(final)
-	} else {
-		return fake.finalizeReturns.result1
 	}
+	return fake.finalizeReturns.result1
 }
 
 func (fake *FakeRelease) FinalizeCallCount() int {
@@ -561,9 +549,8 @@ func (fake *FakeRelease) CleanUp() error {
 	fake.cleanUpMutex.Unlock()
 	if fake.CleanUpStub != nil {
 		return fake.CleanUpStub()
-	} else {
-		return fake.cleanUpReturns.result1
 	}
+	return fake.cleanUpReturns.result1
 }
 
 func (fake *FakeRelease) CleanUpCallCount() int {

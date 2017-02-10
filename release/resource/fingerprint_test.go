@@ -15,87 +15,120 @@ import (
 
 var _ = Describe("FingerprinterImpl", func() {
 	var (
-		sha1calc      *fakecrypto.FakeSha1Calculator
-		fs            *fakesys.FakeFileSystem
-		fingerprinter FingerprinterImpl
+		digestCalculator *fakecrypto.FakeDigestCalculator
+		fs               *fakesys.FakeFileSystem
+		fingerprinter    FingerprinterImpl
 	)
 
 	BeforeEach(func() {
-		sha1calc = fakecrypto.NewFakeSha1Calculator()
+		digestCalculator = fakecrypto.NewFakeDigestCalculator()
 		fs = fakesys.NewFakeFileSystem()
-		fingerprinter = NewFingerprinterImpl(sha1calc, fs)
+		fingerprinter = NewFingerprinterImpl(digestCalculator, fs)
 	})
 
-	It("fingerprints all files", func() {
-		files := []File{
-			NewFile("/tmp/file2", "/tmp"),
-			NewFile("/tmp/file1", "/tmp"),
-			NewFile("/tmp/file3", "/tmp"),
-			NewFile("/tmp/rel/file4", "/tmp"),
+	Context("successfully creating a fingerprint", func() {
+		var (
+			chunks []string
+			files  []File
+		)
+
+		BeforeEach(func() {
+			files = []File{
+				NewFile("/tmp/file2", "/tmp"),
+				NewFile("/tmp/file1", "/tmp"),
+				NewFile("/tmp/file3", "/tmp"),
+				NewFile("/tmp/rel/file4", "/tmp"),
+			}
+
+			excludeModeFile := NewFile("/tmp/file5", "/tmp")
+			excludeModeFile.ExcludeMode = true
+			files = append(files, excludeModeFile)
+
+			basenameFile := NewFile("/tmp/rel/file6", "/tmp")
+			basenameFile.UseBasename = true
+			files = append(files, basenameFile)
+
+			fs.RegisterOpenFile("/tmp/file1", &fakesys.FakeFile{
+				Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeDir},
+			})
+
+			fs.RegisterOpenFile("/tmp/file2", &fakesys.FakeFile{
+				Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
+			})
+
+			fs.RegisterOpenFile("/tmp/file3", &fakesys.FakeFile{
+				Stats: &fakesys.FakeFileStats{
+					FileType: fakesys.FakeFileTypeFile,
+					FileMode: os.FileMode(0111),
+				},
+			})
+
+			fs.RegisterOpenFile("/tmp/rel/file4", &fakesys.FakeFile{
+				Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
+			})
+
+			fs.RegisterOpenFile("/tmp/file5", &fakesys.FakeFile{
+				Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
+			})
+
+			fs.RegisterOpenFile("/tmp/rel/file6", &fakesys.FakeFile{
+				Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
+			})
+
+			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
+				// file1 directory is not sha1-ed
+				"/tmp/file2":     fakecrypto.CalculateInput{DigestStr: "file2-sha1"},
+				"/tmp/file3":     fakecrypto.CalculateInput{DigestStr: "file3-sha1"},
+				"/tmp/rel/file4": fakecrypto.CalculateInput{DigestStr: "file4-sha1"},
+				"/tmp/file5":     fakecrypto.CalculateInput{DigestStr: "file5-sha1"},
+				"/tmp/rel/file6": fakecrypto.CalculateInput{DigestStr: "file6-sha1"},
+			})
+
+			chunks = []string{
+				"v2",             // version
+				"file1", "40755", // dir perms
+				"file2", "file2-sha1", "100644", // regular file perms
+				"file3", "file3-sha1", "100755", // exec file perms
+				"file5", "file5-sha1", // excludes mode
+				"rel/file4", "file4-sha1", "100644", // relative file
+				"file6", "file6-sha1", "100644", // uses basename
+				"chunk1", ",chunk2", // sorted chunks
+			}
+		})
+
+		It("fingerprints all files", func() {
+			digestCalculator.CalculateStringInputs = map[string]string{
+				strings.Join(chunks, ""): "fp",
+			}
+
+			fp, err := fingerprinter.Calculate(files, []string{"chunk2", "chunk1"})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fp).To(Equal("fp"))
+		})
+
+		It("trims `sha256` algorithm info from resulting fingerprint string", func() {
+			digestCalculator.CalculateStringInputs = map[string]string{
+				strings.Join(chunks, ""): "sha256:asdfasdfasdfasdf",
+			}
+
+			fp, err := fingerprinter.Calculate(files, []string{"chunk2", "chunk1"})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fp).To(Equal("asdfasdfasdfasdf"))
+		})
+	})
+
+	It("returns an error when the resulting checksum contains unexpected content so it does not pass incompatible fingerprints to director", func() {
+		files := []File{NewFile("/tmp/file", "/tmp")}
+		fs.WriteFileString("/tmp/file", "stuff")
+
+		digestCalculator.CalculateStringInputs = map[string]string{
+			strings.Join([]string{"v2", "file", "100644"}, ""): "whatTheAlgorithmIsThat!:asdfasdfasdfasdf",
 		}
 
-		excludeModeFile := NewFile("/tmp/file5", "/tmp")
-		excludeModeFile.ExcludeMode = true
-		files = append(files, excludeModeFile)
+		_, err := fingerprinter.Calculate(files, []string{})
 
-		basenameFile := NewFile("/tmp/rel/file6", "/tmp")
-		basenameFile.UseBasename = true
-		files = append(files, basenameFile)
-
-		fs.RegisterOpenFile("/tmp/file1", &fakesys.FakeFile{
-			Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeDir},
-		})
-
-		fs.RegisterOpenFile("/tmp/file2", &fakesys.FakeFile{
-			Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
-		})
-
-		fs.RegisterOpenFile("/tmp/file3", &fakesys.FakeFile{
-			Stats: &fakesys.FakeFileStats{
-				FileType: fakesys.FakeFileTypeFile,
-				FileMode: os.FileMode(0111),
-			},
-		})
-
-		fs.RegisterOpenFile("/tmp/rel/file4", &fakesys.FakeFile{
-			Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
-		})
-
-		fs.RegisterOpenFile("/tmp/file5", &fakesys.FakeFile{
-			Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
-		})
-
-		fs.RegisterOpenFile("/tmp/rel/file6", &fakesys.FakeFile{
-			Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
-		})
-
-		sha1calc.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-			// file1 directory is not sha1-ed
-			"/tmp/file2":     fakecrypto.CalculateInput{Sha1: "file2-sha1"},
-			"/tmp/file3":     fakecrypto.CalculateInput{Sha1: "file3-sha1"},
-			"/tmp/rel/file4": fakecrypto.CalculateInput{Sha1: "file4-sha1"},
-			"/tmp/file5":     fakecrypto.CalculateInput{Sha1: "file5-sha1"},
-			"/tmp/rel/file6": fakecrypto.CalculateInput{Sha1: "file6-sha1"},
-		})
-
-		chunks := []string{
-			"v2",             // version
-			"file1", "40755", // dir perms
-			"file2", "file2-sha1", "100644", // regular file perms
-			"file3", "file3-sha1", "100755", // exec file perms
-			"file5", "file5-sha1", // excludes mode
-			"rel/file4", "file4-sha1", "100644", // relative file
-			"file6", "file6-sha1", "100644", // uses basename
-			"chunk1", ",chunk2", // sorted chunks
-		}
-
-		sha1calc.CalculateStringInputs = map[string]string{
-			strings.Join(chunks, ""): "fp",
-		}
-
-		fp, err := fingerprinter.Calculate(files, []string{"chunk2", "chunk1"})
-		Expect(err).ToNot(HaveOccurred())
-		Expect(fp).To(Equal("fp"))
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("Generated fingerprint contains unexpected characters 'whatTheAlgorithmIsThat!:asdfasdfasdfasdf'"))
 	})
 
 	It("Includes symlink target in fingerprint calculation", func() {
@@ -107,8 +140,8 @@ var _ = Describe("FingerprinterImpl", func() {
 		fs.WriteFileString("/tmp/regular", "")
 		fs.Symlink("nothing", "/tmp/symlink")
 
-		sha1calc.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-			"/tmp/regular": fakecrypto.CalculateInput{Sha1: "regular-sha1"},
+		digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
+			"/tmp/regular": fakecrypto.CalculateInput{DigestStr: "regular-sha1"},
 		})
 
 		chunks := []string{
@@ -118,7 +151,7 @@ var _ = Describe("FingerprinterImpl", func() {
 			"chunk1", ",chunk2", // sorted chunks
 		}
 
-		sha1calc.CalculateStringInputs = map[string]string{
+		digestCalculator.CalculateStringInputs = map[string]string{
 			"nothing":                "symlink-target-sha1",
 			strings.Join(chunks, ""): "fp",
 		}
@@ -143,7 +176,7 @@ var _ = Describe("FingerprinterImpl", func() {
 			Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
 		})
 
-		sha1calc.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
+		digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
 			"/tmp/file2": fakecrypto.CalculateInput{Err: errors.New("fake-err")},
 		})
 

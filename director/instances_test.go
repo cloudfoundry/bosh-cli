@@ -8,6 +8,7 @@ import (
 	"github.com/onsi/gomega/ghttp"
 
 	. "github.com/cloudfoundry/bosh-cli/director"
+	"net/http"
 )
 
 var _ = Describe("Instances", func() {
@@ -106,7 +107,7 @@ var _ = Describe("Instances", func() {
 				DiskIDs:      []string{"disk-cid1", "disk-cid2"},
 
 				Processes: []VMInfoProcess{
-					VMInfoProcess{
+					{
 						Name:   "service",
 						State:  "running",
 						CPU:    VMInfoVitalsCPU{Total: &procCPUTotal},
@@ -122,8 +123,8 @@ var _ = Describe("Instances", func() {
 					Uptime: VMInfoVitalsUptime{Seconds: &uptime},
 					Load:   []string{"2.20", "1.63", "1.53"},
 					Disk: map[string]VMInfoVitalsDiskSize{
-						"system":    VMInfoVitalsDiskSize{InodePercent: "19", Percent: "47"},
-						"ephemeral": VMInfoVitalsDiskSize{InodePercent: "19", Percent: "47"},
+						"system":    {InodePercent: "19", Percent: "47"},
+						"ephemeral": {InodePercent: "19", Percent: "47"},
 					},
 				},
 
@@ -166,6 +167,40 @@ var _ = Describe("Instances", func() {
 			_, err := deployment.InstanceInfos()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Unmarshaling instance info response"))
+		})
+	})
+
+	Describe("Instances", func() {
+		It("returns an array of instances", func() {
+			server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/deployments/dep/instances"),
+				ghttp.VerifyBasicAuth("username", "password"),
+				ghttp.RespondWith(http.StatusOK, strings.Replace(`[
+    {
+        "agent_id": "agent-id",
+        "cid": "vm-cid",
+        "job": "foobar",
+        "index": 1,
+        "id": "instance-id",
+        "az": "my-az",
+        "expects_vm": true
+    }
+]`, "\n", "", -1)),
+			),
+			)
+
+			infos, err := deployment.Instances()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(infos).To(HaveLen(1))
+
+			Expect(infos[0]).To(Equal(Instance{
+				AgentID:   "agent-id",
+				Group:     "foobar",
+				ID:        "instance-id",
+				AZ:        "my-az",
+				VMID:      "vm-cid",
+				ExpectsVM: true,
+			}))
 		})
 	})
 })

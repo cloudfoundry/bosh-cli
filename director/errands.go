@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"io"
+	"strings"
 )
 
 type Errand struct {
@@ -38,20 +40,25 @@ func (d DeploymentImpl) Errands() ([]Errand, error) {
 	return d.client.Errands(d.name)
 }
 
-func (d DeploymentImpl) RunErrand(name string, keepAlive bool) (ErrandResult, error) {
-	resp, err := d.client.RunErrand(d.name, name, keepAlive)
+func (d DeploymentImpl) RunErrand(name string, keepAlive bool, whenChanged bool) ([]ErrandResult, error) {
+	resp, err := d.client.RunErrand(d.name, name, keepAlive, whenChanged)
 	if err != nil {
-		return ErrandResult{}, err
+		return []ErrandResult{}, err
 	}
 
-	result := ErrandResult{
-		ExitCode: resp.ExitCode,
+	var result []ErrandResult
 
-		Stdout: resp.Stdout,
-		Stderr: resp.Stderr,
+	for _, value := range resp {
+		errandResult := ErrandResult{
+			ExitCode: value.ExitCode,
 
-		LogsBlobstoreID: resp.Logs.BlobstoreID,
-		LogsSHA1:        resp.Logs.SHA1,
+			Stdout: value.Stdout,
+			Stderr: value.Stderr,
+
+			LogsBlobstoreID: value.Logs.BlobstoreID,
+			LogsSHA1:        value.Logs.SHA1,
+		}
+		result = append(result, errandResult)
 	}
 
 	return result, nil
@@ -74,8 +81,8 @@ func (c Client) Errands(deploymentName string) ([]Errand, error) {
 	return errands, nil
 }
 
-func (c Client) RunErrand(deploymentName, name string, keepAlive bool) (ErrandRunResp, error) {
-	var resp ErrandRunResp
+func (c Client) RunErrand(deploymentName, name string, keepAlive bool, whenChanged bool) ([]ErrandRunResp, error) {
+	var resp []ErrandRunResp
 
 	if len(deploymentName) == 0 {
 		return resp, bosherr.Error("Expected non-empty deployment name")
@@ -87,7 +94,7 @@ func (c Client) RunErrand(deploymentName, name string, keepAlive bool) (ErrandRu
 
 	path := fmt.Sprintf("/deployments/%s/errands/%s/runs", deploymentName, name)
 
-	body := map[string]bool{"keep-alive": keepAlive}
+	body := map[string]bool{"keep-alive": keepAlive, "when-changed": whenChanged}
 
 	reqBody, err := json.Marshal(body)
 	if err != nil {
@@ -103,9 +110,16 @@ func (c Client) RunErrand(deploymentName, name string, keepAlive bool) (ErrandRu
 		return resp, bosherr.WrapErrorf(err, "Running errand '%s'", name)
 	}
 
-	err = json.Unmarshal(resultBytes, &resp)
-	if err != nil {
-		return resp, bosherr.WrapErrorf(err, "Unmarshaling errand result")
+	dec := json.NewDecoder(strings.NewReader(string(resultBytes)))
+
+	for {
+		var errandRunResponse ErrandRunResp
+		if err := dec.Decode(&errandRunResponse); err == io.EOF {
+			break
+		} else if err != nil {
+			return nil, bosherr.WrapErrorf(err, "Unmarshaling errand result")
+		}
+		resp = append(resp, errandRunResponse)
 	}
 
 	return resp, nil

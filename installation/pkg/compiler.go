@@ -20,7 +20,7 @@ type compiler struct {
 	packagesDir         string
 	fileSystem          boshsys.FileSystem
 	compressor          boshcmd.Compressor
-	blobstore           boshblob.Blobstore
+	blobstore           boshblob.DigestBlobstore
 	compiledPackageRepo bistatepkg.CompiledPackageRepo
 	blobExtractor       blobextract.Extractor
 	logger              boshlog.Logger
@@ -32,7 +32,7 @@ func NewPackageCompiler(
 	packagesDir string,
 	fileSystem boshsys.FileSystem,
 	compressor boshcmd.Compressor,
-	blobstore boshblob.Blobstore,
+	blobstore boshblob.DigestBlobstore,
 	compiledPackageRepo bistatepkg.CompiledPackageRepo,
 	blobExtractor blobextract.Extractor,
 	logger boshlog.Logger,
@@ -123,14 +123,14 @@ func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageR
 		}
 	}()
 
-	blobID, blobSHA1, err := c.blobstore.Create(tarball)
+	blobID, digest, err := c.blobstore.Create(tarball)
 	if err != nil {
 		return record, isCompiledPackage, bosherr.WrapError(err, "Creating blob")
 	}
 
 	record = bistatepkg.CompiledPackageRecord{
 		BlobID:   blobID,
-		BlobSHA1: blobSHA1,
+		BlobSHA1: digest.String(),
 	}
 
 	err = c.compiledPackageRepo.Save(pkg, record)

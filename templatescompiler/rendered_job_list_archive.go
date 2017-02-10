@@ -11,38 +11,34 @@ import (
 type RenderedJobListArchive interface {
 	List() RenderedJobList
 	Path() string
-	Fingerprint() string
 	SHA1() string
 	Delete() error
 	DeleteSilently()
 }
 
 type renderedJobListArchive struct {
-	list        RenderedJobList
-	path        string
-	fingerprint string
-	sha1        string
-	fs          boshsys.FileSystem
-	logger      boshlog.Logger
-	logTag      string
+	list   RenderedJobList
+	path   string
+	sha1   string
+	fs     boshsys.FileSystem
+	logger boshlog.Logger
+	logTag string
 }
 
 func NewRenderedJobListArchive(
 	list RenderedJobList,
 	path string,
-	fingerprint string,
 	sha1 string,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) RenderedJobListArchive {
 	return &renderedJobListArchive{
-		list:        list,
-		path:        path,
-		fingerprint: fingerprint,
-		sha1:        sha1,
-		fs:          fs,
-		logger:      logger,
-		logTag:      "renderedJobListArchive",
+		list:   list,
+		path:   path,
+		sha1:   sha1,
+		fs:     fs,
+		logger: logger,
+		logTag: "renderedJobListArchive",
 	}
 }
 
@@ -52,10 +48,6 @@ func (a *renderedJobListArchive) List() RenderedJobList {
 
 func (a *renderedJobListArchive) Path() string {
 	return a.path
-}
-
-func (a *renderedJobListArchive) Fingerprint() string {
-	return a.fingerprint
 }
 
 func (a *renderedJobListArchive) SHA1() string {

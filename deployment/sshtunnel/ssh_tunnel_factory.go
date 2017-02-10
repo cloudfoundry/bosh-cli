@@ -1,18 +1,17 @@
 package sshtunnel
 
 import (
-	"time"
-
+	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/pivotal-golang/clock"
 )
 
 type Options struct {
-	Host       string
-	Port       int
+	Host string
+	Port int
+
 	User       string
-	PrivateKey string
 	Password   string
+	PrivateKey string
 
 	LocalForwardPort  int
 	RemoteForwardPort int
@@ -31,20 +30,30 @@ type factory struct {
 }
 
 func NewFactory(logger boshlog.Logger) Factory {
-	return &factory{
-		logger: logger,
-	}
+	return &factory{logger: logger}
 }
 
-func (s *factory) NewSSHTunnel(options Options) SSHTunnel {
-	timeService := clock.NewClock()
-	return &sshTunnel{
-		connectionRefusedTimeout: 5 * time.Minute,
-		authFailureTimeout:       2 * time.Minute,
-		startDialDelay:           500 * time.Millisecond,
-		timeService:              timeService,
-		options:                  options,
-		logger:                   s.logger,
-		logTag:                   "sshTunnel",
+func (f *factory) NewSSHTunnel(opts Options) SSHTunnel {
+	clientFactory := boshssh.NewClientFactory(f.logger)
+
+	clientOpts := boshssh.ClientOpts{
+		Host: opts.Host,
+		Port: opts.Port,
+
+		User:       opts.User,
+		Password:   opts.Password,
+		PrivateKey: opts.PrivateKey,
 	}
+
+	tunnel := &sshTunnel{
+		client: clientFactory.New(clientOpts),
+
+		localForwardPort:  opts.LocalForwardPort,
+		remoteForwardPort: opts.RemoteForwardPort,
+
+		logTag: "sshTunnel",
+		logger: f.logger,
+	}
+
+	return tunnel
 }

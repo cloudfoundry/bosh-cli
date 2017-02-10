@@ -18,7 +18,7 @@ type JobRenderer interface {
 type jobRenderer struct {
 	jobListRenderer bitemplate.JobListRenderer
 	compressor      boshcmd.Compressor
-	blobstore       boshblob.Blobstore
+	blobstore       boshblob.DigestBlobstore
 }
 
 type RenderedJobRef struct {
@@ -40,7 +40,7 @@ func NewRenderedJobRef(name, version, blobstoreID, sha1 string) RenderedJobRef {
 func NewJobRenderer(
 	jobListRenderer bitemplate.JobListRenderer,
 	compressor boshcmd.Compressor,
-	blobstore boshblob.Blobstore,
+	blobstore boshblob.DigestBlobstore,
 ) JobRenderer {
 	return &jobRenderer{
 		jobListRenderer: jobListRenderer,
@@ -110,7 +110,7 @@ func (b *jobRenderer) compressAndUpload(renderedJob bitemplate.RenderedJob) (Ren
 		_ = b.compressor.CleanUp(tarballPath)
 	}()
 
-	blobID, blobSHA1, err := b.blobstore.Create(tarballPath)
+	blobID, digest, err := b.blobstore.Create(tarballPath)
 	if err != nil {
 		return RenderedJobRef{}, bosherr.WrapError(err, "Creating blob")
 	}
@@ -121,6 +121,6 @@ func (b *jobRenderer) compressAndUpload(renderedJob bitemplate.RenderedJob) (Ren
 		Name:        releaseJob.Name(),
 		Version:     releaseJob.Fingerprint(),
 		BlobstoreID: blobID,
-		SHA1:        blobSHA1,
+		SHA1:        digest.String(),
 	}, nil
 }

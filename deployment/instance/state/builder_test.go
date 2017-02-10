@@ -120,8 +120,11 @@ var _ = Describe("Builder", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.ToApplySpec()).To(Equal(bias.ApplySpec{
-				Deployment: "fake-deployment-name",
-				Index:      0,
+				Name:             "fake-deployment-job-name",
+				NodeID:           "0",
+				AvailabilityZone: "unknown",
+				Deployment:       "fake-deployment-name",
+				Index:            0,
 				Job: bias.Job{
 					Name:      "fake-deployment-job-name",
 					Templates: []bias.Blob{},
@@ -137,6 +140,7 @@ var _ = Describe("Builder", func() {
 						},
 					},
 				},
+				ConfigurationHash: "unused-configuration-hash",
 			}))
 		})
 	})
@@ -290,7 +294,6 @@ var _ = Describe("Builder", func() {
 
 			mockRenderedJobListArchive.EXPECT().Path().Return("fake-rendered-job-list-archive-path")
 			mockRenderedJobListArchive.EXPECT().SHA1().Return("fake-rendered-job-list-archive-sha1")
-			mockRenderedJobListArchive.EXPECT().Fingerprint().Return("fake-rendered-job-list-fingerprint")
 
 			mockBlobstore.EXPECT().Add("fake-rendered-job-list-archive-path").Return("fake-rendered-job-list-archive-blob-id", nil)
 		})
@@ -512,8 +515,11 @@ var _ = Describe("Builder", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.ToApplySpec()).To(Equal(bias.ApplySpec{
-				Deployment: "fake-deployment-name",
-				Index:      0,
+				Name:             "fake-deployment-job-name",
+				NodeID:           "0",
+				AvailabilityZone: "unknown",
+				Deployment:       "fake-deployment-name",
+				Index:            0,
 				Networks: map[string]interface{}{
 					"fake-network-name": map[string]interface{}{
 						"type":    "fake-network-type",
@@ -557,7 +563,7 @@ var _ = Describe("Builder", func() {
 					BlobstoreID: "fake-rendered-job-list-archive-blob-id",
 					SHA1:        "fake-rendered-job-list-archive-sha1",
 				},
-				ConfigurationHash: "fake-rendered-job-list-fingerprint",
+				ConfigurationHash: "unused-configuration-hash",
 			}))
 		})
 	})

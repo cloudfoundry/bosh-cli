@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 
-	fakebicrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
 	. "github.com/cloudfoundry/bosh-cli/installation/tarball"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
@@ -17,22 +16,20 @@ import (
 
 var _ = Describe("Provider", func() {
 	var (
-		provider       Provider
-		cache          Cache
-		fs             *fakesys.FakeFileSystem
-		httpClient     *fakebihttpclient.FakeHTTPClient
-		sha1Calculator *fakebicrypto.FakeSha1Calculator
-		source         *fakeSource
-		fakeStage      *fakebiui.FakeStage
+		provider   Provider
+		cache      Cache
+		fs         *fakesys.FakeFileSystem
+		httpClient *fakebihttpclient.FakeHTTPClient
+		source     *fakeSource
+		fakeStage  *fakebiui.FakeStage
 	)
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		cache = NewCache("/fake-base-path", fs, logger)
-		sha1Calculator = fakebicrypto.NewFakeSha1Calculator()
 		httpClient = fakebihttpclient.NewFakeHTTPClient()
-		provider = NewProvider(cache, fs, httpClient, sha1Calculator, 3, 0, logger)
+		provider = NewProvider(cache, fs, httpClient, 3, 0, logger)
 		fakeStage = fakebiui.NewFakeStage()
 	})
 
@@ -53,7 +50,7 @@ var _ = Describe("Provider", func() {
 
 		Context("when URL starts with http(s)://", func() {
 			BeforeEach(func() {
-				source = newFakeSource("http://fake-url", "fake-sha1", "fake-description")
+				source = newFakeSource("http://fake-url", "da39a3ee5e6b4b0d3255bfef95601890afd80709", "fake-description")
 			})
 
 			Context("when tarball is present in cache", func() {
@@ -65,7 +62,7 @@ var _ = Describe("Provider", func() {
 				It("returns cached tarball path", func() {
 					path, err := provider.Get(source, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
-					Expect(path).To(Equal("/fake-base-path/9db1fb7c47637e8709e944a232e1aa98ce6fec26-fake-sha1"))
+					Expect(path).To(Equal("/fake-base-path/9db1fb7c47637e8709e944a232e1aa98ce6fec26-da39a3ee5e6b4b0d3255bfef95601890afd80709"))
 				})
 
 				It("skips downloading stage", func() {
@@ -87,9 +84,6 @@ var _ = Describe("Provider", func() {
 					Expect(err).ToNot(HaveOccurred())
 					fs.ReturnTempFile = tempDownloadFile
 					tempDownloadFilePath = tempDownloadFile.Name()
-					sha1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
-						tempDownloadFilePath: {Sha1: "fake-sha1"},
-					})
 				})
 
 				AfterEach(func() {
@@ -106,7 +100,7 @@ var _ = Describe("Provider", func() {
 					It("downloads tarball from given URL and returns saved cache tarball path", func() {
 						path, err := provider.Get(source, fakeStage)
 						Expect(err).ToNot(HaveOccurred())
-						Expect(path).To(Equal("/fake-base-path/9db1fb7c47637e8709e944a232e1aa98ce6fec26-fake-sha1"))
+						Expect(path).To(Equal("/fake-base-path/9db1fb7c47637e8709e944a232e1aa98ce6fec26-da39a3ee5e6b4b0d3255bfef95601890afd80709"))
 
 						Expect(httpClient.GetInputs).To(HaveLen(1))
 						Expect(httpClient.GetInputs[0].Endpoint).To(Equal("http://fake-url"))
@@ -123,15 +117,13 @@ var _ = Describe("Provider", func() {
 
 					Context("when sha1 does not match", func() {
 						BeforeEach(func() {
-							sha1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
-								tempDownloadFilePath: {Sha1: "fake-sha2"},
-							})
+							source = newFakeSource("http://fake-url", "expectedsha1", "fake-description")
 						})
 
 						It("returns an error", func() {
 							_, err := provider.Get(source, fakeStage)
 							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("'fake-sha2' does not match expected SHA1 'fake-sha1'"))
+							Expect(err.Error()).To(ContainSubstring("Failed to download from 'http://fake-url': Verifying digest for downloaded file: Expected stream to have digest 'expectedsha1' but was 'da39a3ee5e6b4b0d3255bfef95601890afd80709'"))
 						})
 
 						It("retries downloading up to 3 times", func() {

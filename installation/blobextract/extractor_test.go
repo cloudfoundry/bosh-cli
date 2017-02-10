@@ -6,6 +6,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/installation/blobextract"
 	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -16,7 +17,7 @@ import (
 var _ = Describe("Extractor", func() {
 	var (
 		extractor  Extractor
-		blobstore  *fakeblobstore.FakeBlobstore
+		blobstore  *fakeblobstore.FakeDigestBlobstore
 		targetDir  string
 		compressor *fakecmd.FakeCompressor
 		logger     boshlog.Logger
@@ -29,15 +30,15 @@ var _ = Describe("Extractor", func() {
 	)
 
 	BeforeEach(func() {
-		blobstore = fakeblobstore.NewFakeBlobstore()
+		blobstore = &fakeblobstore.FakeDigestBlobstore{}
 		targetDir = "fake-target-dir"
 		compressor = fakecmd.NewFakeCompressor()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		blobID = "fake-blob-id"
-		blobSHA1 = "fake-sha1"
+		blobSHA1 = "fakesha1"
 		fileName = "tarball.tgz"
-		blobstore.GetFileName = fileName
+		blobstore.GetReturns(fileName, nil)
 		fakeError = errors.New("Initial error")
 
 		extractor = NewExtractor(fs, compressor, blobstore, logger)
@@ -59,7 +60,7 @@ var _ = Describe("Extractor", func() {
 		It("deletes the stored blob", func() {
 			err := extractor.Cleanup(blobID, targetDir)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(blobstore.DeleteBlobID).To(Equal(blobID))
+			Expect(blobstore.DeleteArgsForCall(0)).To(Equal(blobID))
 		})
 	})
 
@@ -72,6 +73,20 @@ var _ = Describe("Extractor", func() {
 				Expect(fs.FileExists(targetDir)).To(BeTrue())
 			})
 
+			It("gets the blob out of the blobstore with a parsed digest object", func() {
+				err := extractor.Extract(blobID, "sha1digest;sha256:sha256digest", targetDir)
+				actualBlobID, actualDigest := blobstore.GetArgsForCall(0)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(actualBlobID).To(Equal(blobID))
+				Expect(actualDigest).To(Equal(boshcrypto.MustParseMultipleDigest("sha1digest;sha256:sha256digest")))
+			})
+
+			It("returns error when parsing multidigest string fails", func() {
+				err := extractor.Extract(blobID, "", targetDir)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Parsing multiple digest string:"))
+			})
+
 			It("decompresses the blob into the target dir", func() {
 				err := extractor.Extract(blobID, blobSHA1, targetDir)
 				Expect(err).ToNot(HaveOccurred())
@@ -82,7 +97,7 @@ var _ = Describe("Extractor", func() {
 			It("cleans up the extracted blob file", func() {
 				err := extractor.Extract(blobID, blobSHA1, targetDir)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(blobstore.CleanUpFileName).To(Equal(fileName))
+				Expect(blobstore.CleanUpArgsForCall(0)).To(Equal(fileName))
 			})
 
 			Context("when the installed package dir already exists", func() {
@@ -112,7 +127,7 @@ var _ = Describe("Extractor", func() {
 						Expect(fs.FileExists(targetDir)).To(BeTrue())
 						err := extractor.Extract(blobID, blobSHA1, targetDir)
 						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(Equal("Decompressing compiled package: BlobID: 'fake-blob-id', BlobSHA1: 'fake-sha1': Initial error"))
+						Expect(err.Error()).To(Equal("Decompressing compiled package: BlobID: 'fake-blob-id', BlobSHA1: 'fakesha1': Initial error"))
 						Expect(fs.FileExists(targetDir)).To(BeTrue())
 					})
 				})
@@ -120,7 +135,7 @@ var _ = Describe("Extractor", func() {
 
 			Context("when getting the blob from the blobstore errors", func() {
 				BeforeEach(func() {
-					blobstore.GetError = fakeError
+					blobstore.GetReturns("", fakeError)
 				})
 
 				It("returns an error", func() {
@@ -141,7 +156,7 @@ var _ = Describe("Extractor", func() {
 				It("cleans up the blob file", func() {
 					err := extractor.Extract(blobID, blobSHA1, targetDir)
 					Expect(err).ToNot(HaveOccurred())
-					Expect(blobstore.CleanUpFileName).To(Equal(fileName))
+					Expect(blobstore.CleanUpArgsForCall(0)).To(Equal(fileName))
 				})
 			})
 
@@ -153,7 +168,7 @@ var _ = Describe("Extractor", func() {
 				It("returns an error", func() {
 					err := extractor.Extract(blobID, blobSHA1, targetDir)
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Decompressing compiled package: BlobID: 'fake-blob-id', BlobSHA1: 'fake-sha1'"))
+					Expect(err.Error()).To(ContainSubstring("Decompressing compiled package: BlobID: 'fake-blob-id', BlobSHA1: 'fakesha1'"))
 				})
 
 				It("cleans up the target dir if it was created by this extractor", func() {
@@ -166,7 +181,7 @@ var _ = Describe("Extractor", func() {
 
 			Context("when cleaning up the downloaded blob errors", func() {
 				BeforeEach(func() {
-					blobstore.CleanUpErr = fakeError
+					blobstore.CleanUpReturns(fakeError)
 				})
 
 				It("does not return the error", func() {

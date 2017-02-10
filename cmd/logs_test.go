@@ -138,6 +138,7 @@ var _ = Describe("LogsCmd", func() {
 		Context("when tailing logs (or specifying number of lines)", func() {
 			BeforeEach(func() {
 				opts.Follow = true
+				opts.GatewayFlags.UUIDGen = uuidGen
 				uuidGen.GeneratedUUID = "8c5ff117-9572-45c5-8564-8bcf076ecafa"
 			})
 
@@ -155,7 +156,6 @@ var _ = Describe("LogsCmd", func() {
 				setupSlug, setupSSHOpts := deployment.SetUpSSHArgsForCall(0)
 				Expect(setupSlug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
 				Expect(setupSSHOpts.Username).To(Equal("bosh_8c5ff117957245c5"))
-				Expect(setupSSHOpts.Password).To(Equal("p"))
 				Expect(setupSSHOpts.PublicKey).To(ContainSubstring("ssh-rsa AAAA"))
 
 				slug, sshOpts := deployment.CleanUpSSHArgsForCall(0)
@@ -177,6 +177,13 @@ var _ = Describe("LogsCmd", func() {
 				Expect(nonIntSSHRunner.RunCallCount()).To(Equal(1))
 			})
 
+			It("returns an error if generating SSH options fails", func() {
+				uuidGen.GenerateError = errors.New("fake-err")
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+
 			It("returns an error if setting up SSH access fails", func() {
 				deployment.SetUpSSHReturns(boshdir.SSHResult{}, errors.New("fake-err"))
 				err := act()
@@ -192,6 +199,7 @@ var _ = Describe("LogsCmd", func() {
 				opts.GatewayFlags.Username = "gw-username"
 				opts.GatewayFlags.Host = "gw-host"
 				opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
+				opts.GatewayFlags.SOCKS5Proxy = "some-proxy"
 
 				Expect(act()).ToNot(HaveOccurred())
 
@@ -203,6 +211,7 @@ var _ = Describe("LogsCmd", func() {
 				Expect(runConnOpts.GatewayUsername).To(Equal("gw-username"))
 				Expect(runConnOpts.GatewayHost).To(Equal("gw-host"))
 				Expect(runConnOpts.GatewayPrivateKeyPath).To(Equal("gw-private-key"))
+				Expect(runConnOpts.SOCKS5Proxy).To(Equal("some-proxy"))
 				Expect(runResult).To(Equal(boshdir.SSHResult{Hosts: []boshdir.Host{{Host: "ip1"}}}))
 				Expect(runCommand).To(Equal([]string{"sudo", "tail", "-F", "/var/vcap/sys/log/{**/,}*.log"}))
 			})

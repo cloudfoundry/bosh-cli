@@ -201,6 +201,66 @@ var _ = Describe("Factory", func() {
 				_, err = director.Info()
 				Expect(err).ToNot(HaveOccurred())
 			})
+
+			It("retries request 3 times if a StatusGatewayTimeout returned", func() {
+				config, err := NewConfigFromURL(server.URL())
+				Expect(err).ToNot(HaveOccurred())
+
+				config.CACert = validCACert
+
+				logger := boshlog.NewLogger(boshlog.LevelNone)
+
+				director, err := NewFactory(logger).New(config, nil, nil)
+				Expect(err).ToNot(HaveOccurred())
+
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/info"),
+						ghttp.RespondWith(http.StatusGatewayTimeout, nil),
+					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/info"),
+						ghttp.RespondWith(http.StatusGatewayTimeout, nil),
+					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/info"),
+						ghttp.RespondWith(http.StatusOK, "{}"),
+					),
+				)
+
+				_, err = director.Info()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(len(server.ReceivedRequests())).To(Equal(3))
+			})
+
+			It("does not retry on non-successful http status codes", func() {
+				config, err := NewConfigFromURL(server.URL())
+				Expect(err).ToNot(HaveOccurred())
+
+				config.CACert = validCACert
+
+				logger := boshlog.NewLogger(boshlog.LevelNone)
+
+				director, err := NewFactory(logger).New(config, nil, nil)
+				Expect(err).ToNot(HaveOccurred())
+
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/info"),
+						ghttp.RespondWith(http.StatusGatewayTimeout, nil),
+					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/info"),
+						ghttp.RespondWith(http.StatusInternalServerError, nil),
+					),
+				)
+
+				_, err = director.Info()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Fetching info: Director responded with non-successful status code"))
+				Expect(len(server.ReceivedRequests())).To(Equal(2))
+			})
+
 		})
 	})
 })

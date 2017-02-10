@@ -8,7 +8,6 @@ import (
 	"syscall"
 	"time"
 
-	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
@@ -23,7 +22,6 @@ import (
 var _ = Describe("UIDownloader", func() {
 	var (
 		director    *fakedir.FakeDirector
-		sha1calc    *fakecrypto.FakeSha1Calculator
 		fs          *fakesys.FakeFileSystem
 		timeService clock.Clock
 		ui          *fakeui.FakeUI
@@ -32,11 +30,10 @@ var _ = Describe("UIDownloader", func() {
 
 	BeforeEach(func() {
 		director = &fakedir.FakeDirector{}
-		sha1calc = fakecrypto.NewFakeSha1Calculator()
 		timeService = fakeclock.NewFakeClock(time.Date(2009, time.November, 10, 23, 1, 2, 333, time.UTC))
 		fs = fakesys.NewFakeFileSystem()
 		ui = &fakeui.FakeUI{}
-		downloader = NewUIDownloader(director, sha1calc, timeService, fs, ui)
+		downloader = NewUIDownloader(director, timeService, fs, ui)
 	})
 
 	Describe("Download", func() {
@@ -81,17 +78,17 @@ var _ = Describe("UIDownloader", func() {
 		}
 
 		Context("when SHA1 is provided", func() {
-			act := func() error { return downloader.Download("fake-blob-id", "fake-sha1", "prefix", "/fake-dst-dir") }
+			act := func() error {
+				return downloader.Download("fake-blob-id", "a2511842a89119b9da922f9528307b7f8f55b798", "prefix", "/fake-dst-dir")
+			}
 
 			It("downloads specified blob to a specific destination", func() {
-				fs.ReturnTempFile = fakesys.NewFakeFile("/some-tmp-file", fs)
-
-				sha1calc.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-					"/some-tmp-file": fakecrypto.CalculateInput{Sha1: "fake-sha1"},
-				})
+				fakeFile := fakesys.NewFakeFile("/some-tmp-file", fs)
+				fakeFile.Write([]byte("file-contents"))
+				fs.ReturnTempFile = fakeFile
 
 				director.DownloadResourceUncheckedStub = func(_ string, out io.Writer) error {
-					out.Write([]byte("content"))
+					out.Write([]byte("file-contents"))
 					return nil
 				}
 
@@ -100,7 +97,7 @@ var _ = Describe("UIDownloader", func() {
 
 				Expect(fs.FileExists("/some-tmp-file")).To(BeFalse())
 				Expect(fs.FileExists(expectedPath)).To(BeTrue())
-				Expect(fs.ReadFileString(expectedPath)).To(Equal("content"))
+				Expect(fs.ReadFileString(expectedPath)).To(Equal("file-contents"))
 
 				blobID, _ := director.DownloadResourceUncheckedArgsForCall(0)
 				Expect(blobID).To(Equal("fake-blob-id"))
@@ -110,25 +107,22 @@ var _ = Describe("UIDownloader", func() {
 			})
 
 			It("returns error if sha1 does not match expected sha1", func() {
-				fs.ReturnTempFile = fakesys.NewFakeFile("/some-tmp-file", fs)
-
-				sha1calc.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-					"/some-tmp-file": fakecrypto.CalculateInput{Sha1: "non-matching-sha1"},
-				})
+				fakeFile := fakesys.NewFakeFile("/some-tmp-file", fs)
+				fakeFile.Write([]byte("file-contents-that-were-corrupted"))
+				fs.ReturnTempFile = fakeFile
 
 				err := act()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Expected file SHA1 to be 'fake-sha1' but was 'non-matching-sha1'"))
+				Expect(err.Error()).To(Equal("Expected stream to have digest 'a2511842a89119b9da922f9528307b7f8f55b798' but was '93135ede4065c7d5958ab7e328d501f8d4d9e2aa'"))
 
 				Expect(fs.FileExists(expectedPath)).To(BeFalse())
 			})
 
 			It("returns error if sha1 check fails", func() {
-				fs.ReturnTempFile = fakesys.NewFakeFile("/some-tmp-file", fs)
-
-				sha1calc.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-					"/some-tmp-file": fakecrypto.CalculateInput{Err: errors.New("fake-err")},
-				})
+				fakeFile := fakesys.NewFakeFile("/some-tmp-file", fs)
+				fakeFile.Write([]byte("file-contents-that-were-corrupted"))
+				fs.ReturnTempFile = fakeFile
+				fs.OpenFileErr = errors.New("fake-err")
 
 				err := act()
 				Expect(err).To(HaveOccurred())

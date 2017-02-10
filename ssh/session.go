@@ -67,7 +67,15 @@ func (r *SessionImpl) Start() ([]string, error) {
 
 	gwUsername, gwHost, gwPrivKeyPath := r.gwOpts(r.connOpts, r.result)
 
-	if len(gwHost) > 0 {
+	if len(r.connOpts.SOCKS5Proxy) > 0 {
+		proxyOpt := fmt.Sprintf(
+			"ProxyCommand=nc -X 5 -x %s %%h %%p",
+			strings.TrimPrefix(r.connOpts.SOCKS5Proxy, "socks5://"),
+		)
+
+		cmdOpts = append(cmdOpts, "-o", proxyOpt)
+
+	} else if len(gwHost) > 0 {
 		gwCmdOpts := []string{
 			"-o", "ServerAliveInterval=30",
 			"-o", "ForwardAgent=no",

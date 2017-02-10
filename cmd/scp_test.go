@@ -38,7 +38,11 @@ var _ = Describe("SCPCmd", func() {
 		)
 
 		BeforeEach(func() {
-			opts = SCPOpts{}
+			opts = SCPOpts{
+				GatewayFlags: GatewayFlags{
+					UUIDGen: uuidGen,
+				},
+			}
 			uuidGen.GeneratedUUID = "8c5ff117-9572-45c5-8564-8bcf076ecafa"
 		})
 
@@ -63,7 +67,6 @@ var _ = Describe("SCPCmd", func() {
 				setupSlug, setupSSHOpts := deployment.SetUpSSHArgsForCall(0)
 				Expect(setupSlug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("from", "")))
 				Expect(setupSSHOpts.Username).To(Equal("bosh_8c5ff117957245c5"))
-				Expect(setupSSHOpts.Password).To(Equal("p"))
 				Expect(setupSSHOpts.PublicKey).To(ContainSubstring("ssh-rsa AAAA"))
 
 				slug, sshOpts := deployment.CleanUpSSHArgsForCall(0)
@@ -78,6 +81,13 @@ var _ = Describe("SCPCmd", func() {
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 			})
 
+			It("returns an error if generating SSH options fails", func() {
+				uuidGen.GenerateError = errors.New("fake-err")
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+
 			It("runs SCP with flags, and command", func() {
 				result := boshdir.SSHResult{Hosts: []boshdir.Host{{Host: "ip1"}}}
 				deployment.SetUpSSHReturns(result, nil)
@@ -86,6 +96,7 @@ var _ = Describe("SCPCmd", func() {
 				opts.GatewayFlags.Username = "gw-username"
 				opts.GatewayFlags.Host = "gw-host"
 				opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
+				opts.GatewayFlags.SOCKS5Proxy = "some-proxy"
 
 				Expect(act()).ToNot(HaveOccurred())
 
@@ -97,6 +108,7 @@ var _ = Describe("SCPCmd", func() {
 				Expect(runConnOpts.GatewayUsername).To(Equal("gw-username"))
 				Expect(runConnOpts.GatewayHost).To(Equal("gw-host"))
 				Expect(runConnOpts.GatewayPrivateKeyPath).To(Equal("gw-private-key"))
+				Expect(runConnOpts.SOCKS5Proxy).To(Equal("some-proxy"))
 				Expect(runResult).To(Equal(boshdir.SSHResult{Hosts: []boshdir.Host{{Host: "ip1"}}}))
 				Expect(runCommand).To(Equal(boshssh.NewSCPArgs([]string{"from:file", "/something"}, false)))
 			})

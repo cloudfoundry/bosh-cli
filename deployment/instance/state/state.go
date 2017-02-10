@@ -2,6 +2,7 @@ package state
 
 import (
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	"strconv"
 )
 
 type State interface {
@@ -47,7 +48,6 @@ type state struct {
 	renderedJobs           []JobRef
 	compiledPackages       []PackageRef
 	renderedJobListArchive BlobRef
-	hash                   string
 }
 
 func NewState(
@@ -68,7 +68,6 @@ func NewState(
 		renderedJobs:           renderedJobs,
 		compiledPackages:       compiledPackages,
 		renderedJobListArchive: renderedJobListArchive,
-		hash: hash,
 	}
 }
 
@@ -105,9 +104,12 @@ func (s *state) ToApplySpec() bias.ApplySpec {
 	}
 
 	return bias.ApplySpec{
-		Deployment: s.deploymentName,
-		Index:      s.id,
-		Networks:   networkMap,
+		Deployment:       s.deploymentName,
+		NodeID:           strconv.Itoa(s.id),
+		AvailabilityZone: "unknown",
+		Name:             s.name,
+		Index:            s.id,
+		Networks:         networkMap,
 		Job: bias.Job{
 			Name:      s.name,
 			Templates: jobTemplateList,
@@ -117,6 +119,6 @@ func (s *state) ToApplySpec() bias.ApplySpec {
 			BlobstoreID: s.renderedJobListArchive.BlobstoreID,
 			SHA1:        s.renderedJobListArchive.SHA1,
 		},
-		ConfigurationHash: s.hash,
+		ConfigurationHash: "unused-configuration-hash",
 	}
 }

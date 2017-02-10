@@ -48,6 +48,12 @@ var _ = Describe("create-release command", func() {
 		return matchSHA1s.ReplaceAllString(contents, "sha1: replaced\n")
 	}
 
+	expectSha256Checksums := func(filePath string) {
+		contents, err := fs.ReadFileString(filePath)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(contents).To(MatchRegexp("sha1: sha256:.*"))
+	}
+
 	It("can iterate on a basic release", func() {
 		tmpDir, err := fs.TempDir("bosh-create-release-int-test")
 		Expect(err).ToNot(HaveOccurred())
@@ -67,6 +73,9 @@ var _ = Describe("create-release command", func() {
 		execCmd([]string{"generate-job", "job1", "--dir", tmpDir})
 		execCmd([]string{"generate-package", "pkg1", "--dir", tmpDir})
 		execCmd([]string{"generate-package", "pkg2", "--dir", tmpDir})
+
+		err = fs.WriteFileString(filepath.Join(tmpDir, "LICENSE"), "LICENSE")
+		Expect(err).ToNot(HaveOccurred())
 
 		{ // pkg1 depends on pkg2 for compilation
 			pkg1SpecPath := filepath.Join(tmpDir, "packages", "pkg1", "spec")
@@ -116,6 +125,10 @@ packages:
   fingerprint: 100bedf6f31da1a4693c446f1ea93348ea7a7a9d
   sha1: replaced
   dependencies: []
+license:
+  version: f9d233609f68751f4e3f8fe5ab2ad69e4d534496
+  fingerprint: f9d233609f68751f4e3f8fe5ab2ad69e4d534496
+  sha1: replaced
 `,
 			))
 		}
@@ -171,6 +184,10 @@ packages:
   fingerprint: 100bedf6f31da1a4693c446f1ea93348ea7a7a9d
   sha1: replaced
   dependencies: []
+license:
+  version: f9d233609f68751f4e3f8fe5ab2ad69e4d534496
+  fingerprint: f9d233609f68751f4e3f8fe5ab2ad69e4d534496
+  sha1: replaced
 `,
 			))
 
@@ -189,12 +206,20 @@ packages:
 			Expect(man1.Packages[1].Fingerprint).To(Equal(man2.Packages[1].Fingerprint))
 		}
 
+		{ // check contents of index files when sha2 flag is supplied
+			execCmd([]string{"create-release", "--sha2", "--dir", tmpDir})
+
+			expectSha256Checksums(filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.3.yml"))
+			expectSha256Checksums(filepath.Join(tmpDir, ".dev_builds", "jobs", "job1", "index.yml"))
+			expectSha256Checksums(filepath.Join(tmpDir, ".dev_builds", "packages", "pkg1", "index.yml"))
+			expectSha256Checksums(filepath.Join(tmpDir, ".dev_builds", "license", "index.yml"))
+		}
+
 		{ // Check contents of made release via its tarball
 			tgzFile := filepath.Join(tmpDir, "release-3.tgz")
 
 			execCmd([]string{"create-release", "--dir", tmpDir, "--tarball", tgzFile})
-
-			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.SHA1Calc, deps.FS, deps.Logger)
+			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
 			archiveReader := relProvider.NewExtractingArchiveReader()
 
 			release, err := archiveReader.Read(tgzFile)
@@ -205,6 +230,16 @@ packages:
 			pkg1 := release.Packages()[0]
 			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-src"))).To(Equal("in-src"))
 			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-blobs"))).To(Equal("in-blobs"))
+		}
+
+		{ // removes unknown blobs, keeping known blobs
+			blobPath := filepath.Join(tmpDir, "blobs", "unknown-blob.tgz")
+
+			fs.WriteFileString(blobPath, "i don't belong here")
+
+			execCmd([]string{"create-release", "--dir", tmpDir})
+			Expect(fs.FileExists(blobPath)).To(BeFalse())
+			Expect(fs.FileExists(filepath.Join(tmpDir, "blobs", "in-blobs"))).To(BeTrue())
 		}
 	})
 })

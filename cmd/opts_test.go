@@ -112,6 +112,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("Sha2", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Sha2", opts)).To(Equal(
+					`long:"sha2" description:"Use sha256 checksums. Requires recent director and stemcells."`,
+				))
+			})
+		})
+
 		Describe("CACertOpt", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("CACertOpt", opts)).To(Equal(
@@ -1513,6 +1521,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("WhenChanged", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("WhenChanged", opts)).To(Equal(
+					`long:"when-changed" description:"Run errand only if errand configuration has changed or if the previous run was unsuccessful"`,
+				))
+			})
+		})
+
 		Describe("DownloadLogs", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("DownloadLogs", opts)).To(Equal(
@@ -2209,36 +2225,34 @@ var _ = Describe("Opts", func() {
 			opts = &GatewayFlags{}
 		})
 
-		Describe("Disable", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Disable", opts)).To(Equal(
-					`long:"gw-disable" description:"Disable usage of gateway connection" env:"BOSH_GW_DISABLE"`,
-				))
-			})
+		It("Disable contains desired values", func() {
+			Expect(getStructTagForName("Disable", opts)).To(Equal(
+				`long:"gw-disable" description:"Disable usage of gateway connection" env:"BOSH_GW_DISABLE"`,
+			))
 		})
 
-		Describe("Username", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Username", opts)).To(Equal(
-					`long:"gw-user" description:"Username for gateway connection" env:"BOSH_GW_USER"`,
-				))
-			})
+		It("Username contains desired values", func() {
+			Expect(getStructTagForName("Username", opts)).To(Equal(
+				`long:"gw-user" description:"Username for gateway connection" env:"BOSH_GW_USER"`,
+			))
 		})
 
-		Describe("Host", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Host", opts)).To(Equal(
-					`long:"gw-host" description:"Host for gateway connection" env:"BOSH_GW_HOST"`,
-				))
-			})
+		It("Host contains desired values", func() {
+			Expect(getStructTagForName("Host", opts)).To(Equal(
+				`long:"gw-host" description:"Host for gateway connection" env:"BOSH_GW_HOST"`,
+			))
 		})
 
-		Describe("PrivateKeyPath", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("PrivateKeyPath", opts)).To(Equal(
-					`long:"gw-private-key" description:"Private key path for gateway connection" env:"BOSH_GW_PRIVATE_KEY"`,
-				))
-			})
+		It("PrivateKeyPath contains desired values", func() {
+			Expect(getStructTagForName("PrivateKeyPath", opts)).To(Equal(
+				`long:"gw-private-key" description:"Private key path for gateway connection" env:"BOSH_GW_PRIVATE_KEY"`,
+			))
+		})
+
+		It("SOCKS5Proxy contains desired values", func() {
+			Expect(getStructTagForName("SOCKS5Proxy", opts)).To(Equal(
+				`long:"gw-socks5" description:"SOCKS5 URL" env:"BOSH_ALL_PROXY"`,
+			))
 		})
 	})
 

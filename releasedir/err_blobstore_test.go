@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/releasedir"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 var _ = Describe("ErrBlobstore", func() {
@@ -15,7 +16,7 @@ var _ = Describe("ErrBlobstore", func() {
 			blobErr := errors.New("fake-err")
 			blob := NewErrBlobstore(blobErr)
 
-			_, err := blob.Get("", "")
+			_, err := blob.Get("", boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, ""))
 			Expect(err).To(Equal(blobErr))
 
 			_, _, err = blob.Create("")

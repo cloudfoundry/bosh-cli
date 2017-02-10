@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-utils/blobstore"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
@@ -36,7 +37,7 @@ var _ = Describe("Provider", func() {
 			options := map[string]interface{}{"key": "value"}
 			runner.CommandExistsValue = true
 
-			expectedBlobstore := NewExternalBlobstore(
+			externalBlobstore := NewExternalBlobstore(
 				"fake-external-type",
 				options,
 				fs,
@@ -44,7 +45,12 @@ var _ = Describe("Provider", func() {
 				boshuuid.NewGenerator(),
 				"/var/vcap/config/blobstore-fake-external-type.json",
 			)
-			expectedBlobstore = NewSHA1VerifiableBlobstore(expectedBlobstore)
+
+			expectedAlgos := []boshcrypto.Algorithm{
+				boshcrypto.DigestAlgorithmSHA1,
+			}
+
+			expectedBlobstore := NewDigestVerifiableBlobstore(externalBlobstore, fs, expectedAlgos)
 			expectedBlobstore = NewRetryableBlobstore(expectedBlobstore, 3, logger)
 
 			blobstore, err := provider.Get("fake-external-type", options)

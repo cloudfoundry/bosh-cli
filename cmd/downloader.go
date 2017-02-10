@@ -5,12 +5,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"github.com/pivotal-golang/clock"
 
-	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 )
@@ -21,7 +21,6 @@ type Downloader interface {
 
 type UIDownloader struct {
 	director    boshdir.Director
-	sha1calc    bicrypto.SHA1Calculator
 	timeService clock.Clock
 
 	fs boshsys.FileSystem
@@ -30,14 +29,12 @@ type UIDownloader struct {
 
 func NewUIDownloader(
 	director boshdir.Director,
-	sha1calc bicrypto.SHA1Calculator,
 	timeService clock.Clock,
 	fs boshsys.FileSystem,
 	ui biui.UI,
 ) UIDownloader {
 	return UIDownloader{
 		director:    director,
-		sha1calc:    sha1calc,
 		timeService: timeService,
 
 		fs: fs,
@@ -66,13 +63,12 @@ func (d UIDownloader) Download(blobstoreID, sha1, prefix, dstDirPath string) err
 		return err
 	}
 
-	actualSHA1, err := d.sha1calc.Calculate(tmpFile.Name())
-	if err != nil {
-		return err
-	}
-
-	if len(sha1) > 0 && sha1 != actualSHA1 {
-		return bosherr.Errorf("Expected file SHA1 to be '%s' but was '%s'", sha1, actualSHA1)
+	// unfortunate. apparently old directors may not send the digest.
+	if len(sha1) > 0 {
+		err = d.verifyFile(tmpFile, sha1)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = boshfu.NewFileMover(d.fs).Move(tmpFile.Name(), dstFilePath)
@@ -81,4 +77,13 @@ func (d UIDownloader) Download(blobstoreID, sha1, prefix, dstDirPath string) err
 	}
 
 	return nil
+}
+
+func (d UIDownloader) verifyFile(file boshsys.File, expectedDigest string) error {
+	expectedMultipleDigest, err := boshcrypto.ParseMultipleDigest(expectedDigest)
+	if err != nil {
+		return err
+	}
+
+	return expectedMultipleDigest.VerifyFilePath(file.Name(), d.fs)
 }

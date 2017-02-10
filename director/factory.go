@@ -7,8 +7,10 @@ import (
 	"net/url"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
+	boshhttp "github.com/cloudfoundry/bosh-utils/http"
+	boshhttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"time"
 )
 
 type Factory struct {
@@ -50,11 +52,9 @@ func (f Factory) httpClient(config Config, taskReporter TaskReporter, fileReport
 		f.logger.Debug(f.logTag, "Using custom root CAs")
 	}
 
-	rawClient := boshhttp.CreateDefaultClient(certPool)
-
+	rawClient := boshhttpclient.CreateDefaultClient(certPool)
 	authAdjustment := NewAuthRequestAdjustment(
 		config.TokenFunc, config.Client, config.ClientSecret)
-
 	rawClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		if len(via) > 10 {
 			return bosherr.Error("Too many redirects")
@@ -74,10 +74,12 @@ func (f Factory) httpClient(config Config, taskReporter TaskReporter, fileReport
 		return nil
 	}
 
-	authedClient := NewAdjustableClient(rawClient, authAdjustment)
+	retryClient := boshhttp.NewNetworkSafeRetryClient(rawClient, 5, 500*time.Millisecond, f.logger)
 
-	httpOpts := boshhttp.Opts{NoRedactUrlQuery: true}
-	httpClient := boshhttp.NewHTTPClientOpts(authedClient, f.logger, httpOpts)
+	authedClient := NewAdjustableClient(retryClient, authAdjustment)
+
+	httpOpts := boshhttpclient.Opts{NoRedactUrlQuery: true}
+	httpClient := boshhttpclient.NewHTTPClientOpts(authedClient, f.logger, httpOpts)
 
 	endpoint := url.URL{
 		Scheme: "https",

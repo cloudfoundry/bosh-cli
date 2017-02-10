@@ -15,9 +15,9 @@ type RenderedJobListCompressor interface {
 }
 
 type renderedJobListCompressor struct {
-	fs             boshsys.FileSystem
-	compressor     boshcmd.Compressor
-	sha1Calculator bicrypto.SHA1Calculator
+	fs               boshsys.FileSystem
+	compressor       boshcmd.Compressor
+	digestCalculator bicrypto.DigestCalculator
 
 	logTag string
 	logger boshlog.Logger
@@ -26,13 +26,13 @@ type renderedJobListCompressor struct {
 func NewRenderedJobListCompressor(
 	fs boshsys.FileSystem,
 	compressor boshcmd.Compressor,
-	sha1Calculator bicrypto.SHA1Calculator,
+	digestCalculator bicrypto.DigestCalculator,
 	logger boshlog.Logger,
 ) RenderedJobListCompressor {
 	return &renderedJobListCompressor{
-		fs:             fs,
-		compressor:     compressor,
-		sha1Calculator: sha1Calculator,
+		fs:               fs,
+		compressor:       compressor,
+		digestCalculator: digestCalculator,
 
 		logTag: "renderedJobListCompressor",
 		logger: logger,
@@ -62,20 +62,16 @@ func (c *renderedJobListCompressor) Compress(list RenderedJobList) (RenderedJobL
 		}
 	}
 
-	fingerprint, err := c.sha1Calculator.Calculate(renderedJobListDir)
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Calculating templates dir SHA1")
-	}
-
 	archivePath, err := c.compressor.CompressFilesInDir(renderedJobListDir)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Compressing rendered job templates")
 	}
 
-	archiveSHA1, err := c.sha1Calculator.Calculate(archivePath)
+	//generation of digest string
+	archiveSHA1, err := c.digestCalculator.Calculate(archivePath)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Calculating archived templates SHA1")
 	}
 
-	return NewRenderedJobListArchive(list, archivePath, fingerprint, archiveSHA1, c.fs, c.logger), nil
+	return NewRenderedJobListArchive(list, archivePath, archiveSHA1, c.fs, c.logger), nil
 }

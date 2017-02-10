@@ -13,6 +13,7 @@ import (
 	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshidx "github.com/cloudfoundry/bosh-cli/releasedir/index"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 type Provider struct {
@@ -20,13 +21,14 @@ type Provider struct {
 	releaseIndexReporter ReleaseIndexReporter
 	blobsReporter        BlobsDirReporter
 	releaseProvider      boshrel.Provider
-	sha1calc             bicrypto.SHA1Calculator
+	digestCalculator     bicrypto.DigestCalculator
 
-	cmdRunner   boshsys.CmdRunner
-	uuidGen     boshuuid.Generator
-	timeService clock.Clock
-	fs          boshsys.FileSystem
-	logger      boshlog.Logger
+	cmdRunner              boshsys.CmdRunner
+	uuidGen                boshuuid.Generator
+	timeService            clock.Clock
+	fs                     boshsys.FileSystem
+	logger                 boshlog.Logger
+	digestCreateAlgorithms []boshcrypto.Algorithm
 }
 
 func NewProvider(
@@ -34,11 +36,12 @@ func NewProvider(
 	releaseIndexReporter ReleaseIndexReporter,
 	blobsReporter BlobsDirReporter,
 	releaseProvider boshrel.Provider,
-	sha1calc bicrypto.SHA1Calculator,
+	digestCalculator bicrypto.DigestCalculator,
 	cmdRunner boshsys.CmdRunner,
 	uuidGen boshuuid.Generator,
 	timeService clock.Clock,
 	fs boshsys.FileSystem,
+	digestCreateAlgorithms []boshcrypto.Algorithm,
 	logger boshlog.Logger,
 ) Provider {
 	return Provider{
@@ -46,12 +49,13 @@ func NewProvider(
 		releaseIndexReporter: releaseIndexReporter,
 		blobsReporter:        blobsReporter,
 		releaseProvider:      releaseProvider,
-		sha1calc:             sha1calc,
+		digestCalculator:     digestCalculator,
 		cmdRunner:            cmdRunner,
 		uuidGen:              uuidGen,
 		timeService:          timeService,
 		fs:                   fs,
-		logger:               logger,
+		digestCreateAlgorithms: digestCreateAlgorithms,
+		logger:                 logger,
 	}
 }
 
@@ -66,7 +70,7 @@ func (p Provider) NewFSReleaseDir(dirPath string) FSReleaseDir {
 	finalRelsPath := gopath.Join(dirPath, "releases")
 	finalReleases := NewFSReleaseIndex("final", finalRelsPath, p.releaseIndexReporter, p.uuidGen, p.fs)
 
-	indiciesProvider := boshidx.NewProvider(p.indexReporter, p.newBlobstore(dirPath), p.sha1calc, p.fs)
+	indiciesProvider := boshidx.NewProvider(p.indexReporter, p.newBlobstore(dirPath), p.fs)
 	_, finalIndex := indiciesProvider.DevAndFinalIndicies(dirPath)
 
 	releaseReader := p.NewReleaseReader(dirPath)
@@ -76,17 +80,17 @@ func (p Provider) NewFSReleaseDir(dirPath string) FSReleaseDir {
 }
 
 func (p Provider) NewFSBlobsDir(dirPath string) FSBlobsDir {
-	return NewFSBlobsDir(dirPath, p.blobsReporter, p.newBlobstore(dirPath), p.sha1calc, p.fs)
+	return NewFSBlobsDir(dirPath, p.blobsReporter, p.newBlobstore(dirPath), p.digestCalculator, p.fs, p.logger)
 }
 
 func (p Provider) NewReleaseReader(dirPath string) boshrel.BuiltReader {
 	multiReader := p.releaseProvider.NewMultiReader(dirPath)
-	indiciesProvider := boshidx.NewProvider(p.indexReporter, p.newBlobstore(dirPath), p.sha1calc, p.fs)
+	indiciesProvider := boshidx.NewProvider(p.indexReporter, p.newBlobstore(dirPath), p.fs)
 	devIndex, finalIndex := indiciesProvider.DevAndFinalIndicies(dirPath)
 	return boshrel.NewBuiltReader(multiReader, devIndex, finalIndex)
 }
 
-func (p Provider) newBlobstore(dirPath string) boshblob.Blobstore {
+func (p Provider) newBlobstore(dirPath string) boshblob.DigestBlobstore {
 	provider, options, err := p.newConfig(dirPath).Blobstore()
 	if err != nil {
 		return NewErrBlobstore(err)
@@ -103,15 +107,15 @@ func (p Provider) newBlobstore(dirPath string) boshblob.Blobstore {
 		return NewErrBlobstore(bosherr.Error("Expected release blobstore to be configured"))
 	}
 
-	blobstore = boshblob.NewSHA1VerifiableBlobstore(blobstore)
-	blobstore = boshblob.NewRetryableBlobstore(blobstore, 3, p.logger)
+	digestBlobstore := boshblob.NewDigestVerifiableBlobstore(blobstore, p.fs, p.digestCreateAlgorithms)
+	digestBlobstore = boshblob.NewRetryableBlobstore(digestBlobstore, 3, p.logger)
 
-	err = blobstore.Validate()
+	err = digestBlobstore.Validate()
 	if err != nil {
 		return NewErrBlobstore(err)
 	}
 
-	return blobstore
+	return digestBlobstore
 }
 
 func (p Provider) newConfig(dirPath string) FSConfig {

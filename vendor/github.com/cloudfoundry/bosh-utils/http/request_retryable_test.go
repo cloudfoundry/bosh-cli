@@ -64,7 +64,7 @@ var _ = Describe("RequestRetryable", func() {
 				Body: ioutil.NopCloser(strings.NewReader("fake-request-body")),
 			}
 
-			requestRetryable = NewRequestRetryable(request, fakeClient, logger)
+			requestRetryable = NewRequestRetryable(request, fakeClient, logger, nil)
 		})
 
 		It("calls Do on the delegate", func() {
@@ -101,7 +101,7 @@ var _ = Describe("RequestRetryable", func() {
 			)
 
 			It("os.File conforms to the Seekable interface", func() {
-				var seekable Seekable
+				var seekable io.ReadSeeker
 				seekable, err := ioutil.TempFile(os.TempDir(), "seekable")
 				Expect(err).ToNot(HaveOccurred())
 				_, err = seekable.Seek(0, 0)
@@ -113,7 +113,7 @@ var _ = Describe("RequestRetryable", func() {
 				request = &http.Request{
 					Body: seekableReaderCloser,
 				}
-				requestRetryable = NewRequestRetryable(request, fakeClient, logger)
+				requestRetryable = NewRequestRetryable(request, fakeClient, logger, nil)
 			})
 
 			Context("when the response status code is success", func() {

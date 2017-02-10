@@ -230,6 +230,29 @@ var _ = Describe("SessionImpl", func() {
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 			}))
 		})
+
+		It("returns ssh options without socks5 settings if SOCKS5Proxy is set", func() {
+			connOpts.GatewayDisable = true
+			connOpts.GatewayUsername = "user-gw-user"
+			connOpts.GatewayHost = "user-gw-host"
+			connOpts.SOCKS5Proxy = "socks5://some-proxy"
+
+			result.GatewayUsername = "gw-user"
+			result.GatewayHost = "gw-host"
+
+			cmdOpts, err := act().Start()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(cmdOpts).To(Equal([]string{
+				"-o", "ServerAliveInterval=30",
+				"-o", "ForwardAgent=no",
+				"-o", "PasswordAuthentication=no",
+				"-o", "IdentitiesOnly=yes",
+				"-o", "IdentityFile=/tmp/priv-key",
+				"-o", "StrictHostKeyChecking=yes",
+				"-o", "UserKnownHostsFile=/tmp/known-hosts",
+				"-o", "ProxyCommand=nc -X 5 -x some-proxy %h %p",
+			}))
+		})
 	})
 
 	Describe("Finish", func() {
