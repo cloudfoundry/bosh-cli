@@ -140,7 +140,7 @@ func (c Client) Events(opts EventsFilter) ([]EventResp, error) {
 	return events, nil
 }
 
-func (d DirectorImpl) Event(id int) (Event, error) {
+func (d DirectorImpl) Event(id string) (Event, error) {
 	eventResp, err := d.client.Event(id)
 	if err != nil {
 		return EventImpl{}, err
@@ -149,12 +149,12 @@ func (d DirectorImpl) Event(id int) (Event, error) {
 	return NewEventFromResp(d.client, eventResp), nil
 }
 
-func (c Client) Event(id int) (EventResp, error) {
+func (c Client) Event(id string) (EventResp, error) {
 	var event EventResp
 
-	err := c.clientRequest.Get(fmt.Sprintf("/events/%d", id), &event)
+	err := c.clientRequest.Get(fmt.Sprintf("/events/%s", id), &event)
 	if err != nil {
-		return event, bosherr.WrapErrorf(err, "Finding event '%d'", id)
+		return event, bosherr.WrapErrorf(err, "Finding event '%s'", id)
 	}
 
 	return event, nil

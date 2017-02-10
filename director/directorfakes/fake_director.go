@@ -84,10 +84,10 @@ type FakeDirector struct {
 		result1 []director.Event
 		result2 error
 	}
-	EventStub        func(int) (director.Event, error)
+	EventStub        func(string) (director.Event, error)
 	eventMutex       sync.RWMutex
 	eventArgsForCall []struct {
-		arg1 int
+		arg1 string
 	}
 	eventReturns struct {
 		result1 director.Event
@@ -583,10 +583,10 @@ func (fake *FakeDirector) EventsReturns(result1 []director.Event, result2 error)
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) Event(arg1 int) (director.Event, error) {
+func (fake *FakeDirector) Event(arg1 string) (director.Event, error) {
 	fake.eventMutex.Lock()
 	fake.eventArgsForCall = append(fake.eventArgsForCall, struct {
-		arg1 int
+		arg1 string
 	}{arg1})
 	fake.recordInvocation("Event", []interface{}{arg1})
 	fake.eventMutex.Unlock()
@@ -602,7 +602,7 @@ func (fake *FakeDirector) EventCallCount() int {
 	return len(fake.eventArgsForCall)
 }
 
-func (fake *FakeDirector) EventArgsForCall(i int) int {
+func (fake *FakeDirector) EventArgsForCall(i int) string {
 	fake.eventMutex.RLock()
 	defer fake.eventMutex.RUnlock()
 	return fake.eventArgsForCall[i].arg1

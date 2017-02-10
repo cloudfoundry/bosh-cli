@@ -407,7 +407,7 @@ type EventOpts struct {
 }
 
 type EventArgs struct {
-	ID int `positional-arg-name:"ID"`
+	ID string `positional-arg-name:"ID"`
 }
 
 // Stemcells

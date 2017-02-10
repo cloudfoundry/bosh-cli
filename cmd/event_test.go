@@ -25,7 +25,7 @@ var _ = Describe("EventCmd", func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
 		command = NewEventCmd(ui, director)
-		opts.Args.ID = 4
+		opts.Args.ID = "4"
 	})
 	Describe("Run", func() {
 
