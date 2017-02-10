@@ -1,10 +1,13 @@
 package types
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha1"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/asn1"
 	"encoding/pem"
 	"fmt"
 	"math/big"
@@ -119,10 +122,11 @@ func (cfg CertificateGenerator) generateCert(cParams CertParams) (CertResponse, 
 		},
 		NotBefore:             now,
 		NotAfter:              notAfter,
-		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyAgreement,
 		ExtKeyUsage:           cParams.ExtKeyUsage,
 		BasicConstraintsValid: true,
-		IsCA: false,
+		MaxPathLen:            1,
+		IsCA:                  false,
 	}
 
 	for _, altName := range cParams.AlternativeName {
@@ -132,6 +136,11 @@ func (cfg CertificateGenerator) generateCert(cParams CertParams) (CertResponse, 
 		} else {
 			template.IPAddresses = append(template.IPAddresses, possibleIP)
 		}
+	}
+
+	template.SubjectKeyId, err = generateSubjectKeyID(&privateKey.PublicKey)
+	if err != nil {
+		return certResponse, errors.WrapError(err, "Generating Subject Key ID")
 	}
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, rootCA, &privateKey.PublicKey, rootCAKey)
@@ -181,8 +190,15 @@ func (cfg CertificateGenerator) generateCACert(cParams CertParams) (CertResponse
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		ExtKeyUsage:           []x509.ExtKeyUsage{},
 		BasicConstraintsValid: true,
-		IsCA: true,
+		MaxPathLenZero:        true,
+		IsCA:                  true,
 	}
+
+	template.SubjectKeyId, err = generateSubjectKeyID(&privateKey.PublicKey)
+	if err != nil {
+		return certResponse, errors.WrapError(err, "Generating Subject Key ID")
+	}
+	template.AuthorityKeyId = template.SubjectKeyId
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
 	if err != nil {
@@ -200,4 +216,33 @@ func (cfg CertificateGenerator) generateCACert(cParams CertParams) (CertResponse
 	}
 
 	return certResponse, nil
+}
+
+// rsaPublicKey reflects the ASN.1 structure of a PKCS#1 public key.
+type rsaPublicKey struct {
+	N *big.Int
+	E int
+}
+
+// GenerateSubjectKeyID generates SubjectKeyId used in Certificate
+// Id is 160-bit SHA-1 hash of the value of the BIT STRING subjectPublicKey
+func generateSubjectKeyID(pub crypto.PublicKey) ([]byte, error) {
+	var pubBytes []byte
+	var err error
+	switch pub := pub.(type) {
+	case *rsa.PublicKey:
+		pubBytes, err = asn1.Marshal(rsaPublicKey{
+			N: pub.N,
+			E: pub.E,
+		})
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, errors.Error("only RSA public key is supported")
+	}
+
+	hash := sha1.Sum(pubBytes)
+
+	return hash[:], nil
 }
