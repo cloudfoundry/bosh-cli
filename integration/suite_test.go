@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	bitestutils "github.com/cloudfoundry/bosh-cli/testutils"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

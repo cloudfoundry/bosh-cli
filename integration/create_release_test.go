@@ -5,12 +5,14 @@ import (
 	"regexp"
 	"strings"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
+
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshrelman "github.com/cloudfoundry/bosh-cli/release/manifest"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"

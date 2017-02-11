@@ -114,6 +114,17 @@ type FakeRelease struct {
 	finalizeReturns struct {
 		result1 error
 	}
+	CopyWithStub        func(jobs []*job.Job, packages []*pkg.Package, lic *license.License, compiledPackages []*pkg.CompiledPackage) release.Release
+	copyWithMutex       sync.RWMutex
+	copyWithArgsForCall []struct {
+		jobs             []*job.Job
+		packages         []*pkg.Package
+		lic              *license.License
+		compiledPackages []*pkg.CompiledPackage
+	}
+	copyWithReturns struct {
+		result1 release.Release
+	}
 	CleanUpStub        func() error
 	cleanUpMutex       sync.RWMutex
 	cleanUpArgsForCall []struct{}
@@ -554,6 +565,57 @@ func (fake *FakeRelease) FinalizeReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeRelease) CopyWith(jobs []*job.Job, packages []*pkg.Package, lic *license.License, compiledPackages []*pkg.CompiledPackage) release.Release {
+	var jobsCopy []*job.Job
+	if jobs != nil {
+		jobsCopy = make([]*job.Job, len(jobs))
+		copy(jobsCopy, jobs)
+	}
+	var packagesCopy []*pkg.Package
+	if packages != nil {
+		packagesCopy = make([]*pkg.Package, len(packages))
+		copy(packagesCopy, packages)
+	}
+	var compiledPackagesCopy []*pkg.CompiledPackage
+	if compiledPackages != nil {
+		compiledPackagesCopy = make([]*pkg.CompiledPackage, len(compiledPackages))
+		copy(compiledPackagesCopy, compiledPackages)
+	}
+	fake.copyWithMutex.Lock()
+	fake.copyWithArgsForCall = append(fake.copyWithArgsForCall, struct {
+		jobs             []*job.Job
+		packages         []*pkg.Package
+		lic              *license.License
+		compiledPackages []*pkg.CompiledPackage
+	}{jobsCopy, packagesCopy, lic, compiledPackagesCopy})
+	fake.recordInvocation("CopyWith", []interface{}{jobsCopy, packagesCopy, lic, compiledPackagesCopy})
+	fake.copyWithMutex.Unlock()
+	if fake.CopyWithStub != nil {
+		return fake.CopyWithStub(jobs, packages, lic, compiledPackages)
+	} else {
+		return fake.copyWithReturns.result1
+	}
+}
+
+func (fake *FakeRelease) CopyWithCallCount() int {
+	fake.copyWithMutex.RLock()
+	defer fake.copyWithMutex.RUnlock()
+	return len(fake.copyWithArgsForCall)
+}
+
+func (fake *FakeRelease) CopyWithArgsForCall(i int) ([]*job.Job, []*pkg.Package, *license.License, []*pkg.CompiledPackage) {
+	fake.copyWithMutex.RLock()
+	defer fake.copyWithMutex.RUnlock()
+	return fake.copyWithArgsForCall[i].jobs, fake.copyWithArgsForCall[i].packages, fake.copyWithArgsForCall[i].lic, fake.copyWithArgsForCall[i].compiledPackages
+}
+
+func (fake *FakeRelease) CopyWithReturns(result1 release.Release) {
+	fake.CopyWithStub = nil
+	fake.copyWithReturns = struct {
+		result1 release.Release
+	}{result1}
+}
+
 func (fake *FakeRelease) CleanUp() error {
 	fake.cleanUpMutex.Lock()
 	fake.cleanUpArgsForCall = append(fake.cleanUpArgsForCall, struct{}{})
@@ -614,6 +676,8 @@ func (fake *FakeRelease) Invocations() map[string][][]interface{} {
 	defer fake.buildMutex.RUnlock()
 	fake.finalizeMutex.RLock()
 	defer fake.finalizeMutex.RUnlock()
+	fake.copyWithMutex.RLock()
+	defer fake.copyWithMutex.RUnlock()
 	fake.cleanUpMutex.RLock()
 	defer fake.cleanUpMutex.RUnlock()
 	return fake.invocations

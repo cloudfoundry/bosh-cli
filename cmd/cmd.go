@@ -6,6 +6,7 @@ import (
 	"github.com/cppforlife/go-patch/patch"
 
 	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
+	"github.com/cloudfoundry/bosh-cli/crypto"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
@@ -13,6 +14,9 @@ import (
 	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	boshuit "github.com/cloudfoundry/bosh-cli/ui/task"
+
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
+	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 )
 
 type Cmd struct {
@@ -326,6 +330,18 @@ func (c Cmd) Execute() (cmdErr error) {
 		_, err := NewCreateReleaseCmd(releaseDirFactory, relProv.NewArchiveWriter(), c.deps.FS, c.deps.UI).Run(*opts)
 		return err
 
+	case *Sha2ifyReleaseOpts:
+		relProv, _ := c.releaseProviders()
+
+		return NewSha2ifyReleaseCmd(
+			relProv.NewArchiveReader(),
+			relProv.NewArchiveWriter(),
+			crypto.NewDigestCalculator(c.deps.FS, []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA256}),
+			boshfu.NewFileMover(c.deps.FS),
+			c.deps.FS,
+			c.deps.UI,
+		).Run(opts.Args)
+
 	case *BlobsOpts:
 		return NewBlobsCmd(c.blobsDir(opts.Directory), deps.UI).Run()
 
@@ -352,7 +368,6 @@ func (c Cmd) Execute() (cmdErr error) {
 		return fmt.Errorf("Unhandled command: %#v", c.Opts)
 	}
 }
-
 func (c Cmd) configureUI() {
 	c.deps.UI.EnableTTY(c.BoshOpts.TTYOpt)
 

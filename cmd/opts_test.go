@@ -664,6 +664,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("Sha2ifyRelease", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Sha2ifyRelease", opts)).To(Equal(
+					`command:"sha2ify-release" description:"Convert a sha128 release tarball to sha256"`,
+				))
+			})
+		})
+
 		Describe("FinalizeRelease", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("FinalizeRelease", opts)).To(Equal(
@@ -2438,6 +2446,35 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("Force", opts)).To(Equal(
 					`long:"force" description:"Ignore Git dirty state check"`,
 				))
+			})
+		})
+	})
+
+	Describe("Sha2ifyReleaseOpts", func() {
+		var opts *Sha2ifyReleaseOpts
+
+		BeforeEach(func() {
+			opts = &Sha2ifyReleaseOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
+			})
+		})
+	})
+
+	Describe("Sha2ifyReleaseArgs", func() {
+		var opts *Sha2ifyReleaseArgs
+
+		BeforeEach(func() {
+			opts = &Sha2ifyReleaseArgs{}
+		})
+
+		Describe("Positional args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Path", opts)).To(Equal(`positional-arg-name:"PATH"`))
+				Expect(getStructTagForName("Destination", opts)).To(Equal(`positional-arg-name:"DESTINATION"`))
 			})
 		})
 	})

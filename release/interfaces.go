@@ -54,6 +54,11 @@ type Release interface {
 	Build(dev, final ArchiveIndicies) error
 	Finalize(final ArchiveIndicies) error
 
+	CopyWith(jobs []*boshjob.Job,
+		packages []*boshpkg.Package,
+		lic *boshlic.License,
+		compiledPackages []*boshpkg.CompiledPackage) Release
+
 	CleanUp() error
 }
 

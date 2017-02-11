@@ -50,6 +50,7 @@ var _ = Describe("Factory", func() {
 			"cloud-check":           []string{},
 			"cloud-config":          []string{},
 			"create-env":            []string{"/file"},
+			"sha2ify-release":       []string{"/file", "/file2"},
 			"create-release":        []string{"/file"},
 			"delete-deployment":     []string{},
 			"delete-disk":           []string{"cid"},
