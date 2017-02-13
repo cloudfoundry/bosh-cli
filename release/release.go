@@ -199,6 +199,24 @@ func (r *release) Finalize(finalIndicies ArchiveIndicies) error {
 	return nil
 }
 
+func (r *release) CopyWith(jobs []*bireljob.Job, packages []*birelpkg.Package, license *birellic.License, compiledPkgs []*birelpkg.CompiledPackage) Release {
+	return &release{
+		name:    r.name,
+		version: r.version,
+
+		commitHash:         r.commitHash,
+		uncommittedChanges: r.uncommittedChanges,
+
+		jobs:         jobs,
+		packages:     packages,
+		compiledPkgs: compiledPkgs,
+		license:      license,
+
+		extractedPath: r.extractedPath,
+		fs:            r.fs,
+	}
+}
+
 // CleanUp removes the extracted release.
 func (r *release) CleanUp() error {
 	var anyErr error

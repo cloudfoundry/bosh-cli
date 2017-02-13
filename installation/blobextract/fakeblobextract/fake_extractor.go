@@ -35,6 +35,8 @@ type FakeExtractor struct {
 	chmodExecutablesReturns struct {
 		result1 error
 	}
+	invocations      map[string][][]interface{}
+	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeExtractor) Extract(blobID string, blobSHA1 string, targetDir string) error {
@@ -44,6 +46,7 @@ func (fake *FakeExtractor) Extract(blobID string, blobSHA1 string, targetDir str
 		blobSHA1  string
 		targetDir string
 	}{blobID, blobSHA1, targetDir})
+	fake.recordInvocation("Extract", []interface{}{blobID, blobSHA1, targetDir})
 	fake.extractMutex.Unlock()
 	if fake.ExtractStub != nil {
 		return fake.ExtractStub(blobID, blobSHA1, targetDir)
@@ -77,6 +80,7 @@ func (fake *FakeExtractor) Cleanup(blobID string, extractedBlobPath string) erro
 		blobID            string
 		extractedBlobPath string
 	}{blobID, extractedBlobPath})
+	fake.recordInvocation("Cleanup", []interface{}{blobID, extractedBlobPath})
 	fake.cleanupMutex.Unlock()
 	if fake.CleanupStub != nil {
 		return fake.CleanupStub(blobID, extractedBlobPath)
@@ -109,6 +113,7 @@ func (fake *FakeExtractor) ChmodExecutables(binPath string) error {
 	fake.chmodExecutablesArgsForCall = append(fake.chmodExecutablesArgsForCall, struct {
 		binPath string
 	}{binPath})
+	fake.recordInvocation("ChmodExecutables", []interface{}{binPath})
 	fake.chmodExecutablesMutex.Unlock()
 	if fake.ChmodExecutablesStub != nil {
 		return fake.ChmodExecutablesStub(binPath)
@@ -134,6 +139,30 @@ func (fake *FakeExtractor) ChmodExecutablesReturns(result1 error) {
 	fake.chmodExecutablesReturns = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeExtractor) Invocations() map[string][][]interface{} {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	fake.extractMutex.RLock()
+	defer fake.extractMutex.RUnlock()
+	fake.cleanupMutex.RLock()
+	defer fake.cleanupMutex.RUnlock()
+	fake.chmodExecutablesMutex.RLock()
+	defer fake.chmodExecutablesMutex.RUnlock()
+	return fake.invocations
+}
+
+func (fake *FakeExtractor) recordInvocation(key string, args []interface{}) {
+	fake.invocationsMutex.Lock()
+	defer fake.invocationsMutex.Unlock()
+	if fake.invocations == nil {
+		fake.invocations = map[string][][]interface{}{}
+	}
+	if fake.invocations[key] == nil {
+		fake.invocations[key] = [][]interface{}{}
+	}
+	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
 var _ blobextract.Extractor = new(FakeExtractor)

@@ -33,8 +33,9 @@ func (fake *FakeReleaseSeries) Name() string {
 	fake.nameMutex.Unlock()
 	if fake.NameStub != nil {
 		return fake.NameStub()
+	} else {
+		return fake.nameReturns.result1
 	}
-	return fake.nameReturns.result1
 }
 
 func (fake *FakeReleaseSeries) NameCallCount() int {
@@ -59,8 +60,9 @@ func (fake *FakeReleaseSeries) Delete(force bool) error {
 	fake.deleteMutex.Unlock()
 	if fake.DeleteStub != nil {
 		return fake.DeleteStub(force)
+	} else {
+		return fake.deleteReturns.result1
 	}
-	return fake.deleteReturns.result1
 }
 
 func (fake *FakeReleaseSeries) DeleteCallCount() int {

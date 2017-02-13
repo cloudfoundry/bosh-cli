@@ -141,6 +141,7 @@ type BoshOpts struct {
 	GenerateJob     GenerateJobOpts     `command:"generate-job"                  description:"Generate job"`
 	GeneratePackage GeneratePackageOpts `command:"generate-package"              description:"Generate package"`
 	CreateRelease   CreateReleaseOpts   `command:"create-release"   alias:"cr"   description:"Create release"`
+	Sha2ifyRelease  Sha2ifyReleaseOpts  `command:"sha2ify-release"               description:"Convert a sha128 release tarball to sha256"`
 	FinalizeRelease FinalizeReleaseOpts `command:"finalize-release" alias:"finr" description:"Create final release from dev release tarball"`
 
 	// Blob management
@@ -764,6 +765,17 @@ type GeneratePackageOpts struct {
 
 type GeneratePackageArgs struct {
 	Name string `positional-arg-name:"NAME"`
+}
+
+type Sha2ifyReleaseOpts struct {
+	Args Sha2ifyReleaseArgs `positional-args:"true"`
+
+	cmd
+}
+
+type Sha2ifyReleaseArgs struct {
+	Path        string `positional-arg-name:"PATH"`
+	Destination string `positional-arg-name:"DESTINATION"`
 }
 
 type CreateReleaseOpts struct {

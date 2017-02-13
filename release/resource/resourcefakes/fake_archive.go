@@ -36,8 +36,9 @@ func (fake *FakeArchive) Fingerprint() (string, error) {
 	fake.fingerprintMutex.Unlock()
 	if fake.FingerprintStub != nil {
 		return fake.FingerprintStub()
+	} else {
+		return fake.fingerprintReturns.result1, fake.fingerprintReturns.result2
 	}
-	return fake.fingerprintReturns.result1, fake.fingerprintReturns.result2
 }
 
 func (fake *FakeArchive) FingerprintCallCount() int {
@@ -63,8 +64,9 @@ func (fake *FakeArchive) Build(expectedFp string) (string, string, error) {
 	fake.buildMutex.Unlock()
 	if fake.BuildStub != nil {
 		return fake.BuildStub(expectedFp)
+	} else {
+		return fake.buildReturns.result1, fake.buildReturns.result2, fake.buildReturns.result3
 	}
-	return fake.buildReturns.result1, fake.buildReturns.result2, fake.buildReturns.result3
 }
 
 func (fake *FakeArchive) BuildCallCount() int {

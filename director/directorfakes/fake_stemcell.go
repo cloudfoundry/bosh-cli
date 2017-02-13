@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/director"
-	semver "github.com/cppforlife/go-semi-semantic/version"
+	"github.com/cppforlife/go-semi-semantic/version"
 )
 
 type FakeStemcell struct {
@@ -15,11 +15,11 @@ type FakeStemcell struct {
 	nameReturns     struct {
 		result1 string
 	}
-	VersionStub        func() semver.Version
+	VersionStub        func() version.Version
 	versionMutex       sync.RWMutex
 	versionArgsForCall []struct{}
 	versionReturns     struct {
-		result1 semver.Version
+		result1 version.Version
 	}
 	VersionMarkStub        func(mark string) string
 	versionMarkMutex       sync.RWMutex
@@ -66,8 +66,9 @@ func (fake *FakeStemcell) Name() string {
 	fake.nameMutex.Unlock()
 	if fake.NameStub != nil {
 		return fake.NameStub()
+	} else {
+		return fake.nameReturns.result1
 	}
-	return fake.nameReturns.result1
 }
 
 func (fake *FakeStemcell) NameCallCount() int {
@@ -83,15 +84,16 @@ func (fake *FakeStemcell) NameReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeStemcell) Version() semver.Version {
+func (fake *FakeStemcell) Version() version.Version {
 	fake.versionMutex.Lock()
 	fake.versionArgsForCall = append(fake.versionArgsForCall, struct{}{})
 	fake.recordInvocation("Version", []interface{}{})
 	fake.versionMutex.Unlock()
 	if fake.VersionStub != nil {
 		return fake.VersionStub()
+	} else {
+		return fake.versionReturns.result1
 	}
-	return fake.versionReturns.result1
 }
 
 func (fake *FakeStemcell) VersionCallCount() int {
@@ -100,10 +102,10 @@ func (fake *FakeStemcell) VersionCallCount() int {
 	return len(fake.versionArgsForCall)
 }
 
-func (fake *FakeStemcell) VersionReturns(result1 semver.Version) {
+func (fake *FakeStemcell) VersionReturns(result1 version.Version) {
 	fake.VersionStub = nil
 	fake.versionReturns = struct {
-		result1 semver.Version
+		result1 version.Version
 	}{result1}
 }
 
@@ -116,8 +118,9 @@ func (fake *FakeStemcell) VersionMark(mark string) string {
 	fake.versionMarkMutex.Unlock()
 	if fake.VersionMarkStub != nil {
 		return fake.VersionMarkStub(mark)
+	} else {
+		return fake.versionMarkReturns.result1
 	}
-	return fake.versionMarkReturns.result1
 }
 
 func (fake *FakeStemcell) VersionMarkCallCount() int {
@@ -146,8 +149,9 @@ func (fake *FakeStemcell) OSName() string {
 	fake.oSNameMutex.Unlock()
 	if fake.OSNameStub != nil {
 		return fake.OSNameStub()
+	} else {
+		return fake.oSNameReturns.result1
 	}
-	return fake.oSNameReturns.result1
 }
 
 func (fake *FakeStemcell) OSNameCallCount() int {
@@ -170,8 +174,9 @@ func (fake *FakeStemcell) CPI() string {
 	fake.cPIMutex.Unlock()
 	if fake.CPIStub != nil {
 		return fake.CPIStub()
+	} else {
+		return fake.cPIReturns.result1
 	}
-	return fake.cPIReturns.result1
 }
 
 func (fake *FakeStemcell) CPICallCount() int {
@@ -194,8 +199,9 @@ func (fake *FakeStemcell) CID() string {
 	fake.cIDMutex.Unlock()
 	if fake.CIDStub != nil {
 		return fake.CIDStub()
+	} else {
+		return fake.cIDReturns.result1
 	}
-	return fake.cIDReturns.result1
 }
 
 func (fake *FakeStemcell) CIDCallCount() int {
@@ -220,8 +226,9 @@ func (fake *FakeStemcell) Delete(force bool) error {
 	fake.deleteMutex.Unlock()
 	if fake.DeleteStub != nil {
 		return fake.DeleteStub(force)
+	} else {
+		return fake.deleteReturns.result1
 	}
-	return fake.deleteReturns.result1
 }
 
 func (fake *FakeStemcell) DeleteCallCount() int {

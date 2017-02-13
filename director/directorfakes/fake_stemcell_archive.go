@@ -34,8 +34,9 @@ func (fake *FakeStemcellArchive) Info() (string, string, error) {
 	fake.infoMutex.Unlock()
 	if fake.InfoStub != nil {
 		return fake.InfoStub()
+	} else {
+		return fake.infoReturns.result1, fake.infoReturns.result2, fake.infoReturns.result3
 	}
-	return fake.infoReturns.result1, fake.infoReturns.result2, fake.infoReturns.result3
 }
 
 func (fake *FakeStemcellArchive) InfoCallCount() int {
@@ -60,8 +61,9 @@ func (fake *FakeStemcellArchive) File() (director.UploadFile, error) {
 	fake.fileMutex.Unlock()
 	if fake.FileStub != nil {
 		return fake.FileStub()
+	} else {
+		return fake.fileReturns.result1, fake.fileReturns.result2
 	}
-	return fake.fileReturns.result1, fake.fileReturns.result2
 }
 
 func (fake *FakeStemcellArchive) FileCallCount() int {

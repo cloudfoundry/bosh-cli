@@ -160,6 +160,14 @@ func (d FSBlobsDir) removeUnknownBlobs(blobs []Blob) error {
 	}
 
 	for _, file := range files {
+		fileInfo, err := d.fs.Stat(file)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Determining existing blobs")
+		}
+		if fileInfo.IsDir() {
+			continue
+		}
+
 		found := false
 
 		for _, blob := range blobs {

@@ -41,8 +41,9 @@ func (fake *FakeGitRepo) Init() error {
 	fake.initMutex.Unlock()
 	if fake.InitStub != nil {
 		return fake.InitStub()
+	} else {
+		return fake.initReturns.result1
 	}
-	return fake.initReturns.result1
 }
 
 func (fake *FakeGitRepo) InitCallCount() int {
@@ -65,8 +66,9 @@ func (fake *FakeGitRepo) LastCommitSHA() (string, error) {
 	fake.lastCommitSHAMutex.Unlock()
 	if fake.LastCommitSHAStub != nil {
 		return fake.LastCommitSHAStub()
+	} else {
+		return fake.lastCommitSHAReturns.result1, fake.lastCommitSHAReturns.result2
 	}
-	return fake.lastCommitSHAReturns.result1, fake.lastCommitSHAReturns.result2
 }
 
 func (fake *FakeGitRepo) LastCommitSHACallCount() int {
@@ -92,8 +94,9 @@ func (fake *FakeGitRepo) MustNotBeDirty(force bool) (dirty bool, err error) {
 	fake.mustNotBeDirtyMutex.Unlock()
 	if fake.MustNotBeDirtyStub != nil {
 		return fake.MustNotBeDirtyStub(force)
+	} else {
+		return fake.mustNotBeDirtyReturns.result1, fake.mustNotBeDirtyReturns.result2
 	}
-	return fake.mustNotBeDirtyReturns.result1, fake.mustNotBeDirtyReturns.result2
 }
 
 func (fake *FakeGitRepo) MustNotBeDirtyCallCount() int {

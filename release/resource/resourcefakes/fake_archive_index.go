@@ -46,8 +46,9 @@ func (fake *FakeArchiveIndex) Find(name string, fingerprint string) (string, str
 	fake.findMutex.Unlock()
 	if fake.FindStub != nil {
 		return fake.FindStub(name, fingerprint)
+	} else {
+		return fake.findReturns.result1, fake.findReturns.result2, fake.findReturns.result3
 	}
-	return fake.findReturns.result1, fake.findReturns.result2, fake.findReturns.result3
 }
 
 func (fake *FakeArchiveIndex) FindCallCount() int {
@@ -83,8 +84,9 @@ func (fake *FakeArchiveIndex) Add(name string, fingerprint string, path string, 
 	fake.addMutex.Unlock()
 	if fake.AddStub != nil {
 		return fake.AddStub(name, fingerprint, path, sha1)
+	} else {
+		return fake.addReturns.result1, fake.addReturns.result2, fake.addReturns.result3
 	}
-	return fake.addReturns.result1, fake.addReturns.result2, fake.addReturns.result3
 }
 
 func (fake *FakeArchiveIndex) AddCallCount() int {

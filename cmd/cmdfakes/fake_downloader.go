@@ -35,8 +35,9 @@ func (fake *FakeDownloader) Download(blobstoreID string, sha1 string, prefix str
 	fake.downloadMutex.Unlock()
 	if fake.DownloadStub != nil {
 		return fake.DownloadStub(blobstoreID, sha1, prefix, dstDirPath)
+	} else {
+		return fake.downloadReturns.result1
 	}
-	return fake.downloadReturns.result1
 }
 
 func (fake *FakeDownloader) DownloadCallCount() int {
