@@ -667,7 +667,7 @@ var _ = Describe("Opts", func() {
 		Describe("Sha2ifyRelease", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Sha2ifyRelease", opts)).To(Equal(
-					`command:"sha2ify-release" description:"Convert a sha128 release tarball to sha256"`,
+					`command:"sha2ify-release" hidden:"true" description:"Convert a sha128 release tarball to sha256"`,
 				))
 			})
 		})
