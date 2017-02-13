@@ -106,7 +106,7 @@ var _ = Describe("InspectReleaseCmd", func() {
 				{
 					Content: "jobs",
 
-					Header: []string{"Job", "Blobstore ID", "SHA1", "Links Consumed", "Links Provided"},
+					Header: []string{"Job", "Blobstore ID", "Digest", "Links Consumed", "Links Provided"},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 
@@ -123,7 +123,7 @@ var _ = Describe("InspectReleaseCmd", func() {
 				{
 					Content: "packages",
 
-					Header: []string{"Package", "Compiled for", "Blobstore ID", "SHA1"},
+					Header: []string{"Package", "Compiled for", "Blobstore ID", "Digest"},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 

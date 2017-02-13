@@ -55,7 +55,7 @@ var _ = Describe("BlobsCmd", func() {
 			Expect(ui.Table).To(Equal(boshtbl.Table{
 				Content: "blobs",
 
-				Header: []string{"Path", "Size", "Blobstore ID", "SHA1"},
+				Header: []string{"Path", "Size", "Blobstore ID", "Digest"},
 
 				SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 

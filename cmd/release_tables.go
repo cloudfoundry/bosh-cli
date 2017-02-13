@@ -41,7 +41,7 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 
 	jobsTable := boshtbl.Table{
 		Content: "jobs",
-		Header:  []string{"Job", "SHA1", "Packages"},
+		Header:  []string{"Job", "Digest", "Packages"},
 		SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 	}
 
@@ -55,7 +55,7 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 
 	pkgsTable := boshtbl.Table{
 		Content: "packages",
-		Header:  []string{"Package", "SHA1", "Dependencies"},
+		Header:  []string{"Package", "Digest", "Dependencies"},
 		SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 	}
 
