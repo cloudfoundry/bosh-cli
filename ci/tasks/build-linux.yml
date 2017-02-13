@@ -21,6 +21,7 @@ params:
   CGO_ENABLED: 0
   BOSHIO_BEARER_TOKEN: replace_me
   SKIP_BOSH_IO: false
+  FILENAME_PREFIX: ''
 
 run:
   path: gopath/src/github.com/cloudfoundry/bosh-cli/ci/tasks/build.sh
