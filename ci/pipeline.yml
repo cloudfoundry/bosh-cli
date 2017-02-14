@@ -60,7 +60,7 @@ jobs:
         - task: test-group-1
           privileged: true
           input_mapping:
-            gocli-release-bucket-linux: compiled-linux
+            bosh-cli: compiled-linux
           file: bosh-src/ci/tasks/test-integration-gocli.yml
           tags: ["bosh-integration-1"]
           params:
@@ -71,7 +71,7 @@ jobs:
         - task: test-group-2
           privileged: true
           input_mapping:
-            gocli-release-bucket-linux: compiled-linux
+            bosh-cli: compiled-linux
           file: bosh-src/ci/tasks/test-integration-gocli.yml
           tags: ["bosh-integration-2"]
           params:
@@ -82,7 +82,7 @@ jobs:
         - task: test-group-3
           privileged: true
           input_mapping:
-            gocli-release-bucket-linux: compiled-linux
+            bosh-cli: compiled-linux
           file: bosh-src/ci/tasks/test-integration-gocli.yml
           tags: ["bosh-integration-3"]
           params:
