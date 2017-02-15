@@ -41,6 +41,7 @@ var _ = Describe("Director", func() {
       {"name": "rel1-name", "version": "3"},
       {"name": "rel2-name", "version": "243"}
     ],
+    "teams": ["team1", "team2"],
     "cloud_config": "none"
   }
 ]`),
@@ -64,6 +65,50 @@ var _ = Describe("Director", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(stems[0].Name()).To(Equal("stem1-name"))
 			Expect(stems[0].Version()).To(Equal(semver.MustNewVersionFromString("3147")))
+
+			teams, err := deps[0].Teams()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(teams)).To(Equal(2))
+			Expect(teams[0]).To(Equal("team1"))
+			Expect(teams[1]).To(Equal("team2"))
+
+			Expect(deps[0].CloudConfig()).To(Equal("none"))
+		})
+
+		It("returns empty deployment with no teams", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/deployments"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[
+  {
+    "name": "dep-no-team-name",
+    "stemcells": [],
+    "releases": [],
+    "teams": [],
+    "cloud_config": "none"
+  }
+]`),
+				),
+			)
+
+			deps, err := director.Deployments()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deps).To(HaveLen(1))
+
+			Expect(deps[0].Name()).To(Equal("dep-no-team-name"))
+
+			rels, err := deps[0].Releases()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(rels)).To(Equal(0))
+
+			stems, err := deps[0].Stemcells()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(stems)).To(Equal(0))
+
+			teams, err := deps[0].Teams()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(teams)).To(Equal(0))
 
 			Expect(deps[0].CloudConfig()).To(Equal("none"))
 		})
