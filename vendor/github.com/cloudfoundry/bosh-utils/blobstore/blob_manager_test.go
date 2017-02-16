@@ -89,7 +89,7 @@ var _ = Describe("Blob Manager", func() {
 			err := blobManager.Write(blobId, toWrite)
 			fileStats, err := fs_.FindFileStats(blobPath)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fileStats.FileMode).To(Equal(os.FileMode(0666)))
+			Expect(fileStats.FileMode).To(Equal(os.FileMode(0600)))
 			Expect(fileStats.Flags).To(Equal(os.O_WRONLY | os.O_CREATE | os.O_TRUNC))
 		})
 	})
