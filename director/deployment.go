@@ -20,6 +20,7 @@ type DeploymentImpl struct {
 
 	releases  []Release
 	stemcells []Stemcell
+	teams     []string
 
 	fetched  bool
 	fetchErr error
@@ -62,6 +63,11 @@ func (d *DeploymentImpl) Stemcells() ([]Stemcell, error) {
 	return d.stemcells, d.fetchErr
 }
 
+func (d *DeploymentImpl) Teams() ([]string, error) {
+	d.fetch()
+	return d.teams, d.fetchErr
+}
+
 func (d *DeploymentImpl) fetch() {
 	if d.fetched {
 		return
@@ -100,6 +106,7 @@ func (d *DeploymentImpl) fill(resp DeploymentResp) {
 
 	d.releases = rels
 	d.stemcells = stems
+	d.teams = resp.Teams
 	d.cloudConfig = resp.CloudConfig
 }
 

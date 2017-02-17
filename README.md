@@ -10,6 +10,15 @@
 
 - [Install](https://bosh.io/docs/cli-v2.html)
 
+### Installing using a package manager
+
+**Mac OS X** (using [Homebrew](http://brew.sh/) via the [cloudfoundry tap](https://github.com/cloudfoundry/homebrew-tap)):
+
+```sh
+$ brew tap cloudfoundry/tap
+$ brew install bosh-cli
+```
+
 ## Client Library
 
 This project includes [`director`](director/interfaces.go) and [`uaa`](uaa/interfaces.go) packages meant to be used in your project for programmatic access to the Director API.

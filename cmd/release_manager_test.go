@@ -125,12 +125,10 @@ releases:
 
 			Expect(bytes).To(Equal([]byte(`releases:
 - name: capi
-  url: file:///capi-dir
   version: capi-created-ver
 - name: rel-without-upload
   version: 1+rel
 - name: consul
-  url: /consul-dir
   version: consul-created-ver
 `)))
 		})

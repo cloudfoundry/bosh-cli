@@ -17,7 +17,7 @@ type Sha2ifyReleaseCmd struct {
 	digestCalculator      crypto.DigestCalculator
 	mv                    boshfu.Mover
 	archiveFilePathReader crypto2.ArchiveDigestFilePathReader
-	//ui boshui.UI
+	ui                    boshui.UI
 }
 
 func NewSha2ifyReleaseCmd(
@@ -34,6 +34,7 @@ func NewSha2ifyReleaseCmd(
 		digestCalculator: digestCalculator,
 		mv:               mv,
 		archiveFilePathReader: archiveFilePathReader,
+		ui: ui,
 	}
 }
 
@@ -86,5 +87,12 @@ func (cmd Sha2ifyReleaseCmd) Run(args Sha2ifyReleaseArgs) error {
 		return err
 	}
 
-	return cmd.mv.Move(tmpWriterPath, args.Destination)
+	err = cmd.mv.Move(tmpWriterPath, args.Destination)
+	if err != nil {
+		return err
+	}
+
+	ReleaseTables{Release: sha2release, ArchivePath: args.Destination}.Print(cmd.ui)
+
+	return nil
 }

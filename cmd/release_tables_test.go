@@ -82,7 +82,7 @@ var _ = Describe("ReleaseTables", func() {
 
 			Expect(ui.Tables[1]).To(Equal(boshtbl.Table{
 				Content: "jobs",
-				Header:  []string{"Job", "SHA1", "Packages"},
+				Header:  []string{"Job", "Digest", "Packages"},
 				SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 				Rows: [][]boshtbl.Value{
 					{
@@ -95,7 +95,7 @@ var _ = Describe("ReleaseTables", func() {
 
 			Expect(ui.Tables[2]).To(Equal(boshtbl.Table{
 				Content: "packages",
-				Header:  []string{"Package", "SHA1", "Dependencies"},
+				Header:  []string{"Package", "Digest", "Dependencies"},
 				SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 				Rows: [][]boshtbl.Value{
 					{

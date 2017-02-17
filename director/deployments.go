@@ -14,6 +14,7 @@ type DeploymentResp struct {
 
 	Releases  []DeploymentReleaseResp
 	Stemcells []DeploymentStemcellResp
+	Teams     []string
 
 	CloudConfig string `json:"cloud_config"`
 }

@@ -141,7 +141,8 @@ type BoshOpts struct {
 	GenerateJob     GenerateJobOpts     `command:"generate-job"                  description:"Generate job"`
 	GeneratePackage GeneratePackageOpts `command:"generate-package"              description:"Generate package"`
 	CreateRelease   CreateReleaseOpts   `command:"create-release"   alias:"cr"   description:"Create release"`
-	Sha2ifyRelease  Sha2ifyReleaseOpts  `command:"sha2ify-release"               description:"Convert a sha128 release tarball to sha256"`
+	// Hidden
+	Sha2ifyRelease  Sha2ifyReleaseOpts  `command:"sha2ify-release" hidden:"true" description:"Convert a sha128 release tarball to sha256"`
 	FinalizeRelease FinalizeReleaseOpts `command:"finalize-release" alias:"finr" description:"Create final release from dev release tarball"`
 
 	// Blob management

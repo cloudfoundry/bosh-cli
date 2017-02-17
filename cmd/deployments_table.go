@@ -15,7 +15,7 @@ func (t DeploymentsTable) Print() error {
 	table := boshtbl.Table{
 		Content: "deployments",
 
-		Header: []string{"Name", "Release(s)", "Stemcell(s)", "Cloud Config"},
+		Header: []string{"Name", "Release(s)", "Stemcell(s)", "Team(s)", "Cloud Config"},
 
 		SortBy: []boshtbl.ColumnSort{
 			{Column: 0, Asc: true},
@@ -33,6 +33,11 @@ func (t DeploymentsTable) Print() error {
 			return err
 		}
 
+		teams, err := d.Teams()
+		if err != nil {
+			return err
+		}
+
 		cloudConfig, err := d.CloudConfig()
 		if err != nil {
 			return err
@@ -42,6 +47,7 @@ func (t DeploymentsTable) Print() error {
 			boshtbl.NewValueString(d.Name()),
 			boshtbl.NewValueStrings(t.takeReleases(releases)),
 			boshtbl.NewValueStrings(t.takeStemcells(stemcells)),
+			boshtbl.NewValueStrings(teams),
 			boshtbl.NewValueString(cloudConfig),
 		})
 	}

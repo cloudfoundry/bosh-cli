@@ -36,6 +36,8 @@ var _ = Describe("DeploymentsCmd", func() {
 					NameStub:        func() string { return "dep1" },
 					CloudConfigStub: func() (string, error) { return "cloud-config", nil },
 
+					TeamsStub: func() ([]string, error) { return []string{"team1", "team2"}, nil },
+
 					ReleasesStub: func() ([]boshdir.Release, error) {
 						return []boshdir.Release{
 							&fakedir.FakeRelease{
@@ -72,7 +74,7 @@ var _ = Describe("DeploymentsCmd", func() {
 			Expect(ui.Table).To(Equal(boshtbl.Table{
 				Content: "deployments",
 
-				Header: []string{"Name", "Release(s)", "Stemcell(s)", "Cloud Config"},
+				Header: []string{"Name", "Release(s)", "Stemcell(s)", "Team(s)", "Cloud Config"},
 
 				SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 
@@ -81,6 +83,7 @@ var _ = Describe("DeploymentsCmd", func() {
 						boshtbl.NewValueString("dep1"),
 						boshtbl.NewValueStrings([]string{"rel1/rel1-ver", "rel2/rel2-ver"}),
 						boshtbl.NewValueStrings([]string{"stemcell1/stemcell1-ver", "stemcell2/stemcell2-ver"}),
+						boshtbl.NewValueStrings([]string{"team1", "team2"}),
 						boshtbl.NewValueString("cloud-config"),
 					},
 				},

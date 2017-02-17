@@ -32,6 +32,14 @@ type certParams struct {
 	ExtKeyUsage      []string `yaml:"extended_key_usage"`
 }
 
+var supportedCertParameters = []string{
+	"common_name",
+	"alternative_names",
+	"is_ca",
+	"ca",
+	"extended_key_usage",
+}
+
 func NewCertificateGenerator(loader CertsLoader) CertificateGenerator {
 	return CertificateGenerator{loader: loader}
 }
@@ -40,7 +48,7 @@ func (cfg CertificateGenerator) Generate(parameters interface{}) (interface{}, e
 	var params certParams
 	err := objToStruct(parameters, &params)
 	if err != nil {
-		return nil, errors.Error("Failed to generate certificate, parameters are invalid.")
+		return nil, errors.WrapError(err, "Failed to generate certificate, parameters are invalid")
 	}
 
 	return cfg.generateCertificate(params)
@@ -173,10 +181,31 @@ func generateCertResponse(privateKey *rsa.PrivateKey, certificateRaw, rootCARaw 
 	return certResponse
 }
 
+func stringInArray(key string, list []string) bool {
+	for _, value := range list {
+		if key == value {
+			return true
+		}
+	}
+	return false
+}
+
 func objToStruct(input interface{}, str interface{}) error {
 	valBytes, err := yaml.Marshal(input)
 	if err != nil {
 		return errors.WrapErrorf(err, "Expected input to be serializable")
+	}
+
+	parametersMap := make(map[string]interface{})
+	err = yaml.Unmarshal(valBytes, parametersMap)
+	if err != nil {
+		return errors.WrapErrorf(err, "Expected input to be deserializable")
+	}
+
+	for key := range parametersMap {
+		if !stringInArray(key, supportedCertParameters) {
+			return errors.Errorf("Unsupported certificate parameter '%s'", key)
+		}
 	}
 
 	err = yaml.Unmarshal(valBytes, str)

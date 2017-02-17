@@ -59,6 +59,8 @@ type Director interface {
 	DownloadResourceUnchecked(blobstoreID string, out io.Writer) error
 }
 
+var _ Director = &DirectorImpl{}
+
 type UploadFile interface {
 	io.ReadCloser
 	Stat() (os.FileInfo, error)
@@ -95,6 +97,8 @@ type Deployment interface {
 
 	Releases() ([]Release, error)
 	ExportRelease(ReleaseSlug, OSVersionSlug) (ExportReleaseResult, error)
+
+	Teams() ([]string, error)
 
 	Stemcells() ([]Stemcell, error)
 	VMInfos() ([]VMInfo, error)

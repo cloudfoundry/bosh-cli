@@ -9,7 +9,7 @@ base=`pwd`
 
 semver=`cat version-semver/number`
 timestamp=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
-filename="bosh-cli-${semver}-${GOOS}-${GOARCH}"
+filename="${FILENAME_PREFIX}bosh-cli-${semver}-${GOOS}-${GOARCH}"
 
 if [[ $GOOS = 'windows' ]]; then
   filename="${filename}.exe"

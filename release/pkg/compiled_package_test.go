@@ -5,6 +5,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/release/pkg"
+
+	"errors"
+	"github.com/cloudfoundry/bosh-cli/crypto/fakes"
+	"github.com/cloudfoundry/bosh-utils/crypto/cryptofakes"
+	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("NewCompiledPackageWithoutArchive", func() {
@@ -54,7 +59,11 @@ var _ = Describe("NewCompiledPackageWithoutArchive", func() {
 
 var _ = Describe("NewCompiledPackageWithArchive", func() {
 	var (
-		compiledPkg *CompiledPackage
+		compiledPkg          *CompiledPackage
+		fakeDigestCalculator *fakes.FakeDigestCalculator
+		fakeArchiveReader    *cryptofakes.FakeArchiveDigestFilePathReader
+		fakeFile             *fakes2.FakeFile
+		fakeFileContentSha1  string
 	)
 
 	BeforeEach(func() {
@@ -93,6 +102,79 @@ var _ = Describe("NewCompiledPackageWithArchive", func() {
 			err := compiledPkg.AttachDependencies([]*CompiledPackage{pkg2})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Expected to find compiled package 'pkg1' since it's a dependency of compiled package 'name'"))
+		})
+	})
+
+	Describe("RehashWithCalculator", func() {
+		BeforeEach(func() {
+			fakeDigestCalculator = fakes.NewFakeDigestCalculator()
+			fakeArchiveReader = &cryptofakes.FakeArchiveDigestFilePathReader{}
+			fakeFile = &fakes2.FakeFile{Contents: []byte("hello world")}
+		})
+
+		Context("When compiled package can be rehashed", func() {
+			BeforeEach(func() {
+				fakeDigestCalculator.SetCalculateBehavior(map[string]fakes.CalculateInput{
+					"path": {DigestStr: "sha256:compiledpkgsha256"},
+				})
+
+				fakeFileContentSha1 = "2aae6c35c94fcfb415dbe95f408b9ce91ee846ed"
+
+				fakeArchiveReader.OpenFileReturns(fakeFile, nil)
+
+				compiledPkg = NewCompiledPackageWithArchive(
+					"name", "fp", "os-slug", "path", fakeFileContentSha1, []string{"pkg1", "pkg2"})
+			})
+
+			It("returns new compiled package with sha 256 digest", func() {
+				newCompiledPkg, err := compiledPkg.RehashWithCalculator(fakeDigestCalculator, fakeArchiveReader)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(newCompiledPkg.ArchiveSHA1()).To(Equal("sha256:compiledpkgsha256"))
+			})
+		})
+
+		Context("When archive is invalid", func() {
+			BeforeEach(func() {
+				fakeArchiveReader.OpenFileReturns(nil, errors.New("fake-file-open-error"))
+			})
+
+			Context("When archive cannot be opened", func() {
+				It("returns an error opening file", func() {
+					_, err := compiledPkg.RehashWithCalculator(fakeDigestCalculator, fakeArchiveReader)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-file-open-error"))
+				})
+			})
+
+			Context("When package file fails digest verification", func() {
+				BeforeEach(func() {
+					fakeArchiveReader.OpenFileReturns(fakeFile, nil)
+				})
+
+				It("returns an error verifying", func() {
+					_, err := compiledPkg.RehashWithCalculator(fakeDigestCalculator, fakeArchiveReader)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("Expected stream to have digest 'sha1'"))
+				})
+			})
+
+			Context("When digest calculator fails to calculate digest", func() {
+				BeforeEach(func() {
+					compiledPkg = NewCompiledPackageWithArchive(
+						"name", "fp", "os-slug", "path", fakeFileContentSha1, []string{"pkg1", "pkg2"})
+
+					fakeArchiveReader.OpenFileReturns(fakeFile, nil)
+					fakeDigestCalculator.SetCalculateBehavior(map[string]fakes.CalculateInput{
+						"path": {Err: errors.New("fake-digest-calculator-error")},
+					})
+				})
+
+				It("returns an error calculating the sha 256 digest", func() {
+					_, err := compiledPkg.RehashWithCalculator(fakeDigestCalculator, fakeArchiveReader)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-digest-calculator-error"))
+				})
+			})
 		})
 	})
 })

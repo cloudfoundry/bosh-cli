@@ -103,7 +103,16 @@ func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (pat
 			Value: release.Version(),
 		}
 
-		ops = append(ops, replaceOp)
+		removeUrlOp := patch.RemoveOp{
+			Path: patch.NewPointer([]patch.Token{
+				patch.RootToken{},
+				patch.KeyToken{Key: "releases"},
+				patch.MatchingIndexToken{Key: "name", Value: rel.Name},
+				patch.KeyToken{Key: "url"},
+			}),
+		}
+
+		ops = append(ops, replaceOp, removeUrlOp)
 	}
 
 	return ops, m.uploadReleaseCmd.Run(uploadOpts)

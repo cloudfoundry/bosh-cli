@@ -97,11 +97,13 @@ func (p *CompiledPackage) Deps() []Compilable {
 func (p *CompiledPackage) IsCompiled() bool { return true }
 
 func (p *CompiledPackage) RehashWithCalculator(digestCalculator crypto.DigestCalculator, archiveFileReader crypto2.ArchiveDigestFilePathReader) (*CompiledPackage, error) {
-	digest := crypto2.NewDigest(crypto2.DigestAlgorithmSHA1, p.archiveSHA1)
-	pkgFile, _ := archiveFileReader.OpenFile(p.archivePath, os.O_RDONLY, 0)
-	//TODO: handle error
+	pkgFile, err := archiveFileReader.OpenFile(p.archivePath, os.O_RDONLY, 0)
+	if err != nil {
+		return nil, err
+	}
 
-	err := digest.Verify(pkgFile)
+	digest := crypto2.NewDigest(crypto2.DigestAlgorithmSHA1, p.archiveSHA1)
+	err = digest.Verify(pkgFile)
 	if err != nil {
 		return nil, err
 	}

@@ -55,6 +55,13 @@ type FakeDeployment struct {
 		result1 director.ExportReleaseResult
 		result2 error
 	}
+	TeamsStub        func() ([]string, error)
+	teamsMutex       sync.RWMutex
+	teamsArgsForCall []struct{}
+	teamsReturns     struct {
+		result1 []string
+		result2 error
+	}
 	StemcellsStub        func() ([]director.Stemcell, error)
 	stemcellsMutex       sync.RWMutex
 	stemcellsArgsForCall []struct{}
@@ -287,9 +294,8 @@ func (fake *FakeDeployment) Name() string {
 	fake.nameMutex.Unlock()
 	if fake.NameStub != nil {
 		return fake.NameStub()
-	} else {
-		return fake.nameReturns.result1
 	}
+	return fake.nameReturns.result1
 }
 
 func (fake *FakeDeployment) NameCallCount() int {
@@ -312,9 +318,8 @@ func (fake *FakeDeployment) Manifest() (string, error) {
 	fake.manifestMutex.Unlock()
 	if fake.ManifestStub != nil {
 		return fake.ManifestStub()
-	} else {
-		return fake.manifestReturns.result1, fake.manifestReturns.result2
 	}
+	return fake.manifestReturns.result1, fake.manifestReturns.result2
 }
 
 func (fake *FakeDeployment) ManifestCallCount() int {
@@ -338,9 +343,8 @@ func (fake *FakeDeployment) CloudConfig() (string, error) {
 	fake.cloudConfigMutex.Unlock()
 	if fake.CloudConfigStub != nil {
 		return fake.CloudConfigStub()
-	} else {
-		return fake.cloudConfigReturns.result1, fake.cloudConfigReturns.result2
 	}
+	return fake.cloudConfigReturns.result1, fake.cloudConfigReturns.result2
 }
 
 func (fake *FakeDeployment) CloudConfigCallCount() int {
@@ -372,9 +376,8 @@ func (fake *FakeDeployment) Diff(arg1 []byte, arg2 bool) (director.DeploymentDif
 	fake.diffMutex.Unlock()
 	if fake.DiffStub != nil {
 		return fake.DiffStub(arg1, arg2)
-	} else {
-		return fake.diffReturns.result1, fake.diffReturns.result2
 	}
+	return fake.diffReturns.result1, fake.diffReturns.result2
 }
 
 func (fake *FakeDeployment) DiffCallCount() int {
@@ -404,9 +407,8 @@ func (fake *FakeDeployment) Releases() ([]director.Release, error) {
 	fake.releasesMutex.Unlock()
 	if fake.ReleasesStub != nil {
 		return fake.ReleasesStub()
-	} else {
-		return fake.releasesReturns.result1, fake.releasesReturns.result2
 	}
+	return fake.releasesReturns.result1, fake.releasesReturns.result2
 }
 
 func (fake *FakeDeployment) ReleasesCallCount() int {
@@ -433,9 +435,8 @@ func (fake *FakeDeployment) ExportRelease(arg1 director.ReleaseSlug, arg2 direct
 	fake.exportReleaseMutex.Unlock()
 	if fake.ExportReleaseStub != nil {
 		return fake.ExportReleaseStub(arg1, arg2)
-	} else {
-		return fake.exportReleaseReturns.result1, fake.exportReleaseReturns.result2
 	}
+	return fake.exportReleaseReturns.result1, fake.exportReleaseReturns.result2
 }
 
 func (fake *FakeDeployment) ExportReleaseCallCount() int {
@@ -458,6 +459,31 @@ func (fake *FakeDeployment) ExportReleaseReturns(result1 director.ExportReleaseR
 	}{result1, result2}
 }
 
+func (fake *FakeDeployment) Teams() ([]string, error) {
+	fake.teamsMutex.Lock()
+	fake.teamsArgsForCall = append(fake.teamsArgsForCall, struct{}{})
+	fake.recordInvocation("Teams", []interface{}{})
+	fake.teamsMutex.Unlock()
+	if fake.TeamsStub != nil {
+		return fake.TeamsStub()
+	}
+	return fake.teamsReturns.result1, fake.teamsReturns.result2
+}
+
+func (fake *FakeDeployment) TeamsCallCount() int {
+	fake.teamsMutex.RLock()
+	defer fake.teamsMutex.RUnlock()
+	return len(fake.teamsArgsForCall)
+}
+
+func (fake *FakeDeployment) TeamsReturns(result1 []string, result2 error) {
+	fake.TeamsStub = nil
+	fake.teamsReturns = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDeployment) Stemcells() ([]director.Stemcell, error) {
 	fake.stemcellsMutex.Lock()
 	fake.stemcellsArgsForCall = append(fake.stemcellsArgsForCall, struct{}{})
@@ -465,9 +491,8 @@ func (fake *FakeDeployment) Stemcells() ([]director.Stemcell, error) {
 	fake.stemcellsMutex.Unlock()
 	if fake.StemcellsStub != nil {
 		return fake.StemcellsStub()
-	} else {
-		return fake.stemcellsReturns.result1, fake.stemcellsReturns.result2
 	}
+	return fake.stemcellsReturns.result1, fake.stemcellsReturns.result2
 }
 
 func (fake *FakeDeployment) StemcellsCallCount() int {
@@ -491,9 +516,8 @@ func (fake *FakeDeployment) VMInfos() ([]director.VMInfo, error) {
 	fake.vMInfosMutex.Unlock()
 	if fake.VMInfosStub != nil {
 		return fake.VMInfosStub()
-	} else {
-		return fake.vMInfosReturns.result1, fake.vMInfosReturns.result2
 	}
+	return fake.vMInfosReturns.result1, fake.vMInfosReturns.result2
 }
 
 func (fake *FakeDeployment) VMInfosCallCount() int {
@@ -517,9 +541,8 @@ func (fake *FakeDeployment) Instances() ([]director.Instance, error) {
 	fake.instancesMutex.Unlock()
 	if fake.InstancesStub != nil {
 		return fake.InstancesStub()
-	} else {
-		return fake.instancesReturns.result1, fake.instancesReturns.result2
 	}
+	return fake.instancesReturns.result1, fake.instancesReturns.result2
 }
 
 func (fake *FakeDeployment) InstancesCallCount() int {
@@ -543,9 +566,8 @@ func (fake *FakeDeployment) InstanceInfos() ([]director.VMInfo, error) {
 	fake.instanceInfosMutex.Unlock()
 	if fake.InstanceInfosStub != nil {
 		return fake.InstanceInfosStub()
-	} else {
-		return fake.instanceInfosReturns.result1, fake.instanceInfosReturns.result2
 	}
+	return fake.instanceInfosReturns.result1, fake.instanceInfosReturns.result2
 }
 
 func (fake *FakeDeployment) InstanceInfosCallCount() int {
@@ -569,9 +591,8 @@ func (fake *FakeDeployment) Errands() ([]director.Errand, error) {
 	fake.errandsMutex.Unlock()
 	if fake.ErrandsStub != nil {
 		return fake.ErrandsStub()
-	} else {
-		return fake.errandsReturns.result1, fake.errandsReturns.result2
 	}
+	return fake.errandsReturns.result1, fake.errandsReturns.result2
 }
 
 func (fake *FakeDeployment) ErrandsCallCount() int {
@@ -599,9 +620,8 @@ func (fake *FakeDeployment) RunErrand(arg1 string, arg2 bool, arg3 bool) ([]dire
 	fake.runErrandMutex.Unlock()
 	if fake.RunErrandStub != nil {
 		return fake.RunErrandStub(arg1, arg2, arg3)
-	} else {
-		return fake.runErrandReturns.result1, fake.runErrandReturns.result2
 	}
+	return fake.runErrandReturns.result1, fake.runErrandReturns.result2
 }
 
 func (fake *FakeDeployment) RunErrandCallCount() int {
@@ -631,9 +651,8 @@ func (fake *FakeDeployment) ScanForProblems() ([]director.Problem, error) {
 	fake.scanForProblemsMutex.Unlock()
 	if fake.ScanForProblemsStub != nil {
 		return fake.ScanForProblemsStub()
-	} else {
-		return fake.scanForProblemsReturns.result1, fake.scanForProblemsReturns.result2
 	}
+	return fake.scanForProblemsReturns.result1, fake.scanForProblemsReturns.result2
 }
 
 func (fake *FakeDeployment) ScanForProblemsCallCount() int {
@@ -664,9 +683,8 @@ func (fake *FakeDeployment) ResolveProblems(arg1 []director.ProblemAnswer) error
 	fake.resolveProblemsMutex.Unlock()
 	if fake.ResolveProblemsStub != nil {
 		return fake.ResolveProblemsStub(arg1)
-	} else {
-		return fake.resolveProblemsReturns.result1
 	}
+	return fake.resolveProblemsReturns.result1
 }
 
 func (fake *FakeDeployment) ResolveProblemsCallCount() int {
@@ -695,9 +713,8 @@ func (fake *FakeDeployment) Snapshots() ([]director.Snapshot, error) {
 	fake.snapshotsMutex.Unlock()
 	if fake.SnapshotsStub != nil {
 		return fake.SnapshotsStub()
-	} else {
-		return fake.snapshotsReturns.result1, fake.snapshotsReturns.result2
 	}
+	return fake.snapshotsReturns.result1, fake.snapshotsReturns.result2
 }
 
 func (fake *FakeDeployment) SnapshotsCallCount() int {
@@ -721,9 +738,8 @@ func (fake *FakeDeployment) TakeSnapshots() error {
 	fake.takeSnapshotsMutex.Unlock()
 	if fake.TakeSnapshotsStub != nil {
 		return fake.TakeSnapshotsStub()
-	} else {
-		return fake.takeSnapshotsReturns.result1
 	}
+	return fake.takeSnapshotsReturns.result1
 }
 
 func (fake *FakeDeployment) TakeSnapshotsCallCount() int {
@@ -748,9 +764,8 @@ func (fake *FakeDeployment) DeleteSnapshot(arg1 string) error {
 	fake.deleteSnapshotMutex.Unlock()
 	if fake.DeleteSnapshotStub != nil {
 		return fake.DeleteSnapshotStub(arg1)
-	} else {
-		return fake.deleteSnapshotReturns.result1
 	}
+	return fake.deleteSnapshotReturns.result1
 }
 
 func (fake *FakeDeployment) DeleteSnapshotCallCount() int {
@@ -779,9 +794,8 @@ func (fake *FakeDeployment) DeleteSnapshots() error {
 	fake.deleteSnapshotsMutex.Unlock()
 	if fake.DeleteSnapshotsStub != nil {
 		return fake.DeleteSnapshotsStub()
-	} else {
-		return fake.deleteSnapshotsReturns.result1
 	}
+	return fake.deleteSnapshotsReturns.result1
 }
 
 func (fake *FakeDeployment) DeleteSnapshotsCallCount() int {
@@ -806,9 +820,8 @@ func (fake *FakeDeployment) DeleteVM(arg1 string) error {
 	fake.deleteVMMutex.Unlock()
 	if fake.DeleteVMStub != nil {
 		return fake.DeleteVMStub(arg1)
-	} else {
-		return fake.deleteVMReturns.result1
 	}
+	return fake.deleteVMReturns.result1
 }
 
 func (fake *FakeDeployment) DeleteVMCallCount() int {
@@ -837,9 +850,8 @@ func (fake *FakeDeployment) Variables() ([]director.VariableResult, error) {
 	fake.variablesMutex.Unlock()
 	if fake.VariablesStub != nil {
 		return fake.VariablesStub()
-	} else {
-		return fake.variablesReturns.result1, fake.variablesReturns.result2
 	}
+	return fake.variablesReturns.result1, fake.variablesReturns.result2
 }
 
 func (fake *FakeDeployment) VariablesCallCount() int {
@@ -866,9 +878,8 @@ func (fake *FakeDeployment) Start(slug director.AllOrInstanceGroupOrInstanceSlug
 	fake.startMutex.Unlock()
 	if fake.StartStub != nil {
 		return fake.StartStub(slug, opts)
-	} else {
-		return fake.startReturns.result1
 	}
+	return fake.startReturns.result1
 }
 
 func (fake *FakeDeployment) StartCallCount() int {
@@ -900,9 +911,8 @@ func (fake *FakeDeployment) Stop(slug director.AllOrInstanceGroupOrInstanceSlug,
 	fake.stopMutex.Unlock()
 	if fake.StopStub != nil {
 		return fake.StopStub(slug, opts)
-	} else {
-		return fake.stopReturns.result1
 	}
+	return fake.stopReturns.result1
 }
 
 func (fake *FakeDeployment) StopCallCount() int {
@@ -934,9 +944,8 @@ func (fake *FakeDeployment) Restart(slug director.AllOrInstanceGroupOrInstanceSl
 	fake.restartMutex.Unlock()
 	if fake.RestartStub != nil {
 		return fake.RestartStub(slug, opts)
-	} else {
-		return fake.restartReturns.result1
 	}
+	return fake.restartReturns.result1
 }
 
 func (fake *FakeDeployment) RestartCallCount() int {
@@ -968,9 +977,8 @@ func (fake *FakeDeployment) Recreate(slug director.AllOrInstanceGroupOrInstanceS
 	fake.recreateMutex.Unlock()
 	if fake.RecreateStub != nil {
 		return fake.RecreateStub(slug, opts)
-	} else {
-		return fake.recreateReturns.result1
 	}
+	return fake.recreateReturns.result1
 }
 
 func (fake *FakeDeployment) RecreateCallCount() int {
@@ -1002,9 +1010,8 @@ func (fake *FakeDeployment) SetUpSSH(arg1 director.AllOrInstanceGroupOrInstanceS
 	fake.setUpSSHMutex.Unlock()
 	if fake.SetUpSSHStub != nil {
 		return fake.SetUpSSHStub(arg1, arg2)
-	} else {
-		return fake.setUpSSHReturns.result1, fake.setUpSSHReturns.result2
 	}
+	return fake.setUpSSHReturns.result1, fake.setUpSSHReturns.result2
 }
 
 func (fake *FakeDeployment) SetUpSSHCallCount() int {
@@ -1037,9 +1044,8 @@ func (fake *FakeDeployment) CleanUpSSH(arg1 director.AllOrInstanceGroupOrInstanc
 	fake.cleanUpSSHMutex.Unlock()
 	if fake.CleanUpSSHStub != nil {
 		return fake.CleanUpSSHStub(arg1, arg2)
-	} else {
-		return fake.cleanUpSSHReturns.result1
 	}
+	return fake.cleanUpSSHReturns.result1
 }
 
 func (fake *FakeDeployment) CleanUpSSHCallCount() int {
@@ -1077,9 +1083,8 @@ func (fake *FakeDeployment) FetchLogs(arg1 director.AllOrInstanceGroupOrInstance
 	fake.fetchLogsMutex.Unlock()
 	if fake.FetchLogsStub != nil {
 		return fake.FetchLogsStub(arg1, arg2, arg3)
-	} else {
-		return fake.fetchLogsReturns.result1, fake.fetchLogsReturns.result2
 	}
+	return fake.fetchLogsReturns.result1, fake.fetchLogsReturns.result2
 }
 
 func (fake *FakeDeployment) FetchLogsCallCount() int {
@@ -1111,9 +1116,8 @@ func (fake *FakeDeployment) TakeSnapshot(arg1 director.InstanceSlug) error {
 	fake.takeSnapshotMutex.Unlock()
 	if fake.TakeSnapshotStub != nil {
 		return fake.TakeSnapshotStub(arg1)
-	} else {
-		return fake.takeSnapshotReturns.result1
 	}
+	return fake.takeSnapshotReturns.result1
 }
 
 func (fake *FakeDeployment) TakeSnapshotCallCount() int {
@@ -1145,9 +1149,8 @@ func (fake *FakeDeployment) Ignore(arg1 director.InstanceSlug, arg2 bool) error 
 	fake.ignoreMutex.Unlock()
 	if fake.IgnoreStub != nil {
 		return fake.IgnoreStub(arg1, arg2)
-	} else {
-		return fake.ignoreReturns.result1
 	}
+	return fake.ignoreReturns.result1
 }
 
 func (fake *FakeDeployment) IgnoreCallCount() int {
@@ -1179,9 +1182,8 @@ func (fake *FakeDeployment) EnableResurrection(arg1 director.InstanceSlug, arg2 
 	fake.enableResurrectionMutex.Unlock()
 	if fake.EnableResurrectionStub != nil {
 		return fake.EnableResurrectionStub(arg1, arg2)
-	} else {
-		return fake.enableResurrectionReturns.result1
 	}
+	return fake.enableResurrectionReturns.result1
 }
 
 func (fake *FakeDeployment) EnableResurrectionCallCount() int {
@@ -1218,9 +1220,8 @@ func (fake *FakeDeployment) Update(manifest []byte, opts director.UpdateOpts) er
 	fake.updateMutex.Unlock()
 	if fake.UpdateStub != nil {
 		return fake.UpdateStub(manifest, opts)
-	} else {
-		return fake.updateReturns.result1
 	}
+	return fake.updateReturns.result1
 }
 
 func (fake *FakeDeployment) UpdateCallCount() int {
@@ -1251,9 +1252,8 @@ func (fake *FakeDeployment) Delete(force bool) error {
 	fake.deleteMutex.Unlock()
 	if fake.DeleteStub != nil {
 		return fake.DeleteStub(force)
-	} else {
-		return fake.deleteReturns.result1
 	}
+	return fake.deleteReturns.result1
 }
 
 func (fake *FakeDeployment) DeleteCallCount() int {
@@ -1285,9 +1285,8 @@ func (fake *FakeDeployment) AttachDisk(slug director.InstanceSlug, diskCID strin
 	fake.attachDiskMutex.Unlock()
 	if fake.AttachDiskStub != nil {
 		return fake.AttachDiskStub(slug, diskCID)
-	} else {
-		return fake.attachDiskReturns.result1
 	}
+	return fake.attachDiskReturns.result1
 }
 
 func (fake *FakeDeployment) AttachDiskCallCount() int {
@@ -1324,6 +1323,8 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.releasesMutex.RUnlock()
 	fake.exportReleaseMutex.RLock()
 	defer fake.exportReleaseMutex.RUnlock()
+	fake.teamsMutex.RLock()
+	defer fake.teamsMutex.RUnlock()
 	fake.stemcellsMutex.RLock()
 	defer fake.stemcellsMutex.RUnlock()
 	fake.vMInfosMutex.RLock()

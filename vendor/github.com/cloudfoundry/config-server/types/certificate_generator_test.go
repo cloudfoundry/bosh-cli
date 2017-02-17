@@ -87,21 +87,21 @@ sHx2rlaLkmSreYJsmVaiSp0E9lhdympuDF+WKRolkQ==
 				params["common_name"] = []int{1}
 				_, err := generator.Generate(params)
 				Expect(err).ToNot(BeNil())
-				Expect(err.Error()).To(Equal("Failed to generate certificate, parameters are invalid."))
+				Expect(err.Error()).To(Equal("Failed to generate certificate, parameters are invalid: Expected input to be deserializable: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!seq into string"))
 			})
 
 			It("returns an error when AlternativeName is not of type []string", func() {
 				params["alternative_names"] = "smurf"
 				_, err := generator.Generate(params)
 				Expect(err).ToNot(BeNil())
-				Expect(err.Error()).To(Equal("Failed to generate certificate, parameters are invalid."))
+				Expect(err.Error()).To(Equal("Failed to generate certificate, parameters are invalid: Expected input to be deserializable: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `smurf` into []string"))
 			})
 
 			It("returns an error when ca is not of type string", func() {
 				params["ca"] = []int{1}
 				_, err := generator.Generate(params)
 				Expect(err).ToNot(BeNil())
-				Expect(err.Error()).To(Equal("Failed to generate certificate, parameters are invalid."))
+				Expect(err.Error()).To(Equal("Failed to generate certificate, parameters are invalid: Expected input to be deserializable: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!seq into string"))
 			})
 		})
 
@@ -365,6 +365,24 @@ sHx2rlaLkmSreYJsmVaiSp0E9lhdympuDF+WKRolkQ==
 						})
 					})
 				})
+			})
+		})
+
+		Context("when passed parameters use unsupported keys", func() {
+			var params map[interface{}]interface{}
+			BeforeEach(func() {
+				params = map[interface{}]interface{}{
+					"is_ca":              true,
+					"extended_key_usage": []string{"random", "values"},
+					"ext_key_usage":      []string{"random", "values"},
+				}
+			})
+
+			It("returns an error", func() {
+				_, err := generator.Generate(params)
+
+				Expect(err).ToNot(BeNil())
+				Expect(err.Error()).To(Equal("Failed to generate certificate, parameters are invalid: Unsupported certificate parameter 'ext_key_usage'"))
 			})
 		})
 	})

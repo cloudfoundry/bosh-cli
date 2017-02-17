@@ -3,23 +3,25 @@ package cmd_test
 import (
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
-	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
-
-	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
-	fakefu "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
+	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+
+	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
+	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakefu "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
+
 	"github.com/cloudfoundry/bosh-cli/crypto/fakes"
 	"github.com/cloudfoundry/bosh-cli/release/license"
 	"github.com/cloudfoundry/bosh-utils/errors"
-	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("Sha2ifyRelease", func() {
@@ -83,6 +85,9 @@ var _ = Describe("Sha2ifyRelease", func() {
 
 		fakeSha128Release.CopyWithStub = func(jobs []*boshjob.Job, pkgs []*boshpkg.Package, lic *license.License, compiledPackages []*boshpkg.CompiledPackage) boshrel.Release {
 			fakeSha256Release := &fakerel.FakeRelease{}
+			fakeSha256Release.NameReturns("custom-name")
+			fakeSha256Release.VersionReturns("custom-ver")
+			fakeSha256Release.CommitHashWithMarkReturns("commit")
 			fakeSha256Release.JobsReturns(jobs)
 			fakeSha256Release.PackagesReturns(pkgs)
 			fakeSha256Release.LicenseReturns(lic)
@@ -103,7 +108,6 @@ var _ = Describe("Sha2ifyRelease", func() {
 	})
 
 	Context("Given a valid sha128 release tar", func() {
-
 		It("Should convert it to a sha256 release tar", func() {
 			err := command.Run(args)
 			Expect(err).ToNot(HaveOccurred())
@@ -136,6 +140,14 @@ var _ = Describe("Sha2ifyRelease", func() {
 			Expect(src).To(Equal(releaseWriterTempDestination))
 			Expect(dst).To(Equal(args.Destination))
 
+			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Rows: [][]boshtbl.Value{
+					{boshtbl.NewValueString("Name"), boshtbl.NewValueString("custom-name")},
+					{boshtbl.NewValueString("Version"), boshtbl.NewValueString("custom-ver")},
+					{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
+					{boshtbl.NewValueString("Archive"), boshtbl.NewValueString("/some/release_256.tgz")},
+				},
+			}))
 		})
 
 		Context("when unable to write the sha256 tarball", func() {
