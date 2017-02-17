@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"path/filepath"
+	"regexp"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -39,7 +40,7 @@ var _ = Describe("Uninstaller", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fs.FileExists(installationPath)).To(BeFalse())
-			Expect(logBuffer).To(gbytes.Say("Successfully uninstalled CPI from '%s'", installationPath))
+			Expect(logBuffer).To(gbytes.Say("Successfully uninstalled CPI from '%s'", regexp.QuoteMeta(installationPath)))
 		})
 
 		It("returns and logs errors when remove all fails", func() {

@@ -2,6 +2,7 @@ package stemcell_test
 
 import (
 	"errors"
+	"path/filepath"
 
 	. "github.com/cloudfoundry/bosh-cli/stemcell"
 	. "github.com/onsi/ginkgo"
@@ -50,7 +51,7 @@ cloud_properties:
 			Manifest{
 				Name:      "fake-stemcell-name",
 				Version:   "2690",
-				ImagePath: "fake-extracted-path/image",
+				ImagePath: filepath.Join("fake-extracted-path", "image"),
 				CloudProperties: biproperty.Map{
 					"infrastructure": "aws",
 					"ami": biproperty.Map{

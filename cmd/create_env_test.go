@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"regexp"
 
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -449,7 +450,7 @@ var _ = Describe("CreateEnvCmd", func() {
 				It("prints the default state file path", func() {
 					err := command.Run(fakeStage, defaultCreateEnvOpts)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(stdOut).To(gbytes.Say("Deployment state: '/path/to/manifest-state.json'"))
+					Expect(stdOut).To(gbytes.Say("Deployment state: '" + regexp.QuoteMeta(filepath.Join("/", "path", "to", "manifest-state.json")) + "'"))
 				})
 			})
 
@@ -491,14 +492,14 @@ var _ = Describe("CreateEnvCmd", func() {
 			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
 
 			Expect(stdOut).To(gbytes.Say("Deployment manifest: '/path/to/manifest.yml'"))
-			Expect(stdOut).To(gbytes.Say("Deployment state: '/path/to/manifest-state.json'"))
+			Expect(stdOut).To(gbytes.Say("Deployment state: '" + regexp.QuoteMeta(filepath.Join("/", "path", "to", "manifest-state.json")) + "'"))
 			Expect(stdOut).To(gbytes.Say("Migrated legacy deployments file: '/path/to/bosh-deployments.yml'"))
 		})
 
 		It("sets the temp root", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fs.TempRootPath).To(Equal("fake-install-dir/fake-installation-id/tmp"))
+			Expect(fs.TempRootPath).To(Equal(filepath.Join("fake-install-dir", "fake-installation-id", "tmp")))
 		})
 
 		Context("when setting the temp root fails", func() {
