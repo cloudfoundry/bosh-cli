@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"errors"
+
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	"github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
@@ -23,8 +24,6 @@ var _ = Describe("RepackStemcellCmd", func() {
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		ui = &fakeui.FakeUI{}
-
-		fs.WriteFileString("intermediate-stemcell.tgz", "some-content")
 
 		extractor = stemcellfakes.NewFakeExtractor()
 		command = NewRepackStemcellCmd(ui, fs, extractor)
@@ -57,7 +56,7 @@ var _ = Describe("RepackStemcellCmd", func() {
 				BeforeEach(func() {
 					extractor.SetExtractBehavior("some-stemcell.tgz", extractedStemcell, nil)
 
-					extractedStemcell.PackReturns("intermediate-stemcell.tgz", nil)
+					extractedStemcell.PackReturns(nil)
 					err = act()
 				})
 
@@ -68,10 +67,8 @@ var _ = Describe("RepackStemcellCmd", func() {
 					Expect(extractor.ExtractInputs[0].TarballPath).To(Equal("some-stemcell.tgz"))
 
 					Expect(extractedStemcell.PackCallCount()).To(Equal(1))
-					extractedStemcell.PackReturns("repacked-stemcell.tgz", nil)
-
-					Expect(fs.FileExists("intermediate-stemcell.tgz")).To(BeFalse())
-					Expect(fs.FileExists("repacked-stemcell.tgz")).To(BeTrue())
+					Expect(extractedStemcell.PackArgsForCall(0)).To(Equal("repacked-stemcell.tgz"))
+					extractedStemcell.PackReturns(nil)
 				})
 
 				It("should NOT set empty name", func() {
@@ -98,7 +95,7 @@ var _ = Describe("RepackStemcellCmd", func() {
 					opts.Name = "new-name"
 					extractor.SetExtractBehavior("some-stemcell.tgz", extractedStemcell, nil)
 
-					extractedStemcell.PackReturns("intermediate-stemcell.tgz", nil)
+					extractedStemcell.PackReturns(nil)
 					err = act()
 					Expect(err).ToNot(HaveOccurred())
 
@@ -114,7 +111,7 @@ var _ = Describe("RepackStemcellCmd", func() {
 					opts.Version = "new-version"
 					extractor.SetExtractBehavior("some-stemcell.tgz", extractedStemcell, nil)
 
-					extractedStemcell.PackReturns("intermediate-stemcell.tgz", nil)
+					extractedStemcell.PackReturns(nil)
 					err = act()
 					Expect(err).ToNot(HaveOccurred())
 
@@ -133,7 +130,7 @@ var _ = Describe("RepackStemcellCmd", func() {
 				BeforeEach(func() {
 					opts.CloudProperties = "new_property: new_value"
 					extractor.SetExtractBehavior("some-stemcell.tgz", extractedStemcell, nil)
-					extractedStemcell.PackReturns("intermediate-stemcell.tgz", nil)
+					extractedStemcell.PackReturns(nil)
 				})
 
 				It("overrides the stemcell version", func() {
@@ -175,25 +172,7 @@ var _ = Describe("RepackStemcellCmd", func() {
 				Context("when it's NOT able to create new stemcell", func() {
 					BeforeEach(func() {
 						extractor.SetExtractBehavior("some-stemcell.tgz", extractedStemcell, nil)
-						extractedStemcell.PackReturns("", errors.New("fake-error"))
-						err = act()
-					})
-
-					It("returns an error", func() {
-						Expect(err).To(HaveOccurred())
-
-						Expect(len(extractor.ExtractInputs)).To(Equal(1))
-						Expect(extractor.ExtractInputs[0].TarballPath).To(Equal("some-stemcell.tgz"))
-
-						Expect(extractedStemcell.PackCallCount()).To(Equal(1))
-					})
-				})
-
-				Context("when it fails to move the new stemcell into given file path", func() {
-					BeforeEach(func() {
-						extractor.SetExtractBehavior("some-stemcell.tgz", extractedStemcell, nil)
-						extractedStemcell.PackReturns("intermediate-stemcell.tgz", nil)
-						fs.RenameError = errors.New("fake-error")
+						extractedStemcell.PackReturns(errors.New("fake-error"))
 						err = act()
 					})
 

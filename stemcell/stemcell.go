@@ -7,8 +7,9 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	yaml "gopkg.in/yaml.v2"
 	"path/filepath"
+
+	yaml "gopkg.in/yaml.v2"
 )
 
 type ExtractedStemcell interface {
@@ -19,7 +20,7 @@ type ExtractedStemcell interface {
 	SetVersion(string)
 	SetCloudProperties(biproperty.Map)
 	GetExtractedPath() string
-	Pack() (string, error)
+	Pack(string) error
 	fmt.Stringer
 }
 
@@ -72,21 +73,20 @@ func (s *extractedStemcell) SetCloudProperties(newCloudProperties biproperty.Map
 	}
 }
 
-func (s *extractedStemcell) Pack() (string, error) {
+func (s *extractedStemcell) Pack(destinationPath string) error {
 	defer s.Cleanup()
 
 	err := s.save()
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	tarballDestinationPath, err := s.compressor.CompressFilesInDir(s.extractedPath)
+	intermediateStemcellPath, err := s.compressor.CompressFilesInDir(s.extractedPath)
 	if err != nil {
-		return "", err
+		return err
 	}
-	// TODO(cunnie) mv tarballDestinationPath destinationPath
 
-	return tarballDestinationPath, nil
+	return s.fs.Rename(intermediateStemcellPath, destinationPath)
 }
 
 func (s *extractedStemcell) GetExtractedPath() string {

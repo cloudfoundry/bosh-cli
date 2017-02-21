@@ -48,12 +48,13 @@ type FakeExtractedStemcell struct {
 	getExtractedPathReturns     struct {
 		result1 string
 	}
-	PackStub        func() (string, error)
+	PackStub        func(string) error
 	packMutex       sync.RWMutex
-	packArgsForCall []struct{}
-	packReturns     struct {
-		result1 string
-		result2 error
+	packArgsForCall []struct {
+		arg1 string
+	}
+	packReturns struct {
+		result1 error
 	}
 	StringStub        func() string
 	stringMutex       sync.RWMutex
@@ -237,15 +238,17 @@ func (fake *FakeExtractedStemcell) GetExtractedPathReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeExtractedStemcell) Pack() (string, error) {
+func (fake *FakeExtractedStemcell) Pack(arg1 string) error {
 	fake.packMutex.Lock()
-	fake.packArgsForCall = append(fake.packArgsForCall, struct{}{})
-	fake.recordInvocation("Pack", []interface{}{})
+	fake.packArgsForCall = append(fake.packArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("Pack", []interface{}{arg1})
 	fake.packMutex.Unlock()
 	if fake.PackStub != nil {
-		return fake.PackStub()
+		return fake.PackStub(arg1)
 	} else {
-		return fake.packReturns.result1, fake.packReturns.result2
+		return fake.packReturns.result1
 	}
 }
 
@@ -255,12 +258,17 @@ func (fake *FakeExtractedStemcell) PackCallCount() int {
 	return len(fake.packArgsForCall)
 }
 
-func (fake *FakeExtractedStemcell) PackReturns(result1 string, result2 error) {
+func (fake *FakeExtractedStemcell) PackArgsForCall(i int) string {
+	fake.packMutex.RLock()
+	defer fake.packMutex.RUnlock()
+	return fake.packArgsForCall[i].arg1
+}
+
+func (fake *FakeExtractedStemcell) PackReturns(result1 error) {
 	fake.PackStub = nil
 	fake.packReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeExtractedStemcell) String() string {

@@ -46,10 +46,5 @@ func (c RepackStemcellCmd) Run(opts RepackStemcellOpts) error {
 		extractedStemcell.SetCloudProperties(*cloudProperties)
 	}
 
-	intermediateStemcellPath, err := extractedStemcell.Pack()
-	if err != nil {
-		return err
-	}
-
-	return c.fs.Rename(intermediateStemcellPath, opts.Args.PathToResult)
+	return extractedStemcell.Pack(opts.Args.PathToResult)
 }
