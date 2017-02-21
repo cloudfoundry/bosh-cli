@@ -44,6 +44,18 @@ type FakeExtractedStemcell struct {
 	setCloudPropertiesReturns struct {
 		result1 error
 	}
+	GetExtractedPathStub        func() string
+	getExtractedPathMutex       sync.RWMutex
+	getExtractedPathArgsForCall []struct{}
+	getExtractedPathReturns     struct {
+		result1 string
+	}
+	SaveStub        func() error
+	saveMutex       sync.RWMutex
+	saveArgsForCall []struct{}
+	saveReturns     struct {
+		result1 error
+	}
 	StringStub        func() string
 	stringMutex       sync.RWMutex
 	stringArgsForCall []struct{}
@@ -61,8 +73,9 @@ func (fake *FakeExtractedStemcell) Manifest() stemcell.Manifest {
 	fake.manifestMutex.Unlock()
 	if fake.ManifestStub != nil {
 		return fake.ManifestStub()
+	} else {
+		return fake.manifestReturns.result1
 	}
-	return fake.manifestReturns.result1
 }
 
 func (fake *FakeExtractedStemcell) ManifestCallCount() int {
@@ -85,8 +98,9 @@ func (fake *FakeExtractedStemcell) Delete() error {
 	fake.deleteMutex.Unlock()
 	if fake.DeleteStub != nil {
 		return fake.DeleteStub()
+	} else {
+		return fake.deleteReturns.result1
 	}
-	return fake.deleteReturns.result1
 }
 
 func (fake *FakeExtractedStemcell) DeleteCallCount() int {
@@ -109,8 +123,9 @@ func (fake *FakeExtractedStemcell) OsAndVersion() string {
 	fake.osAndVersionMutex.Unlock()
 	if fake.OsAndVersionStub != nil {
 		return fake.OsAndVersionStub()
+	} else {
+		return fake.osAndVersionReturns.result1
 	}
-	return fake.osAndVersionReturns.result1
 }
 
 func (fake *FakeExtractedStemcell) OsAndVersionCallCount() int {
@@ -183,8 +198,9 @@ func (fake *FakeExtractedStemcell) SetCloudProperties(arg1 string) error {
 	fake.setCloudPropertiesMutex.Unlock()
 	if fake.SetCloudPropertiesStub != nil {
 		return fake.SetCloudPropertiesStub(arg1)
+	} else {
+		return fake.setCloudPropertiesReturns.result1
 	}
-	return fake.setCloudPropertiesReturns.result1
 }
 
 func (fake *FakeExtractedStemcell) SetCloudPropertiesCallCount() int {
@@ -206,6 +222,56 @@ func (fake *FakeExtractedStemcell) SetCloudPropertiesReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeExtractedStemcell) GetExtractedPath() string {
+	fake.getExtractedPathMutex.Lock()
+	fake.getExtractedPathArgsForCall = append(fake.getExtractedPathArgsForCall, struct{}{})
+	fake.recordInvocation("GetExtractedPath", []interface{}{})
+	fake.getExtractedPathMutex.Unlock()
+	if fake.GetExtractedPathStub != nil {
+		return fake.GetExtractedPathStub()
+	} else {
+		return fake.getExtractedPathReturns.result1
+	}
+}
+
+func (fake *FakeExtractedStemcell) GetExtractedPathCallCount() int {
+	fake.getExtractedPathMutex.RLock()
+	defer fake.getExtractedPathMutex.RUnlock()
+	return len(fake.getExtractedPathArgsForCall)
+}
+
+func (fake *FakeExtractedStemcell) GetExtractedPathReturns(result1 string) {
+	fake.GetExtractedPathStub = nil
+	fake.getExtractedPathReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeExtractedStemcell) Save() error {
+	fake.saveMutex.Lock()
+	fake.saveArgsForCall = append(fake.saveArgsForCall, struct{}{})
+	fake.recordInvocation("Save", []interface{}{})
+	fake.saveMutex.Unlock()
+	if fake.SaveStub != nil {
+		return fake.SaveStub()
+	} else {
+		return fake.saveReturns.result1
+	}
+}
+
+func (fake *FakeExtractedStemcell) SaveCallCount() int {
+	fake.saveMutex.RLock()
+	defer fake.saveMutex.RUnlock()
+	return len(fake.saveArgsForCall)
+}
+
+func (fake *FakeExtractedStemcell) SaveReturns(result1 error) {
+	fake.SaveStub = nil
+	fake.saveReturns = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeExtractedStemcell) String() string {
 	fake.stringMutex.Lock()
 	fake.stringArgsForCall = append(fake.stringArgsForCall, struct{}{})
@@ -213,8 +279,9 @@ func (fake *FakeExtractedStemcell) String() string {
 	fake.stringMutex.Unlock()
 	if fake.StringStub != nil {
 		return fake.StringStub()
+	} else {
+		return fake.stringReturns.result1
 	}
-	return fake.stringReturns.result1
 }
 
 func (fake *FakeExtractedStemcell) StringCallCount() int {
@@ -245,6 +312,10 @@ func (fake *FakeExtractedStemcell) Invocations() map[string][][]interface{} {
 	defer fake.setVersionMutex.RUnlock()
 	fake.setCloudPropertiesMutex.RLock()
 	defer fake.setCloudPropertiesMutex.RUnlock()
+	fake.getExtractedPathMutex.RLock()
+	defer fake.getExtractedPathMutex.RUnlock()
+	fake.saveMutex.RLock()
+	defer fake.saveMutex.RUnlock()
 	fake.stringMutex.RLock()
 	defer fake.stringMutex.RUnlock()
 	return fake.invocations

@@ -16,6 +16,8 @@ type ExtractedStemcell interface {
 	SetName(string)
 	SetVersion(string)
 	SetCloudProperties(string) error
+	GetExtractedPath() string
+	Save() error
 	fmt.Stringer
 }
 
@@ -69,6 +71,15 @@ func (s *extractedStemcell) SetCloudProperties(newCloudProperties string) error 
 	}
 
 	return err
+}
+
+func (s *extractedStemcell) GetExtractedPath() string {
+	return s.extractedPath
+}
+
+func (s *extractedStemcell) Save() error {
+	// TODO(cdutra): implement me
+	return nil
 }
 
 type Manifest struct {

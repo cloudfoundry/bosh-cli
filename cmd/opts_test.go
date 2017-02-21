@@ -408,6 +408,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("RepackStemcell", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("RepackStemcell", opts)).To(Equal(
+					`command:"repack-stemcell" description:"Repack stemcell"`,
+				))
+			})
+		})
+
 		Describe("Releases", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Releases", opts)).To(Equal(
@@ -1311,6 +1319,68 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Slug", opts)).To(Equal(
 					`positional-arg-name:"NAME/VERSION"`,
+				))
+			})
+		})
+	})
+
+	Describe("RepackStemcellOpts", func() {
+		var opts *RepackStemcellOpts
+
+		BeforeEach(func() {
+			opts = &RepackStemcellOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+
+		It("has --force", func() {
+			Expect(getStructTagForName("Force", opts)).To(Equal(
+				`long:"force" description:"Ignore errors"`,
+			))
+		})
+
+		It("has --version", func() {
+			Expect(getStructTagForName("Version", opts)).To(Equal(
+				`long:"version" description:"Repacked stemcell version"`,
+			))
+		})
+
+		It("has --name", func() {
+			Expect(getStructTagForName("Name", opts)).To(Equal(
+				`long:"name" description:"Repacked stemcell name"`,
+			))
+		})
+
+		It("has --properties", func() {
+			Expect(getStructTagForName("Properties", opts)).To(Equal(
+				`long:"properties" description:"Repacked stemcell cloud properties"`,
+			))
+		})
+	})
+
+	Describe("RepackStemcellArgs", func() {
+		var opts *RepackStemcellArgs
+
+		BeforeEach(func() {
+			opts = &RepackStemcellArgs{}
+		})
+
+		Describe("PathToStemcell", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("PathToStemcell", opts)).To(Equal(
+					`positional-arg-name:"PATH-TO-STEMCELL" description:"Path to stemcell"`,
+				))
+			})
+		})
+
+		Describe("PathToResult", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("PathToResult", opts)).To(Equal(
+					`positional-arg-name:"PATH-TO-RESULT" description:"Path to repacked stemcell"`,
 				))
 			})
 		})

@@ -91,6 +91,7 @@ type BoshOpts struct {
 	Stemcells      StemcellsOpts      `command:"stemcells"       alias:"ss" alias:"stems" description:"List stemcells"`
 	UploadStemcell UploadStemcellOpts `command:"upload-stemcell" alias:"us"               description:"Upload stemcell"`
 	DeleteStemcell DeleteStemcellOpts `command:"delete-stemcell" alias:"dels"             description:"Delete stemcell"`
+	RepackStemcell RepackStemcellOpts `command:"repack-stemcell"                          description:"Repack stemcell"`
 
 	// Releases
 	Releases       ReleasesOpts       `command:"releases"        alias:"rs" alias:"rels" description:"List releases"`
@@ -161,7 +162,7 @@ type HelpOpts struct {
 
 // Original bosh-init
 type CreateEnvOpts struct {
-	Args CreateEnvArgs `positional-args:"true" required:"true"`
+	Args      CreateEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
 	StatePath string `long:"state" value-name:"PATH" description:"State file path"`
@@ -173,7 +174,7 @@ type CreateEnvArgs struct {
 }
 
 type DeleteEnvOpts struct {
-	Args DeleteEnvArgs `positional-args:"true" required:"true"`
+	Args      DeleteEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
 	StatePath string `long:"state" value-name:"PATH" description:"State file path"`
@@ -433,6 +434,21 @@ type DeleteStemcellOpts struct {
 
 type DeleteStemcellArgs struct {
 	Slug boshdir.StemcellSlug `positional-arg-name:"NAME/VERSION"`
+}
+
+type RepackStemcellOpts struct {
+	Args       RepackStemcellArgs `positional-args:"true" required:"true"`
+	Force      bool               `long:"force"   description:"Ignore errors"`
+	Name       string             `long:"name" description:"Repacked stemcell name"`
+	Properties string             `long:"properties" description:"Repacked stemcell cloud properties"`
+	Version    VersionArg         `long:"version" description:"Repacked stemcell version"`
+
+	cmd
+}
+
+type RepackStemcellArgs struct {
+	PathToStemcell string `positional-arg-name:"PATH-TO-STEMCELL" description:"Path to stemcell"`
+	PathToResult   string `positional-arg-name:"PATH-TO-RESULT" description:"Path to repacked stemcell"`
 }
 
 // Releases
