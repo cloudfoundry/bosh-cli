@@ -162,7 +162,7 @@ type HelpOpts struct {
 
 // Original bosh-init
 type CreateEnvOpts struct {
-	Args      CreateEnvArgs `positional-args:"true" required:"true"`
+	Args CreateEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
 	StatePath string `long:"state" value-name:"PATH" description:"State file path"`
@@ -174,7 +174,7 @@ type CreateEnvArgs struct {
 }
 
 type DeleteEnvOpts struct {
-	Args      DeleteEnvArgs `positional-args:"true" required:"true"`
+	Args DeleteEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
 	StatePath string `long:"state" value-name:"PATH" description:"State file path"`
@@ -437,11 +437,10 @@ type DeleteStemcellArgs struct {
 }
 
 type RepackStemcellOpts struct {
-	Args       RepackStemcellArgs `positional-args:"true" required:"true"`
-	Force      bool               `long:"force"   description:"Ignore errors"`
-	Name       string             `long:"name" description:"Repacked stemcell name"`
-	Properties string             `long:"properties" description:"Repacked stemcell cloud properties"`
-	Version    VersionArg         `long:"version" description:"Repacked stemcell version"`
+	Args            RepackStemcellArgs `positional-args:"true" required:"true"`
+	Name            string             `long:"name" description:"Repacked stemcell name"`
+	CloudProperties string             `long:"cloud-properties" description:"Repacked stemcell cloud properties"`
+	Version         string             `long:"version" description:"Repacked stemcell version"`
 
 	cmd
 }

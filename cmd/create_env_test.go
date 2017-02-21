@@ -216,13 +216,13 @@ var _ = Describe("CreateEnvCmd", func() {
 			stemcellTarballPath = "/stemcell/tarball/path"
 			extractedStemcell = bistemcell.NewExtractedStemcell(
 				bistemcell.Manifest{
-					ImagePath:       "/stemcell/image/path",
 					Name:            "fake-stemcell-name",
 					Version:         "fake-stemcell-version",
 					SHA1:            "fake-stemcell-sha1",
 					CloudProperties: biproperty.Map{},
 				},
 				"fake-extracted-path",
+				nil,
 				fs,
 			)
 

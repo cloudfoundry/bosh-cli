@@ -3,45 +3,50 @@ package stemcell
 import (
 	"fmt"
 
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	yaml "gopkg.in/yaml.v2"
+	"path/filepath"
 )
 
 type ExtractedStemcell interface {
 	Manifest() Manifest
-	Delete() error
+	Cleanup() error
 	OsAndVersion() string
 	SetName(string)
 	SetVersion(string)
-	SetCloudProperties(string) error
+	SetCloudProperties(biproperty.Map)
 	GetExtractedPath() string
-	Save() error
+	Pack() (string, error)
 	fmt.Stringer
 }
 
 type extractedStemcell struct {
 	manifest      Manifest
 	extractedPath string
+	compressor    boshcmd.Compressor
 	fs            boshsys.FileSystem
 }
 
 func NewExtractedStemcell(
 	manifest Manifest,
 	extractedPath string,
+	compressor boshcmd.Compressor,
 	fs boshsys.FileSystem,
 ) ExtractedStemcell {
 	return &extractedStemcell{
 		manifest:      manifest,
 		extractedPath: extractedPath,
+		compressor:    compressor,
 		fs:            fs,
 	}
 }
 
 func (s *extractedStemcell) Manifest() Manifest { return s.manifest }
 
-func (s *extractedStemcell) Delete() error {
+func (s *extractedStemcell) Cleanup() error {
 	return s.fs.RemoveAll(s.extractedPath)
 }
 
@@ -61,32 +66,48 @@ func (s *extractedStemcell) SetVersion(newVersion string) {
 	s.manifest.Version = newVersion
 }
 
-func (s *extractedStemcell) SetCloudProperties(newCloudProperties string) error {
-	newProps := new(biproperty.Map)
-
-	err := yaml.Unmarshal([]byte(newCloudProperties), newProps)
-
-	for key, value := range *newProps {
+func (s *extractedStemcell) SetCloudProperties(newCloudProperties biproperty.Map) {
+	for key, value := range newCloudProperties {
 		s.manifest.CloudProperties[key] = value
 	}
+}
 
-	return err
+func (s *extractedStemcell) Pack() (string, error) {
+	defer s.Cleanup()
+
+	err := s.save()
+	if err != nil {
+		return "", err
+	}
+
+	tarballDestinationPath, err := s.compressor.CompressFilesInDir(s.extractedPath)
+	if err != nil {
+		return "", err
+	}
+	// TODO(cunnie) mv tarballDestinationPath destinationPath
+
+	return tarballDestinationPath, nil
 }
 
 func (s *extractedStemcell) GetExtractedPath() string {
 	return s.extractedPath
 }
 
-func (s *extractedStemcell) Save() error {
-	// TODO(cdutra): implement me
+func (s *extractedStemcell) save() error {
+	stemcellMfPath := filepath.Join(s.extractedPath, "stemcell.MF")
+	contents, _ := yaml.Marshal(s.manifest)
+	err := s.fs.WriteFile(stemcellMfPath, contents)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 type Manifest struct {
-	ImagePath       string
-	Name            string
-	Version         string
-	OS              string
-	SHA1            string
-	CloudProperties biproperty.Map
+	Name            string         `yaml:"name"`
+	Version         string         `yaml:"version"`
+	OS              string         `yaml:"operating_system"`
+	SHA1            string         `yaml:"sha1"`
+	BoshProtocol    string         `yaml:"bosh_protocol"`
+	CloudProperties biproperty.Map `yaml:"cloud_properties"`
 }

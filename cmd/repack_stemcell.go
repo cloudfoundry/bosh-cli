@@ -1,38 +1,52 @@
 package cmd
 
 import (
-	"errors"
 	"github.com/cloudfoundry/bosh-cli/stemcell"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"github.com/pivotal-golang/yaml"
 )
 
 type RepackStemcellCmd struct {
 	ui                boshui.UI
 	fs                boshsys.FileSystem
 	stemcellExtractor stemcell.Extractor
-	stemcellPacker    stemcell.Packer
 }
 
 func NewRepackStemcellCmd(
 	ui boshui.UI,
 	fs boshsys.FileSystem,
 	stemcellExtractor stemcell.Extractor,
-	stemcellPacker stemcell.Packer,
 ) RepackStemcellCmd {
-	return RepackStemcellCmd{ui: ui, fs: fs, stemcellExtractor: stemcellExtractor, stemcellPacker: stemcellPacker}
+	return RepackStemcellCmd{ui: ui, fs: fs, stemcellExtractor: stemcellExtractor}
 }
 
 func (c RepackStemcellCmd) Run(opts RepackStemcellOpts) error {
-	if c.fs.FileExists(opts.Args.PathToResult) {
-		return errors.New("destination file exists")
-	}
-
 	extractedStemcell, err := c.stemcellExtractor.Extract(opts.Args.PathToStemcell)
 	if err != nil {
 		return err
 	}
-	intermediateStemcellPath, err := c.stemcellPacker.Pack(extractedStemcell)
+
+	if opts.Name != "" {
+		extractedStemcell.SetName(opts.Name)
+	}
+
+	if opts.Version != "" {
+		extractedStemcell.SetVersion(opts.Version)
+	}
+
+	if opts.CloudProperties != "" {
+		cloudProperties := new(biproperty.Map)
+		err = yaml.Unmarshal([]byte(opts.CloudProperties), cloudProperties)
+		if err != nil {
+			return err
+		}
+
+		extractedStemcell.SetCloudProperties(*cloudProperties)
+	}
+
+	intermediateStemcellPath, err := extractedStemcell.Pack()
 	if err != nil {
 		return err
 	}

@@ -175,9 +175,8 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *RepackStemcellOpts:
 		stemcellReader := bistemcell.NewReader(deps.Compressor, deps.FS)
 		stemcellExtractor := bistemcell.NewExtractor(stemcellReader, deps.FS)
-		stemcellPacker := bistemcell.NewPacker(deps.Compressor)
 
-		return NewRepackStemcellCmd(deps.UI, deps.FS, stemcellExtractor, stemcellPacker).Run(*opts)
+		return NewRepackStemcellCmd(deps.UI, deps.FS, stemcellExtractor).Run(*opts)
 
 	case *LocksOpts:
 		return NewLocksCmd(deps.UI, c.director()).Run()

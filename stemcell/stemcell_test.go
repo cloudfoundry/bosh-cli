@@ -6,8 +6,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"errors"
+	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
+	boshcmdfakes "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
@@ -17,23 +19,27 @@ var _ = Describe("Stemcell", func() {
 		manifest      Manifest
 		fakefs        *fakesys.FakeFileSystem
 		extractedPath string
+		compressor    *boshcmdfakes.FakeCompressor
 	)
 
 	BeforeEach(func() {
-		manifest = Manifest{}
+		manifest = Manifest{
+			Name: "new-name",
+		}
 
 		extractedPath = "fake-path"
 
 		fakefs = fakesys.NewFakeFileSystem()
-
+		compressor = new(boshcmdfakes.FakeCompressor)
 		stemcell = NewExtractedStemcell(
 			manifest,
 			extractedPath,
+			compressor,
 			fakefs,
 		)
 	})
 
-	Describe("#Manifest", func() {
+	Describe("Manifest", func() {
 		It("returns the manifest", func() {
 			Expect(stemcell.Manifest()).To(Equal(manifest))
 		})
@@ -49,8 +55,8 @@ var _ = Describe("Stemcell", func() {
 			}
 		})
 
-		It("removes the extrated path", func() {
-			Expect(stemcell.Delete()).To(BeNil())
+		It("removes the extracted path", func() {
+			Expect(stemcell.Cleanup()).To(BeNil())
 			Expect(removeAllCalled).To(BeTrue())
 		})
 	})
@@ -65,6 +71,7 @@ var _ = Describe("Stemcell", func() {
 			stemcell = NewExtractedStemcell(
 				manifest,
 				extractedPath,
+				compressor,
 				fakefs,
 			)
 		})
@@ -84,6 +91,7 @@ var _ = Describe("Stemcell", func() {
 			stemcell = NewExtractedStemcell(
 				manifest,
 				extractedPath,
+				compressor,
 				fakefs,
 			)
 		})
@@ -105,6 +113,7 @@ var _ = Describe("Stemcell", func() {
 			stemcell = NewExtractedStemcell(
 				manifest,
 				extractedPath,
+				compressor,
 				fakefs,
 			)
 
@@ -129,6 +138,7 @@ var _ = Describe("Stemcell", func() {
 			stemcell = NewExtractedStemcell(
 				manifest,
 				extractedPath,
+				compressor,
 				fakefs,
 			)
 
@@ -142,7 +152,7 @@ var _ = Describe("Stemcell", func() {
 	})
 
 	Describe("SetCloudProperties", func() {
-		var newStemcellCloudProperties string
+		var newStemcellCloudProperties biproperty.Map
 
 		BeforeEach(func() {
 			manifest = Manifest{CloudProperties: biproperty.Map{}}
@@ -150,13 +160,13 @@ var _ = Describe("Stemcell", func() {
 			stemcell = NewExtractedStemcell(
 				manifest,
 				extractedPath,
+				compressor,
 				fakefs,
 			)
 
-			newStemcellCloudProperties = `---
-some_property: some_value
-`
-
+			newStemcellCloudProperties = biproperty.Map{
+				"some_property": "some_value",
+			}
 		})
 
 		It("sets the properties", func() {
@@ -177,13 +187,14 @@ some_property: some_value
 				stemcell = NewExtractedStemcell(
 					manifest,
 					extractedPath,
+					compressor,
 					fakefs,
 				)
 
-				newStemcellCloudProperties = `---
-some_property: totally overwritten, dude
-new_property: didn't previously exist
-`
+				newStemcellCloudProperties = biproperty.Map{
+					"some_property": "totally overwritten, dude",
+					"new_property":  "didn't previously exist",
+				}
 			})
 
 			It("overwrites existing properties", func() {
@@ -199,6 +210,85 @@ new_property: didn't previously exist
 			It("adds new properties", func() {
 				stemcell.SetCloudProperties(newStemcellCloudProperties)
 				Expect(stemcell.Manifest().CloudProperties["new_property"]).To(Equal("didn't previously exist"))
+			})
+		})
+	})
+
+	Describe("Pack", func() {
+		var removeAllCalled bool
+
+		BeforeEach(func() {
+			extractedPath = "extracted-path"
+			stemcell = NewExtractedStemcell(
+				manifest,
+				extractedPath,
+				compressor,
+				fakefs,
+			)
+		})
+
+		Context("when the packaging succeeeds", func() {
+			It("packs the extracted stemcell", func() {
+				compressor.CompressFilesInDirTarballPath = "bosh-platform-disk-TarballCompressor-CompressSpecificFilesInDir/generated-tarball.tgz"
+				compressor.CompressFilesInDirErr = nil
+				removeAllCalled = false
+
+				fakefs.RemoveAllStub = func(path string) error {
+					removeAllCalled = true
+					Expect(path).To(Equal(extractedPath))
+					return errors.New("Not error.")
+				}
+
+				tarballPath, err := stemcell.Pack()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(compressor.CompressFilesInDirDir).To(Equal(extractedPath))
+
+				newStemcellMFContent, err := fakefs.ReadFileString("extracted-path/stemcell.MF")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(newStemcellMFContent).To(ContainSubstring("name: new-name"))
+
+				Expect(removeAllCalled).To(BeTrue())
+
+				Expect(tarballPath).To(Equal("bosh-platform-disk-TarballCompressor-CompressSpecificFilesInDir/generated-tarball.tgz"))
+			})
+		})
+
+		Context("when the packaging fails", func() {
+			var err error
+
+			Context("when the extracted stemcell can't save its contents", func() {
+				It("returns an error", func() {
+					fakefs.RemoveAllStub = func(path string) error {
+						removeAllCalled = true
+						Expect(path).To(Equal(extractedPath))
+						return errors.New("Not error.")
+					}
+					fakefs.WriteFileError = errors.New("could not write file")
+
+					_, err = stemcell.Pack()
+					Expect(err).To(HaveOccurred())
+
+					Expect(removeAllCalled).To(BeTrue())
+				})
+			})
+
+			Context("when the compressor can't create .tgz file", func() {
+				It("returns an error", func() {
+					compressor.CompressFilesInDirTarballPath = ""
+					compressor.CompressFilesInDirErr = errors.New("error creating .tgz file")
+					removeAllCalled = false
+					fakefs.RemoveAllStub = func(path string) error {
+						removeAllCalled = true
+						Expect(path).To(Equal(extractedPath))
+						return errors.New("Not error.")
+					}
+
+					_, err = stemcell.Pack()
+					Expect(err).To(HaveOccurred())
+
+					Expect(compressor.CompressFilesInDirDir).To(Equal(extractedPath))
+				})
 			})
 		})
 	})

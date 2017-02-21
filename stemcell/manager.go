@@ -61,7 +61,7 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.S
 			return biui.NewSkipStageError(bosherr.Errorf("Found stemcell: %#v", foundStemcellRecord), "Stemcell already uploaded")
 		}
 
-		cid, err := m.cloud.CreateStemcell(manifest.ImagePath, manifest.CloudProperties)
+		cid, err := m.cloud.CreateStemcell(extractedStemcell.GetExtractedPath()+"/image", manifest.CloudProperties)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "creating stemcell (%s %s)", manifest.Name, manifest.Version)
 		}

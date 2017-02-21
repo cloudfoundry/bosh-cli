@@ -82,6 +82,7 @@ var _ = Describe("Opts", func() {
 			// --version flag is a bit awkward so let's ignore conflicts
 			Expect(errs).To(Equal([]string{
 				"Command 'UploadStemcellOpts' shadows global long option 'version'",
+				"Command 'RepackStemcellOpts' shadows global long option 'version'",
 				"Command 'UploadReleaseOpts' shadows global long option 'version'",
 				"Command 'CreateReleaseOpts' shadows global long option 'version'",
 				"Command 'FinalizeReleaseOpts' shadows global long option 'version'",
@@ -1337,12 +1338,6 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		It("has --force", func() {
-			Expect(getStructTagForName("Force", opts)).To(Equal(
-				`long:"force" description:"Ignore errors"`,
-			))
-		})
-
 		It("has --version", func() {
 			Expect(getStructTagForName("Version", opts)).To(Equal(
 				`long:"version" description:"Repacked stemcell version"`,
@@ -1355,9 +1350,9 @@ var _ = Describe("Opts", func() {
 			))
 		})
 
-		It("has --properties", func() {
-			Expect(getStructTagForName("Properties", opts)).To(Equal(
-				`long:"properties" description:"Repacked stemcell cloud properties"`,
+		It("has --cloud-properties", func() {
+			Expect(getStructTagForName("CloudProperties", opts)).To(Equal(
+				`long:"cloud-properties" description:"Repacked stemcell cloud properties"`,
 			))
 		})
 	})
