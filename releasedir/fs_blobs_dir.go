@@ -244,6 +244,8 @@ func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser) (Blob, error) {
 
 	blobs[idx] = Blob{Path: path, Size: fileInfo.Size(), SHA1: sha1}
 
+	tempFile.Close()
+
 	err = d.moveBlobLocally(tempFile.Name(), filepath.Join(d.dirPath, path))
 	if err != nil {
 		return Blob{}, err
