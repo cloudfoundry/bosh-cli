@@ -3,7 +3,7 @@ package index
 import (
 	"fmt"
 	"os"
-	gopath "path"
+	"path/filepath"
 
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
@@ -136,5 +136,5 @@ func (c FSIndexBlobs) blobPath(sha1 string) (string, error) {
 		return "", bosherr.WrapErrorf(err, "Creating cache directory")
 	}
 
-	return gopath.Join(absDirPath, sha1), nil
+	return filepath.Join(absDirPath, sha1), nil
 }

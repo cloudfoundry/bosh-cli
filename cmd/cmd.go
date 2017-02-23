@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/cppforlife/go-patch/patch"
 
@@ -385,7 +386,7 @@ func (c Cmd) configureUI() {
 }
 
 func (c Cmd) configureFS() {
-	tmpDirPath, err := c.deps.FS.ExpandPath("~/.bosh/tmp")
+	tmpDirPath, err := c.deps.FS.ExpandPath(filepath.Join("~", ".bosh", "tmp"))
 	c.panicIfErr(err)
 
 	err = c.deps.FS.ChangeTempRoot(tmpDirPath)

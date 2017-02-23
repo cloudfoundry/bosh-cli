@@ -3,6 +3,7 @@ package release_test
 import (
 	"errors"
 	"os"
+	"path/filepath"
 
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -31,7 +32,7 @@ var _ = Describe("ArchiveReader", func() {
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
-		fs.TempDirDir = "/extracted/release"
+		fs.TempDirDir = filepath.Join("/", "extracted", "release")
 
 		compressor = fakecmd.NewFakeCompressor()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
@@ -42,12 +43,12 @@ var _ = Describe("ArchiveReader", func() {
 	})
 
 	Describe("Read", func() {
-		act := func() (Release, error) { return reader.Read("/some/release.tgz") }
+		act := func() (Release, error) { return reader.Read(filepath.Join("/", "some", "release.tgz")) }
 
 		Context("when the given release archive is a valid tar", func() {
 			Context("when manifest that includes jobs and packages", func() {
 				BeforeEach(func() {
-					fs.WriteFileString("/extracted/release/release.MF", `---
+					fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), `---
 name: release
 version: version
 commit_hash: commit
@@ -92,7 +93,7 @@ packages:
 								Fingerprint: "job1-fp",
 								SHA1:        "job1-sha",
 							}))
-							Expect(path).To(Equal("/extracted/release/jobs/job1.tgz"))
+							Expect(path).To(Equal(filepath.Join("/", "extracted", "release", "jobs", "job1.tgz")))
 							return job1, nil
 						}
 						if jobRef.Name == "job2" {
@@ -102,7 +103,7 @@ packages:
 								Fingerprint: "job2-fp",
 								SHA1:        "job2-sha",
 							}))
-							Expect(path).To(Equal("/extracted/release/jobs/job2.tgz"))
+							Expect(path).To(Equal(filepath.Join("/", "extracted", "release", "jobs", "job2.tgz")))
 							return job2, nil
 						}
 						panic("Unexpected job")
@@ -117,7 +118,7 @@ packages:
 								SHA1:         "pkg1-sha",
 								Dependencies: []string{"pkg2"},
 							}))
-							Expect(path).To(Equal("/extracted/release/packages/pkg1.tgz"))
+							Expect(path).To(Equal(filepath.Join("/", "extracted", "release", "packages", "pkg1.tgz")))
 							return pkg1, nil
 						}
 						if pkgRef.Name == "pkg2" {
@@ -127,7 +128,7 @@ packages:
 								Fingerprint: "pkg2-fp",
 								SHA1:        "pkg2-sha",
 							}))
-							Expect(path).To(Equal("/extracted/release/packages/pkg2.tgz"))
+							Expect(path).To(Equal(filepath.Join("/", "extracted", "release", "packages", "pkg2.tgz")))
 							return pkg2, nil
 						}
 						panic("Unexpected package")
@@ -149,7 +150,7 @@ packages:
 					Expect(job1.Packages).To(Equal([]boshpkg.Compilable{pkg1}))
 					Expect(pkg1.Dependencies).To(Equal([]*boshpkg.Package{pkg2}))
 
-					Expect(fs.FileExists("/extracted/release")).To(BeTrue())
+					Expect(fs.FileExists(filepath.Join("/", "extracted", "release"))).To(BeTrue())
 				})
 
 				It("returns errors for each invalid job and package", func() {
@@ -163,7 +164,7 @@ packages:
 					Expect(err.Error()).To(ContainSubstring("Reading package 'pkg1' from archive"))
 					Expect(err.Error()).To(ContainSubstring("Reading package 'pkg2' from archive"))
 
-					Expect(fs.FileExists("/extracted/release")).To(BeFalse())
+					Expect(fs.FileExists(filepath.Join("/", "extracted", "release"))).To(BeFalse())
 				})
 
 				It("returns error if job's pkg dependencies cannot be satisfied", func() {
@@ -179,7 +180,7 @@ packages:
 					Expect(err.Error()).To(ContainSubstring(
 						"Expected to find package 'pkg-with-other-name' since it's a dependency of job 'job1'"))
 
-					Expect(fs.FileExists("/extracted/release")).To(BeFalse())
+					Expect(fs.FileExists(filepath.Join("/", "extracted", "release"))).To(BeFalse())
 				})
 
 				It("returns error if pkg's pkg dependencies cannot be satisfied", func() {
@@ -194,22 +195,22 @@ packages:
 					Expect(err.Error()).To(ContainSubstring(
 						"Expected to find package 'pkg-with-other-name' since it's a dependency of package 'pkg1'"))
 
-					Expect(fs.FileExists("/extracted/release")).To(BeFalse())
+					Expect(fs.FileExists(filepath.Join("/", "extracted", "release"))).To(BeFalse())
 				})
 
 				It("returns a release that can be cleaned up", func() {
-					fs.WriteFileString("/extracted/release/release.MF", "")
-					fs.MkdirAll("/extracted/release", os.ModeDir)
+					fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), "")
+					fs.MkdirAll(filepath.Join("/", "extracted", "release"), os.ModeDir)
 
 					release, err := reader.Read("archive-path")
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(release.CleanUp()).ToNot(HaveOccurred())
-					Expect(fs.FileExists("/extracted/release")).To(BeFalse())
+					Expect(fs.FileExists(filepath.Join("/", "extracted", "release"))).To(BeFalse())
 				})
 
 				It("returns error when cleaning up fails", func() {
-					fs.WriteFileString("/extracted/release/release.MF", "")
+					fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), "")
 					fs.RemoveAllStub = func(_ string) error { return errors.New("fake-err") }
 
 					release, err := reader.Read("archive-path")
@@ -221,7 +222,7 @@ packages:
 
 			Context("when manifest that includes jobs and compiled packages and license", func() {
 				BeforeEach(func() {
-					fs.WriteFileString("/extracted/release/release.MF", `---
+					fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), `---
 name: release
 version: version
 commit_hash: commit
@@ -257,7 +258,7 @@ license:
 `,
 					)
 
-					fs.WriteFileString("/extracted/release/license.tgz", "license")
+					fs.WriteFileString(filepath.Join("/", "extracted", "release", "license.tgz"), "license")
 				})
 
 				It("returns a release from the given tar file", func() {
@@ -267,14 +268,14 @@ license:
 
 					compiledPkg1 := boshpkg.NewCompiledPackageWithArchive(
 						"pkg1", "pkg1-fp", "pkg1-stemcell",
-						"/extracted/release/compiled_packages/pkg1.tgz", "pkg1-sha", []string{"pkg2"})
+						filepath.Join("/", "extracted", "release", "compiled_packages", "pkg1.tgz"), "pkg1-sha", []string{"pkg2"})
 					compiledPkg2 := boshpkg.NewCompiledPackageWithArchive(
 						"pkg2", "pkg2-fp", "pkg2-stemcell",
-						"/extracted/release/compiled_packages/pkg2.tgz", "pkg2-sha", nil)
+						filepath.Join("/", "extracted", "release", "compiled_packages", "pkg2.tgz"), "pkg2-sha", nil)
 					compiledPkg1.AttachDependencies([]*boshpkg.CompiledPackage{compiledPkg2})
 
 					lic := boshlic.NewLicense(NewResourceWithBuiltArchive(
-						"license", "lic-fp", "/extracted/release/license.tgz", "lic-sha"))
+						"license", "lic-fp", filepath.Join("/", "extracted", "release", "license.tgz"), "lic-sha"))
 
 					jobReader.ReadStub = func(jobRef boshman.JobRef, path string) (*boshjob.Job, error) {
 						if jobRef.Name == "job1" {
@@ -284,7 +285,7 @@ license:
 								Fingerprint: "job1-fp",
 								SHA1:        "job1-sha",
 							}))
-							Expect(path).To(Equal("/extracted/release/jobs/job1.tgz"))
+							Expect(path).To(Equal(filepath.Join("/", "extracted", "release", "jobs", "job1.tgz")))
 							return job1, nil
 						}
 						if jobRef.Name == "job2" {
@@ -294,7 +295,7 @@ license:
 								Fingerprint: "job2-fp",
 								SHA1:        "job2-sha",
 							}))
-							Expect(path).To(Equal("/extracted/release/jobs/job2.tgz"))
+							Expect(path).To(Equal(filepath.Join("/", "extracted", "release", "jobs", "job2.tgz")))
 							return job2, nil
 						}
 						panic("Unexpected job")
@@ -319,7 +320,7 @@ license:
 					// compiled pkg dependencies are resolved
 					Expect(compiledPkg1.Dependencies).To(Equal([]*boshpkg.CompiledPackage{compiledPkg2}))
 
-					Expect(fs.FileExists("/extracted/release")).To(BeTrue())
+					Expect(fs.FileExists(filepath.Join("/", "extracted", "release"))).To(BeTrue())
 				})
 
 				It("returns errors for each invalid job", func() {
@@ -334,7 +335,7 @@ license:
 				})
 
 				It("returns error if compiled pkg's compiled pkg dependencies cannot be satisfied", func() {
-					fs.WriteFileString("/extracted/release/release.MF", `---
+					fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), `---
 name: release
 version: version
 
@@ -352,13 +353,13 @@ compiled_packages:
 					Expect(err.Error()).To(ContainSubstring(
 						"Expected to find compiled package 'pkg-with-other-name' since it's a dependency of compiled package 'pkg1'"))
 
-					Expect(fs.FileExists("/extracted/release")).To(BeFalse())
+					Expect(fs.FileExists(filepath.Join("/", "extracted", "release"))).To(BeFalse())
 				})
 			})
 
 			Context("when the release manifest is invalid", func() {
 				BeforeEach(func() {
-					fs.WriteFileString("/extracted/release/release.MF", "-")
+					fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), "-")
 				})
 
 				It("returns an error when the YAML in unparseable", func() {
@@ -368,7 +369,7 @@ compiled_packages:
 				})
 
 				It("returns an error when the release manifest is missing", func() {
-					fs.RemoveAll("/extracted/release/release.MF")
+					fs.RemoveAll(filepath.Join("/", "extracted", "release", "release.MF"))
 					_, err := act()
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Reading manifest"))
@@ -377,7 +378,7 @@ compiled_packages:
 				It("deletes extracted release", func() {
 					_, err := act()
 					Expect(err).To(HaveOccurred())
-					Expect(fs.FileExists("/extracted/release")).To(BeFalse())
+					Expect(fs.FileExists(filepath.Join("/", "extracted", "release"))).To(BeFalse())
 				})
 			})
 		})
@@ -396,7 +397,7 @@ compiled_packages:
 			It("deletes extracted release", func() {
 				_, err := act()
 				Expect(err).To(HaveOccurred())
-				Expect(fs.FileExists("/extracted/release")).To(BeFalse())
+				Expect(fs.FileExists(filepath.Join("/", "extracted", "release"))).To(BeFalse())
 			})
 		})
 	})

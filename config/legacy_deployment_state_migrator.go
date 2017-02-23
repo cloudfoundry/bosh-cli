@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/pivotal-golang/yaml"
-	"path"
+	"path/filepath"
 	"regexp"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -164,5 +164,5 @@ type instance struct {
 }
 
 func LegacyDeploymentStatePath(deploymentManifestPath string) string {
-	return path.Join(path.Dir(deploymentManifestPath), "bosh-deployments.yml")
+	return filepath.Join(filepath.Dir(deploymentManifestPath), "bosh-deployments.yml")
 }

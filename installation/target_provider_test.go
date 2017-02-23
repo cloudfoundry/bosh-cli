@@ -22,8 +22,8 @@ var _ = Describe("TargetProvider", func() {
 
 		targetProvider TargetProvider
 
-		configPath            = "/deployment.json"
-		installationsRootPath = "/.bosh/installations"
+		configPath            = filepath.Join("/", "deployment.json")
+		installationsRootPath = filepath.Join("/", ".bosh", "installations")
 	)
 
 	BeforeEach(func() {

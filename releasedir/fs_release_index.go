@@ -2,7 +2,7 @@ package releasedir
 
 import (
 	"fmt"
-	"path"
+	"path/filepath"
 	"sort"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -181,11 +181,11 @@ func (i FSReleaseIndex) Add(manifest boshrelman.Manifest) error {
 func (i FSReleaseIndex) ManifestPath(name, version string) string {
 	fileName := fmt.Sprintf("%s-%s.yml", name, version)
 
-	return path.Join(i.dirPath, name, fileName)
+	return filepath.Join(i.dirPath, name, fileName)
 }
 
 func (i FSReleaseIndex) indexPath(name string) string {
-	return path.Join(i.dirPath, name, "index.yml")
+	return filepath.Join(i.dirPath, name, "index.yml")
 }
 
 func (i FSReleaseIndex) read(name string) (fsReleaseIndexSchema, error) {

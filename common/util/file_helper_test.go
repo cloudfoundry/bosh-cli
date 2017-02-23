@@ -33,7 +33,7 @@ var _ = Describe("AbsolutifyPath", func() {
 				It("makes the file path relative to the manifest directory", func() {
 					fakeFilePath = "fake/relative/path/file.tgz"
 					result, err := util.AbsolutifyPath(fakeManifestPath, fakeFilePath, realfs)
-					Expect(result).To(Equal("/fake/manifest/path/fake/relative/path/file.tgz"))
+					Expect(result).To(Equal(filepath.Join("/", "fake", "manifest", "path", "fake", "relative", "path", "file.tgz")))
 					Expect(err).ToNot(HaveOccurred())
 				})
 			})

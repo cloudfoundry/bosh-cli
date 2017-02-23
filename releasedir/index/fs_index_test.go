@@ -2,6 +2,7 @@ package index_test
 
 import (
 	"errors"
+	"path/filepath"
 	"strings"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -24,7 +25,7 @@ var _ = Describe("FSIndex", func() {
 		reporter = &fakeidx.FakeReporter{}
 		blobs = &fakeidx.FakeIndexBlobs{}
 		fs = fakesys.NewFakeFileSystem()
-		index = boshidx.NewFSIndex("index-name", "/dir", true, true, reporter, blobs, fs)
+		index = boshidx.NewFSIndex("index-name", filepath.Join("/", "dir"), true, true, reporter, blobs, fs)
 	})
 
 	Describe("Find", func() {
@@ -36,7 +37,7 @@ var _ = Describe("FSIndex", func() {
 		})
 
 		It("returns path and sha1 based on sha1 if entry with fingerprint is found", func() {
-			fs.WriteFileString("/dir/name/index.yml", `---
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), `---
 builds:
   fp2: {version: fp2, sha1: fp2-sha1}
   fp: {version: fp, sha1: fp-sha1}
@@ -56,9 +57,9 @@ format-version: "2"`)
 		})
 
 		It("returns path and sha1 based on sha1 if entry with fingerprint is found in non-prefixed index file", func() {
-			index = boshidx.NewFSIndex("index-name", "/dir", false, true, reporter, blobs, fs)
+			index = boshidx.NewFSIndex("index-name", filepath.Join("/", "dir"), false, true, reporter, blobs, fs)
 
-			fs.WriteFileString("/dir/index.yml", `---
+			fs.WriteFileString(filepath.Join("/", "dir", "index.yml"), `---
 builds:
   fp2: {version: fp2, sha1: fp2-sha1}
   fp: {version: fp, sha1: fp-sha1}
@@ -93,7 +94,7 @@ format-version: "2"`)
 		})
 
 		It("returns error if found entry cannot be fetched", func() {
-			fs.WriteFileString("/dir/name/index.yml", `---
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), `---
 builds:
   fp: {version: fp, sha1: fp-sha1, blobstore_id: fp-blob-id}
 format-version: "2"`)
@@ -105,7 +106,7 @@ format-version: "2"`)
 		})
 
 		It("does not require version to equal entry key", func() {
-			fs.WriteFileString("/dir/name/index.yml", `---
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), `---
 builds:
   fp: {version: other-fp}
 format-version: "2"`)
@@ -127,7 +128,7 @@ format-version: "2"`)
 		})
 
 		It("returns error if index file cannot be unmarshalled", func() {
-			fs.WriteFileString("/dir/name/index.yml", "-")
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), "-")
 
 			_, _, err := index.Find("name", "fp")
 			Expect(err).To(HaveOccurred())
@@ -135,7 +136,7 @@ format-version: "2"`)
 		})
 
 		It("returns error if reading index file fails", func() {
-			fs.WriteFileString("/dir/name/index.yml", "")
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), "")
 			fs.ReadFileError = errors.New("fake-err")
 
 			_, _, err := index.Find("name", "fp")
@@ -158,7 +159,7 @@ format-version: "2"`)
 			Expect(path).To(Equal("blob-path"))
 			Expect(sha1).To(Equal("sha1"))
 
-			Expect(fs.ReadFileString("/dir/name/index.yml")).To(Equal(`builds:
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "name", "index.yml"))).To(Equal(`builds:
   fp:
     version: fp
     blobstore_id: blob-id
@@ -168,7 +169,7 @@ format-version: "2"
 		})
 
 		It("adds new entry to a non-prefixed index file", func() {
-			index = boshidx.NewFSIndex("index-name", "/dir", false, true, reporter, blobs, fs)
+			index = boshidx.NewFSIndex("index-name", filepath.Join("/", "dir"), false, true, reporter, blobs, fs)
 
 			blobs.AddReturns("blob-id", "blob-path", nil)
 
@@ -177,7 +178,7 @@ format-version: "2"
 			Expect(path).To(Equal("blob-path"))
 			Expect(sha1).To(Equal("sha1"))
 
-			Expect(fs.ReadFileString("/dir/index.yml")).To(Equal(`builds:
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "index.yml"))).To(Equal(`builds:
   fp:
     version: fp
     blobstore_id: blob-id
@@ -187,9 +188,9 @@ format-version: "2"
 		})
 
 		It("adds new entry with blobstore id to existing index if index allows blobs ids", func() {
-			index = boshidx.NewFSIndex("index-name", "/dir", true, true, reporter, blobs, fs)
+			index = boshidx.NewFSIndex("index-name", filepath.Join("/", "dir"), true, true, reporter, blobs, fs)
 
-			fs.WriteFileString("/dir/name/index.yml", `---
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), `---
 builds:
   fp2: {version: fp2, sha1: fp2-sha1, blobstore_id: fp2-blob-id}
 format-version: "2"`)
@@ -201,7 +202,7 @@ format-version: "2"`)
 			Expect(path).To(Equal("blob-path"))
 			Expect(sha1).To(Equal("sha1"))
 
-			Expect(fs.ReadFileString("/dir/name/index.yml")).To(Equal(`builds:
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "name", "index.yml"))).To(Equal(`builds:
   fp:
     version: fp
     blobstore_id: blob-id
@@ -224,7 +225,7 @@ format-version: "2"
 			Expect(path).To(Equal("blob-path"))
 			Expect(sha1).To(Equal("sha1"))
 
-			Expect(fs.ReadFileString("/dir/name/index.yml")).To(Equal(`builds:
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "name", "index.yml"))).To(Equal(`builds:
   fp:
     version: fp
     sha1: sha1
@@ -244,7 +245,7 @@ format-version: "2"
 		})
 
 		It("returns error when adding new entry without blobstore id if index allows blob ids", func() {
-			index = boshidx.NewFSIndex("index-name", "/dir", true, true, reporter, blobs, fs)
+			index = boshidx.NewFSIndex("index-name", filepath.Join("/", "dir"), true, true, reporter, blobs, fs)
 
 			blobs.AddReturns("", "blob-path", nil)
 
@@ -316,7 +317,7 @@ format-version: "2"
 		})
 
 		It("returns error if there is already an entry with same fingerprint", func() {
-			fs.WriteFileString("/dir/name/index.yml", `---
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), `---
 builds:
   fp: {version: fp}
 format-version: "2"`)
@@ -328,13 +329,13 @@ format-version: "2"`)
 		})
 
 		It("does not reorder keys needlessly", func() {
-			fs.WriteFileString("/dir/name/index.yml", fsIndexSortingFixture)
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), fsIndexSortingFixture)
 
 			blobs.AddReturns("blob-id", "blob-path", nil)
 			_, _, err := index.Add("name", "fp", "path", "sha1")
 			Expect(err).ToNot(HaveOccurred())
 
-			afterFirstSort, err := fs.ReadFileString("/dir/name/index.yml")
+			afterFirstSort, err := fs.ReadFileString(filepath.Join("/", "dir", "name", "index.yml"))
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(afterFirstSort).ToNot(Equal(fsIndexSortingFixture)) // sanity check
@@ -343,7 +344,7 @@ format-version: "2"`)
 			_, _, err = index.Add("name", "another-fp", "another-path", "another-sha1")
 			Expect(err).ToNot(HaveOccurred())
 
-			after, err := fs.ReadFileString("/dir/name/index.yml")
+			after, err := fs.ReadFileString(filepath.Join("/", "dir", "name", "index.yml"))
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(after).ToNot(Equal(afterFirstSort)) // sanity check
@@ -380,7 +381,7 @@ format-version: "2"`)
 		})
 
 		It("returns error if index file cannot be unmarshalled", func() {
-			fs.WriteFileString("/dir/name/index.yml", "-")
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), "-")
 
 			_, _, err := index.Add("name", "fp", "path", "sha1")
 			Expect(err).To(HaveOccurred())
@@ -388,7 +389,7 @@ format-version: "2"`)
 		})
 
 		It("returns error if reading index file fails", func() {
-			fs.WriteFileString("/dir/name/index.yml", "")
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), "")
 			fs.ReadFileError = errors.New("fake-err")
 
 			_, _, err := index.Add("name", "fp", "path", "sha1")

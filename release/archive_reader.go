@@ -1,7 +1,7 @@
 package release
 
 import (
-	gopath "path"
+	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
@@ -59,7 +59,7 @@ func (r ArchiveReader) Read(path string) (Release, error) {
 		return nil, bosherr.WrapError(err, "Extracting release")
 	}
 
-	manifestPath := gopath.Join(extractPath, "release.MF")
+	manifestPath := filepath.Join(extractPath, "release.MF")
 
 	manifest, err := boshman.NewManifestFromPath(manifestPath, r.fs)
 	if err != nil {
@@ -131,7 +131,7 @@ func (r ArchiveReader) newJobs(pkgs []boshpkg.Compilable, refs []boshman.JobRef,
 	var errs []error
 
 	for _, ref := range refs {
-		archivePath := gopath.Join(extractPath, "jobs", ref.Name+".tgz")
+		archivePath := filepath.Join(extractPath, "jobs", ref.Name+".tgz")
 
 		job, err := r.jobArchiveReader.Read(ref, archivePath)
 		if err != nil {
@@ -160,7 +160,7 @@ func (r ArchiveReader) newPackages(refs []boshman.PackageRef, extractPath string
 	var errs []error
 
 	for _, ref := range refs {
-		archivePath := gopath.Join(extractPath, "packages", ref.Name+".tgz")
+		archivePath := filepath.Join(extractPath, "packages", ref.Name+".tgz")
 
 		pkg, err := r.pkgArchiveReader.Read(ref, archivePath)
 		if err != nil {
@@ -190,7 +190,7 @@ func (r ArchiveReader) newCompiledPackages(refs []boshman.CompiledPackageRef, ex
 	var errs []error
 
 	for _, ref := range refs {
-		archivePath := gopath.Join(extractPath, "compiled_packages", ref.Name+".tgz")
+		archivePath := filepath.Join(extractPath, "compiled_packages", ref.Name+".tgz")
 
 		compiledPkg := boshpkg.NewCompiledPackageWithArchive(
 			ref.Name, ref.Fingerprint, ref.OSVersionSlug, archivePath, ref.SHA1, ref.Dependencies)
@@ -225,7 +225,7 @@ func (r ArchiveReader) newCombinedPackages(pkgs []*boshpkg.Package, compiledPkgs
 
 func (r ArchiveReader) newLicense(ref *boshman.LicenseRef, extractPath string) *boshlic.License {
 	if ref != nil {
-		archivePath := gopath.Join(extractPath, "license.tgz")
+		archivePath := filepath.Join(extractPath, "license.tgz")
 
 		if r.fs.FileExists(archivePath) {
 			resource := NewResourceWithBuiltArchive(

@@ -3,7 +3,7 @@ package releasedir
 import (
 	"fmt"
 	"os"
-	gopath "path"
+	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -19,7 +19,7 @@ func NewFSGenerator(dirPath string, fs boshsys.FileSystem) FSGenerator {
 }
 
 func (g FSGenerator) GenerateJob(name string) error {
-	jobDirPath := gopath.Join(g.dirPath, "jobs", name)
+	jobDirPath := filepath.Join(g.dirPath, "jobs", name)
 
 	if g.fs.FileExists(jobDirPath) {
 		return bosherr.Errorf("Job '%s' at '%s' already exists", name, jobDirPath)
@@ -30,7 +30,7 @@ func (g FSGenerator) GenerateJob(name string) error {
 		return bosherr.WrapErrorf(err, "Creating job '%s' dir", name)
 	}
 
-	err = g.fs.MkdirAll(gopath.Join(jobDirPath, "templates"), os.ModePerm)
+	err = g.fs.MkdirAll(filepath.Join(jobDirPath, "templates"), os.ModePerm)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Creating job '%s' templates dir", name)
 	}
@@ -45,12 +45,12 @@ packages: []
 properties: {}
 `, name)
 
-	err = g.fs.WriteFileString(gopath.Join(jobDirPath, "spec"), specTpl)
+	err = g.fs.WriteFileString(filepath.Join(jobDirPath, "spec"), specTpl)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Creating job '%s' spec file", name)
 	}
 
-	err = g.fs.WriteFileString(gopath.Join(jobDirPath, "monit"), "")
+	err = g.fs.WriteFileString(filepath.Join(jobDirPath, "monit"), "")
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Creating job '%s' monit file", name)
 	}
@@ -59,7 +59,7 @@ properties: {}
 }
 
 func (g FSGenerator) GeneratePackage(name string) error {
-	pkgDirPath := gopath.Join(g.dirPath, "packages", name)
+	pkgDirPath := filepath.Join(g.dirPath, "packages", name)
 
 	if g.fs.FileExists(pkgDirPath) {
 		return bosherr.Errorf("Package '%s' at '%s' already exists", name, pkgDirPath)
@@ -78,12 +78,12 @@ dependencies: []
 files: []
 `, name)
 
-	err = g.fs.WriteFileString(gopath.Join(pkgDirPath, "spec"), specTpl)
+	err = g.fs.WriteFileString(filepath.Join(pkgDirPath, "spec"), specTpl)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Creating package '%s' spec file", name)
 	}
 
-	err = g.fs.WriteFileString(gopath.Join(pkgDirPath, "packaging"), "set -e\n")
+	err = g.fs.WriteFileString(filepath.Join(pkgDirPath, "packaging"), "set -e\n")
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Creating package '%s' packaging file", name)
 	}

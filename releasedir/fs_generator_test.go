@@ -3,6 +3,7 @@ package releasedir_test
 import (
 	"errors"
 	"os"
+	"path/filepath"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
@@ -24,12 +25,12 @@ var _ = Describe("FSGenerator", func() {
 
 	Describe("GenerateJob", func() {
 		It("makes job directory", func() {
-			fs.WriteFileString("/dir/public.yml", "name: name")
+			fs.WriteFileString(filepath.Join("/", "dir", "public.yml"), "name: name")
 
 			err := gen.GenerateJob("job1")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fs.ReadFileString("/dir/jobs/job1/spec")).To(Equal(`---
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "jobs", "job1", "spec"))).To(Equal(`---
 name: job1
 
 templates: {}
@@ -39,17 +40,17 @@ packages: []
 properties: {}
 `))
 
-			Expect(fs.ReadFileString("/dir/jobs/job1/monit")).To(Equal(""))
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "jobs", "job1", "monit"))).To(Equal(""))
 
-			Expect(fs.FileExists("/dir/jobs/job1/templates")).To(BeTrue())
+			Expect(fs.FileExists(filepath.Join("/", "dir", "jobs", "job1", "templates"))).To(BeTrue())
 		})
 
 		It("returns error if job directory already exists", func() {
-			fs.MkdirAll("/dir/jobs/job1", os.ModePerm)
+			fs.MkdirAll(filepath.Join("/", "dir", "jobs", "job1"), os.ModePerm)
 
 			err := gen.GenerateJob("job1")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Job 'job1' at '/dir/jobs/job1' already exists"))
+			Expect(err.Error()).To(Equal("Job 'job1' at '" + filepath.Join("/", "dir", "jobs", "job1") + "' already exists"))
 		})
 
 		It("returns error if fails to create job directory", func() {
@@ -63,12 +64,12 @@ properties: {}
 
 	Describe("GeneratePackage", func() {
 		It("makes package directory", func() {
-			fs.WriteFileString("/dir/public.yml", "name: name")
+			fs.WriteFileString(filepath.Join("/", "dir", "public.yml"), "name: name")
 
 			err := gen.GeneratePackage("pkg1")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fs.ReadFileString("/dir/packages/pkg1/spec")).To(Equal(`---
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "packages", "pkg1", "spec"))).To(Equal(`---
 name: pkg1
 
 dependencies: []
@@ -76,15 +77,15 @@ dependencies: []
 files: []
 `))
 
-			Expect(fs.ReadFileString("/dir/packages/pkg1/packaging")).To(Equal("set -e\n"))
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "packages", "pkg1", "packaging"))).To(Equal("set -e\n"))
 		})
 
 		It("returns error if package directory already exists", func() {
-			fs.MkdirAll("/dir/packages/pkg1", os.ModePerm)
+			fs.MkdirAll(filepath.Join("/", "dir", "packages", "pkg1"), os.ModePerm)
 
 			err := gen.GeneratePackage("pkg1")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Package 'pkg1' at '/dir/packages/pkg1' already exists"))
+			Expect(err.Error()).To(Equal("Package 'pkg1' at '" + filepath.Join("/", "dir", "packages", "pkg1") + "' already exists"))
 		})
 
 		It("returns error if fails to create package directory", func() {

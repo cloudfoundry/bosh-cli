@@ -2,7 +2,6 @@ package installation
 
 import (
 	"fmt"
-	"path"
 	"path/filepath"
 
 	"github.com/cloudfoundry/bosh-cli/installation/blobextract"
@@ -124,7 +123,7 @@ func (i *installer) installJob(renderedJobRef RenderedJobRef, stage biui.Stage) 
 			return bosherr.WrapErrorf(stageErr, "Extracting blob with ID '%s'", renderedJobRef.BlobstoreID)
 		}
 
-		stageErr = i.blobExtractor.ChmodExecutables(path.Join(jobDir, "bin", "*"))
+		stageErr = i.blobExtractor.ChmodExecutables(filepath.Join(jobDir, "bin", "*"))
 		if stageErr != nil {
 			return bosherr.WrapErrorf(stageErr, "Chmoding binaries for '%s'", jobDir)
 		}

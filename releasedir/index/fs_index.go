@@ -2,7 +2,7 @@ package index
 
 import (
 	"fmt"
-	"path"
+	"path/filepath"
 	"sort"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -256,7 +256,7 @@ func (i FSIndex) save(name string, entries []indexEntry) error {
 
 func (i FSIndex) indexPath(name string) string {
 	if i.useSubdir {
-		return path.Join(i.dirPath, name, "index.yml")
+		return filepath.Join(i.dirPath, name, "index.yml")
 	}
-	return path.Join(i.dirPath, "index.yml")
+	return filepath.Join(i.dirPath, "index.yml")
 }
