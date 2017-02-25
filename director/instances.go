@@ -15,6 +15,8 @@ type Instance struct {
 
 	AZ        string `json:"az"`
 	ExpectsVM bool   `json:"expects_vm"`
+
+	IPs []string `json:"ips"`
 }
 
 func (d DeploymentImpl) InstanceInfos() ([]VMInfo, error) {
