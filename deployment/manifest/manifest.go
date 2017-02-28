@@ -13,6 +13,7 @@ type Manifest struct {
 	DiskPools     []DiskPool
 	ResourcePools []ResourcePool
 	Update        Update
+	Tags          map[string]string
 }
 
 type Update struct {

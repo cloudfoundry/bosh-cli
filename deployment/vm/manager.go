@@ -110,6 +110,11 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		"index":      "0",
 		"director":   "bosh-init",
 	}
+
+	for tagKey, tagValue := range deploymentManifest.Tags {
+		metadata[tagKey] = tagValue
+	}
+
 	err = m.cloud.SetVMMetadata(cid, metadata)
 	if err != nil {
 		cloudErr, ok := err.(bicloud.Error)
