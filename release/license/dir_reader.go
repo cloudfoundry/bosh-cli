@@ -1,7 +1,7 @@
 package license
 
 import (
-	gopath "path"
+	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -41,12 +41,12 @@ func (r DirReaderImpl) Read(path string) (*License, error) {
 func (r DirReaderImpl) collectFiles(path string) ([]File, error) {
 	var files []File
 
-	licenseMatches, err := r.fs.Glob(gopath.Join(path, "LICENSE*"))
+	licenseMatches, err := r.fs.Glob(filepath.Join(path, "LICENSE*"))
 	if err != nil {
 		return nil, err
 	}
 
-	noticeMatches, err := r.fs.Glob(gopath.Join(path, "NOTICE*"))
+	noticeMatches, err := r.fs.Glob(filepath.Join(path, "NOTICE*"))
 	if err != nil {
 		return nil, err
 	}

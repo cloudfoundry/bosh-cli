@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"os"
-	gopath "path"
+	"path/filepath"
 	"time"
 
 	"github.com/cppforlife/go-patch/patch"
@@ -78,10 +78,10 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manife
 	releaseJobResolver := bideplrel.NewJobResolver(f.releaseManager)
 
 	// todo expand path?
-	workspaceRootPath := gopath.Join(os.Getenv("HOME"), ".bosh")
+	workspaceRootPath := filepath.Join(os.Getenv("HOME"), ".bosh")
 
 	{
-		tarballCacheBasePath := gopath.Join(workspaceRootPath, "downloads")
+		tarballCacheBasePath := filepath.Join(workspaceRootPath, "downloads")
 		tarballCache := bitarball.NewCache(tarballCacheBasePath, deps.FS, deps.Logger)
 		httpClient := bihttpclient.NewHTTPClient(bitarball.HTTPClient, deps.Logger)
 		tarballProvider := bitarball.NewProvider(
@@ -122,7 +122,7 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manife
 	}
 
 	f.targetProvider = boshinst.NewTargetProvider(
-		f.deploymentStateService, deps.UUIDGen, gopath.Join(workspaceRootPath, "installations"))
+		f.deploymentStateService, deps.UUIDGen, filepath.Join(workspaceRootPath, "installations"))
 
 	{
 		diskRepo := biconfig.NewDiskRepo(f.deploymentStateService, deps.UUIDGen)

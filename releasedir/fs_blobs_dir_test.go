@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -36,7 +37,7 @@ var _ = Describe("FSBlobsDir", func() {
 		blobstore = &fakeblob.FakeDigestBlobstore{}
 		digestCalculator = fakecrypto.NewFakeDigestCalculator()
 		logger = &fakelogger.FakeLogger{}
-		blobsDir = NewFSBlobsDir("/dir", reporter, blobstore, digestCalculator, fs, logger)
+		blobsDir = NewFSBlobsDir(filepath.Join("/", "dir"), reporter, blobstore, digestCalculator, fs, logger)
 	})
 
 	Describe("Blobs", func() {
@@ -45,7 +46,7 @@ var _ = Describe("FSBlobsDir", func() {
 		}
 
 		It("returns no blobs if blobs.yml is empty", func() {
-			fs.WriteFileString("/dir/config/blobs.yml", "")
+			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), "")
 
 			blobs, err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -53,11 +54,11 @@ var _ = Describe("FSBlobsDir", func() {
 		})
 
 		It("returns parsed blobs", func() {
-			fs.WriteFileString("/dir/config/blobs.yml", `
+			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), `
 bosh-116.tgz:
   size: 133959511
   sha: 13ebc5850fcbde216ec32ab4354df53df76e4745
-dir/file.tgz:
+`+filepath.Join("dir", "file.tgz")+`:
   size: 133959000
   object_id: ea50bf88-52ca-4230-4ef3-ff22c3975d04
   sha: 2b86b5850fcbde216ec565b4354df53df76e4745
@@ -76,7 +77,7 @@ file2.tgz:
 					SHA1: "13ebc5850fcbde216ec32ab4354df53df76e4745",
 				},
 				{
-					Path:        "dir/file.tgz",
+					Path:        filepath.Join("dir", "file.tgz"),
 					Size:        133959000,
 					BlobstoreID: "ea50bf88-52ca-4230-4ef3-ff22c3975d04",
 					SHA1:        "2b86b5850fcbde216ec565b4354df53df76e4745",
@@ -97,7 +98,7 @@ file2.tgz:
 		})
 
 		It("returns error if blobs.yml is not parseable", func() {
-			fs.WriteFileString("/dir/config/blobs.yml", "-")
+			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), "-")
 
 			_, err := act()
 			Expect(err).To(HaveOccurred())
@@ -111,8 +112,7 @@ file2.tgz:
 		}
 
 		BeforeEach(func() {
-			fs.WriteFileString("/dir/config/blobs.yml", `
-dir/file-in-directory.tgz:
+			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), filepath.Join("dir", "file-in-directory.tgz")+":"+`
   object_id: blob1
   size: 133
   sha: blob1sha
@@ -129,14 +129,14 @@ already-downloaded.tgz:
   sha: 1da283030f72f285fa9e05d597a528f08780c992
 `)
 
-			fs.WriteFileString("/blob1-tmp", "blob1-content")
-			fs.WriteFileString("/blob2-tmp", "blob2-content")
-			fs.WriteFileString("/dir/blobs/already-downloaded.tgz", "blob3-content")
+			fs.WriteFileString(filepath.Join("/", "blob1-tmp"), "blob1-content")
+			fs.WriteFileString(filepath.Join("/", "blob2-tmp"), "blob2-content")
+			fs.WriteFileString(filepath.Join("/", "dir", "blobs", "already-downloaded.tgz"), "blob3-content")
 
 			times := 0
 			blobstore.GetStub = func(blobID string, digest boshcrypto.Digest) (string, error) {
 				defer func() { times += 1 }()
-				return []string{"/blob1-tmp", "/blob2-tmp"}[times], nil
+				return []string{filepath.Join("/", "blob1-tmp"), filepath.Join("/", "blob2-tmp")}[times], nil
 			}
 		})
 
@@ -144,22 +144,22 @@ already-downloaded.tgz:
 			It("downloads all blobs without local blob copy, skipping non-uploaded blobs", func() {
 				blobstore.GetStub = func(blobID string, digest boshcrypto.Digest) (fileName string, err error) {
 					if blobID == "blob1" && digest.String() == "blob1sha" {
-						return "/blob1-tmp", nil
+						return filepath.Join("/", "blob1-tmp"), nil
 					} else if blobID == "blob2" && digest.String() == "blob2sha" {
-						return "/blob2-tmp", nil
+						return filepath.Join("/", "blob2-tmp"), nil
 					} else {
 						panic("Received non-matching blobstore.Get call")
 					}
 				}
 
-				blobsDir = NewFSBlobsDir("/dir", reporter, blobstore, digestCalculator, fs, logger)
+				blobsDir = NewFSBlobsDir(filepath.Join("/", "dir"), reporter, blobstore, digestCalculator, fs, logger)
 
 				err := act(4)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fs.FileExists("/dir/blobs/dir")).To(BeTrue())
-				Expect(fs.ReadFileString("/dir/blobs/dir/file-in-directory.tgz")).To(Equal("blob1-content"))
-				Expect(fs.ReadFileString("/dir/blobs/file-in-root.tgz")).To(Equal("blob2-content"))
+				Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "dir"))).To(BeTrue())
+				Expect(fs.ReadFileString(filepath.Join("/", "dir", "blobs", "dir", "file-in-directory.tgz"))).To(Equal("blob1-content"))
+				Expect(fs.ReadFileString(filepath.Join("/", "dir", "blobs", "file-in-root.tgz"))).To(Equal("blob2-content"))
 			})
 		})
 
@@ -176,9 +176,9 @@ already-downloaded.tgz:
 				Expect(id2).To(Equal("blob2"))
 				Expect(digest2).To(Equal(boshcrypto.MustParseMultipleDigest("blob2sha")))
 
-				Expect(fs.FileExists("/dir/blobs/dir")).To(BeTrue())
-				Expect(fs.ReadFileString("/dir/blobs/dir/file-in-directory.tgz")).To(Equal("blob1-content"))
-				Expect(fs.ReadFileString("/dir/blobs/file-in-root.tgz")).To(Equal("blob2-content"))
+				Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "dir"))).To(BeTrue())
+				Expect(fs.ReadFileString(filepath.Join("/", "dir", "blobs", "dir", "file-in-directory.tgz"))).To(Equal("blob1-content"))
+				Expect(fs.ReadFileString(filepath.Join("/", "dir", "blobs", "file-in-root.tgz"))).To(Equal("blob2-content"))
 			})
 
 			It("reports downloaded blobs skipping already existing ones", func() {
@@ -189,7 +189,7 @@ already-downloaded.tgz:
 					Expect(reporter.BlobDownloadStartedCallCount()).To(Equal(2))
 
 					path, size, blobID, sha1 := reporter.BlobDownloadStartedArgsForCall(0)
-					Expect(path).To(Equal("dir/file-in-directory.tgz"))
+					Expect(path).To(Equal(filepath.Join("dir", "file-in-directory.tgz")))
 					Expect(size).To(Equal(int64(133)))
 					Expect(blobID).To(Equal("blob1"))
 					Expect(sha1).To(Equal("blob1sha"))
@@ -205,7 +205,7 @@ already-downloaded.tgz:
 					Expect(reporter.BlobDownloadFinishedCallCount()).To(Equal(2))
 
 					path, blobID, err := reporter.BlobDownloadFinishedArgsForCall(0)
-					Expect(path).To(Equal("dir/file-in-directory.tgz"))
+					Expect(path).To(Equal(filepath.Join("dir", "file-in-directory.tgz")))
 					Expect(blobID).To(Equal("blob1"))
 					Expect(err).ToNot(HaveOccurred())
 
@@ -223,7 +223,7 @@ already-downloaded.tgz:
 
 				err := act(1)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Getting blob 'blob1' for path 'dir/file-in-directory.tgz': fake-err"))
+				Expect(err.Error()).To(ContainSubstring("Getting blob 'blob1' for path '" + filepath.Join("dir", "file-in-directory.tgz") + "': fake-err"))
 
 				Expect(reporter.BlobDownloadStartedCallCount()).To(Equal(2))
 				Expect(reporter.BlobDownloadFinishedCallCount()).To(Equal(2))
@@ -234,17 +234,17 @@ already-downloaded.tgz:
 					times := 0
 					blobstore.GetStub = func(blobID string, digest boshcrypto.Digest) (string, error) {
 						defer func() { times += 1 }()
-						return []string{"/blob1-tmp", "/blob2-tmp"}[times], []error{errors.New("fake-err1"), errors.New("fake-err2")}[times]
+						return []string{filepath.Join("/", "blob1-tmp"), filepath.Join("/", "blob2-tmp")}[times], []error{errors.New("fake-err1"), errors.New("fake-err2")}[times]
 					}
 
 					err := act(1)
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Getting blob 'blob1' for path 'dir/file-in-directory.tgz': fake-err1"))
+					Expect(err.Error()).To(ContainSubstring("Getting blob 'blob1' for path '" + filepath.Join("dir", "file-in-directory.tgz") + "': fake-err1"))
 					Expect(err.Error()).To(ContainSubstring("Getting blob 'blob2' for path 'file-in-root.tgz': fake-err2"))
 
-					Expect(fs.FileExists("/dir/blobs/dir")).To(BeFalse())
-					Expect(fs.FileExists("/dir/blobs/dir/file-in-directory.tgz")).To(BeFalse())
-					Expect(fs.FileExists("/dir/blobs/file-in-root.tgz")).To(BeFalse())
+					Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "dir"))).To(BeFalse())
+					Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "dir", "file-in-directory.tgz"))).To(BeFalse())
+					Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "file-in-root.tgz"))).To(BeFalse())
 
 				})
 			})
@@ -257,9 +257,9 @@ already-downloaded.tgz:
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-err"))
 
-					Expect(fs.FileExists("/dir/blobs/dir")).To(BeFalse())
-					Expect(fs.FileExists("/dir/blobs/dir/file-in-directory.tgz")).To(BeFalse())
-					Expect(fs.FileExists("/dir/blobs/file-in-root.tgz")).To(BeFalse())
+					Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "dir"))).To(BeFalse())
+					Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "dir", "file-in-directory.tgz"))).To(BeFalse())
+					Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "file-in-root.tgz"))).To(BeFalse())
 				})
 			})
 
@@ -268,7 +268,7 @@ already-downloaded.tgz:
 					times := 0
 					blobstore.GetStub = func(blobID string, digest boshcrypto.Digest) (string, error) {
 						defer func() { times += 1 }()
-						path := []string{"/blob1-tmp", "/blob2-tmp"}[times]
+						path := []string{filepath.Join("/", "blob1-tmp"), filepath.Join("/", "blob2-tmp")}[times]
 						err := []error{nil, errors.New("fake-err")}[times]
 						return path, err
 					}
@@ -277,16 +277,16 @@ already-downloaded.tgz:
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-err"))
 
-					Expect(fs.FileExists("/dir/blobs/dir")).To(BeTrue())
-					Expect(fs.FileExists("/dir/blobs/dir/file-in-directory.tgz")).To(BeTrue())
-					Expect(fs.FileExists("/dir/blobs/file-in-root.tgz")).To(BeFalse())
+					Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "dir"))).To(BeTrue())
+					Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "dir", "file-in-directory.tgz"))).To(BeTrue())
+					Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "file-in-root.tgz"))).To(BeFalse())
 				})
 			})
 		})
 
 		Context("parsing digest string for sha fails", func() {
 			BeforeEach(func() {
-				fs.WriteFileString("/dir/config/blobs.yml", `
+				fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), `
 bad-sha-blob.tgz:
   object_id: blob3
   size: 245
@@ -302,13 +302,13 @@ bad-sha-blob.tgz:
 
 		Context("when blobs already on disk have different sha than in index", func() {
 			BeforeEach(func() {
-				fs.WriteFileString("/blob3-tmp", "blob3-content")
-				fs.WriteFileString("/dir/blobs/already-downloaded.tgz", "incorrect-blob3-content")
+				fs.WriteFileString(filepath.Join("/", "blob3-tmp"), "blob3-content")
+				fs.WriteFileString(filepath.Join("/", "dir", "blobs", "already-downloaded.tgz"), "incorrect-blob3-content")
 
 				times := 0
 				blobstore.GetStub = func(blobID string, digest boshcrypto.Digest) (string, error) {
 					defer func() { times += 1 }()
-					return []string{"/blob3-tmp", "/blob1-tmp", "/blob2-tmp"}[times], nil
+					return []string{filepath.Join("/", "blob3-tmp"), filepath.Join("/", "blob1-tmp"), filepath.Join("/", "blob2-tmp")}[times], nil
 				}
 			})
 
@@ -328,14 +328,14 @@ bad-sha-blob.tgz:
 				Expect(id2).To(Equal("blob2"))
 				Expect(digest2).To(Equal(boshcrypto.MustParseMultipleDigest("blob2sha")))
 
-				Expect(fs.FileExists("/dir/blobs/dir")).To(BeTrue())
-				Expect(fs.ReadFileString("/dir/blobs/dir/file-in-directory.tgz")).To(Equal("blob1-content"))
-				Expect(fs.ReadFileString("/dir/blobs/file-in-root.tgz")).To(Equal("blob2-content"))
-				Expect(fs.ReadFileString("/dir/blobs/already-downloaded.tgz")).To(Equal("blob3-content"))
+				Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "dir"))).To(BeTrue())
+				Expect(fs.ReadFileString(filepath.Join("/", "dir", "blobs", "dir", "file-in-directory.tgz"))).To(Equal("blob1-content"))
+				Expect(fs.ReadFileString(filepath.Join("/", "dir", "blobs", "file-in-root.tgz"))).To(Equal("blob2-content"))
+				Expect(fs.ReadFileString(filepath.Join("/", "dir", "blobs", "already-downloaded.tgz"))).To(Equal("blob3-content"))
 
 				tag, message, _ := logger.ErrorArgsForCall(0)
 				Expect(tag).To(Equal("releasedir.FSBlobsDir"))
-				Expect(message).To(Equal("Incorrect SHA sum for blob at '/dir/blobs/already-downloaded.tgz'. Re-downloading from blobstore."))
+				Expect(message).To(Equal("Incorrect SHA sum for blob at '" + filepath.Join("/", "dir", "blobs", "already-downloaded.tgz") + "'. Re-downloading from blobstore."))
 			})
 		})
 
@@ -384,20 +384,20 @@ bad-sha-blob.tgz:
 
 		Context("when blobs exist on the file system which are not in the blobs.yml", func() {
 			BeforeEach(func() {
-				fs.SetGlob("/dir/blobs/**/*", []string{"/dir/blobs/dir", "/dir/blobs/already-downloaded.tgz", "/dir/blobs/extra-blob.tgz"})
-				fs.MkdirAll("/dir/blobs/dir", os.ModeDir)
-				fs.WriteFileString("/dir/blobs/extra-blob.tgz", "I don't belong here")
+				fs.SetGlob(filepath.Join("/", "dir", "blobs", "**", "*"), []string{filepath.Join("/", "dir", "blobs", "dir"), filepath.Join("/", "dir", "blobs", "already-downloaded.tgz"), filepath.Join("/", "dir", "blobs", "extra-blob.tgz")})
+				fs.MkdirAll(filepath.Join("/", "dir", "blobs", "dir"), os.ModeDir)
+				fs.WriteFileString(filepath.Join("/", "dir", "blobs", "extra-blob.tgz"), "I don't belong here")
 			})
 
 			It("deletes the blobs in the blob dir, logging a warning for each file deleted, and leaving correct blobs and directories", func() {
 				err := act(1)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(fs.FileExists("/dir/blobs/extra-blob.tgz")).To(BeFalse())
-				Expect(fs.FileExists("/dir/blobs/already-downloaded.tgz")).To(BeTrue())
+				Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "extra-blob.tgz"))).To(BeFalse())
+				Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "already-downloaded.tgz"))).To(BeTrue())
 
 				tag, message, _ := logger.InfoArgsForCall(0)
 				Expect(tag).To(Equal("releasedir.FSBlobsDir"))
-				Expect(message).To(Equal("Deleting blob at '/dir/blobs/extra-blob.tgz' that is not in the blob index."))
+				Expect(message).To(Equal("Deleting blob at '" + filepath.Join("/", "dir", "blobs", "extra-blob.tgz") + "' that is not in the blob index."))
 			})
 
 			It("returns an error when the glob fails", func() {
@@ -413,7 +413,7 @@ bad-sha-blob.tgz:
 					return fmt.Errorf("failed to remove %s", filename)
 				}
 				err := act(1)
-				Expect(err).To(MatchError("Syncing blobs: Removing unknown blob: failed to remove /dir/blobs/extra-blob.tgz"))
+				Expect(err).To(MatchError("Syncing blobs: Removing unknown blob: failed to remove " + filepath.Join("/", "dir", "blobs", "extra-blob.tgz")))
 			})
 		})
 	})
@@ -421,21 +421,21 @@ bad-sha-blob.tgz:
 	Describe("TrackBlob", func() {
 		act := func() (Blob, error) {
 			content := ioutil.NopCloser(strings.NewReader(string("content")))
-			return blobsDir.TrackBlob("dir/file.tgz", content)
+			return blobsDir.TrackBlob(filepath.Join("dir", "file.tgz"), content)
 		}
 
 		BeforeEach(func() {
-			fs.WriteFileString("/dir/config/blobs.yml", "")
+			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), "")
 
-			fs.ReturnTempFile = fakesys.NewFakeFile("/tmp-file", fs)
+			fs.ReturnTempFile = fakesys.NewFakeFile(filepath.Join("/", "tmp-file"), fs)
 
 			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-				"/tmp-file": fakecrypto.CalculateInput{DigestStr: "contentsha1"},
+				filepath.Join("/", "tmp-file"): fakecrypto.CalculateInput{DigestStr: "contentsha1"},
 			})
 		})
 
 		It("adds a blob to the list if it's not already tracked", func() {
-			fs.WriteFileString("/dir/config/blobs.yml", `
+			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), `
 file2.tgz:
   size: 245
   sha: 345
@@ -443,19 +443,18 @@ file2.tgz:
 
 			blob, err := act()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(blob).To(Equal(Blob{Path: "dir/file.tgz", Size: 7, SHA1: "contentsha1"}))
+			Expect(blob).To(Equal(Blob{Path: filepath.Join("dir", "file.tgz"), Size: 7, SHA1: "contentsha1"}))
 
 			Expect(blobsDir.Blobs()).To(Equal([]Blob{
-				{Path: "dir/file.tgz", Size: 7, SHA1: "contentsha1"},
+				{Path: filepath.Join("dir", "file.tgz"), Size: 7, SHA1: "contentsha1"},
 				{Path: "file2.tgz", Size: 245, SHA1: "345"},
 			}))
 
-			Expect(fs.ReadFileString("/dir/blobs/dir/file.tgz")).To(Equal("content"))
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "blobs", "dir", "file.tgz"))).To(Equal("content"))
 		})
 
 		It("updates blob record if it's already tracked", func() {
-			fs.WriteFileString("/dir/config/blobs.yml", `
-dir/file.tgz:
+			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), filepath.Join("dir", "file.tgz")+`:
   size: 133
   sha: 13e
 file2.tgz:
@@ -465,23 +464,23 @@ file2.tgz:
 
 			blob, err := act()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(blob).To(Equal(Blob{Path: "dir/file.tgz", Size: 7, SHA1: "contentsha1"}))
+			Expect(blob).To(Equal(Blob{Path: filepath.Join("dir", "file.tgz"), Size: 7, SHA1: "contentsha1"}))
 
 			Expect(blobsDir.Blobs()).To(Equal([]Blob{
-				{Path: "dir/file.tgz", Size: 7, SHA1: "contentsha1"},
+				{Path: filepath.Join("dir", "file.tgz"), Size: 7, SHA1: "contentsha1"},
 				{Path: "file2.tgz", Size: 245, SHA1: "345"},
 			}))
 
-			Expect(fs.ReadFileString("/dir/blobs/dir/file.tgz")).To(Equal("content"))
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "blobs", "dir", "file.tgz"))).To(Equal("content"))
 		})
 
 		It("overrides existing local blob copy", func() {
-			fs.WriteFileString("/dir/blobs/dir/file.tgz", "prev-content")
+			fs.WriteFileString(filepath.Join("/", "dir", "blobs", "dir", "file.tgz"), "prev-content")
 
 			_, err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fs.ReadFileString("/dir/blobs/dir/file.tgz")).To(Equal("content"))
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "blobs", "dir", "file.tgz"))).To(Equal("content"))
 		})
 
 		It("returns error and does not update blobs.yml if temp file cannot be opened", func() {
@@ -495,7 +494,7 @@ file2.tgz:
 		})
 
 		It("returns error and does not update blobs.yml if copying from src fails", func() {
-			file := fakesys.NewFakeFile("/tmp-file", fs)
+			file := fakesys.NewFakeFile(filepath.Join("/", "tmp-file"), fs)
 			file.WriteErr = errors.New("fake-err")
 			fs.ReturnTempFile = file
 
@@ -507,7 +506,7 @@ file2.tgz:
 		})
 
 		It("returns error and does not update blobs.yml if cannot determine size", func() {
-			file := fakesys.NewFakeFile("/tmp-file", fs)
+			file := fakesys.NewFakeFile(filepath.Join("/", "tmp-file"), fs)
 			file.StatErr = errors.New("fake-err")
 			fs.ReturnTempFile = file
 
@@ -520,7 +519,7 @@ file2.tgz:
 
 		It("returns error and does not update blobs.yml if calculating sha1 fails", func() {
 			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-				"/tmp-file": fakecrypto.CalculateInput{Err: errors.New("fake-err")},
+				filepath.Join("/", "tmp-file"): fakecrypto.CalculateInput{Err: errors.New("fake-err")},
 			})
 
 			_, err := act()
@@ -533,12 +532,11 @@ file2.tgz:
 
 	Describe("UntrackBlob", func() {
 		act := func() error {
-			return blobsDir.UntrackBlob("dir/file.tgz")
+			return blobsDir.UntrackBlob(filepath.Join("dir", "file.tgz"))
 		}
 
 		It("removes reference from list of blobs (first)", func() {
-			fs.WriteFileString("/dir/config/blobs.yml", `
-dir/file.tgz:
+			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), filepath.Join("dir", "file.tgz")+`:
   size: 133
   sha: 13e
 file2.tgz:
@@ -555,11 +553,11 @@ file2.tgz:
 		})
 
 		It("removes reference from list of blobs (middle)", func() {
-			fs.WriteFileString("/dir/config/blobs.yml", `
+			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), `
 bosh-116.tgz:
   size: 133
   sha: 13e
-dir/file.tgz:
+`+filepath.Join("dir", "file.tgz")+`:
   size: 133
   sha: 2b8
 file2.tgz:
@@ -577,11 +575,11 @@ file2.tgz:
 		})
 
 		It("removes reference from list of blobs (last)", func() {
-			fs.WriteFileString("/dir/config/blobs.yml", `
+			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), `
 bosh-116.tgz:
   size: 133
   sha: 13e
-dir/file.tgz:
+`+filepath.Join("dir", "file.tgz")+`:
   size: 245
   sha: 345
 `)
@@ -595,7 +593,7 @@ dir/file.tgz:
 		})
 
 		It("succeeds even if record is not found", func() {
-			fs.WriteFileString("/dir/config/blobs.yml", `
+			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), `
 bosh-116.tgz:
   size: 133
   sha: 13e
@@ -610,18 +608,17 @@ bosh-116.tgz:
 		})
 
 		It("removes local blob copy", func() {
-			fs.WriteFileString("/dir/config/blobs.yml", "")
-			fs.WriteFileString("/dir/blobs/dir/file.tgz", "blob")
+			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), "")
+			fs.WriteFileString(filepath.Join("/", "dir", "blobs", "dir", "file.tgz"), "blob")
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fs.FileExists("/dir/blobs/dir/file.tgz")).To(BeFalse())
+			Expect(fs.FileExists(filepath.Join("/", "dir", "blobs", "dir", "file.tgz"))).To(BeFalse())
 		})
 
 		It("returns error if removing local blob copy fails", func() {
-			fs.WriteFileString("/dir/config/blobs.yml", `
-dir/file.tgz:
+			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), filepath.Join("dir", "file.tgz:")+`
   size: 133
   sha: 13e
 `)
@@ -635,7 +632,7 @@ dir/file.tgz:
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 
 			Expect(blobsDir.Blobs()).To(Equal([]Blob{
-				{Path: "dir/file.tgz", Size: 133, SHA1: "13e"},
+				{Path: filepath.Join("dir", "file.tgz"), Size: 133, SHA1: "13e"},
 			}))
 		})
 	})
@@ -646,8 +643,7 @@ dir/file.tgz:
 		}
 
 		BeforeEach(func() {
-			fs.WriteFileString("/dir/config/blobs.yml", `
-dir/file-in-directory.tgz:
+			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), filepath.Join("dir", "file-in-directory.tgz")+`:
   object_id: blob1
   size: 133
   sha: blob1sha
@@ -681,12 +677,12 @@ non-uploaded2.tgz:
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(blobstore.CreateArgsForCall(0)).To(Equal("/dir/blobs/non-uploaded.tgz"))
-			Expect(blobstore.CreateArgsForCall(1)).To(Equal("/dir/blobs/non-uploaded2.tgz"))
+			Expect(blobstore.CreateArgsForCall(0)).To(Equal(filepath.Join("/", "dir", "blobs", "non-uploaded.tgz")))
+			Expect(blobstore.CreateArgsForCall(1)).To(Equal(filepath.Join("/", "dir", "blobs", "non-uploaded2.tgz")))
 
 			Expect(blobsDir.Blobs()).To(Equal([]Blob{
 				{Path: "already-downloaded.tgz", Size: 245, BlobstoreID: "blob4", SHA1: "blob4sha"},
-				{Path: "dir/file-in-directory.tgz", Size: 133, BlobstoreID: "blob1", SHA1: "blob1sha"},
+				{Path: filepath.Join("dir", "file-in-directory.tgz"), Size: 133, BlobstoreID: "blob1", SHA1: "blob1sha"},
 				{Path: "file-in-root.tgz", Size: 245, BlobstoreID: "blob3", SHA1: "blob3sha"},
 				{Path: "non-uploaded.tgz", Size: 243, BlobstoreID: "blob2", SHA1: "blob2sha"},
 				{Path: "non-uploaded2.tgz", Size: 245, BlobstoreID: "blob5", SHA1: "blob5sha"},
@@ -735,7 +731,7 @@ non-uploaded2.tgz:
 
 			Expect(blobsDir.Blobs()).To(Equal([]Blob{
 				{Path: "already-downloaded.tgz", Size: 245, BlobstoreID: "blob4", SHA1: "blob4sha"},
-				{Path: "dir/file-in-directory.tgz", Size: 133, BlobstoreID: "blob1", SHA1: "blob1sha"},
+				{Path: filepath.Join("dir", "file-in-directory.tgz"), Size: 133, BlobstoreID: "blob1", SHA1: "blob1sha"},
 				{Path: "file-in-root.tgz", Size: 245, BlobstoreID: "blob3", SHA1: "blob3sha"},
 				{Path: "non-uploaded.tgz", Size: 243, SHA1: "blob2sha"},
 				{Path: "non-uploaded2.tgz", Size: 245, SHA1: "blob5sha"},
@@ -791,7 +787,7 @@ non-uploaded2.tgz:
 
 			Expect(blobsDir.Blobs()).To(Equal([]Blob{
 				{Path: "already-downloaded.tgz", Size: 245, BlobstoreID: "blob4", SHA1: "blob4sha"},
-				{Path: "dir/file-in-directory.tgz", Size: 133, BlobstoreID: "blob1", SHA1: "blob1sha"},
+				{Path: filepath.Join("dir", "file-in-directory.tgz"), Size: 133, BlobstoreID: "blob1", SHA1: "blob1sha"},
 				{Path: "file-in-root.tgz", Size: 245, BlobstoreID: "blob3", SHA1: "blob3sha"},
 				{Path: "non-uploaded.tgz", Size: 243, BlobstoreID: "blob2", SHA1: "blob2sha"},
 				{Path: "non-uploaded2.tgz", Size: 245, SHA1: "blob5sha"},

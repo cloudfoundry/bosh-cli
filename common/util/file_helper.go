@@ -2,6 +2,7 @@ package util
 
 import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	gopath "path"
 	"path/filepath"
 	"strings"
 )
@@ -29,7 +30,7 @@ func AbsolutifyPath(pathToManifest string, pathToFile string, fs boshsys.FileSys
 		absPath = filepath.Join(filepath.Dir(pathToManifest), pathToFile)
 	} else {
 		pathToFile = strings.Replace(pathToFile, "file://", "", 1)
-		absPath = filepath.Join(filepath.Dir(pathToManifest), pathToFile)
+		absPath = gopath.Join(gopath.Dir(pathToManifest), pathToFile)
 		absPath = "file://" + absPath
 	}
 

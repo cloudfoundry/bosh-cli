@@ -1,7 +1,7 @@
 package job
 
 import (
-	gopath "path"
+	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -42,7 +42,7 @@ func (r DirReaderImpl) Read(path string) (*Job, error) {
 func (r DirReaderImpl) collectFiles(path string) (boshjobman.Manifest, []File, error) {
 	var files []File
 
-	specPath := gopath.Join(path, "spec")
+	specPath := filepath.Join(path, "spec")
 
 	manifest, err := boshjobman.NewManifestFromPath(specPath, r.fs)
 	if err != nil {
@@ -55,14 +55,14 @@ func (r DirReaderImpl) collectFiles(path string) (boshjobman.Manifest, []File, e
 	specFile.RelativePath = "job.MF"
 	files = append(files, specFile)
 
-	monitPath := gopath.Join(path, "monit")
+	monitPath := filepath.Join(path, "monit")
 
 	if r.fs.FileExists(monitPath) {
 		files = append(files, NewFile(monitPath, path))
 	}
 
 	for src, _ := range manifest.Templates {
-		srcPath := gopath.Join(path, "templates", src)
+		srcPath := filepath.Join(path, "templates", src)
 		files = append(files, NewFile(srcPath, path))
 	}
 

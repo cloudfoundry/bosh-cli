@@ -5,6 +5,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"path/filepath"
+
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -20,8 +22,8 @@ var _ = Describe("TargetProvider", func() {
 
 		targetProvider TargetProvider
 
-		configPath            = "/deployment.json"
-		installationsRootPath = "/.bosh/installations"
+		configPath            = filepath.Join("/", "deployment.json")
+		installationsRootPath = filepath.Join("/", ".bosh", "installations")
 	)
 
 	BeforeEach(func() {
@@ -46,7 +48,7 @@ var _ = Describe("TargetProvider", func() {
 		It("uses the existing installation_id & returns a target based on it", func() {
 			target, err := targetProvider.NewTarget()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(target.Path()).To(Equal("/.bosh/installations/12345"))
+			Expect(target.Path()).To(Equal(filepath.Join("/", ".bosh", "installations", "12345")))
 		})
 
 		It("does not change the saved installation_id", func() {
@@ -68,7 +70,7 @@ var _ = Describe("TargetProvider", func() {
 		It("generates a new installation_id & returns a target based on it", func() {
 			target, err := targetProvider.NewTarget()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(target.Path()).To(Equal("/.bosh/installations/fake-uuid-1"))
+			Expect(target.Path()).To(Equal(filepath.Join("/", ".bosh", "installations", "fake-uuid-1")))
 		})
 
 		It("saves the new installation_id", func() {
@@ -90,7 +92,7 @@ var _ = Describe("TargetProvider", func() {
 		It("generates a new installation_id & returns a target based on it", func() {
 			target, err := targetProvider.NewTarget()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(target.Path()).To(Equal("/.bosh/installations/fake-uuid-1"))
+			Expect(target.Path()).To(Equal(filepath.Join("/", ".bosh", "installations", "fake-uuid-1")))
 		})
 
 		It("saves the new installation_id", func() {

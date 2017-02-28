@@ -1,6 +1,7 @@
 package resource_test
 
 import (
+	"path/filepath"
 	"sort"
 
 	. "github.com/onsi/ginkgo"
@@ -11,16 +12,16 @@ import (
 
 var _ = Describe("NewFile", func() {
 	It("returns file with relative path that does not start with separator", func() {
-		file := NewFile("/tmp/file", "/tmp")
-		Expect(file.Path).To(Equal("/tmp/file"))
-		Expect(file.DirPath).To(Equal("/tmp"))
+		file := NewFile(filepath.Join("/", "tmp", "file"), filepath.Join("/", "tmp"))
+		Expect(file.Path).To(Equal(filepath.Join("/", "tmp", "file")))
+		Expect(file.DirPath).To(Equal(filepath.Join("/", "tmp")))
 		Expect(file.RelativePath).To(Equal("file"))
 	})
 
 	It("returns file with relative path when dir path ends with separator", func() {
-		file := NewFile("/tmp/file", "/tmp/")
-		Expect(file.Path).To(Equal("/tmp/file"))
-		Expect(file.DirPath).To(Equal("/tmp"))
+		file := NewFile(filepath.Join("/", "tmp", "file"), filepath.Join("/", "tmp", "/"))
+		Expect(file.Path).To(Equal(filepath.Join("/", "tmp", "file")))
+		Expect(file.DirPath).To(Equal(filepath.Join("/", "tmp")))
 		Expect(file.RelativePath).To(Equal("file"))
 	})
 })
@@ -28,9 +29,9 @@ var _ = Describe("NewFile", func() {
 var _ = Describe("File", func() {
 	Describe("WithNewDir", func() {
 		It("returns file as if it was from a different dir", func() {
-			file := NewFile("/tmp/file", "/tmp/").WithNewDir("/other")
-			Expect(file.Path).To(Equal("/other/file"))
-			Expect(file.DirPath).To(Equal("/other"))
+			file := NewFile(filepath.Join("/", "tmp", "file"), filepath.Join("/", "tmp", "/")).WithNewDir(filepath.Join("/", "other"))
+			Expect(file.Path).To(Equal(filepath.Join("/", "other", "file")))
+			Expect(file.DirPath).To(Equal(filepath.Join("/", "other")))
 			Expect(file.RelativePath).To(Equal("file"))
 		})
 	})
@@ -38,9 +39,9 @@ var _ = Describe("File", func() {
 
 var _ = Describe("FileRelativePathSorting", func() {
 	It("sorts files based on relative path", func() {
-		file2 := NewFile("/tmp/file2", "/tmp/")
-		file1 := NewFile("/tmp/file1", "/tmp/")
-		file := NewFile("/tmp/file", "/tmp/")
+		file2 := NewFile(filepath.Join("/", "tmp", "file2"), filepath.Join("/", "tmp", "/"))
+		file1 := NewFile(filepath.Join("/", "tmp", "file1"), filepath.Join("/", "tmp", "/"))
+		file := NewFile(filepath.Join("/", "tmp", "file"), filepath.Join("/", "tmp", "/"))
 		files := []File{file2, file1, file}
 		sort.Sort(FileRelativePathSorting(files))
 		Expect(files).To(Equal([]File{file, file1, file2}))
