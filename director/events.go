@@ -1,6 +1,7 @@
 package director
 
 import (
+	"fmt"
 	"net/url"
 	"time"
 
@@ -137,4 +138,24 @@ func (c Client) Events(opts EventsFilter) ([]EventResp, error) {
 	}
 
 	return events, nil
+}
+
+func (d DirectorImpl) Event(id string) (Event, error) {
+	eventResp, err := d.client.Event(id)
+	if err != nil {
+		return EventImpl{}, err
+	}
+
+	return NewEventFromResp(d.client, eventResp), nil
+}
+
+func (c Client) Event(id string) (EventResp, error) {
+	var event EventResp
+
+	err := c.clientRequest.Get(fmt.Sprintf("/events/%s", id), &event)
+	if err != nil {
+		return event, bosherr.WrapErrorf(err, "Finding event '%s'", id)
+	}
+
+	return event, nil
 }

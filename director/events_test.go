@@ -282,5 +282,41 @@ var _ = Describe("Director", func() {
 			Expect(err.Error()).To(ContainSubstring(
 				"Finding events: Unmarshaling Director response"))
 		})
+
+		It("returns event", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/events/1", ""),
+					ghttp.RespondWith(http.StatusOK, `
+						{
+						  "id": "1",
+						  "timestamp": 1440318199,
+						  "user": "fake-user-1",
+						  "action": "fake-action",
+						  "object_type": "fake-object-type",
+						  "object_name": "fake-object-name",
+						  "task": "fake-task",
+						  "deployment": "fake-deployment",
+						  "instance": "fake-instance",
+						  "context": {"fake-context-key":"fake-context-value"}
+						}
+					`),
+				),
+			)
+
+			event, err := director.Event("1")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(event.ID()).To(Equal("1"))
+			Expect(event.Timestamp()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
+			Expect(event.User()).To(Equal("fake-user-1"))
+			Expect(event.Action()).To(Equal("fake-action"))
+			Expect(event.ObjectType()).To(Equal("fake-object-type"))
+			Expect(event.ObjectName()).To(Equal("fake-object-name"))
+			Expect(event.TaskID()).To(Equal("fake-task"))
+			Expect(event.DeploymentName()).To(Equal("fake-deployment"))
+			Expect(event.Instance()).To(Equal("fake-instance"))
+			Expect(event.Context()).To(Equal(map[string]interface{}{"fake-context-key": "fake-context-value"}))
+		})
 	})
 })
