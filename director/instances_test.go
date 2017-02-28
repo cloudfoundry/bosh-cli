@@ -183,7 +183,8 @@ var _ = Describe("Instances", func() {
         "index": 1,
         "id": "instance-id",
         "az": "my-az",
-        "expects_vm": true
+        "expects_vm": true,
+        "ips": [ "ip" ]
     }
 ]`, "\n", "", -1)),
 			),
@@ -200,6 +201,7 @@ var _ = Describe("Instances", func() {
 				AZ:        "my-az",
 				VMID:      "vm-cid",
 				ExpectsVM: true,
+				IPs:       []string{"ip"},
 			}))
 		})
 	})
