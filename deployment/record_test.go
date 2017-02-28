@@ -39,6 +39,7 @@ var _ = Describe("Record", func() {
 				Version: "fake-stemcell-version",
 			},
 			"fake-extracted-path",
+			nil,
 			fakeFS,
 		)
 		deploymentRepo = fakebiconfig.NewFakeDeploymentRepo()

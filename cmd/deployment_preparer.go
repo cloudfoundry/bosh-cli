@@ -173,7 +173,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage) (err error) {
 		return err
 	}
 	defer func() {
-		deleteErr := extractedStemcell.Delete()
+		deleteErr := extractedStemcell.Cleanup()
 		if deleteErr != nil {
 			c.logger.Warn(c.logTag, "Failed to delete extracted stemcell: %s", deleteErr.Error())
 		}

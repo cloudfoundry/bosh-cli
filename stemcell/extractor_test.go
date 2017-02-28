@@ -7,13 +7,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-
-	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/fakes"
 )
 
-var _ = Describe("Manager", func() {
+var _ = Describe("Extractor", func() {
 	var (
 		extractor             Extractor
 		fs                    *fakesys.FakeFileSystem
@@ -35,13 +34,13 @@ var _ = Describe("Manager", func() {
 
 		expectedExtractedStemcell = NewExtractedStemcell(
 			Manifest{
-				Name:      "fake-stemcell-name",
-				ImagePath: "fake-image-path",
+				Name: "fake-stemcell-name",
 				CloudProperties: biproperty.Map{
 					"fake-prop-key": "fake-prop-value",
 				},
 			},
 			stemcellExtractionDir,
+			nil,
 			fs,
 		)
 		reader.SetReadBehavior(stemcellTarballPath, stemcellExtractionDir, expectedExtractedStemcell, nil)

@@ -54,8 +54,8 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 	fakebirelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest/fakes"
 	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
-	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/fakes"
 	mock_stemcell "github.com/cloudfoundry/bosh-cli/stemcell/mocks"
+	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
@@ -216,13 +216,13 @@ var _ = Describe("CreateEnvCmd", func() {
 			stemcellTarballPath = "/stemcell/tarball/path"
 			extractedStemcell = bistemcell.NewExtractedStemcell(
 				bistemcell.Manifest{
-					ImagePath:       "/stemcell/image/path",
 					Name:            "fake-stemcell-name",
 					Version:         "fake-stemcell-version",
 					SHA1:            "fake-stemcell-sha1",
 					CloudProperties: biproperty.Map{},
 				},
 				"fake-extracted-path",
+				nil,
 				fs,
 			)
 
