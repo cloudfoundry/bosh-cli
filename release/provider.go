@@ -1,7 +1,7 @@
 package release
 
 import (
-	gopath "path"
+	"path/filepath"
 
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -67,8 +67,8 @@ func (p Provider) NewDirReader(dirPath string) DirReader {
 			files, prepFiles, chunks, dirPath, p.fingerprinter, p.compressor, p.digestCalculator, p.cmdRunner, p.fs)
 	}
 
-	srcDirPath := gopath.Join(dirPath, "src")
-	blobsDirPath := gopath.Join(dirPath, "blobs")
+	srcDirPath := filepath.Join(dirPath, "src")
+	blobsDirPath := filepath.Join(dirPath, "blobs")
 
 	jobDirReader := boshjob.NewDirReaderImpl(archiveFactory, p.fs)
 	pkgDirReader := boshpkg.NewDirReaderImpl(archiveFactory, srcDirPath, blobsDirPath, p.fs)

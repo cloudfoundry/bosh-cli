@@ -1,7 +1,7 @@
 package releasedir
 
 import (
-	gopath "path"
+	"path/filepath"
 
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -64,10 +64,10 @@ func (p Provider) NewFSReleaseDir(dirPath string) FSReleaseDir {
 	blobsDir := p.NewFSBlobsDir(dirPath)
 	generator := NewFSGenerator(dirPath, p.fs)
 
-	devRelsPath := gopath.Join(dirPath, "dev_releases")
+	devRelsPath := filepath.Join(dirPath, "dev_releases")
 	devReleases := NewFSReleaseIndex("dev", devRelsPath, p.releaseIndexReporter, p.uuidGen, p.fs)
 
-	finalRelsPath := gopath.Join(dirPath, "releases")
+	finalRelsPath := filepath.Join(dirPath, "releases")
 	finalReleases := NewFSReleaseIndex("final", finalRelsPath, p.releaseIndexReporter, p.uuidGen, p.fs)
 
 	indiciesProvider := boshidx.NewProvider(p.indexReporter, p.newBlobstore(dirPath), p.fs)
@@ -119,7 +119,7 @@ func (p Provider) newBlobstore(dirPath string) boshblob.DigestBlobstore {
 }
 
 func (p Provider) newConfig(dirPath string) FSConfig {
-	publicPath := gopath.Join(dirPath, "config", "final.yml")
-	privatePath := gopath.Join(dirPath, "config", "private.yml")
+	publicPath := filepath.Join(dirPath, "config", "final.yml")
+	privatePath := filepath.Join(dirPath, "config", "private.yml")
 	return NewFSConfig(publicPath, privatePath, p.fs)
 }

@@ -2,7 +2,7 @@ package pkg
 
 import (
 	"os"
-	gopath "path"
+	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -63,14 +63,14 @@ func (r DirReaderImpl) Read(path string) (*Package, error) {
 func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, error) {
 	var files, prepFiles []File
 
-	specPath := gopath.Join(path, "spec")
+	specPath := filepath.Join(path, "spec")
 
 	manifest, err := NewManifestFromPath(specPath, r.fs)
 	if err != nil {
 		return Manifest{}, nil, nil, err
 	}
 
-	packagingPath := gopath.Join(path, "packaging")
+	packagingPath := filepath.Join(path, "packaging")
 	files, err = r.checkAndFilterDir(packagingPath, path)
 	if err != nil {
 		if err == fileNotFoundError {
@@ -81,7 +81,7 @@ func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, erro
 		return manifest, nil, nil, bosherr.Errorf("Unexpected error occurred: %s", err)
 	}
 
-	prePackagingPath := gopath.Join(path, "pre_packaging")
+	prePackagingPath := filepath.Join(path, "pre_packaging")
 	prepFiles, err = r.checkAndFilterDir(prePackagingPath, path) //can proceed if there is no pre_packaging
 	if err != nil && err != fileNotFoundError {
 		return manifest, nil, nil, bosherr.Errorf("Unexpected error occurred: %s", err)
@@ -123,7 +123,7 @@ func (r DirReaderImpl) applyFilesPattern(manifest Manifest) (map[string]File, er
 	for _, glob := range manifest.Files {
 		matchingFilesFound := false
 
-		srcDirMatches, err := r.fs.RecursiveGlob(gopath.Join(r.srcDirPath, glob))
+		srcDirMatches, err := r.fs.RecursiveGlob(filepath.Join(r.srcDirPath, glob))
 		if err != nil {
 			return map[string]File{}, bosherr.WrapErrorf(err, "Listing package files in src")
 		}
@@ -143,7 +143,7 @@ func (r DirReaderImpl) applyFilesPattern(manifest Manifest) (map[string]File, er
 			}
 		}
 
-		blobsDirMatches, err := r.fs.RecursiveGlob(gopath.Join(r.blobsDirPath, glob))
+		blobsDirMatches, err := r.fs.RecursiveGlob(filepath.Join(r.blobsDirPath, glob))
 		if err != nil {
 			return map[string]File{}, bosherr.WrapErrorf(err, "Listing package files in blobs")
 		}
@@ -175,7 +175,7 @@ func (r DirReaderImpl) applyExcludedFilesPattern(manifest Manifest) ([]File, err
 	var excludedFiles []File
 
 	for _, glob := range manifest.ExcludedFiles {
-		srcDirMatches, err := r.fs.RecursiveGlob(gopath.Join(r.srcDirPath, glob))
+		srcDirMatches, err := r.fs.RecursiveGlob(filepath.Join(r.srcDirPath, glob))
 		if err != nil {
 			return []File{}, bosherr.WrapErrorf(err, "Listing package excluded files in src")
 		}
@@ -185,7 +185,7 @@ func (r DirReaderImpl) applyExcludedFilesPattern(manifest Manifest) ([]File, err
 			excludedFiles = append(excludedFiles, file)
 		}
 
-		blobsDirMatches, err := r.fs.RecursiveGlob(gopath.Join(r.blobsDirPath, glob))
+		blobsDirMatches, err := r.fs.RecursiveGlob(filepath.Join(r.blobsDirPath, glob))
 		if err != nil {
 			return []File{}, bosherr.WrapErrorf(err, "Listing package excluded files in blobs")
 		}

@@ -3,7 +3,7 @@ package releasedir
 import (
 	"fmt"
 	"os"
-	gopath "path"
+	"path/filepath"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -73,13 +73,13 @@ func NewFSReleaseDir(
 
 func (d FSReleaseDir) Init(git bool) error {
 	for _, name := range []string{"jobs", "packages", "src"} {
-		err := d.fs.MkdirAll(gopath.Join(d.dirPath, name), os.ModePerm)
+		err := d.fs.MkdirAll(filepath.Join(d.dirPath, name), os.ModePerm)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Creating %s/", name)
 		}
 	}
 
-	name := strings.TrimSuffix(gopath.Base(d.dirPath), "-release")
+	name := strings.TrimSuffix(filepath.Base(d.dirPath), "-release")
 
 	err := d.config.SaveName(name)
 	if err != nil {
@@ -111,7 +111,7 @@ func (d FSReleaseDir) GeneratePackage(name string) error {
 
 func (d FSReleaseDir) Reset() error {
 	for _, name := range []string{".dev_builds", "dev_releases", ".blobs", "blobs"} {
-		err := d.fs.RemoveAll(gopath.Join(d.dirPath, name))
+		err := d.fs.RemoveAll(filepath.Join(d.dirPath, name))
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Removing %s/", name)
 		}

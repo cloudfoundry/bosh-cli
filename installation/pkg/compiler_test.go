@@ -2,7 +2,6 @@ package pkg_test
 
 import (
 	"errors"
-	"path"
 	"path/filepath"
 
 	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
@@ -97,8 +96,8 @@ var _ = Describe("PackageCompiler", func() {
 		)
 
 		BeforeEach(func() {
-			installPath = path.Join(packagesDir, "pkg1-name")
-			compiledPackageTarballPath = path.Join(packagesDir, "new-tarball.tgz")
+			installPath = filepath.Join(packagesDir, "pkg1-name")
+			compiledPackageTarballPath = filepath.Join(packagesDir, "new-tarball.tgz")
 		})
 
 		JustBeforeEach(func() {
@@ -234,7 +233,7 @@ var _ = Describe("PackageCompiler", func() {
 
 		Context("when the packaging script does not exist", func() {
 			JustBeforeEach(func() {
-				err := fs.RemoveAll(path.Join("/pkg-dir", "packaging"))
+				err := fs.RemoveAll(filepath.Join("/", "pkg-dir", "packaging"))
 				Expect(err).ToNot(HaveOccurred())
 			})
 

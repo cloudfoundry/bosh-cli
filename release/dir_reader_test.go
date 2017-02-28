@@ -3,6 +3,7 @@ package release_test
 import (
 	"errors"
 	"os"
+	"path/filepath"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -30,7 +31,7 @@ var _ = Describe("DirReader", func() {
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
-		fs.TempDirDir = "/release"
+		fs.TempDirDir = filepath.Join("/", "release")
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
@@ -41,7 +42,7 @@ var _ = Describe("DirReader", func() {
 	})
 
 	Describe("Read", func() {
-		act := func() (Release, error) { return reader.Read("/release") }
+		act := func() (Release, error) { return reader.Read(filepath.Join("/", "release")) }
 
 		var (
 			job1 *boshjob.Job
@@ -52,21 +53,21 @@ var _ = Describe("DirReader", func() {
 		)
 
 		BeforeEach(func() {
-			fs.SetGlob("/release/jobs/*", []string{
-				"/release/jobs/job2",
-				"/release/jobs/job1",
+			fs.SetGlob(filepath.Join("/", "release", "jobs", "*"), []string{
+				filepath.Join("/", "release", "jobs", "job2"),
+				filepath.Join("/", "release", "jobs", "job1"),
 			})
 
-			fs.SetGlob("/release/packages/*", []string{
-				"/release/packages/pkg2",
-				"/release/packages/pkg1",
+			fs.SetGlob(filepath.Join("/", "release", "packages", "*"), []string{
+				filepath.Join("/", "release", "packages", "pkg2"),
+				filepath.Join("/", "release", "packages", "pkg1"),
 			})
 
-			fs.MkdirAll("/release/jobs/job2", os.ModeDir)
-			fs.MkdirAll("/release/jobs/job1", os.ModeDir)
+			fs.MkdirAll(filepath.Join("/", "release", "jobs", "job2"), os.ModeDir)
+			fs.MkdirAll(filepath.Join("/", "release", "jobs", "job1"), os.ModeDir)
 
-			fs.MkdirAll("/release/packages/pkg2", os.ModeDir)
-			fs.MkdirAll("/release/packages/pkg1", os.ModeDir)
+			fs.MkdirAll(filepath.Join("/", "release", "packages", "pkg2"), os.ModeDir)
+			fs.MkdirAll(filepath.Join("/", "release", "packages", "pkg1"), os.ModeDir)
 
 			job1 = boshjob.NewJob(NewResource("job1", "job1-fp", nil))
 			job1.PackageNames = []string{"pkg1"}
@@ -78,27 +79,27 @@ var _ = Describe("DirReader", func() {
 			lic = boshlic.NewLicense(NewResource("lic", "lic-fp", nil))
 
 			jobReader.ReadStub = func(path string) (*boshjob.Job, error) {
-				if path == "/release/jobs/job1" {
+				if path == filepath.Join("/", "release", "jobs", "job1") {
 					return job1, nil
 				}
-				if path == "/release/jobs/job2" {
+				if path == filepath.Join("/", "release", "jobs", "job2") {
 					return job2, nil
 				}
 				panic("Unexpected job")
 			}
 
 			pkgReader.ReadStub = func(path string) (*boshpkg.Package, error) {
-				if path == "/release/packages/pkg1" {
+				if path == filepath.Join("/", "release", "packages", "pkg1") {
 					return pkg1, nil
 				}
-				if path == "/release/packages/pkg2" {
+				if path == filepath.Join("/", "release", "packages", "pkg2") {
 					return pkg2, nil
 				}
 				panic("Unexpected package")
 			}
 
 			licReader.ReadStub = func(path string) (*boshlic.License, error) {
-				if path == "/release" {
+				if path == filepath.Join("/", "release") {
 					return lic, nil
 				}
 				panic("Unexpected license")
@@ -143,8 +144,8 @@ var _ = Describe("DirReader", func() {
 
 		Context("there are no jobs or packages", func() {
 			BeforeEach(func() {
-				fs.SetGlob("/release/jobs/*", []string{})
-				fs.SetGlob("/release/packages/*", []string{})
+				fs.SetGlob(filepath.Join("/", "release", "jobs", "*"), []string{})
+				fs.SetGlob(filepath.Join("/", "release", "packages", "*"), []string{})
 
 				licReader.ReadStub = nil
 				licReader.ReadReturns(nil, nil)
@@ -175,10 +176,10 @@ var _ = Describe("DirReader", func() {
 			It("returns errors for each invalid job and package", func() {
 				_, err := act()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Reading job from '/release/jobs/job1'"))
-				Expect(err.Error()).To(ContainSubstring("Reading job from '/release/jobs/job2'"))
-				Expect(err.Error()).To(ContainSubstring("Reading package from '/release/packages/pkg1'"))
-				Expect(err.Error()).To(ContainSubstring("Reading package from '/release/packages/pkg2'"))
+				Expect(err.Error()).To(ContainSubstring("Reading job from '" + filepath.Join("/", "release", "jobs", "job1") + "'"))
+				Expect(err.Error()).To(ContainSubstring("Reading job from '" + filepath.Join("/", "release", "jobs", "job2") + "'"))
+				Expect(err.Error()).To(ContainSubstring("Reading package from '" + filepath.Join("/", "release", "packages", "pkg1") + "'"))
+				Expect(err.Error()).To(ContainSubstring("Reading package from '" + filepath.Join("/", "release", "packages", "pkg2") + "'"))
 			})
 		})
 
@@ -219,33 +220,33 @@ var _ = Describe("DirReader", func() {
 
 		Context("cleanup", func() {
 			BeforeEach(func() {
-				fs.SetGlob("/release/jobs/*", []string{})
-				fs.SetGlob("/release/packages/*", []string{})
+				fs.SetGlob(filepath.Join("/", "release", "jobs", "*"), []string{})
+				fs.SetGlob(filepath.Join("/", "release", "packages", "*"), []string{})
 
-				fs.MkdirAll("/release", os.ModeDir)
+				fs.MkdirAll(filepath.Join("/", "release"), os.ModeDir)
 			})
 
 			It("returns a release that does nothing", func() {
-				release, err := reader.Read("/release")
+				release, err := reader.Read(filepath.Join("/", "release"))
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(release.CleanUp()).ToNot(HaveOccurred())
-				Expect(fs.FileExists("/release")).To(BeTrue())
+				Expect(fs.FileExists(filepath.Join("/", "release"))).To(BeTrue())
 			})
 		})
 
 		Context("There is a job that is not a directory", func() {
 			BeforeEach(func() {
-				fs.SetGlob("/release/jobs/*", []string{
-					"/release/jobs/job1",
-					"/release/jobs/job2",
-					"/release/jobs/lol",
+				fs.SetGlob(filepath.Join("/", "release", "jobs", "*"), []string{
+					filepath.Join("/", "release", "jobs", "job1"),
+					filepath.Join("/", "release", "jobs", "job2"),
+					filepath.Join("/", "release", "jobs", "lol"),
 				})
 
-				fs.MkdirAll("/release/jobs/job1", os.ModeDir)
-				fs.MkdirAll("/release/jobs/job2", os.ModeDir)
+				fs.MkdirAll(filepath.Join("/", "release", "jobs", "job1"), os.ModeDir)
+				fs.MkdirAll(filepath.Join("/", "release", "jobs", "job2"), os.ModeDir)
 
-				fs.WriteFileString("/release/jobs/lol", "why did the chicken cross the road?")
+				fs.WriteFileString(filepath.Join("/", "release", "jobs", "lol"), "why did the chicken cross the road?")
 			})
 
 			It("ignores the non-dir input", func() {
@@ -261,16 +262,16 @@ var _ = Describe("DirReader", func() {
 
 		Context("There is a package that is not a directory", func() {
 			BeforeEach(func() {
-				fs.SetGlob("/release/packages/*", []string{
-					"/release/packages/pkg1",
-					"/release/packages/pkg2",
-					"/release/packages/lol",
+				fs.SetGlob(filepath.Join("/", "release", "packages", "*"), []string{
+					filepath.Join("/", "release", "packages", "pkg1"),
+					filepath.Join("/", "release", "packages", "pkg2"),
+					filepath.Join("/", "release", "packages", "lol"),
 				})
 
-				fs.MkdirAll("/release/packages/pkg1", os.ModeDir)
-				fs.MkdirAll("/release/packages/pkg2", os.ModeDir)
+				fs.MkdirAll(filepath.Join("/", "release", "packages", "pkg1"), os.ModeDir)
+				fs.MkdirAll(filepath.Join("/", "release", "packages", "pkg2"), os.ModeDir)
 
-				fs.WriteFileString("/release/packages/lol", "why did the chicken cross the road?")
+				fs.WriteFileString(filepath.Join("/", "release", "packages", "lol"), "why did the chicken cross the road?")
 			})
 
 			It("ignores the non-dir input", func() {

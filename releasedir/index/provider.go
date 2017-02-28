@@ -1,7 +1,7 @@
 package index
 
 import (
-	gopath "path"
+	"path/filepath"
 
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -28,18 +28,18 @@ func NewProvider(
 }
 
 func (p Provider) DevAndFinalIndicies(dirPath string) (boshrel.ArchiveIndicies, boshrel.ArchiveIndicies) {
-	cachePath := gopath.Join("~", ".bosh", "cache")
+	cachePath := filepath.Join("~", ".bosh", "cache")
 
 	devBlobsCache := NewFSIndexBlobs(cachePath, p.reporter, nil, p.fs)
 	finalBlobsCache := NewFSIndexBlobs(cachePath, p.reporter, p.blobstore, p.fs)
 
-	devJobsPath := gopath.Join(dirPath, ".dev_builds", "jobs")
-	devPkgsPath := gopath.Join(dirPath, ".dev_builds", "packages")
-	devLicPath := gopath.Join(dirPath, ".dev_builds", "license")
+	devJobsPath := filepath.Join(dirPath, ".dev_builds", "jobs")
+	devPkgsPath := filepath.Join(dirPath, ".dev_builds", "packages")
+	devLicPath := filepath.Join(dirPath, ".dev_builds", "license")
 
-	finalJobsPath := gopath.Join(dirPath, ".final_builds", "jobs")
-	finalPkgsPath := gopath.Join(dirPath, ".final_builds", "packages")
-	finalLicPath := gopath.Join(dirPath, ".final_builds", "license")
+	finalJobsPath := filepath.Join(dirPath, ".final_builds", "jobs")
+	finalPkgsPath := filepath.Join(dirPath, ".final_builds", "packages")
+	finalLicPath := filepath.Join(dirPath, ".final_builds", "license")
 
 	devIndicies := boshrel.ArchiveIndicies{
 		Jobs:     NewFSIndex("job", devJobsPath, true, false, p.reporter, devBlobsCache, p.fs),

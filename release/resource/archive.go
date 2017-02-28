@@ -2,8 +2,7 @@ package resource
 
 import (
 	"os"
-
-	gopath "path"
+	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
@@ -129,7 +128,7 @@ func (a ArchiveImpl) runPrepScripts(stagingDir string) error {
 		}
 
 		// Arguably we should not remove the prep script
-		err = a.fs.RemoveAll(gopath.Join(stagingDir, prepFile.RelativePath))
+		err = a.fs.RemoveAll(filepath.Join(stagingDir, prepFile.RelativePath))
 		if err != nil {
 			return bosherr.WrapError(
 				err, "Removing prep scrpt from staging directory")
@@ -140,15 +139,15 @@ func (a ArchiveImpl) runPrepScripts(stagingDir string) error {
 }
 
 func (a ArchiveImpl) copyFile(sourceFile File, stagingDir string) error {
-	dstPath := gopath.Join(stagingDir, sourceFile.RelativePath)
-	dstDir := gopath.Dir(dstPath)
+	dstPath := filepath.Join(stagingDir, sourceFile.RelativePath)
+	dstDir := filepath.Dir(dstPath)
 
 	err := a.fs.MkdirAll(dstDir, os.ModePerm)
 	if err != nil {
 		return err
 	}
 
-	sourceDirStat, err := a.fs.Lstat(gopath.Dir(sourceFile.Path))
+	sourceDirStat, err := a.fs.Lstat(filepath.Dir(sourceFile.Path))
 	if err != nil {
 		return err
 	}

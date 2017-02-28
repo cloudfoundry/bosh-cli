@@ -2,6 +2,7 @@ package tarball_test
 
 import (
 	"os"
+	"path/filepath"
 	"syscall"
 
 	. "github.com/cloudfoundry/bosh-cli/installation/tarball"
@@ -96,8 +97,8 @@ var _ = Describe("Cache", func() {
 			sha1:        "fake-sha1",
 			url:         "http://foo.bar.com",
 			description: "some tarball",
-		})).To(Equal("/fake-base-path/587cd74a86333e7f1ebca70474a1f4456e4b5d3e-fake-sha1"))
-		Expect(fs.FileExists("/fake-base-path/587cd74a86333e7f1ebca70474a1f4456e4b5d3e-fake-sha1")).To(BeTrue())
+		})).To(Equal(filepath.Join("/", "fake-base-path", "587cd74a86333e7f1ebca70474a1f4456e4b5d3e-fake-sha1")))
+		Expect(fs.FileExists(filepath.Join("/", "fake-base-path", "587cd74a86333e7f1ebca70474a1f4456e4b5d3e-fake-sha1"))).To(BeTrue())
 	})
 
 	It("saves files across devices when necessary", func() {

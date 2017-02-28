@@ -2,6 +2,7 @@ package crypto_test
 
 import (
 	"errors"
+	"path/filepath"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
@@ -26,14 +27,14 @@ var _ = Describe("Sha1Calculator", func() {
 	Describe("Calculate", func() {
 		Context("when path is a file", func() {
 			BeforeEach(func() {
-				fs.RegisterOpenFile("/fake-archived-templates-path", &fakesys.FakeFile{
+				fs.RegisterOpenFile(filepath.Join("/", "fake-archived-templates-path"), &fakesys.FakeFile{
 					Contents: []byte("fake-archive-contents"),
 					Stats:    &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
 				})
 			})
 
 			It("returns sha1 of the file", func() {
-				sha1, err := digestCalculator.Calculate("/fake-archived-templates-path")
+				sha1, err := digestCalculator.Calculate(filepath.Join("/", "fake-archived-templates-path"))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(sha1).To(Equal("4603db250d7b5b78dfe17869649784353177b549"))
 			})
@@ -45,7 +46,7 @@ var _ = Describe("Sha1Calculator", func() {
 					boshcrypto.DigestAlgorithmSHA256,
 				})
 
-				multipleDigestStr, err := digestCalculator.Calculate("/fake-archived-templates-path")
+				multipleDigestStr, err := digestCalculator.Calculate(filepath.Join("/", "fake-archived-templates-path"))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(multipleDigestStr).To(Equal("4603db250d7b5b78dfe17869649784353177b549;sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"))
 			})
@@ -57,7 +58,7 @@ var _ = Describe("Sha1Calculator", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := digestCalculator.Calculate("/fake-archived-templates-path")
+				_, err := digestCalculator.Calculate(filepath.Join("/", "fake-archived-templates-path"))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-open-file-error"))
 			})

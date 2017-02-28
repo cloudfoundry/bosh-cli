@@ -7,6 +7,7 @@ import (
 
 	"encoding/json"
 	"errors"
+	"path/filepath"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -33,9 +34,9 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 	Describe("DeploymentStatePath", func() {
 		Context("when statePath is NOT specified", func() {
 			It("is based on the manifest path and name", func() {
-				Expect(DeploymentStatePath("/path/to/some-manifest.yml", "")).To(Equal("/path/to/some-manifest-state.json"))
-				Expect(DeploymentStatePath("/path/to/some-manifesty.yaml", "")).To(Equal("/path/to/some-manifesty-state.json"))
-				Expect(DeploymentStatePath("/path/to/some-manifest", "")).To(Equal("/path/to/some-manifest-state.json"))
+				Expect(DeploymentStatePath("/path/to/some-manifest.yml", "")).To(Equal(filepath.Join("/", "path", "to", "some-manifest-state.json")))
+				Expect(DeploymentStatePath("/path/to/some-manifesty.yaml", "")).To(Equal(filepath.Join("/", "path", "to", "some-manifesty-state.json")))
+				Expect(DeploymentStatePath("/path/to/some-manifest", "")).To(Equal(filepath.Join("/", "path", "to", "some-manifest-state.json")))
 			})
 		})
 

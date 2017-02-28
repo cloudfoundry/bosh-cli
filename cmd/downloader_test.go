@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -40,7 +41,7 @@ var _ = Describe("UIDownloader", func() {
 		var expectedPath string
 
 		BeforeEach(func() {
-			expectedPath = "/fake-dst-dir/prefix-20091110-230102-000000333.tgz"
+			expectedPath = filepath.Join("/", "fake-dst-dir", "prefix-20091110-230102-000000333.tgz")
 
 			err := fs.MkdirAll("/fake-dst-dir", os.ModePerm)
 			Expect(err).ToNot(HaveOccurred())

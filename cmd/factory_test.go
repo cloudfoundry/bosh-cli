@@ -3,6 +3,7 @@ package cmd_test
 import (
 	"errors"
 	"os"
+	"path/filepath"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -35,32 +36,32 @@ var _ = Describe("Factory", func() {
 
 	Describe("unknown commands, args and flags", func() {
 		BeforeEach(func() {
-			err := fs.WriteFileString("/file", "")
+			err := fs.WriteFileString(filepath.Join("/", "file"), "")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		cmds := map[string][]string{
 			"help":                  []string{},
-			"add-blob":              []string{"/file", "directory"},
+			"add-blob":              []string{filepath.Join("/", "file"), "directory"},
 			"attach-disk":           []string{"instance/abad1dea", "disk-cid-123"},
 			"blobs":                 []string{},
-			"interpolate":           []string{"/file"},
+			"interpolate":           []string{filepath.Join("/", "file")},
 			"cancel-task":           []string{"1234"},
 			"clean-up":              []string{},
 			"cloud-check":           []string{},
 			"cloud-config":          []string{},
-			"create-env":            []string{"/file"},
-			"sha2ify-release":       []string{"/file", "/file2"},
-			"create-release":        []string{"/file"},
+			"create-env":            []string{filepath.Join("/", "file")},
+			"sha2ify-release":       []string{filepath.Join("/", "file"), filepath.Join("/", "file2")},
+			"create-release":        []string{filepath.Join("/", "file")},
 			"delete-deployment":     []string{},
 			"delete-disk":           []string{"cid"},
-			"delete-env":            []string{"/file"},
+			"delete-env":            []string{filepath.Join("/", "file")},
 			"delete-release":        []string{"release-version"},
 			"delete-snapshot":       []string{"cid"},
 			"delete-snapshots":      []string{},
 			"delete-stemcell":       []string{"name/version"},
 			"delete-vm":             []string{"cid"},
-			"deploy":                []string{"/file"},
+			"deploy":                []string{filepath.Join("/", "file")},
 			"deployment":            []string{},
 			"deployments":           []string{},
 			"disks":                 []string{},
@@ -70,9 +71,9 @@ var _ = Describe("Factory", func() {
 			"errands":               []string{},
 			"events":                []string{},
 			"export-release":        []string{"release/version", "os/version"},
-			"finalize-release":      []string{"/file"},
-			"generate-job":          []string{"/file"},
-			"generate-package":      []string{"/file"},
+			"finalize-release":      []string{filepath.Join("/", "file")},
+			"generate-job":          []string{filepath.Join("/", "file")},
+			"generate-package":      []string{filepath.Join("/", "file")},
 			"init-release":          []string{},
 			"inspect-release":       []string{"name/version"},
 			"instances":             []string{},
@@ -83,7 +84,7 @@ var _ = Describe("Factory", func() {
 			"manifest":              []string{},
 			"recreate":              []string{"slug"},
 			"releases":              []string{},
-			"remove-blob":           []string{"/file"},
+			"remove-blob":           []string{filepath.Join("/", "file")},
 			"reset-release":         []string{},
 			"restart":               []string{"slug"},
 			"run-errand":            []string{"name"},
@@ -96,12 +97,12 @@ var _ = Describe("Factory", func() {
 			"take-snapshot":         []string{"group/id"},
 			"task":                  []string{"1234"},
 			"tasks":                 []string{},
-			"update-cloud-config":   []string{"/file"},
+			"update-cloud-config":   []string{filepath.Join("/", "file")},
 			"update-resurrection":   []string{"off"},
-			"update-runtime-config": []string{"/file"},
+			"update-runtime-config": []string{filepath.Join("/", "file")},
 			"upload-blobs":          []string{},
-			"upload-release":        []string{"/file"},
-			"upload-stemcell":       []string{"/file"},
+			"upload-release":        []string{filepath.Join("/", "file")},
+			"upload-stemcell":       []string{filepath.Join("/", "file")},
 			"vms":                   []string{},
 		}
 
@@ -191,12 +192,12 @@ var _ = Describe("Factory", func() {
 
 	Describe("deploy command", func() {
 		BeforeEach(func() {
-			err := fs.WriteFileString("/file", "")
+			err := fs.WriteFileString(filepath.Join("/", "file"), "")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("parses multiple skip-drain flags", func() {
-			cmd, err := factory.New([]string{"deploy", "--skip-drain=job1", "--skip-drain=job2", "/file"})
+			cmd, err := factory.New([]string{"deploy", "--skip-drain=job1", "--skip-drain=job2", filepath.Join("/", "file")})
 			Expect(err).ToNot(HaveOccurred())
 
 			slug1, _ := boshdir.NewInstanceGroupOrInstanceSlugFromString("job1")
@@ -210,13 +211,13 @@ var _ = Describe("Factory", func() {
 		})
 
 		It("errors when excluding = from --skip-drain", func() {
-			_, err := factory.New([]string{"deploy", "--skip-drain", "job1", "/file"})
+			_, err := factory.New([]string{"deploy", "--skip-drain", "job1", filepath.Join("/", "file")})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Not found: open job1: no such file or directory"))
 		})
 
 		It("defaults --skip-drain option value to all", func() {
-			cmd, err := factory.New([]string{"deploy", "--skip-drain", "/file"})
+			cmd, err := factory.New([]string{"deploy", "--skip-drain", filepath.Join("/", "file")})
 			Expect(err).ToNot(HaveOccurred())
 
 			opts := cmd.Opts.(*DeployOpts)

@@ -237,7 +237,7 @@ cloud_provider:
 
 		var expectValidationInstallationDeletionEvents = func() {
 			Expect(fakeUI.Said).To(Equal([]string{
-				"Deployment state: '/deployment-dir/fake-deployment-manifest-state.json'\n",
+				"Deployment state: '" + filepath.Join("/", "deployment-dir", "fake-deployment-manifest-state.json") + "'\n",
 			}))
 
 			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
@@ -336,7 +336,7 @@ cloud_provider:
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeUI.Said).To(Equal([]string{
-						"Deployment state: '/deployment-dir/fake-deployment-manifest-state.json'\n",
+						"Deployment state: '" + filepath.Join("/", "deployment-dir", "fake-deployment-manifest-state.json") + "'\n",
 						"No deployment state file found.\n",
 					}))
 				})
@@ -365,7 +365,7 @@ cloud_provider:
 					expectDeleteAndCleanup(true)
 					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(fs.TempRootPath).To(Equal("fake-install-dir/fake-installation-id/tmp"))
+					Expect(fs.TempRootPath).To(Equal(filepath.Join("fake-install-dir", "fake-installation-id", "tmp")))
 				})
 
 				It("extracts & install CPI release tarball", func() {
