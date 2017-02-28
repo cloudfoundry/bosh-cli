@@ -147,10 +147,10 @@ var _ = Describe("Manager", func() {
 
 			Expect(fakeCloud.SetVMMetadataCid).To(Equal("fake-vm-cid"))
 			Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
-				Deployment: "fake-deployment",
-				Job:        "fake-job",
-				Index:      "0",
-				Director:   "bosh-init",
+				"deployment": "fake-deployment",
+				"job":        "fake-job",
+				"index":      "0",
+				"director":   "bosh-init",
 			}))
 		})
 

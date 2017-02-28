@@ -105,10 +105,10 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 	}
 
 	metadata := bicloud.VMMetadata{
-		Deployment: deploymentManifest.Name,
-		Job:        deploymentManifest.JobName(),
-		Index:      "0",
-		Director:   "bosh-init",
+		"deployment": deploymentManifest.Name,
+		"job":        deploymentManifest.JobName(),
+		"index":      "0",
+		"director":   "bosh-init",
 	}
 	err = m.cloud.SetVMMetadata(cid, metadata)
 	if err != nil {
