@@ -19,8 +19,13 @@ type ReadSeekCloser interface {
 	io.ReadCloser
 }
 
+func (r FileReporter) Write(b []byte) (int, error) {
+	r.ui.BeginLinef("%s", b)
+	return len(b), nil
+}
+
 func (r FileReporter) TrackUpload(size int64, reader io.ReadCloser) ReadSeekCloser {
-	return &ReadCloserProxy{reader: reader, bar: r.buildBar(size)}
+	return &ReadCloserProxy{reader: reader, bar: r.buildBar(size), ui: r.ui}
 }
 
 func (r FileReporter) TrackDownload(size int64, writer io.Writer) io.Writer {
@@ -29,6 +34,8 @@ func (r FileReporter) TrackDownload(size int64, writer io.Writer) io.Writer {
 
 func (r FileReporter) buildBar(size int64) *pb.ProgressBar {
 	bar := pb.New(int(size))
+	bar.Output = r
+	bar.NotPrint = true
 	bar.ShowCounters = false
 	bar.ShowTimeLeft = true
 	bar.ShowSpeed = true
@@ -43,6 +50,7 @@ func (r FileReporter) buildBar(size int64) *pb.ProgressBar {
 type ReadCloserProxy struct {
 	reader io.ReadCloser
 	bar    *pb.ProgressBar
+	ui     UI
 }
 
 func (p ReadCloserProxy) Seek(offset int64, whence int) (int64, error) {
@@ -63,5 +71,6 @@ func (p *ReadCloserProxy) Read(bs []byte) (int, error) {
 func (p *ReadCloserProxy) Close() error {
 	err := p.reader.Close()
 	p.bar.Finish()
+	p.ui.BeginLinef("\n")
 	return err
 }
