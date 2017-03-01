@@ -13,7 +13,7 @@ type CallTracker struct {
 	Closes int
 }
 
-type FakeSeekableReader struct{
+type FakeSeekableReader struct {
 	callTracker *CallTracker
 }
 type FakeReaderCloser struct{}
