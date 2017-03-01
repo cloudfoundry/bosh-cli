@@ -29,6 +29,7 @@ type manifest struct {
 	Jobs           []job
 	InstanceGroups []job `yaml:"instance_groups"`
 	Properties     map[interface{}]interface{}
+	Tags           map[string]string
 }
 
 type UpdateSpec struct {
@@ -140,6 +141,7 @@ func (p *parser) Parse(interpolatedTemplate bidepltpl.InterpolatedTemplate, path
 func (p *parser) parseDeploymentManifest(depManifest manifest, path string) (Manifest, error) {
 	deployment := boshDeploymentDefaults
 	deployment.Name = depManifest.Name
+	deployment.Tags = depManifest.Tags
 
 	networks, err := p.parseNetworkManifests(depManifest.Networks)
 	if err != nil {

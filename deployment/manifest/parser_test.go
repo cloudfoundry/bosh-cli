@@ -34,6 +34,8 @@ var _ = Describe("Parser", func() {
 			contents := `
 ---
 name: fake-deployment-name
+tags:
+  tag1: tagval1
 update:
   update_watch_time: 2000-7000
 resource_pools:
@@ -178,6 +180,9 @@ properties:
 					"foo": biproperty.Map{
 						"bar": "baz",
 					},
+				},
+				Tags: map[string]string{
+					"tag1": "tagval1",
 				},
 			}))
 		})

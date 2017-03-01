@@ -368,4 +368,16 @@ var _ = Describe("Manifest", func() {
 			})
 		})
 	})
+
+	Describe("Tags", func() {
+		It("can be referenced", func() {
+			deploymentManifest = Manifest{
+				Tags: map[string]string{
+					"custom-tag": "custom-value",
+				},
+			}
+
+			Expect(deploymentManifest.Tags["custom-tag"]).To(Equal("custom-value"))
+		})
+	})
 })
