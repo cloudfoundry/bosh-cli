@@ -31,7 +31,6 @@ var _ = Describe("InfoTable", func() {
 				Features: map[string]bool{
 					"snapshots":     true,
 					"compiled_pkgs": false,
-					"pause_tasks":   false,
 				},
 
 				CPI: "cpi",

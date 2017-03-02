@@ -1,9 +1,7 @@
 package director
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 	gourl "net/url"
 	"time"
 
@@ -133,10 +131,6 @@ func (d DirectorImpl) FindTasksByContextId(contextId string) ([]Task, error) {
 	return tasks, nil
 }
 
-func (d DirectorImpl) PauseTasks(pauseTasks bool) error {
-	return d.client.PauseTasks(pauseTasks)
-}
-
 func (t TaskImpl) EventOutput(taskReporter TaskReporter) error {
 	return t.client.TaskOutput(t.id, "event", taskReporter)
 }
@@ -247,21 +241,6 @@ func (c Client) CancelTask(id int) error {
 	_, _, err := c.clientRequest.RawDelete(path)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Cancelling task '%d'", id)
-	}
-
-	return nil
-}
-
-func (c Client) PauseTasks(pauseTasks bool) error {
-	body := map[string]bool{"tasks_paused": pauseTasks}
-
-	reqBody, err := json.Marshal(body)
-	setHeaders := func(req *http.Request) {
-		req.Header.Add("Content-Type", "application/json")
-	}
-	_, _, err = c.clientRequest.RawPut("/tasks", reqBody, setHeaders)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Pausing/unpausing tasks")
 	}
 
 	return nil

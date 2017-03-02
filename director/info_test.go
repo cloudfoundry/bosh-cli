@@ -85,7 +85,7 @@ var _ = Describe("Director", func() {
   "name": "name",
   "uuid": "uuid",
   "version": "version",
-
+  
   "cpi": "cpi",
   "user": "user",
 
@@ -99,9 +99,6 @@ var _ = Describe("Director", func() {
     },
     "dns": {
       "extras": { "domain_name": "bosh" },
-      "status": false
-    },
-    "pause_tasks": {
       "status": false
     }
   },
@@ -131,8 +128,7 @@ var _ = Describe("Director", func() {
 				Features: map[string]bool{
 					"snapshots":              false,
 					"compiled_package_cache": true,
-					"dns":         false,
-					"pause_tasks": false,
+					"dns": false,
 				},
 
 				CPI: "cpi",

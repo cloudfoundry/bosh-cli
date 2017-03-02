@@ -51,11 +51,13 @@ type BoshOpts struct {
 	LogOut LogOutOpts `command:"log-out"           alias:"logout" description:"Log out"`
 
 	// Tasks
-	Task         TaskOpts         `command:"task"        alias:"t"  description:"Show task status and start tracking its output"`
-	Tasks        TasksOpts        `command:"tasks"       alias:"ts" description:"List running or recent tasks"`
-	CancelTask   CancelTaskOpts   `command:"cancel-task" alias:"ct" description:"Cancel task at its next checkpoint"`
-	PauseTasks   PauseTasksOpts   `command:"pause-tasks" alias:"pt" description:"Pause all tasks except urgent"`
-	UnpauseTasks UnpauseTasksOpts `command:"unpause-tasks" alias:"ut" description:"Resume paused tasks"`
+	Task       TaskOpts       `command:"task"        alias:"t"  description:"Show task status and start tracking its output"`
+	Tasks      TasksOpts      `command:"tasks"       alias:"ts" description:"List running or recent tasks"`
+	CancelTask CancelTaskOpts `command:"cancel-task" alias:"ct" description:"Cancel task at its next checkpoint"`
+
+	// Task Config
+	TaskConfig       TaskConfigOpts       `command:"task-config"        description:"Show current task config"`
+	UpdateTaskConfig UpdateTaskConfigOpts `command:"update-task-config" description:"Update current task config"`
 
 	// Misc
 	Locks   LocksOpts   `command:"locks"    description:"List current locks"`
@@ -249,12 +251,19 @@ type CancelTaskOpts struct {
 	cmd
 }
 
-type PauseTasksOpts struct {
+type TaskConfigOpts struct {
 	cmd
 }
 
-type UnpauseTasksOpts struct {
+type UpdateTaskConfigOpts struct {
+	Args UpdateTaskConfigArgs `positional-args:"true" required:"true"`
+	VarFlags
+	OpsFlags
 	cmd
+}
+
+type UpdateTaskConfigArgs struct {
+	TaskConfig FileBytesArg `positional-arg-name:"PATH" description:"Path to a Task config file"`
 }
 
 // Misc

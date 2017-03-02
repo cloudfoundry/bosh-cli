@@ -22,7 +22,6 @@ type Director interface {
 	RecentTasks(int, TasksFilter) ([]Task, error)
 	FindTask(int) (Task, error)
 	FindTasksByContextId(string) ([]Task, error)
-	PauseTasks(bool) error
 
 	Events(EventsFilter) ([]Event, error)
 	Event(string) (Event, error)
@@ -53,6 +52,9 @@ type Director interface {
 
 	LatestRuntimeConfig(name string) (RuntimeConfig, error)
 	UpdateRuntimeConfig(name string, manifest []byte) error
+
+	LatestTaskConfig() (TaskConfig, error)
+	UpdateTaskConfig([]byte) error
 
 	FindOrphanDisk(string) (OrphanDisk, error)
 	OrphanDisks() ([]OrphanDisk, error)

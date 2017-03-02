@@ -456,24 +456,5 @@ var _ = Describe("TaskClientRequest", func() {
 			Expect(taskReporter.TaskStartedCallCount()).To(Equal(1))
 			Expect(taskReporter.TaskFinishedCallCount()).To(Equal(1))
 		})
-
-		It("does not wait for task completion if task state is 'paused'", func() {
-			server.AppendHandlers(
-				// paused state
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/tasks/123"),
-					ghttp.RespondWith(http.StatusOK, `{"id":123, "state":"paused"}`),
-				),
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/tasks/123/output", "type=event"),
-					ghttp.RespondWith(http.StatusOK, ""),
-				),
-			)
-
-			Expect(act()).ToNot(HaveOccurred())
-
-			Expect(taskReporter.TaskStartedCallCount()).To(Equal(1))
-			Expect(taskReporter.TaskFinishedCallCount()).To(Equal(1))
-		})
 	})
 })

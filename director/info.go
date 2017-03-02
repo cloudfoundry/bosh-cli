@@ -24,9 +24,6 @@ import (
     "dns": {
       "extras": { "domain_name": "bosh" },
       "status": false
-    },
-    "pause_tasks": {
-      "status": false
     }
   },
 

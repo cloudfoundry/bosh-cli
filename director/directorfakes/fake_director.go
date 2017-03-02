@@ -277,6 +277,21 @@ type FakeDirector struct {
 	updateRuntimeConfigReturns struct {
 		result1 error
 	}
+	LatestTaskConfigStub        func() (director.TaskConfig, error)
+	latestTaskConfigMutex       sync.RWMutex
+	latestTaskConfigArgsForCall []struct{}
+	latestTaskConfigReturns     struct {
+		result1 director.TaskConfig
+		result2 error
+	}
+	UpdateTaskConfigStub        func([]byte) error
+	updateTaskConfigMutex       sync.RWMutex
+	updateTaskConfigArgsForCall []struct {
+		arg1 []byte
+	}
+	updateTaskConfigReturns struct {
+		result1 error
+	}
 	FindOrphanDiskStub        func(string) (director.OrphanDisk, error)
 	findOrphanDiskMutex       sync.RWMutex
 	findOrphanDiskArgsForCall []struct {
@@ -307,14 +322,6 @@ type FakeDirector struct {
 		arg1 bool
 	}
 	enableResurrectionReturns struct {
-		result1 error
-	}
-	PauseTasksStub        func(bool) error
-	pauseTasksMutex       sync.RWMutex
-	pauseTasksArgsForCall []struct {
-		arg1 bool
-	}
-	pauseTasksReturns struct {
 		result1 error
 	}
 	CleanUpStub        func(bool) error
@@ -1353,6 +1360,68 @@ func (fake *FakeDirector) UpdateRuntimeConfigReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDirector) LatestTaskConfig() (director.TaskConfig, error) {
+	fake.latestTaskConfigMutex.Lock()
+	fake.latestTaskConfigArgsForCall = append(fake.latestTaskConfigArgsForCall, struct{}{})
+	fake.recordInvocation("LatestTaskConfig", []interface{}{})
+	fake.latestTaskConfigMutex.Unlock()
+	if fake.LatestTaskConfigStub != nil {
+		return fake.LatestTaskConfigStub()
+	}
+	return fake.latestTaskConfigReturns.result1, fake.latestTaskConfigReturns.result2
+}
+
+func (fake *FakeDirector) LatestTaskConfigCallCount() int {
+	fake.latestTaskConfigMutex.RLock()
+	defer fake.latestTaskConfigMutex.RUnlock()
+	return len(fake.latestTaskConfigArgsForCall)
+}
+
+func (fake *FakeDirector) LatestTaskConfigReturns(result1 director.TaskConfig, result2 error) {
+	fake.LatestTaskConfigStub = nil
+	fake.latestTaskConfigReturns = struct {
+		result1 director.TaskConfig
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) UpdateTaskConfig(arg1 []byte) error {
+	var arg1Copy []byte
+	if arg1 != nil {
+		arg1Copy = make([]byte, len(arg1))
+		copy(arg1Copy, arg1)
+	}
+	fake.updateTaskConfigMutex.Lock()
+	fake.updateTaskConfigArgsForCall = append(fake.updateTaskConfigArgsForCall, struct {
+		arg1 []byte
+	}{arg1Copy})
+	fake.recordInvocation("UpdateTaskConfig", []interface{}{arg1Copy})
+	fake.updateTaskConfigMutex.Unlock()
+	if fake.UpdateTaskConfigStub != nil {
+		return fake.UpdateTaskConfigStub(arg1)
+	}
+	return fake.updateTaskConfigReturns.result1
+}
+
+func (fake *FakeDirector) UpdateTaskConfigCallCount() int {
+	fake.updateTaskConfigMutex.RLock()
+	defer fake.updateTaskConfigMutex.RUnlock()
+	return len(fake.updateTaskConfigArgsForCall)
+}
+
+func (fake *FakeDirector) UpdateTaskConfigArgsForCall(i int) []byte {
+	fake.updateTaskConfigMutex.RLock()
+	defer fake.updateTaskConfigMutex.RUnlock()
+	return fake.updateTaskConfigArgsForCall[i].arg1
+}
+
+func (fake *FakeDirector) UpdateTaskConfigReturns(result1 error) {
+	fake.UpdateTaskConfigStub = nil
+	fake.updateTaskConfigReturns = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDirector) FindOrphanDisk(arg1 string) (director.OrphanDisk, error) {
 	fake.findOrphanDiskMutex.Lock()
 	fake.findOrphanDiskArgsForCall = append(fake.findOrphanDiskArgsForCall, struct {
@@ -1546,36 +1615,6 @@ func (fake *FakeDirector) DownloadResourceUncheckedReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDirector) PauseTasks(arg1 bool) error {
-	fake.pauseTasksMutex.Lock()
-	fake.pauseTasksArgsForCall = append(fake.pauseTasksArgsForCall, struct{ arg1 bool }{})
-	fake.recordInvocation("PauseTasks", []interface{}{arg1})
-	fake.pauseTasksMutex.Unlock()
-	if fake.PauseTasksStub != nil {
-		return fake.PauseTasksStub(arg1)
-	} else {
-		return fake.pauseTasksReturns.result1
-	}
-}
-func (fake *FakeDirector) PauseTasksCallCount() int {
-	fake.pauseTasksMutex.RLock()
-	defer fake.pauseTasksMutex.RUnlock()
-	return len(fake.pauseTasksArgsForCall)
-}
-
-func (fake *FakeDirector) PauseTasksArgsForCall(i int) bool {
-	fake.pauseTasksMutex.RLock()
-	defer fake.pauseTasksMutex.RUnlock()
-	return fake.pauseTasksArgsForCall[i].arg1
-}
-
-func (fake *FakeDirector) PauseTasksReturns(result1 error) {
-	fake.PauseTasksStub = nil
-	fake.pauseTasksReturns = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -1641,6 +1680,10 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.latestRuntimeConfigMutex.RUnlock()
 	fake.updateRuntimeConfigMutex.RLock()
 	defer fake.updateRuntimeConfigMutex.RUnlock()
+	fake.latestTaskConfigMutex.RLock()
+	defer fake.latestTaskConfigMutex.RUnlock()
+	fake.updateTaskConfigMutex.RLock()
+	defer fake.updateTaskConfigMutex.RUnlock()
 	fake.findOrphanDiskMutex.RLock()
 	defer fake.findOrphanDiskMutex.RUnlock()
 	fake.orphanDisksMutex.RLock()
@@ -1653,8 +1696,6 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.cleanUpMutex.RUnlock()
 	fake.downloadResourceUncheckedMutex.RLock()
 	defer fake.downloadResourceUncheckedMutex.RUnlock()
-	fake.pauseTasksMutex.RLock()
-	defer fake.pauseTasksMutex.RUnlock()
 	return fake.invocations
 }
 

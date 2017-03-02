@@ -35,10 +35,6 @@ func (r taskShortResp) IsRunning() bool {
 	return r.State == "queued" || r.State == "processing" || r.State == "cancelling"
 }
 
-func (r taskShortResp) IsPaused() bool {
-	return r.State == "paused"
-}
-
 func (r taskShortResp) IsSuccessfullyDone() bool {
 	return r.State == "done"
 }
@@ -112,10 +108,6 @@ func (r TaskClientRequest) WaitForCompletion(id int, type_ string, taskReporter 
 		outputOffset, err = r.reportOutputChunk(taskResp.ID, outputOffset, type_, taskReporter)
 		if err != nil {
 			return bosherr.WrapError(err, "Getting task output")
-		}
-
-		if taskResp.IsPaused() {
-			return nil
 		}
 
 		if taskResp.IsRunning() {
