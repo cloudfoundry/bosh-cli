@@ -17,6 +17,7 @@ import (
 	boshrelman "github.com/cloudfoundry/bosh-cli/release/manifest"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	"os"
 )
 
 var _ = Describe("create-release command", func() {
@@ -232,6 +233,14 @@ license:
 			pkg1 := release.Packages()[0]
 			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-src"))).To(Equal("in-src"))
 			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-blobs"))).To(Equal("in-blobs"))
+		}
+
+		{ // Check that tarballs will not overwrite a directory
+			directoryPath := filepath.Join(tmpDir, "tarball-collision-dir")
+			Expect(fs.MkdirAll(directoryPath, os.ModeDir)).To(Succeed())
+			_, err := cmdFactory.New([]string{"create-release", "--dir", tmpDir, "--tarball", directoryPath})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("path must not be directory"))
 		}
 
 		{ // removes unknown blobs, keeping known blobs
