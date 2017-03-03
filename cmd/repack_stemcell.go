@@ -46,5 +46,5 @@ func (c RepackStemcellCmd) Run(opts RepackStemcellOpts) error {
 		extractedStemcell.SetCloudProperties(*cloudProperties)
 	}
 
-	return extractedStemcell.Pack(opts.Args.PathToResult)
+	return extractedStemcell.Pack(opts.Args.PathToResult.ExpandedPath)
 }

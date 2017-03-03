@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"regexp"
 
@@ -9,6 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var (
@@ -1378,6 +1380,12 @@ var _ = Describe("Opts", func() {
 					`positional-arg-name:"PATH-TO-RESULT" description:"Path to repacked stemcell"`,
 				))
 			})
+
+			It("rejects paths that are directories", func() {
+				opts.PathToResult.FS = fakesys.NewFakeFileSystem()
+				opts.PathToResult.FS.MkdirAll("/some/dir", os.ModeDir)
+				Expect(opts.PathToResult.UnmarshalFlag("/some/dir")).NotTo(Succeed())
+			})
 		})
 	})
 
@@ -2504,6 +2512,12 @@ var _ = Describe("Opts", func() {
 					`long:"tarball" description:"Create release tarball at path (e.g. /tmp/release.tgz)"`,
 				))
 			})
+
+			It("rejects paths that are directories", func() {
+				opts.Tarball.FS = fakesys.NewFakeFileSystem()
+				opts.Tarball.FS.MkdirAll("/some/dir", os.ModeDir)
+				Expect(opts.Tarball.UnmarshalFlag("/some/dir")).NotTo(Succeed())
+			})
 		})
 
 		Describe("Force", func() {
@@ -2540,6 +2554,12 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Path", opts)).To(Equal(`positional-arg-name:"PATH"`))
 				Expect(getStructTagForName("Destination", opts)).To(Equal(`positional-arg-name:"DESTINATION"`))
+			})
+
+			It("rejects destinations that are directories", func() {
+				opts.Destination.FS = fakesys.NewFakeFileSystem()
+				opts.Destination.FS.MkdirAll("/some/dir", os.ModeDir)
+				Expect(opts.Destination.UnmarshalFlag("/some/dir")).NotTo(Succeed())
 			})
 		})
 	})

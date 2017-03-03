@@ -48,7 +48,7 @@ var _ = Describe("RepackStemcellCmd", func() {
 
 			BeforeEach(func() {
 				opts.Args.PathToStemcell = "some-stemcell.tgz"
-				opts.Args.PathToResult = "repacked-stemcell.tgz"
+				opts.Args.PathToResult = FileArg{ExpandedPath: "repacked-stemcell.tgz"}
 				extractedStemcell = &stemcellfakes.FakeExtractedStemcell{}
 			})
 

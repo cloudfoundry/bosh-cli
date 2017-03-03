@@ -273,7 +273,7 @@ type BackUpOpts struct {
 }
 
 type BackUpArgs struct {
-	Path string `positional-arg-name:"PATH"`
+	Path FileArg `positional-arg-name:"PATH"`
 }
 
 type AttachDiskArgs struct {
@@ -457,8 +457,8 @@ type RepackStemcellOpts struct {
 }
 
 type RepackStemcellArgs struct {
-	PathToStemcell string `positional-arg-name:"PATH-TO-STEMCELL" description:"Path to stemcell"`
-	PathToResult   string `positional-arg-name:"PATH-TO-RESULT" description:"Path to repacked stemcell"`
+	PathToStemcell string  `positional-arg-name:"PATH-TO-STEMCELL" description:"Path to stemcell"`
+	PathToResult   FileArg `positional-arg-name:"PATH-TO-RESULT" description:"Path to repacked stemcell"`
 }
 
 // Releases
@@ -801,8 +801,8 @@ type Sha2ifyReleaseOpts struct {
 }
 
 type Sha2ifyReleaseArgs struct {
-	Path        string `positional-arg-name:"PATH"`
-	Destination string `positional-arg-name:"DESTINATION"`
+	Path        string  `positional-arg-name:"PATH"`
+	Destination FileArg `positional-arg-name:"DESTINATION"`
 }
 
 type CreateReleaseOpts struct {

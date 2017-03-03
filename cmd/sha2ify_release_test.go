@@ -65,7 +65,7 @@ var _ = Describe("Sha2ifyRelease", func() {
 	BeforeEach(func() {
 		args = Sha2ifyReleaseArgs{
 			Path:        "/some/release_128.tgz",
-			Destination: "/some/release_256.tgz",
+			Destination: FileArg{ExpandedPath: "/some/release_256.tgz"},
 		}
 
 		fs.RegisterOpenFile(job1ResourcePath, createFakeFileWithKnownSha1())
@@ -138,7 +138,7 @@ var _ = Describe("Sha2ifyRelease", func() {
 
 			src, dst := fmv.MoveArgsForCall(0)
 			Expect(src).To(Equal(releaseWriterTempDestination))
-			Expect(dst).To(Equal(args.Destination))
+			Expect(dst).To(Equal(args.Destination.ExpandedPath))
 
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
 				Rows: [][]boshtbl.Value{
@@ -325,7 +325,7 @@ var _ = Describe("Sha2ifyRelease", func() {
 		BeforeEach(func() {
 			args = Sha2ifyReleaseArgs{
 				Path:        "/some/release_128.tgz",
-				Destination: "/some/release_256.tgz",
+				Destination: FileArg{ExpandedPath: "/some/release_256.tgz"},
 			}
 
 			releaseReader.ReadReturns(nil, errors.Error("disaster"))
