@@ -35,12 +35,7 @@ type cloud struct {
 	logTag       string
 }
 
-type VMMetadata struct {
-	Director   string `json:"director"`
-	Deployment string `json:"deployment"`
-	Job        string `json:"job"`
-	Index      string `json:"index"`
-}
+type VMMetadata map[string]string
 
 func NewCloud(
 	cpiCmdRunner CPICmdRunner,
