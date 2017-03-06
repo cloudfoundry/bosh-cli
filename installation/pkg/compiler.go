@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/cloudfoundry/bosh-cli/installation/blobextract"
@@ -80,7 +79,7 @@ func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageR
 
 	c.logger.Debug(c.logTag, "Compiling package '%s/%s'", pkg.Name(), pkg.Fingerprint())
 
-	installDir := path.Join(c.packagesDir, pkg.Name())
+	installDir := filepath.Join(c.packagesDir, pkg.Name())
 
 	err = c.fileSystem.MkdirAll(installDir, os.ModePerm)
 	if err != nil {
@@ -89,7 +88,7 @@ func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageR
 
 	packageSrcDir := pkg.(*birelpkg.Package).ExtractedPath()
 
-	if !c.fileSystem.FileExists(path.Join(packageSrcDir, "packaging")) {
+	if !c.fileSystem.FileExists(filepath.Join(packageSrcDir, "packaging")) {
 		return record, isCompiledPackage, bosherr.Errorf("Packaging script for package '%s' not found", pkg.Name())
 	}
 

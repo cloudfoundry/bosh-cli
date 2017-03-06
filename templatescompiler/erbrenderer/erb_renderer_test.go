@@ -2,6 +2,7 @@ package erbrenderer_test
 
 import (
 	"errors"
+	"path/filepath"
 
 	. "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer"
 	fakebierbrenderer "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer/fakes"
@@ -37,8 +38,8 @@ var _ = Describe("ErbRenderer", func() {
 			boshsys.Command{
 				Name: "ruby",
 				Args: []string{
-					"fake-temp-dir/erb-render.rb",
-					"fake-temp-dir/erb-context.json",
+					filepath.Join("fake-temp-dir", "erb-render.rb"),
+					filepath.Join("fake-temp-dir", "erb-context.json"),
 					"fake-src-path",
 					"fake-dst-path",
 				},

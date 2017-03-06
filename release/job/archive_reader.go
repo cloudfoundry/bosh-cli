@@ -1,7 +1,7 @@
 package job
 
 import (
-	gopath "path"
+	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
@@ -49,7 +49,7 @@ func (r ArchiveReaderImpl) Read(ref boshman.JobRef, path string) (*Job, error) {
 			return nil, bosherr.WrapErrorf(err, "Extracting job archive '%s'", path)
 		}
 
-		specPath := gopath.Join(extractPath, "job.MF")
+		specPath := filepath.Join(extractPath, "job.MF")
 
 		manifest, err := boshjobman.NewManifestFromPath(specPath, r.fs)
 		if err != nil {

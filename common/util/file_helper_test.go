@@ -1,6 +1,8 @@
 package util_test
 
 import (
+	"path/filepath"
+
 	"github.com/cloudfoundry/bosh-cli/common/util"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -24,14 +26,14 @@ var _ = Describe("AbsolutifyPath", func() {
 				It("joins file path to the manifest directory", func() {
 					fakeFilePath = "../fake/relative/path/file.tgz"
 					Expect(util.AbsolutifyPath(fakeManifestPath, fakeFilePath, realfs)).To(
-						Equal("/fake/manifest/fake/relative/path/file.tgz"))
+						Equal(filepath.Join("/", "fake", "manifest", "fake", "relative", "path", "file.tgz")))
 				})
 			})
 			Context("File is located in same directory as manifest or subdirectory", func() {
 				It("makes the file path relative to the manifest directory", func() {
 					fakeFilePath = "fake/relative/path/file.tgz"
 					result, err := util.AbsolutifyPath(fakeManifestPath, fakeFilePath, realfs)
-					Expect(result).To(Equal("/fake/manifest/path/fake/relative/path/file.tgz"))
+					Expect(result).To(Equal(filepath.Join("/", "fake", "manifest", "path", "fake", "relative", "path", "file.tgz")))
 					Expect(err).ToNot(HaveOccurred())
 				})
 			})
@@ -44,7 +46,7 @@ var _ = Describe("AbsolutifyPath", func() {
 					currentUserHome, _ := realfs.HomeDir("")
 
 					result, err := util.AbsolutifyPath(fakeManifestPath, fakeFilePath, realfs)
-					Expect(result).To(Equal(currentUserHome + "/fake/absolute/path/file.tgz"))
+					Expect(result).To(Equal(currentUserHome + filepath.Join("/", "fake", "absolute", "path", "file.tgz")))
 					Expect(err).ToNot(HaveOccurred())
 				})
 			})

@@ -3,6 +3,7 @@ package index_test
 import (
 	"errors"
 	"os"
+	"path/filepath"
 	"syscall"
 
 	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
@@ -34,42 +35,42 @@ var _ = Describe("FSIndexBlobs", func() {
 		itChecksIfFileIsAlreadyDownloaded := func() {
 			Context("when local copy exists", func() {
 				It("returns path to a downloaded blob if it already exists", func() {
-					fs.WriteFileString("/dir/sub-dir/971c419dd609331343dee105fffd0f4608dc0bf2", "file")
+					fs.WriteFileString(filepath.Join("/", "dir", "sub-dir", "971c419dd609331343dee105fffd0f4608dc0bf2"), "file")
 
 					path, err := blobs.Get("name", "blob-id", "971c419dd609331343dee105fffd0f4608dc0bf2")
 					Expect(err).ToNot(HaveOccurred())
-					Expect(path).To(Equal("/dir/sub-dir/971c419dd609331343dee105fffd0f4608dc0bf2"))
+					Expect(path).To(Equal(filepath.Join("/", "dir", "sub-dir", "971c419dd609331343dee105fffd0f4608dc0bf2")))
 				})
 
 				It("returns error if local copy not match expected sha1", func() {
-					fs.WriteFileString("/dir/sub-dir/sha1", "file")
+					fs.WriteFileString(filepath.Join("/", "dir", "sub-dir", "sha1"), "file")
 
 					_, err := blobs.Get("name", "blob-id", "sha1")
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring(
-						"Local copy ('/dir/sub-dir/sha1') of blob 'blob-id' digest verification error: Expected stream to have digest 'sha1' but was '971c419dd609331343dee105fffd0f4608dc0bf2'"))
+						"Local copy ('" + filepath.Join("/", "dir", "sub-dir", "sha1") + "') of blob 'blob-id' digest verification error: Expected stream to have digest 'sha1' but was '971c419dd609331343dee105fffd0f4608dc0bf2'"))
 				})
 
 				It("returns error if cannot check local copy's sha1", func() {
-					fs.WriteFileString("/dir/sub-dir/badsha1", "file")
+					fs.WriteFileString(filepath.Join("/", "dir", "sub-dir", "badsha1"), "file")
 
-					fs.WriteFileString("/dir/sub-dir/badsha1", "file")
+					fs.WriteFileString(filepath.Join("/", "dir", "sub-dir", "badsha1"), "file")
 
 					_, err := blobs.Get("name", "blob-id", "badsha1")
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring(
-						"Local copy ('/dir/sub-dir/badsha1') of blob 'blob-id' digest verification error: Expected stream to have digest 'badsha1' but was '971c419dd609331343dee105fffd0f4608dc0bf2'"))
+						"Local copy ('" + filepath.Join("/", "dir", "sub-dir", "badsha1") + "') of blob 'blob-id' digest verification error: Expected stream to have digest 'badsha1' but was '971c419dd609331343dee105fffd0f4608dc0bf2'"))
 				})
 
 				It("expands directory path", func() {
-					fs.ExpandPathExpanded = "/full-dir"
-					fs.WriteFileString("/full-dir/971c419dd609331343dee105fffd0f4608dc0bf2", "file")
+					fs.ExpandPathExpanded = filepath.Join("/", "full-dir")
+					fs.WriteFileString(filepath.Join("/", "full-dir", "971c419dd609331343dee105fffd0f4608dc0bf2"), "file")
 
 					path, err := blobs.Get("name", "blob-id", "971c419dd609331343dee105fffd0f4608dc0bf2")
 					Expect(err).ToNot(HaveOccurred())
-					Expect(path).To(Equal("/full-dir/971c419dd609331343dee105fffd0f4608dc0bf2"))
+					Expect(path).To(Equal(filepath.Join("/", "full-dir", "971c419dd609331343dee105fffd0f4608dc0bf2")))
 
-					Expect(fs.ExpandPathPath).To(Equal("/dir/sub-dir"))
+					Expect(fs.ExpandPathPath).To(Equal(filepath.Join("/", "dir", "sub-dir")))
 				})
 
 				It("returns error if expanding directory path fails", func() {
@@ -92,7 +93,7 @@ var _ = Describe("FSIndexBlobs", func() {
 
 		Context("when configured without a blobstore", func() {
 			BeforeEach(func() {
-				blobs = boshidx.NewFSIndexBlobs("/dir/sub-dir", reporter, nil, fs)
+				blobs = boshidx.NewFSIndexBlobs(filepath.Join("/", "dir", "sub-dir"), reporter, nil, fs)
 			})
 
 			itChecksIfFileIsAlreadyDownloaded()
@@ -113,21 +114,21 @@ var _ = Describe("FSIndexBlobs", func() {
 		Context("when configured with a blobstore", func() {
 			BeforeEach(func() {
 				blobstore = &fakeblob.FakeDigestBlobstore{}
-				blobs = boshidx.NewFSIndexBlobs("/dir/sub-dir", reporter, blobstore, fs)
+				blobs = boshidx.NewFSIndexBlobs(filepath.Join("/", "dir", "sub-dir"), reporter, blobstore, fs)
 			})
 
 			itChecksIfFileIsAlreadyDownloaded()
 
 			It("downloads blob and places it into a cache", func() {
-				blobstore.GetReturns("/tmp/downloaded-path", nil)
-				fs.WriteFileString("/tmp/downloaded-path", "blob")
+				blobstore.GetReturns(filepath.Join("/", "tmp", "downloaded-path"), nil)
+				fs.WriteFileString(filepath.Join("/", "tmp", "downloaded-path"), "blob")
 
 				path, err := blobs.Get("name", "blob-id", "971c419dd609331343dee105fffd0f4608dc0bf2")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(path).To(Equal("/dir/sub-dir/971c419dd609331343dee105fffd0f4608dc0bf2"))
+				Expect(path).To(Equal(filepath.Join("/", "dir", "sub-dir", "971c419dd609331343dee105fffd0f4608dc0bf2")))
 
-				Expect(fs.ReadFileString("/dir/sub-dir/971c419dd609331343dee105fffd0f4608dc0bf2")).To(Equal("blob"))
-				Expect(fs.FileExists("/tmp/downloaded-path")).To(BeFalse())
+				Expect(fs.ReadFileString(filepath.Join("/", "dir", "sub-dir", "971c419dd609331343dee105fffd0f4608dc0bf2"))).To(Equal("blob"))
+				Expect(fs.FileExists(filepath.Join("/", "tmp", "downloaded-path"))).To(BeFalse())
 
 				Expect(reporter.IndexEntryDownloadStartedCallCount()).To(Equal(1))
 				Expect(reporter.IndexEntryDownloadFinishedCallCount()).To(Equal(1))
@@ -213,15 +214,15 @@ var _ = Describe("FSIndexBlobs", func() {
 				})
 
 				It("It successfully moves blob", func() {
-					blobstore.GetReturns("/tmp/downloaded-path", nil)
-					fs.WriteFileString("/tmp/downloaded-path", "blob")
+					blobstore.GetReturns(filepath.Join("/", "tmp", "downloaded-path"), nil)
+					fs.WriteFileString(filepath.Join("/", "tmp", "downloaded-path"), "blob")
 
 					path, err := blobs.Get("name", "blob-id", "sha1")
 					Expect(err).ToNot(HaveOccurred())
-					Expect(path).To(Equal("/dir/sub-dir/sha1"))
+					Expect(path).To(Equal(filepath.Join("/", "dir", "sub-dir", "sha1")))
 
-					Expect(fs.ReadFileString("/dir/sub-dir/sha1")).To(Equal("blob"))
-					Expect(fs.FileExists("/tmp/downloaded-path")).To(BeFalse())
+					Expect(fs.ReadFileString(filepath.Join("/", "dir", "sub-dir", "sha1"))).To(Equal("blob"))
+					Expect(fs.FileExists(filepath.Join("/", "tmp", "downloaded-path"))).To(BeFalse())
 
 					Expect(reporter.IndexEntryDownloadStartedCallCount()).To(Equal(1))
 					Expect(reporter.IndexEntryDownloadFinishedCallCount()).To(Equal(1))
@@ -270,44 +271,44 @@ var _ = Describe("FSIndexBlobs", func() {
 
 	Describe("Add", func() {
 		BeforeEach(func() {
-			fs.WriteFileString("/tmp/sha1", "file")
+			fs.WriteFileString(filepath.Join("/", "tmp", "sha1"), "file")
 		})
 
 		itCopiesFileIntoDir := func() {
 			It("copies file into cache dir", func() {
-				blobID, path, err := blobs.Add("name", "/tmp/sha1", "sha1")
+				blobID, path, err := blobs.Add("name", filepath.Join("/", "tmp", "sha1"), "sha1")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(blobID).To(Equal(""))
-				Expect(path).To(Equal("/dir/sub-dir/sha1"))
+				Expect(path).To(Equal(filepath.Join("/", "dir", "sub-dir", "sha1")))
 
-				Expect(fs.ReadFileString("/dir/sub-dir/sha1")).To(Equal("file"))
+				Expect(fs.ReadFileString(filepath.Join("/", "dir", "sub-dir", "sha1"))).To(Equal("file"))
 			})
 
 			It("keeps existing file in the cache directory if it's already there", func() {
-				fs.WriteFileString("/dir/sub-dir/sha1", "other")
+				fs.WriteFileString(filepath.Join("/", "dir", "sub-dir", "sha1"), "other")
 
-				blobID, path, err := blobs.Add("name", "/tmp/sha1", "sha1")
+				blobID, path, err := blobs.Add("name", filepath.Join("/", "tmp", "sha1"), "sha1")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(blobID).To(Equal(""))
-				Expect(path).To(Equal("/dir/sub-dir/sha1"))
+				Expect(path).To(Equal(filepath.Join("/", "dir", "sub-dir", "sha1")))
 
-				Expect(fs.ReadFileString("/dir/sub-dir/sha1")).To(Equal("other"))
+				Expect(fs.ReadFileString(filepath.Join("/", "dir", "sub-dir", "sha1"))).To(Equal("other"))
 			})
 
 			It("expands directory path", func() {
-				fs.ExpandPathExpanded = "/full-dir"
-				fs.WriteFileString("/full-dir/sha1", "file")
+				fs.ExpandPathExpanded = filepath.Join("/", "full-dir")
+				fs.WriteFileString(filepath.Join("/", "full-dir", "sha1"), "file")
 
-				_, _, err := blobs.Add("name", "/tmp/sha1", "sha1")
+				_, _, err := blobs.Add("name", filepath.Join("/", "tmp", "sha1"), "sha1")
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fs.ExpandPathPath).To(Equal("/dir/sub-dir"))
+				Expect(fs.ExpandPathPath).To(Equal(filepath.Join("/", "dir", "sub-dir")))
 			})
 
 			It("returns error if expanding directory path fails", func() {
 				fs.ExpandPathErr = errors.New("fake-err")
 
-				_, _, err := blobs.Add("name", "/tmp/sha1", "sha1")
+				_, _, err := blobs.Add("name", filepath.Join("/", "tmp", "sha1"), "sha1")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 			})
@@ -315,7 +316,7 @@ var _ = Describe("FSIndexBlobs", func() {
 			It("returns error if creating directory fails", func() {
 				fs.MkdirAllError = errors.New("fake-err")
 
-				_, _, err := blobs.Add("name", "/tmp/sha1", "sha1")
+				_, _, err := blobs.Add("name", filepath.Join("/", "tmp", "sha1"), "sha1")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 			})
@@ -323,7 +324,7 @@ var _ = Describe("FSIndexBlobs", func() {
 
 		Context("when configured without a blobstore", func() {
 			BeforeEach(func() {
-				blobs = boshidx.NewFSIndexBlobs("/dir/sub-dir", reporter, nil, fs)
+				blobs = boshidx.NewFSIndexBlobs(filepath.Join("/", "dir", "sub-dir"), reporter, nil, fs)
 			})
 
 			itCopiesFileIntoDir()
@@ -332,7 +333,7 @@ var _ = Describe("FSIndexBlobs", func() {
 		Context("when configured with a blobstore", func() {
 			BeforeEach(func() {
 				blobstore = &fakeblob.FakeDigestBlobstore{}
-				blobs = boshidx.NewFSIndexBlobs("/dir/sub-dir", reporter, blobstore, fs)
+				blobs = boshidx.NewFSIndexBlobs(filepath.Join("/", "dir", "sub-dir"), reporter, blobstore, fs)
 			})
 
 			itCopiesFileIntoDir()
@@ -341,12 +342,12 @@ var _ = Describe("FSIndexBlobs", func() {
 				digest := boshcrypto.MustParseMultipleDigest("sha1")
 				blobstore.CreateReturns("blob-id", digest, nil)
 
-				blobID, path, err := blobs.Add("name", "/tmp/sha1", "sha1")
+				blobID, path, err := blobs.Add("name", filepath.Join("/", "tmp", "sha1"), "sha1")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(blobID).To(Equal("blob-id"))
-				Expect(path).To(Equal("/dir/sub-dir/sha1"))
+				Expect(path).To(Equal(filepath.Join("/", "dir", "sub-dir", "sha1")))
 
-				Expect(blobstore.CreateArgsForCall(0)).To(Equal("/tmp/sha1"))
+				Expect(blobstore.CreateArgsForCall(0)).To(Equal(filepath.Join("/", "tmp", "sha1")))
 
 				Expect(reporter.IndexEntryUploadStartedCallCount()).To(Equal(1))
 				Expect(reporter.IndexEntryUploadFinishedCallCount()).To(Equal(1))
@@ -364,10 +365,10 @@ var _ = Describe("FSIndexBlobs", func() {
 			It("returns error if uploading blob fails", func() {
 				blobstore.CreateReturns("", boshcrypto.MultipleDigest{}, errors.New("fake-err"))
 
-				_, _, err := blobs.Add("name", "/tmp/sha1", "sha1")
+				_, _, err := blobs.Add("name", filepath.Join("/", "tmp", "sha1"), "sha1")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
-				Expect(err.Error()).To(ContainSubstring("Creating blob for path '/tmp/sha1'"))
+				Expect(err.Error()).To(ContainSubstring("Creating blob for path '" + filepath.Join("/", "tmp", "sha1") + "'"))
 
 				Expect(reporter.IndexEntryUploadStartedCallCount()).To(Equal(1))
 				Expect(reporter.IndexEntryUploadFinishedCallCount()).To(Equal(1))

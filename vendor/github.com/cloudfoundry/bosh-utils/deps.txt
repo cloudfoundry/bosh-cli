@@ -3,7 +3,6 @@ github.com/onsi/gomega:a1094b2
 github.com/pivotal-golang/clock:3fd3c19
 github.com/stretchr/testify/assert:dab07ac
 github.com/nu7hatch/gouuid:179d4d0
-github.com/cloudfoundry/gofileutils/glob:7889449
 github.com/charlievieth/fs:0551949
 github.com/bmatcuk/doublestar/...:915f3cc
 github.com/golang/protobuf/proto/...:4bd1920

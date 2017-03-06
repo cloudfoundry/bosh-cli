@@ -1,7 +1,6 @@
 package resource
 
 import (
-	gopath "path"
 	"path/filepath"
 	"strings"
 )
@@ -37,7 +36,7 @@ func NewFileUsesBasename(path, dirPath string) File {
 }
 
 func (f File) WithNewDir(dirPath string) File {
-	f.Path = gopath.Join(dirPath, f.RelativePath)
+	f.Path = filepath.Join(dirPath, f.RelativePath)
 	f.DirPath = dirPath
 	return f
 }

@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"regexp"
 
@@ -9,6 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var (
@@ -82,6 +84,7 @@ var _ = Describe("Opts", func() {
 			// --version flag is a bit awkward so let's ignore conflicts
 			Expect(errs).To(Equal([]string{
 				"Command 'UploadStemcellOpts' shadows global long option 'version'",
+				"Command 'RepackStemcellOpts' shadows global long option 'version'",
 				"Command 'UploadReleaseOpts' shadows global long option 'version'",
 				"Command 'CreateReleaseOpts' shadows global long option 'version'",
 				"Command 'FinalizeReleaseOpts' shadows global long option 'version'",
@@ -404,6 +407,14 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("DeleteStemcell", opts)).To(Equal(
 					`command:"delete-stemcell" alias:"dels" description:"Delete stemcell"`,
+				))
+			})
+		})
+
+		Describe("RepackStemcell", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("RepackStemcell", opts)).To(Equal(
+					`command:"repack-stemcell" description:"Repack stemcell"`,
 				))
 			})
 		})
@@ -1312,6 +1323,68 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("Slug", opts)).To(Equal(
 					`positional-arg-name:"NAME/VERSION"`,
 				))
+			})
+		})
+	})
+
+	Describe("RepackStemcellOpts", func() {
+		var opts *RepackStemcellOpts
+
+		BeforeEach(func() {
+			opts = &RepackStemcellOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+
+		It("has --version", func() {
+			Expect(getStructTagForName("Version", opts)).To(Equal(
+				`long:"version" description:"Repacked stemcell version"`,
+			))
+		})
+
+		It("has --name", func() {
+			Expect(getStructTagForName("Name", opts)).To(Equal(
+				`long:"name" description:"Repacked stemcell name"`,
+			))
+		})
+
+		It("has --cloud-properties", func() {
+			Expect(getStructTagForName("CloudProperties", opts)).To(Equal(
+				`long:"cloud-properties" description:"Repacked stemcell cloud properties"`,
+			))
+		})
+	})
+
+	Describe("RepackStemcellArgs", func() {
+		var opts *RepackStemcellArgs
+
+		BeforeEach(func() {
+			opts = &RepackStemcellArgs{}
+		})
+
+		Describe("PathToStemcell", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("PathToStemcell", opts)).To(Equal(
+					`positional-arg-name:"PATH-TO-STEMCELL" description:"Path to stemcell"`,
+				))
+			})
+		})
+
+		Describe("PathToResult", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("PathToResult", opts)).To(Equal(
+					`positional-arg-name:"PATH-TO-RESULT" description:"Path to repacked stemcell"`,
+				))
+			})
+
+			It("rejects paths that are directories", func() {
+				opts.PathToResult.FS = fakesys.NewFakeFileSystem()
+				opts.PathToResult.FS.MkdirAll("/some/dir", os.ModeDir)
+				Expect(opts.PathToResult.UnmarshalFlag("/some/dir")).NotTo(Succeed())
 			})
 		})
 	})
@@ -2439,6 +2512,12 @@ var _ = Describe("Opts", func() {
 					`long:"tarball" description:"Create release tarball at path (e.g. /tmp/release.tgz)"`,
 				))
 			})
+
+			It("rejects paths that are directories", func() {
+				opts.Tarball.FS = fakesys.NewFakeFileSystem()
+				opts.Tarball.FS.MkdirAll("/some/dir", os.ModeDir)
+				Expect(opts.Tarball.UnmarshalFlag("/some/dir")).NotTo(Succeed())
+			})
 		})
 
 		Describe("Force", func() {
@@ -2475,6 +2554,12 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Path", opts)).To(Equal(`positional-arg-name:"PATH"`))
 				Expect(getStructTagForName("Destination", opts)).To(Equal(`positional-arg-name:"DESTINATION"`))
+			})
+
+			It("rejects destinations that are directories", func() {
+				opts.Destination.FS = fakesys.NewFakeFileSystem()
+				opts.Destination.FS.MkdirAll("/some/dir", os.ModeDir)
+				Expect(opts.Destination.UnmarshalFlag("/some/dir")).NotTo(Succeed())
 			})
 		})
 	})

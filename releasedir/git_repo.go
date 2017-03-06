@@ -1,7 +1,7 @@
 package releasedir
 
 import (
-	gopath "path"
+	"path/filepath"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -41,7 +41,7 @@ releases/**/*.tgz
 #*
 `
 
-	err = r.fs.WriteFileString(gopath.Join(r.dirPath, ".gitignore"), ignoreTpl)
+	err = r.fs.WriteFileString(filepath.Join(r.dirPath, ".gitignore"), ignoreTpl)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating .gitignore file")
 	}

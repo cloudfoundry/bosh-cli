@@ -49,7 +49,7 @@ func (c tarballCompressor) DecompressFileToDir(tarballPath string, dir string, o
 		sameOwnerOption = "--same-owner"
 	}
 
-	_, _, _, err := c.cmdRunner.RunCommand("tar", sameOwnerOption, "-xzvf", tarballPath, "-C", dir)
+	_, _, _, err := c.cmdRunner.RunCommand("tar", sameOwnerOption, "-xzf", tarballPath, "-C", dir)
 	if err != nil {
 		return bosherr.WrapError(err, "Shelling out to tar")
 	}

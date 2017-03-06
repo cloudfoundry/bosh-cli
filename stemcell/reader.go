@@ -15,6 +15,7 @@ type manifest struct {
 	Version         string
 	OS              string `yaml:"operating_system"`
 	SHA1            string
+	BoshProtocol    string                      `yaml:"bosh_protocol"`
 	CloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
 }
 
@@ -53,10 +54,11 @@ func (s reader) Read(stemcellTarballPath string, extractedPath string) (Extracte
 	}
 
 	manifest := Manifest{
-		Name:    rawManifest.Name,
-		Version: rawManifest.Version,
-		OS:      rawManifest.OS,
-		SHA1:    rawManifest.SHA1,
+		Name:         rawManifest.Name,
+		Version:      rawManifest.Version,
+		OS:           rawManifest.OS,
+		SHA1:         rawManifest.SHA1,
+		BoshProtocol: rawManifest.BoshProtocol,
 	}
 
 	cloudProperties, err := biproperty.BuildMap(rawManifest.CloudProperties)
@@ -65,11 +67,10 @@ func (s reader) Read(stemcellTarballPath string, extractedPath string) (Extracte
 	}
 	manifest.CloudProperties = cloudProperties
 
-	manifest.ImagePath = filepath.Join(extractedPath, "image")
-
 	stemcell := NewExtractedStemcell(
 		manifest,
 		extractedPath,
+		s.compressor,
 		s.fs,
 	)
 

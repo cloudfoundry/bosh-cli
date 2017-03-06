@@ -2,7 +2,7 @@ package release
 
 import (
 	"os"
-	gopath "path"
+	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
@@ -13,7 +13,6 @@ import (
 	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
 	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
 	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	"path/filepath"
 )
 
 type ArchiveWriter struct {
@@ -44,7 +43,7 @@ func (w ArchiveWriter) Write(release Release, pkgFpsToSkip []string) (string, er
 		return "", bosherr.WrapError(err, "Marshalling release manifest")
 	}
 
-	manifestPath := gopath.Join(stagingDir, "release.MF")
+	manifestPath := filepath.Join(stagingDir, "release.MF")
 
 	err = w.fs.WriteFile(manifestPath, manifestBytes)
 	if err != nil {
@@ -105,7 +104,7 @@ func (w ArchiveWriter) writeJobs(jobs []*boshjob.Job, stagingDir string) ([]stri
 		return jobsFiles, nil
 	}
 
-	jobsPath := gopath.Join(stagingDir, "jobs")
+	jobsPath := filepath.Join(stagingDir, "jobs")
 
 	err := w.fs.MkdirAll(jobsPath, os.ModePerm)
 	if err != nil {
@@ -115,7 +114,7 @@ func (w ArchiveWriter) writeJobs(jobs []*boshjob.Job, stagingDir string) ([]stri
 	jobsFiles = append(jobsFiles, "jobs")
 
 	for _, job := range jobs {
-		err := w.fs.CopyFile(job.ArchivePath(), gopath.Join(jobsPath, job.Name()+".tgz"))
+		err := w.fs.CopyFile(job.ArchivePath(), filepath.Join(jobsPath, job.Name()+".tgz"))
 		if err != nil {
 			return jobsFiles, bosherr.WrapErrorf(err, "Copying job '%s' archive into staging dir", job.Name())
 		}
@@ -131,7 +130,7 @@ func (w ArchiveWriter) writePackages(packages []*boshpkg.Package, pkgFpsToSkip [
 		return packagesFiles, nil
 	}
 
-	pkgsPath := gopath.Join(stagingDir, "packages")
+	pkgsPath := filepath.Join(stagingDir, "packages")
 
 	err := w.fs.MkdirAll(pkgsPath, os.ModePerm)
 	if err != nil {
@@ -144,7 +143,7 @@ func (w ArchiveWriter) writePackages(packages []*boshpkg.Package, pkgFpsToSkip [
 		if w.shouldSkip(pkg.Fingerprint(), pkgFpsToSkip) {
 			w.logger.Debug(w.logTag, "Package '%s' was filtered out", pkg.Name())
 		} else {
-			err := w.fs.CopyFile(pkg.ArchivePath(), gopath.Join(pkgsPath, pkg.Name()+".tgz"))
+			err := w.fs.CopyFile(pkg.ArchivePath(), filepath.Join(pkgsPath, pkg.Name()+".tgz"))
 			if err != nil {
 				return packagesFiles, bosherr.WrapErrorf(err, "Copying package '%s' archive into staging dir", pkg.Name())
 			}
@@ -161,7 +160,7 @@ func (w ArchiveWriter) writeCompiledPackages(compiledPkgs []*boshpkg.CompiledPac
 		return compiledPackagesFiles, nil
 	}
 
-	pkgsPath := gopath.Join(stagingDir, "compiled_packages")
+	pkgsPath := filepath.Join(stagingDir, "compiled_packages")
 
 	err := w.fs.MkdirAll(pkgsPath, os.ModePerm)
 	if err != nil {
@@ -174,7 +173,7 @@ func (w ArchiveWriter) writeCompiledPackages(compiledPkgs []*boshpkg.CompiledPac
 		if w.shouldSkip(compiledPkg.Fingerprint(), pkgFpsToSkip) {
 			w.logger.Debug(w.logTag, "Compiled package '%s' was filtered out", compiledPkg.Name())
 		} else {
-			err := w.fs.CopyFile(compiledPkg.ArchivePath(), gopath.Join(pkgsPath, compiledPkg.Name()+".tgz"))
+			err := w.fs.CopyFile(compiledPkg.ArchivePath(), filepath.Join(pkgsPath, compiledPkg.Name()+".tgz"))
 			if err != nil {
 				return compiledPackagesFiles, bosherr.WrapErrorf(err, "Copying compiled package '%s' archive into staging dir", compiledPkg.Name())
 			}
@@ -191,7 +190,7 @@ func (w ArchiveWriter) writeLicense(license *boshlic.License, stagingDir string)
 		return licenseFiles, nil
 	}
 
-	err := w.fs.CopyFile(license.ArchivePath(), gopath.Join(stagingDir, "license.tgz"))
+	err := w.fs.CopyFile(license.ArchivePath(), filepath.Join(stagingDir, "license.tgz"))
 	if err != nil {
 		return licenseFiles, bosherr.WrapError(err, "Copying license archive into staging dir")
 	}
@@ -238,7 +237,7 @@ func (w ArchiveWriter) appendFiles(filenames []string) []string {
 }
 
 func (w ArchiveWriter) appendMatchedFiles(files []string, stagingDir string, filePattern string) ([]string, error) {
-	noticeMatches, err := w.fs.Glob(gopath.Join(stagingDir, filePattern))
+	noticeMatches, err := w.fs.Glob(filepath.Join(stagingDir, filePattern))
 	if err != nil {
 		return files, err
 	}

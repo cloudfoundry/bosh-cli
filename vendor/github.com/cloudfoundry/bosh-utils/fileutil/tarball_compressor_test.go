@@ -236,7 +236,7 @@ var _ = Describe("tarballCompressor", func() {
 			Expect(cmdRunner.RunCommands[0]).To(Equal(
 				[]string{
 					"tar", "--no-same-owner",
-					"-xzvf", tarballPath,
+					"-xzf", tarballPath,
 					"-C", dstDir,
 				},
 			))
@@ -258,7 +258,7 @@ var _ = Describe("tarballCompressor", func() {
 			Expect(cmdRunner.RunCommands[0]).To(Equal(
 				[]string{
 					"tar", "--same-owner",
-					"-xzvf", tarballPath,
+					"-xzf", tarballPath,
 					"-C", dstDir,
 				},
 			))

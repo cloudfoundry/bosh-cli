@@ -10,7 +10,6 @@ import (
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -159,7 +158,7 @@ var _ = Describe("sha2ify-release", func() {
 			Expect(err).ToNot(HaveOccurred())
 		}
 
-		sha2ifyReleasePath := path.Join(tmpDir, "sha2ify-release.tgz")
+		sha2ifyReleasePath := filepath.Join(tmpDir, "sha2ify-release.tgz")
 
 		{ // Make empty release
 			execCmd([]string{"create-release", "--dir", tmpDir, "--tarball", sha2ifyReleasePath})

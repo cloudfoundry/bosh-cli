@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/cppforlife/go-patch/patch"
 
@@ -12,6 +13,7 @@ import (
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
 	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
+	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	boshuit "github.com/cloudfoundry/bosh-cli/ui/task"
 
@@ -171,6 +173,12 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *DeleteStemcellOpts:
 		return NewDeleteStemcellCmd(deps.UI, c.director()).Run(*opts)
 
+	case *RepackStemcellOpts:
+		stemcellReader := bistemcell.NewReader(deps.Compressor, deps.FS)
+		stemcellExtractor := bistemcell.NewExtractor(stemcellReader, deps.FS)
+
+		return NewRepackStemcellCmd(deps.UI, deps.FS, stemcellExtractor).Run(*opts)
+
 	case *LocksOpts:
 		return NewLocksCmd(deps.UI, c.director()).Run()
 
@@ -234,6 +242,9 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *EventsOpts:
 		return NewEventsCmd(deps.UI, c.director()).Run(*opts)
+
+	case *EventOpts:
+		return NewEventCmd(deps.UI, c.director()).Run(*opts)
 
 	case *InspectReleaseOpts:
 		return NewInspectReleaseCmd(deps.UI, c.director()).Run(*opts)
@@ -385,7 +396,7 @@ func (c Cmd) configureUI() {
 }
 
 func (c Cmd) configureFS() {
-	tmpDirPath, err := c.deps.FS.ExpandPath("~/.bosh/tmp")
+	tmpDirPath, err := c.deps.FS.ExpandPath(filepath.Join("~", ".bosh", "tmp"))
 	c.panicIfErr(err)
 
 	err = c.deps.FS.ChangeTempRoot(tmpDirPath)

@@ -1,7 +1,7 @@
 package release
 
 import (
-	gopath "path"
+	"path/filepath"
 	"sort"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -48,7 +48,7 @@ func (r DirReader) Read(path string) (Release, error) {
 	var errs []error
 	var err error
 
-	pkgMatches, err := r.fs.Glob(gopath.Join(path, "packages", "*"))
+	pkgMatches, err := r.fs.Glob(filepath.Join(path, "packages", "*"))
 	if err != nil {
 		errs = append(errs, bosherr.WrapError(err, "Listing packages in directory"))
 	} else {
@@ -58,7 +58,7 @@ func (r DirReader) Read(path string) (Release, error) {
 		}
 	}
 
-	jobMatches, err := r.fs.Glob(gopath.Join(path, "jobs", "*"))
+	jobMatches, err := r.fs.Glob(filepath.Join(path, "jobs", "*"))
 	if err != nil {
 		errs = append(errs, bosherr.WrapError(err, "Listing jobs in directory"))
 	} else {

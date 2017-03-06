@@ -296,10 +296,10 @@ var _ = Describe("Cloud", func() {
 		It("calls the set_vm_metadata CPI method", func() {
 			vmCID := "fake-vm-cid"
 			metadata := VMMetadata{
-				Director:   "bosh-init",
-				Deployment: "some-deployment",
-				Job:        "some-job",
-				Index:      "0",
+				"director":   "bosh-init",
+				"deployment": "some-deployment",
+				"job":        "some-job",
+				"index":      "0",
 			}
 			err := cloud.SetVMMetadata(vmCID, metadata)
 			Expect(err).ToNot(HaveOccurred())
@@ -319,10 +319,10 @@ var _ = Describe("Cloud", func() {
 			fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
 			vmCID := "fake-vm-cid"
 			metadata := VMMetadata{
-				Director:   "bosh-init",
-				Deployment: "some-deployment",
-				Job:        "some-job",
-				Index:      "0",
+				"director":   "bosh-init",
+				"deployment": "some-deployment",
+				"job":        "some-job",
+				"index":      "0",
 			}
 
 			err := cloud.SetVMMetadata(vmCID, metadata)
@@ -333,10 +333,10 @@ var _ = Describe("Cloud", func() {
 		itHandlesCPIErrors("set_vm_metadata", func() error {
 			vmCID := "fake-vm-cid"
 			metadata := VMMetadata{
-				Director:   "bosh-init",
-				Deployment: "some-deployment",
-				Job:        "some-job",
-				Index:      "0",
+				"director":   "bosh-init",
+				"deployment": "some-deployment",
+				"job":        "some-job",
+				"index":      "0",
 			}
 			return cloud.SetVMMetadata(vmCID, metadata)
 		})

@@ -52,9 +52,10 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
-	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/fakes"
+	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	"github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 )
 
 var _ = Describe("bosh", func() {
@@ -125,7 +126,6 @@ var _ = Describe("bosh", func() {
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			deploymentStatePath    = "/deployment-dir/fake-deployment-manifest-state.json"
 
-			stemcellImagePath       = "fake-stemcell-image-path"
 			stemcellCID             = "fake-stemcell-cid"
 			stemcellCloudProperties = biproperty.Map{}
 
@@ -284,15 +284,16 @@ cloud_provider:
 
 		var allowStemcellToBeExtracted = func() {
 			stemcellManifest := bistemcell.Manifest{
-				ImagePath:       "fake-stemcell-image-path",
 				Name:            "fake-stemcell-name",
 				Version:         "fake-stemcell-version",
 				SHA1:            "fake-stemcell-sha1",
 				CloudProperties: biproperty.Map{},
 			}
+
 			extractedStemcell := bistemcell.NewExtractedStemcell(
 				stemcellManifest,
 				"fake-stemcell-extracted-dir",
+				fakes.NewFakeCompressor(),
 				fs,
 			)
 			fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, extractedStemcell, nil)
@@ -451,7 +452,7 @@ cloud_provider:
 			//TODO: use a real StateBuilder and test mockBlobstore.Add & mockAgentClient.CompilePackage
 
 			gomock.InOrder(
-				mockCloud.EXPECT().CreateStemcell(stemcellImagePath, stemcellCloudProperties).Return(stemcellCID, nil),
+				mockCloud.EXPECT().CreateStemcell("fake-stemcell-extracted-dir/image", stemcellCloudProperties).Return(stemcellCID, nil),
 				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(vmCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(vmCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),

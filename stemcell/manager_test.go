@@ -14,7 +14,7 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 
 	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
-	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/fakes"
+	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
@@ -50,14 +50,14 @@ var _ = Describe("Manager", func() {
 
 		expectedExtractedStemcell = NewExtractedStemcell(
 			Manifest{
-				Name:      "fake-stemcell-name",
-				Version:   "fake-stemcell-version",
-				ImagePath: "fake-image-path",
+				Name:    "fake-stemcell-name",
+				Version: "fake-stemcell-version",
 				CloudProperties: biproperty.Map{
 					"fake-prop-key": "fake-prop-value",
 				},
 			},
 			tempExtractionDir,
+			nil,
 			fs,
 		)
 		reader.SetReadBehavior(stemcellTarballPath, tempExtractionDir, expectedExtractedStemcell, nil)
@@ -85,7 +85,7 @@ var _ = Describe("Manager", func() {
 
 			Expect(fakeCloud.CreateStemcellInputs).To(Equal([]fakebicloud.CreateStemcellInput{
 				{
-					ImagePath: "fake-image-path",
+					ImagePath: tempExtractionDir + "/image",
 					CloudProperties: biproperty.Map{
 						"fake-prop-key": "fake-prop-value",
 					},

@@ -2,11 +2,10 @@ package resource
 
 import (
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
-
-	gopath "path"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -71,7 +70,7 @@ func (f FingerprinterImpl) fingerprintPath(file File) (string, error) {
 	var result string
 
 	if file.UseBasename {
-		result += gopath.Base(file.Path)
+		result += filepath.Base(file.Path)
 	} else {
 		result += file.RelativePath
 	}

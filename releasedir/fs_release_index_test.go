@@ -2,6 +2,7 @@ package releasedir_test
 
 import (
 	"errors"
+	"path/filepath"
 	"strings"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -28,7 +29,7 @@ var _ = Describe("FSReleaseIndex", func() {
 		reporter = &fakereldir.FakeReleaseIndexReporter{}
 		uuidGen = &fakeuuid.FakeGenerator{}
 		fs = fakesys.NewFakeFileSystem()
-		index = NewFSReleaseIndex("index-name", "/dir", reporter, uuidGen, fs)
+		index = NewFSReleaseIndex("index-name", filepath.Join("/", "dir"), reporter, uuidGen, fs)
 	})
 
 	Describe("LastVersion", func() {
@@ -39,7 +40,7 @@ var _ = Describe("FSReleaseIndex", func() {
 		})
 
 		It("returns nil when index file is empty", func() {
-			fs.WriteFileString("/dir/name/index.yml", "")
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), "")
 
 			ver, err := index.LastVersion("name")
 			Expect(err).ToNot(HaveOccurred())
@@ -47,7 +48,7 @@ var _ = Describe("FSReleaseIndex", func() {
 		})
 
 		It("returns greater version", func() {
-			fs.WriteFileString("/dir/name/index.yml", `---
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), `---
 builds:
   uuid1: {version: "1.1"}
   uuid2: {version: "1"}
@@ -59,7 +60,7 @@ format-version: "2"`)
 		})
 
 		It("returns error if version cannot be parsed", func() {
-			fs.WriteFileString("/dir/name/index.yml", `---
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), `---
 builds:
   uuid2: {version: "-"}
 format-version: "2"`)
@@ -76,7 +77,7 @@ format-version: "2"`)
 		})
 
 		It("returns error if index file cannot be unmarshalled", func() {
-			fs.WriteFileString("/dir/name/index.yml", "-")
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), "-")
 
 			_, err := index.LastVersion("name")
 			Expect(err).To(HaveOccurred())
@@ -84,7 +85,7 @@ format-version: "2"`)
 		})
 
 		It("returns error if reading index file fails", func() {
-			fs.WriteFileString("/dir/name/index.yml", "")
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), "")
 			fs.ReadFileError = errors.New("fake-err")
 
 			_, err := index.LastVersion("name")
@@ -111,7 +112,7 @@ format-version: "2"`)
 		})
 
 		It("returns false when index file is empty", func() {
-			fs.WriteFileString("/dir/name/index.yml", "")
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), "")
 
 			exists, err := index.Contains(release)
 			Expect(err).ToNot(HaveOccurred())
@@ -119,7 +120,7 @@ format-version: "2"`)
 		})
 
 		It("returns true if version is exists", func() {
-			fs.WriteFileString("/dir/name/index.yml", `---
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), `---
 builds:
   uuid1: {version: "1.1"}
   uuid2: {version: "ver1"}
@@ -131,7 +132,7 @@ format-version: "2"`)
 		})
 
 		It("returns false if version is not exists", func() {
-			fs.WriteFileString("/dir/name/index.yml", `---
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), `---
 builds:
   uuid1: {version: "1.1"}
 format-version: "2"`)
@@ -158,7 +159,7 @@ format-version: "2"`)
 		})
 
 		It("returns error if index file cannot be unmarshalled", func() {
-			fs.WriteFileString("/dir/name/index.yml", "-")
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), "-")
 
 			_, err := index.Contains(release)
 			Expect(err).To(HaveOccurred())
@@ -166,7 +167,7 @@ format-version: "2"`)
 		})
 
 		It("returns error if reading index file fails", func() {
-			fs.WriteFileString("/dir/name/index.yml", "")
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), "")
 			fs.ReadFileError = errors.New("fake-err")
 
 			_, err := index.Contains(release)
@@ -190,13 +191,13 @@ format-version: "2"`)
 			err := index.Add(manifest)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fs.ReadFileString("/dir/name/name-ver1.yml")).To(Equal(`name: name
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "name", "name-ver1.yml"))).To(Equal(`name: name
 version: ver1
 commit_hash: ""
 uncommitted_changes: false
 `))
 
-			Expect(fs.ReadFileString("/dir/name/index.yml")).To(Equal(`builds:
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "name", "index.yml"))).To(Equal(`builds:
   new-uuid:
     version: ver1
 format-version: "2"
@@ -209,7 +210,7 @@ format-version: "2"
 		})
 
 		It("saves manifest and adds version entry", func() {
-			fs.WriteFileString("/dir/name/index.yml", `---
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), `---
 builds:
   uuid: {version: "1.1"}
 format-version: "2"
@@ -218,13 +219,13 @@ format-version: "2"
 			err := index.Add(manifest)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fs.ReadFileString("/dir/name/name-ver1.yml")).To(Equal(`name: name
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "name", "name-ver1.yml"))).To(Equal(`name: name
 version: ver1
 commit_hash: ""
 uncommitted_changes: false
 `))
 
-			Expect(fs.ReadFileString("/dir/name/index.yml")).To(Equal(`builds:
+			Expect(fs.ReadFileString(filepath.Join("/", "dir", "name", "index.yml"))).To(Equal(`builds:
   new-uuid:
     version: ver1
   uuid:
@@ -239,7 +240,7 @@ format-version: "2"
 		})
 
 		It("returns and reports error if writing manifest fails", func() {
-			fs.WriteFileErrors["/dir/name/name-ver1.yml"] = errors.New("fake-err")
+			fs.WriteFileErrors[filepath.Join("/", "dir", "name", "name-ver1.yml")] = errors.New("fake-err")
 
 			err := index.Add(manifest)
 			Expect(err).To(HaveOccurred())
@@ -251,7 +252,7 @@ format-version: "2"
 		})
 
 		It("returns and reports error if writing index fails", func() {
-			fs.WriteFileErrors["/dir/name/index.yml"] = errors.New("fake-err")
+			fs.WriteFileErrors[filepath.Join("/", "dir", "name", "index.yml")] = errors.New("fake-err")
 
 			err := index.Add(manifest)
 			Expect(err).To(HaveOccurred())
@@ -271,7 +272,7 @@ format-version: "2"
 		})
 
 		It("returns error if version is exists", func() {
-			fs.WriteFileString("/dir/name/index.yml", `---
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), `---
 builds:
   uuid1: {version: "1.1"}
   uuid2: {version: "ver1"}
@@ -299,7 +300,7 @@ format-version: "2"`)
 		})
 
 		It("returns error if index file cannot be unmarshalled", func() {
-			fs.WriteFileString("/dir/name/index.yml", "-")
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), "-")
 
 			err := index.Add(manifest)
 			Expect(err).To(HaveOccurred())
@@ -307,7 +308,7 @@ format-version: "2"`)
 		})
 
 		It("returns error if reading index file fails", func() {
-			fs.WriteFileString("/dir/name/index.yml", "")
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), "")
 			fs.ReadFileError = errors.New("fake-err")
 
 			err := index.Add(manifest)
@@ -316,7 +317,7 @@ format-version: "2"`)
 		})
 
 		It("does not reorder keys needlessly", func() {
-			fs.WriteFileString("/dir/name/index.yml", fsReleaseIndexSortingFixture)
+			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), fsReleaseIndexSortingFixture)
 
 			uuidGen.GeneratedUUID = "new-uuid"
 			manifest.Version = "new"
@@ -324,7 +325,7 @@ format-version: "2"`)
 			err := index.Add(manifest)
 			Expect(err).ToNot(HaveOccurred())
 
-			afterFirstSort, err := fs.ReadFileString("/dir/name/index.yml")
+			afterFirstSort, err := fs.ReadFileString(filepath.Join("/", "dir", "name", "index.yml"))
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(afterFirstSort).ToNot(Equal(fsReleaseIndexSortingFixture)) // sanity check
@@ -335,7 +336,7 @@ format-version: "2"`)
 			err = index.Add(manifest)
 			Expect(err).ToNot(HaveOccurred())
 
-			after, err := fs.ReadFileString("/dir/name/index.yml")
+			after, err := fs.ReadFileString(filepath.Join("/", "dir", "name", "index.yml"))
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(after).ToNot(Equal(afterFirstSort)) // sanity check
@@ -345,7 +346,7 @@ format-version: "2"`)
 
 	Describe("ManifestPath", func() {
 		It("returns path to a manifest", func() {
-			Expect(index.ManifestPath("name", "ver1")).To(Equal("/dir/name/name-ver1.yml"))
+			Expect(index.ManifestPath("name", "ver1")).To(Equal(filepath.Join("/", "dir", "name", "name-ver1.yml")))
 		})
 	})
 })

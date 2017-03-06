@@ -8,16 +8,17 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var seekCalls []interface{}
+type CallTracker struct {
+	Seeks  []interface{}
+	Closes int
+}
 
-type FakeSeekableReader struct{}
+type FakeSeekableReader struct {
+	callTracker *CallTracker
+}
 type FakeReaderCloser struct{}
 
 func (FakeSeekableReader) Read(p []byte) (n int, err error) {
-	panic("should not call")
-}
-
-func (FakeSeekableReader) Close() error {
 	panic("should not call")
 }
 
@@ -30,24 +31,29 @@ func (FakeReaderCloser) Close() error {
 }
 
 func (r FakeSeekableReader) Seek(offset int64, whence int) (int64, error) {
-	seekCalls = append(seekCalls, []interface{}{offset, whence})
+	r.callTracker.Seeks = append(r.callTracker.Seeks, []interface{}{offset, whence})
 
 	return 0, nil
 }
 
+func (r FakeSeekableReader) Close() error {
+	r.callTracker.Closes++
+
+	return nil
+}
+
 var _ = Describe("ReadCloserProxy", func() {
-	BeforeEach(func() {
-		seekCalls = make([]interface{}, 1)
-	})
 	Describe("Seek", func() {
 		Context("when reader is seekable", func() {
 			It("delegates to internal seeker", func() {
-				seekerReader := FakeSeekableReader{}
+				seekerReader := FakeSeekableReader{
+					callTracker: &CallTracker{},
+				}
 				fileReporter := NewFileReporter(&fakes.FakeUI{})
 				readCloserProxy := fileReporter.TrackUpload(0, seekerReader)
 
 				readCloserProxy.Seek(12, 42)
-				Expect(seekCalls).To(ContainElement([]interface{}{int64(12), 42}))
+				Expect(seekerReader.callTracker.Seeks).To(ContainElement([]interface{}{int64(12), 42}))
 			})
 		})
 
@@ -61,6 +67,26 @@ var _ = Describe("ReadCloserProxy", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(bytes).To(Equal(int64(0)))
 			})
+		})
+	})
+
+	Describe("Close", func() {
+		It("closes the reader, uses the ui for bar output, and prints a newline", func() {
+			fakeUI := &fakes.FakeUI{}
+			seekerReader := FakeSeekableReader{
+				callTracker: &CallTracker{},
+			}
+			fileReporter := NewFileReporter(fakeUI)
+			readCloserProxy := fileReporter.TrackUpload(0, seekerReader)
+
+			err := readCloserProxy.Close()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(seekerReader.callTracker.Closes).To(Equal(1))
+			Expect(fakeUI.Said).To(Equal([]string{
+				"\r                                                                               #",
+				"\r                                                                            # 0s",
+				"\n",
+			}))
 		})
 	})
 })

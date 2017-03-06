@@ -87,12 +87,12 @@ func (cmd Sha2ifyReleaseCmd) Run(args Sha2ifyReleaseArgs) error {
 		return err
 	}
 
-	err = cmd.mv.Move(tmpWriterPath, args.Destination)
+	err = cmd.mv.Move(tmpWriterPath, args.Destination.ExpandedPath)
 	if err != nil {
 		return err
 	}
 
-	ReleaseTables{Release: sha2release, ArchivePath: args.Destination}.Print(cmd.ui)
+	ReleaseTables{Release: sha2release, ArchivePath: args.Destination.ExpandedPath}.Print(cmd.ui)
 
 	return nil
 }
