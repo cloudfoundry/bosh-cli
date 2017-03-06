@@ -203,6 +203,112 @@ var _ = Describe("Manager", func() {
 			Expect(fakeVMRepo.UpdateCurrentCID).To(Equal("fake-vm-cid"))
 		})
 
+		Context("when current IP is specified", func() {
+			BeforeEach(func() {
+				fakeVMRepo.SetFindCurrentIPBehavior("10.10.1.3", true, nil)
+				_, _, err := fakeVMRepo.FindCurrentIP()
+				Expect(err).ToNot(HaveOccurred())
+
+				expectedNetworkInterfaces = map[string]biproperty.Map{
+					"fake-network-name": biproperty.Map{
+						"type":             "dynamic",
+						"ip":               "10.10.1.3",
+						"cloud_properties": biproperty.Map{},
+						"default":          []bideplmanifest.NetworkDefault{"dns", "gateway"},
+					},
+				}
+			})
+
+			It("creates a VM with current IP specified", func() {
+				vm, err := manager.Create(stemcell, deploymentManifest)
+				Expect(err).ToNot(HaveOccurred())
+				expectedVM := NewVM(
+					"fake-vm-cid",
+					fakeVMRepo,
+					stemcellRepo,
+					fakeDiskDeployer,
+					fakeAgentClient,
+					fakeCloud,
+					clock.NewClock(),
+					fs,
+					logger,
+				)
+				Expect(vm).To(Equal(expectedVM))
+
+				Expect(fakeCloud.CreateVMInput).To(Equal(
+					fakebicloud.CreateVMInput{
+						AgentID:            "fake-uuid-0",
+						StemcellCID:        "fake-stemcell-cid",
+						CloudProperties:    expectedCloudProperties,
+						NetworksInterfaces: expectedNetworkInterfaces,
+						Env:                expectedEnv,
+					},
+				))
+
+				for _, networkInterface := range fakeCloud.CreateVMInput.NetworksInterfaces {
+					Expect(networkInterface["ip"]).To(Equal("10.10.1.3"))
+				}
+			})
+
+		})
+
+		Context("when current IP is not specified", func() {
+			BeforeEach(func() {
+				fakeVMRepo.SetFindCurrentIPBehavior("", false, nil)
+
+				expectedNetworkInterfaces = map[string]biproperty.Map{
+					"fake-network-name": biproperty.Map{
+						"type":             "dynamic",
+						"ip":               "fake-ip",
+						"cloud_properties": biproperty.Map{},
+						"default":          []bideplmanifest.NetworkDefault{"dns", "gateway"},
+					},
+				}
+			})
+
+			It("creates a VM", func() {
+				vm, err := manager.Create(stemcell, deploymentManifest)
+				Expect(err).ToNot(HaveOccurred())
+				expectedVM := NewVM(
+					"fake-vm-cid",
+					fakeVMRepo,
+					stemcellRepo,
+					fakeDiskDeployer,
+					fakeAgentClient,
+					fakeCloud,
+					clock.NewClock(),
+					fs,
+					logger,
+				)
+				Expect(vm).To(Equal(expectedVM))
+
+				Expect(fakeCloud.CreateVMInput).To(Equal(
+					fakebicloud.CreateVMInput{
+						AgentID:            "fake-uuid-0",
+						StemcellCID:        "fake-stemcell-cid",
+						CloudProperties:    expectedCloudProperties,
+						NetworksInterfaces: expectedNetworkInterfaces,
+						Env:                expectedEnv,
+					},
+				))
+			})
+
+		})
+
+		Context("when failing to find current IP", func() {
+			BeforeEach(func() {
+				fakeVMRepo.SetFindCurrentIPBehavior("", false, errors.New("fake-error"))
+			})
+
+			It("returns an error", func() {
+				vm, err := manager.Create(stemcell, deploymentManifest)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Finding currently IP address of deployed vm"))
+				Expect(vm).To(BeNil())
+			})
+
+		})
+
 		Context("when setting vm metadata fails", func() {
 			BeforeEach(func() {
 				fakeCloud.SetVMMetadataError = errors.New("fake-set-metadata-error")
