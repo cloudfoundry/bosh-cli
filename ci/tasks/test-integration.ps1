@@ -23,7 +23,7 @@ if ((Get-Command "go.exe" -ErrorAction SilentlyContinue) -eq $null)
 }
 
 go.exe install github.com/cloudfoundry/bosh-cli/vendor/github.com/onsi/ginkgo/ginkgo
-ginkgo.exe -r -trace -skipPackage="acceptance,integration,vendor"
+ginkgo.exe -race -trace integration
 
 if ($LastExitCode -ne 0)
 {
