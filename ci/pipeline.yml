@@ -253,7 +253,7 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh.git
-      branch: develop
+      branch: master
 
   - name: bosh-cli
     type: git
