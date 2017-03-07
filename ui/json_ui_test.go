@@ -222,6 +222,42 @@ var _ = Describe("JSONUI", func() {
 			}))
 		})
 
+		It("convert non-alphanumeric to _", func() {
+			table := Table{
+				Content: "things",
+				HeaderVals: []Value{
+					ValueString{"#"},
+					ValueString{"foo"},
+					ValueString{"$"},
+				},
+
+				Rows: [][]Value{
+					{ValueString{"r1c1"}, ValueString{"r1c2"}, ValueString{"r1c3"}},
+					{ValueString{"r2c1"}, ValueString{"r2c2"}, ValueString{"r2c3"}},
+				},
+
+				Notes: []string{},
+			}
+
+			ui.PrintTable(table)
+
+			tableOutput := finalOutput()
+			Expect(tableOutput.Tables).To(HaveLen(1))
+			Expect(tableOutput.Tables[0].Content).To(Equal("things"))
+			Expect(tableOutput.Tables[0].Header).To(HaveKeyWithValue("0", "#"))
+			Expect(tableOutput.Tables[0].Header).To(HaveKeyWithValue("foo", "foo"))
+			Expect(tableOutput.Tables[0].Header).To(HaveKeyWithValue("2", "$"))
+
+			Expect(tableOutput.Tables[0].Rows).To(HaveLen(2))
+			Expect(tableOutput.Tables[0].Rows[0]).To(HaveKeyWithValue("0", "r1c1"))
+			Expect(tableOutput.Tables[0].Rows[0]).To(HaveKeyWithValue("foo", "r1c2"))
+			Expect(tableOutput.Tables[0].Rows[0]).To(HaveKeyWithValue("2", "r1c3"))
+
+			Expect(tableOutput.Tables[0].Rows[1]).To(HaveKeyWithValue("0", "r2c1"))
+			Expect(tableOutput.Tables[0].Rows[1]).To(HaveKeyWithValue("foo", "r2c2"))
+			Expect(tableOutput.Tables[0].Rows[1]).To(HaveKeyWithValue("2", "r2c3"))
+		})
+
 		It("includes in Tables when table has sections and fills in first column", func() {
 			table := Table{
 				Content: "things",

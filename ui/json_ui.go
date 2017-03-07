@@ -8,9 +8,12 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	. "github.com/cloudfoundry/bosh-cli/ui/table"
+	"strconv"
 	"strings"
 	"unicode"
 )
+
+const UNKNOWN_HEADER_MAPPING rune = '_'
 
 type jsonUI struct {
 	parent UI
@@ -68,13 +71,21 @@ func (ui *jsonUI) PrintTable(table Table) {
 	var headerVals []string
 
 	if len(table.HeaderVals) > 0 {
-		for _, val := range table.HeaderVals {
-			header[keyifyHeader(val.String())] = val.String()
+		for i, val := range table.HeaderVals {
+			keyifyHeader := keyifyHeader(val.String())
+			if keyifyHeader == string(UNKNOWN_HEADER_MAPPING) {
+				keyifyHeader = strconv.Itoa(i)
+			}
+			header[keyifyHeader] = val.String()
 			headerVals = append(headerVals, val.String())
 		}
 	} else if len(table.Header) > 0 {
-		for _, val := range table.Header {
-			header[keyifyHeader(val)] = val
+		for i, val := range table.Header {
+			keyifyHeader := keyifyHeader(val)
+			if keyifyHeader == string(UNKNOWN_HEADER_MAPPING) {
+				keyifyHeader = strconv.Itoa(i)
+			}
+			header[keyifyHeader] = val
 			headerVals = append(headerVals, val)
 		}
 	} else if len(table.AsRows()) > 0 {
@@ -136,7 +147,11 @@ func (ui *jsonUI) stringRows(header []string, vals [][]Value) []map[string]strin
 		strs := map[string]string{}
 
 		for i, v := range row {
-			strs[keyifyHeader(header[i])] = v.String()
+			keyifyHeader := keyifyHeader(header[i])
+			if keyifyHeader == string(UNKNOWN_HEADER_MAPPING) {
+				keyifyHeader = strconv.Itoa(i)
+			}
+			strs[keyifyHeader] = v.String()
 		}
 
 		result = append(result, strs)
@@ -156,11 +171,15 @@ func keyifyHeader(header string) string {
 	splittedTrimmedStrings := []string{}
 	for _, s := range splittedStrings {
 		if s != "" {
-			splittedTrimmedStrings = append(splittedTrimmedStrings, strings.Trim(s, " "))
+			splittedTrimmedStrings = append(splittedTrimmedStrings, s)
 		}
 	}
 
-	return strings.Join(splittedTrimmedStrings, "_")
+	join := strings.Join(splittedTrimmedStrings, "_")
+	if len(join) == 0 {
+		return string(UNKNOWN_HEADER_MAPPING)
+	}
+	return join
 }
 
 func cleanHeader(header string) string {
