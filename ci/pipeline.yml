@@ -70,6 +70,8 @@ jobs:
         - get: bosh-cli
           passed: [test-unit,test-integration]
           trigger: true
+        - get: bosh-agent
+          trigger: true
       - task: build-linux
         file: bosh-cli/ci/tasks/build-linux.yml
         params:
@@ -253,6 +255,12 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh.git
+      branch: master
+
+  - name: bosh-agent
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-agent.git
       branch: master
 
   - name: bosh-cli
