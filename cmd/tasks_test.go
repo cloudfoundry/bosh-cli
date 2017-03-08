@@ -116,9 +116,13 @@ var _ = Describe("TasksCmd", func() {
 			It("filters tasks based options", func() {
 				director.CurrentTasksReturns(nil, nil)
 
+				opts = TasksOpts{}
+
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(director.CurrentTasksArgsForCall(0)).To(Equal(boshdir.TasksFilter{}))
+				Expect(director.CurrentTasksArgsForCall(0)).To(Equal(boshdir.TasksFilter{
+					All: true,
+				}))
 
 				opts.All = true
 				opts.Deployment = "deployment"
