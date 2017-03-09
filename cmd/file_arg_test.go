@@ -32,7 +32,7 @@ var _ = Describe("FileArg", func() {
 				fs.ExpandPathErr = errors.New("can't expand")
 				err := arg.UnmarshalFlag("kaboom")
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("checking file path: can't expand"))
+				Expect(err.Error()).To(Equal("Checking file path: can't expand"))
 			})
 		})
 
@@ -65,7 +65,7 @@ var _ = Describe("FileArg", func() {
 
 					err := arg.UnmarshalFlag("/some/tarball/path.tgz")
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("checking file path: can't stat me!"))
+					Expect(err.Error()).To(Equal("Checking file path: can't stat me!"))
 				})
 			})
 
@@ -77,7 +77,7 @@ var _ = Describe("FileArg", func() {
 				It("rejects paths to directories", func() {
 					err := arg.UnmarshalFlag("/some/dir")
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("path must not be directory"))
+					Expect(err.Error()).To(Equal("Path must not be directory"))
 				})
 			})
 		})
