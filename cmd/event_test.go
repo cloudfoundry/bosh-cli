@@ -286,7 +286,7 @@ var _ = Describe("EventCmd", func() {
 					boshtbl.NewValueStrings([]string{"fake-key: fake-value"}),
 				}))
 			})
-			
+
 			It("shows error when present", func() {
 				event = &fakedir.FakeEvent{
 					ErrorStub: func() string {
