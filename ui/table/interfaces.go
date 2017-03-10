@@ -10,9 +10,7 @@ type Table struct {
 	Title   string
 	Content string
 
-	// Either strings or values should be provided
-	Header     []string
-	HeaderVals []Value
+	Header []string
 
 	SortBy []ColumnSort
 
@@ -23,10 +21,11 @@ type Table struct {
 	Notes []string
 
 	// Formatting
-	FillFirstColumn bool
-	BackgroundStr   string
-	BorderStr       string
-	Transpose       bool
+	HeaderFormatFunc func(string, ...interface{}) string
+	FillFirstColumn  bool
+	BackgroundStr    string
+	BorderStr        string
+	Transpose        bool
 }
 
 type Section struct {

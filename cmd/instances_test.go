@@ -183,11 +183,11 @@ var _ = Describe("InstancesCmd", func() {
 
 							Content: "instances",
 
-							HeaderVals: []boshtbl.Value{
-								boshtbl.NewValueString("Instance"),
-								boshtbl.NewValueString("Process State"),
-								boshtbl.NewValueString("AZ"),
-								boshtbl.NewValueString("IPs"),
+							Header: []string{
+								"Instance",
+								"Process State",
+								"AZ",
+								"IPs",
 							},
 
 							SortBy: []boshtbl.ColumnSort{
@@ -214,11 +214,11 @@ var _ = Describe("InstancesCmd", func() {
 
 							Content: "instances",
 
-							HeaderVals: []boshtbl.Value{
-								boshtbl.NewValueString("Instance"),
-								boshtbl.NewValueString("Process State"),
-								boshtbl.NewValueString("AZ"),
-								boshtbl.NewValueString("IPs"),
+							Header: []string{
+								"Instance",
+								"Process State",
+								"AZ",
+								"IPs",
 							},
 
 							SortBy: []boshtbl.ColumnSort{
@@ -295,11 +295,11 @@ var _ = Describe("InstancesCmd", func() {
 						Title:   "Deployment 'dep'",
 						Content: "instances",
 
-						HeaderVals: []boshtbl.Value{
-							boshtbl.NewValueString("Instance"),
-							boshtbl.NewValueString("Process State"),
-							boshtbl.NewValueString("AZ"),
-							boshtbl.NewValueString("IPs"),
+						Header: []string{
+							"Instance",
+							"Process State",
+							"AZ",
+							"IPs",
 						},
 
 						SortBy: []boshtbl.ColumnSort{
@@ -354,12 +354,12 @@ var _ = Describe("InstancesCmd", func() {
 						Title:   "Deployment 'dep'",
 						Content: "instances",
 
-						HeaderVals: []boshtbl.Value{
-							boshtbl.NewValueString("Instance"),
-							boshtbl.NewValueString("Process"),
-							boshtbl.NewValueString("Process State"),
-							boshtbl.NewValueString("AZ"),
-							boshtbl.NewValueString("IPs"),
+						Header: []string{
+							"Instance",
+							"Process",
+							"Process State",
+							"AZ",
+							"IPs",
 						},
 
 						SortBy: []boshtbl.ColumnSort{
@@ -438,20 +438,20 @@ var _ = Describe("InstancesCmd", func() {
 						Title:   "Deployment 'dep'",
 						Content: "instances",
 
-						HeaderVals: []boshtbl.Value{
-							boshtbl.NewValueString("Instance"),
-							boshtbl.NewValueString("Process State"),
-							boshtbl.NewValueString("AZ"),
-							boshtbl.NewValueString("IPs"),
-							boshtbl.NewValueString("State"),
-							boshtbl.NewValueString("VM CID"),
-							boshtbl.NewValueString("VM Type"),
-							boshtbl.NewValueString("Disk CIDs"),
-							boshtbl.NewValueString("Agent ID"),
-							boshtbl.NewValueString("Index"),
-							boshtbl.NewValueString("Resurrection\nPaused"),
-							boshtbl.NewValueString("Bootstrap"),
-							boshtbl.NewValueString("Ignore"),
+						Header: []string{
+							"Instance",
+							"Process State",
+							"AZ",
+							"IPs",
+							"State",
+							"VM CID",
+							"VM Type",
+							"Disk CIDs",
+							"Agent ID",
+							"Index",
+							"Resurrection\nPaused",
+							"Bootstrap",
+							"Ignore",
 						},
 
 						SortBy: []boshtbl.ColumnSort{
@@ -533,12 +533,12 @@ var _ = Describe("InstancesCmd", func() {
 						Title:   "Deployment 'dep'",
 						Content: "instances",
 
-						HeaderVals: []boshtbl.Value{
-							boshtbl.NewValueString("Instance"),
-							boshtbl.NewValueString("Process State"),
-							boshtbl.NewValueString("AZ"),
-							boshtbl.NewValueString("IPs"),
-							boshtbl.NewValueString("DNS A Records"),
+						Header: []string{
+							"Instance",
+							"Process State",
+							"AZ",
+							"IPs",
+							"DNS A Records",
 						},
 
 						SortBy: []boshtbl.ColumnSort{
@@ -597,23 +597,23 @@ var _ = Describe("InstancesCmd", func() {
 						Title:   "Deployment 'dep'",
 						Content: "instances",
 
-						HeaderVals: []boshtbl.Value{
-							boshtbl.NewValueString("Instance"),
-							boshtbl.NewValueString("Process"),
-							boshtbl.NewValueString("Process State"),
-							boshtbl.NewValueString("AZ"),
-							boshtbl.NewValueString("IPs"),
-							boshtbl.NewValueString("Uptime"),
-							boshtbl.NewValueString("Load\n(1m, 5m, 15m)"),
-							boshtbl.NewValueString("CPU\nTotal"),
-							boshtbl.NewValueString("CPU\nUser"),
-							boshtbl.NewValueString("CPU\nSys"),
-							boshtbl.NewValueString("CPU\nWait"),
-							boshtbl.NewValueString("Memory\nUsage"),
-							boshtbl.NewValueString("Swap\nUsage"),
-							boshtbl.NewValueString("System\nDisk Usage"),
-							boshtbl.NewValueString("Ephemeral\nDisk Usage"),
-							boshtbl.NewValueString("Persistent\nDisk Usage"),
+						Header: []string{
+							"Instance",
+							"Process",
+							"Process State",
+							"AZ",
+							"IPs",
+							"Uptime",
+							"Load\n(1m, 5m, 15m)",
+							"CPU\nTotal",
+							"CPU\nUser",
+							"CPU\nSys",
+							"CPU\nWait",
+							"Memory\nUsage",
+							"Swap\nUsage",
+							"System\nDisk Usage",
+							"Ephemeral\nDisk Usage",
+							"Persistent\nDisk Usage",
 						},
 
 						SortBy: []boshtbl.ColumnSort{
@@ -762,11 +762,11 @@ var _ = Describe("InstancesCmd", func() {
 						Title:   "Deployment 'dep'",
 						Content: "instances",
 
-						HeaderVals: []boshtbl.Value{
-							boshtbl.NewValueString("Instance"),
-							boshtbl.NewValueString("Process State"),
-							boshtbl.NewValueString("AZ"),
-							boshtbl.NewValueString("IPs"),
+						Header: []string{
+							"Instance",
+							"Process State",
+							"AZ",
+							"IPs",
 						},
 
 						SortBy: []boshtbl.ColumnSort{
@@ -818,12 +818,12 @@ var _ = Describe("InstancesCmd", func() {
 						Title:   "Deployment 'dep'",
 						Content: "instances",
 
-						HeaderVals: []boshtbl.Value{
-							boshtbl.NewValueString("Instance"),
-							boshtbl.NewValueString("Process"),
-							boshtbl.NewValueString("Process State"),
-							boshtbl.NewValueString("AZ"),
-							boshtbl.NewValueString("IPs"),
+						Header: []string{
+							"Instance",
+							"Process",
+							"Process State",
+							"AZ",
+							"IPs",
 						},
 
 						SortBy: []boshtbl.ColumnSort{

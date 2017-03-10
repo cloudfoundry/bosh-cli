@@ -72,33 +72,6 @@ note2
 `))
 		})
 
-		It("prints a table with header if HeaderVals is specified", func() {
-			table := Table{
-				Content:    "things",
-				HeaderVals: []Value{ValueString{"Header1"}, ValueString{"Header2"}},
-
-				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
-				},
-
-				Notes:         []string{"note1", "note2"},
-				BackgroundStr: ".",
-				BorderStr:     "|",
-			}
-			table.Print(buf)
-			Expect("\n" + buf.String()).To(Equal(`
-Header1|Header2|
-r1c1...|r1c2...|
-r2c1...|r2c2...|
-
-note1
-note2
-
-2 things
-`))
-		})
-
 		It("prints a table sorted based on SortBy", func() {
 			table := Table{
 				SortBy: []ColumnSort{{Column: 1}, {Column: 0, Asc: true}},
@@ -124,7 +97,7 @@ a|-1.|
 `))
 		})
 
-		It("prints a table without a header if Header or HeaderVals are not specified", func() {
+		It("prints a table without a header if Header is not specified", func() {
 			table := Table{
 				Content: "things",
 

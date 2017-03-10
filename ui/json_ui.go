@@ -70,16 +70,7 @@ func (ui *jsonUI) PrintTable(table Table) {
 	header := map[string]string{}
 	var headerVals []string
 
-	if len(table.HeaderVals) > 0 {
-		for i, val := range table.HeaderVals {
-			keyifyHeader := keyifyHeader(val.String())
-			if keyifyHeader == string(UNKNOWN_HEADER_MAPPING) {
-				keyifyHeader = strconv.Itoa(i)
-			}
-			header[keyifyHeader] = val.String()
-			headerVals = append(headerVals, val.String())
-		}
-	} else if len(table.Header) > 0 {
+	if len(table.Header) > 0 {
 		for i, val := range table.Header {
 			keyifyHeader := keyifyHeader(val)
 			if keyifyHeader == string(UNKNOWN_HEADER_MAPPING) {

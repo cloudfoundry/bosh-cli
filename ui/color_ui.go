@@ -47,18 +47,7 @@ func (ui *ColorUI) PrintErrorBlock(block string) {
 }
 
 func (ui *ColorUI) PrintTable(table Table) {
-	if len(table.HeaderVals) > 0 {
-		for i, hv := range table.HeaderVals {
-			table.HeaderVals[i] = ValueFmt{V: hv, Func: ui.boldFunc}
-		}
-	} else if len(table.Header) > 0 {
-		for _, h := range table.Header {
-			table.HeaderVals = append(table.HeaderVals, ValueFmt{
-				V:    ValueString{h},
-				Func: ui.boldFunc,
-			})
-		}
-	}
+	table.HeaderFormatFunc = ui.boldFunc
 
 	for k, s := range table.Sections {
 		for i, r := range s.Rows {

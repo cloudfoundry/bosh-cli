@@ -27,7 +27,6 @@ func (ui *NonTTYUI) PrintTable(table Table) {
 	// hide decorations
 	table.Title = ""
 	table.Header = nil
-	table.HeaderVals = nil
 	table.Notes = nil
 	table.Content = ""
 

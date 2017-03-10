@@ -85,15 +85,8 @@ func (t Table) Print(w io.Writer) error {
 
 	if t.Transpose {
 		var newRows [][]Value
-		var headerVals []Value
 
-		if len(t.HeaderVals) > 0 {
-			headerVals = t.HeaderVals
-		} else if len(t.Header) > 0 {
-			for _, h := range t.Header {
-				headerVals = append(headerVals, ValueString{h})
-			}
-		}
+		headerVals := buildHeaderVals(t)
 
 		for _, row := range t.Rows {
 			for i, val := range row {
@@ -103,14 +96,8 @@ func (t Table) Print(w io.Writer) error {
 
 		t.Rows = newRows
 	} else {
-		if len(t.HeaderVals) > 0 {
-			writer.Write(t.HeaderVals)
-		} else if len(t.Header) > 0 {
-			var headerVals []Value
-			for _, h := range t.Header {
-				headerVals = append(headerVals, ValueString{h})
-			}
-			writer.Write(headerVals)
+		if len(t.Header) > 0 {
+			writer.Write(buildHeaderVals(t))
 		}
 	}
 
@@ -126,6 +113,20 @@ func (t Table) Print(w io.Writer) error {
 	}
 
 	return t.printFooter(w, len(rows))
+}
+
+func buildHeaderVals(t Table) []Value {
+	var headerVals []Value
+
+	if len(t.Header) > 0 {
+		for _, h := range t.Header {
+			headerVals = append(headerVals, ValueFmt{
+				V:    ValueString{h},
+				Func: t.HeaderFormatFunc,
+			})
+		}
+	}
+	return headerVals
 }
 
 func (t Table) printHeader(w io.Writer) error {
@@ -154,7 +155,7 @@ func (t Table) printFooter(w io.Writer, num int) error {
 		}
 	}
 
-	if len(t.Header) > 0 || len(t.HeaderVals) > 0 {
+	if len(t.Header) > 0 {
 		_, err := fmt.Fprintf(w, "\n%d %s\n", num, t.Content)
 		if err != nil {
 			return err

@@ -181,12 +181,12 @@ var _ = Describe("JSONUI", func() {
 			}))
 		})
 
-		It("includes HeaderVals in Tables", func() {
+		It("includes Headers in Tables", func() {
 			table := Table{
 				Content: "things",
-				HeaderVals: []Value{
-					ValueString{"Header1"},
-					ValueString{"Header2"},
+				Header: []string{
+					"Header1",
+					"Header2",
 				},
 
 				Rows: [][]Value{
@@ -225,10 +225,10 @@ var _ = Describe("JSONUI", func() {
 		It("convert non-alphanumeric to _", func() {
 			table := Table{
 				Content: "things",
-				HeaderVals: []Value{
-					ValueString{"#"},
-					ValueString{"foo"},
-					ValueString{"$"},
+				Header: []string{
+					"#",
+					"foo",
+					"$",
 				},
 
 				Rows: [][]Value{
