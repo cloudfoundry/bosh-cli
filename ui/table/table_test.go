@@ -431,5 +431,30 @@ Header1|Header2|
 0 content
 `))
 		})
+
+		Context("table has Transpose:true", func() {
+			It("prints as transposed table", func() {
+				table := Table{
+					Content: "content",
+					Header:  []string{"Header1", "OtherHeader2"},
+					Rows: [][]Value{
+						{ValueString{"r1c1"}, ValueString{"longr1c2"}},
+						{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					},
+					BackgroundStr: ".",
+					BorderStr:     "|",
+					Transpose:     true,
+				}
+				table.Print(buf)
+				Expect("\n" + buf.String()).To(Equal(`
+Header1.....|r1c1....|
+OtherHeader2|longr1c2|
+Header1.....|r2c1....|
+OtherHeader2|r2c2....|
+
+4 content
+`))
+			})
+		})
 	})
 })
