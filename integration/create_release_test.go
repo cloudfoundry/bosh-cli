@@ -240,7 +240,7 @@ license:
 			Expect(fs.MkdirAll(directoryPath, os.ModeDir)).To(Succeed())
 			_, err := cmdFactory.New([]string{"create-release", "--dir", tmpDir, "--tarball", directoryPath})
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("path must not be directory"))
+			Expect(err.Error()).To(ContainSubstring("Path must not be directory"))
 		}
 
 		{ // removes unknown blobs, keeping known blobs

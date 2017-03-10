@@ -83,14 +83,35 @@ func (t Table) Print(w io.Writer) error {
 
 	writer := NewWriter(w, "-", t.BackgroundStr, t.BorderStr)
 
-	if len(t.HeaderVals) > 0 {
-		writer.Write(t.HeaderVals)
-	} else if len(t.Header) > 0 {
+	if t.Transpose {
+		var newRows [][]Value
 		var headerVals []Value
-		for _, h := range t.Header {
-			headerVals = append(headerVals, ValueString{h})
+
+		if len(t.HeaderVals) > 0 {
+			headerVals = t.HeaderVals
+		} else if len(t.Header) > 0 {
+			for _, h := range t.Header {
+				headerVals = append(headerVals, ValueString{h})
+			}
 		}
-		writer.Write(headerVals)
+
+		for _, row := range t.Rows {
+			for i, val := range row {
+				newRows = append(newRows, []Value{headerVals[i], val})
+			}
+		}
+
+		t.Rows = newRows
+	} else {
+		if len(t.HeaderVals) > 0 {
+			writer.Write(t.HeaderVals)
+		} else if len(t.Header) > 0 {
+			var headerVals []Value
+			for _, h := range t.Header {
+				headerVals = append(headerVals, ValueString{h})
+			}
+			writer.Write(headerVals)
+		}
 	}
 
 	rows := t.AsRows()

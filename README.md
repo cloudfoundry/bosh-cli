@@ -15,8 +15,7 @@
 **Mac OS X** (using [Homebrew](http://brew.sh/) via the [cloudfoundry tap](https://github.com/cloudfoundry/homebrew-tap)):
 
 ```sh
-$ brew tap cloudfoundry/tap
-$ brew install bosh-cli
+$ brew install cloudfoundry/tap/bosh-cli
 ```
 
 ## Client Library

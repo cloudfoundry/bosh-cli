@@ -8,6 +8,15 @@ jobs:
       - task: test-unit
         file: bosh-cli/ci/tasks/test-unit.yml
 
+  - name: test-unit-windows
+    public: true
+    plan:
+      - get: bosh-cli
+        trigger: true
+      - task: test-unit
+        file: bosh-cli/ci/tasks/test-unit-windows.yml
+        tags: ["vsphere-windows-worker"]
+
   - name: test-integration
     public: true
     plan:
@@ -16,6 +25,16 @@ jobs:
       - task: test-integration
         file: bosh-cli/ci/tasks/test-integration.yml
         privileged: true
+
+  - name: test-integration-windows
+    public: true
+    plan:
+      - get: bosh-cli
+        trigger: true
+      - task: test-integration
+        file: bosh-cli/ci/tasks/test-integration-windows.yml
+        privileged: true
+        tags: ["vsphere-windows-worker"]
 
   - name: test-acceptance
     public: true
@@ -50,6 +69,8 @@ jobs:
           params: {bump: patch}
         - get: bosh-cli
           passed: [test-unit,test-integration]
+          trigger: true
+        - get: bosh-agent
           trigger: true
       - task: build-linux
         file: bosh-cli/ci/tasks/build-linux.yml
@@ -234,7 +255,13 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh.git
-      branch: develop
+      branch: master
+
+  - name: bosh-agent
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-agent.git
+      branch: master
 
   - name: bosh-cli
     type: git

@@ -26,8 +26,8 @@ var _ = Describe("JSONUI", func() {
 
 	type tableResp struct {
 		Content string
-		Header  []string
-		Rows    [][]string
+		Header  map[string]string
+		Rows    []map[string]string
 		Notes   []string
 	}
 
@@ -111,10 +111,10 @@ var _ = Describe("JSONUI", func() {
 	})
 
 	Describe("PrintTable", func() {
-		It("includes in Tables", func() {
+		It("includes table response in Tables", func() {
 			table := Table{
 				Content: "things",
-				Header:  []string{"Header1", "Header2"},
+				Header:  []string{"Header & ( foo )  1 ", "Header-2 header 3"},
 
 				Rows: [][]Value{
 					{ValueString{"r1c1"}, ValueString{"r1c2"}},
@@ -135,12 +135,47 @@ var _ = Describe("JSONUI", func() {
 				Tables: []tableResp{
 					{
 						Content: "things",
-						Header:  []string{"Header1", "Header2"},
-						Rows:    [][]string{{"r1c1", "r1c2"}, {"r2c1", "r2c2"}},
-						Notes:   []string{"note1", "note2"},
+						Header:  map[string]string{"header_foo_1": "Header & ( foo )  1 ", "header_2_header_3": "Header-2 header 3"},
+						Rows: []map[string]string{
+							{"header_foo_1": "r1c1", "header_2_header_3": "r1c2"},
+							{"header_foo_1": "r2c1", "header_2_header_3": "r2c2"},
+						},
+						Notes: []string{"note1", "note2"},
 					},
 					{
 						Content: "things2",
+						Header:  map[string]string{},
+						Rows:    []map[string]string{},
+					},
+				},
+			}))
+		})
+
+		It("generates header keys for tables with row content and no header content", func() {
+			table := Table{
+				Content: "things",
+				Header:  []string{},
+
+				Rows: [][]Value{
+					{ValueString{"r1c1"}, ValueString{"r1c2"}},
+					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+				},
+
+				Notes: []string{"note1", "note2"},
+			}
+
+			ui.PrintTable(table)
+
+			Expect(finalOutput()).To(Equal(uiResp{
+				Tables: []tableResp{
+					{
+						Content: "things",
+						Header:  map[string]string{"col_0": "", "col_1": ""},
+						Rows: []map[string]string{
+							{"col_0": "r1c1", "col_1": "r1c2"},
+							{"col_0": "r2c1", "col_1": "r2c2"},
+						},
+						Notes: []string{"note1", "note2"},
 					},
 				},
 			}))
@@ -173,15 +208,54 @@ var _ = Describe("JSONUI", func() {
 				Tables: []tableResp{
 					{
 						Content: "things",
-						Header:  []string{"Header1", "Header2"},
-						Rows:    [][]string{{"r1c1", "r1c2"}, {"r2c1", "r2c2"}},
-						Notes:   []string{"note1", "note2"},
+						Header:  map[string]string{"header1": "Header1", "header2": "Header2"},
+						Rows: []map[string]string{{"header1": "r1c1", "header2": "r1c2"},
+							{"header1": "r2c1", "header2": "r2c2"}},
+						Notes: []string{"note1", "note2"},
 					},
 					{
 						Content: "things2",
+						Header:  map[string]string{},
+						Rows:    []map[string]string{},
 					},
 				},
 			}))
+		})
+
+		It("convert non-alphanumeric to _", func() {
+			table := Table{
+				Content: "things",
+				HeaderVals: []Value{
+					ValueString{"#"},
+					ValueString{"foo"},
+					ValueString{"$"},
+				},
+
+				Rows: [][]Value{
+					{ValueString{"r1c1"}, ValueString{"r1c2"}, ValueString{"r1c3"}},
+					{ValueString{"r2c1"}, ValueString{"r2c2"}, ValueString{"r2c3"}},
+				},
+
+				Notes: []string{},
+			}
+
+			ui.PrintTable(table)
+
+			tableOutput := finalOutput()
+			Expect(tableOutput.Tables).To(HaveLen(1))
+			Expect(tableOutput.Tables[0].Content).To(Equal("things"))
+			Expect(tableOutput.Tables[0].Header).To(HaveKeyWithValue("0", "#"))
+			Expect(tableOutput.Tables[0].Header).To(HaveKeyWithValue("foo", "foo"))
+			Expect(tableOutput.Tables[0].Header).To(HaveKeyWithValue("2", "$"))
+
+			Expect(tableOutput.Tables[0].Rows).To(HaveLen(2))
+			Expect(tableOutput.Tables[0].Rows[0]).To(HaveKeyWithValue("0", "r1c1"))
+			Expect(tableOutput.Tables[0].Rows[0]).To(HaveKeyWithValue("foo", "r1c2"))
+			Expect(tableOutput.Tables[0].Rows[0]).To(HaveKeyWithValue("2", "r1c3"))
+
+			Expect(tableOutput.Tables[0].Rows[1]).To(HaveKeyWithValue("0", "r2c1"))
+			Expect(tableOutput.Tables[0].Rows[1]).To(HaveKeyWithValue("foo", "r2c2"))
+			Expect(tableOutput.Tables[0].Rows[1]).To(HaveKeyWithValue("2", "r2c3"))
 		})
 
 		It("includes in Tables when table has sections and fills in first column", func() {
@@ -208,11 +282,9 @@ var _ = Describe("JSONUI", func() {
 				Tables: []tableResp{
 					{
 						Content: "things",
-						Header:  []string{"Header1", "Header2"},
-						Rows: [][]string{
-							{"first-col", "r1c2"},
-							{"first-col", "r2c2"},
-						},
+						Header:  map[string]string{"header1": "Header1", "header2": "Header2"},
+						Rows: []map[string]string{{"header1": "first-col", "header2": "r1c2"},
+							{"header1": "first-col", "header2": "r2c2"}},
 						Notes: []string{"note1", "note2"},
 					},
 				},

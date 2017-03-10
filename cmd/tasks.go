@@ -24,6 +24,8 @@ func (c TasksCmd) Run(opts TasksOpts) error {
 	if opts.Recent != nil {
 		return c.printTable(c.director.RecentTasks(*opts.Recent, filter))
 	}
+
+	filter.All = true
 	return c.printTable(c.director.CurrentTasks(filter))
 }
 
