@@ -430,4 +430,31 @@ OtherHeader2|r2c2....|
 			})
 		})
 	})
+
+	Describe("AddColumn", func() {
+		It("returns an updated table with the new column", func() {
+			table := Table{
+				Content: "content",
+				Header:  []string{"Header1", "Header2"},
+				Rows: [][]Value{
+					{ValueString{"r1c1"}, ValueString{"r1c2"}},
+					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+				},
+				BackgroundStr: ".",
+				BorderStr:     "|",
+			}
+
+			newTable := table.AddColumn("Header3", []Value{ValueString{"r1c3"}, ValueString{"r2c3"}})
+			Expect(newTable).To(Equal(Table{
+				Content: "content",
+				Header:  []string{"Header1", "Header2", "Header3"},
+				Rows: [][]Value{
+					{ValueString{"r1c1"}, ValueString{"r1c2"}, ValueString{"r1c3"}},
+					{ValueString{"r2c1"}, ValueString{"r2c2"}, ValueString{"r2c3"}},
+				},
+				BackgroundStr: ".",
+				BorderStr:     "|",
+			}))
+		})
+	})
 })

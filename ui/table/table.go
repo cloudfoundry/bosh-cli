@@ -115,6 +115,17 @@ func (t Table) Print(w io.Writer) error {
 	return t.printFooter(w, len(rows))
 }
 
+func (t Table) AddColumn(header string, values []Value) Table {
+	t.Header = append(t.Header, header)
+
+	for i, row := range t.Rows {
+		row = append(row, values[i])
+		t.Rows[i] = row
+	}
+
+	return t
+}
+
 func buildHeaderVals(t Table) []Value {
 	var headerVals []Value
 

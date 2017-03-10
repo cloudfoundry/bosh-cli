@@ -29,6 +29,17 @@ var _ = Describe("EventCmd", func() {
 	})
 
 	Describe("Run", func() {
+		It("outputs a table that should be transposed", func() {
+			event = &fakedir.FakeEvent{}
+
+			director.EventReturns(event, nil)
+
+			err := command.Run(opts)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(ui.Table.Transpose).To(Equal(true))
+		})
+
 		Context("when no optional values are present in event", func() {
 			It("shows minimal information about event", func() {
 				event = &fakedir.FakeEvent{
@@ -52,22 +63,17 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(BeEmpty())
+				Expect(ui.Table.Header).To(Equal([]string{
+					"ID",
+					"Time",
+					"Action",
+					"Object Type",
+				}))
 				Expect(ui.Table.Rows).To(Equal([][]boshtbl.Value{
 					{
-						boshtbl.NewValueString("ID"),
 						boshtbl.NewValueString("4"),
-					},
-					{
-						boshtbl.NewValueString("Time"),
 						boshtbl.NewValueTime(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)),
-					},
-					{
-						boshtbl.NewValueString("Action"),
 						boshtbl.NewValueString("action"),
-					},
-					{
-						boshtbl.NewValueString("Object Type"),
 						boshtbl.NewValueString("object-type"),
 					},
 				}))
@@ -122,50 +128,31 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(BeEmpty())
+				Expect(ui.Table.Header).To(Equal([]string{
+					"ID",
+					"Time",
+					"User",
+					"Action",
+					"Object Type",
+					"Object ID",
+					"Task ID",
+					"Deployment",
+					"Instance",
+					"Context",
+					"Error",
+				}))
 				Expect(ui.Table.Rows).To(Equal([][]boshtbl.Value{
 					{
-						boshtbl.NewValueString("ID"),
 						boshtbl.NewValueString("4 <- 1"),
-					},
-					{
-						boshtbl.NewValueString("Time"),
 						boshtbl.NewValueTime(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)),
-					},
-					{
-						boshtbl.NewValueString("User"),
 						boshtbl.NewValueString("user"),
-					},
-					{
-						boshtbl.NewValueString("Action"),
 						boshtbl.NewValueString("action"),
-					},
-					{
-						boshtbl.NewValueString("Object Type"),
 						boshtbl.NewValueString("object-type"),
-					},
-					{
-						boshtbl.NewValueString("Object ID"),
 						boshtbl.NewValueString("object-name"),
-					},
-					{
-						boshtbl.NewValueString("Task ID"),
 						boshtbl.NewValueString("task"),
-					},
-					{
-						boshtbl.NewValueString("Deployment"),
 						boshtbl.NewValueString("deployment"),
-					},
-					{
-						boshtbl.NewValueString("Instance"),
 						boshtbl.NewValueString("instance"),
-					},
-					{
-						boshtbl.NewValueString("Context"),
 						boshtbl.NewValueStrings([]string{"test_variable: test_value", "user: bosh_z$"}),
-					},
-					{
-						boshtbl.NewValueString("Error"),
 						boshtbl.NewValueString("some-error"),
 					},
 				}))
@@ -185,11 +172,9 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(BeEmpty())
-				Expect(ui.Table.Rows).To(ContainElement([]boshtbl.Value{
-					boshtbl.NewValueString("User"),
-					boshtbl.NewValueString("fake-user"),
-				}))
+				Expect(ui.Table.Header).To(ContainElement("User"))
+				Expect(ui.Table.Rows).To(HaveLen(1))
+				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("fake-user")))
 			})
 
 			It("shows object name when present", func() {
@@ -204,11 +189,9 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(BeEmpty())
-				Expect(ui.Table.Rows).To(ContainElement([]boshtbl.Value{
-					boshtbl.NewValueString("Object ID"),
-					boshtbl.NewValueString("fake-object"),
-				}))
+				Expect(ui.Table.Header).To(ContainElement("Object ID"))
+				Expect(ui.Table.Rows).To(HaveLen(1))
+				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("fake-object")))
 			})
 
 			It("shows task id when present", func() {
@@ -223,11 +206,9 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(BeEmpty())
-				Expect(ui.Table.Rows).To(ContainElement([]boshtbl.Value{
-					boshtbl.NewValueString("Task ID"),
-					boshtbl.NewValueString("fake-task"),
-				}))
+				Expect(ui.Table.Header).To(ContainElement("Task ID"))
+				Expect(ui.Table.Rows).To(HaveLen(1))
+				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("fake-task")))
 			})
 
 			It("shows deployment when present", func() {
@@ -242,11 +223,9 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(BeEmpty())
-				Expect(ui.Table.Rows).To(ContainElement([]boshtbl.Value{
-					boshtbl.NewValueString("Deployment"),
-					boshtbl.NewValueString("fake-deployment"),
-				}))
+				Expect(ui.Table.Header).To(ContainElement("Deployment"))
+				Expect(ui.Table.Rows).To(HaveLen(1))
+				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("fake-deployment")))
 			})
 
 			It("shows instance when present", func() {
@@ -261,11 +240,9 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(BeEmpty())
-				Expect(ui.Table.Rows).To(ContainElement([]boshtbl.Value{
-					boshtbl.NewValueString("Instance"),
-					boshtbl.NewValueString("fake-instance"),
-				}))
+				Expect(ui.Table.Header).To(ContainElement("Instance"))
+				Expect(ui.Table.Rows).To(HaveLen(1))
+				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("fake-instance")))
 			})
 
 			It("shows context when present", func() {
@@ -280,11 +257,9 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(BeEmpty())
-				Expect(ui.Table.Rows).To(ContainElement([]boshtbl.Value{
-					boshtbl.NewValueString("Context"),
-					boshtbl.NewValueStrings([]string{"fake-key: fake-value"}),
-				}))
+				Expect(ui.Table.Header).To(ContainElement("Context"))
+				Expect(ui.Table.Rows).To(HaveLen(1))
+				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueStrings([]string{"fake-key: fake-value"})))
 			})
 
 			It("shows error when present", func() {
@@ -299,11 +274,9 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(BeEmpty())
-				Expect(ui.Table.Rows).To(ContainElement([]boshtbl.Value{
-					boshtbl.NewValueString("Error"),
-					boshtbl.NewValueString("fake-error"),
-				}))
+				Expect(ui.Table.Header).To(ContainElement("Error"))
+				Expect(ui.Table.Rows).To(HaveLen(1))
+				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("fake-error")))
 			})
 		})
 	})
