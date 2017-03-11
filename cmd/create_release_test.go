@@ -83,11 +83,15 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+					Header: []string{"Name", "Version", "Commit Hash"},
 					Rows: [][]boshtbl.Value{
-						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("rel")},
-						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("ver")},
-						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
+						{
+							boshtbl.NewValueString("rel"),
+							boshtbl.NewValueString("ver"),
+							boshtbl.NewValueString("commit"),
+						},
 					},
+					Transpose: true,
 				}))
 			})
 
@@ -116,12 +120,16 @@ var _ = Describe("CreateReleaseCmd", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+						Header: []string{"Name", "Version", "Commit Hash", "Archive"},
 						Rows: [][]boshtbl.Value{
-							{boshtbl.NewValueString("Name"), boshtbl.NewValueString("rel")},
-							{boshtbl.NewValueString("Version"), boshtbl.NewValueString("ver")},
-							{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
-							{boshtbl.NewValueString("Archive"), boshtbl.NewValueString("/tarball-destination.tgz")},
+							{
+								boshtbl.NewValueString("rel"),
+								boshtbl.NewValueString("ver"),
+								boshtbl.NewValueString("commit"),
+								boshtbl.NewValueString("/tarball-destination.tgz"),
+							},
 						},
+						Transpose: true,
 					}))
 
 					Expect(fakeFS.FileExists("/temp-tarball.tgz")).To(BeFalse())
@@ -174,11 +182,15 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+					Header: []string{"Name", "Version", "Commit Hash"},
 					Rows: [][]boshtbl.Value{
-						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("default-rel-name")},
-						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("next-dev+ver")},
-						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
+						{
+							boshtbl.NewValueString("default-rel-name"),
+							boshtbl.NewValueString("next-dev+ver"),
+							boshtbl.NewValueString("commit"),
+						},
 					},
+					Transpose: true,
 				}))
 			})
 
@@ -200,11 +212,15 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+					Header: []string{"Name", "Version", "Commit Hash"},
 					Rows: [][]boshtbl.Value{
-						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("custom-name")},
-						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("custom-ver")},
-						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
+						{
+							boshtbl.NewValueString("custom-name"),
+							boshtbl.NewValueString("custom-ver"),
+							boshtbl.NewValueString("commit"),
+						},
 					},
+					Transpose: true,
 				}))
 			})
 
@@ -231,11 +247,15 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+					Header: []string{"Name", "Version", "Commit Hash"},
 					Rows: [][]boshtbl.Value{
-						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("default-rel-name")},
-						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("ts-ver")},
-						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
+						{
+							boshtbl.NewValueString("default-rel-name"),
+							boshtbl.NewValueString("ts-ver"),
+							boshtbl.NewValueString("commit"),
+						},
 					},
+					Transpose: true,
 				}))
 			})
 
@@ -265,11 +285,15 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+					Header: []string{"Name", "Version", "Commit Hash"},
 					Rows: [][]boshtbl.Value{
-						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("default-rel-name")},
-						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("next-final+ver")},
-						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
+						{
+							boshtbl.NewValueString("default-rel-name"),
+							boshtbl.NewValueString("next-final+ver"),
+							boshtbl.NewValueString("commit"),
+						},
 					},
+					Transpose: true,
 				}))
 			})
 
@@ -299,11 +323,15 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+					Header: []string{"Name", "Version", "Commit Hash"},
 					Rows: [][]boshtbl.Value{
-						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("default-rel-name")},
-						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("custom-ver")},
-						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
+						{
+							boshtbl.NewValueString("default-rel-name"),
+							boshtbl.NewValueString("custom-ver"),
+							boshtbl.NewValueString("commit"),
+						},
 					},
+					Transpose: true,
 				}))
 			})
 
@@ -333,12 +361,16 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+					Header: []string{"Name", "Version", "Commit Hash", "Archive"},
 					Rows: [][]boshtbl.Value{
-						{boshtbl.NewValueString("Name"), boshtbl.NewValueString("default-rel-name")},
-						{boshtbl.NewValueString("Version"), boshtbl.NewValueString("next-final+ver")},
-						{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
-						{boshtbl.NewValueString("Archive"), boshtbl.NewValueString("/archive-path")},
+						{
+							boshtbl.NewValueString("default-rel-name"),
+							boshtbl.NewValueString("next-final+ver"),
+							boshtbl.NewValueString("commit"),
+							boshtbl.NewValueString("/archive-path"),
+						},
 					},
+					Transpose: true,
 				}))
 
 				Expect(fakeFS.FileExists("/temp-tarball.tgz")).To(BeFalse())

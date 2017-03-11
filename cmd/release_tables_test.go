@@ -60,24 +60,16 @@ var _ = Describe("ReleaseTables", func() {
 			ReleaseTables{Release: release, ArchivePath: "/archive-path"}.Print(ui)
 
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Header: []string{"Name", "Version", "Commit Hash", "Archive"},
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.NewValueString("Name"),
 						boshtbl.NewValueString("rel"),
-					},
-					{
-						boshtbl.NewValueString("Version"),
 						boshtbl.NewValueString("ver"),
-					},
-					{
-						boshtbl.NewValueString("Commit Hash"),
 						boshtbl.NewValueString("commit"),
-					},
-					{
-						boshtbl.NewValueString("Archive"),
 						boshtbl.NewValueString("/archive-path"),
 					},
 				},
+				Transpose: true,
 			}))
 
 			Expect(ui.Tables[1]).To(Equal(boshtbl.Table{
@@ -116,20 +108,15 @@ var _ = Describe("ReleaseTables", func() {
 			ReleaseTables{Release: release}.Print(ui)
 
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Header: []string{"Name", "Version", "Commit Hash"},
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.NewValueString("Name"),
 						boshtbl.NewValueString("rel"),
-					},
-					{
-						boshtbl.NewValueString("Version"),
 						boshtbl.NewValueString("ver"),
-					},
-					{
-						boshtbl.NewValueString("Commit Hash"),
 						boshtbl.NewValueString("commit"),
 					},
 				},
+				Transpose: true,
 			}))
 		})
 	})

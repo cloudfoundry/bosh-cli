@@ -141,12 +141,16 @@ var _ = Describe("Sha2ifyRelease", func() {
 			Expect(dst).To(Equal(args.Destination.ExpandedPath))
 
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Header: []string{"Name", "Version", "Commit Hash", "Archive"},
 				Rows: [][]boshtbl.Value{
-					{boshtbl.NewValueString("Name"), boshtbl.NewValueString("custom-name")},
-					{boshtbl.NewValueString("Version"), boshtbl.NewValueString("custom-ver")},
-					{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
-					{boshtbl.NewValueString("Archive"), boshtbl.NewValueString("/some/release_256.tgz")},
+					{
+						boshtbl.NewValueString("custom-name"),
+						boshtbl.NewValueString("custom-ver"),
+						boshtbl.NewValueString("commit"),
+						boshtbl.NewValueString("/some/release_256.tgz"),
+					},
 				},
+				Transpose: true,
 			}))
 		})
 

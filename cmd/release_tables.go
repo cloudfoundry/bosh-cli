@@ -16,25 +16,19 @@ type ReleaseTables struct {
 
 func (t ReleaseTables) Print(ui boshui.UI) {
 	summaryTable := boshtbl.Table{
+		Header: []string{"Name", "Version", "Commit Hash"},
 		Rows: [][]boshtbl.Value{
 			{
-				boshtbl.NewValueString("Name"),
 				boshtbl.NewValueString(t.Release.Name()),
-			},
-			{
-				boshtbl.NewValueString("Version"),
 				boshtbl.NewValueString(t.Release.Version()),
-			},
-			{
-				boshtbl.NewValueString("Commit Hash"),
 				boshtbl.NewValueString(t.Release.CommitHashWithMark("+")),
 			},
 		},
+		Transpose: true,
 	}
 
 	if len(t.ArchivePath) > 0 {
-		summaryTable.Rows = append(summaryTable.Rows, []boshtbl.Value{
-			boshtbl.NewValueString("Archive"),
+		summaryTable = summaryTable.AddColumn("Archive", []boshtbl.Value{
 			boshtbl.NewValueString(t.ArchivePath),
 		})
 	}
