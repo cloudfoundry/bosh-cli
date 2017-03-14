@@ -429,6 +429,109 @@ OtherHeader2|r2c2....|
 `))
 			})
 		})
+
+		Context("table has ShowColumns set", func() {
+			It("prints only the given columns in order given", func() {
+				table := Table{
+					Content: "content",
+					Header:  []string{"Header1", "Header2", "Header3"},
+					Rows: [][]Value{
+						{ValueString{"r1c1"}, ValueString{"r1c2"}, ValueString{"r1c3"}},
+						{ValueString{"r2c1"}, ValueString{"r2c2"}, ValueString{"r2c3"}},
+					},
+					BackgroundStr: ".",
+					BorderStr:     "|",
+					ShowColumns: []string{
+						"Header3",
+						"Header1",
+					},
+				}
+				table.Print(buf)
+				Expect("\n" + buf.String()).To(Equal(`
+Header3|Header1|
+r1c3...|r1c1...|
+r2c3...|r2c1...|
+
+2 content
+`))
+			})
+
+			It("always obeys the SortBy value", func() {
+				table := Table{
+					Content: "content",
+					Header:  []string{"Header1", "OtherHeader2"},
+					Rows: [][]Value{
+						{ValueString{"r1c1"}, ValueString{"r1c2"}},
+						{ValueString{"r2c1"}, ValueString{"a2c2"}},
+					},
+					BackgroundStr: ".",
+					BorderStr:     "|",
+					ShowColumns: []string{
+						"Header1",
+					},
+					SortBy: []ColumnSort{
+						{
+							Column: 1,
+							Asc:    true,
+						},
+					},
+				}
+				table.Print(buf)
+				Expect("\n" + buf.String()).To(Equal(`
+Header1|
+r2c1...|
+r1c1...|
+
+2 content
+`))
+			})
+
+			Context("non-existent columns are given", func() {
+				It("panics", func() {
+					table := Table{
+						Content: "content",
+						Header:  []string{"Header1", "OtherHeader2"},
+						Rows: [][]Value{
+							{ValueString{"r1c1"}, ValueString{"r1c2"}},
+							{ValueString{"a2c1"}, ValueString{"r2c2"}},
+						},
+						BackgroundStr: ".",
+						BorderStr:     "|",
+						ShowColumns: []string{
+							"NoHeader",
+						},
+					}
+
+					Expect(func() {
+						table.Print(buf)
+					}).To(Panic())
+				})
+			})
+
+			Context("Transpose is also true", func() {
+				It("prints only the given columns but as rows", func() {
+					table := Table{
+						Content: "content",
+						Header:  []string{"Header1", "OtherHeader2"},
+						Rows: [][]Value{
+							{ValueString{"r1c1"}, ValueString{"longr1c2"}},
+							{ValueString{"r2c1"}, ValueString{"r2c2"}},
+						},
+						BackgroundStr: ".",
+						BorderStr:     "|",
+						Transpose:     true,
+						ShowColumns:   []string{"Header1"},
+					}
+					table.Print(buf)
+					Expect("\n" + buf.String()).To(Equal(`
+Header1|r1c1|
+Header1|r2c1|
+
+2 content
+`))
+				})
+			})
+		})
 	})
 
 	Describe("AddColumn", func() {

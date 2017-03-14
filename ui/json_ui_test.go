@@ -290,6 +290,95 @@ var _ = Describe("JSONUI", func() {
 				},
 			}))
 		})
+
+		Context("table has ShowColumns set", func() {
+			It("prints only the given columns in order given", func() {
+				table := Table{
+					Content: "content",
+					Header:  []string{"Header1", "Header2", "Header3"},
+					Rows: [][]Value{
+						{ValueString{"r1c1"}, ValueString{"r1c2"}, ValueString{"r1c3"}},
+						{ValueString{"r2c1"}, ValueString{"r2c2"}, ValueString{"r2c3"}},
+					},
+					BackgroundStr: ".",
+					BorderStr:     "|",
+					ShowColumns: []string{
+						"Header3",
+						"Header1",
+					},
+				}
+
+				ui.PrintTable(table)
+
+				Expect(finalOutput()).To(Equal(uiResp{
+					Tables: []tableResp{
+						{
+							Content: "content",
+							Header:  map[string]string{"header1": "Header1", "header3": "Header3"},
+							Rows: []map[string]string{{"header1": "r1c1", "header3": "r1c3"},
+								{"header1": "r2c1", "header3": "r2c3"}},
+						},
+					},
+				}))
+			})
+
+			It("always obeys the SortBy value", func() {
+				table := Table{
+					Content: "content",
+					Header:  []string{"Header1", "OtherHeader2"},
+					Rows: [][]Value{
+						{ValueString{"r1c1"}, ValueString{"r1c2"}},
+						{ValueString{"r2c1"}, ValueString{"a2c2"}},
+					},
+					BackgroundStr: ".",
+					BorderStr:     "|",
+					ShowColumns: []string{
+						"Header1",
+					},
+					SortBy: []ColumnSort{
+						{
+							Column: 1,
+							Asc:    true,
+						},
+					},
+				}
+
+				ui.PrintTable(table)
+
+				Expect(finalOutput()).To(Equal(uiResp{
+					Tables: []tableResp{
+						{
+							Content: "content",
+							Header:  map[string]string{"header1": "Header1"},
+							Rows: []map[string]string{{"header1": "r2c1"},
+								{"header1": "r1c1"}},
+						},
+					},
+				}))
+			})
+
+			Context("non-existent columns are given", func() {
+				It("panics", func() {
+					table := Table{
+						Content: "content",
+						Header:  []string{"Header1", "OtherHeader2"},
+						Rows: [][]Value{
+							{ValueString{"r1c1"}, ValueString{"r1c2"}},
+							{ValueString{"a2c1"}, ValueString{"r2c2"}},
+						},
+						BackgroundStr: ".",
+						BorderStr:     "|",
+						ShowColumns: []string{
+							"NoHeader",
+						},
+					}
+
+					Expect(func() {
+						ui.PrintTable(table)
+					}).To(Panic())
+				})
+			})
+		})
 	})
 
 	Describe("AskForText", func() {

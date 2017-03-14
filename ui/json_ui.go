@@ -67,29 +67,32 @@ func (ui *jsonUI) PrintErrorBlock(block string) {
 func (ui *jsonUI) PrintTable(table Table) {
 	table.FillFirstColumn = true
 
-	header := map[string]string{}
+	jsonHeader := map[string]string{}
 	var headerVals []string
 
-	if len(table.Header) > 0 {
-		for i, val := range table.Header {
-			keyifyHeader := keyifyHeader(val)
+	columnIndices := table.FilteredColumnOrdering()
+
+	if len(columnIndices) > 0 {
+		for position, index := range columnIndices {
+			readableHeader := table.Header[index]
+			keyifyHeader := keyifyHeader(readableHeader)
 			if keyifyHeader == string(UNKNOWN_HEADER_MAPPING) {
-				keyifyHeader = strconv.Itoa(i)
+				keyifyHeader = strconv.Itoa(position)
 			}
-			header[keyifyHeader] = val
-			headerVals = append(headerVals, val)
+			jsonHeader[keyifyHeader] = readableHeader
+			headerVals = append(headerVals, readableHeader)
 		}
 	} else if len(table.AsRows()) > 0 {
 		for i, _ := range table.AsRows()[0] {
 			s := fmt.Sprintf("col_%d", i)
-			header[s] = ""
+			jsonHeader[s] = ""
 			headerVals = append(headerVals, s)
 		}
 	}
 
 	resp := tableResp{
 		Content: table.Content,
-		Header:  header,
+		Header:  jsonHeader,
 		Rows:    ui.stringRows(headerVals, table.AsRows()),
 		Notes:   table.Notes,
 	}

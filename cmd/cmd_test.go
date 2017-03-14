@@ -66,6 +66,19 @@ var _ = Describe("Cmd", func() {
 			Expect(ui.Blocks[0]).To(ContainSubstring(`Blocks": [`))
 		})
 
+		It("allows setting columns to show on UI tables", func() {
+			cmd.BoshOpts = BoshOpts{ColumnOpt: []string{"foo"}}
+			cmd.Opts = &InterpolateOpts{}
+
+			err := cmd.Execute()
+			Expect(err).ToNot(HaveOccurred())
+
+			confUI.PrintTable(boshtbl.Table{})
+			confUI.Flush()
+
+			Expect(ui.Tables[0].ShowColumns).To(Equal([]string{"foo"}))
+		})
+
 		Describe("color", func() {
 			executeCmdAndPrintTable := func() {
 				err := cmd.Execute()

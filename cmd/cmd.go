@@ -390,6 +390,10 @@ func (c Cmd) configureUI() {
 		c.deps.UI.EnableJSON()
 	}
 
+	if len(c.BoshOpts.ColumnOpt) > 0 {
+		c.deps.UI.ShowColumns(c.BoshOpts.ColumnOpt)
+	}
+
 	if c.BoshOpts.NonInteractiveOpt {
 		c.deps.UI.EnableNonInteractive()
 	}

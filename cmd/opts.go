@@ -29,10 +29,11 @@ type BoshOpts struct {
 	DeploymentOpt string `long:"deployment" short:"d" description:"Deployment name" env:"BOSH_DEPLOYMENT"`
 
 	// Output formatting
-	JSONOpt           bool `long:"json"                      description:"Output as JSON"`
-	TTYOpt            bool `long:"tty"                       description:"Force TTY-like output"`
-	NoColorOpt        bool `long:"no-color"                  description:"Toggle colorized output"`
-	NonInteractiveOpt bool `long:"non-interactive" short:"n" description:"Don't ask for user input"`
+	ColumnOpt         []string `long:"column"                    description:"Filter to show only given column(s)"`
+	JSONOpt           bool     `long:"json"                      description:"Output as JSON"`
+	TTYOpt            bool     `long:"tty"                       description:"Force TTY-like output"`
+	NoColorOpt        bool     `long:"no-color"                  description:"Toggle colorized output"`
+	NonInteractiveOpt bool     `long:"non-interactive" short:"n" description:"Don't ask for user input"`
 
 	Help HelpOpts `command:"help" description:"Show this help message"`
 

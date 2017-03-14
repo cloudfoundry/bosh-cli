@@ -26,6 +26,7 @@ type Table struct {
 	BackgroundStr    string
 	BorderStr        string
 	Transpose        bool
+	ShowColumns      []string
 }
 
 type Section struct {

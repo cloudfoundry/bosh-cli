@@ -11,6 +11,8 @@ func (t Table) AsRows() [][]Value {
 
 	totalRows := 0
 
+	newHeaderOrdering := t.FilteredColumnOrdering()
+
 	if len(t.Sections) > 0 {
 		for _, s := range t.Sections {
 			if s.FirstColumn != nil && len(s.FirstColumn.String()) > 0 {
@@ -49,6 +51,16 @@ func (t Table) AsRows() [][]Value {
 	// Sort all rows
 	sort.Sort(Sorting{t.SortBy, rows})
 
+	if len(t.ShowColumns) > 0 {
+		for i, r := range rows {
+			newRow := []Value{}
+			for _, index := range newHeaderOrdering {
+				newRow = append(newRow, r[index])
+			}
+			rows[i] = newRow
+		}
+	}
+
 	// Dedup first column
 	if !t.FillFirstColumn {
 		var lastVal Value
@@ -83,25 +95,25 @@ func (t Table) Print(w io.Writer) error {
 
 	writer := NewWriter(w, "-", t.BackgroundStr, t.BorderStr)
 
+	rows := t.AsRows()
+
 	if t.Transpose {
 		var newRows [][]Value
 
-		headerVals := buildHeaderVals(t)
+		headerVals := t.buildHeaderVals()
 
-		for _, row := range t.Rows {
+		for _, row := range rows {
 			for i, val := range row {
 				newRows = append(newRows, []Value{headerVals[i], val})
 			}
 		}
 
-		t.Rows = newRows
+		rows = newRows
 	} else {
 		if len(t.Header) > 0 {
-			writer.Write(buildHeaderVals(t))
+			writer.Write(t.buildHeaderVals())
 		}
 	}
-
-	rows := t.AsRows()
 
 	for _, row := range rows {
 		writer.Write(row)
@@ -126,17 +138,39 @@ func (t Table) AddColumn(header string, values []Value) Table {
 	return t
 }
 
-func buildHeaderVals(t Table) []Value {
-	var headerVals []Value
-
-	if len(t.Header) > 0 {
-		for _, h := range t.Header {
-			headerVals = append(headerVals, ValueFmt{
-				V:    ValueString{h},
-				Func: t.HeaderFormatFunc,
-			})
+func (t Table) FilteredColumnOrdering() []int {
+	var resultingOrder []int
+	if len(t.ShowColumns) > 0 {
+		resultingOrder = []int{}
+	ShowColumnsIteration:
+		for _, column := range t.ShowColumns {
+			for j, header := range t.Header {
+				if header == column {
+					resultingOrder = append(resultingOrder, j)
+					continue ShowColumnsIteration
+				}
+			}
+			panic("Absent column requested in output subselection")
+		}
+	} else {
+		for i := range t.Header {
+			resultingOrder = append(resultingOrder, i)
 		}
 	}
+	return resultingOrder
+}
+
+
+func (t Table) buildHeaderVals() []Value {
+	var headerVals []Value
+
+	for _, h := range t.FilteredColumnOrdering() {
+		headerVals = append(headerVals, ValueFmt{
+			V:    ValueString{t.Header[h]},
+			Func: t.HeaderFormatFunc,
+		})
+	}
+
 	return headerVals
 }
 

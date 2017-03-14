@@ -163,6 +163,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("ColumnOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("ColumnOpt", opts)).To(Equal(
+					`long:"column" description:"Filter to show only given column(s)"`,
+				))
+			})
+		})
+
 		Describe("JSONOpt", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("JSONOpt", opts)).To(Equal(
