@@ -8,15 +8,6 @@ jobs:
       - task: test-unit
         file: bosh-cli/ci/tasks/test-unit.yml
 
-  - name: test-unit-windows
-    public: true
-    plan:
-      - get: bosh-cli
-        trigger: true
-      - task: test-unit
-        file: bosh-cli/ci/tasks/test-unit-windows.yml
-        tags: ["vsphere-windows-worker"]
-
   - name: test-integration
     public: true
     plan:
@@ -25,16 +16,6 @@ jobs:
       - task: test-integration
         file: bosh-cli/ci/tasks/test-integration.yml
         privileged: true
-
-  - name: test-integration-windows
-    public: true
-    plan:
-      - get: bosh-cli
-        trigger: true
-      - task: test-integration
-        file: bosh-cli/ci/tasks/test-integration-windows.yml
-        privileged: true
-        tags: ["vsphere-windows-worker"]
 
   - name: test-acceptance
     public: true
