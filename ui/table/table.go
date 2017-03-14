@@ -160,7 +160,6 @@ func (t Table) FilteredColumnOrdering() []int {
 	return resultingOrder
 }
 
-
 func (t Table) buildHeaderVals() []Value {
 	var headerVals []Value
 

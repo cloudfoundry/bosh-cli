@@ -29,7 +29,7 @@ func NewConfUI(logger boshlog.Logger) *ConfUI {
 func NewWrappingConfUI(parent UI, logger boshlog.Logger) *ConfUI {
 	return &ConfUI{
 		parent: parent,
-		isTTY: true,
+		isTTY:  true,
 		logger: logger,
 	}
 }
