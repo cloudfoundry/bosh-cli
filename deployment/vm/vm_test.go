@@ -219,7 +219,28 @@ var _ = Describe("VM", func() {
 		var disk *fakebidisk.FakeDisk
 
 		BeforeEach(func() {
+			fakeTime := time.Date(2016, time.November, 10, 23, 0, 0, 0, time.UTC)
+			timeService = &FakeClock{Times: []time.Time{fakeTime, time.Now(), time.Now().Add(10 * time.Minute)}}
 			disk = fakebidisk.NewFakeDisk("fake-disk-cid")
+
+			metadata := bicloud.VMMetadata{
+				"director":   "bosh-init",
+				"deployment": "some-deployment",
+				"job":        "some-job",
+				"index":      "0",
+			}
+			vm = NewVMWithMetadata(
+				"fake-vm-cid",
+				fakeVMRepo,
+				fakeStemcellRepo,
+				fakeDiskDeployer,
+				fakeAgentClient,
+				fakeCloud,
+				timeService,
+				fs,
+				logger,
+				metadata,
+			)
 		})
 
 		It("attaches disk to vm in the cloud", func() {
@@ -236,6 +257,25 @@ var _ = Describe("VM", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeAgentClient.PingCallCount()).To(Equal(1))
 			Expect(fakeAgentClient.MountDiskArgsForCall(0)).To(Equal("fake-disk-cid"))
+		})
+
+		Context("when metadata is set", func(){
+			It("sets the metadata to the disk", func() {
+				expectedDiskMetadata := bicloud.DiskMetadata{
+					"director":       "bosh-init",
+					"deployment":     "some-deployment",
+					"job":            "some-job",
+					"instance_index": "0",
+					"attached_at":    "2016-11-10T23:00:00Z",
+				}
+
+
+				err := vm.AttachDisk(disk)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeCloud.SetDiskMetadataCid).To(Equal("fake-disk-cid"))
+				Expect(fakeCloud.SetDiskMetadataMetadata).To(Equal(expectedDiskMetadata))
+			})
 		})
 
 		Context("when attaching disk to cloud fails", func() {

@@ -52,6 +52,7 @@ type vm struct {
 	fs           boshsys.FileSystem
 	logger       boshlog.Logger
 	logTag       string
+	metadata     bicloud.VMMetadata
 }
 
 func NewVM(
@@ -76,6 +77,33 @@ func NewVM(
 		fs:           fs,
 		logger:       logger,
 		logTag:       "vm",
+	}
+}
+
+func NewVMWithMetadata(
+	cid string,
+	vmRepo biconfig.VMRepo,
+	stemcellRepo biconfig.StemcellRepo,
+	diskDeployer DiskDeployer,
+	agentClient biagentclient.AgentClient,
+	cloud bicloud.Cloud,
+	timeService Clock,
+	fs boshsys.FileSystem,
+	logger boshlog.Logger,
+	metadata bicloud.VMMetadata,
+) VM {
+	return &vm{
+		cid:          cid,
+		vmRepo:       vmRepo,
+		stemcellRepo: stemcellRepo,
+		diskDeployer: diskDeployer,
+		agentClient:  agentClient,
+		cloud:        cloud,
+		timeService:  timeService,
+		fs:           fs,
+		logger:       logger,
+		logTag:       "vm",
+		metadata:     metadata,
 	}
 }
 
@@ -150,6 +178,8 @@ func (vm *vm) AttachDisk(disk bidisk.Disk) error {
 	if err != nil {
 		return bosherr.WrapError(err, "Attaching disk in the cloud")
 	}
+
+	vm.cloud.SetDiskMetadata(disk.CID(), vm.createDiskMetadata())
 
 	err = vm.WaitUntilReady(10*time.Minute, 500*time.Millisecond)
 	if err != nil {
@@ -238,4 +268,16 @@ func (vm *vm) GetState() (biagentclient.AgentState, error) {
 	}
 
 	return agentState, nil
+}
+
+func (vm *vm) createDiskMetadata() bicloud.DiskMetadata {
+	diskMetadata := bicloud.DiskMetadata{
+		"director": vm.metadata["director"],
+		"deployment": vm.metadata["deployment"],
+		"job":        vm.metadata["job"],
+		"instance_index": vm.metadata["index"],
+		"attached_at": vm.timeService.Now().Format(time.RFC3339),
+	}
+
+	return diskMetadata
 }
