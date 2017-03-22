@@ -131,6 +131,12 @@ func (_m *MockCloud) SetVMMetadata(_param0 string, _param1 cloud.VMMetadata) err
 	return ret0
 }
 
+func (_m *MockCloud) SetDiskMetadata(_param0 string, _param1 cloud.DiskMetadata) error {
+	ret := _m.ctrl.Call(_m, "SetDiskMetadata", _param0, _param1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
 func (_mr *_MockCloudRecorder) SetVMMetadata(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetVMMetadata", arg0, arg1)
 }

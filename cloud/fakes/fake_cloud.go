@@ -40,6 +40,10 @@ type FakeCloud struct {
 	SetVMMetadataCid      string
 	SetVMMetadataMetadata cloud.VMMetadata
 	SetVMMetadataError    error
+
+	SetDiskMetadataCid      string
+	SetDiskMetadataMetadata cloud.DiskMetadata
+	SetDiskMetadataError    error
 }
 
 type CreateStemcellInput struct {
@@ -139,6 +143,12 @@ func (c *FakeCloud) SetVMMetadata(cid string, metadata cloud.VMMetadata) error {
 	c.SetVMMetadataCid = cid
 	c.SetVMMetadataMetadata = metadata
 	return c.SetVMMetadataError
+}
+
+func (c *FakeCloud) SetDiskMetadata(cid string, metadata cloud.DiskMetadata) error {
+	c.SetDiskMetadataCid = cid
+	c.SetDiskMetadataMetadata = metadata
+	return c.SetDiskMetadataError
 }
 
 func (c *FakeCloud) CreateDisk(
