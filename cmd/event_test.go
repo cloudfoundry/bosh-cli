@@ -63,11 +63,11 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(Equal([]string{
-					"ID",
-					"Time",
-					"Action",
-					"Object Type",
+				Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
+					boshtbl.NewHeader("ID"),
+					boshtbl.NewHeader("Time"),
+					boshtbl.NewHeader("Action"),
+					boshtbl.NewHeader("Object Type"),
 				}))
 				Expect(ui.Table.Rows).To(Equal([][]boshtbl.Value{
 					{
@@ -128,18 +128,18 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(Equal([]string{
-					"ID",
-					"Time",
-					"User",
-					"Action",
-					"Object Type",
-					"Object ID",
-					"Task ID",
-					"Deployment",
-					"Instance",
-					"Context",
-					"Error",
+				Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
+					boshtbl.NewHeader("ID"),
+					boshtbl.NewHeader("Time"),
+					boshtbl.NewHeader("User"),
+					boshtbl.NewHeader("Action"),
+					boshtbl.NewHeader("Object Type"),
+					boshtbl.NewHeader("Object ID"),
+					boshtbl.NewHeader("Task ID"),
+					boshtbl.NewHeader("Deployment"),
+					boshtbl.NewHeader("Instance"),
+					boshtbl.NewHeader("Context"),
+					boshtbl.NewHeader("Error"),
 				}))
 				Expect(ui.Table.Rows).To(Equal([][]boshtbl.Value{
 					{
@@ -172,7 +172,7 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(ContainElement("User"))
+				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("User")))
 				Expect(ui.Table.Rows).To(HaveLen(1))
 				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("fake-user")))
 			})
@@ -189,7 +189,7 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(ContainElement("Object ID"))
+				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("Object ID")))
 				Expect(ui.Table.Rows).To(HaveLen(1))
 				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("fake-object")))
 			})
@@ -206,7 +206,7 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(ContainElement("Task ID"))
+				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("Task ID")))
 				Expect(ui.Table.Rows).To(HaveLen(1))
 				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("fake-task")))
 			})
@@ -223,7 +223,7 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(ContainElement("Deployment"))
+				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("Deployment")))
 				Expect(ui.Table.Rows).To(HaveLen(1))
 				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("fake-deployment")))
 			})
@@ -240,7 +240,7 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(ContainElement("Instance"))
+				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("Instance")))
 				Expect(ui.Table.Rows).To(HaveLen(1))
 				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("fake-instance")))
 			})
@@ -257,7 +257,7 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(ContainElement("Context"))
+				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("Context")))
 				Expect(ui.Table.Rows).To(HaveLen(1))
 				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueStrings([]string{"fake-key: fake-value"})))
 			})
@@ -274,7 +274,7 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(ContainElement("Error"))
+				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("Error")))
 				Expect(ui.Table.Rows).To(HaveLen(1))
 				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("fake-error")))
 			})

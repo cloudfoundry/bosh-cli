@@ -17,6 +17,7 @@ import (
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	boshuit "github.com/cloudfoundry/bosh-cli/ui/task"
 
+	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 )
@@ -390,12 +391,17 @@ func (c Cmd) configureUI() {
 		c.deps.UI.EnableJSON()
 	}
 
-	if len(c.BoshOpts.ColumnOpt) > 0 {
-		c.deps.UI.ShowColumns(c.BoshOpts.ColumnOpt)
-	}
-
 	if c.BoshOpts.NonInteractiveOpt {
 		c.deps.UI.EnableNonInteractive()
+	}
+
+	if len(c.BoshOpts.ColumnOpt) > 0 {
+		headers := []boshtbl.Header{}
+		for _, columnOpt := range c.BoshOpts.ColumnOpt {
+			headers = append(headers, columnOpt.Header)
+		}
+
+		c.deps.UI.ShowColumns(headers)
 	}
 }
 

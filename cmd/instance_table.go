@@ -89,11 +89,11 @@ type InstanceTable struct {
 	Processes, VMDetails, Details, DNS, Vitals bool
 }
 
-func (t InstanceTable) Headers() []string {
+func (t InstanceTable) Headers() []boshtbl.Header {
 	headerVals := t.AsValues(InstanceTableHeader)
-	var headers []string
+	var headers []boshtbl.Header
 	for _, val := range headerVals {
-		headers = append(headers, val.String())
+		headers = append(headers, boshtbl.NewHeader(val.String()))
 	}
 	return headers
 }

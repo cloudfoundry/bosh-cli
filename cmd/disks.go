@@ -29,8 +29,15 @@ func (c DisksCmd) Run(opts DisksOpts) error {
 
 	table := boshtbl.Table{
 		Content: "disks",
-		Header:  []string{"Disk CID", "Size", "Deployment", "Instance", "AZ", "Orphaned At"},
-		SortBy:  []boshtbl.ColumnSort{{Column: 5}},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Disk CID"),
+			boshtbl.NewHeader("Size"),
+			boshtbl.NewHeader("Deployment"),
+			boshtbl.NewHeader("Instance"),
+			boshtbl.NewHeader("AZ"),
+			boshtbl.NewHeader("Orphaned At"),
+		},
+		SortBy: []boshtbl.ColumnSort{{Column: 5}},
 	}
 
 	for _, d := range disks {

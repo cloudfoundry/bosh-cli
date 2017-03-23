@@ -28,7 +28,13 @@ func (w *ResultsWriter) Flush() {
 	table := boshtbl.Table{
 		Content: "results",
 
-		Header: []string{"Instance", "Stdout", "Stderr", "Exit Code", "Error"},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Instance"),
+			boshtbl.NewHeader("Stdout"),
+			boshtbl.NewHeader("Stderr"),
+			boshtbl.NewHeader("Exit Code"),
+			boshtbl.NewHeader("Error"),
+		},
 
 		SortBy: []boshtbl.ColumnSort{
 			{Column: 0, Asc: true},

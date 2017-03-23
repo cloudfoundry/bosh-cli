@@ -47,7 +47,11 @@ var _ = Describe("LocksCmd", func() {
 			Expect(ui.Table).To(Equal(boshtbl.Table{
 				Content: "locks",
 
-				Header: []string{"Type", "Resource", "Expires at"},
+				Header: []boshtbl.Header{
+					boshtbl.NewHeader("Type"),
+					boshtbl.NewHeader("Resource"),
+					boshtbl.NewHeader("Expires at"),
+				},
 
 				SortBy: []boshtbl.ColumnSort{{Column: 2, Asc: true}},
 

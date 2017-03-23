@@ -16,7 +16,11 @@ type InfoTable struct {
 
 func (t InfoTable) Print() {
 	table := boshtbl.Table{
-		Header: []string{"Name", "UUID", "Version"},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Name"),
+			boshtbl.NewHeader("UUID"),
+			boshtbl.NewHeader("Version"),
+		},
 		Rows: [][]boshtbl.Value{
 			{
 				boshtbl.NewValueString(t.Info.Name),

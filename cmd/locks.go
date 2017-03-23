@@ -25,8 +25,12 @@ func (c LocksCmd) Run() error {
 
 	table := boshtbl.Table{
 		Content: "locks",
-		Header:  []string{"Type", "Resource", "Expires at"},
-		SortBy:  []boshtbl.ColumnSort{{Column: 2, Asc: true}},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Type"),
+			boshtbl.NewHeader("Resource"),
+			boshtbl.NewHeader("Expires at"),
+		},
+		SortBy: []boshtbl.ColumnSort{{Column: 2, Asc: true}},
 	}
 
 	for _, l := range locks {

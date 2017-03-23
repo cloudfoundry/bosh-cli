@@ -35,11 +35,16 @@ func NewWriter(w io.Writer, emptyStr, bgStr, borderStr string) *Writer {
 	}
 }
 
-func (w *Writer) Write(vals []Value) {
+func (w *Writer) Write(headers []Header, vals []Value) {
 	rowsToAdd := 1
 	colsWithRows := [][]writerCell{}
 
+	visibleHeaderIndex := 0
 	for i, val := range vals {
+		if len(headers) > 0 && !headers[i].Visible {
+			continue
+		}
+
 		var rowsInCol []writerCell
 
 		cleanStr := strings.Replace(val.String(), "\r", "", -1)
@@ -56,8 +61,8 @@ func (w *Writer) Write(vals []Value) {
 		rowsInColLen := len(rowsInCol)
 
 		for _, cell := range rowsInCol {
-			if len(cell.String) > w.widths[i] {
-				w.widths[i] = len(cell.String)
+			if len(cell.String) > w.widths[visibleHeaderIndex] {
+				w.widths[visibleHeaderIndex] = len(cell.String)
 			}
 		}
 
@@ -66,6 +71,8 @@ func (w *Writer) Write(vals []Value) {
 		if rowsInColLen > rowsToAdd {
 			rowsToAdd = rowsInColLen
 		}
+
+		visibleHeaderIndex++
 	}
 
 	for i := 0; i < rowsToAdd; i++ {

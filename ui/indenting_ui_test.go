@@ -95,7 +95,7 @@ var _ = Describe("IndentingUI", func() {
 		It("delegates to the parent UI", func() {
 			table := Table{
 				Content: "things",
-				Header:  []string{"header1"},
+				Header:  []Header{NewHeader("header1")},
 			}
 
 			ui.PrintTable(table)

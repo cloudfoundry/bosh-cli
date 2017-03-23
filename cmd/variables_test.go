@@ -44,7 +44,7 @@ var _ = Describe("VariablesCmd", func() {
 			Expect(ui.Table).To(Equal(boshtbl.Table{
 				Content: "variables",
 
-				Header: []string{"ID", "Name"},
+				Header: []boshtbl.Header{boshtbl.NewHeader("ID"), boshtbl.NewHeader("Name")},
 
 				SortBy: []boshtbl.ColumnSort{
 					{Column: 1, Asc: true},

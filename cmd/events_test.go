@@ -77,7 +77,19 @@ var _ = Describe("EventsCmd", func() {
 			Expect(ui.Table).To(Equal(boshtbl.Table{
 				Content: "events",
 
-				Header: []string{"ID", "Time", "User", "Action", "Object Type", "Object ID", "Task ID", "Deployment", "Instance", "Context", "Error"},
+				Header: []boshtbl.Header{
+					boshtbl.NewHeader("ID"),
+					boshtbl.NewHeader("Time"),
+					boshtbl.NewHeader("User"),
+					boshtbl.NewHeader("Action"),
+					boshtbl.NewHeader("Object Type"),
+					boshtbl.NewHeader("Object ID"),
+					boshtbl.NewHeader("Task ID"),
+					boshtbl.NewHeader("Deployment"),
+					boshtbl.NewHeader("Instance"),
+					boshtbl.NewHeader("Context"),
+					boshtbl.NewHeader("Error"),
+				},
 
 				Rows: [][]boshtbl.Value{
 					{

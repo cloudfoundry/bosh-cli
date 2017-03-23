@@ -10,7 +10,7 @@ type Table struct {
 	Title   string
 	Content string
 
-	Header []string
+	Header []Header
 
 	SortBy []ColumnSort
 
@@ -22,11 +22,17 @@ type Table struct {
 
 	// Formatting
 	HeaderFormatFunc func(string, ...interface{}) string
+	DataOnly         bool
 	FillFirstColumn  bool
 	BackgroundStr    string
 	BorderStr        string
 	Transpose        bool
-	ShowColumns      []string
+}
+
+type Header struct {
+	Key     string
+	Title   string
+	Visible bool
 }
 
 type Section struct {

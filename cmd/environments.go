@@ -20,8 +20,11 @@ func (c EnvironmentsCmd) Run() error {
 
 	table := boshtbl.Table{
 		Content: "environments",
-		Header:  []string{"URL", "Alias"},
-		SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("URL"),
+			boshtbl.NewHeader("Alias"),
+		},
+		SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 	}
 
 	for _, t := range environments {

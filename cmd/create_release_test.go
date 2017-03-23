@@ -83,7 +83,12 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-					Header: []string{"Name", "Version", "Commit Hash"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Commit Hash"),
+					},
+
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("rel"),
@@ -120,7 +125,13 @@ var _ = Describe("CreateReleaseCmd", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-						Header: []string{"Name", "Version", "Commit Hash", "Archive"},
+						Header: []boshtbl.Header{
+							boshtbl.NewHeader("Name"),
+							boshtbl.NewHeader("Version"),
+							boshtbl.NewHeader("Commit Hash"),
+							boshtbl.NewHeader("Archive"),
+						},
+
 						Rows: [][]boshtbl.Value{
 							{
 								boshtbl.NewValueString("rel"),
@@ -182,7 +193,11 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-					Header: []string{"Name", "Version", "Commit Hash"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Commit Hash"),
+					},
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("default-rel-name"),
@@ -212,7 +227,11 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-					Header: []string{"Name", "Version", "Commit Hash"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Commit Hash"),
+					},
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("custom-name"),
@@ -247,7 +266,11 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-					Header: []string{"Name", "Version", "Commit Hash"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Commit Hash"),
+					},
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("default-rel-name"),
@@ -285,7 +308,11 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-					Header: []string{"Name", "Version", "Commit Hash"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Commit Hash"),
+					},
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("default-rel-name"),
@@ -323,7 +350,11 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-					Header: []string{"Name", "Version", "Commit Hash"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Commit Hash"),
+					},
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("default-rel-name"),
@@ -361,7 +392,12 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-					Header: []string{"Name", "Version", "Commit Hash", "Archive"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Commit Hash"),
+						boshtbl.NewHeader("Archive"),
+					},
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("default-rel-name"),

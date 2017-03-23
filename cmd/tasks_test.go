@@ -84,7 +84,16 @@ var _ = Describe("TasksCmd", func() {
 				Expect(ui.Table).To(Equal(boshtbl.Table{
 					Content: "tasks",
 
-					Header: []string{"#", "State", "Started At", "Last Activity At", "User", "Deployment", "Description", "Result"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("#"),
+						boshtbl.NewHeader("State"),
+						boshtbl.NewHeader("Started At"),
+						boshtbl.NewHeader("Last Activity At"),
+						boshtbl.NewHeader("User"),
+						boshtbl.NewHeader("Deployment"),
+						boshtbl.NewHeader("Description"),
+						boshtbl.NewHeader("Result"),
+					},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 0}},
 
@@ -195,7 +204,16 @@ var _ = Describe("TasksCmd", func() {
 				Expect(ui.Table).To(Equal(boshtbl.Table{
 					Content: "tasks",
 
-					Header: []string{"#", "State", "Started At", "Last Activity At", "User", "Deployment", "Description", "Result"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("#"),
+						boshtbl.NewHeader("State"),
+						boshtbl.NewHeader("Started At"),
+						boshtbl.NewHeader("Last Activity At"),
+						boshtbl.NewHeader("User"),
+						boshtbl.NewHeader("Deployment"),
+						boshtbl.NewHeader("Description"),
+						boshtbl.NewHeader("Result"),
+					},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 0}},
 

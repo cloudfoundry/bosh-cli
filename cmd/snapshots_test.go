@@ -53,7 +53,12 @@ var _ = Describe("SnapshotsCmd", func() {
 			Expect(ui.Table).To(Equal(boshtbl.Table{
 				Content: "snapshots",
 
-				Header: []string{"Instance", "CID", "Created At", "Clean"},
+				Header: []boshtbl.Header{
+					boshtbl.NewHeader("Instance"),
+					boshtbl.NewHeader("CID"),
+					boshtbl.NewHeader("Created At"),
+					boshtbl.NewHeader("Clean"),
+				},
 
 				Rows: [][]boshtbl.Value{
 					{

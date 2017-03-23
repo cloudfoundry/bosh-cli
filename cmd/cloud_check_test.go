@@ -83,7 +83,11 @@ var _ = Describe("CloudCheckCmd", func() {
 						Expect(ui.Table).To(Equal(boshtbl.Table{
 							Content: "problems",
 
-							Header: []string{"#", "Type", "Description"},
+							Header: []boshtbl.Header{
+								boshtbl.NewHeader("#"),
+								boshtbl.NewHeader("Type"),
+								boshtbl.NewHeader("Description"),
+							},
 
 							SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 
@@ -159,8 +163,12 @@ var _ = Describe("CloudCheckCmd", func() {
 						Expect(ui.Tables).To(Equal([]boshtbl.Table{
 							{
 								Content: "problems",
-								Header:  []string{"#", "Type", "Description"},
-								SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+								Header: []boshtbl.Header{
+									boshtbl.NewHeader("#"),
+									boshtbl.NewHeader("Type"),
+									boshtbl.NewHeader("Description"),
+								},
+								SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 							},
 						}))
 
@@ -204,7 +212,11 @@ var _ = Describe("CloudCheckCmd", func() {
 						Expect(ui.Table).To(Equal(boshtbl.Table{
 							Content: "problems",
 
-							Header: []string{"#", "Type", "Description"},
+							Header: []boshtbl.Header{
+								boshtbl.NewHeader("#"),
+								boshtbl.NewHeader("Type"),
+								boshtbl.NewHeader("Description"),
+							},
 
 							SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 
@@ -265,8 +277,12 @@ var _ = Describe("CloudCheckCmd", func() {
 						Expect(ui.Tables).To(Equal([]boshtbl.Table{
 							{
 								Content: "problems",
-								Header:  []string{"#", "Type", "Description"},
-								SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+								Header: []boshtbl.Header{
+									boshtbl.NewHeader("#"),
+									boshtbl.NewHeader("Type"),
+									boshtbl.NewHeader("Description"),
+								},
+								SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 							},
 						}))
 
@@ -342,7 +358,11 @@ var _ = Describe("CloudCheckCmd", func() {
 				Expect(ui.Table).To(Equal(boshtbl.Table{
 					Content: "problems",
 
-					Header: []string{"#", "Type", "Description"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("#"),
+						boshtbl.NewHeader("Type"),
+						boshtbl.NewHeader("Description"),
+					},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 

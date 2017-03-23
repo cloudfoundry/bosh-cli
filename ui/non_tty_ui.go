@@ -26,9 +26,9 @@ func (ui *NonTTYUI) PrintErrorBlock(block string) { ui.parent.PrintErrorBlock(bl
 func (ui *NonTTYUI) PrintTable(table Table) {
 	// hide decorations
 	table.Title = ""
-	table.Header = nil
 	table.Notes = nil
 	table.Content = ""
+	table.DataOnly = true
 
 	// necessary for grep
 	table.FillFirstColumn = true

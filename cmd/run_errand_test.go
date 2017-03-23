@@ -124,7 +124,11 @@ var _ = Describe("RunErrandCmd", func() {
 						boshtbl.Table{
 							Content: "errands",
 
-							Header: []string{"Exit Code", "Stdout", "Stderr"},
+							Header: []boshtbl.Header{
+								boshtbl.NewHeader("Exit Code"),
+								boshtbl.NewHeader("Stdout"),
+								boshtbl.NewHeader("Stderr"),
+							},
 
 							SortBy: []boshtbl.ColumnSort{
 								{Column: 0, Asc: true},
@@ -221,7 +225,11 @@ var _ = Describe("RunErrandCmd", func() {
 					boshtbl.Table{
 						Content: "errands",
 
-						Header: []string{"Exit Code", "Stdout", "Stderr"},
+						Header: []boshtbl.Header{
+							boshtbl.NewHeader("Exit Code"),
+							boshtbl.NewHeader("Stdout"),
+							boshtbl.NewHeader("Stderr"),
+						},
 
 						SortBy: []boshtbl.ColumnSort{
 							{Column: 0, Asc: true},

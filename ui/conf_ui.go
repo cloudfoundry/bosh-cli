@@ -10,7 +10,7 @@ type ConfUI struct {
 	parent      UI
 	isTTY       bool
 	logger      boshlog.Logger
-	showColumns []string
+	showColumns []Header
 }
 
 func NewConfUI(logger boshlog.Logger) *ConfUI {
@@ -48,7 +48,7 @@ func (ui *ConfUI) EnableJSON() {
 	ui.parent = NewJSONUI(ui.parent, ui.logger)
 }
 
-func (ui *ConfUI) ShowColumns(columns []string) {
+func (ui *ConfUI) ShowColumns(columns []Header) {
 	ui.showColumns = columns
 }
 
@@ -81,7 +81,10 @@ func (ui *ConfUI) PrintErrorBlock(block string) {
 }
 
 func (ui *ConfUI) PrintTable(table Table) {
-	table.ShowColumns = ui.showColumns
+	if len(ui.showColumns) > 0 {
+		table.SetColumnVisibility(ui.showColumns)
+	}
+
 	ui.parent.PrintTable(table)
 }
 

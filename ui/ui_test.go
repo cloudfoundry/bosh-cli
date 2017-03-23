@@ -187,7 +187,7 @@ var _ = Describe("UI", func() {
 			table := Table{
 				Title:   "Title",
 				Content: "things",
-				Header:  []string{"Header1", "Header2"},
+				Header:  []Header{NewHeader("Header1"), NewHeader("Header2")},
 
 				Rows: [][]Value{
 					{ValueString{"r1c1"}, ValueString{"r1c2"}},

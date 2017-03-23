@@ -76,7 +76,7 @@ var _ = Describe("FinalizeReleaseCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-				Header: []string{"Name", "Version", "Commit Hash"},
+				Header: []boshtbl.Header{boshtbl.NewHeader("Name"), boshtbl.NewHeader("Version"), boshtbl.NewHeader("Commit Hash")},
 				Rows: [][]boshtbl.Value{
 					{
 						boshtbl.NewValueString("rel"),
@@ -114,7 +114,7 @@ var _ = Describe("FinalizeReleaseCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-				Header: []string{"Name", "Version", "Commit Hash"},
+				Header: []boshtbl.Header{boshtbl.NewHeader("Name"), boshtbl.NewHeader("Version"), boshtbl.NewHeader("Commit Hash")},
 				Rows: [][]boshtbl.Value{
 					{
 						boshtbl.NewValueString("custom-name"),

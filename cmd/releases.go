@@ -24,7 +24,11 @@ func (c ReleasesCmd) Run() error {
 	table := boshtbl.Table{
 		Content: "releases",
 
-		Header: []string{"Name", "Version", "Commit Hash"},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Name"),
+			boshtbl.NewHeader("Version"),
+			boshtbl.NewHeader("Commit Hash"),
+		},
 
 		SortBy: []boshtbl.ColumnSort{
 			{Column: 0, Asc: true},

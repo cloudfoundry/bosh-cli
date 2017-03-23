@@ -53,7 +53,11 @@ func (c RunErrandCmd) summarize(errandName string, results []boshdir.ErrandResul
 	table := boshtbl.Table{
 		Content: "errands",
 
-		Header: []string{"Exit Code", "Stdout", "Stderr"},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Exit Code"),
+			boshtbl.NewHeader("Stdout"),
+			boshtbl.NewHeader("Stderr"),
+		},
 
 		SortBy: []boshtbl.ColumnSort{
 			{Column: 0, Asc: true},

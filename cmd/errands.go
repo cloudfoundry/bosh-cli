@@ -23,7 +23,7 @@ func (c ErrandsCmd) Run() error {
 
 	table := boshtbl.Table{
 		Content: "errands",
-		Header:  []string{"Name"},
+		Header:  []boshtbl.Header{boshtbl.NewHeader("Name")},
 		SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 	}
 

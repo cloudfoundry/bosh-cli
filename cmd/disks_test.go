@@ -71,7 +71,14 @@ var _ = Describe("DisksCmd", func() {
 				Expect(ui.Table).To(Equal(boshtbl.Table{
 					Content: "disks",
 
-					Header: []string{"Disk CID", "Size", "Deployment", "Instance", "AZ", "Orphaned At"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Disk CID"),
+						boshtbl.NewHeader("Size"),
+						boshtbl.NewHeader("Deployment"),
+						boshtbl.NewHeader("Instance"),
+						boshtbl.NewHeader("AZ"),
+						boshtbl.NewHeader("Orphaned At"),
+					},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 5}},
 

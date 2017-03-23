@@ -24,7 +24,12 @@ func (c BlobsCmd) Run() error {
 	table := boshtbl.Table{
 		Content: "blobs",
 
-		Header: []string{"Path", "Size", "Blobstore ID", "Digest"},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Path"),
+			boshtbl.NewHeader("Size"),
+			boshtbl.NewHeader("Blobstore ID"),
+			boshtbl.NewHeader("Digest"),
+		},
 
 		SortBy: []boshtbl.ColumnSort{
 			{Column: 0, Asc: true},

@@ -38,13 +38,13 @@ var _ = Describe("InfoTable", func() {
 
 			InfoTable{Info: info, UI: ui}.Print()
 
-			Expect(ui.Table.Header).To(Equal([]string{
-				"Name",
-				"UUID",
-				"Version",
-				"CPI",
-				"Features",
-				"User",
+			Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
+				boshtbl.NewHeader("Name"),
+				boshtbl.NewHeader("UUID"),
+				boshtbl.NewHeader("Version"),
+				boshtbl.NewHeader("CPI"),
+				boshtbl.NewHeader("Features"),
+				boshtbl.NewHeader("User"),
 			}))
 			Expect(ui.Table.Rows).To(HaveLen(1))
 			Expect(ui.Table.Rows[0]).To(Equal([]boshtbl.Value{
@@ -66,11 +66,11 @@ var _ = Describe("InfoTable", func() {
 
 			InfoTable{Info: info, UI: ui}.Print()
 
-			Expect(ui.Table.Header).To(Equal([]string{
-				"Name",
-				"UUID",
-				"Version",
-				"User",
+			Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
+				boshtbl.NewHeader("Name"),
+				boshtbl.NewHeader("UUID"),
+				boshtbl.NewHeader("Version"),
+				boshtbl.NewHeader("User"),
 			}))
 			Expect(ui.Table.Rows).To(HaveLen(1))
 			Expect(ui.Table.Rows[0]).To(Equal([]boshtbl.Value{

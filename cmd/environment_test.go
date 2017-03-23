@@ -55,13 +55,13 @@ var _ = Describe("EnvironmentCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
-					Header: []string{
-						"Name",
-						"UUID",
-						"Version",
-						"CPI",
-						"Features",
-						"User",
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("UUID"),
+						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("CPI"),
+						boshtbl.NewHeader("Features"),
+						boshtbl.NewHeader("User"),
 					},
 					Rows: [][]boshtbl.Value{
 						{
@@ -91,11 +91,11 @@ var _ = Describe("EnvironmentCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
-					Header: []string{
-						"Name",
-						"UUID",
-						"Version",
-						"User",
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("UUID"),
+						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("User"),
 					},
 					Rows: [][]boshtbl.Value{
 						{

@@ -21,9 +21,9 @@ func (t EventTable) Print() {
 	}
 
 	table := boshtbl.Table{
-		Header: []string{
-			"ID",
-			"Time",
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("ID"),
+			boshtbl.NewHeader("Time"),
 		},
 		Rows: [][]boshtbl.Value{
 			{

@@ -9,11 +9,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/ui/table"
 	"strconv"
-	"strings"
-	"unicode"
 )
-
-const UNKNOWN_HEADER_MAPPING rune = '_'
 
 type jsonUI struct {
 	parent UI
@@ -67,33 +63,37 @@ func (ui *jsonUI) PrintErrorBlock(block string) {
 func (ui *jsonUI) PrintTable(table Table) {
 	table.FillFirstColumn = true
 
-	jsonHeader := map[string]string{}
-	var headerVals []string
+	header := map[string]string{}
+	var rawHeaders []Header
 
-	columnIndices := table.FilteredColumnOrdering()
-
-	if len(columnIndices) > 0 {
-		for position, index := range columnIndices {
-			readableHeader := table.Header[index]
-			keyifyHeader := keyifyHeader(readableHeader)
-			if keyifyHeader == string(UNKNOWN_HEADER_MAPPING) {
-				keyifyHeader = strconv.Itoa(position)
+	if len(table.Header) > 0 {
+		for i, val := range table.Header {
+			if !val.Visible {
+				continue
 			}
-			jsonHeader[keyifyHeader] = readableHeader
-			headerVals = append(headerVals, readableHeader)
+
+			if val.Key == string(UNKNOWN_HEADER_MAPPING) {
+				val.Key = strconv.Itoa(i)
+			}
+
+			header[val.Key] = val.Title
+			rawHeaders = append(rawHeaders, val)
 		}
 	} else if len(table.AsRows()) > 0 {
 		for i, _ := range table.AsRows()[0] {
-			s := fmt.Sprintf("col_%d", i)
-			jsonHeader[s] = ""
-			headerVals = append(headerVals, s)
+			val := Header{
+				Key:     fmt.Sprintf("col_%d", i),
+				Visible: true,
+			}
+			header[val.Key] = val.Title
+			rawHeaders = append(rawHeaders, val)
 		}
 	}
 
 	resp := tableResp{
 		Content: table.Content,
-		Header:  jsonHeader,
-		Rows:    ui.stringRows(headerVals, table.AsRows()),
+		Header:  header,
+		Rows:    ui.stringRows(rawHeaders, table.AsRows()),
 		Notes:   table.Notes,
 	}
 
@@ -134,18 +134,18 @@ func (ui *jsonUI) Flush() {
 	}
 }
 
-func (ui *jsonUI) stringRows(header []string, vals [][]Value) []map[string]string {
+func (ui *jsonUI) stringRows(header []Header, vals [][]Value) []map[string]string {
 	result := []map[string]string{}
 
 	for _, row := range vals {
 		strs := map[string]string{}
 
 		for i, v := range row {
-			keyifyHeader := keyifyHeader(header[i])
-			if keyifyHeader == string(UNKNOWN_HEADER_MAPPING) {
-				keyifyHeader = strconv.Itoa(i)
+			if !header[i].Visible {
+				continue
 			}
-			strs[keyifyHeader] = v.String()
+
+			strs[header[i].Key] = v.String()
 		}
 
 		result = append(result, strs)
@@ -158,30 +158,4 @@ func (ui *jsonUI) addLine(pattern string, args []interface{}) {
 	msg := fmt.Sprintf(pattern, args...)
 	ui.uiResp.Lines = append(ui.uiResp.Lines, msg)
 	ui.logger.Debug(ui.logTag, msg)
-}
-
-func keyifyHeader(header string) string {
-	splittedStrings := strings.Split(cleanHeader(header), " ")
-	splittedTrimmedStrings := []string{}
-	for _, s := range splittedStrings {
-		if s != "" {
-			splittedTrimmedStrings = append(splittedTrimmedStrings, s)
-		}
-	}
-
-	join := strings.Join(splittedTrimmedStrings, "_")
-	if len(join) == 0 {
-		return string(UNKNOWN_HEADER_MAPPING)
-	}
-	return join
-}
-
-func cleanHeader(header string) string {
-	return strings.Map(func(r rune) rune {
-		if unicode.IsLetter(r) || unicode.IsNumber(r) {
-			return unicode.ToLower(r)
-		} else {
-			return ' '
-		}
-	}, header)
 }

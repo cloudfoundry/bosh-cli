@@ -44,7 +44,7 @@ var _ = Describe("ErrandsCmd", func() {
 			Expect(ui.Table).To(Equal(boshtbl.Table{
 				Content: "errands",
 
-				Header: []string{"Name"},
+				Header: []boshtbl.Header{boshtbl.NewHeader("Name")},
 
 				SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 

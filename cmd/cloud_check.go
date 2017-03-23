@@ -25,8 +25,12 @@ func (c CloudCheckCmd) Run(opts CloudCheckOpts) error {
 
 	table := boshtbl.Table{
 		Content: "problems",
-		Header:  []string{"#", "Type", "Description"},
-		SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("#"),
+			boshtbl.NewHeader("Type"),
+			boshtbl.NewHeader("Description"),
+		},
+		SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 	}
 
 	for _, p := range probs {
