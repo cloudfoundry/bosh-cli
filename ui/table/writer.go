@@ -41,7 +41,7 @@ func (w *Writer) Write(headers []Header, vals []Value) {
 
 	visibleHeaderIndex := 0
 	for i, val := range vals {
-		if len(headers) > 0 && !headers[i].Visible {
+		if len(headers) > 0 && headers[i].Hidden {
 			continue
 		}
 

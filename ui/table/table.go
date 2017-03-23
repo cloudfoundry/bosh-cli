@@ -92,7 +92,7 @@ func (t Table) Print(w io.Writer) error {
 
 		for _, row := range t.Rows {
 			for i, val := range row {
-				if !t.Header[i].Visible {
+				if t.Header[i].Hidden {
 					continue
 				}
 
@@ -102,8 +102,8 @@ func (t Table) Print(w io.Writer) error {
 
 		t.Rows = newRows
 		t.Header = []Header{
-			{Visible: !t.DataOnly},
-			{Visible: true},
+			{Hidden: t.DataOnly},
+			{Hidden: false},
 		}
 	} else {
 		if !t.DataOnly && len(t.Header) > 0 {

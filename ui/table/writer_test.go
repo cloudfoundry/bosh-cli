@@ -12,15 +12,18 @@ import (
 
 var _ = Describe("Writer", func() {
 	var (
-		buf            *bytes.Buffer
-		writer         *Writer
-		visibleHeaders []Header
+		buf                  *bytes.Buffer
+		writer               *Writer
+		visibleHeaders       []Header
+		lastHeaderNotVisible []Header
 	)
 
 	BeforeEach(func() {
 		buf = bytes.NewBufferString("")
 		writer = NewWriter(buf, "empty", ".", "||")
-		visibleHeaders = []Header{{Visible: true}, {Visible: true}}
+		visibleHeaders = []Header{{Hidden: false}, {Hidden: false}}
+		lastHeaderNotVisible = []Header{{Hidden: false}, {Hidden: false}, {Hidden: true}}
+
 	})
 
 	Describe("Write/Flush", func() {
@@ -37,6 +40,26 @@ var _ = Describe("Writer", func() {
 			Expect("\n" + buf.String()).To(Equal(`
 c0r0||c1r0||
 c0r1||c1r1||
+`))
+		})
+
+		It("writes multiple rows that are not filtered out", func() {
+			writer.Write(lastHeaderNotVisible, []Value{ValueString{"c0r0"}, ValueString{"c1r0"}, ValueString{"c2r0"}})
+			writer.Write(lastHeaderNotVisible, []Value{ValueString{"c0r1"}, ValueString{"c1r1"}, ValueString{"c2r1"}})
+			writer.Flush()
+			Expect("\n" + buf.String()).To(Equal(`
+c0r0||c1r0||
+c0r1||c1r1||
+`))
+		})
+
+		It("writes every row if not given any headers", func() {
+			writer.Write(nil, []Value{ValueString{"c0r0"}, ValueString{"c1r0"}, ValueString{"c1r0"}})
+			writer.Write(nil, []Value{ValueString{"c0r1"}, ValueString{"c1r1"}, ValueString{"c2r1"}})
+			writer.Flush()
+			Expect("\n" + buf.String()).To(Equal(`
+c0r0||c1r0||c1r0||
+c0r1||c1r1||c2r1||
 `))
 		})
 

@@ -10,7 +10,7 @@ type ColumnOpt struct {
 
 func (a *ColumnOpt) UnmarshalFlag(arg string) error {
 	a.Key = table.KeyifyHeader(arg)
-	a.Visible = true
+	a.Hidden = false
 
 	return nil
 }

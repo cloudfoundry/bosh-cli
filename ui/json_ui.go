@@ -64,36 +64,36 @@ func (ui *jsonUI) PrintTable(table Table) {
 	table.FillFirstColumn = true
 
 	header := map[string]string{}
-	var rawHeaders []Header
 
 	if len(table.Header) > 0 {
 		for i, val := range table.Header {
-			if !val.Visible {
+			if val.Hidden {
 				continue
 			}
 
 			if val.Key == string(UNKNOWN_HEADER_MAPPING) {
-				val.Key = strconv.Itoa(i)
+				table.Header[i].Key = strconv.Itoa(i)
 			}
 
-			header[val.Key] = val.Title
-			rawHeaders = append(rawHeaders, val)
+			header[table.Header[i].Key] = val.Title
 		}
 	} else if len(table.AsRows()) > 0 {
+		var rawHeaders []Header
 		for i, _ := range table.AsRows()[0] {
 			val := Header{
-				Key:     fmt.Sprintf("col_%d", i),
-				Visible: true,
+				Key:    fmt.Sprintf("col_%d", i),
+				Hidden: false,
 			}
 			header[val.Key] = val.Title
 			rawHeaders = append(rawHeaders, val)
 		}
+		table.Header = rawHeaders
 	}
 
 	resp := tableResp{
 		Content: table.Content,
 		Header:  header,
-		Rows:    ui.stringRows(rawHeaders, table.AsRows()),
+		Rows:    ui.stringRows(table.Header, table.AsRows()),
 		Notes:   table.Notes,
 	}
 
@@ -134,21 +134,21 @@ func (ui *jsonUI) Flush() {
 	}
 }
 
-func (ui *jsonUI) stringRows(header []Header, vals [][]Value) []map[string]string {
+func (ui *jsonUI) stringRows(header []Header, rows [][]Value) []map[string]string {
 	result := []map[string]string{}
 
-	for _, row := range vals {
-		strs := map[string]string{}
+	for _, row := range rows {
+		data := map[string]string{}
 
-		for i, v := range row {
-			if !header[i].Visible {
+		for i, col := range row {
+			if header[i].Hidden {
 				continue
 			}
 
-			strs[header[i].Key] = v.String()
+			data[header[i].Key] = col.String()
 		}
 
-		result = append(result, strs)
+		result = append(result, data)
 	}
 
 	return result

@@ -14,6 +14,6 @@ var _ = Describe("ColumnOpt", func() {
 		columnOpt.UnmarshalFlag("Header1")
 
 		Expect(columnOpt.Key).To(Equal("header1"))
-		Expect(columnOpt.Visible).To(BeTrue())
+		Expect(columnOpt.Hidden).To(BeFalse())
 	})
 })

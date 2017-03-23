@@ -443,6 +443,62 @@ OtherHeader2|r2c2....|
 4 content
 `))
 			})
+
+			It("prints a filtered transposed table", func() {
+				nonVisibleHeader := NewHeader("Header3")
+				nonVisibleHeader.Hidden = true
+
+				table := Table{
+					Content: "content",
+
+					Header: []Header{
+						NewHeader("Header1"),
+						NewHeader("Header2"),
+						nonVisibleHeader,
+					},
+					Rows: [][]Value{
+						{ValueString{"v1"}, ValueString{"v2"}, ValueString{"v3"}},
+					},
+					BorderStr: "|",
+					Transpose: true,
+				}
+				table.Print(buf)
+				Expect("\n" + buf.String()).To(Equal(`
+Header1|v1|
+Header2|v2|
+
+2 content
+`))
+			})
+
+		})
+
+		Context("when column filtering is used", func() {
+			It("prints all non-filtered out columns", func() {
+				nonVisibleHeader := NewHeader("Header3")
+				nonVisibleHeader.Hidden = true
+
+				table := Table{
+					Content: "content",
+
+					Header: []Header{
+						NewHeader("Header1"),
+						NewHeader("Header2"),
+						nonVisibleHeader,
+					},
+					Rows: [][]Value{
+						{ValueString{"v1"}, ValueString{"v2"}, ValueString{"v3"}},
+					},
+					BorderStr: "|",
+				}
+				table.Print(buf)
+				Expect("\n" + buf.String()).To(Equal(`
+Header1|Header2|
+v1     |v2     |
+
+1 content
+`))
+			})
 		})
 	})
 

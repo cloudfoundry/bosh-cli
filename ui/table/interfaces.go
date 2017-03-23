@@ -30,9 +30,9 @@ type Table struct {
 }
 
 type Header struct {
-	Key     string
-	Title   string
-	Visible bool
+	Key    string
+	Title  string
+	Hidden bool
 }
 
 type Section struct {

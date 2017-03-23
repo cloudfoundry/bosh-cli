@@ -94,7 +94,7 @@ var _ = Describe("NonTTYUI", func() {
 			Expect(parentUI.Table).To(Equal(Table{
 				Title: "",
 				Header: []Header{
-					Header{Key: "header1", Title: "header1", Visible: true},
+					{Key: "header1", Title: "header1", Hidden: false},
 				},
 				HeaderFormatFunc: nil,
 

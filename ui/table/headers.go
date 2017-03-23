@@ -10,16 +10,15 @@ const UNKNOWN_HEADER_MAPPING rune = '_'
 
 func NewHeader(title string) Header {
 	return Header{
-		Key:   KeyifyHeader(title),
-		Title: title,
-		//TODO hidden instead of visible
-		Visible: true,
+		Key:    KeyifyHeader(title),
+		Title:  title,
+		Hidden: false,
 	}
 }
 
 func (t *Table) SetColumnVisibility(headers []Header) error {
 	for tableHeaderIdx, _ := range t.Header {
-		t.Header[tableHeaderIdx].Visible = false
+		t.Header[tableHeaderIdx].Hidden = true
 	}
 
 	for _, header := range headers {
@@ -27,7 +26,7 @@ func (t *Table) SetColumnVisibility(headers []Header) error {
 
 		for tableHeaderIdx, tableHeader := range t.Header {
 			if tableHeader.Key == header.Key || tableHeader.Title == header.Title {
-				t.Header[tableHeaderIdx].Visible = true
+				t.Header[tableHeaderIdx].Hidden = false
 				foundHeader = true
 
 				break
