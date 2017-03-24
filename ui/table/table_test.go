@@ -78,6 +78,34 @@ note2
 `))
 		})
 
+		It("prints a table without number of records if content is not specified", func() {
+			table := Table{
+				Content: "",
+				Header: []Header{
+					NewHeader("Header1"),
+					NewHeader("Header2"),
+				},
+
+				Rows: [][]Value{
+					{ValueString{"r1c1"}, ValueString{"r1c2"}},
+					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+				},
+
+				Notes:         []string{"note1", "note2"},
+				BackgroundStr: ".",
+				BorderStr:     "|",
+			}
+			table.Print(buf)
+			Expect("\n" + buf.String()).To(Equal(`
+Header1|Header2|
+r1c1...|r1c2...|
+r2c1...|r2c2...|
+
+note1
+note2
+`))
+		})
+
 		It("prints a table sorted based on SortBy", func() {
 			table := Table{
 				SortBy: []ColumnSort{{Column: 1}, {Column: 0, Asc: true}},

@@ -35,4 +35,17 @@ var _ = Describe("Headers", func() {
 		})
 
 	})
+
+	Describe("SetColumnVisibility", func() {
+		Context("when given a header that does not exist", func() {
+			It("should return an error", func() {
+				t := table.Table{
+					Header: []table.Header{table.NewHeader("header1")},
+				}
+
+				err := t.SetColumnVisibility([]table.Header{table.NewHeader("non-matching-header")})
+				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
 })

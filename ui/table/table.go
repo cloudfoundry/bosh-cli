@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"strings"
 )
 
 func (t Table) AsRows() [][]Value {
@@ -182,7 +183,7 @@ func (t Table) printFooter(w io.Writer, num int) error {
 		}
 	}
 
-	if len(t.Header) > 0 {
+	if len(t.Header) > 0 && strings.TrimSpace(t.Content) != "" {
 		_, err := fmt.Fprintf(w, "\n%d %s\n", num, t.Content)
 		if err != nil {
 			return err

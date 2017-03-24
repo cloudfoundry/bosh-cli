@@ -82,7 +82,10 @@ func (ui *ConfUI) PrintErrorBlock(block string) {
 
 func (ui *ConfUI) PrintTable(table Table) {
 	if len(ui.showColumns) > 0 {
-		table.SetColumnVisibility(ui.showColumns)
+		err := table.SetColumnVisibility(ui.showColumns)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	ui.parent.PrintTable(table)
