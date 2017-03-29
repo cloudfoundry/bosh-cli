@@ -104,14 +104,15 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		return nil, bosherr.WrapError(err, "Finding currently IP address of deployed vm")
 	}
 
-	vmNetworkInterfaces := map[string]biproperty.Map{}
 	if found {
-		m.setVMNetworkInterfaces(vmNetworkInterfaces, currentIP, networkInterfaces)
-	} else {
-		vmNetworkInterfaces = networkInterfaces
+		for _, networkInterface := range networkInterfaces {
+			if networkInterface["type"] == "dynamic" {
+				networkInterface["ip"] = currentIP
+			}
+		}
 	}
 
-	cid, err := m.createAndRecordVM(agentID, stemcell, resourcePool, vmNetworkInterfaces)
+	cid, err := m.createAndRecordVM(agentID, stemcell, resourcePool, networkInterfaces)
 	if err != nil {
 		return nil, err
 	}
@@ -165,11 +166,4 @@ func (m *manager) createAndRecordVM(agentID string, stemcell bistemcell.CloudSte
 	}
 
 	return cid, nil
-}
-
-func (m *manager) setVMNetworkInterfaces(vmNetworkInterfaces map[string]biproperty.Map, currentIP string, networkInterfaces map[string]biproperty.Map) {
-	for networkName, networkInterface := range networkInterfaces {
-		networkInterface["ip"] = currentIP
-		vmNetworkInterfaces[networkName] = networkInterface
-	}
 }

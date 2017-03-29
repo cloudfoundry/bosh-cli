@@ -208,7 +208,9 @@ var _ = Describe("Manager", func() {
 				fakeVMRepo.SetFindCurrentIPBehavior("10.10.1.3", true, nil)
 				_, _, err := fakeVMRepo.FindCurrentIP()
 				Expect(err).ToNot(HaveOccurred())
+			})
 
+			It("creates a VM using dynamic network", func() {
 				expectedNetworkInterfaces = map[string]biproperty.Map{
 					"fake-network-name": biproperty.Map{
 						"type":             "dynamic",
@@ -217,9 +219,7 @@ var _ = Describe("Manager", func() {
 						"default":          []bideplmanifest.NetworkDefault{"dns", "gateway"},
 					},
 				}
-			})
 
-			It("creates a VM with current IP specified", func() {
 				vm, err := manager.Create(stemcell, deploymentManifest)
 				Expect(err).ToNot(HaveOccurred())
 				expectedVM := NewVM(
@@ -247,6 +247,80 @@ var _ = Describe("Manager", func() {
 
 				for _, networkInterface := range fakeCloud.CreateVMInput.NetworksInterfaces {
 					Expect(networkInterface["ip"]).To(Equal("10.10.1.3"))
+				}
+			})
+
+			It("creates a VM using vip network", func() {
+				expectedNetworkInterfaces = map[string]biproperty.Map{
+					"fake-network-name": biproperty.Map{
+						"type":             "vip",
+						"ip":               "fake-ip",
+						"cloud_properties": biproperty.Map{},
+						"default":          []bideplmanifest.NetworkDefault{"dns", "gateway"},
+					},
+				}
+
+				deploymentManifest = bideplmanifest.Manifest{
+					Name: "fake-deployment",
+					Networks: []bideplmanifest.Network{
+						{
+							Name:            "fake-network-name",
+							Type:            "vip",
+							CloudProperties: biproperty.Map{},
+						},
+					},
+					ResourcePools: []bideplmanifest.ResourcePool{
+						{
+							Name: "fake-resource-pool-name",
+							CloudProperties: biproperty.Map{
+								"fake-cloud-property-key": "fake-cloud-property-value",
+							},
+							Env: biproperty.Map{
+								"fake-env-key": "fake-env-value",
+							},
+						},
+					},
+					Jobs: []bideplmanifest.Job{
+						{
+							Name: "fake-job",
+							Networks: []bideplmanifest.JobNetwork{
+								{
+									Name:      "fake-network-name",
+									StaticIPs: []string{"fake-ip"},
+								},
+							},
+							ResourcePool: "fake-resource-pool-name",
+						},
+					},
+				}
+
+				vm, err := manager.Create(stemcell, deploymentManifest)
+				Expect(err).ToNot(HaveOccurred())
+				expectedVM := NewVM(
+					"fake-vm-cid",
+					fakeVMRepo,
+					stemcellRepo,
+					fakeDiskDeployer,
+					fakeAgentClient,
+					fakeCloud,
+					clock.NewClock(),
+					fs,
+					logger,
+				)
+				Expect(vm).To(Equal(expectedVM))
+
+				Expect(fakeCloud.CreateVMInput).To(Equal(
+					fakebicloud.CreateVMInput{
+						AgentID:            "fake-uuid-0",
+						StemcellCID:        "fake-stemcell-cid",
+						CloudProperties:    expectedCloudProperties,
+						NetworksInterfaces: expectedNetworkInterfaces,
+						Env:                expectedEnv,
+					},
+				))
+
+				for _, networkInterface := range fakeCloud.CreateVMInput.NetworksInterfaces {
+					Expect(networkInterface["ip"]).To(Equal("fake-ip"))
 				}
 			})
 
