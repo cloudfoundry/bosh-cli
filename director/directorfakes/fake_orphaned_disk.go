@@ -51,6 +51,12 @@ type FakeOrphanedDisk struct {
 	deleteReturns     struct {
 		result1 error
 	}
+	OrphanStub        func() error
+	orphanMutex       sync.RWMutex
+	orphanArgsForCall []struct{}
+	orphanReturns     struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -230,6 +236,31 @@ func (fake *FakeOrphanedDisk) DeleteReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeOrphanedDisk) Orphan() error {
+	fake.orphanMutex.Lock()
+	fake.orphanArgsForCall = append(fake.orphanArgsForCall, struct{}{})
+	fake.recordInvocation("Orphan", []interface{}{})
+	fake.orphanMutex.Unlock()
+	if fake.OrphanStub != nil {
+		return fake.OrphanStub()
+	} else {
+		return fake.orphanReturns.result1
+	}
+}
+
+func (fake *FakeOrphanedDisk) OrphanCallCount() int {
+	fake.orphanMutex.RLock()
+	defer fake.orphanMutex.RUnlock()
+	return len(fake.orphanArgsForCall)
+}
+
+func (fake *FakeOrphanedDisk) OrphanReturns(result1 error) {
+	fake.OrphanStub = nil
+	fake.orphanReturns = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeOrphanedDisk) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -247,6 +278,8 @@ func (fake *FakeOrphanedDisk) Invocations() map[string][][]interface{} {
 	defer fake.orphanedAtMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
+	fake.orphanMutex.RLock()
+	defer fake.orphanMutex.RUnlock()
 	return fake.invocations
 }
 

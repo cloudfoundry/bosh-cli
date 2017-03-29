@@ -109,6 +109,7 @@ type BoshOpts struct {
 	// Disks
 	Disks      DisksOpts      `command:"disks"       description:"List disks"`
 	DeleteDisk DeleteDiskOpts `command:"delete-disk" description:"Delete disk"`
+	OrphanDisk OrphanDiskOpts `command:"orphan-disk" description:"Orphan disk"`
 
 	// Snapshots
 	Snapshots       SnapshotsOpts       `command:"snapshots"        alias:"snaps"    description:"List snapshots"`
@@ -557,6 +558,14 @@ type DeleteDiskOpts struct {
 }
 
 type DeleteDiskArgs struct {
+	CID string `positional-arg-name:"CID"`
+}
+
+type OrphanDiskOpts struct {
+	Args OrphanDiskArgs `positional-args:"true" required:"true"`
+	cmd
+}
+type OrphanDiskArgs struct {
 	CID string `positional-arg-name:"CID"`
 }
 

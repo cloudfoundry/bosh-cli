@@ -1689,6 +1689,36 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
+	Describe("OrphanDiskOpts", func() {
+		var opts *OrphanDiskOpts
+
+		BeforeEach(func() {
+			opts = &OrphanDiskOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+	})
+
+	Describe("OrphanDiskArgs", func() {
+		var opts *OrphanDiskArgs
+
+		BeforeEach(func() {
+			opts = &OrphanDiskArgs{}
+		})
+
+		Describe("CID", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CID", opts)).To(Equal(
+					`positional-arg-name:"CID"`,
+				))
+			})
+		})
+	})
+
 	Describe("SnapshotsOpts", func() {
 		var opts *SnapshotsOpts
 

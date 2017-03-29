@@ -264,6 +264,7 @@ type OrphanedDisk interface {
 	OrphanedAt() time.Time
 
 	Delete() error
+	Orphan() error
 }
 
 type EventsFilter struct {
