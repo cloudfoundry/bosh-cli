@@ -38,21 +38,17 @@ var _ = Describe("OrphanDiskCmd", func() {
 		act := func() error { return command.Run(opts) }
 
 		It("orphans disk", func() {
-			disk := &fakedir.FakeOrphanedDisk{}
-			director.FindOrphanedDiskReturns(disk, nil)
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(director.FindOrphanedDiskArgsForCall(0)).To(Equal("disk-cid"))
-			Expect(disk.OrphanCallCount()).To(Equal(1))
+			Expect(director.OrphanArgsForCall(0)).To(Equal("disk-cid"))
+			Expect(director.OrphanCallCount()).To(Equal(1))
 		})
 
 		It("returns error if orphaning disk failed", func() {
-			disk := &fakedir.FakeOrphanedDisk{}
-			director.FindOrphanedDiskReturns(disk, nil)
 
-			disk.OrphanReturns(errors.New("fake-err"))
+			director.OrphanReturns(errors.New("fake-err"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())
@@ -60,8 +56,6 @@ var _ = Describe("OrphanDiskCmd", func() {
 		})
 
 		It("does not orphan disk if confirmation is rejected", func() {
-			disk := &fakedir.FakeOrphanedDisk{}
-			director.FindOrphanedDiskReturns(disk, nil)
 
 			ui.AskedConfirmationErr = errors.New("stop")
 
@@ -69,15 +63,7 @@ var _ = Describe("OrphanDiskCmd", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("stop"))
 
-			Expect(disk.OrphanCallCount()).To(Equal(0))
-		})
-
-		It("returns error if finding disk failed", func() {
-			director.FindOrphanedDiskReturns(nil, errors.New("fake-err"))
-
-			err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
+			Expect(director.OrphanCallCount()).To(Equal(0))
 		})
 	})
 })

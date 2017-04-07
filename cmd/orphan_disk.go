@@ -20,10 +20,5 @@ func (c OrphanDiskCmd) Run(opts OrphanDiskOpts) error {
 		return err
 	}
 
-	disk, err := c.director.FindOrphanedDisk(opts.Args.CID)
-	if err != nil {
-		return err
-	}
-
-	return disk.Orphan()
+	return c.director.Orphan(opts.Args.CID)
 }

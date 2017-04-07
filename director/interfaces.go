@@ -54,6 +54,7 @@ type Director interface {
 
 	FindOrphanedDisk(string) (OrphanedDisk, error)
 	OrphanedDisks() ([]OrphanedDisk, error)
+	Orphan(string) error
 
 	EnableResurrection(bool) error
 	CleanUp(bool) error
@@ -264,7 +265,6 @@ type OrphanedDisk interface {
 	OrphanedAt() time.Time
 
 	Delete() error
-	Orphan() error
 }
 
 type EventsFilter struct {

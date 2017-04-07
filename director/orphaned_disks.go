@@ -50,8 +50,8 @@ func (d OrphanedDiskImpl) Delete() error {
 	return nil
 }
 
-func (d OrphanedDiskImpl) Orphan() error {
-	err := d.client.OrphanDisk(d.cid)
+func (d DirectorImpl) Orphan(cid string) error {
+	err := d.client.OrphanDisk(cid)
 	if err != nil {
 		resps, listErr := d.client.OrphanedDisks()
 		if listErr != nil {
@@ -60,7 +60,7 @@ func (d OrphanedDiskImpl) Orphan() error {
 
 		found := false
 		for _, resp := range resps {
-			if resp.CID == d.cid {
+			if resp.CID == cid {
 				found = true
 				break
 			}

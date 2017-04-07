@@ -281,6 +281,14 @@ type FakeDirector struct {
 		result1 []director.OrphanedDisk
 		result2 error
 	}
+	OrphanStub        func(string) error
+	orphanMutex       sync.RWMutex
+	orphanArgsForCall []struct {
+		arg1 string
+	}
+	orphanReturns struct {
+		result1 error
+	}
 	EnableResurrectionStub        func(bool) error
 	enableResurrectionMutex       sync.RWMutex
 	enableResurrectionArgsForCall []struct {
@@ -1336,6 +1344,37 @@ func (fake *FakeDirector) OrphanedDisksReturns(result1 []director.OrphanedDisk, 
 	}{result1, result2}
 }
 
+func (fake *FakeDirector) Orphan(arg1 string) error {
+	fake.orphanMutex.Lock()
+	fake.orphanArgsForCall = append(fake.orphanArgsForCall, struct{ arg1 string }{arg1})
+	fake.recordInvocation("Orphan", []interface{}{arg1})
+	fake.orphanMutex.Unlock()
+	if fake.OrphanStub != nil {
+		return fake.OrphanStub(arg1)
+	} else {
+		return fake.orphanReturns.result1
+	}
+}
+
+func (fake *FakeDirector) OrphanCallCount() int {
+	fake.orphanMutex.RLock()
+	defer fake.orphanMutex.RUnlock()
+	return len(fake.orphanArgsForCall)
+}
+
+func (fake *FakeDirector) OrphanArgsForCall(i int) string {
+	fake.orphanMutex.RLock()
+	defer fake.orphanMutex.RUnlock()
+	return fake.orphanArgsForCall[i].arg1
+}
+
+func (fake *FakeDirector) OrphanReturns(result1 error) {
+	fake.OrphanStub = nil
+	fake.orphanReturns = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDirector) EnableResurrection(arg1 bool) error {
 	fake.enableResurrectionMutex.Lock()
 	fake.enableResurrectionArgsForCall = append(fake.enableResurrectionArgsForCall, struct {
@@ -1503,6 +1542,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.findOrphanedDiskMutex.RUnlock()
 	fake.orphanedDisksMutex.RLock()
 	defer fake.orphanedDisksMutex.RUnlock()
+	fake.orphanMutex.RLock()
+	defer fake.orphanMutex.RUnlock()
 	fake.enableResurrectionMutex.RLock()
 	defer fake.enableResurrectionMutex.RUnlock()
 	fake.cleanUpMutex.RLock()

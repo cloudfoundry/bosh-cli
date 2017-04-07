@@ -227,7 +227,7 @@ var _ = Describe("OrphanedDisk", func() {
 				server,
 			)
 
-			Expect(disk.Orphan()).ToNot(HaveOccurred())
+			Expect(director.Orphan("cid")).ToNot(HaveOccurred())
 		})
 
 		It("succeeds even if error occurrs if orphaned disk exists", func() {
@@ -245,7 +245,7 @@ var _ = Describe("OrphanedDisk", func() {
 				),
 			)
 
-			Expect(disk.Orphan()).ToNot(HaveOccurred())
+			Expect(director.Orphan("cid")).ToNot(HaveOccurred())
 		})
 
 		It("returns orphan error if listing disks fails", func() {
@@ -261,7 +261,7 @@ var _ = Describe("OrphanedDisk", func() {
 				),
 			)
 
-			err := disk.Orphan()
+			err := director.Orphan("cid")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Orphaning disk 'cid': Director responded with non-successful status code"))
@@ -278,7 +278,7 @@ var _ = Describe("OrphanedDisk", func() {
 				),
 			)
 
-			err := disk.Orphan()
+			err := director.Orphan("cid")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Orphaning disk 'cid': Director responded with non-successful status code"))
@@ -297,7 +297,7 @@ var _ = Describe("OrphanedDisk", func() {
 				),
 			)
 
-			err := disk.Orphan()
+			err := director.Orphan("cid")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Orphaning disk 'cid': Unmarshaling Director response"))
