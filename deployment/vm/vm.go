@@ -86,7 +86,7 @@ func (vm *vm) CID() string {
 func (vm *vm) Exists() (bool, error) {
 	exists, err := vm.cloud.HasVM(vm.cid)
 	if err != nil {
-		return false, bosherr.WrapErrorf(err, "Checking existance of VM '%s'", vm.cid)
+		return false, bosherr.WrapErrorf(err, "Checking existence of VM '%s'", vm.cid)
 	}
 	return exists, nil
 }
