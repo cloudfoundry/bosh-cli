@@ -448,14 +448,15 @@ Header1|Header2|
 		Context("table has Transpose:true", func() {
 			It("prints as transposed table", func() {
 				table := Table{
-					Content: "content",
+					Content: "errands",
 					Header: []Header{
 						NewHeader("Header1"),
 						NewHeader("OtherHeader2"),
+						NewHeader("Header3"),
 					},
 					Rows: [][]Value{
-						{ValueString{"r1c1"}, ValueString{"longr1c2"}},
-						{ValueString{"r2c1"}, ValueString{"r2c2"}},
+						{ValueString{"r1c1"}, ValueString{"longr1c2"}, ValueString{"r1c3"}},
+						{ValueString{"r2c1"}, ValueString{"r2c2"}, ValueString{"r2c3"}},
 					},
 					BackgroundStr: ".",
 					BorderStr:     "|",
@@ -465,10 +466,13 @@ Header1|Header2|
 				Expect("\n" + buf.String()).To(Equal(`
 Header1.....|r1c1....|
 OtherHeader2|longr1c2|
+Header3.....|r1c3....|
+
 Header1.....|r2c1....|
 OtherHeader2|r2c2....|
+Header3.....|r2c3....|
 
-4 content
+2 errands
 `))
 			})
 
@@ -477,7 +481,7 @@ OtherHeader2|r2c2....|
 				nonVisibleHeader.Hidden = true
 
 				table := Table{
-					Content: "content",
+					Content: "errands",
 
 					Header: []Header{
 						NewHeader("Header1"),
@@ -495,7 +499,7 @@ OtherHeader2|r2c2....|
 Header1|v1|
 Header2|v2|
 
-2 content
+1 errands
 `))
 			})
 
