@@ -294,7 +294,7 @@ var _ = Describe("Cloud", func() {
 
 	Describe("SetDiskMetadata", func() {
 		metadata := DiskMetadata{
-			"director":   "bosh-init",
+			"director":       "bosh-init",
 			"deployment":     "some-deployment",
 			"job":            "some-job",
 			"instance_index": "0",

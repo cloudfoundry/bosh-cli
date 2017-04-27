@@ -229,16 +229,6 @@ func (_mr *_MockRenderedJobListArchiveRecorder) DeleteSilently() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteSilently")
 }
 
-func (_m *MockRenderedJobListArchive) Fingerprint() string {
-	ret := _m.ctrl.Call(_m, "Fingerprint")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-func (_mr *_MockRenderedJobListArchiveRecorder) Fingerprint() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Fingerprint")
-}
-
 func (_m *MockRenderedJobListArchive) List() templatescompiler.RenderedJobList {
 	ret := _m.ctrl.Call(_m, "List")
 	ret0, _ := ret[0].(templatescompiler.RenderedJobList)
