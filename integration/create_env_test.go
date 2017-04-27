@@ -459,6 +459,7 @@ cloud_provider:
 
 				mockCloud.EXPECT().CreateDisk(diskSize, diskCloudProperties, vmCID).Return(diskCID, nil),
 				mockCloud.EXPECT().AttachDisk(vmCID, diskCID),
+				mockCloud.EXPECT().SetDiskMetadata(diskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(diskCID),
 
@@ -500,10 +501,12 @@ cloud_provider:
 
 				// attach both disks and migrate
 				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(oldDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
 				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
 				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(newDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(newDiskCID),
 				mockAgentClient.EXPECT().MigrateDisk(),
@@ -546,10 +549,12 @@ cloud_provider:
 
 				// attach both disks and migrate
 				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(oldDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
 				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
 				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(newDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(newDiskCID),
 				mockAgentClient.EXPECT().MigrateDisk(),
@@ -625,10 +630,12 @@ cloud_provider:
 
 				// attach both disks and migrate (with error)
 				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(oldDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
 				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
 				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(newDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(newDiskCID),
 				mockAgentClient.EXPECT().MigrateDisk().Return(
@@ -662,10 +669,12 @@ cloud_provider:
 
 				// attach both disks and migrate
 				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(oldDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
 				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
 				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(newDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(newDiskCID),
 				mockAgentClient.EXPECT().MigrateDisk(),

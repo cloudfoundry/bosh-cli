@@ -259,7 +259,7 @@ var _ = Describe("VM", func() {
 			Expect(fakeAgentClient.MountDiskArgsForCall(0)).To(Equal("fake-disk-cid"))
 		})
 
-		Context("when metadata is set", func(){
+		Context("when metadata is set", func() {
 			It("sets the metadata to the disk", func() {
 				expectedDiskMetadata := bicloud.DiskMetadata{
 					"director":       "bosh-init",
@@ -268,7 +268,6 @@ var _ = Describe("VM", func() {
 					"instance_index": "0",
 					"attached_at":    "2016-11-10T23:00:00Z",
 				}
-
 
 				err := vm.AttachDisk(disk)
 				Expect(err).ToNot(HaveOccurred())
