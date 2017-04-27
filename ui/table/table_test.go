@@ -277,6 +277,46 @@ r4c1|r5c2|
 r4c1|r6c2|
 `))
 			})
+
+			It("prints a footer including the counts for rows in sections", func() {
+				table := Table{
+					Content: "things",
+					Header: []Header{
+						NewHeader("Header1"),
+						NewHeader("Header2"),
+					},
+					Sections: []Section{
+						{
+							FirstColumn: ValueString{"s1c1"},
+							Rows: [][]Value{
+								{ValueString{""}, ValueString{"s1r1c2"}},
+								{ValueString{""}, ValueString{"s1r2c2"}},
+							},
+						},
+						{
+							Rows: [][]Value{
+								{ValueString{"r3c1"}, ValueString{"r3c2"}},
+							},
+						},
+					},
+					Rows: [][]Value{
+						{ValueString{"r4c1"}, ValueString{"r4c2"}},
+					},
+					FillFirstColumn: true,
+					BackgroundStr:   ".",
+					BorderStr:       "|",
+				}
+				table.Print(buf)
+				Expect("\n" + buf.String()).To(Equal(`
+Header1|Header2|
+s1c1...|s1r1c2.|
+s1c1...|s1r2c2.|
+r3c1...|r3c2...|
+r4c1...|r4c2...|
+
+4 things
+`))
+			})
 		})
 
 		It("prints values in table that span multiple lines", func() {

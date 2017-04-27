@@ -86,6 +86,9 @@ func (t Table) Print(w io.Writer) error {
 
 	writer := NewWriter(w, "-", t.BackgroundStr, t.BorderStr)
 	rowCount := len(t.Rows)
+	for _, section := range t.Sections {
+		rowCount += len(section.Rows)
+	}
 
 	if t.Transpose {
 		var newRows [][]Value
