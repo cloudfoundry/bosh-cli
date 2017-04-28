@@ -28,7 +28,9 @@ var _ = Describe("UAA", func() {
 		It("returns a new access token that can only be refreshed", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=refresh_token&refresh_token=refresh-token"),
+					ghttp.VerifyRequest("POST", "/oauth/token"),
+					ghttp.VerifyBody([]byte("grant_type=refresh_token&refresh_token=refresh-token")),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 					ghttp.RespondWith(http.StatusOK, `{
                  		"token_type": "new-bearer",
                  		"access_token": "new-access-token",
@@ -36,7 +38,8 @@ var _ = Describe("UAA", func() {
 	                }`),
 				),
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=refresh_token&refresh_token=new-refresh-token"),
+					ghttp.VerifyRequest("POST", "/oauth/token"),
+					ghttp.VerifyBody([]byte("grant_type=refresh_token&refresh_token=new-refresh-token")),
 					ghttp.RespondWith(http.StatusOK, `{
                  		"token_type": "newer-bearer",
                  		"access_token": "newer-access-token",
@@ -95,7 +98,9 @@ var _ = Describe("UAA", func() {
 		It("obtains client token", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+					ghttp.VerifyRequest("POST", "/oauth/token"),
+					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 					ghttp.VerifyBasicAuth("client", "client-secret"),
 					ghttp.VerifyHeader(http.Header{
 						"Accept": []string{"application/json"},
@@ -144,7 +149,9 @@ var _ = Describe("UAA", func() {
 		It("obtains access token based on prompt answers", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=password&key1=ans1&key2=ans2"),
+					ghttp.VerifyRequest("POST", "/oauth/token"),
+					ghttp.VerifyBody([]byte("grant_type=password&key1=ans1&key2=ans2")),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 					ghttp.VerifyBasicAuth("client", "client-secret"),
 					ghttp.VerifyHeader(http.Header{
 						"Accept": []string{"application/json"},

@@ -132,6 +132,7 @@ var _ = Describe("ClientRequest", func() {
 					ghttp.VerifyRequest("POST", "/path", ""),
 					ghttp.VerifyBody([]byte("req-body")),
 					ghttp.VerifyHeader(http.Header{"Accept": []string{"application/json"}}),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 					ghttp.RespondWith(http.StatusOK, `["val"]`),
 				),
 			)

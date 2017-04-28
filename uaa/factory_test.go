@@ -68,16 +68,16 @@ var _ = Describe("Factory", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+					ghttp.VerifyRequest("POST", "/oauth/token"),
+					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 					ghttp.RespondWith(http.StatusOK, `{}`),
 				),
 			)
 
 			_, err = uaa.ClientCredentialsGrant()
 			Expect(err).ToNot(HaveOccurred())
-			_, _, args := logger.DebugArgsForCall(1)
-			Expect(args[0]).To(ContainSubstring("/token?grant_type=<redacted>"))
 		})
 
 		Context("when the server url has a context path", func() {
@@ -105,8 +105,10 @@ var _ = Describe("Factory", func() {
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("POST", "/test_path/oauth/token", "grant_type=client_credentials"),
+						ghttp.VerifyRequest("POST", "/test_path/oauth/token"),
+						ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 						ghttp.VerifyBasicAuth("client", "fake-client-secret"),
+						ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 						ghttp.RespondWith(http.StatusOK, `{}`),
 					),
 				)
@@ -141,18 +143,24 @@ var _ = Describe("Factory", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+					ghttp.VerifyRequest("POST", "/oauth/token"),
+					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 					ghttp.RespondWith(http.StatusGatewayTimeout, nil),
 				),
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+					ghttp.VerifyRequest("POST", "/oauth/token"),
+					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 					ghttp.RespondWith(http.StatusGatewayTimeout, nil),
 				),
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+					ghttp.VerifyRequest("POST", "/oauth/token"),
+					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 					ghttp.RespondWith(http.StatusOK, `{}`),
 				),
 			)
@@ -186,13 +194,17 @@ var _ = Describe("Factory", func() {
 
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+					ghttp.VerifyRequest("POST", "/oauth/token"),
+					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 					ghttp.RespondWith(http.StatusGatewayTimeout, nil),
 				),
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+					ghttp.VerifyRequest("POST", "/oauth/token"),
+					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 					ghttp.RespondWith(http.StatusUnauthorized, `{"no"=>"access"}`),
 				),
 			)
