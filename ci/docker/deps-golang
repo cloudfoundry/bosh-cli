@@ -1,3 +1,5 @@
-GO_VERSION=$(cat metadata-files/version)
-GO_ARCHIVE_SHA256=$(cat metadata-files/sha)
+base_dir=$PWD/../../..
+
+GO_VERSION=$(cat $base_dir/metadata-files/version)
+GO_ARCHIVE_SHA256=$(cat $base_dir/metadata-files/sha)
 GO_ARCHIVE_URL=https://storage.googleapis.com/golang/go$GO_VERSION.linux-amd64.tar.gz
