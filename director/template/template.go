@@ -77,6 +77,9 @@ func (t Template) interpolateRoot(obj interface{}, tracker varsTracker) (interfa
 	}
 
 	obj, err = tracker.FoundVars(obj)
+	if err != nil {
+		return nil, err
+	}
 
 	return obj, tracker.Error()
 }
