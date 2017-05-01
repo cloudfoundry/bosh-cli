@@ -17,7 +17,7 @@ type BoshOpts struct {
 
 	EnvironmentOpt string    `long:"environment" short:"e" description:"Director environment name or URL" env:"BOSH_ENVIRONMENT"`
 	CACertOpt      CACertArg `long:"ca-cert"               description:"Director CA certificate path or value" env:"BOSH_CA_CERT"`
-	Sha2           bool      `long:"sha2"                  description:"Use sha256 checksums. Requires recent director and stemcells."`
+	Sha2           bool      `long:"sha2"                  description:"Use SHA256 checksums"`
 
 	// Hidden
 	UsernameOpt string `long:"user" hidden:"true" env:"BOSH_USER"`
@@ -80,8 +80,8 @@ type BoshOpts struct {
 	Deployments      DeploymentsOpts      `command:"deployments"       alias:"ds" alias:"deps" description:"List deployments"`
 	DeleteDeployment DeleteDeploymentOpts `command:"delete-deployment" alias:"deld"            description:"Delete deployment"`
 
-	Deploy   DeployOpts   `command:"deploy"   alias:"d"                                       description:"Deploy according to the currently selected deployment manifest"`
-	Manifest ManifestOpts `command:"manifest" alias:"m" alias:"man" alias:"download-manifest" description:"Download deployment manifest locally"`
+	Deploy   DeployOpts   `command:"deploy"   alias:"d"   description:"Deploy according to the currently selected deployment manifest"`
+	Manifest ManifestOpts `command:"manifest" alias:"man" description:"Download deployment manifest locally"`
 
 	Interpolate InterpolateOpts `command:"interpolate" alias:"int" description:"Interpolates variables into a manifest"`
 
@@ -90,34 +90,34 @@ type BoshOpts struct {
 	Event  EventOpts  `command:"event" description:"Show event details"`
 
 	// Stemcells
-	Stemcells      StemcellsOpts      `command:"stemcells"       alias:"ss" alias:"stems" description:"List stemcells"`
-	UploadStemcell UploadStemcellOpts `command:"upload-stemcell" alias:"us"               description:"Upload stemcell"`
-	DeleteStemcell DeleteStemcellOpts `command:"delete-stemcell" alias:"dels"             description:"Delete stemcell"`
-	RepackStemcell RepackStemcellOpts `command:"repack-stemcell"                          description:"Repack stemcell"`
+	Stemcells      StemcellsOpts      `command:"stemcells"       alias:"ss"   description:"List stemcells"`
+	UploadStemcell UploadStemcellOpts `command:"upload-stemcell" alias:"us"   description:"Upload stemcell"`
+	DeleteStemcell DeleteStemcellOpts `command:"delete-stemcell" alias:"dels" description:"Delete stemcell"`
+	RepackStemcell RepackStemcellOpts `command:"repack-stemcell"              description:"Repack stemcell"`
 
 	// Releases
-	Releases       ReleasesOpts       `command:"releases"        alias:"rs" alias:"rels" description:"List releases"`
-	UploadRelease  UploadReleaseOpts  `command:"upload-release"  alias:"ur"              description:"Upload release"`
-	ExportRelease  ExportReleaseOpts  `command:"export-release"  alias:"expr"            description:"Export the compiled release to a tarball"`
-	InspectRelease InspectReleaseOpts `command:"inspect-release" alias:"insr"            description:"List all jobs, packages, and compiled packages associated with a release"`
-	DeleteRelease  DeleteReleaseOpts  `command:"delete-release"  alias:"delr"            description:"Delete release"`
+	Releases       ReleasesOpts       `command:"releases"        alias:"rs"   description:"List releases"`
+	UploadRelease  UploadReleaseOpts  `command:"upload-release"  alias:"ur"   description:"Upload release"`
+	ExportRelease  ExportReleaseOpts  `command:"export-release"               description:"Export the compiled release to a tarball"`
+	InspectRelease InspectReleaseOpts `command:"inspect-release"              description:"List all jobs, packages, and compiled packages associated with a release"`
+	DeleteRelease  DeleteReleaseOpts  `command:"delete-release"  alias:"delr" description:"Delete release"`
 
 	// Errands
-	Errands   ErrandsOpts   `command:"errands"    alias:"es" alias:"errs" description:"List errands"`
-	RunErrand RunErrandOpts `command:"run-errand" alias:"re"              description:"Run errand"`
+	Errands   ErrandsOpts   `command:"errands"    alias:"es" description:"List errands"`
+	RunErrand RunErrandOpts `command:"run-errand"            description:"Run errand"`
 
 	// Disks
 	Disks      DisksOpts      `command:"disks"       description:"List disks"`
 	DeleteDisk DeleteDiskOpts `command:"delete-disk" description:"Delete disk"`
 
 	// Snapshots
-	Snapshots       SnapshotsOpts       `command:"snapshots"        alias:"snaps"    description:"List snapshots"`
-	TakeSnapshot    TakeSnapshotOpts    `command:"take-snapshot"    alias:"tsnap"    description:"Take snapshot"`
-	DeleteSnapshot  DeleteSnapshotOpts  `command:"delete-snapshot"  alias:"delsnap"  description:"Delete snapshot"`
-	DeleteSnapshots DeleteSnapshotsOpts `command:"delete-snapshots" alias:"delsnaps" description:"Delete all snapshots in a deployment"`
+	Snapshots       SnapshotsOpts       `command:"snapshots"        description:"List snapshots"`
+	TakeSnapshot    TakeSnapshotOpts    `command:"take-snapshot"    description:"Take snapshot"`
+	DeleteSnapshot  DeleteSnapshotOpts  `command:"delete-snapshot"  description:"Delete snapshot"`
+	DeleteSnapshots DeleteSnapshotsOpts `command:"delete-snapshots" description:"Delete all snapshots in a deployment"`
 
 	// Instances
-	Instances          InstancesOpts          `command:"instances"       alias:"is" alias:"ins"         description:"List all instances in a deployment"`
+	Instances          InstancesOpts          `command:"instances"       alias:"is"                     description:"List all instances in a deployment"`
 	VMs                VMsOpts                `command:"vms"                                            description:"List all VMs in all deployments"`
 	UpdateResurrection UpdateResurrectionOpts `command:"update-resurrection"                            description:"Enable/disable resurrection"`
 	Ignore             IgnoreOpts             `command:"ignore"                                         description:"Ignore an instance"`
@@ -125,11 +125,11 @@ type BoshOpts struct {
 	CloudCheck         CloudCheckOpts         `command:"cloud-check"     alias:"cck" alias:"cloudcheck" description:"Cloud consistency check and interactive repair"`
 
 	// Instance management
-	Logs     LogsOpts     `command:"logs"     description:"Fetch logs from instance(s)"`
-	Start    StartOpts    `command:"start"    description:"Start instance(s)"`
-	Stop     StopOpts     `command:"stop"     description:"Stop instance(s)"`
-	Restart  RestartOpts  `command:"restart"  description:"Restart instance(s)"`
-	Recreate RecreateOpts `command:"recreate" description:"Recreate instance(s)"`
+	Logs     LogsOpts     `command:"logs"      description:"Fetch logs from instance(s)"`
+	Start    StartOpts    `command:"start"     description:"Start instance(s)"`
+	Stop     StopOpts     `command:"stop"      description:"Stop instance(s)"`
+	Restart  RestartOpts  `command:"restart"   description:"Restart instance(s)"`
+	Recreate RecreateOpts `command:"recreate"  description:"Recreate instance(s)"`
 	DeleteVM DeleteVMOpts `command:"delete-vm" description:"Delete VM"`
 
 	// SSH instance
@@ -139,14 +139,15 @@ type BoshOpts struct {
 	// -----> Release authoring
 
 	// Release creation
-	InitRelease     InitReleaseOpts     `command:"init-release"                  description:"Initialize release"`
-	ResetRelease    ResetReleaseOpts    `command:"reset-release"                 description:"Reset release"`
-	GenerateJob     GenerateJobOpts     `command:"generate-job"                  description:"Generate job"`
-	GeneratePackage GeneratePackageOpts `command:"generate-package"              description:"Generate package"`
-	CreateRelease   CreateReleaseOpts   `command:"create-release"   alias:"cr"   description:"Create release"`
+	InitRelease     InitReleaseOpts     `command:"init-release"                description:"Initialize release"`
+	ResetRelease    ResetReleaseOpts    `command:"reset-release"               description:"Reset release"`
+	GenerateJob     GenerateJobOpts     `command:"generate-job"                description:"Generate job"`
+	GeneratePackage GeneratePackageOpts `command:"generate-package"            description:"Generate package"`
+	CreateRelease   CreateReleaseOpts   `command:"create-release"   alias:"cr" description:"Create release"`
+
 	// Hidden
-	Sha2ifyRelease  Sha2ifyReleaseOpts  `command:"sha2ify-release" hidden:"true" description:"Convert a sha128 release tarball to sha256"`
-	FinalizeRelease FinalizeReleaseOpts `command:"finalize-release" alias:"finr" description:"Create final release from dev release tarball"`
+	Sha2ifyRelease  Sha2ifyReleaseOpts  `command:"sha2ify-release"  hidden:"true" description:"Convert release tarball to use SHA256"`
+	FinalizeRelease FinalizeReleaseOpts `command:"finalize-release"               description:"Create final release from dev release tarball"`
 
 	// Blob management
 	Blobs       BlobsOpts       `command:"blobs"        description:"List blobs"`

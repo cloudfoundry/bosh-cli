@@ -118,7 +118,7 @@ var _ = Describe("Opts", func() {
 		Describe("Sha2", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Sha2", opts)).To(Equal(
-					`long:"sha2" description:"Use sha256 checksums. Requires recent director and stemcells."`,
+					`long:"sha2" description:"Use SHA256 checksums"`,
 				))
 			})
 		})
@@ -382,7 +382,7 @@ var _ = Describe("Opts", func() {
 		Describe("Manifest", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Manifest", opts)).To(Equal(
-					`command:"manifest" alias:"m" alias:"man" alias:"download-manifest" description:"Download deployment manifest locally"`,
+					`command:"manifest" alias:"man" description:"Download deployment manifest locally"`,
 				))
 			})
 		})
@@ -390,7 +390,7 @@ var _ = Describe("Opts", func() {
 		Describe("Stemcells", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Stemcells", opts)).To(Equal(
-					`command:"stemcells" alias:"ss" alias:"stems" description:"List stemcells"`,
+					`command:"stemcells" alias:"ss" description:"List stemcells"`,
 				))
 			})
 		})
@@ -422,7 +422,7 @@ var _ = Describe("Opts", func() {
 		Describe("Releases", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Releases", opts)).To(Equal(
-					`command:"releases" alias:"rs" alias:"rels" description:"List releases"`,
+					`command:"releases" alias:"rs" description:"List releases"`,
 				))
 			})
 		})
@@ -438,7 +438,7 @@ var _ = Describe("Opts", func() {
 		Describe("ExportRelease", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("ExportRelease", opts)).To(Equal(
-					`command:"export-release" alias:"expr" description:"Export the compiled release to a tarball"`,
+					`command:"export-release" description:"Export the compiled release to a tarball"`,
 				))
 			})
 		})
@@ -446,7 +446,7 @@ var _ = Describe("Opts", func() {
 		Describe("InspectRelease", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("InspectRelease", opts)).To(Equal(
-					`command:"inspect-release" alias:"insr" description:"List all jobs, packages, and compiled packages associated with a release"`,
+					`command:"inspect-release" description:"List all jobs, packages, and compiled packages associated with a release"`,
 				))
 			})
 		})
@@ -462,7 +462,7 @@ var _ = Describe("Opts", func() {
 		Describe("Errands", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Errands", opts)).To(Equal(
-					`command:"errands" alias:"es" alias:"errs" description:"List errands"`,
+					`command:"errands" alias:"es" description:"List errands"`,
 				))
 			})
 		})
@@ -470,7 +470,7 @@ var _ = Describe("Opts", func() {
 		Describe("RunErrand", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("RunErrand", opts)).To(Equal(
-					`command:"run-errand" alias:"re" description:"Run errand"`,
+					`command:"run-errand" description:"Run errand"`,
 				))
 			})
 		})
@@ -494,7 +494,7 @@ var _ = Describe("Opts", func() {
 		Describe("Snapshots", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Snapshots", opts)).To(Equal(
-					`command:"snapshots" alias:"snaps" description:"List snapshots"`,
+					`command:"snapshots" description:"List snapshots"`,
 				))
 			})
 		})
@@ -502,7 +502,7 @@ var _ = Describe("Opts", func() {
 		Describe("TakeSnapshot", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("TakeSnapshot", opts)).To(Equal(
-					`command:"take-snapshot" alias:"tsnap" description:"Take snapshot"`,
+					`command:"take-snapshot" description:"Take snapshot"`,
 				))
 			})
 		})
@@ -510,7 +510,7 @@ var _ = Describe("Opts", func() {
 		Describe("DeleteSnapshot", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("DeleteSnapshot", opts)).To(Equal(
-					`command:"delete-snapshot" alias:"delsnap" description:"Delete snapshot"`,
+					`command:"delete-snapshot" description:"Delete snapshot"`,
 				))
 			})
 		})
@@ -518,7 +518,7 @@ var _ = Describe("Opts", func() {
 		Describe("DeleteSnapshots", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("DeleteSnapshots", opts)).To(Equal(
-					`command:"delete-snapshots" alias:"delsnaps" description:"Delete all snapshots in a deployment"`,
+					`command:"delete-snapshots" description:"Delete all snapshots in a deployment"`,
 				))
 			})
 		})
@@ -534,7 +534,7 @@ var _ = Describe("Opts", func() {
 		Describe("Instances", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Instances", opts)).To(Equal(
-					`command:"instances" alias:"is" alias:"ins" description:"List all instances in a deployment"`,
+					`command:"instances" alias:"is" description:"List all instances in a deployment"`,
 				))
 			})
 		})
@@ -678,7 +678,7 @@ var _ = Describe("Opts", func() {
 		Describe("Sha2ifyRelease", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Sha2ifyRelease", opts)).To(Equal(
-					`command:"sha2ify-release" hidden:"true" description:"Convert a sha128 release tarball to sha256"`,
+					`command:"sha2ify-release" hidden:"true" description:"Convert release tarball to use SHA256"`,
 				))
 			})
 		})
@@ -686,7 +686,7 @@ var _ = Describe("Opts", func() {
 		Describe("FinalizeRelease", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("FinalizeRelease", opts)).To(Equal(
-					`command:"finalize-release" alias:"finr" description:"Create final release from dev release tarball"`,
+					`command:"finalize-release" description:"Create final release from dev release tarball"`,
 				))
 			})
 		})
