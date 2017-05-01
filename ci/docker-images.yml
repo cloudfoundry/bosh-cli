@@ -6,7 +6,7 @@ jobs:
       - get: bosh-cli-src
         trigger: true
       - task: write-metadata-file
-        file: bosh-cli/ci/tasks/write-metadata-file.yml
+        file: bosh-cli/ci/docker/write-metadata-file.yml
         params:
           GO_VERSION: 1.7.1
           GO_SHA: 43ad621c9b014cde8db17393dc108378d37bc853aa351a6c74bf6432c1bbd182
@@ -24,7 +24,7 @@ jobs:
       - get: bosh-cli-src
         trigger: true
       - task: write-metadata-file
-        file: bosh-cli/ci/tasks/write-metadata-file.yml
+        file: bosh-cli/ci/docker/write-metadata-file.yml
         params:
           GO_VERSION: 1.8.1
           GO_SHA: a579ab19d5237e263254f1eac5352efcf1d70b9dacadb6d6bb12b0911ede8994

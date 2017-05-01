@@ -14,7 +14,7 @@ outputs:
   - name: metadata-files
 
 run:
-  path: bosh-cli-src/ci/tasks/write-metadata-file.sh
+  path: bosh-cli-src/ci/docker/write-metadata-file.sh
 
 params:
   GO_VERSION: 1.7.1
