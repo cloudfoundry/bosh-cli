@@ -283,14 +283,6 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("BackUp", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("BackUp", opts)).To(Equal(
-					`command:"back-up" description:"Back up the Director database to a tarball"`,
-				))
-			})
-		})
-
 		Describe("Interpolate", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Interpolate", opts)).To(Equal(
@@ -374,7 +366,7 @@ var _ = Describe("Opts", func() {
 		Describe("Deploy", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Deploy", opts)).To(Equal(
-					`command:"deploy" alias:"d" description:"Deploy according to the currently selected deployment manifest"`,
+					`command:"deploy" alias:"d" description:"Update deployment"`,
 				))
 			})
 		})
@@ -382,7 +374,7 @@ var _ = Describe("Opts", func() {
 		Describe("Manifest", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Manifest", opts)).To(Equal(
-					`command:"manifest" alias:"man" description:"Download deployment manifest locally"`,
+					`command:"manifest" alias:"man" description:"Show deployment manifest"`,
 				))
 			})
 		})
@@ -446,7 +438,7 @@ var _ = Describe("Opts", func() {
 		Describe("InspectRelease", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("InspectRelease", opts)).To(Equal(
-					`command:"inspect-release" description:"List all jobs, packages, and compiled packages associated with a release"`,
+					`command:"inspect-release" description:"List release contents such as jobs"`,
 				))
 			})
 		})
@@ -734,7 +726,7 @@ var _ = Describe("Opts", func() {
 		Describe("AttachDisk", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("AttachDisk", opts)).To(Equal(
-					`command:"attach-disk" description:"Attaches an disk to an instance and replaces the current disk"`,
+					`command:"attach-disk" description:"Attaches disk to an instance"`,
 				))
 			})
 		})
@@ -966,28 +958,6 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
-	Describe("BackUpOpts", func() {
-		var opts *BackUpOpts
-
-		BeforeEach(func() {
-			opts = &BackUpOpts{}
-		})
-
-		Describe("Args", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
-			})
-		})
-
-		Describe("Force", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Force", opts)).To(Equal(
-					`long:"force" description:"Overwrite if the backup file already exists"`,
-				))
-			})
-		})
-	})
-
 	Describe("AttachDiskOpts", func() {
 		var opts *AttachDiskOpts
 
@@ -1013,20 +983,6 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Slug", opts)).To(Equal(`positional-arg-name:"INSTANCE-GROUP/INSTANCE-ID"`))
 				Expect(getStructTagForName("DiskCID", opts)).To(Equal(`positional-arg-name:"DISK-CID"`))
-			})
-		})
-	})
-
-	Describe("BackUpArgs", func() {
-		var opts *BackUpArgs
-
-		BeforeEach(func() {
-			opts = &BackUpArgs{}
-		})
-
-		Describe("Path", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Path", opts)).To(Equal(`positional-arg-name:"PATH"`))
 			})
 		})
 	})

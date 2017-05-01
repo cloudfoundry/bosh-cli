@@ -58,10 +58,6 @@ type BoshOpts struct {
 	// Misc
 	Locks   LocksOpts   `command:"locks"    description:"List current locks"`
 	CleanUp CleanUpOpts `command:"clean-up" description:"Clean up releases, stemcells, disks, etc."`
-	BackUp  BackUpOpts  `command:"back-up"  description:"Back up the Director database to a tarball"`
-
-	// Disks
-	AttachDisk AttachDiskOpts `command:"attach-disk" description:"Attaches an disk to an instance and replaces the current disk"`
 
 	// Cloud config
 	CloudConfig       CloudConfigOpts       `command:"cloud-config"        alias:"cc"  description:"Show current cloud config"`
@@ -80,8 +76,8 @@ type BoshOpts struct {
 	Deployments      DeploymentsOpts      `command:"deployments"       alias:"ds" alias:"deps" description:"List deployments"`
 	DeleteDeployment DeleteDeploymentOpts `command:"delete-deployment" alias:"deld"            description:"Delete deployment"`
 
-	Deploy   DeployOpts   `command:"deploy"   alias:"d"   description:"Deploy according to the currently selected deployment manifest"`
-	Manifest ManifestOpts `command:"manifest" alias:"man" description:"Download deployment manifest locally"`
+	Deploy   DeployOpts   `command:"deploy"   alias:"d"   description:"Update deployment"`
+	Manifest ManifestOpts `command:"manifest" alias:"man" description:"Show deployment manifest"`
 
 	Interpolate InterpolateOpts `command:"interpolate" alias:"int" description:"Interpolates variables into a manifest"`
 
@@ -99,7 +95,7 @@ type BoshOpts struct {
 	Releases       ReleasesOpts       `command:"releases"        alias:"rs"   description:"List releases"`
 	UploadRelease  UploadReleaseOpts  `command:"upload-release"  alias:"ur"   description:"Upload release"`
 	ExportRelease  ExportReleaseOpts  `command:"export-release"               description:"Export the compiled release to a tarball"`
-	InspectRelease InspectReleaseOpts `command:"inspect-release"              description:"List all jobs, packages, and compiled packages associated with a release"`
+	InspectRelease InspectReleaseOpts `command:"inspect-release"              description:"List release contents such as jobs"`
 	DeleteRelease  DeleteReleaseOpts  `command:"delete-release"  alias:"delr" description:"Delete release"`
 
 	// Errands
@@ -108,6 +104,7 @@ type BoshOpts struct {
 
 	// Disks
 	Disks      DisksOpts      `command:"disks"       description:"List disks"`
+	AttachDisk AttachDiskOpts `command:"attach-disk" description:"Attaches disk to an instance"`
 	DeleteDisk DeleteDiskOpts `command:"delete-disk" description:"Delete disk"`
 
 	// Snapshots
@@ -264,18 +261,6 @@ type AttachDiskOpts struct {
 	Args AttachDiskArgs `positional-args:"true" required:"true"`
 
 	cmd
-}
-
-type BackUpOpts struct {
-	Args BackUpArgs `positional-args:"true" required:"true"`
-
-	Force bool `long:"force" description:"Overwrite if the backup file already exists"`
-
-	cmd
-}
-
-type BackUpArgs struct {
-	Path FileArg `positional-arg-name:"PATH"`
 }
 
 type AttachDiskArgs struct {
