@@ -277,46 +277,6 @@ r4c1|r5c2|
 r4c1|r6c2|
 `))
 			})
-
-			It("prints a footer including the counts for rows in sections", func() {
-				table := Table{
-					Content: "things",
-					Header: []Header{
-						NewHeader("Header1"),
-						NewHeader("Header2"),
-					},
-					Sections: []Section{
-						{
-							FirstColumn: ValueString{"s1c1"},
-							Rows: [][]Value{
-								{ValueString{""}, ValueString{"s1r1c2"}},
-								{ValueString{""}, ValueString{"s1r2c2"}},
-							},
-						},
-						{
-							Rows: [][]Value{
-								{ValueString{"r3c1"}, ValueString{"r3c2"}},
-							},
-						},
-					},
-					Rows: [][]Value{
-						{ValueString{"r4c1"}, ValueString{"r4c2"}},
-					},
-					FillFirstColumn: true,
-					BackgroundStr:   ".",
-					BorderStr:       "|",
-				}
-				table.Print(buf)
-				Expect("\n" + buf.String()).To(Equal(`
-Header1|Header2|
-s1c1...|s1r1c2.|
-s1c1...|s1r2c2.|
-r3c1...|r3c2...|
-r4c1...|r4c2...|
-
-4 things
-`))
-			})
 		})
 
 		It("prints values in table that span multiple lines", func() {
@@ -488,15 +448,14 @@ Header1|Header2|
 		Context("table has Transpose:true", func() {
 			It("prints as transposed table", func() {
 				table := Table{
-					Content: "errands",
+					Content: "content",
 					Header: []Header{
 						NewHeader("Header1"),
 						NewHeader("OtherHeader2"),
-						NewHeader("Header3"),
 					},
 					Rows: [][]Value{
-						{ValueString{"r1c1"}, ValueString{"longr1c2"}, ValueString{"r1c3"}},
-						{ValueString{"r2c1"}, ValueString{"r2c2"}, ValueString{"r2c3"}},
+						{ValueString{"r1c1"}, ValueString{"longr1c2"}},
+						{ValueString{"r2c1"}, ValueString{"r2c2"}},
 					},
 					BackgroundStr: ".",
 					BorderStr:     "|",
@@ -506,13 +465,10 @@ Header1|Header2|
 				Expect("\n" + buf.String()).To(Equal(`
 Header1.....|r1c1....|
 OtherHeader2|longr1c2|
-Header3.....|r1c3....|
-
 Header1.....|r2c1....|
 OtherHeader2|r2c2....|
-Header3.....|r2c3....|
 
-2 errands
+4 content
 `))
 			})
 
@@ -521,7 +477,7 @@ Header3.....|r2c3....|
 				nonVisibleHeader.Hidden = true
 
 				table := Table{
-					Content: "errands",
+					Content: "content",
 
 					Header: []Header{
 						NewHeader("Header1"),
@@ -539,7 +495,7 @@ Header3.....|r2c3....|
 Header1|v1|
 Header2|v2|
 
-1 errands
+2 content
 `))
 			})
 

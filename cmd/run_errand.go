@@ -51,7 +51,7 @@ func (c RunErrandCmd) Run(opts RunErrandOpts) error {
 
 func (c RunErrandCmd) summarize(errandName string, results []boshdir.ErrandResult) error {
 	table := boshtbl.Table{
-		Content: "errand(s)",
+		Content: "errands",
 
 		Header: []boshtbl.Header{
 			boshtbl.NewHeader("Exit Code"),
@@ -64,8 +64,6 @@ func (c RunErrandCmd) summarize(errandName string, results []boshdir.ErrandResul
 		},
 
 		Notes: []string{},
-
-		Transpose: true,
 	}
 
 	var errandErr error

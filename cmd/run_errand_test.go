@@ -122,7 +122,7 @@ var _ = Describe("RunErrandCmd", func() {
 
 					Expect(ui.Table).To(Equal(
 						boshtbl.Table{
-							Content: "errand(s)",
+							Content: "errands",
 
 							Header: []boshtbl.Header{
 								boshtbl.NewHeader("Exit Code"),
@@ -147,8 +147,6 @@ var _ = Describe("RunErrandCmd", func() {
 							},
 
 							Notes: []string{},
-
-							Transpose: true,
 						}))
 				})
 
@@ -225,7 +223,7 @@ var _ = Describe("RunErrandCmd", func() {
 
 				Expect(ui.Table).To(Equal(
 					boshtbl.Table{
-						Content: "errand(s)",
+						Content: "errands",
 
 						Header: []boshtbl.Header{
 							boshtbl.NewHeader("Exit Code"),
@@ -246,8 +244,6 @@ var _ = Describe("RunErrandCmd", func() {
 						},
 
 						Notes: []string{},
-
-						Transpose: true,
 					}))
 
 				Expect(err.Error()).To(Equal("Errand 'errand-name' completed with error (exit code 1)"))

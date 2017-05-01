@@ -55,8 +55,6 @@ type ValueString struct {
 	S string
 }
 
-type EmptyValue struct{}
-
 type ValueStrings struct {
 	S []string
 }

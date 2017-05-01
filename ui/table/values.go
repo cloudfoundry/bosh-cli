@@ -32,10 +32,6 @@ func (t ValueString) Compare(other Value) int {
 	}
 }
 
-func (t EmptyValue) String() string    { return "" }
-func (t EmptyValue) Value() Value      { return t }
-func (t EmptyValue) Compare(Value) int { return 0 }
-
 func NewValueStrings(s []string) ValueStrings { return ValueStrings{S: s} }
 
 func (t ValueStrings) String() string { return strings.Join(t.S, "\n") }
