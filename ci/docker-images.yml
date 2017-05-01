@@ -17,7 +17,7 @@ jobs:
         get_params:
           skip_download: true
 
-- name: build-bosh-cli-go-1-8
+  - name: build-bosh-cli-go-1-8
     public: true
     serial: true
     plan:
