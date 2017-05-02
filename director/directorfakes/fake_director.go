@@ -250,17 +250,20 @@ type FakeDirector struct {
 	updateCPIConfigReturns struct {
 		result1 error
 	}
-	LatestRuntimeConfigStub        func() (director.RuntimeConfig, error)
+	LatestRuntimeConfigStub        func(name string) (director.RuntimeConfig, error)
 	latestRuntimeConfigMutex       sync.RWMutex
-	latestRuntimeConfigArgsForCall []struct{}
-	latestRuntimeConfigReturns     struct {
+	latestRuntimeConfigArgsForCall []struct {
+		name string
+	}
+	latestRuntimeConfigReturns struct {
 		result1 director.RuntimeConfig
 		result2 error
 	}
-	UpdateRuntimeConfigStub        func([]byte) error
+	UpdateRuntimeConfigStub        func(name string, manifest []byte) error
 	updateRuntimeConfigMutex       sync.RWMutex
 	updateRuntimeConfigArgsForCall []struct {
-		arg1 []byte
+		name     string
+		manifest []byte
 	}
 	updateRuntimeConfigReturns struct {
 		result1 error
@@ -601,8 +604,9 @@ func (fake *FakeDirector) Event(arg1 string) (director.Event, error) {
 	fake.eventMutex.Unlock()
 	if fake.EventStub != nil {
 		return fake.EventStub(arg1)
+	} else {
+		return fake.eventReturns.result1, fake.eventReturns.result2
 	}
-	return fake.eventReturns.result1, fake.eventReturns.result2
 }
 
 func (fake *FakeDirector) EventCallCount() int {
@@ -1212,13 +1216,15 @@ func (fake *FakeDirector) UpdateCPIConfigReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDirector) LatestRuntimeConfig() (director.RuntimeConfig, error) {
+func (fake *FakeDirector) LatestRuntimeConfig(name string) (director.RuntimeConfig, error) {
 	fake.latestRuntimeConfigMutex.Lock()
-	fake.latestRuntimeConfigArgsForCall = append(fake.latestRuntimeConfigArgsForCall, struct{}{})
-	fake.recordInvocation("LatestRuntimeConfig", []interface{}{})
+	fake.latestRuntimeConfigArgsForCall = append(fake.latestRuntimeConfigArgsForCall, struct {
+		name string
+	}{name})
+	fake.recordInvocation("LatestRuntimeConfig", []interface{}{name})
 	fake.latestRuntimeConfigMutex.Unlock()
 	if fake.LatestRuntimeConfigStub != nil {
-		return fake.LatestRuntimeConfigStub()
+		return fake.LatestRuntimeConfigStub(name)
 	} else {
 		return fake.latestRuntimeConfigReturns.result1, fake.latestRuntimeConfigReturns.result2
 	}
@@ -1230,6 +1236,12 @@ func (fake *FakeDirector) LatestRuntimeConfigCallCount() int {
 	return len(fake.latestRuntimeConfigArgsForCall)
 }
 
+func (fake *FakeDirector) LatestRuntimeConfigArgsForCall(i int) string {
+	fake.latestRuntimeConfigMutex.RLock()
+	defer fake.latestRuntimeConfigMutex.RUnlock()
+	return fake.latestRuntimeConfigArgsForCall[i].name
+}
+
 func (fake *FakeDirector) LatestRuntimeConfigReturns(result1 director.RuntimeConfig, result2 error) {
 	fake.LatestRuntimeConfigStub = nil
 	fake.latestRuntimeConfigReturns = struct {
@@ -1238,20 +1250,21 @@ func (fake *FakeDirector) LatestRuntimeConfigReturns(result1 director.RuntimeCon
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) UpdateRuntimeConfig(arg1 []byte) error {
-	var arg1Copy []byte
-	if arg1 != nil {
-		arg1Copy = make([]byte, len(arg1))
-		copy(arg1Copy, arg1)
+func (fake *FakeDirector) UpdateRuntimeConfig(name string, manifest []byte) error {
+	var manifestCopy []byte
+	if manifest != nil {
+		manifestCopy = make([]byte, len(manifest))
+		copy(manifestCopy, manifest)
 	}
 	fake.updateRuntimeConfigMutex.Lock()
 	fake.updateRuntimeConfigArgsForCall = append(fake.updateRuntimeConfigArgsForCall, struct {
-		arg1 []byte
-	}{arg1Copy})
-	fake.recordInvocation("UpdateRuntimeConfig", []interface{}{arg1Copy})
+		name     string
+		manifest []byte
+	}{name, manifestCopy})
+	fake.recordInvocation("UpdateRuntimeConfig", []interface{}{name, manifestCopy})
 	fake.updateRuntimeConfigMutex.Unlock()
 	if fake.UpdateRuntimeConfigStub != nil {
-		return fake.UpdateRuntimeConfigStub(arg1)
+		return fake.UpdateRuntimeConfigStub(name, manifest)
 	} else {
 		return fake.updateRuntimeConfigReturns.result1
 	}
@@ -1263,10 +1276,10 @@ func (fake *FakeDirector) UpdateRuntimeConfigCallCount() int {
 	return len(fake.updateRuntimeConfigArgsForCall)
 }
 
-func (fake *FakeDirector) UpdateRuntimeConfigArgsForCall(i int) []byte {
+func (fake *FakeDirector) UpdateRuntimeConfigArgsForCall(i int) (string, []byte) {
 	fake.updateRuntimeConfigMutex.RLock()
 	defer fake.updateRuntimeConfigMutex.RUnlock()
-	return fake.updateRuntimeConfigArgsForCall[i].arg1
+	return fake.updateRuntimeConfigArgsForCall[i].name, fake.updateRuntimeConfigArgsForCall[i].manifest
 }
 
 func (fake *FakeDirector) UpdateRuntimeConfigReturns(result1 error) {

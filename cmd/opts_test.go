@@ -1059,6 +1059,20 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
+	Describe("RuntimeConfigOpts", func() {
+		var opts *RuntimeConfigOpts
+
+		BeforeEach(func() {
+			opts = &RuntimeConfigOpts{}
+		})
+
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(`long:"name" description:"Runtime-Config name (default: '')" default:""`))
+			})
+		})
+	})
+
 	Describe("UpdateRuntimeConfigOpts", func() {
 		var opts *UpdateRuntimeConfigOpts
 
@@ -1069,6 +1083,12 @@ var _ = Describe("Opts", func() {
 		Describe("Args", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(`long:"name" description:"Runtime-Config name (default: '')" default:""`))
 			})
 		})
 	})

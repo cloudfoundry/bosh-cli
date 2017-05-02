@@ -41,6 +41,7 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 				Args: UpdateRuntimeConfigArgs{
 					RuntimeConfig: FileBytesArg{Bytes: []byte("runtime: config")},
 				},
+				Name: "angry-smurf",
 			}
 		})
 
@@ -52,7 +53,8 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 
 			Expect(director.UpdateRuntimeConfigCallCount()).To(Equal(1))
 
-			bytes := director.UpdateRuntimeConfigArgsForCall(0)
+			name, bytes := director.UpdateRuntimeConfigArgsForCall(0)
+			Expect(name).To(Equal("angry-smurf"))
 			Expect(bytes).To(Equal([]byte("runtime: config\n")))
 		})
 
@@ -83,7 +85,8 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 
 			Expect(director.UpdateRuntimeConfigCallCount()).To(Equal(1))
 
-			bytes := director.UpdateRuntimeConfigArgsForCall(0)
+			name, bytes := director.UpdateRuntimeConfigArgsForCall(0)
+			Expect(name).To(Equal("angry-smurf"))
 			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\nxyz: val\n")))
 		})
 
@@ -106,7 +109,8 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 
 			Expect(director.UpdateRuntimeConfigCallCount()).To(Equal(1))
 
-			bytes = director.UpdateRuntimeConfigArgsForCall(0)
+			name, bytes := director.UpdateRuntimeConfigArgsForCall(0)
+			Expect(name).To(Equal("angry-smurf"))
 			Expect(bytes).To(Equal([]byte("after-upload-config")))
 		})
 
