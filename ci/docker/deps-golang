@@ -1,5 +1,3 @@
-base_dir=$PWD/../../..
-
-GO_VERSION=$(cat $base_dir/docker-files/version)
-GO_ARCHIVE_SHA256=$(cat $base_dir/docker-files/sha)
+GO_VERSION=$(cat version)
+GO_ARCHIVE_SHA256=$(cat sha)
 GO_ARCHIVE_URL=https://storage.googleapis.com/golang/go$GO_VERSION.linux-amd64.tar.gz
