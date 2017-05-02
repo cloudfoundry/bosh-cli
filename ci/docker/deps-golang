@@ -1,3 +1,0 @@
-GO_VERSION=$(cat version)
-GO_ARCHIVE_SHA256=$(cat sha)
-GO_ARCHIVE_URL=https://storage.googleapis.com/golang/go$GO_VERSION.linux-amd64.tar.gz
