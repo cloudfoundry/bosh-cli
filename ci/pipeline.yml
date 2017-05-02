@@ -37,6 +37,29 @@ jobs:
             BOSH_LITE_SUBNET_ID:        {{aws_ec2_acceptance_tests_bosh_lite_subnet_id}}
             BOSH_LITE_SECURITY_GROUP:   {{aws_ec2_acceptance_tests_bosh_lite_security_group}}
             BOSH_LITE_PRIVATE_KEY_DATA: {{aws_ec2_acceptance_tests_bosh_lite_private_key}}
+            GO_VERSION: 1.7.1
+
+  - name: test-acceptance-go-1.8
+    public: true
+    plan:
+      - aggregate:
+        - get: bosh-cli
+          passed: [test-unit,test-integration]
+          trigger: true
+        - get: bosh-warden-cpi-release
+          trigger: true
+      - aggregate:
+        - task: test-acceptance
+          file: bosh-cli/ci/tasks/test-acceptance.yml
+          privileged: true
+          params:
+            BOSH_AWS_ACCESS_KEY_ID:     {{aws_ec2_acceptance_tests_access_key}}
+            BOSH_AWS_SECRET_ACCESS_KEY: {{aws_ec2_acceptance_tests_secret_key}}
+            BOSH_LITE_KEYPAIR:          {{aws_ec2_acceptance_tests_bosh_lite_keypair}}
+            BOSH_LITE_SUBNET_ID:        {{aws_ec2_acceptance_tests_bosh_lite_subnet_id}}
+            BOSH_LITE_SECURITY_GROUP:   {{aws_ec2_acceptance_tests_bosh_lite_security_group}}
+            BOSH_LITE_PRIVATE_KEY_DATA: {{aws_ec2_acceptance_tests_bosh_lite_private_key}}
+            GO_VERSION: 1.8.1
 
   - name: integration-2.3-postgres-gocli
     public: true
@@ -106,6 +129,7 @@ jobs:
         - get: bosh-cli
           passed:
            - test-acceptance
+           - test-acceptance-go-1.8
            - integration-2.3-postgres-gocli
           trigger: true
         - get: version-semver
@@ -187,6 +211,7 @@ jobs:
         - get: bosh-cli
           passed:
            - test-acceptance
+           - test-acceptance-go-1.8
            - integration-2.3-postgres-gocli
           trigger: true
         - get: alpha-version-semver

@@ -40,6 +40,6 @@ set -x
 export BOSH_LITE_PRIVATE_KEY=$tmpfile
 
 cd $GOPATH/src/github.com/cloudfoundry/bosh-cli
-source ci/docker/deps-golang-1.7.1
+source "ci/docker/deps-golang-${GO_VERSION}"
 ./bin/require-ci-golang-version
 base=$PWD ./bin/test-acceptance-with-vm --provider=aws
