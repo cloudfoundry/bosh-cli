@@ -5,7 +5,7 @@ image_resource:
   type: docker-image
   source:
     repository: bosh/cli
-    tag: 'latest'
+    tag: 'go-1.8'
 
 inputs:
 - name: bosh-cli
@@ -23,4 +23,4 @@ params:
   BOSH_LITE_SUBNET_ID:        replace-me
   BOSH_LITE_SECURITY_GROUP:   replace-me
   BOSH_LITE_PRIVATE_KEY_DATA: replace-me
-  GO_VERSION:                 1.7.1
+  GO_VERSION:                 1.8.1
