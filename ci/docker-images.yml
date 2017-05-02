@@ -13,8 +13,8 @@ jobs:
           DOCKER_IMAGE_TAG: latest
       - put: bosh-cli
         params:
-          build: "bosh-cli-src/ci/docker"
-          tag: "metadata-files/tag"
+          build: "docker-files"
+          tag: "tag"
         get_params:
           skip_download: true
 
@@ -32,8 +32,8 @@ jobs:
           DOCKER_IMAGE_TAG: go-1.8
       - put: bosh-cli
         params:
-          build: "bosh-cli-src/ci/docker"
-          tag: "metadata-files/tag"
+          build: "docker-files"
+          tag: "tag"
         get_params:
           skip_download: true
 

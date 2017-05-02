@@ -11,7 +11,7 @@ inputs:
   - name: bosh-cli-src
 
 outputs:
-  - name: metadata-files
+  - name: docker-files
 
 run:
   path: bosh-cli-src/ci/docker/write-metadata-file.sh
