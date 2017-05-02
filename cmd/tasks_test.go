@@ -85,7 +85,7 @@ var _ = Describe("TasksCmd", func() {
 					Content: "tasks",
 
 					Header: []boshtbl.Header{
-						boshtbl.NewHeader("#"),
+						boshtbl.NewHeader("ID"),
 						boshtbl.NewHeader("State"),
 						boshtbl.NewHeader("Started At"),
 						boshtbl.NewHeader("Last Activity At"),
@@ -205,7 +205,7 @@ var _ = Describe("TasksCmd", func() {
 					Content: "tasks",
 
 					Header: []boshtbl.Header{
-						boshtbl.NewHeader("#"),
+						boshtbl.NewHeader("ID"),
 						boshtbl.NewHeader("State"),
 						boshtbl.NewHeader("Started At"),
 						boshtbl.NewHeader("Last Activity At"),
