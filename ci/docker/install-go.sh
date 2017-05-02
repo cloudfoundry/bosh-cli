@@ -2,7 +2,7 @@
 
 set -ex
 
-source deps-golang
+source deps-golang-from-docker-files
 GOROOT=/usr/local/go
 GO_ARCHIVE=$(basename $GO_ARCHIVE_URL)
 
