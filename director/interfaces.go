@@ -49,8 +49,8 @@ type Director interface {
 	LatestCPIConfig() (CPIConfig, error)
 	UpdateCPIConfig([]byte) error
 
-	LatestRuntimeConfig() (RuntimeConfig, error)
-	UpdateRuntimeConfig([]byte) error
+	LatestRuntimeConfig(name string) (RuntimeConfig, error)
+	UpdateRuntimeConfig(name string, manifest []byte) error
 
 	FindOrphanedDisk(string) (OrphanedDisk, error)
 	OrphanedDisks() ([]OrphanedDisk, error)

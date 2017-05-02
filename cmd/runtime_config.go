@@ -14,8 +14,8 @@ func NewRuntimeConfigCmd(ui boshui.UI, director boshdir.Director) RuntimeConfigC
 	return RuntimeConfigCmd{ui: ui, director: director}
 }
 
-func (c RuntimeConfigCmd) Run() error {
-	runtimeConfig, err := c.director.LatestRuntimeConfig()
+func (c RuntimeConfigCmd) Run(opts RuntimeConfigOpts) error {
+	runtimeConfig, err := c.director.LatestRuntimeConfig(opts.Name)
 	if err != nil {
 		return err
 	}

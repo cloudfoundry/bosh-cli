@@ -318,6 +318,7 @@ type UpdateCPIConfigArgs struct {
 
 // Runtime config
 type RuntimeConfigOpts struct {
+	Name string `long:"name" description:"Runtime-Config name (default: '')" default:""`
 	cmd
 }
 
@@ -325,6 +326,9 @@ type UpdateRuntimeConfigOpts struct {
 	Args UpdateRuntimeConfigArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
+
+	Name string `long:"name" description:"Runtime-Config name (default: '')" default:""`
+
 	cmd
 }
 

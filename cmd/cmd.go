@@ -231,7 +231,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewUpdateCPIConfigCmd(deps.UI, c.director()).Run(*opts)
 
 	case *RuntimeConfigOpts:
-		return NewRuntimeConfigCmd(deps.UI, c.director()).Run()
+		return NewRuntimeConfigCmd(deps.UI, c.director()).Run(*opts)
 
 	case *UpdateRuntimeConfigOpts:
 		director := c.director()

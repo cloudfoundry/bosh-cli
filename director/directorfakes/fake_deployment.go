@@ -472,8 +472,9 @@ func (fake *FakeDeployment) Teams() ([]string, error) {
 	fake.teamsMutex.Unlock()
 	if fake.TeamsStub != nil {
 		return fake.TeamsStub()
+	} else {
+		return fake.teamsReturns.result1, fake.teamsReturns.result2
 	}
-	return fake.teamsReturns.result1, fake.teamsReturns.result2
 }
 
 func (fake *FakeDeployment) TeamsCallCount() int {

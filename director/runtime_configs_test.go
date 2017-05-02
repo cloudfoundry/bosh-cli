@@ -25,10 +25,10 @@ var _ = Describe("Director", func() {
 	})
 
 	Describe("LatestRuntimeConfig", func() {
-		It("returns latest runtime config if there is at least one", func() {
+		It("returns latest default runtime config if there is at least one", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/runtime_configs", "limit=1"),
+					ghttp.VerifyRequest("GET", "/runtime_configs", "name=&limit=1"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `[
 	{"properties": "first"},
@@ -37,7 +37,24 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			cc, err := director.LatestRuntimeConfig()
+			cc, err := director.LatestRuntimeConfig("")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(cc).To(Equal(RuntimeConfig{Properties: "first"}))
+		})
+
+		It("returns named runtime config if there is at least one and name is specified", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/runtime_configs", "name=foo-name&limit=1"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[
+	{"properties": "first"},
+	{"properties": "second"}
+]`),
+				),
+			)
+
+			cc, err := director.LatestRuntimeConfig("foo-name")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cc).To(Equal(RuntimeConfig{Properties: "first"}))
 		})
@@ -45,13 +62,13 @@ var _ = Describe("Director", func() {
 		It("returns error if there is no runtime config", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/runtime_configs", "limit=1"),
+					ghttp.VerifyRequest("GET", "/runtime_configs", "name=&limit=1"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `[]`),
 				),
 			)
 
-			_, err := director.LatestRuntimeConfig()
+			_, err := director.LatestRuntimeConfig("")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("No runtime config"))
 		})
@@ -59,7 +76,7 @@ var _ = Describe("Director", func() {
 		It("returns error if info response in non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("GET", "/runtime_configs"), server)
 
-			_, err := director.LatestRuntimeConfig()
+			_, err := director.LatestRuntimeConfig("")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Finding runtime configs: Director responded with non-successful status code"))
@@ -73,7 +90,7 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			_, err := director.LatestRuntimeConfig()
+			_, err := director.LatestRuntimeConfig("")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Finding runtime configs: Unmarshaling Director response"))
@@ -84,7 +101,7 @@ var _ = Describe("Director", func() {
 		It("updates runtime config", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/runtime_configs"),
+					ghttp.VerifyRequest("POST", "/runtime_configs", "name=smurf-runtime-config"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"text/yaml"},
@@ -93,14 +110,14 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			err := director.UpdateRuntimeConfig([]byte("config"))
+			err := director.UpdateRuntimeConfig("smurf-runtime-config", []byte("config"))
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns error if info response in non-200", func() {
-			AppendBadRequest(ghttp.VerifyRequest("POST", "/runtime_configs"), server)
+			AppendBadRequest(ghttp.VerifyRequest("POST", "/runtime_configs", "name="), server)
 
-			err := director.UpdateRuntimeConfig(nil)
+			err := director.UpdateRuntimeConfig("", nil)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Updating runtime config: Director responded with non-successful status code"))
