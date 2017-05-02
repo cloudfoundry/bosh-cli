@@ -14,7 +14,7 @@ jobs:
       - put: bosh-cli
         params:
           build: "docker-files"
-          tag: "tag"
+          tag: "docker-files/tag"
         get_params:
           skip_download: true
 
@@ -33,7 +33,7 @@ jobs:
       - put: bosh-cli
         params:
           build: "docker-files"
-          tag: "tag"
+          tag: "docker-files/tag"
         get_params:
           skip_download: true
 
