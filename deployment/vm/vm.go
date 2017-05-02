@@ -179,7 +179,15 @@ func (vm *vm) AttachDisk(disk bidisk.Disk) error {
 		return bosherr.WrapError(err, "Attaching disk in the cloud")
 	}
 
-	vm.cloud.SetDiskMetadata(disk.CID(), vm.createDiskMetadata())
+	err = vm.cloud.SetDiskMetadata(disk.CID(), vm.createDiskMetadata())
+	if err != nil {
+		cloudErr, ok := err.(bicloud.Error)
+		if ok && cloudErr.Type() == bicloud.NotImplementedError {
+			vm.logger.Warn(vm.logTag, "'SetDiskMetadata' not implemented by CPI")
+		} else {
+			return bosherr.WrapErrorf(err, "Setting disk metadata for %s", disk.CID())
+		}
+	}
 
 	err = vm.WaitUntilReady(10*time.Minute, 500*time.Millisecond)
 	if err != nil {
