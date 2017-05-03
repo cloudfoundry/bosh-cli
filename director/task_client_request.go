@@ -119,7 +119,7 @@ func (r TaskClientRequest) WaitForCompletion(id int, type_ string, taskReporter 
 			return nil
 		}
 
-		msgFmt := "Expected task '%d' to succeed but was state is '%s'"
+		msgFmt := "Expected task '%d' to succeed but state is '%s'"
 
 		return bosherr.Errorf(msgFmt, taskResp.ID, taskResp.State)
 	}
