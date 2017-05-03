@@ -351,6 +351,9 @@ type DeployOpts struct {
 	VarFlags
 	OpsFlags
 
+	VarErrors       bool `long:"var-errs"                  description:"Expect all variables to be found, otherwise error"`
+	VarErrorsUnused bool `long:"var-errs-unused"           description:"Expect all variables to be used, otherwise error"`
+
 	NoRedact bool `long:"no-redact" description:"Show non-redacted manifest diff"`
 
 	Recreate  bool                `long:"recreate"                          description:"Recreate all VMs in deployment"`

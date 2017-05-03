@@ -253,5 +253,37 @@ releases:
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
+
+		It("returns error if variables are not found in templated manifest if var-errs flag is set", func() {
+			opts.Args.Manifest = FileBytesArg{
+				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
+			}
+
+			opts.VarKVs = []boshtpl.VarKV{
+				{Name: "name1", Value: "val1-from-kv"},
+			}
+
+			opts.VarErrors = true
+
+			err := act()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Expected to find variables: name2"))
+		})
+
+		It("returns error if variables are not used in templated manifest if var-errs-unused flag is set", func() {
+			opts.Args.Manifest = FileBytesArg{
+				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
+			}
+
+			opts.VarKVs = []boshtpl.VarKV{
+				{Name: "name3", Value: "val3-from-kv"},
+			}
+
+			opts.VarErrorsUnused = true
+
+			err := act()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Expected to use variables: name3"))
+		})
 	})
 })

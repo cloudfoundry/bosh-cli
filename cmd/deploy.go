@@ -29,7 +29,11 @@ func NewDeployCmd(
 func (c DeployCmd) Run(opts DeployOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.Manifest.Bytes)
 
-	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp(), boshtpl.EvaluateOpts{})
+	evalOpts := boshtpl.EvaluateOpts{
+		ExpectAllKeys:     opts.VarErrors,
+		ExpectAllVarsUsed: opts.VarErrorsUnused,
+	}
+	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp(), evalOpts)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Evaluating manifest")
 	}
