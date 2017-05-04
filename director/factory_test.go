@@ -11,6 +11,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
+	"github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("Factory", func() {
@@ -67,6 +68,14 @@ var _ = Describe("Factory", func() {
 				return h
 			}
 
+			TasksRedirect := func(config Config) http.Header {
+				h := http.Header{}
+				// URL does not include port, creds
+				h.Add("Location", "https://"+config.Host+"/tasks/123")
+				h.Add("Referer", "referer")
+				return h
+			}
+
 			VerifyHeaderDoesNotExist := func(key string) http.HandlerFunc {
 				cKey := http.CanonicalHeaderKey(key)
 				return func(w http.ResponseWriter, req *http.Request) {
@@ -104,6 +113,54 @@ var _ = Describe("Factory", func() {
 				)
 
 				_, err = director.Info()
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("succeeds making initial post request and clears out headers when redirecting to a get resource", func() {
+				config, err := NewConfigFromURL(server.URL())
+				Expect(err).ToNot(HaveOccurred())
+
+				config.Client = "username"
+				config.ClientSecret = "password"
+				config.CACert = validCACert
+
+				logger := boshlog.NewLogger(boshlog.LevelNone)
+
+				taskReporter := NewNoopTaskReporter()
+				fileReporter := NewNoopFileReporter()
+				director, err := NewFactory(logger).New(config, taskReporter, fileReporter)
+				Expect(err).ToNot(HaveOccurred())
+
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/stemcells"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.RespondWith(http.StatusFound, nil, TasksRedirect(config)),
+					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/tasks/123"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						VerifyHeaderDoesNotExist("Content-Type"),
+						ghttp.RespondWith(http.StatusOK, `{"id":123, "state":"done"}`),
+					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/tasks/123"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.RespondWith(http.StatusOK, `{"id":123, "state":"done"}`),
+					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/tasks/123/output", "type=event"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.RespondWith(http.StatusOK, ``),
+					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/tasks/123/output", "type=result"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.RespondWith(http.StatusOK, ""),
+					),
+				)
+
+				err = director.UploadStemcellFile(&fakes.FakeFile{}, false)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
