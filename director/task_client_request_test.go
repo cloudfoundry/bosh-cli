@@ -328,7 +328,7 @@ var _ = Describe("TaskClientRequest", func() {
 			err := act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
-				"Expected task '123' to succeed but was state is 'state'"))
+				"Expected task '123' to succeed but state is 'state'"))
 
 			Expect(taskReporter.TaskStartedCallCount()).To(Equal(1))
 			Expect(taskReporter.TaskFinishedCallCount()).To(Equal(1))
