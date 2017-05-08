@@ -45,6 +45,7 @@ type Director interface {
 
 	LatestCloudConfig() (CloudConfig, error)
 	UpdateCloudConfig([]byte) error
+	DiffCloudConfig(manifest []byte) (CloudConfigDiff, error)
 
 	LatestCPIConfig() (CPIConfig, error)
 	UpdateCPIConfig([]byte) error
