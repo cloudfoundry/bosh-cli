@@ -49,7 +49,7 @@ func (t EventTable) Print() {
 	})
 
 	if len(t.Event.ObjectName()) > 0 {
-		table = table.AddColumn("Object ID", []boshtbl.Value{
+		table = table.AddColumn("Object Name", []boshtbl.Value{
 			boshtbl.NewValueString(t.Event.ObjectName()),
 		})
 	}
