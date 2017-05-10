@@ -134,7 +134,7 @@ var _ = Describe("EventCmd", func() {
 					boshtbl.NewHeader("User"),
 					boshtbl.NewHeader("Action"),
 					boshtbl.NewHeader("Object Type"),
-					boshtbl.NewHeader("Object ID"),
+					boshtbl.NewHeader("Object Name"),
 					boshtbl.NewHeader("Task ID"),
 					boshtbl.NewHeader("Deployment"),
 					boshtbl.NewHeader("Instance"),
@@ -189,7 +189,7 @@ var _ = Describe("EventCmd", func() {
 				err := command.Run(opts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("Object ID")))
+				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("Object Name")))
 				Expect(ui.Table.Rows).To(HaveLen(1))
 				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("fake-object")))
 			})

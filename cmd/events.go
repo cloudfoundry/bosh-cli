@@ -42,7 +42,7 @@ func (c EventsCmd) Run(opts EventsOpts) error {
 			boshtbl.NewHeader("User"),
 			boshtbl.NewHeader("Action"),
 			boshtbl.NewHeader("Object Type"),
-			boshtbl.NewHeader("Object ID"),
+			boshtbl.NewHeader("Object Name"),
 			boshtbl.NewHeader("Task ID"),
 			boshtbl.NewHeader("Deployment"),
 			boshtbl.NewHeader("Instance"),

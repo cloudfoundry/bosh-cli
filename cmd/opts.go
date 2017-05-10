@@ -389,7 +389,7 @@ type EventsOpts struct {
 	User       string `long:"event-user"   description:"Show events with given user"`
 	Action     string `long:"action"       description:"Show events with given action"`
 	ObjectType string `long:"object-type"  description:"Show events with given object type"`
-	ObjectName string `long:"object-id"    description:"Show events with given object ID"`
+	ObjectName string `long:"object-name"  description:"Show events with given object name"`
 
 	cmd
 }
