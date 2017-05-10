@@ -215,4 +215,93 @@ var _ = Describe("OrphanedDisk", func() {
 				"Deleting orphaned disk 'cid': Unmarshaling Director response"))
 		})
 	})
+
+	Describe("Orphan", func() {
+		It("orphans disk", func() {
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("DELETE", "/disks/cid", "orphan=true"),
+					ghttp.VerifyBasicAuth("username", "password"),
+				),
+				"",
+				server,
+			)
+
+			Expect(director.Orphan("cid")).ToNot(HaveOccurred())
+		})
+
+		It("succeeds even if error occurrs if orphaned disk exists", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("DELETE", "/disks/cid", "orphan=true"),
+					ghttp.RespondWith(http.StatusBadRequest, ``),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/disks"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[
+  { "disk_cid": "cid", "orphaned_at": "2016-01-09 06:23:25 +0000" }
+]`),
+				),
+			)
+
+			Expect(director.Orphan("cid")).ToNot(HaveOccurred())
+		})
+
+		It("returns orphan error if listing disks fails", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("DELETE", "/disks/cid", "orphan=true"),
+					ghttp.RespondWith(http.StatusBadRequest, ``),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/disks"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, ``),
+				),
+			)
+
+			err := director.Orphan("cid")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(
+				"Orphaning disk 'cid': Director responded with non-successful status code"))
+		})
+
+		It("returns error if response is non-200 and orphaned disk does not exist", func() {
+			AppendBadRequest(ghttp.VerifyRequest("DELETE", "/disks/cid", "orphan=true"), server)
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/disks"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[]`),
+				),
+			)
+
+			err := director.Orphan("cid")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(
+				"Orphaning disk 'cid': Director responded with non-successful status code"))
+		})
+
+		It("returns error if response cannot be unmarshalled and orphaned disk does not exist", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("DELETE", "/disks/cid", "orphan=true"),
+					ghttp.RespondWith(http.StatusOK, ``),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/disks"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[]`),
+				),
+			)
+
+			err := director.Orphan("cid")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(
+				"Orphaning disk 'cid': Unmarshaling Director response"))
+		})
+	})
+
 })

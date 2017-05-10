@@ -50,6 +50,29 @@ func (d OrphanedDiskImpl) Delete() error {
 	return nil
 }
 
+func (d DirectorImpl) Orphan(cid string) error {
+	err := d.client.OrphanDisk(cid)
+	if err != nil {
+		resps, listErr := d.client.OrphanedDisks()
+		if listErr != nil {
+			return err
+		}
+
+		found := false
+		for _, resp := range resps {
+			if resp.CID == cid {
+				found = true
+				break
+			}
+		}
+		if found == false {
+			return err
+		}
+	}
+
+	return nil
+}
+
 type OrphanedDiskResp struct {
 	CID  string `json:"disk_cid"`
 	Size uint64
@@ -119,6 +142,21 @@ func (c Client) DeleteOrphanedDisk(cid string) error {
 	_, err := c.taskClientRequest.DeleteResult(path)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Deleting orphaned disk '%s'", cid)
+	}
+
+	return nil
+}
+
+func (c Client) OrphanDisk(cid string) error {
+	if len(cid) == 0 {
+		return bosherr.Error("Expected non-empty disk CID")
+	}
+
+	path := fmt.Sprintf("/disks/%s?orphan=true", cid)
+
+	_, err := c.taskClientRequest.DeleteResult(path)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Orphaning disk '%s'", cid)
 	}
 
 	return nil

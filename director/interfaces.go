@@ -55,6 +55,7 @@ type Director interface {
 
 	FindOrphanedDisk(string) (OrphanedDisk, error)
 	OrphanedDisks() ([]OrphanedDisk, error)
+	Orphan(string) error
 
 	EnableResurrection(bool) error
 	CleanUp(bool) error
