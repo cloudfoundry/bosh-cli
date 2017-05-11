@@ -36,5 +36,5 @@ func (c UpdateRuntimeConfigCmd) Run(opts UpdateRuntimeConfigOpts) error {
 		return err
 	}
 
-	return c.director.UpdateRuntimeConfig(bytes)
+	return c.director.UpdateRuntimeConfig(opts.Name, bytes)
 }

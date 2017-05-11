@@ -7,7 +7,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
-type OrphanedDiskImpl struct {
+type OrphanDiskImpl struct {
 	client Client
 
 	cid  string
@@ -20,22 +20,22 @@ type OrphanedDiskImpl struct {
 	orphanedAt time.Time
 }
 
-func (d OrphanedDiskImpl) CID() string  { return d.cid }
-func (d OrphanedDiskImpl) Size() uint64 { return d.size }
+func (d OrphanDiskImpl) CID() string  { return d.cid }
+func (d OrphanDiskImpl) Size() uint64 { return d.size }
 
-func (d OrphanedDiskImpl) Deployment() Deployment {
+func (d OrphanDiskImpl) Deployment() Deployment {
 	return &DeploymentImpl{client: d.client, name: d.deploymentName}
 }
 
-func (d OrphanedDiskImpl) InstanceName() string { return d.instanceName }
-func (d OrphanedDiskImpl) AZName() string       { return d.azName }
+func (d OrphanDiskImpl) InstanceName() string { return d.instanceName }
+func (d OrphanDiskImpl) AZName() string       { return d.azName }
 
-func (d OrphanedDiskImpl) OrphanedAt() time.Time { return d.orphanedAt }
+func (d OrphanDiskImpl) OrphanedAt() time.Time { return d.orphanedAt }
 
-func (d OrphanedDiskImpl) Delete() error {
-	err := d.client.DeleteOrphanedDisk(d.cid)
+func (d OrphanDiskImpl) Delete() error {
+	err := d.client.DeleteOrphanDisk(d.cid)
 	if err != nil {
-		resps, listErr := d.client.OrphanedDisks()
+		resps, listErr := d.client.OrphanDisks()
 		if listErr != nil {
 			return err
 		}
@@ -50,7 +50,11 @@ func (d OrphanedDiskImpl) Delete() error {
 	return nil
 }
 
-type OrphanedDiskResp struct {
+func (d DirectorImpl) OrphanDisk(cid string) error {
+	return d.client.OrphanDisk(cid)
+}
+
+type OrphanDiskResp struct {
 	CID  string `json:"disk_cid"`
 	Size uint64
 
@@ -61,14 +65,14 @@ type OrphanedDiskResp struct {
 	OrphanedAt string `json:"orphaned_at"` // e.g. "2016-01-09 06:23:25 +0000"
 }
 
-func (d DirectorImpl) FindOrphanedDisk(cid string) (OrphanedDisk, error) {
-	return OrphanedDiskImpl{client: d.client, cid: cid}, nil
+func (d DirectorImpl) FindOrphanDisk(cid string) (OrphanDisk, error) {
+	return OrphanDiskImpl{client: d.client, cid: cid}, nil
 }
 
-func (d DirectorImpl) OrphanedDisks() ([]OrphanedDisk, error) {
-	var disks []OrphanedDisk
+func (d DirectorImpl) OrphanDisks() ([]OrphanDisk, error) {
+	var disks []OrphanDisk
 
-	resps, err := d.client.OrphanedDisks()
+	resps, err := d.client.OrphanDisks()
 	if err != nil {
 		return disks, err
 	}
@@ -79,7 +83,7 @@ func (d DirectorImpl) OrphanedDisks() ([]OrphanedDisk, error) {
 			return disks, bosherr.WrapErrorf(err, "Converting orphaned at '%s' to time", r.OrphanedAt)
 		}
 
-		disk := OrphanedDiskImpl{
+		disk := OrphanDiskImpl{
 			client: d.client,
 
 			cid:  r.CID,
@@ -98,8 +102,8 @@ func (d DirectorImpl) OrphanedDisks() ([]OrphanedDisk, error) {
 	return disks, nil
 }
 
-func (c Client) OrphanedDisks() ([]OrphanedDiskResp, error) {
-	var disks []OrphanedDiskResp
+func (c Client) OrphanDisks() ([]OrphanDiskResp, error) {
+	var disks []OrphanDiskResp
 
 	err := c.clientRequest.Get("/disks", &disks)
 	if err != nil {
@@ -109,7 +113,7 @@ func (c Client) OrphanedDisks() ([]OrphanedDiskResp, error) {
 	return disks, nil
 }
 
-func (c Client) DeleteOrphanedDisk(cid string) error {
+func (c Client) DeleteOrphanDisk(cid string) error {
 	if len(cid) == 0 {
 		return bosherr.Error("Expected non-empty orphaned disk CID")
 	}
@@ -119,6 +123,21 @@ func (c Client) DeleteOrphanedDisk(cid string) error {
 	_, err := c.taskClientRequest.DeleteResult(path)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Deleting orphaned disk '%s'", cid)
+	}
+
+	return nil
+}
+
+func (c Client) OrphanDisk(cid string) error {
+	if len(cid) == 0 {
+		return bosherr.Error("Expected non-empty disk CID")
+	}
+
+	path := fmt.Sprintf("/disks/%s?orphan=true", cid)
+
+	_, err := c.taskClientRequest.DeleteResult(path)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Orphaning disk '%s'", cid)
 	}
 
 	return nil

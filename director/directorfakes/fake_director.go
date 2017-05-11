@@ -235,6 +235,15 @@ type FakeDirector struct {
 	updateCloudConfigReturns struct {
 		result1 error
 	}
+	DiffCloudConfigStub        func(manifest []byte) (director.CloudConfigDiff, error)
+	diffCloudConfigMutex       sync.RWMutex
+	diffCloudConfigArgsForCall []struct {
+		manifest []byte
+	}
+	diffCloudConfigReturns struct {
+		result1 director.CloudConfigDiff
+		result2 error
+	}
 	LatestCPIConfigStub        func() (director.CPIConfig, error)
 	latestCPIConfigMutex       sync.RWMutex
 	latestCPIConfigArgsForCall []struct{}
@@ -250,36 +259,47 @@ type FakeDirector struct {
 	updateCPIConfigReturns struct {
 		result1 error
 	}
-	LatestRuntimeConfigStub        func() (director.RuntimeConfig, error)
+	LatestRuntimeConfigStub        func(name string) (director.RuntimeConfig, error)
 	latestRuntimeConfigMutex       sync.RWMutex
-	latestRuntimeConfigArgsForCall []struct{}
-	latestRuntimeConfigReturns     struct {
+	latestRuntimeConfigArgsForCall []struct {
+		name string
+	}
+	latestRuntimeConfigReturns struct {
 		result1 director.RuntimeConfig
 		result2 error
 	}
-	UpdateRuntimeConfigStub        func([]byte) error
+	UpdateRuntimeConfigStub        func(name string, manifest []byte) error
 	updateRuntimeConfigMutex       sync.RWMutex
 	updateRuntimeConfigArgsForCall []struct {
-		arg1 []byte
+		name     string
+		manifest []byte
 	}
 	updateRuntimeConfigReturns struct {
 		result1 error
 	}
-	FindOrphanedDiskStub        func(string) (director.OrphanedDisk, error)
-	findOrphanedDiskMutex       sync.RWMutex
-	findOrphanedDiskArgsForCall []struct {
+	FindOrphanDiskStub        func(string) (director.OrphanDisk, error)
+	findOrphanDiskMutex       sync.RWMutex
+	findOrphanDiskArgsForCall []struct {
 		arg1 string
 	}
-	findOrphanedDiskReturns struct {
-		result1 director.OrphanedDisk
+	findOrphanDiskReturns struct {
+		result1 director.OrphanDisk
 		result2 error
 	}
-	OrphanedDisksStub        func() ([]director.OrphanedDisk, error)
-	orphanedDisksMutex       sync.RWMutex
-	orphanedDisksArgsForCall []struct{}
-	orphanedDisksReturns     struct {
-		result1 []director.OrphanedDisk
+	OrphanDisksStub        func() ([]director.OrphanDisk, error)
+	orphanDisksMutex       sync.RWMutex
+	orphanDisksArgsForCall []struct{}
+	orphanDisksReturns     struct {
+		result1 []director.OrphanDisk
 		result2 error
+	}
+	OrphanDiskStub        func(string) error
+	orphanDiskMutex       sync.RWMutex
+	orphanDiskArgsForCall []struct {
+		arg1 string
+	}
+	orphanDiskReturns struct {
+		result1 error
 	}
 	EnableResurrectionStub        func(bool) error
 	enableResurrectionMutex       sync.RWMutex
@@ -317,9 +337,8 @@ func (fake *FakeDirector) IsAuthenticated() (bool, error) {
 	fake.isAuthenticatedMutex.Unlock()
 	if fake.IsAuthenticatedStub != nil {
 		return fake.IsAuthenticatedStub()
-	} else {
-		return fake.isAuthenticatedReturns.result1, fake.isAuthenticatedReturns.result2
 	}
+	return fake.isAuthenticatedReturns.result1, fake.isAuthenticatedReturns.result2
 }
 
 func (fake *FakeDirector) IsAuthenticatedCallCount() int {
@@ -345,9 +364,8 @@ func (fake *FakeDirector) WithContext(id string) director.Director {
 	fake.withContextMutex.Unlock()
 	if fake.WithContextStub != nil {
 		return fake.WithContextStub(id)
-	} else {
-		return fake.withContextReturns.result1
 	}
+	return fake.withContextReturns.result1
 }
 
 func (fake *FakeDirector) WithContextCallCount() int {
@@ -376,9 +394,8 @@ func (fake *FakeDirector) Info() (director.Info, error) {
 	fake.infoMutex.Unlock()
 	if fake.InfoStub != nil {
 		return fake.InfoStub()
-	} else {
-		return fake.infoReturns.result1, fake.infoReturns.result2
 	}
+	return fake.infoReturns.result1, fake.infoReturns.result2
 }
 
 func (fake *FakeDirector) InfoCallCount() int {
@@ -402,9 +419,8 @@ func (fake *FakeDirector) Locks() ([]director.Lock, error) {
 	fake.locksMutex.Unlock()
 	if fake.LocksStub != nil {
 		return fake.LocksStub()
-	} else {
-		return fake.locksReturns.result1, fake.locksReturns.result2
 	}
+	return fake.locksReturns.result1, fake.locksReturns.result2
 }
 
 func (fake *FakeDirector) LocksCallCount() int {
@@ -430,9 +446,8 @@ func (fake *FakeDirector) CurrentTasks(arg1 director.TasksFilter) ([]director.Ta
 	fake.currentTasksMutex.Unlock()
 	if fake.CurrentTasksStub != nil {
 		return fake.CurrentTasksStub(arg1)
-	} else {
-		return fake.currentTasksReturns.result1, fake.currentTasksReturns.result2
 	}
+	return fake.currentTasksReturns.result1, fake.currentTasksReturns.result2
 }
 
 func (fake *FakeDirector) CurrentTasksCallCount() int {
@@ -465,9 +480,8 @@ func (fake *FakeDirector) RecentTasks(arg1 int, arg2 director.TasksFilter) ([]di
 	fake.recentTasksMutex.Unlock()
 	if fake.RecentTasksStub != nil {
 		return fake.RecentTasksStub(arg1, arg2)
-	} else {
-		return fake.recentTasksReturns.result1, fake.recentTasksReturns.result2
 	}
+	return fake.recentTasksReturns.result1, fake.recentTasksReturns.result2
 }
 
 func (fake *FakeDirector) RecentTasksCallCount() int {
@@ -499,9 +513,8 @@ func (fake *FakeDirector) FindTask(arg1 int) (director.Task, error) {
 	fake.findTaskMutex.Unlock()
 	if fake.FindTaskStub != nil {
 		return fake.FindTaskStub(arg1)
-	} else {
-		return fake.findTaskReturns.result1, fake.findTaskReturns.result2
 	}
+	return fake.findTaskReturns.result1, fake.findTaskReturns.result2
 }
 
 func (fake *FakeDirector) FindTaskCallCount() int {
@@ -533,9 +546,8 @@ func (fake *FakeDirector) FindTasksByContextId(arg1 string) ([]director.Task, er
 	fake.findTasksByContextIdMutex.Unlock()
 	if fake.FindTasksByContextIdStub != nil {
 		return fake.FindTasksByContextIdStub(arg1)
-	} else {
-		return fake.findTasksByContextIdReturns.result1, fake.findTasksByContextIdReturns.result2
 	}
+	return fake.findTasksByContextIdReturns.result1, fake.findTasksByContextIdReturns.result2
 }
 
 func (fake *FakeDirector) FindTasksByContextIdCallCount() int {
@@ -567,9 +579,8 @@ func (fake *FakeDirector) Events(arg1 director.EventsFilter) ([]director.Event, 
 	fake.eventsMutex.Unlock()
 	if fake.EventsStub != nil {
 		return fake.EventsStub(arg1)
-	} else {
-		return fake.eventsReturns.result1, fake.eventsReturns.result2
 	}
+	return fake.eventsReturns.result1, fake.eventsReturns.result2
 }
 
 func (fake *FakeDirector) EventsCallCount() int {
@@ -632,9 +643,8 @@ func (fake *FakeDirector) Deployments() ([]director.Deployment, error) {
 	fake.deploymentsMutex.Unlock()
 	if fake.DeploymentsStub != nil {
 		return fake.DeploymentsStub()
-	} else {
-		return fake.deploymentsReturns.result1, fake.deploymentsReturns.result2
 	}
+	return fake.deploymentsReturns.result1, fake.deploymentsReturns.result2
 }
 
 func (fake *FakeDirector) DeploymentsCallCount() int {
@@ -660,9 +670,8 @@ func (fake *FakeDirector) FindDeployment(arg1 string) (director.Deployment, erro
 	fake.findDeploymentMutex.Unlock()
 	if fake.FindDeploymentStub != nil {
 		return fake.FindDeploymentStub(arg1)
-	} else {
-		return fake.findDeploymentReturns.result1, fake.findDeploymentReturns.result2
 	}
+	return fake.findDeploymentReturns.result1, fake.findDeploymentReturns.result2
 }
 
 func (fake *FakeDirector) FindDeploymentCallCount() int {
@@ -692,9 +701,8 @@ func (fake *FakeDirector) Releases() ([]director.Release, error) {
 	fake.releasesMutex.Unlock()
 	if fake.ReleasesStub != nil {
 		return fake.ReleasesStub()
-	} else {
-		return fake.releasesReturns.result1, fake.releasesReturns.result2
 	}
+	return fake.releasesReturns.result1, fake.releasesReturns.result2
 }
 
 func (fake *FakeDirector) ReleasesCallCount() int {
@@ -721,9 +729,8 @@ func (fake *FakeDirector) HasRelease(name string, version string) (bool, error) 
 	fake.hasReleaseMutex.Unlock()
 	if fake.HasReleaseStub != nil {
 		return fake.HasReleaseStub(name, version)
-	} else {
-		return fake.hasReleaseReturns.result1, fake.hasReleaseReturns.result2
 	}
+	return fake.hasReleaseReturns.result1, fake.hasReleaseReturns.result2
 }
 
 func (fake *FakeDirector) HasReleaseCallCount() int {
@@ -755,9 +762,8 @@ func (fake *FakeDirector) FindRelease(arg1 director.ReleaseSlug) (director.Relea
 	fake.findReleaseMutex.Unlock()
 	if fake.FindReleaseStub != nil {
 		return fake.FindReleaseStub(arg1)
-	} else {
-		return fake.findReleaseReturns.result1, fake.findReleaseReturns.result2
 	}
+	return fake.findReleaseReturns.result1, fake.findReleaseReturns.result2
 }
 
 func (fake *FakeDirector) FindReleaseCallCount() int {
@@ -789,9 +795,8 @@ func (fake *FakeDirector) FindReleaseSeries(arg1 director.ReleaseSeriesSlug) (di
 	fake.findReleaseSeriesMutex.Unlock()
 	if fake.FindReleaseSeriesStub != nil {
 		return fake.FindReleaseSeriesStub(arg1)
-	} else {
-		return fake.findReleaseSeriesReturns.result1, fake.findReleaseSeriesReturns.result2
 	}
+	return fake.findReleaseSeriesReturns.result1, fake.findReleaseSeriesReturns.result2
 }
 
 func (fake *FakeDirector) FindReleaseSeriesCallCount() int {
@@ -826,9 +831,8 @@ func (fake *FakeDirector) UploadReleaseURL(url string, sha1 string, rebase bool,
 	fake.uploadReleaseURLMutex.Unlock()
 	if fake.UploadReleaseURLStub != nil {
 		return fake.UploadReleaseURLStub(url, sha1, rebase, fix)
-	} else {
-		return fake.uploadReleaseURLReturns.result1
 	}
+	return fake.uploadReleaseURLReturns.result1
 }
 
 func (fake *FakeDirector) UploadReleaseURLCallCount() int {
@@ -861,9 +865,8 @@ func (fake *FakeDirector) UploadReleaseFile(file director.UploadFile, rebase boo
 	fake.uploadReleaseFileMutex.Unlock()
 	if fake.UploadReleaseFileStub != nil {
 		return fake.UploadReleaseFileStub(file, rebase, fix)
-	} else {
-		return fake.uploadReleaseFileReturns.result1
 	}
+	return fake.uploadReleaseFileReturns.result1
 }
 
 func (fake *FakeDirector) UploadReleaseFileCallCount() int {
@@ -895,9 +898,8 @@ func (fake *FakeDirector) MatchPackages(manifest interface{}, compiled bool) ([]
 	fake.matchPackagesMutex.Unlock()
 	if fake.MatchPackagesStub != nil {
 		return fake.MatchPackagesStub(manifest, compiled)
-	} else {
-		return fake.matchPackagesReturns.result1, fake.matchPackagesReturns.result2
 	}
+	return fake.matchPackagesReturns.result1, fake.matchPackagesReturns.result2
 }
 
 func (fake *FakeDirector) MatchPackagesCallCount() int {
@@ -927,9 +929,8 @@ func (fake *FakeDirector) Stemcells() ([]director.Stemcell, error) {
 	fake.stemcellsMutex.Unlock()
 	if fake.StemcellsStub != nil {
 		return fake.StemcellsStub()
-	} else {
-		return fake.stemcellsReturns.result1, fake.stemcellsReturns.result2
 	}
+	return fake.stemcellsReturns.result1, fake.stemcellsReturns.result2
 }
 
 func (fake *FakeDirector) StemcellsCallCount() int {
@@ -956,9 +957,8 @@ func (fake *FakeDirector) HasStemcell(name string, version string) (bool, error)
 	fake.hasStemcellMutex.Unlock()
 	if fake.HasStemcellStub != nil {
 		return fake.HasStemcellStub(name, version)
-	} else {
-		return fake.hasStemcellReturns.result1, fake.hasStemcellReturns.result2
 	}
+	return fake.hasStemcellReturns.result1, fake.hasStemcellReturns.result2
 }
 
 func (fake *FakeDirector) HasStemcellCallCount() int {
@@ -990,9 +990,8 @@ func (fake *FakeDirector) FindStemcell(arg1 director.StemcellSlug) (director.Ste
 	fake.findStemcellMutex.Unlock()
 	if fake.FindStemcellStub != nil {
 		return fake.FindStemcellStub(arg1)
-	} else {
-		return fake.findStemcellReturns.result1, fake.findStemcellReturns.result2
 	}
+	return fake.findStemcellReturns.result1, fake.findStemcellReturns.result2
 }
 
 func (fake *FakeDirector) FindStemcellCallCount() int {
@@ -1026,9 +1025,8 @@ func (fake *FakeDirector) UploadStemcellURL(url string, sha1 string, fix bool) e
 	fake.uploadStemcellURLMutex.Unlock()
 	if fake.UploadStemcellURLStub != nil {
 		return fake.UploadStemcellURLStub(url, sha1, fix)
-	} else {
-		return fake.uploadStemcellURLReturns.result1
 	}
+	return fake.uploadStemcellURLReturns.result1
 }
 
 func (fake *FakeDirector) UploadStemcellURLCallCount() int {
@@ -1060,9 +1058,8 @@ func (fake *FakeDirector) UploadStemcellFile(file director.UploadFile, fix bool)
 	fake.uploadStemcellFileMutex.Unlock()
 	if fake.UploadStemcellFileStub != nil {
 		return fake.UploadStemcellFileStub(file, fix)
-	} else {
-		return fake.uploadStemcellFileReturns.result1
 	}
+	return fake.uploadStemcellFileReturns.result1
 }
 
 func (fake *FakeDirector) UploadStemcellFileCallCount() int {
@@ -1091,9 +1088,8 @@ func (fake *FakeDirector) LatestCloudConfig() (director.CloudConfig, error) {
 	fake.latestCloudConfigMutex.Unlock()
 	if fake.LatestCloudConfigStub != nil {
 		return fake.LatestCloudConfigStub()
-	} else {
-		return fake.latestCloudConfigReturns.result1, fake.latestCloudConfigReturns.result2
 	}
+	return fake.latestCloudConfigReturns.result1, fake.latestCloudConfigReturns.result2
 }
 
 func (fake *FakeDirector) LatestCloudConfigCallCount() int {
@@ -1124,9 +1120,8 @@ func (fake *FakeDirector) UpdateCloudConfig(arg1 []byte) error {
 	fake.updateCloudConfigMutex.Unlock()
 	if fake.UpdateCloudConfigStub != nil {
 		return fake.UpdateCloudConfigStub(arg1)
-	} else {
-		return fake.updateCloudConfigReturns.result1
 	}
+	return fake.updateCloudConfigReturns.result1
 }
 
 func (fake *FakeDirector) UpdateCloudConfigCallCount() int {
@@ -1148,6 +1143,44 @@ func (fake *FakeDirector) UpdateCloudConfigReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDirector) DiffCloudConfig(manifest []byte) (director.CloudConfigDiff, error) {
+	var manifestCopy []byte
+	if manifest != nil {
+		manifestCopy = make([]byte, len(manifest))
+		copy(manifestCopy, manifest)
+	}
+	fake.diffCloudConfigMutex.Lock()
+	fake.diffCloudConfigArgsForCall = append(fake.diffCloudConfigArgsForCall, struct {
+		manifest []byte
+	}{manifestCopy})
+	fake.recordInvocation("DiffCloudConfig", []interface{}{manifestCopy})
+	fake.diffCloudConfigMutex.Unlock()
+	if fake.DiffCloudConfigStub != nil {
+		return fake.DiffCloudConfigStub(manifest)
+	}
+	return fake.diffCloudConfigReturns.result1, fake.diffCloudConfigReturns.result2
+}
+
+func (fake *FakeDirector) DiffCloudConfigCallCount() int {
+	fake.diffCloudConfigMutex.RLock()
+	defer fake.diffCloudConfigMutex.RUnlock()
+	return len(fake.diffCloudConfigArgsForCall)
+}
+
+func (fake *FakeDirector) DiffCloudConfigArgsForCall(i int) []byte {
+	fake.diffCloudConfigMutex.RLock()
+	defer fake.diffCloudConfigMutex.RUnlock()
+	return fake.diffCloudConfigArgsForCall[i].manifest
+}
+
+func (fake *FakeDirector) DiffCloudConfigReturns(result1 director.CloudConfigDiff, result2 error) {
+	fake.DiffCloudConfigStub = nil
+	fake.diffCloudConfigReturns = struct {
+		result1 director.CloudConfigDiff
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDirector) LatestCPIConfig() (director.CPIConfig, error) {
 	fake.latestCPIConfigMutex.Lock()
 	fake.latestCPIConfigArgsForCall = append(fake.latestCPIConfigArgsForCall, struct{}{})
@@ -1155,9 +1188,8 @@ func (fake *FakeDirector) LatestCPIConfig() (director.CPIConfig, error) {
 	fake.latestCPIConfigMutex.Unlock()
 	if fake.LatestCPIConfigStub != nil {
 		return fake.LatestCPIConfigStub()
-	} else {
-		return fake.latestCPIConfigReturns.result1, fake.latestCPIConfigReturns.result2
 	}
+	return fake.latestCPIConfigReturns.result1, fake.latestCPIConfigReturns.result2
 }
 
 func (fake *FakeDirector) LatestCPIConfigCallCount() int {
@@ -1188,9 +1220,8 @@ func (fake *FakeDirector) UpdateCPIConfig(arg1 []byte) error {
 	fake.updateCPIConfigMutex.Unlock()
 	if fake.UpdateCPIConfigStub != nil {
 		return fake.UpdateCPIConfigStub(arg1)
-	} else {
-		return fake.updateCPIConfigReturns.result1
 	}
+	return fake.updateCPIConfigReturns.result1
 }
 
 func (fake *FakeDirector) UpdateCPIConfigCallCount() int {
@@ -1212,22 +1243,29 @@ func (fake *FakeDirector) UpdateCPIConfigReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDirector) LatestRuntimeConfig() (director.RuntimeConfig, error) {
+func (fake *FakeDirector) LatestRuntimeConfig(name string) (director.RuntimeConfig, error) {
 	fake.latestRuntimeConfigMutex.Lock()
-	fake.latestRuntimeConfigArgsForCall = append(fake.latestRuntimeConfigArgsForCall, struct{}{})
-	fake.recordInvocation("LatestRuntimeConfig", []interface{}{})
+	fake.latestRuntimeConfigArgsForCall = append(fake.latestRuntimeConfigArgsForCall, struct {
+		name string
+	}{name})
+	fake.recordInvocation("LatestRuntimeConfig", []interface{}{name})
 	fake.latestRuntimeConfigMutex.Unlock()
 	if fake.LatestRuntimeConfigStub != nil {
-		return fake.LatestRuntimeConfigStub()
-	} else {
-		return fake.latestRuntimeConfigReturns.result1, fake.latestRuntimeConfigReturns.result2
+		return fake.LatestRuntimeConfigStub(name)
 	}
+	return fake.latestRuntimeConfigReturns.result1, fake.latestRuntimeConfigReturns.result2
 }
 
 func (fake *FakeDirector) LatestRuntimeConfigCallCount() int {
 	fake.latestRuntimeConfigMutex.RLock()
 	defer fake.latestRuntimeConfigMutex.RUnlock()
 	return len(fake.latestRuntimeConfigArgsForCall)
+}
+
+func (fake *FakeDirector) LatestRuntimeConfigArgsForCall(i int) string {
+	fake.latestRuntimeConfigMutex.RLock()
+	defer fake.latestRuntimeConfigMutex.RUnlock()
+	return fake.latestRuntimeConfigArgsForCall[i].name
 }
 
 func (fake *FakeDirector) LatestRuntimeConfigReturns(result1 director.RuntimeConfig, result2 error) {
@@ -1238,23 +1276,23 @@ func (fake *FakeDirector) LatestRuntimeConfigReturns(result1 director.RuntimeCon
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) UpdateRuntimeConfig(arg1 []byte) error {
-	var arg1Copy []byte
-	if arg1 != nil {
-		arg1Copy = make([]byte, len(arg1))
-		copy(arg1Copy, arg1)
+func (fake *FakeDirector) UpdateRuntimeConfig(name string, manifest []byte) error {
+	var manifestCopy []byte
+	if manifest != nil {
+		manifestCopy = make([]byte, len(manifest))
+		copy(manifestCopy, manifest)
 	}
 	fake.updateRuntimeConfigMutex.Lock()
 	fake.updateRuntimeConfigArgsForCall = append(fake.updateRuntimeConfigArgsForCall, struct {
-		arg1 []byte
-	}{arg1Copy})
-	fake.recordInvocation("UpdateRuntimeConfig", []interface{}{arg1Copy})
+		name     string
+		manifest []byte
+	}{name, manifestCopy})
+	fake.recordInvocation("UpdateRuntimeConfig", []interface{}{name, manifestCopy})
 	fake.updateRuntimeConfigMutex.Unlock()
 	if fake.UpdateRuntimeConfigStub != nil {
-		return fake.UpdateRuntimeConfigStub(arg1)
-	} else {
-		return fake.updateRuntimeConfigReturns.result1
+		return fake.UpdateRuntimeConfigStub(name, manifest)
 	}
+	return fake.updateRuntimeConfigReturns.result1
 }
 
 func (fake *FakeDirector) UpdateRuntimeConfigCallCount() int {
@@ -1263,10 +1301,10 @@ func (fake *FakeDirector) UpdateRuntimeConfigCallCount() int {
 	return len(fake.updateRuntimeConfigArgsForCall)
 }
 
-func (fake *FakeDirector) UpdateRuntimeConfigArgsForCall(i int) []byte {
+func (fake *FakeDirector) UpdateRuntimeConfigArgsForCall(i int) (string, []byte) {
 	fake.updateRuntimeConfigMutex.RLock()
 	defer fake.updateRuntimeConfigMutex.RUnlock()
-	return fake.updateRuntimeConfigArgsForCall[i].arg1
+	return fake.updateRuntimeConfigArgsForCall[i].name, fake.updateRuntimeConfigArgsForCall[i].manifest
 }
 
 func (fake *FakeDirector) UpdateRuntimeConfigReturns(result1 error) {
@@ -1276,64 +1314,94 @@ func (fake *FakeDirector) UpdateRuntimeConfigReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDirector) FindOrphanedDisk(arg1 string) (director.OrphanedDisk, error) {
-	fake.findOrphanedDiskMutex.Lock()
-	fake.findOrphanedDiskArgsForCall = append(fake.findOrphanedDiskArgsForCall, struct {
+func (fake *FakeDirector) FindOrphanDisk(arg1 string) (director.OrphanDisk, error) {
+	fake.findOrphanDiskMutex.Lock()
+	fake.findOrphanDiskArgsForCall = append(fake.findOrphanDiskArgsForCall, struct {
 		arg1 string
 	}{arg1})
-	fake.recordInvocation("FindOrphanedDisk", []interface{}{arg1})
-	fake.findOrphanedDiskMutex.Unlock()
-	if fake.FindOrphanedDiskStub != nil {
-		return fake.FindOrphanedDiskStub(arg1)
-	} else {
-		return fake.findOrphanedDiskReturns.result1, fake.findOrphanedDiskReturns.result2
+	fake.recordInvocation("FindOrphanDisk", []interface{}{arg1})
+	fake.findOrphanDiskMutex.Unlock()
+	if fake.FindOrphanDiskStub != nil {
+		return fake.FindOrphanDiskStub(arg1)
 	}
+	return fake.findOrphanDiskReturns.result1, fake.findOrphanDiskReturns.result2
 }
 
-func (fake *FakeDirector) FindOrphanedDiskCallCount() int {
-	fake.findOrphanedDiskMutex.RLock()
-	defer fake.findOrphanedDiskMutex.RUnlock()
-	return len(fake.findOrphanedDiskArgsForCall)
+func (fake *FakeDirector) FindOrphanDiskCallCount() int {
+	fake.findOrphanDiskMutex.RLock()
+	defer fake.findOrphanDiskMutex.RUnlock()
+	return len(fake.findOrphanDiskArgsForCall)
 }
 
-func (fake *FakeDirector) FindOrphanedDiskArgsForCall(i int) string {
-	fake.findOrphanedDiskMutex.RLock()
-	defer fake.findOrphanedDiskMutex.RUnlock()
-	return fake.findOrphanedDiskArgsForCall[i].arg1
+func (fake *FakeDirector) FindOrphanDiskArgsForCall(i int) string {
+	fake.findOrphanDiskMutex.RLock()
+	defer fake.findOrphanDiskMutex.RUnlock()
+	return fake.findOrphanDiskArgsForCall[i].arg1
 }
 
-func (fake *FakeDirector) FindOrphanedDiskReturns(result1 director.OrphanedDisk, result2 error) {
-	fake.FindOrphanedDiskStub = nil
-	fake.findOrphanedDiskReturns = struct {
-		result1 director.OrphanedDisk
+func (fake *FakeDirector) FindOrphanDiskReturns(result1 director.OrphanDisk, result2 error) {
+	fake.FindOrphanDiskStub = nil
+	fake.findOrphanDiskReturns = struct {
+		result1 director.OrphanDisk
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) OrphanedDisks() ([]director.OrphanedDisk, error) {
-	fake.orphanedDisksMutex.Lock()
-	fake.orphanedDisksArgsForCall = append(fake.orphanedDisksArgsForCall, struct{}{})
-	fake.recordInvocation("OrphanedDisks", []interface{}{})
-	fake.orphanedDisksMutex.Unlock()
-	if fake.OrphanedDisksStub != nil {
-		return fake.OrphanedDisksStub()
-	} else {
-		return fake.orphanedDisksReturns.result1, fake.orphanedDisksReturns.result2
+func (fake *FakeDirector) OrphanDisks() ([]director.OrphanDisk, error) {
+	fake.orphanDisksMutex.Lock()
+	fake.orphanDisksArgsForCall = append(fake.orphanDisksArgsForCall, struct{}{})
+	fake.recordInvocation("OrphanDisks", []interface{}{})
+	fake.orphanDisksMutex.Unlock()
+	if fake.OrphanDisksStub != nil {
+		return fake.OrphanDisksStub()
 	}
+	return fake.orphanDisksReturns.result1, fake.orphanDisksReturns.result2
 }
 
-func (fake *FakeDirector) OrphanedDisksCallCount() int {
-	fake.orphanedDisksMutex.RLock()
-	defer fake.orphanedDisksMutex.RUnlock()
-	return len(fake.orphanedDisksArgsForCall)
+func (fake *FakeDirector) OrphanDisksCallCount() int {
+	fake.orphanDisksMutex.RLock()
+	defer fake.orphanDisksMutex.RUnlock()
+	return len(fake.orphanDisksArgsForCall)
 }
 
-func (fake *FakeDirector) OrphanedDisksReturns(result1 []director.OrphanedDisk, result2 error) {
-	fake.OrphanedDisksStub = nil
-	fake.orphanedDisksReturns = struct {
-		result1 []director.OrphanedDisk
+func (fake *FakeDirector) OrphanDisksReturns(result1 []director.OrphanDisk, result2 error) {
+	fake.OrphanDisksStub = nil
+	fake.orphanDisksReturns = struct {
+		result1 []director.OrphanDisk
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeDirector) OrphanDisk(arg1 string) error {
+	fake.orphanDiskMutex.Lock()
+	fake.orphanDiskArgsForCall = append(fake.orphanDiskArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("OrphanDisk", []interface{}{arg1})
+	fake.orphanDiskMutex.Unlock()
+	if fake.OrphanDiskStub != nil {
+		return fake.OrphanDiskStub(arg1)
+	}
+	return fake.orphanDiskReturns.result1
+}
+
+func (fake *FakeDirector) OrphanDiskCallCount() int {
+	fake.orphanDiskMutex.RLock()
+	defer fake.orphanDiskMutex.RUnlock()
+	return len(fake.orphanDiskArgsForCall)
+}
+
+func (fake *FakeDirector) OrphanDiskArgsForCall(i int) string {
+	fake.orphanDiskMutex.RLock()
+	defer fake.orphanDiskMutex.RUnlock()
+	return fake.orphanDiskArgsForCall[i].arg1
+}
+
+func (fake *FakeDirector) OrphanDiskReturns(result1 error) {
+	fake.OrphanDiskStub = nil
+	fake.orphanDiskReturns = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeDirector) EnableResurrection(arg1 bool) error {
@@ -1345,9 +1413,8 @@ func (fake *FakeDirector) EnableResurrection(arg1 bool) error {
 	fake.enableResurrectionMutex.Unlock()
 	if fake.EnableResurrectionStub != nil {
 		return fake.EnableResurrectionStub(arg1)
-	} else {
-		return fake.enableResurrectionReturns.result1
 	}
+	return fake.enableResurrectionReturns.result1
 }
 
 func (fake *FakeDirector) EnableResurrectionCallCount() int {
@@ -1378,9 +1445,8 @@ func (fake *FakeDirector) CleanUp(arg1 bool) error {
 	fake.cleanUpMutex.Unlock()
 	if fake.CleanUpStub != nil {
 		return fake.CleanUpStub(arg1)
-	} else {
-		return fake.cleanUpReturns.result1
 	}
+	return fake.cleanUpReturns.result1
 }
 
 func (fake *FakeDirector) CleanUpCallCount() int {
@@ -1412,9 +1478,8 @@ func (fake *FakeDirector) DownloadResourceUnchecked(blobstoreID string, out io.W
 	fake.downloadResourceUncheckedMutex.Unlock()
 	if fake.DownloadResourceUncheckedStub != nil {
 		return fake.DownloadResourceUncheckedStub(blobstoreID, out)
-	} else {
-		return fake.downloadResourceUncheckedReturns.result1
 	}
+	return fake.downloadResourceUncheckedReturns.result1
 }
 
 func (fake *FakeDirector) DownloadResourceUncheckedCallCount() int {
@@ -1491,6 +1556,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.latestCloudConfigMutex.RUnlock()
 	fake.updateCloudConfigMutex.RLock()
 	defer fake.updateCloudConfigMutex.RUnlock()
+	fake.diffCloudConfigMutex.RLock()
+	defer fake.diffCloudConfigMutex.RUnlock()
 	fake.latestCPIConfigMutex.RLock()
 	defer fake.latestCPIConfigMutex.RUnlock()
 	fake.updateCPIConfigMutex.RLock()
@@ -1499,10 +1566,12 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.latestRuntimeConfigMutex.RUnlock()
 	fake.updateRuntimeConfigMutex.RLock()
 	defer fake.updateRuntimeConfigMutex.RUnlock()
-	fake.findOrphanedDiskMutex.RLock()
-	defer fake.findOrphanedDiskMutex.RUnlock()
-	fake.orphanedDisksMutex.RLock()
-	defer fake.orphanedDisksMutex.RUnlock()
+	fake.findOrphanDiskMutex.RLock()
+	defer fake.findOrphanDiskMutex.RUnlock()
+	fake.orphanDisksMutex.RLock()
+	defer fake.orphanDisksMutex.RUnlock()
+	fake.orphanDiskMutex.RLock()
+	defer fake.orphanDiskMutex.RUnlock()
 	fake.enableResurrectionMutex.RLock()
 	defer fake.enableResurrectionMutex.RUnlock()
 	fake.cleanUpMutex.RLock()

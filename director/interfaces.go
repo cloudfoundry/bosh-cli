@@ -45,15 +45,17 @@ type Director interface {
 
 	LatestCloudConfig() (CloudConfig, error)
 	UpdateCloudConfig([]byte) error
+	DiffCloudConfig(manifest []byte) (CloudConfigDiff, error)
 
 	LatestCPIConfig() (CPIConfig, error)
 	UpdateCPIConfig([]byte) error
 
-	LatestRuntimeConfig() (RuntimeConfig, error)
-	UpdateRuntimeConfig([]byte) error
+	LatestRuntimeConfig(name string) (RuntimeConfig, error)
+	UpdateRuntimeConfig(name string, manifest []byte) error
 
-	FindOrphanedDisk(string) (OrphanedDisk, error)
-	OrphanedDisks() ([]OrphanedDisk, error)
+	FindOrphanDisk(string) (OrphanDisk, error)
+	OrphanDisks() ([]OrphanDisk, error)
+	OrphanDisk(string) error
 
 	EnableResurrection(bool) error
 	CleanUp(bool) error
@@ -251,9 +253,9 @@ type TaskReporter interface {
 	TaskOutputChunk(int, []byte)
 }
 
-//go:generate counterfeiter . OrphanedDisk
+//go:generate counterfeiter . OrphanDisk
 
-type OrphanedDisk interface {
+type OrphanDisk interface {
 	CID() string
 	Size() uint64
 

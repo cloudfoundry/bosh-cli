@@ -27,9 +27,10 @@ RUN vagrant plugin install vagrant-aws
 # bosh-init dependencies
 RUN apt-get install -y mercurial && apt-get clean
 # ...go
-ADD install-go.sh deps-golang /tmp/
+ADD install-go.sh deps-golang-from-docker-files /tmp/
+ADD version sha /tmp/
 RUN chmod a+x /tmp/install-go.sh
-RUN cd /tmp && ./install-go.sh && rm install-go.sh deps-golang
+RUN cd /tmp && ./install-go.sh && rm install-go.sh deps-golang-from-docker-files
 
 # lifecycle ssh test
 RUN apt-get install -y sshpass && apt-get clean

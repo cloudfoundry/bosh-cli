@@ -66,6 +66,7 @@ func (r ClientRequest) Post(path string, payload []byte, response interface{}) e
 
 	setHeaders := func(req *http.Request) {
 		req.Header.Add("Accept", "application/json")
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 		req.SetBasicAuth(r.client, r.clientSecret)
 	}
 

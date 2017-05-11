@@ -315,6 +315,8 @@ var _ = Describe("Factory", func() {
 
 			opts := cmd.Opts.(*MessageOpts)
 			Expect(opts.Message).To(ContainSubstring("Usage:"))
+			Expect(opts.Message).To(ContainSubstring(
+				"SSH into instance(s)                               https://bosh.io/docs/cli-v2#ssh"))
 			Expect(opts.Message).To(ContainSubstring("Application Options:"))
 			Expect(opts.Message).To(ContainSubstring("Available commands:"))
 		})
@@ -325,6 +327,7 @@ var _ = Describe("Factory", func() {
 
 			opts := cmd.Opts.(*MessageOpts)
 			Expect(opts.Message).To(ContainSubstring("Usage:"))
+			Expect(opts.Message).To(ContainSubstring("SSH into instance(s)\n\nhttps://bosh.io/docs/cli-v2#ssh"))
 			Expect(opts.Message).To(ContainSubstring("Application Options:"))
 			Expect(opts.Message).To(ContainSubstring("[ssh command options]"))
 		})

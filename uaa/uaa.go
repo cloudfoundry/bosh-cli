@@ -1,7 +1,6 @@
 package uaa
 
 import (
-	"fmt"
 	gourl "net/url"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -68,11 +67,9 @@ func (c Client) ClientCredentialsGrant() (TokenResp, error) {
 
 	query.Add("grant_type", "client_credentials")
 
-	path := fmt.Sprintf("/oauth/token?%s", query.Encode())
-
 	var resp TokenResp
 
-	err := c.clientRequest.Post(path, nil, &resp)
+	err := c.clientRequest.Post("/oauth/token", []byte(query.Encode()), &resp)
 	if err != nil {
 		return resp, bosherr.WrapErrorf(err, "Requesting token via client credentials grant")
 	}
@@ -89,11 +86,9 @@ func (c Client) OwnerPasswordCredentialsGrant(answers []PromptAnswer) (TokenResp
 		query.Add(answer.Key, answer.Value)
 	}
 
-	path := fmt.Sprintf("/oauth/token?%s", query.Encode())
-
 	var resp TokenResp
 
-	err := c.clientRequest.Post(path, nil, &resp)
+	err := c.clientRequest.Post("/oauth/token", []byte(query.Encode()), &resp)
 	if err != nil {
 		return resp, bosherr.WrapErrorf(err, "Requesting token via client credentials grant")
 	}
@@ -107,11 +102,9 @@ func (c Client) RefreshTokenGrant(refreshValue string) (TokenResp, error) {
 	query.Add("grant_type", "refresh_token")
 	query.Add("refresh_token", refreshValue)
 
-	path := fmt.Sprintf("/oauth/token?%s", query.Encode())
-
 	var resp TokenResp
 
-	err := c.clientRequest.Post(path, nil, &resp)
+	err := c.clientRequest.Post("/oauth/token", []byte(query.Encode()), &resp)
 	if err != nil {
 		return resp, bosherr.WrapErrorf(err, "Refreshing token")
 	}

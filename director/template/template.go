@@ -76,6 +76,11 @@ func (t Template) interpolateRoot(obj interface{}, tracker varsTracker) (interfa
 		return nil, err
 	}
 
+	obj, err = tracker.FoundVars(obj)
+	if err != nil {
+		return nil, err
+	}
+
 	return obj, tracker.Error()
 }
 
@@ -281,6 +286,38 @@ func (t *varsTracker) ExtractDefinitions(obj interface{}) error {
 	}
 
 	return nil
+}
+
+func (t varsTracker) FoundVars(obj interface{}) (interface{}, error) {
+	var foundDefs []string
+	var err error
+
+	for _, def := range t.defs.Definitions {
+		_, found, err := t.Get(def.Name)
+		if err != nil {
+			return nil, bosherr.WrapError(err, "Getting all variables from variable definitions sections")
+		}
+		if found {
+			foundDefs = append(foundDefs, def.Name)
+		}
+	}
+
+	for _, name := range foundDefs {
+		removeKeyOp := patch.RemoveOp{
+			Path: patch.NewPointer([]patch.Token{
+				patch.RootToken{},
+				patch.KeyToken{Key: "variables"},
+				patch.MatchingIndexToken{Key: "name", Value: name},
+			}),
+		}
+
+		obj, err = removeKeyOp.Apply(obj)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return obj, err
 }
 
 func (t varsTracker) Error() error {

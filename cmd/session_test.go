@@ -56,9 +56,11 @@ var _ = Describe("SessionImpl", func() {
 				),
 				// Token request to UAA
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+					ghttp.VerifyRequest("POST", "/oauth/token"),
+					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 					ghttp.VerifyBasicAuth("client", "client-secret"),
 					ghttp.VerifyHeader(http.Header{"Accept": []string{"application/json"}}),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 					ghttp.RespondWith(http.StatusOK, `{"token_type":"bearer","access_token":"access-token"}`),
 				),
 			)
@@ -90,9 +92,11 @@ var _ = Describe("SessionImpl", func() {
 				),
 				// Token request to UAA
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+					ghttp.VerifyRequest("POST", "/oauth/token"),
+					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 					ghttp.VerifyBasicAuth("bosh_cli", ""),
 					ghttp.VerifyHeader(http.Header{"Accept": []string{"application/json"}}),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 					ghttp.RespondWith(http.StatusOK, `{"token_type":"bearer","access_token":"access-token"}`),
 				),
 			)
@@ -176,9 +180,11 @@ var _ = Describe("SessionImpl", func() {
 						),
 						// Token request to UAA
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=client_credentials"),
+							ghttp.VerifyRequest("POST", "/oauth/token"),
+							ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 							ghttp.VerifyBasicAuth("client", "client-secret"),
 							ghttp.VerifyHeader(http.Header{"Accept": []string{"application/json"}}),
+							ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 							ghttp.RespondWith(http.StatusOK, `{"token_type":"bearer","access_token":"access-token"}`),
 						),
 						// Authed info request to Director
@@ -219,9 +225,11 @@ var _ = Describe("SessionImpl", func() {
 						),
 						// Token request to UAA
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("POST", "/oauth/token", "grant_type=refresh_token&refresh_token=bearer%20rt-val"),
+							ghttp.VerifyRequest("POST", "/oauth/token"),
+							ghttp.VerifyBody([]byte("grant_type=refresh_token&refresh_token=bearer+rt-val")),
 							ghttp.VerifyBasicAuth("bosh_cli", ""),
 							ghttp.VerifyHeader(http.Header{"Accept": []string{"application/json"}}),
+							ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
 							ghttp.RespondWith(http.StatusOK, `{"token_type":"bearer","access_token":"access-token"}`),
 						),
 						// Authed info request to Director

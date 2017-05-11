@@ -200,6 +200,9 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *DeleteDiskOpts:
 		return NewDeleteDiskCmd(deps.UI, c.director()).Run(*opts)
 
+	case *OrphanDiskOpts:
+		return NewOrphanDiskCmd(deps.UI, c.director()).Run(*opts)
+
 	case *SnapshotsOpts:
 		return NewSnapshotsCmd(deps.UI, c.deployment()).Run(*opts)
 
@@ -231,7 +234,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewUpdateCPIConfigCmd(deps.UI, c.director()).Run(*opts)
 
 	case *RuntimeConfigOpts:
-		return NewRuntimeConfigCmd(deps.UI, c.director()).Run()
+		return NewRuntimeConfigCmd(deps.UI, c.director()).Run(*opts)
 
 	case *UpdateRuntimeConfigOpts:
 		director := c.director()
