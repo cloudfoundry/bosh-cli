@@ -85,19 +85,30 @@ func (t Table) Print(w io.Writer) error {
 	}
 
 	writer := NewWriter(w, "-", t.BackgroundStr, t.BorderStr)
+	rowCount := len(t.Rows)
+	for _, section := range t.Sections {
+		rowCount += len(section.Rows)
+	}
 
 	if t.Transpose {
 		var newRows [][]Value
 
 		headerVals := buildHeaderVals(t)
 
-		for _, row := range t.Rows {
-			for i, val := range row {
-				if t.Header[i].Hidden {
+		for i, row := range t.Rows {
+			for j, val := range row {
+				if t.Header[j].Hidden {
 					continue
 				}
 
-				newRows = append(newRows, []Value{headerVals[i], val})
+				newRows = append(newRows, []Value{headerVals[j], val})
+			}
+
+			if i < (len(t.Rows) - 1) {
+				newRows = append(newRows, []Value{
+					EmptyValue{},
+					EmptyValue{},
+				})
 			}
 		}
 
@@ -124,7 +135,7 @@ func (t Table) Print(w io.Writer) error {
 	}
 
 	if !t.DataOnly {
-		err = t.printFooter(w, len(rows))
+		err = t.printFooter(w, rowCount)
 	}
 
 	return err
