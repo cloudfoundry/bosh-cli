@@ -65,6 +65,8 @@ func (c RunErrandCmd) summarize(errandName string, results []boshdir.ErrandResul
 
 		Notes: []string{},
 
+		FillFirstColumn: true,
+
 		Transpose: true,
 	}
 

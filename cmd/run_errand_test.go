@@ -148,6 +148,8 @@ var _ = Describe("RunErrandCmd", func() {
 
 							Notes: []string{},
 
+							FillFirstColumn: true,
+
 							Transpose: true,
 						}))
 				})
@@ -247,6 +249,8 @@ var _ = Describe("RunErrandCmd", func() {
 
 						Notes: []string{},
 
+						FillFirstColumn: true,
+						
 						Transpose: true,
 					}))
 
