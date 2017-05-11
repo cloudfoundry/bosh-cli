@@ -22,7 +22,7 @@ func (c DisksCmd) Run(opts DisksOpts) error {
 		return errors.New("Only --orphaned is supported")
 	}
 
-	disks, err := c.director.OrphanedDisks()
+	disks, err := c.director.OrphanDisks()
 	if err != nil {
 		return err
 	}

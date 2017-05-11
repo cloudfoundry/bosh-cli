@@ -20,5 +20,5 @@ func (c OrphanDiskCmd) Run(opts OrphanDiskOpts) error {
 		return err
 	}
 
-	return c.director.Orphan(opts.Args.CID)
+	return c.director.OrphanDisk(opts.Args.CID)
 }

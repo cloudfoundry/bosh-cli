@@ -26,7 +26,7 @@ counterfeiter director ReleaseArchive
 counterfeiter director Stemcell
 counterfeiter director StemcellArchive
 counterfeiter director Task
-counterfeiter director OrphanedDisk
+counterfeiter director OrphanDisk
 counterfeiter director FileReporter
 counterfeiter director TaskReporter
 counterfeiter director Event

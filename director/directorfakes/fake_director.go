@@ -277,28 +277,28 @@ type FakeDirector struct {
 	updateRuntimeConfigReturns struct {
 		result1 error
 	}
-	FindOrphanedDiskStub        func(string) (director.OrphanedDisk, error)
-	findOrphanedDiskMutex       sync.RWMutex
-	findOrphanedDiskArgsForCall []struct {
+	FindOrphanDiskStub        func(string) (director.OrphanDisk, error)
+	findOrphanDiskMutex       sync.RWMutex
+	findOrphanDiskArgsForCall []struct {
 		arg1 string
 	}
-	findOrphanedDiskReturns struct {
-		result1 director.OrphanedDisk
+	findOrphanDiskReturns struct {
+		result1 director.OrphanDisk
 		result2 error
 	}
-	OrphanedDisksStub        func() ([]director.OrphanedDisk, error)
-	orphanedDisksMutex       sync.RWMutex
-	orphanedDisksArgsForCall []struct{}
-	orphanedDisksReturns     struct {
-		result1 []director.OrphanedDisk
+	OrphanDisksStub        func() ([]director.OrphanDisk, error)
+	orphanDisksMutex       sync.RWMutex
+	orphanDisksArgsForCall []struct{}
+	orphanDisksReturns     struct {
+		result1 []director.OrphanDisk
 		result2 error
 	}
-	OrphanStub        func(string) error
-	orphanMutex       sync.RWMutex
-	orphanArgsForCall []struct {
+	OrphanDiskStub        func(string) error
+	orphanDiskMutex       sync.RWMutex
+	orphanDiskArgsForCall []struct {
 		arg1 string
 	}
-	orphanReturns struct {
+	orphanDiskReturns struct {
 		result1 error
 	}
 	EnableResurrectionStub        func(bool) error
@@ -1314,92 +1314,92 @@ func (fake *FakeDirector) UpdateRuntimeConfigReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDirector) FindOrphanedDisk(arg1 string) (director.OrphanedDisk, error) {
-	fake.findOrphanedDiskMutex.Lock()
-	fake.findOrphanedDiskArgsForCall = append(fake.findOrphanedDiskArgsForCall, struct {
+func (fake *FakeDirector) FindOrphanDisk(arg1 string) (director.OrphanDisk, error) {
+	fake.findOrphanDiskMutex.Lock()
+	fake.findOrphanDiskArgsForCall = append(fake.findOrphanDiskArgsForCall, struct {
 		arg1 string
 	}{arg1})
-	fake.recordInvocation("FindOrphanedDisk", []interface{}{arg1})
-	fake.findOrphanedDiskMutex.Unlock()
-	if fake.FindOrphanedDiskStub != nil {
-		return fake.FindOrphanedDiskStub(arg1)
+	fake.recordInvocation("FindOrphanDisk", []interface{}{arg1})
+	fake.findOrphanDiskMutex.Unlock()
+	if fake.FindOrphanDiskStub != nil {
+		return fake.FindOrphanDiskStub(arg1)
 	}
-	return fake.findOrphanedDiskReturns.result1, fake.findOrphanedDiskReturns.result2
+	return fake.findOrphanDiskReturns.result1, fake.findOrphanDiskReturns.result2
 }
 
-func (fake *FakeDirector) FindOrphanedDiskCallCount() int {
-	fake.findOrphanedDiskMutex.RLock()
-	defer fake.findOrphanedDiskMutex.RUnlock()
-	return len(fake.findOrphanedDiskArgsForCall)
+func (fake *FakeDirector) FindOrphanDiskCallCount() int {
+	fake.findOrphanDiskMutex.RLock()
+	defer fake.findOrphanDiskMutex.RUnlock()
+	return len(fake.findOrphanDiskArgsForCall)
 }
 
-func (fake *FakeDirector) FindOrphanedDiskArgsForCall(i int) string {
-	fake.findOrphanedDiskMutex.RLock()
-	defer fake.findOrphanedDiskMutex.RUnlock()
-	return fake.findOrphanedDiskArgsForCall[i].arg1
+func (fake *FakeDirector) FindOrphanDiskArgsForCall(i int) string {
+	fake.findOrphanDiskMutex.RLock()
+	defer fake.findOrphanDiskMutex.RUnlock()
+	return fake.findOrphanDiskArgsForCall[i].arg1
 }
 
-func (fake *FakeDirector) FindOrphanedDiskReturns(result1 director.OrphanedDisk, result2 error) {
-	fake.FindOrphanedDiskStub = nil
-	fake.findOrphanedDiskReturns = struct {
-		result1 director.OrphanedDisk
+func (fake *FakeDirector) FindOrphanDiskReturns(result1 director.OrphanDisk, result2 error) {
+	fake.FindOrphanDiskStub = nil
+	fake.findOrphanDiskReturns = struct {
+		result1 director.OrphanDisk
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) OrphanedDisks() ([]director.OrphanedDisk, error) {
-	fake.orphanedDisksMutex.Lock()
-	fake.orphanedDisksArgsForCall = append(fake.orphanedDisksArgsForCall, struct{}{})
-	fake.recordInvocation("OrphanedDisks", []interface{}{})
-	fake.orphanedDisksMutex.Unlock()
-	if fake.OrphanedDisksStub != nil {
-		return fake.OrphanedDisksStub()
+func (fake *FakeDirector) OrphanDisks() ([]director.OrphanDisk, error) {
+	fake.orphanDisksMutex.Lock()
+	fake.orphanDisksArgsForCall = append(fake.orphanDisksArgsForCall, struct{}{})
+	fake.recordInvocation("OrphanDisks", []interface{}{})
+	fake.orphanDisksMutex.Unlock()
+	if fake.OrphanDisksStub != nil {
+		return fake.OrphanDisksStub()
 	}
-	return fake.orphanedDisksReturns.result1, fake.orphanedDisksReturns.result2
+	return fake.orphanDisksReturns.result1, fake.orphanDisksReturns.result2
 }
 
-func (fake *FakeDirector) OrphanedDisksCallCount() int {
-	fake.orphanedDisksMutex.RLock()
-	defer fake.orphanedDisksMutex.RUnlock()
-	return len(fake.orphanedDisksArgsForCall)
+func (fake *FakeDirector) OrphanDisksCallCount() int {
+	fake.orphanDisksMutex.RLock()
+	defer fake.orphanDisksMutex.RUnlock()
+	return len(fake.orphanDisksArgsForCall)
 }
 
-func (fake *FakeDirector) OrphanedDisksReturns(result1 []director.OrphanedDisk, result2 error) {
-	fake.OrphanedDisksStub = nil
-	fake.orphanedDisksReturns = struct {
-		result1 []director.OrphanedDisk
+func (fake *FakeDirector) OrphanDisksReturns(result1 []director.OrphanDisk, result2 error) {
+	fake.OrphanDisksStub = nil
+	fake.orphanDisksReturns = struct {
+		result1 []director.OrphanDisk
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) Orphan(arg1 string) error {
-	fake.orphanMutex.Lock()
-	fake.orphanArgsForCall = append(fake.orphanArgsForCall, struct {
+func (fake *FakeDirector) OrphanDisk(arg1 string) error {
+	fake.orphanDiskMutex.Lock()
+	fake.orphanDiskArgsForCall = append(fake.orphanDiskArgsForCall, struct {
 		arg1 string
 	}{arg1})
-	fake.recordInvocation("Orphan", []interface{}{arg1})
-	fake.orphanMutex.Unlock()
-	if fake.OrphanStub != nil {
-		return fake.OrphanStub(arg1)
+	fake.recordInvocation("OrphanDisk", []interface{}{arg1})
+	fake.orphanDiskMutex.Unlock()
+	if fake.OrphanDiskStub != nil {
+		return fake.OrphanDiskStub(arg1)
 	}
-	return fake.orphanReturns.result1
+	return fake.orphanDiskReturns.result1
 }
 
-func (fake *FakeDirector) OrphanCallCount() int {
-	fake.orphanMutex.RLock()
-	defer fake.orphanMutex.RUnlock()
-	return len(fake.orphanArgsForCall)
+func (fake *FakeDirector) OrphanDiskCallCount() int {
+	fake.orphanDiskMutex.RLock()
+	defer fake.orphanDiskMutex.RUnlock()
+	return len(fake.orphanDiskArgsForCall)
 }
 
-func (fake *FakeDirector) OrphanArgsForCall(i int) string {
-	fake.orphanMutex.RLock()
-	defer fake.orphanMutex.RUnlock()
-	return fake.orphanArgsForCall[i].arg1
+func (fake *FakeDirector) OrphanDiskArgsForCall(i int) string {
+	fake.orphanDiskMutex.RLock()
+	defer fake.orphanDiskMutex.RUnlock()
+	return fake.orphanDiskArgsForCall[i].arg1
 }
 
-func (fake *FakeDirector) OrphanReturns(result1 error) {
-	fake.OrphanStub = nil
-	fake.orphanReturns = struct {
+func (fake *FakeDirector) OrphanDiskReturns(result1 error) {
+	fake.OrphanDiskStub = nil
+	fake.orphanDiskReturns = struct {
 		result1 error
 	}{result1}
 }
@@ -1566,12 +1566,12 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.latestRuntimeConfigMutex.RUnlock()
 	fake.updateRuntimeConfigMutex.RLock()
 	defer fake.updateRuntimeConfigMutex.RUnlock()
-	fake.findOrphanedDiskMutex.RLock()
-	defer fake.findOrphanedDiskMutex.RUnlock()
-	fake.orphanedDisksMutex.RLock()
-	defer fake.orphanedDisksMutex.RUnlock()
-	fake.orphanMutex.RLock()
-	defer fake.orphanMutex.RUnlock()
+	fake.findOrphanDiskMutex.RLock()
+	defer fake.findOrphanDiskMutex.RUnlock()
+	fake.orphanDisksMutex.RLock()
+	defer fake.orphanDisksMutex.RUnlock()
+	fake.orphanDiskMutex.RLock()
+	defer fake.orphanDiskMutex.RUnlock()
 	fake.enableResurrectionMutex.RLock()
 	defer fake.enableResurrectionMutex.RUnlock()
 	fake.cleanUpMutex.RLock()

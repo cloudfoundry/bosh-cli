@@ -20,7 +20,7 @@ func (c DeleteDiskCmd) Run(opts DeleteDiskOpts) error {
 		return err
 	}
 
-	disk, err := c.director.FindOrphanedDisk(opts.Args.CID)
+	disk, err := c.director.FindOrphanDisk(opts.Args.CID)
 	if err != nil {
 		return err
 	}

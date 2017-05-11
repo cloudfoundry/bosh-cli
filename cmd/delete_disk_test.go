@@ -38,19 +38,19 @@ var _ = Describe("DeleteDiskCmd", func() {
 		act := func() error { return command.Run(opts) }
 
 		It("deletes orphaned disk", func() {
-			disk := &fakedir.FakeOrphanedDisk{}
-			director.FindOrphanedDiskReturns(disk, nil)
+			disk := &fakedir.FakeOrphanDisk{}
+			director.FindOrphanDiskReturns(disk, nil)
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(director.FindOrphanedDiskArgsForCall(0)).To(Equal("disk-cid"))
+			Expect(director.FindOrphanDiskArgsForCall(0)).To(Equal("disk-cid"))
 			Expect(disk.DeleteCallCount()).To(Equal(1))
 		})
 
 		It("returns error if deleting disk failed", func() {
-			disk := &fakedir.FakeOrphanedDisk{}
-			director.FindOrphanedDiskReturns(disk, nil)
+			disk := &fakedir.FakeOrphanDisk{}
+			director.FindOrphanDiskReturns(disk, nil)
 
 			disk.DeleteReturns(errors.New("fake-err"))
 
@@ -60,8 +60,8 @@ var _ = Describe("DeleteDiskCmd", func() {
 		})
 
 		It("does not delete disk if confirmation is rejected", func() {
-			disk := &fakedir.FakeOrphanedDisk{}
-			director.FindOrphanedDiskReturns(disk, nil)
+			disk := &fakedir.FakeOrphanDisk{}
+			director.FindOrphanDiskReturns(disk, nil)
 
 			ui.AskedConfirmationErr = errors.New("stop")
 
@@ -73,7 +73,7 @@ var _ = Describe("DeleteDiskCmd", func() {
 		})
 
 		It("returns error if finding disk failed", func() {
-			director.FindOrphanedDiskReturns(nil, errors.New("fake-err"))
+			director.FindOrphanDiskReturns(nil, errors.New("fake-err"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())
