@@ -90,12 +90,14 @@ func (t Table) Print(w io.Writer) error {
 		rowCount += len(section.Rows)
 	}
 
+	rows := t.AsRows()
+
 	if t.Transpose {
 		var newRows [][]Value
 
 		headerVals := buildHeaderVals(t)
 
-		for i, row := range t.Rows {
+		for i, row := range rows {
 			for j, val := range row {
 				if t.Header[j].Hidden {
 					continue
@@ -112,7 +114,7 @@ func (t Table) Print(w io.Writer) error {
 			}
 		}
 
-		t.Rows = newRows
+		rows = newRows
 		t.Header = []Header{
 			{Hidden: t.DataOnly},
 			{Hidden: false},
@@ -122,8 +124,6 @@ func (t Table) Print(w io.Writer) error {
 			writer.Write(t.Header, buildHeaderVals(t))
 		}
 	}
-
-	rows := t.AsRows()
 
 	for _, row := range rows {
 		writer.Write(t.Header, row)
