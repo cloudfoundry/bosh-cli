@@ -3,6 +3,8 @@ package director_test
 import (
 	"crypto/rsa"
 	"errors"
+	"fmt"
+	"strings"
 
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/onsi/ginkgo"
@@ -13,21 +15,43 @@ import (
 )
 
 var _ = Describe("NewSSHOpts", func() {
+	const UUID = "2a4e8104-dc50-4ad7-939a-2efd53b029ae"
+	const ExpUsername = "bosh_2a4e8104dc504ad"
+
 	var (
 		uuidGen *fakeuuid.FakeGenerator
 	)
 
 	BeforeEach(func() {
 		uuidGen = &fakeuuid.FakeGenerator{
-			GeneratedUUID: "2a4e8104-dc50-4ad7-939a-2efd53b029ae",
+			GeneratedUUID: UUID,
 		}
+	})
+
+	It("generates a username that is compatible with Windows", func() {
+		const MaxLength = 20
+		const InvalidChars = "\"/\\[]:|<>+=;?*"
+
+		opts, _, err := NewSSHOpts(uuidGen)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(len(opts.Username)).To(BeNumerically("<=", MaxLength))
+
+		switch n := strings.IndexAny(opts.Username, InvalidChars); {
+		case n != -1:
+			err = fmt.Errorf("invalid char (%c) in username: %s",
+				opts.Username[n], opts.Username)
+		case strings.HasSuffix(opts.Username, "."):
+			err = fmt.Errorf("username may not end in a period '.': %s",
+				opts.Username)
+		}
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	It("returns opts and private key", func() {
 		opts, privKeyStr, err := NewSSHOpts(uuidGen)
 		Expect(err).ToNot(HaveOccurred())
 
-		Expect(opts.Username).To(Equal("bosh_2a4e8104dc504ad7"))
+		Expect(opts.Username).To(Equal(ExpUsername))
 		Expect(opts.PublicKey).ToNot(BeEmpty())
 		Expect(privKeyStr).ToNot(BeEmpty())
 
