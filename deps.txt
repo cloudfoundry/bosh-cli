@@ -8,7 +8,7 @@ github.com/onsi/gomega:f4f1cae
 golang.org/x/crypto/ssh:1e856cb
 gopkg.in/check.v1:8d49746
 github.com/pivotal-golang/yaml:8b09e4a
-github.com/vito/go-interact/interact:0eb3903
+github.com/vito/go-interact/interact:c573392
 github.com/cheggaaa/pb:c1f48d5
 github.com/cppforlife/go-semi-semantic/version:576b6af
 github.com/dustin/go-humanize:9436b7a
