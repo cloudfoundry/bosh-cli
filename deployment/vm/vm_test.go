@@ -228,7 +228,7 @@ var _ = Describe("VM", func() {
 			metadata := bicloud.VMMetadata{
 				"director":   "bosh-init",
 				"deployment": "some-deployment",
-				"job":        "some-job",
+				"instance_group":        "some-instance-group",
 				"index":      "0",
 			}
 			vm = NewVMWithMetadata(
@@ -266,7 +266,7 @@ var _ = Describe("VM", func() {
 				expectedDiskMetadata := bicloud.DiskMetadata{
 					"director":       "bosh-init",
 					"deployment":     "some-deployment",
-					"job":            "some-job",
+					"instance_group": "some-instance-group",
 					"instance_index": "0",
 					"attached_at":    "2016-11-10T23:00:00Z",
 				}
