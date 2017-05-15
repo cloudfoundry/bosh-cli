@@ -5,6 +5,7 @@ import (
 
 	fakebiagentclient "github.com/cloudfoundry/bosh-agent/agentclient/fakes"
 	"github.com/cloudfoundry/bosh-cli/cloud"
+	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
 	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	fakebiconfig "github.com/cloudfoundry/bosh-cli/config/fakes"
@@ -117,7 +118,7 @@ var _ = Describe("Manager", func() {
 		It("creates a VM", func() {
 			vm, err := manager.Create(stemcell, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
-			expectedVM := NewVM(
+			expectedVM := NewVMWithMetadata(
 				"fake-vm-cid",
 				fakeVMRepo,
 				stemcellRepo,
@@ -127,6 +128,13 @@ var _ = Describe("Manager", func() {
 				clock.NewClock(),
 				fs,
 				logger,
+				bicloud.VMMetadata{
+					"deployment":     "fake-deployment",
+					"job":            "fake-job",
+					"instance_group": "fake-job",
+					"index":          "0",
+					"director":       "bosh-init",
+				},
 			)
 			Expect(vm).To(Equal(expectedVM))
 

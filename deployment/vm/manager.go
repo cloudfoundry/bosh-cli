@@ -126,7 +126,7 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		}
 	}
 
-	vm := NewVM(
+	vm := NewVMWithMetadata(
 		cid,
 		m.vmRepo,
 		m.stemcellRepo,
@@ -136,6 +136,7 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		clock.NewClock(),
 		m.fs,
 		m.logger,
+		metadata,
 	)
 
 	return vm, nil

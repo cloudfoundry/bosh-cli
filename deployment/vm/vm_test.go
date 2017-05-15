@@ -226,10 +226,10 @@ var _ = Describe("VM", func() {
 			disk = fakebidisk.NewFakeDisk("fake-disk-cid")
 
 			metadata := bicloud.VMMetadata{
-				"director":   "bosh-init",
-				"deployment": "some-deployment",
-				"instance_group":        "some-instance-group",
-				"index":      "0",
+				"director":       "bosh-init",
+				"deployment":     "some-deployment",
+				"instance_group": "some-instance-group",
+				"index":          "0",
 			}
 			vm = NewVMWithMetadata(
 				"fake-vm-cid",
