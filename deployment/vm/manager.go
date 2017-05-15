@@ -105,10 +105,11 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 	}
 
 	metadata := bicloud.VMMetadata{
-		"deployment": deploymentManifest.Name,
-		"job":        deploymentManifest.JobName(),
-		"index":      "0",
-		"director":   "bosh-init",
+		"deployment":     deploymentManifest.Name,
+		"job":            deploymentManifest.JobName(),
+		"instance_group": deploymentManifest.JobName(),
+		"index":          "0",
+		"director":       "bosh-init",
 	}
 
 	for tagKey, tagValue := range deploymentManifest.Tags {

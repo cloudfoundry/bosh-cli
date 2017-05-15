@@ -147,10 +147,11 @@ var _ = Describe("Manager", func() {
 
 			Expect(fakeCloud.SetVMMetadataCid).To(Equal("fake-vm-cid"))
 			Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
-				"deployment": "fake-deployment",
-				"job":        "fake-job",
-				"index":      "0",
-				"director":   "bosh-init",
+				"deployment":     "fake-deployment",
+				"job":            "fake-job",
+				"instance_group": "fake-job",
+				"index":          "0",
+				"director":       "bosh-init",
 			}))
 		})
 
@@ -165,32 +166,35 @@ var _ = Describe("Manager", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
-					"deployment": "fake-deployment",
-					"job":        "fake-job",
-					"index":      "0",
-					"director":   "bosh-init",
-					"empty1":     "",
-					"key1":       "value1",
+					"deployment":     "fake-deployment",
+					"job":            "fake-job",
+					"instance_group": "fake-job",
+					"index":          "0",
+					"director":       "bosh-init",
+					"empty1":         "",
+					"key1":           "value1",
 				}))
 			})
 
 			Context("overriding built-in metadata", func() {
 				It("gives precedence to deployment tags", func() {
 					deploymentManifest.Tags = map[string]string{
-						"deployment": "manifest-deployment",
-						"job":        "manifest-job",
-						"index":      "7",
-						"director":   "manifest-director",
+						"deployment":     "manifest-deployment",
+						"job":            "manifest-job",
+						"instance_group": "manifest-instance-group",
+						"index":          "7",
+						"director":       "manifest-director",
 					}
 
 					_, err := manager.Create(stemcell, deploymentManifest)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
-						"deployment": "manifest-deployment",
-						"job":        "manifest-job",
-						"index":      "7",
-						"director":   "manifest-director",
+						"deployment":     "manifest-deployment",
+						"job":            "manifest-job",
+						"instance_group": "manifest-instance-group",
+						"index":          "7",
+						"director":       "manifest-director",
 					}))
 				})
 			})
