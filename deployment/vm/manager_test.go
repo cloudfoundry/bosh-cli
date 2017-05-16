@@ -20,6 +20,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-golang/clock"
+	"time"
 )
 
 var _ = Describe("Manager", func() {
@@ -37,6 +38,7 @@ var _ = Describe("Manager", func() {
 		fakeAgentClient           *fakebiagentclient.FakeAgentClient
 		stemcell                  bistemcell.CloudStemcell
 		fs                        *fakesys.FakeFileSystem
+		timeService	 Clock
 	)
 
 	BeforeEach(func() {
@@ -51,15 +53,27 @@ var _ = Describe("Manager", func() {
 		stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
 
 		fakeDiskDeployer = fakebivm.NewFakeDiskDeployer()
+		timeService = &FakeClock{Times: []time.Time{time.Now(), time.Now().Add(10 * time.Minute)}}
+		//manager = NewManagerFactory (
+		//	fakeVMRepo,
+		//	stemcellRepo,
+		//	fakeDiskDeployer,
+		//	fakeUUIDGenerator,
+		//	fs,
+		//	logger,
+		//).NewManager(fakeCloud, fakeAgentClient)
 
-		manager = NewManagerFactory(
+		manager = NewManager(
 			fakeVMRepo,
 			stemcellRepo,
 			fakeDiskDeployer,
+			fakeAgentClient,
+			fakeCloud,
 			fakeUUIDGenerator,
 			fs,
 			logger,
-		).NewManager(fakeCloud, fakeAgentClient)
+			timeService,
+		)
 
 		fakeCloud.CreateVMCID = "fake-vm-cid"
 		expectedNetworkInterfaces = map[string]biproperty.Map{
@@ -115,6 +129,12 @@ var _ = Describe("Manager", func() {
 	})
 
 	Describe("Create", func() {
+
+		BeforeEach(func() {
+			fakeTime := time.Date(2016, time.November, 10, 23, 0, 0, 0, time.UTC)
+			timeService = &FakeClock{Times: []time.Time{fakeTime, time.Now(), time.Now().Add(10 * time.Minute)}}
+		})
+
 		It("creates a VM", func() {
 			vm, err := manager.Create(stemcell, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
@@ -134,6 +154,7 @@ var _ = Describe("Manager", func() {
 					"instance_group": "fake-job",
 					"index":          "0",
 					"director":       "bosh-init",
+					"created_at":     "2016-11-10T23:00:00Z",
 				},
 			)
 			Expect(vm).To(Equal(expectedVM))
@@ -160,6 +181,7 @@ var _ = Describe("Manager", func() {
 				"instance_group": "fake-job",
 				"index":          "0",
 				"director":       "bosh-init",
+				"created_at":     "2016-11-10T23:00:00Z",
 			}))
 		})
 
@@ -192,6 +214,7 @@ var _ = Describe("Manager", func() {
 						"instance_group": "manifest-instance-group",
 						"index":          "7",
 						"director":       "manifest-director",
+
 					}
 
 					_, err := manager.Create(stemcell, deploymentManifest)

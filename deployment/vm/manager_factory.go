@@ -7,6 +7,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+	"github.com/pivotal-golang/clock"
 )
 
 type ManagerFactory interface {
@@ -50,5 +51,6 @@ func (f *managerFactory) NewManager(cloud bicloud.Cloud, agentClient biagentclie
 		f.uuidGenerator,
 		f.fs,
 		f.logger,
+		clock.NewClock(),
 	)
 }
