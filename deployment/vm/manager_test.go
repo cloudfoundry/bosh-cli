@@ -192,6 +192,7 @@ var _ = Describe("Manager", func() {
 					"director":       "bosh-init",
 					"empty1":         "",
 					"key1":           "value1",
+					"created_at":     "2016-11-10T23:00:00Z",
 				}))
 			})
 
@@ -214,6 +215,7 @@ var _ = Describe("Manager", func() {
 						"instance_group": "manifest-instance-group",
 						"index":          "7",
 						"director":       "manifest-director",
+						"created_at":     "2016-11-10T23:00:00Z",
 					}))
 				})
 			})
