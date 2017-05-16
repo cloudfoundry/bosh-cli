@@ -115,6 +115,9 @@ func (vm *FakeVM) CID() string {
 	return vm.cid
 }
 
+func (vm *FakeVM) ClearServices() {
+}
+
 func (vm *FakeVM) Exists() (bool, error) {
 	vm.ExistsCalled++
 	return vm.ExistsFound, vm.ExistsErr

@@ -39,6 +39,7 @@ type VM interface {
 	RunScript(script string, options map[string]interface{}) error
 	Delete() error
 	GetState() (biagentclient.AgentState, error)
+	ClearServices()
 }
 
 type vm struct {
@@ -109,6 +110,10 @@ func NewVMWithMetadata(
 
 func (vm *vm) CID() string {
 	return vm.cid
+}
+
+func (vm *vm) ClearServices() {
+	vm.timeService = nil
 }
 
 func (vm *vm) Exists() (bool, error) {

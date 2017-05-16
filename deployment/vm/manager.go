@@ -32,7 +32,7 @@ type manager struct {
 	fs                 boshsys.FileSystem
 	logger             boshlog.Logger
 	logTag             string
-	timeService  	   Clock
+	timeService        Clock
 }
 
 func NewManager(
@@ -114,7 +114,7 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		"instance_group": deploymentManifest.JobName(),
 		"index":          "0",
 		"director":       "bosh-init",
-		"created_at":	  m.timeService.Now().Format(time.RFC3339),
+		"created_at":     m.timeService.Now().Format(time.RFC3339),
 	}
 
 	for tagKey, tagValue := range deploymentManifest.Tags {
