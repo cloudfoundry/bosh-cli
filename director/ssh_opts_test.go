@@ -28,6 +28,16 @@ var _ = Describe("NewSSHOpts", func() {
 		}
 	})
 
+	// Windows logon names cannot contain certain characters, and when
+	// created through NET USER, which the BOSH Agent does, must be 20
+	// characters or less (this is to maintain backwards compatibility
+	// with Windows 2000).
+	//
+	// The invalid characters are:
+	//   " / \ [ ] : ; | = , + * ? < >
+	//
+	// Reference: https://msdn.microsoft.com/en-us/library/bb726984.aspx
+	//
 	It("generates a username that is compatible with Windows", func() {
 		const MaxLength = 20
 		const InvalidChars = "\"/\\[]:|<>+=;?*"
