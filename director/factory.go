@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"net/url"
 
+	"time"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshhttp "github.com/cloudfoundry/bosh-utils/http"
 	boshhttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"time"
 )
 
 type Factory struct {

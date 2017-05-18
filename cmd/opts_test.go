@@ -1091,6 +1091,12 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("Name", opts)).To(Equal(`long:"name" description:"Runtime-Config name (default: '')" default:""`))
 			})
 		})
+
+		Describe("ParallelOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("ParallelOpt", opts)).To(Equal(`long:"parallel" description:"Upload releases from manifest in parallel with given number of nodes (default: 5)" default:"5"`))
+			})
+		})
 	})
 
 	Describe("UpdateRuntimeConfigArgs", func() {
@@ -1135,6 +1141,12 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("NoRedact", opts)).To(Equal(
 					`long:"no-redact" description:"Show non-redacted manifest diff"`,
 				))
+			})
+		})
+
+		Describe("ParallelOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("ParallelOpt", opts)).To(Equal(`long:"parallel" description:"Upload releases from manifest in parallel with given number of nodes (default: 5)" default:"5"`))
 			})
 		})
 
