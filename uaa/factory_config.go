@@ -1,25 +1,19 @@
 package uaa
 
 import (
-	"crypto/x509"
 	gonet "net"
 	gourl "net/url"
 	"strconv"
 	"strings"
 
-	"github.com/cloudfoundry/bosh-utils/crypto"
+	"github.com/cloudfoundry/bosh-cli/common/net"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Config struct {
-	Host string
-	Port int
+	net.ClientFactoryConfig
+
 	Path string
-
-	Client       string
-	ClientSecret string
-
-	CACert string
 }
 
 func NewConfigFromURL(url string) (Config, error) {
@@ -61,33 +55,11 @@ func NewConfigFromURL(url string) (Config, error) {
 		return Config{}, bosherr.Errorf("Expected to extract host from URL '%s'", url)
 	}
 
-	return Config{Host: host, Port: port, Path: path}, nil
-}
-
-func (c Config) Validate() error {
-	if len(c.Host) == 0 {
-		return bosherr.Error("Missing 'Host'")
-	}
-
-	if c.Port == 0 {
-		return bosherr.Error("Missing 'Port'")
-	}
-
-	if len(c.Client) == 0 {
-		return bosherr.Error("Missing 'Client'")
-	}
-
-	if _, err := c.CACertPool(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c Config) CACertPool() (*x509.CertPool, error) {
-	if len(c.CACert) == 0 {
-		return nil, nil
-	}
-
-	return crypto.CertPoolFromPEM([]byte(c.CACert))
+	return Config{
+		ClientFactoryConfig: net.ClientFactoryConfig{
+			Host: host,
+			Port: port,
+		},
+		Path: path,
+	}, nil
 }
