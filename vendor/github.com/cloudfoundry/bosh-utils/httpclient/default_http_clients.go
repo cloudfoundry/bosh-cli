@@ -29,7 +29,7 @@ type factory struct{}
 func (f factory) New(insecureSkipVerify bool, certPool *x509.CertPool) *http.Client {
 	defaultDialer := &net.Dialer{
 		Timeout:   30 * time.Second,
-		KeepAlive: 0,
+		KeepAlive: 30 * time.Second,
 	}
 
 	client := &http.Client{

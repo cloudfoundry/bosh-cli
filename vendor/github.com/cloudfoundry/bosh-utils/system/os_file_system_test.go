@@ -105,18 +105,6 @@ var _ = Describe("OS FileSystem", func() {
 		Expect(err).ToNot(HaveOccurred())
 	})
 
-	It("chown", func() {
-		osFs := createOsFs()
-		testPath := filepath.Join(os.TempDir(), "ChownTestDir")
-
-		err := os.Mkdir(testPath, os.FileMode(0700))
-		Expect(err).ToNot(HaveOccurred())
-		defer os.RemoveAll(testPath)
-
-		err = osFs.Chown(testPath, "garbage-foo")
-		Expect(err).To(HaveOccurred())
-	})
-
 	It("chmod", func() {
 		osFs := createOsFs()
 		testPath := filepath.Join(os.TempDir(), "ChmodTestDir")

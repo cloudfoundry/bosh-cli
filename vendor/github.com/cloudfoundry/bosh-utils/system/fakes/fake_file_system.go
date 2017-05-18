@@ -17,6 +17,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"time"
 )
 
 type FakeFileType string
@@ -97,11 +98,13 @@ type FakeFileSystem struct {
 type FakeFileStats struct {
 	FileType FakeFileType
 
-	FileMode os.FileMode
-	Flags    int
-	Username string
+	FileMode  os.FileMode
+	Flags     int
+	Username  string
+	Groupname string
 
-	Open bool
+	ModTime time.Time
+	Open    bool
 
 	SymlinkTarget string
 
@@ -119,6 +122,10 @@ type FakeFileInfo struct {
 
 func (fi FakeFileInfo) Mode() os.FileMode {
 	return fi.file.Stats.FileMode
+}
+
+func (fi FakeFileInfo) ModTime() time.Time {
+	return fi.file.Stats.ModTime
 }
 
 func (fi FakeFileInfo) Size() int64 {
@@ -386,7 +393,12 @@ func (fs *FakeFileSystem) Chown(path, username string) error {
 		return fmt.Errorf("Path does not exist: %s", path)
 	}
 
-	stats.Username = username
+	parts := strings.Split(username, ":")
+	stats.Username = parts[0]
+	stats.Groupname = parts[0]
+	if len(parts) > 1 {
+		stats.Groupname = parts[1]
+	}
 	return nil
 }
 
@@ -489,6 +501,10 @@ func (fs *FakeFileSystem) RegisterReadFileError(path string, err error) {
 		panic(fmt.Sprintf("ReadFile error is already set for path: %s", path))
 	}
 	fs.readFileErrorByPath[path] = err
+}
+
+func (fs *FakeFileSystem) UnregisterReadFileError(path string) {
+	delete(fs.readFileErrorByPath, path)
 }
 
 func (fs *FakeFileSystem) ReadFile(path string) ([]byte, error) {

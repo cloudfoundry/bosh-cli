@@ -13,7 +13,7 @@ inputs:
 - name: version-semver
 
 outputs:
-- name: compiled-linux
+- name: out
 
 params:
   GOOS:   linux
