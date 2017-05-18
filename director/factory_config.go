@@ -2,12 +2,12 @@ package director
 
 import (
 	"crypto/x509"
-	"encoding/pem"
 	gonet "net"
 	gourl "net/url"
 	"strconv"
 	"strings"
 
+	"github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
@@ -87,23 +87,5 @@ func (c Config) CACertPool() (*x509.CertPool, error) {
 		return nil, nil
 	}
 
-	certPool := x509.NewCertPool()
-
-	block, _ := pem.Decode([]byte(c.CACert))
-	if block == nil {
-		return nil, bosherr.Error("Parsing CA certificate: Missing PEM block")
-	}
-
-	if block.Type != "CERTIFICATE" || len(block.Headers) != 0 {
-		return nil, bosherr.Error("Parsing CA certificate: Not a certificate")
-	}
-
-	cert, err := x509.ParseCertificate(block.Bytes)
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Parsing CA certificate")
-	}
-
-	certPool.AddCert(cert)
-
-	return certPool, nil
+	return crypto.CertPoolFromPEM([]byte(c.CACert))
 }
