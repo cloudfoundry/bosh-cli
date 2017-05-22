@@ -64,3 +64,25 @@ func (c Client) UpdateRuntimeConfig(name string, manifest []byte) error {
 
 	return nil
 }
+
+func (d DirectorImpl) DiffRuntimeConfig(name string, manifest []byte) (ConfigDiff, error) {
+	resp, err := d.client.DiffRuntimeConfig(name, manifest)
+	if err != nil {
+		return ConfigDiff{}, err
+	}
+
+	return NewConfigDiff(resp.Diff), nil
+}
+
+func (c Client) DiffRuntimeConfig(name string, manifest []byte) (ConfigDiffResponse, error) {
+	query := gourl.Values{}
+	query.Add("name", name)
+
+	path := fmt.Sprintf("/runtime_configs/diff?%s", query.Encode())
+
+	setHeaders := func(req *http.Request) {
+		req.Header.Add("Content-Type", "text/yaml")
+	}
+
+	return c.postConfigDiff(path, manifest, setHeaders)
+}

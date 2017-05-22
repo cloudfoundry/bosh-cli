@@ -26,6 +26,13 @@ func (c UpdateRuntimeConfigCmd) Run(opts UpdateRuntimeConfigOpts) error {
 		return bosherr.WrapErrorf(err, "Evaluating runtime config")
 	}
 
+	configDiff, err := c.director.DiffRuntimeConfig(opts.Name, bytes)
+	if err != nil {
+		return err
+	}
+
+	printManifestDiff(c.ui, configDiff.Diff)
+
 	bytes, err = c.releaseUploader.UploadReleases(bytes)
 	if err != nil {
 		return err
