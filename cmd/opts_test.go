@@ -190,7 +190,7 @@ var _ = Describe("Opts", func() {
 		Describe("NonInteractiveOpt", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("NonInteractiveOpt", opts)).To(Equal(
-					`long:"non-interactive" short:"n" description:"Don't ask for user input"`,
+					`long:"non-interactive" short:"n" description:"Don't ask for user input" env:"BOSH_NON_INTERACTIVE"`,
 				))
 			})
 		})
