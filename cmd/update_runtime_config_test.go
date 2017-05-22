@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
@@ -175,6 +175,26 @@ releases:
 			Expect(ui.Said).To(ContainElement("  some line that stayed\n"))
 			Expect(ui.Said).To(ContainElement("+ some line that was added\n"))
 			Expect(ui.Said).To(ContainElement("- some line that was removed\n"))
+		})
+
+		Context("when NoRedact option is passed", func() {
+			BeforeEach(func() {
+				opts = UpdateRuntimeConfigOpts{
+					Args: UpdateRuntimeConfigArgs{
+						RuntimeConfig: FileBytesArg{Bytes: []byte("runtime: config")},
+					},
+					Name:     "angry-smurf",
+					NoRedact: true,
+				}
+			})
+
+			It("", func() {
+				director.DiffRuntimeConfigReturns(boshdir.NewConfigDiff([][]interface{}{}), nil)
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+				_, _, noRedact := director.DiffRuntimeConfigArgsForCall(0)
+				Expect(noRedact).To(Equal(true))
+			})
 		})
 	})
 })

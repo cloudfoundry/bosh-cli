@@ -52,7 +52,7 @@ type Director interface {
 
 	LatestRuntimeConfig(name string) (RuntimeConfig, error)
 	UpdateRuntimeConfig(name string, manifest []byte) error
-	DiffRuntimeConfig(name string, manifest []byte) (ConfigDiff, error)
+	DiffRuntimeConfig(name string, manifest []byte, noRedact bool) (ConfigDiff, error)
 
 	FindOrphanDisk(string) (OrphanDisk, error)
 	OrphanDisks() ([]OrphanDisk, error)
