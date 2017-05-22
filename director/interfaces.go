@@ -45,13 +45,14 @@ type Director interface {
 
 	LatestCloudConfig() (CloudConfig, error)
 	UpdateCloudConfig([]byte) error
-	DiffCloudConfig(manifest []byte) (CloudConfigDiff, error)
+	DiffCloudConfig(manifest []byte) (ConfigDiff, error)
 
 	LatestCPIConfig() (CPIConfig, error)
 	UpdateCPIConfig([]byte) error
 
 	LatestRuntimeConfig(name string) (RuntimeConfig, error)
 	UpdateRuntimeConfig(name string, manifest []byte) error
+	DiffRuntimeConfig(name string, manifest []byte) (ConfigDiff, error)
 
 	FindOrphanDisk(string) (OrphanDisk, error)
 	OrphanDisks() ([]OrphanDisk, error)

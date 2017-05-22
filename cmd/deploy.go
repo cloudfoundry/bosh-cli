@@ -49,10 +49,7 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 		return err
 	}
 
-	err = c.printManifestDiff(deploymentDiff, bytes, opts)
-	if err != nil {
-		return bosherr.WrapError(err, "Diffing manifest")
-	}
+	printManifestDiff(c.ui, deploymentDiff.Diff)
 
 	err = c.ui.AskForConfirmation()
 	if err != nil {
@@ -81,22 +78,6 @@ func (c DeployCmd) checkDeploymentName(bytes []byte) error {
 	if manifest.Name != c.deployment.Name() {
 		errMsg := "Expected manifest to specify deployment name '%s' but was '%s'"
 		return bosherr.Errorf(errMsg, c.deployment.Name(), manifest.Name)
-	}
-
-	return nil
-}
-
-func (c DeployCmd) printManifestDiff(diff boshdir.DeploymentDiff, bytes []byte, opts DeployOpts) error {
-	for _, line := range diff.Diff {
-		lineMod, _ := line[1].(string)
-
-		if lineMod == "added" {
-			c.ui.BeginLinef("+ %s\n", line[0])
-		} else if lineMod == "removed" {
-			c.ui.BeginLinef("- %s\n", line[0])
-		} else {
-			c.ui.BeginLinef("  %s\n", line[0])
-		}
 	}
 
 	return nil
