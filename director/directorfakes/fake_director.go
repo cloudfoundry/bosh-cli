@@ -393,11 +393,12 @@ type FakeDirector struct {
 	updateRuntimeConfigReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DiffRuntimeConfigStub        func(name string, manifest []byte) (director.ConfigDiff, error)
+	DiffRuntimeConfigStub        func(name string, manifest []byte, noRedact bool) (director.ConfigDiff, error)
 	diffRuntimeConfigMutex       sync.RWMutex
 	diffRuntimeConfigArgsForCall []struct {
 		name     string
 		manifest []byte
+		noRedact bool
 	}
 	diffRuntimeConfigReturns struct {
 		result1 director.ConfigDiff
@@ -2006,7 +2007,7 @@ func (fake *FakeDirector) UpdateRuntimeConfigReturnsOnCall(i int, result1 error)
 	}{result1}
 }
 
-func (fake *FakeDirector) DiffRuntimeConfig(name string, manifest []byte) (director.ConfigDiff, error) {
+func (fake *FakeDirector) DiffRuntimeConfig(name string, manifest []byte, noRedact bool) (director.ConfigDiff, error) {
 	var manifestCopy []byte
 	if manifest != nil {
 		manifestCopy = make([]byte, len(manifest))
@@ -2017,11 +2018,12 @@ func (fake *FakeDirector) DiffRuntimeConfig(name string, manifest []byte) (direc
 	fake.diffRuntimeConfigArgsForCall = append(fake.diffRuntimeConfigArgsForCall, struct {
 		name     string
 		manifest []byte
-	}{name, manifestCopy})
-	fake.recordInvocation("DiffRuntimeConfig", []interface{}{name, manifestCopy})
+		noRedact bool
+	}{name, manifestCopy, noRedact})
+	fake.recordInvocation("DiffRuntimeConfig", []interface{}{name, manifestCopy, noRedact})
 	fake.diffRuntimeConfigMutex.Unlock()
 	if fake.DiffRuntimeConfigStub != nil {
-		return fake.DiffRuntimeConfigStub(name, manifest)
+		return fake.DiffRuntimeConfigStub(name, manifest, noRedact)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -2035,10 +2037,10 @@ func (fake *FakeDirector) DiffRuntimeConfigCallCount() int {
 	return len(fake.diffRuntimeConfigArgsForCall)
 }
 
-func (fake *FakeDirector) DiffRuntimeConfigArgsForCall(i int) (string, []byte) {
+func (fake *FakeDirector) DiffRuntimeConfigArgsForCall(i int) (string, []byte, bool) {
 	fake.diffRuntimeConfigMutex.RLock()
 	defer fake.diffRuntimeConfigMutex.RUnlock()
-	return fake.diffRuntimeConfigArgsForCall[i].name, fake.diffRuntimeConfigArgsForCall[i].manifest
+	return fake.diffRuntimeConfigArgsForCall[i].name, fake.diffRuntimeConfigArgsForCall[i].manifest, fake.diffRuntimeConfigArgsForCall[i].noRedact
 }
 
 func (fake *FakeDirector) DiffRuntimeConfigReturns(result1 director.ConfigDiff, result2 error) {

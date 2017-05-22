@@ -176,5 +176,25 @@ releases:
 			Expect(ui.Said).To(ContainElement("+ some line that was added\n"))
 			Expect(ui.Said).To(ContainElement("- some line that was removed\n"))
 		})
+
+		Context("when NoRedact option is passed", func() {
+			BeforeEach(func() {
+				opts = UpdateRuntimeConfigOpts{
+					Args: UpdateRuntimeConfigArgs{
+						RuntimeConfig: FileBytesArg{Bytes: []byte("runtime: config")},
+					},
+					Name:     "angry-smurf",
+					NoRedact: true,
+				}
+			})
+
+			It("", func() {
+				director.DiffRuntimeConfigReturns(boshdir.NewConfigDiff([][]interface{}{}), nil)
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+				_, _, noRedact := director.DiffRuntimeConfigArgsForCall(0)
+				Expect(noRedact).To(Equal(true))
+			})
+		})
 	})
 })

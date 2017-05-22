@@ -328,7 +328,8 @@ type UpdateRuntimeConfigOpts struct {
 	VarFlags
 	OpsFlags
 
-	Name string `long:"name" description:"Runtime-Config name (default: '')" default:""`
+	NoRedact bool   `long:"no-redact" description:"Show non-redacted manifest diff"`
+	Name     string `long:"name" description:"Runtime-Config name (default: '')" default:""`
 
 	cmd
 }
