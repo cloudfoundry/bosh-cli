@@ -1,9 +1,0 @@
-{
-  "processes": [
-    {
-      "name": "crash-service",
-      "executable": "powershell",
-      "args": [ "/var/vcap/jobs/crashes-on-start/bin/start.ps1" ]
-    }
-  ]
-}
