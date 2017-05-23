@@ -4,6 +4,7 @@
 package mocks
 
 import (
+	action "github.com/cloudfoundry/bosh-agent/agent/action"
 	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	applyspec "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	settings "github.com/cloudfoundry/bosh-agent/settings"
@@ -125,6 +126,16 @@ func (_mr *_MockAgentClientRecorder) RunScript(arg0, arg1 interface{}) *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RunScript", arg0, arg1)
 }
 
+func (_m *MockAgentClient) SSH(_param0 string, _param1 action.SSHParams) error {
+	ret := _m.ctrl.Call(_m, "SSH", _param0, _param1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockAgentClientRecorder) SSH(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SSH", arg0, arg1)
+}
+
 func (_m *MockAgentClient) Start() error {
 	ret := _m.ctrl.Call(_m, "Start")
 	ret0, _ := ret[0].(error)
@@ -145,15 +156,15 @@ func (_mr *_MockAgentClientRecorder) Stop() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Stop")
 }
 
-func (_m *MockAgentClient) SyncDNS(_param0 string, _param1 string) (string, error) {
-	ret := _m.ctrl.Call(_m, "SyncDNS", _param0, _param1)
+func (_m *MockAgentClient) SyncDNS(_param0 string, _param1 string, _param2 uint64) (string, error) {
+	ret := _m.ctrl.Call(_m, "SyncDNS", _param0, _param1, _param2)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockAgentClientRecorder) SyncDNS(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncDNS", arg0, arg1)
+func (_mr *_MockAgentClientRecorder) SyncDNS(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncDNS", arg0, arg1, arg2)
 }
 
 func (_m *MockAgentClient) UnmountDisk(_param0 string) error {
@@ -166,7 +177,7 @@ func (_mr *_MockAgentClientRecorder) UnmountDisk(arg0 interface{}) *gomock.Call 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnmountDisk", arg0)
 }
 
-func (_m *MockAgentClient) UpdateSettings(_param0 settings.Settings) error {
+func (_m *MockAgentClient) UpdateSettings(_param0 settings.UpdateSettings) error {
 	ret := _m.ctrl.Call(_m, "UpdateSettings", _param0)
 	ret0, _ := ret[0].(error)
 	return ret0

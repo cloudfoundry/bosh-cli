@@ -14,6 +14,7 @@ import (
 	"github.com/cloudfoundry/bosh-agent/agentclient"
 	"github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 
+	"github.com/cloudfoundry/bosh-agent/agent/action"
 	fakehttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
@@ -841,6 +842,58 @@ var _ = Describe("AgentClient", func() {
 		})
 	})
 
+	Describe("SSH", func() {
+		Context("when agent successfully executes ssh", func() {
+			BeforeEach(func() {
+				sshSuccess, err := json.Marshal(action.SSHResult{
+					Command: "setup",
+					Status:  "success",
+				})
+				Expect(err).ToNot(HaveOccurred())
+				fakeHTTPClient.SetPostBehavior(string(sshSuccess), 200, nil)
+			})
+
+			It("makes a POST request to the endpoint", func() {
+				params := action.SSHParams{
+					User: "username",
+				}
+
+				err := agentClient.SSH("setup", params)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
+				Expect(fakeHTTPClient.PostInputs[0].Endpoint).To(Equal("http://localhost:6305/agent"))
+
+				var request AgentRequestMessage
+				err = json.Unmarshal(fakeHTTPClient.PostInputs[0].Payload, &request)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(request).To(Equal(AgentRequestMessage{
+					Method:    "ssh",
+					Arguments: []interface{}{"setup", map[string]interface{}{"user_regex": "", "User": "username", "public_key": ""}},
+					ReplyTo:   "fake-reply-to-uuid",
+				}))
+			})
+		})
+
+		Context("when POST to agent returns error", func() {
+			BeforeEach(func() {
+				fakeHTTPClient.SetPostBehavior("", http.StatusInternalServerError, errors.New("foo error"))
+			})
+
+			It("returns an error that wraps original error", func() {
+				params := action.SSHParams{
+					User: "username",
+				}
+
+				err := agentClient.SSH("setup", params)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Performing request to agent"))
+				Expect(err.Error()).To(ContainSubstring("foo error"))
+			})
+		})
+	})
+
 	Describe("SyncDNS", func() {
 		Context("when agent successfully executes the sync_dns", func() {
 			BeforeEach(func() {
@@ -848,7 +901,7 @@ var _ = Describe("AgentClient", func() {
 			})
 
 			It("makes a POST request to the endpoint", func() {
-				_, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1")
+				_, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1", 42)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
@@ -860,13 +913,13 @@ var _ = Describe("AgentClient", func() {
 
 				Expect(request).To(Equal(AgentRequestMessage{
 					Method:    "sync_dns",
-					Arguments: []interface{}{"fake-blob-store-id", "fake-blob-store-id-sha1"},
+					Arguments: []interface{}{"fake-blob-store-id", "fake-blob-store-id-sha1", float64(42)}, // JSON unmarshals to float64
 					ReplyTo:   "fake-reply-to-uuid",
 				}))
 			})
 
 			It("returns the synced value", func() {
-				responseValue, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1")
+				responseValue, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1", 42)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(responseValue).To(Equal("synced"))
 			})
@@ -878,7 +931,7 @@ var _ = Describe("AgentClient", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1")
+				_, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1", 42)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("status code: 500"))
 			})
@@ -890,7 +943,7 @@ var _ = Describe("AgentClient", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1")
+				_, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1", 42)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("bad request"))
 			})
