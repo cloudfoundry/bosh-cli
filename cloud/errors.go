@@ -57,13 +57,7 @@ func (e cpiError) OkToRetry() bool {
 }
 
 func mapsToNotImplementedError(method string, cmdError CmdError) bool {
-	matched, _ := regexp.MatchString("^Method .+ not supported in photon CPI", cmdError.Message)
-
-	if cmdError.Type == "Bosh::Clouds::NotSupported" && matched {
-		return true
-	}
-
-	matched, _ = regexp.MatchString("^Invalid Method:", cmdError.Message)
+	matched, _ := regexp.MatchString("^Invalid Method:", cmdError.Message)
 
 	if cmdError.Type == "Bosh::Clouds::CloudError" && matched {
 		return true
