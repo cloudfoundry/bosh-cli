@@ -188,7 +188,7 @@ releases:
 				}
 			})
 
-			It("", func() {
+			It("adds redact to api call", func() {
 				director.DiffRuntimeConfigReturns(boshdir.NewConfigDiff([][]interface{}{}), nil)
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
