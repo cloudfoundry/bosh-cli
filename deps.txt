@@ -1,4 +1,3 @@
-github.com/cloudfoundry/bosh-agent/agentclient:7ced7dce
 github.com/cloudfoundry/bosh-davcli/...:37f54c6
 github.com/cloudfoundry/bosh-utils/...:4eb2a70
 github.com/golang/mock/gomock:15f8b22
@@ -30,3 +29,8 @@ gopkg.in/yaml.v2:a5b47d3
 github.com/armon/go-socks5/...:e753329
 golang.org/x/net/proxy:60c41d1
 github.com/cloudfoundry/config-server/types:a76bda8
+github.com/cloudfoundry/bosh-agent/...:7ced7dc
+github.com/cloudfoundry/gosigar/...:dfaa4d4
+github.com/jeromer/syslogparser/rfc3164/...:0e4ae46
+golang.org/x/net/html/charset/...:5b58a9c
+github.com/pivotal/go-smtpd/smtpd/...:0af6982
