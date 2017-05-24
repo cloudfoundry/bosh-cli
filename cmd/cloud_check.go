@@ -77,7 +77,6 @@ func (c CloudCheckCmd) Run(opts CloudCheckOpts) error {
 }
 
 func (_ CloudCheckCmd) applyResolutions(resolutionsToApply []string, probs []boshdir.Problem) ([]boshdir.ProblemAnswer, error) {
-	skipResolutionName := "ignore"
 	var answers []boshdir.ProblemAnswer
 
 	for _, prob := range probs {
@@ -85,11 +84,8 @@ func (_ CloudCheckCmd) applyResolutions(resolutionsToApply []string, probs []bos
 			answers = append(answers, problemAnswer)
 		} else {
 			answers = append(answers, boshdir.ProblemAnswer{
-				ProblemID: prob.ID,
-				Resolution: boshdir.ProblemResolution{
-					Name: &skipResolutionName,
-					Plan: "Skip for now",
-				},
+				ProblemID:  prob.ID,
+				Resolution: boshdir.ProblemResolutionSkip,
 			})
 		}
 	}
