@@ -7,13 +7,19 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cloudfoundry/bosh-cli/common/net"
 	"github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Config struct {
-	net.ClientFactoryConfig
+	Host string
+	Port int
+
+	// CA certificate is not required
+	CACert string
+
+	Client       string
+	ClientSecret string
 
 	TokenFunc func(bool) (string, error)
 }
@@ -55,7 +61,7 @@ func NewConfigFromURL(url string) (Config, error) {
 		return Config{}, bosherr.Errorf("Expected to extract host from URL '%s'", url)
 	}
 
-	return Config{ClientFactoryConfig: net.ClientFactoryConfig{Host: host, Port: port}}, nil
+	return Config{Host: host, Port: port}, nil
 }
 
 func (c Config) Validate() error {
