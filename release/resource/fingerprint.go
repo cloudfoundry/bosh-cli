@@ -16,10 +16,15 @@ import (
 type FingerprinterImpl struct {
 	digestCalculator bicrypto.DigestCalculator
 	fs               boshsys.FileSystem
+	followSymlinks   bool
 }
 
-func NewFingerprinterImpl(digestCalculator bicrypto.DigestCalculator, fs boshsys.FileSystem) FingerprinterImpl {
-	return FingerprinterImpl{digestCalculator: digestCalculator, fs: fs}
+func NewFingerprinterImpl(digestCalculator bicrypto.DigestCalculator, fs boshsys.FileSystem, followSymlinks bool) FingerprinterImpl {
+	return FingerprinterImpl{
+		digestCalculator: digestCalculator,
+		fs:               fs,
+		followSymlinks:   followSymlinks,
+	}
 }
 
 func (f FingerprinterImpl) Calculate(files []File, additionalChunks []string) (string, error) {
@@ -75,28 +80,40 @@ func (f FingerprinterImpl) fingerprintPath(file File) (string, error) {
 		result += file.RelativePath
 	}
 
-	targetFilePath := file.Path
-
 	fileInfo, err := f.fs.Lstat(file.Path)
 	if err != nil {
 		return "", err
 	}
 
-	if fileInfo.Mode()&os.ModeSymlink != 0 {
-		var err error
+	isSymlink := fileInfo.Mode()&os.ModeSymlink != 0
+	targetFilePath := file.Path
+
+	if isSymlink && f.followSymlinks {
 		targetFilePath, err = f.fs.ReadAndFollowLink(file.Path)
 		if err != nil {
 			return "", err
 		}
 	}
 
-	//generation of digest string
-	sha1, err := f.digestCalculator.Calculate(targetFilePath)
-	if err != nil {
-		return "", err
-	}
+	if isSymlink && !f.followSymlinks {
+		symlinkTarget, err := f.fs.Readlink(file.Path)
+		if err != nil {
+			return "", err
+		}
 
-	result += sha1
+		//generation of digest string
+		sha1 := f.digestCalculator.CalculateString(symlinkTarget)
+
+		result += sha1
+	} else {
+		//generation of digest string
+		sha1, err := f.digestCalculator.Calculate(targetFilePath)
+		if err != nil {
+			return "", err
+		}
+
+		result += sha1
+	}
 
 	if !file.ExcludeMode {
 		// Git doesn't really track file permissions, it just looks at executable
@@ -109,6 +126,8 @@ func (f FingerprinterImpl) fingerprintPath(file File) (string, error) {
 
 		if fileInfo.IsDir() {
 			modeStr = "40755"
+		} else if fileInfo.Mode()&os.ModeSymlink != 0 && !f.followSymlinks {
+			modeStr = "symlink"
 		} else if fileInfo.Mode()&0111 != 0 {
 			modeStr = "100755"
 		} else {

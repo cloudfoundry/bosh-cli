@@ -15,20 +15,22 @@ import (
 
 var _ = Describe("DirReaderImpl", func() {
 	var (
-		collectedFiles     []File
-		collectedPrepFiles []File
-		collectedChunks    []string
-		archive            *fakeres.FakeArchive
-		fs                 *fakesys.FakeFileSystem
-		reader             DirReaderImpl
+		collectedFiles          []File
+		collectedPrepFiles      []File
+		collectedChunks         []string
+		collectedFollowSymlinks bool
+		archive                 *fakeres.FakeArchive
+		fs                      *fakesys.FakeFileSystem
+		reader                  DirReaderImpl
 	)
 
 	BeforeEach(func() {
 		archive = &fakeres.FakeArchive{}
-		archiveFactory := func(files, prepFiles []File, chunks []string) Archive {
+		archiveFactory := func(files, prepFiles []File, chunks []string, followSymlinks bool) Archive {
 			collectedFiles = files
 			collectedPrepFiles = prepFiles
 			collectedChunks = chunks
+			collectedFollowSymlinks = followSymlinks
 			return archive
 		}
 		fs = fakesys.NewFakeFileSystem()
@@ -67,6 +69,7 @@ properties:
 
 			Expect(collectedPrepFiles).To(BeEmpty())
 			Expect(collectedChunks).To(BeEmpty())
+			Expect(collectedFollowSymlinks).To(BeTrue())
 		})
 
 		It("returns a job with the details without monit file", func() {

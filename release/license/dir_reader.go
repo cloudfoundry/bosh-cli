@@ -28,7 +28,7 @@ func (r DirReaderImpl) Read(path string) (*License, error) {
 		return nil, nil
 	}
 
-	archive := r.archiveFactory(files, nil, nil)
+	archive := r.archiveFactory(files, nil, nil, false /*followSymlinks*/)
 
 	fp, err := archive.Fingerprint()
 	if err != nil {

@@ -16,6 +16,7 @@ type ArchiveImpl struct {
 	prepFiles        []File
 	additionalChunks []string
 	releaseDirPath   string
+	followSymlinks   bool
 
 	fingerprinter    Fingerprinter
 	compressor       boshcmd.Compressor
@@ -29,6 +30,7 @@ func NewArchiveImpl(
 	prepFiles []File,
 	additionalChunks []string,
 	releaseDirPath string,
+	followSymlinks bool,
 	fingerprinter Fingerprinter,
 	compressor boshcmd.Compressor,
 	digestCalculator bicrypto.DigestCalculator,
@@ -40,6 +42,7 @@ func NewArchiveImpl(
 		prepFiles:        prepFiles,
 		additionalChunks: additionalChunks,
 		releaseDirPath:   releaseDirPath,
+		followSymlinks:   followSymlinks,
 
 		fingerprinter:    fingerprinter,
 		compressor:       compressor,
@@ -162,13 +165,24 @@ func (a ArchiveImpl) copyFile(sourceFile File, stagingDir string) error {
 		return err
 	}
 
+	isSymlink := sourceFileStat.Mode()&os.ModeSymlink != 0
 	sourceFilePath := sourceFile.Path
-	if sourceFileStat.Mode()&os.ModeSymlink != 0 {
-		symlinkTarget, err := a.fs.ReadAndFollowLink(sourceFile.Path)
-		if err != nil {
-			return err
+
+	if isSymlink {
+		if a.followSymlinks {
+			symlinkTarget, err := a.fs.ReadAndFollowLink(sourceFilePath)
+			if err != nil {
+				return err
+			}
+			sourceFilePath = symlinkTarget
+		} else {
+			symlinkTarget, err := a.fs.Readlink(sourceFilePath)
+			if err != nil {
+				return err
+			}
+
+			return a.fs.Symlink(symlinkTarget, dstPath)
 		}
-		sourceFilePath = symlinkTarget
 	}
 
 	err = a.fs.CopyFile(sourceFilePath, dstPath)
@@ -197,5 +211,5 @@ func (a ArchiveImpl) buildStagingArchive(stagingDir string) Archive {
 	}
 
 	// Initialize with bare minimum deps so that fingerprinting can be performed
-	return NewArchiveImpl(stagingFiles, nil, a.additionalChunks, "", a.fingerprinter, nil, nil, nil, nil)
+	return NewArchiveImpl(stagingFiles, nil, a.additionalChunks, "", false, a.fingerprinter, nil, nil, nil, nil)
 }
