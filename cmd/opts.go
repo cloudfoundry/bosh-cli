@@ -615,8 +615,9 @@ type VMsOpts struct {
 }
 
 type CloudCheckOpts struct {
-	Auto   bool `long:"auto"   short:"a" description:"Resolve problems automatically"`
-	Report bool `long:"report" short:"r" description:"Only generate report; don't attempt to resolve problems"`
+	Auto        bool     `long:"auto"   short:"a" description:"Resolve problems automatically"`
+	Resolutions []string `long:"resolutions"   description:"Resolve provided list of problems"`
+	Report      bool     `long:"report" short:"r" description:"Only generate report; don't attempt to resolve problems"`
 	cmd
 }
 

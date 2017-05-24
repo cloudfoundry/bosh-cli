@@ -1886,6 +1886,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("Resolutions", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Resolutions", opts)).To(Equal(
+					`long:"resolutions" description:"Resolve provided list of problems"`,
+				))
+			})
+		})
+
 		Describe("Report", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Report", opts)).To(Equal(

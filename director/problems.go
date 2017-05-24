@@ -90,7 +90,7 @@ func (c Client) ResolveProblems(deploymentName string, answers []ProblemAnswer) 
 	path := fmt.Sprintf("/deployments/%s/problems", deploymentName)
 
 	body := map[string]map[string]*string{
-		"resolutions": map[string]*string{},
+		"resolutions": {},
 	}
 
 	for _, ans := range answers {
