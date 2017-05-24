@@ -31,6 +31,6 @@ golang.org/x/net/proxy:60c41d1
 github.com/cloudfoundry/config-server/types:a76bda8
 github.com/cloudfoundry/bosh-agent/...:7ced7dc
 github.com/cloudfoundry/gosigar/...:dfaa4d4
-github.com/jeromer/syslogparser/rfc3164/...:0e4ae46
 golang.org/x/net/html/charset/...:5b58a9c
 github.com/pivotal/go-smtpd/smtpd/...:0af6982
+github.com/jeromer/syslogparser/...:0e4ae46
