@@ -34,3 +34,5 @@ github.com/pivotal/go-smtpd/smtpd/...:0af6982
 github.com/jeromer/syslogparser/...:0e4ae46
 golang.org/x/net/...:5b58a9c
 golang.org/x/text/...:19e5161
+golang.org/x/sys/windows/...:a55a760
+github.com/tedsuo/ifrit/...:08b0eee

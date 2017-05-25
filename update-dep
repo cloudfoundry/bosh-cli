@@ -2,9 +2,9 @@
 
 set -e -x
 
-if [  $# -ne 1 ]; then 
-	echo "Must provide package name as argument." 
-	echo -e "\nUsage:\n$0 PACKAGE_NAME \n" 
+if [  $# -ne 1 ]; then
+	echo "Must provide package name as argument."
+	echo -e "\nUsage:\n$0 PACKAGE_NAME \n"
 	exit 1
 fi
 
@@ -47,8 +47,8 @@ set -e
 
 if [ $found -ne 0 ]; then
 	echo $package_name:$sha >> deps.txt
-fi	
+fi
 
 # destroy sub-vendored dependencies because they could cause type mismatches
 # between our locally vendored types and the vendored vendored type
-find . -name vendor -type d -mindepth 2 | sort -r | xargs rm -rf {}
+find . -mindepth 2 -name vendor -type d | sort -r | xargs rm -rf {}
