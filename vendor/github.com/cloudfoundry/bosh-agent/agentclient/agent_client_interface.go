@@ -1,7 +1,6 @@
 package agentclient
 
 import (
-	"github.com/cloudfoundry/bosh-agent/agent/action"
 	"github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	"github.com/cloudfoundry/bosh-agent/settings"
 )
@@ -23,7 +22,20 @@ type AgentClient interface {
 	SyncDNS(blobID, sha1 string, version uint64) (string, error)
 	UpdateSettings(settings.UpdateSettings) error
 	RunScript(scriptName string, options map[string]interface{}) error
-	SSH(cmd string, params action.SSHParams) error
+	SSH(cmd string, params SSHParams) error
+}
+
+type SSHParams struct {
+	UserRegex string `json:"user_regex"`
+	User      string
+	PublicKey string `json:"public_key"`
+}
+
+type SSHResult struct {
+	Command       string `json:"command"`
+	Status        string `json:"status"`
+	IP            string `json:"ip,omitempty"`
+	HostPublicKey string `json:"host_public_key,omitempty"`
 }
 
 type AgentState struct {

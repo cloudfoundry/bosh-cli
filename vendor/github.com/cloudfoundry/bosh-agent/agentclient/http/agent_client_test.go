@@ -14,7 +14,6 @@ import (
 	"github.com/cloudfoundry/bosh-agent/agentclient"
 	"github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 
-	"github.com/cloudfoundry/bosh-agent/agent/action"
 	fakehttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
@@ -845,7 +844,7 @@ var _ = Describe("AgentClient", func() {
 	Describe("SSH", func() {
 		Context("when agent successfully executes ssh", func() {
 			BeforeEach(func() {
-				sshSuccess, err := json.Marshal(action.SSHResult{
+				sshSuccess, err := json.Marshal(agentclient.SSHResult{
 					Command: "setup",
 					Status:  "success",
 				})
@@ -854,7 +853,7 @@ var _ = Describe("AgentClient", func() {
 			})
 
 			It("makes a POST request to the endpoint", func() {
-				params := action.SSHParams{
+				params := agentclient.SSHParams{
 					User: "username",
 				}
 
@@ -882,7 +881,7 @@ var _ = Describe("AgentClient", func() {
 			})
 
 			It("returns an error that wraps original error", func() {
-				params := action.SSHParams{
+				params := agentclient.SSHParams{
 					User: "username",
 				}
 

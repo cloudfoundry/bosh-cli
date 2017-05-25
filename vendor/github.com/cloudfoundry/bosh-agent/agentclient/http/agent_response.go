@@ -5,7 +5,6 @@ import (
 
 	"runtime/debug"
 
-	"github.com/cloudfoundry/bosh-agent/agent/action"
 	"github.com/cloudfoundry/bosh-agent/agentclient"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
@@ -41,7 +40,7 @@ type SyncDNSResponse struct {
 }
 
 type SSHResponse struct {
-	action.SSHResult
+	agentclient.SSHResult
 	Exception *exception
 }
 

@@ -4,7 +4,6 @@ package fakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-agent/agent/action"
 	"github.com/cloudfoundry/bosh-agent/agentclient"
 	"github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	"github.com/cloudfoundry/bosh-agent/settings"
@@ -120,11 +119,11 @@ type FakeAgentClient struct {
 	runScriptReturns struct {
 		result1 error
 	}
-	SSHStub        func(cmd string, params action.SSHParams) error
+	SSHStub        func(cmd string, params agentclient.SSHParams) error
 	sSHMutex       sync.RWMutex
 	sSHArgsForCall []struct {
 		cmd    string
-		params action.SSHParams
+		params agentclient.SSHParams
 	}
 	sSHReturns struct {
 		result1 error
@@ -566,11 +565,11 @@ func (fake *FakeAgentClient) RunScriptReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeAgentClient) SSH(cmd string, params action.SSHParams) error {
+func (fake *FakeAgentClient) SSH(cmd string, params agentclient.SSHParams) error {
 	fake.sSHMutex.Lock()
 	fake.sSHArgsForCall = append(fake.sSHArgsForCall, struct {
 		cmd    string
-		params action.SSHParams
+		params agentclient.SSHParams
 	}{cmd, params})
 	fake.recordInvocation("SSH", []interface{}{cmd, params})
 	fake.sSHMutex.Unlock()
@@ -587,7 +586,7 @@ func (fake *FakeAgentClient) SSHCallCount() int {
 	return len(fake.sSHArgsForCall)
 }
 
-func (fake *FakeAgentClient) SSHArgsForCall(i int) (string, action.SSHParams) {
+func (fake *FakeAgentClient) SSHArgsForCall(i int) (string, agentclient.SSHParams) {
 	fake.sSHMutex.RLock()
 	defer fake.sSHMutex.RUnlock()
 	return fake.sSHArgsForCall[i].cmd, fake.sSHArgsForCall[i].params

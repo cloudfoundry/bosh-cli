@@ -1,7 +1,0 @@
-#!/bin/bash
-
-set -e -o pipefail
-
-bin=$(dirname $0)
-
-$bin/go run $bin/../main/agent.go $*

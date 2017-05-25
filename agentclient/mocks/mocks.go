@@ -4,7 +4,6 @@
 package mocks
 
 import (
-	action "github.com/cloudfoundry/bosh-agent/agent/action"
 	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	applyspec "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	settings "github.com/cloudfoundry/bosh-agent/settings"
@@ -126,7 +125,7 @@ func (_mr *_MockAgentClientRecorder) RunScript(arg0, arg1 interface{}) *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RunScript", arg0, arg1)
 }
 
-func (_m *MockAgentClient) SSH(_param0 string, _param1 action.SSHParams) error {
+func (_m *MockAgentClient) SSH(_param0 string, _param1 agentclient.SSHParams) error {
 	ret := _m.ctrl.Call(_m, "SSH", _param0, _param1)
 	ret0, _ := ret[0].(error)
 	return ret0
