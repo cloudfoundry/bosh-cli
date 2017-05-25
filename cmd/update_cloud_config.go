@@ -30,7 +30,7 @@ func (c UpdateCloudConfigCmd) Run(opts UpdateCloudConfigOpts) error {
 		return err
 	}
 
-	c.printManifestDiff(cloudConfigDiff)
+	printManifestDiff(c.ui, cloudConfigDiff.Diff)
 
 	err = c.ui.AskForConfirmation()
 	if err != nil {
@@ -38,18 +38,4 @@ func (c UpdateCloudConfigCmd) Run(opts UpdateCloudConfigOpts) error {
 	}
 
 	return c.director.UpdateCloudConfig(bytes)
-}
-
-func (c UpdateCloudConfigCmd) printManifestDiff(diff boshdir.CloudConfigDiff) {
-	for _, line := range diff.Diff {
-		lineMod, _ := line[1].(string)
-
-		if lineMod == "added" {
-			c.ui.BeginLinef("+ %s\n", line[0])
-		} else if lineMod == "removed" {
-			c.ui.BeginLinef("- %s\n", line[0])
-		} else {
-			c.ui.BeginLinef("  %s\n", line[0])
-		}
-	}
 }

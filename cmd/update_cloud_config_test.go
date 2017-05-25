@@ -84,7 +84,7 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 		})
 
 		It("returns an error if diffing failed", func() {
-			director.DiffCloudConfigReturns(boshdir.CloudConfigDiff{}, errors.New("Fetching diff result"))
+			director.DiffCloudConfigReturns(boshdir.ConfigDiff{}, errors.New("Fetching diff result"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())
@@ -97,7 +97,7 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 				[]interface{}{"some line that was removed", "removed"},
 			}
 
-			expectedDiff := boshdir.NewCloudConfigDiff(diff)
+			expectedDiff := boshdir.NewConfigDiff(diff)
 			director.DiffCloudConfigReturns(expectedDiff, nil)
 			err := act()
 			Expect(err).ToNot(HaveOccurred())

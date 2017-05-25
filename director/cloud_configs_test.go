@@ -108,9 +108,9 @@ var _ = Describe("Director", func() {
 	})
 
 	Describe("DiffCloudConfig", func() {
-		var expectedDiffResponse CloudConfigDiff
+		var expectedDiffResponse ConfigDiff
 
-		expectedDiffResponse = CloudConfigDiff{
+		expectedDiffResponse = ConfigDiff{
 			Diff: [][]interface{}{
 				[]interface{}{"azs:", nil},
 				[]interface{}{"- name: az2", "removed"},
@@ -158,7 +158,7 @@ var _ = Describe("Director", func() {
 
 			diff, err := director.DiffCloudConfig([]byte("config"))
 			Expect(err).ToNot(HaveOccurred())
-			Expect(diff).To(Equal(CloudConfigDiff{}))
+			Expect(diff).To(Equal(ConfigDiff{}))
 		})
 	})
 })
