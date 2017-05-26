@@ -6,7 +6,6 @@ import (
 
 	"github.com/cloudfoundry/bosh-agent/agentclient"
 	"github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	"github.com/cloudfoundry/bosh-agent/settings"
 )
 
 type FakeAgentClient struct {
@@ -102,14 +101,6 @@ type FakeAgentClient struct {
 		result1 string
 		result2 error
 	}
-	UpdateSettingsStub        func(settings.UpdateSettings) error
-	updateSettingsMutex       sync.RWMutex
-	updateSettingsArgsForCall []struct {
-		arg1 settings.UpdateSettings
-	}
-	updateSettingsReturns struct {
-		result1 error
-	}
 	RunScriptStub        func(scriptName string, options map[string]interface{}) error
 	runScriptMutex       sync.RWMutex
 	runScriptArgsForCall []struct {
@@ -117,15 +108,6 @@ type FakeAgentClient struct {
 		options    map[string]interface{}
 	}
 	runScriptReturns struct {
-		result1 error
-	}
-	SSHStub        func(cmd string, params agentclient.SSHParams) error
-	sSHMutex       sync.RWMutex
-	sSHArgsForCall []struct {
-		cmd    string
-		params agentclient.SSHParams
-	}
-	sSHReturns struct {
 		result1 error
 	}
 	invocations      map[string][][]interface{}
@@ -498,39 +480,6 @@ func (fake *FakeAgentClient) SyncDNSReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeAgentClient) UpdateSettings(arg1 settings.UpdateSettings) error {
-	fake.updateSettingsMutex.Lock()
-	fake.updateSettingsArgsForCall = append(fake.updateSettingsArgsForCall, struct {
-		arg1 settings.UpdateSettings
-	}{arg1})
-	fake.recordInvocation("UpdateSettings", []interface{}{arg1})
-	fake.updateSettingsMutex.Unlock()
-	if fake.UpdateSettingsStub != nil {
-		return fake.UpdateSettingsStub(arg1)
-	} else {
-		return fake.updateSettingsReturns.result1
-	}
-}
-
-func (fake *FakeAgentClient) UpdateSettingsCallCount() int {
-	fake.updateSettingsMutex.RLock()
-	defer fake.updateSettingsMutex.RUnlock()
-	return len(fake.updateSettingsArgsForCall)
-}
-
-func (fake *FakeAgentClient) UpdateSettingsArgsForCall(i int) settings.UpdateSettings {
-	fake.updateSettingsMutex.RLock()
-	defer fake.updateSettingsMutex.RUnlock()
-	return fake.updateSettingsArgsForCall[i].arg1
-}
-
-func (fake *FakeAgentClient) UpdateSettingsReturns(result1 error) {
-	fake.UpdateSettingsStub = nil
-	fake.updateSettingsReturns = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeAgentClient) RunScript(scriptName string, options map[string]interface{}) error {
 	fake.runScriptMutex.Lock()
 	fake.runScriptArgsForCall = append(fake.runScriptArgsForCall, struct {
@@ -565,40 +514,6 @@ func (fake *FakeAgentClient) RunScriptReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeAgentClient) SSH(cmd string, params agentclient.SSHParams) error {
-	fake.sSHMutex.Lock()
-	fake.sSHArgsForCall = append(fake.sSHArgsForCall, struct {
-		cmd    string
-		params agentclient.SSHParams
-	}{cmd, params})
-	fake.recordInvocation("SSH", []interface{}{cmd, params})
-	fake.sSHMutex.Unlock()
-	if fake.SSHStub != nil {
-		return fake.SSHStub(cmd, params)
-	} else {
-		return fake.sSHReturns.result1
-	}
-}
-
-func (fake *FakeAgentClient) SSHCallCount() int {
-	fake.sSHMutex.RLock()
-	defer fake.sSHMutex.RUnlock()
-	return len(fake.sSHArgsForCall)
-}
-
-func (fake *FakeAgentClient) SSHArgsForCall(i int) (string, agentclient.SSHParams) {
-	fake.sSHMutex.RLock()
-	defer fake.sSHMutex.RUnlock()
-	return fake.sSHArgsForCall[i].cmd, fake.sSHArgsForCall[i].params
-}
-
-func (fake *FakeAgentClient) SSHReturns(result1 error) {
-	fake.SSHStub = nil
-	fake.sSHReturns = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeAgentClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -626,12 +541,8 @@ func (fake *FakeAgentClient) Invocations() map[string][][]interface{} {
 	defer fake.deleteARPEntriesMutex.RUnlock()
 	fake.syncDNSMutex.RLock()
 	defer fake.syncDNSMutex.RUnlock()
-	fake.updateSettingsMutex.RLock()
-	defer fake.updateSettingsMutex.RUnlock()
 	fake.runScriptMutex.RLock()
 	defer fake.runScriptMutex.RUnlock()
-	fake.sSHMutex.RLock()
-	defer fake.sSHMutex.RUnlock()
 	return fake.invocations
 }
 

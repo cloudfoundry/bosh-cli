@@ -6,7 +6,6 @@ package mocks
 import (
 	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	applyspec "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	settings "github.com/cloudfoundry/bosh-agent/settings"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -125,16 +124,6 @@ func (_mr *_MockAgentClientRecorder) RunScript(arg0, arg1 interface{}) *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RunScript", arg0, arg1)
 }
 
-func (_m *MockAgentClient) SSH(_param0 string, _param1 agentclient.SSHParams) error {
-	ret := _m.ctrl.Call(_m, "SSH", _param0, _param1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockAgentClientRecorder) SSH(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SSH", arg0, arg1)
-}
-
 func (_m *MockAgentClient) Start() error {
 	ret := _m.ctrl.Call(_m, "Start")
 	ret0, _ := ret[0].(error)
@@ -174,14 +163,4 @@ func (_m *MockAgentClient) UnmountDisk(_param0 string) error {
 
 func (_mr *_MockAgentClientRecorder) UnmountDisk(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnmountDisk", arg0)
-}
-
-func (_m *MockAgentClient) UpdateSettings(_param0 settings.UpdateSettings) error {
-	ret := _m.ctrl.Call(_m, "UpdateSettings", _param0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockAgentClientRecorder) UpdateSettings(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateSettings", arg0)
 }

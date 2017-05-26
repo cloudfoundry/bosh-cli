@@ -39,22 +39,6 @@ type SyncDNSResponse struct {
 	Exception *exception
 }
 
-type SSHResponse struct {
-	agentclient.SSHResult
-	Exception *exception
-}
-
-func (r *SSHResponse) ServerError() error {
-	if r.Exception != nil {
-		return bosherr.Errorf("Agent responded with error: %s", r.Exception.Message)
-	}
-	return nil
-}
-
-func (r *SSHResponse) Unmarshal(message []byte) error {
-	return json.Unmarshal(message, r)
-}
-
 func (r *SyncDNSResponse) ServerError() error {
 	if r.Exception != nil {
 		return bosherr.Errorf("Agent responded with error: %s", r.Exception.Message)
