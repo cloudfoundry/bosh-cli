@@ -26,10 +26,11 @@ var _ = Describe("DirReaderImpl", func() {
 
 	BeforeEach(func() {
 		archive = &fakeres.FakeArchive{}
-		archiveFactory := func(files, prepFiles []File, chunks []string, followSymlinks bool) Archive {
-			collectedFiles = files
-			collectedPrepFiles = prepFiles
-			collectedChunks = chunks
+		archiveFactory := func(args ArchiveFactoryArgs) Archive {
+			collectedFiles = args.Files
+			collectedPrepFiles = args.PrepFiles
+			collectedChunks = args.Chunks
+			collectedFollowSymlinks = args.FollowSymlinks
 			return archive
 		}
 		fs = fakesys.NewFakeFileSystem()

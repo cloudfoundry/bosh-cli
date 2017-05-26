@@ -62,9 +62,9 @@ func (p Provider) archiveReader(extracting bool) ArchiveReader {
 }
 
 func (p Provider) NewDirReader(dirPath string) DirReader {
-	archiveFactory := func(files []File, prepFiles []File, chunks []string, followSymlinks bool) Archive {
+	archiveFactory := func(args ArchiveFactoryArgs) Archive {
 		return NewArchiveImpl(
-			files, prepFiles, chunks, dirPath, followSymlinks, p.fingerprinterFactory(followSymlinks), p.compressor, p.digestCalculator, p.cmdRunner, p.fs)
+			args.Files, args.PrepFiles, args.Chunks, dirPath, args.FollowSymlinks, p.fingerprinterFactory(args.FollowSymlinks), p.compressor, p.digestCalculator, p.cmdRunner, p.fs)
 	}
 
 	srcDirPath := filepath.Join(dirPath, "src")
