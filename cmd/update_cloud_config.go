@@ -30,7 +30,8 @@ func (c UpdateCloudConfigCmd) Run(opts UpdateCloudConfigOpts) error {
 		return err
 	}
 
-	printManifestDiff(c.ui, cloudConfigDiff.Diff)
+	diff := NewDiff(cloudConfigDiff.Diff)
+	diff.Print(c.ui)
 
 	err = c.ui.AskForConfirmation()
 	if err != nil {

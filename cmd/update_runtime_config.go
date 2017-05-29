@@ -31,7 +31,8 @@ func (c UpdateRuntimeConfigCmd) Run(opts UpdateRuntimeConfigOpts) error {
 		return err
 	}
 
-	printManifestDiff(c.ui, configDiff.Diff)
+	diff := NewDiff(configDiff.Diff)
+	diff.Print(c.ui)
 
 	bytes, err = c.releaseUploader.UploadReleases(bytes)
 	if err != nil {

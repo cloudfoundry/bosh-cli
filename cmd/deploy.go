@@ -49,7 +49,8 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 		return err
 	}
 
-	printManifestDiff(c.ui, deploymentDiff.Diff)
+	diff := NewDiff(deploymentDiff.Diff)
+	diff.Print(c.ui)
 
 	err = c.ui.AskForConfirmation()
 	if err != nil {
