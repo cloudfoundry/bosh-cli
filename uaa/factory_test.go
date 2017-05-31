@@ -119,7 +119,15 @@ var _ = Describe("Factory", func() {
 			})
 		})
 
-		It("retries request 3 times if a StatusGatewayTimeout returned", func() {
+		// terminateHttpConnection emulates an underlying transport error by
+		// prematurely closing the connection. The goal of this slightly-hacky
+		// method is to test the retry behavior of the lower-level http client.
+		terminateHttpConnection := func(w http.ResponseWriter, req *http.Request) {
+			conn, _, _ := w.(http.Hijacker).Hijack()
+			conn.Close()
+		}
+
+		It("retries request 3 times if server cannot be reached", func() {
 			server := ghttp.NewUnstartedServer()
 
 			cert, err := tls.X509KeyPair(validCert, validKey)
@@ -147,14 +155,14 @@ var _ = Describe("Factory", func() {
 					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
 					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
-					ghttp.RespondWith(http.StatusGatewayTimeout, nil),
+					terminateHttpConnection,
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/oauth/token"),
 					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
 					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
-					ghttp.RespondWith(http.StatusGatewayTimeout, nil),
+					terminateHttpConnection,
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/oauth/token"),
@@ -198,7 +206,7 @@ var _ = Describe("Factory", func() {
 					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
 					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
-					ghttp.RespondWith(http.StatusGatewayTimeout, nil),
+					terminateHttpConnection,
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/oauth/token"),

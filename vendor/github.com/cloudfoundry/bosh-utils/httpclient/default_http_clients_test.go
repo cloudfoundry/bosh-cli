@@ -26,6 +26,14 @@ var _ = Describe("Default HTTP clients", func() {
 
 			Expect(client.Transport.(*http.Transport).DisableKeepAlives).To(Equal(true))
 		})
+
+		It("disables HTTP/2", func() {
+			var client *http.Client
+			client = DefaultClient
+
+			Expect(client.Transport.(*http.Transport).TLSNextProto).ToNot(BeNil())
+			Expect(client.Transport.(*http.Transport).TLSNextProto).To(BeEmpty())
+		})
 	})
 
 	Describe("CreateDefaultClient", func() {

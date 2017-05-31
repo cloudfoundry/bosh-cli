@@ -34,6 +34,7 @@ func (f factory) New(insecureSkipVerify bool, certPool *x509.CertPool) *http.Cli
 
 	client := &http.Client{
 		Transport: &http.Transport{
+			TLSNextProto: map[string]func(authority string, c *tls.Conn) http.RoundTripper{},
 			TLSClientConfig: &tls.Config{
 				RootCAs:            certPool,
 				InsecureSkipVerify: insecureSkipVerify,
