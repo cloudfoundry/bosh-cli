@@ -47,12 +47,16 @@ var _ = Describe("Archive", func() {
 			compressor = fakecmd.NewFakeCompressor()
 			cmdRunner = fakesys.NewFakeCmdRunner()
 			fs = fakesys.NewFakeFileSystem()
+			archiveFactoryArgs := ArchiveFactoryArgs{
+				Files:          []File{NewFile(filepath.Join("/", "tmp", "file"), filepath.Join("/", "tmp"))},
+				PrepFiles:      []File{NewFile(filepath.Join("/", "tmp", "prep-file"), filepath.Join("/", "tmp"))},
+				Chunks:         []string{"chunk"},
+				FollowSymlinks: false,
+			}
+
 			archive = NewArchiveImpl(
-				[]File{NewFile(filepath.Join("/", "tmp", "file"), filepath.Join("/", "tmp"))},
-				[]File{NewFile(filepath.Join("/", "tmp", "prep-file"), filepath.Join("/", "tmp"))},
-				[]string{"chunk"},
+				archiveFactoryArgs,
 				releaseDirPath,
-				false,
 				fingerprinter,
 				compressor,
 				digestCalculator,
@@ -190,16 +194,21 @@ var _ = Describe("Archive", func() {
 				files = append(files, NewFile(filepath.Join(uniqueDir, "dir", "symlink-dir"), uniqueDir))
 				files = append(files, NewFile(filepath.Join(uniqueDir, "dir", "symlink-file-missing"), uniqueDir))
 			}
-			archive = NewArchiveImpl(
-				files,
-				[]File{
+
+			archiveFactoryArgs := ArchiveFactoryArgs{
+				Files: files,
+				PrepFiles: []File{
 					NewFile(filepath.Join(uniqueDir, "run-build-dir"), uniqueDir),
 					NewFile(filepath.Join(uniqueDir, "run-release-dir"), uniqueDir),
 					NewFile(filepath.Join(uniqueDir, "run-file3"), uniqueDir),
 				},
-				[]string{"chunk"},
+				Chunks:         []string{"chunk"},
+				FollowSymlinks: followSymlinks,
+			}
+
+			archive = NewArchiveImpl(
+				archiveFactoryArgs,
 				releaseDirPath,
-				followSymlinks,
 				fingerprinter,
 				compressor,
 				digestCalculator,

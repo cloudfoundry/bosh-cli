@@ -26,11 +26,8 @@ type ArchiveImpl struct {
 }
 
 func NewArchiveImpl(
-	files []File,
-	prepFiles []File,
-	additionalChunks []string,
+	args ArchiveFactoryArgs,
 	releaseDirPath string,
-	followSymlinks bool,
 	fingerprinter Fingerprinter,
 	compressor boshcmd.Compressor,
 	digestCalculator bicrypto.DigestCalculator,
@@ -38,11 +35,11 @@ func NewArchiveImpl(
 	fs boshsys.FileSystem,
 ) ArchiveImpl {
 	return ArchiveImpl{
-		files:            files,
-		prepFiles:        prepFiles,
-		additionalChunks: additionalChunks,
+		files:            args.Files,
+		prepFiles:        args.PrepFiles,
+		additionalChunks: args.Chunks,
+		followSymlinks:   args.FollowSymlinks,
 		releaseDirPath:   releaseDirPath,
-		followSymlinks:   followSymlinks,
 
 		fingerprinter:    fingerprinter,
 		compressor:       compressor,
@@ -211,5 +208,5 @@ func (a ArchiveImpl) buildStagingArchive(stagingDir string) Archive {
 	}
 
 	// Initialize with bare minimum deps so that fingerprinting can be performed
-	return NewArchiveImpl(stagingFiles, nil, a.additionalChunks, "", false, a.fingerprinter, nil, nil, nil, nil)
+	return NewArchiveImpl(ArchiveFactoryArgs{Files: stagingFiles, Chunks: a.additionalChunks}, "", a.fingerprinter, nil, nil, nil, nil)
 }
