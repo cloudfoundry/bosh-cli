@@ -5,17 +5,17 @@ import (
 )
 
 type Diff struct {
-	Lines [][]interface{}
+	lines [][]interface{}
 }
 
 func NewDiff(lines [][]interface{}) Diff {
 	return Diff{
-		Lines: lines,
+		lines: lines,
 	}
 }
 
 func (d Diff) Print(ui boshui.UI) {
-	for _, line := range d.Lines {
+	for _, line := range d.lines {
 		lineMod, _ := line[1].(string)
 
 		if lineMod == "added" {
