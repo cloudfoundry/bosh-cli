@@ -207,16 +207,24 @@ func (vm *vm) RunScript(script string, options map[string]interface{}) error {
 }
 
 func (vm *vm) Delete() error {
-	deleteErr := vm.cloud.DeleteVM(vm.cid)
-	if deleteErr != nil {
-		// allow VMNotFoundError for idempotency
-		cloudErr, ok := deleteErr.(bicloud.Error)
-		if !ok || cloudErr.Type() != bicloud.VMNotFoundError {
-			return bosherr.WrapError(deleteErr, "Deleting vm in the cloud")
+	_, found, err := vm.vmRepo.FindCurrentIP()
+	if err != nil {
+		return bosherr.WrapError(err, "Finding currently IP address of deployed vm")
+	}
+
+	var deleteErr error
+	if !found {
+		deleteErr = vm.cloud.DeleteVM(vm.cid)
+		if deleteErr != nil {
+			// allow VMNotFoundError for idempotency
+			cloudErr, ok := deleteErr.(bicloud.Error)
+			if !ok || cloudErr.Type() != bicloud.VMNotFoundError {
+				return bosherr.WrapError(deleteErr, "Deleting vm in the cloud")
+			}
 		}
 	}
 
-	err := vm.vmRepo.ClearCurrent()
+	err = vm.vmRepo.ClearCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Deleting vm from vm repo")
 	}

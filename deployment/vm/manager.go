@@ -99,6 +99,19 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		return nil, bosherr.WrapError(err, "Generating agent ID")
 	}
 
+	currentIP, found, err := m.vmRepo.FindCurrentIP()
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Finding currently IP address of deployed vm")
+	}
+
+	if found {
+		for _, networkInterface := range networkInterfaces {
+			if networkInterface["type"] == "dynamic" {
+				networkInterface["ip"] = currentIP
+			}
+		}
+	}
+
 	cid, err := m.createAndRecordVM(agentID, stemcell, resourcePool, networkInterfaces)
 	if err != nil {
 		return nil, err

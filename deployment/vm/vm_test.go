@@ -388,6 +388,46 @@ var _ = Describe("VM", func() {
 			Expect(fakeStemcellRepo.ClearCurrentCalled).To(BeTrue())
 		})
 
+		Context("when vm current IP is found", func() {
+			BeforeEach(func() {
+				fakeVMRepo.SetFindCurrentIPBehavior("10.10.1.3", true, nil)
+				_, _, err := fakeVMRepo.FindCurrentIP()
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("does not delete vm", func() {
+				err := vm.Delete()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(fakeCloud.DeleteVMInput).To(Equal(fakebicloud.DeleteVMInput{
+					VMCID: "",
+				}))
+			})
+
+			It("deletes VM in the vm repo", func() {
+				err := vm.Delete()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(fakeVMRepo.ClearCurrentCalled).To(BeTrue())
+			})
+
+			It("clears current stemcell in the stemcell repo", func() {
+				err := vm.Delete()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(fakeStemcellRepo.ClearCurrentCalled).To(BeTrue())
+			})
+		})
+
+		Context("when failing to find current IP", func() {
+			BeforeEach(func() {
+				fakeVMRepo.SetFindCurrentIPBehavior("", false, errors.New("fake-error"))
+			})
+
+			It("returns an error", func() {
+				err := vm.Delete()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Finding currently IP address of deployed vm"))
+			})
+		})
+
 		Context("when deleting vm in the cloud fails", func() {
 			BeforeEach(func() {
 				fakeCloud.DeleteVMErr = errors.New("fake-delete-vm-error")
