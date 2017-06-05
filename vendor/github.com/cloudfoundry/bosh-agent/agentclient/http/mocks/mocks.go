@@ -29,12 +29,13 @@ func (_m *MockAgentClientFactory) EXPECT() *_MockAgentClientFactoryRecorder {
 	return _m.recorder
 }
 
-func (_m *MockAgentClientFactory) NewAgentClient(directorID string, mbusURL string) agentclient.AgentClient {
-	ret := _m.ctrl.Call(_m, "NewAgentClient", directorID, mbusURL)
+func (_m *MockAgentClientFactory) NewAgentClient(directorID string, mbusURL string, caCert string) (agentclient.AgentClient, error) {
+	ret := _m.ctrl.Call(_m, "NewAgentClient", directorID, mbusURL, caCert)
 	ret0, _ := ret[0].(agentclient.AgentClient)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-func (_mr *_MockAgentClientFactoryRecorder) NewAgentClient(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewAgentClient", arg0, arg1)
+func (_mr *_MockAgentClientFactoryRecorder) NewAgentClient(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewAgentClient", arg0, arg1, arg2)
 }

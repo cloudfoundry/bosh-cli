@@ -35,4 +35,4 @@ golang.org/x/net/...:5b58a9c
 golang.org/x/text/...:19e5161
 golang.org/x/sys/windows/...:a55a760
 github.com/tedsuo/ifrit/...:08b0eee
-github.com/cloudfoundry/bosh-agent/agentclient:3306f27
+github.com/cloudfoundry/bosh-agent/agentclient:6b3648f

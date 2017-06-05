@@ -111,7 +111,7 @@ var _ = Describe("Deployer", func() {
 
 		mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 		mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
-		mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any()).Return(mockAgentClient).AnyTimes()
+		mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any(), gomock.Any()).Return(mockAgentClient, nil).AnyTimes()
 
 		mockVMManagerFactory = mock_vm.NewMockManagerFactory(mockCtrl)
 		fakeVMManager = fakebivm.NewFakeManager()

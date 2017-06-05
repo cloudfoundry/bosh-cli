@@ -210,7 +210,7 @@ func (c *deploymentDeleter) deploymentManager(installation biinstall.Installatio
 
 	c.logger.Debug(c.logTag, "Creating agent client...")
 
-	agentClient := c.agentClientFactory.NewAgentClient(directorID, installationMbus)
+	agentClient, _ := c.agentClientFactory.NewAgentClient(directorID, installationMbus, "")
 
 	c.logger.Debug(c.logTag, "Creating blobstore client...")
 
