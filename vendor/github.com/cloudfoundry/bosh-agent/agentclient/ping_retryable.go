@@ -1,7 +1,8 @@
 package agentclient
 
 import (
-	"crypto/x509"
+	"regexp"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
 )
@@ -27,7 +28,8 @@ func (r *pingRetryable) Attempt() (bool, error) {
 				break
 			}
 		}
-		if _, ok := err.(x509.CertificateInvalidError); ok {
+		r, _ := regexp.Compile("x509: ")
+		if r.MatchString(err.Error()) {
 			return false, err
 		}
 	}

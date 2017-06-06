@@ -3,13 +3,14 @@ package agentclient_test
 import (
 	"errors"
 
+	"crypto/x509"
+
 	. "github.com/cloudfoundry/bosh-agent/agentclient"
 	fakeagentclient "github.com/cloudfoundry/bosh-agent/agentclient/fakes"
-	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"crypto/x509"
 )
 
 var _ = Describe("PingRetryable", func() {
@@ -46,14 +47,14 @@ var _ = Describe("PingRetryable", func() {
 
 		Context("when failing with a certificate error", func() {
 			BeforeEach(func() {
-				fakeAgentClient.PingReturns("", x509.CertificateInvalidError{})
+				fakeAgentClient.PingReturns("", errors.New("some error with x509: stuff"))
 			})
 
 			It("returns stops retrying and returns the error", func() {
 				isRetryable, err := pingRetryable.Attempt()
 				Expect(err).To(HaveOccurred())
 				Expect(isRetryable).To(BeFalse())
-				Expect(err.Error()).To(ContainSubstring("x509: certificate is not authorized to sign other certificates"))
+				Expect(err.Error()).To(ContainSubstring("some error with x509: stuff"))
 			})
 
 			Context("when the certificate error is wrapped", func() {
