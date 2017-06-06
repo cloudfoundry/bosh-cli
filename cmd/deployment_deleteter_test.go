@@ -93,6 +93,26 @@ var _ = Describe("DeploymentDeleter", func() {
 			mbusURL = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
 		)
 
+		var certificate = `-----BEGIN CERTIFICATE-----
+MIIC+TCCAeGgAwIBAgIQLzf5Fs3v+Dblm+CKQFxiKTANBgkqhkiG9w0BAQsFADAm
+MQwwCgYDVQQGEwNVU0ExFjAUBgNVBAoTDUNsb3VkIEZvdW5kcnkwHhcNMTcwNTE2
+MTUzNTI4WhcNMTgwNTE2MTUzNTI4WjAmMQwwCgYDVQQGEwNVU0ExFjAUBgNVBAoT
+DUNsb3VkIEZvdW5kcnkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC+
+4E0QJMOpQwbHACvrZ4FleP4/DMFvYUBySfKzDOgd99Nm8LdXuJcI1SYHJ3sV+mh0
++cQmRt8U2A/lw7bNU6JdM0fWHa/2nGjSBKWgPzba68NdsmwjqUjLatKpr1yvd384
+PJJKC7NrxwvChgB8ui84T4SrXHCioYMDEDIqLGmHJHMKnzQ17nu7ECO4e6QuCfnH
+RDs7dTjomTAiFuF4fh4SPgEDMGaCE5HZr4t3gvc9n4UftpcCpi+Jh+neRiWx+v37
+ZAYf2kp3wWtYDlgWk06cZzHZZ9uYZFwHDNHdDKHxGGvAh2Rm6rpPF2oA6OEyx6BH
+85/STCgSMCnV1Wkd+1yPAgMBAAGjIzAhMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMB
+Af8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBGvGggx3IM4KCMpVDSv9zFKX4K
+IuCRQ6VFab3sgnlelMFaMj3+8baJ/YMko8PP1wVfUviVgKuiZO8tqL00Yo4s1WKp
+x3MLIG4eBX9pj0ZVRa3kpcF2Wvg6WhrzUzONf7pfuz/9avl77o4aSt4TwyCvM4Iu
+gJ7quVQKcfQcAVwuwWRrZXyhjhHaVKoPP5yRS+ESVTl70J5HBh6B7laooxf1yVAW
+8NJK1iQ1Pw2x3ABBo1cSMcTQ3Hk1ZWThJ7oPul2+QyzvOjIjiEPBstyzEPaxPG4I
+nH9ttalAwSLBsobVaK8mmiAdtAdx+CmHWrB4UNxCPYasrt5A6a9A9SiQ2dLd
+-----END CERTIFICATE-----
+`
+
 		var writeDeploymentManifest = func() {
 			fs.WriteFileString(deploymentManifestPath, `---
 name: test-release
@@ -106,6 +126,26 @@ cloud_provider:
     name: fake-cpi-release-job-name
     release: fake-cpi-release-name
   mbus: http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint
+  cert:
+    ca: |
+      -----BEGIN CERTIFICATE-----
+      MIIC+TCCAeGgAwIBAgIQLzf5Fs3v+Dblm+CKQFxiKTANBgkqhkiG9w0BAQsFADAm
+      MQwwCgYDVQQGEwNVU0ExFjAUBgNVBAoTDUNsb3VkIEZvdW5kcnkwHhcNMTcwNTE2
+      MTUzNTI4WhcNMTgwNTE2MTUzNTI4WjAmMQwwCgYDVQQGEwNVU0ExFjAUBgNVBAoT
+      DUNsb3VkIEZvdW5kcnkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC+
+      4E0QJMOpQwbHACvrZ4FleP4/DMFvYUBySfKzDOgd99Nm8LdXuJcI1SYHJ3sV+mh0
+      +cQmRt8U2A/lw7bNU6JdM0fWHa/2nGjSBKWgPzba68NdsmwjqUjLatKpr1yvd384
+      PJJKC7NrxwvChgB8ui84T4SrXHCioYMDEDIqLGmHJHMKnzQ17nu7ECO4e6QuCfnH
+      RDs7dTjomTAiFuF4fh4SPgEDMGaCE5HZr4t3gvc9n4UftpcCpi+Jh+neRiWx+v37
+      ZAYf2kp3wWtYDlgWk06cZzHZZ9uYZFwHDNHdDKHxGGvAh2Rm6rpPF2oA6OEyx6BH
+      85/STCgSMCnV1Wkd+1yPAgMBAAGjIzAhMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMB
+      Af8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBGvGggx3IM4KCMpVDSv9zFKX4K
+      IuCRQ6VFab3sgnlelMFaMj3+8baJ/YMko8PP1wVfUviVgKuiZO8tqL00Yo4s1WKp
+      x3MLIG4eBX9pj0ZVRa3kpcF2Wvg6WhrzUzONf7pfuz/9avl77o4aSt4TwyCvM4Iu
+      gJ7quVQKcfQcAVwuwWRrZXyhjhHaVKoPP5yRS+ESVTl70J5HBh6B7laooxf1yVAW
+      8NJK1iQ1Pw2x3ABBo1cSMcTQ3Hk1ZWThJ7oPul2+QyzvOjIjiEPBstyzEPaxPG4I
+      nH9ttalAwSLBsobVaK8mmiAdtAdx+CmHWrB4UNxCPYasrt5A6a9A9SiQ2dLd
+      -----END CERTIFICATE-----
 `)
 		}
 
@@ -147,6 +187,9 @@ cloud_provider:
 				},
 				Mbus:       mbusURL,
 				Properties: biproperty.Map{},
+				Cert: biinstallmanifest.Certificate{
+					CA: certificate,
+				},
 			}
 
 			target := biinstall.NewTarget(filepath.Join("fake-install-dir", "fake-installation-id"))
@@ -308,9 +351,13 @@ cloud_provider:
 			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
-			mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any(), gomock.Any()).Return(mockAgentClient, nil).AnyTimes()
-
 			directorID = "fake-uuid-0"
+
+			mockAgentClientFactory.EXPECT().NewAgentClient(
+				directorID,
+				"http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
+				certificate,
+			).Return(mockAgentClient, nil).AnyTimes()
 
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
@@ -344,8 +391,6 @@ cloud_provider:
 
 			Context("when the deployment has been deployed", func() {
 				BeforeEach(func() {
-					directorID = "fake-director-id"
-
 					// create deployment manifest yaml file
 					setupDeploymentStateService.Save(biconfig.DeploymentState{
 						DirectorID: directorID,
@@ -449,6 +494,9 @@ cloud_provider:
 					},
 					Mbus:       mbusURL,
 					Properties: biproperty.Map{},
+					Cert: biinstallmanifest.Certificate{
+						CA: certificate,
+					},
 				}
 
 				target := biinstall.NewTarget(filepath.Join("fake-install-dir", "fake-installation-id"))
