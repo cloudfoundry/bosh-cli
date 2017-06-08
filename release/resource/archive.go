@@ -162,23 +162,23 @@ func (a ArchiveImpl) copyFile(sourceFile File, stagingDir string) error {
 		return err
 	}
 
+	sourceFilePath := sourceFile.Path
 	if sourceFileStat.Mode()&os.ModeSymlink != 0 {
-		symlinkTarget, err := a.fs.Readlink(sourceFile.Path)
+		symlinkTarget, err := a.fs.ReadAndFollowLink(sourceFile.Path)
 		if err != nil {
 			return err
 		}
-
-		return a.fs.Symlink(symlinkTarget, dstPath)
-	} else {
-		err = a.fs.CopyFile(sourceFile.Path, dstPath)
-		if err != nil {
-			return err
-		}
-
-		// Be very explicit about changing permissions for copied file
-		// Only pay attention to whether the source file is executable
-		return a.fs.Chmod(dstPath, getFilePerms(sourceFileStat))
+		sourceFilePath = symlinkTarget
 	}
+
+	err = a.fs.CopyFile(sourceFilePath, dstPath)
+	if err != nil {
+		return err
+	}
+
+	// Be very explicit about changing permissions for copied file
+	// Only pay attention to whether the source file is executable
+	return a.fs.Chmod(dstPath, getFilePerms(sourceFileStat))
 }
 
 func getFilePerms(stat os.FileInfo) os.FileMode {
