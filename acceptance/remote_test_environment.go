@@ -2,6 +2,7 @@ package acceptance
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -16,38 +17,28 @@ type Environment interface {
 }
 
 type remoteTestEnvironment struct {
-	vmUsername     string
-	vmIP           string
-	vmPort         string
-	privateKeyPath string
-	cmdRunner      boshsys.CmdRunner
-	fileSystem     boshsys.FileSystem
+	cmdRunner  boshsys.CmdRunner
+	fileSystem boshsys.FileSystem
+	home       string
 }
 
 func NewRemoteTestEnvironment(
-	vmUsername string,
-	vmIP string,
-	vmPort string,
-	privateKeyPath string,
 	fileSystem boshsys.FileSystem,
 	logger boshlog.Logger,
 ) Environment {
 	return remoteTestEnvironment{
-		vmUsername:     vmUsername,
-		vmIP:           vmIP,
-		vmPort:         vmPort,
-		privateKeyPath: privateKeyPath,
-		cmdRunner:      boshsys.NewExecCmdRunner(logger),
-		fileSystem:     fileSystem,
+		cmdRunner:  boshsys.NewExecCmdRunner(logger),
+		fileSystem: fileSystem,
+		home:       os.TempDir(),
 	}
 }
 
 func (e remoteTestEnvironment) Home() string {
-	return filepath.Join("/", "home", e.vmUsername)
+	return e.home
 }
 
 func (e remoteTestEnvironment) Path(name string) string {
-	return filepath.Join(e.Home(), name)
+	return filepath.Join(e.home, name)
 }
 
 func (e remoteTestEnvironment) Copy(destName, srcPath string) error {
@@ -56,16 +47,13 @@ func (e remoteTestEnvironment) Copy(destName, srcPath string) error {
 	}
 
 	_, _, exitCode, err := e.cmdRunner.RunCommand(
-		"scp",
-		"-o", "StrictHostKeyChecking=no",
-		"-i", e.privateKeyPath,
-		"-P", e.vmPort,
+		"cp",
 		srcPath,
-		fmt.Sprintf("%s@%s:%s", e.vmUsername, e.vmIP, e.Path(destName)),
+		e.Path(destName),
 	)
 
 	if exitCode != 0 {
-		return fmt.Errorf("scp of '%s' to '%s' failed", srcPath, destName)
+		return fmt.Errorf("cp of '%s' to '%s' failed", srcPath, destName)
 	}
 
 	return err

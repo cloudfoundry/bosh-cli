@@ -173,7 +173,9 @@ var _ = Describe("bosh", func() {
 		stdout := &bytes.Buffer{}
 		multiWriter := io.MultiWriter(stdout, GinkgoWriter)
 
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh"), "delete-env", "--tty", testEnv.Path("test-manifest.yml"))
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh"),
+			"delete-env", "--tty", testEnv.Path("test-manifest.yml"))
+
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 
@@ -234,19 +236,11 @@ var _ = Describe("bosh", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		testEnv = NewRemoteTestEnvironment(
-			config.VMUsername,
-			config.VMIP,
-			config.VMPort,
-			config.PrivateKeyPath,
 			fileSystem,
 			logger,
 		)
 
 		sshCmdRunner = NewSSHCmdRunner(
-			config.VMUsername,
-			config.VMIP,
-			config.VMPort,
-			config.PrivateKeyPath,
 			logger,
 		)
 
@@ -271,10 +265,6 @@ var _ = Describe("bosh", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		instanceSSH = NewInstanceSSH(
-			config.VMUsername,
-			config.VMIP,
-			config.VMPort,
-			config.PrivateKeyPath,
 			instanceUsername,
 			instanceIP,
 			instancePassword,

@@ -15,26 +15,14 @@ type CmdRunner interface {
 }
 
 type sshCmdRunner struct {
-	vmUsername     string
-	vmIP           string
-	vmPort         string
-	privateKeyPath string
-	runner         boshsys.CmdRunner
+	runner boshsys.CmdRunner
 }
 
 func NewSSHCmdRunner(
-	vmUsername string,
-	vmIP string,
-	vmPort string,
-	privateKeyPath string,
 	logger boshlog.Logger,
 ) CmdRunner {
 	return &sshCmdRunner{
-		vmUsername:     vmUsername,
-		vmIP:           vmIP,
-		vmPort:         vmPort,
-		privateKeyPath: privateKeyPath,
-		runner:         boshsys.NewExecCmdRunner(logger),
+		runner: boshsys.NewExecCmdRunner(logger),
 	}
 }
 
@@ -46,11 +34,8 @@ func (r *sshCmdRunner) RunCommand(env map[string]string, args ...string) (string
 
 	argsWithEnv := append(exports, args...)
 	return r.runner.RunCommand(
-		"ssh",
-		"-o", "StrictHostKeyChecking=no",
-		"-i", r.privateKeyPath,
-		"-p", r.vmPort,
-		fmt.Sprintf("%s@%s", r.vmUsername, r.vmIP),
+		"bash",
+		"-c",
 		strings.Join(argsWithEnv, " "),
 	)
 }
@@ -64,12 +49,9 @@ func (r *sshCmdRunner) RunStreamingCommand(out io.Writer, env map[string]string,
 	argsWithEnv := append(exports, args...)
 
 	cmd := boshsys.Command{
-		Name: "ssh",
+		Name: "bash",
 		Args: []string{
-			"-o", "StrictHostKeyChecking=no",
-			"-i", r.privateKeyPath,
-			"-p", r.vmPort,
-			fmt.Sprintf("%s@%s", r.vmUsername, r.vmIP),
+			"-c",
 			strings.Join(argsWithEnv, " "),
 		},
 		Stdout: out,

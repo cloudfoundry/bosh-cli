@@ -4,7 +4,7 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: bosh/cli
+    repository: bosh/main-bosh-garden
     tag: 'latest'
 
 inputs:
@@ -15,11 +15,3 @@ inputs:
 
 run:
   path: gopath/src/github.com/cloudfoundry/bosh-cli/ci/tasks/test-acceptance.sh
-
-params:
-  BOSH_AWS_ACCESS_KEY_ID:     replace-me
-  BOSH_AWS_SECRET_ACCESS_KEY: replace-me
-  BOSH_LITE_KEYPAIR:          replace-me
-  BOSH_LITE_SUBNET_ID:        replace-me
-  BOSH_LITE_SECURITY_GROUP:   replace-me
-  BOSH_LITE_PRIVATE_KEY_DATA: replace-me

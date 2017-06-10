@@ -14,10 +14,6 @@ type InstanceSSH interface {
 }
 
 type instanceSSH struct {
-	vmUsername       string
-	vmIP             string
-	vmPort           string
-	privateKeyPath   string
 	instanceUsername string
 	instanceIP       string
 	instancePassword string
@@ -26,10 +22,6 @@ type instanceSSH struct {
 }
 
 func NewInstanceSSH(
-	vmUsername string,
-	vmIP string,
-	vmPort string,
-	privateKeyPath string,
 	instanceUsername string,
 	instanceIP string,
 	instancePassword string,
@@ -37,10 +29,6 @@ func NewInstanceSSH(
 	logger boshlog.Logger,
 ) InstanceSSH {
 	return &instanceSSH{
-		vmUsername:       vmUsername,
-		vmIP:             vmIP,
-		vmPort:           vmPort,
-		privateKeyPath:   privateKeyPath,
 		instanceUsername: instanceUsername,
 		instanceIP:       instanceIP,
 		instancePassword: instancePassword,
@@ -58,32 +46,20 @@ func (s *instanceSSH) setupSSH() (boshsys.File, error) {
 	success := false
 	defer func() {
 		if !success {
-			s.fileSystem.RemoveAll(sshConfigFile.Name())
+			_ = s.fileSystem.RemoveAll(sshConfigFile.Name())
 		}
 	}()
 
 	sshConfigTemplate := `
-Host vagrant-vm
-	HostName %s
-	User %s
-	Port %s
-	StrictHostKeyChecking no
-	IdentityFile %s
 Host warden-vm
 	Hostname %s
 	User %s
 	StrictHostKeyChecking no
-	ProxyCommand ssh -q -F %s vagrant-vm netcat -w 120 %%h %%p
 `
 	sshConfig := fmt.Sprintf(
 		sshConfigTemplate,
-		s.vmIP,
-		s.vmUsername,
-		s.vmPort,
-		s.privateKeyPath,
 		s.instanceIP,
 		s.instanceUsername,
-		sshConfigFile.Name(),
 	)
 
 	err = s.fileSystem.WriteFileString(sshConfigFile.Name(), sshConfig)
