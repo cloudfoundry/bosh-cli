@@ -14,19 +14,17 @@ type CmdRunner interface {
 	RunStreamingCommand(out io.Writer, env map[string]string, args ...string) (string, string, int, error)
 }
 
-type sshCmdRunner struct {
+type cmdRunner struct {
 	runner boshsys.CmdRunner
 }
 
-func NewSSHCmdRunner(
-	logger boshlog.Logger,
-) CmdRunner {
-	return &sshCmdRunner{
+func NewCmdRunner(logger boshlog.Logger) CmdRunner {
+	return &cmdRunner{
 		runner: boshsys.NewExecCmdRunner(logger),
 	}
 }
 
-func (r *sshCmdRunner) RunCommand(env map[string]string, args ...string) (string, string, int, error) {
+func (r *cmdRunner) RunCommand(env map[string]string, args ...string) (string, string, int, error) {
 	exports := make([]string, len(env))
 	for k, v := range env {
 		exports = append(exports, fmt.Sprintf("%s=%s", k, v))
@@ -40,7 +38,7 @@ func (r *sshCmdRunner) RunCommand(env map[string]string, args ...string) (string
 	)
 }
 
-func (r *sshCmdRunner) RunStreamingCommand(out io.Writer, env map[string]string, args ...string) (string, string, int, error) {
+func (r *cmdRunner) RunStreamingCommand(out io.Writer, env map[string]string, args ...string) (string, string, int, error) {
 	exports := make([]string, len(env))
 	for k, v := range env {
 		exports = append(exports, fmt.Sprintf("%s=%s", k, v))

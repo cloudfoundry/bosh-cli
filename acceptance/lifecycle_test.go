@@ -107,7 +107,8 @@ var _ = Describe("bosh", func() {
 		}
 
 		buffer := prepareDeploymentManifest(context, sourceManifestPath)
-		testEnv.WriteContent("test-manifest.yml", buffer)
+		err := testEnv.WriteContent("test-manifest.yml", buffer)
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var updateCompiledReleaseDeploymentManifest = func(sourceManifestPath string) {
@@ -116,7 +117,8 @@ var _ = Describe("bosh", func() {
 		}
 
 		buffer := prepareDeploymentManifest(context, sourceManifestPath)
-		testEnv.WriteContent("test-compiled-manifest.yml", buffer)
+		err := testEnv.WriteContent("test-compiled-manifest.yml", buffer)
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var updateCompiledReleaseDeploymentManifestWithCACerts = func(sourceManifestPath string, caCert string) {
@@ -138,7 +140,8 @@ var _ = Describe("bosh", func() {
 		}
 
 		buffer := prepareDeploymentManifest(context, sourceManifestPath)
-		testEnv.WriteContent("test-compiled-manifest.yml", buffer)
+		err = testEnv.WriteContent("test-compiled-manifest.yml", buffer)
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var deploy = func(manifestFile string) string {
@@ -235,12 +238,12 @@ var _ = Describe("bosh", func() {
 		err = config.Validate()
 		Expect(err).NotTo(HaveOccurred())
 
-		testEnv = NewRemoteTestEnvironment(
+		testEnv = NewTestEnvironment(
 			fileSystem,
 			logger,
 		)
 
-		sshCmdRunner = NewSSHCmdRunner(
+		sshCmdRunner = NewCmdRunner(
 			logger,
 		)
 

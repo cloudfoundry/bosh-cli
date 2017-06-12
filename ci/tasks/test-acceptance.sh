@@ -34,4 +34,4 @@ sudo apt-get install sshpass -y
 
 start-garden
 
-base=$PWD ./bin/test-acceptance-with-vm
+base=$PWD ./bin/test-acceptance-with-garden

@@ -16,32 +16,29 @@ type Environment interface {
 	WriteContent(string, []byte) error
 }
 
-type remoteTestEnvironment struct {
+type testEnvironment struct {
 	cmdRunner  boshsys.CmdRunner
 	fileSystem boshsys.FileSystem
 	home       string
 }
 
-func NewRemoteTestEnvironment(
-	fileSystem boshsys.FileSystem,
-	logger boshlog.Logger,
-) Environment {
-	return remoteTestEnvironment{
+func NewTestEnvironment(fileSystem boshsys.FileSystem, logger boshlog.Logger) Environment {
+	return testEnvironment{
 		cmdRunner:  boshsys.NewExecCmdRunner(logger),
 		fileSystem: fileSystem,
 		home:       os.TempDir(),
 	}
 }
 
-func (e remoteTestEnvironment) Home() string {
+func (e testEnvironment) Home() string {
 	return e.home
 }
 
-func (e remoteTestEnvironment) Path(name string) string {
+func (e testEnvironment) Path(name string) string {
 	return filepath.Join(e.home, name)
 }
 
-func (e remoteTestEnvironment) Copy(destName, srcPath string) error {
+func (e testEnvironment) Copy(destName, srcPath string) error {
 	if srcPath == "" {
 		return fmt.Errorf("Cannot use an empty source file path '' for destination file '%s'", destName)
 	}
@@ -59,7 +56,7 @@ func (e remoteTestEnvironment) Copy(destName, srcPath string) error {
 	return err
 }
 
-func (e remoteTestEnvironment) WriteContent(destName string, contents []byte) error {
+func (e testEnvironment) WriteContent(destName string, contents []byte) error {
 	tmpFile, err := e.fileSystem.TempFile("bosh-cli-acceptance")
 	if err != nil {
 		return err
