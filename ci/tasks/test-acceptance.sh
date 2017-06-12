@@ -30,8 +30,6 @@ cd $GOPATH/src/github.com/cloudfoundry/bosh-cli
 source /etc/profile.d/chruby.sh
 chruby 2.3.1
 
-sudo apt-get install sshpass -y
-
 start-garden
 
 base=$PWD ./bin/test-acceptance-with-garden
