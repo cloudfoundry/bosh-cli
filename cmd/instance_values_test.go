@@ -132,3 +132,15 @@ var _ = Describe("ValueUptime", func() {
 		})
 	})
 })
+
+var _ = Describe("ValueVMCreatedAt", func() {
+	Describe("String", func() {
+		It("returns empty string when it's 0", func() {
+			Expect(ValueVMCreatedAt{0}.String()).To(Equal(""))
+		})
+
+		It("returns date", func() {
+			Expect(ValueVMCreatedAt{1440318199}.String()).To(Equal("Sun Aug 23 08:23:19 UTC 2015"))
+		})
+	})
+})

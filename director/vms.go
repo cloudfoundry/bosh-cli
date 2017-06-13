@@ -28,6 +28,7 @@ type VMInfo struct {
 	DiskID       string   `json:"disk_cid"`
 	Ignore       bool     `json:"ignore"`
 	DiskIDs      []string `json:"disk_cids"`
+	VMCreatedAt  int64    `json:"vm_created_at"`
 
 	Processes []VMInfoProcess
 
