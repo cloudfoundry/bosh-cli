@@ -93,6 +93,49 @@ format-version: "2"`)
 			Expect(sha1).To(Equal("fp-sha1"))
 		})
 
+		It("returns path and sha1 based on blob id and sha1 if entry with fingerprint is found when fingerprint was base64 encoded incorrectly by Ruby", func() {
+			fs.WriteFileString("/dir/name/index.yml", `---
+builds:
+  !!binary "ZnAy": # correct binary encoding
+    version: !!binary "ZnAy"
+    sha1: !!binary |-
+      ZnAyLXNoYTE=
+    blobstore_id: fp2-blob-id
+  !binary "ZnA=": # incorrect binary encoding
+    version: !binary "ZnA="
+    sha1: !binary |-
+      ZnAtc2hhMQ==
+    blobstore_id: fp-blob-id
+format-version: "2"`)
+
+			blobs.GetStub = func(name string, blobID string, sha1 string) (string, error) {
+				switch {
+				case name == "name/fp":
+					Expect(blobID).To(Equal("fp-blob-id"))
+					Expect(sha1).To(Equal("fp-sha1"))
+					return "path1", nil
+
+				case name == "name/fp2":
+					Expect(blobID).To(Equal("fp2-blob-id"))
+					Expect(sha1).To(Equal("fp2-sha1"))
+					return "path2", nil
+
+				default:
+					panic("Unknown fingerprint")
+				}
+			}
+
+			path, sha1, err := index.Find("name", "fp")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(path).To(Equal("path1"))
+			Expect(sha1).To(Equal("fp-sha1"))
+
+			path, sha1, err = index.Find("name", "fp2")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(path).To(Equal("path2"))
+			Expect(sha1).To(Equal("fp2-sha1"))
+		})
+
 		It("returns error if found entry cannot be fetched", func() {
 			fs.WriteFileString(filepath.Join("/", "dir", "name", "index.yml"), `---
 builds:
