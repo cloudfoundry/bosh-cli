@@ -225,7 +225,8 @@ type TaskOpts struct {
 	Debug  bool `long:"debug"  description:"Track debug log"`
 	Result bool `long:"result" description:"Track result log"`
 
-	All bool `long:"all" short:"a" description:"Include all task types (ssh, logs, vms, etc)"`
+	All        bool `long:"all" short:"a" description:"Include all task types (ssh, logs, vms, etc)"`
+	Deployment string
 
 	cmd
 }

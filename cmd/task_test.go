@@ -211,16 +211,17 @@ var _ = Describe("TaskCmd", func() {
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 			})
 
-			It("filters tasks based on 'all' option", func() {
+			It("filters tasks based on 'all' and 'deployment' option", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(director.CurrentTasksArgsForCall(0)).To(Equal(boshdir.TasksFilter{}))
 
 				opts.All = true
+				opts.Deployment = "deployment-name"
 
 				err = act()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(director.CurrentTasksArgsForCall(1)).To(Equal(boshdir.TasksFilter{All: true}))
+				Expect(director.CurrentTasksArgsForCall(1)).To(Equal(boshdir.TasksFilter{All: true, Deployment: "deployment-name"}))
 			})
 
 			It("returns error if there are no current tasks", func() {
