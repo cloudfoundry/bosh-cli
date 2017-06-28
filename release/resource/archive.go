@@ -152,7 +152,22 @@ func (a ArchiveImpl) copyFile(sourceFile File, stagingDir string) error {
 		return err
 	}
 
-	err = a.fs.Chmod(dstDir, sourceDirStat.Mode())
+	sourceDirMode := sourceDirStat.Mode()
+
+	isSourceDirSymlink := sourceDirStat.Mode()&os.ModeSymlink != 0
+	if isSourceDirSymlink && a.followSymlinks {
+		symlinkTarget, err := filepath.EvalSymlinks(filepath.Dir(sourceFile.Path))
+		if err != nil {
+			return err
+		}
+		statResult, err := a.fs.Lstat(symlinkTarget)
+		if err != nil {
+			return err
+		}
+		sourceDirMode = statResult.Mode()
+	}
+
+	err = a.fs.Chmod(dstDir, sourceDirMode)
 	if err != nil {
 		return err
 	}

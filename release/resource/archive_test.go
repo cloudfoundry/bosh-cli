@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"syscall"
 
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
@@ -94,10 +95,12 @@ var _ = Describe("Archive", func() {
 			compressor       boshcmd.Compressor
 			digestCalculator bicrypto.DigestCalculator
 			followSymlinks   bool
+			existingUmask    int
 		)
 
 		BeforeEach(func() {
 			followSymlinks = false
+			existingUmask = syscall.Umask(0)
 		})
 
 		JustBeforeEach(func() {
@@ -137,7 +140,7 @@ var _ = Describe("Archive", func() {
 			err = fs.Chmod(filepath.Join(uniqueDir, "file1"), os.FileMode(0600))
 			Expect(err).ToNot(HaveOccurred())
 
-			err = fs.MkdirAll(filepath.Join(uniqueDir, "dir"), os.FileMode(0777))
+			err = fs.MkdirAll(filepath.Join(uniqueDir, "dir"), os.FileMode(0755))
 			Expect(err).ToNot(HaveOccurred())
 
 			err = fs.WriteFileString(filepath.Join(uniqueDir, "dir", "file2"), "file2")
@@ -221,6 +224,7 @@ var _ = Describe("Archive", func() {
 			if fs != nil {
 				_ = fs.RemoveAll(uniqueDir)
 			}
+			syscall.Umask(existingUmask)
 		})
 
 		modeAsStr := func(m os.FileMode) string {
@@ -318,7 +322,7 @@ var _ = Describe("Archive", func() {
 
 				stat, err := fs.Stat(filepath.Join(decompPath, "dir", "symlink-dir"))
 				Expect(err).ToNot(HaveOccurred())
-				Expect(modeAsStr(stat.Mode())).To(Equal("020000000755")) // 02... is for directory
+				Expect(modeAsStr(stat.Mode())).To(Equal("020000000744")) // 02... is for directory
 				Expect(fs.ReadFileString(filepath.Join(decompPath, "dir", "symlink-dir", "file4"))).To(Equal("file4"))
 			})
 		})
