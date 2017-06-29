@@ -57,5 +57,12 @@ var _ = Describe("LogOutCmd", func() {
 
 			Expect(ui.Said).To(BeEmpty())
 		})
+
+		It("returns error if environment is empty", func() {
+			command = NewLogOutCmd("", config, ui)
+			err := act()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Expected non-empty Director URL"))
+		})
 	})
 })
