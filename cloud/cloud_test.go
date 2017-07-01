@@ -292,6 +292,45 @@ var _ = Describe("Cloud", func() {
 		})
 	})
 
+	Describe("SetDiskMetadata", func() {
+		metadata := DiskMetadata{
+			"director":       "bosh-init",
+			"deployment":     "some-deployment",
+			"instance_group": "some-instance_group",
+			"instance_index": "0",
+			"attached_at":    "2017-03-22T10:17:04Z",
+		}
+		It("calls the set_disk_metadata CPI method", func() {
+			diskCID := "fake-disk-cid"
+			err := cloud.SetDiskMetadata(diskCID, metadata)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeCPICmdRunner.RunInputs).To(HaveLen(1))
+			Expect(fakeCPICmdRunner.RunInputs[0]).To(Equal(fakebicloud.RunInput{
+				Context: context,
+				Method:  "set_disk_metadata",
+				Arguments: []interface{}{
+					diskCID,
+					metadata,
+				},
+			}))
+		})
+
+		It("returns the error if running fails", func() {
+			fakeCPICmdRunner.RunErr = errors.New("fake-run-error")
+			diskCID := "fake-disk-cid"
+			err := cloud.SetDiskMetadata(diskCID, metadata)
+
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("fake-run-error"))
+		})
+
+		itHandlesCPIErrors("set_disk_metadata", func() error {
+			diskCID := "fake-disk-cid"
+			return cloud.SetDiskMetadata(diskCID, metadata)
+		})
+	})
+
 	Describe("SetVMMetadata", func() {
 		It("calls the set_vm_metadata CPI method", func() {
 			vmCID := "fake-vm-cid"

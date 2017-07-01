@@ -52,6 +52,7 @@ type vm struct {
 	fs           boshsys.FileSystem
 	logger       boshlog.Logger
 	logTag       string
+	metadata     bicloud.VMMetadata
 }
 
 func NewVM(
@@ -76,6 +77,33 @@ func NewVM(
 		fs:           fs,
 		logger:       logger,
 		logTag:       "vm",
+	}
+}
+
+func NewVMWithMetadata(
+	cid string,
+	vmRepo biconfig.VMRepo,
+	stemcellRepo biconfig.StemcellRepo,
+	diskDeployer DiskDeployer,
+	agentClient biagentclient.AgentClient,
+	cloud bicloud.Cloud,
+	timeService Clock,
+	fs boshsys.FileSystem,
+	logger boshlog.Logger,
+	metadata bicloud.VMMetadata,
+) VM {
+	return &vm{
+		cid:          cid,
+		vmRepo:       vmRepo,
+		stemcellRepo: stemcellRepo,
+		diskDeployer: diskDeployer,
+		agentClient:  agentClient,
+		cloud:        cloud,
+		timeService:  timeService,
+		fs:           fs,
+		logger:       logger,
+		logTag:       "vm",
+		metadata:     metadata,
 	}
 }
 
@@ -149,6 +177,16 @@ func (vm *vm) AttachDisk(disk bidisk.Disk) error {
 	err := vm.cloud.AttachDisk(vm.cid, disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Attaching disk in the cloud")
+	}
+
+	err = vm.cloud.SetDiskMetadata(disk.CID(), vm.createDiskMetadata())
+	if err != nil {
+		cloudErr, ok := err.(bicloud.Error)
+		if ok && cloudErr.Type() == bicloud.NotImplementedError {
+			vm.logger.Warn(vm.logTag, "'SetDiskMetadata' not implemented by CPI")
+		} else {
+			return bosherr.WrapErrorf(err, "Setting disk metadata for %s", disk.CID())
+		}
 	}
 
 	err = vm.WaitUntilReady(10*time.Minute, 500*time.Millisecond)
@@ -238,4 +276,16 @@ func (vm *vm) GetState() (biagentclient.AgentState, error) {
 	}
 
 	return agentState, nil
+}
+
+func (vm *vm) createDiskMetadata() bicloud.DiskMetadata {
+	diskMetadata := bicloud.DiskMetadata{
+		"director":       vm.metadata["director"],
+		"deployment":     vm.metadata["deployment"],
+		"instance_group": vm.metadata["instance_group"],
+		"instance_index": vm.metadata["index"],
+		"attached_at":    vm.timeService.Now().Format(time.RFC3339),
+	}
+
+	return diskMetadata
 }

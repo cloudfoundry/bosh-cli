@@ -14,7 +14,6 @@ import (
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	bidisk "github.com/cloudfoundry/bosh-cli/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 
@@ -23,6 +22,7 @@ import (
 	fakebiconfig "github.com/cloudfoundry/bosh-cli/config/fakes"
 	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/fakes"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
@@ -38,7 +38,8 @@ var _ = Describe("VM", func() {
 		diskPool         bideplmanifest.DiskPool
 		timeService      *FakeClock
 		fs               *fakesys.FakeFileSystem
-		logger           boshlog.Logger
+		logger           fakedir.Logger
+		logCalls         []fakedir.LogCallArgs
 	)
 
 	BeforeEach(func() {
@@ -58,7 +59,8 @@ var _ = Describe("VM", func() {
 			},
 		}
 
-		logger = boshlog.NewLogger(boshlog.LevelNone)
+		logCalls = []fakedir.LogCallArgs{}
+		logger = fakedir.NewFakeLogger(&logCalls)
 		fs = fakesys.NewFakeFileSystem()
 		fakeCloud = fakebicloud.NewFakeCloud()
 		fakeVMRepo = fakebiconfig.NewFakeVMRepo()
@@ -219,7 +221,28 @@ var _ = Describe("VM", func() {
 		var disk *fakebidisk.FakeDisk
 
 		BeforeEach(func() {
+			fakeTime := time.Date(2016, time.November, 10, 23, 0, 0, 0, time.UTC)
+			timeService = &FakeClock{Times: []time.Time{fakeTime, time.Now(), time.Now().Add(10 * time.Minute)}}
 			disk = fakebidisk.NewFakeDisk("fake-disk-cid")
+
+			metadata := bicloud.VMMetadata{
+				"director":       "bosh-init",
+				"deployment":     "some-deployment",
+				"instance_group": "some-instance-group",
+				"index":          "0",
+			}
+			vm = NewVMWithMetadata(
+				"fake-vm-cid",
+				fakeVMRepo,
+				fakeStemcellRepo,
+				fakeDiskDeployer,
+				fakeAgentClient,
+				fakeCloud,
+				timeService,
+				fs,
+				logger,
+				metadata,
+			)
 		})
 
 		It("attaches disk to vm in the cloud", func() {
@@ -236,6 +259,67 @@ var _ = Describe("VM", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeAgentClient.PingCallCount()).To(Equal(1))
 			Expect(fakeAgentClient.MountDiskArgsForCall(0)).To(Equal("fake-disk-cid"))
+		})
+
+		Context("when metadata is set", func() {
+			It("sets the metadata to the disk", func() {
+				expectedDiskMetadata := bicloud.DiskMetadata{
+					"director":       "bosh-init",
+					"deployment":     "some-deployment",
+					"instance_group": "some-instance-group",
+					"instance_index": "0",
+					"attached_at":    "2016-11-10T23:00:00Z",
+				}
+
+				err := vm.AttachDisk(disk)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeCloud.SetDiskMetadataCid).To(Equal("fake-disk-cid"))
+				Expect(fakeCloud.SetDiskMetadataMetadata).To(Equal(expectedDiskMetadata))
+			})
+
+			Context("when setting metadata is not supported by the CPI", func() {
+				BeforeEach(func() {
+					cmdError := bicloud.CmdError{
+						Type: bicloud.NotImplementedError,
+					}
+					fakeCloud.SetDiskMetadataError = bicloud.NewCPIError("set_disk_metadata", cmdError)
+				})
+
+				It("logs a warning", func() {
+					err := vm.AttachDisk(disk)
+					Expect(err).ToNot(HaveOccurred())
+
+					expectedLogCallArgs := fakedir.LogCallArgs{
+						LogLevel: "Warn",
+						Tag:      "vm",
+						Msg:      "'SetDiskMetadata' not implemented by CPI",
+						Args:     []string{},
+					}
+					actualLogCallArgs := (*logger.LogCallArgs)[0]
+
+					Expect(expectedLogCallArgs.LogLevel).To(Equal(actualLogCallArgs.LogLevel))
+					Expect(expectedLogCallArgs.Tag).To(Equal(actualLogCallArgs.Tag))
+					Expect(expectedLogCallArgs.Msg).To(Equal(actualLogCallArgs.Msg))
+					Expect(actualLogCallArgs.Args).To(BeEmpty())
+				})
+			})
+
+			Context("when setting metadata fails", func() {
+				BeforeEach(func() {
+					cmdError := bicloud.CmdError{
+						Message: "some error",
+					}
+					fakeCloud.SetDiskMetadataError = bicloud.NewCPIError("set_disk_metadata", cmdError)
+				})
+
+				It("returns an error", func() {
+					err := vm.AttachDisk(disk)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("some error"))
+					Expect(err.Error()).To(ContainSubstring("Setting disk metadata"))
+				})
+			})
 		})
 
 		Context("when attaching disk to cloud fails", func() {
