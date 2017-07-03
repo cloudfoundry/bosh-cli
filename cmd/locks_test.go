@@ -36,6 +36,7 @@ var _ = Describe("LocksCmd", func() {
 					Type:      "deployment",
 					Resource:  []string{"some-deployment", "20"},
 					ExpiresAt: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
+					TaskID:    "123456",
 				},
 			}
 
@@ -50,6 +51,7 @@ var _ = Describe("LocksCmd", func() {
 				Header: []boshtbl.Header{
 					boshtbl.NewHeader("Type"),
 					boshtbl.NewHeader("Resource"),
+					boshtbl.NewHeader("Task ID"),
 					boshtbl.NewHeader("Expires at"),
 				},
 
@@ -59,6 +61,7 @@ var _ = Describe("LocksCmd", func() {
 					{
 						boshtbl.NewValueString("deployment"),
 						boshtbl.NewValueString("some-deployment:20"),
+						boshtbl.NewValueString("123456"),
 						boshtbl.NewValueTime(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)),
 					},
 				},

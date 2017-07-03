@@ -11,12 +11,14 @@ type Lock struct {
 	Type      string   // e.g. "deployment"
 	Resource  []string // e.g. ["some-deployment-name"]
 	ExpiresAt time.Time
+	TaskID    string // e.g. "123456"
 }
 
 type LockResp struct {
 	Type     string   // e.g. "deployment"
 	Resource []string // e.g. ["some-deployment-name"]
 	Timeout  string   // e.g. "1443889622.9964118"
+	TaskID   string   `json:"task_id"` // e.g. "123456"
 }
 
 type TimeoutTime time.Time
@@ -39,6 +41,7 @@ func (d DirectorImpl) Locks() ([]Lock, error) {
 			Type:      r.Type,
 			Resource:  r.Resource,
 			ExpiresAt: time.Unix(int64(f), 0).UTC(),
+			TaskID:    r.TaskID,
 		}
 
 		locks = append(locks, lock)
