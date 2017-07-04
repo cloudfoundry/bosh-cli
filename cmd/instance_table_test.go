@@ -1,6 +1,8 @@
 package cmd_test
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -73,6 +75,18 @@ var _ = Describe("InstanceTable", func() {
 				info.ResourcePool = "rp"
 				info.VMType = "vm-type"
 				Expect(tbl.ForVMInfo(info).VMType.String()).To(Equal("vm-type"))
+			})
+		})
+
+		Describe("created at", func() {
+			It("returns empty if created_at is empty", func() {
+				info.VMCreatedAt = time.Time{}
+				Expect(tbl.ForVMInfo(info).VMCreatedAt.String()).To(Equal(""))
+			})
+
+			It("returns time if created_at is non-empty", func() {
+				info.VMCreatedAt = time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC)
+				Expect(tbl.ForVMInfo(info).VMCreatedAt.String()).To(Equal("Sat Jan  9 06:23:25 UTC 2016"))
 			})
 		})
 

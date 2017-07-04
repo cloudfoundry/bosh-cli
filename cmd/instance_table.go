@@ -130,7 +130,7 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 		Resurrection: boshtbl.NewValueBool(i.ResurrectionPaused),
 		Bootstrap:    boshtbl.NewValueBool(i.Bootstrap),
 		Ignore:       boshtbl.NewValueBool(i.Ignore),
-		VMCreatedAt:  ValueVMCreatedAt{i.VMCreatedAt},
+		VMCreatedAt:  boshtbl.NewValueTime(i.VMCreatedAt.UTC()),
 
 		// DNS
 		DNS: boshtbl.NewValueStrings(i.DNS),

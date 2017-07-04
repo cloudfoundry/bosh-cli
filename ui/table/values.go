@@ -90,8 +90,13 @@ func (t ValueBytes) Compare(other Value) int {
 
 func NewValueTime(t time.Time) ValueTime { return ValueTime{T: t} }
 
-func (t ValueTime) String() string { return t.T.Format(boshuifmt.TimeFullFmt) }
-func (t ValueTime) Value() Value   { return t }
+func (t ValueTime) String() string {
+	if t.T.IsZero() {
+		return ""
+	}
+	return t.T.Format(boshuifmt.TimeFullFmt)
+}
+func (t ValueTime) Value() Value { return t }
 
 func (t ValueTime) Compare(other Value) int {
 	otherT := other.(ValueTime).T

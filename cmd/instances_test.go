@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"errors"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -65,7 +66,7 @@ var _ = Describe("InstancesCmd", func() {
 					ResurrectionPaused: false,
 					Ignore:             true,
 					DiskIDs:            []string{"diskcid1", "diskcid2"},
-					VMCreatedAt:        1440318199,
+					VMCreatedAt:        time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
 
 					Vitals: boshdir.VMInfoVitals{
 						Load: []string{"0.02", "0.06", "0.11"},
@@ -119,7 +120,7 @@ var _ = Describe("InstancesCmd", func() {
 					ResurrectionPaused: true,
 					Ignore:             false,
 					DiskIDs:            []string{"diskcid1", "diskcid2"},
-					VMCreatedAt:        1440318199,
+					VMCreatedAt:        time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
 
 					Vitals: boshdir.VMInfoVitals{
 						Load: []string{"0.52", "0.56", "0.51"},
@@ -634,7 +635,7 @@ var _ = Describe("InstancesCmd", func() {
 										boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
 										boshtbl.ValueString{},
 										boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
-										ValueVMCreatedAt{1440318199},
+										boshtbl.NewValueTime(time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC)),
 										ValueUptime{},
 										boshtbl.NewValueString("0.02, 0.06, 0.11"),
 										ValueCPUTotal{},
@@ -696,7 +697,7 @@ var _ = Describe("InstancesCmd", func() {
 										boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
 										boshtbl.NewValueString("in2-az"),
 										boshtbl.NewValueStrings([]string{"in2-ip1"}),
-										ValueVMCreatedAt{1440318199},
+										boshtbl.NewValueTime(time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC)),
 										ValueUptime{},
 										boshtbl.NewValueString("0.52, 0.56, 0.51"),
 										ValueCPUTotal{},
@@ -739,7 +740,7 @@ var _ = Describe("InstancesCmd", func() {
 										boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
 										boshtbl.ValueString{},
 										boshtbl.ValueStrings{},
-										ValueVMCreatedAt{0},
+										boshtbl.NewValueTime(time.Time{}.UTC()),
 										ValueUptime{},
 										boshtbl.ValueString{},
 										ValueCPUTotal{},

@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/dustin/go-humanize"
 
@@ -29,10 +28,6 @@ type ValueDiskSize struct {
 
 type ValueUptime struct {
 	Secs *uint64
-}
-
-type ValueVMCreatedAt struct {
-	Time int64
 }
 
 func NewValueStringPercent(str string) boshtbl.Value {
@@ -98,14 +93,3 @@ func (t ValueUptime) String() string {
 
 func (t ValueUptime) Value() boshtbl.Value            { return t }
 func (t ValueUptime) Compare(other boshtbl.Value) int { panic("Never called") }
-
-func (t ValueVMCreatedAt) String() string {
-	if t.Time != 0 {
-		return boshtbl.NewValueTime(time.Unix(t.Time, 0).UTC()).String()
-	}
-	return ""
-}
-
-func (t ValueVMCreatedAt) Value() boshtbl.Value { return t }
-
-func (t ValueVMCreatedAt) Compare(other boshtbl.Value) int { panic("Never called") }
