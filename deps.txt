@@ -37,3 +37,5 @@ golang.org/x/sys/windows/...:a55a760
 github.com/tedsuo/ifrit/...:08b0eee
 github.com/cloudfoundry/bosh-agent/agentclient:6898825
 github.com/cloudfoundry/bosh-gcscli:e8cfa90
+github.com/cloudfoundry/bosh-gcscli/client:e8cfa90
+github.com/cloudfoundry/bosh-gcscli/config:e8cfa90
