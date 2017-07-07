@@ -116,9 +116,11 @@
   revision = "d30f099"
 
 [[projects]]
+  branch = "cli-patches"
   name = "github.com/jessevdk/go-flags"
   packages = ["."]
-  revision = "4cc2832"
+  revision = "351f5f310b26e7f1a0602887c0a0432ddda2947d"
+  source = "github.com/cppforlife/go-flags"
 
 [[projects]]
   name = "github.com/jmespath/go-jmespath"
@@ -231,6 +233,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5502857a1631c88ebe1cf748da24027d33ce3f36460e0616ce7f948eb9b6c5d6"
+  inputs-digest = "d56518f90235146a7e57357e6121779a55c389c6491b0d10fb10aca74725cf26"
   solver-name = "gps-cdcl"
   solver-version = 1
