@@ -26,6 +26,32 @@ var _ = Describe("StaticVariables", func() {
 			Expect(found).To(BeFalse())
 			Expect(err).ToNot(HaveOccurred())
 		})
+
+		It("recognizes keys that use dot notation for subvalues", func() {
+			a := StaticVariables{"a.subkey": "foo", "a.subkey2": "foo2"}
+
+			val, found, err := a.Get(VariableDefinition{Name: "a"})
+			Expect(val).To(Equal(map[interface{}]interface{}{"subkey": "foo", "subkey2": "foo2"}))
+			Expect(found).To(BeTrue())
+			Expect(err).ToNot(HaveOccurred())
+
+			a = StaticVariables{"a.subkey.subsubkey": "foo", "a.subkey2": "foo2"}
+
+			val, found, err = a.Get(VariableDefinition{Name: "a"})
+			Expect(val).To(Equal(map[interface{}]interface{}{
+				"subkey":  map[interface{}]interface{}{"subsubkey": "foo"},
+				"subkey2": "foo2",
+			}))
+			Expect(found).To(BeTrue())
+			Expect(err).ToNot(HaveOccurred())
+
+			a = StaticVariables{"a.subkey": "foo"}
+
+			val, found, err = a.Get(VariableDefinition{Name: "a.subkey"})
+			Expect(val).To(BeNil())
+			Expect(found).To(BeFalse())
+			Expect(err).ToNot(HaveOccurred())
+		})
 	})
 
 	Describe("List", func() {

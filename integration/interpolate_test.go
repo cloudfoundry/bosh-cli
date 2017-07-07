@@ -43,6 +43,26 @@ var _ = Describe("interpolate command", func() {
 		Expect(ui.Blocks).To(Equal([]string{"file: val\n"}))
 	})
 
+	It("interpolates manifest with variables provided piece by piece via dot notation", func() {
+		err := fs.WriteFileString("/template", "file: ((key))\nfile2: ((key.subkey2))\n")
+		Expect(err).ToNot(HaveOccurred())
+
+		err = fs.WriteFileString("/file-val", "file-val-content")
+		Expect(err).ToNot(HaveOccurred())
+
+		cmd, err := cmdFactory.New([]string{
+			"interpolate", "/template",
+			"-v", "key.subkey=val",
+			"-v", "key.subkey2=val2",
+			"--var-file", "key.subkey3=/file-val",
+		})
+		Expect(err).ToNot(HaveOccurred())
+
+		err = cmd.Execute()
+		Expect(err).ToNot(HaveOccurred())
+		Expect(ui.Blocks).To(Equal([]string{"file:\n  subkey: val\n  subkey2: val2\n  subkey3: file-val-content\nfile2: val2\n"}))
+	})
+
 	It("returns portion of the template when --path flag is provided", func() {
 		err := fs.WriteFileString("/file", "file: ((key))")
 		Expect(err).ToNot(HaveOccurred())

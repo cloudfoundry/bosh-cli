@@ -18,19 +18,31 @@ type VarFlags struct {
 func (f VarFlags) AsVariables() boshtpl.Variables {
 	var firstToUse []boshtpl.Variables
 
-	firstToUse = append(firstToUse, f.kvsAsVars())
+	staticVars := boshtpl.StaticVariables{}
 
-	for i, _ := range f.VarFiles {
-		firstToUse = append(firstToUse, f.VarFiles[len(f.VarFiles)-i-1].Vars)
+	for i, _ := range f.VarsEnvs {
+		for k, v := range f.VarsEnvs[i].Vars {
+			staticVars[k] = v
+		}
 	}
 
 	for i, _ := range f.VarsFiles {
-		firstToUse = append(firstToUse, f.VarsFiles[len(f.VarsFiles)-i-1].Vars)
+		for k, v := range f.VarsFiles[i].Vars {
+			staticVars[k] = v
+		}
 	}
 
-	for i, _ := range f.VarsEnvs {
-		firstToUse = append(firstToUse, f.VarsEnvs[len(f.VarsEnvs)-i-1].Vars)
+	for i, _ := range f.VarFiles {
+		for k, v := range f.VarFiles[i].Vars {
+			staticVars[k] = v
+		}
 	}
+
+	for _, kv := range f.VarKVs {
+		staticVars[kv.Name] = kv.Value
+	}
+
+	firstToUse = append(firstToUse, staticVars)
 
 	store := &f.VarsFSStore
 
@@ -42,16 +54,6 @@ func (f VarFlags) AsVariables() boshtpl.Variables {
 
 	if f.VarsFSStore.IsSet() {
 		store.ValueGeneratorFactory = cfgtypes.NewValueGeneratorConcrete(NewVarsCertLoader(vars))
-	}
-
-	return vars
-}
-
-func (f VarFlags) kvsAsVars() boshtpl.Variables {
-	vars := boshtpl.StaticVariables{}
-
-	for _, kv := range f.VarKVs {
-		vars[kv.Name] = kv.Value
 	}
 
 	return vars
