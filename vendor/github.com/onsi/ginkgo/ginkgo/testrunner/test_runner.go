@@ -29,29 +29,23 @@ type TestRunner struct {
 
 	numCPU         int
 	parallelStream bool
-	race           bool
-	cover          bool
-	coverPkg       string
-	tags           string
+	goOpts         map[string]interface{}
 	additionalArgs []string
 }
 
-func New(suite testsuite.TestSuite, numCPU int, parallelStream bool, race bool, cover bool, coverPkg string, tags string, additionalArgs []string) *TestRunner {
+func New(suite testsuite.TestSuite, numCPU int, parallelStream bool, goOpts map[string]interface{}, additionalArgs []string) *TestRunner {
 	runner := &TestRunner{
 		Suite:          suite,
 		numCPU:         numCPU,
 		parallelStream: parallelStream,
-		race:           race,
-		cover:          cover,
-		coverPkg:       coverPkg,
-		tags:           tags,
+		goOpts:         goOpts,
 		additionalArgs: additionalArgs,
 	}
 
 	if !suite.Precompiled {
 		dir, err := ioutil.TempDir("", "ginkgo")
 		if err != nil {
-			panic(fmt.Sprintf("coulnd't create temporary directory... might be time to rm -rf:\n%s", err.Error()))
+			panic(fmt.Sprintf("couldn't create temporary directory... might be time to rm -rf:\n%s", err.Error()))
 		}
 		runner.compilationTargetPath = filepath.Join(dir, suite.PackageName+".test")
 	}
@@ -63,6 +57,70 @@ func (t *TestRunner) Compile() error {
 	return t.CompileTo(t.compilationTargetPath)
 }
 
+func (t *TestRunner) BuildArgs(path string) []string {
+	args := []string{"test", "-c", "-i", "-o", path, t.Suite.Path}
+
+	if *t.goOpts["covermode"].(*string) != "" {
+		args = append(args, "-cover", fmt.Sprintf("-covermode=%s", *t.goOpts["covermode"].(*string)))
+	} else {
+		if *t.goOpts["cover"].(*bool) || *t.goOpts["coverpkg"].(*string) != "" {
+			args = append(args, "-cover", "-covermode=atomic")
+		}
+	}
+
+	boolOpts := []string{
+		"a",
+		"n",
+		"msan",
+		"race",
+		"x",
+		"work",
+		"linkshared",
+	}
+
+	for _, opt := range boolOpts {
+		if s, found := t.goOpts[opt].(*bool); found && *s {
+			args = append(args, fmt.Sprintf("-%s", opt))
+		}
+	}
+
+	intOpts := []string{
+		"memprofilerate",
+		"blockprofilerate",
+	}
+
+	for _, opt := range intOpts {
+		if s, found := t.goOpts[opt].(*int); found {
+			args = append(args, fmt.Sprintf("-%s=%d", opt, *s))
+		}
+	}
+
+	stringOpts := []string{
+		"asmflags",
+		"buildmode",
+		"compiler",
+		"gccgoflags",
+		"installsuffix",
+		"ldflags",
+		"pkgdir",
+		"toolexec",
+		"coverprofile",
+		"cpuprofile",
+		"memprofile",
+		"outputdir",
+		"coverpkg",
+		"tags",
+		"gcflags",
+	}
+
+	for _, opt := range stringOpts {
+		if s, found := t.goOpts[opt].(*string); found && *s != "" {
+			args = append(args, fmt.Sprintf("-%s=%s", opt, *s))
+		}
+	}
+	return args
+}
+
 func (t *TestRunner) CompileTo(path string) error {
 	if t.compiled {
 		return nil
@@ -72,23 +130,8 @@ func (t *TestRunner) CompileTo(path string) error {
 		return nil
 	}
 
-	args := []string{"test", "-c", "-i", "-o", path}
-	if t.race {
-		args = append(args, "-race")
-	}
-	if t.cover || t.coverPkg != "" {
-		args = append(args, "-cover", "-covermode=atomic")
-	}
-	if t.coverPkg != "" {
-		args = append(args, fmt.Sprintf("-coverpkg=%s", t.coverPkg))
-	}
-	if t.tags != "" {
-		args = append(args, fmt.Sprintf("-tags=%s", t.tags))
-	}
-
+	args := t.BuildArgs(path)
 	cmd := exec.Command("go", args...)
-
-	cmd.Dir = t.Suite.Path
 
 	output, err := cmd.CombinedOutput()
 
@@ -100,9 +143,76 @@ func (t *TestRunner) CompileTo(path string) error {
 		return fmt.Errorf("Failed to compile %s", t.Suite.PackageName)
 	}
 
+	if fileExists(path) == false {
+		compiledFile := t.Suite.PackageName + ".test"
+		if fileExists(compiledFile) {
+			// seems like we are on an old go version that does not support the -o flag on go test
+			// move the compiled test file to the desired location by hand
+			err = os.Rename(compiledFile, path)
+			if err != nil {
+				// We cannot move the file, perhaps because the source and destination
+				// are on different partitions. We can copy the file, however.
+				err = copyFile(compiledFile, path)
+				if err != nil {
+					return fmt.Errorf("Failed to copy compiled file: %s", err)
+				}
+			}
+		} else {
+			return fmt.Errorf("Failed to compile %s: output file %q could not be found", t.Suite.PackageName, path)
+		}
+	}
+
 	t.compiled = true
 
 	return nil
+}
+
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil || os.IsNotExist(err) == false
+}
+
+// copyFile copies the contents of the file named src to the file named
+// by dst. The file will be created if it does not already exist. If the
+// destination file exists, all it's contents will be replaced by the contents
+// of the source file.
+func copyFile(src, dst string) error {
+	srcInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	mode := srcInfo.Mode()
+
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+
+	defer in.Close()
+
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		closeErr := out.Close()
+		if err == nil {
+			err = closeErr
+		}
+	}()
+
+	_, err = io.Copy(out, in)
+	if err != nil {
+		return err
+	}
+
+	err = out.Sync()
+	if err != nil {
+		return err
+	}
+
+	return out.Chmod(mode)
 }
 
 /*
@@ -119,6 +229,7 @@ fixCompilationOutput..... rewrites the output to fix the paths.
 yeah......
 */
 func fixCompilationOutput(output string, relToPath string) string {
+	relToPath = filepath.Join(relToPath)
 	re := regexp.MustCompile(`^(\S.*\.go)\:\d+\:`)
 	lines := strings.Split(output, "\n")
 	for i, line := range lines {
@@ -128,8 +239,10 @@ func fixCompilationOutput(output string, relToPath string) string {
 		}
 
 		path := line[indices[2]:indices[3]]
-		path = filepath.Join(relToPath, path)
-		lines[i] = path + line[indices[3]:]
+		if filepath.Dir(path) != relToPath {
+			path = filepath.Join(relToPath, path)
+			lines[i] = path + line[indices[3]:]
+		}
 	}
 	return strings.Join(lines, "\n")
 }
@@ -211,7 +324,7 @@ func (t *TestRunner) runAndStreamParallelGinkgoSuite() RunResult {
 
 	os.Stdout.Sync()
 
-	if t.cover || t.coverPkg != "" {
+	if *t.goOpts["cover"].(*bool) || *t.goOpts["coverpkg"].(*string) != "" || *t.goOpts["covermode"].(*string) != "" {
 		t.combineCoverprofiles()
 	}
 
@@ -224,7 +337,7 @@ func (t *TestRunner) runParallelGinkgoSuite() RunResult {
 	writers := make([]*logWriter, t.numCPU)
 	reports := make([]*bytes.Buffer, t.numCPU)
 
-	stenographer := stenographer.New(!config.DefaultReporterConfig.NoColor)
+	stenographer := stenographer.New(!config.DefaultReporterConfig.NoColor, config.GinkgoConfig.FlakeAttempts > 1)
 	aggregator := remote.NewAggregator(t.numCPU, result, config.DefaultReporterConfig, stenographer)
 
 	server, err := remote.NewServer(t.numCPU)
@@ -279,7 +392,7 @@ func (t *TestRunner) runParallelGinkgoSuite() RunResult {
 	|                                                                   |
 	 -------------------------------------------------------------------
 `)
-
+		fmt.Println(t.Suite.PackageName, "timed out. path:", t.Suite.Path)
 		os.Stdout.Sync()
 
 		for _, writer := range writers {
@@ -293,7 +406,7 @@ func (t *TestRunner) runParallelGinkgoSuite() RunResult {
 		os.Stdout.Sync()
 	}
 
-	if t.cover || t.coverPkg != "" {
+	if *t.goOpts["cover"].(*bool) || *t.goOpts["coverpkg"].(*string) != "" || *t.goOpts["covermode"].(*string) != "" {
 		t.combineCoverprofiles()
 	}
 
@@ -302,7 +415,7 @@ func (t *TestRunner) runParallelGinkgoSuite() RunResult {
 
 func (t *TestRunner) cmd(ginkgoArgs []string, stream io.Writer, node int) *exec.Cmd {
 	args := []string{"--test.timeout=24h"}
-	if t.cover || t.coverPkg != "" {
+	if *t.goOpts["cover"].(*bool) || *t.goOpts["coverpkg"].(*string) != "" || *t.goOpts["covermode"].(*string) != "" {
 		coverprofile := "--test.coverprofile=" + t.Suite.PackageName + ".coverprofile"
 		if t.numCPU > 1 {
 			coverprofile = fmt.Sprintf("%s.%d", coverprofile, node)

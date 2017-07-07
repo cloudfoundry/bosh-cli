@@ -9,6 +9,7 @@ import (
 	"github.com/onsi/ginkgo/ginkgo/interrupthandler"
 	"github.com/onsi/ginkgo/ginkgo/testrunner"
 	"github.com/onsi/ginkgo/ginkgo/testsuite"
+	colorable "github.com/onsi/ginkgo/reporters/stenographer/support/go-colorable"
 )
 
 type compilationInput struct {
@@ -129,6 +130,7 @@ func (r *SuiteRunner) RunSuites(runners []*testrunner.TestRunner, numCompilers i
 			suiteRunResult = compilationOutput.runner.Run()
 		}
 		r.notifier.SendSuiteCompletionNotification(compilationOutput.runner.Suite, suiteRunResult.Passed)
+		r.notifier.RunCommand(compilationOutput.runner.Suite, suiteRunResult.Passed)
 		runResult = runResult.Merge(suiteRunResult)
 		if !suiteRunResult.Passed {
 			suitesThatFailed = append(suitesThatFailed, compilationOutput.runner.Suite)
@@ -165,7 +167,7 @@ func (r *SuiteRunner) listFailedSuites(suitesThatFailed []testsuite.TestSuite) {
 		if config.DefaultReporterConfig.NoColor {
 			fmt.Printf("\t"+packageNameFormatter+" %s\n", suite.PackageName, suite.Path)
 		} else {
-			fmt.Printf("\t%s"+packageNameFormatter+"%s %s%s%s\n", redColor, suite.PackageName, defaultStyle, lightGrayColor, suite.Path, defaultStyle)
+			fmt.Fprintf(colorable.NewColorableStdout(), "\t%s"+packageNameFormatter+"%s %s%s%s\n", redColor, suite.PackageName, defaultStyle, lightGrayColor, suite.Path, defaultStyle)
 		}
 	}
 }

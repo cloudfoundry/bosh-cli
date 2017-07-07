@@ -3,6 +3,7 @@ package vm_test
 import (
 	"errors"
 
+	"code.cloudfoundry.org/clock"
 	fakebiagentclient "github.com/cloudfoundry/bosh-agent/agentclient/fakes"
 	"github.com/cloudfoundry/bosh-cli/cloud"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
@@ -19,7 +20,6 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-golang/clock"
 	"time"
 )
 

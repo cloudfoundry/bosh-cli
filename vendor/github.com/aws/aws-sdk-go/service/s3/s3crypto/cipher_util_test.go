@@ -86,7 +86,7 @@ func TestCEKFactory(t *testing.T) {
 
 	sess := unit.Session.Copy(&aws.Config{
 		MaxRetries:       aws.Int(0),
-		Endpoint:         aws.String(ts.URL[7:]),
+		Endpoint:         aws.String(ts.URL),
 		DisableSSL:       aws.Bool(true),
 		S3ForcePathStyle: aws.Bool(true),
 		Region:           aws.String("us-west-2"),
@@ -100,6 +100,9 @@ func TestCEKFactory(t *testing.T) {
 		},
 		CEKRegistry: map[string]CEKEntry{
 			AESGCMNoPadding: newAESGCMContentCipher,
+		},
+		PadderRegistry: map[string]Padder{
+			NoPadder.Name(): NoPadder,
 		},
 	}
 	iv, err := hex.DecodeString("0d18e06c7c725ac9e362e1ce")
@@ -133,7 +136,7 @@ func TestCEKFactoryNoCEK(t *testing.T) {
 
 	sess := unit.Session.Copy(&aws.Config{
 		MaxRetries:       aws.Int(0),
-		Endpoint:         aws.String(ts.URL[7:]),
+		Endpoint:         aws.String(ts.URL),
 		DisableSSL:       aws.Bool(true),
 		S3ForcePathStyle: aws.Bool(true),
 		Region:           aws.String("us-west-2"),
@@ -147,6 +150,9 @@ func TestCEKFactoryNoCEK(t *testing.T) {
 		},
 		CEKRegistry: map[string]CEKEntry{
 			AESGCMNoPadding: newAESGCMContentCipher,
+		},
+		PadderRegistry: map[string]Padder{
+			NoPadder.Name(): NoPadder,
 		},
 	}
 	iv, err := hex.DecodeString("0d18e06c7c725ac9e362e1ce")
@@ -180,7 +186,7 @@ func TestCEKFactoryCustomEntry(t *testing.T) {
 
 	sess := unit.Session.Copy(&aws.Config{
 		MaxRetries:       aws.Int(0),
-		Endpoint:         aws.String(ts.URL[7:]),
+		Endpoint:         aws.String(ts.URL),
 		DisableSSL:       aws.Bool(true),
 		S3ForcePathStyle: aws.Bool(true),
 		Region:           aws.String("us-west-2"),
@@ -195,6 +201,7 @@ func TestCEKFactoryCustomEntry(t *testing.T) {
 		CEKRegistry: map[string]CEKEntry{
 			"custom": newAESGCMContentCipher,
 		},
+		PadderRegistry: map[string]Padder{},
 	}
 	iv, err := hex.DecodeString("0d18e06c7c725ac9e362e1ce")
 	assert.NoError(t, err)

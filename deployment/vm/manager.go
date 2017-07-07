@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"code.cloudfoundry.org/clock"
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
@@ -12,7 +13,6 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	"github.com/pivotal-golang/clock"
 	"time"
 )
 

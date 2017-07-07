@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"code.cloudfoundry.org/clock"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	semver "github.com/cppforlife/go-semi-semantic/version"
-	"github.com/pivotal-golang/clock"
 
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 )

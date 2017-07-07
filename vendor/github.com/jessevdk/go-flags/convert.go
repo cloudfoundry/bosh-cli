@@ -151,12 +151,9 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 	return "", nil
 }
 
-var FactoryFunc func(interface{})
-
 func convertUnmarshal(val string, retval reflect.Value) (bool, error) {
 	if retval.Type().NumMethod() > 0 && retval.CanInterface() {
 		if unmarshaler, ok := retval.Interface().(Unmarshaler); ok {
-			FactoryFunc(unmarshaler)
 			return true, unmarshaler.UnmarshalFlag(val)
 		}
 	}

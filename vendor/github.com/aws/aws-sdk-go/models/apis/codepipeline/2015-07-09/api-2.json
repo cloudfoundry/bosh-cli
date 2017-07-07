@@ -8,7 +8,8 @@
     "serviceAbbreviation":"CodePipeline",
     "serviceFullName":"AWS CodePipeline",
     "signatureVersion":"v4",
-    "targetPrefix":"CodePipeline_20150709"
+    "targetPrefix":"CodePipeline_20150709",
+    "uid":"codepipeline-2015-07-09"
   },
   "operations":{
     "AcknowledgeJob":{
@@ -198,6 +199,20 @@
       "output":{"shape":"ListActionTypesOutput"},
       "errors":[
         {"shape":"ValidationException"},
+        {"shape":"InvalidNextTokenException"}
+      ]
+    },
+    "ListPipelineExecutions":{
+      "name":"ListPipelineExecutions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListPipelineExecutionsInput"},
+      "output":{"shape":"ListPipelineExecutionsOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"PipelineNotFoundException"},
         {"shape":"InvalidNextTokenException"}
       ]
     },
@@ -487,13 +502,13 @@
     },
     "ActionConfigurationQueryableValue":{
       "type":"string",
-      "max":20,
+      "max":50,
       "min":1,
       "pattern":"[a-zA-Z0-9_-]+"
     },
     "ActionConfigurationValue":{
       "type":"string",
-      "max":500,
+      "max":1000,
       "min":1
     },
     "ActionContext":{
@@ -1191,6 +1206,22 @@
         "nextToken":{"shape":"NextToken"}
       }
     },
+    "ListPipelineExecutionsInput":{
+      "type":"structure",
+      "required":["pipelineName"],
+      "members":{
+        "pipelineName":{"shape":"PipelineName"},
+        "maxResults":{"shape":"MaxResults"},
+        "nextToken":{"shape":"NextToken"}
+      }
+    },
+    "ListPipelineExecutionsOutput":{
+      "type":"structure",
+      "members":{
+        "pipelineExecutionSummaries":{"shape":"PipelineExecutionSummaryList"},
+        "nextToken":{"shape":"NextToken"}
+      }
+    },
     "ListPipelinesInput":{
       "type":"structure",
       "members":{
@@ -1206,6 +1237,11 @@
     },
     "MaxBatchSize":{
       "type":"integer",
+      "min":1
+    },
+    "MaxResults":{
+      "type":"integer",
+      "max":100,
       "min":1
     },
     "MaximumArtifactCount":{
@@ -1295,6 +1331,19 @@
         "Superseded",
         "Failed"
       ]
+    },
+    "PipelineExecutionSummary":{
+      "type":"structure",
+      "members":{
+        "pipelineExecutionId":{"shape":"PipelineExecutionId"},
+        "status":{"shape":"PipelineExecutionStatus"},
+        "startTime":{"shape":"Timestamp"},
+        "lastUpdateTime":{"shape":"Timestamp"}
+      }
+    },
+    "PipelineExecutionSummaryList":{
+      "type":"list",
+      "member":{"shape":"PipelineExecutionSummary"}
     },
     "PipelineList":{
       "type":"list",
