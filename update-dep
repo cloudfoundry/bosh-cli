@@ -8,6 +8,7 @@ if [  $# -ne 1 ]; then
 	exit 1
 fi
 
+GOPATH=${VARIABLE:-"$HOME/go"}
 package_name=$1
 
 go get -d ${package_name}
