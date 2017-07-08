@@ -16,6 +16,7 @@ type ArchiveImpl struct {
 	prepFiles        []File
 	additionalChunks []string
 	releaseDirPath   string
+	followSymlinks   bool
 
 	fingerprinter    Fingerprinter
 	compressor       boshcmd.Compressor
@@ -25,9 +26,7 @@ type ArchiveImpl struct {
 }
 
 func NewArchiveImpl(
-	files []File,
-	prepFiles []File,
-	additionalChunks []string,
+	args ArchiveFactoryArgs,
 	releaseDirPath string,
 	fingerprinter Fingerprinter,
 	compressor boshcmd.Compressor,
@@ -36,9 +35,10 @@ func NewArchiveImpl(
 	fs boshsys.FileSystem,
 ) ArchiveImpl {
 	return ArchiveImpl{
-		files:            files,
-		prepFiles:        prepFiles,
-		additionalChunks: additionalChunks,
+		files:            args.Files,
+		prepFiles:        args.PrepFiles,
+		additionalChunks: args.Chunks,
+		followSymlinks:   args.FollowSymlinks,
 		releaseDirPath:   releaseDirPath,
 
 		fingerprinter:    fingerprinter,
@@ -152,7 +152,22 @@ func (a ArchiveImpl) copyFile(sourceFile File, stagingDir string) error {
 		return err
 	}
 
-	err = a.fs.Chmod(dstDir, sourceDirStat.Mode())
+	sourceDirMode := sourceDirStat.Mode()
+
+	isSourceDirSymlink := sourceDirStat.Mode()&os.ModeSymlink != 0
+	if isSourceDirSymlink && a.followSymlinks {
+		symlinkTarget, err := filepath.EvalSymlinks(filepath.Dir(sourceFile.Path))
+		if err != nil {
+			return err
+		}
+		statResult, err := a.fs.Lstat(symlinkTarget)
+		if err != nil {
+			return err
+		}
+		sourceDirMode = statResult.Mode()
+	}
+
+	err = a.fs.Chmod(dstDir, sourceDirMode)
 	if err != nil {
 		return err
 	}
@@ -162,23 +177,34 @@ func (a ArchiveImpl) copyFile(sourceFile File, stagingDir string) error {
 		return err
 	}
 
-	if sourceFileStat.Mode()&os.ModeSymlink != 0 {
-		symlinkTarget, err := a.fs.Readlink(sourceFile.Path)
-		if err != nil {
-			return err
-		}
+	isSymlink := sourceFileStat.Mode()&os.ModeSymlink != 0
+	sourceFilePath := sourceFile.Path
 
-		return a.fs.Symlink(symlinkTarget, dstPath)
-	} else {
-		err = a.fs.CopyFile(sourceFile.Path, dstPath)
-		if err != nil {
-			return err
-		}
+	if isSymlink {
+		if a.followSymlinks {
+			symlinkTarget, err := a.fs.ReadAndFollowLink(sourceFilePath)
+			if err != nil {
+				return err
+			}
+			sourceFilePath = symlinkTarget
+		} else {
+			symlinkTarget, err := a.fs.Readlink(sourceFilePath)
+			if err != nil {
+				return err
+			}
 
-		// Be very explicit about changing permissions for copied file
-		// Only pay attention to whether the source file is executable
-		return a.fs.Chmod(dstPath, getFilePerms(sourceFileStat))
+			return a.fs.Symlink(symlinkTarget, dstPath)
+		}
 	}
+
+	err = a.fs.CopyFile(sourceFilePath, dstPath)
+	if err != nil {
+		return err
+	}
+
+	// Be very explicit about changing permissions for copied file
+	// Only pay attention to whether the source file is executable
+	return a.fs.Chmod(dstPath, getFilePerms(sourceFileStat))
 }
 
 func getFilePerms(stat os.FileInfo) os.FileMode {
@@ -197,5 +223,5 @@ func (a ArchiveImpl) buildStagingArchive(stagingDir string) Archive {
 	}
 
 	// Initialize with bare minimum deps so that fingerprinting can be performed
-	return NewArchiveImpl(stagingFiles, nil, a.additionalChunks, "", a.fingerprinter, nil, nil, nil, nil)
+	return NewArchiveImpl(ArchiveFactoryArgs{Files: stagingFiles, Chunks: a.additionalChunks}, "", a.fingerprinter, nil, nil, nil, nil)
 }
