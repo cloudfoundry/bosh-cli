@@ -19,12 +19,16 @@ var _ = Describe("FingerprinterImpl", func() {
 		digestCalculator *fakecrypto.FakeDigestCalculator
 		fs               *fakesys.FakeFileSystem
 		fingerprinter    FingerprinterImpl
+		followSymlinks   bool
 	)
 
 	BeforeEach(func() {
 		digestCalculator = fakecrypto.NewFakeDigestCalculator()
 		fs = fakesys.NewFakeFileSystem()
-		fingerprinter = NewFingerprinterImpl(digestCalculator, fs)
+	})
+
+	JustBeforeEach(func() {
+		fingerprinter = NewFingerprinterImpl(digestCalculator, fs, followSymlinks)
 	})
 
 	Context("successfully creating a fingerprint", func() {
@@ -132,34 +136,75 @@ var _ = Describe("FingerprinterImpl", func() {
 		Expect(err.Error()).To(ContainSubstring("Generated fingerprint contains unexpected characters 'whatTheAlgorithmIsThat!:asdfasdfasdfasdf'"))
 	})
 
-	It("Includes symlink target in fingerprint calculation", func() {
-		files := []File{
-			NewFile(filepath.Join("/", "tmp", "regular"), filepath.Join("/", "tmp")),
-			NewFile(filepath.Join("/", "tmp", "symlink"), filepath.Join("/", "tmp")),
-		}
-
-		fs.WriteFileString(filepath.Join("/", "tmp", "regular"), "")
-		fs.Symlink("nothing", filepath.Join("/", "tmp", "symlink"))
-
-		digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-			filepath.Join("/", "tmp", "regular"): fakecrypto.CalculateInput{DigestStr: "regular-sha1"},
+	Context("when following symlinks", func() {
+		BeforeEach(func() {
+			followSymlinks = true
 		})
 
-		chunks := []string{
-			"v2", // version
-			"regular", "regular-sha1", "100644",
-			"symlink", "symlink-target-sha1", "symlink",
-			"chunk1", ",chunk2", // sorted chunks
-		}
+		It("Includes symlink target in fingerprint calculation", func() {
+			files := []File{
+				NewFile(filepath.Join("/", "tmp", "regular"), filepath.Join("/", "tmp")),
+				NewFile(filepath.Join("/", "tmp", "symlink"), filepath.Join("/", "tmp")),
+			}
 
-		digestCalculator.CalculateStringInputs = map[string]string{
-			"nothing":                "symlink-target-sha1",
-			strings.Join(chunks, ""): "fp",
-		}
+			fs.WriteFileString(filepath.Join("/", "tmp", "regular"), "")
+			fs.Symlink(filepath.Join("/", "tmp", "regular"), filepath.Join("/", "tmp", "symlink"))
 
-		fp, err := fingerprinter.Calculate(files, []string{"chunk2", "chunk1"})
-		Expect(err).ToNot(HaveOccurred())
-		Expect(fp).To(Equal("fp"))
+			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
+				filepath.Join("/", "tmp", "regular"): fakecrypto.CalculateInput{DigestStr: "regular-sha1"},
+			})
+
+			chunks := []string{
+				"v2", // version
+				"regular", "regular-sha1", "100644",
+				"symlink", "regular-sha1", "100644",
+				"chunk1", ",chunk2", // sorted chunks
+			}
+
+			digestCalculator.CalculateStringInputs = map[string]string{
+				strings.Join(chunks, ""): "fp",
+			}
+
+			fp, err := fingerprinter.Calculate(files, []string{"chunk2", "chunk1"})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fp).To(Equal("fp"))
+		})
+	})
+
+	Context("when not following symlinks", func() {
+		BeforeEach(func() {
+			followSymlinks = false
+		})
+
+		It("Includes symlink target in fingerprint calculation", func() {
+			files := []File{
+				NewFile(filepath.Join("/", "tmp", "regular"), filepath.Join("/", "tmp")),
+				NewFile(filepath.Join("/", "tmp", "symlink"), filepath.Join("/", "tmp")),
+			}
+
+			fs.WriteFileString(filepath.Join("/", "tmp", "regular"), "")
+			fs.Symlink("nothing", filepath.Join("/", "tmp", "symlink"))
+
+			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
+				filepath.Join("/", "tmp", "regular"): fakecrypto.CalculateInput{DigestStr: "regular-sha1"},
+			})
+
+			chunks := []string{
+				"v2", // version
+				"regular", "regular-sha1", "100644",
+				"symlink", "symlink-target-sha1", "symlink",
+				"chunk1", ",chunk2", // sorted chunks
+			}
+
+			digestCalculator.CalculateStringInputs = map[string]string{
+				"nothing":                "symlink-target-sha1",
+				strings.Join(chunks, ""): "fp",
+			}
+
+			fp, err := fingerprinter.Calculate(files, []string{"chunk2", "chunk1"})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fp).To(Equal("fp"))
+		})
 	})
 
 	It("returns error if stating file fails", func() {

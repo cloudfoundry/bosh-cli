@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"syscall"
 
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
@@ -47,10 +48,15 @@ var _ = Describe("Archive", func() {
 			compressor = fakecmd.NewFakeCompressor()
 			cmdRunner = fakesys.NewFakeCmdRunner()
 			fs = fakesys.NewFakeFileSystem()
+			archiveFactoryArgs := ArchiveFactoryArgs{
+				Files:          []File{NewFile(filepath.Join("/", "tmp", "file"), filepath.Join("/", "tmp"))},
+				PrepFiles:      []File{NewFile(filepath.Join("/", "tmp", "prep-file"), filepath.Join("/", "tmp"))},
+				Chunks:         []string{"chunk"},
+				FollowSymlinks: false,
+			}
+
 			archive = NewArchiveImpl(
-				[]File{NewFile(filepath.Join("/", "tmp", "file"), filepath.Join("/", "tmp"))},
-				[]File{NewFile(filepath.Join("/", "tmp", "prep-file"), filepath.Join("/", "tmp"))},
-				[]string{"chunk"},
+				archiveFactoryArgs,
 				releaseDirPath,
 				fingerprinter,
 				compressor,
@@ -88,15 +94,39 @@ var _ = Describe("Archive", func() {
 
 			compressor       boshcmd.Compressor
 			digestCalculator bicrypto.DigestCalculator
+			followSymlinks   bool
+			existingUmask    int
 		)
 
 		BeforeEach(func() {
+			followSymlinks = false
+			existingUmask = syscall.Umask(0)
+		})
+
+		JustBeforeEach(func() {
 			releaseDirPath := filepath.Join("/", "tmp", "release")
 
 			suffix, err := boshuuid.NewGenerator().Generate()
 			Expect(err).ToNot(HaveOccurred())
 
 			uniqueDir = filepath.Join("/", "tmp", suffix)
+
+			/*
+				Create a file system with the following structure:
+					/
+				 ├── file1
+				 ├── dir (directory)
+				 │   ├── file2
+				 │   ├── file3
+				 │   ├── symlink-dir-target (directory)
+				 │   │   └── file4
+				 │   ├── symlink-dir -> symlink-dir-target
+				 │   ├── symlink-file -> ../file1
+				 │   └── symlink-file-missing -> nonexistant-file
+				 ├── run-build-dir
+				 ├── run-release-dir
+				 └── run-file3
+			*/
 
 			logger := boshlog.NewLogger(boshlog.LevelNone)
 			fs = boshsys.NewOsFileSystemWithStrictTempRoot(logger)
@@ -110,7 +140,7 @@ var _ = Describe("Archive", func() {
 			err = fs.Chmod(filepath.Join(uniqueDir, "file1"), os.FileMode(0600))
 			Expect(err).ToNot(HaveOccurred())
 
-			err = fs.MkdirAll(filepath.Join(uniqueDir, "dir"), os.FileMode(0777))
+			err = fs.MkdirAll(filepath.Join(uniqueDir, "dir"), os.FileMode(0755))
 			Expect(err).ToNot(HaveOccurred())
 
 			err = fs.WriteFileString(filepath.Join(uniqueDir, "dir", "file2"), "file2")
@@ -125,14 +155,19 @@ var _ = Describe("Archive", func() {
 			err = fs.MkdirAll(filepath.Join(uniqueDir, "dir", "symlink-dir-target"), os.FileMode(0744))
 			Expect(err).ToNot(HaveOccurred())
 
+			err = fs.WriteFileString(filepath.Join(uniqueDir, "dir", "symlink-dir-target", "file4"), "file4")
+			Expect(err).ToNot(HaveOccurred())
+
 			err = fs.Symlink("symlink-dir-target", filepath.Join(uniqueDir, "dir", "symlink-dir"))
 			Expect(err).ToNot(HaveOccurred())
 
 			err = fs.Symlink("../file1", filepath.Join(uniqueDir, "dir", "symlink-file"))
 			Expect(err).ToNot(HaveOccurred())
 
-			err = fs.Symlink("nonexistant-file", filepath.Join(uniqueDir, "dir", "symlink-file-missing"))
-			Expect(err).ToNot(HaveOccurred())
+			if !followSymlinks {
+				err = fs.Symlink("nonexistant-file", filepath.Join(uniqueDir, "dir", "symlink-file-missing"))
+				Expect(err).ToNot(HaveOccurred())
+			}
 
 			err = fs.WriteFileString(filepath.Join(uniqueDir, "run-build-dir"), "echo -n $BUILD_DIR > build-dir")
 			Expect(err).ToNot(HaveOccurred())
@@ -144,25 +179,38 @@ var _ = Describe("Archive", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			digestCalculator = bicrypto.NewDigestCalculator(fs, []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1})
-			fingerprinter := NewFingerprinterImpl(digestCalculator, fs)
+			fingerprinter := NewFingerprinterImpl(digestCalculator, fs, followSymlinks)
 			cmdRunner := boshsys.NewExecCmdRunner(logger)
 			compressor = boshcmd.NewTarballCompressor(cmdRunner, fs)
 
-			archive = NewArchiveImpl(
+			files :=
 				[]File{
 					NewFile(filepath.Join(uniqueDir, "file1"), uniqueDir),
 					NewFile(filepath.Join(uniqueDir, "dir", "file2"), uniqueDir),
 					NewFile(filepath.Join(uniqueDir, "dir", "file3"), uniqueDir),
 					NewFile(filepath.Join(uniqueDir, "dir", "symlink-file"), uniqueDir),
-					NewFile(filepath.Join(uniqueDir, "dir", "symlink-file-missing"), uniqueDir),
-					NewFile(filepath.Join(uniqueDir, "dir", "symlink-dir"), uniqueDir),
-				},
-				[]File{
+				}
+
+			if followSymlinks {
+				files = append(files, NewFile(filepath.Join(uniqueDir, "dir", "symlink-dir", "file4"), uniqueDir))
+			} else {
+				files = append(files, NewFile(filepath.Join(uniqueDir, "dir", "symlink-dir"), uniqueDir))
+				files = append(files, NewFile(filepath.Join(uniqueDir, "dir", "symlink-file-missing"), uniqueDir))
+			}
+
+			archiveFactoryArgs := ArchiveFactoryArgs{
+				Files: files,
+				PrepFiles: []File{
 					NewFile(filepath.Join(uniqueDir, "run-build-dir"), uniqueDir),
 					NewFile(filepath.Join(uniqueDir, "run-release-dir"), uniqueDir),
 					NewFile(filepath.Join(uniqueDir, "run-file3"), uniqueDir),
 				},
-				[]string{"chunk"},
+				Chunks:         []string{"chunk"},
+				FollowSymlinks: followSymlinks,
+			}
+
+			archive = NewArchiveImpl(
+				archiveFactoryArgs,
 				releaseDirPath,
 				fingerprinter,
 				compressor,
@@ -176,6 +224,7 @@ var _ = Describe("Archive", func() {
 			if fs != nil {
 				_ = fs.RemoveAll(uniqueDir)
 			}
+			syscall.Umask(existingUmask)
 		})
 
 		modeAsStr := func(m os.FileMode) string {
@@ -247,6 +296,35 @@ var _ = Describe("Archive", func() {
 				Expect(fs.FileExists(filepath.Join(decompPath, "run-build-dir"))).To(BeFalse())
 				Expect(fs.FileExists(filepath.Join(decompPath, "run-release-dir"))).To(BeFalse())
 			}
+		})
+
+		Context("when following symlinks", func() {
+			BeforeEach(func() {
+				followSymlinks = true
+			})
+
+			It("copies the contents of the symlink", func() {
+				archivePath, archiveSHA1, err := archive.Build("1e18c219903f57abe1d28730660fe387e077f378")
+				Expect(err).ToNot(HaveOccurred())
+
+				actualArchiveSHA1, err := digestCalculator.Calculate(archivePath)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(actualArchiveSHA1).To(Equal(archiveSHA1))
+
+				decompPath, err := fs.TempDir("test-resource")
+				Expect(err).ToNot(HaveOccurred())
+
+				err = compressor.DecompressFileToDir(archivePath, decompPath, boshcmd.CompressorOptions{})
+				Expect(err).ToNot(HaveOccurred())
+
+				// Copies the contents of the specified symlinks
+				Expect(fs.ReadFileString(filepath.Join(decompPath, "dir", "symlink-file"))).To(Equal("file1"))
+
+				stat, err := fs.Stat(filepath.Join(decompPath, "dir", "symlink-dir"))
+				Expect(err).ToNot(HaveOccurred())
+				Expect(modeAsStr(stat.Mode())).To(Equal("020000000744")) // 02... is for directory
+				Expect(fs.ReadFileString(filepath.Join(decompPath, "dir", "symlink-dir", "file4"))).To(Equal("file4"))
+			})
 		})
 	})
 })

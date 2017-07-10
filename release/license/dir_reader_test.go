@@ -15,20 +15,22 @@ import (
 
 var _ = Describe("DirReaderImpl", func() {
 	var (
-		collectedFiles     []File
-		collectedPrepFiles []File
-		collectedChunks    []string
-		archive            *fakeres.FakeArchive
-		fs                 *fakesys.FakeFileSystem
-		reader             DirReader
+		collectedFiles          []File
+		collectedPrepFiles      []File
+		collectedChunks         []string
+		collectedFollowSymlinks bool
+		archive                 *fakeres.FakeArchive
+		fs                      *fakesys.FakeFileSystem
+		reader                  DirReader
 	)
 
 	BeforeEach(func() {
 		archive = &fakeres.FakeArchive{}
-		archiveFactory := func(files, prepFiles []File, chunks []string) Archive {
-			collectedFiles = files
-			collectedPrepFiles = prepFiles
-			collectedChunks = chunks
+		archiveFactory := func(args ArchiveFactoryArgs) Archive {
+			collectedFiles = args.Files
+			collectedPrepFiles = args.PrepFiles
+			collectedChunks = args.Chunks
+			collectedFollowSymlinks = args.FollowSymlinks
 			return archive
 		}
 		fs = fakesys.NewFakeFileSystem()
@@ -54,6 +56,7 @@ var _ = Describe("DirReaderImpl", func() {
 
 			Expect(collectedPrepFiles).To(BeEmpty())
 			Expect(collectedChunks).To(BeEmpty())
+			Expect(collectedFollowSymlinks).To(BeFalse())
 		})
 
 		It("returns a license and notice collected from directory", func() {

@@ -25,7 +25,7 @@ func (r DirReaderImpl) Read(path string) (*Job, error) {
 		return nil, bosherr.WrapErrorf(err, "Collecting job files")
 	}
 
-	archive := r.archiveFactory(files, nil, nil)
+	archive := r.archiveFactory(ArchiveFactoryArgs{Files: files, FollowSymlinks: true})
 
 	fp, err := archive.Fingerprint()
 	if err != nil {

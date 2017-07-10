@@ -12,7 +12,14 @@ type Archive interface {
 	Build(expectedFp string) (string, string, error)
 }
 
-type ArchiveFunc func([]File, []File, []string) Archive
+type ArchiveFunc func(args ArchiveFactoryArgs) Archive
+
+type ArchiveFactoryArgs struct {
+	Files          []File
+	PrepFiles      []File
+	Chunks         []string
+	FollowSymlinks bool
+}
 
 //go:generate counterfeiter . ArchiveIndex
 
