@@ -416,6 +416,47 @@ bad-sha-blob.tgz:
 				Expect(err).To(MatchError("Syncing blobs: Removing unknown blob: failed to remove " + filepath.Join("/", "dir", "blobs", "extra-blob.tgz")))
 			})
 		})
+
+		Context("when a symlink exists", func() {
+			It("returns an error", func() {
+
+				missingFilePath := filepath.Join("/", "dir", ".blobs", "does-not-exist")
+				symlink := filepath.Join("/", "dir", "blobs", "fake-symlink")
+
+				fs.Symlink(missingFilePath, symlink)
+
+				fs.SetGlob(filepath.Join("/", "dir", "blobs", "**", "*"), []string{symlink})
+
+				fs.RegisterOpenFile(symlink, &fakesys.FakeFile{
+					Stats: &fakesys.FakeFileStats{
+						FileType:      fakesys.FakeFileTypeFile,
+						FileMode:      os.FileMode(os.ModeSymlink),
+						SymlinkTarget: missingFilePath,
+					},
+				})
+
+				err := act(1)
+				Expect(err).To(MatchError("Bailing because symlinks found in blobs directory. If switching from CLI v1, please use the `reset-release` command."))
+			})
+		})
+
+		Context("when no symlink exists", func() {
+			It("returns false", func() {
+				existingFilePath := filepath.Join("/", "dir", "blobs", "does-exist")
+
+				fs.SetGlob(filepath.Join("/", "dir", "blobs", "**", "*"), []string{existingFilePath})
+
+				fs.RegisterOpenFile(existingFilePath, &fakesys.FakeFile{
+					Stats: &fakesys.FakeFileStats{
+						FileType: fakesys.FakeFileTypeFile,
+						FileMode: os.FileMode(os.ModeDir),
+					},
+				})
+
+				err := act(1)
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
 	})
 
 	Describe("TrackBlob", func() {
