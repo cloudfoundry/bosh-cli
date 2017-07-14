@@ -32,6 +32,9 @@ ADD version sha /tmp/
 RUN chmod a+x /tmp/install-go.sh
 RUN cd /tmp && ./install-go.sh && rm install-go.sh deps-golang-from-docker-files
 
+# for parsing any json you may encounter
+sudo apt-get install jq
+
 # lifecycle ssh test
 RUN apt-get install -y sshpass && apt-get clean
 
