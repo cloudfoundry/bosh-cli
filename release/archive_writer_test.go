@@ -54,6 +54,7 @@ var _ = Describe("ArchiveWriter", func() {
 			release.ManifestReturns(boshman.Manifest{
 				Name:               "name",
 				Version:            "ver",
+				SourceRepoUrl:      "source-repo-url",
 				CommitHash:         "commit",
 				UncommittedChanges: true,
 				Jobs: []boshman.JobRef{
@@ -93,6 +94,7 @@ var _ = Describe("ArchiveWriter", func() {
 			compressor.CompressSpecificFilesInDirCallBack = func() {
 				Expect(fs.ReadFileString(filepath.Join("/", "staging-release", "release.MF"))).To(Equal(`name: name
 version: ver
+source_repo_url: source-repo-url
 commit_hash: commit
 uncommitted_changes: true
 jobs:

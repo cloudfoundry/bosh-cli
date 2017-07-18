@@ -56,6 +56,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 			release = &fakerel.FakeRelease{
 				NameStub:               func() string { return "rel" },
 				VersionStub:            func() string { return "ver" },
+				SourceRepoUrlStub:      func() string { return "source-repo-url" },
 				CommitHashWithMarkStub: func(string) string { return "commit" },
 
 				SetNameStub:    func(name string) { release.NameReturns(name) },
@@ -86,6 +87,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Source Repo Url"),
 						boshtbl.NewHeader("Commit Hash"),
 					},
 
@@ -93,6 +95,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 						{
 							boshtbl.NewValueString("rel"),
 							boshtbl.NewValueString("ver"),
+							boshtbl.NewValueString("source-repo-url"),
 							boshtbl.NewValueString("commit"),
 						},
 					},
@@ -128,6 +131,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 						Header: []boshtbl.Header{
 							boshtbl.NewHeader("Name"),
 							boshtbl.NewHeader("Version"),
+							boshtbl.NewHeader("Source Repo Url"),
 							boshtbl.NewHeader("Commit Hash"),
 							boshtbl.NewHeader("Archive"),
 						},
@@ -136,6 +140,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 							{
 								boshtbl.NewValueString("rel"),
 								boshtbl.NewValueString("ver"),
+								boshtbl.NewValueString("source-repo-url"),
 								boshtbl.NewValueString("commit"),
 								boshtbl.NewValueString("/tarball-destination.tgz"),
 							},
@@ -196,12 +201,14 @@ var _ = Describe("CreateReleaseCmd", func() {
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Source Repo Url"),
 						boshtbl.NewHeader("Commit Hash"),
 					},
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("default-rel-name"),
 							boshtbl.NewValueString("next-dev+ver"),
+							boshtbl.NewValueString("source-repo-url"),
 							boshtbl.NewValueString("commit"),
 						},
 					},
@@ -230,12 +237,14 @@ var _ = Describe("CreateReleaseCmd", func() {
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Source Repo Url"),
 						boshtbl.NewHeader("Commit Hash"),
 					},
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("custom-name"),
 							boshtbl.NewValueString("custom-ver"),
+							boshtbl.NewValueString("source-repo-url"),
 							boshtbl.NewValueString("commit"),
 						},
 					},
@@ -269,12 +278,14 @@ var _ = Describe("CreateReleaseCmd", func() {
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Source Repo Url"),
 						boshtbl.NewHeader("Commit Hash"),
 					},
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("default-rel-name"),
 							boshtbl.NewValueString("ts-ver"),
+							boshtbl.NewValueString("source-repo-url"),
 							boshtbl.NewValueString("commit"),
 						},
 					},
@@ -311,12 +322,14 @@ var _ = Describe("CreateReleaseCmd", func() {
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Source Repo Url"),
 						boshtbl.NewHeader("Commit Hash"),
 					},
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("default-rel-name"),
 							boshtbl.NewValueString("next-final+ver"),
+							boshtbl.NewValueString("source-repo-url"),
 							boshtbl.NewValueString("commit"),
 						},
 					},
@@ -353,12 +366,14 @@ var _ = Describe("CreateReleaseCmd", func() {
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Source Repo Url"),
 						boshtbl.NewHeader("Commit Hash"),
 					},
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("default-rel-name"),
 							boshtbl.NewValueString("custom-ver"),
+							boshtbl.NewValueString("source-repo-url"),
 							boshtbl.NewValueString("commit"),
 						},
 					},
@@ -395,6 +410,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Source Repo Url"),
 						boshtbl.NewHeader("Commit Hash"),
 						boshtbl.NewHeader("Archive"),
 					},
@@ -402,6 +418,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 						{
 							boshtbl.NewValueString("default-rel-name"),
 							boshtbl.NewValueString("next-final+ver"),
+							boshtbl.NewValueString("source-repo-url"),
 							boshtbl.NewValueString("commit"),
 							boshtbl.NewValueString("/archive-path"),
 						},

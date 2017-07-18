@@ -273,6 +273,7 @@ cloud_provider:
 			cpiRelease := birel.NewRelease(
 				"fake-cpi-release-name",
 				"1.1",
+				"source-repo-url",
 				"commit",
 				false,
 				[]*bireljob.Job{job},
@@ -817,6 +818,7 @@ cloud_provider:
 				otherRelease := birel.NewRelease(
 					"fake-other-release-name",
 					"1.2",
+					"source-repo-url",
 					"commit",
 					false,
 					[]*bireljob.Job{job},

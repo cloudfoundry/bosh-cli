@@ -18,6 +18,7 @@ type ReleaseImpl struct {
 
 	currentlyDeployed bool
 
+	sourceRepoUrl      string
 	commitHash         string
 	uncommittedChanges bool
 
@@ -44,6 +45,8 @@ func (r ReleaseImpl) CommitHashWithMark(suffix string) string {
 	}
 	return r.commitHash
 }
+
+func (r ReleaseImpl) SourceRepoUrl() string { return r.sourceRepoUrl }
 
 func (r *ReleaseImpl) Jobs() ([]Job, error) {
 	r.fetch()
@@ -152,6 +155,7 @@ func (d DirectorImpl) Releases() ([]Release, error) {
 
 				currentlyDeployed: relVerResp.CurrentlyDeployed,
 
+				sourceRepoUrl:      relVerResp.SourceRepoUrl,
 				commitHash:         relVerResp.CommitHash,
 				uncommittedChanges: relVerResp.UncommittedChanges,
 			}

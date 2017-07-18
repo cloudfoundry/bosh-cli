@@ -44,6 +44,7 @@ var _ = Describe("FinalizeReleaseCmd", func() {
 			release = &fakerel.FakeRelease{
 				NameStub:               func() string { return "rel" },
 				VersionStub:            func() string { return "ver" },
+				SourceRepoUrlStub:      func() string { return "source-repo-url" },
 				CommitHashWithMarkStub: func(string) string { return "commit" },
 
 				SetNameStub:    func(name string) { release.NameReturns(name) },
@@ -76,11 +77,12 @@ var _ = Describe("FinalizeReleaseCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-				Header: []boshtbl.Header{boshtbl.NewHeader("Name"), boshtbl.NewHeader("Version"), boshtbl.NewHeader("Commit Hash")},
+				Header: []boshtbl.Header{boshtbl.NewHeader("Name"), boshtbl.NewHeader("Version"), boshtbl.NewHeader("Source Repo Url"), boshtbl.NewHeader("Commit Hash")},
 				Rows: [][]boshtbl.Value{
 					{
 						boshtbl.NewValueString("rel"),
 						boshtbl.NewValueString("next-final+ver"),
+						boshtbl.NewValueString("source-repo-url"),
 						boshtbl.NewValueString("commit"),
 					},
 				},
@@ -114,11 +116,12 @@ var _ = Describe("FinalizeReleaseCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-				Header: []boshtbl.Header{boshtbl.NewHeader("Name"), boshtbl.NewHeader("Version"), boshtbl.NewHeader("Commit Hash")},
+				Header: []boshtbl.Header{boshtbl.NewHeader("Name"), boshtbl.NewHeader("Version"), boshtbl.NewHeader("Source Repo Url"), boshtbl.NewHeader("Commit Hash")},
 				Rows: [][]boshtbl.Value{
 					{
 						boshtbl.NewValueString("custom-name"),
 						boshtbl.NewValueString("custom-ver"),
+						boshtbl.NewValueString("source-repo-url"),
 						boshtbl.NewValueString("commit"),
 					},
 				},

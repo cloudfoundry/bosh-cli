@@ -13,11 +13,12 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
+	"os"
+
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshrelman "github.com/cloudfoundry/bosh-cli/release/manifest"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
-	"os"
 )
 
 var _ = Describe("create-release command", func() {
@@ -109,6 +110,7 @@ var _ = Describe("create-release command", func() {
 			Expect(removeSHA1s(contents)).To(Equal(
 				"name: " + relName + `
 version: 0+dev.1
+source_repo_url: non-git
 commit_hash: non-git
 uncommitted_changes: false
 jobs:
@@ -168,6 +170,7 @@ license:
 			Expect(removeSHA1s(contents)).To(Equal(
 				"name: " + relName + `
 version: 0+dev.2
+source_repo_url: non-git
 commit_hash: non-git
 uncommitted_changes: false
 jobs:

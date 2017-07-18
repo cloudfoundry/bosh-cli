@@ -13,6 +13,7 @@ type release struct {
 	name    string
 	version string
 
+	sourceRepoUrl      string
 	commitHash         string
 	uncommittedChanges bool
 
@@ -28,6 +29,7 @@ type release struct {
 func NewRelease(
 	name string,
 	version string,
+	sourceRepoUrl string,
 	commitHash string,
 	uncommittedChanges bool,
 	jobs []*bireljob.Job,
@@ -41,6 +43,7 @@ func NewRelease(
 		name:    name,
 		version: version,
 
+		sourceRepoUrl:      sourceRepoUrl,
 		commitHash:         commitHash,
 		uncommittedChanges: uncommittedChanges,
 
@@ -60,8 +63,9 @@ func (r *release) SetName(name string) { r.name = name }
 func (r *release) Version() string           { return r.version }
 func (r *release) SetVersion(version string) { r.version = version }
 
-func (r *release) SetCommitHash(commitHash string)    { r.commitHash = commitHash }
-func (r *release) SetUncommittedChanges(changes bool) { r.uncommittedChanges = changes }
+func (r *release) SetSourceRepoUrl(sourceRepoUrl string) { r.sourceRepoUrl = sourceRepoUrl }
+func (r *release) SetCommitHash(commitHash string)       { r.commitHash = commitHash }
+func (r *release) SetUncommittedChanges(changes bool)    { r.uncommittedChanges = changes }
 
 func (r *release) CommitHashWithMark(suffix string) string {
 	if r.uncommittedChanges {
@@ -69,6 +73,8 @@ func (r *release) CommitHashWithMark(suffix string) string {
 	}
 	return r.commitHash
 }
+
+func (r *release) SourceRepoUrl() string { return r.sourceRepoUrl }
 
 func (r *release) Jobs() []*bireljob.Job                         { return r.jobs }
 func (r *release) Packages() []*birelpkg.Package                 { return r.packages }
@@ -139,6 +145,7 @@ func (r *release) Manifest() birelman.Manifest {
 		Name:    r.name,
 		Version: r.version,
 
+		SourceRepoUrl:      r.sourceRepoUrl,
 		CommitHash:         r.commitHash,
 		UncommittedChanges: r.uncommittedChanges,
 
@@ -204,6 +211,7 @@ func (r *release) CopyWith(jobs []*bireljob.Job, packages []*birelpkg.Package, l
 		name:    r.name,
 		version: r.version,
 
+		sourceRepoUrl:      r.sourceRepoUrl,
 		commitHash:         r.commitHash,
 		uncommittedChanges: r.uncommittedChanges,
 

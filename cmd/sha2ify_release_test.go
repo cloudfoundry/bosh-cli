@@ -87,6 +87,7 @@ var _ = Describe("Sha2ifyRelease", func() {
 			fakeSha256Release := &fakerel.FakeRelease{}
 			fakeSha256Release.NameReturns("custom-name")
 			fakeSha256Release.VersionReturns("custom-ver")
+			fakeSha256Release.SourceRepoUrlReturns("source-repo-url")
 			fakeSha256Release.CommitHashWithMarkReturns("commit")
 			fakeSha256Release.JobsReturns(jobs)
 			fakeSha256Release.PackagesReturns(pkgs)
@@ -144,6 +145,7 @@ var _ = Describe("Sha2ifyRelease", func() {
 				Header: []boshtbl.Header{
 					boshtbl.NewHeader("Name"),
 					boshtbl.NewHeader("Version"),
+					boshtbl.NewHeader("Source Repo Url"),
 					boshtbl.NewHeader("Commit Hash"),
 					boshtbl.NewHeader("Archive"),
 				},
@@ -151,6 +153,7 @@ var _ = Describe("Sha2ifyRelease", func() {
 					{
 						boshtbl.NewValueString("custom-name"),
 						boshtbl.NewValueString("custom-ver"),
+						boshtbl.NewValueString("source-repo-url"),
 						boshtbl.NewValueString("commit"),
 						boshtbl.NewValueString("/some/release_256.tgz"),
 					},

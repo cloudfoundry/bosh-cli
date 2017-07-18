@@ -19,12 +19,14 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 		Header: []boshtbl.Header{
 			boshtbl.NewHeader("Name"),
 			boshtbl.NewHeader("Version"),
+			boshtbl.NewHeader("Source Repo Url"),
 			boshtbl.NewHeader("Commit Hash"),
 		},
 		Rows: [][]boshtbl.Value{
 			{
 				boshtbl.NewValueString(t.Release.Name()),
 				boshtbl.NewValueString(t.Release.Version()),
+				boshtbl.NewValueString(t.Release.SourceRepoUrl()),
 				boshtbl.NewValueString(t.Release.CommitHashWithMark("+")),
 			},
 		},

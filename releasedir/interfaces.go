@@ -58,6 +58,7 @@ type Generator interface {
 
 type GitRepo interface {
 	Init() error
+	SourceRepoUrl() (string, error)
 	LastCommitSHA() (string, error)
 	MustNotBeDirty(force bool) (dirty bool, err error)
 }

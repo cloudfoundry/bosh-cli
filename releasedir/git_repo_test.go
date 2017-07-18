@@ -66,6 +66,46 @@ releases/**/*.tgz
 		})
 	})
 
+	Describe("SourceRepoUrl", func() {
+		cmd := "git remote get-url origin"
+
+		It("returns remote url", func() {
+			cmdRunner.AddCmdResult(cmd, fakesys.FakeCmdResult{
+				Stdout: "www.example.com\n",
+			})
+			commit, err := gitRepo.SourceRepoUrl()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(commit).To(Equal("www.example.com"))
+
+			Expect(cmdRunner.RunComplexCommands).To(Equal([]boshsys.Command{{
+				Name:       "git",
+				Args:       []string{"remote", "get-url", "origin"},
+				WorkingDir: "/dir",
+			}}))
+		})
+
+		It("returns 'non-git' if it's not a git repo", func() {
+			cmdRunner.AddCmdResult(cmd, fakesys.FakeCmdResult{
+				Stderr: "fatal: Not a git repository: '/dir/.git'\n",
+				Error:  errors.New("fake-err"),
+			})
+			commit, err := gitRepo.SourceRepoUrl()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(commit).To(Equal("non-git"))
+		})
+
+		It("returns 'no-git-remote' if there is no remote", func() {
+			cmdRunner.AddCmdResult(cmd, fakesys.FakeCmdResult{
+				Stderr: "fatal: No such remote 'non-exsiting-remote\n",
+				Error:  errors.New("fake-err"),
+			})
+			commit, err := gitRepo.SourceRepoUrl()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(commit).To(Equal("no-git-remote"))
+		})
+
+	})
+
 	Describe("LastCommitSHA", func() {
 		cmd := "git rev-parse --short HEAD"
 

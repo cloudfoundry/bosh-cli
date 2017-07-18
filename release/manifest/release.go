@@ -12,6 +12,7 @@ type Manifest struct {
 	Name    string `yaml:"name"`
 	Version string `yaml:"version"`
 
+	SourceRepoUrl      string `yaml:"source_repo_url"`
 	CommitHash         string `yaml:"commit_hash"`
 	UncommittedChanges bool   `yaml:"uncommitted_changes"`
 

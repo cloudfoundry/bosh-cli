@@ -37,6 +37,8 @@ type Release interface {
 	Version() string
 	SetVersion(string)
 
+	SetSourceRepoUrl(string)
+	SourceRepoUrl() string
 	CommitHashWithMark(string) string
 	SetCommitHash(string)
 	SetUncommittedChanges(bool)

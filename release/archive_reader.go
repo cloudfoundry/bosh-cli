@@ -111,6 +111,7 @@ func (r ArchiveReader) newRelease(manifest boshman.Manifest, extractPath string)
 		name:    manifest.Name,
 		version: manifest.Version,
 
+		sourceRepoUrl:      manifest.SourceRepoUrl,
 		commitHash:         manifest.CommitHash,
 		uncommittedChanges: manifest.UncommittedChanges,
 

@@ -43,6 +43,7 @@ type ReleaseVersionResp struct {
 
 	CurrentlyDeployed bool `json:"currently_deployed"`
 
+	SourceRepoUrl      string `json:"source_repo_url"`
 	CommitHash         string `json:"commit_hash"`
 	UncommittedChanges bool   `json:"uncommitted_changes"`
 }

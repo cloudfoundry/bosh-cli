@@ -535,6 +535,7 @@ var _ = Describe("FSGenerator", func() {
 				return true, nil
 			}
 
+			gitRepo.SourceRepoUrlReturns("source-repo-url", nil)
 			gitRepo.LastCommitSHAReturns("commit", nil)
 
 			blobsDir.SyncBlobsStub = func(numOfParallelWorkers int) error {
@@ -560,6 +561,7 @@ var _ = Describe("FSGenerator", func() {
 
 			Expect(expectedRelease.SetNameArgsForCall(0)).To(Equal("rel1"))
 			Expect(expectedRelease.SetVersionArgsForCall(0)).To(Equal("1.1"))
+			Expect(expectedRelease.SetSourceRepoUrlArgsForCall(0)).To(Equal("source-repo-url"))
 			Expect(expectedRelease.SetCommitHashArgsForCall(0)).To(Equal("commit"))
 			Expect(expectedRelease.SetUncommittedChangesArgsForCall(0)).To(BeTrue())
 

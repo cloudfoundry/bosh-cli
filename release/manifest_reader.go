@@ -72,6 +72,7 @@ func (r ManifestReader) newRelease(manifest boshman.Manifest) (Release, error) {
 		name:    manifest.Name,
 		version: manifest.Version,
 
+		sourceRepoUrl:      manifest.SourceRepoUrl,
 		commitHash:         manifest.CommitHash,
 		uncommittedChanges: manifest.UncommittedChanges,
 

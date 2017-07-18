@@ -49,6 +49,27 @@ releases/**/*.tgz
 	return nil
 }
 
+func (r FSGitRepo) SourceRepoUrl() (string, error) {
+	cmd := boshsys.Command{
+		Name:       "git",
+		Args:       []string{"remote", "get-url", "origin"},
+		WorkingDir: r.dirPath,
+	}
+	stdout, stderr, _, err := r.runner.RunComplexCommand(cmd)
+	if err != nil {
+		if r.isNotGitRepo(stderr) {
+			return "non-git", nil
+		}
+		if strings.Contains(stderr, "No such remote") {
+			return "no-git-remote", nil
+		}
+
+		return "", bosherr.WrapErrorf(err, "Checking remote repository URL")
+	}
+
+	return strings.TrimSpace(stdout), nil
+}
+
 func (r FSGitRepo) LastCommitSHA() (string, error) {
 	cmd := boshsys.Command{
 		Name:       "git",

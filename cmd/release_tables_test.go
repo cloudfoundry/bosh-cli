@@ -49,6 +49,7 @@ var _ = Describe("ReleaseTables", func() {
 				NameStub:    func() string { return "rel" },
 				VersionStub: func() string { return "ver" },
 
+				SourceRepoUrlStub:      func() string { return "source-repo-url" },
 				CommitHashWithMarkStub: func(string) string { return "commit" },
 
 				JobsStub:     func() []*boshjob.Job { return []*boshjob.Job{job} },
@@ -63,6 +64,7 @@ var _ = Describe("ReleaseTables", func() {
 				Header: []boshtbl.Header{
 					boshtbl.NewHeader("Name"),
 					boshtbl.NewHeader("Version"),
+					boshtbl.NewHeader("Source Repo Url"),
 					boshtbl.NewHeader("Commit Hash"),
 					boshtbl.NewHeader("Archive"),
 				},
@@ -70,6 +72,7 @@ var _ = Describe("ReleaseTables", func() {
 					{
 						boshtbl.NewValueString("rel"),
 						boshtbl.NewValueString("ver"),
+						boshtbl.NewValueString("source-repo-url"),
 						boshtbl.NewValueString("commit"),
 						boshtbl.NewValueString("/archive-path"),
 					},
@@ -124,12 +127,14 @@ var _ = Describe("ReleaseTables", func() {
 				Header: []boshtbl.Header{
 					boshtbl.NewHeader("Name"),
 					boshtbl.NewHeader("Version"),
+					boshtbl.NewHeader("Source Repo Url"),
 					boshtbl.NewHeader("Commit Hash"),
 				},
 				Rows: [][]boshtbl.Value{
 					{
 						boshtbl.NewValueString("rel"),
 						boshtbl.NewValueString("ver"),
+						boshtbl.NewValueString("source-repo-url"),
 						boshtbl.NewValueString("commit"),
 					},
 				},
