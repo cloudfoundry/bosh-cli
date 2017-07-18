@@ -230,6 +230,8 @@ var _ = Describe("VM", func() {
 				"deployment":     "some-deployment",
 				"instance_group": "some-instance-group",
 				"index":          "0",
+				"custom_tag1":    "custom_value1",
+				"custom_tag2":    "custom_value2",
 			}
 			vm = NewVMWithMetadata(
 				"fake-vm-cid",
@@ -269,6 +271,8 @@ var _ = Describe("VM", func() {
 					"instance_group": "some-instance-group",
 					"instance_index": "0",
 					"attached_at":    "2016-11-10T23:00:00Z",
+					"custom_tag1":    "custom_value1",
+					"custom_tag2":    "custom_value2",
 				}
 
 				err := vm.AttachDisk(disk)

@@ -279,13 +279,16 @@ func (vm *vm) GetState() (biagentclient.AgentState, error) {
 }
 
 func (vm *vm) createDiskMetadata() bicloud.DiskMetadata {
-	diskMetadata := bicloud.DiskMetadata{
-		"director":       vm.metadata["director"],
-		"deployment":     vm.metadata["deployment"],
-		"instance_group": vm.metadata["instance_group"],
-		"instance_index": vm.metadata["index"],
-		"attached_at":    vm.timeService.Now().Format(time.RFC3339),
+	diskMetadata := make(bicloud.DiskMetadata)
+	for key, value := range vm.metadata {
+		diskMetadata[key] = value
 	}
+
+	delete(diskMetadata, "job")
+	delete(diskMetadata, "index")
+	delete(diskMetadata, "created_at")
+	diskMetadata["instance_index"] = vm.metadata["index"]
+	diskMetadata["attached_at"] = vm.timeService.Now().Format(time.RFC3339)
 
 	return diskMetadata
 }
