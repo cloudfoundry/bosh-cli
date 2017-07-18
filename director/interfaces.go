@@ -53,6 +53,9 @@ type Director interface {
 	LatestRuntimeConfig(name string) (RuntimeConfig, error)
 	UpdateRuntimeConfig(name string, manifest []byte) error
 
+	LatestTaskConfig() (TaskConfig, error)
+	UpdateTaskConfig([]byte) error
+
 	FindOrphanDisk(string) (OrphanDisk, error)
 	OrphanDisks() ([]OrphanDisk, error)
 	OrphanDisk(string) error

@@ -122,6 +122,12 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *CancelTaskOpts:
 		return NewCancelTaskCmd(c.director()).Run(*opts)
 
+	case *TaskConfigOpts:
+		return NewTaskConfigCmd(deps.UI, c.director()).Run()
+
+	case *UpdateTaskConfigOpts:
+		return NewUpdateTaskConfigCmd(deps.UI, c.director()).Run(*opts)
+
 	case *DeploymentOpts:
 		sessionFactory := func(config cmdconf.Config) Session {
 			return NewSessionFromOpts(c.BoshOpts, config, deps.UI, true, false, deps.FS, deps.Logger)

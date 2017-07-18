@@ -55,6 +55,10 @@ type BoshOpts struct {
 	Tasks      TasksOpts      `command:"tasks"       alias:"ts" description:"List running or recent tasks"`
 	CancelTask CancelTaskOpts `command:"cancel-task" alias:"ct" description:"Cancel task at its next checkpoint"`
 
+	// Task Config
+	TaskConfig       TaskConfigOpts       `command:"task-config"        description:"Show current task config"`
+	UpdateTaskConfig UpdateTaskConfigOpts `command:"update-task-config" description:"Update current task config"`
+
 	// Misc
 	Locks   LocksOpts   `command:"locks"    description:"List current locks"`
 	CleanUp CleanUpOpts `command:"clean-up" description:"Clean up releases, stemcells, disks, etc."`
@@ -246,6 +250,21 @@ type TasksOpts struct {
 type CancelTaskOpts struct {
 	Args TaskArgs `positional-args:"true" required:"true"`
 	cmd
+}
+
+type TaskConfigOpts struct {
+	cmd
+}
+
+type UpdateTaskConfigOpts struct {
+	Args UpdateTaskConfigArgs `positional-args:"true" required:"true"`
+	VarFlags
+	OpsFlags
+	cmd
+}
+
+type UpdateTaskConfigArgs struct {
+	TaskConfig FileBytesArg `positional-arg-name:"PATH" description:"Path to a Task config file"`
 }
 
 // Misc

@@ -267,6 +267,22 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("TaskConfig", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("TaskConfig", opts)).To(Equal(
+					`command:"task-config" description:"Show current task config"`,
+				))
+			})
+		})
+
+		Describe("UpdateTaskConfig", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("UpdateTaskConfig", opts)).To(Equal(
+					`command:"update-task-config" description:"Update current task config"`,
+				))
+			})
+		})
+
 		Describe("Locks", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Locks", opts)).To(Equal(
