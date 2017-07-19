@@ -27,7 +27,7 @@ var _ = Describe("JSONUI", func() {
 	type tableResp struct {
 		Content string
 		Header  map[string]string
-		Rows    []map[string]string
+		Rows    []map[string]interface{}
 		Notes   []string
 	}
 
@@ -136,7 +136,7 @@ var _ = Describe("JSONUI", func() {
 					{
 						Content: "things",
 						Header:  map[string]string{"header_foo_1": "Header & ( foo )  1 ", "header_2_header_3": "Header-2 header 3"},
-						Rows: []map[string]string{
+						Rows: []map[string]interface{}{
 							{"header_foo_1": "r1c1", "header_2_header_3": "r1c2"},
 							{"header_foo_1": "r2c1", "header_2_header_3": "r2c2"},
 						},
@@ -145,7 +145,7 @@ var _ = Describe("JSONUI", func() {
 					{
 						Content: "things2",
 						Header:  map[string]string{},
-						Rows:    []map[string]string{},
+						Rows:    []map[string]interface{}{},
 					},
 				},
 			}))
@@ -171,7 +171,7 @@ var _ = Describe("JSONUI", func() {
 					{
 						Content: "things",
 						Header:  map[string]string{"col_0": "", "col_1": ""},
-						Rows: []map[string]string{
+						Rows: []map[string]interface{}{
 							{"col_0": "r1c1", "col_1": "r1c2"},
 							{"col_0": "r2c1", "col_1": "r2c2"},
 						},
@@ -209,14 +209,14 @@ var _ = Describe("JSONUI", func() {
 					{
 						Content: "things",
 						Header:  map[string]string{"header1": "Header1", "header2": "Header2"},
-						Rows: []map[string]string{{"header1": "r1c1", "header2": "r1c2"},
+						Rows: []map[string]interface{}{{"header1": "r1c1", "header2": "r1c2"},
 							{"header1": "r2c1", "header2": "r2c2"}},
 						Notes: []string{"note1", "note2"},
 					},
 					{
 						Content: "things2",
 						Header:  map[string]string{},
-						Rows:    []map[string]string{},
+						Rows:    []map[string]interface{}{},
 					},
 				},
 			}))
@@ -283,12 +283,71 @@ var _ = Describe("JSONUI", func() {
 					{
 						Content: "things",
 						Header:  map[string]string{"header1": "Header1", "header2": "Header2"},
-						Rows: []map[string]string{{"header1": "first-col", "header2": "r1c2"},
+						Rows: []map[string]interface{}{{"header1": "first-col", "header2": "r1c2"},
 							{"header1": "first-col", "header2": "r2c2"}},
 						Notes: []string{"note1", "note2"},
 					},
 				},
 			}))
+		})
+
+		It("excludes an empty column value", func() {
+			table := Table{
+				Content: "things",
+				Header:  []Header{NewHeader("Header1")},
+				Rows: [][]Value{
+					{ValueString{"something"}},
+					{ValueString{""}},
+				},
+				Notes: []string{"note1"},
+			}
+
+			ui.PrintTable(table)
+			tableOutput := finalOutput()
+
+			Expect(tableOutput.Tables).To(HaveLen(1))
+			Expect(tableOutput.Tables[0].Rows[0]).To(HaveKeyWithValue("header1", "something"))
+			Expect(tableOutput.Tables[0].Rows[1]).To(HaveLen(0))
+		})
+
+		It("prints an ValueInt as proper JSON", func() {
+			table := Table{
+				Content: "things",
+				Header:  []Header{NewHeader("Header1")},
+				Rows: [][]Value{
+					{ValueInt{99}},
+				},
+				Notes: []string{"note1"},
+			}
+
+			ui.PrintTable(table)
+			tableOutput := finalOutput()
+
+			Expect(tableOutput.Tables).To(HaveLen(1))
+			Expect(tableOutput.Tables[0].Rows).To(HaveLen(1))
+			Expect(tableOutput.Tables[0].Rows[0]).To(HaveKeyWithValue("header1", 99.0))
+		})
+
+		It("prints an ValueInterface as proper JSON", func() {
+			data := struct {
+				A string
+			}{"something"}
+
+			table := Table{
+				Content: "things",
+				Header:  []Header{NewHeader("Header1")},
+				Rows: [][]Value{
+					{ValueInterface{data}},
+				},
+				Notes: []string{"note1"},
+			}
+
+			ui.PrintTable(table)
+			tableOutput := finalOutput()
+
+			Expect(tableOutput.Tables).To(HaveLen(1))
+			Expect(tableOutput.Tables[0].Rows).To(HaveLen(1))
+			Expect(tableOutput.Tables[0].Rows[0]).To(HaveKeyWithValue("header1", HaveKeyWithValue("A", "something")))
 		})
 	})
 
