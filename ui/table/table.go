@@ -7,6 +7,32 @@ import (
 	"strings"
 )
 
+func (t *Table) SetColumnVisibility(headers []Header) error {
+	for i, _ := range t.Header {
+		t.Header[i].Hidden = true
+	}
+
+	for _, header := range headers {
+		found := false
+		foundHeaders := []string{}
+
+		for i, tableHeader := range t.Header {
+			if tableHeader.Key == header.Key {
+				t.Header[i].Hidden = false
+				found = true
+				break
+			}
+			foundHeaders = append(foundHeaders, "'"+tableHeader.Key+"'")
+		}
+
+		if !found {
+			return fmt.Errorf("Failed to find header '%s' (found headers: %s)", header.Key, strings.Join(foundHeaders, ", "))
+		}
+	}
+
+	return nil
+}
+
 func (t Table) AsRows() [][]Value {
 	rows := [][]Value{}
 

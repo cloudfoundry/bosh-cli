@@ -608,6 +608,21 @@ v1     |v2     |
 		})
 	})
 
+	Describe("SetColumnVisibility", func() {
+		It("returns an error when given a header that does not exist", func() {
+			table := Table{
+				Header: []Header{
+					NewHeader("header1"),
+					NewHeader("header2"),
+				},
+			}
+
+			err := table.SetColumnVisibility([]Header{NewHeader("non-matching-header")})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Failed to find header 'non_matching_header' (found headers: 'header1', 'header2')"))
+		})
+	})
+
 	Describe("AddColumn", func() {
 		It("returns an updated table with the new column", func() {
 			table := Table{

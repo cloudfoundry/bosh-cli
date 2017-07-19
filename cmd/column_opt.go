@@ -9,8 +9,6 @@ type ColumnOpt struct {
 }
 
 func (a *ColumnOpt) UnmarshalFlag(arg string) error {
-	a.Key = table.KeyifyHeader(arg)
-	a.Hidden = false
-
+	a.Header = table.NewHeader(arg)
 	return nil
 }

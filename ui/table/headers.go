@@ -1,46 +1,18 @@
 package table
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 )
 
 func NewHeader(title string) Header {
 	return Header{
-		Key:    KeyifyHeader(title),
-		Title:  title,
-		Hidden: false,
+		Key:   keyifyHeader(title),
+		Title: title,
 	}
 }
 
-func (t *Table) SetColumnVisibility(headers []Header) error {
-	for i, _ := range t.Header {
-		t.Header[i].Hidden = true
-	}
-
-	for _, header := range headers {
-		found := false
-		foundHeaders := []string{}
-
-		for i, tableHeader := range t.Header {
-			if tableHeader.Key == header.Key || tableHeader.Title == header.Title {
-				t.Header[i].Hidden = false
-				found = true
-				break
-			}
-			foundHeaders = append(foundHeaders, "'"+tableHeader.Key+"'")
-		}
-
-		if !found {
-			return fmt.Errorf("Failed to find header '%s' (found headers: %s)", header.Key, strings.Join(foundHeaders, ", "))
-		}
-	}
-
-	return nil
-}
-
-func KeyifyHeader(header string) string {
+func keyifyHeader(header string) string {
 	pieces := []string{}
 
 	for _, s := range strings.Split(cleanHeader(header), " ") {
