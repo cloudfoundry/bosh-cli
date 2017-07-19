@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	. "github.com/cloudfoundry/bosh-cli/ui/table"
-	"strconv"
 )
 
 type jsonUI struct {
@@ -71,7 +71,7 @@ func (ui *jsonUI) PrintTable(table Table) {
 				continue
 			}
 
-			if val.Key == string(UNKNOWN_HEADER_MAPPING) {
+			if val.Key == "" {
 				table.Header[i].Key = strconv.Itoa(i)
 			}
 
@@ -79,6 +79,7 @@ func (ui *jsonUI) PrintTable(table Table) {
 		}
 	} else if len(table.AsRows()) > 0 {
 		var rawHeaders []Header
+
 		for i, _ := range table.AsRows()[0] {
 			val := Header{
 				Key:    fmt.Sprintf("col_%d", i),
@@ -87,6 +88,7 @@ func (ui *jsonUI) PrintTable(table Table) {
 			header[val.Key] = val.Title
 			rawHeaders = append(rawHeaders, val)
 		}
+
 		table.Header = rawHeaders
 	}
 

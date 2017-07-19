@@ -4,51 +4,34 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-cli/ui/table"
+	. "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
-var _ = Describe("Headers", func() {
-	Describe("KeyifyHeader", func() {
-		It("converts alphanumeric to lowercase", func() {
-			keyifyHeader := table.KeyifyHeader("Header1")
-			Expect(keyifyHeader).To(Equal("header1"))
-		})
-
-		It("removes '(' and ')'", func() {
-			keyifyHeader := table.KeyifyHeader("Header(1)")
-			Expect(keyifyHeader).To(Equal("header1"))
-		})
-
-		Context("given a header that only contains non-alphanumeric and alphanumeric", func() {
-			It("should non-alphanumeric to underscore", func() {
-				keyifyHeader := table.KeyifyHeader("FOO!@AND#$BAR")
-				Expect(keyifyHeader).To(Equal("foo_and_bar"))
-			})
-		})
-
-		Context("given a header that only contains non-alphanumeric", func() {
-			It("converts to underscore", func() {
-				keyifyHeader := table.KeyifyHeader("!@#$")
-				Expect(keyifyHeader).To(Equal("_"))
-			})
-
-			It("converts empty header to underscore", func() {
-				keyifyHeader := table.KeyifyHeader("")
-				Expect(keyifyHeader).To(Equal("_"))
-			})
-		})
+var _ = Describe("KeyifyHeader", func() {
+	It("converts alphanumeric to lowercase", func() {
+		Expect(KeyifyHeader("Header1")).To(Equal("header1"))
 	})
 
-	Describe("SetColumnVisibility", func() {
-		Context("when given a header that does not exist", func() {
-			It("returns an error", func() {
-				t := table.Table{
-					Header: []table.Header{table.NewHeader("header1")},
-				}
+	It("removes '(' and ')'", func() {
+		Expect(KeyifyHeader("Header(1)")).To(Equal("header1"))
+	})
 
-				err := t.SetColumnVisibility([]table.Header{table.NewHeader("non-matching-header")})
-				Expect(err).To(HaveOccurred())
-			})
-		})
+	It("lowercases alphanum and converts non-alphanum to underscores", func() {
+		Expect(KeyifyHeader("!@#$")).To(Equal(""))
+		Expect(KeyifyHeader("FOO!@AND#$BAR")).To(Equal("foo_and_bar"))
+	})
+})
+
+var _ = Describe("SetColumnVisibility", func() {
+	It("returns an error when given a header that does not exist", func() {
+		t := Table{
+			Header: []Header{
+				NewHeader("header1"),
+				NewHeader("header2"),
+			},
+		}
+		err := t.SetColumnVisibility([]Header{NewHeader("non-matching-header")})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Failed to find header 'non_matching_header' (found headers: 'header1', 'header2')"))
 	})
 })

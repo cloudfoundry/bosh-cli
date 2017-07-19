@@ -6,8 +6,6 @@ import (
 	"unicode"
 )
 
-const UNKNOWN_HEADER_MAPPING rune = '_'
-
 func NewHeader(title string) Header {
 	return Header{
 		Key:    KeyifyHeader(title),
@@ -17,25 +15,25 @@ func NewHeader(title string) Header {
 }
 
 func (t *Table) SetColumnVisibility(headers []Header) error {
-	for tableHeaderIdx, _ := range t.Header {
-		t.Header[tableHeaderIdx].Hidden = true
+	for i, _ := range t.Header {
+		t.Header[i].Hidden = true
 	}
 
 	for _, header := range headers {
-		foundHeader := false
+		found := false
+		foundHeaders := []string{}
 
-		for tableHeaderIdx, tableHeader := range t.Header {
+		for i, tableHeader := range t.Header {
 			if tableHeader.Key == header.Key || tableHeader.Title == header.Title {
-				t.Header[tableHeaderIdx].Hidden = false
-				foundHeader = true
-
+				t.Header[i].Hidden = false
+				found = true
 				break
 			}
+			foundHeaders = append(foundHeaders, "'"+tableHeader.Key+"'")
 		}
 
-		if !foundHeader {
-			// key may be empty; if title is present
-			return fmt.Errorf("Failed to find header: %s", header.Key)
+		if !found {
+			return fmt.Errorf("Failed to find header '%s' (found headers: %s)", header.Key, strings.Join(foundHeaders, ", "))
 		}
 	}
 
@@ -51,12 +49,7 @@ func KeyifyHeader(header string) string {
 		}
 	}
 
-	result := strings.Join(pieces, "_")
-	if len(result) == 0 {
-		return string(UNKNOWN_HEADER_MAPPING)
-	}
-
-	return result
+	return strings.Join(pieces, "_")
 }
 
 func cleanHeader(header string) string {
