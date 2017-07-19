@@ -38,8 +38,9 @@ func (t EmptyValue) Compare(Value) int { return 0 }
 
 func NewValueStrings(s []string) ValueStrings { return ValueStrings{S: s} }
 
-func (t ValueStrings) String() string { return strings.Join(t.S, "\n") }
-func (t ValueStrings) Value() Value   { return t }
+func (t ValueStrings) String() string   { return strings.Join(t.S, "\n") }
+func (t ValueStrings) Value() Value     { return t }
+func (t ValueStrings) Raw() interface{} { return t.S }
 
 func (t ValueStrings) Compare(other Value) int {
 	otherS := other.(ValueStrings).S
@@ -108,8 +109,9 @@ func (t ValueTime) Compare(other Value) int {
 
 func NewValueBool(b bool) ValueBool { return ValueBool{B: b} }
 
-func (t ValueBool) String() string { return fmt.Sprintf("%t", t.B) }
-func (t ValueBool) Value() Value   { return t }
+func (t ValueBool) String() string   { return fmt.Sprintf("%t", t.B) }
+func (t ValueBool) Value() Value     { return t }
+func (t ValueBool) Raw() interface{} { return t.B }
 
 func (t ValueBool) Compare(other Value) int {
 	otherB := other.(ValueBool).B

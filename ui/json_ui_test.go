@@ -310,25 +310,7 @@ var _ = Describe("JSONUI", func() {
 			Expect(tableOutput.Tables[0].Rows[1]).To(HaveLen(0))
 		})
 
-		It("prints an ValueInt as proper JSON", func() {
-			table := Table{
-				Content: "things",
-				Header:  []Header{NewHeader("Header1")},
-				Rows: [][]Value{
-					{ValueInt{99}},
-				},
-				Notes: []string{"note1"},
-			}
-
-			ui.PrintTable(table)
-			tableOutput := finalOutput()
-
-			Expect(tableOutput.Tables).To(HaveLen(1))
-			Expect(tableOutput.Tables[0].Rows).To(HaveLen(1))
-			Expect(tableOutput.Tables[0].Rows[0]).To(HaveKeyWithValue("header1", 99.0))
-		})
-
-		It("prints an ValueInterface as proper JSON", func() {
+		It("prints values as JSON if possible (Raw interface{})", func() {
 			data := struct {
 				A string
 			}{"something"}
@@ -337,6 +319,7 @@ var _ = Describe("JSONUI", func() {
 				Content: "things",
 				Header:  []Header{NewHeader("Header1")},
 				Rows: [][]Value{
+					{ValueInt{99}},
 					{ValueInterface{data}},
 				},
 				Notes: []string{"note1"},
@@ -346,8 +329,9 @@ var _ = Describe("JSONUI", func() {
 			tableOutput := finalOutput()
 
 			Expect(tableOutput.Tables).To(HaveLen(1))
-			Expect(tableOutput.Tables[0].Rows).To(HaveLen(1))
-			Expect(tableOutput.Tables[0].Rows[0]).To(HaveKeyWithValue("header1", HaveKeyWithValue("A", "something")))
+			Expect(tableOutput.Tables[0].Rows).To(HaveLen(2))
+			Expect(tableOutput.Tables[0].Rows[0]).To(HaveKeyWithValue("header1", 99.0))
+			Expect(tableOutput.Tables[0].Rows[1]).To(HaveKeyWithValue("header1", HaveKeyWithValue("A", "something")))
 		})
 	})
 

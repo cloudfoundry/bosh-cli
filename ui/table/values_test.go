@@ -38,6 +38,10 @@ var _ = Describe("ValueStrings", func() {
 		Expect(ValueStrings{[]string{"val1"}}.Value()).To(Equal(ValueStrings{[]string{"val1"}}))
 	})
 
+	It("returns strings array as raw", func() {
+		Expect(ValueStrings{[]string{"val1"}}.Raw()).To(Equal([]string{"val1"}))
+	})
+
 	It("returns int based on string compare", func() {
 		Expect(ValueStrings{[]string{"val1"}}.Compare(ValueStrings{[]string{"val1"}})).To(Equal(0))
 		Expect(ValueStrings{[]string{"val1"}}.Compare(ValueStrings{[]string{"val1", "val2"}})).To(Equal(-1))
@@ -52,6 +56,10 @@ var _ = Describe("ValueInt", func() {
 
 	It("returns itself", func() {
 		Expect(ValueInt{1}.Value()).To(Equal(ValueInt{1}))
+	})
+
+	It("returns int as raw", func() {
+		Expect(ValueInt{1}.Raw()).To(Equal(1))
 	})
 
 	It("returns int based on int compare", func() {
@@ -112,6 +120,11 @@ var _ = Describe("ValueBool", func() {
 
 	It("returns itself", func() {
 		Expect(ValueBool{true}.Value()).To(Equal(ValueBool{true}))
+	})
+
+	It("returns bool as raw", func() {
+		Expect(ValueBool{true}.Raw()).To(Equal(true))
+		Expect(ValueBool{false}.Raw()).To(Equal(false))
 	})
 
 	It("returns int based on bool compare", func() {
@@ -226,6 +239,11 @@ var _ = Describe("ValueInterface", func() {
 
 	It("returns nil items as blank string", func() {
 		Expect(ValueInterface{I: nil}.String()).To(Equal(""))
+	})
+
+	It("returns actual value as raw", func() {
+		i := map[string]interface{}{"key": "value", "num": 123}
+		Expect(ValueInterface{I: i}.Raw()).To(Equal(i))
 	})
 
 	It("returns an empty map as blank string", func() {
