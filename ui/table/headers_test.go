@@ -8,10 +8,14 @@ import (
 )
 
 var _ = Describe("Headers", func() {
-
 	Describe("KeyifyHeader", func() {
-		It("should convert alphanumeric to lowercase ", func() {
+		It("converts alphanumeric to lowercase", func() {
 			keyifyHeader := table.KeyifyHeader("Header1")
+			Expect(keyifyHeader).To(Equal("header1"))
+		})
+
+		It("removes '(' and ')'", func() {
+			keyifyHeader := table.KeyifyHeader("Header(1)")
 			Expect(keyifyHeader).To(Equal("header1"))
 		})
 
@@ -23,22 +27,21 @@ var _ = Describe("Headers", func() {
 		})
 
 		Context("given a header that only contains non-alphanumeric", func() {
-			It("should convert to underscore", func() {
+			It("converts to underscore", func() {
 				keyifyHeader := table.KeyifyHeader("!@#$")
 				Expect(keyifyHeader).To(Equal("_"))
 			})
 
-			It("should convert empty header to underscore", func() {
+			It("converts empty header to underscore", func() {
 				keyifyHeader := table.KeyifyHeader("")
 				Expect(keyifyHeader).To(Equal("_"))
 			})
 		})
-
 	})
 
 	Describe("SetColumnVisibility", func() {
 		Context("when given a header that does not exist", func() {
-			It("should return an error", func() {
+			It("returns an error", func() {
 				t := table.Table{
 					Header: []table.Header{table.NewHeader("header1")},
 				}

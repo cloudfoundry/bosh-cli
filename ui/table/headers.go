@@ -43,27 +43,30 @@ func (t *Table) SetColumnVisibility(headers []Header) error {
 }
 
 func KeyifyHeader(header string) string {
-	splittedStrings := strings.Split(cleanHeader(header), " ")
-	splittedTrimmedStrings := []string{}
-	for _, s := range splittedStrings {
+	pieces := []string{}
+
+	for _, s := range strings.Split(cleanHeader(header), " ") {
 		if s != "" {
-			splittedTrimmedStrings = append(splittedTrimmedStrings, s)
+			pieces = append(pieces, s)
 		}
 	}
 
-	join := strings.Join(splittedTrimmedStrings, "_")
-	if len(join) == 0 {
+	result := strings.Join(pieces, "_")
+	if len(result) == 0 {
 		return string(UNKNOWN_HEADER_MAPPING)
 	}
-	return join
+
+	return result
 }
 
 func cleanHeader(header string) string {
-	return strings.Map(func(r rune) rune {
+	mapFunc := func(r rune) rune {
 		if unicode.IsLetter(r) || unicode.IsNumber(r) {
 			return unicode.ToLower(r)
-		} else {
-			return ' '
+		} else if r == '(' || r == ')' {
+			return -1
 		}
-	}, header)
+		return ' '
+	}
+	return strings.Map(mapFunc, header)
 }
