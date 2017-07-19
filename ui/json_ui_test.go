@@ -291,25 +291,6 @@ var _ = Describe("JSONUI", func() {
 			}))
 		})
 
-		It("excludes an empty column value", func() {
-			table := Table{
-				Content: "things",
-				Header:  []Header{NewHeader("Header1")},
-				Rows: [][]Value{
-					{ValueString{"something"}},
-					{ValueString{""}},
-				},
-				Notes: []string{"note1"},
-			}
-
-			ui.PrintTable(table)
-			tableOutput := finalOutput()
-
-			Expect(tableOutput.Tables).To(HaveLen(1))
-			Expect(tableOutput.Tables[0].Rows[0]).To(HaveKeyWithValue("header1", "something"))
-			Expect(tableOutput.Tables[0].Rows[1]).To(HaveLen(0))
-		})
-
 		It("prints values as JSON if possible (Raw interface{})", func() {
 			data := struct {
 				A string

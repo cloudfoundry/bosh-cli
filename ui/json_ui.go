@@ -143,7 +143,7 @@ func (ui *jsonUI) stringRows(header []Header, rows [][]Value) []map[string]inter
 		data := map[string]interface{}{}
 
 		for i, col := range row {
-			if header[i].Hidden || col.String() == "" {
+			if header[i].Hidden {
 				continue
 			}
 
