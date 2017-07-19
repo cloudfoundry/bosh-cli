@@ -89,7 +89,7 @@ var _ = Describe("CloudCheckCmd", func() {
 							Content: "problems",
 
 							Header: []boshtbl.Header{
-								boshtbl.NewHeader("#"),
+								boshtbl.NewHeader("ID"),
 								boshtbl.NewHeader("Type"),
 								boshtbl.NewHeader("Description"),
 							},
@@ -169,7 +169,7 @@ var _ = Describe("CloudCheckCmd", func() {
 							{
 								Content: "problems",
 								Header: []boshtbl.Header{
-									boshtbl.NewHeader("#"),
+									boshtbl.NewHeader("ID"),
 									boshtbl.NewHeader("Type"),
 									boshtbl.NewHeader("Description"),
 								},
@@ -218,7 +218,7 @@ var _ = Describe("CloudCheckCmd", func() {
 							Content: "problems",
 
 							Header: []boshtbl.Header{
-								boshtbl.NewHeader("#"),
+								boshtbl.NewHeader("ID"),
 								boshtbl.NewHeader("Type"),
 								boshtbl.NewHeader("Description"),
 							},
@@ -283,7 +283,7 @@ var _ = Describe("CloudCheckCmd", func() {
 							{
 								Content: "problems",
 								Header: []boshtbl.Header{
-									boshtbl.NewHeader("#"),
+									boshtbl.NewHeader("ID"),
 									boshtbl.NewHeader("Type"),
 									boshtbl.NewHeader("Description"),
 								},
@@ -349,8 +349,8 @@ var _ = Describe("CloudCheckCmd", func() {
 
 						Expect(ui.AskedChoiceCalled).To(BeFalse())
 					})
-
 				})
+
 				Context("when some problems do not have a matching resolution", func() {
 					BeforeEach(func() {
 						severalProbs = append(severalProbs, boshdir.Problem{
@@ -422,7 +422,7 @@ var _ = Describe("CloudCheckCmd", func() {
 							{
 								Content: "problems",
 								Header: []boshtbl.Header{
-									boshtbl.NewHeader("#"),
+									boshtbl.NewHeader("ID"),
 									boshtbl.NewHeader("Type"),
 									boshtbl.NewHeader("Description"),
 								},
@@ -503,7 +503,7 @@ var _ = Describe("CloudCheckCmd", func() {
 					Content: "problems",
 
 					Header: []boshtbl.Header{
-						boshtbl.NewHeader("#"),
+						boshtbl.NewHeader("ID"),
 						boshtbl.NewHeader("Type"),
 						boshtbl.NewHeader("Description"),
 					},

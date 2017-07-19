@@ -26,7 +26,7 @@ func (c CloudCheckCmd) Run(opts CloudCheckOpts) error {
 	table := boshtbl.Table{
 		Content: "problems",
 		Header: []boshtbl.Header{
-			boshtbl.NewHeader("#"),
+			boshtbl.NewHeader("ID"),
 			boshtbl.NewHeader("Type"),
 			boshtbl.NewHeader("Description"),
 		},
