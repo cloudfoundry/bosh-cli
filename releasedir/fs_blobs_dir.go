@@ -312,8 +312,7 @@ func (d FSBlobsDir) containsSymlinks() bool {
 
 	for _, file := range files {
 		fileInfo, _ := d.fs.Lstat(file)
-
-		if fileInfo.Mode()&os.ModeSymlink != 0 {
+		if fileInfo != nil && fileInfo.Mode()&os.ModeSymlink != 0 {
 			return true
 		}
 	}

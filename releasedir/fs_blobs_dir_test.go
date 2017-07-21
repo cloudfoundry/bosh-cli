@@ -419,7 +419,6 @@ bad-sha-blob.tgz:
 
 		Context("when a symlink exists", func() {
 			It("returns an error", func() {
-
 				missingFilePath := filepath.Join("/", "dir", ".blobs", "does-not-exist")
 				symlink := filepath.Join("/", "dir", "blobs", "fake-symlink")
 
@@ -441,7 +440,7 @@ bad-sha-blob.tgz:
 		})
 
 		Context("when no symlink exists", func() {
-			It("returns false", func() {
+			It("succeeds", func() {
 				existingFilePath := filepath.Join("/", "dir", "blobs", "does-exist")
 
 				fs.SetGlob(filepath.Join("/", "dir", "blobs", "**", "*"), []string{existingFilePath})
