@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
@@ -98,6 +99,49 @@ var _ = Describe("UpdateCPIConfigCmd", func() {
 			err := act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+
+		It("returns an error if diffing failed", func() {
+			director.DiffCPIConfigReturns(boshdir.ConfigDiff{}, errors.New("Fetching diff result"))
+
+			err := act()
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("gets the diff from the deployment", func() {
+			diff := [][]interface{}{
+				[]interface{}{"some line that stayed", nil},
+				[]interface{}{"some line that was added", "added"},
+				[]interface{}{"some line that was removed", "removed"},
+			}
+
+			expectedDiff := boshdir.NewConfigDiff(diff)
+			director.DiffCPIConfigReturns(expectedDiff, nil)
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(director.DiffCPIConfigCallCount()).To(Equal(1))
+			Expect(ui.Said).To(ContainElement("  some line that stayed\n"))
+			Expect(ui.Said).To(ContainElement("+ some line that was added\n"))
+			Expect(ui.Said).To(ContainElement("- some line that was removed\n"))
+		})
+
+		Context("when NoRedact option is passed", func() {
+			BeforeEach(func() {
+				opts = UpdateCPIConfigOpts{
+					Args: UpdateCPIConfigArgs{
+						CPIConfig: FileBytesArg{Bytes: []byte("cpis: config")},
+					},
+					NoRedact: true,
+				}
+			})
+
+			It("adds redact to api call", func() {
+				director.DiffCPIConfigReturns(boshdir.NewConfigDiff([][]interface{}{}), nil)
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+				_, noRedact := director.DiffCPIConfigArgsForCall(0)
+				Expect(noRedact).To(Equal(true))
+			})
 		})
 	})
 })

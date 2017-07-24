@@ -25,6 +25,13 @@ func (c UpdateCPIConfigCmd) Run(opts UpdateCPIConfigOpts) error {
 		return bosherr.WrapErrorf(err, "Evaluating cpi config")
 	}
 
+	configDiff, err := c.director.DiffCPIConfig(bytes, opts.NoRedact)
+	if err != nil {
+		return err
+	}
+
+	printManifestDiff(c.ui, configDiff.Diff)
+
 	err = c.ui.AskForConfirmation()
 	if err != nil {
 		return err
