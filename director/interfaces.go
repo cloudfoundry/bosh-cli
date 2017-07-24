@@ -49,6 +49,7 @@ type Director interface {
 
 	LatestCPIConfig() (CPIConfig, error)
 	UpdateCPIConfig([]byte) error
+	DiffCPIConfig(manifest []byte, noRedact bool) (ConfigDiff, error)
 
 	LatestRuntimeConfig(name string) (RuntimeConfig, error)
 	UpdateRuntimeConfig(name string, manifest []byte) error

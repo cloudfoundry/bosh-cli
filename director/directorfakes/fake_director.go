@@ -368,6 +368,20 @@ type FakeDirector struct {
 	updateCPIConfigReturnsOnCall map[int]struct {
 		result1 error
 	}
+	DiffCPIConfigStub        func(manifest []byte, noRedact bool) (director.ConfigDiff, error)
+	diffCPIConfigMutex       sync.RWMutex
+	diffCPIConfigArgsForCall []struct {
+		manifest []byte
+		noRedact bool
+	}
+	diffCPIConfigReturns struct {
+		result1 director.ConfigDiff
+		result2 error
+	}
+	diffCPIConfigReturnsOnCall map[int]struct {
+		result1 director.ConfigDiff
+		result2 error
+	}
 	LatestRuntimeConfigStub        func(name string) (director.RuntimeConfig, error)
 	latestRuntimeConfigMutex       sync.RWMutex
 	latestRuntimeConfigArgsForCall []struct {
@@ -1902,6 +1916,63 @@ func (fake *FakeDirector) UpdateCPIConfigReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDirector) DiffCPIConfig(manifest []byte, noRedact bool) (director.ConfigDiff, error) {
+	var manifestCopy []byte
+	if manifest != nil {
+		manifestCopy = make([]byte, len(manifest))
+		copy(manifestCopy, manifest)
+	}
+	fake.diffCPIConfigMutex.Lock()
+	ret, specificReturn := fake.diffCPIConfigReturnsOnCall[len(fake.diffCPIConfigArgsForCall)]
+	fake.diffCPIConfigArgsForCall = append(fake.diffCPIConfigArgsForCall, struct {
+		manifest []byte
+		noRedact bool
+	}{manifestCopy, noRedact})
+	fake.recordInvocation("DiffCPIConfig", []interface{}{manifestCopy, noRedact})
+	fake.diffCPIConfigMutex.Unlock()
+	if fake.DiffCPIConfigStub != nil {
+		return fake.DiffCPIConfigStub(manifest, noRedact)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.diffCPIConfigReturns.result1, fake.diffCPIConfigReturns.result2
+}
+
+func (fake *FakeDirector) DiffCPIConfigCallCount() int {
+	fake.diffCPIConfigMutex.RLock()
+	defer fake.diffCPIConfigMutex.RUnlock()
+	return len(fake.diffCPIConfigArgsForCall)
+}
+
+func (fake *FakeDirector) DiffCPIConfigArgsForCall(i int) ([]byte, bool) {
+	fake.diffCPIConfigMutex.RLock()
+	defer fake.diffCPIConfigMutex.RUnlock()
+	return fake.diffCPIConfigArgsForCall[i].manifest, fake.diffCPIConfigArgsForCall[i].noRedact
+}
+
+func (fake *FakeDirector) DiffCPIConfigReturns(result1 director.ConfigDiff, result2 error) {
+	fake.DiffCPIConfigStub = nil
+	fake.diffCPIConfigReturns = struct {
+		result1 director.ConfigDiff
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) DiffCPIConfigReturnsOnCall(i int, result1 director.ConfigDiff, result2 error) {
+	fake.DiffCPIConfigStub = nil
+	if fake.diffCPIConfigReturnsOnCall == nil {
+		fake.diffCPIConfigReturnsOnCall = make(map[int]struct {
+			result1 director.ConfigDiff
+			result2 error
+		})
+	}
+	fake.diffCPIConfigReturnsOnCall[i] = struct {
+		result1 director.ConfigDiff
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDirector) LatestRuntimeConfig(name string) (director.RuntimeConfig, error) {
 	fake.latestRuntimeConfigMutex.Lock()
 	ret, specificReturn := fake.latestRuntimeConfigReturnsOnCall[len(fake.latestRuntimeConfigArgsForCall)]
@@ -2413,6 +2484,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.latestCPIConfigMutex.RUnlock()
 	fake.updateCPIConfigMutex.RLock()
 	defer fake.updateCPIConfigMutex.RUnlock()
+	fake.diffCPIConfigMutex.RLock()
+	defer fake.diffCPIConfigMutex.RUnlock()
 	fake.latestRuntimeConfigMutex.RLock()
 	defer fake.latestRuntimeConfigMutex.RUnlock()
 	fake.updateRuntimeConfigMutex.RLock()
