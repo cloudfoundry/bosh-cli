@@ -106,4 +106,77 @@ var _ = Describe("Director", func() {
 				"Updating CPI config: Director responded with non-successful status code"))
 		})
 	})
+
+	Describe("DiffCPIConfig", func() {
+		var expectedDiffResponse ConfigDiff
+
+		expectedDiffResponse = ConfigDiff{
+			Diff: [][]interface{}{
+				[]interface{}{"cpis:", nil},
+				[]interface{}{"  name: smurf", "removed"},
+				[]interface{}{"  name: angry-smurf", "added"},
+			},
+		}
+
+		It("diffs the cpi config", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/cpi_configs/diff"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.RespondWith(http.StatusOK, `{"diff":[["cpis:",null],["  name: smurf","removed"],["  name: angry-smurf","added"]]}`),
+				),
+			)
+
+			diff, err := director.DiffCPIConfig([]byte("config"), false)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(diff).To(Equal(expectedDiffResponse))
+		})
+
+		It("returns error if info response in non-200", func() {
+			AppendBadRequest(ghttp.VerifyRequest("POST", "/cpi_configs/diff"), server)
+
+			_, err := director.DiffCPIConfig(nil, false)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(
+				"Fetching diff result: Director responded with non-successful status code"))
+		})
+
+		It("is backwards compatible with directors without the `/diff` endpoint", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/cpi_configs/diff"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.RespondWith(http.StatusNotFound, ""),
+				),
+			)
+
+			diff, err := director.DiffCPIConfig([]byte("config"), false)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(diff).To(Equal(ConfigDiff{}))
+		})
+
+		Context("when 'noRedact' is true", func() {
+			It("does pass redact parameter to director", func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/cpi_configs/diff", "redact=false"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.VerifyHeader(http.Header{
+							"Content-Type": []string{"text/yaml"},
+						}),
+						ghttp.RespondWith(http.StatusOK, `{"diff":[["fake-cpi:",null]]}`),
+					),
+				)
+
+				_, err := director.DiffCPIConfig([]byte("config"), true)
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+	})
 })
