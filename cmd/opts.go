@@ -311,9 +311,6 @@ type UpdateCPIConfigOpts struct {
 	Args UpdateCPIConfigArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
-
-	NoRedact bool `long:"no-redact" description:"Show non-redacted manifest diff"`
-
 	cmd
 }
 
