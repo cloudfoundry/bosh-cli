@@ -123,4 +123,78 @@ var _ = Describe("Director", func() {
 				"Updating runtime config: Director responded with non-successful status code"))
 		})
 	})
+
+	Describe("DiffRuntimeConfig", func() {
+		var expectedDiffResponse ConfigDiff
+
+		expectedDiffResponse = ConfigDiff{
+			Diff: [][]interface{}{
+				[]interface{}{"release:", nil},
+				[]interface{}{"  version: 0.0.1", "removed"},
+				[]interface{}{"  version: 0.0.2", "added"},
+			},
+		}
+
+		It("diffs the runtime config with the given name", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/runtime_configs/diff", "name=rc1"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.RespondWith(http.StatusOK, `{"diff":[["release:",null],["  version: 0.0.1","removed"],["  version: 0.0.2","added"]]}`),
+				),
+			)
+
+			diff, err := director.DiffRuntimeConfig("rc1", []byte("config"), false)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(diff).To(Equal(expectedDiffResponse))
+		})
+
+		It("returns error if info response in non-200", func() {
+			AppendBadRequest(ghttp.VerifyRequest("POST", "/runtime_configs/diff", "name=smurf"), server)
+
+			_, err := director.DiffRuntimeConfig("smurf", nil, false)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(
+				"Fetching diff result: Director responded with non-successful status code"))
+		})
+
+		It("is backwards compatible with directors without the `/diff` endpoint", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/runtime_configs/diff", "name=rc1"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.RespondWith(http.StatusNotFound, ""),
+				),
+			)
+
+			diff, err := director.DiffRuntimeConfig("rc1", []byte("config"), false)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(diff).To(Equal(ConfigDiff{}))
+		})
+
+		Context("when 'noRedact' is true", func() {
+			It("does pass redact parameter to director", func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/runtime_configs/diff", "name=rc1&redact=false"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.VerifyHeader(http.Header{
+							"Content-Type": []string{"text/yaml"},
+						}),
+						ghttp.RespondWith(http.StatusOK, `{"diff":[["fake-release:",null]]}`),
+					),
+				)
+
+				_, err := director.DiffRuntimeConfig("rc1", []byte("config"), true)
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+	})
 })

@@ -1091,6 +1091,12 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("Name", opts)).To(Equal(`long:"name" description:"Runtime-Config name (default: '')" default:""`))
 			})
 		})
+
+		Describe("NoRedact", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("NoRedact", opts)).To(Equal(`long:"no-redact" description:"Show non-redacted manifest diff"`))
+			})
+		})
 	})
 
 	Describe("UpdateRuntimeConfigArgs", func() {
