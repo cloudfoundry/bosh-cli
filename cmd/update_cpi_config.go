@@ -30,7 +30,8 @@ func (c UpdateCPIConfigCmd) Run(opts UpdateCPIConfigOpts) error {
 		return err
 	}
 
-	printManifestDiff(c.ui, configDiff.Diff)
+	diff := NewDiff(configDiff.Diff)
+	diff.Print(c.ui)
 
 	err = c.ui.AskForConfirmation()
 	if err != nil {
