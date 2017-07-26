@@ -1,7 +1,10 @@
 package director
 
 import (
+	"fmt"
 	"net/http"
+
+	gourl "net/url"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
@@ -51,4 +54,29 @@ func (c Client) UpdateCPIConfig(manifest []byte) error {
 	}
 
 	return nil
+}
+
+func (d DirectorImpl) DiffCPIConfig(manifest []byte, noRedact bool) (ConfigDiff, error) {
+	resp, err := d.client.DiffCPIConfig(manifest, noRedact)
+	if err != nil {
+		return ConfigDiff{}, err
+	}
+
+	return NewConfigDiff(resp.Diff), nil
+}
+
+func (c Client) DiffCPIConfig(manifest []byte, noRedact bool) (ConfigDiffResponse, error) {
+	query := gourl.Values{}
+
+	if noRedact {
+		query.Add("redact", "false")
+	}
+
+	path := fmt.Sprintf("/cpi_configs/diff?%s", query.Encode())
+
+	setHeaders := func(req *http.Request) {
+		req.Header.Add("Content-Type", "text/yaml")
+	}
+
+	return c.postConfigDiff(path, manifest, setHeaders)
 }
