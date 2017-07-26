@@ -127,7 +127,7 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 		case event.State == EventStateFailed:
 			r.ui.PrintBlock(fmt.Sprintf(" (%s)", event.DurationSinceStartAsStr()))
 			r.ui.PrintErrorBlock(fmt.Sprintf(
-				"\n         L Task %d | Error: %s", id, event.Data.Error))
+				"\n     %s             L Error: %s", strings.Repeat(" ", len(string(id))), event.Data.Error))
 		}
 	} else {
 		if r.lastGlobalEvent != nil && event.IsWorthKeeping() {
@@ -137,7 +137,7 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 			}
 		}
 
-		prefix := fmt.Sprintf("\n%s | Task %d | ", event.TimeAsHoursStr(), id)
+		prefix := fmt.Sprintf("\nTask %d | %s | ", id, event.TimeAsHoursStr())
 		desc := event.Stage
 
 		if len(event.Tags) > 0 {
@@ -167,7 +167,7 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 			r.ui.PrintBlock(fmt.Sprintf("%s: %s (%s)",
 				desc, event.Task, event.DurationSinceStartAsStr()))
 			r.ui.PrintErrorBlock(fmt.Sprintf(
-				"\n         L Task %d | Error: %s", id, event.Data.Error))
+				"\n     %s             L Error: %s", strings.Repeat(" ", len(string(id))), event.Data.Error))
 
 		case event.Error != nil:
 			r.ui.PrintBlock(prefix)
