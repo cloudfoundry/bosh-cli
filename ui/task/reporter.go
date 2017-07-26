@@ -40,7 +40,7 @@ func (r *ReporterImpl) TaskStarted(id int) {
 	r.Lock()
 	defer r.Unlock()
 
-	if r.lastEventWasTaskStarted() {
+	if len(r.eventMarkers) > 0 {
 		r.ui.EndLinef("")
 	}
 
