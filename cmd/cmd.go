@@ -238,7 +238,8 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *UpdateRuntimeConfigOpts:
 		director := c.director()
-		releaseManager := c.releaseManager(director)
+		parallelUploads := opts.ParallelOpt
+		releaseManager := c.releaseManager(director, parallelUploads)
 		return NewUpdateRuntimeConfigCmd(deps.UI, director, releaseManager).Run(*opts)
 
 	case *ManifestOpts:
@@ -270,7 +271,8 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *DeployOpts:
 		director, deployment := c.directorAndDeployment()
-		releaseManager := c.releaseManager(director)
+		parallelUploads := opts.ParallelOpt
+		releaseManager := c.releaseManager(director, parallelUploads)
 		return NewDeployCmd(deps.UI, deployment, releaseManager).Run(*opts)
 
 	case *StartOpts:
@@ -468,7 +470,7 @@ func (c Cmd) releaseProviders() (boshrel.Provider, boshreldir.Provider) {
 	return releaseProvider, releaseDirProvider
 }
 
-func (c Cmd) releaseManager(director boshdir.Director) ReleaseManager {
+func (c Cmd) releaseManager(director boshdir.Director, parallelUploads int) ReleaseManager {
 	relProv, relDirProv := c.releaseProviders()
 
 	releaseDirFactory := func(dir DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir) {
@@ -488,7 +490,7 @@ func (c Cmd) releaseManager(director boshdir.Director) ReleaseManager {
 	uploadReleaseCmd := NewUploadReleaseCmd(
 		releaseDirFactory, releaseWriter, director, releaseArchiveFactory, c.deps.CmdRunner, c.deps.FS, c.deps.UI)
 
-	return NewReleaseManager(createReleaseCmd, uploadReleaseCmd)
+	return NewReleaseManager(createReleaseCmd, uploadReleaseCmd, parallelUploads)
 }
 
 func (c Cmd) blobsDir(dir DirOrCWDArg) boshreldir.BlobsDir {

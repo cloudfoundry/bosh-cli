@@ -329,8 +329,9 @@ type UpdateRuntimeConfigOpts struct {
 	VarFlags
 	OpsFlags
 
-	NoRedact bool   `long:"no-redact" description:"Show non-redacted manifest diff"`
-	Name     string `long:"name" description:"Runtime-Config name (default: '')" default:""`
+	NoRedact    bool   `long:"no-redact" description:"Show non-redacted manifest diff"`
+	Name        string `long:"name" description:"Runtime-Config name (default: '')" default:""`
+	ParallelOpt int    `long:"parallel" description:"Upload releases from manifest in parallel with given number of nodes (default: 5)" default:"5"`
 
 	cmd
 }
@@ -354,7 +355,8 @@ type DeployOpts struct {
 	VarFlags
 	OpsFlags
 
-	NoRedact bool `long:"no-redact" description:"Show non-redacted manifest diff"`
+	NoRedact    bool `long:"no-redact" description:"Show non-redacted manifest diff"`
+	ParallelOpt int  `long:"parallel" description:"Upload releases from manifest in parallel with given number of nodes (default: 5)" default:"5"`
 
 	Recreate  bool                `long:"recreate"                          description:"Recreate all VMs in deployment"`
 	Fix       bool                `long:"fix"                               description:"Recreate unresponsive instances"`
