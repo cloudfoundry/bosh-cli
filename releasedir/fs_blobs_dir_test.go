@@ -439,6 +439,24 @@ bad-sha-blob.tgz:
 			})
 		})
 
+		Context("when getting the symlink description errors", func() {
+			It("passes the error along", func() {
+				existingFilePath := filepath.Join("/", "dir", "blobs", "does-exist")
+				symlink := filepath.Join("/", "dir", "blobs", "fake-symlink")
+
+				fs.Symlink(existingFilePath, symlink)
+
+				fs.SetGlob(filepath.Join("/", "dir", "blobs", "**", "*"), []string{symlink})
+
+				fs.RegisterOpenFile(symlink, &fakesys.FakeFile{
+					StatErr: errors.New("fake-err"),
+				})
+
+				err := act(1)
+				Expect(err).To(MatchError("Syncing blobs: fake-err"))
+			})
+		})
+
 		Context("when no symlink exists", func() {
 			It("succeeds", func() {
 				existingFilePath := filepath.Join("/", "dir", "blobs", "does-exist")
