@@ -178,7 +178,6 @@ Task 2663 | 19:09:27 | Preparing DNS: Binding DNS (00:00:00)
 Task 2663 | 19:09:27 | Preparing configuration: Binding configuration (00:00:01)
 Task 2663 | 19:09:28 | Updating job job: job/0 (canary) (00:01:07)
                      L Error: 'job/0' is not running after update
-
 Task 2663 | 19:10:35 | Error: 'job/0' is not running after update
 
 Task 2663 Started  Wed Dec 19 19:09:27 UTC 2204
@@ -188,9 +187,11 @@ Task 2663 error
 `))
 		})
 
-		It("renders multiple events", func() {
+		It("renders multiple tasks and multiple events", func() {
 			firstTaskOutput := []string{`
 {"time":7414830567,"stage":"Preparing first deployment","tags":[],"total":1,"task":"Binding releases","index":1,"state":"started","progress":0}
+`,
+				`
 {"time":7414830567,"stage":"Preparing first deployment","tags":[],"total":1,"task":"Binding releases","index":1,"state":"finished","progress":100}
 {"time":7414830567,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"started","progress":0}
 `,
@@ -208,14 +209,17 @@ Task 2663 error
 {"time":7414830569,"stage":"Preparing second package compilation","tags":[],"total":1,"task":"Finding packages to compile","index":1,"state":"finished","progress":100}
 `}
 			reporter.TaskStarted(2663)
-			reporter.TaskStarted(7777)
 			reporter.TaskOutputChunk(2663, []byte(firstTaskOutput[0]))
+			reporter.TaskStarted(7777)
+			reporter.TaskOutputChunk(2663, []byte(firstTaskOutput[1]))
 			reporter.TaskOutputChunk(7777, []byte(secondTaskOutput[0]))
 			reporter.TaskOutputChunk(7777, []byte(secondTaskOutput[1]))
-			reporter.TaskOutputChunk(2663, []byte(firstTaskOutput[1]))
+			reporter.TaskOutputChunk(2663, []byte(firstTaskOutput[2]))
 			reporter.TaskFinished(7777, "state-2")
 			reporter.TaskFinished(2663, "state-1")
 			Expect(outBuf.String()).To(Equal(`Task 2663
+
+Task 2663 | 19:09:27 | Preparing first deployment: Binding releases
 Task 7777
 Task 2663 | 19:09:27 | Preparing first deployment: Binding releases (00:00:00)
 Task 2663 | 19:09:27 | Updating job job: job/0 (canary)
@@ -223,7 +227,6 @@ Task 7777 | 19:09:28 | Preparing second deployment: Binding releases (00:00:00)
 Task 7777 | 19:09:29 | Preparing second package compilation: Finding packages to compile (00:00:00)
 Task 2663 | 19:09:31 | Updating job job: job/0 (canary) (00:00:04)
                      L Error: 'job/0' is not running after update
-
 Task 2663 | 19:09:31 | Error: 'job/0' is not running after update
 
 Task 7777 Started  Wed Dec 19 19:09:28 UTC 2204
@@ -252,9 +255,7 @@ Task 2663 state-1
 			Expect(outBuf.String()).To(Equal(`Task 2663
 
 Task 2663 | 00:41:24 | Deprecation: Ignoring cloud config. Manifest contains 'networks' section.
-
 Task 2663 | 00:41:24 | Error: Failed to find keys in the config server: bool, bool2
-
 Task 2663 | 00:41:24 | Error: Failed to wang chung tonite
 
 Task 2663 Started  Tue Jul 19 00:41:24 UTC 2016

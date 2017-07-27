@@ -40,12 +40,13 @@ func (r *ReporterImpl) TaskStarted(id int) {
 	r.Lock()
 	defer r.Unlock()
 
-	if r.lastEventWasTaskStarted() {
+	if len(r.eventMarkers) > 0 {
 		r.ui.EndLinef("")
 	}
 
 	r.eventMarkers = append(r.eventMarkers, eventMarker{TaskID: id, Type: taskStarted})
 	r.events[id] = []*Event{}
+	r.lastGlobalEvent = &Event{TaskID: id}
 
 	r.ui.BeginLinef("Task %d", id)
 }
@@ -102,7 +103,7 @@ func (r *ReporterImpl) TaskOutputChunk(id int, chunk []byte) {
 }
 
 func (r *ReporterImpl) showEvent(id int, str string) {
-	var event Event
+	event := Event{TaskID: id}
 
 	err := json.Unmarshal([]byte(str), &event)
 	if err != nil {
@@ -130,7 +131,7 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 				"\n     %s             L Error: %s", strings.Repeat(" ", len(string(id))), event.Data.Error))
 		}
 	} else {
-		if r.lastGlobalEvent != nil && event.IsWorthKeeping() {
+		if r.lastGlobalEvent != nil && !r.lastGlobalEvent.IsSameTaskID(event) && event.IsWorthKeeping() {
 			if event.Type == EventTypeDeprecation || event.Error != nil {
 				// Some spacing around deprecations and errors
 				r.ui.PrintBlock("\n")
