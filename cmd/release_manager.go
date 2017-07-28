@@ -40,7 +40,7 @@ func (m ReleaseManager) UploadReleases(bytes []byte) ([]byte, error) {
 
 	opss, err := m.parallelCreateAndUpload(manifest)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Creating an uploading releases")
+		return nil, bosherr.WrapErrorf(err, "Creating and uploading releases")
 	}
 
 	tpl := boshtpl.NewTemplate(bytes)
@@ -109,7 +109,7 @@ func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (pat
 
 		release, err := m.createReleaseCmd.Run(createOpts)
 		if err != nil {
-			return nil, err
+			return nil, bosherr.WrapErrorf(err, "Processing release '%s/%s'", rel.Name, rel.Version)
 		}
 
 		uploadOpts = UploadReleaseOpts{Release: release}
@@ -137,5 +137,10 @@ func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (pat
 		ops = append(ops, replaceOp, removeUrlOp)
 	}
 
-	return ops, m.uploadReleaseCmd.Run(uploadOpts)
+	err = m.uploadReleaseCmd.Run(uploadOpts)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Uploading release '%s/%s'", rel.Name, rel.Version)
+	}
+
+	return ops, nil
 }
