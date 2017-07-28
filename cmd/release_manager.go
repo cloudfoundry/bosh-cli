@@ -13,6 +13,7 @@ import (
 type ReleaseManager struct {
 	createReleaseCmd ReleaseCreatingCmd
 	uploadReleaseCmd ReleaseUploadingCmd
+	parallelThreads  int
 }
 
 type ReleaseUploadingCmd interface {
@@ -26,8 +27,9 @@ type ReleaseCreatingCmd interface {
 func NewReleaseManager(
 	createReleaseCmd ReleaseCreatingCmd,
 	uploadReleaseCmd ReleaseUploadingCmd,
+	parallelThreads int,
 ) ReleaseManager {
-	return ReleaseManager{createReleaseCmd, uploadReleaseCmd}
+	return ReleaseManager{createReleaseCmd, uploadReleaseCmd, parallelThreads}
 }
 
 func (m ReleaseManager) UploadReleases(bytes []byte) ([]byte, error) {
@@ -36,15 +38,9 @@ func (m ReleaseManager) UploadReleases(bytes []byte) ([]byte, error) {
 		return nil, bosherr.WrapErrorf(err, "Parsing manifest")
 	}
 
-	var opss patch.Ops
-
-	for _, rel := range manifest.Releases {
-		ops, err := m.createAndUploadRelease(rel)
-		if err != nil {
-			return nil, bosherr.WrapErrorf(err, "Processing release '%s/%s'", rel.Name, rel.Version)
-		}
-
-		opss = append(opss, ops)
+	opss, err := m.parallelCreateAndUpload(manifest)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Creating and uploading releases")
 	}
 
 	tpl := boshtpl.NewTemplate(bytes)
@@ -55,6 +51,32 @@ func (m ReleaseManager) UploadReleases(bytes []byte) ([]byte, error) {
 	}
 
 	return bytes, nil
+}
+
+func (m ReleaseManager) parallelCreateAndUpload(manifest boshdir.Manifest) (patch.Ops, error) {
+	pool := WorkerPool{
+		WorkerCount: m.parallelThreads,
+	}
+
+	tasks := []func() (interface{}, error){}
+	for _, r := range manifest.Releases {
+		release := r
+		tasks = append(tasks, func() (interface{}, error) {
+			return m.createAndUploadRelease(release)
+		})
+	}
+
+	results, err := pool.ParallelDo(tasks...)
+	if err != nil {
+		return nil, err
+	}
+
+	var opss patch.Ops
+	for _, result := range results {
+		opss = append(opss, result.(patch.Ops))
+	}
+
+	return opss, nil
 }
 
 func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (patch.Ops, error) {
@@ -87,7 +109,7 @@ func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (pat
 
 		release, err := m.createReleaseCmd.Run(createOpts)
 		if err != nil {
-			return nil, err
+			return nil, bosherr.WrapErrorf(err, "Processing release '%s/%s'", rel.Name, rel.Version)
 		}
 
 		uploadOpts = UploadReleaseOpts{Release: release}
@@ -115,5 +137,10 @@ func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (pat
 		ops = append(ops, replaceOp, removeUrlOp)
 	}
 
-	return ops, m.uploadReleaseCmd.Run(uploadOpts)
+	err = m.uploadReleaseCmd.Run(uploadOpts)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Uploading release '%s/%s'", rel.Name, rel.Version)
+	}
+
+	return ops, nil
 }

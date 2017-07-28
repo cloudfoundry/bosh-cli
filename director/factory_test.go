@@ -185,9 +185,16 @@ var _ = Describe("Factory", func() {
 				)
 
 				director.LatestCloudConfig()
-				_, _, args := logger.DebugArgsForCall(1)
 
-				Expect(args[0]).To(ContainSubstring("/cloud_configs?limit=1"))
+				debugMsgs := []interface{}{}
+				for i := 0; i < logger.DebugCallCount(); i++ {
+					_, _, args := logger.DebugArgsForCall(i)
+					if len(args) >= 1 {
+						debugMsgs = append(debugMsgs, args[0])
+					}
+				}
+
+				Expect(debugMsgs).To(ContainElement(ContainSubstring("/cloud_configs?limit=1")))
 			})
 
 			It("succeeds making requests and follow redirects with token", func() {
