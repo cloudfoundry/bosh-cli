@@ -144,12 +144,13 @@ type FakeDeployment struct {
 		result1 []director.Errand
 		result2 error
 	}
-	RunErrandStub        func(string, bool, bool) ([]director.ErrandResult, error)
+	RunErrandStub        func(string, bool, bool, []director.InstanceGroupOrInstanceSlug) ([]director.ErrandResult, error)
 	runErrandMutex       sync.RWMutex
 	runErrandArgsForCall []struct {
 		arg1 string
 		arg2 bool
 		arg3 bool
+		arg4 []director.InstanceGroupOrInstanceSlug
 	}
 	runErrandReturns struct {
 		result1 []director.ErrandResult
@@ -942,18 +943,24 @@ func (fake *FakeDeployment) ErrandsReturnsOnCall(i int, result1 []director.Erran
 	}{result1, result2}
 }
 
-func (fake *FakeDeployment) RunErrand(arg1 string, arg2 bool, arg3 bool) ([]director.ErrandResult, error) {
+func (fake *FakeDeployment) RunErrand(arg1 string, arg2 bool, arg3 bool, arg4 []director.InstanceGroupOrInstanceSlug) ([]director.ErrandResult, error) {
+	var arg4Copy []director.InstanceGroupOrInstanceSlug
+	if arg4 != nil {
+		arg4Copy = make([]director.InstanceGroupOrInstanceSlug, len(arg4))
+		copy(arg4Copy, arg4)
+	}
 	fake.runErrandMutex.Lock()
 	ret, specificReturn := fake.runErrandReturnsOnCall[len(fake.runErrandArgsForCall)]
 	fake.runErrandArgsForCall = append(fake.runErrandArgsForCall, struct {
 		arg1 string
 		arg2 bool
 		arg3 bool
-	}{arg1, arg2, arg3})
-	fake.recordInvocation("RunErrand", []interface{}{arg1, arg2, arg3})
+		arg4 []director.InstanceGroupOrInstanceSlug
+	}{arg1, arg2, arg3, arg4Copy})
+	fake.recordInvocation("RunErrand", []interface{}{arg1, arg2, arg3, arg4Copy})
 	fake.runErrandMutex.Unlock()
 	if fake.RunErrandStub != nil {
-		return fake.RunErrandStub(arg1, arg2, arg3)
+		return fake.RunErrandStub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -967,10 +974,10 @@ func (fake *FakeDeployment) RunErrandCallCount() int {
 	return len(fake.runErrandArgsForCall)
 }
 
-func (fake *FakeDeployment) RunErrandArgsForCall(i int) (string, bool, bool) {
+func (fake *FakeDeployment) RunErrandArgsForCall(i int) (string, bool, bool, []director.InstanceGroupOrInstanceSlug) {
 	fake.runErrandMutex.RLock()
 	defer fake.runErrandMutex.RUnlock()
-	return fake.runErrandArgsForCall[i].arg1, fake.runErrandArgsForCall[i].arg2, fake.runErrandArgsForCall[i].arg3
+	return fake.runErrandArgsForCall[i].arg1, fake.runErrandArgsForCall[i].arg2, fake.runErrandArgsForCall[i].arg3, fake.runErrandArgsForCall[i].arg4
 }
 
 func (fake *FakeDeployment) RunErrandReturns(result1 []director.ErrandResult, result2 error) {

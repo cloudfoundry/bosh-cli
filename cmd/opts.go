@@ -527,8 +527,14 @@ type ErrandsOpts struct {
 	cmd
 }
 
+type InstanceGroupOrInstanceSlugFlags struct {
+	Slugs []boshdir.InstanceGroupOrInstanceSlug `long:"instance" value-name:"INSTANCE-GROUP[/INSTANCE-ID]" description:"Instance or group the errand should run on (must specify errand by release job name)"`
+}
+
 type RunErrandOpts struct {
 	Args RunErrandArgs `positional-args:"true" required:"true"`
+
+	InstanceGroupOrInstanceSlugFlags
 
 	KeepAlive   bool `long:"keep-alive" description:"Use existing VM to run an errand and keep it after completion"`
 	WhenChanged bool `long:"when-changed" description:"Run errand only if errand configuration has changed or if the previous run was unsuccessful"`

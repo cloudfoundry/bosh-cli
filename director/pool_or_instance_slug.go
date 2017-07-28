@@ -45,6 +45,17 @@ func NewInstanceGroupOrInstanceSlugFromString(str string) (InstanceGroupOrInstan
 	return slug, nil
 }
 
+func (s *InstanceGroupOrInstanceSlug) UnmarshalFlag(data string) error {
+	slug, err := NewInstanceGroupOrInstanceSlugFromString(data)
+	if err != nil {
+		return err
+	}
+
+	*s = slug
+
+	return nil
+}
+
 func (s InstanceGroupOrInstanceSlug) Name() string      { return s.name }
 func (s InstanceGroupOrInstanceSlug) IndexOrID() string { return s.indexOrID }
 

@@ -1575,6 +1575,22 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
+	Describe("InstanceGroupOrInstanceSlugFlags", func() {
+		var opts *InstanceGroupOrInstanceSlugFlags
+
+		BeforeEach(func() {
+			opts = &InstanceGroupOrInstanceSlugFlags{}
+		})
+
+		Describe("Slug", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Slugs", opts)).To(Equal(
+					`long:"instance" value-name:"INSTANCE-GROUP[/INSTANCE-ID]" description:"Instance or group the errand should run on (must specify errand by release job name)"`,
+				))
+			})
+		})
+	})
+
 	Describe("RunErrandOpts", func() {
 		var opts *RunErrandOpts
 

@@ -27,6 +27,29 @@ var _ = Describe("NewInstanceGroupOrInstanceSlug", func() {
 	})
 })
 
+var _ = Describe("UnmarshalFlag", func() {
+	var (
+		slug *InstanceGroupOrInstanceSlug
+	)
+
+	BeforeEach(func() {
+		slug = &InstanceGroupOrInstanceSlug{}
+	})
+
+	It("returns an error for an empty slug string", func() {
+		err := slug.UnmarshalFlag("")
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Expected pool or instance '' to specify non-empty name"))
+	})
+
+	It("populates slug when name and index-or-id is given", func() {
+		err := slug.UnmarshalFlag("name/id")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(slug.Name()).To(Equal("name"))
+		Expect(slug.IndexOrID()).To(Equal("id"))
+	})
+})
+
 var _ = Describe("NewInstanceGroupOrInstanceSlugFromString", func() {
 	It("populates slug when name is just given", func() {
 		slug, err := NewInstanceGroupOrInstanceSlugFromString("name")

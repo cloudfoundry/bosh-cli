@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
+
 	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
@@ -39,6 +40,11 @@ var _ = Describe("RunErrandCmd", func() {
 				Args:        RunErrandArgs{Name: "errand-name"},
 				KeepAlive:   true,
 				WhenChanged: true,
+				InstanceGroupOrInstanceSlugFlags: InstanceGroupOrInstanceSlugFlags{
+					Slugs: []boshdir.InstanceGroupOrInstanceSlug{
+						boshdir.NewInstanceGroupOrInstanceSlug("group2", "uuid"),
+					},
+				},
 			}
 		})
 
@@ -158,16 +164,18 @@ var _ = Describe("RunErrandCmd", func() {
 
 			It("runs errand with given name", func() {
 				deployment.RunErrandReturns([]boshdir.ErrandResult{{ExitCode: 0}}, nil)
-
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deployment.RunErrandCallCount()).To(Equal(1))
 
-				name, keepAlive, whenChanged := deployment.RunErrandArgsForCall(0)
+				name, keepAlive, whenChanged, slugs := deployment.RunErrandArgsForCall(0)
 				Expect(name).To(Equal("errand-name"))
 				Expect(keepAlive).To(BeTrue())
 				Expect(whenChanged).To(BeTrue())
+				Expect(slugs).To(HaveLen(1))
+				Expect(slugs[0].Name()).To(Equal("group2"))
+				Expect(slugs[0].IndexOrID()).To(Equal("uuid"))
 			})
 
 			It("downloads logs if requested", func() {
