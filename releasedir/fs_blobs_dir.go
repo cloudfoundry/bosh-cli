@@ -118,6 +118,15 @@ func (d FSBlobsDir) SyncBlobs(numOfParallelWorkers int) error {
 		return err
 	}
 
+	symlinksFound, err := d.containsSymlinks()
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Syncing blobs")
+	}
+
+	if symlinksFound {
+		return bosherr.Error("Bailing because symlinks found in blobs directory. If switching from CLI v1, please use the `reset-release` command.")
+	}
+
 	if err := d.removeUnknownBlobs(blobs); err != nil {
 		return bosherr.WrapErrorf(err, "Syncing blobs")
 	}
@@ -298,6 +307,26 @@ func (d FSBlobsDir) UploadBlobs() error {
 	}
 
 	return nil
+}
+
+func (d FSBlobsDir) containsSymlinks() (bool, error) {
+	files, err := d.fs.RecursiveGlob(filepath.Join(d.dirPath, "**/*"))
+	if err != nil {
+		return false, nil
+	}
+
+	for _, file := range files {
+		fileInfo, err := d.fs.Lstat(file)
+		if err != nil {
+			return false, err
+		}
+
+		if fileInfo.Mode()&os.ModeSymlink != 0 {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func (d FSBlobsDir) checkBlobExistence(dstPath string, digest boshcrypto.MultipleDigest) bool {
