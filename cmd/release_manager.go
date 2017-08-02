@@ -99,6 +99,10 @@ func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (pat
 		SHA1: rel.SHA1,
 	}
 
+	if len(rel.Stemcell.OS) > 0 {
+		uploadOpts.Stemcell = boshdir.NewOSVersionSlug(rel.Stemcell.OS, rel.Stemcell.Version)
+	}
+
 	if rel.Version == "create" {
 		createOpts := CreateReleaseOpts{
 			Name:             rel.Name,

@@ -1443,6 +1443,12 @@ var _ = Describe("Opts", func() {
 				))
 			})
 		})
+
+		It("allows to provide stemcell configuration for remote compiled releases", func() {
+			Expect(getStructTagForName("Stemcell", opts)).To(Equal(
+				`long:"stemcell" value-name:"OS/VERSION" description:"Stemcell that the release is compiled against (applies to remote releases)"`,
+			))
+		})
 	})
 
 	Describe("UploadReleaseArgs", func() {

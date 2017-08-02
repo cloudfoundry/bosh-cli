@@ -479,6 +479,8 @@ type UploadReleaseOpts struct {
 
 	SHA1 string `long:"sha1" description:"SHA1 of the remote release (is not used with local files)"`
 
+	Stemcell boshdir.OSVersionSlug `long:"stemcell" value-name:"OS/VERSION" description:"Stemcell that the release is compiled against (applies to remote releases)"`
+
 	Release boshrel.Release
 
 	cmd

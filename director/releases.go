@@ -121,8 +121,7 @@ type Package struct {
 }
 
 type CompiledPackage struct {
-	// e.g. "bosh-aws-xen-hvm-ubuntu-trusty-go_agent/3093"
-	StemcellSlug StemcellSlug `json:"stemcell"`
+	Stemcell OSVersionSlug `json:"stemcell"` // e.g. "ubuntu-trusty/3093"
 
 	BlobstoreID string `json:"blobstore_id"`
 	SHA1        string `json:"sha1"`
@@ -179,8 +178,41 @@ func (d DirectorImpl) FindRelease(slug ReleaseSlug) (Release, error) {
 	return rel, nil
 }
 
-func (d DirectorImpl) HasRelease(name, version string) (bool, error) {
-	return d.client.HasRelease(name, version)
+func (d DirectorImpl) HasRelease(name, version string, stemcell OSVersionSlug) (bool, error) {
+	found, err := d.client.HasRelease(name, version)
+	if err != nil {
+		return false, err
+	}
+
+	if !stemcell.IsProvided() || !found {
+		return found, nil
+	}
+
+	return d.releaseHasCompiledPackage(NewReleaseSlug(name, version), stemcell)
+}
+
+// releaseHasCompiledPackage returns true if release contains
+// at least one compiled package that matches stemcell slug
+func (d DirectorImpl) releaseHasCompiledPackage(releaseSlug ReleaseSlug, osVersionSlug OSVersionSlug) (bool, error) {
+	release, err := d.FindRelease(releaseSlug)
+	if err != nil {
+		return false, err
+	}
+
+	pkgs, err := release.Packages()
+	if err != nil {
+		return false, err
+	}
+
+	for _, pkg := range pkgs {
+		for _, compiledPkg := range pkg.CompiledPackages {
+			if compiledPkg.Stemcell == osVersionSlug {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
 }
 
 func (d DirectorImpl) UploadReleaseURL(url, sha1 string, rebase, fix bool) error {

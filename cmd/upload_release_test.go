@@ -146,9 +146,31 @@ var _ = Describe("UploadReleaseCmd", func() {
 
 				Expect(director.UploadReleaseURLCallCount()).To(Equal(0))
 
-				name, version := director.HasReleaseArgsForCall(0)
+				name, version, stemcell := director.HasReleaseArgsForCall(0)
 				Expect(name).To(Equal("existing-name"))
 				Expect(version).To(Equal("existing-ver"))
+				Expect(stemcell).To(Equal(boshdir.OSVersionSlug{}))
+
+				Expect(ui.Said).To(Equal(
+					[]string{"Release 'existing-name/existing-ver' already exists."}))
+			})
+
+			It("does not upload compiled release if name, version and stemcell match existing release", func() {
+				opts.Name = "existing-name"
+				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
+				opts.Stemcell = boshdir.NewOSVersionSlug("ubuntu-trusty", "3421")
+
+				director.HasReleaseReturns(true, nil)
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(director.UploadReleaseURLCallCount()).To(Equal(0))
+
+				name, version, stemcell := director.HasReleaseArgsForCall(0)
+				Expect(name).To(Equal("existing-name"))
+				Expect(version).To(Equal("existing-ver"))
+				Expect(stemcell).To(Equal(boshdir.NewOSVersionSlug("ubuntu-trusty", "3421")))
 
 				Expect(ui.Said).To(Equal(
 					[]string{"Release 'existing-name/existing-ver' already exists."}))
@@ -171,9 +193,10 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(rebase).To(BeFalse())
 				Expect(fix).To(BeFalse())
 
-				name, version := director.HasReleaseArgsForCall(0)
+				name, version, stemcell := director.HasReleaseArgsForCall(0)
 				Expect(name).To(Equal("existing-name"))
 				Expect(version).To(Equal("existing-ver"))
+				Expect(stemcell).To(Equal(boshdir.OSVersionSlug{}))
 
 				Expect(ui.Said).To(BeEmpty())
 			})
@@ -408,9 +431,10 @@ var _ = Describe("UploadReleaseCmd", func() {
 
 				Expect(director.UploadReleaseURLCallCount()).To(Equal(0))
 
-				name, version := director.HasReleaseArgsForCall(0)
+				name, version, stemcell := director.HasReleaseArgsForCall(0)
 				Expect(name).To(Equal("existing-name"))
 				Expect(version).To(Equal("existing-ver"))
+				Expect(stemcell).To(Equal(boshdir.OSVersionSlug{}))
 
 				Expect(ui.Said).To(Equal(
 					[]string{"Release 'existing-name/existing-ver' already exists."}))

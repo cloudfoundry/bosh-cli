@@ -30,7 +30,7 @@ type Director interface {
 	FindDeployment(string) (Deployment, error)
 
 	Releases() ([]Release, error)
-	HasRelease(name, version string) (bool, error)
+	HasRelease(name, version string, stemcell OSVersionSlug) (bool, error)
 	FindRelease(ReleaseSlug) (Release, error)
 	FindReleaseSeries(ReleaseSeriesSlug) (ReleaseSeries, error)
 	UploadReleaseURL(url, sha1 string, rebase, fix bool) error

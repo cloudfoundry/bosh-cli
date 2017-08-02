@@ -1,6 +1,7 @@
 package director
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -24,8 +25,9 @@ func NewOSVersionSlug(os, version string) OSVersionSlug {
 	return OSVersionSlug{os: os, version: version}
 }
 
-func (s OSVersionSlug) OS() string      { return s.os }
-func (s OSVersionSlug) Version() string { return s.version }
+func (s OSVersionSlug) OS() string       { return s.os }
+func (s OSVersionSlug) Version() string  { return s.version }
+func (s OSVersionSlug) IsProvided() bool { return len(s.os) > 0 }
 
 func (s OSVersionSlug) String() string {
 	return fmt.Sprintf("%s/%s", s.os, s.version)
@@ -33,6 +35,24 @@ func (s OSVersionSlug) String() string {
 
 func (s *OSVersionSlug) UnmarshalFlag(data string) error {
 	slug, err := parseOSVersionSlug(data)
+	if err != nil {
+		return err
+	}
+
+	*s = slug
+
+	return nil
+}
+
+func (s *OSVersionSlug) UnmarshalJSON(data []byte) error {
+	var str string
+
+	err := json.Unmarshal(data, &str)
+	if err != nil {
+		return bosherr.Errorf("Expected '%s' to be a string", data)
+	}
+
+	slug, err := parseOSVersionSlug(str)
 	if err != nil {
 		return err
 	}

@@ -83,7 +83,7 @@ func (c InspectReleaseCmd) Run(opts InspectReleaseOpts) error {
 		for _, cp := range p.CompiledPackages {
 			section.Rows = append(section.Rows, []boshtbl.Value{
 				boshtbl.NewValueString(""),
-				boshtbl.NewValueString(cp.StemcellSlug.String()),
+				boshtbl.NewValueString(cp.Stemcell.String()),
 				boshtbl.NewValueString(cp.BlobstoreID),
 				boshtbl.NewValueString(cp.SHA1),
 			})

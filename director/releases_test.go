@@ -139,7 +139,11 @@ var _ = Describe("Director", func() {
 	})
 
 	Describe("HasRelease", func() {
-		act := func() (bool, error) { return director.HasRelease("name", "ver") }
+		var stemcell OSVersionSlug
+
+		act := func() (bool, error) {
+			return director.HasRelease("name", "ver", stemcell)
+		}
 
 		It("returns true if name and version matches", func() {
 			server.AppendHandlers(
@@ -164,6 +168,59 @@ var _ = Describe("Director", func() {
   {"name": "name", "release_versions": [{"version": "other-ver"}]},
   {"name": "other-name", "release_versions": [{"version": "ver"}]}
 ]`),
+				),
+			)
+
+			found, err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeFalse())
+		})
+
+		It("returns true if name, version and stemcell matches", func() {
+			stemcell = NewOSVersionSlug("stemcell-os", "stemcell-ver")
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases/name", "version=ver"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `{
+					  "packages": [{
+					    "compiled_packages": [{ "stemcell": "stemcell-os/stemcell-ver" }]
+					  }]
+					}`),
+				),
+			)
+
+			found, err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeTrue())
+		})
+
+		It("returns false if name, version matches but stemcell does not", func() {
+			stemcell = NewOSVersionSlug("stemcell-os", "stemcell-ver")
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases/name", "version=ver"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `{
+					  "packages": [{
+					    "compiled_packages": [
+					    	{ "stemcell": "stemcell-os/stemcell-ver1" },
+					    	{ "stemcell": "stemcell-os1/stemcell-ver" }
+					    ]
+					  }]
+					}`),
 				),
 			)
 

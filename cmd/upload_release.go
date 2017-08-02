@@ -141,6 +141,7 @@ func (c UploadReleaseCmd) uploadIfNecessary(opts UploadReleaseOpts, uploadFunc f
 	if err != nil || !necessary {
 		return err
 	}
+
 	return uploadFunc(opts)
 }
 
@@ -151,7 +152,7 @@ func (c UploadReleaseCmd) needToUpload(opts UploadReleaseOpts) (bool, error) {
 
 	version := semver.Version(opts.Version).AsString()
 
-	found, err := c.director.HasRelease(opts.Name, version)
+	found, err := c.director.HasRelease(opts.Name, version, opts.Stemcell)
 	if err != nil {
 		return true, err
 	}

@@ -83,8 +83,8 @@ var _ = Describe("InspectReleaseCmd", func() {
 
 						CompiledPackages: []boshdir.CompiledPackage{
 							{
-								StemcellSlug: boshdir.NewStemcellSlug(
-									"some-stemcell-name",
+								Stemcell: boshdir.NewOSVersionSlug(
+									"some-stemcell-os",
 									"some-stemcell-version",
 								),
 
@@ -163,7 +163,7 @@ var _ = Describe("InspectReleaseCmd", func() {
 								},
 								{
 									boshtbl.NewValueString(""),
-									boshtbl.NewValueString("some-stemcell-name/some-stemcell-version"),
+									boshtbl.NewValueString("some-stemcell-os/some-stemcell-version"),
 									boshtbl.NewValueString("some-compiled-pkg-blob-id"),
 									boshtbl.NewValueString("some-compiled-pkg-blob-sha1"),
 								},

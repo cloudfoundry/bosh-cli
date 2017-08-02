@@ -9,6 +9,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 )
@@ -51,6 +52,13 @@ releases:
   sha1: consul-sha1
   url: https://consul-url
   version: 1+consul
+- name: compiled-release
+  url: https://compiled-release-url
+  sha1: compiled-release-sha1
+  version: 1+compiled-release
+  stemcell:
+    os: ubuntu-trusty
+    version: 3421
 - name: local
   url: file:///local-dir
   version: create
@@ -59,15 +67,17 @@ releases:
 			_, err := releaseManager.UploadReleases(bytes)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(3))
+			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(4))
 			runArgs := []UploadReleaseOpts{
 				uploadReleaseCmd.RunArgsForCall(0),
 				uploadReleaseCmd.RunArgsForCall(1),
 				uploadReleaseCmd.RunArgsForCall(2),
+				uploadReleaseCmd.RunArgsForCall(3),
 			}
 
 			var capiRelease UploadReleaseOpts
 			var consulRelease UploadReleaseOpts
+			var compiledRelease UploadReleaseOpts
 			var localRelease UploadReleaseOpts
 			for _, opts := range runArgs {
 				switch opts.Name {
@@ -75,6 +85,8 @@ releases:
 					capiRelease = opts
 				case "consul":
 					consulRelease = opts
+				case "compiled-release":
+					compiledRelease = opts
 				case "local":
 					localRelease = opts
 				}
@@ -91,6 +103,14 @@ releases:
 				Args:    UploadReleaseArgs{URL: URLArg("https://consul-url")},
 				SHA1:    "consul-sha1",
 				Version: VersionArg(semver.MustNewVersionFromString("1+consul")),
+			}))
+			Expect(compiledRelease).To(Equal(UploadReleaseOpts{
+				Name:    "compiled-release",
+				Args:    UploadReleaseArgs{URL: URLArg("https://compiled-release-url")},
+				SHA1:    "compiled-release-sha1",
+				Version: VersionArg(semver.MustNewVersionFromString("1+compiled-release")),
+
+				Stemcell: boshdir.NewOSVersionSlug("ubuntu-trusty", "3421"),
 			}))
 			Expect(localRelease).To(Equal(UploadReleaseOpts{
 				Release: localRelease.Release, // only Release should be set
