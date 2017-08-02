@@ -144,7 +144,47 @@ var _ = Describe("CreateReleaseCmd", func() {
 					}))
 
 					Expect(fakeFS.FileExists("/temp-tarball.tgz")).To(BeFalse())
+
 					content, err := fakeFS.ReadFileString("/tarball-destination.tgz")
+					Expect(err).ToNot(HaveOccurred())
+					Expect(content).To(Equal("release content blah"))
+				})
+
+				It("interpolates release archive destionation path with ((name)) and ((version))", func() {
+					opts.Tarball = FileArg{ExpandedPath: "/tarball-destination-((name))-((version)).tgz"}
+
+					fakeWriter.WriteStub = func(rel boshrel.Release, skipPkgs []string) (string, error) {
+						Expect(rel).To(Equal(release))
+
+						fakeFS.WriteFileString("/temp-tarball.tgz", "release content blah")
+						return "/temp-tarball.tgz", nil
+					}
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+						Header: []boshtbl.Header{
+							boshtbl.NewHeader("Name"),
+							boshtbl.NewHeader("Version"),
+							boshtbl.NewHeader("Commit Hash"),
+							boshtbl.NewHeader("Archive"),
+						},
+
+						Rows: [][]boshtbl.Value{
+							{
+								boshtbl.NewValueString("rel"),
+								boshtbl.NewValueString("ver"),
+								boshtbl.NewValueString("commit"),
+								boshtbl.NewValueString("/tarball-destination-rel-ver.tgz"),
+							},
+						},
+						Transpose: true,
+					}))
+
+					Expect(fakeFS.FileExists("/temp-tarball.tgz")).To(BeFalse())
+
+					content, err := fakeFS.ReadFileString("/tarball-destination-rel-ver.tgz")
 					Expect(err).ToNot(HaveOccurred())
 					Expect(content).To(Equal("release content blah"))
 				})

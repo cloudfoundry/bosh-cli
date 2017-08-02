@@ -1,14 +1,16 @@
 package cmd
 
 import (
+	"strings"
+
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type CreateReleaseCmd struct {
@@ -53,19 +55,24 @@ func (c CreateReleaseCmd) Run(opts CreateReleaseOpts) (boshrel.Release, error) {
 		}
 	}
 
-	if opts.Tarball.ExpandedPath != "" {
+	dstPath := opts.Tarball.ExpandedPath
+
+	if dstPath != "" {
 		path, err := c.releaseWriter.Write(release, nil)
 		if err != nil {
 			return nil, err
 		}
 
-		err = boshfu.NewFileMover(c.fs).Move(path, opts.Tarball.ExpandedPath)
+		dstPath = strings.Replace(dstPath, "((name))", release.Name(), -1)
+		dstPath = strings.Replace(dstPath, "((version))", release.Version(), -1)
+
+		err = boshfu.NewFileMover(c.fs).Move(path, dstPath)
 		if err != nil {
 			return nil, bosherr.WrapErrorf(err, "Moving release archive to final destination")
 		}
 	}
 
-	ReleaseTables{Release: release, ArchivePath: opts.Tarball.ExpandedPath}.Print(c.ui)
+	ReleaseTables{Release: release, ArchivePath: dstPath}.Print(c.ui)
 
 	return release, nil
 }
