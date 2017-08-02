@@ -197,20 +197,11 @@ func (r *ReporterImpl) lastEventForTask(id int) *Event {
 	return nil
 }
 
-func (r *ReporterImpl) lastEventWasTaskStarted() bool {
-	markerCount := len(r.eventMarkers)
-	if markerCount == 0 {
-		return false
-	}
-	lastMarker := r.eventMarkers[markerCount-1]
-	return (lastMarker.Type == taskStarted)
-}
-
 func (r *ReporterImpl) noOutputSinceTaskStarted(id int) bool {
 	markerCount := len(r.eventMarkers)
 	if markerCount == 0 {
 		return true
 	}
 	lastMarker := r.eventMarkers[markerCount-1]
-	return (lastMarker.TaskID == id && lastMarker.Type == taskStarted)
+	return lastMarker.TaskID == id && lastMarker.Type == taskStarted
 }
