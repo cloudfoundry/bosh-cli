@@ -39,6 +39,8 @@ func (w *ResultsWriter) Flush() {
 		SortBy: []boshtbl.ColumnSort{
 			{Column: 0, Asc: true},
 		},
+
+		Transpose: true,
 	}
 
 	for _, inst := range w.instances {
