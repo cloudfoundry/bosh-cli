@@ -17,10 +17,10 @@ class BoshCli < Formula
 
   depends_on :arch => :x86_64
 
-  option "without-bosh2", "Don't rename binary to 'bosh2'. Useful if the old Ruby CLI is not needed."
+  option "with-bosh2", "Rename binary to 'bosh2'. Useful if the old Ruby CLI is needed."
 
   def install
-    binary_name = build.without?("bosh2") ? "bosh" : "bosh2"
+    binary_name = build.with?("bosh2") ? "bosh2" : "bosh"
     bin.install "bosh-cli-#{version}-darwin-amd64" => binary_name
   end
 
