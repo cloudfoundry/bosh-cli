@@ -88,9 +88,14 @@ var _ = Describe("ValueBytes", func() {
 var _ = Describe("ValueTime", func() {
 	t1 := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 	t2 := time.Date(2009, time.November, 10, 23, 0, 0, 1, time.UTC)
+	empty := time.Time{}
 
 	It("returns formatted full time", func() {
 		Expect(ValueTime{t1}.String()).To(Equal("Tue Nov 10 23:00:00 UTC 2009"))
+	})
+
+	It("returns empty", func() {
+		Expect(ValueTime{empty}.String()).To(Equal(""))
 	})
 
 	It("returns itself", func() {
