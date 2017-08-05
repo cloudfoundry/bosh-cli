@@ -153,7 +153,7 @@ func (r SessionImpl) makeKnownHostsFile() (boshsys.File, error) {
 
 	for _, host := range r.result.Hosts {
 		if len(host.HostPublicKey) > 0 {
-			content += fmt.Sprintf("%s %s\n", host.Host, host.HostPublicKey)
+			content += fmt.Sprintf("%s %s\n", printableHost{host}, host.HostPublicKey)
 		}
 	}
 
