@@ -28,6 +28,7 @@ func (c LocksCmd) Run() error {
 		Header: []boshtbl.Header{
 			boshtbl.NewHeader("Type"),
 			boshtbl.NewHeader("Resource"),
+			boshtbl.NewHeader("Task ID"),
 			boshtbl.NewHeader("Expires at"),
 		},
 		SortBy: []boshtbl.ColumnSort{{Column: 2, Asc: true}},
@@ -37,6 +38,7 @@ func (c LocksCmd) Run() error {
 		table.Rows = append(table.Rows, []boshtbl.Value{
 			boshtbl.NewValueString(l.Type),
 			boshtbl.NewValueString(strings.Join(l.Resource, ":")),
+			boshtbl.NewValueString(l.TaskID),
 			boshtbl.NewValueTime(l.ExpiresAt),
 		})
 	}

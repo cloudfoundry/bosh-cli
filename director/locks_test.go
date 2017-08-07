@@ -35,12 +35,14 @@ var _ = Describe("Director", func() {
 	{
 		"type": "deployment",
 		"resource": ["some-deployment-name"],
-		"timeout": "1443889622.9964118"
+		"timeout": "1443889622.9964118",
+		"task_id": "1234567"
 	},
 	{
 		"type": "release",
 		"resource": ["some-release-name", "123"],
-		"timeout": "1443889622.9964118"
+		"timeout": "1443889622.9964118",
+		"task_id": "123456"
 	}
 ]`),
 				),
@@ -53,11 +55,13 @@ var _ = Describe("Director", func() {
 					Type:      "deployment",
 					Resource:  []string{"some-deployment-name"},
 					ExpiresAt: time.Unix(1443889622, 0).UTC(),
+					TaskID:    "1234567",
 				},
 				{
 					Type:      "release",
 					Resource:  []string{"some-release-name", "123"},
 					ExpiresAt: time.Unix(1443889622, 0).UTC(),
+					TaskID:    "123456",
 				},
 			}))
 		})
@@ -71,7 +75,8 @@ var _ = Describe("Director", func() {
 	{
 		"type": "deployment",
 		"resource": ["some-deployment-name"],
-		"timeout": "invalid"
+		"timeout": "invalid",
+		"task_id": "123456"
 	}
 ]`),
 				),
