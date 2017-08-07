@@ -246,7 +246,7 @@ var _ = Describe("VMsCmd", func() {
 							boshtbl.NewHeader("IPs"),
 							boshtbl.NewHeader("VM CID"),
 							boshtbl.NewHeader("VM Type"),
-							boshtbl.NewHeader("Created At"),
+							boshtbl.NewHeader("VM Created At"),
 							boshtbl.NewHeader("Uptime"),
 							boshtbl.NewHeader("Load\n(1m, 5m, 15m)"),
 							boshtbl.NewHeader("CPU\nTotal"),

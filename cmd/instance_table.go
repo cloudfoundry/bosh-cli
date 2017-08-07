@@ -65,7 +65,7 @@ var InstanceTableHeader = InstanceTableValues{
 	Resurrection: boshtbl.NewValueString("Resurrection\nPaused"),
 	Bootstrap:    boshtbl.NewValueString("Bootstrap"),
 	Ignore:       boshtbl.NewValueString("Ignore"),
-	VMCreatedAt:  boshtbl.NewValueString("Created At"),
+	VMCreatedAt:  boshtbl.NewValueString("VM Created At"),
 
 	// DNS
 	DNS: boshtbl.NewValueString("DNS A Records"),

@@ -606,7 +606,7 @@ var _ = Describe("InstancesCmd", func() {
 							boshtbl.NewHeader("Process State"),
 							boshtbl.NewHeader("AZ"),
 							boshtbl.NewHeader("IPs"),
-							boshtbl.NewHeader("Created At"),
+							boshtbl.NewHeader("VM Created At"),
 							boshtbl.NewHeader("Uptime"),
 							boshtbl.NewHeader("Load\n(1m, 5m, 15m)"),
 							boshtbl.NewHeader("CPU\nTotal"),
