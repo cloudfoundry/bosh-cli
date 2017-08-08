@@ -69,10 +69,11 @@ func (r ManifestReader) newRelease(manifest boshman.Manifest) (Release, error) {
 	}
 
 	release := &release{
-		name:    manifest.Name,
-		version: manifest.Version,
+		name:        manifest.Name,
+		version:     manifest.Version,
+		description: manifest.Description,
 
-		sourceRepoUrl:      manifest.SourceRepoUrl,
+		repository:         manifest.Repository,
 		commitHash:         manifest.CommitHash,
 		uncommittedChanges: manifest.UncommittedChanges,
 
@@ -159,7 +160,7 @@ func (r ManifestReader) newCompiledPackages(refs []boshman.CompiledPackageRef) (
 
 func (r ManifestReader) newLicense(ref *boshman.LicenseRef) (*boshlic.License, error) {
 	if ref != nil {
-		resource := NewExistingResource("license", ref.Fingerprint, ref.SHA1)
+		resource := NewExistingResource(ref.Name, ref.Fingerprint, ref.SHA1)
 
 		license := boshlic.NewLicense(resource)
 

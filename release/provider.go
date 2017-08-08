@@ -8,6 +8,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
+	"github.com/cloudfoundry/bosh-cli/release/config"
 	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
 	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
 	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
@@ -73,8 +74,7 @@ func (p Provider) NewDirReader(dirPath string) DirReader {
 	jobDirReader := boshjob.NewDirReaderImpl(archiveFactory, p.fs)
 	pkgDirReader := boshpkg.NewDirReaderImpl(archiveFactory, srcDirPath, blobsDirPath, p.fs)
 	licDirReader := boshlic.NewDirReaderImpl(archiveFactory, p.fs)
-
-	return NewDirReader(jobDirReader, pkgDirReader, licDirReader, p.fs, p.logger)
+	return NewDirReader(jobDirReader, pkgDirReader, licDirReader, config.NewConfigReaderImpl(p.fs), p.fs, p.logger)
 }
 
 func (p Provider) NewManifestReader() ManifestReader {

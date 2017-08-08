@@ -195,8 +195,10 @@ type Release interface {
 	Name() string
 	Version() semver.Version
 	VersionMark(mark string) string
+	Description() string
 	CommitHashWithMark(mark string) string
-	SourceRepoUrl() string
+	Repository() string
+	License() string
 
 	Jobs() ([]Job, error)
 	Packages() ([]Package, error)

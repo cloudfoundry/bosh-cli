@@ -19,6 +19,28 @@ type FakeConfig struct {
 		result1 string
 		result2 error
 	}
+	DescriptionStub        func() (string, error)
+	descriptionMutex       sync.RWMutex
+	descriptionArgsForCall []struct{}
+	descriptionReturns     struct {
+		result1 string
+		result2 error
+	}
+	descriptionReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
+	LicenseStub        func() (string, error)
+	licenseMutex       sync.RWMutex
+	licenseArgsForCall []struct{}
+	licenseReturns     struct {
+		result1 string
+		result2 error
+	}
+	licenseReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	SaveNameStub        func(string) error
 	saveNameMutex       sync.RWMutex
 	saveNameArgsForCall []struct {
@@ -85,6 +107,92 @@ func (fake *FakeConfig) NameReturnsOnCall(i int, result1 string, result2 error) 
 		})
 	}
 	fake.nameReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeConfig) Description() (string, error) {
+	fake.descriptionMutex.Lock()
+	ret, specificReturn := fake.descriptionReturnsOnCall[len(fake.descriptionArgsForCall)]
+	fake.descriptionArgsForCall = append(fake.descriptionArgsForCall, struct{}{})
+	fake.recordInvocation("Description", []interface{}{})
+	fake.descriptionMutex.Unlock()
+	if fake.DescriptionStub != nil {
+		return fake.DescriptionStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.descriptionReturns.result1, fake.descriptionReturns.result2
+}
+
+func (fake *FakeConfig) DescriptionCallCount() int {
+	fake.descriptionMutex.RLock()
+	defer fake.descriptionMutex.RUnlock()
+	return len(fake.descriptionArgsForCall)
+}
+
+func (fake *FakeConfig) DescriptionReturns(result1 string, result2 error) {
+	fake.DescriptionStub = nil
+	fake.descriptionReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeConfig) DescriptionReturnsOnCall(i int, result1 string, result2 error) {
+	fake.DescriptionStub = nil
+	if fake.descriptionReturnsOnCall == nil {
+		fake.descriptionReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.descriptionReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeConfig) License() (string, error) {
+	fake.licenseMutex.Lock()
+	ret, specificReturn := fake.licenseReturnsOnCall[len(fake.licenseArgsForCall)]
+	fake.licenseArgsForCall = append(fake.licenseArgsForCall, struct{}{})
+	fake.recordInvocation("License", []interface{}{})
+	fake.licenseMutex.Unlock()
+	if fake.LicenseStub != nil {
+		return fake.LicenseStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.licenseReturns.result1, fake.licenseReturns.result2
+}
+
+func (fake *FakeConfig) LicenseCallCount() int {
+	fake.licenseMutex.RLock()
+	defer fake.licenseMutex.RUnlock()
+	return len(fake.licenseArgsForCall)
+}
+
+func (fake *FakeConfig) LicenseReturns(result1 string, result2 error) {
+	fake.LicenseStub = nil
+	fake.licenseReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeConfig) LicenseReturnsOnCall(i int, result1 string, result2 error) {
+	fake.LicenseStub = nil
+	if fake.licenseReturnsOnCall == nil {
+		fake.licenseReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.licenseReturnsOnCall[i] = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
@@ -189,6 +297,10 @@ func (fake *FakeConfig) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.nameMutex.RLock()
 	defer fake.nameMutex.RUnlock()
+	fake.descriptionMutex.RLock()
+	defer fake.descriptionMutex.RUnlock()
+	fake.licenseMutex.RLock()
+	defer fake.licenseMutex.RUnlock()
 	fake.saveNameMutex.RLock()
 	defer fake.saveNameMutex.RUnlock()
 	fake.blobstoreMutex.RLock()

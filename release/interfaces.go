@@ -37,8 +37,10 @@ type Release interface {
 	Version() string
 	SetVersion(string)
 
-	SetSourceRepoUrl(string)
-	SourceRepoUrl() string
+	Description() string
+
+	SetRepository(string)
+	Repository() string
 	CommitHashWithMark(string) string
 	SetCommitHash(string)
 	SetUncommittedChanges(bool)
@@ -47,6 +49,7 @@ type Release interface {
 	Packages() []*boshpkg.Package
 	CompiledPackages() []*boshpkg.CompiledPackage
 	License() *boshlic.License
+	LicenseName() string
 
 	IsCompiled() bool
 

@@ -49,7 +49,7 @@ releases/**/*.tgz
 	return nil
 }
 
-func (r FSGitRepo) SourceRepoUrl() (string, error) {
+func (r FSGitRepo) Remote() (string, error) {
 	cmd := boshsys.Command{
 		Name:       "git",
 		Args:       []string{"remote", "get-url", "origin"},

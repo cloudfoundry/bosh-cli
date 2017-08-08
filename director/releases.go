@@ -13,14 +13,16 @@ import (
 type ReleaseImpl struct {
 	client Client
 
-	name    string
-	version semver.Version
+	name        string
+	version     semver.Version
+	description string
 
 	currentlyDeployed bool
 
-	sourceRepoUrl      string
+	repository         string
 	commitHash         string
 	uncommittedChanges bool
+	license            string
 
 	jobs     []Job
 	packages []Package
@@ -31,6 +33,7 @@ type ReleaseImpl struct {
 
 func (r ReleaseImpl) Name() string            { return r.name }
 func (r ReleaseImpl) Version() semver.Version { return r.version }
+func (r ReleaseImpl) Description() string     { return r.description }
 
 func (r ReleaseImpl) VersionMark(suffix string) string {
 	if r.currentlyDeployed {
@@ -46,7 +49,8 @@ func (r ReleaseImpl) CommitHashWithMark(suffix string) string {
 	return r.commitHash
 }
 
-func (r ReleaseImpl) SourceRepoUrl() string { return r.sourceRepoUrl }
+func (r ReleaseImpl) Repository() string { return r.repository }
+func (r ReleaseImpl) License() string    { return r.license }
 
 func (r *ReleaseImpl) Jobs() ([]Job, error) {
 	r.fetch()
@@ -150,14 +154,16 @@ func (d DirectorImpl) Releases() ([]Release, error) {
 			rel := &ReleaseImpl{
 				client: d.client,
 
-				name:    resp.Name,
-				version: parsedVersion,
+				name:        resp.Name,
+				version:     parsedVersion,
+				description: relVerResp.Description,
 
 				currentlyDeployed: relVerResp.CurrentlyDeployed,
 
-				sourceRepoUrl:      relVerResp.SourceRepoUrl,
+				repository:         relVerResp.Repository,
 				commitHash:         relVerResp.CommitHash,
 				uncommittedChanges: relVerResp.UncommittedChanges,
+				license:            relVerResp.License,
 			}
 
 			rels = append(rels, rel)

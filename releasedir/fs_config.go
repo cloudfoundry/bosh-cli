@@ -28,9 +28,12 @@ type FSConfig struct {
 }
 
 type fsConfigPublicSchema struct {
-	Name      string                   `yaml:"name"`
-	FinalName string                   `yaml:"final_name,omitempty"`
-	Blobstore fsConfigSchema_Blobstore `yaml:"blobstore,omitempty"`
+	Name        string                   `yaml:"name"`
+	Repository  string                   `yaml:"repository,omitempty"`
+	License     string                   `yaml:"license,omitempty"`
+	Description string                   `yaml:"description,omitempty"`
+	FinalName   string                   `yaml:"final_name,omitempty"`
+	Blobstore   fsConfigSchema_Blobstore `yaml:"blobstore,omitempty"`
 }
 
 type fsConfigPrivateSchema struct {
@@ -65,6 +68,22 @@ func (c FSConfig) Name() (string, error) {
 	}
 
 	return publicSchema.Name, nil
+}
+
+func (c FSConfig) Description() (string, error) {
+	publicSchema, _, err := c.read()
+	if err != nil {
+		return "", err
+	}
+	return publicSchema.Description, nil
+}
+
+func (c FSConfig) License() (string, error) {
+	publicSchema, _, err := c.read()
+	if err != nil {
+		return "", err
+	}
+	return publicSchema.License, nil
 }
 
 func (c FSConfig) SaveName(name string) error {

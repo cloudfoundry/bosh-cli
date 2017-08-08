@@ -193,7 +193,8 @@ format-version: "2"`)
 
 			Expect(fs.ReadFileString(filepath.Join("/", "dir", "name", "name-ver1.yml"))).To(Equal(`name: name
 version: ver1
-source_repo_url: ""
+description: ""
+repository: ""
 commit_hash: ""
 uncommitted_changes: false
 `))
@@ -222,7 +223,8 @@ format-version: "2"
 
 			Expect(fs.ReadFileString(filepath.Join("/", "dir", "name", "name-ver1.yml"))).To(Equal(`name: name
 version: ver1
-source_repo_url: ""
+description: ""
+repository: ""
 commit_hash: ""
 uncommitted_changes: false
 `))

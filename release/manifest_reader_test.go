@@ -157,7 +157,7 @@ license:
 					"pkg2", "pkg2-fp", "pkg2-stemcell", "pkg2-sha", nil)
 				compiledPkg1.AttachDependencies([]*boshpkg.CompiledPackage{compiledPkg2})
 
-				lic := boshlic.NewLicense(NewExistingResource("license", "lic-fp", "lic-sha"))
+				lic := boshlic.NewLicense(NewExistingResource("", "lic-fp", "lic-sha"))
 
 				release, err := act()
 				Expect(err).NotTo(HaveOccurred())

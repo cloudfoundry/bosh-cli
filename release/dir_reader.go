@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/cloudfoundry/bosh-cli/release/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -14,10 +15,11 @@ import (
 )
 
 type DirReader struct {
-	jobDirReader boshjob.DirReader
-	pkgDirReader boshpkg.DirReader
-	licDirReader boshlic.DirReader
-	fs           boshsys.FileSystem
+	jobDirReader   boshjob.DirReader
+	pkgDirReader   boshpkg.DirReader
+	licDirReader   boshlic.DirReader
+	configProvider config.Reader
+	fs             boshsys.FileSystem
 
 	logTag string
 	logger boshlog.Logger
@@ -27,14 +29,16 @@ func NewDirReader(
 	jobDirReader boshjob.DirReader,
 	pkgDirReader boshpkg.DirReader,
 	licDirReader boshlic.DirReader,
+	configProvider config.Reader,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) DirReader {
 	return DirReader{
-		jobDirReader: jobDirReader,
-		pkgDirReader: pkgDirReader,
-		licDirReader: licDirReader,
-		fs:           fs,
+		jobDirReader:   jobDirReader,
+		pkgDirReader:   pkgDirReader,
+		licDirReader:   licDirReader,
+		configProvider: configProvider,
+		fs:             fs,
 
 		logTag: "release.DirReader",
 		logger: logger,
@@ -64,13 +68,17 @@ func (r DirReader) Read(path string) (Release, error) {
 	} else {
 		jobs, err = r.newJobs(packages, jobMatches)
 		if err != nil {
-			errs = append(errs, bosherr.WrapError(err, "Constructing jobs from manifest"))
+			errs = append(errs, bosherr.WrapError(err, "Constructing jobs from directory"))
 		}
 	}
 
 	license, err := r.newLicense(path)
 	if err != nil {
-		errs = append(errs, bosherr.WrapError(err, "Constructing license from manifest"))
+		errs = append(errs, bosherr.WrapError(err, "Constructing license from directory"))
+	}
+	config, err := r.configProvider.Read(filepath.Join(path, "config", "final.yml"))
+	if err != nil {
+		errs = append(errs, bosherr.WrapError(err, "Constructing config from final.yml"))
 	}
 
 	if len(errs) > 0 {
@@ -78,9 +86,11 @@ func (r DirReader) Read(path string) (Release, error) {
 	}
 
 	release := &release{
-		jobs:     jobs,
-		packages: packages,
-		license:  license,
+		jobs:        jobs,
+		packages:    packages,
+		license:     license,
+		licenseName: config.License,
+		description: config.Description,
 		// no compiled packages
 		// no clean up
 	}

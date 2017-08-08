@@ -27,13 +27,15 @@ var _ = Describe("Release", func() {
 		release = NewRelease(
 			"name",
 			"version",
-			"source-repo-url",
+			"description",
+			"repository",
 			"commit",
 			true,
 			[]*boshjob.Job{},
 			[]*boshpkg.Package{},
 			[]*boshpkg.CompiledPackage{},
 			&boshlic.License{},
+			"license-name",
 			"extracted-path",
 			fs,
 		)
@@ -80,13 +82,13 @@ var _ = Describe("Release", func() {
 
 			license := boshlic.NewLicense(NewResource("license", "", nil))
 
-			release = NewRelease("", "", "", "", true, jobs, pkgs, compiledPkgs, license, "", fs)
+			release = NewRelease("", "", "", "", "", true, jobs, pkgs, compiledPkgs, license, "", "", fs)
 			Expect(release.Jobs()).To(Equal(jobs))
 			Expect(release.Packages()).To(Equal(pkgs))
 			Expect(release.CompiledPackages()).To(Equal(compiledPkgs))
 			Expect(release.License()).To(Equal(license))
 
-			release = NewRelease("", "", "", "", true, jobs, pkgs, compiledPkgs, nil, "", fs)
+			release = NewRelease("", "", "", "", "", true, jobs, pkgs, compiledPkgs, nil, "", "", fs)
 			Expect(release.License()).To(BeNil())
 		})
 	})
@@ -98,10 +100,10 @@ var _ = Describe("Release", func() {
 					"name", "fp", "os-slug", "sha1", []string{"pkg1", "pkg2"}),
 			}
 
-			release = NewRelease("", "", "", "", true, nil, nil, compiledPkgs, nil, "", fs)
+			release = NewRelease("", "", "", "", "", true, nil, nil, compiledPkgs, nil, "", "", fs)
 			Expect(release.IsCompiled()).To(BeTrue())
 
-			release = NewRelease("", "", "", "", true, nil, nil, nil, nil, "", fs)
+			release = NewRelease("", "", "", "", "", true, nil, nil, nil, nil, "", "", fs)
 			Expect(release.IsCompiled()).To(BeFalse())
 		})
 	})
@@ -113,7 +115,7 @@ var _ = Describe("Release", func() {
 				boshjob.NewJob(NewResource("job2", "job2-fp", nil)),
 			}
 
-			release = NewRelease("", "", "", "", true, jobs, nil, nil, nil, "", fs)
+			release = NewRelease("", "", "", "", "", true, jobs, nil, nil, nil, "", "", fs)
 
 			job, ok := release.FindJobByName("job2")
 			Expect(job).To(Equal(*jobs[1]))
@@ -125,7 +127,7 @@ var _ = Describe("Release", func() {
 				boshjob.NewJob(NewResource("job1", "job1-fp", nil)),
 			}
 
-			release = NewRelease("", "", "", "", true, jobs, nil, nil, nil, "", fs)
+			release = NewRelease("", "", "", "", "", true, jobs, nil, nil, nil, "", "", fs)
 
 			_, ok := release.FindJobByName("job2")
 			Expect(ok).To(BeFalse())
@@ -149,12 +151,13 @@ var _ = Describe("Release", func() {
 
 			license := boshlic.NewLicense(NewExistingResource("license", "lic-fp", "lic-sha1"))
 
-			release = NewRelease("name", "ver", "source-repo-url", "commit", true, jobs, pkgs, compiledPkgs, license, "", fs)
+			release = NewRelease("name", "ver", "desc", "repository", "commit", true, jobs, pkgs, compiledPkgs, license, "", "", fs)
 
 			Expect(release.Manifest()).To(Equal(boshman.Manifest{
 				Name:               "name",
 				Version:            "ver",
-				SourceRepoUrl:      "source-repo-url",
+				Description:        "desc",
+				Repository:         "repository",
 				CommitHash:         "commit",
 				UncommittedChanges: true,
 				Jobs: []boshman.JobRef{
@@ -193,7 +196,7 @@ var _ = Describe("Release", func() {
 		})
 
 		It("does not include license if it's not set", func() {
-			release = NewRelease("name", "ver", "source-repo-url", "commit", true, nil, nil, nil, nil, "", fs)
+			release = NewRelease("name", "ver", "desc", "repository", "commit", true, nil, nil, nil, nil, "", "", fs)
 			Expect(release.Manifest().License).To(BeNil())
 		})
 	})
@@ -209,7 +212,7 @@ var _ = Describe("Release", func() {
 			licRes := &fakeres.FakeResource{}
 			lic := boshlic.NewLicense(licRes)
 
-			release = NewRelease("", "", "", "", true, jobs, pkgs, nil, lic, "", fs)
+			release = NewRelease("", "", "", "", "", true, jobs, pkgs, nil, lic, "", "", fs)
 
 			devJobs := &fakeres.FakeArchiveIndex{}
 			devPkgs := &fakeres.FakeArchiveIndex{}
@@ -241,7 +244,7 @@ var _ = Describe("Release", func() {
 		})
 
 		It("does nothing when there is nothing to build", func() {
-			release = NewRelease("", "", "", "", true, nil, nil, nil, nil, "", fs)
+			release = NewRelease("", "", "", "", "", true, nil, nil, nil, nil, "", "", fs)
 			Expect(release.Build(ArchiveIndicies{}, ArchiveIndicies{})).ToNot(HaveOccurred())
 		})
 
@@ -250,7 +253,7 @@ var _ = Describe("Release", func() {
 			jobs := []*boshjob.Job{boshjob.NewJob(jobRes)}
 
 			jobRes.BuildReturns(errors.New("fake-err"))
-			release = NewRelease("", "", "", "", true, jobs, nil, nil, nil, "", fs)
+			release = NewRelease("", "", "", "", "", true, jobs, nil, nil, nil, "", "", fs)
 
 			err := release.Build(ArchiveIndicies{}, ArchiveIndicies{})
 			Expect(err).To(Equal(errors.New("fake-err")))
@@ -261,7 +264,7 @@ var _ = Describe("Release", func() {
 			pkgs := []*boshpkg.Package{boshpkg.NewPackage(pkgRes, nil)}
 
 			pkgRes.BuildReturns(errors.New("fake-err"))
-			release = NewRelease("", "", "", "", true, nil, pkgs, nil, nil, "", fs)
+			release = NewRelease("", "", "", "", "", true, nil, pkgs, nil, nil, "", "", fs)
 
 			err := release.Build(ArchiveIndicies{}, ArchiveIndicies{})
 			Expect(err).To(Equal(errors.New("fake-err")))
@@ -272,7 +275,7 @@ var _ = Describe("Release", func() {
 			lic := boshlic.NewLicense(licRes)
 
 			licRes.BuildReturns(errors.New("fake-err"))
-			release = NewRelease("", "", "", "", true, nil, nil, nil, lic, "", fs)
+			release = NewRelease("", "", "", "", "", true, nil, nil, nil, lic, "", "", fs)
 
 			err := release.Build(ArchiveIndicies{}, ArchiveIndicies{})
 			Expect(err).To(Equal(errors.New("fake-err")))
@@ -290,7 +293,7 @@ var _ = Describe("Release", func() {
 			licRes := &fakeres.FakeResource{}
 			lic := boshlic.NewLicense(licRes)
 
-			release = NewRelease("", "", "", "", true, jobs, pkgs, nil, lic, "", fs)
+			release = NewRelease("", "", "", "", "", true, jobs, pkgs, nil, lic, "", "", fs)
 
 			finalJobs := &fakeres.FakeArchiveIndex{}
 			finalPkgs := &fakeres.FakeArchiveIndex{}
@@ -311,7 +314,7 @@ var _ = Describe("Release", func() {
 		})
 
 		It("does nothing when there is nothing to finalize", func() {
-			release = NewRelease("", "", "", "", true, nil, nil, nil, nil, "", fs)
+			release = NewRelease("", "", "", "", "", true, nil, nil, nil, nil, "", "", fs)
 			Expect(release.Finalize(ArchiveIndicies{})).ToNot(HaveOccurred())
 		})
 
@@ -320,7 +323,7 @@ var _ = Describe("Release", func() {
 			jobs := []*boshjob.Job{boshjob.NewJob(jobRes)}
 
 			jobRes.FinalizeReturns(errors.New("fake-err"))
-			release = NewRelease("", "", "", "", true, jobs, nil, nil, nil, "", fs)
+			release = NewRelease("", "", "", "", "", true, jobs, nil, nil, nil, "", "", fs)
 
 			err := release.Finalize(ArchiveIndicies{})
 			Expect(err).To(Equal(errors.New("fake-err")))
@@ -331,7 +334,7 @@ var _ = Describe("Release", func() {
 			pkgs := []*boshpkg.Package{boshpkg.NewPackage(pkgRes, nil)}
 
 			pkgRes.FinalizeReturns(errors.New("fake-err"))
-			release = NewRelease("", "", "", "", true, nil, pkgs, nil, nil, "", fs)
+			release = NewRelease("", "", "", "", "", true, nil, pkgs, nil, nil, "", "", fs)
 
 			err := release.Finalize(ArchiveIndicies{})
 			Expect(err).To(Equal(errors.New("fake-err")))
@@ -342,7 +345,7 @@ var _ = Describe("Release", func() {
 			lic := boshlic.NewLicense(licRes)
 
 			licRes.FinalizeReturns(errors.New("fake-err"))
-			release = NewRelease("", "", "", "", true, nil, nil, nil, lic, "", fs)
+			release = NewRelease("", "", "", "", "", true, nil, nil, nil, lic, "", "", fs)
 
 			err := release.Finalize(ArchiveIndicies{})
 			Expect(err).To(Equal(errors.New("fake-err")))
@@ -353,12 +356,12 @@ var _ = Describe("Release", func() {
 		It("cleans up jobs, packages", func() {
 			jobs := []*boshjob.Job{boshjob.NewJob(&fakeres.FakeResource{})}
 			pkgs := []*boshpkg.Package{boshpkg.NewPackage(&fakeres.FakeResource{}, nil)}
-			release = NewRelease("", "", "", "", true, jobs, pkgs, nil, nil, "", fs)
+			release = NewRelease("", "", "", "", "", true, jobs, pkgs, nil, nil, "", "", fs)
 			Expect(release.CleanUp()).ToNot(HaveOccurred())
 		})
 
 		It("does nothing when there is nothing to clean up", func() {
-			release = NewRelease("", "", "", "", true, nil, nil, nil, nil, "", fs)
+			release = NewRelease("", "", "", "", "", true, nil, nil, nil, nil, "", "", fs)
 			Expect(release.CleanUp()).ToNot(HaveOccurred())
 		})
 	})

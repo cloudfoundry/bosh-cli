@@ -206,7 +206,7 @@ func (d FSReleaseDir) BuildRelease(name string, version semver.Version, force bo
 		return nil, err
 	}
 
-	sourceRepoUrl, err := d.gitRepo.SourceRepoUrl()
+	repository, err := d.gitRepo.Remote()
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +223,9 @@ func (d FSReleaseDir) BuildRelease(name string, version semver.Version, force bo
 
 	release.SetName(name)
 	release.SetVersion(version.AsString())
-	release.SetSourceRepoUrl(sourceRepoUrl)
+	if release.Repository() == "" {
+		release.SetRepository(repository)
+	}
 	release.SetCommitHash(commitSHA)
 	release.SetUncommittedChanges(dirty)
 

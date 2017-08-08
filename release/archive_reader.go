@@ -107,11 +107,17 @@ func (r ArchiveReader) newRelease(manifest boshman.Manifest, extractPath string)
 		return nil, bosherr.NewMultiError(errs...)
 	}
 
-	release := &release{
-		name:    manifest.Name,
-		version: manifest.Version,
+	licenseName := ""
+	if manifest.License != nil {
+		licenseName = manifest.License.Name
+	}
 
-		sourceRepoUrl:      manifest.SourceRepoUrl,
+	release := &release{
+		name:        manifest.Name,
+		version:     manifest.Version,
+		description: manifest.Description,
+
+		repository:         manifest.Repository,
 		commitHash:         manifest.CommitHash,
 		uncommittedChanges: manifest.UncommittedChanges,
 
@@ -119,6 +125,7 @@ func (r ArchiveReader) newRelease(manifest boshman.Manifest, extractPath string)
 		packages:     packages,
 		compiledPkgs: compiledPkgs,
 		license:      license,
+		licenseName:  licenseName,
 
 		extractedPath: extractPath,
 		fs:            r.fs,

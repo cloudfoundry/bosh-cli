@@ -40,18 +40,27 @@ type FakeRelease struct {
 	setVersionArgsForCall []struct {
 		arg1 string
 	}
-	SetSourceRepoUrlStub        func(string)
-	setSourceRepoUrlMutex       sync.RWMutex
-	setSourceRepoUrlArgsForCall []struct {
-		arg1 string
-	}
-	SourceRepoUrlStub        func() string
-	sourceRepoUrlMutex       sync.RWMutex
-	sourceRepoUrlArgsForCall []struct{}
-	sourceRepoUrlReturns     struct {
+	DescriptionStub        func() string
+	descriptionMutex       sync.RWMutex
+	descriptionArgsForCall []struct{}
+	descriptionReturns     struct {
 		result1 string
 	}
-	sourceRepoUrlReturnsOnCall map[int]struct {
+	descriptionReturnsOnCall map[int]struct {
+		result1 string
+	}
+	SetRepositoryStub        func(string)
+	setRepositoryMutex       sync.RWMutex
+	setRepositoryArgsForCall []struct {
+		arg1 string
+	}
+	RepositoryStub        func() string
+	repositoryMutex       sync.RWMutex
+	repositoryArgsForCall []struct{}
+	repositoryReturns     struct {
+		result1 string
+	}
+	repositoryReturnsOnCall map[int]struct {
 		result1 string
 	}
 	CommitHashWithMarkStub        func(string) string
@@ -110,6 +119,15 @@ type FakeRelease struct {
 	}
 	licenseReturnsOnCall map[int]struct {
 		result1 *boshlic.License
+	}
+	LicenseNameStub        func() string
+	licenseNameMutex       sync.RWMutex
+	licenseNameArgsForCall []struct{}
+	licenseNameReturns     struct {
+		result1 string
+	}
+	licenseNameReturnsOnCall map[int]struct {
+		result1 string
 	}
 	IsCompiledStub        func() bool
 	isCompiledMutex       sync.RWMutex
@@ -320,66 +338,106 @@ func (fake *FakeRelease) SetVersionArgsForCall(i int) string {
 	return fake.setVersionArgsForCall[i].arg1
 }
 
-func (fake *FakeRelease) SetSourceRepoUrl(arg1 string) {
-	fake.setSourceRepoUrlMutex.Lock()
-	fake.setSourceRepoUrlArgsForCall = append(fake.setSourceRepoUrlArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	fake.recordInvocation("SetSourceRepoUrl", []interface{}{arg1})
-	fake.setSourceRepoUrlMutex.Unlock()
-	if fake.SetSourceRepoUrlStub != nil {
-		fake.SetSourceRepoUrlStub(arg1)
-	}
-}
-
-func (fake *FakeRelease) SetSourceRepoUrlCallCount() int {
-	fake.setSourceRepoUrlMutex.RLock()
-	defer fake.setSourceRepoUrlMutex.RUnlock()
-	return len(fake.setSourceRepoUrlArgsForCall)
-}
-
-func (fake *FakeRelease) SetSourceRepoUrlArgsForCall(i int) string {
-	fake.setSourceRepoUrlMutex.RLock()
-	defer fake.setSourceRepoUrlMutex.RUnlock()
-	return fake.setSourceRepoUrlArgsForCall[i].arg1
-}
-
-func (fake *FakeRelease) SourceRepoUrl() string {
-	fake.sourceRepoUrlMutex.Lock()
-	ret, specificReturn := fake.sourceRepoUrlReturnsOnCall[len(fake.sourceRepoUrlArgsForCall)]
-	fake.sourceRepoUrlArgsForCall = append(fake.sourceRepoUrlArgsForCall, struct{}{})
-	fake.recordInvocation("SourceRepoUrl", []interface{}{})
-	fake.sourceRepoUrlMutex.Unlock()
-	if fake.SourceRepoUrlStub != nil {
-		return fake.SourceRepoUrlStub()
+func (fake *FakeRelease) Description() string {
+	fake.descriptionMutex.Lock()
+	ret, specificReturn := fake.descriptionReturnsOnCall[len(fake.descriptionArgsForCall)]
+	fake.descriptionArgsForCall = append(fake.descriptionArgsForCall, struct{}{})
+	fake.recordInvocation("Description", []interface{}{})
+	fake.descriptionMutex.Unlock()
+	if fake.DescriptionStub != nil {
+		return fake.DescriptionStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.sourceRepoUrlReturns.result1
+	return fake.descriptionReturns.result1
 }
 
-func (fake *FakeRelease) SourceRepoUrlCallCount() int {
-	fake.sourceRepoUrlMutex.RLock()
-	defer fake.sourceRepoUrlMutex.RUnlock()
-	return len(fake.sourceRepoUrlArgsForCall)
+func (fake *FakeRelease) DescriptionCallCount() int {
+	fake.descriptionMutex.RLock()
+	defer fake.descriptionMutex.RUnlock()
+	return len(fake.descriptionArgsForCall)
 }
 
-func (fake *FakeRelease) SourceRepoUrlReturns(result1 string) {
-	fake.SourceRepoUrlStub = nil
-	fake.sourceRepoUrlReturns = struct {
+func (fake *FakeRelease) DescriptionReturns(result1 string) {
+	fake.DescriptionStub = nil
+	fake.descriptionReturns = struct {
 		result1 string
 	}{result1}
 }
 
-func (fake *FakeRelease) SourceRepoUrlReturnsOnCall(i int, result1 string) {
-	fake.SourceRepoUrlStub = nil
-	if fake.sourceRepoUrlReturnsOnCall == nil {
-		fake.sourceRepoUrlReturnsOnCall = make(map[int]struct {
+func (fake *FakeRelease) DescriptionReturnsOnCall(i int, result1 string) {
+	fake.DescriptionStub = nil
+	if fake.descriptionReturnsOnCall == nil {
+		fake.descriptionReturnsOnCall = make(map[int]struct {
 			result1 string
 		})
 	}
-	fake.sourceRepoUrlReturnsOnCall[i] = struct {
+	fake.descriptionReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeRelease) SetRepository(arg1 string) {
+	fake.setRepositoryMutex.Lock()
+	fake.setRepositoryArgsForCall = append(fake.setRepositoryArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("SetRepository", []interface{}{arg1})
+	fake.setRepositoryMutex.Unlock()
+	if fake.SetRepositoryStub != nil {
+		fake.SetRepositoryStub(arg1)
+	}
+}
+
+func (fake *FakeRelease) SetRepositoryCallCount() int {
+	fake.setRepositoryMutex.RLock()
+	defer fake.setRepositoryMutex.RUnlock()
+	return len(fake.setRepositoryArgsForCall)
+}
+
+func (fake *FakeRelease) SetRepositoryArgsForCall(i int) string {
+	fake.setRepositoryMutex.RLock()
+	defer fake.setRepositoryMutex.RUnlock()
+	return fake.setRepositoryArgsForCall[i].arg1
+}
+
+func (fake *FakeRelease) Repository() string {
+	fake.repositoryMutex.Lock()
+	ret, specificReturn := fake.repositoryReturnsOnCall[len(fake.repositoryArgsForCall)]
+	fake.repositoryArgsForCall = append(fake.repositoryArgsForCall, struct{}{})
+	fake.recordInvocation("Repository", []interface{}{})
+	fake.repositoryMutex.Unlock()
+	if fake.RepositoryStub != nil {
+		return fake.RepositoryStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.repositoryReturns.result1
+}
+
+func (fake *FakeRelease) RepositoryCallCount() int {
+	fake.repositoryMutex.RLock()
+	defer fake.repositoryMutex.RUnlock()
+	return len(fake.repositoryArgsForCall)
+}
+
+func (fake *FakeRelease) RepositoryReturns(result1 string) {
+	fake.RepositoryStub = nil
+	fake.repositoryReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeRelease) RepositoryReturnsOnCall(i int, result1 string) {
+	fake.RepositoryStub = nil
+	if fake.repositoryReturnsOnCall == nil {
+		fake.repositoryReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.repositoryReturnsOnCall[i] = struct {
 		result1 string
 	}{result1}
 }
@@ -637,6 +695,46 @@ func (fake *FakeRelease) LicenseReturnsOnCall(i int, result1 *boshlic.License) {
 	}
 	fake.licenseReturnsOnCall[i] = struct {
 		result1 *boshlic.License
+	}{result1}
+}
+
+func (fake *FakeRelease) LicenseName() string {
+	fake.licenseNameMutex.Lock()
+	ret, specificReturn := fake.licenseNameReturnsOnCall[len(fake.licenseNameArgsForCall)]
+	fake.licenseNameArgsForCall = append(fake.licenseNameArgsForCall, struct{}{})
+	fake.recordInvocation("LicenseName", []interface{}{})
+	fake.licenseNameMutex.Unlock()
+	if fake.LicenseNameStub != nil {
+		return fake.LicenseNameStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.licenseNameReturns.result1
+}
+
+func (fake *FakeRelease) LicenseNameCallCount() int {
+	fake.licenseNameMutex.RLock()
+	defer fake.licenseNameMutex.RUnlock()
+	return len(fake.licenseNameArgsForCall)
+}
+
+func (fake *FakeRelease) LicenseNameReturns(result1 string) {
+	fake.LicenseNameStub = nil
+	fake.licenseNameReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeRelease) LicenseNameReturnsOnCall(i int, result1 string) {
+	fake.LicenseNameStub = nil
+	if fake.licenseNameReturnsOnCall == nil {
+		fake.licenseNameReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.licenseNameReturnsOnCall[i] = struct {
+		result1 string
 	}{result1}
 }
 
@@ -985,10 +1083,12 @@ func (fake *FakeRelease) Invocations() map[string][][]interface{} {
 	defer fake.versionMutex.RUnlock()
 	fake.setVersionMutex.RLock()
 	defer fake.setVersionMutex.RUnlock()
-	fake.setSourceRepoUrlMutex.RLock()
-	defer fake.setSourceRepoUrlMutex.RUnlock()
-	fake.sourceRepoUrlMutex.RLock()
-	defer fake.sourceRepoUrlMutex.RUnlock()
+	fake.descriptionMutex.RLock()
+	defer fake.descriptionMutex.RUnlock()
+	fake.setRepositoryMutex.RLock()
+	defer fake.setRepositoryMutex.RUnlock()
+	fake.repositoryMutex.RLock()
+	defer fake.repositoryMutex.RUnlock()
 	fake.commitHashWithMarkMutex.RLock()
 	defer fake.commitHashWithMarkMutex.RUnlock()
 	fake.setCommitHashMutex.RLock()
@@ -1003,6 +1103,8 @@ func (fake *FakeRelease) Invocations() map[string][][]interface{} {
 	defer fake.compiledPackagesMutex.RUnlock()
 	fake.licenseMutex.RLock()
 	defer fake.licenseMutex.RUnlock()
+	fake.licenseNameMutex.RLock()
+	defer fake.licenseNameMutex.RUnlock()
 	fake.isCompiledMutex.RLock()
 	defer fake.isCompiledMutex.RUnlock()
 	fake.findJobByNameMutex.RLock()

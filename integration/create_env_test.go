@@ -273,13 +273,15 @@ cloud_provider:
 			cpiRelease := birel.NewRelease(
 				"fake-cpi-release-name",
 				"1.1",
-				"source-repo-url",
+				"description",
+				"repository",
 				"commit",
 				false,
 				[]*bireljob.Job{job},
 				[]*birelpkg.Package{cpiPackage},
 				nil,
 				nil,
+				"license-name",
 				"fake-cpi-extracted-dir",
 				fs,
 			)
@@ -818,13 +820,15 @@ cloud_provider:
 				otherRelease := birel.NewRelease(
 					"fake-other-release-name",
 					"1.2",
-					"source-repo-url",
+					"description",
+					"repository",
 					"commit",
 					false,
 					[]*bireljob.Job{job},
 					[]*birelpkg.Package{},
 					nil,
 					nil,
+					"license-name",
 					"fake-other-extracted-dir",
 					fs,
 				)

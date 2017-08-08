@@ -17,14 +17,14 @@ type FakeGitRepo struct {
 	initReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SourceRepoUrlStub        func() (string, error)
-	sourceRepoUrlMutex       sync.RWMutex
-	sourceRepoUrlArgsForCall []struct{}
-	sourceRepoUrlReturns     struct {
+	RemoteStub        func() (string, error)
+	remoteMutex       sync.RWMutex
+	remoteArgsForCall []struct{}
+	remoteReturns     struct {
 		result1 string
 		result2 error
 	}
-	sourceRepoUrlReturnsOnCall map[int]struct {
+	remoteReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
 	}
@@ -96,44 +96,44 @@ func (fake *FakeGitRepo) InitReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeGitRepo) SourceRepoUrl() (string, error) {
-	fake.sourceRepoUrlMutex.Lock()
-	ret, specificReturn := fake.sourceRepoUrlReturnsOnCall[len(fake.sourceRepoUrlArgsForCall)]
-	fake.sourceRepoUrlArgsForCall = append(fake.sourceRepoUrlArgsForCall, struct{}{})
-	fake.recordInvocation("SourceRepoUrl", []interface{}{})
-	fake.sourceRepoUrlMutex.Unlock()
-	if fake.SourceRepoUrlStub != nil {
-		return fake.SourceRepoUrlStub()
+func (fake *FakeGitRepo) Remote() (string, error) {
+	fake.remoteMutex.Lock()
+	ret, specificReturn := fake.remoteReturnsOnCall[len(fake.remoteArgsForCall)]
+	fake.remoteArgsForCall = append(fake.remoteArgsForCall, struct{}{})
+	fake.recordInvocation("Remote", []interface{}{})
+	fake.remoteMutex.Unlock()
+	if fake.RemoteStub != nil {
+		return fake.RemoteStub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.sourceRepoUrlReturns.result1, fake.sourceRepoUrlReturns.result2
+	return fake.remoteReturns.result1, fake.remoteReturns.result2
 }
 
-func (fake *FakeGitRepo) SourceRepoUrlCallCount() int {
-	fake.sourceRepoUrlMutex.RLock()
-	defer fake.sourceRepoUrlMutex.RUnlock()
-	return len(fake.sourceRepoUrlArgsForCall)
+func (fake *FakeGitRepo) RemoteCallCount() int {
+	fake.remoteMutex.RLock()
+	defer fake.remoteMutex.RUnlock()
+	return len(fake.remoteArgsForCall)
 }
 
-func (fake *FakeGitRepo) SourceRepoUrlReturns(result1 string, result2 error) {
-	fake.SourceRepoUrlStub = nil
-	fake.sourceRepoUrlReturns = struct {
+func (fake *FakeGitRepo) RemoteReturns(result1 string, result2 error) {
+	fake.RemoteStub = nil
+	fake.remoteReturns = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeGitRepo) SourceRepoUrlReturnsOnCall(i int, result1 string, result2 error) {
-	fake.SourceRepoUrlStub = nil
-	if fake.sourceRepoUrlReturnsOnCall == nil {
-		fake.sourceRepoUrlReturnsOnCall = make(map[int]struct {
+func (fake *FakeGitRepo) RemoteReturnsOnCall(i int, result1 string, result2 error) {
+	fake.RemoteStub = nil
+	if fake.remoteReturnsOnCall == nil {
+		fake.remoteReturnsOnCall = make(map[int]struct {
 			result1 string
 			result2 error
 		})
 	}
-	fake.sourceRepoUrlReturnsOnCall[i] = struct {
+	fake.remoteReturnsOnCall[i] = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
@@ -238,8 +238,8 @@ func (fake *FakeGitRepo) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.initMutex.RLock()
 	defer fake.initMutex.RUnlock()
-	fake.sourceRepoUrlMutex.RLock()
-	defer fake.sourceRepoUrlMutex.RUnlock()
+	fake.remoteMutex.RLock()
+	defer fake.remoteMutex.RUnlock()
 	fake.lastCommitSHAMutex.RLock()
 	defer fake.lastCommitSHAMutex.RUnlock()
 	fake.mustNotBeDirtyMutex.RLock()

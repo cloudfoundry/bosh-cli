@@ -46,11 +46,13 @@ var _ = Describe("ReleaseTables", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			release = &fakerel.FakeRelease{
-				NameStub:    func() string { return "rel" },
-				VersionStub: func() string { return "ver" },
+				NameStub:        func() string { return "rel" },
+				VersionStub:     func() string { return "ver" },
+				DescriptionStub: func() string { return "desc" },
 
-				SourceRepoUrlStub:      func() string { return "source-repo-url" },
+				RepositoryStub:         func() string { return "repository" },
 				CommitHashWithMarkStub: func(string) string { return "commit" },
+				LicenseNameStub:        func() string { return "license" },
 
 				JobsStub:     func() []*boshjob.Job { return []*boshjob.Job{job} },
 				PackagesStub: func() []*boshpkg.Package { return []*boshpkg.Package{pkg1, pkg2} },
@@ -64,16 +66,20 @@ var _ = Describe("ReleaseTables", func() {
 				Header: []boshtbl.Header{
 					boshtbl.NewHeader("Name"),
 					boshtbl.NewHeader("Version"),
-					boshtbl.NewHeader("Source Repo Url"),
+					boshtbl.NewHeader("Description"),
+					boshtbl.NewHeader("Repository"),
 					boshtbl.NewHeader("Commit Hash"),
+					boshtbl.NewHeader("License"),
 					boshtbl.NewHeader("Archive"),
 				},
 				Rows: [][]boshtbl.Value{
 					{
 						boshtbl.NewValueString("rel"),
 						boshtbl.NewValueString("ver"),
-						boshtbl.NewValueString("source-repo-url"),
+						boshtbl.NewValueString("desc"),
+						boshtbl.NewValueString("repository"),
 						boshtbl.NewValueString("commit"),
+						boshtbl.NewValueString("license"),
 						boshtbl.NewValueString("/archive-path"),
 					},
 				},
@@ -127,15 +133,19 @@ var _ = Describe("ReleaseTables", func() {
 				Header: []boshtbl.Header{
 					boshtbl.NewHeader("Name"),
 					boshtbl.NewHeader("Version"),
-					boshtbl.NewHeader("Source Repo Url"),
+					boshtbl.NewHeader("Description"),
+					boshtbl.NewHeader("Repository"),
 					boshtbl.NewHeader("Commit Hash"),
+					boshtbl.NewHeader("License"),
 				},
 				Rows: [][]boshtbl.Value{
 					{
 						boshtbl.NewValueString("rel"),
 						boshtbl.NewValueString("ver"),
-						boshtbl.NewValueString("source-repo-url"),
+						boshtbl.NewValueString("desc"),
+						boshtbl.NewValueString("repository"),
 						boshtbl.NewValueString("commit"),
+						boshtbl.NewValueString("license"),
 					},
 				},
 				Transpose: true,

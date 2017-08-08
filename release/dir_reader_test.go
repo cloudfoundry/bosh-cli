@@ -11,6 +11,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/release"
+	boshcfg "github.com/cloudfoundry/bosh-cli/release/config"
+	fakecfg "github.com/cloudfoundry/bosh-cli/release/config/configfakes"
 	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
 	fakejob "github.com/cloudfoundry/bosh-cli/release/job/jobfakes"
 	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
@@ -25,6 +27,7 @@ var _ = Describe("DirReader", func() {
 		jobReader *fakejob.FakeDirReader
 		pkgReader *fakepkg.FakeDirReader
 		licReader *fakelic.FakeDirReader
+		cfgReader *fakecfg.FakeReader
 		fs        *fakesys.FakeFileSystem
 		reader    DirReader
 	)
@@ -38,7 +41,8 @@ var _ = Describe("DirReader", func() {
 		jobReader = &fakejob.FakeDirReader{}
 		pkgReader = &fakepkg.FakeDirReader{}
 		licReader = &fakelic.FakeDirReader{}
-		reader = NewDirReader(jobReader, pkgReader, licReader, fs, logger)
+		cfgReader = &fakecfg.FakeReader{}
+		reader = NewDirReader(jobReader, pkgReader, licReader, cfgReader, fs, logger)
 	})
 
 	Describe("Read", func() {
@@ -103,6 +107,13 @@ var _ = Describe("DirReader", func() {
 					return lic, nil
 				}
 				panic("Unexpected license")
+			}
+
+			cfgReader.ReadStub = func(path string) (*boshcfg.Config, error) {
+				if path == filepath.Join("/", "release", "config", "final.yml") {
+					return &boshcfg.Config{Name: "rel-name", Description: "desc", License: "license"}, nil
+				}
+				panic("Unexpected config path")
 			}
 		})
 

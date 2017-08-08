@@ -39,13 +39,15 @@ type ReleaseSeriesResp struct {
 }
 
 type ReleaseVersionResp struct {
-	Version string
+	Version     string
+	Description string
 
 	CurrentlyDeployed bool `json:"currently_deployed"`
 
-	SourceRepoUrl      string `json:"source_repo_url"`
+	Repository         string
 	CommitHash         string `json:"commit_hash"`
 	UncommittedChanges bool   `json:"uncommitted_changes"`
+	License            string
 }
 
 func (d DirectorImpl) FindReleaseSeries(slug ReleaseSeriesSlug) (ReleaseSeries, error) {

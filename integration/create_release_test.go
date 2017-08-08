@@ -27,6 +27,8 @@ var _ = Describe("create-release command", func() {
 		fs         boshsys.FileSystem
 		deps       BasicDeps
 		cmdFactory Factory
+		tmpDir     string
+		relName    string
 	)
 
 	BeforeEach(func() {
@@ -58,14 +60,18 @@ var _ = Describe("create-release command", func() {
 		Expect(contents).To(MatchRegexp("sha1: sha256:.*"))
 	}
 
-	It("can iterate on a basic release", func() {
-		tmpDir, err := fs.TempDir("bosh-create-release-int-test")
+	BeforeEach(func() {
+		var err error
+		tmpDir, err = fs.TempDir("bosh-create-release-int-test")
 		Expect(err).ToNot(HaveOccurred())
+		relName = filepath.Base(tmpDir)
+	})
 
-		defer fs.RemoveAll(tmpDir)
+	AfterEach(func() {
+		fs.RemoveAll(tmpDir)
+	})
 
-		relName := filepath.Base(tmpDir)
-
+	It("can iterate on a basic release", func() {
 		{
 			execCmd([]string{"init-release", "--dir", tmpDir})
 			Expect(fs.FileExists(filepath.Join(tmpDir, "config"))).To(BeTrue())
@@ -78,7 +84,7 @@ var _ = Describe("create-release command", func() {
 		execCmd([]string{"generate-package", "pkg1", "--dir", tmpDir})
 		execCmd([]string{"generate-package", "pkg2", "--dir", tmpDir})
 
-		err = fs.WriteFileString(filepath.Join(tmpDir, "LICENSE"), "LICENSE")
+		err := fs.WriteFileString(filepath.Join(tmpDir, "LICENSE"), "LICENSE")
 		Expect(err).ToNot(HaveOccurred())
 
 		{ // pkg1 depends on pkg2 for compilation
@@ -110,7 +116,8 @@ var _ = Describe("create-release command", func() {
 			Expect(removeSHA1s(contents)).To(Equal(
 				"name: " + relName + `
 version: 0+dev.1
-source_repo_url: non-git
+description: ""
+repository: non-git
 commit_hash: non-git
 uncommitted_changes: false
 jobs:
@@ -170,7 +177,8 @@ license:
 			Expect(removeSHA1s(contents)).To(Equal(
 				"name: " + relName + `
 version: 0+dev.2
-source_repo_url: non-git
+description: ""
+repository: non-git
 commit_hash: non-git
 uncommitted_changes: false
 jobs:
@@ -255,5 +263,71 @@ license:
 			Expect(fs.FileExists(blobPath)).To(BeFalse())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "blobs", "in-blobs"))).To(BeTrue())
 		}
+	})
+
+	Context("config/final.yml contains license", func() {
+		Context("release contains a LICENSE file", func() {
+			It("includes fingerprint, sha1 and name in license group", func() {
+				execCmd([]string{"init-release", "--dir", tmpDir})
+
+				err := fs.WriteFileString(filepath.Join(tmpDir, "LICENSE"), "LICENSE")
+				Expect(err).ToNot(HaveOccurred())
+
+				configFinal, err := fs.ReadFileString(filepath.Join(tmpDir, "config/final.yml"))
+				Expect(err).ToNot(HaveOccurred())
+				err = fs.WriteFileString(filepath.Join(tmpDir, "config/final.yml"),
+					configFinal+"license: TEST_LICENSE\n")
+				Expect(err).ToNot(HaveOccurred())
+
+				execCmd([]string{"create-release", "--dir", tmpDir})
+
+				contents, err := fs.ReadFileString(filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.1.yml"))
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(removeSHA1s(contents)).To(Equal(
+					"name: " + relName + `
+version: 0+dev.1
+description: ""
+repository: non-git
+commit_hash: non-git
+uncommitted_changes: false
+license:
+  version: f9d233609f68751f4e3f8fe5ab2ad69e4d534496
+  fingerprint: f9d233609f68751f4e3f8fe5ab2ad69e4d534496
+  sha1: replaced
+  name: TEST_LICENSE
+`,
+				))
+			})
+		})
+
+		Context("release contains no LICENSE file", func() {
+			It("only includes name in license group", func() {
+				execCmd([]string{"init-release", "--dir", tmpDir})
+
+				configFinal, err := fs.ReadFileString(filepath.Join(tmpDir, "config/final.yml"))
+				Expect(err).ToNot(HaveOccurred())
+				err = fs.WriteFileString(filepath.Join(tmpDir, "config/final.yml"),
+					configFinal+"license: TEST_LICENSE\n")
+				Expect(err).ToNot(HaveOccurred())
+
+				execCmd([]string{"create-release", "--dir", tmpDir})
+
+				contents, err := fs.ReadFileString(filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.1.yml"))
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(removeSHA1s(contents)).To(Equal(
+					"name: " + relName + `
+version: 0+dev.1
+description: ""
+repository: non-git
+commit_hash: non-git
+uncommitted_changes: false
+license:
+  name: TEST_LICENSE
+`,
+				))
+			})
+		})
 	})
 })

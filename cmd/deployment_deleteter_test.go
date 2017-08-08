@@ -160,13 +160,15 @@ cloud_provider:
 			cpiRelease := birel.NewRelease(
 				"fake-cpi-release-name",
 				"fake-cpi-release-version",
-				"fake-source-repo-url",
+				"fake-cpi-description",
+				"fake-repository",
 				"fake-sha",
 				false,
 				[]*bireljob.Job{job},
 				[]*birelpkg.Package{},
 				[]*birelpkg.CompiledPackage{},
 				nil,
+				"",
 				"fake-cpi-extracted-dir",
 				fs,
 			)

@@ -27,6 +27,15 @@ var _ = Describe("CreateReleaseCmd", func() {
 		command       CreateReleaseCmd
 	)
 
+	header := []boshtbl.Header{
+		boshtbl.NewHeader("Name"),
+		boshtbl.NewHeader("Version"),
+		boshtbl.NewHeader("Description"),
+		boshtbl.NewHeader("Repository"),
+		boshtbl.NewHeader("Commit Hash"),
+		boshtbl.NewHeader("License"),
+	}
+
 	BeforeEach(func() {
 		releaseReader = &fakerel.FakeReader{}
 		releaseDir = &fakereldir.FakeReleaseDir{}
@@ -56,8 +65,10 @@ var _ = Describe("CreateReleaseCmd", func() {
 			release = &fakerel.FakeRelease{
 				NameStub:               func() string { return "rel" },
 				VersionStub:            func() string { return "ver" },
-				SourceRepoUrlStub:      func() string { return "source-repo-url" },
+				DescriptionStub:        func() string { return "desc" },
+				RepositoryStub:         func() string { return "repository" },
 				CommitHashWithMarkStub: func(string) string { return "commit" },
+				LicenseNameStub:        func() string { return "license" },
 
 				SetNameStub:    func(name string) { release.NameReturns(name) },
 				SetVersionStub: func(ver string) { release.VersionReturns(ver) },
@@ -84,19 +95,15 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-					Header: []boshtbl.Header{
-						boshtbl.NewHeader("Name"),
-						boshtbl.NewHeader("Version"),
-						boshtbl.NewHeader("Source Repo Url"),
-						boshtbl.NewHeader("Commit Hash"),
-					},
-
+					Header: header,
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("rel"),
 							boshtbl.NewValueString("ver"),
-							boshtbl.NewValueString("source-repo-url"),
+							boshtbl.NewValueString("desc"),
+							boshtbl.NewValueString("repository"),
 							boshtbl.NewValueString("commit"),
+							boshtbl.NewValueString("license"),
 						},
 					},
 					Transpose: true,
@@ -131,17 +138,20 @@ var _ = Describe("CreateReleaseCmd", func() {
 						Header: []boshtbl.Header{
 							boshtbl.NewHeader("Name"),
 							boshtbl.NewHeader("Version"),
-							boshtbl.NewHeader("Source Repo Url"),
+							boshtbl.NewHeader("Description"),
+							boshtbl.NewHeader("Repository"),
 							boshtbl.NewHeader("Commit Hash"),
+							boshtbl.NewHeader("License"),
 							boshtbl.NewHeader("Archive"),
 						},
-
 						Rows: [][]boshtbl.Value{
 							{
 								boshtbl.NewValueString("rel"),
 								boshtbl.NewValueString("ver"),
-								boshtbl.NewValueString("source-repo-url"),
+								boshtbl.NewValueString("desc"),
+								boshtbl.NewValueString("repository"),
 								boshtbl.NewValueString("commit"),
+								boshtbl.NewValueString("license"),
 								boshtbl.NewValueString("/tarball-destination.tgz"),
 							},
 						},
@@ -198,18 +208,15 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-					Header: []boshtbl.Header{
-						boshtbl.NewHeader("Name"),
-						boshtbl.NewHeader("Version"),
-						boshtbl.NewHeader("Source Repo Url"),
-						boshtbl.NewHeader("Commit Hash"),
-					},
+					Header: header,
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("default-rel-name"),
 							boshtbl.NewValueString("next-dev+ver"),
-							boshtbl.NewValueString("source-repo-url"),
+							boshtbl.NewValueString("desc"),
+							boshtbl.NewValueString("repository"),
 							boshtbl.NewValueString("commit"),
+							boshtbl.NewValueString("license"),
 						},
 					},
 					Transpose: true,
@@ -234,18 +241,15 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-					Header: []boshtbl.Header{
-						boshtbl.NewHeader("Name"),
-						boshtbl.NewHeader("Version"),
-						boshtbl.NewHeader("Source Repo Url"),
-						boshtbl.NewHeader("Commit Hash"),
-					},
+					Header: header,
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("custom-name"),
 							boshtbl.NewValueString("custom-ver"),
-							boshtbl.NewValueString("source-repo-url"),
+							boshtbl.NewValueString("desc"),
+							boshtbl.NewValueString("repository"),
 							boshtbl.NewValueString("commit"),
+							boshtbl.NewValueString("license"),
 						},
 					},
 					Transpose: true,
@@ -275,18 +279,15 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-					Header: []boshtbl.Header{
-						boshtbl.NewHeader("Name"),
-						boshtbl.NewHeader("Version"),
-						boshtbl.NewHeader("Source Repo Url"),
-						boshtbl.NewHeader("Commit Hash"),
-					},
+					Header: header,
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("default-rel-name"),
 							boshtbl.NewValueString("ts-ver"),
-							boshtbl.NewValueString("source-repo-url"),
+							boshtbl.NewValueString("desc"),
+							boshtbl.NewValueString("repository"),
 							boshtbl.NewValueString("commit"),
+							boshtbl.NewValueString("license"),
 						},
 					},
 					Transpose: true,
@@ -319,18 +320,15 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-					Header: []boshtbl.Header{
-						boshtbl.NewHeader("Name"),
-						boshtbl.NewHeader("Version"),
-						boshtbl.NewHeader("Source Repo Url"),
-						boshtbl.NewHeader("Commit Hash"),
-					},
+					Header: header,
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("default-rel-name"),
 							boshtbl.NewValueString("next-final+ver"),
-							boshtbl.NewValueString("source-repo-url"),
+							boshtbl.NewValueString("desc"),
+							boshtbl.NewValueString("repository"),
 							boshtbl.NewValueString("commit"),
+							boshtbl.NewValueString("license"),
 						},
 					},
 					Transpose: true,
@@ -363,18 +361,15 @@ var _ = Describe("CreateReleaseCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-					Header: []boshtbl.Header{
-						boshtbl.NewHeader("Name"),
-						boshtbl.NewHeader("Version"),
-						boshtbl.NewHeader("Source Repo Url"),
-						boshtbl.NewHeader("Commit Hash"),
-					},
+					Header: header,
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("default-rel-name"),
 							boshtbl.NewValueString("custom-ver"),
-							boshtbl.NewValueString("source-repo-url"),
+							boshtbl.NewValueString("desc"),
+							boshtbl.NewValueString("repository"),
 							boshtbl.NewValueString("commit"),
+							boshtbl.NewValueString("license"),
 						},
 					},
 					Transpose: true,
@@ -410,16 +405,20 @@ var _ = Describe("CreateReleaseCmd", func() {
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
-						boshtbl.NewHeader("Source Repo Url"),
+						boshtbl.NewHeader("Description"),
+						boshtbl.NewHeader("Repository"),
 						boshtbl.NewHeader("Commit Hash"),
+						boshtbl.NewHeader("License"),
 						boshtbl.NewHeader("Archive"),
 					},
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("default-rel-name"),
 							boshtbl.NewValueString("next-final+ver"),
-							boshtbl.NewValueString("source-repo-url"),
+							boshtbl.NewValueString("desc"),
+							boshtbl.NewValueString("repository"),
 							boshtbl.NewValueString("commit"),
+							boshtbl.NewValueString("license"),
 							boshtbl.NewValueString("/archive-path"),
 						},
 					},

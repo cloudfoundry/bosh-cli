@@ -9,10 +9,11 @@ import (
 )
 
 type Manifest struct {
-	Name    string `yaml:"name"`
-	Version string `yaml:"version"`
+	Name        string `yaml:"name"`
+	Version     string `yaml:"version"`
+	Description string `yaml:"description"`
 
-	SourceRepoUrl      string `yaml:"source_repo_url"`
+	Repository         string `yaml:"repository"`
 	CommitHash         string `yaml:"commit_hash"`
 	UncommittedChanges bool   `yaml:"uncommitted_changes"`
 
@@ -47,9 +48,10 @@ type CompiledPackageRef struct {
 }
 
 type LicenseRef struct {
-	Version     string `yaml:"version"` // todo deprecate
-	Fingerprint string `yaml:"fingerprint"`
-	SHA1        string `yaml:"sha1"`
+	Version     string `yaml:"version,omitempty"` // todo deprecate
+	Fingerprint string `yaml:"fingerprint,omitempty"`
+	SHA1        string `yaml:"sha1,omitempty"`
+	Name        string `yaml:"name,omitempty"`
 }
 
 var (

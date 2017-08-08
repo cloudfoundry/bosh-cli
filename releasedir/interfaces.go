@@ -42,6 +42,8 @@ type ReleaseDir interface {
 
 type Config interface {
 	Name() (string, error)
+	Description() (string, error)
+	License() (string, error)
 	SaveName(string) error
 
 	Blobstore() (string, map[string]interface{}, error)
@@ -58,7 +60,7 @@ type Generator interface {
 
 type GitRepo interface {
 	Init() error
-	SourceRepoUrl() (string, error)
+	Remote() (string, error)
 	LastCommitSHA() (string, error)
 	MustNotBeDirty(force bool) (dirty bool, err error)
 }

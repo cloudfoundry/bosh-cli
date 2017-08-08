@@ -10,10 +10,11 @@ import (
 )
 
 type release struct {
-	name    string
-	version string
+	name        string
+	version     string
+	description string
 
-	sourceRepoUrl      string
+	repository         string
 	commitHash         string
 	uncommittedChanges bool
 
@@ -21,6 +22,7 @@ type release struct {
 	packages     []*birelpkg.Package
 	compiledPkgs []*birelpkg.CompiledPackage
 	license      *birellic.License
+	licenseName  string
 
 	extractedPath string
 	fs            boshsys.FileSystem
@@ -29,21 +31,24 @@ type release struct {
 func NewRelease(
 	name string,
 	version string,
-	sourceRepoUrl string,
+	description string,
+	repository string,
 	commitHash string,
 	uncommittedChanges bool,
 	jobs []*bireljob.Job,
 	packages []*birelpkg.Package,
 	compiledPkgs []*birelpkg.CompiledPackage,
 	license *birellic.License,
+	licenseName string,
 	extractedPath string,
 	fs boshsys.FileSystem,
 ) Release {
 	return &release{
-		name:    name,
-		version: version,
+		name:        name,
+		version:     version,
+		description: description,
 
-		sourceRepoUrl:      sourceRepoUrl,
+		repository:         repository,
 		commitHash:         commitHash,
 		uncommittedChanges: uncommittedChanges,
 
@@ -51,6 +56,7 @@ func NewRelease(
 		packages:     packages,
 		compiledPkgs: compiledPkgs,
 		license:      license,
+		licenseName:  licenseName,
 
 		extractedPath: extractedPath,
 		fs:            fs,
@@ -63,9 +69,12 @@ func (r *release) SetName(name string) { r.name = name }
 func (r *release) Version() string           { return r.version }
 func (r *release) SetVersion(version string) { r.version = version }
 
-func (r *release) SetSourceRepoUrl(sourceRepoUrl string) { r.sourceRepoUrl = sourceRepoUrl }
-func (r *release) SetCommitHash(commitHash string)       { r.commitHash = commitHash }
-func (r *release) SetUncommittedChanges(changes bool)    { r.uncommittedChanges = changes }
+func (r *release) Description() string { return r.description }
+
+func (r *release) Repository() string                 { return r.repository }
+func (r *release) SetRepository(repository string)    { r.repository = repository }
+func (r *release) SetCommitHash(commitHash string)    { r.commitHash = commitHash }
+func (r *release) SetUncommittedChanges(changes bool) { r.uncommittedChanges = changes }
 
 func (r *release) CommitHashWithMark(suffix string) string {
 	if r.uncommittedChanges {
@@ -74,12 +83,11 @@ func (r *release) CommitHashWithMark(suffix string) string {
 	return r.commitHash
 }
 
-func (r *release) SourceRepoUrl() string { return r.sourceRepoUrl }
-
 func (r *release) Jobs() []*bireljob.Job                         { return r.jobs }
 func (r *release) Packages() []*birelpkg.Package                 { return r.packages }
 func (r *release) CompiledPackages() []*birelpkg.CompiledPackage { return r.compiledPkgs }
 func (r *release) License() *birellic.License                    { return r.license }
+func (r *release) LicenseName() string                           { return r.licenseName }
 
 func (r *release) IsCompiled() bool { return len(r.compiledPkgs) > 0 }
 
@@ -138,14 +146,18 @@ func (r *release) Manifest() birelman.Manifest {
 			Version:     lic.Fingerprint(),
 			Fingerprint: lic.Fingerprint(),
 			SHA1:        lic.ArchiveSHA1(),
+			Name:        r.licenseName,
 		}
+	} else if r.licenseName != "" {
+		licenseRef = &birelman.LicenseRef{Name: r.licenseName}
 	}
 
 	return birelman.Manifest{
-		Name:    r.name,
-		Version: r.version,
+		Name:        r.name,
+		Version:     r.version,
+		Description: r.description,
 
-		SourceRepoUrl:      r.sourceRepoUrl,
+		Repository:         r.repository,
 		CommitHash:         r.commitHash,
 		UncommittedChanges: r.uncommittedChanges,
 
@@ -211,7 +223,7 @@ func (r *release) CopyWith(jobs []*bireljob.Job, packages []*birelpkg.Package, l
 		name:    r.name,
 		version: r.version,
 
-		sourceRepoUrl:      r.sourceRepoUrl,
+		repository:         r.repository,
 		commitHash:         r.commitHash,
 		uncommittedChanges: r.uncommittedChanges,
 
@@ -219,6 +231,7 @@ func (r *release) CopyWith(jobs []*bireljob.Job, packages []*birelpkg.Package, l
 		packages:     packages,
 		compiledPkgs: compiledPkgs,
 		license:      license,
+		licenseName:  r.licenseName,
 
 		extractedPath: r.extractedPath,
 		fs:            r.fs,

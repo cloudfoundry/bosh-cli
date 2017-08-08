@@ -524,6 +524,7 @@ var _ = Describe("FSGenerator", func() {
 				ManifestStub: func() boshman.Manifest {
 					return boshman.Manifest{Name: "rel1"}
 				},
+				RepositoryStub: func() string { return "repo-from-final.yml" },
 			}
 		})
 
@@ -535,7 +536,7 @@ var _ = Describe("FSGenerator", func() {
 				return true, nil
 			}
 
-			gitRepo.SourceRepoUrlReturns("source-repo-url", nil)
+			gitRepo.RemoteReturns("git-remote-repo", nil)
 			gitRepo.LastCommitSHAReturns("commit", nil)
 
 			blobsDir.SyncBlobsStub = func(numOfParallelWorkers int) error {
@@ -561,7 +562,7 @@ var _ = Describe("FSGenerator", func() {
 
 			Expect(expectedRelease.SetNameArgsForCall(0)).To(Equal("rel1"))
 			Expect(expectedRelease.SetVersionArgsForCall(0)).To(Equal("1.1"))
-			Expect(expectedRelease.SetSourceRepoUrlArgsForCall(0)).To(Equal("source-repo-url"))
+			Expect(expectedRelease.SetRepositoryCallCount()).To(Equal(0))
 			Expect(expectedRelease.SetCommitHashArgsForCall(0)).To(Equal("commit"))
 			Expect(expectedRelease.SetUncommittedChangesArgsForCall(0)).To(BeTrue())
 
@@ -596,6 +597,62 @@ var _ = Describe("FSGenerator", func() {
 
 			_, err := releaseDir.BuildRelease("rel1", ver, false)
 			Expect(err).To(Equal(errors.New("fake-err")))
+		})
+
+		Context("repository is not configured in final.yml", func() {
+			BeforeEach(func() {
+				ver = semver.MustNewVersionFromString("1.1")
+
+				expectedRelease = &fakerel.FakeRelease{
+					NameStub: func() string { return "rel1" },
+					ManifestStub: func() boshman.Manifest {
+						return boshman.Manifest{Name: "rel1"}
+					},
+				}
+			})
+
+			It("uses git remote as repository", func() {
+
+				var ops []string
+
+				gitRepo.MustNotBeDirtyStub = func(force bool) (bool, error) {
+					ops = append(ops, "dirty")
+					return true, nil
+				}
+
+				gitRepo.RemoteReturns("git-remote-repo", nil)
+				gitRepo.LastCommitSHAReturns("commit", nil)
+
+				blobsDir.SyncBlobsStub = func(numOfParallelWorkers int) error {
+					ops = append(ops, "blobs")
+					return nil
+				}
+
+				reader.ReadStub = func(path string) (boshrel.Release, error) {
+					Expect(path).To(Equal("/dir"))
+					ops = append(ops, "read")
+					return expectedRelease, nil
+				}
+
+				devReleases.AddStub = func(manifest boshman.Manifest) error {
+					Expect(manifest).To(Equal(boshman.Manifest{Name: "rel1"}))
+					ops = append(ops, "manifest")
+					return nil
+				}
+
+				release, err := releaseDir.BuildRelease("rel1", ver, false)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(release).To(Equal(expectedRelease))
+
+				Expect(expectedRelease.SetNameArgsForCall(0)).To(Equal("rel1"))
+				Expect(expectedRelease.SetVersionArgsForCall(0)).To(Equal("1.1"))
+				Expect(expectedRelease.SetRepositoryArgsForCall(0)).To(Equal("git-remote-repo"))
+				Expect(expectedRelease.SetCommitHashArgsForCall(0)).To(Equal("commit"))
+				Expect(expectedRelease.SetUncommittedChangesArgsForCall(0)).To(BeTrue())
+
+				Expect(ops).To(Equal([]string{"dirty", "blobs", "read", "manifest"}))
+
+			})
 		})
 	})
 

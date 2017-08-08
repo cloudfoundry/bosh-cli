@@ -38,7 +38,7 @@ var _ = Describe("ReleasesCmd", func() {
 						return semver.MustNewVersionFromString("rel1-ver1")
 					},
 					VersionMarkStub:        func(mark string) string { return "rel1-ver1-mark" + mark },
-					SourceRepoUrlStub:      func() string { return "source-repo-url1" },
+					RepositoryStub:         func() string { return "repository1" },
 					CommitHashWithMarkStub: func(mark string) string { return "rel1-hash1" + mark },
 				},
 				&fakedir.FakeRelease{
@@ -47,7 +47,7 @@ var _ = Describe("ReleasesCmd", func() {
 						return semver.MustNewVersionFromString("rel1-ver2")
 					},
 					VersionMarkStub:        func(mark string) string { return "rel1-ver2-mark" + mark },
-					SourceRepoUrlStub:      func() string { return "source-repo-url1" },
+					RepositoryStub:         func() string { return "repository1" },
 					CommitHashWithMarkStub: func(mark string) string { return "rel1-hash2" + mark },
 				},
 				&fakedir.FakeRelease{
@@ -56,7 +56,7 @@ var _ = Describe("ReleasesCmd", func() {
 						return semver.MustNewVersionFromString("rel2-ver1")
 					},
 					VersionMarkStub:        func(string) string { return "rel2-ver1-mark" },
-					SourceRepoUrlStub:      func() string { return "source-repo-url2" },
+					RepositoryStub:         func() string { return "repository2" },
 					CommitHashWithMarkStub: func(string) string { return "rel2-hash1" },
 				},
 				&fakedir.FakeRelease{
@@ -65,7 +65,7 @@ var _ = Describe("ReleasesCmd", func() {
 						return semver.MustNewVersionFromString("rel2-ver2")
 					},
 					VersionMarkStub:        func(string) string { return "rel2-ver2-mark" },
-					SourceRepoUrlStub:      func() string { return "source-repo-url2" },
+					RepositoryStub:         func() string { return "repository2" },
 					CommitHashWithMarkStub: func(string) string { return "rel2-hash2" },
 				},
 			}
@@ -82,7 +82,7 @@ var _ = Describe("ReleasesCmd", func() {
 					boshtbl.NewHeader("Name"),
 					boshtbl.NewHeader("Version"),
 					boshtbl.NewHeader("Commit Hash"),
-					boshtbl.NewHeader("Source Repo URL"),
+					boshtbl.NewHeader("Repository"),
 				},
 
 				SortBy: []boshtbl.ColumnSort{
@@ -98,7 +98,7 @@ var _ = Describe("ReleasesCmd", func() {
 							"rel1-ver1-mark*",
 						),
 						boshtbl.NewValueString("rel1-hash1+"),
-						boshtbl.NewValueString("source-repo-url1"),
+						boshtbl.NewValueString("repository1"),
 					},
 					{
 						boshtbl.NewValueString("rel1"),
@@ -107,7 +107,7 @@ var _ = Describe("ReleasesCmd", func() {
 							"rel1-ver2-mark*",
 						),
 						boshtbl.NewValueString("rel1-hash2+"),
-						boshtbl.NewValueString("source-repo-url1"),
+						boshtbl.NewValueString("repository1"),
 					},
 					{
 						boshtbl.NewValueString("rel2"),
@@ -116,7 +116,7 @@ var _ = Describe("ReleasesCmd", func() {
 							"rel2-ver1-mark",
 						),
 						boshtbl.NewValueString("rel2-hash1"),
-						boshtbl.NewValueString("source-repo-url2"),
+						boshtbl.NewValueString("repository2"),
 					},
 					{
 						boshtbl.NewValueString("rel2"),
@@ -125,7 +125,7 @@ var _ = Describe("ReleasesCmd", func() {
 							"rel2-ver2-mark",
 						),
 						boshtbl.NewValueString("rel2-hash2"),
-						boshtbl.NewValueString("source-repo-url2"),
+						boshtbl.NewValueString("repository2"),
 					},
 				},
 

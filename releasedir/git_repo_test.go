@@ -66,14 +66,14 @@ releases/**/*.tgz
 		})
 	})
 
-	Describe("SourceRepoUrl", func() {
+	Describe("Remote", func() {
 		cmd := "git remote get-url origin"
 
 		It("returns remote url", func() {
 			cmdRunner.AddCmdResult(cmd, fakesys.FakeCmdResult{
 				Stdout: "www.example.com\n",
 			})
-			commit, err := gitRepo.SourceRepoUrl()
+			commit, err := gitRepo.Remote()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(commit).To(Equal("www.example.com"))
 
@@ -89,7 +89,7 @@ releases/**/*.tgz
 				Stderr: "fatal: Not a git repository: '/dir/.git'\n",
 				Error:  errors.New("fake-err"),
 			})
-			commit, err := gitRepo.SourceRepoUrl()
+			commit, err := gitRepo.Remote()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(commit).To(Equal("non-git"))
 		})
@@ -99,7 +99,7 @@ releases/**/*.tgz
 				Stderr: "fatal: No such remote 'non-exsiting-remote\n",
 				Error:  errors.New("fake-err"),
 			})
-			commit, err := gitRepo.SourceRepoUrl()
+			commit, err := gitRepo.Remote()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(commit).To(Equal("no-git-remote"))
 		})

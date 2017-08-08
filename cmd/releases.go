@@ -28,7 +28,7 @@ func (c ReleasesCmd) Run() error {
 			boshtbl.NewHeader("Name"),
 			boshtbl.NewHeader("Version"),
 			boshtbl.NewHeader("Commit Hash"),
-			boshtbl.NewHeader("Source Repo URL"),
+			boshtbl.NewHeader("Repository"),
 		},
 
 		SortBy: []boshtbl.ColumnSort{
@@ -50,7 +50,7 @@ func (c ReleasesCmd) Run() error {
 				rel.VersionMark("*"),
 			),
 			boshtbl.NewValueString(rel.CommitHashWithMark("+")),
-			boshtbl.NewValueString(rel.SourceRepoUrl()),
+			boshtbl.NewValueString(rel.Repository()),
 		})
 	}
 
