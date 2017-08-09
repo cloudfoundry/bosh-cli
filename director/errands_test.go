@@ -114,7 +114,7 @@ var _ = Describe("Director", func() {
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"application/json"},
 					}),
-					ghttp.VerifyBody([]byte(`{"instances":["group1","group2/uuid"],"keep-alive":false,"when-changed":false}`)),
+					ghttp.VerifyBody([]byte(`{"instances":[{"group":"group1"},{"group":"group2","id":"uuid"}],"keep-alive":false,"when-changed":false}`)),
 				),
 				respBody,
 				server,

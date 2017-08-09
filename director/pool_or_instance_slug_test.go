@@ -1,6 +1,7 @@
 package director_test
 
 import (
+	"encoding/json"
 	"errors"
 
 	. "github.com/onsi/ginkgo"
@@ -83,6 +84,15 @@ var _ = Describe("NewInstanceGroupOrInstanceSlugFromString", func() {
 })
 
 var _ = Describe("InstanceGroupOrInstanceSlug", func() {
+	Describe("DirectorHash", func() {
+		It("returns a struct with group and id", func() {
+			Expect(NewInstanceGroupOrInstanceSlug("name", "id").DirectorHash()).To(Equal(InstanceFilter{
+				Group: "name",
+				ID:    "id",
+			}))
+		})
+	})
+
 	Describe("String", func() {
 		It("returns name string if id is not set", func() {
 			Expect(NewInstanceGroupOrInstanceSlug("name", "").String()).To(Equal("name"))
@@ -90,6 +100,18 @@ var _ = Describe("InstanceGroupOrInstanceSlug", func() {
 
 		It("returns name/id string if id is set", func() {
 			Expect(NewInstanceGroupOrInstanceSlug("name", "id").String()).To(Equal("name/id"))
+		})
+	})
+})
+
+var _ = Describe("InstanceFilter", func() {
+	Describe("json marshalling", func() {
+		It("returns hash without 'id' field if ID is empty", func() {
+			filter := InstanceFilter{}
+
+			jsonString, err := json.Marshal(filter)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(jsonString).To(MatchJSON(`{"group":""}`))
 		})
 	})
 })

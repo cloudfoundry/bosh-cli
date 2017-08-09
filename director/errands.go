@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"io"
 	"strings"
+
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Errand struct {
@@ -94,12 +95,16 @@ func (c Client) RunErrand(deploymentName, name string, keepAlive bool, whenChang
 
 	path := fmt.Sprintf("/deployments/%s/errands/%s/runs", deploymentName, name)
 
-	instances := []string{}
+	instances := []InstanceFilter{}
 	for _, slug := range instanceSlugs {
-		instances = append(instances, slug.String())
+		instances = append(instances, slug.DirectorHash())
 	}
 
-	body := map[string]interface{}{"keep-alive": keepAlive, "when-changed": whenChanged, "instances": instances}
+	body := map[string]interface{}{
+		"keep-alive":   keepAlive,
+		"when-changed": whenChanged,
+		"instances":    instances,
+	}
 
 	reqBody, err := json.Marshal(body)
 	if err != nil {
