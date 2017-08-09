@@ -111,9 +111,11 @@ var _ = Describe("RunErrandCmd", func() {
 
 				It("runs errand and outputs both stdout and stderr", func() {
 					result := []boshdir.ErrandResult{{
-						ExitCode: 0,
-						Stdout:   "stdout-content",
-						Stderr:   "",
+						InstanceGroup: "group1",
+						InstanceID:    "uuid-1",
+						ExitCode:      0,
+						Stdout:        "stdout-content",
+						Stderr:        "",
 					}, {
 						ExitCode: 129,
 						Stdout:   "",
@@ -131,6 +133,7 @@ var _ = Describe("RunErrandCmd", func() {
 							Content: "errand(s)",
 
 							Header: []boshtbl.Header{
+								boshtbl.NewHeader("Instance"),
 								boshtbl.NewHeader("Exit Code"),
 								boshtbl.NewHeader("Stdout"),
 								boshtbl.NewHeader("Stderr"),
@@ -142,10 +145,12 @@ var _ = Describe("RunErrandCmd", func() {
 
 							Rows: [][]boshtbl.Value{
 								{
+									boshtbl.NewValueString("group1/uuid-1"),
 									boshtbl.NewValueInt(0),
 									boshtbl.NewValueString("stdout-content"),
 									boshtbl.NewValueString(""),
 								}, {
+									boshtbl.NewValueString(""),
 									boshtbl.NewValueInt(129),
 									boshtbl.NewValueString(""),
 									boshtbl.NewValueString("stderr-content"),
@@ -238,6 +243,7 @@ var _ = Describe("RunErrandCmd", func() {
 						Content: "errand(s)",
 
 						Header: []boshtbl.Header{
+							boshtbl.NewHeader("Instance"),
 							boshtbl.NewHeader("Exit Code"),
 							boshtbl.NewHeader("Stdout"),
 							boshtbl.NewHeader("Stderr"),
@@ -249,6 +255,7 @@ var _ = Describe("RunErrandCmd", func() {
 
 						Rows: [][]boshtbl.Value{
 							{
+								boshtbl.NewValueString(""),
 								boshtbl.NewValueInt(1),
 								boshtbl.NewValueString(""),
 								boshtbl.NewValueString(""),

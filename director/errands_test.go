@@ -129,6 +129,55 @@ var _ = Describe("Director", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		It("creates multiple results with instance info when present", func() {
+			respBody := "{\"instance\":{\"group\":\"group1\",\"id\":\"instance-uuid\"},\"exit_code\":1,\"stdout\":\"Wed Jan 25 01:57:27 UTC 2017 all good\",\"stderr\":\"\",\"logs\":{\"blobstore_id\":\"logs-blob-id\"}}\n" +
+				"{\"instance\":{\"group\":\"group2\",\"id\":\"other-instance-uuid\"},\"exit_code\":0, \"stdout\":\"next_stdout\", \"stderr\":\"next_stderr\", \"logs\": { \"blobstore_id\": \"logs-blob-id\", \"sha1\": \"logs-sha1\" } }"
+
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments/dep1/errands/errand1/runs"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"application/json"},
+					}),
+					ghttp.VerifyBody([]byte(`{"instances":[],"keep-alive":false,"when-changed":false}`)),
+				),
+				respBody,
+				server,
+			)
+
+			var result []ErrandResult
+			result, err := deployment.RunErrand("errand1", false, false, []InstanceGroupOrInstanceSlug{})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(result).To(HaveLen(2))
+			Expect(result).To(ContainElement(ErrandResult{
+				InstanceGroup: "group1",
+				InstanceID:    "instance-uuid",
+
+				ExitCode: 1,
+
+				Stdout: "Wed Jan 25 01:57:27 UTC 2017 all good",
+				Stderr: "",
+
+				LogsBlobstoreID: "logs-blob-id",
+				LogsSHA1:        "",
+			}))
+
+			Expect(result).To(ContainElement(ErrandResult{
+				InstanceGroup: "group2",
+				InstanceID:    "other-instance-uuid",
+
+				ExitCode: 0,
+
+				Stdout: "next_stdout",
+				Stderr: "next_stderr",
+
+				LogsBlobstoreID: "logs-blob-id",
+				LogsSHA1:        "logs-sha1",
+			}))
+		})
+
 		It("runs multiple errands and returns result", func() {
 			respBody := "{\"exit_code\":1,\"stdout\":\"Wed Jan 25 01:57:27 UTC 2017 all good\",\"stderr\":\"\",\"logs\":{\"blobstore_id\":\"logs-blob-id\"}}\n" +
 				"{\"exit_code\":0, \"stdout\":\"next_stdout\", \"stderr\":\"next_stderr\", \"logs\": { \"blobstore_id\": \"logs-blob-id\", \"sha1\": \"logs-sha1\" } }"

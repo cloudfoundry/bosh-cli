@@ -16,6 +16,9 @@ type Errand struct {
 }
 
 type ErrandResult struct {
+	InstanceGroup string
+	InstanceID    string
+
 	ExitCode int
 
 	Stdout string
@@ -26,6 +29,11 @@ type ErrandResult struct {
 }
 
 type ErrandRunResp struct {
+	Instance struct {
+		Group string `json:"group"`
+		ID    string `json:"id"`
+	} `json:"instance"`
+
 	ExitCode int `json:"exit_code"`
 
 	Stdout string
@@ -51,6 +59,9 @@ func (d DeploymentImpl) RunErrand(name string, keepAlive bool, whenChanged bool,
 
 	for _, value := range resp {
 		errandResult := ErrandResult{
+			InstanceGroup: value.Instance.Group,
+			InstanceID:    value.Instance.ID,
+
 			ExitCode: value.ExitCode,
 
 			Stdout: value.Stdout,
