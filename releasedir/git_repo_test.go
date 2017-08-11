@@ -71,11 +71,11 @@ releases/**/*.tgz
 
 		It("returns remote url", func() {
 			cmdRunner.AddCmdResult(cmd, fakesys.FakeCmdResult{
-				Stdout: "www.example.com\n",
+				Stdout: "https://www.example.com\n",
 			})
 			commit, err := gitRepo.Remote()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(commit).To(Equal("www.example.com"))
+			Expect(commit).To(Equal("https://www.example.com"))
 
 			Expect(cmdRunner.RunComplexCommands).To(Equal([]boshsys.Command{{
 				Name:       "git",
@@ -151,6 +151,35 @@ releases/**/*.tgz
 			_, err := gitRepo.LastCommitSHA()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+	})
+
+	Describe("PreProcessGitRemote", func() {
+		// from https://git-scm.com/book/id/v2/Git-on-the-Server-The-Protocols
+
+		Context("remote is local", func() {
+			It("returns invalid-git-remote when remote is local", func() {
+				Expect(PreProcessGitRemote("/opt/git/project.git")).To(Equal("invalid-git-remote"))
+				Expect(PreProcessGitRemote("file:///opt/git/project.git")).To(Equal("invalid-git-remote"))
+			})
+		})
+
+		Context("remote is https", func() {
+			It("returns remote as is", func() {
+				Expect(PreProcessGitRemote("https://example.com/gitproject.git")).To(Equal("https://example.com/gitproject.git"))
+			})
+
+			It("returns remote with user and password dropped", func() {
+				Expect(PreProcessGitRemote("https://user:password@example.com/gitproject.git")).To(Equal("https://example.com/gitproject.git"))
+			})
+		})
+
+		Context("when remote is git or ssh", func() {
+			It("returns remote as is", func() {
+				Expect(PreProcessGitRemote("git://")).To(Equal("git://"))
+				Expect(PreProcessGitRemote("ssh://user@server/project.git")).To(Equal("ssh://user@server/project.git"))
+				Expect(PreProcessGitRemote("user@server:project.git")).To(Equal("user@server:project.git"))
+			})
 		})
 	})
 

@@ -1,7 +1,9 @@
 package releasedir
 
 import (
+	"net/url"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -67,7 +69,31 @@ func (r FSGitRepo) Remote() (string, error) {
 		return "", bosherr.WrapErrorf(err, "Checking remote repository URL")
 	}
 
-	return strings.TrimSpace(stdout), nil
+	return PreProcessGitRemote(strings.TrimSpace(stdout)), nil
+}
+
+func PreProcessGitRemote(remote string) string {
+	switch {
+	case strings.HasPrefix(remote, "/"), strings.HasPrefix(remote, "file://"):
+		return "invalid-git-remote"
+	case strings.HasPrefix(remote, "http://"), strings.HasPrefix(remote, "https://"):
+		return dropUsernameAndPassword(remote)
+	case strings.HasPrefix(remote, "git://"):
+		return remote
+	case strings.HasPrefix(remote, "ssh://"), regexp.MustCompile(`\w*@\w*:.*`).MatchString(remote):
+		return remote
+	default:
+		return "invalid-git-remote"
+	}
+}
+
+func dropUsernameAndPassword(remote string) string {
+	u, err := url.Parse(remote)
+	if err != nil {
+		return "invalid-git-remote"
+	}
+	u.User = nil
+	return u.String()
 }
 
 func (r FSGitRepo) LastCommitSHA() (string, error) {
