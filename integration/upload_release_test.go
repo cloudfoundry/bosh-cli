@@ -181,4 +181,125 @@ blobstore:
 			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-src"))).To(Equal("in-src"))
 		}
 	})
+
+	It("can upload release tarball", func() {
+		boshTmpDir := filepath.Join(testHome, ".bosh", "tmp")
+
+		tmpDir, err := fs.TempDir("bosh-upload-release-int-test")
+		Expect(err).ToNot(HaveOccurred())
+
+		defer fs.RemoveAll(tmpDir)
+
+		{
+			execCmd([]string{"init-release", "--dir", tmpDir})
+			execCmd([]string{"generate-job", "job1", "--dir", tmpDir})
+			execCmd([]string{"generate-package", "pkg1", "--dir", tmpDir})
+		}
+
+		{ // job1 depends on both packages
+			jobSpecPath := filepath.Join(tmpDir, "jobs", "job1", "spec")
+
+			contents, err := fs.ReadFileString(jobSpecPath)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString(jobSpecPath, strings.Replace(contents, "packages: []", "packages: [pkg1]", -1))
+			Expect(err).ToNot(HaveOccurred())
+		}
+
+		{ // Add a bit of content
+			err := fs.WriteFileString(filepath.Join(tmpDir, "src", "in-src"), "in-src")
+			Expect(err).ToNot(HaveOccurred())
+
+			pkg1SpecPath := filepath.Join(tmpDir, "packages", "pkg1", "spec")
+
+			contents, err := fs.ReadFileString(pkg1SpecPath)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "files: []", "files:\n- in-src", -1))
+			Expect(err).ToNot(HaveOccurred())
+		}
+
+		releaseTarballFile := filepath.Join(tmpDir, "release-tarball.tgz")
+
+		{ // Create dev release
+			execCmd([]string{"create-release", "--dir", tmpDir, "--tarball", releaseTarballFile})
+		}
+
+		{ // Starting with empty tmp directory
+			matches, err := fs.RecursiveGlob(filepath.Join(boshTmpDir, "*"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(matches).ToNot(BeEmpty())
+
+			// create-release leaves dev artifacts, so clean up before upload
+			fs.RemoveAll(boshTmpDir)
+		}
+
+		uploadedReleaseFile := filepath.Join(tmpDir, "release-3.tgz")
+
+		{
+			directorCACert, director := BuildHTTPSServer()
+			defer director.Close()
+
+			director.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/info"),
+					ghttp.RespondWith(http.StatusOK, `{"user_authentication":{"type":"basic","options":{}}}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/packages/matches"),
+					ghttp.RespondWith(http.StatusOK, "[]"),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/releases"),
+					ghttp.RespondWith(http.StatusOK, `{"id":123, "state":"done"}`),
+					func(w http.ResponseWriter, req *http.Request) {
+						defer req.Body.Close()
+
+						body, err := ioutil.ReadAll(req.Body)
+						Expect(err).ToNot(HaveOccurred())
+
+						err = fs.WriteFile(uploadedReleaseFile, body)
+						Expect(err).ToNot(HaveOccurred())
+					},
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/123"),
+					ghttp.RespondWith(http.StatusOK, `{"id":123, "state":"done"}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/123/output", "type=event"),
+					ghttp.RespondWith(http.StatusOK, ``),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/123/output", "type=result"),
+					ghttp.RespondWith(http.StatusOK, ``),
+				),
+			)
+
+			execCmd([]string{"upload-release", releaseTarballFile, "-e", director.URL(), "--ca-cert", directorCACert})
+		}
+
+		{ // Check contents of uploaded release
+			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
+			archiveReader := relProvider.NewExtractingArchiveReader()
+
+			release, err := archiveReader.Read(uploadedReleaseFile)
+			Expect(err).ToNot(HaveOccurred())
+
+			defer release.CleanUp()
+
+			pkg1 := release.Packages()[0]
+			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-src"))).To(Equal("in-src"))
+
+			release.CleanUp()
+		}
+
+		fs.RemoveAll(tmpDir)
+
+		{ // Expect empty tmp directory to make sure we are not leaking any files
+			matches, err := fs.RecursiveGlob(filepath.Join(boshTmpDir, "*"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(matches).To(BeEmpty())
+		}
+	})
 })

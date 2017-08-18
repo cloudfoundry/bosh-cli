@@ -42,6 +42,8 @@ var _ = Describe("UploadReleaseCmd", func() {
 		}
 
 		releaseWriter = &fakerel.FakeWriter{}
+		releaseWriter.WriteReturns("/archive-path", nil)
+
 		director = &fakedir.FakeDirector{}
 		cmdRunner = fakesys.NewFakeCmdRunner()
 		fs = fakesys.NewFakeFileSystem()
@@ -272,6 +274,31 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(file.(*fakesys.FakeFile).Name()).To(Equal("/archive-path"))
 				Expect(rebase).To(BeFalse())
 				Expect(fix).To(BeFalse())
+			})
+
+			It("clean up release", func() {
+				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
+					Expect(path).To(Equal("./some-file.tgz"))
+					return release, nil
+				}
+
+				releaseWriter.WriteStub = func(rel boshrel.Release, _ []string) (string, error) {
+					Expect(rel).To(Equal(release))
+					return "/archive-path", nil
+				}
+
+				removedFiles := []string{}
+
+				fs.RemoveAllStub = func(path string) error {
+					removedFiles = append(removedFiles, path)
+					return nil
+				}
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(release.CleanUpCallCount()).To(Equal(1))
+				Expect(removedFiles).To(Equal([]string{"/archive-path"}))
 			})
 
 			It("uploads given release with a fix flag hence does not filter out any packages", func() {

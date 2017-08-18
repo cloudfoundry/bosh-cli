@@ -109,6 +109,8 @@ func (c UploadReleaseCmd) uploadFile(opts UploadReleaseOpts) error {
 		}
 	}
 
+	defer release.CleanUp()
+
 	return c.uploadRelease(release, opts)
 }
 
@@ -127,6 +129,8 @@ func (c UploadReleaseCmd) uploadRelease(release boshrel.Release, opts UploadRele
 	if err != nil {
 		return err
 	}
+
+	defer c.fs.RemoveAll(path)
 
 	file, err := c.releaseArchiveFactory(path).File()
 	if err != nil {
