@@ -11,7 +11,7 @@ type UI interface {
 	BeginLinef(pattern string, args ...interface{})
 	EndLinef(pattern string, args ...interface{})
 
-	PrintBlock(string)
+	PrintBlock([]byte) // takes []byte to avoid string copy
 	PrintErrorBlock(string)
 
 	PrintTable(Table)

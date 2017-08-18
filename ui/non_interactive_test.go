@@ -50,7 +50,7 @@ var _ = Describe("NonInteractiveUI", func() {
 
 	Describe("PrintBlock", func() {
 		It("delegates to the parent UI", func() {
-			ui.PrintBlock("block")
+			ui.PrintBlock([]byte("block"))
 			Expect(parentUI.Blocks).To(Equal([]string{"block"}))
 		})
 	})

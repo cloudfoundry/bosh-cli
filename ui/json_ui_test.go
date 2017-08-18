@@ -92,8 +92,8 @@ var _ = Describe("JSONUI", func() {
 
 	Describe("PrintBlock", func() {
 		It("includes in Blocks", func() {
-			ui.PrintBlock("fake-block1")
-			ui.PrintBlock("fake-block2")
+			ui.PrintBlock([]byte("fake-block1"))
+			ui.PrintBlock([]byte("fake-block2"))
 			Expect(finalOutput()).To(Equal(uiResp{
 				Blocks: []string{"fake-block1", "fake-block2"},
 			}))

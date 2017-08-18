@@ -72,7 +72,7 @@ func (ui *ConfUI) EndLinef(pattern string, args ...interface{}) {
 	ui.parent.EndLinef(pattern, args...)
 }
 
-func (ui *ConfUI) PrintBlock(block string) {
+func (ui *ConfUI) PrintBlock(block []byte) {
 	ui.parent.PrintBlock(block)
 }
 

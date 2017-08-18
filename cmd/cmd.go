@@ -375,7 +375,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewSyncBlobsCmd(c.blobsDir(opts.Directory), opts.ParallelOpt).Run()
 
 	case *MessageOpts:
-		deps.UI.PrintBlock(opts.Message)
+		deps.UI.PrintBlock([]byte(opts.Message))
 		return nil
 
 	case *VariablesOpts:

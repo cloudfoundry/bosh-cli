@@ -38,7 +38,7 @@ func (ui *ColorUI) EndLinef(pattern string, args ...interface{}) {
 	ui.parent.EndLinef(pattern, args...)
 }
 
-func (ui *ColorUI) PrintBlock(block string) {
+func (ui *ColorUI) PrintBlock(block []byte) {
 	ui.parent.PrintBlock(block)
 }
 

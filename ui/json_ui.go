@@ -52,8 +52,8 @@ func (ui *jsonUI) EndLinef(pattern string, args ...interface{}) {
 	ui.addLine(pattern, args)
 }
 
-func (ui *jsonUI) PrintBlock(block string) {
-	ui.uiResp.Blocks = append(ui.uiResp.Blocks, block)
+func (ui *jsonUI) PrintBlock(block []byte) {
+	ui.uiResp.Blocks = append(ui.uiResp.Blocks, string(block))
 }
 
 func (ui *jsonUI) PrintErrorBlock(block string) {
@@ -130,7 +130,7 @@ func (ui *jsonUI) Flush() {
 			return
 		}
 
-		ui.parent.PrintBlock(string(bytes))
+		ui.parent.PrintBlock(bytes)
 	}
 }
 

@@ -30,7 +30,7 @@ func (ui *indentingUI) EndLinef(pattern string, args ...interface{}) {
 	ui.parent.EndLinef(pattern, args...)
 }
 
-func (ui *indentingUI) PrintBlock(block string) {
+func (ui *indentingUI) PrintBlock(block []byte) {
 	ui.parent.PrintBlock(block)
 }
 

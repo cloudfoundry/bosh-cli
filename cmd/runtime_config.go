@@ -20,7 +20,7 @@ func (c RuntimeConfigCmd) Run(opts RuntimeConfigOpts) error {
 		return err
 	}
 
-	c.ui.PrintBlock(runtimeConfig.Properties)
+	c.ui.PrintBlock([]byte(runtimeConfig.Properties))
 
 	return nil
 }

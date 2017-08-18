@@ -77,8 +77,8 @@ func (ui *WriterUI) EndLinef(pattern string, args ...interface{}) {
 	}
 }
 
-func (ui *WriterUI) PrintBlock(block string) {
-	_, err := fmt.Fprint(ui.outWriter, block)
+func (ui *WriterUI) PrintBlock(block []byte) {
+	_, err := ui.outWriter.Write(block)
 	if err != nil {
 		ui.logger.Error(ui.logTag, "UI.PrintBlock failed (message='%s'): %s", block, err)
 	}

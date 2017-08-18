@@ -136,7 +136,7 @@ var _ = Describe("UI", func() {
 
 	Describe("PrintBlock", func() {
 		It("prints to outWriter as is", func() {
-			ui.PrintBlock("block")
+			ui.PrintBlock([]byte("block"))
 			Expect(uiOutBuffer.String()).To(Equal("block"))
 			Expect(uiErrBuffer.String()).To(Equal(""))
 		})
@@ -149,7 +149,7 @@ var _ = Describe("UI", func() {
 			})
 
 			It("logs an error", func() {
-				ui.PrintBlock("block")
+				ui.PrintBlock([]byte("block"))
 				Expect(uiOutBuffer.String()).To(Equal(""))
 				Expect(uiErrBuffer.String()).To(Equal(""))
 				Expect(logOutBuffer.String()).To(Equal(""))

@@ -28,7 +28,7 @@ func (ui *nonInteractiveUI) EndLinef(pattern string, args ...interface{}) {
 	ui.parent.EndLinef(pattern, args...)
 }
 
-func (ui *nonInteractiveUI) PrintBlock(block string) {
+func (ui *nonInteractiveUI) PrintBlock(block []byte) {
 	ui.parent.PrintBlock(block)
 }
 

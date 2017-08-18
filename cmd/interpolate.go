@@ -37,7 +37,7 @@ func (c InterpolateCmd) Run(opts InterpolateOpts) error {
 		return err
 	}
 
-	c.ui.PrintBlock(string(bytes))
+	c.ui.PrintBlock(bytes)
 
 	return nil
 }

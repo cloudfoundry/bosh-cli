@@ -40,14 +40,14 @@ func (s prefixedWriter) Write(bytes []byte) (int, error) {
 
 		if !lastLine || len(line) > 0 {
 			if s.w.onNewLine {
-				s.w.ui.PrintBlock(s.prefix)
+				s.w.ui.PrintBlock([]byte(s.prefix))
 			}
 
-			s.w.ui.PrintBlock(line)
+			s.w.ui.PrintBlock([]byte(line))
 			s.w.onNewLine = false
 
 			if !lastLine {
-				s.w.ui.PrintBlock("\n")
+				s.w.ui.PrintBlock([]byte("\n"))
 				s.w.onNewLine = true
 			}
 		}

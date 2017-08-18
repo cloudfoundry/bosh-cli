@@ -20,7 +20,7 @@ func (c ManifestCmd) Run() error {
 		return err
 	}
 
-	c.ui.PrintBlock(manifest)
+	c.ui.PrintBlock([]byte(manifest))
 
 	return nil
 }

@@ -123,10 +123,10 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 			// does not make sense
 
 		case event.State == EventStateFinished:
-			r.ui.PrintBlock(fmt.Sprintf(" (%s)", event.DurationSinceStartAsStr()))
+			r.printBlock(fmt.Sprintf(" (%s)", event.DurationSinceStartAsStr()))
 
 		case event.State == EventStateFailed:
-			r.ui.PrintBlock(fmt.Sprintf(" (%s)", event.DurationSinceStartAsStr()))
+			r.printBlock(fmt.Sprintf(" (%s)", event.DurationSinceStartAsStr()))
 			r.ui.PrintErrorBlock(fmt.Sprintf(
 				"\n     %s             L Error: %s", strings.Repeat(" ", len(string(id))), event.Data.Error))
 		}
@@ -134,7 +134,7 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 		if r.lastGlobalEvent != nil && !r.lastGlobalEvent.IsSameTaskID(event) && event.IsWorthKeeping() {
 			if event.Type == EventTypeDeprecation || event.Error != nil {
 				// Some spacing around deprecations and errors
-				r.ui.PrintBlock("\n")
+				r.printBlock("\n")
 			}
 		}
 
@@ -147,31 +147,31 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 
 		switch {
 		case event.Type == EventTypeDeprecation:
-			r.ui.PrintBlock(prefix)
+			r.printBlock(prefix)
 			r.ui.PrintErrorBlock(fmt.Sprintf("Deprecation: %s", event.Message))
 
 		case event.Type == EventTypeWarning:
-			r.ui.PrintBlock(prefix)
+			r.printBlock(prefix)
 			r.ui.PrintErrorBlock(fmt.Sprintf("Warning: %s", event.Message))
 
 		case event.State == EventStateStarted:
-			r.ui.PrintBlock(prefix)
-			r.ui.PrintBlock(fmt.Sprintf("%s: %s", desc, event.Task))
+			r.printBlock(prefix)
+			r.printBlock(fmt.Sprintf("%s: %s", desc, event.Task))
 
 		case event.State == EventStateFinished:
-			r.ui.PrintBlock(prefix)
-			r.ui.PrintBlock(fmt.Sprintf("%s: %s (%s)",
+			r.printBlock(prefix)
+			r.printBlock(fmt.Sprintf("%s: %s (%s)",
 				desc, event.Task, event.DurationSinceStartAsStr()))
 
 		case event.State == EventStateFailed:
-			r.ui.PrintBlock(prefix)
-			r.ui.PrintBlock(fmt.Sprintf("%s: %s (%s)",
+			r.printBlock(prefix)
+			r.printBlock(fmt.Sprintf("%s: %s (%s)",
 				desc, event.Task, event.DurationSinceStartAsStr()))
 			r.ui.PrintErrorBlock(fmt.Sprintf(
 				"\n     %s             L Error: %s", strings.Repeat(" ", len(string(id))), event.Data.Error))
 
 		case event.Error != nil:
-			r.ui.PrintBlock(prefix)
+			r.printBlock(prefix)
 			r.ui.PrintErrorBlock(fmt.Sprintf("Error: %s", event.Error.Message))
 
 		default:
@@ -185,8 +185,12 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 	}
 }
 
+func (r *ReporterImpl) printBlock(block string) {
+	r.ui.PrintBlock([]byte(block))
+}
+
 func (r *ReporterImpl) showChunk(bytes []byte) {
-	r.ui.PrintBlock(string(bytes))
+	r.ui.PrintBlock(bytes)
 }
 
 func (r *ReporterImpl) lastEventForTask(id int) *Event {
