@@ -187,6 +187,22 @@ var _ = Describe("ClientRequest", func() {
 				Expect(buf.String()).To(Equal("body"))
 			})
 
+			It("is not used if response errors", func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/path"),
+					ghttp.RespondWith(0, "body"),
+				))
+
+				buf := bytes.NewBufferString("")
+
+				body, resp, err := req.RawGet("/path", buf, nil)
+				Expect(err).To(HaveOccurred())
+				Expect(body).To(BeEmpty())
+				Expect(resp).ToNot(BeNil())
+
+				Expect(buf.String()).To(Equal(""))
+			})
+
 			It("tracks downloading based on content length", func() {
 				buf := bytes.NewBufferString("")
 				otherBuf := bytes.NewBufferString("")

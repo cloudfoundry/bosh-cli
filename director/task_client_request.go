@@ -141,6 +141,25 @@ func (r TaskClientRequest) waitForResult(taskResp taskShortResp) ([]byte, error)
 	return respBody, nil
 }
 
+type taskReporterWriter struct {
+	id           int
+	totalLen     int
+	taskReporter TaskReporter
+}
+
+var _ ShouldTrackDownload = &taskReporterWriter{}
+
+func (w *taskReporterWriter) Write(buf []byte) (int, error) {
+	bufLen := len(buf)
+	if bufLen > 0 {
+		w.taskReporter.TaskOutputChunk(w.id, buf)
+	}
+	w.totalLen += bufLen
+	return bufLen, nil
+}
+
+func (w taskReporterWriter) ShouldTrackDownload() bool { return false }
+
 func (r TaskClientRequest) reportOutputChunk(id, offset int, type_ string, taskReporter TaskReporter) (int, error) {
 	outputPath := fmt.Sprintf("/tasks/%d/output?type=%s", id, type_)
 
@@ -148,7 +167,9 @@ func (r TaskClientRequest) reportOutputChunk(id, offset int, type_ string, taskR
 		req.Header.Add("Range", fmt.Sprintf("bytes=%d-", offset))
 	}
 
-	respBodyChunk, resp, err := r.clientRequest.RawGet(outputPath, nil, setHeaders)
+	writer := &taskReporterWriter{id, 0, taskReporter}
+
+	_, resp, err := r.clientRequest.RawGet(outputPath, writer, setHeaders)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusRequestedRangeNotSatisfiable {
 			return offset, nil
@@ -157,9 +178,5 @@ func (r TaskClientRequest) reportOutputChunk(id, offset int, type_ string, taskR
 		return 0, err
 	}
 
-	if len(respBodyChunk) > 0 {
-		taskReporter.TaskOutputChunk(id, respBodyChunk)
-	}
-
-	return offset + len(respBodyChunk), nil
+	return offset + writer.totalLen, nil
 }
