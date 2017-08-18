@@ -164,6 +164,19 @@ var _ = Describe("ClientRequest", func() {
 				Expect(resp).ToNot(BeNil())
 			})
 
+			It("includes response body in the error if response errors", func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/path"),
+					ghttp.RespondWith(0, "body"),
+				))
+
+				body, resp, err := req.RawGet("/path", nil, nil)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("'body'"))
+				Expect(body).To(BeNil())
+				Expect(resp).ToNot(BeNil())
+			})
+
 			It("does not track downloading", func() {
 				fileReporter := &fakedir.FakeFileReporter{}
 				req = buildReq(fileReporter)

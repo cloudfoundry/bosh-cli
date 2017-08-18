@@ -217,6 +217,11 @@ func (r ClientRequest) readResponse(resp *http.Response, out io.Writer) ([]byte,
 		if err == nil {
 			r.logger.Debug(logTag, "Dumping Director client response:\n%s", string(b))
 		}
+
+		respBody, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, nil, bosherr.WrapError(err, "Reading Director response")
+		}
 	}
 
 	not200 := resp.StatusCode != http.StatusOK
@@ -230,14 +235,7 @@ func (r ClientRequest) readResponse(resp *http.Response, out io.Writer) ([]byte,
 		return nil, resp, bosherr.Errorf(msg, resp.StatusCode, respBody)
 	}
 
-	var err error
-
-	if out == nil {
-		respBody, err = ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, nil, bosherr.WrapError(err, "Reading Director response")
-		}
-	} else {
+	if out != nil {
 		showProgress := true
 
 		if typedOut, ok := out.(ShouldTrackDownload); ok {
