@@ -18,8 +18,12 @@ func NewInteractiveRunner(comboRunner ComboRunner) InteractiveRunner {
 }
 
 func (r InteractiveRunner) Run(connOpts ConnectionOpts, result boshdir.SSHResult, rawCmd []string) error {
-	if len(result.Hosts) != 1 {
-		return bosherr.Errorf("Interactive SSH only works for a single host at a time")
+	if len(result.Hosts) == 0 {
+		return bosherr.Errorf("Interactive SSH requires at least one host to be running.")
+	}
+	if len(result.Hosts) > 1 {
+		firstHost := result.Hosts[0]
+		return bosherr.Errorf("Interactive SSH only works for a single host at a time. Try `bosh ssh %s/%s`.", firstHost.Job, firstHost.IndexOrID)
 	}
 
 	if len(rawCmd) != 0 {
