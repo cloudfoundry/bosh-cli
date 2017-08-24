@@ -49,9 +49,12 @@ type FakeFileSystem struct {
 	ReadFileError       error
 	readFileErrorByPath map[string]error
 
-	WriteFileError  error
-	WriteFileErrors map[string]error
-	SymlinkError    error
+	WriteFileError            error
+	WriteFileErrors           map[string]error
+	WriteFileCallCount        int
+	WriteFileQuietlyCallCount int
+
+	SymlinkError error
 
 	MkdirAllError       error
 	mkdirAllErrorByPath map[string]error
@@ -424,7 +427,17 @@ func (fs *FakeFileSystem) WriteFileString(path, content string) error {
 	return fs.WriteFile(path, []byte(content))
 }
 
+func (fs *FakeFileSystem) WriteFileQuietly(path string, content []byte) error {
+	fs.WriteFileQuietlyCallCount++
+	return fs.writeFile(path, content)
+}
+
 func (fs *FakeFileSystem) WriteFile(path string, content []byte) error {
+	fs.WriteFileCallCount++
+	return fs.writeFile(path, content)
+}
+
+func (fs *FakeFileSystem) writeFile(path string, content []byte) error {
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 

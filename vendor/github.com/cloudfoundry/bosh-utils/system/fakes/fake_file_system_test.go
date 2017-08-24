@@ -308,6 +308,40 @@ var _ = Describe("FakeFileSystem", func() {
 		})
 	})
 
+	Describe("WriteFileQuietly", func() {
+		It("Writes the file", func() {
+			fs.WriteFileQuietly("foo", []byte("hello"))
+
+			writtenContent, err := fs.ReadFileString("foo")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(writtenContent).To(ContainSubstring("hello"))
+		})
+
+		It("Records the number of times the method was called", func() {
+			fs.WriteFileQuietly("foo", []byte("hello"))
+			fs.WriteFileQuietly("bar", []byte("hello"))
+
+			Expect(fs.WriteFileQuietlyCallCount).To(Equal(2))
+		})
+	})
+
+	Describe("WriteFile", func() {
+		It("Writes the file", func() {
+			fs.WriteFile("foo", []byte("hello"))
+
+			writtenContent, err := fs.ReadFileString("foo")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(writtenContent).To(ContainSubstring("hello"))
+		})
+
+		It("Records the number of times the method was called", func() {
+			fs.WriteFile("foo", []byte("hello"))
+			fs.WriteFile("bar", []byte("hello"))
+
+			Expect(fs.WriteFileCallCount).To(Equal(2))
+		})
+	})
+
 	Describe("Stat", func() {
 		It("errors when symlink targets do not exist", func() {
 			err := fs.Symlink("foobarbaz", "foobar")
