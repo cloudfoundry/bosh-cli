@@ -10,6 +10,7 @@ import (
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -77,18 +78,28 @@ var _ = Describe("Provider", func() {
 
 			Context("when tarball is not present in cache", func() {
 				var (
-					tempDownloadFilePath string
+					tempDownloadFilePath1 string
+					tempDownloadFilePath2 string
+					tempDownloadFilePath3 string
 				)
 
 				BeforeEach(func() {
-					tempDownloadFile, err := ioutil.TempFile("", "temp-download-file")
+					tempDownloadFile1, err := ioutil.TempFile("", "temp-download-file1")
 					Expect(err).ToNot(HaveOccurred())
-					fs.ReturnTempFile = tempDownloadFile
-					tempDownloadFilePath = tempDownloadFile.Name()
+					tempDownloadFile2, err := ioutil.TempFile("", "temp-download-file2")
+					Expect(err).ToNot(HaveOccurred())
+					tempDownloadFile3, err := ioutil.TempFile("", "temp-download-file3")
+					Expect(err).ToNot(HaveOccurred())
+					fs.ReturnTempFiles = []boshsys.File{tempDownloadFile1, tempDownloadFile2, tempDownloadFile3}
+					tempDownloadFilePath1 = tempDownloadFile1.Name()
+					tempDownloadFilePath2 = tempDownloadFile2.Name()
+					tempDownloadFilePath3 = tempDownloadFile3.Name()
 				})
 
 				AfterEach(func() {
-					os.RemoveAll(tempDownloadFilePath)
+					os.RemoveAll(tempDownloadFilePath1)
+					os.RemoveAll(tempDownloadFilePath2)
+					os.RemoveAll(tempDownloadFilePath3)
 				})
 
 				Context("when downloading succeds", func() {
@@ -137,7 +148,9 @@ var _ = Describe("Provider", func() {
 						It("removes the downloaded file", func() {
 							_, err := provider.Get(source, fakeStage)
 							Expect(err).To(HaveOccurred())
-							Expect(fs.FileExists(tempDownloadFilePath)).To(BeFalse())
+							Expect(fs.FileExists(tempDownloadFilePath1)).To(BeFalse())
+							Expect(fs.FileExists(tempDownloadFilePath2)).To(BeFalse())
+							Expect(fs.FileExists(tempDownloadFilePath3)).To(BeFalse())
 						})
 					})
 
@@ -156,7 +169,9 @@ var _ = Describe("Provider", func() {
 						It("removes the downloaded file", func() {
 							_, err := provider.Get(source, fakeStage)
 							Expect(err).To(HaveOccurred())
-							Expect(fs.FileExists(tempDownloadFilePath)).To(BeFalse())
+							Expect(fs.FileExists(tempDownloadFilePath1)).To(BeFalse())
+							Expect(fs.FileExists(tempDownloadFilePath2)).To(BeFalse())
+							Expect(fs.FileExists(tempDownloadFilePath3)).To(BeFalse())
 						})
 					})
 				})
@@ -179,7 +194,9 @@ var _ = Describe("Provider", func() {
 					It("removes the downloaded file", func() {
 						_, err := provider.Get(source, fakeStage)
 						Expect(err).To(HaveOccurred())
-						Expect(fs.FileExists(tempDownloadFilePath)).To(BeFalse())
+						Expect(fs.FileExists(tempDownloadFilePath1)).To(BeFalse())
+						Expect(fs.FileExists(tempDownloadFilePath2)).To(BeFalse())
+						Expect(fs.FileExists(tempDownloadFilePath3)).To(BeFalse())
 					})
 				})
 			})
