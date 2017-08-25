@@ -124,6 +124,8 @@ func (p *provider) downloadRetryable(source Source) boshretry.Retryable {
 		}
 
 		defer func() {
+			downloadedFile.Close()
+
 			if err = p.fs.RemoveAll(downloadedFile.Name()); err != nil {
 				p.logger.Warn(p.logTag, "Failed to remove downloaded file: %s", err.Error())
 			}
