@@ -83,6 +83,11 @@ var _ = Describe("RepackStemcellCmd", func() {
 					Expect(extractedStemcell.SetVersionCallCount()).To(BeZero())
 				})
 
+				It("should NOT use an empty image", func() {
+					Expect(err).ToNot(HaveOccurred())
+					Expect(extractedStemcell.EmptyImageCallCount()).To(Equal(0))
+				})
+
 				It("should NOT set empty cloud_properties", func() {
 					Expect(err).ToNot(HaveOccurred())
 
@@ -103,6 +108,18 @@ var _ = Describe("RepackStemcellCmd", func() {
 					Expect(extractedStemcell.SetNameArgsForCall(0)).To(Equal("new-name"))
 
 					Expect(extractedStemcell.PackCallCount()).To(Equal(1))
+				})
+			})
+
+			Context("and --empty-image is specified", func() {
+				It("uses an empty image", func() {
+					opts.EmptyImage = true
+					extractor.SetExtractBehavior("some-stemcell.tgz", extractedStemcell, nil)
+
+					extractedStemcell.PackReturns(nil)
+					err = act()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(extractedStemcell.EmptyImageCallCount()).To(Equal(1))
 				})
 			})
 

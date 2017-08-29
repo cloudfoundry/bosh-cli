@@ -36,6 +36,13 @@ func (c RepackStemcellCmd) Run(opts RepackStemcellOpts) error {
 		extractedStemcell.SetVersion(opts.Version)
 	}
 
+	if opts.EmptyImage {
+		err = extractedStemcell.EmptyImage()
+		if err != nil {
+			return err
+		}
+	}
+
 	if opts.CloudProperties != "" {
 		cloudProperties := new(biproperty.Map)
 		err = yaml.Unmarshal([]byte(opts.CloudProperties), cloudProperties)

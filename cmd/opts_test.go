@@ -1351,6 +1351,12 @@ var _ = Describe("Opts", func() {
 				`long:"cloud-properties" description:"Repacked stemcell cloud properties"`,
 			))
 		})
+
+		It("has --empty-image", func() {
+			Expect(getStructTagForName("EmptyImage", opts)).To(Equal(
+				`long:"empty-image" description:"Pack zero byte file instead of image"`,
+			))
+		})
 	})
 
 	Describe("RepackStemcellArgs", func() {
