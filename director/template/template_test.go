@@ -21,6 +21,15 @@ var _ = Describe("Template", func() {
 		Expect(result).To(Equal([]byte("foo\n")))
 	})
 
+	It("can interpolate values with leading slash into a struct with byte slice", func() {
+		template := NewTemplate([]byte("((/key/foo))"))
+		vars := StaticVariables{"/key/foo": "foo"}
+
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("foo\n")))
+	})
+
 	It("can interpolate multiple values into a byte slice", func() {
 		template := NewTemplate([]byte("((key)): ((value))"))
 		vars := StaticVariables{
