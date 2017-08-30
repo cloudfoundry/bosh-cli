@@ -71,6 +71,15 @@ type FakeExtractedStemcell struct {
 	packReturnsOnCall map[int]struct {
 		result1 error
 	}
+	EmptyImageStub        func() error
+	emptyImageMutex       sync.RWMutex
+	emptyImageArgsForCall []struct{}
+	emptyImageReturns     struct {
+		result1 error
+	}
+	emptyImageReturnsOnCall map[int]struct {
+		result1 error
+	}
 	StringStub        func() string
 	stringMutex       sync.RWMutex
 	stringArgsForCall []struct{}
@@ -364,6 +373,46 @@ func (fake *FakeExtractedStemcell) PackReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeExtractedStemcell) EmptyImage() error {
+	fake.emptyImageMutex.Lock()
+	ret, specificReturn := fake.emptyImageReturnsOnCall[len(fake.emptyImageArgsForCall)]
+	fake.emptyImageArgsForCall = append(fake.emptyImageArgsForCall, struct{}{})
+	fake.recordInvocation("EmptyImage", []interface{}{})
+	fake.emptyImageMutex.Unlock()
+	if fake.EmptyImageStub != nil {
+		return fake.EmptyImageStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.emptyImageReturns.result1
+}
+
+func (fake *FakeExtractedStemcell) EmptyImageCallCount() int {
+	fake.emptyImageMutex.RLock()
+	defer fake.emptyImageMutex.RUnlock()
+	return len(fake.emptyImageArgsForCall)
+}
+
+func (fake *FakeExtractedStemcell) EmptyImageReturns(result1 error) {
+	fake.EmptyImageStub = nil
+	fake.emptyImageReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeExtractedStemcell) EmptyImageReturnsOnCall(i int, result1 error) {
+	fake.EmptyImageStub = nil
+	if fake.emptyImageReturnsOnCall == nil {
+		fake.emptyImageReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.emptyImageReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeExtractedStemcell) String() string {
 	fake.stringMutex.Lock()
 	ret, specificReturn := fake.stringReturnsOnCall[len(fake.stringArgsForCall)]
@@ -423,6 +472,8 @@ func (fake *FakeExtractedStemcell) Invocations() map[string][][]interface{} {
 	defer fake.getExtractedPathMutex.RUnlock()
 	fake.packMutex.RLock()
 	defer fake.packMutex.RUnlock()
+	fake.emptyImageMutex.RLock()
+	defer fake.emptyImageMutex.RUnlock()
 	fake.stringMutex.RLock()
 	defer fake.stringMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

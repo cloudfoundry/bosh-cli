@@ -215,6 +215,50 @@ var _ = Describe("Stemcell", func() {
 		})
 	})
 
+	Describe("EmptyImage", func() {
+		var (
+			imagePath string
+		)
+
+		BeforeEach(func() {
+			extractedPath = "extracted-path"
+			imagePath = "extracted-path/image"
+
+			fakefs.MkdirAll(extractedPath, os.ModeDir)
+			file := fakesys.NewFakeFile(imagePath, fakefs)
+			file.Write([]byte("tar-gz-header-and-content"))
+
+			stemcell = NewExtractedStemcell(
+				manifest,
+				extractedPath,
+				compressor,
+				fakefs,
+			)
+		})
+
+		Context("when overwriting the image succeeds", func() {
+			It("overwrites the image", func() {
+				err := stemcell.EmptyImage()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakefs.WriteFileCallCount).To(Equal(1))
+				stat, err := fakefs.Stat(imagePath)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(stat.Size()).To(Equal(int64(0)))
+			})
+		})
+
+		Context("when overwriting fails", func() {
+			It("returns an error", func() {
+				fakefs.WriteFileError = errors.New("could not write file")
+
+				err := stemcell.EmptyImage()
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+	})
+
 	Describe("Pack", func() {
 		var (
 			removeAllCalled bool
