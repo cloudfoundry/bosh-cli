@@ -11,7 +11,7 @@ import (
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 )
 
-type Sha2ifyReleaseCmd struct {
+type RedigestReleaseCmd struct {
 	reader                boshrel.Reader
 	writer                boshrel.Writer
 	digestCalculator      crypto.DigestCalculator
@@ -20,15 +20,15 @@ type Sha2ifyReleaseCmd struct {
 	ui                    boshui.UI
 }
 
-func NewSha2ifyReleaseCmd(
+func NewRedigestReleaseCmd(
 	reader boshrel.Reader,
 	writer boshrel.Writer,
 	digestCalculator crypto.DigestCalculator,
 	mv boshfu.Mover,
 	archiveFilePathReader crypto2.ArchiveDigestFilePathReader,
 	ui boshui.UI,
-) Sha2ifyReleaseCmd {
-	return Sha2ifyReleaseCmd{
+) RedigestReleaseCmd {
+	return RedigestReleaseCmd{
 		reader:           reader,
 		writer:           writer,
 		digestCalculator: digestCalculator,
@@ -38,51 +38,51 @@ func NewSha2ifyReleaseCmd(
 	}
 }
 
-func (cmd Sha2ifyReleaseCmd) Run(args Sha2ifyReleaseArgs) error {
+func (cmd RedigestReleaseCmd) Run(args RedigestReleaseArgs) error {
 	release, err := cmd.reader.Read(args.Path)
 	if err != nil {
 		return err
 	}
 
-	sha2jobs := []*boshjob.Job{}
+	newJobs := []*boshjob.Job{}
 	for _, job := range release.Jobs() {
-		sha2Job, err := job.RehashWithCalculator(cmd.digestCalculator, cmd.archiveFilePathReader)
+		newJob, err := job.RehashWithCalculator(cmd.digestCalculator, cmd.archiveFilePathReader)
 		if err != nil {
 			return err
 		}
-		sha2jobs = append(sha2jobs, sha2Job)
+		newJobs = append(newJobs, newJob)
 	}
 
-	sha2CompiledPackages := []*boshpkg.CompiledPackage{}
+	newCompiledPackages := []*boshpkg.CompiledPackage{}
 	for _, compPkg := range release.CompiledPackages() {
-		sha2CompiledPackage, err := compPkg.RehashWithCalculator(cmd.digestCalculator, cmd.archiveFilePathReader)
+		newCompiledPackage, err := compPkg.RehashWithCalculator(cmd.digestCalculator, cmd.archiveFilePathReader)
 		if err != nil {
 			return err
 		}
-		sha2CompiledPackages = append(sha2CompiledPackages, sha2CompiledPackage)
+		newCompiledPackages = append(newCompiledPackages, newCompiledPackage)
 	}
 
-	sha2packages := []*boshpkg.Package{}
+	newPackages := []*boshpkg.Package{}
 	for _, pkg := range release.Packages() {
-		sha2Pkg, err := pkg.RehashWithCalculator(cmd.digestCalculator, cmd.archiveFilePathReader)
+		newPkg, err := pkg.RehashWithCalculator(cmd.digestCalculator, cmd.archiveFilePathReader)
 		if err != nil {
 			return err
 		}
-		sha2packages = append(sha2packages, sha2Pkg)
+		newPackages = append(newPackages, newPkg)
 	}
 
-	var sha2License *license.License
+	var newLicense *license.License
 	releaseLicense := release.License()
 	if releaseLicense != nil {
-		sha2License, err = releaseLicense.RehashWithCalculator(cmd.digestCalculator, cmd.archiveFilePathReader)
+		newLicense, err = releaseLicense.RehashWithCalculator(cmd.digestCalculator, cmd.archiveFilePathReader)
 		if err != nil {
 			return err
 		}
 	}
 
-	sha2release := release.CopyWith(sha2jobs, sha2packages, sha2License, sha2CompiledPackages)
+	newRelease := release.CopyWith(newJobs, newPackages, newLicense, newCompiledPackages)
 
-	tmpWriterPath, err := cmd.writer.Write(sha2release, nil)
+	tmpWriterPath, err := cmd.writer.Write(newRelease, nil)
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func (cmd Sha2ifyReleaseCmd) Run(args Sha2ifyReleaseArgs) error {
 		return err
 	}
 
-	ReleaseTables{Release: sha2release, ArchivePath: args.Destination.ExpandedPath}.Print(cmd.ui)
+	ReleaseTables{Release: newRelease, ArchivePath: args.Destination.ExpandedPath}.Print(cmd.ui)
 
 	return nil
 }

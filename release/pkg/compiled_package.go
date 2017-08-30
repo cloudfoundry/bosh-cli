@@ -102,7 +102,15 @@ func (p *CompiledPackage) RehashWithCalculator(digestCalculator crypto.DigestCal
 		return nil, err
 	}
 
-	digest := crypto2.NewDigest(crypto2.DigestAlgorithmSHA1, p.archiveSHA1)
+	algorithm := crypto2.DigestAlgorithmSHA1
+	switch len(p.archiveSHA1) {
+	case 40:
+		break
+	case 71:
+		algorithm = crypto2.DigestAlgorithmSHA256
+	}
+
+	digest := crypto2.NewDigest(algorithm, p.archiveSHA1)
 	err = digest.Verify(pkgFile)
 	if err != nil {
 		return nil, err
