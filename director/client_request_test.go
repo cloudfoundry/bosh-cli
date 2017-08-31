@@ -403,7 +403,7 @@ var _ = Describe("ClientRequest", func() {
 					TrackUploadStub: func(size int64, reader io.ReadCloser) ui.ReadSeekCloser {
 						Expect(size).To(Equal(int64(8)))
 						Expect(ioutil.ReadAll(reader)).To(Equal([]byte("req-body")))
-						return NoopReadSeekCloser{ioutil.NopCloser(bytes.NewBufferString("req-body"))}
+						return NoopReadSeekCloser{Reader: ioutil.NopCloser(bytes.NewBufferString("req-body"))}
 					},
 				}
 				req = buildReq(fileReporter)

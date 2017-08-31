@@ -17,9 +17,9 @@ var _ = Describe("Error", func() {
 
 		JustBeforeEach(func() {
 			cmdError = cloud.CmdError{
-				"Bosh::Clouds::CloudError",
-				message,
-				false,
+				Type: "Bosh::Clouds::CloudError",
+				Message: message,
+				OkToRetry: false,
 			}
 		})
 
@@ -58,9 +58,9 @@ var _ = Describe("Error", func() {
 
 		JustBeforeEach(func() {
 			cmdError = cloud.CmdError{
-				"InvalidCall",
-				message,
-				false,
+				Type: "InvalidCall",
+				Message: message,
+				OkToRetry: false,
 			}
 		})
 

@@ -79,12 +79,12 @@ var _ = Describe("NonTTYUI", func() {
 
 				Sections: []Section{
 					{
-						FirstColumn: ValueString{"section1"},
-						Rows:        [][]Value{{ValueString{"row1"}}},
+						FirstColumn: ValueString{S: "section1"},
+						Rows:        [][]Value{{ValueString{S: "row1"}}},
 					},
 				},
 
-				Rows: [][]Value{{ValueString{"row1"}}},
+				Rows: [][]Value{{ValueString{S: "row1"}}},
 
 				FillFirstColumn: false,
 				BackgroundStr:   "-",
@@ -105,12 +105,12 @@ var _ = Describe("NonTTYUI", func() {
 
 				Sections: []Section{
 					{
-						FirstColumn: ValueString{"section1"},
-						Rows:        [][]Value{{ValueString{"row1"}}},
+						FirstColumn: ValueString{S: "section1"},
+						Rows:        [][]Value{{ValueString{S: "row1"}}},
 					},
 				},
 
-				Rows: [][]Value{{ValueString{"row1"}}},
+				Rows: [][]Value{{ValueString{S: "row1"}}},
 
 				FillFirstColumn: true,
 				DataOnly:        true,

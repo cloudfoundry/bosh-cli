@@ -117,8 +117,8 @@ var _ = Describe("JSONUI", func() {
 				Header:  []Header{NewHeader("Header & ( foo )  1 "), NewHeader("Header-2 header 3")},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes: []string{"note1", "note2"},
@@ -157,8 +157,8 @@ var _ = Describe("JSONUI", func() {
 				Header:  []Header{},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes: []string{"note1", "note2"},
@@ -190,8 +190,8 @@ var _ = Describe("JSONUI", func() {
 				},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes: []string{"note1", "note2"},
@@ -232,8 +232,8 @@ var _ = Describe("JSONUI", func() {
 				},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}, ValueString{"r1c3"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}, ValueString{"r2c3"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}, ValueString{S: "r1c3"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}, ValueString{S: "r2c3"}},
 				},
 
 				Notes: []string{},
@@ -265,10 +265,10 @@ var _ = Describe("JSONUI", func() {
 
 				Sections: []Section{
 					{
-						FirstColumn: ValueString{"first-col"},
+						FirstColumn: ValueString{S: "first-col"},
 						Rows: [][]Value{
-							{ValueString{""}, ValueString{"r1c2"}},
-							{ValueString{""}, ValueString{"r2c2"}},
+							{ValueString{S: ""}, ValueString{S: "r1c2"}},
+							{ValueString{S: ""}, ValueString{S: "r2c2"}},
 						},
 					},
 				},
