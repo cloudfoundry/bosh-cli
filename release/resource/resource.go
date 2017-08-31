@@ -3,18 +3,19 @@ package resource
 import (
 	"fmt"
 
+	"os"
+
 	"github.com/cloudfoundry/bosh-cli/crypto"
 	crypto2 "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"os"
 )
 
 type ResourceImpl struct {
 	name        string
 	fingerprint string
 
-	archivePath string
-	archiveSHA1 string
+	archivePath   string
+	archiveDigest string
 
 	expectToExist bool
 	archive       Archive
@@ -32,7 +33,7 @@ func NewExistingResource(name, fp, sha1 string) *ResourceImpl {
 	return &ResourceImpl{
 		name:          name,
 		fingerprint:   fp,
-		archiveSHA1:   sha1,
+		archiveDigest: sha1,
 		expectToExist: true,
 	}
 }
@@ -42,7 +43,7 @@ func NewResourceWithBuiltArchive(name, fp, path, sha1 string) *ResourceImpl {
 		name:          name,
 		fingerprint:   fp,
 		archivePath:   path,
-		archiveSHA1:   sha1,
+		archiveDigest: sha1,
 		expectToExist: true,
 	}
 }
@@ -58,12 +59,12 @@ func (r *ResourceImpl) ArchivePath() string {
 	return r.archivePath
 }
 
-func (r *ResourceImpl) ArchiveSHA1() string {
-	if len(r.archiveSHA1) == 0 {
+func (r *ResourceImpl) ArchiveDigest() string {
+	if len(r.archiveDigest) == 0 {
 		errMsg := "Internal inconsistency: Resource '%s/%s' must be found or built before getting its archive SHA1"
 		panic(fmt.Sprintf(errMsg, r.name, r.fingerprint))
 	}
-	return r.archiveSHA1
+	return r.archiveDigest
 }
 
 func (r *ResourceImpl) Build(devIndex, finalIndex ArchiveIndex) error {
@@ -104,7 +105,7 @@ func (r *ResourceImpl) Finalize(finalIndex ArchiveIndex) error {
 		return nil
 	}
 
-	_, _, err = finalIndex.Add(r.name, r.fingerprint, r.ArchivePath(), r.ArchiveSHA1())
+	_, _, err = finalIndex.Add(r.name, r.fingerprint, r.ArchivePath(), r.ArchiveDigest())
 
 	return err
 }
@@ -116,14 +117,11 @@ func (r *ResourceImpl) RehashWithCalculator(calculator crypto.DigestCalculator, 
 	}
 	defer archiveFile.Close()
 
-	algorithm := crypto2.DigestAlgorithmSHA1
-	switch len(r.archiveSHA1) {
-	case 40:
-		break
-	case 71:
-		algorithm = crypto2.DigestAlgorithmSHA256
+	digest, err := crypto2.ParseMultipleDigest(r.archiveDigest)
+	if err != nil {
+		return &ResourceImpl{}, err
 	}
-	err = crypto2.NewDigest(algorithm, r.archiveSHA1).Verify(archiveFile)
+	err = digest.Verify(archiveFile)
 
 	if err != nil {
 		return &ResourceImpl{}, err
@@ -135,8 +133,8 @@ func (r *ResourceImpl) RehashWithCalculator(calculator crypto.DigestCalculator, 
 		name:        r.name,
 		fingerprint: r.fingerprint,
 
-		archivePath: r.archivePath,
-		archiveSHA1: newSHA,
+		archivePath:   r.archivePath,
+		archiveDigest: newSHA,
 
 		expectToExist: r.expectToExist,
 		archive:       r.archive,
@@ -169,9 +167,9 @@ func (r *ResourceImpl) findAndAttach(devIndex, finalIndex ArchiveIndex, errIfNot
 
 func (r *ResourceImpl) attachArchive(path, sha1 string) {
 	r.archivePath = path
-	r.archiveSHA1 = sha1
+	r.archiveDigest = sha1
 }
 
 func (r *ResourceImpl) hasArchive() bool {
-	return len(r.archivePath) > 0 && len(r.archiveSHA1) > 0
+	return len(r.archivePath) > 0 && len(r.archiveDigest) > 0
 }

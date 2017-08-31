@@ -37,7 +37,7 @@ func (c *remotePackageCompiler) Compile(pkg birelpkg.Compilable) (bistatepkg.Com
 	packageSource := biagentclient.BlobRef{
 		Name:        pkg.Name(),
 		Version:     pkg.Fingerprint(),
-		SHA1:        pkg.ArchiveSHA1(),
+		SHA1:        pkg.ArchiveDigest(),
 		BlobstoreID: blobID,
 	}
 
@@ -91,7 +91,7 @@ func (c *remotePackageCompiler) Compile(pkg birelpkg.Compilable) (bistatepkg.Com
 
 		record = bistatepkg.CompiledPackageRecord{
 			BlobID:   blobID,
-			BlobSHA1: pkg.ArchiveSHA1(),
+			BlobSHA1: pkg.ArchiveDigest(),
 		}
 	}
 

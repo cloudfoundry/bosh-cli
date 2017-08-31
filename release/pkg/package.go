@@ -51,8 +51,8 @@ func (p Package) String() string { return p.Name() }
 func (p Package) Name() string        { return p.resource.Name() }
 func (p Package) Fingerprint() string { return p.resource.Fingerprint() }
 
-func (p *Package) ArchivePath() string { return p.resource.ArchivePath() }
-func (p *Package) ArchiveSHA1() string { return p.resource.ArchiveSHA1() }
+func (p *Package) ArchivePath() string   { return p.resource.ArchivePath() }
+func (p *Package) ArchiveDigest() string { return p.resource.ArchiveDigest() }
 
 func (p *Package) RehashWithCalculator(calculator crypto.DigestCalculator, archiveFileReader crypto2.ArchiveDigestFilePathReader) (*Package, error) {
 	newResource, err := p.resource.RehashWithCalculator(calculator, archiveFileReader)

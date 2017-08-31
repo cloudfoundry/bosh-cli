@@ -50,7 +50,7 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 	for _, job := range t.Release.Jobs() {
 		jobsTable.Rows = append(jobsTable.Rows, []boshtbl.Value{
 			boshtbl.NewValueString(fmt.Sprintf("%s/%s", job.Name(), job.Fingerprint())),
-			boshtbl.NewValueString(job.ArchiveSHA1()),
+			boshtbl.NewValueString(job.ArchiveDigest()),
 			boshtbl.NewValueStrings(t.sumPkgNames(job.Packages)),
 		})
 	}
@@ -68,7 +68,7 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 	for _, pkg := range t.Release.Packages() {
 		pkgsTable.Rows = append(pkgsTable.Rows, []boshtbl.Value{
 			boshtbl.NewValueString(fmt.Sprintf("%s/%s", pkg.Name(), pkg.Fingerprint())),
-			boshtbl.NewValueString(pkg.ArchiveSHA1()),
+			boshtbl.NewValueString(pkg.ArchiveDigest()),
 			boshtbl.NewValueStrings(t.sumPkgDependencyNames(pkg.Dependencies)),
 		})
 	}

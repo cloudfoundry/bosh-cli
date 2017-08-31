@@ -36,8 +36,8 @@ var _ = Describe("RenderedJobListArchive", func() {
 
 		mockRenderedJobList *mock_template.MockRenderedJobList
 
-		renderedJobListArchivePath string
-		renderedJobListArchiveSHA1 string
+		renderedJobListArchivePath   string
+		renderedJobListArchiveDigest string
 
 		renderedJobListArchive RenderedJobListArchive
 	)
@@ -52,12 +52,12 @@ var _ = Describe("RenderedJobListArchive", func() {
 		mockRenderedJobList = mock_template.NewMockRenderedJobList(mockCtrl)
 
 		renderedJobListArchivePath = "fake-archive-path"
-		renderedJobListArchiveSHA1 = "fake-sha1"
+		renderedJobListArchiveDigest = "fake-sha1"
 
 		renderedJobListArchive = NewRenderedJobListArchive(
 			mockRenderedJobList,
 			renderedJobListArchivePath,
-			renderedJobListArchiveSHA1,
+			renderedJobListArchiveDigest,
 			fs, logger)
 	})
 
@@ -75,7 +75,7 @@ var _ = Describe("RenderedJobListArchive", func() {
 
 	Describe("SHA1", func() {
 		It("returns the rendered job list archive sha1", func() {
-			Expect(renderedJobListArchive.SHA1()).To(Equal(renderedJobListArchiveSHA1))
+			Expect(renderedJobListArchive.SHA1()).To(Equal(renderedJobListArchiveDigest))
 		})
 	})
 

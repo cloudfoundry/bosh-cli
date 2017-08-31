@@ -123,16 +123,16 @@ var _ = Describe("RedigestRelease", func() {
 			Expect(sha2ifyRelease).NotTo(BeNil())
 
 			Expect(sha2ifyRelease.License()).ToNot(BeNil())
-			Expect(sha2ifyRelease.License().ArchiveSHA1()).To(Equal("sha256:licsha256"))
+			Expect(sha2ifyRelease.License().ArchiveDigest()).To(Equal("sha256:licsha256"))
 
 			Expect(sha2ifyRelease.Jobs()).To(HaveLen(1))
-			Expect(sha2ifyRelease.Jobs()[0].ArchiveSHA1()).To(Equal("sha256:jobsha256"))
+			Expect(sha2ifyRelease.Jobs()[0].ArchiveDigest()).To(Equal("sha256:jobsha256"))
 
 			Expect(sha2ifyRelease.Packages()).To(HaveLen(1))
-			Expect(sha2ifyRelease.Packages()[0].ArchiveSHA1()).To(Equal("sha256:pkgsha256"))
+			Expect(sha2ifyRelease.Packages()[0].ArchiveDigest()).To(Equal("sha256:pkgsha256"))
 
 			Expect(sha2ifyRelease.CompiledPackages()).To(HaveLen(1))
-			Expect(sha2ifyRelease.CompiledPackages()[0].ArchiveSHA1()).To(Equal("sha256:compiledpkgsha256"))
+			Expect(sha2ifyRelease.CompiledPackages()[0].ArchiveDigest()).To(Equal("sha256:compiledpkgsha256"))
 
 			Expect(fmv.MoveCallCount()).To(Equal(1))
 

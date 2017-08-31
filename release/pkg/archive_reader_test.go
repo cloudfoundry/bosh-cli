@@ -47,7 +47,7 @@ var _ = Describe("ArchiveReaderImpl", func() {
 			Expect(pkg.Name()).To(Equal("name"))
 			Expect(pkg.Fingerprint()).To(Equal("fp"))
 			Expect(pkg.ArchivePath()).To(Equal("archive-path"))
-			Expect(pkg.ArchiveSHA1()).To(Equal("archive-sha1"))
+			Expect(pkg.ArchiveDigest()).To(Equal("archive-sha1"))
 			Expect(pkg.DependencyNames()).To(Equal([]string{"pkg1"}))
 			Expect(pkg.ExtractedPath()).To(Equal("/extracted/pkg"))
 

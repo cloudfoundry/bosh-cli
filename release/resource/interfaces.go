@@ -35,7 +35,7 @@ type Resource interface {
 	Fingerprint() string
 
 	ArchivePath() string
-	ArchiveSHA1() string
+	ArchiveDigest() string
 
 	Build(dev, final ArchiveIndex) error
 	Finalize(final ArchiveIndex) error

@@ -57,7 +57,7 @@ properties:
 			Expect(job.Name()).To(Equal("name"))
 			Expect(job.Fingerprint()).To(Equal("fp"))
 			Expect(job.ArchivePath()).To(Equal("archive-path"))
-			Expect(job.ArchiveSHA1()).To(Equal("archive-sha1"))
+			Expect(job.ArchiveDigest()).To(Equal("archive-sha1"))
 
 			Expect(job.Templates).To(Equal(map[string]string{"src": "dst"}))
 			Expect(job.PackageNames).To(Equal([]string{"pkg"}))

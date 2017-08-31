@@ -72,13 +72,13 @@ var _ = Describe("sha1ify-release", func() {
 		Expect(release.License()).ToNot(BeNil())
 
 		By("converting the SHAs to SHA-1")
-		jobArchiveSha := release.Jobs()[0].ArchiveSHA1()
+		jobArchiveSha := release.Jobs()[0].ArchiveDigest()
 		Expect(jobArchiveSha).To(HaveLen(40))
 
-		packageArchiveSha := release.Packages()[0].ArchiveSHA1()
+		packageArchiveSha := release.Packages()[0].ArchiveDigest()
 		Expect(packageArchiveSha).To(HaveLen(40))
 
-		licenseArchiveSha := release.License().ArchiveSHA1()
+		licenseArchiveSha := release.License().ArchiveDigest()
 		Expect(licenseArchiveSha).To(HaveLen(40))
 
 		By("preserving the version string exactly")
@@ -103,9 +103,9 @@ var _ = Describe("sha1ify-release", func() {
 		Expect(release.CompiledPackages()).To(HaveLen(1))
 
 		By("converting the SHAs to SHA-1")
-		jobArchiveSha := release.Jobs()[0].ArchiveSHA1()
+		jobArchiveSha := release.Jobs()[0].ArchiveDigest()
 		Expect(jobArchiveSha).To(HaveLen(40))
-		compiledPackageSha := release.CompiledPackages()[0].ArchiveSHA1()
+		compiledPackageSha := release.CompiledPackages()[0].ArchiveDigest()
 		Expect(compiledPackageSha).To(HaveLen(40))
 
 		By("preserving the version string exactly")

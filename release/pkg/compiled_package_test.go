@@ -7,6 +7,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/release/pkg"
 
 	"errors"
+
 	"github.com/cloudfoundry/bosh-cli/crypto/fakes"
 	"github.com/cloudfoundry/bosh-utils/crypto/cryptofakes"
 	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -29,7 +30,7 @@ var _ = Describe("NewCompiledPackageWithoutArchive", func() {
 			Expect(compiledPkg.OSVersionSlug()).To(Equal("os-slug"))
 
 			Expect(func() { compiledPkg.ArchivePath() }).To(Panic())
-			Expect(compiledPkg.ArchiveSHA1()).To(Equal("sha1"))
+			Expect(compiledPkg.ArchiveDigest()).To(Equal("sha1"))
 
 			Expect(compiledPkg.DependencyNames()).To(Equal([]string{"pkg1", "pkg2"}))
 		})
@@ -78,7 +79,7 @@ var _ = Describe("NewCompiledPackageWithArchive", func() {
 			Expect(compiledPkg.OSVersionSlug()).To(Equal("os-slug"))
 
 			Expect(compiledPkg.ArchivePath()).To(Equal("path"))
-			Expect(compiledPkg.ArchiveSHA1()).To(Equal("sha1"))
+			Expect(compiledPkg.ArchiveDigest()).To(Equal("sha1"))
 
 			Expect(compiledPkg.DependencyNames()).To(Equal([]string{"pkg1", "pkg2"}))
 		})
@@ -129,7 +130,7 @@ var _ = Describe("NewCompiledPackageWithArchive", func() {
 			It("returns new compiled package with sha 256 digest", func() {
 				newCompiledPkg, err := compiledPkg.RehashWithCalculator(fakeDigestCalculator, fakeArchiveReader)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(newCompiledPkg.ArchiveSHA1()).To(Equal("sha256:compiledpkgsha256"))
+				Expect(newCompiledPkg.ArchiveDigest()).To(Equal("sha256:compiledpkgsha256"))
 			})
 		})
 
@@ -174,6 +175,21 @@ var _ = Describe("NewCompiledPackageWithArchive", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-digest-calculator-error"))
 				})
+			})
+		})
+
+		Context("when the archive digest is invalid", func() {
+			BeforeEach(func() {
+				fakeArchiveReader.OpenFileReturns(fakeFile, nil)
+
+				compiledPkg = NewCompiledPackageWithArchive(
+					"name", "fp", "os-slug", "path", "", []string{"pkg1", "pkg2"})
+			})
+
+			It("returns an error parsing the current digest", func() {
+				_, err := compiledPkg.RehashWithCalculator(fakeDigestCalculator, fakeArchiveReader)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("No digest algorithm found. Supported algorithms"))
 			})
 		})
 	})

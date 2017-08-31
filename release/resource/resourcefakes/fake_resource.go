@@ -37,13 +37,13 @@ type FakeResource struct {
 	archivePathReturnsOnCall map[int]struct {
 		result1 string
 	}
-	ArchiveSHA1Stub        func() string
-	archiveSHA1Mutex       sync.RWMutex
-	archiveSHA1ArgsForCall []struct{}
-	archiveSHA1Returns     struct {
+	ArchiveDigestStub        func() string
+	archiveDigestMutex       sync.RWMutex
+	archiveDigestArgsForCall []struct{}
+	archiveDigestReturns     struct {
 		result1 string
 	}
-	archiveSHA1ReturnsOnCall map[int]struct {
+	archiveDigestReturnsOnCall map[int]struct {
 		result1 string
 	}
 	BuildStub        func(dev, final resource.ArchiveIndex) error
@@ -207,42 +207,42 @@ func (fake *FakeResource) ArchivePathReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeResource) ArchiveSHA1() string {
-	fake.archiveSHA1Mutex.Lock()
-	ret, specificReturn := fake.archiveSHA1ReturnsOnCall[len(fake.archiveSHA1ArgsForCall)]
-	fake.archiveSHA1ArgsForCall = append(fake.archiveSHA1ArgsForCall, struct{}{})
-	fake.recordInvocation("ArchiveSHA1", []interface{}{})
-	fake.archiveSHA1Mutex.Unlock()
-	if fake.ArchiveSHA1Stub != nil {
-		return fake.ArchiveSHA1Stub()
+func (fake *FakeResource) ArchiveDigest() string {
+	fake.archiveDigestMutex.Lock()
+	ret, specificReturn := fake.archiveDigestReturnsOnCall[len(fake.archiveDigestArgsForCall)]
+	fake.archiveDigestArgsForCall = append(fake.archiveDigestArgsForCall, struct{}{})
+	fake.recordInvocation("ArchiveDigest", []interface{}{})
+	fake.archiveDigestMutex.Unlock()
+	if fake.ArchiveDigestStub != nil {
+		return fake.ArchiveDigestStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.archiveSHA1Returns.result1
+	return fake.archiveDigestReturns.result1
 }
 
-func (fake *FakeResource) ArchiveSHA1CallCount() int {
-	fake.archiveSHA1Mutex.RLock()
-	defer fake.archiveSHA1Mutex.RUnlock()
-	return len(fake.archiveSHA1ArgsForCall)
+func (fake *FakeResource) ArchiveDigestCallCount() int {
+	fake.archiveDigestMutex.RLock()
+	defer fake.archiveDigestMutex.RUnlock()
+	return len(fake.archiveDigestArgsForCall)
 }
 
-func (fake *FakeResource) ArchiveSHA1Returns(result1 string) {
-	fake.ArchiveSHA1Stub = nil
-	fake.archiveSHA1Returns = struct {
+func (fake *FakeResource) ArchiveDigestReturns(result1 string) {
+	fake.ArchiveDigestStub = nil
+	fake.archiveDigestReturns = struct {
 		result1 string
 	}{result1}
 }
 
-func (fake *FakeResource) ArchiveSHA1ReturnsOnCall(i int, result1 string) {
-	fake.ArchiveSHA1Stub = nil
-	if fake.archiveSHA1ReturnsOnCall == nil {
-		fake.archiveSHA1ReturnsOnCall = make(map[int]struct {
+func (fake *FakeResource) ArchiveDigestReturnsOnCall(i int, result1 string) {
+	fake.ArchiveDigestStub = nil
+	if fake.archiveDigestReturnsOnCall == nil {
+		fake.archiveDigestReturnsOnCall = make(map[int]struct {
 			result1 string
 		})
 	}
-	fake.archiveSHA1ReturnsOnCall[i] = struct {
+	fake.archiveDigestReturnsOnCall[i] = struct {
 		result1 string
 	}{result1}
 }
@@ -405,8 +405,8 @@ func (fake *FakeResource) Invocations() map[string][][]interface{} {
 	defer fake.fingerprintMutex.RUnlock()
 	fake.archivePathMutex.RLock()
 	defer fake.archivePathMutex.RUnlock()
-	fake.archiveSHA1Mutex.RLock()
-	defer fake.archiveSHA1Mutex.RUnlock()
+	fake.archiveDigestMutex.RLock()
+	defer fake.archiveDigestMutex.RUnlock()
 	fake.buildMutex.RLock()
 	defer fake.buildMutex.RUnlock()
 	fake.finalizeMutex.RLock()

@@ -73,13 +73,13 @@ var _ = Describe("sha2ify-release", func() {
 		Expect(release.License()).ToNot(BeNil())
 
 		By("converting the SHAs to 256")
-		jobArchiveSha := release.Jobs()[0].ArchiveSHA1()
+		jobArchiveSha := release.Jobs()[0].ArchiveDigest()
 		Expect(removeSHA1s(jobArchiveSha)).To(Equal("sha256:replaced"))
 
-		packageArchiveSha := release.Packages()[0].ArchiveSHA1()
+		packageArchiveSha := release.Packages()[0].ArchiveDigest()
 		Expect(removeSHA1s(packageArchiveSha)).To(Equal("sha256:replaced"))
 
-		licenseArchiveSha := release.License().ArchiveSHA1()
+		licenseArchiveSha := release.License().ArchiveDigest()
 		Expect(removeSHA1s(licenseArchiveSha)).To(Equal("sha256:replaced"))
 
 		By("preserving the version string exactly")
@@ -104,9 +104,9 @@ var _ = Describe("sha2ify-release", func() {
 		Expect(release.CompiledPackages()).To(HaveLen(1))
 
 		By("converting the SHAs to 256")
-		jobArchiveSha := release.Jobs()[0].ArchiveSHA1()
+		jobArchiveSha := release.Jobs()[0].ArchiveDigest()
 		Expect(removeSHA1s(jobArchiveSha)).To(Equal("sha256:replaced"))
-		compiledPackageSha := release.CompiledPackages()[0].ArchiveSHA1()
+		compiledPackageSha := release.CompiledPackages()[0].ArchiveDigest()
 		Expect(removeSHA1s(compiledPackageSha)).To(Equal("sha256:replaced"))
 
 		By("preserving the version string exactly")

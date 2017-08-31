@@ -37,7 +37,7 @@ var _ = Describe("Package", func() {
 			Expect(pkg.String()).To(Equal("name"))
 			Expect(pkg.Fingerprint()).To(Equal("fp"))
 			Expect(pkg.ArchivePath()).To(Equal("path"))
-			Expect(pkg.ArchiveSHA1()).To(Equal("sha1"))
+			Expect(pkg.ArchiveDigest()).To(Equal("sha1"))
 			Expect(pkg.DependencyNames()).To(Equal([]string{"pkg1"}))
 		})
 	})

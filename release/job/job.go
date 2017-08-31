@@ -45,8 +45,8 @@ func NewExtractedJob(resource Resource, extractedPath string, fs boshsys.FileSys
 func (j Job) Name() string        { return j.resource.Name() }
 func (j Job) Fingerprint() string { return j.resource.Fingerprint() }
 
-func (j *Job) ArchivePath() string { return j.resource.ArchivePath() }
-func (j *Job) ArchiveSHA1() string { return j.resource.ArchiveSHA1() }
+func (j *Job) ArchivePath() string   { return j.resource.ArchivePath() }
+func (j *Job) ArchiveDigest() string { return j.resource.ArchiveDigest() }
 
 func (j *Job) Build(dev, final ArchiveIndex) error { return j.resource.Build(dev, final) }
 func (j *Job) Finalize(final ArchiveIndex) error   { return j.resource.Finalize(final) }

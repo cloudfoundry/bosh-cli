@@ -235,9 +235,9 @@ var _ = Describe("Archive", func() {
 			archivePath, archiveSHA1, err := archive.Build("31a86e1b2b76e47ca5455645bb35018fe7f73e5d")
 			Expect(err).ToNot(HaveOccurred())
 
-			actualArchiveSHA1, err := digestCalculator.Calculate(archivePath)
+			actualArchiveDigest, err := digestCalculator.Calculate(archivePath)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(actualArchiveSHA1).To(Equal(archiveSHA1))
+			Expect(actualArchiveDigest).To(Equal(archiveSHA1))
 
 			decompPath, err := fs.TempDir("test-resource")
 			Expect(err).ToNot(HaveOccurred())
@@ -307,9 +307,9 @@ var _ = Describe("Archive", func() {
 				archivePath, archiveSHA1, err := archive.Build("1e18c219903f57abe1d28730660fe387e077f378")
 				Expect(err).ToNot(HaveOccurred())
 
-				actualArchiveSHA1, err := digestCalculator.Calculate(archivePath)
+				actualArchiveDigest, err := digestCalculator.Calculate(archivePath)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(actualArchiveSHA1).To(Equal(archiveSHA1))
+				Expect(actualArchiveDigest).To(Equal(archiveSHA1))
 
 				decompPath, err := fs.TempDir("test-resource")
 				Expect(err).ToNot(HaveOccurred())
