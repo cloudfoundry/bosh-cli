@@ -3,9 +3,9 @@ package crypto
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"os"
-	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -19,7 +19,7 @@ type digestImpl struct {
 func NewDigest(algorithm Algorithm, digest string) digestImpl {
 	return digestImpl{
 		algorithm: algorithm,
-		digest:    strings.TrimPrefix(digest, "sha256:"),
+		digest:    strings.TrimPrefix(digest, algorithm.Name()+":"),
 	}
 }
 

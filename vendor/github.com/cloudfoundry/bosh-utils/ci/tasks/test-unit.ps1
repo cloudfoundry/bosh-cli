@@ -4,7 +4,7 @@ trap {
 }
 
 $env:GOPATH = Join-Path -Path $PWD "gopath"
-$env:PATH = $env:GOPATH + "/bin;C:/go/bin;" + $env:PATH
+$env:PATH = $env:GOPATH + "/bin;C:/go/bin;C:/bin;" + $env:PATH
 
 cd $env:GOPATH/src/github.com/cloudfoundry/bosh-utils
 
@@ -20,6 +20,16 @@ if ((Get-Command "go.exe" -ErrorAction SilentlyContinue) -eq $null)
     throw "Golang MSI installation process returned error code: $($p.ExitCode)"
   }
   Write-Host "Go is installed!"
+}
+
+if ((Get-Command "tar.exe" -ErrorAction SilentlyContinue) -eq $null)
+{
+  Write-Host "Installing tar!"
+  New-Item -ItemType directory -Path C:\bin -Force
+
+  Invoke-WebRequest https://s3.amazonaws.com/bosh-windows-dependencies/tar-1490035387.exe -OutFile C:\bin\tar.exe
+
+  Write-Host "tar is installed!"
 }
 
 go.exe install github.com/cloudfoundry/bosh-utils/vendor/github.com/onsi/ginkgo/ginkgo
