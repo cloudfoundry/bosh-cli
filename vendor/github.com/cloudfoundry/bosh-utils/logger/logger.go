@@ -91,7 +91,7 @@ func (l *logger) Debug(tag, msg string, args ...interface{}) {
 	}
 
 	msg = "DEBUG - " + msg
-	l.outPrintf(tag, msg, args...)
+	l.errPrintf(tag, msg, args...)
 }
 
 // DebugWithDetails will automatically change the format of the message

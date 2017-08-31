@@ -76,7 +76,7 @@ var _ = Describe("SignalableLogger", func() {
 					logger.Error("TOGGLED_ERROR", "some error log")
 				})
 
-				Expect(stdout).To(ContainSubstring("TOGGLED_DEBUG"))
+				Expect(stderr).To(ContainSubstring("TOGGLED_DEBUG"))
 				Expect(stdout).To(ContainSubstring("TOGGLED_INFO"))
 				Expect(stderr).To(ContainSubstring("TOGGLED_WARN"))
 				Expect(stderr).To(ContainSubstring("TOGGLED_ERROR"))
@@ -97,7 +97,7 @@ var _ = Describe("SignalableLogger", func() {
 					logger.Error("STANDARD_ERROR", "some error log")
 				})
 
-				Expect(stdout).ToNot(ContainSubstring("STANDARD_DEBUG"))
+				Expect(stderr).ToNot(ContainSubstring("STANDARD_DEBUG"))
 				Expect(stdout).ToNot(ContainSubstring("STANDARD_INFO"))
 				Expect(stderr).ToNot(ContainSubstring("STANDARD_WARN"))
 				Expect(stderr).To(ContainSubstring("STANDARD_ERROR"))
