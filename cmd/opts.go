@@ -144,6 +144,7 @@ type BoshOpts struct {
 	CreateRelease   CreateReleaseOpts   `command:"create-release"   alias:"cr" description:"Create release"`
 
 	// Hidden
+	Sha1ifyRelease  Sha1ifyReleaseOpts  `command:"sha1ify-release"  hidden:"true" description:"Convert release tarball to use SHA1"`
 	Sha2ifyRelease  Sha2ifyReleaseOpts  `command:"sha2ify-release"  hidden:"true" description:"Convert release tarball to use SHA256"`
 	FinalizeRelease FinalizeReleaseOpts `command:"finalize-release"               description:"Create final release from dev release tarball"`
 
@@ -811,13 +812,19 @@ type GeneratePackageArgs struct {
 	Name string `positional-arg-name:"NAME"`
 }
 
-type Sha2ifyReleaseOpts struct {
-	Args Sha2ifyReleaseArgs `positional-args:"true"`
+type Sha1ifyReleaseOpts struct {
+	Args RedigestReleaseArgs `positional-args:"true"`
 
 	cmd
 }
 
-type Sha2ifyReleaseArgs struct {
+type Sha2ifyReleaseOpts struct {
+	Args RedigestReleaseArgs `positional-args:"true"`
+
+	cmd
+}
+
+type RedigestReleaseArgs struct {
 	Path        string  `positional-arg-name:"PATH"`
 	Destination FileArg `positional-arg-name:"DESTINATION"`
 }

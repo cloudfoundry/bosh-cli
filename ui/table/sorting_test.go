@@ -13,30 +13,30 @@ var _ = Describe("Sorting", func() {
 	It("sorts by single column in asc order", func() {
 		sortBy := []ColumnSort{{Column: 0, Asc: true}}
 		rows := [][]Value{
-			{ValueString{"b"}, ValueString{"x"}},
-			{ValueString{"a"}, ValueString{"y"}},
+			{ValueString{S: "b"}, ValueString{S: "x"}},
+			{ValueString{S: "a"}, ValueString{S: "y"}},
 		}
 
-		sort.Sort(Sorting{sortBy, rows})
+		sort.Sort(Sorting{SortBy: sortBy, Rows: rows})
 
 		Expect(rows).To(Equal([][]Value{
-			{ValueString{"a"}, ValueString{"y"}},
-			{ValueString{"b"}, ValueString{"x"}},
+			{ValueString{S: "a"}, ValueString{S: "y"}},
+			{ValueString{S: "b"}, ValueString{S: "x"}},
 		}))
 	})
 
 	It("sorts by single column in desc order", func() {
 		sortBy := []ColumnSort{{Column: 0, Asc: false}}
 		rows := [][]Value{
-			{ValueString{"a"}, ValueString{"y"}},
-			{ValueString{"b"}, ValueString{"x"}},
+			{ValueString{S: "a"}, ValueString{S: "y"}},
+			{ValueString{S: "b"}, ValueString{S: "x"}},
 		}
 
-		sort.Sort(Sorting{sortBy, rows})
+		sort.Sort(Sorting{SortBy: sortBy, Rows: rows})
 
 		Expect(rows).To(Equal([][]Value{
-			{ValueString{"b"}, ValueString{"x"}},
-			{ValueString{"a"}, ValueString{"y"}},
+			{ValueString{S: "b"}, ValueString{S: "x"}},
+			{ValueString{S: "a"}, ValueString{S: "y"}},
 		}))
 	})
 
@@ -47,19 +47,19 @@ var _ = Describe("Sorting", func() {
 		}
 
 		rows := [][]Value{
-			{ValueString{"b"}, ValueString{"z"}, ValueString{"2"}},
-			{ValueString{"a"}, ValueString{"x"}, ValueString{"1"}},
-			{ValueString{"b"}, ValueString{"y"}, ValueString{"2"}},
-			{ValueString{"c"}, ValueString{"t"}, ValueString{"0"}},
+			{ValueString{S: "b"}, ValueString{S: "z"}, ValueString{S: "2"}},
+			{ValueString{S: "a"}, ValueString{S: "x"}, ValueString{S: "1"}},
+			{ValueString{S: "b"}, ValueString{S: "y"}, ValueString{S: "2"}},
+			{ValueString{S: "c"}, ValueString{S: "t"}, ValueString{S: "0"}},
 		}
 
-		sort.Sort(Sorting{sortBy, rows})
+		sort.Sort(Sorting{SortBy: sortBy, Rows: rows})
 
 		Expect(rows).To(Equal([][]Value{
-			{ValueString{"a"}, ValueString{"x"}, ValueString{"1"}},
-			{ValueString{"b"}, ValueString{"y"}, ValueString{"2"}},
-			{ValueString{"b"}, ValueString{"z"}, ValueString{"2"}},
-			{ValueString{"c"}, ValueString{"t"}, ValueString{"0"}},
+			{ValueString{S: "a"}, ValueString{S: "x"}, ValueString{S: "1"}},
+			{ValueString{S: "b"}, ValueString{S: "y"}, ValueString{S: "2"}},
+			{ValueString{S: "b"}, ValueString{S: "z"}, ValueString{S: "2"}},
+			{ValueString{S: "c"}, ValueString{S: "t"}, ValueString{S: "0"}},
 		}))
 	})
 
@@ -70,19 +70,19 @@ var _ = Describe("Sorting", func() {
 		}
 
 		rows := [][]Value{
-			{ValueString{"b"}, ValueString{"z"}, ValueString{"2"}},
-			{ValueString{"a"}, ValueString{"x"}, ValueString{"1"}},
-			{ValueString{"b"}, ValueString{"y"}, ValueString{"2"}},
-			{ValueString{"c"}, ValueString{"t"}, ValueString{"0"}},
+			{ValueString{S: "b"}, ValueString{S: "z"}, ValueString{S: "2"}},
+			{ValueString{S: "a"}, ValueString{S: "x"}, ValueString{S: "1"}},
+			{ValueString{S: "b"}, ValueString{S: "y"}, ValueString{S: "2"}},
+			{ValueString{S: "c"}, ValueString{S: "t"}, ValueString{S: "0"}},
 		}
 
-		sort.Sort(Sorting{sortBy, rows})
+		sort.Sort(Sorting{SortBy: sortBy, Rows: rows})
 
 		Expect(rows).To(Equal([][]Value{
-			{ValueString{"c"}, ValueString{"t"}, ValueString{"0"}},
-			{ValueString{"b"}, ValueString{"y"}, ValueString{"2"}},
-			{ValueString{"b"}, ValueString{"z"}, ValueString{"2"}},
-			{ValueString{"a"}, ValueString{"x"}, ValueString{"1"}},
+			{ValueString{S: "c"}, ValueString{S: "t"}, ValueString{S: "0"}},
+			{ValueString{S: "b"}, ValueString{S: "y"}, ValueString{S: "2"}},
+			{ValueString{S: "b"}, ValueString{S: "z"}, ValueString{S: "2"}},
+			{ValueString{S: "a"}, ValueString{S: "x"}, ValueString{S: "1"}},
 		}))
 	})
 
@@ -93,15 +93,15 @@ var _ = Describe("Sorting", func() {
 		}
 
 		rows := [][]Value{
-			{ValueSuffix{ValueString{"a"}, "b"}, ValueString{"x"}},
-			{ValueSuffix{ValueString{"a"}, "a"}, ValueString{"y"}},
+			{ValueSuffix{V: ValueString{S: "a"}, Suffix: "b"}, ValueString{S: "x"}},
+			{ValueSuffix{V: ValueString{S: "a"}, Suffix: "a"}, ValueString{S: "y"}},
 		}
 
-		sort.Sort(Sorting{sortBy, rows})
+		sort.Sort(Sorting{SortBy: sortBy, Rows: rows})
 
 		Expect(rows).To(Equal([][]Value{
-			{ValueSuffix{ValueString{"a"}, "b"}, ValueString{"x"}},
-			{ValueSuffix{ValueString{"a"}, "a"}, ValueString{"y"}},
+			{ValueSuffix{V: ValueString{S: "a"}, Suffix: "b"}, ValueString{S: "x"}},
+			{ValueSuffix{V: ValueString{S: "a"}, Suffix: "a"}, ValueString{S: "y"}},
 		}))
 	})
 })

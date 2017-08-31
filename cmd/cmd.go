@@ -347,10 +347,22 @@ func (c Cmd) Execute() (cmdErr error) {
 		_, err := NewCreateReleaseCmd(releaseDirFactory, relProv.NewArchiveWriter(), c.deps.FS, c.deps.UI).Run(*opts)
 		return err
 
+	case *Sha1ifyReleaseOpts:
+		relProv, _ := c.releaseProviders()
+
+		return NewRedigestReleaseCmd(
+			relProv.NewArchiveReader(),
+			relProv.NewArchiveWriter(),
+			crypto.NewDigestCalculator(c.deps.FS, []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1}),
+			boshfu.NewFileMover(c.deps.FS),
+			c.deps.FS,
+			c.deps.UI,
+		).Run(opts.Args)
+
 	case *Sha2ifyReleaseOpts:
 		relProv, _ := c.releaseProviders()
 
-		return NewSha2ifyReleaseCmd(
+		return NewRedigestReleaseCmd(
 			relProv.NewArchiveReader(),
 			relProv.NewArchiveWriter(),
 			crypto.NewDigestCalculator(c.deps.FS, []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA256}),

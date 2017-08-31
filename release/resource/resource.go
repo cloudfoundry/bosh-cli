@@ -116,7 +116,15 @@ func (r *ResourceImpl) RehashWithCalculator(calculator crypto.DigestCalculator, 
 	}
 	defer archiveFile.Close()
 
-	err = crypto2.NewDigest(crypto2.DigestAlgorithmSHA1, r.archiveSHA1).Verify(archiveFile)
+	algorithm := crypto2.DigestAlgorithmSHA1
+	switch len(r.archiveSHA1) {
+	case 40:
+		break
+	case 71:
+		algorithm = crypto2.DigestAlgorithmSHA256
+	}
+	err = crypto2.NewDigest(algorithm, r.archiveSHA1).Verify(archiveFile)
+
 	if err != nil {
 		return &ResourceImpl{}, err
 	}

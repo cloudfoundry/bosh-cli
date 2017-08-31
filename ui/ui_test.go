@@ -190,8 +190,8 @@ var _ = Describe("UI", func() {
 				Header:  []Header{NewHeader("Header1"), NewHeader("Header2")},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes:         []string{"note1", "note2"},

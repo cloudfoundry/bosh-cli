@@ -2604,10 +2604,10 @@ var _ = Describe("Opts", func() {
 	})
 
 	Describe("Sha2ifyReleaseArgs", func() {
-		var opts *Sha2ifyReleaseArgs
+		var opts *RedigestReleaseArgs
 
 		BeforeEach(func() {
-			opts = &Sha2ifyReleaseArgs{}
+			opts = &RedigestReleaseArgs{}
 		})
 
 		Describe("Positional args", func() {

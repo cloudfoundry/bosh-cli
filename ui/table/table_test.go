@@ -29,8 +29,8 @@ var _ = Describe("Table", func() {
 				},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes: []string{"note1", "note2"},
@@ -57,8 +57,8 @@ note2
 				},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes:         []string{"note1", "note2"},
@@ -87,8 +87,8 @@ note2
 				},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes:         []string{"note1", "note2"},
@@ -111,11 +111,11 @@ note2
 				SortBy: []ColumnSort{{Column: 1}, {Column: 0, Asc: true}},
 
 				Rows: [][]Value{
-					{ValueString{"a"}, ValueInt{-1}},
-					{ValueString{"b"}, ValueInt{0}},
-					{ValueString{"d"}, ValueInt{20}},
-					{ValueString{"c"}, ValueInt{20}},
-					{ValueString{"d"}, ValueInt{100}},
+					{ValueString{S: "a"}, ValueInt{I: -1}},
+					{ValueString{S: "b"}, ValueInt{I: 0}},
+					{ValueString{S: "d"}, ValueInt{I: 20}},
+					{ValueString{S: "c"}, ValueInt{I: 20}},
+					{ValueString{S: "d"}, ValueInt{I: 100}},
 				},
 
 				BackgroundStr: ".",
@@ -136,8 +136,8 @@ a|-1.|
 				Content: "things",
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				BackgroundStr: ".",
@@ -160,8 +160,8 @@ r2c1|r2c2|
 				},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes:         []string{"note1", "note2"},
@@ -190,12 +190,12 @@ note2
 					Sections: []Section{
 						{
 							Rows: [][]Value{
-								{ValueString{"r1c1"}, ValueString{"r1c2"}},
+								{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
 							},
 						},
 						{
 							Rows: [][]Value{
-								{ValueString{"r2c1"}, ValueString{"r2c2"}},
+								{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 							},
 						},
 					},
@@ -214,16 +214,16 @@ r2c1|r2c2|
 					Content: "things",
 					Sections: []Section{
 						{
-							FirstColumn: ValueString{"r1c1"},
+							FirstColumn: ValueString{S: "r1c1"},
 
 							Rows: [][]Value{
-								{ValueString{""}, ValueString{"r1c2"}},
-								{ValueString{""}, ValueString{"r2c2"}},
+								{ValueString{S: ""}, ValueString{S: "r1c2"}},
+								{ValueString{S: ""}, ValueString{S: "r2c2"}},
 							},
 						},
 						{
 							Rows: [][]Value{
-								{ValueString{"r3c1"}, ValueString{"r3c2"}},
+								{ValueString{S: "r3c1"}, ValueString{S: "r3c2"}},
 							},
 						},
 					},
@@ -243,23 +243,23 @@ r3c1|r3c2|
 					Content: "things",
 					Sections: []Section{
 						{
-							FirstColumn: ValueString{"r1c1"},
+							FirstColumn: ValueString{S: "r1c1"},
 							Rows: [][]Value{
-								{ValueString{""}, ValueString{"r1c2"}},
-								{ValueString{""}, ValueString{"r2c2"}},
+								{ValueString{S: ""}, ValueString{S: "r1c2"}},
+								{ValueString{S: ""}, ValueString{S: "r2c2"}},
 							},
 						},
 						{
 							Rows: [][]Value{
-								{ValueString{"r3c1"}, ValueString{"r3c2"}},
+								{ValueString{S: "r3c1"}, ValueString{S: "r3c2"}},
 							},
 						},
 						{
-							FirstColumn: ValueString{"r4c1"},
+							FirstColumn: ValueString{S: "r4c1"},
 							Rows: [][]Value{
-								{ValueString{""}, ValueString{"r4c2"}},
-								{ValueString{""}, ValueString{"r5c2"}},
-								{ValueString{""}, ValueString{"r6c2"}},
+								{ValueString{S: ""}, ValueString{S: "r4c2"}},
+								{ValueString{S: ""}, ValueString{S: "r5c2"}},
+								{ValueString{S: ""}, ValueString{S: "r6c2"}},
 							},
 						},
 					},
@@ -287,20 +287,20 @@ r4c1|r6c2|
 					},
 					Sections: []Section{
 						{
-							FirstColumn: ValueString{"s1c1"},
+							FirstColumn: ValueString{S: "s1c1"},
 							Rows: [][]Value{
-								{ValueString{""}, ValueString{"s1r1c2"}},
-								{ValueString{""}, ValueString{"s1r2c2"}},
+								{ValueString{S: ""}, ValueString{S: "s1r1c2"}},
+								{ValueString{S: ""}, ValueString{S: "s1r2c2"}},
 							},
 						},
 						{
 							Rows: [][]Value{
-								{ValueString{"r3c1"}, ValueString{"r3c2"}},
+								{ValueString{S: "r3c1"}, ValueString{S: "r3c2"}},
 							},
 						},
 					},
 					Rows: [][]Value{
-						{ValueString{"r4c1"}, ValueString{"r4c2"}},
+						{ValueString{S: "r4c1"}, ValueString{S: "r4c2"}},
 					},
 					FillFirstColumn: true,
 					BackgroundStr:   ".",
@@ -324,8 +324,8 @@ r4c1...|r4c2...|
 				Content: "things",
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2.1\nr1c2.2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2.1\nr1c2.2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				BackgroundStr: ".",
@@ -344,11 +344,11 @@ r2c1|r2c2..|
 				Content: "things",
 
 				Rows: [][]Value{
-					{ValueString{"dup"}, ValueString{"dup"}},
-					{ValueString{"dup"}, ValueString{"dup"}},
-					{ValueString{"dup2"}, ValueString{"dup"}},
-					{ValueString{"dup2"}, ValueString{"dup"}},
-					{ValueString{"other"}, ValueString{"dup"}},
+					{ValueString{S: "dup"}, ValueString{S: "dup"}},
+					{ValueString{S: "dup"}, ValueString{S: "dup"}},
+					{ValueString{S: "dup2"}, ValueString{S: "dup"}},
+					{ValueString{S: "dup2"}, ValueString{S: "dup"}},
+					{ValueString{S: "other"}, ValueString{S: "dup"}},
 				},
 
 				BackgroundStr: ".",
@@ -369,11 +369,11 @@ other|dup|
 				Content: "things",
 
 				Rows: [][]Value{
-					{ValueString{"dup"}, ValueString{"dup"}},
-					{ValueString{"dup"}, ValueString{"dup"}},
-					{ValueString{"dup2"}, ValueString{"dup"}},
-					{ValueString{"dup2"}, ValueString{"dup"}},
-					{ValueString{"other"}, ValueString{"dup"}},
+					{ValueString{S: "dup"}, ValueString{S: "dup"}},
+					{ValueString{S: "dup"}, ValueString{S: "dup"}},
+					{ValueString{S: "dup2"}, ValueString{S: "dup"}},
+					{ValueString{S: "dup2"}, ValueString{S: "dup"}},
+					{ValueString{S: "other"}, ValueString{S: "dup"}},
 				},
 
 				FillFirstColumn: true,
@@ -396,17 +396,17 @@ other|dup|
 
 				Sections: []Section{
 					{
-						FirstColumn: ValueString{"dup"},
+						FirstColumn: ValueString{S: "dup"},
 						Rows: [][]Value{
-							{ValueNone{}, ValueString{"dup"}},
-							{ValueNone{}, ValueString{"dup"}},
+							{ValueNone{}, ValueString{S: "dup"}},
+							{ValueNone{}, ValueString{S: "dup"}},
 						},
 					},
 					{
-						FirstColumn: ValueString{"dup2"},
+						FirstColumn: ValueString{S: "dup2"},
 						Rows: [][]Value{
-							{ValueNone{}, ValueString{"dup"}},
-							{ValueNone{}, ValueString{"dup"}},
+							{ValueNone{}, ValueString{S: "dup"}},
+							{ValueNone{}, ValueString{S: "dup"}},
 						},
 					},
 				},
@@ -430,11 +430,11 @@ dup2|dup|
 				SortBy: []ColumnSort{{Column: 1, Asc: true}},
 
 				Rows: [][]Value{
-					{ValueString{"dup"}, ValueInt{1}},
-					{ValueString{"dup2"}, ValueInt{3}},
-					{ValueString{"dup"}, ValueInt{2}},
-					{ValueString{"dup2"}, ValueInt{4}},
-					{ValueString{"other"}, ValueInt{5}},
+					{ValueString{S: "dup"}, ValueInt{I: 1}},
+					{ValueString{S: "dup2"}, ValueInt{I: 3}},
+					{ValueString{S: "dup"}, ValueInt{I: 2}},
+					{ValueString{S: "dup2"}, ValueInt{I: 4}},
+					{ValueString{S: "other"}, ValueInt{I: 5}},
 				},
 
 				BackgroundStr: ".",
@@ -453,8 +453,8 @@ other|5|
 		It("prints empty values as dashes", func() {
 			table := Table{
 				Rows: [][]Value{
-					{ValueString{""}, ValueNone{}},
-					{ValueString{""}, ValueNone{}},
+					{ValueString{S: ""}, ValueNone{}},
+					{ValueString{S: ""}, ValueNone{}},
 				},
 
 				BackgroundStr: ".",
@@ -495,8 +495,8 @@ Header1|Header2|
 						NewHeader("Header3"),
 					},
 					Rows: [][]Value{
-						{ValueString{"r1c1"}, ValueString{"longr1c2"}, ValueString{"r1c3"}},
-						{ValueString{"r2c1"}, ValueString{"r2c2"}, ValueString{"r2c3"}},
+						{ValueString{S: "r1c1"}, ValueString{S: "longr1c2"}, ValueString{S: "r1c3"}},
+						{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}, ValueString{S: "r2c3"}},
 					},
 					BackgroundStr: ".",
 					BorderStr:     "|",
@@ -529,7 +529,7 @@ Header3.....|r2c3....|
 						nonVisibleHeader,
 					},
 					Rows: [][]Value{
-						{ValueString{"v1"}, ValueString{"v2"}, ValueString{"v3"}},
+						{ValueString{S: "v1"}, ValueString{S: "v2"}, ValueString{S: "v3"}},
 					},
 					BorderStr: "|",
 					Transpose: true,
@@ -553,8 +553,8 @@ Header2|v2|
 							NewHeader("Header3"),
 						},
 						Rows: [][]Value{
-							{ValueString{"r1c1"}, ValueString{"longr1c2"}, ValueString{"r1c3"}},
-							{ValueString{"r2c1"}, ValueString{"r2c2"}, ValueString{"r2c3"}},
+							{ValueString{S: "r1c1"}, ValueString{S: "longr1c2"}, ValueString{S: "r1c3"}},
+							{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}, ValueString{S: "r2c3"}},
 						},
 						SortBy: []ColumnSort{
 							{Column: 0, Asc: true},
@@ -593,7 +593,7 @@ Header3.....|r2c3....|
 						nonVisibleHeader,
 					},
 					Rows: [][]Value{
-						{ValueString{"v1"}, ValueString{"v2"}, ValueString{"v3"}},
+						{ValueString{S: "v1"}, ValueString{S: "v2"}, ValueString{S: "v3"}},
 					},
 					BorderStr: "|",
 				}
@@ -617,14 +617,14 @@ v1     |v2     |
 					NewHeader("Header2"),
 				},
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 				BackgroundStr: ".",
 				BorderStr:     "|",
 			}
 
-			newTable := table.AddColumn("Header3", []Value{ValueString{"r1c3"}, ValueString{"r2c3"}})
+			newTable := table.AddColumn("Header3", []Value{ValueString{S: "r1c3"}, ValueString{S: "r2c3"}})
 			Expect(newTable).To(Equal(Table{
 				Content: "content",
 				Header: []Header{
@@ -633,8 +633,8 @@ v1     |v2     |
 					NewHeader("Header3"),
 				},
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}, ValueString{"r1c3"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}, ValueString{"r2c3"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}, ValueString{S: "r1c3"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}, ValueString{S: "r2c3"}},
 				},
 				BackgroundStr: ".",
 				BorderStr:     "|",
