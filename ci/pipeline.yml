@@ -259,6 +259,7 @@ resources:
       repository: cloudfoundry/bosh-cli
       access_token: {{repo_github_token}}
       branch: develop
+      context: ci/published
 
   - name: bosh-cli-promoted
     type: git
