@@ -16,7 +16,6 @@ import (
 var _ = Describe("LocalBlobstore", func() {
 	var (
 		outBuffer *bytes.Buffer
-		errBuffer *bytes.Buffer
 		logger    boshlog.Logger
 		fs        *fakeboshsys.FakeFileSystem
 
@@ -27,8 +26,7 @@ var _ = Describe("LocalBlobstore", func() {
 
 	BeforeEach(func() {
 		outBuffer = bytes.NewBufferString("")
-		errBuffer = bytes.NewBufferString("")
-		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer, errBuffer)
+		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer)
 
 		fs = fakeboshsys.NewFakeFileSystem()
 
@@ -87,9 +85,9 @@ var _ = Describe("LocalBlobstore", func() {
 			It("logs the error", func() {
 				localBlob.DeleteSilently()
 
-				errorLogString := errBuffer.String()
-				Expect(errorLogString).To(ContainSubstring("Failed to delete local blob"))
-				Expect(errorLogString).To(ContainSubstring("fake-delete-error"))
+				log := outBuffer.String()
+				Expect(log).To(ContainSubstring("Failed to delete local blob"))
+				Expect(log).To(ContainSubstring("fake-delete-error"))
 			})
 		})
 	})

@@ -15,11 +15,11 @@ import (
 
 var _ = Describe("UI", func() {
 	var (
-		logOutBuffer, logErrBuffer *bytes.Buffer
-		uiOutBuffer, uiErrBuffer   *bytes.Buffer
-		uiOut, uiErr               io.Writer
-		logger                     boshlog.Logger
-		ui                         UI
+		logOutBuffer             *bytes.Buffer
+		uiOutBuffer, uiErrBuffer *bytes.Buffer
+		uiOut, uiErr             io.Writer
+		logger                   boshlog.Logger
+		ui                       UI
 	)
 
 	BeforeEach(func() {
@@ -29,8 +29,7 @@ var _ = Describe("UI", func() {
 		uiErr = uiErrBuffer
 
 		logOutBuffer = bytes.NewBufferString("")
-		logErrBuffer = bytes.NewBufferString("")
-		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, logOutBuffer, logErrBuffer)
+		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, logOutBuffer)
 	})
 
 	JustBeforeEach(func() {
@@ -56,8 +55,7 @@ var _ = Describe("UI", func() {
 
 				Expect(uiOutBuffer.String()).To(Equal(""))
 				Expect(uiErrBuffer.String()).To(Equal(""))
-				Expect(logOutBuffer.String()).To(Equal(""))
-				Expect(logErrBuffer.String()).To(ContainSubstring("UI.ErrorLinef failed (message='fake-error-line')"))
+				Expect(logOutBuffer.String()).To(ContainSubstring("UI.ErrorLinef failed (message='fake-error-line')"))
 			})
 		})
 	})
@@ -80,8 +78,7 @@ var _ = Describe("UI", func() {
 
 				Expect(uiOutBuffer.String()).To(Equal(""))
 				Expect(uiErrBuffer.String()).To(Equal(""))
-				Expect(logOutBuffer.String()).To(Equal(""))
-				Expect(logErrBuffer.String()).To(ContainSubstring("UI.PrintLinef failed (message='fake-start')"))
+				Expect(logOutBuffer.String()).To(ContainSubstring("UI.PrintLinef failed (message='fake-start')"))
 			})
 		})
 	})
@@ -104,8 +101,7 @@ var _ = Describe("UI", func() {
 
 				Expect(uiOutBuffer.String()).To(Equal(""))
 				Expect(uiErrBuffer.String()).To(Equal(""))
-				Expect(logOutBuffer.String()).To(Equal(""))
-				Expect(logErrBuffer.String()).To(ContainSubstring("UI.BeginLinef failed (message='fake-start')"))
+				Expect(logOutBuffer.String()).To(ContainSubstring("UI.BeginLinef failed (message='fake-start')"))
 			})
 		})
 	})
@@ -128,8 +124,7 @@ var _ = Describe("UI", func() {
 
 				Expect(uiOutBuffer.String()).To(Equal(""))
 				Expect(uiErrBuffer.String()).To(Equal(""))
-				Expect(logOutBuffer.String()).To(Equal(""))
-				Expect(logErrBuffer.String()).To(ContainSubstring("UI.EndLinef failed (message='fake-start')"))
+				Expect(logOutBuffer.String()).To(ContainSubstring("UI.EndLinef failed (message='fake-start')"))
 			})
 		})
 	})
@@ -152,8 +147,7 @@ var _ = Describe("UI", func() {
 				ui.PrintBlock([]byte("block"))
 				Expect(uiOutBuffer.String()).To(Equal(""))
 				Expect(uiErrBuffer.String()).To(Equal(""))
-				Expect(logOutBuffer.String()).To(Equal(""))
-				Expect(logErrBuffer.String()).To(ContainSubstring("UI.PrintBlock failed (message='block')"))
+				Expect(logOutBuffer.String()).To(ContainSubstring("UI.PrintBlock failed (message='block')"))
 			})
 		})
 	})
@@ -176,8 +170,7 @@ var _ = Describe("UI", func() {
 				ui.PrintErrorBlock("block")
 				Expect(uiOutBuffer.String()).To(Equal(""))
 				Expect(uiErrBuffer.String()).To(Equal(""))
-				Expect(logOutBuffer.String()).To(Equal(""))
-				Expect(logErrBuffer.String()).To(ContainSubstring("UI.PrintErrorBlock failed (message='block')"))
+				Expect(logOutBuffer.String()).To(ContainSubstring("UI.PrintErrorBlock failed (message='block')"))
 			})
 		})
 	})

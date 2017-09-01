@@ -76,7 +76,7 @@ var _ = Describe("Installation", func() {
 
 			logBuffer = gbytes.NewBuffer()
 			goLogger := log.New(logBuffer, "", log.LstdFlags)
-			logger = boshlog.New(boshlog.LevelWarn, goLogger, goLogger)
+			logger = boshlog.New(boshlog.LevelWarn, goLogger)
 			fakeStage = fakebiui.NewFakeStage()
 		})
 

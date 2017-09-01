@@ -19,5 +19,5 @@ func New(level boshlog.LogLevel, filePath string, fileMode os.FileMode, fs boshs
 		return nil, file, bosherr.WrapErrorf(err, "Failed to open log file '%s'", filePath)
 	}
 
-	return boshlog.NewWriterLogger(level, file, file), file, nil
+	return boshlog.NewWriterLogger(level, file), file, nil
 }

@@ -47,7 +47,7 @@ var _ = Describe("Installer", func() {
 	)
 
 	BeforeEach(func() {
-		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
+		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter)
 
 		mockJobRenderer = mock_install.NewMockJobRenderer(mockCtrl)
 		mockJobResolver = mock_install.NewMockJobResolver(mockCtrl)

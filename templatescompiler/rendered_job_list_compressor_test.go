@@ -22,7 +22,6 @@ import (
 var _ = Describe("RenderedJobListCompressor", func() {
 	var (
 		outBuffer *bytes.Buffer
-		errBuffer *bytes.Buffer
 		logger    boshlog.Logger
 
 		fakeSHA1Calculator *fakebicrypto.FakeDigestCalculator
@@ -34,8 +33,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 
 	BeforeEach(func() {
 		outBuffer = bytes.NewBufferString("")
-		errBuffer = bytes.NewBufferString("")
-		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer, errBuffer)
+		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer)
 
 		fakeSHA1Calculator = fakebicrypto.NewFakeDigestCalculator()
 

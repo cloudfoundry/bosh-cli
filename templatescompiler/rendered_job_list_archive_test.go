@@ -30,7 +30,6 @@ var _ = Describe("RenderedJobListArchive", func() {
 
 	var (
 		outBuffer *bytes.Buffer
-		errBuffer *bytes.Buffer
 		logger    boshlog.Logger
 		fs        *fakeboshsys.FakeFileSystem
 
@@ -44,8 +43,7 @@ var _ = Describe("RenderedJobListArchive", func() {
 
 	BeforeEach(func() {
 		outBuffer = bytes.NewBufferString("")
-		errBuffer = bytes.NewBufferString("")
-		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer, errBuffer)
+		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer)
 
 		fs = fakeboshsys.NewFakeFileSystem()
 
@@ -123,9 +121,9 @@ var _ = Describe("RenderedJobListArchive", func() {
 			It("logs the error", func() {
 				renderedJobListArchive.DeleteSilently()
 
-				errorLogString := errBuffer.String()
-				Expect(errorLogString).To(ContainSubstring("Failed to delete rendered job list archive"))
-				Expect(errorLogString).To(ContainSubstring("fake-delete-error"))
+				log := outBuffer.String()
+				Expect(log).To(ContainSubstring("Failed to delete rendered job list archive"))
+				Expect(log).To(ContainSubstring("fake-delete-error"))
 			})
 		})
 	})

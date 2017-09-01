@@ -21,7 +21,7 @@ var _ = Describe("Uninstaller", func() {
 		It("deletes the installation target directory", func() {
 			logBuffer := gbytes.NewBuffer()
 			goLogger := log.New(logBuffer, "", log.LstdFlags)
-			boshlogger := logger.New(logger.LevelInfo, goLogger, goLogger)
+			boshlogger := logger.New(logger.LevelInfo, goLogger)
 
 			fs := system.NewOsFileSystem(boshlogger)
 			installationPath, err := fs.TempDir("some-installation-dir")
@@ -46,7 +46,7 @@ var _ = Describe("Uninstaller", func() {
 		It("returns and logs errors when remove all fails", func() {
 			logBuffer := gbytes.NewBuffer()
 			goLogger := log.New(logBuffer, "", log.LstdFlags)
-			boshlogger := logger.New(logger.LevelInfo, goLogger, goLogger)
+			boshlogger := logger.New(logger.LevelInfo, goLogger)
 
 			fs := fakes.NewFakeFileSystem()
 			fs.RemoveAllStub = func(_ string) error {

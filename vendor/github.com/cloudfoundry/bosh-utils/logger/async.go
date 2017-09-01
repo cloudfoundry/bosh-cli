@@ -62,14 +62,12 @@ func (w *asyncWriter) doWork() {
 }
 
 type asyncLogger struct {
-	out *asyncWriter
-	err *asyncWriter
+	writer *asyncWriter
 	log *logger
 }
 
 func (l *asyncLogger) Flush() error {
-	l.out.Flush()
-	l.err.Flush()
+	l.writer.Flush()
 	return nil
 }
 
@@ -86,16 +84,13 @@ func (l *asyncLogger) FlushTimeout(d time.Duration) error {
 	}
 }
 
-func NewAsyncWriterLogger(level LogLevel, out, err io.Writer) Logger {
-	wout := newAsyncWriter(out)
-	werr := newAsyncWriter(err)
+func NewAsyncWriterLogger(level LogLevel, ioWriter io.Writer) Logger {
+	wout := newAsyncWriter(ioWriter)
 	return &asyncLogger{
-		out: wout,
-		err: werr,
+		writer: wout,
 		log: &logger{
-			level: level,
-			out:   log.New(wout, "", log.LstdFlags),
-			err:   log.New(werr, "", log.LstdFlags),
+			level:  level,
+			logger: log.New(wout, "", log.LstdFlags),
 		},
 	}
 }

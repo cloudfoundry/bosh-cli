@@ -18,7 +18,6 @@ import (
 var _ = Describe("RenderedJob", func() {
 	var (
 		outBuffer       *bytes.Buffer
-		errBuffer       *bytes.Buffer
 		logger          boshlog.Logger
 		fs              *fakeboshsys.FakeFileSystem
 		releaseJob      boshreljob.Job
@@ -28,8 +27,7 @@ var _ = Describe("RenderedJob", func() {
 
 	BeforeEach(func() {
 		outBuffer = bytes.NewBufferString("")
-		errBuffer = bytes.NewBufferString("")
-		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer, errBuffer)
+		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer)
 		fs = fakeboshsys.NewFakeFileSystem()
 		releaseJob = *boshreljob.NewJob(NewResource("fake-job-name", "", nil))
 		renderedJobPath = "fake-path"
@@ -92,9 +90,9 @@ var _ = Describe("RenderedJob", func() {
 			It("logs the error", func() {
 				renderedJob.DeleteSilently()
 
-				errorLogString := errBuffer.String()
-				Expect(errorLogString).To(ContainSubstring("Failed to delete rendered job"))
-				Expect(errorLogString).To(ContainSubstring("fake-delete-error"))
+				log := outBuffer.String()
+				Expect(log).To(ContainSubstring("Failed to delete rendered job"))
+				Expect(log).To(ContainSubstring("fake-delete-error"))
 			})
 		})
 	})

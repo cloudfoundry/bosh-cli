@@ -18,7 +18,6 @@ import (
 var _ = Describe("RenderedJobList", func() {
 	var (
 		outBuffer *bytes.Buffer
-		errBuffer *bytes.Buffer
 		logger    boshlog.Logger
 		fs        *fakeboshsys.FakeFileSystem
 
@@ -27,8 +26,7 @@ var _ = Describe("RenderedJobList", func() {
 
 	BeforeEach(func() {
 		outBuffer = bytes.NewBufferString("")
-		errBuffer = bytes.NewBufferString("")
-		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer, errBuffer)
+		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer)
 		fs = fakeboshsys.NewFakeFileSystem()
 		renderedJobList = NewRenderedJobList()
 	})
@@ -128,9 +126,9 @@ var _ = Describe("RenderedJobList", func() {
 
 				renderedJobList.DeleteSilently()
 
-				errorLogString := errBuffer.String()
-				Expect(errorLogString).To(MatchRegexp("Failed to delete rendered job: .*fake-path-0.*fake-delete-error"))
-				Expect(errorLogString).To(MatchRegexp("Failed to delete rendered job: .*fake-path-1.*fake-delete-error"))
+				log := outBuffer.String()
+				Expect(log).To(MatchRegexp("Failed to delete rendered job: .*fake-path-0.*fake-delete-error"))
+				Expect(log).To(MatchRegexp("Failed to delete rendered job: .*fake-path-1.*fake-delete-error"))
 			})
 		})
 	})
