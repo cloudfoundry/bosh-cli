@@ -155,6 +155,11 @@ jobs:
           outputs:
           - name: docker-assets
 
+      - put: bosh-cli-commit-status
+        params:
+          state: success
+          commit: bosh-cli
+
       - aggregate:
         - {put: release-bucket-linux, params: {file: compiled-linux/bosh-cli-*-linux-amd64}}
         - {put: release-bucket-darwin, params: {file: compiled-darwin/bosh-cli-*-darwin-amd64}}
@@ -247,6 +252,13 @@ resources:
     type: bosh-io-release
     source:
       repository: cppforlife/bosh-warden-cpi-release
+
+  - name: bosh-cli-commit-status
+    type: github-status
+    source:
+      repository: cloudfoundry/bosh-cli
+      access_token: {{repo_github_token}}
+      branch: develop
 
   - name: bosh-cli-promoted
     type: git
@@ -346,3 +358,10 @@ resources:
       username: {{docker_username}}
       password: {{docker_password}}
       email: foo@bar.com
+
+resource_types:
+  - name: github-status
+    type: docker-image
+    source:
+      repository: dpb587/github-status-resource
+      tag: master
