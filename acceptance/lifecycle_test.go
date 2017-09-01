@@ -228,7 +228,7 @@ var _ = Describe("bosh", func() {
 	})
 
 	BeforeEach(func() {
-		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
+		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter)
 		fileSystem = boshsys.NewOsFileSystem(logger)
 
 		var err error
