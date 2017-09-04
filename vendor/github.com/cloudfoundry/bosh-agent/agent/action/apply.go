@@ -40,12 +40,16 @@ func NewApply(
 	return
 }
 
-func (a ApplyAction) IsAsynchronous() bool {
+func (a ApplyAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return true
 }
 
 func (a ApplyAction) IsPersistent() bool {
 	return false
+}
+
+func (a ApplyAction) IsLoggable() bool {
+	return true
 }
 
 func (a ApplyAction) Run(desiredSpec boshas.V1ApplySpec) (string, error) {

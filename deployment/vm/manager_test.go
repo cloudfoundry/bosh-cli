@@ -3,8 +3,10 @@ package vm_test
 import (
 	"errors"
 
+	"code.cloudfoundry.org/clock"
 	fakebiagentclient "github.com/cloudfoundry/bosh-agent/agentclient/fakes"
 	"github.com/cloudfoundry/bosh-cli/cloud"
+	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
 	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	fakebiconfig "github.com/cloudfoundry/bosh-cli/config/fakes"
@@ -18,7 +20,7 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-golang/clock"
+	"time"
 )
 
 var _ = Describe("Manager", func() {
@@ -36,6 +38,7 @@ var _ = Describe("Manager", func() {
 		fakeAgentClient           *fakebiagentclient.FakeAgentClient
 		stemcell                  bistemcell.CloudStemcell
 		fs                        *fakesys.FakeFileSystem
+		fakeTimeService           Clock
 	)
 
 	BeforeEach(func() {
@@ -50,15 +53,20 @@ var _ = Describe("Manager", func() {
 		stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
 
 		fakeDiskDeployer = fakebivm.NewFakeDiskDeployer()
+		fakeTime := time.Date(2016, time.November, 10, 23, 0, 0, 0, time.UTC)
+		fakeTimeService = &FakeClock{Times: []time.Time{fakeTime, time.Now().Add(10 * time.Minute)}}
 
-		manager = NewManagerFactory(
+		manager = NewManager(
 			fakeVMRepo,
 			stemcellRepo,
 			fakeDiskDeployer,
+			fakeAgentClient,
+			fakeCloud,
 			fakeUUIDGenerator,
 			fs,
 			logger,
-		).NewManager(fakeCloud, fakeAgentClient)
+			fakeTimeService,
+		)
 
 		fakeCloud.CreateVMCID = "fake-vm-cid"
 		expectedNetworkInterfaces = map[string]biproperty.Map{
@@ -117,7 +125,7 @@ var _ = Describe("Manager", func() {
 		It("creates a VM", func() {
 			vm, err := manager.Create(stemcell, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
-			expectedVM := NewVM(
+			expectedVM := NewVMWithMetadata(
 				"fake-vm-cid",
 				fakeVMRepo,
 				stemcellRepo,
@@ -127,6 +135,14 @@ var _ = Describe("Manager", func() {
 				clock.NewClock(),
 				fs,
 				logger,
+				bicloud.VMMetadata{
+					"deployment":     "fake-deployment",
+					"job":            "fake-job",
+					"instance_group": "fake-job",
+					"index":          "0",
+					"director":       "bosh-init",
+					"created_at":     "2016-11-10T23:00:00Z",
+				},
 			)
 			Expect(vm).To(Equal(expectedVM))
 
@@ -147,10 +163,12 @@ var _ = Describe("Manager", func() {
 
 			Expect(fakeCloud.SetVMMetadataCid).To(Equal("fake-vm-cid"))
 			Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
-				"deployment": "fake-deployment",
-				"job":        "fake-job",
-				"index":      "0",
-				"director":   "bosh-init",
+				"deployment":     "fake-deployment",
+				"job":            "fake-job",
+				"instance_group": "fake-job",
+				"index":          "0",
+				"director":       "bosh-init",
+				"created_at":     "2016-11-10T23:00:00Z",
 			}))
 		})
 
@@ -165,32 +183,37 @@ var _ = Describe("Manager", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
-					"deployment": "fake-deployment",
-					"job":        "fake-job",
-					"index":      "0",
-					"director":   "bosh-init",
-					"empty1":     "",
-					"key1":       "value1",
+					"deployment":     "fake-deployment",
+					"job":            "fake-job",
+					"instance_group": "fake-job",
+					"index":          "0",
+					"director":       "bosh-init",
+					"empty1":         "",
+					"key1":           "value1",
+					"created_at":     "2016-11-10T23:00:00Z",
 				}))
 			})
 
 			Context("overriding built-in metadata", func() {
 				It("gives precedence to deployment tags", func() {
 					deploymentManifest.Tags = map[string]string{
-						"deployment": "manifest-deployment",
-						"job":        "manifest-job",
-						"index":      "7",
-						"director":   "manifest-director",
+						"deployment":     "manifest-deployment",
+						"job":            "manifest-job",
+						"instance_group": "manifest-instance-group",
+						"index":          "7",
+						"director":       "manifest-director",
 					}
 
 					_, err := manager.Create(stemcell, deploymentManifest)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
-						"deployment": "manifest-deployment",
-						"job":        "manifest-job",
-						"index":      "7",
-						"director":   "manifest-director",
+						"deployment":     "manifest-deployment",
+						"job":            "manifest-job",
+						"instance_group": "manifest-instance-group",
+						"index":          "7",
+						"director":       "manifest-director",
+						"created_at":     "2016-11-10T23:00:00Z",
 					}))
 				})
 			})

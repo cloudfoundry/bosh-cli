@@ -6,7 +6,6 @@ package mocks
 import (
 	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	applyspec "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	settings "github.com/cloudfoundry/bosh-agent/settings"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -145,15 +144,15 @@ func (_mr *_MockAgentClientRecorder) Stop() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Stop")
 }
 
-func (_m *MockAgentClient) SyncDNS(_param0 string, _param1 string) (string, error) {
-	ret := _m.ctrl.Call(_m, "SyncDNS", _param0, _param1)
+func (_m *MockAgentClient) SyncDNS(_param0 string, _param1 string, _param2 uint64) (string, error) {
+	ret := _m.ctrl.Call(_m, "SyncDNS", _param0, _param1, _param2)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockAgentClientRecorder) SyncDNS(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncDNS", arg0, arg1)
+func (_mr *_MockAgentClientRecorder) SyncDNS(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncDNS", arg0, arg1, arg2)
 }
 
 func (_m *MockAgentClient) UnmountDisk(_param0 string) error {
@@ -164,14 +163,4 @@ func (_m *MockAgentClient) UnmountDisk(_param0 string) error {
 
 func (_mr *_MockAgentClientRecorder) UnmountDisk(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnmountDisk", arg0)
-}
-
-func (_m *MockAgentClient) UpdateSettings(_param0 settings.Settings) error {
-	ret := _m.ctrl.Call(_m, "UpdateSettings", _param0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockAgentClientRecorder) UpdateSettings(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateSettings", arg0)
 }

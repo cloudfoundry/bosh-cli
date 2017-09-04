@@ -14,9 +14,12 @@ import (
 )
 
 var _ = Describe("CloudCheckCmd", func() {
-	skipResolutionName := "Skip for now"
-	recreateResolutionName := "Recreate VM"
-	rebootResolutionName := "Reboot VM"
+	skipResolutionName := "ignore"
+	recreateResolutionName := "recreate_vm"
+	rebootResolutionName := "reboot_vm"
+	deleteVmReference := "delete_vm_reference"
+	deleteDiskReference := "delete_disk_reference"
+
 	var (
 		deployment *fakedir.FakeDeployment
 		ui         *fakeui.FakeUI
@@ -46,8 +49,9 @@ var _ = Describe("CloudCheckCmd", func() {
 					Description: "problem1-desc",
 
 					Resolutions: []boshdir.ProblemResolution{
-						{Name: &skipResolutionName, Plan: "ignore"},
-						{Name: &recreateResolutionName, Plan: "recreate_vm"},
+						{Name: &skipResolutionName, Plan: "Skip for now"},
+						{Name: &recreateResolutionName, Plan: "Recreate VM"},
+						{Name: &deleteVmReference, Plan: "Delete VM reference"},
 					},
 				},
 				{
@@ -57,9 +61,10 @@ var _ = Describe("CloudCheckCmd", func() {
 					Description: "problem2-desc",
 
 					Resolutions: []boshdir.ProblemResolution{
-						{Name: &skipResolutionName, Plan: "ignore"},
-						{Name: &recreateResolutionName, Plan: "recreate_vm"},
-						{Name: &rebootResolutionName, Plan: "reboot_vm"},
+						{Name: &skipResolutionName, Plan: "Skip for now"},
+						{Name: &recreateResolutionName, Plan: "Recreate VM"},
+						{Name: &rebootResolutionName, Plan: "Reboot VM"},
+						{Name: &deleteDiskReference, Plan: "Delete disk reference (DANGEROUS!)"},
 					},
 				},
 			}
@@ -83,7 +88,11 @@ var _ = Describe("CloudCheckCmd", func() {
 						Expect(ui.Table).To(Equal(boshtbl.Table{
 							Content: "problems",
 
-							Header: []string{"#", "Type", "Description"},
+							Header: []boshtbl.Header{
+								boshtbl.NewHeader("#"),
+								boshtbl.NewHeader("Type"),
+								boshtbl.NewHeader("Description"),
+							},
 
 							SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 
@@ -117,13 +126,13 @@ var _ = Describe("CloudCheckCmd", func() {
 
 						problemAnswer0 := problemAnswers[0]
 						Expect(problemAnswer0.ProblemID).To(Equal(3))
-						Expect(*problemAnswer0.Resolution.Name).To(Equal("Recreate VM"))
-						Expect(problemAnswer0.Resolution.Plan).To(Equal("recreate_vm"))
+						Expect(*problemAnswer0.Resolution.Name).To(Equal("recreate_vm"))
+						Expect(problemAnswer0.Resolution.Plan).To(Equal("Recreate VM"))
 
 						problemAnswer1 := problemAnswers[1]
 						Expect(problemAnswer1.ProblemID).To(Equal(4))
-						Expect(*problemAnswer1.Resolution.Name).To(Equal("Reboot VM"))
-						Expect(problemAnswer1.Resolution.Plan).To(Equal("reboot_vm"))
+						Expect(*problemAnswer1.Resolution.Name).To(Equal("reboot_vm"))
+						Expect(problemAnswer1.Resolution.Plan).To(Equal("Reboot VM"))
 					})
 
 					It("does not resolve problems if confirmation is rejected", func() {
@@ -159,8 +168,12 @@ var _ = Describe("CloudCheckCmd", func() {
 						Expect(ui.Tables).To(Equal([]boshtbl.Table{
 							{
 								Content: "problems",
-								Header:  []string{"#", "Type", "Description"},
-								SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+								Header: []boshtbl.Header{
+									boshtbl.NewHeader("#"),
+									boshtbl.NewHeader("Type"),
+									boshtbl.NewHeader("Description"),
+								},
+								SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 							},
 						}))
 
@@ -204,7 +217,11 @@ var _ = Describe("CloudCheckCmd", func() {
 						Expect(ui.Table).To(Equal(boshtbl.Table{
 							Content: "problems",
 
-							Header: []string{"#", "Type", "Description"},
+							Header: []boshtbl.Header{
+								boshtbl.NewHeader("#"),
+								boshtbl.NewHeader("Type"),
+								boshtbl.NewHeader("Description"),
+							},
 
 							SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 
@@ -265,8 +282,151 @@ var _ = Describe("CloudCheckCmd", func() {
 						Expect(ui.Tables).To(Equal([]boshtbl.Table{
 							{
 								Content: "problems",
-								Header:  []string{"#", "Type", "Description"},
-								SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+								Header: []boshtbl.Header{
+									boshtbl.NewHeader("#"),
+									boshtbl.NewHeader("Type"),
+									boshtbl.NewHeader("Description"),
+								},
+								SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+							},
+						}))
+
+						Expect(deployment.ResolveProblemsCallCount()).To(Equal(0))
+					})
+
+					It("does not ask for confirmation or with choices", func() {
+						err := act()
+						Expect(err).ToNot(HaveOccurred())
+
+						Expect(ui.AskedChoiceCalled).To(BeFalse())
+						Expect(ui.AskedConfirmationCalled).To(BeFalse())
+					})
+				})
+
+				It("returns error if scannig for problems failed", func() {
+					deployment.ScanForProblemsReturns(nil, errors.New("fake-err"))
+
+					err := act()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+
+					Expect(deployment.ResolveProblemsCallCount()).To(Equal(0))
+				})
+			})
+
+			Context("when resolutions are provided", func() {
+				BeforeEach(func() {
+					opts.Auto = false
+					opts.Resolutions = []string{"delete_disk_reference", "delete_vm_reference"}
+				})
+
+				Context("when every problems has a matching resolution", func() {
+					BeforeEach(func() {
+						deployment.ScanForProblemsReturns(severalProbs, nil)
+					})
+
+					It("automatically resolves problems without asking", func() {
+						err := act()
+						Expect(err).ToNot(HaveOccurred())
+
+						Expect(deployment.ResolveProblemsCallCount()).To(Equal(1))
+						Expect(deployment.ResolveProblemsArgsForCall(0)).To(Equal([]boshdir.ProblemAnswer{
+							{
+								ProblemID: 3,
+								Resolution: boshdir.ProblemResolution{
+									Name: &deleteVmReference,
+									Plan: "Delete VM reference",
+								},
+							},
+							{
+								ProblemID: 4,
+								Resolution: boshdir.ProblemResolution{
+									Name: &deleteDiskReference,
+									Plan: "Delete disk reference (DANGEROUS!)",
+								},
+							},
+						}))
+
+						Expect(ui.AskedChoiceCalled).To(BeFalse())
+					})
+
+				})
+				Context("when some problems do not have a matching resolution", func() {
+					BeforeEach(func() {
+						severalProbs = append(severalProbs, boshdir.Problem{
+							ID:          5,
+							Type:        "unresponsive_agent",
+							Description: "problem3-desc",
+
+							Resolutions: []boshdir.ProblemResolution{
+								{Name: &skipResolutionName, Plan: "Skip for now"},
+							},
+						})
+
+						deployment.ScanForProblemsReturns(severalProbs, nil)
+					})
+
+					It("ignores/skips problems it cannot resolve", func() {
+						err := act()
+						Expect(err).ToNot(HaveOccurred())
+
+						Expect(deployment.ResolveProblemsCallCount()).To(Equal(1))
+						Expect(deployment.ResolveProblemsArgsForCall(0)).To(Equal([]boshdir.ProblemAnswer{
+							{
+								ProblemID: 3,
+								Resolution: boshdir.ProblemResolution{
+									Name: &deleteVmReference,
+									Plan: "Delete VM reference",
+								},
+							},
+							{
+								ProblemID: 4,
+								Resolution: boshdir.ProblemResolution{
+									Name: &deleteDiskReference,
+									Plan: "Delete disk reference (DANGEROUS!)",
+								},
+							},
+							{
+								ProblemID: 5,
+								Resolution: boshdir.ProblemResolution{
+									Name: &skipResolutionName,
+									Plan: "Skip for now",
+								},
+							},
+						}))
+
+						Expect(ui.AskedChoiceCalled).To(BeFalse())
+					})
+
+					It("does not automatically resolve problems if confirmation is rejected", func() {
+						ui.AskedConfirmationErr = errors.New("stop")
+
+						err := act()
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("stop"))
+
+						Expect(deployment.ResolveProblemsCallCount()).To(Equal(0))
+					})
+				})
+
+				Context("when no problems were found", func() {
+					BeforeEach(func() {
+						deployment.ScanForProblemsReturns(nil, nil)
+					})
+
+					It("does try to resolve any problem", func() {
+						err := act()
+						Expect(err).ToNot(HaveOccurred())
+
+						Expect(ui.Tables).To(Equal([]boshtbl.Table{
+							{
+								Content: "problems",
+								Header: []boshtbl.Header{
+									boshtbl.NewHeader("#"),
+									boshtbl.NewHeader("Type"),
+									boshtbl.NewHeader("Description"),
+								},
+								SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 							},
 						}))
 
@@ -311,7 +471,7 @@ var _ = Describe("CloudCheckCmd", func() {
 						Resolutions: []boshdir.ProblemResolution{
 							{
 								Name: &skipResolutionName,
-								Plan: "ignore",
+								Plan: "Skip for now",
 							},
 						},
 					},
@@ -325,7 +485,7 @@ var _ = Describe("CloudCheckCmd", func() {
 						Resolutions: []boshdir.ProblemResolution{
 							{
 								Name: &recreateResolutionName,
-								Plan: "recreate_vm",
+								Plan: "Recreate VM",
 							},
 						},
 					},
@@ -342,7 +502,11 @@ var _ = Describe("CloudCheckCmd", func() {
 				Expect(ui.Table).To(Equal(boshtbl.Table{
 					Content: "problems",
 
-					Header: []string{"#", "Type", "Description"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("#"),
+						boshtbl.NewHeader("Type"),
+						boshtbl.NewHeader("Description"),
+					},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 

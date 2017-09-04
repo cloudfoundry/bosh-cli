@@ -2,6 +2,7 @@ package applier_test
 
 import (
 	"errors"
+	"path/filepath"
 
 	"github.com/stretchr/testify/assert"
 
@@ -307,7 +308,7 @@ func init() {
 
 				assert.Equal(GinkgoT(), logRotateDelegate.SetupLogrotateArgs, SetupLogrotateArgs{
 					GroupName: boshsettings.VCAPUsername,
-					BasePath:  "/fake-base-dir",
+					BasePath:  filepath.Clean("/fake-base-dir"),
 					Size:      "fake-size",
 				})
 			})

@@ -28,12 +28,16 @@ func NewPrepareNetworkChange(
 	return
 }
 
-func (a PrepareNetworkChangeAction) IsAsynchronous() bool {
+func (a PrepareNetworkChangeAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return false
 }
 
 func (a PrepareNetworkChangeAction) IsPersistent() bool {
 	return false
+}
+
+func (a PrepareNetworkChangeAction) IsLoggable() bool {
+	return true
 }
 
 func (a PrepareNetworkChangeAction) Run() (interface{}, error) {

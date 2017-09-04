@@ -92,8 +92,8 @@ var _ = Describe("JSONUI", func() {
 
 	Describe("PrintBlock", func() {
 		It("includes in Blocks", func() {
-			ui.PrintBlock("fake-block1")
-			ui.PrintBlock("fake-block2")
+			ui.PrintBlock([]byte("fake-block1"))
+			ui.PrintBlock([]byte("fake-block2"))
 			Expect(finalOutput()).To(Equal(uiResp{
 				Blocks: []string{"fake-block1", "fake-block2"},
 			}))
@@ -114,11 +114,11 @@ var _ = Describe("JSONUI", func() {
 		It("includes table response in Tables", func() {
 			table := Table{
 				Content: "things",
-				Header:  []string{"Header & ( foo )  1 ", "Header-2 header 3"},
+				Header:  []Header{NewHeader("Header & ( foo )  1 "), NewHeader("Header-2 header 3")},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes: []string{"note1", "note2"},
@@ -154,11 +154,11 @@ var _ = Describe("JSONUI", func() {
 		It("generates header keys for tables with row content and no header content", func() {
 			table := Table{
 				Content: "things",
-				Header:  []string{},
+				Header:  []Header{},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes: []string{"note1", "note2"},
@@ -181,17 +181,17 @@ var _ = Describe("JSONUI", func() {
 			}))
 		})
 
-		It("includes HeaderVals in Tables", func() {
+		It("includes Headers in Tables", func() {
 			table := Table{
 				Content: "things",
-				HeaderVals: []Value{
-					ValueString{"Header1"},
-					ValueString{"Header2"},
+				Header: []Header{
+					NewHeader("Header1"),
+					NewHeader("Header2"),
 				},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes: []string{"note1", "note2"},
@@ -225,15 +225,15 @@ var _ = Describe("JSONUI", func() {
 		It("convert non-alphanumeric to _", func() {
 			table := Table{
 				Content: "things",
-				HeaderVals: []Value{
-					ValueString{"#"},
-					ValueString{"foo"},
-					ValueString{"$"},
+				Header: []Header{
+					NewHeader("#"),
+					NewHeader("foo"),
+					NewHeader("$"),
 				},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}, ValueString{"r1c3"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}, ValueString{"r2c3"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}, ValueString{S: "r1c3"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}, ValueString{S: "r2c3"}},
 				},
 
 				Notes: []string{},
@@ -261,14 +261,14 @@ var _ = Describe("JSONUI", func() {
 		It("includes in Tables when table has sections and fills in first column", func() {
 			table := Table{
 				Content: "things",
-				Header:  []string{"Header1", "Header2"},
+				Header:  []Header{NewHeader("Header1"), NewHeader("Header2")},
 
 				Sections: []Section{
 					{
-						FirstColumn: ValueString{"first-col"},
+						FirstColumn: ValueString{S: "first-col"},
 						Rows: [][]Value{
-							{ValueString{""}, ValueString{"r1c2"}},
-							{ValueString{""}, ValueString{"r2c2"}},
+							{ValueString{S: ""}, ValueString{S: "r1c2"}},
+							{ValueString{S: ""}, ValueString{S: "r2c2"}},
 						},
 					},
 				},

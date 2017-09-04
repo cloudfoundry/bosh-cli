@@ -75,7 +75,7 @@ All dependencies:
 ./update-dep github.com/cloudfoundry/bosh-utils/...
 ```
 
-An example for a single depdency:
+An example for a single dependency:
 
 ```
 ./update-dep github.com/pivotal-golang/clock/fakeclock
@@ -100,7 +100,7 @@ BOSH uses Ruby for its tests, so you will also need to have that available.
 
 You can run all the tests by running `bin/test`.
 
-There is a stand-alone _BOSH Agent_ integration test to test config-drive using bosh-lite. This can be run locally via `integration/bin/test --provider=virtualbox`. The vagrant provider passed in can be changed to a provider of your choosing if you so desire.
+There is a stand-alone _BOSH Agent_ integration test to test config-drive using bosh-lite. This can be run locally via `bin/test-integration --provider=virtualbox`. The vagrant provider passed in can be changed to a provider of your choosing if you so desire.
 
 #### Using IntelliJ with Go and the BOSH Agent
 

@@ -296,6 +296,16 @@ var _ = Describe("Factory", func() {
 		})
 	})
 
+	Describe("task command", func() {
+		It("is passed the deployment flag", func() {
+			cmd, err := factory.New([]string{"task", "--deployment", "deployment"})
+			Expect(err).ToNot(HaveOccurred())
+
+			opts := cmd.Opts.(*TaskOpts)
+			Expect(opts.Deployment).To(Equal("deployment"))
+		})
+	})
+
 	Describe("help command", func() {
 		It("has a help command", func() {
 			cmd, err := factory.New([]string{"help"})
@@ -315,6 +325,8 @@ var _ = Describe("Factory", func() {
 
 			opts := cmd.Opts.(*MessageOpts)
 			Expect(opts.Message).To(ContainSubstring("Usage:"))
+			Expect(opts.Message).To(ContainSubstring(
+				"SSH into instance(s)                               https://bosh.io/docs/cli-v2#ssh"))
 			Expect(opts.Message).To(ContainSubstring("Application Options:"))
 			Expect(opts.Message).To(ContainSubstring("Available commands:"))
 		})
@@ -325,6 +337,7 @@ var _ = Describe("Factory", func() {
 
 			opts := cmd.Opts.(*MessageOpts)
 			Expect(opts.Message).To(ContainSubstring("Usage:"))
+			Expect(opts.Message).To(ContainSubstring("SSH into instance(s)\n\nhttps://bosh.io/docs/cli-v2#ssh"))
 			Expect(opts.Message).To(ContainSubstring("Application Options:"))
 			Expect(opts.Message).To(ContainSubstring("[ssh command options]"))
 		})
@@ -362,6 +375,8 @@ var _ = Describe("Factory", func() {
 			boshOpts.UploadBlobs = UploadBlobsOpts{}
 			boshOpts.SSH = SSHOpts{}
 			boshOpts.SCP = SCPOpts{}
+			boshOpts.Deploy = DeployOpts{}
+			boshOpts.UpdateRuntimeConfig = UpdateRuntimeConfigOpts{}
 			return boshOpts
 		}
 

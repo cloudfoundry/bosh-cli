@@ -175,7 +175,11 @@ func (f SettingsSourceFactory) buildWithoutRegistry() (boshsettings.Source, erro
 			)
 
 		case FileSourceOptions:
-			return nil, bosherr.Error("File source is not supported without registry")
+			settingsSource = NewFileSettingsSource(
+				typedOpts.SettingsPath,
+				f.platform.GetFs(),
+				f.logger,
+			)
 
 		case CDROMSourceOptions:
 			settingsSource = NewCDROMSettingsSource(

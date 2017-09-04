@@ -20,16 +20,15 @@ func (ui *NonTTYUI) PrintLinef(pattern string, args ...interface{}) {}
 func (ui *NonTTYUI) BeginLinef(pattern string, args ...interface{}) {}
 func (ui *NonTTYUI) EndLinef(pattern string, args ...interface{})   {}
 
-func (ui *NonTTYUI) PrintBlock(block string)      { ui.parent.PrintBlock(block) }
+func (ui *NonTTYUI) PrintBlock(block []byte)      { ui.parent.PrintBlock(block) }
 func (ui *NonTTYUI) PrintErrorBlock(block string) { ui.parent.PrintErrorBlock(block) }
 
 func (ui *NonTTYUI) PrintTable(table Table) {
 	// hide decorations
 	table.Title = ""
-	table.Header = nil
-	table.HeaderVals = nil
 	table.Notes = nil
 	table.Content = ""
+	table.DataOnly = true
 
 	// necessary for grep
 	table.FillFirstColumn = true

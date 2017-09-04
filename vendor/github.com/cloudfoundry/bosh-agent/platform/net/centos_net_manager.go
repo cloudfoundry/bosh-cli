@@ -50,6 +50,8 @@ func NewCentosNetManager(
 	}
 }
 
+func (net centosNetManager) SetupIPv6(_ boshsettings.IPv6, _ <-chan struct{}) error { return nil }
+
 func (net centosNetManager) SetupNetworking(networks boshsettings.Networks, errCh chan error) error {
 	nonVipNetworks := boshsettings.Networks{}
 	for networkName, networkSettings := range networks {

@@ -3,7 +3,9 @@ package bundlecollection
 import (
 	"path"
 	"path/filepath"
+	"strings"
 
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -69,6 +71,26 @@ func (bc FileBundleCollection) Get(definition BundleDefinition) (Bundle, error) 
 		return nil, bosherr.Error("Missing bundle version")
 	}
 
+	bundleVersionDigest, err := boshcrypto.DigestAlgorithmSHA1.CreateDigest(strings.NewReader(definition.BundleVersion()))
+	if err != nil {
+		return FileBundle{}, err
+	}
+
+	installPath := path.Join(bc.installPath, bc.name, definition.BundleName(), bundleVersionDigest.String())
+	enablePath := path.Join(bc.enablePath, bc.name, definition.BundleName())
+
+	return NewFileBundle(installPath, enablePath, bc.fs, bc.logger), nil
+}
+
+func (bc FileBundleCollection) getDigested(definition BundleDefinition) (Bundle, error) {
+	if len(definition.BundleName()) == 0 {
+		return nil, bosherr.Error("Missing bundle name")
+	}
+
+	if len(definition.BundleVersion()) == 0 {
+		return nil, bosherr.Error("Missing bundle version")
+	}
+
 	installPath := path.Join(bc.installPath, bc.name, definition.BundleName(), definition.BundleVersion())
 	enablePath := path.Join(bc.enablePath, bc.name, definition.BundleName())
 	return NewFileBundle(installPath, enablePath, bc.fs, bc.logger), nil
@@ -83,7 +105,7 @@ func (bc FileBundleCollection) List() ([]Bundle, error) {
 	}
 
 	for _, path := range bundleInstallPaths {
-		bundle, err := bc.Get(newFileBundleDefinition(path))
+		bundle, err := bc.getDigested(newFileBundleDefinition(path))
 		if err != nil {
 			return bundles, bosherr.WrapError(err, "Getting bundle")
 		}

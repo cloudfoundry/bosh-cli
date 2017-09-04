@@ -11,6 +11,7 @@ import (
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	"time"
 )
 
 var _ = Describe("VMsCmd", func() {
@@ -57,6 +58,7 @@ var _ = Describe("VMsCmd", func() {
 					ResurrectionPaused: false,
 					Ignore:             false,
 					DiskIDs:            []string{"diskcid1", "diskcid2"},
+					VMCreatedAt:        time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
 
 					Vitals: boshdir.VMInfoVitals{
 						Load: []string{"0.02", "0.06", "0.11"},
@@ -87,6 +89,7 @@ var _ = Describe("VMsCmd", func() {
 					ResurrectionPaused: true,
 					Ignore:             true,
 					DiskIDs:            []string{"diskcid1", "diskcid2"},
+					VMCreatedAt:        time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
 
 					Vitals: boshdir.VMInfoVitals{
 						Load: []string{"0.52", "0.56", "0.51"},
@@ -132,13 +135,13 @@ var _ = Describe("VMsCmd", func() {
 
 						Content: "vms",
 
-						HeaderVals: []boshtbl.Value{
-							boshtbl.NewValueString("Instance"),
-							boshtbl.NewValueString("Process State"),
-							boshtbl.NewValueString("AZ"),
-							boshtbl.NewValueString("IPs"),
-							boshtbl.NewValueString("VM CID"),
-							boshtbl.NewValueString("VM Type"),
+						Header: []boshtbl.Header{
+							boshtbl.NewHeader("Instance"),
+							boshtbl.NewHeader("Process State"),
+							boshtbl.NewHeader("AZ"),
+							boshtbl.NewHeader("IPs"),
+							boshtbl.NewHeader("VM CID"),
+							boshtbl.NewHeader("VM Type"),
 						},
 
 						SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
@@ -182,14 +185,14 @@ var _ = Describe("VMsCmd", func() {
 
 						Content: "vms",
 
-						HeaderVals: []boshtbl.Value{
-							boshtbl.NewValueString("Instance"),
-							boshtbl.NewValueString("Process State"),
-							boshtbl.NewValueString("AZ"),
-							boshtbl.NewValueString("IPs"),
-							boshtbl.NewValueString("VM CID"),
-							boshtbl.NewValueString("VM Type"),
-							boshtbl.NewValueString("DNS A Records"),
+						Header: []boshtbl.Header{
+							boshtbl.NewHeader("Instance"),
+							boshtbl.NewHeader("Process State"),
+							boshtbl.NewHeader("AZ"),
+							boshtbl.NewHeader("IPs"),
+							boshtbl.NewHeader("VM CID"),
+							boshtbl.NewHeader("VM Type"),
+							boshtbl.NewHeader("DNS A Records"),
 						},
 
 						SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
@@ -236,24 +239,25 @@ var _ = Describe("VMsCmd", func() {
 
 						Content: "vms",
 
-						HeaderVals: []boshtbl.Value{
-							boshtbl.NewValueString("Instance"),
-							boshtbl.NewValueString("Process State"),
-							boshtbl.NewValueString("AZ"),
-							boshtbl.NewValueString("IPs"),
-							boshtbl.NewValueString("VM CID"),
-							boshtbl.NewValueString("VM Type"),
-							boshtbl.NewValueString("Uptime"),
-							boshtbl.NewValueString("Load\n(1m, 5m, 15m)"),
-							boshtbl.NewValueString("CPU\nTotal"),
-							boshtbl.NewValueString("CPU\nUser"),
-							boshtbl.NewValueString("CPU\nSys"),
-							boshtbl.NewValueString("CPU\nWait"),
-							boshtbl.NewValueString("Memory\nUsage"),
-							boshtbl.NewValueString("Swap\nUsage"),
-							boshtbl.NewValueString("System\nDisk Usage"),
-							boshtbl.NewValueString("Ephemeral\nDisk Usage"),
-							boshtbl.NewValueString("Persistent\nDisk Usage"),
+						Header: []boshtbl.Header{
+							boshtbl.NewHeader("Instance"),
+							boshtbl.NewHeader("Process State"),
+							boshtbl.NewHeader("AZ"),
+							boshtbl.NewHeader("IPs"),
+							boshtbl.NewHeader("VM CID"),
+							boshtbl.NewHeader("VM Type"),
+							boshtbl.NewHeader("VM Created At"),
+							boshtbl.NewHeader("Uptime"),
+							boshtbl.NewHeader("Load\n(1m, 5m, 15m)"),
+							boshtbl.NewHeader("CPU\nTotal"),
+							boshtbl.NewHeader("CPU\nUser"),
+							boshtbl.NewHeader("CPU\nSys"),
+							boshtbl.NewHeader("CPU\nWait"),
+							boshtbl.NewHeader("Memory\nUsage"),
+							boshtbl.NewHeader("Swap\nUsage"),
+							boshtbl.NewHeader("System\nDisk Usage"),
+							boshtbl.NewHeader("Ephemeral\nDisk Usage"),
+							boshtbl.NewHeader("Persistent\nDisk Usage"),
 						},
 
 						SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
@@ -266,17 +270,18 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 								boshtbl.NewValueString("in1-cid"),
 								boshtbl.NewValueString("in1-rp"),
+								boshtbl.NewValueTime(time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC)),
 								ValueUptime{},
 								boshtbl.NewValueString("0.02, 0.06, 0.11"),
 								ValueCPUTotal{},
 								NewValueStringPercent("1.2"),
 								NewValueStringPercent("0.3"),
 								NewValueStringPercent("2.1"),
-								ValueMemSize{boshdir.VMInfoVitalsMemSize{Percent: "20", KB: "2000"}},
-								ValueMemSize{boshdir.VMInfoVitalsMemSize{Percent: "21", KB: "2100"}},
-								ValueDiskSize{boshdir.VMInfoVitalsDiskSize{Percent: "35"}},
-								ValueDiskSize{boshdir.VMInfoVitalsDiskSize{Percent: "45"}},
-								ValueDiskSize{boshdir.VMInfoVitalsDiskSize{Percent: "55"}},
+								ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "20", KB: "2000"}},
+								ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "21", KB: "2100"}},
+								ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "35"}},
+								ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "45"}},
+								ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "55"}},
 							},
 							{
 								boshtbl.NewValueString("job-name"),
@@ -285,17 +290,18 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.NewValueStrings([]string{"in2-ip1"}),
 								boshtbl.NewValueString("in2-cid"),
 								boshtbl.NewValueString("in2-rp"),
+								boshtbl.NewValueTime(time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC)),
 								ValueUptime{},
 								boshtbl.NewValueString("0.52, 0.56, 0.51"),
 								ValueCPUTotal{},
 								NewValueStringPercent("51.2"),
 								NewValueStringPercent("50.3"),
 								NewValueStringPercent("52.1"),
-								ValueMemSize{boshdir.VMInfoVitalsMemSize{Percent: "60", KB: "6000"}},
-								ValueMemSize{boshdir.VMInfoVitalsMemSize{Percent: "61", KB: "6100"}},
-								ValueDiskSize{boshdir.VMInfoVitalsDiskSize{Percent: "75"}},
-								ValueDiskSize{boshdir.VMInfoVitalsDiskSize{Percent: "85"}},
-								ValueDiskSize{boshdir.VMInfoVitalsDiskSize{Percent: "95"}},
+								ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "60", KB: "6000"}},
+								ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "61", KB: "6100"}},
+								ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "75"}},
+								ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "85"}},
+								ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "95"}},
 							},
 							{
 								boshtbl.NewValueString("?"),
@@ -304,6 +310,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.ValueStrings{},
 								boshtbl.ValueString{},
 								boshtbl.ValueString{},
+								boshtbl.NewValueTime(time.Time{}.UTC()),
 								ValueUptime{},
 								boshtbl.ValueString{},
 								ValueCPUTotal{},
@@ -365,13 +372,13 @@ var _ = Describe("VMsCmd", func() {
 
 					Content: "vms",
 
-					HeaderVals: []boshtbl.Value{
-						boshtbl.NewValueString("Instance"),
-						boshtbl.NewValueString("Process State"),
-						boshtbl.NewValueString("AZ"),
-						boshtbl.NewValueString("IPs"),
-						boshtbl.NewValueString("VM CID"),
-						boshtbl.NewValueString("VM Type"),
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Instance"),
+						boshtbl.NewHeader("Process State"),
+						boshtbl.NewHeader("AZ"),
+						boshtbl.NewHeader("IPs"),
+						boshtbl.NewHeader("VM CID"),
+						boshtbl.NewHeader("VM Type"),
 					},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},

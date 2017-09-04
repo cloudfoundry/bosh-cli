@@ -19,6 +19,9 @@ agent_dir=$GOPATH/src/github.com/cloudfoundry/bosh-agent
 pushd $agent_dir
 	sudo sv stop agent
 
+	# bosh-provisioner sends an apply spec that is no longer compatible with the agent
+	sudo rm -f /var/vcap/bosh/spec.json
+
 	# build agent
 	bin/build
 

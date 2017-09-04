@@ -5,7 +5,7 @@ set -ex
 GOPATH=/home/vagrant/go
 export GOROOT=/usr/local/go
 export PATH=$GOROOT/bin:$PATH
-GO_ARCHIVE_URL=https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz
+GO_ARCHIVE_URL=https://storage.googleapis.com/golang/go1.7.3.linux-amd64.tar.gz
 GO_ARCHIVE=$GOPATH/src/github.com/cloudfoundry/bosh-agent/tmp/$(basename $GO_ARCHIVE_URL)
 
 echo "Downloading go..."

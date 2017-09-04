@@ -52,6 +52,7 @@ type vm struct {
 	fs           boshsys.FileSystem
 	logger       boshlog.Logger
 	logTag       string
+	metadata     bicloud.VMMetadata
 }
 
 func NewVM(
@@ -79,6 +80,33 @@ func NewVM(
 	}
 }
 
+func NewVMWithMetadata(
+	cid string,
+	vmRepo biconfig.VMRepo,
+	stemcellRepo biconfig.StemcellRepo,
+	diskDeployer DiskDeployer,
+	agentClient biagentclient.AgentClient,
+	cloud bicloud.Cloud,
+	timeService Clock,
+	fs boshsys.FileSystem,
+	logger boshlog.Logger,
+	metadata bicloud.VMMetadata,
+) VM {
+	return &vm{
+		cid:          cid,
+		vmRepo:       vmRepo,
+		stemcellRepo: stemcellRepo,
+		diskDeployer: diskDeployer,
+		agentClient:  agentClient,
+		cloud:        cloud,
+		timeService:  timeService,
+		fs:           fs,
+		logger:       logger,
+		logTag:       "vm",
+		metadata:     metadata,
+	}
+}
+
 func (vm *vm) CID() string {
 	return vm.cid
 }
@@ -86,7 +114,7 @@ func (vm *vm) CID() string {
 func (vm *vm) Exists() (bool, error) {
 	exists, err := vm.cloud.HasVM(vm.cid)
 	if err != nil {
-		return false, bosherr.WrapErrorf(err, "Checking existance of VM '%s'", vm.cid)
+		return false, bosherr.WrapErrorf(err, "Checking existence of VM '%s'", vm.cid)
 	}
 	return exists, nil
 }
@@ -149,6 +177,16 @@ func (vm *vm) AttachDisk(disk bidisk.Disk) error {
 	err := vm.cloud.AttachDisk(vm.cid, disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Attaching disk in the cloud")
+	}
+
+	err = vm.cloud.SetDiskMetadata(disk.CID(), vm.createDiskMetadata())
+	if err != nil {
+		cloudErr, ok := err.(bicloud.Error)
+		if ok && cloudErr.Type() == bicloud.NotImplementedError {
+			vm.logger.Warn(vm.logTag, "'SetDiskMetadata' not implemented by CPI")
+		} else {
+			return bosherr.WrapErrorf(err, "Setting disk metadata for %s", disk.CID())
+		}
 	}
 
 	err = vm.WaitUntilReady(10*time.Minute, 500*time.Millisecond)
@@ -238,4 +276,19 @@ func (vm *vm) GetState() (biagentclient.AgentState, error) {
 	}
 
 	return agentState, nil
+}
+
+func (vm *vm) createDiskMetadata() bicloud.DiskMetadata {
+	diskMetadata := make(bicloud.DiskMetadata)
+	for key, value := range vm.metadata {
+		diskMetadata[key] = value
+	}
+
+	delete(diskMetadata, "job")
+	delete(diskMetadata, "index")
+	delete(diskMetadata, "created_at")
+	diskMetadata["instance_index"] = vm.metadata["index"]
+	diskMetadata["attached_at"] = vm.timeService.Now().Format(time.RFC3339)
+
+	return diskMetadata
 }

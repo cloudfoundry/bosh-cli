@@ -164,6 +164,19 @@ var _ = Describe("ClientRequest", func() {
 				Expect(resp).ToNot(BeNil())
 			})
 
+			It("includes response body in the error if response errors", func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/path"),
+					ghttp.RespondWith(0, "body"),
+				))
+
+				body, resp, err := req.RawGet("/path", nil, nil)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("'body'"))
+				Expect(body).To(BeNil())
+				Expect(resp).ToNot(BeNil())
+			})
+
 			It("does not track downloading", func() {
 				fileReporter := &fakedir.FakeFileReporter{}
 				req = buildReq(fileReporter)
@@ -185,6 +198,22 @@ var _ = Describe("ClientRequest", func() {
 				Expect(resp).ToNot(BeNil())
 
 				Expect(buf.String()).To(Equal("body"))
+			})
+
+			It("is not used if response errors", func() {
+				server.SetHandler(0, ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/path"),
+					ghttp.RespondWith(0, "body"),
+				))
+
+				buf := bytes.NewBufferString("")
+
+				body, resp, err := req.RawGet("/path", buf, nil)
+				Expect(err).To(HaveOccurred())
+				Expect(body).To(BeEmpty())
+				Expect(resp).ToNot(BeNil())
+
+				Expect(buf.String()).To(Equal(""))
 			})
 
 			It("tracks downloading based on content length", func() {
@@ -374,7 +403,7 @@ var _ = Describe("ClientRequest", func() {
 					TrackUploadStub: func(size int64, reader io.ReadCloser) ui.ReadSeekCloser {
 						Expect(size).To(Equal(int64(8)))
 						Expect(ioutil.ReadAll(reader)).To(Equal([]byte("req-body")))
-						return NoopReadSeekCloser{ioutil.NopCloser(bytes.NewBufferString("req-body"))}
+						return NoopReadSeekCloser{Reader: ioutil.NopCloser(bytes.NewBufferString("req-body"))}
 					},
 				}
 				req = buildReq(fileReporter)

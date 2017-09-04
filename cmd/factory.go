@@ -33,6 +33,19 @@ func (f Factory) New(args []string) (Cmd, error) {
 
 	parser := goflags.NewParser(boshOpts, goflags.HelpFlag|goflags.PassDoubleDash)
 
+	for _, c := range parser.Commands() {
+		docsURL := "https://bosh.io/docs/cli-v2#" + c.Name
+
+		c.LongDescription = c.ShortDescription + "\n\n" + docsURL
+
+		fillerLen := 50 - len(c.ShortDescription)
+		if fillerLen < 0 {
+			fillerLen = 0
+		}
+
+		c.ShortDescription += strings.Repeat(" ", fillerLen+1) + docsURL
+	}
+
 	parser.CommandHandler = func(command goflags.Commander, extraArgs []string) error {
 		if opts, ok := command.(*SSHOpts); ok {
 			if len(opts.Command) == 0 {
@@ -59,6 +72,10 @@ func (f Factory) New(args []string) (Cmd, error) {
 		}
 
 		if opts, ok := command.(*TasksOpts); ok {
+			opts.Deployment = boshOpts.DeploymentOpt
+		}
+
+		if opts, ok := command.(*TaskOpts); ok {
 			opts.Deployment = boshOpts.DeploymentOpt
 		}
 

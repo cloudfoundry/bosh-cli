@@ -104,6 +104,33 @@ var _ = Describe("linuxMounter", func() {
 			Expect(0).To(Equal(len(runner.RunCommands)))
 		})
 	})
+	Describe("RemountInPlace", func() {
+		Context("when the mount exists", func() {
+			BeforeEach(func() {
+				err := mounter.Mount("/mnt/foo", "/mnt/foo", "-o", "bind")
+				Expect(err).ToNot(HaveOccurred())
+
+				mountsSearcher.SearchMountsMounts = []Mount{
+					Mount{PartitionPath: "/mnt/foo", MountPoint: "/mnt/foo"},
+				}
+			})
+
+			It("remounts in place", func() {
+				err := mounter.RemountInPlace("/mnt/foo", "-o", "nodev")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(runner.RunCommands[1]).To(Equal([]string{"mount", "/mnt/foo", "/mnt/foo", "-o", "nodev", "-o", "remount"}))
+			})
+		})
+
+		Context("when the mount does not exist", func() {
+			It("raises error", func() {
+				err := mounter.RemountInPlace("/mnt/foo", "-o", "remount,nodev")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Error finding existing mount point /mnt/foo"))
+			})
+		})
+
+	})
 
 	Describe("RemountAsReadonly", func() {
 		It("remount as readonly", func() {

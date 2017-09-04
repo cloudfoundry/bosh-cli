@@ -9,7 +9,12 @@ import (
 /*
 ---
 name: some-deployment
-...
+releases:
+- name: release
+  version: ver
+  stemcell:
+    os: ...
+    version: ...
 */
 
 type Manifest struct {
@@ -24,6 +29,13 @@ type ManifestRelease struct {
 
 	URL  string
 	SHA1 string
+
+	Stemcell ManifestReleaseStemcell
+}
+
+type ManifestReleaseStemcell struct {
+	OS      string
+	Version string
 }
 
 func NewManifestFromPath(path string, fs boshsys.FileSystem) (Manifest, error) {

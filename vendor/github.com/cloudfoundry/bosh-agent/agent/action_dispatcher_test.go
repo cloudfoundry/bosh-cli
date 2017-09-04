@@ -9,18 +9,19 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-agent/agent"
+	"github.com/cloudfoundry/bosh-agent/agent/action"
 	fakeaction "github.com/cloudfoundry/bosh-agent/agent/action/fakes"
 	boshtask "github.com/cloudfoundry/bosh-agent/agent/task"
 	faketask "github.com/cloudfoundry/bosh-agent/agent/task/fakes"
 	boshhandler "github.com/cloudfoundry/bosh-agent/handler"
+	"github.com/cloudfoundry/bosh-agent/logger/fakes"
 	boshassert "github.com/cloudfoundry/bosh-utils/assert"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 func init() {
 	Describe("actionDispatcher", func() {
 		var (
-			logger        boshlog.Logger
+			logger        *fakes.FakeLogger
 			taskService   *faketask.FakeService
 			taskManager   *faketask.FakeManager
 			actionFactory *fakeaction.FakeFactory
@@ -29,7 +30,7 @@ func init() {
 		)
 
 		BeforeEach(func() {
-			logger = boshlog.NewLogger(boshlog.LevelNone)
+			logger = &fakes.FakeLogger{}
 			taskService = faketask.NewFakeService()
 			taskManager = faketask.NewFakeManager()
 			actionFactory = fakeaction.NewFakeFactory()
@@ -40,9 +41,117 @@ func init() {
 		It("responds with exception when the method is unknown", func() {
 			actionFactory.RegisterActionErr("fake-action", errors.New("fake-create-error"))
 
-			req := boshhandler.NewRequest("fake-reply", "fake-action", []byte{})
+			req := boshhandler.NewRequest("fake-reply", "fake-action", []byte{}, 0)
 			resp := dispatcher.Dispatch(req)
 			boshassert.MatchesJSONString(GinkgoT(), resp, `{"exception":{"message":"unknown message fake-action"}}`)
+		})
+
+		Context("Action Payload Logging", func() {
+			var (
+				action *fakeaction.TestAction
+				req    boshhandler.Request
+			)
+
+			Context("action is loggable", func() {
+				BeforeEach(func() {
+					req = boshhandler.NewRequest("fake-reply", "fake-action", []byte("fake-payload"), 0)
+					action = &fakeaction.TestAction{Loggable: true}
+					actionFactory.RegisterAction("fake-action", action)
+					dispatcher.Dispatch(req)
+				})
+
+				It("logs the payload", func() {
+					Expect(logger.DebugWithDetailsCallCount()).To(Equal(1))
+					_, message, args := logger.DebugWithDetailsArgsForCall(0)
+					Expect(message).To(Equal("Payload"))
+					Expect(args[0]).To(Equal(req.Payload))
+				})
+			})
+
+			Context("action is not loggable", func() {
+				BeforeEach(func() {
+					req = boshhandler.NewRequest("fake-reply", "fake-action", []byte("fake-payload"), 0)
+					action = &fakeaction.TestAction{Loggable: false}
+					actionFactory.RegisterAction("fake-action", action)
+					dispatcher.Dispatch(req)
+				})
+
+				It("does not log the payload", func() {
+					Expect(logger.DebugWithDetailsCallCount()).To(Equal(0))
+				})
+			})
+		})
+
+		Context("when request contains protocol version and action is Asynchronous", func() {
+			var (
+				req       boshhandler.Request
+				runAction *fakeaction.TestAction
+			)
+
+			BeforeEach(func() {
+				runAction = &fakeaction.TestAction{Asynchronous: true}
+				actionFactory.RegisterAction("fake-action", runAction)
+
+			})
+
+			It("passes protocol version zero to IsSynchronous", func() {
+				req = boshhandler.NewRequest("fake-reply", "fake-action", []byte("fake-payload"), boshhandler.ProtocolVersion(0))
+
+				dispatcher.Dispatch(req)
+
+				_, err := taskService.StartedTasks["fake-generated-task-id"].Func()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(actionRunner.RunAction).To(Equal(runAction))
+				Expect(string(actionRunner.RunPayload)).To(Equal("fake-payload"))
+
+				Expect(runAction.ProtocolVersion).To(Equal(action.ProtocolVersion(0)))
+				Expect(actionRunner.RunProtocolVersion).To(Equal(action.ProtocolVersion(0)))
+			})
+
+			It("passes protocol version to IsSynchronous", func() {
+				req = boshhandler.NewRequest("fake-reply", "fake-action", []byte("fake-payload"), boshhandler.ProtocolVersion(99))
+				dispatcher.Dispatch(req)
+
+				_, err := taskService.StartedTasks["fake-generated-task-id"].Func()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(actionRunner.RunAction).To(Equal(runAction))
+				Expect(string(actionRunner.RunPayload)).To(Equal("fake-payload"))
+
+				Expect(runAction.ProtocolVersion).To(Equal(action.ProtocolVersion(99)))
+				Expect(actionRunner.RunProtocolVersion).To(Equal(action.ProtocolVersion(99)))
+			})
+
+		})
+
+		Context("when request contains protocol version and action is Synchronous", func() {
+			var (
+				req       boshhandler.Request
+				runAction *fakeaction.TestAction
+			)
+
+			BeforeEach(func() {
+				runAction = &fakeaction.TestAction{Asynchronous: false}
+				actionFactory.RegisterAction("fake-action", runAction)
+			})
+
+			It("passes protocol version zero to IsSynchronous", func() {
+				req = boshhandler.NewRequest("fake-reply", "fake-action", []byte("fake-payload"), boshhandler.ProtocolVersion(0))
+				dispatcher.Dispatch(req)
+
+				Expect(runAction.ProtocolVersion).To(Equal(action.ProtocolVersion(0)))
+				Expect(actionRunner.RunProtocolVersion).To(Equal(action.ProtocolVersion(0)))
+			})
+
+			It("passes protocol version to IsSynchronous", func() {
+				req = boshhandler.NewRequest("fake-reply", "fake-action", []byte("fake-payload"), boshhandler.ProtocolVersion(99))
+				dispatcher.Dispatch(req)
+
+				Expect(runAction.ProtocolVersion).To(Equal(action.ProtocolVersion(99)))
+				Expect(actionRunner.RunProtocolVersion).To(Equal(action.ProtocolVersion(99)))
+			})
+
 		})
 
 		Context("when action is synchronous", func() {
@@ -51,7 +160,7 @@ func init() {
 			)
 
 			BeforeEach(func() {
-				req = boshhandler.NewRequest("fake-reply", "fake-action", []byte("fake-payload"))
+				req = boshhandler.NewRequest("fake-reply", "fake-action", []byte("fake-payload"), 0)
 				actionFactory.RegisterAction("fake-action", &fakeaction.TestAction{Asynchronous: false})
 			})
 
@@ -79,7 +188,7 @@ func init() {
 			)
 
 			BeforeEach(func() {
-				req = boshhandler.NewRequest("fake-reply", "fake-action", []byte("fake-payload"))
+				req = boshhandler.NewRequest("fake-reply", "fake-action", []byte("fake-payload"), 0)
 				action = &fakeaction.TestAction{Asynchronous: true}
 				actionFactory.RegisterAction("fake-action", action)
 			})

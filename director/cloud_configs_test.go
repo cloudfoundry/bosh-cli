@@ -106,4 +106,59 @@ var _ = Describe("Director", func() {
 				"Updating cloud config: Director responded with non-successful status code"))
 		})
 	})
+
+	Describe("DiffCloudConfig", func() {
+		var expectedDiffResponse ConfigDiff
+
+		expectedDiffResponse = ConfigDiff{
+			Diff: [][]interface{}{
+				[]interface{}{"azs:", nil},
+				[]interface{}{"- name: az2", "removed"},
+				[]interface{}{"  cloud_properties: {}", "removed"},
+			},
+		}
+
+		It("diffs cloud config", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/cloud_configs/diff"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.RespondWith(http.StatusOK, `{"diff":[["azs:",null],["- name: az2","removed"],["  cloud_properties: {}","removed"]]}`),
+				),
+			)
+
+			diff, err := director.DiffCloudConfig([]byte("config"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(diff).To(Equal(expectedDiffResponse))
+		})
+
+		It("returns error if info response in non-200", func() {
+			AppendBadRequest(ghttp.VerifyRequest("POST", "/cloud_configs/diff"), server)
+
+			_, err := director.DiffCloudConfig(nil)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(
+				"Fetching diff result: Director responded with non-successful status code"))
+		})
+
+		It("is backwards compatible with directors without the `/diff` endpoint", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/cloud_configs/diff"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.RespondWith(http.StatusNotFound, ""),
+				),
+			)
+
+			diff, err := director.DiffCloudConfig([]byte("config"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(diff).To(Equal(ConfigDiff{}))
+		})
+	})
 })

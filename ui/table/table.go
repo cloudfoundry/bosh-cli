@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"strings"
 )
 
 func (t Table) AsRows() [][]Value {
@@ -68,9 +69,11 @@ func (t Table) AsRows() [][]Value {
 }
 
 func (t Table) Print(w io.Writer) error {
-	err := t.printHeader(w)
-	if err != nil {
-		return err
+	if !t.DataOnly {
+		err := t.printHeader(w)
+		if err != nil {
+			return err
+		}
 	}
 
 	if len(t.BackgroundStr) == 0 {
@@ -82,50 +85,87 @@ func (t Table) Print(w io.Writer) error {
 	}
 
 	writer := NewWriter(w, "-", t.BackgroundStr, t.BorderStr)
-
-	if t.Transpose {
-		var newRows [][]Value
-		var headerVals []Value
-
-		if len(t.HeaderVals) > 0 {
-			headerVals = t.HeaderVals
-		} else if len(t.Header) > 0 {
-			for _, h := range t.Header {
-				headerVals = append(headerVals, ValueString{h})
-			}
-		}
-
-		for _, row := range t.Rows {
-			for i, val := range row {
-				newRows = append(newRows, []Value{headerVals[i], val})
-			}
-		}
-
-		t.Rows = newRows
-	} else {
-		if len(t.HeaderVals) > 0 {
-			writer.Write(t.HeaderVals)
-		} else if len(t.Header) > 0 {
-			var headerVals []Value
-			for _, h := range t.Header {
-				headerVals = append(headerVals, ValueString{h})
-			}
-			writer.Write(headerVals)
-		}
+	rowCount := len(t.Rows)
+	for _, section := range t.Sections {
+		rowCount += len(section.Rows)
 	}
 
 	rows := t.AsRows()
 
-	for _, row := range rows {
-		writer.Write(row)
+	if t.Transpose {
+		var newRows [][]Value
+
+		headerVals := buildHeaderVals(t)
+
+		for i, row := range rows {
+			for j, val := range row {
+				if t.Header[j].Hidden {
+					continue
+				}
+
+				newRows = append(newRows, []Value{headerVals[j], val})
+			}
+
+			if i < (len(t.Rows) - 1) {
+				newRows = append(newRows, []Value{
+					EmptyValue{},
+					EmptyValue{},
+				})
+			}
+		}
+
+		rows = newRows
+		t.Header = []Header{
+			{Hidden: t.DataOnly},
+			{Hidden: false},
+		}
+	} else {
+		if !t.DataOnly && len(t.Header) > 0 {
+			writer.Write(t.Header, buildHeaderVals(t))
+		}
 	}
 
-	err = writer.Flush()
+	for _, row := range rows {
+		writer.Write(t.Header, row)
+	}
+
+	err := writer.Flush()
 	if err != nil {
 		return err
 	}
 
-	return t.printFooter(w, len(rows))
+	if !t.DataOnly {
+		err = t.printFooter(w, rowCount)
+	}
+
+	return err
+}
+
+func (t Table) AddColumn(header string, values []Value) Table {
+	// @todo string -> Header?
+	t.Header = append(t.Header, NewHeader(header))
+
+	for i, row := range t.Rows {
+		row = append(row, values[i])
+		t.Rows[i] = row
+	}
+
+	return t
+}
+
+func buildHeaderVals(t Table) []Value {
+	var headerVals []Value
+
+	if len(t.Header) > 0 {
+		for _, h := range t.Header {
+			headerVals = append(headerVals, ValueFmt{
+				V:    ValueString{h.Title},
+				Func: t.HeaderFormatFunc,
+			})
+		}
+	}
+
+	return headerVals
 }
 
 func (t Table) printHeader(w io.Writer) error {
@@ -154,7 +194,7 @@ func (t Table) printFooter(w io.Writer, num int) error {
 		}
 	}
 
-	if len(t.Header) > 0 || len(t.HeaderVals) > 0 {
+	if len(t.Header) > 0 && strings.TrimSpace(t.Content) != "" {
 		_, err := fmt.Fprintf(w, "\n%d %s\n", num, t.Content)
 		if err != nil {
 			return err

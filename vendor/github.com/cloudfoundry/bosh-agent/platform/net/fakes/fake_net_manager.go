@@ -10,11 +10,21 @@ type FakeManager struct {
 	SetupNetworkingNetworks boshsettings.Networks
 	SetupNetworkingErr      error
 
+	SetupIPv6Config boshsettings.IPv6
+	SetupIPv6StopCh <-chan struct{}
+	SetupIPv6Err    error
+
 	GetConfiguredNetworkInterfacesInterfaces []string
 	GetConfiguredNetworkInterfacesErr        error
 
 	SetupDhcpNetworks boshsettings.Networks
 	SetupDhcpErr      error
+}
+
+func (net *FakeManager) SetupIPv6(config boshsettings.IPv6, stopCh <-chan struct{}) error {
+	net.SetupIPv6Config = config
+	net.SetupIPv6StopCh = stopCh
+	return net.SetupIPv6Err
 }
 
 func (net *FakeManager) SetupNetworking(networks boshsettings.Networks, errCh chan error) error {

@@ -3,6 +3,7 @@ package fakes
 
 import (
 	"sync"
+	"time"
 
 	"github.com/cloudfoundry/bosh-utils/logger"
 )
@@ -58,6 +59,22 @@ type FakeLogger struct {
 	ToggleForcedDebugStub        func()
 	toggleForcedDebugMutex       sync.RWMutex
 	toggleForcedDebugArgsForCall []struct{}
+	FlushStub                    func() error
+	flushMutex                   sync.RWMutex
+	flushArgsForCall             []struct{}
+	flushReturns                 struct {
+		result1 error
+	}
+	FlushTimeoutStub        func(time.Duration) error
+	flushTimeoutMutex       sync.RWMutex
+	flushTimeoutArgsForCall []struct {
+		arg1 time.Duration
+	}
+	flushTimeoutReturns struct {
+		result1 error
+	}
+	invocations      map[string][][]interface{}
+	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeLogger) Debug(tag string, msg string, args ...interface{}) {
@@ -67,6 +84,7 @@ func (fake *FakeLogger) Debug(tag string, msg string, args ...interface{}) {
 		msg  string
 		args []interface{}
 	}{tag, msg, args})
+	fake.recordInvocation("Debug", []interface{}{tag, msg, args})
 	fake.debugMutex.Unlock()
 	if fake.DebugStub != nil {
 		fake.DebugStub(tag, msg, args...)
@@ -92,6 +110,7 @@ func (fake *FakeLogger) DebugWithDetails(tag string, msg string, args ...interfa
 		msg  string
 		args []interface{}
 	}{tag, msg, args})
+	fake.recordInvocation("DebugWithDetails", []interface{}{tag, msg, args})
 	fake.debugWithDetailsMutex.Unlock()
 	if fake.DebugWithDetailsStub != nil {
 		fake.DebugWithDetailsStub(tag, msg, args...)
@@ -117,6 +136,7 @@ func (fake *FakeLogger) Info(tag string, msg string, args ...interface{}) {
 		msg  string
 		args []interface{}
 	}{tag, msg, args})
+	fake.recordInvocation("Info", []interface{}{tag, msg, args})
 	fake.infoMutex.Unlock()
 	if fake.InfoStub != nil {
 		fake.InfoStub(tag, msg, args...)
@@ -142,6 +162,7 @@ func (fake *FakeLogger) Warn(tag string, msg string, args ...interface{}) {
 		msg  string
 		args []interface{}
 	}{tag, msg, args})
+	fake.recordInvocation("Warn", []interface{}{tag, msg, args})
 	fake.warnMutex.Unlock()
 	if fake.WarnStub != nil {
 		fake.WarnStub(tag, msg, args...)
@@ -167,6 +188,7 @@ func (fake *FakeLogger) Error(tag string, msg string, args ...interface{}) {
 		msg  string
 		args []interface{}
 	}{tag, msg, args})
+	fake.recordInvocation("Error", []interface{}{tag, msg, args})
 	fake.errorMutex.Unlock()
 	if fake.ErrorStub != nil {
 		fake.ErrorStub(tag, msg, args...)
@@ -192,6 +214,7 @@ func (fake *FakeLogger) ErrorWithDetails(tag string, msg string, args ...interfa
 		msg  string
 		args []interface{}
 	}{tag, msg, args})
+	fake.recordInvocation("ErrorWithDetails", []interface{}{tag, msg, args})
 	fake.errorWithDetailsMutex.Unlock()
 	if fake.ErrorWithDetailsStub != nil {
 		fake.ErrorWithDetailsStub(tag, msg, args...)
@@ -215,6 +238,7 @@ func (fake *FakeLogger) HandlePanic(tag string) {
 	fake.handlePanicArgsForCall = append(fake.handlePanicArgsForCall, struct {
 		tag string
 	}{tag})
+	fake.recordInvocation("HandlePanic", []interface{}{tag})
 	fake.handlePanicMutex.Unlock()
 	if fake.HandlePanicStub != nil {
 		fake.HandlePanicStub(tag)
@@ -236,6 +260,7 @@ func (fake *FakeLogger) HandlePanicArgsForCall(i int) string {
 func (fake *FakeLogger) ToggleForcedDebug() {
 	fake.toggleForcedDebugMutex.Lock()
 	fake.toggleForcedDebugArgsForCall = append(fake.toggleForcedDebugArgsForCall, struct{}{})
+	fake.recordInvocation("ToggleForcedDebug", []interface{}{})
 	fake.toggleForcedDebugMutex.Unlock()
 	if fake.ToggleForcedDebugStub != nil {
 		fake.ToggleForcedDebugStub()
@@ -246,6 +271,102 @@ func (fake *FakeLogger) ToggleForcedDebugCallCount() int {
 	fake.toggleForcedDebugMutex.RLock()
 	defer fake.toggleForcedDebugMutex.RUnlock()
 	return len(fake.toggleForcedDebugArgsForCall)
+}
+
+func (fake *FakeLogger) Flush() error {
+	fake.flushMutex.Lock()
+	fake.flushArgsForCall = append(fake.flushArgsForCall, struct{}{})
+	fake.recordInvocation("Flush", []interface{}{})
+	fake.flushMutex.Unlock()
+	if fake.FlushStub != nil {
+		return fake.FlushStub()
+	} else {
+		return fake.flushReturns.result1
+	}
+}
+
+func (fake *FakeLogger) FlushCallCount() int {
+	fake.flushMutex.RLock()
+	defer fake.flushMutex.RUnlock()
+	return len(fake.flushArgsForCall)
+}
+
+func (fake *FakeLogger) FlushReturns(result1 error) {
+	fake.FlushStub = nil
+	fake.flushReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeLogger) FlushTimeout(arg1 time.Duration) error {
+	fake.flushTimeoutMutex.Lock()
+	fake.flushTimeoutArgsForCall = append(fake.flushTimeoutArgsForCall, struct {
+		arg1 time.Duration
+	}{arg1})
+	fake.recordInvocation("FlushTimeout", []interface{}{arg1})
+	fake.flushTimeoutMutex.Unlock()
+	if fake.FlushTimeoutStub != nil {
+		return fake.FlushTimeoutStub(arg1)
+	} else {
+		return fake.flushTimeoutReturns.result1
+	}
+}
+
+func (fake *FakeLogger) FlushTimeoutCallCount() int {
+	fake.flushTimeoutMutex.RLock()
+	defer fake.flushTimeoutMutex.RUnlock()
+	return len(fake.flushTimeoutArgsForCall)
+}
+
+func (fake *FakeLogger) FlushTimeoutArgsForCall(i int) time.Duration {
+	fake.flushTimeoutMutex.RLock()
+	defer fake.flushTimeoutMutex.RUnlock()
+	return fake.flushTimeoutArgsForCall[i].arg1
+}
+
+func (fake *FakeLogger) FlushTimeoutReturns(result1 error) {
+	fake.FlushTimeoutStub = nil
+	fake.flushTimeoutReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeLogger) Invocations() map[string][][]interface{} {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	fake.debugMutex.RLock()
+	defer fake.debugMutex.RUnlock()
+	fake.debugWithDetailsMutex.RLock()
+	defer fake.debugWithDetailsMutex.RUnlock()
+	fake.infoMutex.RLock()
+	defer fake.infoMutex.RUnlock()
+	fake.warnMutex.RLock()
+	defer fake.warnMutex.RUnlock()
+	fake.errorMutex.RLock()
+	defer fake.errorMutex.RUnlock()
+	fake.errorWithDetailsMutex.RLock()
+	defer fake.errorWithDetailsMutex.RUnlock()
+	fake.handlePanicMutex.RLock()
+	defer fake.handlePanicMutex.RUnlock()
+	fake.toggleForcedDebugMutex.RLock()
+	defer fake.toggleForcedDebugMutex.RUnlock()
+	fake.flushMutex.RLock()
+	defer fake.flushMutex.RUnlock()
+	fake.flushTimeoutMutex.RLock()
+	defer fake.flushTimeoutMutex.RUnlock()
+	return fake.invocations
+}
+
+func (fake *FakeLogger) recordInvocation(key string, args []interface{}) {
+	fake.invocationsMutex.Lock()
+	defer fake.invocationsMutex.Unlock()
+	if fake.invocations == nil {
+		fake.invocations = map[string][][]interface{}{}
+	}
+	if fake.invocations[key] == nil {
+		fake.invocations[key] = [][]interface{}{}
+	}
+	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
 var _ logger.Logger = new(FakeLogger)

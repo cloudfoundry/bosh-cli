@@ -1,11 +1,9 @@
 package app
 
 import (
-	"bytes"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -13,6 +11,7 @@ import (
 	"github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver"
 	boshdirs "github.com/cloudfoundry/bosh-agent/settings/directories"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
@@ -24,13 +23,10 @@ func init() {
 			agentConfPath string
 			agentConfJSON string
 			app           App
+			opts          Options
 		)
 
 		BeforeEach(func() {
-			if runtime.GOOS == "windows" {
-				Skip("Pending on Windows")
-			}
-
 			var err error
 
 			baseDir, err = ioutil.TempDir("", "go-agent-test")
@@ -108,6 +104,9 @@ func init() {
 			logger := boshlog.NewLogger(boshlog.LevelNone)
 			fakefs := boshsys.NewOsFileSystem(logger)
 			app = New(logger, fakefs)
+
+			opts, err = ParseOptions([]string{"bosh-agent", "-P", "dummy", "-C", agentConfPath, "-b", baseDir})
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		AfterEach(func() {
@@ -115,7 +114,7 @@ func init() {
 		})
 
 		It("Sets up device path resolver on platform specific to infrastructure", func() {
-			err := app.Setup([]string{"bosh-agent", "-P", "dummy", "-C", agentConfPath, "-b", baseDir})
+			err := app.Setup(opts)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(app.GetPlatform().GetDevicePathResolver()).To(Equal(devicepathresolver.NewIdentityDevicePathResolver()))
@@ -130,7 +129,7 @@ func init() {
 			})
 
 			It("uses a VirtioDevicePathResolver", func() {
-				err := app.Setup([]string{"bosh-agent", "-P", "dummy", "-C", agentConfPath, "-b", baseDir})
+				err := app.Setup(opts)
 				Expect(err).ToNot(HaveOccurred())
 				logLevel, err := boshlog.Levelify("DEBUG")
 				Expect(err).NotTo(HaveOccurred())
@@ -149,7 +148,7 @@ func init() {
 			})
 
 			It("uses a VirtioDevicePathResolver", func() {
-				err := app.Setup([]string{"bosh-agent", "-P", "dummy", "-C", agentConfPath, "-b", baseDir})
+				err := app.Setup(opts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(app.GetPlatform().GetDevicePathResolver()).To(
@@ -159,21 +158,18 @@ func init() {
 
 		Context("logging stemcell version and git sha", func() {
 			var (
-				logger                  boshlog.Logger
-				outBuf                  *bytes.Buffer
+				logger                  *loggerfakes.FakeLogger
 				fakeFs                  boshsys.FileSystem
 				stemcellVersionFilePath string
 				stemcellSha1FilePath    string
 			)
 
 			JustBeforeEach(func() {
-				outBuf = bytes.NewBufferString("")
-				errBuf := bytes.NewBufferString("")
-				logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuf, errBuf)
 				fakeFs = fakesys.NewFakeFileSystem()
 				dirProvider := boshdirs.NewProvider(baseDir)
 				stemcellVersionFilePath = filepath.Join(dirProvider.EtcDir(), "stemcell_version")
 				stemcellSha1FilePath = filepath.Join(dirProvider.EtcDir(), "stemcell_git_sha1")
+				logger = &loggerfakes.FakeLogger{}
 				app = New(logger, fakeFs)
 			})
 
@@ -181,24 +177,28 @@ func init() {
 				It("should print out the stemcell version and sha in the logs", func() {
 					fakeFs.WriteFileString(stemcellVersionFilePath, "version-blah")
 					fakeFs.WriteFileString(stemcellSha1FilePath, "sha1-blah")
-					app.Setup([]string{"bosh-agent", "-P", "dummy", "-C", agentConfPath, "-b", baseDir})
-					Expect(string(outBuf.Bytes())).To(ContainSubstring("Running on stemcell version 'version-blah' (git: sha1-blah)"))
+					app.Setup(opts)
+					_, loggedString, _ := logger.InfoArgsForCall(0)
+					Expect(loggedString).To(ContainSubstring("Running on stemcell version 'version-blah' (git: sha1-blah)"))
 				})
 			})
 
 			Context("when stemcell version file is NOT present", func() {
 				It("should print out the sha in the logs", func() {
 					fakeFs.WriteFileString(stemcellSha1FilePath, "sha1-blah")
-					app.Setup([]string{"bosh-agent", "-P", "dummy", "-C", agentConfPath, "-b", baseDir})
-					Expect(string(outBuf.Bytes())).To(ContainSubstring("Running on stemcell version '?' (git: sha1-blah)"))
+					app.Setup(opts)
+					_, loggedString, _ := logger.InfoArgsForCall(0)
+					Expect(loggedString).To(ContainSubstring("Running on stemcell version '?' (git: sha1-blah)"))
 				})
 			})
 
 			Context("when sha version file is NOT present", func() {
 				It("should print out the stemcell version in the logs", func() {
 					fakeFs.WriteFileString(stemcellVersionFilePath, "version-blah")
-					app.Setup([]string{"bosh-agent", "-P", "dummy", "-C", agentConfPath, "-b", baseDir})
-					Expect(string(outBuf.Bytes())).To(ContainSubstring("Running on stemcell version 'version-blah' (git: ?)"))
+					app.Setup(opts)
+
+					_, loggedString, _ := logger.InfoArgsForCall(0)
+					Expect(loggedString).To(ContainSubstring("Running on stemcell version 'version-blah' (git: ?)"))
 				})
 			})
 
@@ -206,8 +206,10 @@ func init() {
 				It("should print out the sha in the logs", func() {
 					fakeFs.WriteFileString(stemcellVersionFilePath, "")
 					fakeFs.WriteFileString(stemcellSha1FilePath, "sha1-blah")
-					app.Setup([]string{"bosh-agent", "-P", "dummy", "-C", agentConfPath, "-b", baseDir})
-					Expect(string(outBuf.Bytes())).To(ContainSubstring("Running on stemcell version '?' (git: sha1-blah)"))
+
+					app.Setup(opts)
+					_, loggedString, _ := logger.InfoArgsForCall(0)
+					Expect(loggedString).To(ContainSubstring("Running on stemcell version '?' (git: sha1-blah)"))
 				})
 			})
 
@@ -215,15 +217,17 @@ func init() {
 				It("should print out the stemcell version in the logs", func() {
 					fakeFs.WriteFileString(stemcellVersionFilePath, "version-blah")
 					fakeFs.WriteFileString(stemcellSha1FilePath, "")
-					app.Setup([]string{"bosh-agent", "-P", "dummy", "-C", agentConfPath, "-b", baseDir})
-					Expect(string(outBuf.Bytes())).To(ContainSubstring("Running on stemcell version 'version-blah' (git: ?)"))
+					app.Setup(opts)
+					_, loggedString, _ := logger.InfoArgsForCall(0)
+					Expect(loggedString).To(ContainSubstring("Running on stemcell version 'version-blah' (git: ?)"))
 				})
 			})
 
 			Context("when stemcell version and sha files are NOT present", func() {
 				It("should print unknown version and sha in the logs", func() {
-					app.Setup([]string{"bosh-agent", "-P", "dummy", "-C", agentConfPath, "-b", baseDir})
-					Expect(string(outBuf.Bytes())).To(ContainSubstring("Running on stemcell version '?' (git: ?)"))
+					app.Setup(opts)
+					_, loggedString, _ := logger.InfoArgsForCall(0)
+					Expect(loggedString).To(ContainSubstring("Running on stemcell version '?' (git: ?)"))
 				})
 			})
 		})

@@ -49,14 +49,12 @@ func init() {
 				platform    *fakeplatform.FakePlatform
 				dirProvider boshdir.Provider
 
-				settingsSource  *fakeinf.FakeSettingsSource
 				settingsService *fakesettings.FakeSettingsService
 			)
 
 			BeforeEach(func() {
 				platform = fakeplatform.NewFakePlatform()
 				dirProvider = boshdir.NewProvider("/var/vcap")
-				settingsSource = &fakeinf.FakeSettingsSource{}
 				settingsService = &fakesettings.FakeSettingsService{}
 			})
 
@@ -91,7 +89,7 @@ func init() {
 						err := bootstrap()
 						Expect(err).NotTo(HaveOccurred())
 
-						Expect(platform.SetupSSHPublicKey).To(Equal("fake-public-key"))
+						Expect(platform.SetupSSHPublicKey).To(ConsistOf("fake-public-key"))
 						Expect(platform.SetupSSHUsername).To(Equal("vcap"))
 					})
 
@@ -106,7 +104,7 @@ func init() {
 
 				Context("when public key key is empty", func() {
 					BeforeEach(func() {
-						settingsSource.PublicKey = ""
+						settingsService.PublicKey = ""
 					})
 
 					It("gets the public key and does not setup SSH", func() {
@@ -116,6 +114,46 @@ func init() {
 						Expect(platform.SetupSSHCalled).To(BeFalse())
 					})
 				})
+
+				Context("when the environment has authorized keys", func() {
+					BeforeEach(func() {
+						settingsService.Settings.Env.Bosh.AuthorizedKeys = []string{"fake-public-key", "another-fake-public-key"}
+						settingsService.PublicKey = ""
+					})
+
+					It("gets the public key and sets up SSH", func() {
+						err := bootstrap()
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(platform.SetupSSHCalled).To(BeTrue())
+						Expect(platform.SetupSSHPublicKey).To(ConsistOf("fake-public-key", "another-fake-public-key"))
+						Expect(platform.SetupSSHUsername).To(Equal("vcap"))
+					})
+				})
+
+				Context("when both have authorized keys", func() {
+					BeforeEach(func() {
+						settingsService.Settings.Env.Bosh.AuthorizedKeys = []string{"another-fake-public-key"}
+						settingsService.PublicKey = "fake-public-key"
+					})
+
+					It("gets the public key and sets up SSH", func() {
+						err := bootstrap()
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(platform.SetupSSHCalled).To(BeTrue())
+						Expect(platform.SetupSSHPublicKey).To(ConsistOf("fake-public-key", "another-fake-public-key"))
+						Expect(platform.SetupSSHUsername).To(Equal("vcap"))
+					})
+				})
+			})
+
+			It("sets up ipv6", func() {
+				settingsService.Settings.Env.Bosh.IPv6.Enable = true
+
+				err := bootstrap()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(platform.SetupIPv6Config).To(Equal(boshsettings.IPv6{Enable: true}))
 			})
 
 			It("sets up hostname", func() {
@@ -140,6 +178,20 @@ func init() {
 				Expect(err.Error()).To(ContainSubstring("fake-load-error"))
 			})
 
+			Context("load settings errors", func() {
+				BeforeEach(func() {
+					settingsService.LoadSettingsError = errors.New("fake-load-error")
+					settingsService.PublicKey = "fake-public-key"
+				})
+
+				It("sets a ssh key despite settings error", func() {
+					err := bootstrap()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-load-error"))
+					Expect(platform.SetupSSHCalled).To(BeTrue())
+				})
+			})
+
 			It("sets up networking", func() {
 				networks := boshsettings.Networks{
 					"bosh": boshsettings.Network{},
@@ -152,6 +204,9 @@ func init() {
 			})
 
 			It("sets up ephemeral disk", func() {
+				var swapSize uint64
+				swapSize = 2048
+				settingsService.Settings.Env.Bosh.SwapSizeInMB = &swapSize
 				settingsService.Settings.Disks = boshsettings.Disks{
 					Ephemeral: "fake-ephemeral-disk-setting",
 				}
@@ -161,6 +216,7 @@ func init() {
 				err := bootstrap()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(platform.SetupEphemeralDiskWithPathDevicePath).To(Equal("/dev/sda"))
+				Expect(*platform.SetupEphemeralDiskWithPathSwapSize).To(Equal(uint64(2048 * 1024 * 1024)))
 				Expect(platform.GetEphemeralDiskPathSettings).To(Equal(boshsettings.DiskSettings{
 					VolumeID: "fake-ephemeral-disk-setting",
 					Path:     "fake-ephemeral-disk-setting",
@@ -214,6 +270,24 @@ func init() {
 				Expect(platform.SetupTmpDirCalled).To(BeTrue())
 			})
 
+			It("sets up /home dir", func() {
+				err := bootstrap()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(platform.SetupHomeDirCalled).To(BeTrue())
+			})
+
+			It("sets up log dir", func() {
+				err := bootstrap()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(platform.SetupLogDirCalled).To(BeTrue())
+			})
+
+			It("sets up logging and auditing services", func() {
+				err := bootstrap()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(platform.SetupLoggingAndAuditingCalled).To(BeTrue())
+			})
+
 			It("returns error if set up of tmp dir fails", func() {
 				platform.SetupTmpDirErr = errors.New("fake-setup-tmp-dir-err")
 				err := bootstrap()
@@ -256,14 +330,6 @@ func init() {
 				Expect(1).To(Equal(len(platform.UserPasswords)))
 				Expect("some-encrypted-password").ToNot(Equal(platform.UserPasswords["root"]))
 				Expect("some-encrypted-password").To(Equal(platform.UserPasswords["vcap"]))
-			})
-
-			It("does not set password if not provided", func() {
-				settingsService.Settings.Env.Bosh.KeepRootPassword = false
-
-				err := bootstrap()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(0).To(Equal(len(platform.UserPasswords)))
 			})
 
 			It("sets ntp", func() {
@@ -317,21 +383,257 @@ func init() {
 				})
 			})
 
-			Describe("Mount persistent disk", func() {
-				Context("when there is more than one persistent disk", func() {
-					It("returns error", func() {
+			Describe("RemoveStaticLibraries", func() {
+				It("removes development tools if settings.env.bosh.remove_static_libraries is true", func() {
+					settingsService.Settings.Env.Bosh.RemoveStaticLibraries = true
+					platform.GetFs().WriteFileString(path.Join(dirProvider.EtcDir(), "static_libraries_list"), "/usr/lib/libsupp.a")
+
+					err := bootstrap()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(platform.IsRemoveStaticLibrariesCalled).To(BeTrue())
+					Expect(platform.PackageFileListPath).To(Equal(path.Join(dirProvider.EtcDir(), "static_libraries_list")))
+				})
+
+				It("does NOTHING if settings.env.bosh.remove_static_libraries is NOT set", func() {
+					err := bootstrap()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(platform.IsRemoveStaticLibrariesCalled).To(BeFalse())
+				})
+
+				It("does NOTHING if if settings.env.bosh.remove_static_libraries is true AND static_libraries_list does NOT exist", func() {
+					settingsService.Settings.Env.Bosh.RemoveStaticLibraries = true
+					err := bootstrap()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(platform.IsRemoveStaticLibrariesCalled).To(BeFalse())
+				})
+			})
+
+			Describe("checking persistent disks", func() {
+				Context("managed persistent disk", func() {
+					BeforeEach(func() {
+						updateSettings := boshsettings.UpdateSettings{}
+						updateSettingsBytes, err := json.Marshal(updateSettings)
+						Expect(err).ToNot(HaveOccurred())
+
+						updateSettingsPath := filepath.Join(platform.GetDirProvider().BoshDir(), "update_settings.json")
+						platform.Fs.WriteFile(updateSettingsPath, updateSettingsBytes)
+					})
+
+					It("succesfully bootstraps", func() {
+						err := bootstrap()
+						Expect(err).ToNot(HaveOccurred())
+					})
+
+					Context("there is a single managed persistent disk attached", func() {
+						BeforeEach(func() {
+							settingsService.Settings.Disks = boshsettings.Disks{
+								Persistent: map[string]interface{}{
+									"vol-123": "/dev/sdb",
+								},
+							}
+						})
+
+						It("succesfully bootstraps", func() {
+							err := bootstrap()
+							Expect(err).ToNot(HaveOccurred())
+						})
+					})
+
+					Context("there are multiple managed persistent disk attached", func() {
+						BeforeEach(func() {
+							settingsService.Settings.Disks = boshsettings.Disks{
+								Persistent: map[string]interface{}{
+									"vol-123": "/dev/sdb",
+									"vol-456": "/dev/sdc",
+								},
+							}
+						})
+
+						It("returns an error", func() {
+							err := bootstrap()
+							Expect(err).To(HaveOccurred())
+							Expect(err.Error()).To(ContainSubstring("Unexpected disk attached"))
+						})
+					})
+
+					Context("last mount information is present", func() {
+						var managedDiskSettingsPath string
+
+						BeforeEach(func() {
+							diskCid := "i-am-a-disk-cid"
+
+							managedDiskSettingsPath = filepath.Join(platform.GetDirProvider().BoshDir(), "managed_disk_settings.json")
+							platform.Fs.WriteFile(managedDiskSettingsPath, []byte(diskCid))
+
+							settingsService.Settings.Disks = boshsettings.Disks{
+								Persistent: map[string]interface{}{
+									"i-am-a-disk-cid": "/dev/sdb",
+								},
+							}
+						})
+
+						It("successfully bootstraps", func() {
+							err := bootstrap()
+							Expect(err).ToNot(HaveOccurred())
+						})
+
+						Context("when the last mount information cannot be read", func() {
+							It("returns an error", func() {
+								platform.Fs.RegisterReadFileError(managedDiskSettingsPath, errors.New("Oh noes!"))
+								err := bootstrap()
+								Expect(err).To(HaveOccurred())
+								Expect(err.Error()).To(ContainSubstring("Reading managed_disk_settings.json"))
+							})
+						})
+
+						Context("attached disk's CID differs from last mounted CID", func() {
+							BeforeEach(func() {
+								diskCid := "i-am-a-different-cid"
+
+								platform.Fs.WriteFile(managedDiskSettingsPath, []byte(diskCid))
+							})
+
+							It("returns an error", func() {
+								err := bootstrap()
+								Expect(err).To(HaveOccurred())
+								Expect(err.Error()).To(ContainSubstring("Attached disk disagrees with previous mount"))
+							})
+						})
+
+						Context("when there are no attached disks", func() {
+							BeforeEach(func() {
+								settingsService.Settings.Disks = boshsettings.Disks{}
+							})
+
+							It("successfully bootstraps", func() {
+								err := bootstrap()
+								Expect(err).ToNot(HaveOccurred())
+							})
+						})
+					})
+				})
+
+				Context("unmanaged persistent disk", func() {
+					BeforeEach(func() {
+						updateSettings := boshsettings.UpdateSettings{
+							DiskAssociations: []boshsettings.DiskAssociation{
+								boshsettings.DiskAssociation{
+									Name:    "test-disk",
+									DiskCID: "vol-123",
+								},
+								boshsettings.DiskAssociation{
+									Name:    "test-disk-2",
+									DiskCID: "vol-456",
+								},
+							},
+						}
+
+						updateSettingsBytes, err := json.Marshal(updateSettings)
+						Expect(err).ToNot(HaveOccurred())
+
+						updateSettingsPath := filepath.Join(platform.GetDirProvider().BoshDir(), "update_settings.json")
+						platform.Fs.WriteFile(updateSettingsPath, updateSettingsBytes)
+
 						settingsService.Settings.Disks = boshsettings.Disks{
 							Persistent: map[string]interface{}{
 								"vol-123": "/dev/sdb",
 								"vol-456": "/dev/sdc",
 							},
 						}
+					})
 
+					It("succesfully bootstraps", func() {
 						err := bootstrap()
-						Expect(err).To(HaveOccurred())
+						Expect(err).ToNot(HaveOccurred())
+					})
+
+					Context("a disk is not attached that should be", func() {
+						BeforeEach(func() {
+							settingsService.Settings.Disks = boshsettings.Disks{}
+						})
+
+						It("returns an error", func() {
+							err := bootstrap()
+							Expect(err).To(HaveOccurred())
+							Expect(err.Error()).To(ContainSubstring("Disk vol-123 is not attached"))
+						})
+					})
+
+					Context("A disk is attached that shouldn't be", func() {
+						BeforeEach(func() {
+							settingsService.Settings.Disks = boshsettings.Disks{
+								Persistent: map[string]interface{}{
+									"vol-123": "/dev/sdb",
+									"vol-456": "/dev/sdc",
+									"vol-789": "/dev/sdd",
+								},
+							}
+						})
+
+						It("returns an error", func() {
+							err := bootstrap()
+							Expect(err).To(HaveOccurred())
+							Expect(err.Error()).To(ContainSubstring("Unexpected disk attached"))
+						})
 					})
 				})
 
+				Context("update_settings.json does not exist", func() {
+					Context("there are multiple disks in the registry for this instance", func() {
+						BeforeEach(func() {
+							settingsService.Settings.Disks = boshsettings.Disks{
+								Persistent: map[string]interface{}{
+									"vol-123": "/dev/sdb",
+									"vol-456": "/dev/sdc",
+								},
+							}
+						})
+
+						It("returns error", func() {
+							err := bootstrap()
+							Expect(err).To(HaveOccurred())
+							Expect(err.Error()).To(ContainSubstring("Unexpected disk attached"))
+						})
+					})
+
+					Context("there are no disks in the registry for this instance", func() {
+						It("succesfully bootstraps", func() {
+							err := bootstrap()
+							Expect(err).ToNot(HaveOccurred())
+						})
+					})
+				})
+
+				Context("when update_settings.json exists but cannot be read", func() {
+					BeforeEach(func() {
+						updateSettingsPath := filepath.Join(platform.GetDirProvider().BoshDir(), "update_settings.json")
+						platform.Fs.WriteFile(updateSettingsPath, []byte(`{"persistent_disks":{"invalid":true`))
+					})
+
+					It("returns error", func() {
+						platform.Fs.ReadFileError = errors.New("Oh noes!")
+
+						err := bootstrap()
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("Reading update_settings.json"))
+					})
+				})
+
+				Context("when unmarshalling update_settings fails", func() {
+					BeforeEach(func() {
+						updateSettingsPath := filepath.Join(platform.GetDirProvider().BoshDir(), "update_settings.json")
+						platform.Fs.WriteFile(updateSettingsPath, []byte(`{"persistent_disks":{"invalid":true`))
+					})
+
+					It("returns wrapped error", func() {
+						err := bootstrap()
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("Unmarshalling update_settings.json"))
+					})
+				})
+			})
+
+			Describe("Mount persistent disk", func() {
 				Context("when there is no persistent disk", func() {
 					It("does not try to mount ", func() {
 						settingsService.Settings.Disks = boshsettings.Disks{
@@ -362,6 +664,15 @@ func init() {
 				})
 
 				Context("when there is no partition on drive specified by settings", func() {
+					BeforeEach(func() {
+						updateSettings := boshsettings.UpdateSettings{}
+						updateSettingsBytes, err := json.Marshal(updateSettings)
+						Expect(err).ToNot(HaveOccurred())
+
+						updateSettingsPath := filepath.Join(platform.GetDirProvider().BoshDir(), "update_settings.json")
+						platform.Fs.WriteFile(updateSettingsPath, updateSettingsBytes)
+					})
+
 					It("does not try to mount ", func() {
 						settingsService.Settings.Disks = boshsettings.Disks{
 							Persistent: map[string]interface{}{
@@ -378,7 +689,14 @@ func init() {
 				})
 
 				Context("when specified disk has partition", func() {
-					It("mounts persistent disk", func() {
+					BeforeEach(func() {
+						updateSettings := boshsettings.UpdateSettings{}
+						updateSettingsBytes, err := json.Marshal(updateSettings)
+						Expect(err).ToNot(HaveOccurred())
+
+						updateSettingsPath := filepath.Join(platform.GetDirProvider().BoshDir(), "update_settings.json")
+						platform.Fs.WriteFile(updateSettingsPath, updateSettingsBytes)
+
 						settingsService.Settings.Disks = boshsettings.Disks{
 							Persistent: map[string]interface{}{
 								"vol-123": map[string]interface{}{
@@ -387,16 +705,37 @@ func init() {
 								},
 							},
 						}
+					})
+
+					It("does not mount the disk", func() {
 						platform.SetIsPersistentDiskMountable(true, nil)
 
 						err := bootstrap()
 						Expect(err).NotTo(HaveOccurred())
-						Expect(platform.MountPersistentDiskSettings).To(Equal(boshsettings.DiskSettings{
-							ID:       "vol-123",
-							VolumeID: "2",
-							Path:     "/dev/sdb",
-						}))
-						Expect(platform.MountPersistentDiskMountPoint).To(Equal(dirProvider.StoreDir()))
+						Expect(platform.MountPersistentDiskSettings).To(Equal(boshsettings.DiskSettings{}))
+						Expect(platform.MountPersistentDiskMountPoint).To(Equal(""))
+					})
+
+					Context("when last mounted cid information is present", func() {
+						BeforeEach(func() {
+							diskCid := "vol-123"
+
+							managedDiskSettingsPath := filepath.Join(platform.GetDirProvider().BoshDir(), "managed_disk_settings.json")
+							platform.Fs.WriteFile(managedDiskSettingsPath, []byte(diskCid))
+						})
+
+						It("mounts persistent disk", func() {
+							platform.SetIsPersistentDiskMountable(true, nil)
+
+							err := bootstrap()
+							Expect(err).NotTo(HaveOccurred())
+							Expect(platform.MountPersistentDiskSettings).To(Equal(boshsettings.DiskSettings{
+								ID:       "vol-123",
+								VolumeID: "2",
+								Path:     "/dev/sdb",
+							}))
+							Expect(platform.MountPersistentDiskMountPoint).To(Equal(dirProvider.StoreDir()))
+						})
 					})
 				})
 			})
@@ -477,7 +816,7 @@ func init() {
 				linuxCdutil := boshcdrom.NewCdUtil(dirProvider.SettingsDir(), fs, linuxCdrom, logger)
 
 				compressor := boshcmd.NewTarballCompressor(runner, fs)
-				copier := boshcmd.NewCpCopier(runner, fs, logger)
+				copier := boshcmd.NewGenericCpCopier(fs, logger)
 
 				sigarCollector := boshsigar.NewSigarStatsCollector(&sigar.ConcreteSigar{})
 
@@ -526,6 +865,7 @@ func init() {
 					logger,
 					defaultNetworkResolver,
 					fakeUUIDGenerator,
+					boshplatform.NewDelayedAuditLogger(fakeplatform.NewFakeAuditLoggerProvider(), logger),
 				)
 			})
 

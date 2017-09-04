@@ -29,6 +29,8 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
+var pipeExePath = "C:\\var\\vcap\\bosh\\bin\\pipe.exe"
+
 const (
 	serviceDescription = "vcap"
 
@@ -53,6 +55,11 @@ const (
 	listAllJobsScript = `
 (get-wmiobject win32_service -filter "description='` + serviceDescription + `'") | ForEach{ $_.Name, $_.ProcessId }
 `
+
+	listAllServiceNames = `
+(get-wmiobject win32_service -filter "description='` + serviceDescription + `'") | ForEach{ $_.Name }
+`
+
 	deleteAllJobsScript = `
 (get-wmiobject win32_service -filter "description='` + serviceDescription + `'") | ForEach{ $_.delete() }
 `
@@ -62,19 +69,22 @@ const (
 	unmonitorJobScript = `
 (get-wmiobject win32_service -filter "description='` + serviceDescription + `'") | ForEach{ Set-Service $_.Name -startuptype "Disabled" }
 `
-	autoStartJobScript = `
-(get-wmiobject win32_service -filter "description='` + serviceDescription + `'") | ForEach{ Set-Service $_.Name -startuptype "Automatic" }
+	manualStartJobScript = `
+(get-wmiobject win32_service -filter "description='` + serviceDescription + `'") | ForEach{ Set-Service $_.Name -startuptype "Manual" }
 `
 
 	waitForDeleteAllScript = `
 (get-wmiobject win32_service -filter "description='` + serviceDescription + `'").Length
 `
+	disableAgentAutoStart = `Set-Service bosh-agent -startuptype "Manual"`
 )
 
 // get-wmiobject win32_service -filter "description='vcap'"
 
 type serviceLogMode struct {
-	Mode string `xml:"mode,attr"`
+	Mode          string `xml:"mode,attr"`
+	SizeThreshold string `xml:"sizeThreshold"`
+	KeepFiles     string `xml:"keepFiles"`
 }
 
 type serviceOnfailure struct {
@@ -88,16 +98,32 @@ type serviceEnv struct {
 }
 
 type WindowsServiceWrapperConfig struct {
-	XMLName     xml.Name         `xml:"service"`
-	ID          string           `xml:"id"`
-	Name        string           `xml:"name"`
-	Description string           `xml:"description"`
-	Executable  string           `xml:"executable"`
-	Arguments   []string         `xml:"argument"`
-	LogPath     string           `xml:"logpath"`
-	LogMode     serviceLogMode   `xml:"log"`
-	Onfailure   serviceOnfailure `xml:"onfailure"`
-	Env         []serviceEnv     `xml:"env,omitempty"`
+	XMLName     xml.Name `xml:"service"`
+	ID          string   `xml:"id"`
+	Name        string   `xml:"name"`
+	Description string   `xml:"description"`
+
+	// Start exe and args if no stop arguments are provided
+	Executable string   `xml:"executable"`
+	Arguments  []string `xml:"argument"`
+
+	// Optional stop arguments
+	StopExecutable string   `xml:"stopexecutable,omitempty"`
+	StopArguments  []string `xml:"stopargument"`
+
+	// Replaces Arguments if stop arguments are provided
+	StartArguments []string `xml:"startargument"`
+
+	LogPath                string           `xml:"logpath"`
+	LogMode                serviceLogMode   `xml:"log"`
+	Onfailure              serviceOnfailure `xml:"onfailure"`
+	Env                    []serviceEnv     `xml:"env,omitempty"`
+	StopParentProcessFirst bool             `xml:"stopparentprocessfirst,omitempty"`
+}
+
+type StopCommand struct {
+	Executable string   `json:"executable"`
+	Args       []string `json:"args"`
 }
 
 type WindowsProcess struct {
@@ -105,27 +131,53 @@ type WindowsProcess struct {
 	Executable string            `json:"executable"`
 	Args       []string          `json:"args"`
 	Env        map[string]string `json:"env"`
+	Stop       *StopCommand      `json:"stop,omitempty"`
 }
 
-func (p *WindowsProcess) ServiceWrapperConfig(logPath string) *WindowsServiceWrapperConfig {
+func (p *WindowsProcess) ServiceWrapperConfig(logPath string, eventPort int, machineIP string) *WindowsServiceWrapperConfig {
+	args := append([]string{p.Executable}, p.Args...)
 	srcv := &WindowsServiceWrapperConfig{
 		ID:          p.Name,
 		Name:        p.Name,
 		Description: serviceDescription,
-		Executable:  p.Executable,
-		Arguments:   p.Args,
+		Executable:  pipeExePath,
 		LogPath:     logPath,
 		LogMode: serviceLogMode{
-			Mode: "append",
+			Mode:          "roll-by-size",
+			SizeThreshold: "50000",
+			KeepFiles:     "7",
 		},
 		Onfailure: serviceOnfailure{
 			Action: "restart",
 			Delay:  "5 sec",
 		},
+		StopParentProcessFirst: false,
 	}
+
+	// If stop args are provided the 'arguments' element
+	// must be named 'startarguments'.
+	if p.Stop != nil && len(p.Stop.Args) != 0 {
+		srcv.StartArguments = args
+		srcv.StopArguments = p.Stop.Args
+		if p.Stop.Executable != "" {
+			srcv.StopExecutable = p.Stop.Executable
+		} else {
+			srcv.StopExecutable = p.Executable // Do not use pipe
+		}
+	} else {
+		srcv.Arguments = args
+	}
+
+	srcv.Env = make([]serviceEnv, 0, len(p.Env))
 	for k, v := range p.Env {
 		srcv.Env = append(srcv.Env, serviceEnv{Name: k, Value: v})
 	}
+	srcv.Env = append(srcv.Env,
+		serviceEnv{Name: "__PIPE_SERVICE_NAME", Value: p.Name},
+		serviceEnv{Name: "__PIPE_LOG_DIR", Value: logPath},
+		serviceEnv{Name: "__PIPE_NOTIFY_HTTP", Value: fmt.Sprintf("http://localhost:%d", eventPort)},
+		serviceEnv{Name: "__PIPE_MACHINE_IP", Value: machineIP},
+	)
 
 	return srcv
 }
@@ -147,6 +199,7 @@ type windowsJobSupervisor struct {
 	fs                    boshsys.FileSystem
 	logger                boshlog.Logger
 	logTag                string
+	machineIP             string
 	msgCh                 chan *windowsServiceEvent
 	monitor               *monitor.Monitor
 	jobFailuresServerPort int
@@ -171,6 +224,7 @@ func NewWindowsJobSupervisor(
 	logger boshlog.Logger,
 	jobFailuresServerPort int,
 	cancelChan chan bool,
+	machineIP string,
 ) JobSupervisor {
 	s := &windowsJobSupervisor{
 		cmdRunner:   cmdRunner,
@@ -178,6 +232,7 @@ func NewWindowsJobSupervisor(
 		fs:          fs,
 		logger:      logger,
 		logTag:      "windowsJobSupervisor",
+		machineIP:   machineIP,
 		msgCh:       make(chan *windowsServiceEvent, 8),
 		jobFailuresServerPort: jobFailuresServerPort,
 		cancelServer:          cancelChan,
@@ -196,8 +251,15 @@ func (w *windowsJobSupervisor) Reload() error {
 }
 
 func (w *windowsJobSupervisor) Start() error {
+	// Set the starttype of the service running the Agent to 'manual'.
+	// This will prevent the agent from automatically starting if the
+	// machine is rebooted.
+	//
+	// Do this here, as we know the agent has successfully connected
+	// with the director and is healthy.
+	w.cmdRunner.RunCommand("-Command", disableAgentAutoStart)
 
-	_, _, _, err := w.cmdRunner.RunCommand("-Command", autoStartJobScript)
+	_, _, _, err := w.cmdRunner.RunCommand("-Command", manualStartJobScript)
 	if err != nil {
 		return bosherr.WrapError(err, "Starting windows job process")
 	}
@@ -227,6 +289,75 @@ func (w *windowsJobSupervisor) Stop() error {
 	}
 	if err := w.fs.WriteFileString(w.stoppedFilePath(), ""); err != nil {
 		return bosherr.WrapError(err, "Removing stop services")
+	}
+	return nil
+}
+
+func (w *windowsJobSupervisor) StopAndWait() error {
+	const Timeout = time.Second * 3 // match
+
+	stdout, _, _, err := w.cmdRunner.RunCommand("-Command", listAllServiceNames)
+	if err != nil {
+		return bosherr.WrapError(err, "Disabling services")
+	}
+	names := strings.Split(strings.TrimSpace(stdout), "\r\n")
+	m, err := mgr.Connect()
+	if err != nil {
+		return err // TODO: Wrap
+	}
+	defer m.Disconnect()
+	var svcs []*mgr.Service
+	for _, name := range names {
+		s, err := m.OpenService(name)
+		if err != nil {
+			continue
+		}
+		svcs = append(svcs, s)
+	}
+	defer func() {
+		for _, s := range svcs {
+			s.Close()
+		}
+	}()
+
+	doneCh := make(chan struct{})
+	stopCh := make(chan struct{})
+	defer close(stopCh)
+
+	go func() {
+		tick := time.NewTicker(time.Millisecond * 100)
+		for {
+			select {
+			case <-tick.C:
+				stopped := true
+				for _, s := range svcs {
+					st, err := s.Query()
+					if err != nil || st.State != svc.Stopped {
+						stopped = false
+						break
+					}
+				}
+				if stopped {
+					tick.Stop()
+					close(doneCh)
+					return
+				}
+			case <-stopCh:
+				return
+			}
+		}
+	}()
+
+	err = w.Stop()
+	if err != nil {
+		return err
+	}
+
+	select {
+	case <-doneCh:
+		// Ok
+	case <-time.After(Timeout):
+		return fmt.Errorf("StopAndWait: timed after: %s", Timeout)
 	}
 	return nil
 }
@@ -347,7 +478,7 @@ func (w *windowsJobSupervisor) AddJob(jobName string, jobIndex int, configPath s
 		}
 
 		buf.Reset()
-		serviceConfig := process.ServiceWrapperConfig(logPath)
+		serviceConfig := process.ServiceWrapperConfig(logPath, w.jobFailuresServerPort, w.machineIP)
 		if err := xml.NewEncoder(&buf).Encode(serviceConfig); err != nil {
 			return bosherr.WrapErrorf(err, "Rendering service config template for service '%s'", process.Name)
 		}

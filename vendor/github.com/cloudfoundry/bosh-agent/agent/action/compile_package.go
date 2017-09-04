@@ -5,6 +5,7 @@ import (
 
 	boshmodels "github.com/cloudfoundry/bosh-agent/agent/applier/models"
 	boshcomp "github.com/cloudfoundry/bosh-agent/agent/compiler"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
@@ -17,7 +18,7 @@ func NewCompilePackage(compiler boshcomp.Compiler) (compilePackage CompilePackag
 	return
 }
 
-func (a CompilePackageAction) IsAsynchronous() bool {
+func (a CompilePackageAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return true
 }
 
@@ -25,11 +26,15 @@ func (a CompilePackageAction) IsPersistent() bool {
 	return false
 }
 
-func (a CompilePackageAction) Run(blobID, sha1, name, version string, deps boshcomp.Dependencies) (val map[string]interface{}, err error) {
+func (a CompilePackageAction) IsLoggable() bool {
+	return true
+}
+
+func (a CompilePackageAction) Run(blobID string, multiDigest boshcrypto.MultipleDigest, name, version string, deps boshcomp.Dependencies) (val map[string]interface{}, err error) {
 	pkg := boshcomp.Package{
 		BlobstoreID: blobID,
 		Name:        name,
-		Sha1:        sha1,
+		Sha1:        multiDigest,
 		Version:     version,
 	}
 
@@ -46,7 +51,7 @@ func (a CompilePackageAction) Run(blobID, sha1, name, version string, deps boshc
 		})
 	}
 
-	uploadedBlobID, uploadedSha1, err := a.compiler.Compile(pkg, modelsDeps)
+	uploadedBlobID, uploadedDigest, err := a.compiler.Compile(pkg, modelsDeps)
 	if err != nil {
 		err = bosherr.WrapErrorf(err, "Compiling package %s", pkg.Name)
 		return
@@ -54,7 +59,7 @@ func (a CompilePackageAction) Run(blobID, sha1, name, version string, deps boshc
 
 	result := map[string]string{
 		"blobstore_id": uploadedBlobID,
-		"sha1":         uploadedSha1,
+		"sha1":         uploadedDigest.String(),
 	}
 
 	val = map[string]interface{}{

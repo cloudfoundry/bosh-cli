@@ -3,10 +3,12 @@ package crypto
 import (
 	"fmt"
 	"io"
+	"strings"
+
+	"os"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"os"
 )
 
 type digestImpl struct {
@@ -17,7 +19,7 @@ type digestImpl struct {
 func NewDigest(algorithm Algorithm, digest string) digestImpl {
 	return digestImpl{
 		algorithm: algorithm,
-		digest:    digest,
+		digest:    strings.TrimPrefix(digest, algorithm.Name()+":"),
 	}
 }
 

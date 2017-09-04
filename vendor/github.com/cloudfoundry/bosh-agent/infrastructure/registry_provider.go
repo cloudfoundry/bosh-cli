@@ -47,7 +47,7 @@ func (p *registryProvider) GetRegistry() (Registry, error) {
 
 	if strings.HasPrefix(registryEndpoint, "http") {
 		p.logger.Debug(p.logTag, "Using http registry at %s", registryEndpoint)
-		return NewHTTPRegistry(p.metadataService, p.platform, p.useServerName), nil
+		return NewHTTPRegistry(p.metadataService, p.platform, p.useServerName, p.logger), nil
 	}
 
 	p.logger.Debug(p.logTag, "Using file registry at %s", registryEndpoint)

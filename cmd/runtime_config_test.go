@@ -26,7 +26,15 @@ var _ = Describe("RuntimeConfigCmd", func() {
 	})
 
 	Describe("Run", func() {
-		act := func() error { return command.Run() }
+		var (
+			opts RuntimeConfigOpts
+		)
+		BeforeEach(func() {
+			opts = RuntimeConfigOpts{
+				Name: "some-foo-config",
+			}
+		})
+		act := func() error { return command.Run(opts) }
 
 		It("shows runtime config", func() {
 			runtimeConfig := boshdir.RuntimeConfig{
@@ -37,6 +45,8 @@ var _ = Describe("RuntimeConfigCmd", func() {
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
+			Expect(director.LatestRuntimeConfigCallCount()).To(Equal(1))
+			Expect(director.LatestRuntimeConfigArgsForCall(0)).To(Equal("some-foo-config"))
 
 			Expect(ui.Blocks).To(Equal([]string{"some-properties"}))
 		})

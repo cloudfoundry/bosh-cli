@@ -62,6 +62,7 @@ func (c *FakeClient) Do(req *http.Request) (*http.Response, error) {
 	if !c.returnNilResponse {
 		resp = &http.Response{
 			Body:       boshhttp.NewStringReadCloser(c.responseMessage),
+			Request:    req,
 			StatusCode: c.StatusCode,
 		}
 	}

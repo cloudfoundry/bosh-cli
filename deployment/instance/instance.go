@@ -203,7 +203,7 @@ func (i *instance) Delete(
 ) error {
 	vmExists, err := i.vm.Exists()
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Checking existance of vm for instance '%s/%d'", i.jobName, i.id)
+		return bosherr.WrapErrorf(err, "Checking existence of vm for instance '%s/%d'", i.jobName, i.id)
 	}
 
 	if vmExists {

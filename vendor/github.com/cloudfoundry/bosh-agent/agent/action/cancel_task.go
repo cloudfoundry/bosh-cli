@@ -16,12 +16,16 @@ func NewCancelTask(taskService boshtask.Service) (getTask CancelTaskAction) {
 	return
 }
 
-func (a CancelTaskAction) IsAsynchronous() bool {
+func (a CancelTaskAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return false
 }
 
 func (a CancelTaskAction) IsPersistent() bool {
 	return false
+}
+
+func (a CancelTaskAction) IsLoggable() bool {
+	return true
 }
 
 func (a CancelTaskAction) Run(taskID string) (string, error) {

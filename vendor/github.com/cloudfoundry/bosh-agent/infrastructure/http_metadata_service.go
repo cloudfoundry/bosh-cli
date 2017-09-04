@@ -1,18 +1,24 @@
 package infrastructure
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
+	"time"
 
 	boshplat "github.com/cloudfoundry/bosh-agent/platform"
 	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshhttp "github.com/cloudfoundry/bosh-utils/http"
+	boshhttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-type httpMetadataService struct {
+type HTTPMetadataService struct {
+	client          boshhttpclient.HTTPClient
 	metadataHost    string
 	metadataHeaders map[string]string
 	userdataPath    string
@@ -34,7 +40,8 @@ func NewHTTPMetadataService(
 	platform boshplat.Platform,
 	logger boshlog.Logger,
 ) DynamicMetadataService {
-	return httpMetadataService{
+	return HTTPMetadataService{
+		client:          createRetryClient(1*time.Second, logger),
 		metadataHost:    metadataHost,
 		metadataHeaders: metadataHeaders,
 		userdataPath:    userdataPath,
@@ -47,11 +54,36 @@ func NewHTTPMetadataService(
 	}
 }
 
-func (ms httpMetadataService) Load() error {
+func NewHTTPMetadataServiceWithCustomRetryDelay(
+	metadataHost string,
+	metadataHeaders map[string]string,
+	userdataPath string,
+	instanceIDPath string,
+	sshKeysPath string,
+	resolver DNSResolver,
+	platform boshplat.Platform,
+	logger boshlog.Logger,
+	retryDelay time.Duration,
+) DynamicMetadataService {
+	return HTTPMetadataService{
+		client:          createRetryClient(retryDelay, logger),
+		metadataHost:    metadataHost,
+		metadataHeaders: metadataHeaders,
+		userdataPath:    userdataPath,
+		instanceIDPath:  instanceIDPath,
+		sshKeysPath:     sshKeysPath,
+		resolver:        resolver,
+		platform:        platform,
+		logTag:          "httpMetadataService",
+		logger:          logger,
+	}
+}
+
+func (ms HTTPMetadataService) Load() error {
 	return nil
 }
 
-func (ms httpMetadataService) GetPublicKey() (string, error) {
+func (ms HTTPMetadataService) GetPublicKey() (string, error) {
 	if ms.sshKeysPath == "" {
 		return "", nil
 	}
@@ -62,7 +94,7 @@ func (ms httpMetadataService) GetPublicKey() (string, error) {
 	}
 
 	url := fmt.Sprintf("%s%s", ms.metadataHost, ms.sshKeysPath)
-	resp, err := ms.doGet(url)
+	resp, err := ms.client.GetCustomized(url, ms.addHeaders())
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Getting open ssh key from url %s", url)
 	}
@@ -81,7 +113,7 @@ func (ms httpMetadataService) GetPublicKey() (string, error) {
 	return string(bytes), nil
 }
 
-func (ms httpMetadataService) GetInstanceID() (string, error) {
+func (ms HTTPMetadataService) GetInstanceID() (string, error) {
 	if ms.instanceIDPath == "" {
 		return "", nil
 	}
@@ -92,7 +124,7 @@ func (ms httpMetadataService) GetInstanceID() (string, error) {
 	}
 
 	url := fmt.Sprintf("%s%s", ms.metadataHost, ms.instanceIDPath)
-	resp, err := ms.doGet(url)
+	resp, err := ms.client.GetCustomized(url, ms.addHeaders())
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Getting instance id from url %s", url)
 	}
@@ -111,7 +143,7 @@ func (ms httpMetadataService) GetInstanceID() (string, error) {
 	return string(bytes), nil
 }
 
-func (ms httpMetadataService) GetValueAtPath(path string) (string, error) {
+func (ms HTTPMetadataService) GetValueAtPath(path string) (string, error) {
 	if path == "" {
 		return "", fmt.Errorf("Can not retrieve metadata value for empthy path")
 	}
@@ -122,7 +154,7 @@ func (ms httpMetadataService) GetValueAtPath(path string) (string, error) {
 	}
 
 	url := fmt.Sprintf("%s%s", ms.metadataHost, path)
-	resp, err := ms.doGet(url)
+	resp, err := ms.client.GetCustomized(url, ms.addHeaders())
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Getting value from url %s", url)
 	}
@@ -140,7 +172,7 @@ func (ms httpMetadataService) GetValueAtPath(path string) (string, error) {
 
 	return string(bytes), nil
 }
-func (ms httpMetadataService) GetServerName() (string, error) {
+func (ms HTTPMetadataService) GetServerName() (string, error) {
 	userData, err := ms.getUserData()
 	if err != nil {
 		return "", bosherr.WrapError(err, "Getting user data")
@@ -155,7 +187,7 @@ func (ms httpMetadataService) GetServerName() (string, error) {
 	return serverName, nil
 }
 
-func (ms httpMetadataService) GetRegistryEndpoint() (string, error) {
+func (ms HTTPMetadataService) GetRegistryEndpoint() (string, error) {
 	userData, err := ms.getUserData()
 	if err != nil {
 		return "", bosherr.WrapError(err, "Getting user data")
@@ -174,13 +206,13 @@ func (ms httpMetadataService) GetRegistryEndpoint() (string, error) {
 	return endpoint, nil
 }
 
-func (ms httpMetadataService) GetNetworks() (boshsettings.Networks, error) {
+func (ms HTTPMetadataService) GetNetworks() (boshsettings.Networks, error) {
 	return nil, nil
 }
 
-func (ms httpMetadataService) IsAvailable() bool { return true }
+func (ms HTTPMetadataService) IsAvailable() bool { return true }
 
-func (ms httpMetadataService) getUserData() (UserDataContentsType, error) {
+func (ms HTTPMetadataService) getUserData() (UserDataContentsType, error) {
 	var userData UserDataContentsType
 
 	err := ms.ensureMinimalNetworkSetup()
@@ -189,7 +221,7 @@ func (ms httpMetadataService) getUserData() (UserDataContentsType, error) {
 	}
 
 	userDataURL := fmt.Sprintf("%s%s", ms.metadataHost, ms.userdataPath)
-	userDataResp, err := ms.doGet(userDataURL)
+	userDataResp, err := ms.client.GetCustomized(userDataURL, ms.addHeaders())
 	if err != nil {
 		return userData, bosherr.WrapErrorf(err, "Getting user data from url %s", userDataURL)
 	}
@@ -207,13 +239,22 @@ func (ms httpMetadataService) getUserData() (UserDataContentsType, error) {
 
 	err = json.Unmarshal(userDataBytes, &userData)
 	if err != nil {
-		return userData, bosherr.WrapErrorf(err, "Unmarshalling user data '%s'", string(userDataBytes))
+		userDataBytesWithoutQuotes := strings.Replace(string(userDataBytes), `"`, ``, -1)
+		decodedUserData, err := base64.RawURLEncoding.DecodeString(userDataBytesWithoutQuotes)
+		if err != nil {
+			return userData, bosherr.WrapError(err, "Decoding url encoded user data")
+		}
+
+		err = json.Unmarshal([]byte(decodedUserData), &userData)
+		if err != nil {
+			return userData, bosherr.WrapErrorf(err, "Unmarshalling url decoded user data '%s'", decodedUserData)
+		}
 	}
 
 	return userData, nil
 }
 
-func (ms httpMetadataService) ensureMinimalNetworkSetup() error {
+func (ms HTTPMetadataService) ensureMinimalNetworkSetup() error {
 	// We check for configuration presence instead of verifying
 	// that network is reachable because we want to preserve
 	// network configuration that was passed to agent.
@@ -237,17 +278,17 @@ func (ms httpMetadataService) ensureMinimalNetworkSetup() error {
 	return nil
 }
 
-func (ms httpMetadataService) doGet(url string) (*http.Response, error) {
-	client := &http.Client{}
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
+func (ms HTTPMetadataService) addHeaders() func(*http.Request) {
+	return func(req *http.Request) {
+		for key, value := range ms.metadataHeaders {
+			req.Header.Add(key, value)
+		}
 	}
+}
 
-	for key, value := range ms.metadataHeaders {
-		req.Header.Add(key, value)
-	}
-
-	return client.Do(req)
+func createRetryClient(delay time.Duration, logger boshlog.Logger) boshhttpclient.HTTPClient {
+	return boshhttpclient.NewHTTPClient(
+		boshhttp.NewRetryClient(
+			boshhttpclient.CreateDefaultClient(nil), 10, delay, logger),
+		logger)
 }

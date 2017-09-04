@@ -23,12 +23,16 @@ func NewUnmountDisk(
 	return
 }
 
-func (a UnmountDiskAction) IsAsynchronous() bool {
+func (a UnmountDiskAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return true
 }
 
 func (a UnmountDiskAction) IsPersistent() bool {
 	return false
+}
+
+func (a UnmountDiskAction) IsLoggable() bool {
+	return true
 }
 
 func (a UnmountDiskAction) Run(diskID string) (value interface{}, err error) {

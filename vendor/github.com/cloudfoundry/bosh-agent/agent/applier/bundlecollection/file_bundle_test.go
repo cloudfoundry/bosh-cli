@@ -284,7 +284,9 @@ var _ = Describe("FileBundle", func() {
 			})
 
 			It("returns error when bundle cannot be disabled", func() {
-				fs.RemoveAllError = errors.New("fake-removeall-error")
+				fs.RemoveAllStub = func(_ string) error {
+					return errors.New("fake-removeall-error")
+				}
 
 				err := fileBundle.Disable()
 				Expect(err).To(HaveOccurred())
@@ -325,7 +327,7 @@ var _ = Describe("FileBundle", func() {
 
 		Context("when the symlink cannot be read", func() {
 			It("returns error because we cannot determine if bundle is enabled or disabled", func() {
-				fs.ReadLinkError = errors.New("fake-read-link-error")
+				fs.ReadAndFollowLinkError = errors.New("fake-read-link-error")
 
 				err := fileBundle.Disable()
 				Expect(err).To(HaveOccurred())

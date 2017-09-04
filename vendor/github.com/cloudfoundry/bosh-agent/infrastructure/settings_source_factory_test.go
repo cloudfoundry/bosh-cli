@@ -7,6 +7,7 @@ import (
 	. "github.com/cloudfoundry/bosh-agent/infrastructure"
 	fakeplat "github.com/cloudfoundry/bosh-agent/platform/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"reflect"
 )
 
 var _ = Describe("SettingsSourceFactory", func() {
@@ -42,15 +43,13 @@ var _ = Describe("SettingsSourceFactory", func() {
 					})
 
 					It("returns a settings source that uses HTTP to fetch settings", func() {
-						resolver := NewRegistryEndpointResolver(NewDigDNSResolver(platform.GetRunner(), logger))
-						httpMetadataService := NewHTTPMetadataService("http://fake-url", nil, "", "", "", resolver, platform, logger)
-						multiSourceMetadataService := NewMultiSourceMetadataService(httpMetadataService)
-						registryProvider := NewRegistryProvider(multiSourceMetadataService, platform, useServerName, platform.GetFs(), logger)
-						httpSettingsSource := NewComplexSettingsSource(multiSourceMetadataService, registryProvider, logger)
-
 						settingsSource, err := factory.New()
 						Expect(err).ToNot(HaveOccurred())
-						Expect(settingsSource).To(Equal(httpSettingsSource))
+
+						metadataService := settingsSource.(ComplexSettingsSource).GetMetadataService()
+						httpMetadataService := metadataService.(*MultiSourceMetadataService).Services[0]
+
+						Expect(reflect.TypeOf(httpMetadataService).Name()).To(Equal(reflect.TypeOf(HTTPMetadataService{}).Name()))
 					})
 				})
 
@@ -198,17 +197,29 @@ var _ = Describe("SettingsSourceFactory", func() {
 
 			Context("when using File source", func() {
 				BeforeEach(func() {
-					options = SettingsOptions{
-						Sources: []SourceOptions{
-							FileSourceOptions{},
+					options.Sources = []SourceOptions{
+						FileSourceOptions{
+							MetaDataPath: "fake-meta-data-path",
+							UserDataPath: "fake-user-data-path",
+
+							SettingsPath: "fake-settings-path",
 						},
 					}
 				})
 
-				It("returns error because it is not supported", func() {
-					_, err := factory.New()
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("File source is not supported without registry"))
+				It("returns a settings source that uses a file to fetch settings", func() {
+					fileSettingsSource := NewFileSettingsSource(
+						"fake-settings-path",
+						platform.GetFs(),
+						logger,
+					)
+
+					multiSettingsSource, err := NewMultiSettingsSource(fileSettingsSource)
+					Expect(err).ToNot(HaveOccurred())
+
+					settingsSource, err := factory.New()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(settingsSource).To(Equal(multiSettingsSource))
 				})
 			})
 

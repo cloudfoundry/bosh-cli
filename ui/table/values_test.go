@@ -15,55 +15,55 @@ import (
 
 var _ = Describe("ValueString", func() {
 	It("returns string", func() {
-		Expect(ValueString{"val"}.String()).To(Equal("val"))
+		Expect(ValueString{S: "val"}.String()).To(Equal("val"))
 	})
 
 	It("returns itself", func() {
-		Expect(ValueString{"val"}.Value()).To(Equal(ValueString{"val"}))
+		Expect(ValueString{S: "val"}.Value()).To(Equal(ValueString{S: "val"}))
 	})
 
 	It("returns int based on string compare", func() {
-		Expect(ValueString{"a"}.Compare(ValueString{"a"})).To(Equal(0))
-		Expect(ValueString{"a"}.Compare(ValueString{"b"})).To(Equal(-1))
-		Expect(ValueString{"b"}.Compare(ValueString{"a"})).To(Equal(1))
+		Expect(ValueString{S: "a"}.Compare(ValueString{S: "a"})).To(Equal(0))
+		Expect(ValueString{S: "a"}.Compare(ValueString{S: "b"})).To(Equal(-1))
+		Expect(ValueString{S: "b"}.Compare(ValueString{S: "a"})).To(Equal(1))
 	})
 })
 
 var _ = Describe("ValueStrings", func() {
 	It("returns new line joined strings", func() {
-		Expect(ValueStrings{[]string{"val1", "val2"}}.String()).To(Equal("val1\nval2"))
+		Expect(ValueStrings{S: []string{"val1", "val2"}}.String()).To(Equal("val1\nval2"))
 	})
 
 	It("returns itself", func() {
-		Expect(ValueStrings{[]string{"val1"}}.Value()).To(Equal(ValueStrings{[]string{"val1"}}))
+		Expect(ValueStrings{S: []string{"val1"}}.Value()).To(Equal(ValueStrings{S: []string{"val1"}}))
 	})
 
 	It("returns int based on string compare", func() {
-		Expect(ValueStrings{[]string{"val1"}}.Compare(ValueStrings{[]string{"val1"}})).To(Equal(0))
-		Expect(ValueStrings{[]string{"val1"}}.Compare(ValueStrings{[]string{"val1", "val2"}})).To(Equal(-1))
-		Expect(ValueStrings{[]string{"val1", "val2"}}.Compare(ValueStrings{[]string{"val1"}})).To(Equal(1))
+		Expect(ValueStrings{S: []string{"val1"}}.Compare(ValueStrings{S: []string{"val1"}})).To(Equal(0))
+		Expect(ValueStrings{S: []string{"val1"}}.Compare(ValueStrings{S: []string{"val1", "val2"}})).To(Equal(-1))
+		Expect(ValueStrings{S: []string{"val1", "val2"}}.Compare(ValueStrings{S: []string{"val1"}})).To(Equal(1))
 	})
 })
 
 var _ = Describe("ValueInt", func() {
 	It("returns string", func() {
-		Expect(ValueInt{1}.String()).To(Equal("1"))
+		Expect(ValueInt{I: 1}.String()).To(Equal("1"))
 	})
 
 	It("returns itself", func() {
-		Expect(ValueInt{1}.Value()).To(Equal(ValueInt{1}))
+		Expect(ValueInt{I: 1}.Value()).To(Equal(ValueInt{I: 1}))
 	})
 
 	It("returns int based on int compare", func() {
-		Expect(ValueInt{1}.Compare(ValueInt{1})).To(Equal(0))
-		Expect(ValueInt{1}.Compare(ValueInt{2})).To(Equal(-1))
-		Expect(ValueInt{2}.Compare(ValueInt{1})).To(Equal(1))
+		Expect(ValueInt{I: 1}.Compare(ValueInt{I: 1})).To(Equal(0))
+		Expect(ValueInt{I: 1}.Compare(ValueInt{I: 2})).To(Equal(-1))
+		Expect(ValueInt{I: 2}.Compare(ValueInt{I: 1})).To(Equal(1))
 	})
 })
 
 var _ = Describe("ValueBytes", func() {
 	It("returns formatted bytes", func() {
-		Expect(ValueBytes{1}.String()).To(Equal("1 B"))
+		Expect(ValueBytes{I: 1}.String()).To(Equal("1 B"))
 	})
 
 	It("returns formatted mebibytes", func() {
@@ -75,49 +75,54 @@ var _ = Describe("ValueBytes", func() {
 	})
 
 	It("returns itself", func() {
-		Expect(ValueBytes{1}.Value()).To(Equal(ValueBytes{1}))
+		Expect(ValueBytes{I: 1}.Value()).To(Equal(ValueBytes{I: 1}))
 	})
 
 	It("returns int based on int compare", func() {
-		Expect(ValueBytes{1}.Compare(ValueBytes{1})).To(Equal(0))
-		Expect(ValueBytes{1}.Compare(ValueBytes{2})).To(Equal(-1))
-		Expect(ValueBytes{2}.Compare(ValueBytes{1})).To(Equal(1))
+		Expect(ValueBytes{I: 1}.Compare(ValueBytes{I: 1})).To(Equal(0))
+		Expect(ValueBytes{I: 1}.Compare(ValueBytes{I: 2})).To(Equal(-1))
+		Expect(ValueBytes{I: 2}.Compare(ValueBytes{I: 1})).To(Equal(1))
 	})
 })
 
 var _ = Describe("ValueTime", func() {
 	t1 := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 	t2 := time.Date(2009, time.November, 10, 23, 0, 0, 1, time.UTC)
+	empty := time.Time{}
 
 	It("returns formatted full time", func() {
-		Expect(ValueTime{t1}.String()).To(Equal("Tue Nov 10 23:00:00 UTC 2009"))
+		Expect(ValueTime{T: t1}.String()).To(Equal("Tue Nov 10 23:00:00 UTC 2009"))
+	})
+
+	It("returns empty", func() {
+		Expect(ValueTime{T: empty}.String()).To(Equal(""))
 	})
 
 	It("returns itself", func() {
-		Expect(ValueTime{t1}.Value()).To(Equal(ValueTime{t1}))
+		Expect(ValueTime{T: t1}.Value()).To(Equal(ValueTime{T: t1}))
 	})
 
 	It("returns int based on time compare", func() {
-		Expect(ValueTime{t1}.Compare(ValueTime{t1})).To(Equal(0))
-		Expect(ValueTime{t1}.Compare(ValueTime{t2})).To(Equal(-1))
-		Expect(ValueTime{t2}.Compare(ValueTime{t1})).To(Equal(1))
+		Expect(ValueTime{T: t1}.Compare(ValueTime{T: t1})).To(Equal(0))
+		Expect(ValueTime{T: t1}.Compare(ValueTime{T: t2})).To(Equal(-1))
+		Expect(ValueTime{T: t2}.Compare(ValueTime{T: t1})).To(Equal(1))
 	})
 })
 
 var _ = Describe("ValueBool", func() {
 	It("returns true/false as string", func() {
-		Expect(ValueBool{true}.String()).To(Equal("true"))
-		Expect(ValueBool{false}.String()).To(Equal("false"))
+		Expect(ValueBool{B: true}.String()).To(Equal("true"))
+		Expect(ValueBool{B: false}.String()).To(Equal("false"))
 	})
 
 	It("returns itself", func() {
-		Expect(ValueBool{true}.Value()).To(Equal(ValueBool{true}))
+		Expect(ValueBool{B: true}.Value()).To(Equal(ValueBool{B: true}))
 	})
 
 	It("returns int based on bool compare", func() {
-		Expect(ValueBool{true}.Compare(ValueBool{true})).To(Equal(0))
-		Expect(ValueBool{false}.Compare(ValueBool{true})).To(Equal(-1))
-		Expect(ValueBool{true}.Compare(ValueBool{false})).To(Equal(1))
+		Expect(ValueBool{B: true}.Compare(ValueBool{B: true})).To(Equal(0))
+		Expect(ValueBool{B: false}.Compare(ValueBool{B: true})).To(Equal(-1))
+		Expect(ValueBool{B: true}.Compare(ValueBool{B: false})).To(Equal(1))
 	})
 })
 
@@ -126,28 +131,28 @@ var _ = Describe("ValueVersion", func() {
 	v2 := semver.MustNewVersionFromString("1.2")
 
 	It("returns formatted version", func() {
-		Expect(ValueVersion{v1}.String()).To(Equal("1.1"))
+		Expect(ValueVersion{V: v1}.String()).To(Equal("1.1"))
 	})
 
 	It("returns itself", func() {
-		Expect(ValueVersion{v1}.Value()).To(Equal(ValueVersion{v1}))
+		Expect(ValueVersion{V: v1}.Value()).To(Equal(ValueVersion{V: v1}))
 	})
 
 	It("returns int based on version compare", func() {
-		Expect(ValueVersion{v1}.Compare(ValueVersion{v1})).To(Equal(0))
-		Expect(ValueVersion{v2}.Compare(ValueVersion{v1})).To(Equal(1))
-		Expect(ValueVersion{v1}.Compare(ValueVersion{v2})).To(Equal(-1))
+		Expect(ValueVersion{V: v1}.Compare(ValueVersion{V: v1})).To(Equal(0))
+		Expect(ValueVersion{V: v2}.Compare(ValueVersion{V: v1})).To(Equal(1))
+		Expect(ValueVersion{V: v1}.Compare(ValueVersion{V: v2})).To(Equal(-1))
 	})
 })
 
 var _ = Describe("ValueError", func() {
 	It("returns empty string or error description", func() {
 		Expect(ValueError{}.String()).To(Equal(""))
-		Expect(ValueError{errors.New("err")}.String()).To(Equal("err"))
+		Expect(ValueError{E: errors.New("err")}.String()).To(Equal("err"))
 	})
 
 	It("returns itself", func() {
-		Expect(ValueError{errors.New("err")}.Value()).To(Equal(ValueError{errors.New("err")}))
+		Expect(ValueError{E: errors.New("err")}.Value()).To(Equal(ValueError{E: errors.New("err")}))
 	})
 
 	It("does not allow comparison", func() {
@@ -177,27 +182,27 @@ var _ = Describe("ValueFmt", func() {
 	}
 
 	It("returns plain string (not formatted with fmt func)", func() {
-		Expect(ValueFmt{V: ValueInt{1}, Func: fmtFunc}.String()).To(Equal("1"))
+		Expect(ValueFmt{V: ValueInt{I: 1}, Func: fmtFunc}.String()).To(Equal("1"))
 	})
 
 	It("returns wrapped value", func() {
-		Expect(ValueFmt{V: ValueInt{1}, Func: fmtFunc}.Value()).To(Equal(ValueInt{1}))
+		Expect(ValueFmt{V: ValueInt{I: 1}, Func: fmtFunc}.Value()).To(Equal(ValueInt{I: 1}))
 	})
 
 	It("does not allow comparison", func() {
-		f := func() { ValueFmt{V: ValueInt{1}, Func: fmtFunc}.Compare(ValueFmt{}) }
+		f := func() { ValueFmt{V: ValueInt{I: 1}, Func: fmtFunc}.Compare(ValueFmt{}) }
 		Expect(f).To(Panic())
 	})
 
 	It("writes out value using custom Fprintf", func() {
 		buf := bytes.NewBufferString("")
-		ValueFmt{V: ValueInt{1}, Func: fmtFunc}.Fprintf(buf, "%s,%s", "val1", "val2")
+		ValueFmt{V: ValueInt{I: 1}, Func: fmtFunc}.Fprintf(buf, "%s,%s", "val1", "val2")
 		Expect(buf.String()).To(Equal(">val1,val2<"))
 	})
 
 	It("uses fmt.Fprintf if fmt func is not set", func() {
 		buf := bytes.NewBufferString("")
-		ValueFmt{V: ValueInt{1}}.Fprintf(buf, "%s,%s", "val1", "val2")
+		ValueFmt{V: ValueInt{I: 1}}.Fprintf(buf, "%s,%s", "val1", "val2")
 		Expect(buf.String()).To(Equal("val1,val2"))
 	})
 })
@@ -241,16 +246,16 @@ var _ = Describe("ValueInterface", func() {
 
 var _ = Describe("ValueSuffix", func() {
 	It("returns formatted string with suffix", func() {
-		Expect(ValueSuffix{ValueInt{1}, "*"}.String()).To(Equal("1*"))
-		Expect(ValueSuffix{ValueString{"val"}, "*"}.String()).To(Equal("val*"))
+		Expect(ValueSuffix{V: ValueInt{I: 1}, Suffix: "*"}.String()).To(Equal("1*"))
+		Expect(ValueSuffix{V: ValueString{S: "val"}, Suffix: "*"}.String()).To(Equal("val*"))
 	})
 
 	It("returns wrapped value", func() {
-		Expect(ValueSuffix{ValueInt{1}, "*"}.Value()).To(Equal(ValueInt{1}))
+		Expect(ValueSuffix{V: ValueInt{I: 1}, Suffix: "*"}.Value()).To(Equal(ValueInt{I: 1}))
 	})
 
 	It("does not allow comparison", func() {
-		f := func() { ValueSuffix{ValueInt{1}, ""}.Compare(ValueSuffix{}) }
+		f := func() { ValueSuffix{V: ValueInt{I: 1}, Suffix: ""}.Compare(ValueSuffix{}) }
 		Expect(f).To(Panic())
 	})
 })

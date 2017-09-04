@@ -83,8 +83,8 @@ var _ = Describe("InspectReleaseCmd", func() {
 
 						CompiledPackages: []boshdir.CompiledPackage{
 							{
-								StemcellSlug: boshdir.NewStemcellSlug(
-									"some-stemcell-name",
+								Stemcell: boshdir.NewOSVersionSlug(
+									"some-stemcell-os",
 									"some-stemcell-version",
 								),
 
@@ -106,7 +106,13 @@ var _ = Describe("InspectReleaseCmd", func() {
 				{
 					Content: "jobs",
 
-					Header: []string{"Job", "Blobstore ID", "Digest", "Links Consumed", "Links Provided"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Job"),
+						boshtbl.NewHeader("Blobstore ID"),
+						boshtbl.NewHeader("Digest"),
+						boshtbl.NewHeader("Links Consumed"),
+						boshtbl.NewHeader("Links Provided"),
+					},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 
@@ -123,7 +129,12 @@ var _ = Describe("InspectReleaseCmd", func() {
 				{
 					Content: "packages",
 
-					Header: []string{"Package", "Compiled for", "Blobstore ID", "Digest"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Package"),
+						boshtbl.NewHeader("Compiled for"),
+						boshtbl.NewHeader("Blobstore ID"),
+						boshtbl.NewHeader("Digest"),
+					},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 
@@ -152,7 +163,7 @@ var _ = Describe("InspectReleaseCmd", func() {
 								},
 								{
 									boshtbl.NewValueString(""),
-									boshtbl.NewValueString("some-stemcell-name/some-stemcell-version"),
+									boshtbl.NewValueString("some-stemcell-os/some-stemcell-version"),
 									boshtbl.NewValueString("some-compiled-pkg-blob-id"),
 									boshtbl.NewValueString("some-compiled-pkg-blob-sha1"),
 								},

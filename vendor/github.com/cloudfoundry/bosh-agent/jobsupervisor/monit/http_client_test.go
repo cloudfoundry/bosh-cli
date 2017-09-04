@@ -212,9 +212,13 @@ var _ = Describe("httpClient", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedServices := []Service{
+				Service{Monitored: false, Status: "unmonitored-start-pending"},
+				Service{Monitored: true, Status: "initializing"},
 				Service{Monitored: true, Status: "running"},
-				Service{Monitored: false, Status: "unknown"},
-				Service{Monitored: true, Status: "starting"},
+				Service{Monitored: true, Status: "running-stop-pending"},
+				Service{Monitored: false, Status: "unmonitored-stop-pending"},
+				Service{Monitored: false, Status: "unmonitored"},
+				Service{Monitored: false, Status: "stopped"},
 				Service{Monitored: true, Status: "failing"},
 			}
 

@@ -9,3 +9,4 @@ github.com/golang/protobuf/proto/...:4bd1920
 github.com/jessevdk/go-flags:4cc2832
 github.com/jessevdk/go-flags/...:4e64e4a
 golang.org/x/net/proxy:60c41d1
+github.com/pivotal-cf/paraphernalia/secure/tlsconfig:1922838

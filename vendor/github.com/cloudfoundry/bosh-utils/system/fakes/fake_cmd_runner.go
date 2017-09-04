@@ -20,6 +20,7 @@ type FakeCmdRunner struct {
 	RunComplexCommands   []boshsys.Command
 	RunCommands          [][]string
 	RunCommandsWithInput [][]string
+	RunCommandsQuietly   [][]string
 	runCommandCallbacks  map[string]FakeCmdCallback
 
 	CommandExistsValue bool
@@ -144,6 +145,18 @@ func (r *FakeCmdRunner) RunCommand(cmdName string, args ...string) (string, stri
 
 	runCmd := append([]string{cmdName}, args...)
 	r.RunCommands = append(r.RunCommands, runCmd)
+
+	r.runCallbackForCmd(runCmd)
+
+	return r.getOutputsForCmd(runCmd)
+}
+
+func (r *FakeCmdRunner) RunCommandQuietly(cmdName string, args ...string) (string, string, int, error) {
+	r.commandResultsLock.Lock()
+	defer r.commandResultsLock.Unlock()
+
+	runCmd := append([]string{cmdName}, args...)
+	r.RunCommandsQuietly = append(r.RunCommandsQuietly, runCmd)
 
 	r.runCallbackForCmd(runCmd)
 

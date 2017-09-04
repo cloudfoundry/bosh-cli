@@ -77,7 +77,7 @@ func describeInstanceMetadataSettingsSource() {
 		})
 
 		It("returns an error if reading from the instance metadata endpoint fails", func() {
-			metadataSource = NewInstanceMetadataSettingsSource("bad-registry-endpoint", metadataHeaders, settingsPath, platform, logger)
+			metadataSource = NewInstanceMetadataSettingsSourceWithoutRetryDelay("bad-registry-endpoint", metadataHeaders, settingsPath, platform, logger)
 			_, err := metadataSource.Settings()
 			Expect(err).To(HaveOccurred())
 		})

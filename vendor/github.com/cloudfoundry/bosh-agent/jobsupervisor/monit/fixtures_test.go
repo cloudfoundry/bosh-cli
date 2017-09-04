@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	statusWithMultipleServiceFixturePath = "test_assets/monit_status_with_multiple_services.xml"
+	statusWithMultipleServiceFixturePath = "test_assets/monit_status_multiple.xml"
 	statusFixturePath                    = "test_assets/monit_status.xml"
 )
 

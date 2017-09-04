@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"code.cloudfoundry.org/clock"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"github.com/pivotal-golang/clock"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	biui "github.com/cloudfoundry/bosh-cli/ui"

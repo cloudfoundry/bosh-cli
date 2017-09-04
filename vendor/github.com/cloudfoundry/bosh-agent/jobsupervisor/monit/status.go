@@ -21,14 +21,16 @@ type servicesTag struct {
 }
 
 type serviceTag struct {
-	XMLName  xml.Name  `xml:"service"`
-	Name     string    `xml:"name,attr"`
-	Status   int       `xml:"status"`
-	Monitor  int       `xml:"monitor"`
-	Uptime   int       `xml:"uptime"`
-	Children int       `xml:"children"`
-	Memory   memoryTag `xml:"memory"`
-	CPU      cpuTag    `xml:"cpu"`
+	XMLName       xml.Name  `xml:"service"`
+	Name          string    `xml:"name,attr"`
+	Pending       int       `xml:"pendingaction"`
+	Status        int       `xml:"status"`
+	StatusMessage string    `xml:"status_message"`
+	Monitor       int       `xml:"monitor"`
+	Uptime        int       `xml:"uptime"`
+	Children      int       `xml:"children"`
+	Memory        memoryTag `xml:"memory"`
+	CPU           cpuTag    `xml:"cpu"`
 }
 
 type memoryTag struct {
@@ -57,18 +59,17 @@ type serviceGroupTag struct {
 	Services []string `xml:"service"`
 }
 
-func (s serviceTag) StatusString() (status string) {
+func (s serviceTag) StatusString() string {
 	switch {
 	case s.Monitor == 0:
-		status = "unknown"
+		return StatusUnknown
 	case s.Monitor == 2:
-		status = "starting"
+		return StatusStarting
 	case s.Status == 0:
-		status = "running"
+		return StatusRunning
 	default:
-		status = "failing"
+		return StatusFailing
 	}
-	return
 }
 
 func (t serviceGroupsTag) Get(name string) (group serviceGroupTag, found bool) {
@@ -103,7 +104,10 @@ func (status status) ServicesInGroup(name string) (services []Service) {
 		if serviceGroupTag.Contains(serviceTag.Name) {
 			service := Service{
 				Name:                 serviceTag.Name,
+				Pending:              serviceTag.Pending > 0,
 				Status:               serviceTag.StatusString(),
+				Errored:              serviceTag.Status > 0 && serviceTag.StatusMessage != "",
+				StatusMessage:        serviceTag.StatusMessage,
 				Monitored:            serviceTag.Monitor > 0,
 				Uptime:               serviceTag.Uptime,
 				MemoryPercentTotal:   serviceTag.Memory.PercentTotal,

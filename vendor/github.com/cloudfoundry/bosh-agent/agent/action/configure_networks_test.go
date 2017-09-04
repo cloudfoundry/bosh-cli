@@ -17,8 +17,15 @@ func init() {
 			action = NewConfigureNetworks(fakeactions.NewFakeAgentKiller())
 		})
 
+		AssertActionIsAsynchronous(action)
+		AssertActionIsPersistent(action)
+		AssertActionIsLoggable(action)
+
+		AssertActionIsNotCancelable(action)
+		AssertActionIsResumable(action)
+
 		It("is asynchronous", func() {
-			Expect(action.IsAsynchronous()).To(BeTrue())
+			Expect(action.IsAsynchronous(ProtocolVersion(0))).To(BeTrue())
 		})
 
 		It("is persistent because director expects configure_networks task to become done after agent is restarted", func() {
@@ -27,14 +34,6 @@ func init() {
 
 		Describe("Run", func() {
 			// restarts agent process
-		})
-
-		Describe("Resume", func() {
-			It("returns ok because agent was restarted and connections were re-initialized", func() {
-				value, err := action.Resume()
-				Expect(value).To(Equal("ok"))
-				Expect(err).ToNot(HaveOccurred())
-			})
 		})
 	})
 }

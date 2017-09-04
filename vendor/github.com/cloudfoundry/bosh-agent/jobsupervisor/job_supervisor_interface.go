@@ -33,6 +33,7 @@ type JobSupervisor interface {
 	// Actions taken on all services
 	Start() error
 	Stop() error
+	StopAndWait() error
 
 	// Start and Stop should still function after Unmonitor.
 	// Calling Start after Unmonitor should re-monitor all jobs.

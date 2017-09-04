@@ -23,12 +23,16 @@ func NewPrepareConfigureNetworks(
 	}
 }
 
-func (a PrepareConfigureNetworksAction) IsAsynchronous() bool {
+func (a PrepareConfigureNetworksAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return false
 }
 
 func (a PrepareConfigureNetworksAction) IsPersistent() bool {
 	return false
+}
+
+func (a PrepareConfigureNetworksAction) IsLoggable() bool {
+	return true
 }
 
 func (a PrepareConfigureNetworksAction) Run() (string, error) {

@@ -35,6 +35,14 @@ func verifySpecSummary(caller func(SpecSummary) bool, trueStates ...SpecState) {
 }
 
 var _ = Describe("Types", func() {
+	Describe("IsFailureState", func() {
+		It("knows when it is in a failure-like state", func() {
+			verifySpecSummary(func(summary SpecSummary) bool {
+				return summary.State.IsFailure()
+			}, SpecStateTimedOut, SpecStatePanicked, SpecStateFailed)
+		})
+	})
+
 	Describe("SpecSummary", func() {
 		It("knows when it is in a failure-like state", func() {
 			verifySpecSummary(func(summary SpecSummary) bool {
@@ -76,6 +84,16 @@ var _ = Describe("Types", func() {
 			verifySpecSummary(func(summary SpecSummary) bool {
 				return summary.Skipped()
 			}, SpecStateSkipped)
+		})
+	})
+
+	Describe("SpecMeasurement", func() {
+		It("knows how to format values when the precision is 0", func() {
+			Ω(SpecMeasurement{}.PrecisionFmt()).Should(Equal("%f"))
+		})
+
+		It("knows how to format the values when the precision is 3", func() {
+			Ω(SpecMeasurement{Precision: 3}.PrecisionFmt()).Should(Equal("%.3f"))
 		})
 	})
 })

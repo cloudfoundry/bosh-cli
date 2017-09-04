@@ -23,6 +23,20 @@ var _ = Describe("TimeParser", func() {
 			parsed, err = TimeParser{}.Parse(in2)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(parsed).To(Equal(time.Date(2016, time.August, 25, 0, 17, 16, 0, time.UTC)))
+
+			in3 := "2016-08-25T02:17:16+02:00"
+
+			parsed, err = TimeParser{}.Parse(in3)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(parsed).To(Equal(time.Date(2016, time.August, 25, 0, 17, 16, 0, time.UTC)))
+		})
+
+		It("returns zero time", func() {
+			in := ""
+
+			parsed, err := TimeParser{}.Parse(in)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(parsed.IsZero()).To(Equal(true))
 		})
 
 		It("returns error if none of the formats match", func() {

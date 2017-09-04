@@ -9,15 +9,15 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"code.cloudfoundry.org/clock/fakeclock"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/pivotal-golang/clock/fakeclock"
 )
 
 var _ = Describe("Stage", func() {
 	var (
-		logOutBuffer, logErrBuffer *bytes.Buffer
-		logger                     boshlog.Logger
+		logOutBuffer *bytes.Buffer
+		logger       boshlog.Logger
 
 		stage           Stage
 		ui              UI
@@ -31,8 +31,7 @@ var _ = Describe("Stage", func() {
 		uiErr = bytes.NewBufferString("")
 
 		logOutBuffer = bytes.NewBufferString("")
-		logErrBuffer = bytes.NewBufferString("")
-		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, logOutBuffer, logErrBuffer)
+		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, logOutBuffer)
 
 		ui = NewWriterUI(uiOut, uiErr, logger)
 		fakeTimeService = fakeclock.NewFakeClock(time.Now())

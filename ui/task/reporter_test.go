@@ -87,10 +87,9 @@ var _ = Describe("Reporter (for events)", func() {
 			Expect(outBuf.String()).To(Equal(`Task 123
 
 
-Started  Thu Jan  1 00:00:00 UTC 1970
-Finished Thu Jan  1 00:00:00 UTC 1970
-Duration 00:00:00
-
+Task 123 Started  Thu Jan  1 00:00:00 UTC 1970
+Task 123 Finished Thu Jan  1 00:00:00 UTC 1970
+Task 123 Duration 00:00:00
 Task 123 state
 `))
 		})
@@ -114,7 +113,7 @@ Task 123 state
 			reporterWithFakeUI.TaskOutputChunk(123, []byte(
 				`{"time":1454193505,"error":{"code":100,"message":"err-msg"}}`+"\n"))
 			reporterWithFakeUI.TaskFinished(123, "state")
-			Expect(fakeUI.Blocks).To(Equal([]string{"\n22:38:25 | ", "Error: err-msg"}))
+			Expect(fakeUI.Blocks).To(Equal([]string{"\nTask 123 | 22:38:25 | ", "Error: err-msg"}))
 		})
 
 		It("renders events", func() {
@@ -166,27 +165,80 @@ Task 123 state
 			reporter.TaskFinished(2663, "error")
 			Expect(outBuf.String()).To(Equal(`Task 2663
 
-19:09:27 | Preparing deployment: Binding releases (00:00:00)
-19:09:27 | Preparing deployment: Binding existing deployment (00:00:00)
-19:09:27 | Preparing deployment: Binding resource pools (00:00:00)
-19:09:27 | Preparing deployment: Binding stemcells (00:00:00)
-19:09:27 | Preparing deployment: Binding templates (00:00:00)
-19:09:27 | Preparing deployment: Binding properties (00:00:00)
-19:09:27 | Preparing deployment: Binding unallocated VMs (00:00:00)
-19:09:27 | Preparing deployment: Binding instance networks (00:00:00)
-19:09:27 | Preparing package compilation: Finding packages to compile (00:00:00)
-19:09:27 | Preparing DNS: Binding DNS (00:00:00)
-19:09:27 | Preparing configuration: Binding configuration (00:00:01)
-19:09:28 | Updating job job: job/0 (canary) (00:01:07)
-            L Error: 'job/0' is not running after update
+Task 2663 | 19:09:27 | Preparing deployment: Binding releases (00:00:00)
+Task 2663 | 19:09:27 | Preparing deployment: Binding existing deployment (00:00:00)
+Task 2663 | 19:09:27 | Preparing deployment: Binding resource pools (00:00:00)
+Task 2663 | 19:09:27 | Preparing deployment: Binding stemcells (00:00:00)
+Task 2663 | 19:09:27 | Preparing deployment: Binding templates (00:00:00)
+Task 2663 | 19:09:27 | Preparing deployment: Binding properties (00:00:00)
+Task 2663 | 19:09:27 | Preparing deployment: Binding unallocated VMs (00:00:00)
+Task 2663 | 19:09:27 | Preparing deployment: Binding instance networks (00:00:00)
+Task 2663 | 19:09:27 | Preparing package compilation: Finding packages to compile (00:00:00)
+Task 2663 | 19:09:27 | Preparing DNS: Binding DNS (00:00:00)
+Task 2663 | 19:09:27 | Preparing configuration: Binding configuration (00:00:01)
+Task 2663 | 19:09:28 | Updating job job: job/0 (canary) (00:01:07)
+                     L Error: 'job/0' is not running after update
+Task 2663 | 19:10:35 | Error: 'job/0' is not running after update
 
-19:10:35 | Error: 'job/0' is not running after update
-
-Started  Wed Dec 19 19:09:27 UTC 2204
-Finished Wed Dec 19 19:10:35 UTC 2204
-Duration 00:01:08
-
+Task 2663 Started  Wed Dec 19 19:09:27 UTC 2204
+Task 2663 Finished Wed Dec 19 19:10:35 UTC 2204
+Task 2663 Duration 00:01:08
 Task 2663 error
+`))
+		})
+
+		It("renders multiple tasks and multiple events", func() {
+			firstTaskOutput := []string{`
+{"time":7414830567,"stage":"Preparing first deployment","tags":[],"total":1,"task":"Binding releases","index":1,"state":"started","progress":0}
+`,
+				`
+{"time":7414830567,"stage":"Preparing first deployment","tags":[],"total":1,"task":"Binding releases","index":1,"state":"finished","progress":100}
+{"time":7414830567,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"started","progress":0}
+`,
+				`
+{"time":7414830571,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"failed","progress":100,"data":{"error":"'job/0' is not running after update"}}
+{"time":7414830571,"error":{"code":400007,"message":"'job/0' is not running after update"}}
+`}
+
+			secondTaskOutput := []string{`
+{"time":7414830568,"stage":"Preparing second deployment","tags":[],"total":1,"task":"Binding releases","index":1,"state":"started","progress":0}
+{"time":7414830568,"stage":"Preparing second deployment","tags":[],"total":1,"task":"Binding releases","index":1,"state":"finished","progress":100}
+`,
+				`
+{"time":7414830569,"stage":"Preparing second package compilation","tags":[],"total":1,"task":"Finding packages to compile","index":1,"state":"started","progress":0}
+{"time":7414830569,"stage":"Preparing second package compilation","tags":[],"total":1,"task":"Finding packages to compile","index":1,"state":"finished","progress":100}
+`}
+			reporter.TaskStarted(2663)
+			reporter.TaskOutputChunk(2663, []byte(firstTaskOutput[0]))
+			reporter.TaskStarted(7777)
+			reporter.TaskOutputChunk(2663, []byte(firstTaskOutput[1]))
+			reporter.TaskOutputChunk(7777, []byte(secondTaskOutput[0]))
+			reporter.TaskOutputChunk(7777, []byte(secondTaskOutput[1]))
+			reporter.TaskOutputChunk(2663, []byte(firstTaskOutput[2]))
+			reporter.TaskFinished(7777, "state-2")
+			reporter.TaskFinished(2663, "state-1")
+			Expect(outBuf.String()).To(Equal(`Task 2663
+
+Task 2663 | 19:09:27 | Preparing first deployment: Binding releases
+Task 7777
+Task 2663 | 19:09:27 | Preparing first deployment: Binding releases (00:00:00)
+Task 2663 | 19:09:27 | Updating job job: job/0 (canary)
+Task 7777 | 19:09:28 | Preparing second deployment: Binding releases (00:00:00)
+Task 7777 | 19:09:29 | Preparing second package compilation: Finding packages to compile (00:00:00)
+Task 2663 | 19:09:31 | Updating job job: job/0 (canary) (00:00:04)
+                     L Error: 'job/0' is not running after update
+Task 2663 | 19:09:31 | Error: 'job/0' is not running after update
+
+Task 7777 Started  Wed Dec 19 19:09:28 UTC 2204
+Task 7777 Finished Wed Dec 19 19:09:29 UTC 2204
+Task 7777 Duration 00:00:01
+Task 7777 state-2
+
+
+Task 2663 Started  Wed Dec 19 19:09:27 UTC 2204
+Task 2663 Finished Wed Dec 19 19:09:31 UTC 2204
+Task 2663 Duration 00:00:04
+Task 2663 state-1
 `))
 		})
 
@@ -202,16 +254,13 @@ Task 2663 error
 			reporter.TaskFinished(2663, "error")
 			Expect(outBuf.String()).To(Equal(`Task 2663
 
-00:41:24 | Deprecation: Ignoring cloud config. Manifest contains 'networks' section.
+Task 2663 | 00:41:24 | Deprecation: Ignoring cloud config. Manifest contains 'networks' section.
+Task 2663 | 00:41:24 | Error: Failed to find keys in the config server: bool, bool2
+Task 2663 | 00:41:24 | Error: Failed to wang chung tonite
 
-00:41:24 | Error: Failed to find keys in the config server: bool, bool2
-
-00:41:24 | Error: Failed to wang chung tonite
-
-Started  Tue Jul 19 00:41:24 UTC 2016
-Finished Tue Jul 19 00:41:24 UTC 2016
-Duration 00:00:00
-
+Task 2663 Started  Tue Jul 19 00:41:24 UTC 2016
+Task 2663 Finished Tue Jul 19 00:41:24 UTC 2016
+Task 2663 Duration 00:00:00
 Task 2663 error
 `))
 		})
@@ -230,14 +279,13 @@ Task 2663 error
 			reporter.TaskFinished(2663, "error")
 			Expect(outBuf.String()).To(Equal(`Task 2663
 
-00:26:38 | Preparing deployment: Preparing deployment (00:00:00)
-00:26:38 | Warning: You have ignored instances. They will not be changed.
-00:26:38 | Preparing package compilation: Finding packages to compile (00:00:00)
+Task 2663 | 00:26:38 | Preparing deployment: Preparing deployment (00:00:00)
+Task 2663 | 00:26:38 | Warning: You have ignored instances. They will not be changed.
+Task 2663 | 00:26:38 | Preparing package compilation: Finding packages to compile (00:00:00)
 
-Started  Tue Nov  8 00:26:38 UTC 2016
-Finished Tue Nov  8 00:26:38 UTC 2016
-Duration 00:00:00
-
+Task 2663 Started  Tue Nov  8 00:26:38 UTC 2016
+Task 2663 Finished Tue Nov  8 00:26:38 UTC 2016
+Task 2663 Duration 00:00:00
 Task 2663 error
 `))
 		})

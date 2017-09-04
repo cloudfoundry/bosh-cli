@@ -212,12 +212,12 @@ var _ = Describe("Release", func() {
 			devJobs := &fakeres.FakeArchiveIndex{}
 			devPkgs := &fakeres.FakeArchiveIndex{}
 			devLic := &fakeres.FakeArchiveIndex{}
-			devIndicies := ArchiveIndicies{devJobs, devPkgs, devLic}
+			devIndicies := ArchiveIndicies{Jobs: devJobs, Packages: devPkgs, Licenses: devLic}
 
 			finalJobs := &fakeres.FakeArchiveIndex{}
 			finalPkgs := &fakeres.FakeArchiveIndex{}
 			finalLic := &fakeres.FakeArchiveIndex{}
-			finalIndicies := ArchiveIndicies{finalJobs, finalPkgs, finalLic}
+			finalIndicies := ArchiveIndicies{Jobs: finalJobs, Packages: finalPkgs, Licenses: finalLic}
 
 			Expect(release.Build(devIndicies, finalIndicies)).ToNot(HaveOccurred())
 
@@ -293,7 +293,7 @@ var _ = Describe("Release", func() {
 			finalJobs := &fakeres.FakeArchiveIndex{}
 			finalPkgs := &fakeres.FakeArchiveIndex{}
 			finalLic := &fakeres.FakeArchiveIndex{}
-			finalIndicies := ArchiveIndicies{finalJobs, finalPkgs, finalLic}
+			finalIndicies := ArchiveIndicies{Jobs: finalJobs, Packages: finalPkgs, Licenses: finalLic}
 
 			Expect(release.Finalize(finalIndicies)).ToNot(HaveOccurred())
 

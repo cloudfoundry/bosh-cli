@@ -16,25 +16,23 @@ type InfoTable struct {
 
 func (t InfoTable) Print() {
 	table := boshtbl.Table{
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Name"),
+			boshtbl.NewHeader("UUID"),
+			boshtbl.NewHeader("Version"),
+		},
 		Rows: [][]boshtbl.Value{
 			{
-				boshtbl.NewValueString("Name"),
 				boshtbl.NewValueString(t.Info.Name),
-			},
-			{
-				boshtbl.NewValueString("UUID"),
 				boshtbl.NewValueString(t.Info.UUID),
-			},
-			{
-				boshtbl.NewValueString("Version"),
 				boshtbl.NewValueString(t.Info.Version),
 			},
 		},
+		Transpose: true,
 	}
 
 	if len(t.Info.CPI) > 0 {
-		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.NewValueString("CPI"),
+		table = table.AddColumn("CPI", []boshtbl.Value{
 			boshtbl.NewValueString(t.Info.CPI),
 		})
 	}
@@ -53,20 +51,17 @@ func (t InfoTable) Print() {
 
 		sort.Sort(InfoFeatureSorting(desc))
 
-		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.NewValueString("Features"),
+		table = table.AddColumn("Features", []boshtbl.Value{
 			boshtbl.NewValueStrings(desc),
 		})
 	}
 
 	if len(t.Info.User) > 0 {
-		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.NewValueString("User"),
+		table = table.AddColumn("User", []boshtbl.Value{
 			boshtbl.NewValueString(t.Info.User),
 		})
 	} else {
-		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.NewValueString("User"),
+		table = table.AddColumn("User", []boshtbl.Value{
 			boshtbl.NewValueString("(not logged in)"),
 		})
 	}

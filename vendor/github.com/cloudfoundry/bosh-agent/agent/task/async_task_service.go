@@ -114,6 +114,11 @@ func (service asyncTaskService) processTasks() {
 			task.EndFunc(task)
 		}
 
+		// Nil to prevent to memory leaks in case these are closures.
+		task.Func = nil
+		task.CancelFunc = nil
+		task.EndFunc = nil
+
 		service.taskSem <- func() {
 			service.currentTasks[task.ID] = task
 		}

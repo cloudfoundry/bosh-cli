@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"os/exec"
 	"time"
 
@@ -23,7 +22,7 @@ func StartVagrant(provider string) (Agent, error) {
 	if len(provider) == 0 {
 		provider = "virtualbox"
 	}
-	command := exec.Command(fmt.Sprintf("./setup_%s.sh", provider))
+	command := exec.Command("./setup_vagrant.bash", provider)
 	session, err := gexec.Start(command, ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
 	if err != nil {
 		return Agent{}, err

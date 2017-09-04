@@ -52,3 +52,20 @@ func (c Client) UpdateCloudConfig(manifest []byte) error {
 
 	return nil
 }
+
+func (d DirectorImpl) DiffCloudConfig(manifest []byte) (ConfigDiff, error) {
+	resp, err := d.client.DiffCloudConfig(manifest)
+	if err != nil {
+		return ConfigDiff{}, err
+	}
+
+	return NewConfigDiff(resp.Diff), nil
+}
+
+func (c Client) DiffCloudConfig(manifest []byte) (ConfigDiffResponse, error) {
+	setHeaders := func(req *http.Request) {
+		req.Header.Add("Content-Type", "text/yaml")
+	}
+
+	return c.postConfigDiff("/cloud_configs/diff", manifest, setHeaders)
+}

@@ -20,13 +20,12 @@ func init() {
 			action = NewReleaseApplySpec(platform)
 		})
 
-		It("is synchronous", func() {
-			Expect(action.IsAsynchronous()).To(BeFalse())
-		})
+		AssertActionIsNotAsynchronous(action)
+		AssertActionIsNotPersistent(action)
+		AssertActionIsLoggable(action)
 
-		It("is not persistent", func() {
-			Expect(action.IsPersistent()).To(BeFalse())
-		})
+		AssertActionIsNotResumable(action)
+		AssertActionIsNotCancelable(action)
 
 		It("run", func() {
 			err := platform.GetFs().WriteFileString("/var/vcap/micro/apply_spec.json", `{"json":["objects"]}`)

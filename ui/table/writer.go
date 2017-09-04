@@ -3,6 +3,7 @@ package table
 import (
 	"fmt"
 	"io"
+	"reflect"
 	"strings"
 )
 
@@ -12,13 +13,19 @@ type Writer struct {
 	bgStr     string
 	borderStr string
 
-	rows   [][]writerCell
+	rows   []writerRow
 	widths map[int]int
 }
 
 type writerCell struct {
-	Value  Value
-	String string
+	Value   Value
+	String  string
+	IsEmpty bool
+}
+
+type writerRow struct {
+	Values   []writerCell
+	IsSpacer bool
 }
 
 type hasCustomWriter interface {
@@ -35,29 +42,43 @@ func NewWriter(w io.Writer, emptyStr, bgStr, borderStr string) *Writer {
 	}
 }
 
-func (w *Writer) Write(vals []Value) {
+func (w *Writer) Write(headers []Header, vals []Value) {
 	rowsToAdd := 1
 	colsWithRows := [][]writerCell{}
 
+	visibleHeaderIndex := 0
 	for i, val := range vals {
+		if len(headers) > 0 && headers[i].Hidden {
+			continue
+		}
+
 		var rowsInCol []writerCell
 
 		cleanStr := strings.Replace(val.String(), "\r", "", -1)
 		lines := strings.Split(cleanStr, "\n")
 
 		if len(lines) == 1 && lines[0] == "" {
-			rowsInCol = append(rowsInCol, writerCell{Value: val, String: w.emptyStr})
+			cell := writerCell{Value: val, String: w.emptyStr}
+
+			if reflect.TypeOf(val) == reflect.TypeOf(EmptyValue{}) {
+				cell.IsEmpty = true
+			}
+			rowsInCol = append(rowsInCol, cell)
 		} else {
 			for _, line := range lines {
-				rowsInCol = append(rowsInCol, writerCell{Value: val, String: line})
+				cell := writerCell{Value: val, String: line}
+				if reflect.TypeOf(val) == reflect.TypeOf(EmptyValue{}) {
+					cell.IsEmpty = true
+				}
+				rowsInCol = append(rowsInCol, cell)
 			}
 		}
 
 		rowsInColLen := len(rowsInCol)
 
 		for _, cell := range rowsInCol {
-			if len(cell.String) > w.widths[i] {
-				w.widths[i] = len(cell.String)
+			if len(cell.String) > w.widths[visibleHeaderIndex] {
+				w.widths[visibleHeaderIndex] = len(cell.String)
 			}
 		}
 
@@ -66,18 +87,25 @@ func (w *Writer) Write(vals []Value) {
 		if rowsInColLen > rowsToAdd {
 			rowsToAdd = rowsInColLen
 		}
+
+		visibleHeaderIndex++
 	}
 
 	for i := 0; i < rowsToAdd; i++ {
-		var row []writerCell
+		var row writerRow
 
+		rowIsSeparator := true
 		for _, col := range colsWithRows {
 			if i < len(col) {
-				row = append(row, col[i])
+				row.Values = append(row.Values, col[i])
+				if !col[i].IsEmpty {
+					rowIsSeparator = false
+				}
 			} else {
-				row = append(row, writerCell{})
+				row.Values = append(row.Values, writerCell{})
 			}
 		}
+		row.IsSpacer = rowIsSeparator
 
 		w.rows = append(w.rows, row)
 	}
@@ -85,7 +113,15 @@ func (w *Writer) Write(vals []Value) {
 
 func (w *Writer) Flush() error {
 	for _, row := range w.rows {
-		for colIdx, col := range row {
+		if row.IsSpacer {
+			_, err := fmt.Fprintln(w.w)
+			if err != nil {
+				return err
+			}
+			continue
+		}
+
+		for colIdx, col := range row.Values {
 			if customWriter, ok := col.Value.(hasCustomWriter); ok {
 				_, err := customWriter.Fprintf(w.w, "%s", col.String)
 				if err != nil {

@@ -41,7 +41,7 @@ var _ = Describe("FileBundleCollection", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			expectedBundle := NewFileBundle(
-				`C:/fake-collection-path/data/fake-collection-name/fake-bundle-name/fake-bundle-version`,
+				`C:/fake-collection-path/data/fake-collection-name/fake-bundle-name/faf990988742db852eec285122b5c4e7180e7be5`,
 				`C:/fake-collection-path/fake-collection-name/fake-bundle-name`,
 				fs,
 				logger,

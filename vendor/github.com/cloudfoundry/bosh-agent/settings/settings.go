@@ -2,27 +2,42 @@ package settings
 
 import (
 	"fmt"
+
 	"github.com/cloudfoundry/bosh-agent/platform/disk"
 )
+
+type DiskAssociations struct {
+	Associations []DiskAssociation `json:"disk_associations"`
+}
+
+type DiskAssociation struct {
+	Name    string `json:"name"`
+	DiskCID string `json:"cid"`
+}
 
 const (
 	RootUsername        = "root"
 	VCAPUsername        = "vcap"
 	AdminGroup          = "admin"
 	SudoersGroup        = "bosh_sudoers"
+	SshersGroup         = "bosh_sshers"
 	EphemeralUserPrefix = "bosh_"
 )
 
 type Settings struct {
-	AgentID      string    `json:"agent_id"`
-	Blobstore    Blobstore `json:"blobstore"`
-	Disks        Disks     `json:"disks"`
-	Env          Env       `json:"env"`
-	Networks     Networks  `json:"networks"`
-	Ntp          []string  `json:"ntp"`
-	Mbus         string    `json:"mbus"`
-	VM           VM        `json:"vm"`
-	TrustedCerts string    `json:"trusted_certs"`
+	AgentID   string    `json:"agent_id"`
+	Blobstore Blobstore `json:"blobstore"`
+	Disks     Disks     `json:"disks"`
+	Env       Env       `json:"env"`
+	Networks  Networks  `json:"networks"`
+	Ntp       []string  `json:"ntp"`
+	Mbus      string    `json:"mbus"`
+	VM        VM        `json:"vm"`
+}
+
+type UpdateSettings struct {
+	DiskAssociations []DiskAssociation `json:"disk_associations"`
+	TrustedCerts     string            `json:"trusted_certs"`
 }
 
 type Source interface {
@@ -160,13 +175,48 @@ func (e Env) GetRemoveDevTools() bool {
 	return e.Bosh.RemoveDevTools
 }
 
+func (e Env) GetRemoveStaticLibraries() bool {
+	return e.Bosh.RemoveStaticLibraries
+}
+
+func (e Env) GetAuthorizedKeys() []string {
+	return e.Bosh.AuthorizedKeys
+}
+
+func (e Env) GetSwapSizeInBytes() *uint64 {
+	if e.Bosh.SwapSizeInMB == nil {
+		return nil
+	}
+
+	result := uint64(*e.Bosh.SwapSizeInMB * 1024 * 1024)
+	return &result
+}
+
 type BoshEnv struct {
-	Password         string `json:"password"`
-	KeepRootPassword bool   `json:"keep_root_password"`
-	RemoveDevTools   bool   `json:"remove_dev_tools"`
+	Password              string   `json:"password"`
+	KeepRootPassword      bool     `json:"keep_root_password"`
+	RemoveDevTools        bool     `json:"remove_dev_tools"`
+	RemoveStaticLibraries bool     `json:"remove_static_libraries"`
+	AuthorizedKeys        []string `json:"authorized_keys"`
+	SwapSizeInMB          *uint64  `json:"swap_size"`
+	Mbus                  struct {
+		Cert CertKeyPair `json:"cert"`
+	} `json:"mbus"`
+
+	IPv6 IPv6 `json:"ipv6"`
+}
+
+type CertKeyPair struct {
+	PrivateKey  string `json:"private_key"`
+	Certificate string `json:"certificate"`
+}
+
+type IPv6 struct {
+	Enable bool `json:"enable"`
 }
 
 type DNSRecords struct {
+	Version uint64      `json:"Version"`
 	Records [][2]string `json:"records"`
 }
 

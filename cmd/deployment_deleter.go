@@ -147,7 +147,7 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 
 	err = c.cpiInstaller.WithInstalledCpiRelease(installationManifest, target, stage, func(localCpiInstallation biinstall.Installation) error {
 		return localCpiInstallation.WithRunningRegistry(c.logger, stage, func() error {
-			err = c.findAndDeleteDeployment(stage, localCpiInstallation, deploymentState.DirectorID, installationManifest.Mbus)
+			err = c.findAndDeleteDeployment(stage, localCpiInstallation, deploymentState.DirectorID, installationManifest.Mbus, installationManifest.Cert.CA)
 
 			if err != nil {
 				return err
@@ -167,8 +167,8 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 	return err
 }
 
-func (c *deploymentDeleter) findAndDeleteDeployment(stage biui.Stage, installation biinstall.Installation, directorID, installationMbus string) error {
-	deploymentManager, err := c.deploymentManager(installation, directorID, installationMbus)
+func (c *deploymentDeleter) findAndDeleteDeployment(stage biui.Stage, installation biinstall.Installation, directorID, installationMbus, caCert string) error {
+	deploymentManager, err := c.deploymentManager(installation, directorID, installationMbus, caCert)
 	if err != nil {
 		return err
 	}
@@ -200,7 +200,7 @@ func (c *deploymentDeleter) findCurrentDeploymentAndDelete(stage biui.Stage, dep
 	})
 }
 
-func (c *deploymentDeleter) deploymentManager(installation biinstall.Installation, directorID, installationMbus string) (bidepl.Manager, error) {
+func (c *deploymentDeleter) deploymentManager(installation biinstall.Installation, directorID, installationMbus, caCert string) (bidepl.Manager, error) {
 	c.logger.Debug(c.logTag, "Creating cloud client...")
 
 	cloud, err := c.cloudFactory.NewCloud(installation, directorID)
@@ -210,7 +210,7 @@ func (c *deploymentDeleter) deploymentManager(installation biinstall.Installatio
 
 	c.logger.Debug(c.logTag, "Creating agent client...")
 
-	agentClient := c.agentClientFactory.NewAgentClient(directorID, installationMbus)
+	agentClient, _ := c.agentClientFactory.NewAgentClient(directorID, installationMbus, caCert)
 
 	c.logger.Debug(c.logTag, "Creating blobstore client...")
 

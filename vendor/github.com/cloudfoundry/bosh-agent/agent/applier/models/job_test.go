@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-agent/agent/applier/models"
+	"github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 var _ = Describe("Job", func() {
@@ -19,7 +20,7 @@ var _ = Describe("Job", func() {
 		It("returns version plus sha1 of source to make jobs unique", func() {
 			job := Job{
 				Version: "fake-version",
-				Source:  Source{Sha1: "fake-sha1"},
+				Source:  Source{Sha1: crypto.NewDigest(crypto.DigestAlgorithmSHA1, "fake-sha1")},
 			}
 			Expect(job.BundleVersion()).To(Equal("fake-version-fake-sha1"))
 		})

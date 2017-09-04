@@ -19,6 +19,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-utils/assert"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 	. "github.com/cloudfoundry/bosh-utils/system"
 )
 
@@ -103,18 +104,6 @@ var _ = Describe("OS FileSystem", func() {
 
 		err = osFs.MkdirAll(testPath, fileMode)
 		Expect(err).ToNot(HaveOccurred())
-	})
-
-	It("chown", func() {
-		osFs := createOsFs()
-		testPath := filepath.Join(os.TempDir(), "ChownTestDir")
-
-		err := os.Mkdir(testPath, os.FileMode(0700))
-		Expect(err).ToNot(HaveOccurred())
-		defer os.RemoveAll(testPath)
-
-		err = osFs.Chown(testPath, "garbage-foo")
-		Expect(err).To(HaveOccurred())
 	})
 
 	It("chmod", func() {
@@ -246,7 +235,7 @@ var _ = Describe("OS FileSystem", func() {
 		})
 	})
 
-	Context("the file parent fir does not exist", func() {
+	Context("the file's parent dir does not exist", func() {
 		BeforeEach(func() {
 			err := os.RemoveAll(filepath.Join(os.TempDir(), "subDirNew"))
 			Expect(err).ToNot(HaveOccurred())
@@ -264,6 +253,25 @@ var _ = Describe("OS FileSystem", func() {
 
 			err := osFs.WriteFile(testPath, []byte("test"))
 			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+
+	Context("we want to write a file quietly, i.e. without logging", func() {
+		It("Still writes the file but doesn't write any logs", func() {
+			logger := &loggerfakes.FakeLogger{}
+			osFs := NewOsFileSystem(logger)
+
+			testPath := filepath.Join(os.TempDir(), "subDir", "ConvergeFileContentsTestFile")
+
+			defer os.Remove(testPath)
+			err := osFs.WriteFileQuietly(testPath, []byte("test"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(logger.DebugCallCount()).To(Equal(1))
+			Expect(logger.DebugWithDetailsCallCount()).To(Equal(0))
+
+			writtenContent, _ := osFs.ReadFileString(testPath)
+			Expect(writtenContent).To(Equal("test"))
+
 		})
 	})
 

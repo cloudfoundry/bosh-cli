@@ -5,10 +5,11 @@ import (
 )
 
 type FakeRunner struct {
-	RunAction  boshaction.Action
-	RunPayload []byte
-	RunValue   interface{}
-	RunErr     error
+	RunAction          boshaction.Action
+	RunPayload         []byte
+	RunProtocolVersion boshaction.ProtocolVersion
+	RunValue           interface{}
+	RunErr             error
 
 	ResumeAction  boshaction.Action
 	ResumePayload []byte
@@ -16,9 +17,10 @@ type FakeRunner struct {
 	ResumeErr     error
 }
 
-func (runner *FakeRunner) Run(action boshaction.Action, payload []byte) (interface{}, error) {
+func (runner *FakeRunner) Run(action boshaction.Action, payload []byte, version boshaction.ProtocolVersion) (interface{}, error) {
 	runner.RunAction = action
 	runner.RunPayload = payload
+	runner.RunProtocolVersion = version
 	return runner.RunValue, runner.RunErr
 }
 

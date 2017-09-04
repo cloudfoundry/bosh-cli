@@ -86,7 +86,7 @@ var _ = Describe("execProcess", func() {
 				Context("when parent and child terminate after receiving SIGTERM", func() {
 					It("sends term signal to the whole group and returns with exit status that parent exited", func() {
 						command := exec.Command(filepath.Join(buildDir, "parent_term"))
-						process := NewExecProcess(command, keepAttached, logger)
+						process := NewExecProcess(command, keepAttached, false, logger)
 						err := process.Start()
 						Expect(err).ToNot(HaveOccurred())
 
@@ -117,7 +117,7 @@ var _ = Describe("execProcess", func() {
 				Context("when parent and child do not exit after receiving SIGTERM in small amount of time", func() {
 					It("sends kill signal to the whole group and returns with ? exit status", func() {
 						command := exec.Command(filepath.Join(buildDir, "parent_ignore_term"))
-						process := NewExecProcess(command, keepAttached, logger)
+						process := NewExecProcess(command, keepAttached, false, logger)
 						err := process.Start()
 						Expect(err).ToNot(HaveOccurred())
 
@@ -147,7 +147,7 @@ var _ = Describe("execProcess", func() {
 				Context("when parent and child already exited before calling TerminateNicely", func() {
 					It("returns without an error since all processes are gone", func() {
 						command := exec.Command(filepath.Join(buildDir, "exe_exits"))
-						process := NewExecProcess(command, keepAttached, logger)
+						process := NewExecProcess(command, keepAttached, false, logger)
 						err := process.Start()
 						Expect(err).ToNot(HaveOccurred())
 

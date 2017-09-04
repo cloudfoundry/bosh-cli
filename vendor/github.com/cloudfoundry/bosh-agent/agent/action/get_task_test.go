@@ -23,13 +23,12 @@ var _ = Describe("GetTask", func() {
 		action = NewGetTask(taskService)
 	})
 
-	It("is synchronous", func() {
-		Expect(action.IsAsynchronous()).To(BeFalse())
-	})
+	AssertActionIsNotAsynchronous(action)
+	AssertActionIsNotPersistent(action)
+	AssertActionIsLoggable(action)
 
-	It("is not persistent", func() {
-		Expect(action.IsPersistent()).To(BeFalse())
-	})
+	AssertActionIsNotResumable(action)
+	AssertActionIsNotCancelable(action)
 
 	It("returns a running task", func() {
 		taskService.StartedTasks["fake-task-id"] = boshtask.Task{

@@ -15,6 +15,7 @@ import (
 	boshbc "github.com/cloudfoundry/bosh-agent/agent/applier/bundlecollection"
 	boshaj "github.com/cloudfoundry/bosh-agent/agent/applier/jobs"
 	boshap "github.com/cloudfoundry/bosh-agent/agent/applier/packages"
+	boshagentblobstore "github.com/cloudfoundry/bosh-agent/agent/blobstore"
 	boshrunner "github.com/cloudfoundry/bosh-agent/agent/cmdrunner"
 	boshcomp "github.com/cloudfoundry/bosh-agent/agent/compiler"
 	boshscript "github.com/cloudfoundry/bosh-agent/agent/script"
@@ -38,7 +39,7 @@ import (
 )
 
 type App interface {
-	Setup(args []string) error
+	Setup(opts Options) error
 	Run() error
 	GetPlatform() boshplatform.Platform
 }
@@ -60,11 +61,7 @@ func New(logger boshlog.Logger, fs boshsys.FileSystem) App {
 	}
 }
 
-func (app *app) Setup(args []string) error {
-	opts, err := ParseOptions(args)
-	if err != nil {
-		return bosherr.WrapError(err, "Parsing options")
-	}
+func (app *app) Setup(opts Options) error {
 
 	config, err := app.loadConfig(opts.ConfigPath)
 	if err != nil {
@@ -75,6 +72,8 @@ func (app *app) Setup(args []string) error {
 	app.logStemcellInfo()
 
 	statsCollector := boshsigar.NewSigarStatsCollector(&sigar.ConcreteSigar{})
+	auditLoggerProvider := boshplatform.NewAuditLoggerProvider()
+	auditLogger := boshplatform.NewDelayedAuditLogger(auditLoggerProvider, app.logger)
 
 	state, err := boshplatform.NewBootstrapState(app.fs, filepath.Join(app.dirProvider.BoshDir(), "agent_state.json"))
 	if err != nil {
@@ -82,7 +81,7 @@ func (app *app) Setup(args []string) error {
 	}
 
 	timeService := clock.NewClock()
-	platformProvider := boshplatform.NewProvider(app.logger, app.dirProvider, statsCollector, app.fs, config.Platform, state, timeService)
+	platformProvider := boshplatform.NewProvider(app.logger, app.dirProvider, statsCollector, app.fs, config.Platform, state, timeService, auditLogger)
 
 	app.platform, err = platformProvider.Get(opts.PlatformName)
 	if err != nil {
@@ -102,6 +101,7 @@ func (app *app) Setup(args []string) error {
 		app.platform,
 		app.logger,
 	)
+
 	boot := boshagent.NewBootstrap(
 		app.platform,
 		app.dirProvider,
@@ -113,17 +113,16 @@ func (app *app) Setup(args []string) error {
 		return bosherr.WrapError(err, "Running bootstrap")
 	}
 
-	mbusHandlerProvider := boshmbus.NewHandlerProvider(settingsService, app.logger)
+	mbusHandlerProvider := boshmbus.NewHandlerProvider(settingsService, app.logger, auditLogger)
 
 	mbusHandler, err := mbusHandlerProvider.Get(app.platform, app.dirProvider)
 	if err != nil {
 		return bosherr.WrapError(err, "Getting mbus handler")
 	}
 
-	blobstoreProvider := boshblob.NewProvider(app.platform.GetFs(), app.platform.GetRunner(), app.dirProvider.EtcDir(), app.logger)
+	blobManager := boshblob.NewBlobManager(app.platform.GetFs(), app.dirProvider.BlobsDir())
+	blobstore, err := app.setupBlobstore(settingsService.GetSettings().Blobstore, blobManager)
 
-	blobsettings := settingsService.GetSettings().Blobstore
-	blobstore, err := blobstoreProvider.Get(blobsettings.Type, blobsettings.Options)
 	if err != nil {
 		return bosherr.WrapError(err, "Getting blobstore")
 	}
@@ -180,6 +179,7 @@ func (app *app) Setup(args []string) error {
 		settingsService,
 		app.platform,
 		blobstore,
+		blobManager,
 		taskService,
 		notifier,
 		applier,
@@ -210,7 +210,7 @@ func (app *app) Setup(args []string) error {
 		jobSupervisor,
 		specService,
 		syslogServer,
-		time.Minute,
+		time.Second*30,
 		settingsService,
 		uuidGen,
 		timeService,
@@ -233,14 +233,16 @@ func (app *app) GetPlatform() boshplatform.Platform {
 
 func (app *app) buildApplierAndCompiler(
 	dirProvider boshdirs.Provider,
-	blobstore boshblob.Blobstore,
+	blobstore boshblob.DigestBlobstore,
 	jobSupervisor boshjobsuper.JobSupervisor,
 ) (boshapplier.Applier, boshcomp.Compiler) {
+	fileSystem := app.platform.GetFs()
+
 	jobsBc := boshbc.NewFileBundleCollection(
 		dirProvider.DataDir(),
 		dirProvider.BaseDir(),
 		"jobs",
-		app.platform.GetFs(),
+		fileSystem,
 		app.logger,
 	)
 
@@ -251,7 +253,7 @@ func (app *app) buildApplierAndCompiler(
 		"packages",
 		blobstore,
 		app.platform.GetCompressor(),
-		app.platform.GetFs(),
+		fileSystem,
 		app.logger,
 	)
 
@@ -261,7 +263,7 @@ func (app *app) buildApplierAndCompiler(
 		packageApplierProvider,
 		blobstore,
 		app.platform.GetCompressor(),
-		app.platform.GetFs(),
+		fileSystem,
 		app.logger,
 	)
 
@@ -273,11 +275,9 @@ func (app *app) buildApplierAndCompiler(
 		dirProvider,
 	)
 
-	platformRunner := app.platform.GetRunner()
-	fileSystem := app.platform.GetFs()
 	cmdRunner := boshrunner.NewFileLoggingCmdRunner(
 		fileSystem,
-		platformRunner,
+		app.platform.GetRunner(),
 		dirProvider.LogsDir(),
 		10*1024, // 10 Kb
 	)
@@ -315,4 +315,20 @@ func (app *app) fileContents(path string) string {
 		contents = "?"
 	}
 	return contents
+}
+
+func (app *app) setupBlobstore(blobstoreSettings boshsettings.Blobstore, blobManager boshblob.BlobManagerInterface) (boshblob.DigestBlobstore, error) {
+	blobstoreProvider := boshblob.NewProvider(
+		app.platform.GetFs(),
+		app.platform.GetRunner(),
+		app.dirProvider.EtcDir(),
+		app.logger,
+	)
+
+	blobstore, err := blobstoreProvider.Get(blobstoreSettings.Type, blobstoreSettings.Options)
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Getting blobstore")
+	}
+
+	return boshagentblobstore.NewCascadingBlobstore(blobstore, blobManager, app.logger), nil
 }

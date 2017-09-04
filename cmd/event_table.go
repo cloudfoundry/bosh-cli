@@ -19,60 +19,55 @@ func (t EventTable) Print() {
 	if t.Event.ParentID() != "" {
 		id += " <- " + t.Event.ParentID()
 	}
+
 	table := boshtbl.Table{
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("ID"),
+			boshtbl.NewHeader("Time"),
+		},
 		Rows: [][]boshtbl.Value{
 			{
-				boshtbl.NewValueString("ID"),
 				boshtbl.NewValueString(id),
-			},
-			{
-				boshtbl.NewValueString("Time"),
 				boshtbl.NewValueTime(t.Event.Timestamp()),
 			},
 		},
+		Transpose: true,
 	}
 
 	if len(t.Event.User()) > 0 {
-		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.NewValueString("User"),
+		table = table.AddColumn("User", []boshtbl.Value{
 			boshtbl.NewValueString(t.Event.User()),
 		})
 	}
 
-	table.Rows = append(table.Rows, []boshtbl.Value{
-		boshtbl.NewValueString("Action"),
+	table = table.AddColumn("Action", []boshtbl.Value{
 		boshtbl.NewValueString(t.Event.Action()),
 	})
 
-	table.Rows = append(table.Rows, []boshtbl.Value{
-		boshtbl.NewValueString("Object Type"),
+	table = table.AddColumn("Object Type", []boshtbl.Value{
 		boshtbl.NewValueString(t.Event.ObjectType()),
 	})
 
 	if len(t.Event.ObjectName()) > 0 {
-		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.NewValueString("Object ID"),
+		table = table.AddColumn("Object Name", []boshtbl.Value{
 			boshtbl.NewValueString(t.Event.ObjectName()),
 		})
 	}
 
 	if len(t.Event.TaskID()) > 0 {
-		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.NewValueString("Task ID"),
+		table = table.AddColumn("Task ID", []boshtbl.Value{
 			boshtbl.NewValueString(t.Event.TaskID()),
 		})
 	}
 
 	if len(t.Event.DeploymentName()) > 0 {
-		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.NewValueString("Deployment"),
+		table = table.AddColumn("Deployment", []boshtbl.Value{
 			boshtbl.NewValueString(t.Event.DeploymentName()),
 		})
 	}
 
 	if len(t.Event.Instance()) > 0 {
-		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.NewValueString("Instance"),
+		table = table.AddColumn("Instance", []boshtbl.Value{
 			boshtbl.NewValueString(t.Event.Instance()),
 		})
 	}
@@ -86,15 +81,13 @@ func (t EventTable) Print() {
 
 		sort.Sort(EventContextSorting(desc))
 
-		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.NewValueString("Context"),
+		table = table.AddColumn("Context", []boshtbl.Value{
 			boshtbl.NewValueStrings(desc),
 		})
 	}
 
 	if len(t.Event.Error()) > 0 {
-		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.NewValueString("Error"),
+		table = table.AddColumn("Error", []boshtbl.Value{
 			boshtbl.NewValueString(t.Event.Error()),
 		})
 	}

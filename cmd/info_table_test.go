@@ -38,32 +38,22 @@ var _ = Describe("InfoTable", func() {
 
 			InfoTable{Info: info, UI: ui}.Print()
 
-			Expect(ui.Table.Header).To(BeEmpty())
-			Expect(ui.Table.Rows).To(Equal([][]boshtbl.Value{
-				{
-					boshtbl.NewValueString("Name"),
-					boshtbl.NewValueString("director-name"),
-				},
-				{
-					boshtbl.NewValueString("UUID"),
-					boshtbl.NewValueString("director-uuid"),
-				},
-				{
-					boshtbl.NewValueString("Version"),
-					boshtbl.NewValueString("director-version"),
-				},
-				{
-					boshtbl.NewValueString("CPI"),
-					boshtbl.NewValueString("cpi"),
-				},
-				{
-					boshtbl.NewValueString("Features"),
-					boshtbl.NewValueStrings([]string{"compiled_pkgs: disabled", "snapshots: enabled"}),
-				},
-				{
-					boshtbl.NewValueString("User"),
-					boshtbl.NewValueString("user"),
-				},
+			Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
+				boshtbl.NewHeader("Name"),
+				boshtbl.NewHeader("UUID"),
+				boshtbl.NewHeader("Version"),
+				boshtbl.NewHeader("CPI"),
+				boshtbl.NewHeader("Features"),
+				boshtbl.NewHeader("User"),
+			}))
+			Expect(ui.Table.Rows).To(HaveLen(1))
+			Expect(ui.Table.Rows[0]).To(Equal([]boshtbl.Value{
+				boshtbl.NewValueString("director-name"),
+				boshtbl.NewValueString("director-uuid"),
+				boshtbl.NewValueString("director-version"),
+				boshtbl.NewValueString("cpi"),
+				boshtbl.NewValueStrings([]string{"compiled_pkgs: disabled", "snapshots: enabled"}),
+				boshtbl.NewValueString("user"),
 			}))
 		})
 
@@ -76,24 +66,18 @@ var _ = Describe("InfoTable", func() {
 
 			InfoTable{Info: info, UI: ui}.Print()
 
-			Expect(ui.Table.Header).To(BeEmpty())
-			Expect(ui.Table.Rows).To(Equal([][]boshtbl.Value{
-				{
-					boshtbl.NewValueString("Name"),
-					boshtbl.NewValueString("director-name"),
-				},
-				{
-					boshtbl.NewValueString("UUID"),
-					boshtbl.NewValueString("director-uuid"),
-				},
-				{
-					boshtbl.NewValueString("Version"),
-					boshtbl.NewValueString("director-version"),
-				},
-				{
-					boshtbl.NewValueString("User"),
-					boshtbl.NewValueString("(not logged in)"),
-				},
+			Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
+				boshtbl.NewHeader("Name"),
+				boshtbl.NewHeader("UUID"),
+				boshtbl.NewHeader("Version"),
+				boshtbl.NewHeader("User"),
+			}))
+			Expect(ui.Table.Rows).To(HaveLen(1))
+			Expect(ui.Table.Rows[0]).To(Equal([]boshtbl.Value{
+				boshtbl.NewValueString("director-name"),
+				boshtbl.NewValueString("director-uuid"),
+				boshtbl.NewValueString("director-version"),
+				boshtbl.NewValueString("(not logged in)"),
 			}))
 		})
 	})

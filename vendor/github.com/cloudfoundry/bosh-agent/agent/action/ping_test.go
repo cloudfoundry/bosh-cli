@@ -9,18 +9,23 @@ import (
 
 func init() {
 	Describe("Ping", func() {
-		It("is synchronous", func() {
-			action := NewPing()
-			Expect(action.IsAsynchronous()).To(BeFalse())
+
+		var (
+			action PingAction
+		)
+
+		BeforeEach(func() {
+			action = NewPing()
 		})
 
-		It("is not persistent", func() {
-			action := NewPing()
-			Expect(action.IsPersistent()).To(BeFalse())
-		})
+		AssertActionIsNotAsynchronous(action)
+		AssertActionIsNotPersistent(action)
+		AssertActionIsLoggable(action)
+
+		AssertActionIsNotResumable(action)
+		AssertActionIsNotCancelable(action)
 
 		It("ping run returns pong", func() {
-			action := NewPing()
 			pong, err := action.Run()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(pong).To(Equal("pong"))

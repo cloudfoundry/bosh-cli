@@ -57,13 +57,37 @@ func init() {
 					fetchedSettings = Settings{AgentID: "some-new-agent-id"}
 				})
 
-				Context("when settings contain at most one dynamic network", func() {
+				Context("thread safe", func() {
 					BeforeEach(func() {
 						fetchedSettings.Networks = Networks{
 							"fake-net-1": Network{Type: NetworkTypeDynamic},
 						}
 					})
 
+					It("should ensure only one thread at a time is writing or reading the settings", func() {
+						done := make(chan bool)
+
+						go func() {
+							for i := 0; i < 100000; i++ {
+								service.GetSettings()
+							}
+							done <- true
+						}()
+
+						go func() {
+							for i := 0; i < 100000; i++ {
+								service.LoadSettings()
+							}
+							done <- true
+						}()
+
+						for i := 0; i < 2; i++ {
+							<-done
+						}
+					})
+				})
+
+				Context("when settings contain at most one dynamic network", func() {
 					It("updates the service with settings from the fetcher", func() {
 						err := service.LoadSettings()
 						Expect(err).NotTo(HaveOccurred())
@@ -174,7 +198,9 @@ func init() {
 				fakeSettingsSource.SettingsErr = nil
 				service, fs := buildService()
 
-				fs.RemoveAllError = errors.New("fs-remove-all-error")
+				fs.RemoveAllStub = func(_ string) error {
+					return errors.New("fs-remove-all-error")
+				}
 
 				err := service.InvalidateSettings()
 				Expect(err).To(HaveOccurred())

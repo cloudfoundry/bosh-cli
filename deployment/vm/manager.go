@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"code.cloudfoundry.org/clock"
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
@@ -12,7 +13,7 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	"github.com/pivotal-golang/clock"
+	"time"
 )
 
 type Manager interface {
@@ -31,6 +32,7 @@ type manager struct {
 	fs                 boshsys.FileSystem
 	logger             boshlog.Logger
 	logTag             string
+	timeService        Clock
 }
 
 func NewManager(
@@ -42,6 +44,7 @@ func NewManager(
 	uuidGenerator boshuuid.Generator,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
+	timeService Clock,
 ) Manager {
 	return &manager{
 		cloud:         cloud,
@@ -53,6 +56,7 @@ func NewManager(
 		fs:            fs,
 		logger:        logger,
 		logTag:        "vmManager",
+		timeService:   timeService,
 	}
 }
 
@@ -105,10 +109,12 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 	}
 
 	metadata := bicloud.VMMetadata{
-		"deployment": deploymentManifest.Name,
-		"job":        deploymentManifest.JobName(),
-		"index":      "0",
-		"director":   "bosh-init",
+		"deployment":     deploymentManifest.Name,
+		"job":            deploymentManifest.JobName(),
+		"instance_group": deploymentManifest.JobName(),
+		"index":          "0",
+		"director":       "bosh-init",
+		"created_at":     m.timeService.Now().Format(time.RFC3339),
 	}
 
 	for tagKey, tagValue := range deploymentManifest.Tags {
@@ -125,7 +131,7 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		}
 	}
 
-	vm := NewVM(
+	vm := NewVMWithMetadata(
 		cid,
 		m.vmRepo,
 		m.stemcellRepo,
@@ -135,6 +141,7 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		clock.NewClock(),
 		m.fs,
 		m.logger,
+		metadata,
 	)
 
 	return vm, nil

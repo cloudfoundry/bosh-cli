@@ -192,6 +192,10 @@ func (r ClientRequest) optionallyFollowResponse(url string, resp *http.Response)
 	return body, resp, nil
 }
 
+type ShouldTrackDownload interface {
+	ShouldTrackDownload() bool
+}
+
 func (r ClientRequest) readResponse(resp *http.Response, out io.Writer) ([]byte, *http.Response, error) {
 	defer resp.Body.Close()
 
@@ -218,13 +222,6 @@ func (r ClientRequest) readResponse(resp *http.Response, out io.Writer) ([]byte,
 		if err != nil {
 			return nil, nil, bosherr.WrapError(err, "Reading Director response")
 		}
-	} else {
-		out = r.fileReporter.TrackDownload(resp.ContentLength, out)
-
-		_, err := io.Copy(out, resp.Body)
-		if err != nil {
-			return nil, nil, bosherr.WrapError(err, "Copying Director response")
-		}
 	}
 
 	not200 := resp.StatusCode != http.StatusOK
@@ -236,6 +233,23 @@ func (r ClientRequest) readResponse(resp *http.Response, out io.Writer) ([]byte,
 	if not200 && not201 && not204 && not206 && not302 {
 		msg := "Director responded with non-successful status code '%d' response '%s'"
 		return nil, resp, bosherr.Errorf(msg, resp.StatusCode, respBody)
+	}
+
+	if out != nil {
+		showProgress := true
+
+		if typedOut, ok := out.(ShouldTrackDownload); ok {
+			showProgress = typedOut.ShouldTrackDownload()
+		}
+
+		if showProgress {
+			out = r.fileReporter.TrackDownload(resp.ContentLength, out)
+		}
+
+		_, err := io.Copy(out, resp.Body)
+		if err != nil {
+			return nil, nil, bosherr.WrapError(err, "Copying Director response")
+		}
 	}
 
 	return respBody, resp, nil

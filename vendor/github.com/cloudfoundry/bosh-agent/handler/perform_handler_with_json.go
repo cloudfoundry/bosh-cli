@@ -23,9 +23,6 @@ func PerformHandlerWithJSON(rawJSON []byte, handler Func, maxResponseLength int,
 
 	request.Payload = rawJSON
 
-	logger.Info(mbusHandlerLogTag, "Received request with action %s", request.Method)
-	logger.DebugWithDetails(mbusHandlerLogTag, "Payload", request.Payload)
-
 	response := handler(request)
 	if response == nil {
 		logger.Info(mbusHandlerLogTag, "Nil response returned from handler")

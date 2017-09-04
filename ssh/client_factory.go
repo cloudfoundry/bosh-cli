@@ -3,8 +3,8 @@ package ssh
 import (
 	"time"
 
+	"code.cloudfoundry.org/clock"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/pivotal-golang/clock"
 )
 
 type ClientOpts struct {

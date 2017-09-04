@@ -17,8 +17,9 @@ type FakeJobSupervisor struct {
 	Started  bool
 	StartErr error
 
-	Stopped bool
-	StopErr error
+	Stopped          bool
+	StopErr          error
+	StoppedAndWaited bool
 
 	Unmonitored  bool
 	UnmonitorErr error
@@ -67,6 +68,12 @@ func (m *FakeJobSupervisor) Start() error {
 
 func (m *FakeJobSupervisor) Stop() error {
 	m.Stopped = true
+	return m.StopErr
+}
+
+func (m *FakeJobSupervisor) StopAndWait() error {
+	m.Stopped = true
+	m.StoppedAndWaited = true
 	return m.StopErr
 }
 

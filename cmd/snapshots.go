@@ -23,7 +23,12 @@ func (c SnapshotsCmd) Run(opts SnapshotsOpts) error {
 
 	table := boshtbl.Table{
 		Content: "snapshots",
-		Header:  []string{"Instance", "CID", "Created At", "Clean"},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Instance"),
+			boshtbl.NewHeader("CID"),
+			boshtbl.NewHeader("Created At"),
+			boshtbl.NewHeader("Clean"),
+		},
 	}
 
 	for _, s := range snapshots {

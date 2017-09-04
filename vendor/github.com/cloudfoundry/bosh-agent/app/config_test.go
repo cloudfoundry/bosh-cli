@@ -120,7 +120,7 @@ var _ = Describe("LoadConfigFromPath", func() {
 	It("returns error if file is not found", func() {
 		_, err := LoadConfigFromPath(fs, "/something_not_exist")
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("not found"))
+		Expect(err.Error()).To(ContainSubstring("Reading file"))
 	})
 
 	It("returns error if file cannot be parsed", func() {

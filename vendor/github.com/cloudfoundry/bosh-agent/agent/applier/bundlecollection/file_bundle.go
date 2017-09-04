@@ -108,7 +108,7 @@ func (b FileBundle) Enable() (boshsys.FileSystem, string, error) {
 func (b FileBundle) Disable() error {
 	b.logger.Debug(fileBundleLogTag, "Disabling %v", b)
 
-	target, err := b.fs.ReadLink(b.enablePath)
+	target, err := b.fs.ReadAndFollowLink(b.enablePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil

@@ -102,37 +102,30 @@ var _ = Describe("FactoryConfig", func() {
 			}.Validate()
 
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Parsing CA certificate: Missing PEM block"))
-		})
-
-		It("returns error if PEM formatted block is not a certificate", func() {
-			err := Config{
-				Host: "host",
-				Port: 1,
-				CACert: `-----BEGIN PRIVATE KEY-----
-MIIDXzCCAkegAwIBAgIJAPerMgLAne5vMA0GCSqGSIb3DQEBBQUAMEUxCzAJBgNV
------END PRIVATE KEY-----`,
-			}.Validate()
-
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Parsing CA certificate: Not a certificate"))
-		})
-
-		It("returns error if parsing certificate fails", func() {
-			err := Config{
-				Host: "host",
-				Port: 1,
-				CACert: `-----BEGIN CERTIFICATE-----
-MIIDXzCCAkegAwIBAgIJAPerMgLAne5vMA0GCSqGSIb3DQEBBQUAMEUxCzAJBgNV
------END CERTIFICATE-----`,
-			}.Validate()
-
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Parsing CA certificate: asn1: syntax error:"))
+			Expect(err.Error()).To(ContainSubstring("Parsing certificate 1: Missing PEM block"))
 		})
 	})
 
 	Describe("CACertPool", func() {
+		It("returns error if cannot parse PEM formatted block", func() {
+			_, err := Config{
+				Host:   "host",
+				Port:   1,
+				CACert: "-",
+			}.CACertPool()
+
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Parsing certificate 1: Missing PEM block"))
+		})
+
+		It("does not create a cert pool from an empty string", func() {
+			caCert := ``
+
+			certPool, err := Config{CACert: caCert}.CACertPool()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(certPool).To(BeNil())
+		})
+
 		It("returns without error for basic config", func() {
 			caCert := `-----BEGIN CERTIFICATE-----
 MIIDXzCCAkegAwIBAgIJAPerMgLAne5vMA0GCSqGSIb3DQEBBQUAMEUxCzAJBgNV

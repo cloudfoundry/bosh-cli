@@ -1,7 +1,7 @@
 package action_test
 
 import (
-	"path"
+	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -10,6 +10,7 @@ import (
 	boshdirs "github.com/cloudfoundry/bosh-agent/settings/directories"
 	boshassert "github.com/cloudfoundry/bosh-utils/assert"
 	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 )
 
@@ -17,32 +18,33 @@ var _ = Describe("FetchLogsAction", func() {
 	var (
 		compressor  *fakecmd.FakeCompressor
 		copier      *fakecmd.FakeCopier
-		blobstore   *fakeblobstore.FakeBlobstore
+		blobstore   *fakeblobstore.FakeDigestBlobstore
 		dirProvider boshdirs.Provider
 		action      FetchLogsAction
 	)
 
 	BeforeEach(func() {
 		compressor = fakecmd.NewFakeCompressor()
-		blobstore = &fakeblobstore.FakeBlobstore{}
+		blobstore = &fakeblobstore.FakeDigestBlobstore{}
 		dirProvider = boshdirs.NewProvider("/fake/dir")
 		copier = fakecmd.NewFakeCopier()
 		action = NewFetchLogs(compressor, copier, blobstore, dirProvider)
 	})
 
-	It("logs should be asynchronous", func() {
-		Expect(action.IsAsynchronous()).To(BeTrue())
-	})
+	AssertActionIsAsynchronous(action)
+	AssertActionIsNotPersistent(action)
+	AssertActionIsLoggable(action)
 
-	It("is not persistent", func() {
-		Expect(action.IsPersistent()).To(BeFalse())
-	})
+	AssertActionIsNotResumable(action)
+	AssertActionIsNotCancelable(action)
 
 	Describe("Run", func() {
 		testLogs := func(logType string, filters []string, expectedFilters []string) {
 			copier.FilteredCopyToTempTempDir = "/fake-temp-dir"
 			compressor.CompressFilesInDirTarballPath = "logs_test.tar"
-			blobstore.CreateBlobID = "my-blob-id"
+			blobstore.CreateStub = func(fileName string) (blobID string, digest boshcrypto.MultipleDigest, err error) {
+				return "my-blob-id", boshcrypto.MultipleDigest{}, nil
+			}
 
 			logs, err := action.Run(logType, filters)
 			Expect(err).ToNot(HaveOccurred())
@@ -50,18 +52,18 @@ var _ = Describe("FetchLogsAction", func() {
 			var expectedPath string
 			switch logType {
 			case "job":
-				expectedPath = path.Join("/fake", "dir", "sys", "log")
+				expectedPath = filepath.Join("/fake", "dir", "sys", "log")
 			case "agent":
-				expectedPath = path.Join("/fake", "dir", "bosh", "log")
+				expectedPath = filepath.Join("/fake", "dir", "bosh", "log")
 			}
 
-			Expect(copier.FilteredCopyToTempDir).To(Equal(expectedPath))
+			Expect(copier.FilteredCopyToTempDir).To(boshassert.MatchPath(expectedPath))
 			Expect(copier.FilteredCopyToTempFilters).To(Equal(expectedFilters))
 
 			Expect(copier.FilteredCopyToTempTempDir).To(Equal(compressor.CompressFilesInDirDir))
 			Expect(copier.CleanUpTempDir).To(Equal(compressor.CompressFilesInDirDir))
 
-			Expect(compressor.CompressFilesInDirTarballPath).To(Equal(blobstore.CreateFileNames[0]))
+			Expect(compressor.CompressFilesInDirTarballPath).To(Equal(blobstore.CreateArgsForCall(0)))
 
 			boshassert.MatchesJSONString(GinkgoT(), logs, `{"blobstore_id":"my-blob-id"}`)
 		}
@@ -100,8 +102,10 @@ var _ = Describe("FetchLogsAction", func() {
 
 			compressor.CompressFilesInDirTarballPath = "/fake-compressed-logs.tar"
 
-			blobstore.CreateCallBack = func() {
+			blobstore.CreateStub = func(fileName string) (blobID string, digest boshcrypto.MultipleDigest, err error) {
 				beforeCleanUpTarballPath = compressor.CleanUpTarballPath
+
+				return "my-blob-id", boshcrypto.MultipleDigest{}, nil
 			}
 
 			_, err := action.Run("job", []string{})

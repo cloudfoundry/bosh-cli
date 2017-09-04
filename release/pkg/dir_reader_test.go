@@ -18,20 +18,22 @@ import (
 
 var _ = Describe("DirReaderImpl", func() {
 	var (
-		collectedFiles     []File
-		collectedPrepFiles []File
-		collectedChunks    []string
-		archive            *fakeres.FakeArchive
-		fs                 *fakesys.FakeFileSystem
-		reader             DirReaderImpl
+		collectedFiles          []File
+		collectedPrepFiles      []File
+		collectedChunks         []string
+		collectedFollowSymlinks bool
+		archive                 *fakeres.FakeArchive
+		fs                      *fakesys.FakeFileSystem
+		reader                  DirReaderImpl
 	)
 
 	BeforeEach(func() {
 		archive = &fakeres.FakeArchive{}
-		archiveFactory := func(files, prepFiles []File, chunks []string) Archive {
-			collectedFiles = files
-			collectedPrepFiles = prepFiles
-			collectedChunks = chunks
+		archiveFactory := func(args ArchiveFactoryArgs) Archive {
+			collectedFiles = args.Files
+			collectedPrepFiles = args.PrepFiles
+			collectedChunks = args.Chunks
+			collectedFollowSymlinks = args.FollowSymlinks
 			return archive
 		}
 		fs = fakesys.NewFakeFileSystem()
@@ -69,6 +71,7 @@ excluded_files: [ex-file1, ex-file2]
 
 			Expect(collectedPrepFiles).To(BeEmpty())
 			Expect(collectedChunks).To(Equal([]string{"pkg1", "pkg2"}))
+			Expect(collectedFollowSymlinks).To(BeFalse())
 		})
 
 		It("returns a package with the details with pre_packaging file", func() {

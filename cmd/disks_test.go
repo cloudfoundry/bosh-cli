@@ -44,8 +44,8 @@ var _ = Describe("DisksCmd", func() {
 			})
 
 			It("lists disks", func() {
-				disks := []boshdir.OrphanedDisk{
-					&fakedir.FakeOrphanedDisk{
+				disks := []boshdir.OrphanDisk{
+					&fakedir.FakeOrphanDisk{
 						CIDStub:  func() string { return "cid" },
 						SizeStub: func() uint64 { return 100 },
 
@@ -63,7 +63,7 @@ var _ = Describe("DisksCmd", func() {
 					},
 				}
 
-				director.OrphanedDisksReturns(disks, nil)
+				director.OrphanDisksReturns(disks, nil)
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -71,7 +71,14 @@ var _ = Describe("DisksCmd", func() {
 				Expect(ui.Table).To(Equal(boshtbl.Table{
 					Content: "disks",
 
-					Header: []string{"Disk CID", "Size", "Deployment", "Instance", "AZ", "Orphaned At"},
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Disk CID"),
+						boshtbl.NewHeader("Size"),
+						boshtbl.NewHeader("Deployment"),
+						boshtbl.NewHeader("Instance"),
+						boshtbl.NewHeader("AZ"),
+						boshtbl.NewHeader("Orphaned At"),
+					},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 5}},
 
@@ -89,7 +96,7 @@ var _ = Describe("DisksCmd", func() {
 			})
 
 			It("returns error if orphaned disks cannot be retrieved", func() {
-				director.OrphanedDisksReturns(nil, errors.New("fake-err"))
+				director.OrphanDisksReturns(nil, errors.New("fake-err"))
 
 				err := act()
 				Expect(err).To(HaveOccurred())

@@ -25,6 +25,14 @@ func (c UpdateCloudConfigCmd) Run(opts UpdateCloudConfigOpts) error {
 		return bosherr.WrapErrorf(err, "Evaluating cloud config")
 	}
 
+	cloudConfigDiff, err := c.director.DiffCloudConfig(bytes)
+	if err != nil {
+		return err
+	}
+
+	diff := NewDiff(cloudConfigDiff.Diff)
+	diff.Print(c.ui)
+
 	err = c.ui.AskForConfirmation()
 	if err != nil {
 		return err

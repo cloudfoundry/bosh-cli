@@ -22,12 +22,16 @@ func NewMigrateDisk(
 	return
 }
 
-func (a MigrateDiskAction) IsAsynchronous() bool {
+func (a MigrateDiskAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return true
 }
 
 func (a MigrateDiskAction) IsPersistent() bool {
 	return false
+}
+
+func (a MigrateDiskAction) IsLoggable() bool {
+	return true
 }
 
 func (a MigrateDiskAction) Run() (value interface{}, err error) {

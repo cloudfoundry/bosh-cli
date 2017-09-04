@@ -72,7 +72,7 @@ var _ = Describe("Cmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				// Tables have emboldened header values
-				confUI.PrintTable(boshtbl.Table{Header: []string{"State"}})
+				confUI.PrintTable(boshtbl.Table{Header: []boshtbl.Header{boshtbl.NewHeader("State")}})
 			}
 
 			It("has color in the output enabled by default", func() {
@@ -82,7 +82,7 @@ var _ = Describe("Cmd", func() {
 				executeCmdAndPrintTable()
 
 				// Expect that header values are bold
-				Expect(ui.Tables[0].HeaderVals[0].(boshtbl.ValueFmt).Func).ToNot(BeNil())
+				Expect(ui.Tables[0].HeaderFormatFunc).ToNot(BeNil())
 			})
 
 			It("allows to disable color in the output", func() {
@@ -92,7 +92,7 @@ var _ = Describe("Cmd", func() {
 				executeCmdAndPrintTable()
 
 				// Expect that header values are empty because they were not emboldened
-				Expect(ui.Tables[0].HeaderVals).To(BeEmpty())
+				Expect(ui.Tables[0].HeaderFormatFunc).To(BeNil())
 			})
 		})
 

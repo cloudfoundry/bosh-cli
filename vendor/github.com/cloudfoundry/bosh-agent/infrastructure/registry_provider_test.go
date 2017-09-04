@@ -20,6 +20,7 @@ var _ = Describe("RegistryProvider", func() {
 		useServerName    bool
 		fs               *fakesys.FakeFileSystem
 		registryProvider RegistryProvider
+		logger           boshlog.Logger
 	)
 
 	BeforeEach(func() {
@@ -30,7 +31,7 @@ var _ = Describe("RegistryProvider", func() {
 	})
 
 	JustBeforeEach(func() {
-		logger := boshlog.NewLogger(boshlog.LevelNone)
+		logger = boshlog.NewLogger(boshlog.LevelNone)
 		registryProvider = NewRegistryProvider(metadataService, platform, useServerName, fs, logger)
 	})
 
@@ -46,7 +47,7 @@ var _ = Describe("RegistryProvider", func() {
 				It("returns an http registry that does not use server name as id", func() {
 					registry, err := registryProvider.GetRegistry()
 					Expect(err).ToNot(HaveOccurred())
-					Expect(registry).To(Equal(NewHTTPRegistry(metadataService, platform, false)))
+					Expect(registry).To(Equal(NewHTTPRegistry(metadataService, platform, false, logger)))
 				})
 			})
 
@@ -56,7 +57,7 @@ var _ = Describe("RegistryProvider", func() {
 				It("returns an http registry that uses server name as id", func() {
 					registry, err := registryProvider.GetRegistry()
 					Expect(err).ToNot(HaveOccurred())
-					Expect(registry).To(Equal(NewHTTPRegistry(metadataService, platform, true)))
+					Expect(registry).To(Equal(NewHTTPRegistry(metadataService, platform, true, logger)))
 				})
 			})
 		})

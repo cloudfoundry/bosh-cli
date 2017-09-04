@@ -3,8 +3,7 @@ Vagrant.configure('2') do |config|
   config.vm.box_version = '9000.20.0'
 
   config.vm.provider :virtualbox do |v, override|
-    # To use a different IP address for the bosh-lite director, uncomment this line:
-    # override.vm.network :private_network, ip: '192.168.59.4', id: :local
+    override.vm.network "private_network", type: "dhcp", id: :local
   end
 
   config.vm.provider :aws do |v, override|
@@ -17,6 +16,11 @@ Vagrant.configure('2') do |config|
     v.tags = {
       'PipelineName' => 'bosh-agent'
     }
+
+    v.access_key_id = ENV['BOSH_AWS_ACCESS_KEY_ID'] || ''
+    v.secret_access_key = ENV['BOSH_AWS_SECRET_ACCESS_KEY'] || ''
+    v.subnet_id = ENV['BOSH_LITE_SUBNET_ID'] || ''
+    v.ami = ''
   end
 
   agent_dir = '/home/vagrant/go/src/github.com/cloudfoundry/bosh-agent'
@@ -28,6 +32,7 @@ Vagrant.configure('2') do |config|
   config.vm.provision :shell, inline: "chmod 777 /var/vcap/sys/log/cpi"
 
   config.vm.provision :shell, inline: "sudo #{agent_dir}/integration/assets/install-go.sh"
+  config.vm.provision :shell, inline: "sudo cp #{agent_dir}/integration/assets/bosh-start-logging-and-auditing /var/vcap/bosh/bin/bosh-start-logging-and-auditing"
   config.vm.provision :shell, inline: "sudo #{agent_dir}/integration/assets/install-agent.sh"
   config.vm.provision :shell, inline: "sudo #{agent_dir}/integration/assets/install-fake-registry.sh"
   config.vm.provision :shell, inline: "sudo #{agent_dir}/integration/assets/disable_growpart.sh"

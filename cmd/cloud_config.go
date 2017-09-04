@@ -20,7 +20,7 @@ func (c CloudConfigCmd) Run() error {
 		return err
 	}
 
-	c.ui.PrintBlock(cloudConfig.Properties)
+	c.ui.PrintBlock([]byte(cloudConfig.Properties))
 
 	return nil
 }

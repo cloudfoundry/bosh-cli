@@ -21,6 +21,15 @@ var _ = Describe("Template", func() {
 		Expect(result).To(Equal([]byte("foo\n")))
 	})
 
+	It("can interpolate values with leading slash into a struct with byte slice", func() {
+		template := NewTemplate([]byte("((/key/foo))"))
+		vars := StaticVariables{"/key/foo": "foo"}
+
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("foo\n")))
+	})
+
 	It("can interpolate multiple values into a byte slice", func() {
 		template := NewTemplate([]byte("((key)): ((value))"))
 		vars := StaticVariables{
@@ -415,13 +424,7 @@ xyz: [((!key2))]
 		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte(`abc: key1-val
-variables:
-- name: key2
-  options:
-    key2-opt: key2-opt-val
-  type: key2-type
-- name: key1
-  type: key1-type
+variables: []
 xyz:
 - key2-val
 `)))
@@ -445,9 +448,7 @@ xyz:
 		result, err := template.Evaluate(vars, op, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte(`abc: key-val
-variables:
-- name: key
-  type: key-type
+variables: []
 `)))
 	})
 
@@ -458,7 +459,8 @@ variables:
   type: key1-type
 - name: missing-type
 - name: key2
-  type: key2-type`))
+  type: key2-type
+`))
 
 		var interpolationOrder []string
 
@@ -471,7 +473,7 @@ variables:
 
 		_, err := template.Evaluate(vars, nil, EvaluateOpts{})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(interpolationOrder).To(Equal([]string{"key1", "key2", "key"}))
+		Expect(interpolationOrder).To(Equal([]string{"key1", "key2", "key", "key1", "missing-type", "key2"}))
 	})
 
 	It("returns error if any variable interpolation failed from variable definitions section", func() {
@@ -662,6 +664,109 @@ variables:
 		result, err := template.Evaluate(vars, nil, opts)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("private-key-val\n")))
+	})
+
+	It("keeps variable definitons around if that variable was not found using vars-store flag", func() {
+		template := NewTemplate([]byte(`
+variables:
+- name: not-found
+  type: password
+`))
+
+		vars := &FakeVariables{
+			GetFunc: func(varDef VariableDefinition) (interface{}, bool, error) {
+				return nil, false, nil
+			},
+		}
+
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte(`variables:
+- name: not-found
+  type: password
+`)))
+	})
+
+	It("keeps variable definitons around if that variable was not found using var flag", func() {
+		template := NewTemplate([]byte(`
+variables:
+- name: not-found
+`))
+
+		vars := &FakeVariables{
+			GetFunc: func(varDef VariableDefinition) (interface{}, bool, error) {
+				return nil, false, nil
+			},
+		}
+
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte(`variables:
+- name: not-found
+`)))
+	})
+
+	It("does not keep variable definition around if variable was found using vars-store flag", func() {
+		template := NewTemplate([]byte(`
+variables:
+- name: found
+  type: password
+- name: not-found
+  type: password
+`))
+
+		vars := &FakeVariables{
+			GetFunc: func(varDef VariableDefinition) (interface{}, bool, error) {
+				switch varDef.Name {
+				case "found":
+					return nil, true, nil
+
+				case "not-found":
+					return nil, false, nil
+
+				default:
+					panic(fmt.Sprintf("Unexpected variable definiton: %#v", varDef))
+				}
+			},
+		}
+
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte(`variables:
+- name: not-found
+  type: password
+`)))
+	})
+
+	It("does not keep variable definition around if variable was found using var flag", func() {
+		template := NewTemplate([]byte(`
+variables:
+- name: found
+- name: not-found
+  type: password
+`))
+
+		vars := &FakeVariables{
+			GetFunc: func(varDef VariableDefinition) (interface{}, bool, error) {
+				switch varDef.Name {
+				case "found":
+					return nil, true, nil
+
+				case "not-found":
+					return nil, false, nil
+
+				default:
+					panic(fmt.Sprintf("Unexpected variable definiton: %#v", varDef))
+				}
+			},
+		}
+
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte(`variables:
+- name: not-found
+  type: password
+`)))
 	})
 
 	It("returns an error if variable is not found and is being used with a sub key", func() {

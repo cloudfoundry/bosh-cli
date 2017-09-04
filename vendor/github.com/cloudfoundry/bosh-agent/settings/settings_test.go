@@ -13,6 +13,7 @@ import (
 
 var _ = Describe("Settings", func() {
 	var settings Settings
+	var updateSettings UpdateSettings
 
 	Describe("PersistentDiskSettings", func() {
 		Context("when the disk settings are hash", func() {
@@ -639,13 +640,90 @@ var _ = Describe("Settings", func() {
 	Describe("Env", func() {
 		It("unmarshal env value correctly", func() {
 			var env Env
-			envJSON := `{"bosh": {"password": "fake-password", "keep_root_password": false, "remove_dev_tools": true}}`
-
+			envJSON := `{
+  "bosh": {
+    "password": "fake-password",
+    "keep_root_password": false,
+    "remove_dev_tools": true,
+    "authorized_keys": [
+      "fake-key"
+    ],
+    "swap_size": 2048
+  }
+}`
 			err := json.Unmarshal([]byte(envJSON), &env)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(env.GetPassword()).To(Equal("fake-password"))
 			Expect(env.GetKeepRootPassword()).To(BeFalse())
 			Expect(env.GetRemoveDevTools()).To(BeTrue())
+			Expect(env.Bosh.IPv6).To(Equal(IPv6{}))
+			Expect(env.GetAuthorizedKeys()).To(ConsistOf("fake-key"))
+			Expect(*env.GetSwapSizeInBytes()).To(Equal(uint64(2048 * 1024 * 1024)))
+		})
+
+		It("permits you to specify bootstrap https certs", func() {
+			var env Env
+			envJSON := `{
+  "bosh": {
+    "password": "fake-password",
+    "keep_root_password": false,
+    "remove_dev_tools": true,
+    "authorized_keys": [
+      "fake-key"
+    ],
+    "swap_size": 2048,
+    "mbus": {
+			"cert": {
+				"private_key": "fake-private-key-pem",
+				"certificate": "fake-certificate-pem"
+      }
+    }
+  }
+}`
+			err := json.Unmarshal([]byte(envJSON), &env)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(env.GetPassword()).To(Equal("fake-password"))
+			Expect(env.GetKeepRootPassword()).To(BeFalse())
+			Expect(env.GetRemoveDevTools()).To(BeTrue())
+			Expect(env.GetAuthorizedKeys()).To(ConsistOf("fake-key"))
+			Expect(env.Bosh.Mbus.Cert.PrivateKey).To(Equal("fake-private-key-pem"))
+			Expect(env.Bosh.Mbus.Cert.Certificate).To(Equal("fake-certificate-pem"))
+			Expect(*env.GetSwapSizeInBytes()).To(Equal(uint64(2048 * 1024 * 1024)))
+		})
+
+		It("can enable ipv6", func() {
+			env := Env{}
+			err := json.Unmarshal([]byte(`{"bosh": {} }`), &env)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(env.Bosh.IPv6).To(Equal(IPv6{}))
+
+			env = Env{}
+			err = json.Unmarshal([]byte(`{"bosh": {"ipv6": {"enable": true} } }`), &env)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(env.Bosh.IPv6).To(Equal(IPv6{Enable: true}))
+		})
+
+		Context("when swap_size is not specified in the json", func() {
+			It("unmarshalls correctly", func() {
+				var env Env
+				envJSON := `{"bosh": {"password": "fake-password", "keep_root_password": false, "remove_dev_tools": true, "authorized_keys": ["fake-key"]}}`
+
+				err := json.Unmarshal([]byte(envJSON), &env)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(env.GetSwapSizeInBytes()).To(BeNil())
+			})
+		})
+	})
+
+	Describe("UpdateSettings", func() {
+		var updateSettingsJSON string
+		BeforeEach(func() {
+			updateSettingsJSON = `{"trusted_certs": "some_cert", "disk_associations": [{"name": "some_name", "cid": "some_cid"}]}`
+		})
+		It("contains the correct keys", func() {
+			err := json.Unmarshal([]byte(updateSettingsJSON), &updateSettings)
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 })

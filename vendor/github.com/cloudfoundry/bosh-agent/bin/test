@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e -o pipefail
+
 result=0
 
 bin=$(dirname $0)

@@ -4,6 +4,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
 	"fmt"
+
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
@@ -24,7 +25,12 @@ func NewRunErrandCmd(
 }
 
 func (c RunErrandCmd) Run(opts RunErrandOpts) error {
-	results, err := c.deployment.RunErrand(opts.Args.Name, opts.KeepAlive, opts.WhenChanged)
+	results, err := c.deployment.RunErrand(
+		opts.Args.Name,
+		opts.KeepAlive,
+		opts.WhenChanged,
+		opts.InstanceGroupOrInstanceSlugFlags.Slugs,
+	)
 	if err != nil {
 		return err
 	}
@@ -51,20 +57,35 @@ func (c RunErrandCmd) Run(opts RunErrandOpts) error {
 
 func (c RunErrandCmd) summarize(errandName string, results []boshdir.ErrandResult) error {
 	table := boshtbl.Table{
-		Content: "errands",
+		Content: "errand(s)",
 
-		Header: []string{"Exit Code", "Stdout", "Stderr"},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Instance"),
+			boshtbl.NewHeader("Exit Code"),
+			boshtbl.NewHeader("Stdout"),
+			boshtbl.NewHeader("Stderr"),
+		},
 
 		SortBy: []boshtbl.ColumnSort{
 			{Column: 0, Asc: true},
 		},
 
 		Notes: []string{},
+
+		FillFirstColumn: true,
+
+		Transpose: true,
 	}
 
 	var errandErr error
 	for _, result := range results {
+		instance := ""
+		if result.InstanceGroup != "" {
+			instance = boshdir.NewInstanceGroupOrInstanceSlug(result.InstanceGroup, result.InstanceID).String()
+		}
+
 		table.Rows = append(table.Rows, []boshtbl.Value{
+			boshtbl.NewValueString(instance),
 			boshtbl.NewValueInt(result.ExitCode),
 			boshtbl.NewValueString(result.Stdout),
 			boshtbl.NewValueString(result.Stderr),

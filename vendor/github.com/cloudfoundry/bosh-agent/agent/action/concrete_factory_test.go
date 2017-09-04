@@ -29,7 +29,8 @@ var _ = Describe("concreteFactory", func() {
 	var (
 		settingsService   *fakesettings.FakeSettingsService
 		platform          *fakeplatform.FakePlatform
-		blobstore         *fakeblobstore.FakeBlobstore
+		blobstore         *fakeblobstore.FakeDigestBlobstore
+		blobManager       *fakeblobstore.FakeBlobManagerInterface
 		taskService       *faketask.FakeService
 		notifier          *fakenotif.FakeNotifier
 		applier           *fakeappl.FakeApplier
@@ -44,7 +45,8 @@ var _ = Describe("concreteFactory", func() {
 	BeforeEach(func() {
 		settingsService = &fakesettings.FakeSettingsService{}
 		platform = fakeplatform.NewFakePlatform()
-		blobstore = &fakeblobstore.FakeBlobstore{}
+		blobstore = &fakeblobstore.FakeDigestBlobstore{}
+		blobManager = &fakeblobstore.FakeBlobManagerInterface{}
 		taskService = &faketask.FakeService{}
 		notifier = fakenotif.NewFakeNotifier()
 		applier = fakeappl.NewFakeApplier()
@@ -58,6 +60,7 @@ var _ = Describe("concreteFactory", func() {
 			settingsService,
 			platform,
 			blobstore,
+			blobManager,
 			taskService,
 			notifier,
 			applier,
@@ -215,5 +218,12 @@ var _ = Describe("concreteFactory", func() {
 		action, err := factory.Create("sync_dns")
 		Expect(err).ToNot(HaveOccurred())
 		Expect(action).To(Equal(NewSyncDNS(blobstore, settingsService, platform, logger)))
+	})
+
+	It("upload_blob", func() {
+		action, err := factory.Create("upload_blob")
+		Expect(err).ToNot(HaveOccurred())
+
+		Expect(action).To(Equal(NewUploadBlobAction(blobManager)))
 	})
 })

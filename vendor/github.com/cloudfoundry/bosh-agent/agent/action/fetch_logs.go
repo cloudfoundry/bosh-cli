@@ -12,14 +12,14 @@ import (
 type FetchLogsAction struct {
 	compressor  boshcmd.Compressor
 	copier      boshcmd.Copier
-	blobstore   boshblob.Blobstore
+	blobstore   boshblob.DigestBlobstore
 	settingsDir boshdirs.Provider
 }
 
 func NewFetchLogs(
 	compressor boshcmd.Compressor,
 	copier boshcmd.Copier,
-	blobstore boshblob.Blobstore,
+	blobstore boshblob.DigestBlobstore,
 	settingsDir boshdirs.Provider,
 ) (action FetchLogsAction) {
 	action.compressor = compressor
@@ -29,12 +29,16 @@ func NewFetchLogs(
 	return
 }
 
-func (a FetchLogsAction) IsAsynchronous() bool {
+func (a FetchLogsAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return true
 }
 
 func (a FetchLogsAction) IsPersistent() bool {
 	return false
+}
+
+func (a FetchLogsAction) IsLoggable() bool {
+	return true
 }
 
 func (a FetchLogsAction) Run(logType string, filters []string) (value map[string]string, err error) {

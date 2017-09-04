@@ -9,7 +9,12 @@ type Manifest struct {
 	Template   ReleaseJobRef
 	Properties biproperty.Map
 	Mbus       string
+	Cert       Certificate
 	Registry   Registry
+}
+
+type Certificate struct {
+	CA string
 }
 
 type ReleaseJobRef struct {

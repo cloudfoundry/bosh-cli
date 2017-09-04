@@ -9,10 +9,6 @@ import (
 )
 
 type Config struct {
-	VMUsername               string `json:"vm_username"`
-	VMIP                     string `json:"vm_ip"`
-	VMPort                   string `json:"vm_port"`
-	PrivateKeyPath           string `json:"private_key_path"`
 	StemcellURL              string `json:"stemcell_url"`
 	StemcellSHA1             string `json:"stemcell_sha1"`
 	StemcellPath             string `json:"stemcell_path"`
@@ -53,18 +49,6 @@ func (c *Config) IsLocalStemcell() bool {
 }
 
 func (c *Config) Validate() error {
-	if c.VMUsername == "" {
-		return errors.New("Must provide 'vm_username' in config")
-	}
-
-	if c.VMIP == "" {
-		return errors.New("Must provide 'vm_ip' in config")
-	}
-
-	if c.PrivateKeyPath == "" {
-		return errors.New("Must provide 'private_key_path' in config")
-	}
-
 	if c.StemcellURL == "" && c.StemcellPath == "" {
 		return errors.New("Must provide 'stemcell_url' or 'stemcell_path' in config")
 	}

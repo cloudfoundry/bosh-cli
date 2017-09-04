@@ -11,6 +11,7 @@ import (
 	"github.com/cloudfoundry/bosh-agent/agent/applier/applyspec"
 	. "github.com/cloudfoundry/bosh-agent/agent/script/drain"
 	"github.com/cloudfoundry/bosh-agent/agent/script/drain/fakes"
+	"github.com/cloudfoundry/bosh-utils/crypto"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -71,18 +72,18 @@ var _ = Describe("ConcreteScript", func() {
 			newSpec := exampleSpec()
 
 			s := newSpec.PackageSpecs["foo"]
-			s.Sha1 = "foo_updated_sha1"
+			s.Sha1 = crypto.MustParseMultipleDigest("sha1:fooupdatedsha1")
 			newSpec.PackageSpecs["foo"] = s
 
 			s = newSpec.PackageSpecs["bar"]
-			s.Sha1 = "bar_updated_sha1"
+			s.Sha1 = crypto.MustParseMultipleDigest("sha1:barupdatedsha1")
 			newSpec.PackageSpecs["bar"] = s
 
 			params = NewUpdateParams(oldSpec, newSpec)
 		})
 
 		It("runs drain script", func() {
-			runner.AddProcess("/fake/script job_unchanged hash_unchanged bar foo",
+			runner.AddProcess("/fake/script job_changed hash_unchanged bar foo",
 				&fakesys.FakeProcess{WaitResult: boshsys.Result{Stdout: "1"}})
 
 			err := script.Run()
@@ -90,7 +91,7 @@ var _ = Describe("ConcreteScript", func() {
 
 			expectedCmd := boshsys.Command{
 				Name: "/fake/script",
-				Args: []string{"job_unchanged", "hash_unchanged", "bar", "foo"},
+				Args: []string{"job_changed", "hash_unchanged", "bar", "foo"},
 				Env: map[string]string{
 					"PATH":                "/usr/sbin:/usr/bin:/sbin:/bin",
 					"BOSH_JOB_STATE":      "{\"persistent_disk\":42}",
@@ -103,7 +104,7 @@ var _ = Describe("ConcreteScript", func() {
 		})
 
 		It("sleeps when script returns a positive integer", func() {
-			runner.AddProcess("/fake/script job_unchanged hash_unchanged bar foo",
+			runner.AddProcess("/fake/script job_changed hash_unchanged bar foo",
 				&fakesys.FakeProcess{WaitResult: boshsys.Result{Stdout: "12"}})
 
 			err := script.Run()
@@ -113,7 +114,7 @@ var _ = Describe("ConcreteScript", func() {
 		})
 
 		It("sleeps then calls the script again as long as script returns a negative integer", func() {
-			runner.AddProcess("/fake/script job_unchanged hash_unchanged bar foo",
+			runner.AddProcess("/fake/script job_changed hash_unchanged bar foo",
 				&fakesys.FakeProcess{WaitResult: boshsys.Result{Stdout: "-5"}})
 			runner.AddProcess("/fake/script job_check_status hash_unchanged",
 				&fakesys.FakeProcess{WaitResult: boshsys.Result{Stdout: "-5"}})
@@ -133,7 +134,7 @@ var _ = Describe("ConcreteScript", func() {
 		})
 
 		It("ignores whitespace in stdout", func() {
-			runner.AddProcess("/fake/script job_unchanged hash_unchanged bar foo",
+			runner.AddProcess("/fake/script job_changed hash_unchanged bar foo",
 				&fakesys.FakeProcess{WaitResult: boshsys.Result{Stdout: "-56\n"}})
 			runner.AddProcess("/fake/script job_check_status hash_unchanged",
 				&fakesys.FakeProcess{WaitResult: boshsys.Result{Stdout: " 0  \t\n"}})
@@ -146,7 +147,7 @@ var _ = Describe("ConcreteScript", func() {
 		})
 
 		It("returns error with non integer stdout", func() {
-			runner.AddProcess("/fake/script job_unchanged hash_unchanged bar foo",
+			runner.AddProcess("/fake/script job_changed hash_unchanged bar foo",
 				&fakesys.FakeProcess{WaitResult: boshsys.Result{Stdout: "hello!"}})
 
 			err := script.Run()
@@ -154,7 +155,7 @@ var _ = Describe("ConcreteScript", func() {
 		})
 
 		It("returns error when running command errors", func() {
-			runner.AddProcess("/fake/script job_unchanged hash_unchanged bar foo",
+			runner.AddProcess("/fake/script job_changed hash_unchanged bar foo",
 				&fakesys.FakeProcess{WaitResult: boshsys.Result{Error: errors.New("woops")}})
 
 			err := script.Run()
@@ -163,7 +164,7 @@ var _ = Describe("ConcreteScript", func() {
 
 		Describe("job state", func() {
 			BeforeEach(func() {
-				runner.AddProcess("/fake/script job_unchanged hash_unchanged bar foo",
+				runner.AddProcess("/fake/script job_changed hash_unchanged bar foo",
 					&fakesys.FakeProcess{WaitResult: boshsys.Result{Stdout: "1"}})
 			})
 
@@ -197,7 +198,7 @@ var _ = Describe("ConcreteScript", func() {
 		Describe("job next state", func() {
 			BeforeEach(func() {
 				commandResult := &fakesys.FakeProcess{WaitResult: boshsys.Result{Stdout: "1"}}
-				runner.AddProcess("/fake/script job_unchanged hash_unchanged bar foo", commandResult)
+				runner.AddProcess("/fake/script job_changed hash_unchanged bar foo", commandResult)
 			})
 
 			Context("when job next state is present", func() {
@@ -251,11 +252,11 @@ var _ = Describe("ConcreteScript", func() {
 			newSpec := exampleSpec()
 
 			s := newSpec.PackageSpecs["foo"]
-			s.Sha1 = "foo_updated_sha1"
+			s.Sha1 = crypto.MustParseMultipleDigest("sha1:fooupdatedsha1")
 			newSpec.PackageSpecs["foo"] = s
 
 			s = newSpec.PackageSpecs["bar"]
-			s.Sha1 = "bar_updated_sha1"
+			s.Sha1 = crypto.MustParseMultipleDigest("sha1:barupdatedsha1")
 			newSpec.PackageSpecs["bar"] = s
 
 			params = NewUpdateParams(oldSpec, newSpec)
@@ -283,7 +284,7 @@ var _ = Describe("ConcreteScript", func() {
 					}
 				},
 			}
-			runner.AddProcess("/fake/script job_unchanged hash_unchanged bar foo", process)
+			runner.AddProcess("/fake/script job_changed hash_unchanged bar foo", process)
 
 			err := script.Cancel()
 			Expect(err).ToNot(HaveOccurred())
@@ -305,7 +306,7 @@ var _ = Describe("ConcreteScript", func() {
 					}
 				},
 			}
-			runner.AddProcess("/fake/script job_unchanged hash_unchanged bar foo", process)
+			runner.AddProcess("/fake/script job_changed hash_unchanged bar foo", process)
 
 			err := script.Cancel()
 			Expect(err).ToNot(HaveOccurred())
@@ -319,36 +320,33 @@ var _ = Describe("ConcreteScript", func() {
 	exampleSpec = func() applyspec.V1ApplySpec {
 		jobName := "foojob"
 		return applyspec.V1ApplySpec{
-			Deployment:        "fake_deployment",
-			ConfigurationHash: "fake_deployment_config_hash",
-			PersistentDisk:    42,
+			Deployment:                   "fake_deployment",
+			ConfigurationHash:            "fake_deployment_config_hash",
+			PersistentDisk:               42,
+			RenderedTemplatesArchiveSpec: &applyspec.RenderedTemplatesArchiveSpec{},
 			JobSpec: applyspec.JobSpec{
-				Name:        &jobName,
-				Release:     "fakerelease",
-				Template:    "jobtemplate",
-				Version:     "jobtemplate_version",
-				Sha1:        "jobtemplate_sha1",
-				BlobstoreID: "jobtemplate_blobid",
+				Name:     &jobName,
+				Release:  "fakerelease",
+				Template: "jobtemplate",
+				Version:  "jobtemplate_version",
 				JobTemplateSpecs: []applyspec.JobTemplateSpec{
-					applyspec.JobTemplateSpec{
-						Name:        "jobtemplate",
-						Version:     "jobtemplate_version",
-						Sha1:        "jobtemplate_sha1",
-						BlobstoreID: "jobtemplate_blobid",
+					{
+						Name:    "jobtemplate",
+						Version: "jobtemplate_version",
 					},
 				},
 			},
 			PackageSpecs: map[string]applyspec.PackageSpec{
-				"foo": applyspec.PackageSpec{
+				"foo": {
 					Name:        "foo",
 					Version:     "foo_version",
-					Sha1:        "foo_sha1",
+					Sha1:        crypto.MustParseMultipleDigest("sha1:foosha1"),
 					BlobstoreID: "foo_blobid",
 				},
-				"bar": applyspec.PackageSpec{
+				"bar": {
 					Name:        "bar",
 					Version:     "bar_version",
-					Sha1:        "bar_sha1",
+					Sha1:        crypto.MustParseMultipleDigest("sha1:barsha1"),
 					BlobstoreID: "bar_blobid",
 				},
 			},

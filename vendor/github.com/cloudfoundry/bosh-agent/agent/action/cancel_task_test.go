@@ -22,13 +22,12 @@ var _ = Describe("CancelTaskAction", func() {
 		action = NewCancelTask(taskService)
 	})
 
-	It("is synchronous", func() {
-		Expect(action.IsAsynchronous()).To(BeFalse())
-	})
+	AssertActionIsNotAsynchronous(action)
+	AssertActionIsNotPersistent(action)
+	AssertActionIsLoggable(action)
 
-	It("is not persistent", func() {
-		Expect(action.IsPersistent()).To(BeFalse())
-	})
+	AssertActionIsNotCancelable(action)
+	AssertActionIsNotResumable(action)
 
 	It("cancels task if task is found", func() {
 		cancelCalled := false

@@ -25,8 +25,12 @@ func (c CloudCheckCmd) Run(opts CloudCheckOpts) error {
 
 	table := boshtbl.Table{
 		Content: "problems",
-		Header:  []string{"#", "Type", "Description"},
-		SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("#"),
+			boshtbl.NewHeader("Type"),
+			boshtbl.NewHeader("Description"),
+		},
+		SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 	}
 
 	for _, p := range probs {
@@ -52,6 +56,11 @@ func (c CloudCheckCmd) Run(opts CloudCheckOpts) error {
 		if err != nil {
 			return err
 		}
+	} else if len(opts.Resolutions) > 0 {
+		answers, err = c.applyResolutions(opts.Resolutions, probs)
+		if err != nil {
+			return err
+		}
 	} else {
 		answers, err = c.askForResolutions(probs)
 		if err != nil {
@@ -65,6 +74,42 @@ func (c CloudCheckCmd) Run(opts CloudCheckOpts) error {
 	}
 
 	return c.deployment.ResolveProblems(answers)
+}
+
+func (_ CloudCheckCmd) applyResolutions(resolutionsToApply []string, probs []boshdir.Problem) ([]boshdir.ProblemAnswer, error) {
+	var answers []boshdir.ProblemAnswer
+
+	for _, prob := range probs {
+		if problemAnswer, found := findProblemAnswer(resolutionsToApply, prob); found {
+			answers = append(answers, problemAnswer)
+		} else {
+			answers = append(answers, boshdir.ProblemAnswer{
+				ProblemID:  prob.ID,
+				Resolution: boshdir.ProblemResolutionSkip,
+			})
+		}
+	}
+
+	if len(answers) <= 0 {
+		return nil, bosherr.Error("Unable to apply resolution to any problem")
+	}
+
+	return answers, nil
+}
+
+func findProblemAnswer(resolutionsToApply []string, prob boshdir.Problem) (boshdir.ProblemAnswer, bool) {
+	for _, resolution := range resolutionsToApply {
+		for _, res := range prob.Resolutions {
+			if resolution == *res.Name {
+				return boshdir.ProblemAnswer{
+					ProblemID:  prob.ID,
+					Resolution: res,
+				}, true
+			}
+		}
+	}
+
+	return boshdir.ProblemAnswer{}, false
 }
 
 func (c CloudCheckCmd) askForResolutions(probs []boshdir.Problem) ([]boshdir.ProblemAnswer, error) {

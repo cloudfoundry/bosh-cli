@@ -12,4 +12,6 @@ type Manager interface {
 
 	// Returns the list of interfaces that have configurations for them present
 	GetConfiguredNetworkInterfaces() ([]string, error)
+
+	SetupIPv6(boshsettings.IPv6, <-chan struct{}) error
 }

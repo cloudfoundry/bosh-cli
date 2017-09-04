@@ -60,30 +60,31 @@ var _ = Describe("ReleaseTables", func() {
 			ReleaseTables{Release: release, ArchivePath: "/archive-path"}.Print(ui)
 
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Header: []boshtbl.Header{
+					boshtbl.NewHeader("Name"),
+					boshtbl.NewHeader("Version"),
+					boshtbl.NewHeader("Commit Hash"),
+					boshtbl.NewHeader("Archive"),
+				},
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.NewValueString("Name"),
 						boshtbl.NewValueString("rel"),
-					},
-					{
-						boshtbl.NewValueString("Version"),
 						boshtbl.NewValueString("ver"),
-					},
-					{
-						boshtbl.NewValueString("Commit Hash"),
 						boshtbl.NewValueString("commit"),
-					},
-					{
-						boshtbl.NewValueString("Archive"),
 						boshtbl.NewValueString("/archive-path"),
 					},
 				},
+				Transpose: true,
 			}))
 
 			Expect(ui.Tables[1]).To(Equal(boshtbl.Table{
 				Content: "jobs",
-				Header:  []string{"Job", "Digest", "Packages"},
-				SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+				Header: []boshtbl.Header{
+					boshtbl.NewHeader("Job"),
+					boshtbl.NewHeader("Digest"),
+					boshtbl.NewHeader("Packages"),
+				},
+				SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 				Rows: [][]boshtbl.Value{
 					{
 						boshtbl.NewValueString("job-name/job-fp"),
@@ -95,8 +96,12 @@ var _ = Describe("ReleaseTables", func() {
 
 			Expect(ui.Tables[2]).To(Equal(boshtbl.Table{
 				Content: "packages",
-				Header:  []string{"Package", "Digest", "Dependencies"},
-				SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+				Header: []boshtbl.Header{
+					boshtbl.NewHeader("Package"),
+					boshtbl.NewHeader("Digest"),
+					boshtbl.NewHeader("Dependencies"),
+				},
+				SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 				Rows: [][]boshtbl.Value{
 					{
 						boshtbl.NewValueString("pkg1-name/pkg1-fp"),
@@ -116,20 +121,19 @@ var _ = Describe("ReleaseTables", func() {
 			ReleaseTables{Release: release}.Print(ui)
 
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Header: []boshtbl.Header{
+					boshtbl.NewHeader("Name"),
+					boshtbl.NewHeader("Version"),
+					boshtbl.NewHeader("Commit Hash"),
+				},
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.NewValueString("Name"),
 						boshtbl.NewValueString("rel"),
-					},
-					{
-						boshtbl.NewValueString("Version"),
 						boshtbl.NewValueString("ver"),
-					},
-					{
-						boshtbl.NewValueString("Commit Hash"),
 						boshtbl.NewValueString("commit"),
 					},
 				},
+				Transpose: true,
 			}))
 		})
 	})

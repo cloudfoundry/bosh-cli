@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	boshplatform "github.com/cloudfoundry/bosh-agent/platform"
 	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
@@ -42,6 +43,29 @@ func NewInstanceMetadataSettingsSource(
 		// The HTTPMetadataService provides more functionality than we need (like custom DNS), so we
 		// pass zero values to the New function and only use its GetValueAtPath method.
 		metadataService: NewHTTPMetadataService(metadataHost, metadataHeaders, "", "", "", nil, platform, logger),
+	}
+}
+
+func NewInstanceMetadataSettingsSourceWithoutRetryDelay(
+	metadataHost string,
+	metadataHeaders map[string]string,
+	settingsPath string,
+	platform boshplatform.Platform,
+	logger boshlog.Logger,
+) *InstanceMetadataSettingsSource {
+	logTag := "InstanceMetadataSettingsSource"
+	return &InstanceMetadataSettingsSource{
+		metadataHost:    metadataHost,
+		metadataHeaders: metadataHeaders,
+		settingsPath:    settingsPath,
+
+		platform: platform,
+		logger:   logger,
+
+		logTag: logTag,
+		// The HTTPMetadataService provides more functionality than we need (like custom DNS), so we
+		// pass zero values to the New function and only use its GetValueAtPath method.
+		metadataService: NewHTTPMetadataServiceWithCustomRetryDelay(metadataHost, metadataHeaders, "", "", "", nil, platform, logger, 0*time.Second),
 	}
 }
 

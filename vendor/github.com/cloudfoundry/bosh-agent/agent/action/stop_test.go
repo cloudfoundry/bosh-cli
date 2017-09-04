@@ -20,24 +20,35 @@ func init() {
 			action = NewStop(jobSupervisor)
 		})
 
-		It("is asynchronous", func() {
-			Expect(action.IsAsynchronous()).To(BeTrue())
-		})
+		AssertActionIsAsynchronous(action)
+		AssertActionIsNotPersistent(action)
+		AssertActionIsLoggable(action)
 
-		It("is not persistent", func() {
-			Expect(action.IsPersistent()).To(BeFalse())
-		})
+		AssertActionIsNotResumable(action)
+		AssertActionIsNotCancelable(action)
 
 		It("returns stopped", func() {
-			stopped, err := action.Run()
+			stopped, err := action.Run(ProtocolVersion(2))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(stopped).To(Equal("stopped"))
 		})
 
 		It("stops job supervisor services", func() {
-			_, err := action.Run()
+			_, err := action.Run(ProtocolVersion(2))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(jobSupervisor.Stopped).To(BeTrue())
+		})
+
+		It("stops when protocol version is 2", func() {
+			_, err := action.Run(ProtocolVersion(2))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(jobSupervisor.StoppedAndWaited).ToNot(BeTrue())
+		})
+
+		It("stops and waits when protocol version is greater than 2", func() {
+			_, err := action.Run(ProtocolVersion(3))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(jobSupervisor.StoppedAndWaited).To(BeTrue())
 		})
 	})
 }

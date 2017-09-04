@@ -31,13 +31,13 @@ var _ = Describe("Sorting Jobs", func() {
 })
 
 var _ = Describe("Job", func() {
-	Describe("Name/Fingerprint/ArchivePath/ArchiveSHA1", func() {
+	Describe("Name/Fingerprint/ArchivePath/ArchiveDigest", func() {
 		It("delegates to resource", func() {
 			job := NewJob(NewResourceWithBuiltArchive("name", "fp", "path", "sha1"))
 			Expect(job.Name()).To(Equal("name"))
 			Expect(job.Fingerprint()).To(Equal("fp"))
 			Expect(job.ArchivePath()).To(Equal("path"))
-			Expect(job.ArchiveSHA1()).To(Equal("sha1"))
+			Expect(job.ArchiveDigest()).To(Equal("sha1"))
 		})
 	})
 

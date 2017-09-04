@@ -24,12 +24,16 @@ func NewStart(jobSupervisor boshjobsuper.JobSupervisor, applier boshappl.Applier
 	return
 }
 
-func (a StartAction) IsAsynchronous() bool {
+func (a StartAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return false
 }
 
 func (a StartAction) IsPersistent() bool {
 	return false
+}
+
+func (a StartAction) IsLoggable() bool {
+	return true
 }
 
 func (a StartAction) Run() (value string, err error) {

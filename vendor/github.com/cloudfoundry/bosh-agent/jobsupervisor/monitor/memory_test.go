@@ -25,7 +25,15 @@ var _ = Describe("Memory", func() {
 				Expect(matchFloat(m.Used(), x.Exp)).To(Succeed())
 			}
 		})
+
+		It("should report system usage", func() {
+			m, err := SystemMemStats()
+			Expect(err).To(Succeed())
+			Expect(m.Avail).ToNot(Equal(0))
+			Expect(m.Total).ToNot(Equal(0))
+		})
 	})
+
 	Context("when defining Byte", func() {
 		It("should print correctly", func() {
 			var tests = []struct {
@@ -43,6 +51,7 @@ var _ = Describe("Memory", func() {
 			}
 		})
 	})
+
 	Context("when parsing wmic output", func() {
 		It("should parse the output", func() {
 			res := `

@@ -25,8 +25,14 @@ func (c InspectReleaseCmd) Run(opts InspectReleaseOpts) error {
 
 	jobsTable := boshtbl.Table{
 		Content: "jobs",
-		Header:  []string{"Job", "Blobstore ID", "Digest", "Links Consumed", "Links Provided"},
-		SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Job"),
+			boshtbl.NewHeader("Blobstore ID"),
+			boshtbl.NewHeader("Digest"),
+			boshtbl.NewHeader("Links Consumed"),
+			boshtbl.NewHeader("Links Provided"),
+		},
+		SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 	}
 
 	jobs, err := release.Jobs()
@@ -46,8 +52,13 @@ func (c InspectReleaseCmd) Run(opts InspectReleaseOpts) error {
 
 	pkgsTable := boshtbl.Table{
 		Content: "packages",
-		Header:  []string{"Package", "Compiled for", "Blobstore ID", "Digest"},
-		SortBy:  []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Package"),
+			boshtbl.NewHeader("Compiled for"),
+			boshtbl.NewHeader("Blobstore ID"),
+			boshtbl.NewHeader("Digest"),
+		},
+		SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 	}
 
 	pkgs, err := release.Packages()
@@ -72,7 +83,7 @@ func (c InspectReleaseCmd) Run(opts InspectReleaseOpts) error {
 		for _, cp := range p.CompiledPackages {
 			section.Rows = append(section.Rows, []boshtbl.Value{
 				boshtbl.NewValueString(""),
-				boshtbl.NewValueString(cp.StemcellSlug.String()),
+				boshtbl.NewValueString(cp.Stemcell.String()),
 				boshtbl.NewValueString(cp.BlobstoreID),
 				boshtbl.NewValueString(cp.SHA1),
 			})

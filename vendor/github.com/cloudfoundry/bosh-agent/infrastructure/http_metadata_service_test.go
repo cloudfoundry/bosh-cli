@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -14,6 +15,7 @@ import (
 	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
+	"encoding/base64"
 	. "github.com/cloudfoundry/bosh-agent/infrastructure"
 )
 
@@ -343,6 +345,166 @@ func describeHTTPMetadataService() {
 	Describe("GetNetworks", func() {
 		It("returns nil networks, since you don't need them for bootstrapping since your network must be set up before you can get the metadata", func() {
 			Expect(metadataService.GetNetworks()).To(BeNil())
+		})
+	})
+
+	Describe("Retryable Metadata Service Request", func() {
+		var (
+			ts          *httptest.Server
+			registryURL *string
+			dnsServer   *string
+		)
+
+		createHandlerFunc := func(count int) func(http.ResponseWriter, *http.Request) {
+			initialCount := 0
+			return func(w http.ResponseWriter, r *http.Request) {
+				if initialCount < count {
+					initialCount++
+					http.Error(w, http.StatusText(500), 500)
+					return
+				}
+
+				var jsonStr string
+				if dnsServer == nil {
+					jsonStr = fmt.Sprintf(`{"registry":{"endpoint":"%s"}}`, *registryURL)
+				} else {
+					jsonStr = fmt.Sprintf(`{
+					"registry":{"endpoint":"%s"},
+					"dns":{"nameserver":["%s"]}
+				}`, *registryURL, *dnsServer)
+				}
+				w.Write([]byte(jsonStr))
+			}
+		}
+
+		BeforeEach(func() {
+			url := "http://fake-registry.com"
+			registryURL = &url
+			dnsServer = nil
+		})
+
+		AfterEach(func() {
+			ts.Close()
+		})
+
+		Context("when server returns an HTTP Response with status code ==2xx (as defined by the request retryable) within 10 retries", func() {
+
+			BeforeEach(func() {
+				dnsResolver.RegisterRecord(fakeinf.FakeDNSRecord{
+					DNSServers: []string{"fake-dns-server-ip"},
+					Host:       "http://fake-registry.com",
+					IP:         "http://fake-registry-ip",
+				})
+			})
+
+			It("returns the successfully resolved registry endpoint", func() {
+				handler := http.HandlerFunc(createHandlerFunc(9))
+				ts = httptest.NewServer(handler)
+				metadataService = NewHTTPMetadataServiceWithCustomRetryDelay(ts.URL, metadataHeaders, "/user-data", "/instanceid", "/ssh-keys", dnsResolver, platform, logger, 0*time.Second)
+
+				endpoint, err := metadataService.GetRegistryEndpoint()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(endpoint).To(Equal("http://fake-registry.com"))
+			})
+
+		})
+
+		Context("when server returns an HTTP Response with status code !=2xx (as defined by the request retryable) more than 10 times", func() {
+			It("returns an error containing the HTTP Response", func() {
+				handler := http.HandlerFunc(createHandlerFunc(10))
+				ts = httptest.NewServer(handler)
+				metadataService = NewHTTPMetadataServiceWithCustomRetryDelay(ts.URL, metadataHeaders, "/user-data", "/instanceid", "/ssh-keys", dnsResolver, platform, logger, 0*time.Second)
+
+				_, err := metadataService.GetRegistryEndpoint()
+				Expect(err).ToNot(BeNil())
+				Expect(err.Error()).To(Equal(fmt.Sprintf("Getting user data: Getting user data from url %s/user-data: Performing GET request: Request failed, response: Response{ StatusCode: 500, Status: '500 Internal Server Error' }", ts.URL)))
+			})
+
+		})
+
+	})
+
+	Describe("GetServerName from url encoded user data", func() {
+		var (
+			ts      *httptest.Server
+			jsonStr *string
+		)
+
+		handlerFunc := func(w http.ResponseWriter, r *http.Request) {
+			defer GinkgoRecover()
+
+			Expect(r.Method).To(Equal("GET"))
+			Expect(r.URL.Path).To(Equal("/user-data"))
+			Expect(r.Header.Get("key")).To(Equal("value"))
+			w.Write([]byte(*jsonStr))
+		}
+
+		BeforeEach(func() {
+			handler := http.HandlerFunc(handlerFunc)
+			ts = httptest.NewServer(handler)
+			metadataService = NewHTTPMetadataService(ts.URL, metadataHeaders, "/user-data", "/instanceid", "/ssh-keys", dnsResolver, platform, logger)
+		})
+
+		AfterEach(func() {
+			ts.Close()
+		})
+
+		Context("when the server name is present in the JSON", func() {
+			BeforeEach(func() {
+				encodedJSON := base64.RawURLEncoding.EncodeToString([]byte(`{"server":{"name":"fake-server-name"}}`))
+				jsonStr = &encodedJSON
+			})
+
+			It("returns the server name", func() {
+				name, err := metadataService.GetServerName()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(name).To(Equal("fake-server-name"))
+			})
+
+			ItEnsuresMinimalNetworkSetup(func() (string, error) {
+				return metadataService.GetServerName()
+			})
+		})
+
+		Context("when the URL encoding is corrupt", func() {
+			BeforeEach(func() {
+				// This is std base64 encoding, not url encoding. This should cause a decode err.
+				encodedJSON := base64.StdEncoding.EncodeToString([]byte(`{"server":{"name":"fake-server-name"}}`))
+				jsonStr = &encodedJSON
+			})
+
+			It("returns an error", func() {
+				_, err := metadataService.GetServerName()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Decoding url encoded user data"))
+			})
+		})
+
+		Context("when the JSON is malformed", func() {
+			BeforeEach(func() {
+				encodedJSON := base64.RawURLEncoding.EncodeToString([]byte(`{"server bad json]`))
+				jsonStr = &encodedJSON
+			})
+
+			It("returns an error", func() {
+				_, err := metadataService.GetServerName()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Unmarshalling url decoded user data '{\"server bad json]'"))
+			})
+		})
+
+		Context("when the server name is not present in the JSON", func() {
+			BeforeEach(func() {
+				encodedJSON := base64.RawURLEncoding.EncodeToString([]byte(`{}`))
+				jsonStr = &encodedJSON
+			})
+
+			It("returns an error", func() {
+				name, err := metadataService.GetServerName()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Empty server name"))
+				Expect(name).To(BeEmpty())
+			})
 		})
 	})
 }

@@ -17,12 +17,16 @@ func NewPrepare(applier boshappl.Applier) (action PrepareAction) {
 	return action
 }
 
-func (a PrepareAction) IsAsynchronous() bool {
+func (a PrepareAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return true
 }
 
 func (a PrepareAction) IsPersistent() bool {
 	return false
+}
+
+func (a PrepareAction) IsLoggable() bool {
+	return true
 }
 
 func (a PrepareAction) Run(desiredSpec boshas.V1ApplySpec) (string, error) {

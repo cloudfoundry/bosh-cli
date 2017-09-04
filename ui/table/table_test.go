@@ -23,11 +23,14 @@ var _ = Describe("Table", func() {
 		It("prints a table in default formatting (borders, empties, etc.)", func() {
 			table := Table{
 				Content: "things",
-				Header:  []string{"Header1", "Header2"},
+				Header: []Header{
+					NewHeader("Header1"),
+					NewHeader("Header2"),
+				},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes: []string{"note1", "note2"},
@@ -48,11 +51,14 @@ note2
 		It("prints a table with header if Header is specified", func() {
 			table := Table{
 				Content: "things",
-				Header:  []string{"Header1", "Header2"},
+				Header: []Header{
+					NewHeader("Header1"),
+					NewHeader("Header2"),
+				},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes:         []string{"note1", "note2"},
@@ -72,14 +78,17 @@ note2
 `))
 		})
 
-		It("prints a table with header if HeaderVals is specified", func() {
+		It("prints a table without number of records if content is not specified", func() {
 			table := Table{
-				Content:    "things",
-				HeaderVals: []Value{ValueString{"Header1"}, ValueString{"Header2"}},
+				Content: "",
+				Header: []Header{
+					NewHeader("Header1"),
+					NewHeader("Header2"),
+				},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes:         []string{"note1", "note2"},
@@ -94,8 +103,6 @@ r2c1...|r2c2...|
 
 note1
 note2
-
-2 things
 `))
 		})
 
@@ -104,11 +111,11 @@ note2
 				SortBy: []ColumnSort{{Column: 1}, {Column: 0, Asc: true}},
 
 				Rows: [][]Value{
-					{ValueString{"a"}, ValueInt{-1}},
-					{ValueString{"b"}, ValueInt{0}},
-					{ValueString{"d"}, ValueInt{20}},
-					{ValueString{"c"}, ValueInt{20}},
-					{ValueString{"d"}, ValueInt{100}},
+					{ValueString{S: "a"}, ValueInt{I: -1}},
+					{ValueString{S: "b"}, ValueInt{I: 0}},
+					{ValueString{S: "d"}, ValueInt{I: 20}},
+					{ValueString{S: "c"}, ValueInt{I: 20}},
+					{ValueString{S: "d"}, ValueInt{I: 100}},
 				},
 
 				BackgroundStr: ".",
@@ -124,13 +131,13 @@ a|-1.|
 `))
 		})
 
-		It("prints a table without a header if Header or HeaderVals are not specified", func() {
+		It("prints a table without a header if Header is not specified", func() {
 			table := Table{
 				Content: "things",
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				BackgroundStr: ".",
@@ -147,11 +154,14 @@ r2c1|r2c2|
 			table := Table{
 				Title:   "Title",
 				Content: "things",
-				Header:  []string{"Header1", "Header2"},
+				Header: []Header{
+					NewHeader("Header1"),
+					NewHeader("Header2"),
+				},
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				Notes:         []string{"note1", "note2"},
@@ -180,12 +190,12 @@ note2
 					Sections: []Section{
 						{
 							Rows: [][]Value{
-								{ValueString{"r1c1"}, ValueString{"r1c2"}},
+								{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
 							},
 						},
 						{
 							Rows: [][]Value{
-								{ValueString{"r2c1"}, ValueString{"r2c2"}},
+								{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 							},
 						},
 					},
@@ -204,16 +214,16 @@ r2c1|r2c2|
 					Content: "things",
 					Sections: []Section{
 						{
-							FirstColumn: ValueString{"r1c1"},
+							FirstColumn: ValueString{S: "r1c1"},
 
 							Rows: [][]Value{
-								{ValueString{""}, ValueString{"r1c2"}},
-								{ValueString{""}, ValueString{"r2c2"}},
+								{ValueString{S: ""}, ValueString{S: "r1c2"}},
+								{ValueString{S: ""}, ValueString{S: "r2c2"}},
 							},
 						},
 						{
 							Rows: [][]Value{
-								{ValueString{"r3c1"}, ValueString{"r3c2"}},
+								{ValueString{S: "r3c1"}, ValueString{S: "r3c2"}},
 							},
 						},
 					},
@@ -233,23 +243,23 @@ r3c1|r3c2|
 					Content: "things",
 					Sections: []Section{
 						{
-							FirstColumn: ValueString{"r1c1"},
+							FirstColumn: ValueString{S: "r1c1"},
 							Rows: [][]Value{
-								{ValueString{""}, ValueString{"r1c2"}},
-								{ValueString{""}, ValueString{"r2c2"}},
+								{ValueString{S: ""}, ValueString{S: "r1c2"}},
+								{ValueString{S: ""}, ValueString{S: "r2c2"}},
 							},
 						},
 						{
 							Rows: [][]Value{
-								{ValueString{"r3c1"}, ValueString{"r3c2"}},
+								{ValueString{S: "r3c1"}, ValueString{S: "r3c2"}},
 							},
 						},
 						{
-							FirstColumn: ValueString{"r4c1"},
+							FirstColumn: ValueString{S: "r4c1"},
 							Rows: [][]Value{
-								{ValueString{""}, ValueString{"r4c2"}},
-								{ValueString{""}, ValueString{"r5c2"}},
-								{ValueString{""}, ValueString{"r6c2"}},
+								{ValueString{S: ""}, ValueString{S: "r4c2"}},
+								{ValueString{S: ""}, ValueString{S: "r5c2"}},
+								{ValueString{S: ""}, ValueString{S: "r6c2"}},
 							},
 						},
 					},
@@ -267,6 +277,46 @@ r4c1|r5c2|
 r4c1|r6c2|
 `))
 			})
+
+			It("prints a footer including the counts for rows in sections", func() {
+				table := Table{
+					Content: "things",
+					Header: []Header{
+						NewHeader("Header1"),
+						NewHeader("Header2"),
+					},
+					Sections: []Section{
+						{
+							FirstColumn: ValueString{S: "s1c1"},
+							Rows: [][]Value{
+								{ValueString{S: ""}, ValueString{S: "s1r1c2"}},
+								{ValueString{S: ""}, ValueString{S: "s1r2c2"}},
+							},
+						},
+						{
+							Rows: [][]Value{
+								{ValueString{S: "r3c1"}, ValueString{S: "r3c2"}},
+							},
+						},
+					},
+					Rows: [][]Value{
+						{ValueString{S: "r4c1"}, ValueString{S: "r4c2"}},
+					},
+					FillFirstColumn: true,
+					BackgroundStr:   ".",
+					BorderStr:       "|",
+				}
+				table.Print(buf)
+				Expect("\n" + buf.String()).To(Equal(`
+Header1|Header2|
+s1c1...|s1r1c2.|
+s1c1...|s1r2c2.|
+r3c1...|r3c2...|
+r4c1...|r4c2...|
+
+4 things
+`))
+			})
 		})
 
 		It("prints values in table that span multiple lines", func() {
@@ -274,8 +324,8 @@ r4c1|r6c2|
 				Content: "things",
 
 				Rows: [][]Value{
-					{ValueString{"r1c1"}, ValueString{"r1c2.1\nr1c2.2"}},
-					{ValueString{"r2c1"}, ValueString{"r2c2"}},
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2.1\nr1c2.2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
 				},
 
 				BackgroundStr: ".",
@@ -294,11 +344,11 @@ r2c1|r2c2..|
 				Content: "things",
 
 				Rows: [][]Value{
-					{ValueString{"dup"}, ValueString{"dup"}},
-					{ValueString{"dup"}, ValueString{"dup"}},
-					{ValueString{"dup2"}, ValueString{"dup"}},
-					{ValueString{"dup2"}, ValueString{"dup"}},
-					{ValueString{"other"}, ValueString{"dup"}},
+					{ValueString{S: "dup"}, ValueString{S: "dup"}},
+					{ValueString{S: "dup"}, ValueString{S: "dup"}},
+					{ValueString{S: "dup2"}, ValueString{S: "dup"}},
+					{ValueString{S: "dup2"}, ValueString{S: "dup"}},
+					{ValueString{S: "other"}, ValueString{S: "dup"}},
 				},
 
 				BackgroundStr: ".",
@@ -319,11 +369,11 @@ other|dup|
 				Content: "things",
 
 				Rows: [][]Value{
-					{ValueString{"dup"}, ValueString{"dup"}},
-					{ValueString{"dup"}, ValueString{"dup"}},
-					{ValueString{"dup2"}, ValueString{"dup"}},
-					{ValueString{"dup2"}, ValueString{"dup"}},
-					{ValueString{"other"}, ValueString{"dup"}},
+					{ValueString{S: "dup"}, ValueString{S: "dup"}},
+					{ValueString{S: "dup"}, ValueString{S: "dup"}},
+					{ValueString{S: "dup2"}, ValueString{S: "dup"}},
+					{ValueString{S: "dup2"}, ValueString{S: "dup"}},
+					{ValueString{S: "other"}, ValueString{S: "dup"}},
 				},
 
 				FillFirstColumn: true,
@@ -346,17 +396,17 @@ other|dup|
 
 				Sections: []Section{
 					{
-						FirstColumn: ValueString{"dup"},
+						FirstColumn: ValueString{S: "dup"},
 						Rows: [][]Value{
-							{ValueNone{}, ValueString{"dup"}},
-							{ValueNone{}, ValueString{"dup"}},
+							{ValueNone{}, ValueString{S: "dup"}},
+							{ValueNone{}, ValueString{S: "dup"}},
 						},
 					},
 					{
-						FirstColumn: ValueString{"dup2"},
+						FirstColumn: ValueString{S: "dup2"},
 						Rows: [][]Value{
-							{ValueNone{}, ValueString{"dup"}},
-							{ValueNone{}, ValueString{"dup"}},
+							{ValueNone{}, ValueString{S: "dup"}},
+							{ValueNone{}, ValueString{S: "dup"}},
 						},
 					},
 				},
@@ -380,11 +430,11 @@ dup2|dup|
 				SortBy: []ColumnSort{{Column: 1, Asc: true}},
 
 				Rows: [][]Value{
-					{ValueString{"dup"}, ValueInt{1}},
-					{ValueString{"dup2"}, ValueInt{3}},
-					{ValueString{"dup"}, ValueInt{2}},
-					{ValueString{"dup2"}, ValueInt{4}},
-					{ValueString{"other"}, ValueInt{5}},
+					{ValueString{S: "dup"}, ValueInt{I: 1}},
+					{ValueString{S: "dup2"}, ValueInt{I: 3}},
+					{ValueString{S: "dup"}, ValueInt{I: 2}},
+					{ValueString{S: "dup2"}, ValueInt{I: 4}},
+					{ValueString{S: "other"}, ValueInt{I: 5}},
 				},
 
 				BackgroundStr: ".",
@@ -403,8 +453,8 @@ other|5|
 		It("prints empty values as dashes", func() {
 			table := Table{
 				Rows: [][]Value{
-					{ValueString{""}, ValueNone{}},
-					{ValueString{""}, ValueNone{}},
+					{ValueString{S: ""}, ValueNone{}},
+					{ValueString{S: ""}, ValueNone{}},
 				},
 
 				BackgroundStr: ".",
@@ -419,8 +469,11 @@ other|5|
 
 		It("prints empty tables without rows and section", func() {
 			table := Table{
-				Content:       "content",
-				Header:        []string{"Header1", "Header2"},
+				Content: "content",
+				Header: []Header{
+					NewHeader("Header1"),
+					NewHeader("Header2"),
+				},
 				BackgroundStr: ".",
 				BorderStr:     "|",
 			}
@@ -435,11 +488,15 @@ Header1|Header2|
 		Context("table has Transpose:true", func() {
 			It("prints as transposed table", func() {
 				table := Table{
-					Content: "content",
-					Header:  []string{"Header1", "OtherHeader2"},
+					Content: "errands",
+					Header: []Header{
+						NewHeader("Header1"),
+						NewHeader("OtherHeader2"),
+						NewHeader("Header3"),
+					},
 					Rows: [][]Value{
-						{ValueString{"r1c1"}, ValueString{"longr1c2"}},
-						{ValueString{"r2c1"}, ValueString{"r2c2"}},
+						{ValueString{S: "r1c1"}, ValueString{S: "longr1c2"}, ValueString{S: "r1c3"}},
+						{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}, ValueString{S: "r2c3"}},
 					},
 					BackgroundStr: ".",
 					BorderStr:     "|",
@@ -449,12 +506,139 @@ Header1|Header2|
 				Expect("\n" + buf.String()).To(Equal(`
 Header1.....|r1c1....|
 OtherHeader2|longr1c2|
+Header3.....|r1c3....|
+
 Header1.....|r2c1....|
 OtherHeader2|r2c2....|
+Header3.....|r2c3....|
 
-4 content
+2 errands
 `))
 			})
+
+			It("prints a filtered transposed table", func() {
+				nonVisibleHeader := NewHeader("Header3")
+				nonVisibleHeader.Hidden = true
+
+				table := Table{
+					Content: "errands",
+
+					Header: []Header{
+						NewHeader("Header1"),
+						NewHeader("Header2"),
+						nonVisibleHeader,
+					},
+					Rows: [][]Value{
+						{ValueString{S: "v1"}, ValueString{S: "v2"}, ValueString{S: "v3"}},
+					},
+					BorderStr: "|",
+					Transpose: true,
+				}
+				table.Print(buf)
+				Expect("\n" + buf.String()).To(Equal(`
+Header1|v1|
+Header2|v2|
+
+1 errands
+`))
+			})
+
+			Context("when table also has a SortBy value set", func() {
+				It("prints as transposed table with sections sorted by the SortBy", func() {
+					table := Table{
+						Content: "errands",
+						Header: []Header{
+							NewHeader("Header1"),
+							NewHeader("OtherHeader2"),
+							NewHeader("Header3"),
+						},
+						Rows: [][]Value{
+							{ValueString{S: "r1c1"}, ValueString{S: "longr1c2"}, ValueString{S: "r1c3"}},
+							{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}, ValueString{S: "r2c3"}},
+						},
+						SortBy: []ColumnSort{
+							{Column: 0, Asc: true},
+						},
+						BackgroundStr: ".",
+						BorderStr:     "|",
+						Transpose:     true,
+					}
+					table.Print(buf)
+					Expect("\n" + buf.String()).To(Equal(`
+Header1.....|r1c1....|
+OtherHeader2|longr1c2|
+Header3.....|r1c3....|
+
+Header1.....|r2c1....|
+OtherHeader2|r2c2....|
+Header3.....|r2c3....|
+
+2 errands
+`))
+				})
+			})
+		})
+
+		Context("when column filtering is used", func() {
+			It("prints all non-filtered out columns", func() {
+				nonVisibleHeader := NewHeader("Header3")
+				nonVisibleHeader.Hidden = true
+
+				table := Table{
+					Content: "content",
+
+					Header: []Header{
+						NewHeader("Header1"),
+						NewHeader("Header2"),
+						nonVisibleHeader,
+					},
+					Rows: [][]Value{
+						{ValueString{S: "v1"}, ValueString{S: "v2"}, ValueString{S: "v3"}},
+					},
+					BorderStr: "|",
+				}
+				table.Print(buf)
+				Expect("\n" + buf.String()).To(Equal(`
+Header1|Header2|
+v1     |v2     |
+
+1 content
+`))
+			})
+		})
+	})
+
+	Describe("AddColumn", func() {
+		It("returns an updated table with the new column", func() {
+			table := Table{
+				Content: "content",
+				Header: []Header{
+					NewHeader("Header1"),
+					NewHeader("Header2"),
+				},
+				Rows: [][]Value{
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
+				},
+				BackgroundStr: ".",
+				BorderStr:     "|",
+			}
+
+			newTable := table.AddColumn("Header3", []Value{ValueString{S: "r1c3"}, ValueString{S: "r2c3"}})
+			Expect(newTable).To(Equal(Table{
+				Content: "content",
+				Header: []Header{
+					NewHeader("Header1"),
+					NewHeader("Header2"),
+					NewHeader("Header3"),
+				},
+				Rows: [][]Value{
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}, ValueString{S: "r1c3"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}, ValueString{S: "r2c3"}},
+				},
+				BackgroundStr: ".",
+				BorderStr:     "|",
+			}))
 		})
 	})
 })

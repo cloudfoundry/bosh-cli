@@ -19,7 +19,13 @@ type Problem struct {
 	Resolutions []ProblemResolution
 }
 
+var skipResolutionName string = "ignore"
+
 var ProblemResolutionDefault ProblemResolution = ProblemResolution{}
+var ProblemResolutionSkip ProblemResolution = ProblemResolution{
+	Name: &skipResolutionName,
+	Plan: "Skip for now",
+}
 
 type ProblemResolution struct {
 	Name *string `json:"name"` // e.g. "Skip for now", "Recreate VM"
@@ -90,7 +96,7 @@ func (c Client) ResolveProblems(deploymentName string, answers []ProblemAnswer) 
 	path := fmt.Sprintf("/deployments/%s/problems", deploymentName)
 
 	body := map[string]map[string]*string{
-		"resolutions": map[string]*string{},
+		"resolutions": {},
 	}
 
 	for _, ans := range answers {

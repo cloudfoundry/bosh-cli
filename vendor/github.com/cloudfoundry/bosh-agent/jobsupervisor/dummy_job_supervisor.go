@@ -24,6 +24,11 @@ func (s *dummyJobSupervisor) Stop() error {
 	return nil
 }
 
+func (s *dummyJobSupervisor) StopAndWait() error {
+	s.status = "stopped"
+	return nil
+}
+
 func (s *dummyJobSupervisor) Unmonitor() error {
 	return nil
 }

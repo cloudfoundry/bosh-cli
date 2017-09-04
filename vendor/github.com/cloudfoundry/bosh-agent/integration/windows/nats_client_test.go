@@ -43,7 +43,8 @@ const (
                     {
                         "name": "{{ .JobName }}",
 						"blobstore_id": "{{ .TemplateBlobstoreID }}",
-						"sha1": "eb9bebdb1f11494b27440ec6ccbefba00e713cd9"
+						"sha1": "eb9bebdb1f11494b27440ec6ccbefba00e713cd9",
+						"version": "template-version-123"
                     }
                 ]
             },
@@ -151,6 +152,9 @@ const (
 	`
 )
 
+const DefaultNatsTimeout = time.Second * 15
+const DefaultTaskTimeout = time.Second * 30
+
 type NatCommand struct {
 	Protocol  int           `json:"protocol"`
 	Method    string        `json:"method"`
@@ -254,14 +258,14 @@ func (c CompileTemplate) Arguments() []interface{} {
 }
 
 func (n *NatsClient) CompilePackage(packageName string) (*agentclient.BlobRef, error) {
-	blobID, err := n.uploadPackage(packageName)
+	tarSha1, blobID, err := n.uploadPackage(packageName)
 	if err != nil {
 		return nil, err
 	}
 
 	template := CompileTemplate{
 		BlobstoreID:  blobID,
-		SHA1:         "902d0e7690d45738681f9d0c1ecee19e40dec507",
+		SHA1:         tarSha1,
 		Name:         packageName,
 		Version:      "1.2.3",
 		Dependencies: nil,
@@ -365,7 +369,7 @@ func (n *NatsClient) RunDrain() error {
 		return err
 	}
 
-	taskResponse, err := n.WaitForTask(drainResponse["value"]["agent_task_id"], time.Second*30)
+	taskResponse, err := n.WaitForTask(drainResponse["value"]["agent_task_id"], DefaultTaskTimeout)
 	magicNumber, ok := taskResponse.Value.(float64)
 	if !ok {
 		return fmt.Errorf("RunDrain got invalid taskResponse %s", reflect.TypeOf(taskResponse.Value))
@@ -382,7 +386,7 @@ func (n *NatsClient) RunScript(scriptName string) error {
 		return err
 	}
 
-	_, err = n.WaitForTask(response["value"]["agent_task_id"], 30*time.Second)
+	_, err = n.WaitForTask(response["value"]["agent_task_id"], DefaultTaskTimeout)
 
 	return err
 }
@@ -458,7 +462,7 @@ func (n *NatsClient) FetchLogs(destinationDir string) {
 		return fetchLogsResult, nil
 	}
 
-	Eventually(fetchLogsCheckFunc, 30*time.Second, 1*time.Second).Should(HaveKey("blobstore_id"))
+	Eventually(fetchLogsCheckFunc, DefaultTimeout, DefaultInterval).Should(HaveKey("blobstore_id"))
 
 	fetchedLogFile := filepath.Join(destinationDir, "log.tgz")
 	err = n.blobstoreClient.Get(fetchLogsResult["blobstore_id"], fetchedLogFile)
@@ -500,7 +504,7 @@ func (n *NatsClient) SendRawMessageWithTimeout(message string, timeout time.Dura
 }
 
 func (n *NatsClient) SendRawMessage(message string) ([]byte, error) {
-	return n.SendRawMessageWithTimeout(message, 5*time.Second)
+	return n.SendRawMessageWithTimeout(message, DefaultNatsTimeout)
 }
 
 func (n *NatsClient) SendMessage(message string) (map[string]map[string]string, error) {
@@ -547,20 +551,21 @@ func (n *NatsClient) uploadJob(jobName string) (templateID, renderedTemplateSha 
 	return
 }
 
-func (n *NatsClient) uploadPackage(packageName string) (blobID string, err error) {
+func (n *NatsClient) uploadPackage(packageName string) (string, string, error) {
 	var dirname string
-	dirname, err = ioutil.TempDir("", "templates")
+	dirname, err := ioutil.TempDir("", "templates")
 	if err != nil {
-		return
+		return "", "", err
 	}
 	defer os.RemoveAll(dirname)
 
 	tarfile := filepath.Join(dirname, packageName+".tar")
 	dir := filepath.Join("fixtures/templates", packageName)
-	_, err = utils.TarDirectory(dir, dir, tarfile)
+	sha1, err := utils.TarDirectory(dir, dir, tarfile)
 	if err != nil {
-		return
+		return "", "", err
 	}
 
-	return n.blobstoreClient.Create(tarfile)
+	blobID, err := n.blobstoreClient.Create(tarfile)
+	return sha1, blobID, err
 }

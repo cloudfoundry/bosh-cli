@@ -38,13 +38,12 @@ func init() {
 			action = NewApply(applier, specService, settingsService, dirProvider.InstanceDir(), fs)
 		})
 
-		It("apply should be asynchronous", func() {
-			Expect(action.IsAsynchronous()).To(BeTrue())
-		})
+		AssertActionIsAsynchronous(action)
+		AssertActionIsNotPersistent(action)
+		AssertActionIsLoggable(action)
 
-		It("is not persistent", func() {
-			Expect(action.IsPersistent()).To(BeFalse())
-		})
+		AssertActionIsNotCancelable(action)
+		AssertActionIsNotResumable(action)
 
 		Describe("Run", func() {
 			settings := boshsettings.Settings{AgentID: "fake-agent-id"}

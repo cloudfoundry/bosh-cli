@@ -104,7 +104,7 @@ func (ldpr SCSILunDevicePathResolver) GetRealDevicePath(diskSettings boshsetting
 		for _, devicePath := range devicePaths {
 			baseName := path.Base(devicePath)
 
-			tempPath, err := ldpr.fs.ReadLink(path.Join("/sys/class/block/", baseName))
+			tempPath, err := ldpr.fs.ReadAndFollowLink(path.Join("/sys/class/block/", baseName))
 			if err != nil {
 				continue
 			}

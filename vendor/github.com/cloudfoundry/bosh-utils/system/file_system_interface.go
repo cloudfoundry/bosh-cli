@@ -32,6 +32,7 @@ type FileSystem interface {
 
 	WriteFileString(path, content string) error
 	WriteFile(path string, content []byte) error
+	WriteFileQuietly(path string, content []byte) error
 	ConvergeFileContents(path string, content []byte) (written bool, err error)
 
 	ReadFileString(path string) (content string, err error)

@@ -115,24 +115,21 @@ var _ = Describe("AliasEnvCmd", func() {
 			Expect(config.Saved.EnvironmentCACert).To(Equal("environment-ca-cert"))
 
 			Expect(ui.Table).To(Equal(boshtbl.Table{
+				Header: []boshtbl.Header{
+					boshtbl.NewHeader("Name"),
+					boshtbl.NewHeader("UUID"),
+					boshtbl.NewHeader("Version"),
+					boshtbl.NewHeader("User"),
+				},
 				Rows: [][]boshtbl.Value{
 					{
-						boshtbl.NewValueString("Name"),
 						boshtbl.NewValueString("director-name"),
-					},
-					{
-						boshtbl.NewValueString("UUID"),
 						boshtbl.NewValueString("director-uuid"),
-					},
-					{
-						boshtbl.NewValueString("Version"),
 						boshtbl.NewValueString("director-version"),
-					},
-					{
-						boshtbl.NewValueString("User"),
 						boshtbl.NewValueString("(not logged in)"),
 					},
 				},
+				Transpose: true,
 			}))
 		})
 

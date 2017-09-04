@@ -74,7 +74,7 @@ func (idpr SCSIIDDevicePathResolver) GetRealDevicePath(diskSettings boshsettings
 		}
 		for _, path := range disks {
 			idpr.logger.Debug(idpr.logTag, "Reading link "+path)
-			realPath, err = idpr.fs.ReadLink(path)
+			realPath, err = idpr.fs.ReadAndFollowLink(path)
 			if err != nil {
 				continue
 			}

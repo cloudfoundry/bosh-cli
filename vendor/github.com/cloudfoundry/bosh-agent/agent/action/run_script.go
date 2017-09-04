@@ -31,12 +31,16 @@ func NewRunScript(
 	}
 }
 
-func (a RunScriptAction) IsAsynchronous() bool {
+func (a RunScriptAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return true
 }
 
 func (a RunScriptAction) IsPersistent() bool {
 	return false
+}
+
+func (a RunScriptAction) IsLoggable() bool {
+	return true
 }
 
 func (a RunScriptAction) Run(scriptName string, options map[string]interface{}) (map[string]string, error) {

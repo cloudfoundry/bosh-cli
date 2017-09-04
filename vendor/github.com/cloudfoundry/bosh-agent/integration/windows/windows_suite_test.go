@@ -16,9 +16,12 @@ func TestWindows(t *testing.T) {
 	RunSpecs(t, "Windows Suite")
 }
 
-var _ = BeforeSuite(func() {
-	vagrantProvider := os.Getenv("VAGRANT_PROVIDER")
+var vagrantProvider = os.Getenv("VAGRANT_PROVIDER")
 
+var _ = BeforeSuite(func() {
+	if _, ok := os.LookupEnv("NATS_PRIVATE_IP"); !ok {
+		Fail("Environment variable NATS_PRIVATE_IP not set", 1)
+	}
 	_, err := utils.StartVagrant(vagrantProvider)
 	if err != nil {
 		Fail(fmt.Sprintln("Could not build the bosh-agent project.\nError is:", err))

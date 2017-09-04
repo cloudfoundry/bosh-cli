@@ -16,6 +16,7 @@ import (
 	fakescript "github.com/cloudfoundry/bosh-agent/agent/script/fakes"
 	fakejobsuper "github.com/cloudfoundry/bosh-agent/jobsupervisor/fakes"
 	fakenotif "github.com/cloudfoundry/bosh-agent/notification/fakes"
+	"github.com/cloudfoundry/bosh-utils/crypto"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
@@ -52,13 +53,11 @@ var _ = Describe("DrainAction", func() {
 		}
 	})
 
-	It("is asynchronous", func() {
-		Expect(action.IsAsynchronous()).To(BeTrue())
-	})
+	AssertActionIsAsynchronous(action)
+	AssertActionIsNotPersistent(action)
+	AssertActionIsLoggable(action)
 
-	It("is not persistent", func() {
-		Expect(action.IsPersistent()).To(BeFalse())
-	})
+	AssertActionIsNotResumable(action)
 
 	Describe("Run", func() {
 		var (
@@ -76,24 +75,35 @@ var _ = Describe("DrainAction", func() {
 		}
 
 		Context("when drain update is requested", func() {
-			newSpec := boshas.V1ApplySpec{
-				PackageSpecs: map[string]boshas.PackageSpec{
-					"foo": boshas.PackageSpec{
-						Name: "foo",
-						Sha1: "foo-sha1-new",
-					},
-				},
-			}
+			var newSpec boshas.V1ApplySpec
 
-			act := func() (int, error) { return action.Run(DrainTypeUpdate, newSpec) }
+			BeforeEach(func() {
+				newSpec = boshas.V1ApplySpec{
+					PackageSpecs: map[string]boshas.PackageSpec{
+						"foo": {
+							Name: "foo",
+							Sha1: crypto.MustParseMultipleDigest("sha1:foosha1new"),
+						},
+					},
+					RenderedTemplatesArchiveSpec: &boshas.RenderedTemplatesArchiveSpec{},
+				}
+			})
+
+			act := func() (int, error) {
+				return action.Run(DrainTypeUpdate, newSpec)
+			}
 
 			Context("when current agent has a job spec template", func() {
 				var currentSpec boshas.V1ApplySpec
 
 				BeforeEach(func() {
-					currentSpec = boshas.V1ApplySpec{}
+					currentSpec = boshas.V1ApplySpec{
+						RenderedTemplatesArchiveSpec: &applyspec.RenderedTemplatesArchiveSpec{},
+					}
+
 					addJobTemplate(&currentSpec.JobSpec, "foo")
 					addJobTemplate(&currentSpec.JobSpec, "bar")
+
 					specService.Spec = currentSpec
 				})
 
@@ -202,7 +212,9 @@ var _ = Describe("DrainAction", func() {
 				)
 
 				BeforeEach(func() {
-					currentSpec = boshas.V1ApplySpec{}
+					currentSpec = boshas.V1ApplySpec{
+						RenderedTemplatesArchiveSpec: &applyspec.RenderedTemplatesArchiveSpec{}, // todo
+					}
 					addJobTemplate(&currentSpec.JobSpec, "foo")
 					addJobTemplate(&currentSpec.JobSpec, "bar")
 					specService.Spec = currentSpec
@@ -333,9 +345,9 @@ var _ = Describe("DrainAction", func() {
 			parallelScript *fakescript.FakeCancellableScript
 			newSpec        = boshas.V1ApplySpec{
 				PackageSpecs: map[string]boshas.PackageSpec{
-					"foo": boshas.PackageSpec{
+					"foo": {
 						Name: "foo",
-						Sha1: "foo-sha1-new",
+						Sha1: crypto.MustParseMultipleDigest("sha1:foosha1new"),
 					},
 				},
 			}

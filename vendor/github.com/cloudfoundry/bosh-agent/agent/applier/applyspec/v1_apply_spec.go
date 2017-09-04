@@ -25,7 +25,7 @@ type V1ApplySpec struct {
 
 	PersistentDisk int `json:"persistent_disk"`
 
-	RenderedTemplatesArchiveSpec RenderedTemplatesArchiveSpec `json:"rendered_templates_archive"`
+	RenderedTemplatesArchiveSpec *RenderedTemplatesArchiveSpec `json:"rendered_templates_archive"`
 }
 
 type PropertiesSpec struct {
@@ -55,11 +55,15 @@ type NetworkSpec struct {
 // extracted from a single tarball provided by BOSH director.
 func (s V1ApplySpec) Jobs() []models.Job {
 	jobsWithSource := []models.Job{}
-	for _, j := range s.JobSpec.JobTemplateSpecsAsJobs() {
-		j.Source = s.RenderedTemplatesArchiveSpec.AsSource(j)
-		j.Packages = s.Packages()
-		jobsWithSource = append(jobsWithSource, j)
+
+	if s.RenderedTemplatesArchiveSpec != nil {
+		for _, j := range s.JobSpec.JobTemplateSpecsAsJobs() {
+			j.Source = s.RenderedTemplatesArchiveSpec.AsSource(j)
+			j.Packages = s.Packages()
+			jobsWithSource = append(jobsWithSource, j)
+		}
 	}
+
 	return jobsWithSource
 }
 

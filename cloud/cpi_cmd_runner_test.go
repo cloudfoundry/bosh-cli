@@ -58,7 +58,7 @@ var _ = Describe("CpiCmdRunner", func() {
 			Expect(actualCmd.Env).To(Equal(map[string]string{
 				"BOSH_PACKAGES_DIR": cpi.PackagesDir,
 				"BOSH_JOBS_DIR":     cpi.JobsDir,
-				"PATH":              "/usr/local/bin:/usr/bin:/bin",
+				"PATH":              "/usr/local/bin:/usr/bin:/bin:/sbin",
 			}))
 			Expect(actualCmd.UseIsolatedEnv).To(BeTrue())
 			bytes, err := ioutil.ReadAll(actualCmd.Stdin)

@@ -20,27 +20,33 @@ import (
 )
 
 const (
-	agentGUID = "123-456-789"
-	agentID   = "agent." + agentGUID
-	senderID  = "director.987-654-321"
+	agentGUID       = "123-456-789"
+	agentID         = "agent." + agentGUID
+	senderID        = "director.987-654-321"
+	DefaultTimeout  = time.Second * 30
+	DefaultInterval = time.Second
 )
 
-func natsURI() string {
-	natsURL := "nats://172.31.180.3:4222"
-	vagrantProvider := os.Getenv("VAGRANT_PROVIDER")
-	if vagrantProvider == "aws" {
-		natsURL = fmt.Sprintf("nats://%s:4222", os.Getenv("NATS_ELASTIC_IP"))
+func natsIP() string {
+	if ip := os.Getenv("NATS_PRIVATE_IP"); ip != "" {
+		return ip
 	}
-	return natsURL
+	return ""
+}
+
+func natsURI() string {
+	if vagrantProvider == "aws" {
+		return fmt.Sprintf("nats://%s:4222", os.Getenv("NATS_ELASTIC_IP"))
+	}
+	return fmt.Sprintf("nats://%s:4222", natsIP())
+
 }
 
 func blobstoreURI() string {
-	blobstoreURI := "http://172.31.180.3:25250"
-	vagrantProvider := os.Getenv("VAGRANT_PROVIDER")
 	if vagrantProvider == "aws" {
-		blobstoreURI = fmt.Sprintf("http://%s:25250", os.Getenv("NATS_ELASTIC_IP"))
+		return fmt.Sprintf("http://%s:25250", os.Getenv("NATS_ELASTIC_IP"))
 	}
-	return blobstoreURI
+	return fmt.Sprintf("http://%s:25250", natsIP())
 }
 
 var _ = Describe("An Agent running on Windows", func() {
@@ -69,7 +75,7 @@ var _ = Describe("An Agent running on Windows", func() {
 			return string(response), err
 		}
 
-		Eventually(testPing, 30*time.Second, 1*time.Second).Should(Equal(`{"value":"pong"}`))
+		Eventually(testPing, DefaultTimeout, DefaultInterval).Should(Equal(`{"value":"pong"}`))
 	})
 
 	AfterEach(func() {
@@ -80,7 +86,6 @@ var _ = Describe("An Agent running on Windows", func() {
 		getStateSpecAgentID := func() string {
 			message := fmt.Sprintf(`{"method":"get_state","arguments":[],"reply_to":"%s"}`, senderID)
 			rawResponse, err := natsClient.SendRawMessage(message)
-			Expect(err).NotTo(HaveOccurred())
 
 			response := map[string]action.GetStateV1ApplySpec{}
 			err = json.Unmarshal(rawResponse, &response)
@@ -89,7 +94,34 @@ var _ = Describe("An Agent running on Windows", func() {
 			return response["value"].AgentID
 		}
 
-		Eventually(getStateSpecAgentID, 30*time.Second, 1*time.Second).Should(Equal(agentGUID))
+		Eventually(getStateSpecAgentID, DefaultTimeout, DefaultInterval).Should(Equal(agentGUID))
+	})
+
+	It("includes memory vitals in the 'get_state' response", func() {
+		message := fmt.Sprintf(`{"method":"get_state","arguments":["full"],"reply_to":"%s"}`, senderID)
+
+		checkVitals := func() error {
+			b, err := natsClient.SendRawMessage(message)
+			if err != nil {
+				return err
+			}
+
+			var res map[string]action.GetStateV1ApplySpec
+			if err := json.Unmarshal(b, &res); err != nil {
+				return err
+			}
+
+			v := res["value"].Vitals
+			if v == nil {
+				return fmt.Errorf("nil Vitals")
+			}
+			if v.Mem.Kb == "" || v.Mem.Percent == "" {
+				return fmt.Errorf("Empty Memory Vitals: %+v", v.Mem)
+			}
+			return nil
+		}
+
+		Eventually(checkVitals, DefaultTimeout, DefaultInterval).Should(Succeed())
 	})
 
 	It("can run a run_errand action", func() {
@@ -99,7 +131,7 @@ var _ = Describe("An Agent running on Windows", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		runErrandCheck := natsClient.CheckErrandResultStatus(runErrandResponse["value"]["agent_task_id"])
-		Eventually(runErrandCheck, 30*time.Second, 1*time.Second).Should(Equal(action.ErrandResult{
+		Eventually(runErrandCheck, DefaultTimeout, DefaultInterval).Should(Equal(action.ErrandResult{
 			Stdout:     "hello world\r\n",
 			ExitStatus: 0,
 		}))
@@ -165,7 +197,9 @@ var _ = Describe("An Agent running on Windows", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(runStartResponse["value"]).To(Equal("started"))
 
-		Eventually(func() string { return natsClient.GetState().JobState }, 30*time.Second, 1*time.Second).Should(Equal("failing"))
+		Eventually(func() string {
+			return natsClient.GetState().JobState
+		}, DefaultTimeout, DefaultInterval).Should(Equal("failing"))
 
 		Eventually(func() (string, error) {
 			alert, err := natsClient.GetNextAlert(10 * time.Second)
@@ -257,8 +291,18 @@ var _ = Describe("An Agent running on Windows", func() {
 			}
 		}
 
-		Eventually(getNetworkProperty("ip"), 30*time.Second, 1*time.Second).ShouldNot(BeEmpty())
-		Eventually(getNetworkProperty("gateway"), 30*time.Second, 1*time.Second).ShouldNot(BeEmpty())
-		Eventually(getNetworkProperty("netmask"), 30*time.Second, 1*time.Second).ShouldNot(BeEmpty())
+		Eventually(getNetworkProperty("ip"), DefaultTimeout, DefaultInterval).ShouldNot(BeEmpty())
+		Eventually(getNetworkProperty("gateway"), DefaultTimeout, DefaultInterval).ShouldNot(BeEmpty())
+		Eventually(getNetworkProperty("netmask"), DefaultTimeout, DefaultInterval).ShouldNot(BeEmpty())
+	})
+
+	It("can compile longpath complex pakcage", func() {
+		const (
+			blobName     = "blob.tar"
+			fileName     = "output.txt"
+			fileContents = "i'm a compiled package!"
+		)
+		_, err := natsClient.CompilePackage("longpath-package")
+		Expect(err).NotTo(HaveOccurred())
 	})
 })

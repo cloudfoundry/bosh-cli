@@ -8,9 +8,10 @@ import (
 
 	boshbc "github.com/cloudfoundry/bosh-agent/agent/applier/bundlecollection"
 	fakebc "github.com/cloudfoundry/bosh-agent/agent/applier/bundlecollection/fakes"
-	models "github.com/cloudfoundry/bosh-agent/agent/applier/models"
+	"github.com/cloudfoundry/bosh-agent/agent/applier/models"
 	. "github.com/cloudfoundry/bosh-agent/agent/applier/packages"
 	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -26,7 +27,7 @@ func buildPkg(bc *fakebc.FakeBundleCollection) (models.Package, *fakebc.FakeBund
 		Name:    "fake-package-name" + uuid,
 		Version: "fake-package-name",
 		Source: models.Source{
-			Sha1:        "fake-blob-sha1",
+			Sha1:        boshcrypto.MustNewMultipleDigest(boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, "fake-blob-sha1")),
 			BlobstoreID: "fake-blobstore-id",
 		},
 	}
@@ -40,7 +41,7 @@ func init() {
 	Describe("compiledPackageApplier", func() {
 		var (
 			packagesBc *fakebc.FakeBundleCollection
-			blobstore  *fakeblob.FakeBlobstore
+			blobstore  *fakeblob.FakeDigestBlobstore
 			compressor *fakecmd.FakeCompressor
 			fs         *fakesys.FakeFileSystem
 			logger     boshlog.Logger
@@ -49,7 +50,7 @@ func init() {
 
 		BeforeEach(func() {
 			packagesBc = fakebc.NewFakeBundleCollection()
-			blobstore = fakeblob.NewFakeBlobstore()
+			blobstore = &fakeblob.FakeDigestBlobstore{}
 			compressor = fakecmd.NewFakeCompressor()
 			fs = fakesys.NewFakeFileSystem()
 			logger = boshlog.NewLogger(boshlog.LevelNone)
@@ -76,19 +77,20 @@ func init() {
 				})
 
 				It("downloads and later cleans up downloaded package blob", func() {
-					blobstore.GetFileName = "/fake-blobstore-file-name"
+					blobstore.GetReturns("/fake-blobstore-file-name", nil)
 
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
-					Expect(blobstore.GetBlobIDs[0]).To(Equal("fake-blobstore-id"))
-					Expect(blobstore.GetFingerprints[0]).To(Equal("fake-blob-sha1"))
+					blobID, fingerPrint := blobstore.GetArgsForCall(0)
+					Expect(blobID).To(Equal("fake-blobstore-id"))
+					Expect(fingerPrint).To(Equal(boshcrypto.MustNewMultipleDigest(boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, "fake-blob-sha1"))))
 
 					// downloaded file is cleaned up
-					Expect(blobstore.CleanUpFileName).To(Equal("/fake-blobstore-file-name"))
+					Expect(blobstore.CleanUpArgsForCall(0)).To(Equal("/fake-blobstore-file-name"))
 				})
 
 				It("returns error when downloading package blob fails", func() {
-					blobstore.GetError = errors.New("fake-get-error")
+					blobstore.GetReturns("", errors.New("fake-get-error"))
 
 					err := act()
 					Expect(err).To(HaveOccurred())
@@ -97,7 +99,7 @@ func init() {
 
 				It("decompresses package blob to tmp path and later cleans it up", func() {
 					fs.TempDirDir = "/fake-tmp-dir"
-					blobstore.GetFileName = "/fake-blobstore-file-name"
+					blobstore.GetReturns("/fake-blobstore-file-name", nil)
 
 					var tmpDirExistsBeforeInstall bool
 
@@ -127,6 +129,37 @@ func init() {
 				})
 
 				It("returns error when decompressing package blob fails", func() {
+					compressor.DecompressFileToDirErr = errors.New("fake-decompress-error")
+					pkg.Source.Sha1 = boshcrypto.MustNewMultipleDigest(boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, "sha1:checksum"))
+
+					err := act()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-decompress-error"))
+				})
+
+				It("can process sha1 checksums in the new format", func() {
+					blobstore.GetReturns("/fake-blobstore-file-name", nil)
+					pkg.Source.Sha1 = boshcrypto.MustNewMultipleDigest(boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, "sha1:fake-blob-sha1"))
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+					blobID, fingerPrint := blobstore.GetArgsForCall(0)
+					Expect(blobID).To(Equal("fake-blobstore-id"))
+					Expect(fingerPrint).To(Equal(boshcrypto.MustNewMultipleDigest(boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA1, "sha1:fake-blob-sha1"))))
+				})
+
+				It("can process sha2 checksums", func() {
+					blobstore.GetReturns("/fake-blobstore-file-name", nil)
+					pkg.Source.Sha1 = boshcrypto.MustNewMultipleDigest(boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA256, "sha256:fake-blob-sha256"))
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+					blobID, fingerPrint := blobstore.GetArgsForCall(0)
+					Expect(blobID).To(Equal("fake-blobstore-id"))
+					Expect(fingerPrint).To(Equal(boshcrypto.MustNewMultipleDigest(boshcrypto.NewDigest(boshcrypto.DigestAlgorithmSHA256, "sha256:fake-blob-sha256"))))
+				})
+
+				It("returns error when given and unsupported fingerprint", func() {
 					compressor.DecompressFileToDirErr = errors.New("fake-decompress-error")
 
 					err := act()
@@ -187,7 +220,7 @@ func init() {
 					It("does not download the package", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
-						Expect(blobstore.GetBlobIDs).To(BeNil())
+						Expect(blobstore.GetCallCount()).To(Equal(0))
 					})
 				})
 
@@ -247,7 +280,7 @@ func init() {
 					It("does not download the package", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
-						Expect(blobstore.GetBlobIDs).To(BeNil())
+						Expect(blobstore.GetCallCount()).To(Equal(0))
 					})
 				})
 

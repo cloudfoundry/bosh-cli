@@ -3,10 +3,10 @@ package bundlecollection_test
 import (
 	"errors"
 
+	. "github.com/cloudfoundry/bosh-agent/agent/applier/bundlecollection"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-agent/agent/applier/bundlecollection"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
@@ -39,7 +39,7 @@ var _ = Describe("FileBundleCollection", func() {
 	})
 
 	Describe("Get", func() {
-		It("returns the file bundle", func() {
+		It("returns the file bundle with sha1'd bundle version as the last segment in the path", func() {
 			bundleDefinition := testBundle{
 				Name:    "fake-bundle-name",
 				Version: "fake-bundle-version",
@@ -49,7 +49,7 @@ var _ = Describe("FileBundleCollection", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			expectedBundle := NewFileBundle(
-				"/fake-collection-path/data/fake-collection-name/fake-bundle-name/fake-bundle-version",
+				"/fake-collection-path/data/fake-collection-name/fake-bundle-name/faf990988742db852eec285122b5c4e7180e7be5",
 				"/fake-collection-path/fake-collection-name/fake-bundle-name",
 				fs,
 				logger,

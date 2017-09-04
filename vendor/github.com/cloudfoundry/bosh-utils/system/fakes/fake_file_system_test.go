@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-utils/system/fakes"
+	"time"
 )
 
 var _ = Describe("FakeFileSystem", func() {
@@ -273,6 +274,74 @@ var _ = Describe("FakeFileSystem", func() {
 		})
 	})
 
+	Describe("RegisterReadFileError", func() {
+		It("errors when specified path is read", func() {
+			fs.WriteFileString("/some/path", "asdfasdf")
+
+			fs.RegisterReadFileError("/some/path", errors.New("read error"))
+
+			_, err := fs.ReadFile("/some/path")
+			Expect(err).To(MatchError("read error"))
+		})
+	})
+
+	Describe("UnregisterReadFileError", func() {
+		It("does not throw an error", func() {
+			fs.WriteFileString("/some/path", "asdfasdf")
+
+			fs.RegisterReadFileError("/some/path", errors.New("read error"))
+			fs.UnregisterReadFileError("/some/path")
+
+			_, err := fs.ReadFile("/some/path")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		Context("When UnregisterReadFileError is called without registering an error", func() {
+			It("should not panic or throw an error", func() {
+				fs.WriteFileString("/some/path", "asdfasdf")
+
+				fs.UnregisterReadFileError("/some/path")
+
+				_, err := fs.ReadFile("/some/path")
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+	})
+
+	Describe("WriteFileQuietly", func() {
+		It("Writes the file", func() {
+			fs.WriteFileQuietly("foo", []byte("hello"))
+
+			writtenContent, err := fs.ReadFileString("foo")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(writtenContent).To(ContainSubstring("hello"))
+		})
+
+		It("Records the number of times the method was called", func() {
+			fs.WriteFileQuietly("foo", []byte("hello"))
+			fs.WriteFileQuietly("bar", []byte("hello"))
+
+			Expect(fs.WriteFileQuietlyCallCount).To(Equal(2))
+		})
+	})
+
+	Describe("WriteFile", func() {
+		It("Writes the file", func() {
+			fs.WriteFile("foo", []byte("hello"))
+
+			writtenContent, err := fs.ReadFileString("foo")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(writtenContent).To(ContainSubstring("hello"))
+		})
+
+		It("Records the number of times the method was called", func() {
+			fs.WriteFile("foo", []byte("hello"))
+			fs.WriteFile("bar", []byte("hello"))
+
+			Expect(fs.WriteFileCallCount).To(Equal(2))
+		})
+	})
+
 	Describe("Stat", func() {
 		It("errors when symlink targets do not exist", func() {
 			err := fs.Symlink("foobarbaz", "foobar")
@@ -291,6 +360,20 @@ var _ = Describe("FakeFileSystem", func() {
 
 			_, err = fs.Stat("foobar")
 			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("allows setting ModTime on a fakefile", func() {
+			setModTime := time.Now()
+
+			fakeFile := NewFakeFile("foobar", fs)
+			fakeFile.Stats = &FakeFileStats{}
+			fakeFile.Stats.ModTime = setModTime
+
+			fs.RegisterOpenFile("foobar", fakeFile)
+
+			fileStat, err := fs.Stat("foobar")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fileStat.ModTime()).To(Equal(setModTime))
 		})
 	})
 

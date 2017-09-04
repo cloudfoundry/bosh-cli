@@ -3,10 +3,11 @@ package pkg
 import (
 	"fmt"
 
+	"os"
+
 	"github.com/cloudfoundry/bosh-cli/crypto"
 	crypto2 "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"os"
 )
 
 type CompiledPackage struct {
@@ -17,8 +18,8 @@ type CompiledPackage struct {
 	Dependencies    []*CompiledPackage // todo privatize
 	dependencyNames []string
 
-	archivePath string
-	archiveSHA1 string
+	archivePath   string
+	archiveDigest string
 }
 
 func NewCompiledPackageWithoutArchive(name, fp, osVersionSlug, sha1 string, dependencyNames []string) *CompiledPackage {
@@ -26,7 +27,7 @@ func NewCompiledPackageWithoutArchive(name, fp, osVersionSlug, sha1 string, depe
 		name:          name,
 		fingerprint:   fp,
 		osVersionSlug: osVersionSlug,
-		archiveSHA1:   sha1,
+		archiveDigest: sha1,
 
 		Dependencies:    []*CompiledPackage{},
 		dependencyNames: dependencyNames,
@@ -39,8 +40,8 @@ func NewCompiledPackageWithArchive(name, fp, osVersionSlug, path, sha1 string, d
 		fingerprint:   fp,
 		osVersionSlug: osVersionSlug,
 
-		archivePath: path,
-		archiveSHA1: sha1,
+		archivePath:   path,
+		archiveDigest: sha1,
 
 		Dependencies:    []*CompiledPackage{},
 		dependencyNames: dependencyNames,
@@ -61,7 +62,7 @@ func (p CompiledPackage) ArchivePath() string {
 	return p.archivePath
 }
 
-func (p CompiledPackage) ArchiveSHA1() string { return p.archiveSHA1 }
+func (p CompiledPackage) ArchiveDigest() string { return p.archiveDigest }
 
 func (p *CompiledPackage) AttachDependencies(compiledPkgs []*CompiledPackage) error {
 	for _, pkgName := range p.dependencyNames {
@@ -102,7 +103,11 @@ func (p *CompiledPackage) RehashWithCalculator(digestCalculator crypto.DigestCal
 		return nil, err
 	}
 
-	digest := crypto2.NewDigest(crypto2.DigestAlgorithmSHA1, p.archiveSHA1)
+	digest, err := crypto2.ParseMultipleDigest(p.archiveDigest)
+	if err != nil {
+		return nil, err
+	}
+
 	err = digest.Verify(pkgFile)
 	if err != nil {
 		return nil, err
@@ -111,7 +116,7 @@ func (p *CompiledPackage) RehashWithCalculator(digestCalculator crypto.DigestCal
 	sha256Archive, err := digestCalculator.Calculate(p.archivePath)
 
 	newP := *p
-	newP.archiveSHA1 = sha256Archive
+	newP.archiveDigest = sha256Archive
 
 	return &newP, err
 }

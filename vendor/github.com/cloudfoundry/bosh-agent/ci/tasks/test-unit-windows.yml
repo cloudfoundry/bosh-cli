@@ -6,4 +6,9 @@ inputs:
   path: gopath/src/github.com/cloudfoundry/bosh-agent
 
 run:
-  path: gopath/src/github.com/cloudfoundry/bosh-agent/ci/tasks/test-unit.bat
+  path: powershell
+  args:
+  - "-ExecutionPolicy"
+  - "Bypass"
+  - "-File"
+  - gopath/src/github.com/cloudfoundry/bosh-agent/ci/tasks/test-unit.ps1

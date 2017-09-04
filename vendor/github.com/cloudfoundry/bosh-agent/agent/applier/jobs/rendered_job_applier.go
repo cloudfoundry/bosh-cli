@@ -23,7 +23,7 @@ type renderedJobApplier struct {
 	jobsBc                 boshbc.BundleCollection
 	jobSupervisor          boshjobsuper.JobSupervisor
 	packageApplierProvider packages.ApplierProvider
-	blobstore              boshblob.Blobstore
+	blobstore              boshblob.DigestBlobstore
 	compressor             boshcmd.Compressor
 	fs                     boshsys.FileSystem
 	logger                 boshlog.Logger
@@ -33,7 +33,7 @@ func NewRenderedJobApplier(
 	jobsBc boshbc.BundleCollection,
 	jobSupervisor boshjobsuper.JobSupervisor,
 	packageApplierProvider packages.ApplierProvider,
-	blobstore boshblob.Blobstore,
+	blobstore boshblob.DigestBlobstore,
 	compressor boshcmd.Compressor,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,

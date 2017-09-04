@@ -3,9 +3,9 @@ package ui
 import (
 	"time"
 
+	"code.cloudfoundry.org/clock"
 	biuifmt "github.com/cloudfoundry/bosh-cli/ui/fmt"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/pivotal-golang/clock"
 )
 
 type Stage interface {

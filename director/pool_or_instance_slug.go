@@ -12,6 +12,11 @@ type InstanceGroupOrInstanceSlug struct {
 	indexOrID string // optional
 }
 
+type InstanceFilter struct {
+	Group string `json:"group"`
+	ID    string `json:"id,omitempty"`
+}
+
 func NewInstanceGroupOrInstanceSlug(name, indexOrID string) InstanceGroupOrInstanceSlug {
 	if len(name) == 0 {
 		panic("Expected pool or instance to specify non-empty name")
@@ -45,6 +50,17 @@ func NewInstanceGroupOrInstanceSlugFromString(str string) (InstanceGroupOrInstan
 	return slug, nil
 }
 
+func (s *InstanceGroupOrInstanceSlug) UnmarshalFlag(data string) error {
+	slug, err := NewInstanceGroupOrInstanceSlugFromString(data)
+	if err != nil {
+		return err
+	}
+
+	*s = slug
+
+	return nil
+}
+
 func (s InstanceGroupOrInstanceSlug) Name() string      { return s.name }
 func (s InstanceGroupOrInstanceSlug) IndexOrID() string { return s.indexOrID }
 
@@ -53,4 +69,11 @@ func (s InstanceGroupOrInstanceSlug) String() string {
 		return fmt.Sprintf("%s/%s", s.name, s.indexOrID)
 	}
 	return s.name
+}
+
+func (s InstanceGroupOrInstanceSlug) DirectorHash() InstanceFilter {
+	return InstanceFilter{
+		Group: s.name,
+		ID:    s.indexOrID,
+	}
 }

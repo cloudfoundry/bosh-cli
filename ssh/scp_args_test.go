@@ -14,7 +14,7 @@ var _ = Describe("SCPArgs", func() {
 	)
 
 	BeforeEach(func() {
-		host = boshdir.Host{Username: "user", Host: "127.0.0.1"}
+		host = boshdir.Host{Username: "user", Host: "127.0.0.1", IndexOrID: "id"}
 	})
 
 	Describe("AllOrInstanceGroupOrInstanceSlug", func() {
@@ -62,7 +62,7 @@ var _ = Describe("SCPArgs", func() {
 			Expect(scpArgs.ForHost(host)).To(Equal([]string{"user@127.0.0.1:arg1", "user@127.0.0.1:arg2"}))
 		})
 
-		It("replaces named host keeping remaining :s", func() {
+		It("replaces named host keeping remaining colons", func() {
 			scpArgs := NewSCPArgs([]string{"host:some:file"}, false)
 			Expect(scpArgs.ForHost(host)).To(Equal([]string{"user@127.0.0.1:some:file"}))
 		})
@@ -70,6 +70,12 @@ var _ = Describe("SCPArgs", func() {
 		It("returns as is if no host info is included", func() {
 			scpArgs := NewSCPArgs([]string{"arg1", "arg2"}, false)
 			Expect(scpArgs.ForHost(host)).To(Equal([]string{"arg1", "arg2"}))
+		})
+
+		It("replaces '((instance_id))' with instance host id", func() {
+			scpArgs := NewSCPArgs([]string{"host:some:file-((instance_id))", "host:file-((instance_id))", "file-((instance_id))"}, false)
+			Expect(scpArgs.ForHost(host)).To(Equal([]string{
+				"user@127.0.0.1:some:file-id", "user@127.0.0.1:file-id", "file-id"}))
 		})
 
 		It("returns empty when it's empty", func() {

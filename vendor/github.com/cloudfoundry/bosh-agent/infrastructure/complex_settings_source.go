@@ -39,3 +39,7 @@ func (s ComplexSettingsSource) Settings() (boshsettings.Settings, error) {
 
 	return registry.GetSettings()
 }
+
+func (s ComplexSettingsSource) GetMetadataService() MetadataService {
+	return s.metadataService
+}

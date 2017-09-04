@@ -4,12 +4,12 @@ import (
 	"errors"
 	"time"
 
+	"code.cloudfoundry.org/clock"
+	"code.cloudfoundry.org/clock/fakeclock"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-golang/clock"
-	"github.com/pivotal-golang/clock/fakeclock"
 
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"

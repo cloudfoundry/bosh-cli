@@ -50,7 +50,7 @@ var _ = Describe("NonInteractiveUI", func() {
 
 	Describe("PrintBlock", func() {
 		It("delegates to the parent UI", func() {
-			ui.PrintBlock("block")
+			ui.PrintBlock([]byte("block"))
 			Expect(parentUI.Blocks).To(Equal([]string{"block"}))
 		})
 	})
@@ -66,7 +66,7 @@ var _ = Describe("NonInteractiveUI", func() {
 		It("delegates to the parent UI", func() {
 			table := Table{
 				Content: "things",
-				Header:  []string{"header1"},
+				Header:  []Header{NewHeader("header1")},
 			}
 
 			ui.PrintTable(table)

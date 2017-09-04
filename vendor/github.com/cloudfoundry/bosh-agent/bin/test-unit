@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -e -o pipefail
 
 while getopts ":q:w" opt; do
   case "$opt" in
@@ -24,7 +24,7 @@ echo '  % ginkgo path/to/package'
 # Travis randomly kills go builds when using -race
 race=$([ "$TRAVIS" != "true" ] && echo "-race")
 
-ignored=(vendor)
+ignored=(vendor,Tools,bin,ci,docs,gobin,out,test,tmp)
 echo -e "\n Formatting packages, other than: ${ignored[*]}..."
 for i in `ls -1` ; do
   if [ -d "$i" ] && [[ ! ${ignored[*]} =~ "$i" ]] ; then

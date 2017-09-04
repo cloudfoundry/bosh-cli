@@ -16,6 +16,9 @@ import (
 )
 
 var _ = Describe("LogsCmd", func() {
+	const UUID = "8c5ff117-9572-45c5-8564-8bcf076ecafa"
+	const ExpUsername = "bosh_8c5ff117957245c"
+
 	var (
 		deployment      *fakedir.FakeDeployment
 		downloader      *fakecmd.FakeDownloader
@@ -35,6 +38,7 @@ var _ = Describe("LogsCmd", func() {
 	})
 
 	Describe("Run", func() {
+
 		var (
 			opts LogsOpts
 		)
@@ -136,10 +140,11 @@ var _ = Describe("LogsCmd", func() {
 		})
 
 		Context("when tailing logs (or specifying number of lines)", func() {
+
 			BeforeEach(func() {
 				opts.Follow = true
 				opts.GatewayFlags.UUIDGen = uuidGen
-				uuidGen.GeneratedUUID = "8c5ff117-9572-45c5-8564-8bcf076ecafa"
+				uuidGen.GeneratedUUID = UUID
 			})
 
 			It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
@@ -155,7 +160,7 @@ var _ = Describe("LogsCmd", func() {
 
 				setupSlug, setupSSHOpts := deployment.SetUpSSHArgsForCall(0)
 				Expect(setupSlug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
-				Expect(setupSSHOpts.Username).To(Equal("bosh_8c5ff117957245c5"))
+				Expect(setupSSHOpts.Username).To(Equal(ExpUsername))
 				Expect(setupSSHOpts.PublicKey).To(ContainSubstring("ssh-rsa AAAA"))
 
 				slug, sshOpts := deployment.CleanUpSSHArgsForCall(0)

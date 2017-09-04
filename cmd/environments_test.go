@@ -39,7 +39,10 @@ var _ = Describe("EnvironmentsCmd", func() {
 			Expect(ui.Table).To(Equal(boshtbl.Table{
 				Content: "environments",
 
-				Header: []string{"URL", "Alias"},
+				Header: []boshtbl.Header{
+					boshtbl.NewHeader("URL"),
+					boshtbl.NewHeader("Alias"),
+				},
 
 				SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 

@@ -26,13 +26,12 @@ func init() {
 			}
 		})
 
-		It("is synchronous so that is it is not queued", func() {
-			Expect(action.IsAsynchronous()).To(BeFalse())
-		})
+		AssertActionIsNotAsynchronous(action)
+		AssertActionIsNotPersistent(action)
+		AssertActionIsLoggable(action)
 
-		It("is not persistent", func() {
-			Expect(action.IsPersistent()).To(BeFalse())
-		})
+		AssertActionIsNotCancelable(action)
+		AssertActionIsNotResumable(action)
 
 		It("requests deletion of all provided IPs from the ARP cache", func() {
 			Expect(platform.LastIPDeletedFromARP).To(Equal(""))

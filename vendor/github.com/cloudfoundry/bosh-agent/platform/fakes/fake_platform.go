@@ -5,6 +5,7 @@ import (
 
 	boshdpresolv "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver"
 	fakedpresolv "github.com/cloudfoundry/bosh-agent/infrastructure/devicepathresolver/fakes"
+	"github.com/cloudfoundry/bosh-agent/platform"
 	boshcert "github.com/cloudfoundry/bosh-agent/platform/cert"
 	fakecert "github.com/cloudfoundry/bosh-agent/platform/cert/fakes"
 	boshvitals "github.com/cloudfoundry/bosh-agent/platform/vitals"
@@ -26,26 +27,29 @@ type FakePlatform struct {
 	FakeVitalsService *fakevitals.FakeService
 	fsType            string
 	logger            boshlog.Logger
+	auditLogger       platform.AuditLogger
 
 	DevicePathResolver boshdpresolv.DevicePathResolver
 
 	SetupRuntimeConfigurationWasInvoked bool
 
 	CreateUserUsername string
-	CreateUserPassword string
 	CreateUserBasePath string
 
 	AddUserToGroupsGroups             map[string][]string
 	DeleteEphemeralUsersMatchingRegex string
-	SetupSSHPublicKeys                map[string]string
+	SetupSSHPublicKeys                map[string][]string
 
 	SetupSSHCalled    bool
-	SetupSSHPublicKey string
+	SetupSSHPublicKey []string
 	SetupSSHUsername  string
 	SetupSSHErr       error
 
 	UserPasswords         map[string]string
 	SetupHostnameHostname string
+
+	SetupIPv6Config boshsettings.IPv6
+	SetupIPv6Error  error
 
 	SaveDNSRecordsError      error
 	SaveDNSRecordsHostname   string
@@ -54,6 +58,7 @@ type FakePlatform struct {
 	SetTimeWithNtpServersServers []string
 
 	SetupEphemeralDiskWithPathDevicePath string
+	SetupEphemeralDiskWithPathSwapSize   *uint64
 	SetupEphemeralDiskWithPathErr        error
 
 	SetupRawEphemeralDisksDevices   []boshsettings.DiskSettings
@@ -65,6 +70,18 @@ type FakePlatform struct {
 
 	SetupTmpDirCalled bool
 	SetupTmpDirErr    error
+
+	SetupHomeDirCalled bool
+	SetupHomeDirErr    error
+
+	SetupBlobsDirCalled bool
+	SetupBlobsDirErr    error
+
+	SetupLogDirCalled bool
+	SetupLogDirErr    error
+
+	SetupLoggingAndAuditingCalled bool
+	SetupLoggingAndAuditingErr    error
 
 	SetupNetworkingCalled   bool
 	SetupNetworkingNetworks boshsettings.Networks
@@ -101,14 +118,23 @@ type FakePlatform struct {
 	IsPersistentDiskMountableResult bool
 	IsPersistentDiskMountableErr    error
 
+	AssociateDiskCallCount int
+	AssociateDiskArgs      []struct {
+		n string
+		s boshsettings.DiskSettings
+	}
+	AssociateDiskError error
+
 	IsMountPointPath          string
 	IsMountPointPartitionPath string
 	IsMountPointResult        bool
 	IsMountPointErr           error
 
-	PackageFileListPath    string
-	IsRemoveDevToolsCalled bool
-	IsRemoveDevToolsError  error
+	PackageFileListPath           string
+	IsRemoveDevToolsCalled        bool
+	IsRemoveDevToolsError         error
+	IsRemoveStaticLibrariesCalled bool
+	IsRemoveStaticLibrariesError  error
 
 	MountedDevicePaths []string
 
@@ -136,6 +162,9 @@ type FakePlatform struct {
 
 	SetupRootDiskCalledTimes int
 	SetupRootDiskError       error
+
+	SetupRecordsJSONPermissionPath string
+	SetupRecordsJSONPermissionErr  error
 }
 
 func NewFakePlatform() (platform *FakePlatform) {
@@ -147,7 +176,7 @@ func NewFakePlatform() (platform *FakePlatform) {
 	platform.FakeVitalsService = fakevitals.NewFakeService()
 	platform.DevicePathResolver = fakedpresolv.NewFakeDevicePathResolver()
 	platform.AddUserToGroupsGroups = make(map[string][]string)
-	platform.SetupSSHPublicKeys = make(map[string]string)
+	platform.SetupSSHPublicKeys = make(map[string][]string)
 	platform.UserPasswords = make(map[string]string)
 	platform.ScsiDiskMap = make(map[string]string)
 	platform.GetFileContentsFromDiskDiskPaths = []string{}
@@ -162,6 +191,7 @@ func NewFakePlatform() (platform *FakePlatform) {
 	platform.SetupRootDiskCalledTimes = 0
 	platform.SetupRootDiskError = nil
 	platform.IsPersistentDiskMountableErr = nil
+	platform.auditLogger = NewFakeAuditLogger()
 	return
 }
 
@@ -197,14 +227,17 @@ func (p *FakePlatform) GetDevicePathResolver() (devicePathResolver boshdpresolv.
 	return p.DevicePathResolver
 }
 
+func (p *FakePlatform) GetAuditLogger() platform.AuditLogger {
+	return p.auditLogger
+}
+
 func (p *FakePlatform) SetupRuntimeConfiguration() (err error) {
 	p.SetupRuntimeConfigurationWasInvoked = true
 	return
 }
 
-func (p *FakePlatform) CreateUser(username, password, basePath string) (err error) {
+func (p *FakePlatform) CreateUser(username, basePath string) (err error) {
 	p.CreateUserUsername = username
-	p.CreateUserPassword = password
 	p.CreateUserBasePath = basePath
 	return
 }
@@ -227,7 +260,7 @@ func (p *FakePlatform) SetupRootDisk(ephemeralDiskPath string) (err error) {
 	return
 }
 
-func (p *FakePlatform) SetupSSH(publicKey, username string) error {
+func (p *FakePlatform) SetupSSH(publicKey []string, username string) error {
 	p.SetupSSHCalled = true
 	p.SetupSSHPublicKeys[username] = publicKey
 	p.SetupSSHPublicKey = publicKey
@@ -244,6 +277,11 @@ func (p *FakePlatform) SaveDNSRecords(dnsRecords boshsettings.DNSRecords, hostna
 	p.SaveDNSRecordsDNSRecords = dnsRecords
 	p.SaveDNSRecordsHostname = hostname
 	return p.SaveDNSRecordsError
+}
+
+func (p *FakePlatform) SetupIPv6(config boshsettings.IPv6) error {
+	p.SetupIPv6Config = config
+	return p.SetupIPv6Error
 }
 
 func (p *FakePlatform) SetupHostname(hostname string) (err error) {
@@ -274,8 +312,9 @@ func (p *FakePlatform) SetTimeWithNtpServers(servers []string) (err error) {
 	return
 }
 
-func (p *FakePlatform) SetupEphemeralDiskWithPath(devicePath string) (err error) {
+func (p *FakePlatform) SetupEphemeralDiskWithPath(devicePath string, desiredSwapSizeInBytes *uint64) (err error) {
 	p.SetupEphemeralDiskWithPathDevicePath = devicePath
+	p.SetupEphemeralDiskWithPathSwapSize = desiredSwapSizeInBytes
 	return p.SetupEphemeralDiskWithPathErr
 }
 
@@ -293,6 +332,26 @@ func (p *FakePlatform) SetupDataDir() error {
 func (p *FakePlatform) SetupTmpDir() error {
 	p.SetupTmpDirCalled = true
 	return p.SetupTmpDirErr
+}
+
+func (p *FakePlatform) SetupHomeDir() error {
+	p.SetupHomeDirCalled = true
+	return p.SetupHomeDirErr
+}
+
+func (p *FakePlatform) SetupBlobsDir() error {
+	p.SetupBlobsDirCalled = true
+	return p.SetupBlobsDirErr
+}
+
+func (p *FakePlatform) SetupLogDir() error {
+	p.SetupLogDirCalled = true
+	return p.SetupLogDirErr
+}
+
+func (p *FakePlatform) SetupLoggingAndAuditing() error {
+	p.SetupLoggingAndAuditingCalled = true
+	return p.SetupLoggingAndAuditingErr
 }
 
 func (p *FakePlatform) MountPersistentDisk(diskSettings boshsettings.DiskSettings, mountPoint string) (err error) {
@@ -412,4 +471,32 @@ func (p *FakePlatform) RemoveDevTools(packageFileListPath string) error {
 	p.IsRemoveDevToolsCalled = true
 	p.PackageFileListPath = packageFileListPath
 	return p.IsRemoveDevToolsError
+}
+
+func (p *FakePlatform) RemoveStaticLibraries(packageFileListPath string) error {
+	p.IsRemoveStaticLibrariesCalled = true
+	p.PackageFileListPath = packageFileListPath
+	return p.IsRemoveStaticLibrariesError
+}
+
+func (p *FakePlatform) AssociateDisk(name string, settings boshsettings.DiskSettings) error {
+	p.AssociateDiskCallCount++
+	p.AssociateDiskArgs = append(p.AssociateDiskArgs, struct {
+		n string
+		s boshsettings.DiskSettings
+	}{
+		n: name,
+		s: settings,
+	})
+
+	return p.AssociateDiskError
+}
+
+func (p *FakePlatform) AssociateDiskArgsForCall(i int) (string, boshsettings.DiskSettings) {
+	return p.AssociateDiskArgs[i].n, p.AssociateDiskArgs[i].s
+}
+
+func (p *FakePlatform) SetupRecordsJSONPermission(path string) error {
+	p.SetupRecordsJSONPermissionPath = path
+	return p.SetupRecordsJSONPermissionErr
 }

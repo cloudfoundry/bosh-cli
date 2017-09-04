@@ -24,4 +24,4 @@ sed -i 's/\[DEV BUILD\]/'"$version"'/' main/version.go
 bin/build
 shasum -a 256 out/verify-multidigest
 
-mv out/verify-multidigest $base/compiled-${GOOS}/${filename}
+mv out/verify-multidigest $base/out/${filename}

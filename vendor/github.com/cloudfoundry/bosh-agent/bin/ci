@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e -o pipefail
+
 bin=$(dirname $0)
 
 $bin/go get golang.org/x/tools/cmd/vet

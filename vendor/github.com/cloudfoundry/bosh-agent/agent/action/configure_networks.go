@@ -16,11 +16,15 @@ func NewConfigureNetworks(agentKiller Killer) (prepareAction ConfigureNetworksAc
 	return
 }
 
-func (a ConfigureNetworksAction) IsAsynchronous() bool {
+func (a ConfigureNetworksAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return true
 }
 
 func (a ConfigureNetworksAction) IsPersistent() bool {
+	return true
+}
+
+func (a ConfigureNetworksAction) IsLoggable() bool {
 	return true
 }
 

@@ -94,7 +94,7 @@ func (r *release) Manifest() birelman.Manifest {
 			Name:        job.Name(),
 			Version:     job.Fingerprint(),
 			Fingerprint: job.Fingerprint(),
-			SHA1:        job.ArchiveSHA1(),
+			SHA1:        job.ArchiveDigest(),
 		})
 	}
 
@@ -105,7 +105,7 @@ func (r *release) Manifest() birelman.Manifest {
 			Name:         pkg.Name(),
 			Version:      pkg.Fingerprint(),
 			Fingerprint:  pkg.Fingerprint(),
-			SHA1:         pkg.ArchiveSHA1(),
+			SHA1:         pkg.ArchiveDigest(),
 			Dependencies: pkg.DependencyNames(),
 		})
 	}
@@ -117,7 +117,7 @@ func (r *release) Manifest() birelman.Manifest {
 			Name:          compiledPkg.Name(),
 			Version:       compiledPkg.Fingerprint(),
 			Fingerprint:   compiledPkg.Fingerprint(),
-			SHA1:          compiledPkg.ArchiveSHA1(),
+			SHA1:          compiledPkg.ArchiveDigest(),
 			OSVersionSlug: compiledPkg.OSVersionSlug(),
 			Dependencies:  compiledPkg.DependencyNames(),
 		})
@@ -131,7 +131,7 @@ func (r *release) Manifest() birelman.Manifest {
 		licenseRef = &birelman.LicenseRef{
 			Version:     lic.Fingerprint(),
 			Fingerprint: lic.Fingerprint(),
-			SHA1:        lic.ArchiveSHA1(),
+			SHA1:        lic.ArchiveDigest(),
 		}
 	}
 

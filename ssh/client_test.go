@@ -4,9 +4,9 @@ import (
 	"errors"
 	"time"
 
+	"code.cloudfoundry.org/clock/fakeclock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-golang/clock/fakeclock"
 
 	. "github.com/cloudfoundry/bosh-cli/ssh"
 )

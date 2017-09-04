@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"errors"
+	"fmt"
 	. "github.com/cloudfoundry/bosh-agent/platform/disk"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
@@ -61,6 +62,48 @@ var _ = Describe("Linux Formatter", func() {
 			Expect(2).To(Equal(len(fakeRunner.RunCommands)))
 			Expect(fakeRunner.RunCommands[1]).To(Equal([]string{"mke2fs", "-t", "ext4", "-j", "-E", "lazy_itable_init=1", "/dev/xvda2"}))
 
+		})
+
+		Context("when mke2fs errors", func() {
+			var fakeRunner *fakesys.FakeCmdRunner
+			var fakeFs *fakesys.FakeFileSystem
+			var mkeCmd string
+
+			BeforeEach(func() {
+				fakeRunner = fakesys.NewFakeCmdRunner()
+				fakeFs = fakesys.NewFakeFileSystem()
+				fakeFs.WriteFile("/sys/fs/ext4/features/lazy_itable_init", []byte{})
+				fakeRunner.AddCmdResult("blkid -p /dev/xvda2", fakesys.FakeCmdResult{Stdout: `xxxxx TYPE="ext2" yyyy zzzz`})
+
+				mkeCmd = fmt.Sprintf("mke2fs -t %s -j -E lazy_itable_init=1 %s", FileSystemExt4, "/dev/xvda2")
+			})
+
+			It("retries mke2fs if the erros is 'device is already in use'", func() {
+				fakeRunner.AddCmdResult(mkeCmd, fakesys.FakeCmdResult{
+					Error: errors.New(`mke2fs 1.42.9 (4-Feb-2014)
+/dev/xvdf1 is apparently in use by the system; will not make a filesystem here`),
+				})
+				fakeRunner.AddCmdResult(mkeCmd, fakesys.FakeCmdResult{
+					ExitStatus: 0,
+				})
+				formatter := NewLinuxFormatter(fakeRunner, fakeFs)
+				formatter.Format("/dev/xvda2", FileSystemExt4)
+
+				Expect(3).To(Equal(len(fakeRunner.RunCommands)))
+				Expect(fakeRunner.RunCommands[1]).To(Equal([]string{"mke2fs", "-t", "ext4", "-j", "-E", "lazy_itable_init=1", "/dev/xvda2"}))
+				Expect(fakeRunner.RunCommands[2]).To(Equal([]string{"mke2fs", "-t", "ext4", "-j", "-E", "lazy_itable_init=1", "/dev/xvda2"}))
+			})
+
+			It("does not retry and returns the error otherwise", func() {
+				fakeRunner.AddCmdResult(mkeCmd, fakesys.FakeCmdResult{
+					Error: errors.New(`some other error`),
+				})
+				formatter := NewLinuxFormatter(fakeRunner, fakeFs)
+				formatter.Format("/dev/xvda2", FileSystemExt4)
+
+				Expect(2).To(Equal(len(fakeRunner.RunCommands)))
+				Expect(fakeRunner.RunCommands[1]).To(Equal([]string{"mke2fs", "-t", "ext4", "-j", "-E", "lazy_itable_init=1", "/dev/xvda2"}))
+			})
 		})
 
 		It("allows without lazy itable support", func() {

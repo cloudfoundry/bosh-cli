@@ -48,7 +48,9 @@ var _ = Describe("FileLoggingCmdRunner", func() {
 		})
 
 		It("returns an error if it fails to remove previous logs directory", func() {
-			fs.RemoveAllError = errors.New("fake-remove-all-error")
+			fs.RemoveAllStub = func(_ string) error {
+				return errors.New("fake-remove-all-error")
+			}
 
 			_, err := runner.RunCommand("fake-log-dir-name", "fake-log-file-name", cmd)
 			Expect(err).To(HaveOccurred())

@@ -40,12 +40,16 @@ func NewRunErrand(
 	}
 }
 
-func (a RunErrandAction) IsAsynchronous() bool {
+func (a RunErrandAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return true
 }
 
 func (a RunErrandAction) IsPersistent() bool {
 	return false
+}
+
+func (a RunErrandAction) IsLoggable() bool {
+	return true
 }
 
 type ErrandResult struct {

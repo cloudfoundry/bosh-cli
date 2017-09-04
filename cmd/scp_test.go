@@ -16,6 +16,9 @@ import (
 )
 
 var _ = Describe("SCPCmd", func() {
+	const UUID = "8c5ff117-9572-45c5-8564-8bcf076ecafa"
+	const ExpUsername = "bosh_8c5ff117957245c"
+
 	var (
 		deployment *fakedir.FakeDeployment
 		uuidGen    *fakeuuid.FakeGenerator
@@ -43,7 +46,7 @@ var _ = Describe("SCPCmd", func() {
 					UUIDGen: uuidGen,
 				},
 			}
-			uuidGen.GeneratedUUID = "8c5ff117-9572-45c5-8564-8bcf076ecafa"
+			uuidGen.GeneratedUUID = UUID
 		})
 
 		act := func() error { return command.Run(opts) }
@@ -66,7 +69,7 @@ var _ = Describe("SCPCmd", func() {
 
 				setupSlug, setupSSHOpts := deployment.SetUpSSHArgsForCall(0)
 				Expect(setupSlug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("from", "")))
-				Expect(setupSSHOpts.Username).To(Equal("bosh_8c5ff117957245c5"))
+				Expect(setupSSHOpts.Username).To(Equal(ExpUsername))
 				Expect(setupSSHOpts.PublicKey).To(ContainSubstring("ssh-rsa AAAA"))
 
 				slug, sshOpts := deployment.CleanUpSSHArgsForCall(0)

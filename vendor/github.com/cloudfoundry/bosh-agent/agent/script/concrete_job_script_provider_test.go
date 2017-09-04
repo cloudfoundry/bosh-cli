@@ -10,6 +10,7 @@ import (
 	fakedrain "github.com/cloudfoundry/bosh-agent/agent/script/drain/fakes"
 	fakescript "github.com/cloudfoundry/bosh-agent/agent/script/fakes"
 	boshdir "github.com/cloudfoundry/bosh-agent/settings/directories"
+	boshassert "github.com/cloudfoundry/bosh-utils/assert"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
@@ -40,7 +41,7 @@ var _ = Describe("ConcreteJobScriptProvider", func() {
 			Expect(script.Tag()).To(Equal("myjob"))
 
 			expPath := "/the/base/dir/jobs/myjob/bin/the-best-hook-ever" + boshscript.ScriptExt
-			Expect(script.Path()).To(Equal(expPath))
+			Expect(script.Path()).To(boshassert.MatchPath(expPath))
 		})
 	})
 
@@ -51,7 +52,7 @@ var _ = Describe("ConcreteJobScriptProvider", func() {
 			Expect(script.Tag()).To(Equal("foo"))
 
 			expPath := "/the/base/dir/jobs/foo/bin/drain" + boshscript.ScriptExt
-			Expect(script.Path()).To(Equal(expPath))
+			Expect(script.Path()).To(boshassert.MatchPath(expPath))
 			Expect(script.(boshdrain.ConcreteScript).Params()).To(Equal(params))
 		})
 	})

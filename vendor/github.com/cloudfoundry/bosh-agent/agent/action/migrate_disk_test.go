@@ -18,26 +18,29 @@ func buildMigrateDiskAction() (platform *fakeplatform.FakePlatform, action Migra
 }
 func init() {
 	Describe("Testing with Ginkgo", func() {
-		It("migrate disk should be asynchronous", func() {
-			_, action := buildMigrateDiskAction()
-			Expect(action.IsAsynchronous()).To(BeTrue())
+		var (
+			action   MigrateDiskAction
+			platform *fakeplatform.FakePlatform
+		)
+
+		BeforeEach(func() {
+			platform, action = buildMigrateDiskAction()
 		})
 
-		It("is not persistent", func() {
-			_, action := buildMigrateDiskAction()
-			Expect(action.IsPersistent()).To(BeFalse())
-		})
+		AssertActionIsAsynchronous(action)
+		AssertActionIsNotPersistent(action)
+		AssertActionIsLoggable(action)
+
+		AssertActionIsNotResumable(action)
+		AssertActionIsNotCancelable(action)
 
 		It("migrate disk action run", func() {
-
-			platform, action := buildMigrateDiskAction()
-
 			value, err := action.Run()
 			Expect(err).ToNot(HaveOccurred())
 			boshassert.MatchesJSONString(GinkgoT(), value, "{}")
 
-			Expect(platform.MigratePersistentDiskFromMountPoint).To(Equal("/foo/store"))
-			Expect(platform.MigratePersistentDiskToMountPoint).To(Equal("/foo/store_migration_target"))
+			Expect(platform.MigratePersistentDiskFromMountPoint).To(boshassert.MatchPath("/foo/store"))
+			Expect(platform.MigratePersistentDiskToMountPoint).To(boshassert.MatchPath("/foo/store_migration_target"))
 		})
 	})
 }

@@ -144,6 +144,25 @@ var _ = Describe("bosh", func() {
 
 			agentRunningState = biagentclient.AgentState{JobState: "running"}
 			mbusURL           = "http://fake-mbus-url"
+			caCert            = `-----BEGIN CERTIFICATE-----
+MIIC+TCCAeGgAwIBAgIQLzf5Fs3v+Dblm+CKQFxiKTANBgkqhkiG9w0BAQsFADAm
+MQwwCgYDVQQGEwNVU0ExFjAUBgNVBAoTDUNsb3VkIEZvdW5kcnkwHhcNMTcwNTE2
+MTUzNTI4WhcNMTgwNTE2MTUzNTI4WjAmMQwwCgYDVQQGEwNVU0ExFjAUBgNVBAoT
+DUNsb3VkIEZvdW5kcnkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC+
+4E0QJMOpQwbHACvrZ4FleP4/DMFvYUBySfKzDOgd99Nm8LdXuJcI1SYHJ3sV+mh0
++cQmRt8U2A/lw7bNU6JdM0fWHa/2nGjSBKWgPzba68NdsmwjqUjLatKpr1yvd384
+PJJKC7NrxwvChgB8ui84T4SrXHCioYMDEDIqLGmHJHMKnzQ17nu7ECO4e6QuCfnH
+RDs7dTjomTAiFuF4fh4SPgEDMGaCE5HZr4t3gvc9n4UftpcCpi+Jh+neRiWx+v37
+ZAYf2kp3wWtYDlgWk06cZzHZZ9uYZFwHDNHdDKHxGGvAh2Rm6rpPF2oA6OEyx6BH
+85/STCgSMCnV1Wkd+1yPAgMBAAGjIzAhMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMB
+Af8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBGvGggx3IM4KCMpVDSv9zFKX4K
+IuCRQ6VFab3sgnlelMFaMj3+8baJ/YMko8PP1wVfUviVgKuiZO8tqL00Yo4s1WKp
+x3MLIG4eBX9pj0ZVRa3kpcF2Wvg6WhrzUzONf7pfuz/9avl77o4aSt4TwyCvM4Iu
+gJ7quVQKcfQcAVwuwWRrZXyhjhHaVKoPP5yRS+ESVTl70J5HBh6B7laooxf1yVAW
+8NJK1iQ1Pw2x3ABBo1cSMcTQ3Hk1ZWThJ7oPul2+QyzvOjIjiEPBstyzEPaxPG4I
+nH9ttalAwSLBsobVaK8mmiAdtAdx+CmHWrB4UNxCPYasrt5A6a9A9SiQ2dLd
+-----END CERTIFICATE-----
+`
 
 			expectHasVM1    *gomock.Call
 			expectDeleteVM1 *gomock.Call
@@ -182,6 +201,26 @@ cloud_provider:
     name: fake-cpi-release-job-name
     release: fake-cpi-release-name
   mbus: http://fake-mbus-url
+  cert:
+    ca: |
+      -----BEGIN CERTIFICATE-----
+      MIIC+TCCAeGgAwIBAgIQLzf5Fs3v+Dblm+CKQFxiKTANBgkqhkiG9w0BAQsFADAm
+      MQwwCgYDVQQGEwNVU0ExFjAUBgNVBAoTDUNsb3VkIEZvdW5kcnkwHhcNMTcwNTE2
+      MTUzNTI4WhcNMTgwNTE2MTUzNTI4WjAmMQwwCgYDVQQGEwNVU0ExFjAUBgNVBAoT
+      DUNsb3VkIEZvdW5kcnkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC+
+      4E0QJMOpQwbHACvrZ4FleP4/DMFvYUBySfKzDOgd99Nm8LdXuJcI1SYHJ3sV+mh0
+      +cQmRt8U2A/lw7bNU6JdM0fWHa/2nGjSBKWgPzba68NdsmwjqUjLatKpr1yvd384
+      PJJKC7NrxwvChgB8ui84T4SrXHCioYMDEDIqLGmHJHMKnzQ17nu7ECO4e6QuCfnH
+      RDs7dTjomTAiFuF4fh4SPgEDMGaCE5HZr4t3gvc9n4UftpcCpi+Jh+neRiWx+v37
+      ZAYf2kp3wWtYDlgWk06cZzHZZ9uYZFwHDNHdDKHxGGvAh2Rm6rpPF2oA6OEyx6BH
+      85/STCgSMCnV1Wkd+1yPAgMBAAGjIzAhMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMB
+      Af8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBGvGggx3IM4KCMpVDSv9zFKX4K
+      IuCRQ6VFab3sgnlelMFaMj3+8baJ/YMko8PP1wVfUviVgKuiZO8tqL00Yo4s1WKp
+      x3MLIG4eBX9pj0ZVRa3kpcF2Wvg6WhrzUzONf7pfuz/9avl77o4aSt4TwyCvM4Iu
+      gJ7quVQKcfQcAVwuwWRrZXyhjhHaVKoPP5yRS+ESVTl70J5HBh6B7laooxf1yVAW
+      8NJK1iQ1Pw2x3ABBo1cSMcTQ3Hk1ZWThJ7oPul2+QyzvOjIjiEPBstyzEPaxPG4I
+      nH9ttalAwSLBsobVaK8mmiAdtAdx+CmHWrB4UNxCPYasrt5A6a9A9SiQ2dLd
+      -----END CERTIFICATE-----
 `
 		type manifestContext struct {
 			DiskSize            int
@@ -256,7 +295,10 @@ cloud_provider:
 					Name:    "fake-cpi-release-job-name",
 					Release: "fake-cpi-release-name",
 				},
-				Mbus:       mbusURL,
+				Mbus: mbusURL,
+				Cert: biinstallmanifest.Certificate{
+					CA: caCert,
+				},
 				Properties: biproperty.Map{},
 			}
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
@@ -459,6 +501,7 @@ cloud_provider:
 
 				mockCloud.EXPECT().CreateDisk(diskSize, diskCloudProperties, vmCID).Return(diskCID, nil),
 				mockCloud.EXPECT().AttachDisk(vmCID, diskCID),
+				mockCloud.EXPECT().SetDiskMetadata(diskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(diskCID),
 
@@ -500,10 +543,12 @@ cloud_provider:
 
 				// attach both disks and migrate
 				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(oldDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
 				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
 				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(newDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(newDiskCID),
 				mockAgentClient.EXPECT().MigrateDisk(),
@@ -546,10 +591,12 @@ cloud_provider:
 
 				// attach both disks and migrate
 				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(oldDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
 				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
 				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(newDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(newDiskCID),
 				mockAgentClient.EXPECT().MigrateDisk(),
@@ -625,10 +672,12 @@ cloud_provider:
 
 				// attach both disks and migrate (with error)
 				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(oldDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
 				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
 				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(newDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(newDiskCID),
 				mockAgentClient.EXPECT().MigrateDisk().Return(
@@ -662,10 +711,12 @@ cloud_provider:
 
 				// attach both disks and migrate
 				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(oldDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
 				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
 				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID),
+				mockCloud.EXPECT().SetDiskMetadata(newDiskCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 				mockAgentClient.EXPECT().MountDisk(newDiskCID),
 				mockAgentClient.EXPECT().MigrateDisk(),
@@ -732,7 +783,7 @@ cloud_provider:
 			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
-			mockAgentClientFactory.EXPECT().NewAgentClient(directorID, mbusURL).Return(mockAgentClient).AnyTimes()
+			mockAgentClientFactory.EXPECT().NewAgentClient(directorID, mbusURL, caCert).Return(mockAgentClient, nil).AnyTimes()
 
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
@@ -796,7 +847,7 @@ cloud_provider:
 				expectDeployFlow()
 
 				// new directorID will be generated
-				mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), mbusURL).Return(mockAgentClient)
+				mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), mbusURL, caCert).Return(mockAgentClient, nil)
 
 				err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, statePath))
 				Expect(err).ToNot(HaveOccurred())

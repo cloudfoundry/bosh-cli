@@ -42,7 +42,7 @@ func (ui *paddingUI) EndLinef(pattern string, args ...interface{}) {
 	ui.parent.EndLinef(pattern, args...)
 }
 
-func (ui *paddingUI) PrintBlock(block string) {
+func (ui *paddingUI) PrintBlock(block []byte) {
 	ui.padBefore(paddingUIModeRaw)
 	ui.parent.PrintBlock(block)
 }

@@ -42,6 +42,8 @@ var _ = Describe("UploadReleaseCmd", func() {
 		}
 
 		releaseWriter = &fakerel.FakeWriter{}
+		releaseWriter.WriteReturns("/archive-path", nil)
+
 		director = &fakedir.FakeDirector{}
 		cmdRunner = fakesys.NewFakeCmdRunner()
 		fs = fakesys.NewFakeFileSystem()
@@ -146,9 +148,31 @@ var _ = Describe("UploadReleaseCmd", func() {
 
 				Expect(director.UploadReleaseURLCallCount()).To(Equal(0))
 
-				name, version := director.HasReleaseArgsForCall(0)
+				name, version, stemcell := director.HasReleaseArgsForCall(0)
 				Expect(name).To(Equal("existing-name"))
 				Expect(version).To(Equal("existing-ver"))
+				Expect(stemcell).To(Equal(boshdir.OSVersionSlug{}))
+
+				Expect(ui.Said).To(Equal(
+					[]string{"Release 'existing-name/existing-ver' already exists."}))
+			})
+
+			It("does not upload compiled release if name, version and stemcell match existing release", func() {
+				opts.Name = "existing-name"
+				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
+				opts.Stemcell = boshdir.NewOSVersionSlug("ubuntu-trusty", "3421")
+
+				director.HasReleaseReturns(true, nil)
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(director.UploadReleaseURLCallCount()).To(Equal(0))
+
+				name, version, stemcell := director.HasReleaseArgsForCall(0)
+				Expect(name).To(Equal("existing-name"))
+				Expect(version).To(Equal("existing-ver"))
+				Expect(stemcell).To(Equal(boshdir.NewOSVersionSlug("ubuntu-trusty", "3421")))
 
 				Expect(ui.Said).To(Equal(
 					[]string{"Release 'existing-name/existing-ver' already exists."}))
@@ -171,9 +195,10 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(rebase).To(BeFalse())
 				Expect(fix).To(BeFalse())
 
-				name, version := director.HasReleaseArgsForCall(0)
+				name, version, stemcell := director.HasReleaseArgsForCall(0)
 				Expect(name).To(Equal("existing-name"))
 				Expect(version).To(Equal("existing-ver"))
+				Expect(stemcell).To(Equal(boshdir.OSVersionSlug{}))
 
 				Expect(ui.Said).To(BeEmpty())
 			})
@@ -249,6 +274,31 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(file.(*fakesys.FakeFile).Name()).To(Equal("/archive-path"))
 				Expect(rebase).To(BeFalse())
 				Expect(fix).To(BeFalse())
+			})
+
+			It("clean up release", func() {
+				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
+					Expect(path).To(Equal("./some-file.tgz"))
+					return release, nil
+				}
+
+				releaseWriter.WriteStub = func(rel boshrel.Release, _ []string) (string, error) {
+					Expect(rel).To(Equal(release))
+					return "/archive-path", nil
+				}
+
+				removedFiles := []string{}
+
+				fs.RemoveAllStub = func(path string) error {
+					removedFiles = append(removedFiles, path)
+					return nil
+				}
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(release.CleanUpCallCount()).To(Equal(1))
+				Expect(removedFiles).To(Equal([]string{"/archive-path"}))
 			})
 
 			It("uploads given release with a fix flag hence does not filter out any packages", func() {
@@ -408,9 +458,10 @@ var _ = Describe("UploadReleaseCmd", func() {
 
 				Expect(director.UploadReleaseURLCallCount()).To(Equal(0))
 
-				name, version := director.HasReleaseArgsForCall(0)
+				name, version, stemcell := director.HasReleaseArgsForCall(0)
 				Expect(name).To(Equal("existing-name"))
 				Expect(version).To(Equal("existing-ver"))
+				Expect(stemcell).To(Equal(boshdir.OSVersionSlug{}))
 
 				Expect(ui.Said).To(Equal(
 					[]string{"Release 'existing-name/existing-ver' already exists."}))

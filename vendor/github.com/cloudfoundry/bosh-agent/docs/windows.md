@@ -1,5 +1,8 @@
 # Windows support
 
+## Limitations / known issues
+- Errors in compilation scripts will not necessarily cause the compilation phase to fail. Your deployment will continue and jobs will reach the VMs with empty results from packaging. This is because Powershell scripts continue to run after sub-commands fail. If an error happens in your scripts you need to explicitly handle it and have your script exit with a nonzero exit code.
+
 ## Differences from the Linux BOSH Agent
 - No support for `bosh ssh`
 - Processes are stopped with `SIGKILL` instead of `SIGINT`

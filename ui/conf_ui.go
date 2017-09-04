@@ -7,9 +7,10 @@ import (
 )
 
 type ConfUI struct {
-	parent UI
-	isTTY  bool
-	logger boshlog.Logger
+	parent      UI
+	isTTY       bool
+	logger      boshlog.Logger
+	showColumns []Header
 }
 
 func NewConfUI(logger boshlog.Logger) *ConfUI {
@@ -18,11 +19,19 @@ func NewConfUI(logger boshlog.Logger) *ConfUI {
 	writerUI := NewConsoleUI(logger)
 	ui = NewPaddingUI(writerUI)
 
-	return &ConfUI{ui, writerUI.IsTTY(), logger}
+	return &ConfUI{
+		parent: ui,
+		isTTY:  writerUI.IsTTY(),
+		logger: logger,
+	}
 }
 
 func NewWrappingConfUI(parent UI, logger boshlog.Logger) *ConfUI {
-	return &ConfUI{parent, true, logger}
+	return &ConfUI{
+		parent: parent,
+		isTTY:  true,
+		logger: logger,
+	}
 }
 
 func (ui *ConfUI) EnableTTY(force bool) {
@@ -37,6 +46,10 @@ func (ui *ConfUI) EnableColor() {
 
 func (ui *ConfUI) EnableJSON() {
 	ui.parent = NewJSONUI(ui.parent, ui.logger)
+}
+
+func (ui *ConfUI) ShowColumns(columns []Header) {
+	ui.showColumns = columns
 }
 
 func (ui *ConfUI) EnableNonInteractive() {
@@ -59,7 +72,7 @@ func (ui *ConfUI) EndLinef(pattern string, args ...interface{}) {
 	ui.parent.EndLinef(pattern, args...)
 }
 
-func (ui *ConfUI) PrintBlock(block string) {
+func (ui *ConfUI) PrintBlock(block []byte) {
 	ui.parent.PrintBlock(block)
 }
 
@@ -68,6 +81,13 @@ func (ui *ConfUI) PrintErrorBlock(block string) {
 }
 
 func (ui *ConfUI) PrintTable(table Table) {
+	if len(ui.showColumns) > 0 {
+		err := table.SetColumnVisibility(ui.showColumns)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	ui.parent.PrintTable(table)
 }
 

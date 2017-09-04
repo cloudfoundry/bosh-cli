@@ -16,12 +16,16 @@ func NewGetTask(taskService boshtask.Service) (getTask GetTaskAction) {
 	return
 }
 
-func (a GetTaskAction) IsAsynchronous() bool {
+func (a GetTaskAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return false
 }
 
 func (a GetTaskAction) IsPersistent() bool {
 	return false
+}
+
+func (a GetTaskAction) IsLoggable() bool {
+	return true
 }
 
 func (a GetTaskAction) Run(taskID string) (interface{}, error) {

@@ -12,42 +12,28 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-func captureOutputs(f func()) (stdout, stderr []byte) {
-	oldStdout := os.Stdout
+func captureOutputs(f func()) (stderr []byte) {
 	oldStderr := os.Stderr
-
-	rOut, wOut, err := os.Pipe()
-	Expect(err).ToNot(HaveOccurred())
 
 	rErr, wErr, err := os.Pipe()
 	Expect(err).ToNot(HaveOccurred())
 
-	os.Stdout = wOut
 	os.Stderr = wErr
 
 	f()
 
-	outC := make(chan []byte)
 	errC := make(chan []byte)
 
 	go func() {
-		bytes, _ := ioutil.ReadAll(rOut)
-		outC <- bytes
-
-		bytes, _ = ioutil.ReadAll(rErr)
+		bytes, _ := ioutil.ReadAll(rErr)
 		errC <- bytes
 	}()
-
-	err = wOut.Close()
-	Expect(err).ToNot(HaveOccurred())
 
 	err = wErr.Close()
 	Expect(err).ToNot(HaveOccurred())
 
-	stdout = <-outC
 	stderr = <-errC
 
-	os.Stdout = oldStdout
 	os.Stderr = oldStderr
 
 	return
@@ -57,6 +43,7 @@ var _ = Describe("SignalableLogger", func() {
 	var (
 		signalChannel chan os.Signal
 	)
+
 	BeforeEach(func() {
 		signalChannel = make(chan os.Signal, 1)
 	})
@@ -64,7 +51,7 @@ var _ = Describe("SignalableLogger", func() {
 	Describe("Toggling forced debug", func() {
 		Describe("when the log level is error", func() {
 			It("outputs at debug level", func() {
-				stdout, stderr := captureOutputs(func() {
+				stderr := captureOutputs(func() {
 					logger, doneChannel := bilog.NewSignalableLogger(boshlog.NewLogger(boshlog.LevelError), signalChannel)
 
 					signalChannel <- syscall.SIGHUP
@@ -76,14 +63,14 @@ var _ = Describe("SignalableLogger", func() {
 					logger.Error("TOGGLED_ERROR", "some error log")
 				})
 
-				Expect(stdout).To(ContainSubstring("TOGGLED_DEBUG"))
-				Expect(stdout).To(ContainSubstring("TOGGLED_INFO"))
+				Expect(stderr).To(ContainSubstring("TOGGLED_DEBUG"))
+				Expect(stderr).To(ContainSubstring("TOGGLED_INFO"))
 				Expect(stderr).To(ContainSubstring("TOGGLED_WARN"))
 				Expect(stderr).To(ContainSubstring("TOGGLED_ERROR"))
 			})
 
 			It("outputs at error level when toggled back", func() {
-				stdout, stderr := captureOutputs(func() {
+				stderr := captureOutputs(func() {
 					logger, doneChannel := bilog.NewSignalableLogger(boshlog.NewLogger(boshlog.LevelError), signalChannel)
 
 					signalChannel <- syscall.SIGHUP
@@ -97,8 +84,8 @@ var _ = Describe("SignalableLogger", func() {
 					logger.Error("STANDARD_ERROR", "some error log")
 				})
 
-				Expect(stdout).ToNot(ContainSubstring("STANDARD_DEBUG"))
-				Expect(stdout).ToNot(ContainSubstring("STANDARD_INFO"))
+				Expect(stderr).ToNot(ContainSubstring("STANDARD_DEBUG"))
+				Expect(stderr).ToNot(ContainSubstring("STANDARD_INFO"))
 				Expect(stderr).ToNot(ContainSubstring("STANDARD_WARN"))
 				Expect(stderr).To(ContainSubstring("STANDARD_ERROR"))
 			})

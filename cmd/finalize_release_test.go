@@ -76,11 +76,15 @@ var _ = Describe("FinalizeReleaseCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Header: []boshtbl.Header{boshtbl.NewHeader("Name"), boshtbl.NewHeader("Version"), boshtbl.NewHeader("Commit Hash")},
 				Rows: [][]boshtbl.Value{
-					{boshtbl.NewValueString("Name"), boshtbl.NewValueString("rel")},
-					{boshtbl.NewValueString("Version"), boshtbl.NewValueString("next-final+ver")},
-					{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
+					{
+						boshtbl.NewValueString("rel"),
+						boshtbl.NewValueString("next-final+ver"),
+						boshtbl.NewValueString("commit"),
+					},
 				},
+				Transpose: true,
 			}))
 		})
 
@@ -110,11 +114,15 @@ var _ = Describe("FinalizeReleaseCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Header: []boshtbl.Header{boshtbl.NewHeader("Name"), boshtbl.NewHeader("Version"), boshtbl.NewHeader("Commit Hash")},
 				Rows: [][]boshtbl.Value{
-					{boshtbl.NewValueString("Name"), boshtbl.NewValueString("custom-name")},
-					{boshtbl.NewValueString("Version"), boshtbl.NewValueString("custom-ver")},
-					{boshtbl.NewValueString("Commit Hash"), boshtbl.NewValueString("commit")},
+					{
+						boshtbl.NewValueString("custom-name"),
+						boshtbl.NewValueString("custom-ver"),
+						boshtbl.NewValueString("commit"),
+					},
 				},
+				Transpose: true,
 			}))
 		})
 

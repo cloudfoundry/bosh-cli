@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"code.cloudfoundry.org/clock"
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
@@ -50,5 +51,6 @@ func (f *managerFactory) NewManager(cloud bicloud.Cloud, agentClient biagentclie
 		f.uuidGenerator,
 		f.fs,
 		f.logger,
+		clock.NewClock(),
 	)
 }

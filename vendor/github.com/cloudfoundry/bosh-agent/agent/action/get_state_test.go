@@ -43,13 +43,12 @@ var _ = Describe("GetState", func() {
 		action = NewGetState(settingsService, specService, jobSupervisor, vitalsService, ntpService)
 	})
 
-	It("get state should be synchronous", func() {
-		Expect(action.IsAsynchronous()).To(BeFalse())
-	})
+	AssertActionIsNotAsynchronous(action)
+	AssertActionIsNotPersistent(action)
+	AssertActionIsLoggable(action)
 
-	It("is not persistent", func() {
-		Expect(action.IsPersistent()).To(BeFalse())
-	})
+	AssertActionIsNotResumable(action)
+	AssertActionIsNotCancelable(action)
 
 	Describe("Run", func() {
 		Context("when current spec can be retrieved", func() {

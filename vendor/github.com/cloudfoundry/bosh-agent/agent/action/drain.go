@@ -50,12 +50,16 @@ func NewDrain(
 	}
 }
 
-func (a DrainAction) IsAsynchronous() bool {
+func (a DrainAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return true
 }
 
 func (a DrainAction) IsPersistent() bool {
 	return false
+}
+
+func (a DrainAction) IsLoggable() bool {
+	return true
 }
 
 func (a DrainAction) Run(drainType DrainType, newSpecs ...boshas.V1ApplySpec) (int, error) {

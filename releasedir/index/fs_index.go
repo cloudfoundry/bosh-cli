@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -185,6 +186,11 @@ func (i FSIndex) Add(name, fingerprint, path, sha1 string) (string, string, erro
 	return blobPath, sha1, nil
 }
 
+var (
+	// Ruby CLI for some reason produces invalid annotations
+	invalidBinaryAnnotationReplacer = strings.NewReplacer(" !binary ", " !!binary ")
+)
+
 func (i FSIndex) entries(name string) ([]indexEntry, error) {
 	indexPath := i.indexPath(name)
 
@@ -199,7 +205,9 @@ func (i FSIndex) entries(name string) ([]indexEntry, error) {
 
 	var schema fsIndexSchema
 
-	err = yaml.Unmarshal(bytes, &schema)
+	str := invalidBinaryAnnotationReplacer.Replace(string(bytes))
+
+	err = yaml.Unmarshal([]byte(str), &schema)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Unmarshalling index")
 	}

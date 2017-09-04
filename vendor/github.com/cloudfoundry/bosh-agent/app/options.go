@@ -11,6 +11,7 @@ type Options struct {
 	BaseDirectory      string
 	JobSupervisor      string
 	ConfigPath         string
+	VersionCheck       bool
 }
 
 func ParseOptions(args []string) (Options, error) {
@@ -24,6 +25,7 @@ func ParseOptions(args []string) (Options, error) {
 	flagSet.StringVar(&opts.ConfigPath, "C", "", "Config path")
 	flagSet.StringVar(&opts.JobSupervisor, "M", "monit", "Set jobsupervisor")
 	flagSet.StringVar(&opts.BaseDirectory, "b", "/var/vcap", "Set Base Directory")
+	flagSet.BoolVar(&opts.VersionCheck, "v", false, "version")
 
 	// The following two options are accepted but ignored for compatibility with the old agent
 	var systemRoot string

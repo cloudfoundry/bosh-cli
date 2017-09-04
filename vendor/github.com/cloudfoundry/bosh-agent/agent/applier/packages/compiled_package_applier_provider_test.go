@@ -14,7 +14,7 @@ import (
 
 var _ = Describe("compiledPackageApplierProvider", func() {
 	var (
-		blobstore  *fakeblob.FakeBlobstore
+		blobstore  *fakeblob.FakeDigestBlobstore
 		compressor *fakecmd.FakeCompressor
 		fs         *fakesys.FakeFileSystem
 		logger     boshlog.Logger
@@ -22,7 +22,7 @@ var _ = Describe("compiledPackageApplierProvider", func() {
 	)
 
 	BeforeEach(func() {
-		blobstore = fakeblob.NewFakeBlobstore()
+		blobstore = &fakeblob.FakeDigestBlobstore{}
 		compressor = fakecmd.NewFakeCompressor()
 		fs = fakesys.NewFakeFileSystem()
 		logger = boshlog.NewLogger(boshlog.LevelNone)

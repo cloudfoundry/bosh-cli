@@ -9,8 +9,6 @@ type JobSpec struct {
 	Release          string            `json:"release"`
 	Template         string            `json:"template"`
 	Version          string            `json:"version"`
-	Sha1             string            `json:"sha1"`
-	BlobstoreID      string            `json:"blobstore_id"`
 	JobTemplateSpecs []JobTemplateSpec `json:"templates"`
 }
 

@@ -3,12 +3,12 @@ package releasedir
 import (
 	"path/filepath"
 
+	"code.cloudfoundry.org/clock"
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	"github.com/pivotal-golang/clock"
 
 	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
@@ -103,6 +103,8 @@ func (p Provider) newBlobstore(dirPath string) boshblob.DigestBlobstore {
 		blobstore = boshblob.NewLocalBlobstore(p.fs, p.uuidGen, options)
 	case "s3":
 		blobstore = NewS3Blobstore(p.fs, p.uuidGen, options)
+	case "gcs":
+		blobstore = NewGCSBlobstore(p.fs, p.uuidGen, options)
 	default:
 		return NewErrBlobstore(bosherr.Error("Expected release blobstore to be configured"))
 	}

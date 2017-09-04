@@ -45,9 +45,9 @@ var _ = Describe("NewResource", func() {
 		})
 	})
 
-	Describe("ArchiveSHA1", func() {
+	Describe("ArchiveDigest", func() {
 		It("panics before building", func() {
-			Expect(func() { resource.ArchiveSHA1() }).To(Panic())
+			Expect(func() { resource.ArchiveDigest() }).To(Panic())
 		})
 	})
 
@@ -60,7 +60,7 @@ var _ = Describe("NewResource", func() {
 			Expect(resource.Build(devIndex, finalIndex)).ToNot(HaveOccurred())
 
 			Expect(resource.ArchivePath()).To(Equal("/found"))
-			Expect(resource.ArchiveSHA1()).To(Equal("sha1"))
+			Expect(resource.ArchiveDigest()).To(Equal("sha1"))
 		})
 
 		It("returns error when dev index check fails", func() {
@@ -81,7 +81,7 @@ var _ = Describe("NewResource", func() {
 			Expect(resource.Build(devIndex, finalIndex)).ToNot(HaveOccurred())
 
 			Expect(resource.ArchivePath()).To(Equal("/found"))
-			Expect(resource.ArchiveSHA1()).To(Equal("sha1"))
+			Expect(resource.ArchiveDigest()).To(Equal("sha1"))
 		})
 
 		It("returns error when final index check fails", func() {
@@ -140,7 +140,7 @@ var _ = Describe("NewResource", func() {
 			Expect(resource.Finalize(finalIndex)).ToNot(HaveOccurred())
 			Expect(finalIndex.AddCallCount()).To(Equal(0))
 			Expect(resource.ArchivePath()).To(Equal("/found"))
-			Expect(resource.ArchiveSHA1()).To(Equal("found-sha1"))
+			Expect(resource.ArchiveDigest()).To(Equal("found-sha1"))
 		})
 
 		It("returns error when final index check fails", func() {
@@ -221,9 +221,9 @@ var _ = Describe("NewExistingResource", func() {
 		})
 	})
 
-	Describe("ArchiveSHA1", func() {
+	Describe("ArchiveDigest", func() {
 		It("returns sha1", func() {
-			Expect(resource.ArchiveSHA1()).To(Equal("sha1"))
+			Expect(resource.ArchiveDigest()).To(Equal("sha1"))
 		})
 	})
 
@@ -237,7 +237,7 @@ var _ = Describe("NewExistingResource", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(resource.ArchivePath()).To(Equal("/found"))
-			Expect(resource.ArchiveSHA1()).To(Equal("found-sha1"))
+			Expect(resource.ArchiveDigest()).To(Equal("found-sha1"))
 		})
 
 		It("returns error when dev index check fails", func() {
@@ -259,7 +259,7 @@ var _ = Describe("NewExistingResource", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(resource.ArchivePath()).To(Equal("/found"))
-			Expect(resource.ArchiveSHA1()).To(Equal("found-sha1"))
+			Expect(resource.ArchiveDigest()).To(Equal("found-sha1"))
 		})
 
 		It("returns error when final index check fails", func() {
@@ -383,9 +383,9 @@ var _ = Describe("NewResourceWithBuiltArchive", func() {
 		})
 	})
 
-	Describe("ArchiveSHA1", func() {
+	Describe("ArchiveDigest", func() {
 		It("returns sha1", func() {
-			Expect(resource.ArchiveSHA1()).To(Equal(filePathNameSha1))
+			Expect(resource.ArchiveDigest()).To(Equal(filePathNameSha1))
 		})
 	})
 
@@ -405,7 +405,7 @@ var _ = Describe("NewResourceWithBuiltArchive", func() {
 					newSha256Resource, err := resource.RehashWithCalculator(fakeDigestCalculator, boshcrypto.ArchiveDigestFilePathReader(fakeFs))
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(newSha256Resource.ArchiveSHA1()).To(Equal("sha256:new_resource_sha"))
+					Expect(newSha256Resource.ArchiveDigest()).To(Equal("sha256:new_resource_sha"))
 				})
 			})
 
@@ -421,8 +421,18 @@ var _ = Describe("NewResourceWithBuiltArchive", func() {
 				})
 			})
 
-		})
+			Context("Given an invalid archive digest", func() {
+				BeforeEach(func() {
+					resource = NewResourceWithBuiltArchive("name", "fp", filePathName, "")
+				})
 
+				It("should return an error", func() {
+					_, err := resource.RehashWithCalculator(fakeDigestCalculator, boshcrypto.ArchiveDigestFilePathReader(fakeFs))
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("No digest algorithm found. Supported algorithms"))
+				})
+			})
+		})
 	})
 
 	Describe("Build", func() {

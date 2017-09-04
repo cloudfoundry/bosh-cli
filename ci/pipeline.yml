@@ -8,15 +8,6 @@ jobs:
       - task: test-unit
         file: bosh-cli/ci/tasks/test-unit.yml
 
-  - name: test-unit-windows
-    public: true
-    plan:
-      - get: bosh-cli
-        trigger: true
-      - task: test-unit
-        file: bosh-cli/ci/tasks/test-unit-windows.yml
-        tags: ["vsphere-windows-worker"]
-
   - name: test-integration
     public: true
     plan:
@@ -25,16 +16,6 @@ jobs:
       - task: test-integration
         file: bosh-cli/ci/tasks/test-integration.yml
         privileged: true
-
-  - name: test-integration-windows
-    public: true
-    plan:
-      - get: bosh-cli
-        trigger: true
-      - task: test-integration
-        file: bosh-cli/ci/tasks/test-integration-windows.yml
-        privileged: true
-        tags: ["vsphere-windows-worker"]
 
   - name: test-acceptance
     public: true
@@ -49,13 +30,6 @@ jobs:
         - task: test-acceptance
           file: bosh-cli/ci/tasks/test-acceptance.yml
           privileged: true
-          params:
-            BOSH_AWS_ACCESS_KEY_ID:     {{aws_ec2_acceptance_tests_access_key}}
-            BOSH_AWS_SECRET_ACCESS_KEY: {{aws_ec2_acceptance_tests_secret_key}}
-            BOSH_LITE_KEYPAIR:          {{aws_ec2_acceptance_tests_bosh_lite_keypair}}
-            BOSH_LITE_SUBNET_ID:        {{aws_ec2_acceptance_tests_bosh_lite_subnet_id}}
-            BOSH_LITE_SECURITY_GROUP:   {{aws_ec2_acceptance_tests_bosh_lite_security_group}}
-            BOSH_LITE_PRIVATE_KEY_DATA: {{aws_ec2_acceptance_tests_bosh_lite_private_key}}
 
   - name: integration-2.3-postgres-gocli
     public: true
@@ -126,7 +100,6 @@ jobs:
           passed:
            - test-acceptance
            - integration-2.3-postgres-gocli
-          trigger: true
         - get: version-semver
           params: {bump: patch}
         - get: homebrew-tap
@@ -171,15 +144,21 @@ jobs:
                 apt-get install -y \
                 build-essential zlibc zlib1g-dev ruby ruby-dev openssl \
                 libxslt-dev libxml2-dev libssl-dev libreadline6 libreadline6-dev \
-                libyaml-dev libsqlite3-dev sqlite3 && \
+                libyaml-dev libsqlite3-dev sqlite3 jq && \
                 apt-get clean
 
               COPY bosh2 /usr/local/bin/bosh2
+              COPY bosh2 /usr/local/bin/bosh
               FILE
           inputs:
           - name: compiled-linux
           outputs:
           - name: docker-assets
+
+      - put: bosh-cli-commit-status
+        params:
+          state: success
+          commit: bosh-cli
 
       - aggregate:
         - {put: release-bucket-linux, params: {file: compiled-linux/bosh-cli-*-linux-amd64}}
@@ -273,6 +252,14 @@ resources:
     type: bosh-io-release
     source:
       repository: cppforlife/bosh-warden-cpi-release
+
+  - name: bosh-cli-commit-status
+    type: github-status
+    source:
+      repository: cloudfoundry/bosh-cli
+      access_token: {{repo_github_token}}
+      branch: develop
+      context: ci/published
 
   - name: bosh-cli-promoted
     type: git
@@ -372,3 +359,10 @@ resources:
       username: {{docker_username}}
       password: {{docker_password}}
       email: foo@bar.com
+
+resource_types:
+  - name: github-status
+    type: docker-image
+    source:
+      repository: dpb587/github-status-resource
+      tag: master

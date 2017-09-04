@@ -9,7 +9,7 @@ import (
 )
 
 type Runner interface {
-	Run(action Action, payload []byte) (value interface{}, err error)
+	Run(action Action, payload []byte, protocolVersion ProtocolVersion) (value interface{}, err error)
 	Resume(action Action, payload []byte) (value interface{}, err error)
 }
 
@@ -19,7 +19,7 @@ func NewRunner() Runner {
 
 type concreteRunner struct{}
 
-func (r concreteRunner) Run(action Action, payloadBytes []byte) (value interface{}, err error) {
+func (r concreteRunner) Run(action Action, payloadBytes []byte, protocolVersion ProtocolVersion) (value interface{}, err error) {
 	payloadArgs, err := r.extractJSONArguments(payloadBytes)
 	if err != nil {
 		err = bosherr.WrapError(err, "Extracting json arguments")
@@ -39,7 +39,7 @@ func (r concreteRunner) Run(action Action, payloadBytes []byte) (value interface
 		return
 	}
 
-	methodArgs, err := r.extractMethodArgs(runMethodType, payloadArgs)
+	methodArgs, err := r.extractMethodArgs(runMethodType, protocolVersion, payloadArgs)
 	if err != nil {
 		err = bosherr.WrapError(err, "Extracting method arguments from payload")
 		return
@@ -88,12 +88,24 @@ func (r concreteRunner) invalidReturnTypes(methodType reflect.Type) (valid bool)
 	return
 }
 
-func (r concreteRunner) extractMethodArgs(runMethodType reflect.Type, args []interface{}) (methodArgs []reflect.Value, err error) {
+func (r concreteRunner) extractMethodArgs(runMethodType reflect.Type, protocolVersion ProtocolVersion, args []interface{}) (methodArgs []reflect.Value, err error) {
 	numberOfArgs := runMethodType.NumIn()
 	numberOfReqArgs := numberOfArgs
 
 	if runMethodType.IsVariadic() {
 		numberOfReqArgs--
+	}
+
+	argsOffset := 0
+
+	if numberOfArgs > 0 {
+		firstArgType := runMethodType.In(0)
+
+		if firstArgType.Name() == "ProtocolVersion" {
+			methodArgs = append(methodArgs, reflect.ValueOf(protocolVersion))
+			numberOfReqArgs--
+			argsOffset++
+		}
 	}
 
 	if len(args) < numberOfReqArgs {
@@ -109,7 +121,7 @@ func (r concreteRunner) extractMethodArgs(runMethodType reflect.Type, args []int
 			return
 		}
 
-		argType, typeFound := r.getMethodArgType(runMethodType, i)
+		argType, typeFound := r.getMethodArgType(runMethodType, i+argsOffset)
 		if !typeFound {
 			continue
 		}

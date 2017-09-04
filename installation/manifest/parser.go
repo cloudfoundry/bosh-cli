@@ -39,6 +39,7 @@ type installation struct {
 	Properties map[interface{}]interface{}
 	SSHTunnel  SSHTunnel `yaml:"ssh_tunnel"`
 	Mbus       string
+	Cert       Certificate
 }
 
 func (i installation) HasSSHTunnel() bool {
@@ -101,6 +102,13 @@ func (p *parser) Parse(path string, vars boshtpl.Variables, op patch.Op, release
 		}
 	}
 
+	if comboManifest.CloudProvider.Cert.CA != "" {
+		pkey, _ := pem.Decode([]byte(comboManifest.CloudProvider.Cert.CA))
+		if pkey == nil {
+			return Manifest{}, bosherr.Error("Invalid CA cert")
+		}
+	}
+
 	installationManifest := Manifest{
 		Name: comboManifest.Name,
 		Template: ReleaseJobRef{
@@ -108,6 +116,7 @@ func (p *parser) Parse(path string, vars boshtpl.Variables, op patch.Op, release
 			Release: comboManifest.CloudProvider.Template.Release,
 		},
 		Mbus: comboManifest.CloudProvider.Mbus,
+		Cert: comboManifest.CloudProvider.Cert,
 	}
 
 	properties, err := biproperty.BuildMap(comboManifest.CloudProvider.Properties)

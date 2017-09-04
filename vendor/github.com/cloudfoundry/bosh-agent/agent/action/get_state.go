@@ -34,12 +34,16 @@ func NewGetState(
 	return
 }
 
-func (a GetStateAction) IsAsynchronous() bool {
+func (a GetStateAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return false
 }
 
 func (a GetStateAction) IsPersistent() bool {
 	return false
+}
+
+func (a GetStateAction) IsLoggable() bool {
+	return true
 }
 
 type GetStateV1ApplySpec struct {

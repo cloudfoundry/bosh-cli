@@ -17,12 +17,16 @@ func NewReleaseApplySpec(platform boshplatform.Platform) (action ReleaseApplySpe
 	return
 }
 
-func (a ReleaseApplySpecAction) IsAsynchronous() bool {
+func (a ReleaseApplySpecAction) IsAsynchronous(_ ProtocolVersion) bool {
 	return false
 }
 
 func (a ReleaseApplySpecAction) IsPersistent() bool {
 	return false
+}
+
+func (a ReleaseApplySpecAction) IsLoggable() bool {
+	return true
 }
 
 func (a ReleaseApplySpecAction) Run() (value interface{}, err error) {

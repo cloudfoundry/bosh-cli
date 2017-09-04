@@ -1,11 +1,14 @@
 package infrastructure_test
 
 import (
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-agent/infrastructure"
 	boshsettings "github.com/cloudfoundry/bosh-agent/settings"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
@@ -43,6 +46,17 @@ var _ = Describe("FileMetadataService", func() {
 		})
 
 		Context("when metadata service file does not exist", func() {
+			It("returns an error", func() {
+				_, err := metadataService.GetInstanceID()
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when metadata service file has invalid format", func() {
+			BeforeEach(func() {
+				fs.WriteFileString("fake-metadata-file-path", "bad-json")
+			})
+
 			It("returns an error", func() {
 				_, err := metadataService.GetInstanceID()
 				Expect(err).To(HaveOccurred())
@@ -117,7 +131,14 @@ var _ = Describe("FileMetadataService", func() {
 		It("raises an error if we can't read the file", func() {
 			networks, err := metadataService.GetNetworks()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Reading user data: File not found"))
+			Expect(err.Error()).To(ContainSubstring("Reading user data:"))
+			be, ok := err.(bosherr.ComplexError)
+			Expect(ok).To(BeTrue())
+			be, ok = be.Cause.(bosherr.ComplexError)
+			Expect(ok).To(BeTrue())
+			pe, ok := be.Cause.(*os.PathError)
+			Expect(ok).To(BeTrue())
+			Expect(os.IsNotExist(pe)).To(BeTrue())
 			Expect(networks).To(BeNil())
 		})
 	})

@@ -14,8 +14,8 @@ var _ = Describe("Event", func() {
 		var e1, e2 boshuit.Event
 
 		BeforeEach(func() {
-			e1 = boshuit.Event{Stage: "stage", Task: "task", Tags: []string{"tag1", "tag2"}}
-			e2 = boshuit.Event{Stage: "stage", Task: "task", Tags: []string{"tag1", "tag2"}}
+			e1 = boshuit.Event{TaskID: 1234, Stage: "stage", Task: "task", Tags: []string{"tag1", "tag2"}}
+			e2 = boshuit.Event{TaskID: 1234, Stage: "stage", Task: "task", Tags: []string{"tag1", "tag2"}}
 		})
 
 		Describe("IsSame", func() {
@@ -71,10 +71,26 @@ var _ = Describe("Event", func() {
 				Expect(e1.IsSameGroup(e2)).To(BeFalse())
 			})
 
+			It("returns false if task ID is different", func() {
+				e2.TaskID = 4321
+				Expect(e1.IsSameGroup(e2)).To(BeFalse())
+			})
+
 			It("returns true if stage is same and tags are empty", func() {
 				e1.Tags = []string{}
 				e2.Tags = []string{}
 				Expect(e1.IsSameGroup(e2)).To(BeTrue())
+			})
+		})
+
+		Describe("IsSameTaskID", func() {
+			It("returns true if task ID is the same", func() {
+				Expect(e1.IsSameTaskID(e2)).To(BeTrue())
+			})
+
+			It("returns false if task ID is different", func() {
+				e2.TaskID = 4321
+				Expect(e1.IsSameTaskID(e2)).To(BeFalse())
 			})
 		})
 	})

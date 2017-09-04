@@ -3,7 +3,10 @@
 package jobsupervisor
 
 import (
+	"os"
 	"time"
+
+	"github.com/pivotal-golang/clock"
 
 	boshhandler "github.com/cloudfoundry/bosh-agent/handler"
 	boshmonit "github.com/cloudfoundry/bosh-agent/jobsupervisor/monit"
@@ -28,6 +31,7 @@ func NewProvider(
 ) (p Provider) {
 	fs := platform.GetFs()
 	runner := platform.GetRunner()
+	timeService := clock.NewClock()
 	monitJobSupervisor := NewMonitJobSupervisor(
 		fs,
 		runner,
@@ -40,13 +44,24 @@ func NewProvider(
 			MaxCheckTries:          6,
 			DelayBetweenCheckTries: 5 * time.Second,
 		},
+		timeService,
 	)
+
+	network, err := platform.GetDefaultNetwork()
+	var machineIP string
+	if err != nil {
+		machineIP, _ = os.Hostname()
+		logger.Debug("providerWindows", "Initializing jobsupervisor.provider_windows: %s, using hostname \"%s\"instead of IP", err, machineIP)
+	} else {
+		machineIP = network.IP
+	}
 
 	p.supervisors = map[string]JobSupervisor{
 		"monit":      monitJobSupervisor,
 		"dummy":      NewDummyJobSupervisor(),
 		"dummy-nats": NewDummyNatsJobSupervisor(handler),
-		"windows":    NewWindowsJobSupervisor(runner, dirProvider, fs, logger, jobSupervisorListenPort, make(chan bool)),
+		"windows": NewWindowsJobSupervisor(runner, dirProvider, fs, logger, jobSupervisorListenPort,
+			make(chan bool), machineIP),
 	}
 
 	return

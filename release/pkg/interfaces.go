@@ -11,7 +11,7 @@ type Compilable interface {
 	Fingerprint() string
 
 	ArchivePath() string
-	ArchiveSHA1() string
+	ArchiveDigest() string
 
 	IsCompiled() bool
 

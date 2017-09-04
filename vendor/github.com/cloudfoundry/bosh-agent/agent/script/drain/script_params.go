@@ -51,8 +51,6 @@ func NewUpdateParams(oldSpec, newSpec boshas.V1ApplySpec) ScriptParams {
 	switch {
 	case len(oldSpec.Jobs()) == 0:
 		p.jobChange = "job_new"
-	case oldSpec.JobSpec.Sha1 == newSpec.JobSpec.Sha1:
-		p.jobChange = "job_unchanged"
 	default:
 		p.jobChange = "job_changed"
 	}
@@ -71,7 +69,7 @@ func NewUpdateParams(oldSpec, newSpec boshas.V1ApplySpec) ScriptParams {
 		switch {
 		case !found:
 			p.updatedPackages = append(p.updatedPackages, pkg.Name)
-		case currentPkg.Sha1 != pkg.Sha1:
+		case currentPkg.Sha1.String() != pkg.Sha1.String():
 			p.updatedPackages = append(p.updatedPackages, pkg.Name)
 		}
 	}

@@ -18,6 +18,7 @@ const (
 )
 
 type Event struct {
+	TaskID   int
 	UnixTime int64 `json:"time"` // e.g 1451020321
 
 	Type    string // e.g. "deprecation"
@@ -52,7 +53,11 @@ func (e Event) IsSame(other Event) bool {
 }
 
 func (e Event) IsSameGroup(other Event) bool {
-	return len(e.Stage) != 0 && e.Stage == other.Stage && reflect.DeepEqual(e.Tags, other.Tags)
+	return e.IsSameTaskID(other) && len(e.Stage) != 0 && e.Stage == other.Stage && reflect.DeepEqual(e.Tags, other.Tags)
+}
+
+func (e Event) IsSameTaskID(other Event) bool {
+	return e.TaskID == other.TaskID
 }
 
 func (e Event) Time() time.Time {

@@ -20,7 +20,7 @@ func (c CPIConfigCmd) Run() error {
 		return err
 	}
 
-	c.ui.PrintBlock(cpiConfig.Properties)
+	c.ui.PrintBlock([]byte(cpiConfig.Properties))
 
 	return nil
 }

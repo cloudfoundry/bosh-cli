@@ -24,13 +24,12 @@ var _ = Describe("prepareConfigureNetworks", func() {
 		action = NewPrepareConfigureNetworks(platform, settingsService)
 	})
 
-	It("is synchronous", func() {
-		Expect(action.IsAsynchronous()).To(BeFalse())
-	})
+	AssertActionIsNotAsynchronous(action)
+	AssertActionIsNotPersistent(action)
+	AssertActionIsLoggable(action)
 
-	It("is not persistent", func() {
-		Expect(action.IsPersistent()).To(BeFalse())
-	})
+	AssertActionIsNotResumable(action)
+	AssertActionIsNotCancelable(action)
 
 	Describe("Run", func() {
 		It("invalidates settings so that load settings cannot fall back on old settings", func() {

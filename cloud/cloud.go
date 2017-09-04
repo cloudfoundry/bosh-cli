@@ -20,6 +20,7 @@ type Cloud interface {
 		env biproperty.Map,
 	) (vmCID string, err error)
 	SetVMMetadata(cmCID string, metadata VMMetadata) error
+	SetDiskMetadata(diskCID string, metadata DiskMetadata) error
 	DeleteVM(vmCID string) error
 	CreateDisk(size int, cloudProperties biproperty.Map, vmCID string) (diskCID string, err error)
 	AttachDisk(vmCID, diskCID string) error
@@ -36,6 +37,8 @@ type cloud struct {
 }
 
 type VMMetadata map[string]string
+
+type DiskMetadata map[string]string
 
 func NewCloud(
 	cpiCmdRunner CPICmdRunner,
@@ -154,6 +157,25 @@ func (c cloud) SetVMMetadata(vmCID string, metadata VMMetadata) error {
 
 	if cmdOutput.Error != nil {
 		return NewCPIError("set_vm_metadata", *cmdOutput.Error)
+	}
+
+	return nil
+}
+
+func (c cloud) SetDiskMetadata(diskCID string, metadata DiskMetadata) error {
+	cmdOutput, err := c.cpiCmdRunner.Run(
+		c.context,
+		"set_disk_metadata",
+		diskCID,
+		metadata,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if cmdOutput.Error != nil {
+		return NewCPIError("set_disk_metadata", *cmdOutput.Error)
 	}
 
 	return nil

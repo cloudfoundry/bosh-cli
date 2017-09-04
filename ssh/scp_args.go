@@ -47,6 +47,10 @@ func (a SCPArgs) ForHost(host boshdir.Host) []string {
 			pieces[0] = fmt.Sprintf("%s@%s", host.Username, host.Host)
 		}
 
+		for i, _ := range pieces {
+			pieces[i] = strings.Replace(pieces[i], "((instance_id))", host.IndexOrID, -1)
+		}
+
 		args = append(args, strings.Join(pieces, ":"))
 	}
 

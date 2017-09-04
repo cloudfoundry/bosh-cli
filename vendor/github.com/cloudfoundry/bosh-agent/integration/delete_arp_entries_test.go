@@ -138,7 +138,7 @@ var _ = Describe("DeleteARPEntries", func() {
 			Eventually(func() string {
 				ARPCache, _ := parseARPCacheIntoMap()
 				return ARPCache[testIP]
-			}).Should(Equal(emptyMacAddress))
+			}, 10, 1).Should(Equal(emptyMacAddress))
 		})
 	})
 })

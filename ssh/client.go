@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"code.cloudfoundry.org/clock"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/pivotal-golang/clock"
 	"golang.org/x/crypto/ssh"
 )
 

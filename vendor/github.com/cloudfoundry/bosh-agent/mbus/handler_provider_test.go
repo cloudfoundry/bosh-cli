@@ -9,8 +9,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-agent/mbus"
-	"github.com/cloudfoundry/bosh-agent/micro"
 	fakeplatform "github.com/cloudfoundry/bosh-agent/platform/fakes"
+	"github.com/cloudfoundry/bosh-agent/settings"
 	boshdir "github.com/cloudfoundry/bosh-agent/settings/directories"
 	fakesettings "github.com/cloudfoundry/bosh-agent/settings/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -30,7 +30,7 @@ var _ = Describe("HandlerProvider", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		platform = fakeplatform.NewFakePlatform()
 		dirProvider = boshdir.NewProvider("/var/vcap")
-		provider = NewHandlerProvider(settingsService, logger)
+		provider = NewHandlerProvider(settingsService, logger, fakeplatform.NewFakeAuditLogger())
 	})
 
 	Describe("Get", func() {
@@ -44,14 +44,39 @@ var _ = Describe("HandlerProvider", func() {
 			Expect(reflect.TypeOf(handler)).To(Equal(reflect.TypeOf(expectedHandler)))
 		})
 
-		It("returns https handler", func() {
-			url, err := gourl.Parse("https://foo:bar@lol")
+		It("returns https handler when MBUS URL only specified", func() {
+			mbusURL, err := gourl.Parse("https://foo:bar@lol")
 			Expect(err).ToNot(HaveOccurred())
 
 			settingsService.Settings.Mbus = "https://foo:bar@lol"
 			handler, err := provider.Get(platform, dirProvider)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(handler).To(Equal(micro.NewHTTPSHandler(url, logger, platform.GetFs(), dirProvider)))
+			expectedHandler := NewHTTPSHandler(mbusURL, settings.CertKeyPair{}, logger, platform.GetFs(), dirProvider, fakeplatform.NewFakeAuditLogger())
+			httpsHandler, ok := handler.(HTTPSHandler)
+			Expect(ok).To(BeTrue())
+			Expect(httpsHandler).To(Equal(expectedHandler))
+		})
+
+		It("returns https handler when MbusEnv are specified", func() {
+			mbusURL, err := gourl.Parse("https://foo:bar@lol")
+			Expect(err).ToNot(HaveOccurred())
+
+			settingsService.Settings.Mbus = "https://foo:bar@lol"
+			settingsService.Settings.Env.Bosh.Mbus.Cert.Certificate = "certificate-pem-block"
+			settingsService.Settings.Env.Bosh.Mbus.Cert.PrivateKey = "private-key-pem-block"
+
+			handler, err := provider.Get(platform, dirProvider)
+			expectedHandler := NewHTTPSHandler(
+				mbusURL,
+				settingsService.Settings.Env.Bosh.Mbus.Cert,
+				logger,
+				platform.GetFs(),
+				dirProvider,
+				fakeplatform.NewFakeAuditLogger(),
+			)
+			httpsHandler, ok := handler.(HTTPSHandler)
+			Expect(ok).To(BeTrue())
+			Expect(reflect.DeepEqual(httpsHandler, expectedHandler)).To(BeTrue())
 		})
 
 		It("returns an error if not supported", func() {

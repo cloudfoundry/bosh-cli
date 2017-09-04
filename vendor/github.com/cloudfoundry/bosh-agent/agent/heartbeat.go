@@ -4,6 +4,9 @@ import (
 	boshvitals "github.com/cloudfoundry/bosh-agent/platform/vitals"
 )
 
+// NodeID is no longer being used by the director as of completion of
+// https://www.pivotaltracker.com/story/show/132265151
+
 type Heartbeat struct {
 	Deployment string            `json:"deployment"`
 	Job        *string           `json:"job"`

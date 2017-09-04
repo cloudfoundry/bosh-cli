@@ -21,6 +21,7 @@ type ExtractedStemcell interface {
 	SetCloudProperties(biproperty.Map)
 	GetExtractedPath() string
 	Pack(string) error
+	EmptyImage() error
 	fmt.Stringer
 }
 
@@ -87,6 +88,15 @@ func (s *extractedStemcell) Pack(destinationPath string) error {
 	}
 
 	return s.fs.Rename(intermediateStemcellPath, destinationPath)
+}
+
+func (s *extractedStemcell) EmptyImage() error {
+	imagePath := filepath.Join(s.extractedPath, "image")
+	err := s.fs.WriteFile(imagePath, []byte{})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *extractedStemcell) GetExtractedPath() string {

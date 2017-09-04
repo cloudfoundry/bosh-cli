@@ -29,8 +29,8 @@ func NewSSHOpts(uuidGen boshuuid.Generator) (SSHOpts, string, error) {
 		return SSHOpts{}, "", bosherr.WrapErrorf(err, "Generating unique SSH user suffix")
 	}
 
-	// username cannot be >32
-	nameSuffix = strings.Replace(nameSuffix, "-", "", -1)[0:16]
+	// username must be <= 20 for Windows
+	nameSuffix = strings.Replace(nameSuffix, "-", "", -1)[0:15]
 
 	sshOpts := SSHOpts{
 		Username:  "bosh_" + nameSuffix,

@@ -23,7 +23,8 @@ type concreteFactory struct {
 func NewFactory(
 	settingsService boshsettings.Service,
 	platform boshplatform.Platform,
-	blobstore boshblob.Blobstore,
+	blobstore boshblob.DigestBlobstore,
+	blobManager boshblob.BlobManagerInterface,
 	taskService boshtask.Service,
 	notifier boshnotif.Notifier,
 	applier boshappl.Applier,
@@ -50,7 +51,7 @@ func NewFactory(
 			// VM admin
 			"ssh":             NewSSH(settingsService, platform, dirProvider, logger),
 			"fetch_logs":      NewFetchLogs(compressor, copier, blobstore, dirProvider),
-			"update_settings": NewUpdateSettings(certManager, logger),
+			"update_settings": NewUpdateSettings(settingsService, platform, certManager, logger),
 
 			// Job management
 			"prepare":    NewPrepare(applier),
@@ -65,6 +66,9 @@ func NewFactory(
 			// Compilation
 			"compile_package":    NewCompilePackage(compiler),
 			"release_apply_spec": NewReleaseApplySpec(platform),
+
+			// Rendered Templates
+			"upload_blob": NewUploadBlobAction(blobManager),
 
 			// Disk management
 			"list_disk":    NewListDisk(settingsService, platform, logger),

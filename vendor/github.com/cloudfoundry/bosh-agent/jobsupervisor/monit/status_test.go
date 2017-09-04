@@ -15,7 +15,7 @@ import (
 
 var _ = Describe("status", func() {
 	Describe("ServicesInGroup", func() {
-		It("returns list of service", func() {
+		It("returns a list of services", func() {
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				_, err := io.Copy(w, bytes.NewReader(readFixture(statusWithMultipleServiceFixturePath)))
 				Expect(err).ToNot(HaveOccurred())
@@ -44,10 +44,14 @@ var _ = Describe("status", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedServices := []Service{
-				Service{Name: "running-service", Monitored: true, Status: "running"},
-				Service{Name: "unmonitored-service", Monitored: false, Status: "unknown"},
-				Service{Name: "starting-service", Monitored: true, Status: "starting"},
-				Service{Name: "failing-service", Monitored: true, Status: "failing"},
+				Service{Monitored: false, Name: "unmonitored-start-pending", Status: "unknown", Pending: true},
+				Service{Monitored: true, Name: "initializing", Status: "starting", Pending: false},
+				Service{Monitored: true, Name: "running", Status: "running", Pending: false},
+				Service{Monitored: true, Name: "running-stop-pending", Status: "running", Pending: true},
+				Service{Monitored: false, Name: "unmonitored-stop-pending", Status: "unknown", Pending: true},
+				Service{Monitored: false, Name: "unmonitored", Status: "unknown", Pending: false},
+				Service{Monitored: false, Name: "stopped", Status: "unknown", Pending: false},
+				Service{Monitored: true, Name: "failing", Status: "failing", Pending: false},
 			}
 
 			services := status.ServicesInGroup("vcap")
@@ -90,7 +94,10 @@ var _ = Describe("status", func() {
 				Service{
 					Name:                 "dummy",
 					Monitored:            true,
+					Errored:              false,
+					Pending:              false,
 					Status:               "running",
+					StatusMessage:        "",
 					Uptime:               880183,
 					MemoryPercentTotal:   0,
 					MemoryKilobytesTotal: 4004,

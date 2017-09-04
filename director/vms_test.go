@@ -2,6 +2,7 @@ package director_test
 
 import (
 	"strings"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -53,6 +54,7 @@ var _ = Describe("VMs", func() {
 	"disk_cids": ["disk-cid1", "disk-cid2"],
 	"vm_type": "vm-type",
 	"resource_pool": "rp",
+	"vm_created_at": "2016-01-09T06:23:25+00:00",
 	"processes": [{
 		"name": "service",
 		"state": "running",
@@ -99,13 +101,15 @@ var _ = Describe("VMs", func() {
 				IPs: []string{"ip"},
 				DNS: []string{"dns"},
 
-				AZ:           "az",
-				Ignore:       true,
-				VMID:         "vm-cid",
-				VMType:       "vm-type",
-				ResourcePool: "rp",
-				DiskID:       "disk-cid",
-				DiskIDs:      []string{"disk-cid1", "disk-cid2"},
+				AZ:             "az",
+				Ignore:         true,
+				VMID:           "vm-cid",
+				VMType:         "vm-type",
+				ResourcePool:   "rp",
+				VMCreatedAtRaw: "2016-01-09T06:23:25+00:00",
+				VMCreatedAt:    time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
+				DiskID:         "disk-cid",
+				DiskIDs:        []string{"disk-cid1", "disk-cid2"},
 
 				Processes: []VMInfoProcess{
 					VMInfoProcess{
@@ -154,6 +158,7 @@ var _ = Describe("VMs", func() {
 	"disk_cids": [],
 	"vm_type": "vm-type",
 	"resource_pool": "rp",
+	"vm_created_at": "2016-01-09T06:23:25+00:00",
 	"processes": [{
 		"name": "service",
 		"state": "running",
@@ -200,12 +205,14 @@ var _ = Describe("VMs", func() {
 				IPs: []string{"ip"},
 				DNS: []string{"dns"},
 
-				AZ:           "az",
-				VMID:         "vm-cid",
-				VMType:       "vm-type",
-				ResourcePool: "rp",
-				DiskID:       "disk-cid",
-				DiskIDs:      []string{"disk-cid"},
+				AZ:             "az",
+				VMID:           "vm-cid",
+				VMType:         "vm-type",
+				ResourcePool:   "rp",
+				VMCreatedAtRaw: "2016-01-09T06:23:25+00:00",
+				VMCreatedAt:    time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
+				DiskID:         "disk-cid",
+				DiskIDs:        []string{"disk-cid"},
 
 				Processes: []VMInfoProcess{
 					VMInfoProcess{
@@ -255,6 +262,7 @@ var _ = Describe("VMs", func() {
 	"disk_cids": [],
 	"vm_type": "vm-type",
 	"resource_pool": "rp",
+	"vm_created_at": "2016-01-09T06:23:25+00:00",
 	"processes": [{
 		"name": "service",
 		"state": "running",
@@ -301,12 +309,14 @@ var _ = Describe("VMs", func() {
 				IPs: []string{"ip"},
 				DNS: []string{"dns"},
 
-				AZ:           "az",
-				VMID:         "vm-cid",
-				VMType:       "vm-type",
-				ResourcePool: "rp",
-				DiskID:       "",
-				DiskIDs:      []string{},
+				AZ:             "az",
+				VMID:           "vm-cid",
+				VMType:         "vm-type",
+				ResourcePool:   "rp",
+				VMCreatedAtRaw: "2016-01-09T06:23:25+00:00",
+				VMCreatedAt:    time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
+				DiskID:         "",
+				DiskIDs:        []string{},
 
 				Processes: []VMInfoProcess{
 					VMInfoProcess{
@@ -370,6 +380,56 @@ var _ = Describe("VMs", func() {
 			_, err := deployment.VMInfos()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Unmarshaling vm info response"))
+		})
+
+		It("returns error if vm_created_at cannot be unmarshalled", func() {
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/deployments/dep/vms", "format=full"),
+					ghttp.VerifyBasicAuth("username", "password"),
+				),
+				strings.Replace(`{
+	"agent_id": "agent-id",
+	"job_name": "job",
+	"id": "id",
+	"index": 1,
+	"job_state": "running",
+	"bootstrap": true,
+	"ips": [ "ip" ],
+	"dns": [ "dns" ],
+	"az": "az",
+	"vm_cid": "vm-cid",
+	"disk_cid": "",
+	"disk_cids": [],
+	"vm_type": "vm-type",
+	"resource_pool": "rp",
+	"vm_created_at": "2016",
+	"processes": [{
+		"name": "service",
+		"state": "running",
+		"uptime": { "secs": 343020 },
+		"cpu": { "total": 10 },
+		"mem": { "percent": 0.5, "kb": 23952 }
+	}],
+	"vitals": {
+		"cpu": { "wait": "0.8", "user": "65.7", "sys": "4.5" },
+		"swap": { "percent": "5", "kb": "53580" },
+		"mem": { "percent": "33", "kb": "1342088" },
+		"uptime": { "secs": 10020 },
+		"load": [ "2.20", "1.63", "1.53" ],
+		"disk": {
+			"system": { "percent": "47", "inode_percent": "19" },
+			"ephemeral": { "percent": "47", "inode_percent": "19" }
+		}
+	},
+	"resurrection_paused": true
+}`, "\n", "", -1),
+				server,
+			)
+
+			_, err := deployment.VMInfos()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Converting created_at '2016' to time"))
 		})
 	})
 })

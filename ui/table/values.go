@@ -32,6 +32,10 @@ func (t ValueString) Compare(other Value) int {
 	}
 }
 
+func (t EmptyValue) String() string    { return "" }
+func (t EmptyValue) Value() Value      { return t }
+func (t EmptyValue) Compare(Value) int { return 0 }
+
 func NewValueStrings(s []string) ValueStrings { return ValueStrings{S: s} }
 
 func (t ValueStrings) String() string { return strings.Join(t.S, "\n") }
@@ -86,8 +90,13 @@ func (t ValueBytes) Compare(other Value) int {
 
 func NewValueTime(t time.Time) ValueTime { return ValueTime{T: t} }
 
-func (t ValueTime) String() string { return t.T.Format(boshuifmt.TimeFullFmt) }
-func (t ValueTime) Value() Value   { return t }
+func (t ValueTime) String() string {
+	if t.T.IsZero() {
+		return ""
+	}
+	return t.T.Format(boshuifmt.TimeFullFmt)
+}
+func (t ValueTime) Value() Value { return t }
 
 func (t ValueTime) Compare(other Value) int {
 	otherT := other.(ValueTime).T

@@ -89,7 +89,7 @@ func (r *cpiCmdRunner) Run(context CmdContext, method string, args ...interface{
 		Env: map[string]string{
 			"BOSH_PACKAGES_DIR": r.cpi.PackagesDir,
 			"BOSH_JOBS_DIR":     r.cpi.JobsDir,
-			"PATH":              "/usr/local/bin:/usr/bin:/bin",
+			"PATH":              "/usr/local/bin:/usr/bin:/bin:/sbin",
 		},
 		UseIsolatedEnv: true,
 		Stdin:          bytes.NewReader(inputBytes),

@@ -54,14 +54,14 @@ var _ = Describe("NonTTYUI", func() {
 
 	Describe("PrintBlock", func() {
 		It("delegates to the parent UI", func() {
-			ui.PrintBlock("block")
+			ui.PrintBlock([]byte("block"))
 			Expect(parentUI.Blocks).To(Equal([]string{"block"}))
 		})
 	})
 
 	Describe("PrintErrorBlock", func() {
 		It("delegates to the parent UI", func() {
-			ui.PrintBlock("block")
+			ui.PrintBlock([]byte("block"))
 			Expect(parentUI.Blocks).To(Equal([]string{"block"}))
 		})
 	})
@@ -69,9 +69,8 @@ var _ = Describe("NonTTYUI", func() {
 	Describe("PrintTable", func() {
 		It("delegates to the parent UI with re-configured table", func() {
 			ui.PrintTable(Table{
-				Title:      "title",
-				Header:     []string{"header1"},
-				HeaderVals: []Value{ValueString{"header1"}},
+				Title:  "title",
+				Header: []Header{NewHeader("header1")},
 
 				Notes:   []string{"note1"},
 				Content: "things",
@@ -80,12 +79,12 @@ var _ = Describe("NonTTYUI", func() {
 
 				Sections: []Section{
 					{
-						FirstColumn: ValueString{"section1"},
-						Rows:        [][]Value{{ValueString{"row1"}}},
+						FirstColumn: ValueString{S: "section1"},
+						Rows:        [][]Value{{ValueString{S: "row1"}}},
 					},
 				},
 
-				Rows: [][]Value{{ValueString{"row1"}}},
+				Rows: [][]Value{{ValueString{S: "row1"}}},
 
 				FillFirstColumn: false,
 				BackgroundStr:   "-",
@@ -93,9 +92,11 @@ var _ = Describe("NonTTYUI", func() {
 			})
 
 			Expect(parentUI.Table).To(Equal(Table{
-				Title:      "",
-				Header:     nil,
-				HeaderVals: nil,
+				Title: "",
+				Header: []Header{
+					{Key: "header1", Title: "header1", Hidden: false},
+				},
+				HeaderFormatFunc: nil,
 
 				Notes:   nil,
 				Content: "",
@@ -104,14 +105,15 @@ var _ = Describe("NonTTYUI", func() {
 
 				Sections: []Section{
 					{
-						FirstColumn: ValueString{"section1"},
-						Rows:        [][]Value{{ValueString{"row1"}}},
+						FirstColumn: ValueString{S: "section1"},
+						Rows:        [][]Value{{ValueString{S: "row1"}}},
 					},
 				},
 
-				Rows: [][]Value{{ValueString{"row1"}}},
+				Rows: [][]Value{{ValueString{S: "row1"}}},
 
 				FillFirstColumn: true,
+				DataOnly:        true,
 				BackgroundStr:   "-",
 				BorderStr:       "\t",
 			}))

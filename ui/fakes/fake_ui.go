@@ -10,7 +10,7 @@ type FakeUI struct {
 	Said   []string
 	Errors []string
 
-	Blocks []string
+	Blocks []string // keep as string to make ginkgo err msgs easier
 
 	Table  Table
 	Tables []Table
@@ -56,8 +56,8 @@ func (ui *FakeUI) EndLinef(pattern string, args ...interface{}) {
 	ui.Said = append(ui.Said, fmt.Sprintf(pattern, args...))
 }
 
-func (ui *FakeUI) PrintBlock(block string) {
-	ui.Blocks = append(ui.Blocks, block)
+func (ui *FakeUI) PrintBlock(block []byte) {
+	ui.Blocks = append(ui.Blocks, string(block))
 }
 
 func (ui *FakeUI) PrintErrorBlock(block string) {

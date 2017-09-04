@@ -82,6 +82,36 @@ var _ = Describe("Subcommand", func() {
 			Ω(content).Should(ContainSubstring("\t" + `. "github.com/onsi/gomega"`))
 			Ω(content).Should(ContainSubstring("\t" + `"github.com/sclevine/agouti"`))
 		})
+
+		It("should generate a bootstrap file using a template when told to", func() {
+			templateFile := filepath.Join(pkgPath, ".bootstrap")
+			ioutil.WriteFile(templateFile, []byte(`package {{.Package}}
+
+			import (
+				{{.GinkgoImport}}
+				{{.GomegaImport}}
+
+				"testing"
+				"binary"
+			)
+
+			func Test{{.FormattedName}}(t *testing.T) {
+				// This is a {{.Package}} test
+			}`), 0666)
+			session := startGinkgo(pkgPath, "bootstrap", "--template", templateFile)
+			Eventually(session).Should(gexec.Exit(0))
+			output := session.Out.Contents()
+
+			Ω(output).Should(ContainSubstring("foo_suite_test.go"))
+
+			content, err := ioutil.ReadFile(filepath.Join(pkgPath, "foo_suite_test.go"))
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(content).Should(ContainSubstring("package foo_test"))
+			Ω(content).Should(ContainSubstring(`. "github.com/onsi/ginkgo"`))
+			Ω(content).Should(ContainSubstring(`. "github.com/onsi/gomega"`))
+			Ω(content).Should(ContainSubstring(`"binary"`))
+			Ω(content).Should(ContainSubstring("// This is a foo_test test"))
+		})
 	})
 
 	Describe("nodot", func() {
@@ -324,8 +354,8 @@ var _ = Describe("Subcommand", func() {
 			Eventually(session).Should(gexec.Exit(types.GINKGO_FOCUS_EXIT_CODE))
 			output := session.Out.Contents()
 
-			Ω(output).Should(ContainSubstring("3 Passed"))
-			Ω(output).Should(ContainSubstring("3 Skipped"))
+			Ω(output).Should(ContainSubstring("6 Passed"))
+			Ω(output).Should(ContainSubstring("5 Skipped"))
 
 			session = startGinkgo(pathToTest, "blur")
 			Eventually(session).Should(gexec.Exit(0))
@@ -333,7 +363,7 @@ var _ = Describe("Subcommand", func() {
 			session = startGinkgo(pathToTest, "--noColor")
 			Eventually(session).Should(gexec.Exit(0))
 			output = session.Out.Contents()
-			Ω(output).Should(ContainSubstring("6 Passed"))
+			Ω(output).Should(ContainSubstring("11 Passed"))
 			Ω(output).Should(ContainSubstring("0 Skipped"))
 		})
 	})
@@ -359,6 +389,7 @@ var _ = Describe("Subcommand", func() {
 			Ω(output).Should(ContainSubstring("-succinct"))
 			Ω(output).Should(ContainSubstring("-nodes"))
 			Ω(output).Should(ContainSubstring("ginkgo generate"))
+			Ω(output).Should(ContainSubstring("ginkgo help <COMMAND>"))
 		})
 	})
 })

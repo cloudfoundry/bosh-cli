@@ -3,12 +3,13 @@ package disk_test
 import (
 	"time"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-agent/platform/disk"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/pivotal-golang/clock"
+
+	. "github.com/cloudfoundry/bosh-agent/platform/disk"
 )
 
 var _ = Describe("NewLinuxDiskManager", func() {
@@ -29,7 +30,7 @@ var _ = Describe("NewLinuxDiskManager", func() {
 			expectedMountsSearcher := NewProcMountsSearcher(fs)
 			expectedMounter := NewLinuxMounter(runner, expectedMountsSearcher, 1*time.Second)
 
-			diskManager := NewLinuxDiskManager(logger, runner, fs, false)
+			diskManager := NewLinuxDiskManager(logger, runner, fs, LinuxDiskManagerOpts{})
 			Expect(diskManager.GetMounter()).To(Equal(expectedMounter))
 		})
 	})
@@ -39,8 +40,32 @@ var _ = Describe("NewLinuxDiskManager", func() {
 			expectedMountsSearcher := NewCmdMountsSearcher(runner)
 			expectedMounter := NewLinuxBindMounter(NewLinuxMounter(runner, expectedMountsSearcher, 1*time.Second))
 
-			diskManager := NewLinuxDiskManager(logger, runner, fs, true)
+			opts := LinuxDiskManagerOpts{BindMount: true}
+			diskManager := NewLinuxDiskManager(logger, runner, fs, opts)
 			Expect(diskManager.GetMounter()).To(Equal(expectedMounter))
+		})
+	})
+
+	Context("when partitioner type is not set", func() {
+		It("returns disk manager configured to use sfdisk", func() {
+			opts := LinuxDiskManagerOpts{}
+			diskManager := NewLinuxDiskManager(logger, runner, fs, opts)
+			Expect(diskManager.GetPartitioner()).To(Equal(NewSfdiskPartitioner(logger, runner, clock.NewClock())))
+		})
+	})
+
+	Context("when partitioner type is 'parted'", func() {
+		It("returns disk manager configured to use parted", func() {
+			opts := LinuxDiskManagerOpts{PartitionerType: "parted"}
+			diskManager := NewLinuxDiskManager(logger, runner, fs, opts)
+			Expect(diskManager.GetPartitioner()).To(Equal(NewPartedPartitioner(logger, runner, clock.NewClock())))
+		})
+	})
+
+	Context("when partitioner type is unknown", func() {
+		It("panics", func() {
+			opts := LinuxDiskManagerOpts{PartitionerType: "unknown"}
+			Expect(func() { NewLinuxDiskManager(logger, runner, fs, opts) }).To(Panic())
 		})
 	})
 })

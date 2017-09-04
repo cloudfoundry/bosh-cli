@@ -27,6 +27,8 @@ func (c tarballCompressor) CompressSpecificFilesInDir(dir string, files []string
 		return "", bosherr.WrapError(err, "Creating temporary file for tarball")
 	}
 
+	defer tarball.Close()
+
 	tarballPath := tarball.Name()
 
 	args := []string{"czf", tarballPath, "-C", dir}

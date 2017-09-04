@@ -24,18 +24,36 @@ var _ = Describe("linuxBindMounter", func() {
 	})
 
 	Describe("Mount", func() {
-		It("delegates to mounter and adds --bind option to mount as a bind-mount", func() {
-			delegateMounter.MountErr = delegateErr
+		Context("when mounting regular directory", func() {
+			It("delegates to mounter and adds --bind option to mount as a bind-mount", func() {
+				delegateMounter.MountErr = delegateErr
 
-			err := mounter.Mount("fake-partition-path", "fake-mount-path", "fake-opt1")
+				err := mounter.Mount("fake-partition-path", "fake-mount-path", "fake-opt1")
 
-			// Outputs
-			Expect(err).To(Equal(delegateErr))
+				// Outputs
+				Expect(err).To(Equal(delegateErr))
 
-			// Inputs
-			Expect(delegateMounter.MountPartitionPaths).To(Equal([]string{"fake-partition-path"}))
-			Expect(delegateMounter.MountMountPoints).To(Equal([]string{"fake-mount-path"}))
-			Expect(delegateMounter.MountMountOptions).To(Equal([][]string{{"fake-opt1", "--bind"}}))
+				// Inputs
+				Expect(delegateMounter.MountPartitionPaths).To(Equal([]string{"fake-partition-path"}))
+				Expect(delegateMounter.MountMountPoints).To(Equal([]string{"fake-mount-path"}))
+				Expect(delegateMounter.MountMountOptions).To(Equal([][]string{{"fake-opt1", "--bind"}}))
+			})
+		})
+
+		Context("when mounting tmpfs", func() {
+			It("delegates to mounter and does not adds --bind option to mount as a bind-mount", func() {
+				delegateMounter.MountErr = delegateErr
+
+				err := mounter.Mount("tmpfs", "fake-mount-path", "fake-opt1")
+
+				// Outputs
+				Expect(err).To(Equal(delegateErr))
+
+				// Inputs
+				Expect(delegateMounter.MountPartitionPaths).To(Equal([]string{"tmpfs"}))
+				Expect(delegateMounter.MountMountPoints).To(Equal([]string{"fake-mount-path"}))
+				Expect(delegateMounter.MountMountOptions).To(Equal([][]string{{"fake-opt1"}}))
+			})
 		})
 	})
 
@@ -123,7 +141,7 @@ var _ = Describe("linuxBindMounter", func() {
 			Expect(err).To(Equal(delegateErr))
 
 			// Inputs
-			Expect(delegateMounter.IsMountedDevicePathOrMountPoint).To(Equal("fake-device-path"))
+			Expect(delegateMounter.IsMountedArgsForCall(0)).To(Equal("fake-device-path"))
 		})
 	})
 })

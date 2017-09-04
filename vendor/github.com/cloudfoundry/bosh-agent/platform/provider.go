@@ -39,23 +39,30 @@ type Provider interface {
 }
 
 type provider struct {
-	platforms map[string]Platform
+	platforms map[string]func() Platform
 }
 
 type Options struct {
 	Linux LinuxOptions
 }
 
-func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, statsCollector boshstats.Collector, fs boshsys.FileSystem, options Options, bootstrapState *BootstrapState, clock clock.Clock) Provider {
+func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, statsCollector boshstats.Collector, fs boshsys.FileSystem, options Options, bootstrapState *BootstrapState, clock clock.Clock, auditLogger AuditLogger) Provider {
 	runner := boshsys.NewExecCmdRunner(logger)
-	linuxDiskManager := boshdisk.NewLinuxDiskManager(logger, runner, fs, options.Linux.BindMountPersistentDisk)
 
+	diskManagerOpts := boshdisk.LinuxDiskManagerOpts{
+		BindMount:       options.Linux.BindMountPersistentDisk,
+		PartitionerType: options.Linux.PartitionerType,
+	}
+
+	auditLogger.StartLogging()
+
+	linuxDiskManager := boshdisk.NewLinuxDiskManager(logger, runner, fs, diskManagerOpts)
 	udev := boshudev.NewConcreteUdevDevice(runner, logger)
 	linuxCdrom := boshcdrom.NewLinuxCdrom("/dev/sr0", udev, runner)
 	linuxCdutil := boshcdrom.NewCdUtil(dirProvider.SettingsDir(), fs, linuxCdrom, logger)
 
 	compressor := boshcmd.NewTarballCompressor(runner, fs)
-	copier := boshcmd.NewCpCopier(runner, fs, logger)
+	copier := boshcmd.NewGenericCpCopier(fs, logger)
 
 	// Kick of stats collection as soon as possible
 	statsCollector.StartCollecting(SigarStatsCollectionInterval, nil)
@@ -78,6 +85,7 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, statsColl
 
 	centosCertManager := boshcert.NewCentOSCertManager(fs, runner, 0, logger)
 	ubuntuCertManager := boshcert.NewUbuntuCertManager(fs, runner, 60, logger)
+	windowsCertManager := boshcert.NewWindowsCertManager(fs, runner, dirProvider, logger)
 
 	routesSearcher := boshnet.NewRoutesSearcher(runner)
 	defaultNetworkResolver := boshnet.NewDefaultNetworkResolver(routesSearcher, ipResolver)
@@ -89,7 +97,7 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, statsColl
 	switch options.Linux.DevicePathResolutionType {
 	case "virtio":
 		udev := boshudev.NewConcreteUdevDevice(runner, logger)
-		idDevicePathResolver := devicepathresolver.NewIDDevicePathResolver(500*time.Millisecond, options.Linux.VirtioDevicePrefix, udev, fs)
+		idDevicePathResolver := devicepathresolver.NewIDDevicePathResolver(500*time.Millisecond, udev, fs)
 		mappedDevicePathResolver := devicepathresolver.NewMappedDevicePathResolver(30000*time.Millisecond, fs)
 		devicePathResolver = devicepathresolver.NewVirtioDevicePathResolver(idDevicePathResolver, mappedDevicePathResolver, logger)
 	case "scsi":
@@ -103,64 +111,87 @@ func NewProvider(logger boshlog.Logger, dirProvider boshdirs.Provider, statsColl
 
 	uuidGenerator := boshuuid.NewGenerator()
 
-	centos := NewLinuxPlatform(
-		fs,
-		runner,
-		statsCollector,
-		compressor,
-		copier,
-		dirProvider,
-		vitalsService,
-		linuxCdutil,
-		linuxDiskManager,
-		centosNetManager,
-		centosCertManager,
-		monitRetryStrategy,
-		devicePathResolver,
-		bootstrapState,
-		options.Linux,
-		logger,
-		defaultNetworkResolver,
-		uuidGenerator,
-	)
+	var centos = func() Platform {
+		return NewLinuxPlatform(
+			fs,
+			runner,
+			statsCollector,
+			compressor,
+			copier,
+			dirProvider,
+			vitalsService,
+			linuxCdutil,
+			linuxDiskManager,
+			centosNetManager,
+			centosCertManager,
+			monitRetryStrategy,
+			devicePathResolver,
+			bootstrapState,
+			options.Linux,
+			logger,
+			defaultNetworkResolver,
+			uuidGenerator,
+			auditLogger,
+		)
+	}
 
-	ubuntu := NewLinuxPlatform(
-		fs,
-		runner,
-		statsCollector,
-		compressor,
-		copier,
-		dirProvider,
-		vitalsService,
-		linuxCdutil,
-		linuxDiskManager,
-		ubuntuNetManager,
-		ubuntuCertManager,
-		monitRetryStrategy,
-		devicePathResolver,
-		bootstrapState,
-		options.Linux,
-		logger,
-		defaultNetworkResolver,
-		uuidGenerator,
-	)
+	var ubuntu = func() Platform {
+		return NewLinuxPlatform(
+			fs,
+			runner,
+			statsCollector,
+			compressor,
+			copier,
+			dirProvider,
+			vitalsService,
+			linuxCdutil,
+			linuxDiskManager,
+			ubuntuNetManager,
+			ubuntuCertManager,
+			monitRetryStrategy,
+			devicePathResolver,
+			bootstrapState,
+			options.Linux,
+			logger,
+			defaultNetworkResolver,
+			uuidGenerator,
+			auditLogger,
+		)
+	}
 
-	windows := NewWindowsPlatform(
-		statsCollector,
-		fs,
-		runner,
-		dirProvider,
-		windowsNetManager,
-		devicePathResolver,
-		logger,
-		defaultNetworkResolver,
-	)
+	var windows = func() Platform {
+		return NewWindowsPlatform(
+			statsCollector,
+			fs,
+			runner,
+			dirProvider,
+			windowsNetManager,
+			windowsCertManager,
+			devicePathResolver,
+			logger,
+			defaultNetworkResolver,
+			auditLogger,
+			uuidGenerator,
+		)
+	}
+
+	var dummy = func() Platform {
+		return NewDummyPlatform(
+			statsCollector,
+			fs,
+			runner,
+			dirProvider,
+			devicePathResolver,
+			logger,
+			auditLogger,
+		)
+	}
 
 	return provider{
-		platforms: map[string]Platform{
+		platforms: map[string]func() Platform{
 			"ubuntu":  ubuntu,
 			"centos":  centos,
-			"dummy":   NewDummyPlatform(statsCollector, fs, runner, dirProvider, devicePathResolver, logger),
+			"dummy":   dummy,
 			"windows": windows,
 		},
 	}
@@ -171,5 +202,5 @@ func (p provider) Get(name string) (Platform, error) {
 	if !found {
 		return nil, bosherror.Errorf("Platform %s could not be found", name)
 	}
-	return plat, nil
+	return plat(), nil
 }

@@ -24,7 +24,13 @@ func (c StemcellsCmd) Run() error {
 	table := boshtbl.Table{
 		Content: "stemcells",
 
-		Header: []string{"Name", "Version", "OS", "CPI", "CID"},
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Name"),
+			boshtbl.NewHeader("Version"),
+			boshtbl.NewHeader("OS"),
+			boshtbl.NewHeader("CPI"),
+			boshtbl.NewHeader("CID"),
+		},
 
 		SortBy: []boshtbl.ColumnSort{
 			{Column: 0, Asc: true},

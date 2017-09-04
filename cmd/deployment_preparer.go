@@ -227,7 +227,10 @@ func (c *DeploymentPreparer) deploy(
 		return err
 	}
 
-	agentClient := c.agentClientFactory.NewAgentClient(deploymentState.DirectorID, installationManifest.Mbus)
+	agentClient, err := c.agentClientFactory.NewAgentClient(deploymentState.DirectorID, installationManifest.Mbus, installationManifest.Cert.CA)
+	if err != nil {
+		return err
+	}
 	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
 
 	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus, bihttpclient.CreateDefaultClientInsecureSkipVerify())

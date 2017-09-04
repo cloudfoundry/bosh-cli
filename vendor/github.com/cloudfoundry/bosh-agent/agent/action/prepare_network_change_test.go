@@ -27,13 +27,12 @@ func init() {
 			action = NewPrepareNetworkChange(fs, settingsService, fakeactions.NewFakeAgentKiller())
 		})
 
-		It("is synchronous", func() {
-			Expect(action.IsAsynchronous()).To(BeFalse())
-		})
+		AssertActionIsNotAsynchronous(action)
+		AssertActionIsNotPersistent(action)
+		AssertActionIsLoggable(action)
 
-		It("is not persistent", func() {
-			Expect(action.IsPersistent()).To(BeFalse())
-		})
+		AssertActionIsNotResumable(action)
+		AssertActionIsNotCancelable(action)
 
 		It("invalidates settings so that load settings cannot fall back on old settings", func() {
 			resp, err := action.Run()
@@ -58,7 +57,9 @@ func init() {
 
 			Context("when the network rules file cannot be removed", func() {
 				BeforeEach(func() {
-					fs.RemoveAllError = errors.New("fake-remove-all-error")
+					fs.RemoveAllStub = func(_ string) error {
+						return errors.New("fake-remove-all-error")
+					}
 				})
 
 				It("returns error from removing the network rules file", func() {

@@ -848,7 +848,7 @@ var _ = Describe("AgentClient", func() {
 			})
 
 			It("makes a POST request to the endpoint", func() {
-				_, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1")
+				_, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1", 42)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeHTTPClient.PostInputs).To(HaveLen(1))
@@ -860,13 +860,13 @@ var _ = Describe("AgentClient", func() {
 
 				Expect(request).To(Equal(AgentRequestMessage{
 					Method:    "sync_dns",
-					Arguments: []interface{}{"fake-blob-store-id", "fake-blob-store-id-sha1"},
+					Arguments: []interface{}{"fake-blob-store-id", "fake-blob-store-id-sha1", float64(42)}, // JSON unmarshals to float64
 					ReplyTo:   "fake-reply-to-uuid",
 				}))
 			})
 
 			It("returns the synced value", func() {
-				responseValue, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1")
+				responseValue, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1", 42)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(responseValue).To(Equal("synced"))
 			})
@@ -878,7 +878,7 @@ var _ = Describe("AgentClient", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1")
+				_, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1", 42)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("status code: 500"))
 			})
@@ -890,7 +890,7 @@ var _ = Describe("AgentClient", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1")
+				_, err := agentClient.SyncDNS("fake-blob-store-id", "fake-blob-store-id-sha1", 42)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("bad request"))
 			})

@@ -118,7 +118,7 @@ var _ = Describe("Opts", func() {
 		Describe("Sha2", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Sha2", opts)).To(Equal(
-					`long:"sha2" description:"Use sha256 checksums. Requires recent director and stemcells."`,
+					`long:"sha2" description:"Use SHA256 checksums"`,
 				))
 			})
 		})
@@ -190,7 +190,7 @@ var _ = Describe("Opts", func() {
 		Describe("NonInteractiveOpt", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("NonInteractiveOpt", opts)).To(Equal(
-					`long:"non-interactive" short:"n" description:"Don't ask for user input"`,
+					`long:"non-interactive" short:"n" description:"Don't ask for user input" env:"BOSH_NON_INTERACTIVE"`,
 				))
 			})
 		})
@@ -283,14 +283,6 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("BackUp", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("BackUp", opts)).To(Equal(
-					`command:"back-up" description:"Back up the Director database to a tarball"`,
-				))
-			})
-		})
-
 		Describe("Interpolate", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Interpolate", opts)).To(Equal(
@@ -374,7 +366,7 @@ var _ = Describe("Opts", func() {
 		Describe("Deploy", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Deploy", opts)).To(Equal(
-					`command:"deploy" alias:"d" description:"Deploy according to the currently selected deployment manifest"`,
+					`command:"deploy" alias:"d" description:"Update deployment"`,
 				))
 			})
 		})
@@ -382,7 +374,7 @@ var _ = Describe("Opts", func() {
 		Describe("Manifest", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Manifest", opts)).To(Equal(
-					`command:"manifest" alias:"m" alias:"man" alias:"download-manifest" description:"Download deployment manifest locally"`,
+					`command:"manifest" alias:"man" description:"Show deployment manifest"`,
 				))
 			})
 		})
@@ -390,7 +382,7 @@ var _ = Describe("Opts", func() {
 		Describe("Stemcells", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Stemcells", opts)).To(Equal(
-					`command:"stemcells" alias:"ss" alias:"stems" description:"List stemcells"`,
+					`command:"stemcells" alias:"ss" description:"List stemcells"`,
 				))
 			})
 		})
@@ -422,7 +414,7 @@ var _ = Describe("Opts", func() {
 		Describe("Releases", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Releases", opts)).To(Equal(
-					`command:"releases" alias:"rs" alias:"rels" description:"List releases"`,
+					`command:"releases" alias:"rs" description:"List releases"`,
 				))
 			})
 		})
@@ -438,7 +430,7 @@ var _ = Describe("Opts", func() {
 		Describe("ExportRelease", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("ExportRelease", opts)).To(Equal(
-					`command:"export-release" alias:"expr" description:"Export the compiled release to a tarball"`,
+					`command:"export-release" description:"Export the compiled release to a tarball"`,
 				))
 			})
 		})
@@ -446,7 +438,7 @@ var _ = Describe("Opts", func() {
 		Describe("InspectRelease", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("InspectRelease", opts)).To(Equal(
-					`command:"inspect-release" alias:"insr" description:"List all jobs, packages, and compiled packages associated with a release"`,
+					`command:"inspect-release" description:"List release contents such as jobs"`,
 				))
 			})
 		})
@@ -462,7 +454,7 @@ var _ = Describe("Opts", func() {
 		Describe("Errands", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Errands", opts)).To(Equal(
-					`command:"errands" alias:"es" alias:"errs" description:"List errands"`,
+					`command:"errands" alias:"es" description:"List errands"`,
 				))
 			})
 		})
@@ -470,7 +462,7 @@ var _ = Describe("Opts", func() {
 		Describe("RunErrand", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("RunErrand", opts)).To(Equal(
-					`command:"run-errand" alias:"re" description:"Run errand"`,
+					`command:"run-errand" description:"Run errand"`,
 				))
 			})
 		})
@@ -494,7 +486,7 @@ var _ = Describe("Opts", func() {
 		Describe("Snapshots", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Snapshots", opts)).To(Equal(
-					`command:"snapshots" alias:"snaps" description:"List snapshots"`,
+					`command:"snapshots" description:"List snapshots"`,
 				))
 			})
 		})
@@ -502,7 +494,7 @@ var _ = Describe("Opts", func() {
 		Describe("TakeSnapshot", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("TakeSnapshot", opts)).To(Equal(
-					`command:"take-snapshot" alias:"tsnap" description:"Take snapshot"`,
+					`command:"take-snapshot" description:"Take snapshot"`,
 				))
 			})
 		})
@@ -510,7 +502,7 @@ var _ = Describe("Opts", func() {
 		Describe("DeleteSnapshot", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("DeleteSnapshot", opts)).To(Equal(
-					`command:"delete-snapshot" alias:"delsnap" description:"Delete snapshot"`,
+					`command:"delete-snapshot" description:"Delete snapshot"`,
 				))
 			})
 		})
@@ -518,7 +510,7 @@ var _ = Describe("Opts", func() {
 		Describe("DeleteSnapshots", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("DeleteSnapshots", opts)).To(Equal(
-					`command:"delete-snapshots" alias:"delsnaps" description:"Delete all snapshots in a deployment"`,
+					`command:"delete-snapshots" description:"Delete all snapshots in a deployment"`,
 				))
 			})
 		})
@@ -534,7 +526,7 @@ var _ = Describe("Opts", func() {
 		Describe("Instances", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Instances", opts)).To(Equal(
-					`command:"instances" alias:"is" alias:"ins" description:"List all instances in a deployment"`,
+					`command:"instances" alias:"is" description:"List all instances in a deployment"`,
 				))
 			})
 		})
@@ -678,7 +670,7 @@ var _ = Describe("Opts", func() {
 		Describe("Sha2ifyRelease", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Sha2ifyRelease", opts)).To(Equal(
-					`command:"sha2ify-release" hidden:"true" description:"Convert a sha128 release tarball to sha256"`,
+					`command:"sha2ify-release" hidden:"true" description:"Convert release tarball to use SHA256"`,
 				))
 			})
 		})
@@ -686,7 +678,7 @@ var _ = Describe("Opts", func() {
 		Describe("FinalizeRelease", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("FinalizeRelease", opts)).To(Equal(
-					`command:"finalize-release" alias:"finr" description:"Create final release from dev release tarball"`,
+					`command:"finalize-release" description:"Create final release from dev release tarball"`,
 				))
 			})
 		})
@@ -734,7 +726,7 @@ var _ = Describe("Opts", func() {
 		Describe("AttachDisk", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("AttachDisk", opts)).To(Equal(
-					`command:"attach-disk" description:"Attaches an disk to an instance and replaces the current disk"`,
+					`command:"attach-disk" description:"Attaches disk to an instance"`,
 				))
 			})
 		})
@@ -966,28 +958,6 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
-	Describe("BackUpOpts", func() {
-		var opts *BackUpOpts
-
-		BeforeEach(func() {
-			opts = &BackUpOpts{}
-		})
-
-		Describe("Args", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
-			})
-		})
-
-		Describe("Force", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Force", opts)).To(Equal(
-					`long:"force" description:"Overwrite if the backup file already exists"`,
-				))
-			})
-		})
-	})
-
 	Describe("AttachDiskOpts", func() {
 		var opts *AttachDiskOpts
 
@@ -1013,20 +983,6 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Slug", opts)).To(Equal(`positional-arg-name:"INSTANCE-GROUP/INSTANCE-ID"`))
 				Expect(getStructTagForName("DiskCID", opts)).To(Equal(`positional-arg-name:"DISK-CID"`))
-			})
-		})
-	})
-
-	Describe("BackUpArgs", func() {
-		var opts *BackUpArgs
-
-		BeforeEach(func() {
-			opts = &BackUpArgs{}
-		})
-
-		Describe("Path", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Path", opts)).To(Equal(`positional-arg-name:"PATH"`))
 			})
 		})
 	})
@@ -1103,6 +1059,20 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
+	Describe("RuntimeConfigOpts", func() {
+		var opts *RuntimeConfigOpts
+
+		BeforeEach(func() {
+			opts = &RuntimeConfigOpts{}
+		})
+
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(`long:"name" description:"Runtime-Config name (default: '')" default:""`))
+			})
+		})
+	})
+
 	Describe("UpdateRuntimeConfigOpts", func() {
 		var opts *UpdateRuntimeConfigOpts
 
@@ -1113,6 +1083,24 @@ var _ = Describe("Opts", func() {
 		Describe("Args", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(`long:"name" description:"Runtime-Config name (default: '')" default:""`))
+			})
+		})
+
+		Describe("NoRedact", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("NoRedact", opts)).To(Equal(`long:"no-redact" description:"Show non-redacted manifest diff"`))
+			})
+		})
+
+		Describe("ParallelOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("ParallelOpt", opts)).To(Equal(`long:"parallel" description:"Upload releases from manifest in parallel with given number of nodes (default: 5)" default:"5"`))
 			})
 		})
 	})
@@ -1159,6 +1147,12 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("NoRedact", opts)).To(Equal(
 					`long:"no-redact" description:"Show non-redacted manifest diff"`,
 				))
+			})
+		})
+
+		Describe("ParallelOpt", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("ParallelOpt", opts)).To(Equal(`long:"parallel" description:"Upload releases from manifest in parallel with given number of nodes (default: 5)" default:"5"`))
 			})
 		})
 
@@ -1357,6 +1351,12 @@ var _ = Describe("Opts", func() {
 				`long:"cloud-properties" description:"Repacked stemcell cloud properties"`,
 			))
 		})
+
+		It("has --empty-image", func() {
+			Expect(getStructTagForName("EmptyImage", opts)).To(Equal(
+				`long:"empty-image" description:"Pack zero byte file instead of image"`,
+			))
+		})
 	})
 
 	Describe("RepackStemcellArgs", func() {
@@ -1448,6 +1448,12 @@ var _ = Describe("Opts", func() {
 					`long:"sha1" description:"SHA1 of the remote release (is not used with local files)"`,
 				))
 			})
+		})
+
+		It("allows to provide stemcell configuration for remote compiled releases", func() {
+			Expect(getStructTagForName("Stemcell", opts)).To(Equal(
+				`long:"stemcell" value-name:"OS/VERSION" description:"Stemcell that the release is compiled against (applies to remote releases)"`,
+			))
 		})
 	})
 
@@ -1581,6 +1587,22 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
+	Describe("InstanceGroupOrInstanceSlugFlags", func() {
+		var opts *InstanceGroupOrInstanceSlugFlags
+
+		BeforeEach(func() {
+			opts = &InstanceGroupOrInstanceSlugFlags{}
+		})
+
+		Describe("Slug", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Slugs", opts)).To(Equal(
+					`long:"instance" value-name:"INSTANCE-GROUP[/INSTANCE-ID]" description:"Instance or group the errand should run on (must specify errand by release job name)"`,
+				))
+			})
+		})
+	})
+
 	Describe("RunErrandOpts", func() {
 		var opts *RunErrandOpts
 
@@ -1678,6 +1700,36 @@ var _ = Describe("Opts", func() {
 
 		BeforeEach(func() {
 			opts = &DeleteDiskArgs{}
+		})
+
+		Describe("CID", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CID", opts)).To(Equal(
+					`positional-arg-name:"CID"`,
+				))
+			})
+		})
+	})
+
+	Describe("OrphanDiskOpts", func() {
+		var opts *OrphanDiskOpts
+
+		BeforeEach(func() {
+			opts = &OrphanDiskOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+	})
+
+	Describe("OrphanDiskArgs", func() {
+		var opts *OrphanDiskArgs
+
+		BeforeEach(func() {
+			opts = &OrphanDiskArgs{}
 		})
 
 		Describe("CID", func() {
@@ -1876,6 +1928,14 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Auto", opts)).To(Equal(
 					`long:"auto" short:"a" description:"Resolve problems automatically"`,
+				))
+			})
+		})
+
+		Describe("Resolution", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Resolutions", opts)).To(Equal(
+					`long:"resolution" description:"Apply resolution of given type"`,
 				))
 			})
 		})
@@ -2544,10 +2604,10 @@ var _ = Describe("Opts", func() {
 	})
 
 	Describe("Sha2ifyReleaseArgs", func() {
-		var opts *Sha2ifyReleaseArgs
+		var opts *RedigestReleaseArgs
 
 		BeforeEach(func() {
-			opts = &Sha2ifyReleaseArgs{}
+			opts = &RedigestReleaseArgs{}
 		})
 
 		Describe("Positional args", func() {

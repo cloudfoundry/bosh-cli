@@ -16,7 +16,7 @@ type compiledPackageApplierProvider struct {
 	jobSpecificEnablePath string
 	name                  string
 
-	blobstore  boshblob.Blobstore
+	blobstore  boshblob.DigestBlobstore
 	compressor boshcmd.Compressor
 	fs         boshsys.FileSystem
 	logger     boshlog.Logger
@@ -24,7 +24,7 @@ type compiledPackageApplierProvider struct {
 
 func NewCompiledPackageApplierProvider(
 	installPath, rootEnablePath, jobSpecificEnablePath, name string,
-	blobstore boshblob.Blobstore,
+	blobstore boshblob.DigestBlobstore,
 	compressor boshcmd.Compressor,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,

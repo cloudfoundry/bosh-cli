@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"regexp"
 	"strings"
 	"text/template"
@@ -67,6 +68,10 @@ var _ = Describe("bosh", func() {
 		DummyReleasePath         string
 		DummyTooReleasePath      string
 		DummyCompiledReleasePath string
+		MbusCACert               []string
+		AgentMbusCACert          []string
+		AgentMbusPrivateKey      []string
+		AgentMbusCertificate     []string
 		StemcellURL              string
 		StemcellSHA1             string
 	}
@@ -102,7 +107,8 @@ var _ = Describe("bosh", func() {
 		}
 
 		buffer := prepareDeploymentManifest(context, sourceManifestPath)
-		testEnv.WriteContent("test-manifest.yml", buffer)
+		err := testEnv.WriteContent("test-manifest.yml", buffer)
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var updateCompiledReleaseDeploymentManifest = func(sourceManifestPath string) {
@@ -111,7 +117,31 @@ var _ = Describe("bosh", func() {
 		}
 
 		buffer := prepareDeploymentManifest(context, sourceManifestPath)
-		testEnv.WriteContent("test-compiled-manifest.yml", buffer)
+		err := testEnv.WriteContent("test-compiled-manifest.yml", buffer)
+		Expect(err).NotTo(HaveOccurred())
+	}
+
+	var updateCompiledReleaseDeploymentManifestWithCACerts = func(sourceManifestPath string, caCert string) {
+		agentMbusCACert, err := ioutil.ReadFile("./assets/certs/custom_ca.pem")
+		Expect(err).NotTo(HaveOccurred())
+
+		agentMbusPrivateKey, err := ioutil.ReadFile("./assets/certs/custom_key.pem")
+		Expect(err).NotTo(HaveOccurred())
+
+		agentMbusCertificate, err := ioutil.ReadFile("./assets/certs/custom_cert.pem")
+		Expect(err).NotTo(HaveOccurred())
+
+		context := manifestContext{
+			DummyCompiledReleasePath: testEnv.Path("sample-release-compiled.tgz"),
+			MbusCACert:               strings.Split(caCert, "\n"),
+			AgentMbusCACert:          strings.Split(string(agentMbusCACert), "\n"),
+			AgentMbusPrivateKey:      strings.Split(string(agentMbusPrivateKey), "\n"),
+			AgentMbusCertificate:     strings.Split(string(agentMbusCertificate), "\n"),
+		}
+
+		buffer := prepareDeploymentManifest(context, sourceManifestPath)
+		err = testEnv.WriteContent("test-compiled-manifest.yml", buffer)
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var deploy = func(manifestFile string) string {
@@ -146,7 +176,9 @@ var _ = Describe("bosh", func() {
 		stdout := &bytes.Buffer{}
 		multiWriter := io.MultiWriter(stdout, GinkgoWriter)
 
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh"), "delete-env", "--tty", testEnv.Path("test-manifest.yml"))
+		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh"),
+			"delete-env", "--tty", testEnv.Path("test-manifest.yml"))
+
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 
@@ -191,7 +223,12 @@ var _ = Describe("bosh", func() {
 	}
 
 	BeforeSuite(func() {
-		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
+		err := bitestutils.BuildExecutableForArch("linux-amd64")
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	BeforeEach(func() {
+		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter)
 		fileSystem = boshsys.NewOsFileSystem(logger)
 
 		var err error
@@ -201,22 +238,15 @@ var _ = Describe("bosh", func() {
 		err = config.Validate()
 		Expect(err).NotTo(HaveOccurred())
 
-		testEnv = NewRemoteTestEnvironment(
-			config.VMUsername,
-			config.VMIP,
-			config.VMPort,
-			config.PrivateKeyPath,
+		testEnv = NewTestEnvironment(
 			fileSystem,
 			logger,
 		)
 
-		sshCmdRunner = NewSSHCmdRunner(
-			config.VMUsername,
-			config.VMIP,
-			config.VMPort,
-			config.PrivateKeyPath,
+		sshCmdRunner = NewCmdRunner(
 			logger,
 		)
+
 		cmdEnv = map[string]string{
 			"TMPDIR":         testEnv.Home(),
 			"BOSH_LOG_LEVEL": "DEBUG",
@@ -232,19 +262,12 @@ var _ = Describe("bosh", func() {
 		deleteLogFile(cmdEnv["BOSH_LOG_PATH"])
 		deleteLogFile(quietCmdEnv["BOSH_LOG_PATH"])
 
-		err = bitestutils.BuildExecutableForArch("linux-amd64")
-		Expect(err).NotTo(HaveOccurred())
-
 		boshCliPath := "./../out/bosh"
 		Expect(fileSystem.FileExists(boshCliPath)).To(BeTrue())
 		err = testEnv.Copy("bosh", boshCliPath)
 		Expect(err).NotTo(HaveOccurred())
 
 		instanceSSH = NewInstanceSSH(
-			config.VMUsername,
-			config.VMIP,
-			config.VMPort,
-			config.PrivateKeyPath,
 			instanceUsername,
 			instanceIP,
 			instancePassword,
@@ -351,6 +374,92 @@ var _ = Describe("bosh", func() {
 			Expect(stdout).To(ContainSubstring("No deployment, stemcell or release changes. Skipping deploy."))
 			Expect(stdout).ToNot(ContainSubstring("Started installing CPI jobs"))
 			Expect(stdout).ToNot(ContainSubstring("Started deploying"))
+		})
+	})
+
+	Context("when deploying with a mbus CA cert", func() {
+		BeforeEach(func() {
+			config.StemcellURL = "https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-trusty-go_agent?v=3421.3"
+			config.StemcellSHA1 = "fb97ed66a13c5a2cbcf21bc52957fb31074c040d"
+		})
+
+		AfterEach(func() {
+			flushLog(cmdEnv["BOSH_LOG_PATH"])
+
+			// quietly delete the deployment
+			_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh"), "delete-env", "--tty", testEnv.Path("test-compiled-manifest.yml"))
+			if exitCode != 0 || err != nil {
+				// only flush the delete log if the delete failed
+				flushLog(quietCmdEnv["BOSH_LOG_PATH"])
+			}
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exitCode).To(Equal(0))
+		})
+
+		Context("with a valid CA", func() {
+			It("verifies the CA cert", func() {
+				caCert, err := ioutil.ReadFile("./assets/certs/custom_ca.pem")
+				Expect(err).NotTo(HaveOccurred())
+
+				updateCompiledReleaseDeploymentManifestWithCACerts("./assets/sample-release-compiled-manifest-with-ca-cert.yml", string(caCert))
+
+				By("deploying with the right CA cert")
+				stdout := deploy("test-compiled-manifest.yml")
+				outputLines := strings.Split(stdout, "\n")
+
+				Expect(outputLines).NotTo(ContainElement(MatchRegexp("x509: certificate has expired or is not yet valid")))
+				Expect(outputLines).To(ContainElement("Succeeded"))
+			})
+		})
+
+		Context("with a bogus CA", func() {
+			It("fails pinging the agent", func() {
+				bogusCACert := `-----BEGIN CERTIFICATE-----
+MIIE/zCCAumgAwIBAgIBATALBgkqhkiG9w0BAQswETEPMA0GA1UEAxMGcGVlckNB
+MB4XDTE1MDcxNjEzMjQxOFoXDTI1MDcxNjEzMjQyM1owETEPMA0GA1UEAxMGcGVl
+ckNBMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAuDFaTLJ//NLZUR8S
+gnKRh0vdjOfSwLakRfmWp/midwDFILuGvHgRd3ItsmNthy2ECQ3mr+zETAQ/Q3vp
+ba3P1hNMtCC1aHHnnF2KXqDCH9bYh7mqEhCUy3QXhJVWET2RgmWtvfXwPxr+hvxQ
+tjXhb9YloKkm99HNwREqczSUTZMmxirLbKnm7ztHtrUqMpaWiyKablgoukJCpufQ
+fOlKdxdX7fpQ5C2n+rYQWM2Xxu+KXeWv6E2MoZIYv+Gch2ZRWXC6fhQn7u8qSszZ
+reVMGbqsaQG+powLMOlA9ZW3KbIrf+jeNY5YFBWcPnGDNBZYgzud4x0i1BwfA7Mp
+T8fwjF1xEkmxB7Qf2gUZPEUDOgkDFszW2p9vEtqleMKJqSTMhxEMiwSB/CSVvGWI
+SclUHJN7pqcX2bKbGFWxMNfI/ez9lSDH7mqfRDPz/pLAvXLf5Xlsnzat50PKpBWt
+Wns1Z5KDeVMMn0MYu7gZ0GdA+/OotsP2r3BnmyPeiTQ0IlGz9Z7ikn/rZ+QfK8jf
+WGkQZlaQuNBUvC5UEn+I9n/qrTw38jUUY+IDDWOLp9VzpLNWIkSMKqJnN1igCZ/D
+QoW2rbqGwrv7UJywW1clglrS9nmOsGU9LtsU+KJeGRKK9lazkpujiKOLz306rIUU
+NBtbB1DDyvLTaj7Ln8VMD6v2BPkCAwEAAaNmMGQwDgYDVR0PAQH/BAQDAgAGMBIG
+A1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFNixBensHx4NqEIf5jnCXZSXxnuH
+MB8GA1UdIwQYMBaAFNixBensHx4NqEIf5jnCXZSXxnuHMAsGCSqGSIb3DQEBCwOC
+AgEAhaHd/x1rAwkgIVEc+Y69vsrrpb2NOY6MB2ogLJnu8KaAcmvYsfku06Sc5GLn
+tXpkoftknrbjVV+g+XUhCz18NUY7YAFbYmembkC8ZVP32nQ1rsUf9jx8yiNYkeLq
+ZOYlnKbSram4/6Efg0ttxEgbIbwYPviApEH6DK26++vvxejgV+GdcMR9XXwEi/kN
+j1+ZfkzVnlO5j5uPLZi8vgsalJvWcPygolTxL73pfNXHj9QilxpUdJiVOvxke4MA
+VJOg8o02DN5QqRyT6oM1ivwbe7AYfZYRIjsJdSOXYvcBHk6iHZdPZeJcFnNjUOaE
+jvG/d9ezdUHa3C4qtHvmqcl2AjN/o50VyCY9/Mkgn8/tDOvVt3l3uSh0O4SQaZA1
++KN7n0Jl0yiyv+3uGVWNOEX87SREcP0GbrsCdOGm3HmDTWw0UFidNJdzXkj2Iayv
+/hOq0PTBwTFm8shSXiPsjh6WMBXkkmu5FB51ZQ4Ch0MZDtuvlw9sGX9/zFNwL3W8
+Kqu6zV6ZSlv9RW9ChbHtDvs+DdqetU9WLYjglPcHfpV/BH1HRozfR1bStYm9Ljwy
+P8ZEmoycBR/79PtVdkSiFB4PiSkLHr6ICDSQGO+9+mLNQubFS+czQon90bZ9GVfg
+fvue6FeCS62q1lOmwKsNHi26szI5qY8b6Xj3cNjhDS5pIfg=
+-----END CERTIFICATE-----
+`
+
+				updateCompiledReleaseDeploymentManifestWithCACerts("./assets/sample-release-compiled-manifest-with-ca-cert.yml", bogusCACert)
+
+				By("deploying with a bogus CA cert")
+				fmt.Fprintf(GinkgoWriter, "\n--- DEPLOY ---\n")
+
+				stdoutBuffer := &bytes.Buffer{}
+				multiWriter := io.MultiWriter(stdoutBuffer, GinkgoWriter)
+
+				_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh"), "create-env", "--tty", testEnv.Path("test-compiled-manifest.yml"))
+				Expect(err).To(HaveOccurred())
+				Expect(exitCode).To(Equal(1))
+				outputLines := strings.Split(stdoutBuffer.String(), "\n")
+
+				Expect(outputLines).To(ContainElement(MatchRegexp("x509: certificate signed by unknown authority")))
+			})
 		})
 	})
 

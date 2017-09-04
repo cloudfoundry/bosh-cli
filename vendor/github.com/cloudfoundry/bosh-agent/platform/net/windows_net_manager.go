@@ -119,6 +119,8 @@ func (net WindowsNetManager) ComputeNetworkConfig(networks boshsettings.Networks
 
 }
 
+func (net WindowsNetManager) SetupIPv6(_ boshsettings.IPv6, _ <-chan struct{}) error { return nil }
+
 func (net WindowsNetManager) SetupNetworking(networks boshsettings.Networks, errCh chan error) error {
 	nonVipNetworks := boshsettings.Networks{}
 	for networkName, networkSettings := range networks {

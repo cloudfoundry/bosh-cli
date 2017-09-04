@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	"code.cloudfoundry.org/clock"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	"github.com/pivotal-golang/clock"
 
 	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"

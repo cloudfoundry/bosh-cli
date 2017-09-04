@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"net/url"
 
+	"time"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshhttp "github.com/cloudfoundry/bosh-utils/http"
 	boshhttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"time"
 )
 
 type Factory struct {
@@ -69,7 +70,8 @@ func (f Factory) httpClient(config Config, taskReporter TaskReporter, fileReport
 
 		req.URL.Host = net.JoinHostPort(config.Host, fmt.Sprintf("%d", config.Port))
 
-		req.Header.Del("Referer")
+		clearHeaders(req)
+		clearBody(req)
 
 		return nil
 	}
@@ -87,4 +89,16 @@ func (f Factory) httpClient(config Config, taskReporter TaskReporter, fileReport
 	}
 
 	return NewClient(endpoint.String(), httpClient, taskReporter, fileReporter, f.logger), nil
+}
+
+func clearBody(req *http.Request) {
+	req.Body = nil
+}
+
+func clearHeaders(req *http.Request) {
+	authValue := req.Header.Get("Authorization")
+	req.Header = make(map[string][]string)
+	if authValue != "" {
+		req.Header.Add("Authorization", authValue)
+	}
 }

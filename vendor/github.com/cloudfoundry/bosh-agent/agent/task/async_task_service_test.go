@@ -60,6 +60,34 @@ func init() {
 				Expect(task.Error).To(Equal(err))
 			})
 
+			It("sets task Func, CancelFunc and EndFunc to nil on a successful task", func() {
+				runFunc := func() (interface{}, error) { return nil, nil }
+				cancelFunc := func(_ Task) error { return nil }
+				endFunc := func(_ Task) {}
+
+				task, createErr := service.CreateTask(runFunc, cancelFunc, endFunc)
+				Expect(createErr).ToNot(HaveOccurred())
+
+				task = startAndWaitForTaskCompletion(task)
+				Expect(task.Func).To(BeNil())
+				Expect(task.CancelFunc).To(BeNil())
+				Expect(task.EndFunc).To(BeNil())
+			})
+
+			It("sets task Func, CancelFunc and EndFunc to nil on a failing task", func() {
+				runFunc := func() (interface{}, error) { return nil, errors.New("fake-error") }
+				cancelFunc := func(_ Task) error { return nil }
+				endFunc := func(_ Task) {}
+
+				task, createErr := service.CreateTask(runFunc, cancelFunc, endFunc)
+				Expect(createErr).ToNot(HaveOccurred())
+
+				task = startAndWaitForTaskCompletion(task)
+				Expect(task.Func).To(BeNil())
+				Expect(task.CancelFunc).To(BeNil())
+				Expect(task.EndFunc).To(BeNil())
+			})
+
 			Describe("CreateTask", func() {
 				It("can run task created with CreateTask which does not have end func", func() {
 					ranFunc := false

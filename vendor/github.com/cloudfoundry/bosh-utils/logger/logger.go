@@ -55,30 +55,26 @@ type Logger interface {
 
 type logger struct {
 	level       LogLevel
-	out         *log.Logger
-	err         *log.Logger
+	logger      *log.Logger
 	forcedDebug bool
-	outMu       sync.Mutex
-	errMu       sync.Mutex
+	loggerMu    sync.Mutex
 }
 
-func New(level LogLevel, out, err *log.Logger) Logger {
+func New(level LogLevel, out *log.Logger) Logger {
 	return &logger{
-		level: level,
-		out:   out,
-		err:   err,
+		level:  level,
+		logger: out,
 	}
 }
 
 func NewLogger(level LogLevel) Logger {
-	return NewWriterLogger(level, os.Stdout, os.Stderr)
+	return NewWriterLogger(level, os.Stderr)
 }
 
-func NewWriterLogger(level LogLevel, out, err io.Writer) Logger {
+func NewWriterLogger(level LogLevel, writer io.Writer) Logger {
 	return New(
 		level,
-		log.New(out, "", log.LstdFlags),
-		log.New(err, "", log.LstdFlags),
+		log.New(writer, "", log.LstdFlags),
 	)
 }
 
@@ -91,7 +87,7 @@ func (l *logger) Debug(tag, msg string, args ...interface{}) {
 	}
 
 	msg = "DEBUG - " + msg
-	l.outPrintf(tag, msg, args...)
+	l.printf(tag, msg, args...)
 }
 
 // DebugWithDetails will automatically change the format of the message
@@ -107,7 +103,7 @@ func (l *logger) Info(tag, msg string, args ...interface{}) {
 	}
 
 	msg = "INFO - " + msg
-	l.outPrintf(tag, msg, args...)
+	l.printf(tag, msg, args...)
 }
 
 func (l *logger) Warn(tag, msg string, args ...interface{}) {
@@ -116,7 +112,7 @@ func (l *logger) Warn(tag, msg string, args ...interface{}) {
 	}
 
 	msg = "WARN - " + msg
-	l.errPrintf(tag, msg, args...)
+	l.printf(tag, msg, args...)
 }
 
 func (l *logger) Error(tag, msg string, args ...interface{}) {
@@ -125,7 +121,7 @@ func (l *logger) Error(tag, msg string, args ...interface{}) {
 	}
 
 	msg = "ERROR - " + msg
-	l.errPrintf(tag, msg, args...)
+	l.printf(tag, msg, args...)
 }
 
 // ErrorWithDetails will automatically change the format of the message
@@ -164,18 +160,10 @@ func (l *logger) ToggleForcedDebug() {
 	l.forcedDebug = !l.forcedDebug
 }
 
-func (l *logger) errPrintf(tag, msg string, args ...interface{}) {
+func (l *logger) printf(tag, msg string, args ...interface{}) {
 	s := fmt.Sprintf(msg, args...)
-	l.errMu.Lock()
-	l.err.SetPrefix("[" + tag + "] ")
-	l.err.Output(2, s)
-	l.errMu.Unlock()
-}
-
-func (l *logger) outPrintf(tag, msg string, args ...interface{}) {
-	s := fmt.Sprintf(msg, args...)
-	l.outMu.Lock()
-	l.out.SetPrefix("[" + tag + "] ")
-	l.out.Output(2, s)
-	l.outMu.Unlock()
+	l.loggerMu.Lock()
+	l.logger.SetPrefix("[" + tag + "] ")
+	l.logger.Output(2, s)
+	l.loggerMu.Unlock()
 }

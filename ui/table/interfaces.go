@@ -10,9 +10,7 @@ type Table struct {
 	Title   string
 	Content string
 
-	// Either strings or values should be provided
-	Header     []string
-	HeaderVals []Value
+	Header []Header
 
 	SortBy []ColumnSort
 
@@ -23,10 +21,18 @@ type Table struct {
 	Notes []string
 
 	// Formatting
-	FillFirstColumn bool
-	BackgroundStr   string
-	BorderStr       string
-	Transpose       bool
+	HeaderFormatFunc func(string, ...interface{}) string
+	DataOnly         bool
+	FillFirstColumn  bool
+	BackgroundStr    string
+	BorderStr        string
+	Transpose        bool
+}
+
+type Header struct {
+	Key    string
+	Title  string
+	Hidden bool
 }
 
 type Section struct {
@@ -48,6 +54,8 @@ type Value interface {
 type ValueString struct {
 	S string
 }
+
+type EmptyValue struct{}
 
 type ValueStrings struct {
 	S []string
