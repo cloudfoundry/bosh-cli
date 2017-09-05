@@ -35,6 +35,7 @@ var _ = Describe("VMsCmd", func() {
 
 		BeforeEach(func() {
 			opts = VMsOpts{}
+			opts.ParallelOpt = 5
 		})
 
 		act := func() error { return command.Run(opts) }
