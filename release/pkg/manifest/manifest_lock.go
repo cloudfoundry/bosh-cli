@@ -6,29 +6,29 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type VendoredManifest struct {
+type ManifestLock struct {
 	Name         string   `yaml:"name"`
 	Fingerprint  string   `yaml:"fingerprint"`
 	Dependencies []string `yaml:"dependencies,omitempty"`
 }
 
-func NewVendoredManifestFromPath(path string, fs boshsys.FileSystem) (VendoredManifest, error) {
-	var manifest VendoredManifest
+func NewManifestLockFromPath(path string, fs boshsys.FileSystem) (ManifestLock, error) {
+	var manifest ManifestLock
 
 	bytes, err := fs.ReadFile(path)
 	if err != nil {
-		return manifest, bosherr.WrapErrorf(err, "Reading package vendored spec '%s'", path)
+		return manifest, bosherr.WrapErrorf(err, "Reading package spec lock '%s'", path)
 	}
 
 	err = yaml.Unmarshal(bytes, &manifest)
 	if err != nil {
-		return manifest, bosherr.WrapError(err, "Unmarshalling package vendored spec")
+		return manifest, bosherr.WrapError(err, "Unmarshalling package spec lock")
 	}
 
 	return manifest, nil
 }
 
-func (m VendoredManifest) AsBytes() ([]byte, error) {
+func (m ManifestLock) AsBytes() ([]byte, error) {
 	if len(m.Name) == 0 {
 		return nil, bosherr.Errorf("Expected non-empty package name")
 	}

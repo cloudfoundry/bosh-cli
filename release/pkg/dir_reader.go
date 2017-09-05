@@ -41,14 +41,14 @@ func NewDirReaderImpl(
 }
 
 func (r DirReaderImpl) Read(path string) (*Package, error) {
-	vendoredManifest, err := r.collectVendored(path)
+	manifestLock, err := r.collectLock(path)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Collecting vendored package files")
+		return nil, bosherr.WrapErrorf(err, "Collecting package spec lock")
 	}
 
-	if vendoredManifest != nil {
-		resource := NewExistingResource(vendoredManifest.Name, vendoredManifest.Fingerprint, "")
-		return NewPackage(resource, vendoredManifest.Dependencies), nil
+	if manifestLock != nil {
+		resource := NewExistingResource(manifestLock.Name, manifestLock.Fingerprint, "")
+		return NewPackage(resource, manifestLock.Dependencies), nil
 	}
 
 	manifest, files, prepFiles, err := r.collectFiles(path)
@@ -70,16 +70,16 @@ func (r DirReaderImpl) Read(path string) (*Package, error) {
 	return NewPackage(resource, manifest.Dependencies), nil
 }
 
-func (r DirReaderImpl) collectVendored(path string) (*VendoredManifest, error) {
-	path = filepath.Join(path, "vendored")
+func (r DirReaderImpl) collectLock(path string) (*ManifestLock, error) {
+	path = filepath.Join(path, "spec.lock")
 
 	if r.fs.FileExists(path) {
-		vendoredManifest, err := NewVendoredManifestFromPath(path, r.fs)
+		manifestLock, err := NewManifestLockFromPath(path, r.fs)
 		if err != nil {
 			return nil, err
 		}
 
-		return &vendoredManifest, nil
+		return &manifestLock, nil
 	}
 
 	return nil, nil

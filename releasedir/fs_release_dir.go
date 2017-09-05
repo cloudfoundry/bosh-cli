@@ -244,7 +244,7 @@ func (d FSReleaseDir) VendorPackage(pkg *boshpkg.Package) error {
 
 		err = d.writeVendoredPackage(pkg2)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Writing vendored package lock")
+			return bosherr.WrapErrorf(err, "Writing vendored package")
 		}
 	}
 
@@ -272,20 +272,20 @@ func (d FSReleaseDir) writeVendoredPackage(pkg *boshpkg.Package) error {
 		return bosherr.WrapErrorf(err, "Creating package '%s' dir", name)
 	}
 
-	spec := boshpkgman.VendoredManifest{Name: name, Fingerprint: pkg.Fingerprint()}
+	manifestLock := boshpkgman.ManifestLock{Name: name, Fingerprint: pkg.Fingerprint()}
 
 	for _, pkg2 := range pkg.Dependencies {
-		spec.Dependencies = append(spec.Dependencies, pkg2.Name())
+		manifestLock.Dependencies = append(manifestLock.Dependencies, pkg2.Name())
 	}
 
-	specBytes, err := spec.AsBytes()
+	manifestLockBytes, err := manifestLock.AsBytes()
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Marshaling vendored package '%s' spec", name)
+		return bosherr.WrapErrorf(err, "Marshaling vendored package '%s' spec lock", name)
 	}
 
-	err = d.fs.WriteFile(filepath.Join(pkgDirPath, "vendored"), specBytes)
+	err = d.fs.WriteFile(filepath.Join(pkgDirPath, "spec.lock"), manifestLockBytes)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Creating package '%s' spec file", name)
+		return bosherr.WrapErrorf(err, "Creating package '%s' spec lock file", name)
 	}
 
 	return nil

@@ -600,7 +600,7 @@ var _ = Describe("FSGenerator", func() {
 	})
 
 	Describe("VendorPackage", func() {
-		It("finalizes given package and its dependencies and records vendored manifests", func() {
+		It("finalizes given package and its dependencies and records vendored package manifest locks", func() {
 			pkg1Res := &fakeres.FakeResource{
 				NameStub:        func() string { return "pkg1-name" },
 				FingerprintStub: func() string { return "pkg1-fp" },
@@ -629,34 +629,34 @@ var _ = Describe("FSGenerator", func() {
 			// previous content will be overwritten
 			Expect(fs.WriteFileString("/dir/packages/pkg1-name/spec", "old-spec")).ToNot(HaveOccurred())
 			Expect(fs.WriteFileString("/dir/packages/pkg1-name/packaging", "old-packaging")).ToNot(HaveOccurred())
-			Expect(fs.WriteFileString("/dir/packages/pkg2-name/vendored", "old-vendored")).ToNot(HaveOccurred())
+			Expect(fs.WriteFileString("/dir/packages/pkg2-name/spec.lock", "old-spec-lock")).ToNot(HaveOccurred())
 
 			err := releaseDir.VendorPackage(pkg1)
 			Expect(err).ToNot(HaveOccurred())
 
-			// vendored files left
+			// recorded files
 			Expect(fs.FileExists("/dir/packages/pkg1-name/spec")).To(BeFalse())
 			Expect(fs.FileExists("/dir/packages/pkg1-name/packaging")).To(BeFalse())
-			Expect(fs.ReadFileString("/dir/packages/pkg1-name/vendored")).To(Equal(`name: pkg1-name
+			Expect(fs.ReadFileString("/dir/packages/pkg1-name/spec.lock")).To(Equal(`name: pkg1-name
 fingerprint: pkg1-fp
 dependencies:
 - pkg2-name
 - pkg3-name
 `))
 
-			Expect(fs.ReadFileString("/dir/packages/pkg2-name/vendored")).To(Equal(`name: pkg2-name
+			Expect(fs.ReadFileString("/dir/packages/pkg2-name/spec.lock")).To(Equal(`name: pkg2-name
 fingerprint: pkg2-fp
 dependencies:
 - pkg4-name
 `))
 
-			Expect(fs.ReadFileString("/dir/packages/pkg3-name/vendored")).To(Equal(`name: pkg3-name
+			Expect(fs.ReadFileString("/dir/packages/pkg3-name/spec.lock")).To(Equal(`name: pkg3-name
 fingerprint: pkg3-fp
 dependencies:
 - pkg4-name
 `))
 
-			Expect(fs.ReadFileString("/dir/packages/pkg4-name/vendored")).To(Equal(`name: pkg4-name
+			Expect(fs.ReadFileString("/dir/packages/pkg4-name/spec.lock")).To(Equal(`name: pkg4-name
 fingerprint: pkg4-fp
 `))
 
@@ -704,7 +704,7 @@ fingerprint: pkg4-fp
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
-		It("returns error if serializing vendored manifest fails", func() {
+		It("returns error if serializing manifest lock fails", func() {
 			pkg1Res := &fakeres.FakeResource{
 				NameStub: func() string { return "pkg1-name" },
 			}
@@ -712,17 +712,17 @@ fingerprint: pkg4-fp
 
 			err := releaseDir.VendorPackage(pkg1)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Marshaling vendored package 'pkg1-name' spec"))
+			Expect(err.Error()).To(ContainSubstring("Marshaling vendored package 'pkg1-name' spec lock"))
 		})
 
-		It("returns error if writing vendored manifest fails", func() {
+		It("returns error if writing manifest lock fails", func() {
 			pkg1Res := &fakeres.FakeResource{
 				NameStub:        func() string { return "pkg1-name" },
 				FingerprintStub: func() string { return "pkg1-fp" },
 			}
 			pkg1 := boshpkg.NewPackage(pkg1Res, nil)
 
-			fs.WriteFileErrors["/dir/packages/pkg1-name/vendored"] = errors.New("fake-err")
+			fs.WriteFileErrors["/dir/packages/pkg1-name/spec.lock"] = errors.New("fake-err")
 
 			err := releaseDir.VendorPackage(pkg1)
 			Expect(err).To(HaveOccurred())
