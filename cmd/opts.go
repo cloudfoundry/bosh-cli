@@ -142,6 +142,7 @@ type BoshOpts struct {
 	GenerateJob     GenerateJobOpts     `command:"generate-job"                description:"Generate job"`
 	GeneratePackage GeneratePackageOpts `command:"generate-package"            description:"Generate package"`
 	CreateRelease   CreateReleaseOpts   `command:"create-release"   alias:"cr" description:"Create release"`
+	VendorPackage   VendorPackageOpts   `command:"vendor-package"              description:"Vendor package"`
 
 	// Hidden
 	Sha1ifyRelease  Sha1ifyReleaseOpts  `command:"sha1ify-release"  hidden:"true" description:"Convert release tarball to use SHA1"`
@@ -810,6 +811,19 @@ type GeneratePackageOpts struct {
 
 type GeneratePackageArgs struct {
 	Name string `positional-arg-name:"NAME"`
+}
+
+type VendorPackageOpts struct {
+	Args VendorPackageArgs `positional-args:"true" required:"true"`
+
+	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
+
+	cmd
+}
+
+type VendorPackageArgs struct {
+	PackageName string      `positional-arg-name:"PACKAGE"`
+	URL         DirOrCWDArg `positional-arg-name:"URL" default:"."`
 }
 
 type Sha1ifyReleaseOpts struct {

@@ -41,6 +41,16 @@ func NewDirReaderImpl(
 }
 
 func (r DirReaderImpl) Read(path string) (*Package, error) {
+	vendoredManifest, err := r.collectVendored(path)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Collecting vendored package files")
+	}
+
+	if vendoredManifest != nil {
+		resource := NewExistingResource(vendoredManifest.Name, vendoredManifest.Fingerprint, "")
+		return NewPackage(resource, vendoredManifest.Dependencies), nil
+	}
+
 	manifest, files, prepFiles, err := r.collectFiles(path)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Collecting package files")
@@ -58,6 +68,21 @@ func (r DirReaderImpl) Read(path string) (*Package, error) {
 	resource := NewResource(manifest.Name, fp, archive)
 
 	return NewPackage(resource, manifest.Dependencies), nil
+}
+
+func (r DirReaderImpl) collectVendored(path string) (*VendoredManifest, error) {
+	path = filepath.Join(path, "vendored")
+
+	if r.fs.FileExists(path) {
+		vendoredManifest, err := NewVendoredManifestFromPath(path, r.fs)
+		if err != nil {
+			return nil, err
+		}
+
+		return &vendoredManifest, nil
+	}
+
+	return nil, nil
 }
 
 func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, error) {

@@ -366,6 +366,7 @@ var _ = Describe("Factory", func() {
 			boshOpts.ResetRelease = ResetReleaseOpts{}
 			boshOpts.GenerateJob = GenerateJobOpts{}
 			boshOpts.GeneratePackage = GeneratePackageOpts{}
+			boshOpts.VendorPackage = VendorPackageOpts{}
 			boshOpts.CreateRelease = CreateReleaseOpts{}
 			boshOpts.FinalizeRelease = FinalizeReleaseOpts{}
 			boshOpts.Blobs = BlobsOpts{}

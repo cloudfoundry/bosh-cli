@@ -7,6 +7,7 @@ import (
 
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshrelman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
 )
 
 //go:generate counterfeiter . ReleaseDir
@@ -33,6 +34,7 @@ type ReleaseDir interface {
 	// BuildRelease builds a new version of the Release
 	// from the release directory by looking at jobs, packages, etc. directories.
 	BuildRelease(name string, version semver.Version, force bool) (boshrel.Release, error)
+	VendorPackage(*boshpkg.Package) error
 
 	// FinalizeRelease adds the Release to the final list so that it's consumable by others.
 	FinalizeRelease(release boshrel.Release, force bool) error
