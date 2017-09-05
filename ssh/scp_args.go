@@ -44,7 +44,7 @@ func (a SCPArgs) ForHost(host boshdir.Host) []string {
 
 		if len(pieces) == 2 {
 			// Resolve named host to actual user@ip
-			pieces[0] = fmt.Sprintf("%s@%s", host.Username, host.Host)
+			pieces[0] = fmt.Sprintf("%s@%s", host.Username, printableHost{host})
 		}
 
 		for i, _ := range pieces {

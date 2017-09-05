@@ -62,6 +62,13 @@ var _ = Describe("SCPArgs", func() {
 			Expect(scpArgs.ForHost(host)).To(Equal([]string{"user@127.0.0.1:arg1", "user@127.0.0.1:arg2"}))
 		})
 
+		It("wraps host info in brackets for IPv6 addresses", func() {
+			host.Host = "::1"
+
+			scpArgs := NewSCPArgs([]string{"host:arg1"}, false)
+			Expect(scpArgs.ForHost(host)).To(Equal([]string{"user@[::1]:arg1"}))
+		})
+
 		It("replaces named host keeping remaining colons", func() {
 			scpArgs := NewSCPArgs([]string{"host:some:file"}, false)
 			Expect(scpArgs.ForHost(host)).To(Equal([]string{"user@127.0.0.1:some:file"}))

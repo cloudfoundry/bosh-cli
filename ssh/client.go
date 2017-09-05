@@ -77,7 +77,7 @@ func (s *ClientImpl) Start() error {
 	for i := 0; ; i++ {
 		s.logger.Debug(s.logTag, "Making attempt #%d", i)
 
-		s.client, err = s.newClient("tcp", fmt.Sprintf("%s:%d", s.opts.Host, s.opts.Port), sshConfig)
+		s.client, err = s.newClient("tcp", net.JoinHostPort(s.opts.Host, fmt.Sprintf("%d", s.opts.Port)), sshConfig)
 		if err == nil {
 			break
 		}
