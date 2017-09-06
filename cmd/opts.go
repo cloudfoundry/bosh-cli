@@ -452,6 +452,7 @@ type RepackStemcellOpts struct {
 	Name            string             `long:"name" description:"Repacked stemcell name"`
 	CloudProperties string             `long:"cloud-properties" description:"Repacked stemcell cloud properties"`
 	EmptyImage      bool               `long:"empty-image" description:"Pack zero byte file instead of image"`
+	Format          []string           `long:"format" description:"Repacked stemcell formats. Can be used multiple times. Overrides existing formats."`
 	Version         string             `long:"version" description:"Repacked stemcell version"`
 
 	cmd

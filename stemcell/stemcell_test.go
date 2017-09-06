@@ -259,6 +259,43 @@ var _ = Describe("Stemcell", func() {
 
 	})
 
+	Describe("SetFormat", func() {
+		var newStemcellFormat []string
+
+		BeforeEach(func() {
+			manifest = Manifest{
+				Name:            "some-name",
+				Version:         "some-version",
+				StemcellFormats: []string{"some-format"},
+			}
+
+			stemcell = NewExtractedStemcell(
+				manifest,
+				extractedPath,
+				compressor,
+				fakefs,
+			)
+
+			newStemcellFormat = []string{"some-new-format"}
+		})
+
+		It("sets the format", func() {
+			stemcell.SetFormat(newStemcellFormat)
+			Expect(stemcell.Manifest().StemcellFormats).To(Equal(newStemcellFormat))
+		})
+
+		Context(" when multiple --format options are specified", func() {
+			BeforeEach(func() {
+				newStemcellFormat = []string{"some-new-format", "second-new-format"}
+			})
+
+			It("overrides the stemcell_formats with all provided formats", func() {
+				stemcell.SetFormat(newStemcellFormat)
+				Expect(stemcell.Manifest().StemcellFormats).To(Equal(newStemcellFormat))
+			})
+		})
+	})
+
 	Describe("Pack", func() {
 		var (
 			removeAllCalled bool

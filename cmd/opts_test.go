@@ -1357,6 +1357,12 @@ var _ = Describe("Opts", func() {
 				`long:"empty-image" description:"Pack zero byte file instead of image"`,
 			))
 		})
+
+		It("has --format", func() {
+			Expect(getStructTagForName("Format", opts)).To(Equal(
+				`long:"format" description:"Repacked stemcell formats. Can be used multiple times. Overrides existing formats."`,
+			))
+		})
 	})
 
 	Describe("RepackStemcellArgs", func() {
