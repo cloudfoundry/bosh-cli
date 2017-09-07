@@ -2545,7 +2545,7 @@ var _ = Describe("Opts", func() {
 		Describe("URL", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("URL", opts)).To(Equal(
-					`positional-arg-name:"URL" default:"."`,
+					`positional-arg-name:"SRC-DIR" default:"."`,
 				))
 			})
 		})

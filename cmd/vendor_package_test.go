@@ -30,14 +30,13 @@ var _ = Describe("VendorPackageCmd", func() {
 
 		releaseDirFactory := func(dir DirOrCWDArg) boshreldir.ReleaseDir {
 			switch dir {
-			case DirOrCWDArg{"/src-dir"}:
+			case DirOrCWDArg{Path: "/src-dir"}:
 				return srcReleaseDir
-			case DirOrCWDArg{"/dst-dir"}:
+			case DirOrCWDArg{Path: "/dst-dir"}:
 				return dstReleaseDir
 			default:
 				panic("Unexpected release dir")
 			}
-			panic("Never called")
 		}
 
 		ui = &fakeui.FakeUI{}
@@ -53,7 +52,7 @@ var _ = Describe("VendorPackageCmd", func() {
 			opts = VendorPackageOpts{
 				Args: VendorPackageArgs{
 					PackageName: "pkg1-name",
-					URL:         DirOrCWDArg{"/src-dir"},
+					URL:         DirOrCWDArg{Path: "/src-dir"},
 				},
 				Directory: DirOrCWDArg{Path: "/dst-dir"},
 			}

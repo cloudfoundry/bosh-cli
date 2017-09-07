@@ -264,7 +264,7 @@ func (d FSReleaseDir) writeVendoredPackage(pkg *boshpkg.Package) error {
 
 	err := d.fs.RemoveAll(pkgDirPath)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Creating package '%s' dir", name)
+		return bosherr.WrapErrorf(err, "Removing package '%s' dir", name)
 	}
 
 	err = d.fs.MkdirAll(pkgDirPath, os.ModePerm)

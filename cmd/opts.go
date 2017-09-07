@@ -823,7 +823,7 @@ type VendorPackageOpts struct {
 
 type VendorPackageArgs struct {
 	PackageName string      `positional-arg-name:"PACKAGE"`
-	URL         DirOrCWDArg `positional-arg-name:"URL" default:"."`
+	URL         DirOrCWDArg `positional-arg-name:"SRC-DIR" default:"."`
 }
 
 type Sha1ifyReleaseOpts struct {
