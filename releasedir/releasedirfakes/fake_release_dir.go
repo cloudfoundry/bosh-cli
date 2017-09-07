@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	birel "github.com/cloudfoundry/bosh-cli/release"
+	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
 	"github.com/cloudfoundry/bosh-cli/releasedir"
 	gssver "github.com/cppforlife/go-semi-semantic/version"
 )
@@ -86,6 +87,14 @@ type FakeReleaseDir struct {
 	buildReleaseReturns struct {
 		result1 birel.Release
 		result2 error
+	}
+	VendorPackageStub        func(pkg *boshpkg.Package) error
+	vendorPackageMutex       sync.RWMutex
+	vendorPackageArgsForCall []struct {
+		pkg *boshpkg.Package
+	}
+	vendorPackageReturns struct {
+		result1 error
 	}
 	FinalizeReleaseStub        func(release birel.Release, force bool) error
 	finalizeReleaseMutex       sync.RWMutex
@@ -388,6 +397,39 @@ func (fake *FakeReleaseDir) BuildReleaseReturns(result1 birel.Release, result2 e
 		result1 birel.Release
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeReleaseDir) VendorPackage(pkg *boshpkg.Package) error {
+	fake.vendorPackageMutex.Lock()
+	fake.vendorPackageArgsForCall = append(fake.vendorPackageArgsForCall, struct {
+		pkg *boshpkg.Package
+	}{pkg})
+	fake.recordInvocation("VendorPackage", []interface{}{pkg})
+	fake.vendorPackageMutex.Unlock()
+	if fake.VendorPackageStub != nil {
+		return fake.VendorPackageStub(pkg)
+	} else {
+		return fake.vendorPackageReturns.result1
+	}
+}
+
+func (fake *FakeReleaseDir) VendorPackageCallCount() int {
+	fake.vendorPackageMutex.RLock()
+	defer fake.vendorPackageMutex.RUnlock()
+	return len(fake.vendorPackageArgsForCall)
+}
+
+func (fake *FakeReleaseDir) VendorPackageArgsForCall(i int) *boshpkg.Package {
+	fake.vendorPackageMutex.RLock()
+	defer fake.vendorPackageMutex.RUnlock()
+	return fake.vendorPackageArgsForCall[i].pkg
+}
+
+func (fake *FakeReleaseDir) VendorPackageReturns(result1 error) {
+	fake.VendorPackageStub = nil
+	fake.vendorPackageReturns = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeReleaseDir) FinalizeRelease(release birel.Release, force bool) error {

@@ -12,6 +12,8 @@ import (
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	boshpkgman "github.com/cloudfoundry/bosh-cli/release/pkg/manifest"
 )
 
 var (
@@ -227,6 +229,66 @@ func (d FSReleaseDir) BuildRelease(name string, version semver.Version, force bo
 	}
 
 	return release, nil
+}
+
+func (d FSReleaseDir) VendorPackage(pkg *boshpkg.Package) error {
+	allInterestingPkgs := map[*boshpkg.Package]struct{}{}
+
+	d.collectDependentPackages(pkg, allInterestingPkgs)
+
+	for pkg2, _ := range allInterestingPkgs {
+		err := pkg2.Finalize(d.finalIndicies.Packages)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Finalizing vendored package")
+		}
+
+		err = d.writeVendoredPackage(pkg2)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Writing vendored package")
+		}
+	}
+
+	return nil
+}
+
+func (d FSReleaseDir) collectDependentPackages(pkg *boshpkg.Package, allInterestingPkgs map[*boshpkg.Package]struct{}) {
+	allInterestingPkgs[pkg] = struct{}{}
+	for _, pkg2 := range pkg.Dependencies {
+		d.collectDependentPackages(pkg2, allInterestingPkgs)
+	}
+}
+
+func (d FSReleaseDir) writeVendoredPackage(pkg *boshpkg.Package) error {
+	name := pkg.Name()
+	pkgDirPath := filepath.Join(d.dirPath, "packages", name)
+
+	err := d.fs.RemoveAll(pkgDirPath)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Creating package '%s' dir", name)
+	}
+
+	err = d.fs.MkdirAll(pkgDirPath, os.ModePerm)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Creating package '%s' dir", name)
+	}
+
+	manifestLock := boshpkgman.ManifestLock{Name: name, Fingerprint: pkg.Fingerprint()}
+
+	for _, pkg2 := range pkg.Dependencies {
+		manifestLock.Dependencies = append(manifestLock.Dependencies, pkg2.Name())
+	}
+
+	manifestLockBytes, err := manifestLock.AsBytes()
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Marshaling vendored package '%s' spec lock", name)
+	}
+
+	err = d.fs.WriteFile(filepath.Join(pkgDirPath, "spec.lock"), manifestLockBytes)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Creating package '%s' spec lock file", name)
+	}
+
+	return nil
 }
 
 func (d FSReleaseDir) FinalizeRelease(release boshrel.Release, force bool) error {

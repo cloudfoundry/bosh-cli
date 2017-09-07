@@ -2513,6 +2513,52 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
+	Describe("VendorPackageOpts", func() {
+		var opts *VendorPackageOpts
+
+		BeforeEach(func() {
+			opts = &VendorPackageOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
+			})
+		})
+	})
+
+	Describe("VendorPackageArgs", func() {
+		var opts *VendorPackageArgs
+
+		BeforeEach(func() {
+			opts = &VendorPackageArgs{}
+		})
+
+		Describe("URL", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("URL", opts)).To(Equal(
+					`positional-arg-name:"URL" default:"."`,
+				))
+			})
+		})
+
+		Describe("PackageName", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("PackageName", opts)).To(Equal(
+					`positional-arg-name:"PACKAGE"`,
+				))
+			})
+		})
+	})
+
 	Describe("CreateReleaseOpts", func() {
 		var opts *CreateReleaseOpts
 

@@ -329,6 +329,9 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *GeneratePackageOpts:
 		return NewGeneratePackageCmd(c.releaseDir(opts.Directory)).Run(*opts)
 
+	case *VendorPackageOpts:
+		return NewVendorPackageCmd(c.releaseDir, deps.UI).Run(*opts)
+
 	case *FinalizeReleaseOpts:
 		_, relDirProv := c.releaseProviders()
 		releaseReader := relDirProv.NewReleaseReader(opts.Directory.Path)
