@@ -69,9 +69,9 @@ c0r1||c1r1||c2r1||
 			writer.Write(visibleHeaders, []Value{ValueString{S: "c0r2-extra-extra"}, ValueString{S: "c1r2"}})
 			writer.Flush()
 			Expect("\n" + buf.String()).To(Equal(`
-c0r0-extra......||c1r0......||
+c0r0-extra......||c1r0||
 c0r1............||c1r1-extra||
-c0r2-extra-extra||c1r2......||
+c0r2-extra-extra||c1r2||
 `))
 		})
 
@@ -81,13 +81,13 @@ c0r2-extra-extra||c1r2......||
 			writer.Write(visibleHeaders, []Value{ValueString{S: "c0r2-extra-extra"}, ValueString{S: "c1r2\n\nother\nanother"}})
 			writer.Flush()
 			Expect("\n" + buf.String()).To(Equal(`
-c0r0-extra......||c1r0......||
+c0r0-extra......||c1r0||
 c0r1............||c1r1-extra||
-next-line.......||..........||
-c0r2-extra-extra||c1r2......||
-................||..........||
-................||other.....||
-................||another...||
+next-line.......||||
+c0r2-extra-extra||c1r2||
+................||||
+................||other||
+................||another||
 `))
 		})
 
@@ -97,7 +97,7 @@ c0r2-extra-extra||c1r2......||
 			writer.Flush()
 			Expect("\n" + buf.String()).To(Equal(`
 empty||empty||
-c0r1.||c1r1.||
+c0r1.||c1r1||
 `))
 		})
 
@@ -122,10 +122,10 @@ c0r1.||c1r1.||
 
 			// Maintains original width for values -- useful for colors since they are not visible
 			Expect("\n" + buf.String()).To(Equal(`
->c0r0<||c1r0...||
-c0r1||>c1r1<...||
-....||><.......||
-....||>other<..||
+>c0r0<||c1r0||
+c0r1||>c1r1<||
+....||><||
+....||>other<||
 ....||>another<||
 `))
 		})
