@@ -28,11 +28,6 @@ sed 's/\[DEV BUILD\]/'"$version"'/' cmd/version.go > cmd/version.tmp && mv cmd/v
 bin/build
 
 shasum_value=`sha1sum out/bosh | cut -f 1 -d' '`
-
-set +x
-if [[ $SKIP_BOSH_IO = false ]]; then
-  curl --fail -X POST "https://bosh.io/checksums/${filename}" -d "sha1=${shasum_value}" -H "Authorization: bearer ${BOSHIO_BEARER_TOKEN}"
-fi
-set -x
+echo "sha1: ${shasum_value}"
 
 mv out/bosh $base/compiled-${GOOS}/${filename}
