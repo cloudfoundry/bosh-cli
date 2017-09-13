@@ -169,6 +169,7 @@ type CreateEnvOpts struct {
 	VarFlags
 	OpsFlags
 	StatePath string `long:"state" value-name:"PATH" description:"State file path"`
+	Recreate  bool   `long:"recreate" description:"Recreate VM in deployment"`
 	cmd
 }
 

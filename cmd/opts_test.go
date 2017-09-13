@@ -750,6 +750,12 @@ var _ = Describe("Opts", func() {
 				`long:"state" value-name:"PATH" description:"State file path"`,
 			))
 		})
+
+		It("has --recreate", func() {
+			Expect(getStructTagForName("Recreate", opts)).To(Equal(
+				`long:"recreate" description:"Recreate VM in deployment"`,
+			))
+		})
 	})
 
 	Describe("CreateEnvArgs", func() {

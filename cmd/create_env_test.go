@@ -697,6 +697,15 @@ var _ = Describe("CreateEnvCmd", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 			})
+
+			It("deploys if recreate flag is specified", func() {
+				expectDeploy.Times(1)
+
+				defaultCreateEnvOpts.Recreate = true
+
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+			})
 		})
 
 		Context("when parsing the cpi deployment manifest fails", func() {
@@ -892,6 +901,15 @@ var _ = Describe("CreateEnvCmd", func() {
 					err := command.Run(fakeStage, defaultCreateEnvOpts)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
+				})
+
+				It("deploys if recreate flag is specified", func() {
+					expectDeploy.Times(1)
+
+					defaultCreateEnvOpts.Recreate = true
+
+					err := command.Run(fakeStage, defaultCreateEnvOpts)
+					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 		})
