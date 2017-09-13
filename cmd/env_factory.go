@@ -33,7 +33,7 @@ import (
 	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
 	bitemplate "github.com/cloudfoundry/bosh-cli/templatescompiler"
 	bitemplateerb "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer"
-	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
+	"github.com/cloudfoundry/bosh-utils/httpclient"
 )
 
 type envFactory struct {
@@ -83,7 +83,7 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manife
 	{
 		tarballCacheBasePath := filepath.Join(workspaceRootPath, "downloads")
 		tarballCache := bitarball.NewCache(tarballCacheBasePath, deps.FS, deps.Logger)
-		httpClient := bihttpclient.NewHTTPClient(bitarball.HTTPClient, deps.Logger)
+		httpClient := httpclient.NewHTTPClient(bitarball.HTTPClient, deps.Logger)
 		tarballProvider := bitarball.NewProvider(
 			tarballCache, deps.FS, httpClient, 3, 500*time.Millisecond, deps.Logger)
 

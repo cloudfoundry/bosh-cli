@@ -7,26 +7,13 @@ import (
 	"errors"
 	"regexp"
 
+	"net/url"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"net/url"
 )
 
-type HTTPClient interface {
-	Post(endpoint string, payload []byte) (*http.Response, error)
-	PostCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error)
-
-	Put(endpoint string, payload []byte) (*http.Response, error)
-	PutCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error)
-
-	Get(endpoint string) (*http.Response, error)
-	GetCustomized(endpoint string, f func(*http.Request)) (*http.Response, error)
-
-	Delete(endpoint string) (*http.Response, error)
-	DeleteCustomized(endpoint string, f func(*http.Request)) (*http.Response, error)
-}
-
-type httpClient struct {
+type HTTPClient struct {
 	client Client
 	logger boshlog.Logger
 	logTag string
@@ -37,16 +24,16 @@ type Opts struct {
 	NoRedactUrlQuery bool
 }
 
-func NewHTTPClient(client Client, logger boshlog.Logger) HTTPClient {
-	return httpClient{
+func NewHTTPClient(client Client, logger boshlog.Logger) *HTTPClient {
+	return &HTTPClient{
 		client: client,
 		logger: logger,
 		logTag: "httpClient",
 	}
 }
 
-func NewHTTPClientOpts(client Client, logger boshlog.Logger, opts Opts) HTTPClient {
-	return httpClient{
+func NewHTTPClientOpts(client Client, logger boshlog.Logger, opts Opts) *HTTPClient {
+	return &HTTPClient{
 		client: client,
 		logger: logger,
 		logTag: "httpClient",
@@ -54,11 +41,11 @@ func NewHTTPClientOpts(client Client, logger boshlog.Logger, opts Opts) HTTPClie
 	}
 }
 
-func (c httpClient) Post(endpoint string, payload []byte) (*http.Response, error) {
+func (c *HTTPClient) Post(endpoint string, payload []byte) (*http.Response, error) {
 	return c.PostCustomized(endpoint, payload, nil)
 }
 
-func (c httpClient) PostCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error) {
+func (c *HTTPClient) PostCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error) {
 	postPayload := strings.NewReader(string(payload))
 
 	redactedEndpoint := endpoint
@@ -86,11 +73,11 @@ func (c httpClient) PostCustomized(endpoint string, payload []byte, f func(*http
 	return response, nil
 }
 
-func (c httpClient) Put(endpoint string, payload []byte) (*http.Response, error) {
+func (c *HTTPClient) Put(endpoint string, payload []byte) (*http.Response, error) {
 	return c.PutCustomized(endpoint, payload, nil)
 }
 
-func (c httpClient) PutCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error) {
+func (c *HTTPClient) PutCustomized(endpoint string, payload []byte, f func(*http.Request)) (*http.Response, error) {
 	putPayload := strings.NewReader(string(payload))
 
 	redactedEndpoint := endpoint
@@ -118,11 +105,11 @@ func (c httpClient) PutCustomized(endpoint string, payload []byte, f func(*http.
 	return response, nil
 }
 
-func (c httpClient) Get(endpoint string) (*http.Response, error) {
+func (c *HTTPClient) Get(endpoint string) (*http.Response, error) {
 	return c.GetCustomized(endpoint, nil)
 }
 
-func (c httpClient) GetCustomized(endpoint string, f func(*http.Request)) (*http.Response, error) {
+func (c *HTTPClient) GetCustomized(endpoint string, f func(*http.Request)) (*http.Response, error) {
 	redactedEndpoint := endpoint
 
 	if !c.opts.NoRedactUrlQuery {
@@ -148,11 +135,11 @@ func (c httpClient) GetCustomized(endpoint string, f func(*http.Request)) (*http
 	return response, nil
 }
 
-func (c httpClient) Delete(endpoint string) (*http.Response, error) {
+func (c *HTTPClient) Delete(endpoint string) (*http.Response, error) {
 	return c.DeleteCustomized(endpoint, nil)
 }
 
-func (c httpClient) DeleteCustomized(endpoint string, f func(*http.Request)) (*http.Response, error) {
+func (c *HTTPClient) DeleteCustomized(endpoint string, f func(*http.Request)) (*http.Response, error) {
 	redactedEndpoint := endpoint
 
 	if !c.opts.NoRedactUrlQuery {

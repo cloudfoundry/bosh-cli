@@ -3,7 +3,7 @@ package agent
 import (
 	"time"
 
-	"github.com/pivotal-golang/clock"
+	"code.cloudfoundry.org/clock"
 
 	boshalert "github.com/cloudfoundry/bosh-agent/agent/alert"
 	boshas "github.com/cloudfoundry/bosh-agent/agent/applier/applyspec"
@@ -108,25 +108,27 @@ func (a Agent) generateHeartbeats(errCh chan error) {
 	defer a.logger.HandlePanic("Agent Generate Heartbeats")
 
 	// Send initial heartbeat
-	a.sendHeartbeat(errCh)
+	a.sendAndRecordHeartbeat(errCh)
 
 	tickChan := time.Tick(a.heartbeatInterval)
 
 	for {
 		select {
 		case <-tickChan:
-			a.sendHeartbeat(errCh)
+			a.sendAndRecordHeartbeat(errCh)
 		}
 	}
 }
 
-func (a Agent) sendHeartbeat(errCh chan error) {
-	heartbeat, err := a.getHeartbeat()
+func (a Agent) sendAndRecordHeartbeat(errCh chan error) {
+	status := a.jobSupervisor.Status()
+	heartbeat, err := a.getHeartbeat(status)
 	if err != nil {
 		err = bosherr.WrapError(err, "Building heartbeat")
 		errCh <- err
 		return
 	}
+	a.jobSupervisor.HealthRecorder(status)
 
 	err = a.mbusHandler.Send(boshhandler.HealthMonitor, boshhandler.Heartbeat, heartbeat)
 	if err != nil {
@@ -135,7 +137,7 @@ func (a Agent) sendHeartbeat(errCh chan error) {
 	}
 }
 
-func (a Agent) getHeartbeat() (Heartbeat, error) {
+func (a Agent) getHeartbeat(status string) (Heartbeat, error) {
 	a.logger.Debug(agentLogTag, "Building heartbeat")
 	vitalsService := a.platform.GetVitalsService()
 
@@ -153,10 +155,11 @@ func (a Agent) getHeartbeat() (Heartbeat, error) {
 		Deployment: spec.Deployment,
 		Job:        spec.JobSpec.Name,
 		Index:      spec.Index,
-		JobState:   a.jobSupervisor.Status(),
+		JobState:   status,
 		Vitals:     vitals,
 		NodeID:     spec.NodeID,
 	}
+
 	return hb, nil
 }
 

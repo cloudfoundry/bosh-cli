@@ -1,9 +1,0 @@
-#!/bin/bash
-
-set -e -o pipefail
-
-bin=$(dirname $0)
-
-$bin/go vet `$bin/go list ./... | grep -v "github.com/cloudfoundry/bosh-agent/vendor/" | xargs`
-
-echo -e "\n go vet success"

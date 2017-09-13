@@ -4,7 +4,6 @@ import (
 	"io"
 	"os"
 
-	boshdavcli "github.com/cloudfoundry/bosh-davcli/client"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -16,6 +15,11 @@ type Blobstore interface {
 	Add(sourcePath string) (blobID string, err error)
 }
 
+type DavCLIClient interface {
+	Get(path string) (content io.ReadCloser, err error)
+	Put(path string, content io.ReadCloser, contentLength int64) (err error)
+}
+
 type Config struct {
 	Endpoint string
 	Username string
@@ -23,14 +27,14 @@ type Config struct {
 }
 
 type blobstore struct {
-	davClient     boshdavcli.Client
+	davClient     DavCLIClient
 	uuidGenerator boshuuid.Generator
 	fs            boshsys.FileSystem
 	logger        boshlog.Logger
 	logTag        string
 }
 
-func NewBlobstore(davClient boshdavcli.Client, uuidGenerator boshuuid.Generator, fs boshsys.FileSystem, logger boshlog.Logger) Blobstore {
+func NewBlobstore(davClient DavCLIClient, uuidGenerator boshuuid.Generator, fs boshsys.FileSystem, logger boshlog.Logger) Blobstore {
 	return &blobstore{
 		davClient:     davClient,
 		uuidGenerator: uuidGenerator,

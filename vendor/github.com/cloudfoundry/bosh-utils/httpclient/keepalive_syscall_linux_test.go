@@ -6,14 +6,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-utils/httpclient"
-	"github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 	"net"
 	"os"
 	"syscall"
-)
 
-var _ HTTPClient = &fakes.FakeHTTPClient{}
+	. "github.com/cloudfoundry/bosh-utils/httpclient"
+)
 
 var _ = Describe("Linux-specific tests", func() {
 	It("enables TCP (socket) keepalive with an appropriate interval", func() {

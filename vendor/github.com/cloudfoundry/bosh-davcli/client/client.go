@@ -12,23 +12,25 @@ import (
 
 	davconf "github.com/cloudfoundry/bosh-davcli/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshhttp "github.com/cloudfoundry/bosh-utils/http"
+	"github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type Client interface {
 	Get(path string) (content io.ReadCloser, err error)
 	Put(path string, content io.ReadCloser, contentLength int64) (err error)
+	Exists(path string) (err error)
+	Delete(path string) (err error)
 }
 
-func NewClient(config davconf.Config, httpClient boshhttp.Client, logger boshlog.Logger) (c Client) {
+func NewClient(config davconf.Config, httpClient httpclient.Client, logger boshlog.Logger) (c Client) {
 	if config.RetryAttempts == 0 {
 		config.RetryAttempts = 3
 	}
 
 	// @todo should a logger now be passed in to this client?
 	duration := time.Duration(0)
-	retryClient := boshhttp.NewRetryClient(
+	retryClient := httpclient.NewRetryClient(
 		httpClient,
 		config.RetryAttempts,
 		duration,
@@ -43,7 +45,7 @@ func NewClient(config davconf.Config, httpClient boshhttp.Client, logger boshlog
 
 type client struct {
 	config     davconf.Config
-	httpClient boshhttp.Client
+	httpClient httpclient.Client
 }
 
 func (c client) Get(path string) (content io.ReadCloser, err error) {
@@ -84,6 +86,42 @@ func (c client) Put(path string, content io.ReadCloser, contentLength int64) (er
 	if resp.StatusCode != 201 && resp.StatusCode != 204 {
 		err = fmt.Errorf("Putting dav blob %s: Wrong response code: %d; body: %s", path, resp.StatusCode, c.readAndTruncateBody(resp))
 		return
+	}
+
+	return
+}
+
+func (c client) Exists(path string) (err error) {
+	req, err := c.createReq("HEAD", path, nil)
+	if err != nil {
+		return
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		if resp != nil && resp.StatusCode == 404 {
+			err = fmt.Errorf("%s not found", path)
+		}
+		err = bosherr.WrapErrorf(err, "Checking if dav blob %s exists", path)
+		return
+	}
+
+	return
+}
+
+func (c client) Delete(path string) (err error) {
+	req, err := c.createReq("DELETE", path, nil)
+	if err != nil {
+		err = bosherr.WrapErrorf(err, "Creating delete request for blob '%s'", path)
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		if resp != nil && resp.StatusCode == 404 {
+			err = nil
+		} else {
+			err = bosherr.WrapErrorf(err, "Deleting blob '%s'", path)
+		}
 	}
 
 	return

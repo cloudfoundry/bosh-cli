@@ -4,12 +4,13 @@ import (
 	"errors"
 	"os"
 	"path"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/cloudfoundry/bosh-utils/system/fakes"
-	"time"
 )
 
 var _ = Describe("FakeFileSystem", func() {
@@ -395,6 +396,42 @@ var _ = Describe("FakeFileSystem", func() {
 
 			_, err = fs.Lstat("foobar")
 			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+
+	Describe("ConvergeFileContents", func() {
+		It("converges file contents", func() {
+			err := fs.WriteFileString("/file", "content1")
+			Expect(err).ToNot(HaveOccurred())
+
+			changed, err := fs.ConvergeFileContents("/file", []byte("content2"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(changed).To(BeTrue())
+
+			Expect(fs.ReadFileString("/file")).To(Equal("content2"))
+
+			changed, err = fs.ConvergeFileContents("/file", []byte("content2"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(changed).To(BeFalse())
+
+			Expect(fs.ReadFileString("/file")).To(Equal("content2"))
+		})
+
+		It("does not converges file contents if it's a dry run", func() {
+			err := fs.WriteFileString("/file", "content1")
+			Expect(err).ToNot(HaveOccurred())
+
+			changed, err := fs.ConvergeFileContents("/file", []byte("content2"), boshsys.ConvergeFileContentsOpts{DryRun: true})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(changed).To(BeTrue())
+
+			Expect(fs.ReadFileString("/file")).To(Equal("content1"))
+
+			changed, err = fs.ConvergeFileContents("/file", []byte("content1"), boshsys.ConvergeFileContentsOpts{DryRun: true})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(changed).To(BeFalse())
+
+			Expect(fs.ReadFileString("/file")).To(Equal("content1"))
 		})
 	})
 })

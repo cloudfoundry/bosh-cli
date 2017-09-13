@@ -21,7 +21,7 @@ var _ = Describe("ClientRequest", func() {
 		server     *ghttp.Server
 		resp       []string
 		req        ClientRequest
-		httpClient boshhttp.HTTPClient
+		httpClient *boshhttp.HTTPClient
 		logger     boshlog.Logger
 	)
 

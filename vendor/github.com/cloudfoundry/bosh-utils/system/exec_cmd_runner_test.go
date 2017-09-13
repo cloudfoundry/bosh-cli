@@ -87,13 +87,19 @@ func GetPlatformCommand(cmdName string) Command {
 	return unixCommands[cmdName]
 }
 
-func parseEnvFields(envDump string) map[string]string {
+func parseEnvFields(envDump string, convertKeysToUpper bool) map[string]string {
 	fields := make(map[string]string)
 	envDump = strings.Replace(envDump, "\r", "", -1)
 	for _, line := range strings.Split(envDump, "\n") {
-		f := strings.Split(line, "=")
-		if len(f) >= 2 {
-			fields[strings.ToUpper(f[0])] = f[1]
+		// don't split on '=' as '=' is allowed in the value on Windows
+		if n := strings.IndexByte(line, '='); n != -1 {
+			key := line[:n]   // key
+			val := line[n+1:] // key
+			if convertKeysToUpper {
+				fields[strings.ToUpper(key)] = val
+			} else {
+				fields[key] = val
+			}
 		}
 	}
 	return fields
@@ -124,7 +130,7 @@ var _ = Describe("execCmdRunner", func() {
 			stdout, stderr, status, err := runner.RunComplexCommand(cmd)
 			Expect(err).ToNot(HaveOccurred())
 
-			envVars := parseEnvFields(stdout)
+			envVars := parseEnvFields(stdout, true)
 			Expect(envVars).To(HaveKeyWithValue("FOO", "BAR"))
 			Expect(envVars).To(HaveKey("PATH"))
 			Expect(stderr).To(BeEmpty())
@@ -140,12 +146,93 @@ var _ = Describe("execCmdRunner", func() {
 				stdout, stderr, status, err := runner.RunComplexCommand(cmd)
 				Expect(err).ToNot(HaveOccurred())
 
-				envVars := parseEnvFields(stdout)
+				envVars := parseEnvFields(stdout, true)
 				Expect(envVars).To(HaveKeyWithValue("FOO", "BAR"))
 				Expect(envVars).ToNot(HaveKey("PATH"))
 				Expect(stderr).To(BeEmpty())
 				Expect(status).To(Equal(0))
 			}
+		})
+
+		setupWindowsEnvTest := func(cmdVars map[string]string) (map[string]string, error) {
+			os.Setenv("_FOO", "BAR")
+			defer os.Unsetenv("_FOO")
+
+			cmd := GetPlatformCommand("env")
+			cmd.Env = cmdVars
+			stdout, _, _, err := runner.RunComplexCommand(cmd)
+			if err != nil {
+				return nil, err
+			}
+
+			// don't upper case key names we want to assert that the lower case
+			// duplicates provided in Command.Env are used.  also, Windows does
+			// not care about key case.
+			envVars := parseEnvFields(stdout, false)
+			return envVars, nil
+		}
+
+		It("uses the env vars specified in the Command", func() {
+			envVars, err := setupWindowsEnvTest(map[string]string{
+				"_FOO": "BAZZZ",
+			})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(envVars).To(HaveKeyWithValue("_FOO", "BAZZZ"))
+		})
+
+		It("performs a case-sensitive comparison of env vars when on *Nix", func() {
+			if Windows {
+				Skip("*Nix only test")
+			}
+			envVars, err := setupWindowsEnvTest(map[string]string{
+				"_foo": "BAZZZ",
+				"ABC":  "XYZ",
+				"abc":  "xyz",
+			})
+			Expect(envVars).To(HaveKeyWithValue("_FOO", "BAR"))
+			Expect(envVars).To(HaveKeyWithValue("_foo", "BAZZZ"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(envVars).To(HaveKeyWithValue("ABC", "XYZ"))
+			Expect(envVars).To(HaveKeyWithValue("abc", "xyz"))
+		})
+
+		It("env var comparison is case-insensitive on Windows", func() {
+			if !Windows {
+				Skip("Windows only test")
+			}
+			envVars, err := setupWindowsEnvTest(map[string]string{
+				"_foo": "BAZZZ",
+			})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(envVars).ToNot(HaveKey("_FOO"))
+			Expect(envVars).To(HaveKeyWithValue("_foo", "BAZZZ"))
+		})
+
+		It("deterministically handles duplicate env vars on Windows", func() {
+			if !Windows {
+				Skip("Windows only test")
+			}
+			envVars, err := setupWindowsEnvTest(map[string]string{
+				"_foo": "BAZZZ",
+				"_bar": "alpha=second",
+				"_BAR": "alpha=first",
+			})
+			Expect(err).ToNot(HaveOccurred())
+
+			// vars in Command.Env replace System vars with the same name,
+			// compared case-insensitively. Therefore, the lower case '_foo'
+			// replaces the upper case '_FOO'.
+			//
+			Expect(envVars).ToNot(HaveKey("_FOO"))
+			Expect(envVars).To(HaveKeyWithValue("_foo", "BAZZZ"))
+
+			// Duplicate env vars in Command.Env are de-duped before being
+			// merged with the System env vars.  Since the Command.Env is
+			// a map we sort the keys alphabetically before de-duping so
+			// that the result is deterministic.
+			//
+			Expect(envVars).ToNot(HaveKey("_bar"))
+			Expect(envVars).To(HaveKeyWithValue("_BAR", "alpha=first"))
 		})
 
 		It("run complex command with stdin", func() {

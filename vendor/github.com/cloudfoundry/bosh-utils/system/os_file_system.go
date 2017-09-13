@@ -135,11 +135,23 @@ func (fs *osFileSystem) writeFileHelper(path string, content []byte, logDebug bo
 	return nil
 }
 
-func (fs *osFileSystem) ConvergeFileContents(path string, content []byte) (bool, error) {
+type ConvergeFileContentsOpts struct {
+	DryRun bool
+}
+
+func (fs *osFileSystem) ConvergeFileContents(path string, content []byte, opts ...ConvergeFileContentsOpts) (bool, error) {
+	actuallyConverge := true
+
+	if len(opts) > 0 {
+		actuallyConverge = !opts[0].DryRun
+	}
 
 	fi, err := fs.Stat(path)
 	if err != nil || fi.Size() != int64(len(content)) {
-		return true, fs.WriteFile(path, content)
+		if actuallyConverge {
+			return true, fs.WriteFile(path, content)
+		}
+		return true, nil
 	}
 
 	file, err := fs.openFile(path, os.O_CREATE|os.O_RDWR, 0666)
@@ -152,21 +164,16 @@ func (fs *osFileSystem) ConvergeFileContents(path string, content []byte) (bool,
 	if err != nil {
 		return true, bosherr.WrapErrorf(err, "Reading file %s", path)
 	}
+
 	if bytes.Equal(src, content) {
 		fs.logger.Debug(fs.logTag, "Skipping writing %s because contents are identical", path)
 		return false, nil
 	}
 
-	fs.logger.Debug(fs.logTag, "File %s will be overwritten", path)
-
-	if _, err := file.Seek(0, 0); err != nil {
-		return true, bosherr.WrapErrorf(err, "Seeking file %s", path)
-	}
-	if err := file.Truncate(int64(len(content))); err != nil {
-		return true, bosherr.WrapErrorf(err, "Truncating file %s", path)
-	}
-	if _, err := file.Write(content); err != nil {
-		return true, bosherr.WrapErrorf(err, "Writing content to file %s", path)
+	if actuallyConverge {
+		fs.logger.Debug(fs.logTag, "File %s will be overwritten", path)
+		file.Close()
+		return true, fs.WriteFile(path, content)
 	}
 
 	return true, nil

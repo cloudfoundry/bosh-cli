@@ -1,7 +1,6 @@
 package system
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
@@ -81,8 +80,7 @@ func (r execCmdRunner) buildComplexCommand(cmd Command) *exec.Cmd {
 
 	execCmd.Dir = cmd.WorkingDir
 
-	env := []string{}
-
+	var env []string
 	if !cmd.UseIsolatedEnv {
 		env = os.Environ()
 	}
@@ -90,10 +88,7 @@ func (r execCmdRunner) buildComplexCommand(cmd Command) *exec.Cmd {
 		panic("UseIsolatedEnv is not supported on Windows")
 	}
 
-	for name, value := range cmd.Env {
-		env = append(env, fmt.Sprintf("%s=%s", name, value))
-	}
-	execCmd.Env = env
+	execCmd.Env = mergeEnv(env, cmd.Env)
 
 	return execCmd
 }

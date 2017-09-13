@@ -63,7 +63,7 @@ func (w *asyncWriter) doWork() {
 
 type asyncLogger struct {
 	writer *asyncWriter
-	log *logger
+	log    *logger
 }
 
 func (l *asyncLogger) Flush() error {

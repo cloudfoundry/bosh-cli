@@ -1,2 +1,4 @@
 out
 pkg
+.envrc
+.idea

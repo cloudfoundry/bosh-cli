@@ -11,7 +11,7 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
+	"github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -41,7 +41,7 @@ var HTTPClient = &http.Client{
 type provider struct {
 	cache            Cache
 	fs               boshsys.FileSystem
-	httpClient       bihttpclient.HTTPClient
+	httpClient       *httpclient.HTTPClient
 	downloadAttempts int
 	delayTimeout     time.Duration
 	logger           boshlog.Logger
@@ -51,7 +51,7 @@ type provider struct {
 func NewProvider(
 	cache Cache,
 	fs boshsys.FileSystem,
-	httpClient bihttpclient.HTTPClient,
+	httpClient *httpclient.HTTPClient,
 	downloadAttempts int,
 	delayTimeout time.Duration,
 	logger boshlog.Logger,

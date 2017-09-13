@@ -9,21 +9,21 @@ import (
 	"net/http/httputil"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
+	"github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type ClientRequest struct {
 	endpoint     string
 	contextId    string
-	httpClient   boshhttp.HTTPClient
+	httpClient   *httpclient.HTTPClient
 	fileReporter FileReporter
 	logger       boshlog.Logger
 }
 
 func NewClientRequest(
 	endpoint string,
-	httpClient boshhttp.HTTPClient,
+	httpClient *httpclient.HTTPClient,
 	fileReporter FileReporter,
 	logger boshlog.Logger,
 ) ClientRequest {

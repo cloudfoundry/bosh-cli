@@ -3,6 +3,7 @@ package blobstore_test
 import (
 	"bytes"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -26,10 +27,12 @@ var _ = Describe("Blob Manager", func() {
 	)
 
 	BeforeEach(func() {
+		var err error
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = boshsys.NewOsFileSystem(logger)
 		blobId = "105d33ae-655c-493d-bf9f-1df5cf3ca847"
-		basePath = os.TempDir()
+		basePath, err = ioutil.TempDir("", "blobstore")
+		Expect(err).NotTo(HaveOccurred())
 		blobPath = filepath.Join(basePath, blobId)
 		toWrite = bytes.NewReader([]byte("new data"))
 	})
@@ -46,6 +49,7 @@ var _ = Describe("Blob Manager", func() {
 		fs.WriteFileString(blobPath, "some data")
 
 		readOnlyFile, err, _ := blobManager.Fetch(blobId)
+		Expect(err).NotTo(HaveOccurred())
 		defer fs.RemoveAll(readOnlyFile.Name())
 
 		Expect(err).ToNot(HaveOccurred())
