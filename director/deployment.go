@@ -160,8 +160,8 @@ func (d DeploymentImpl) changeJobState(state string, slug AllOrInstanceGroupOrIn
 		state, d.name, slug.Name(), slug.IndexOrID(), skipDrain, force, fix, dryRun, canaries, maxInFlight)
 }
 
-func (d DeploymentImpl) ExportRelease(release ReleaseSlug, os OSVersionSlug) (ExportReleaseResult, error) {
-	resp, err := d.client.ExportRelease(d.name, release, os)
+func (d DeploymentImpl) ExportRelease(release ReleaseSlug, os OSVersionSlug, jobs []string) (ExportReleaseResult, error) {
+	resp, err := d.client.ExportRelease(d.name, release, os, jobs)
 	if err != nil {
 		return ExportReleaseResult{}, err
 	}
@@ -406,7 +406,7 @@ func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, ski
 	return nil
 }
 
-func (c Client) ExportRelease(deploymentName string, release ReleaseSlug, os OSVersionSlug) (ExportReleaseResp, error) {
+func (c Client) ExportRelease(deploymentName string, release ReleaseSlug, os OSVersionSlug, jobs []string) (ExportReleaseResp, error) {
 	var resp ExportReleaseResp
 
 	if len(deploymentName) == 0 {
@@ -429,6 +429,11 @@ func (c Client) ExportRelease(deploymentName string, release ReleaseSlug, os OSV
 		return resp, bosherr.Error("Expected non-empty OS version")
 	}
 
+	jobFilters := []map[string]string{}
+	for _, job := range jobs {
+		jobFilters = append(jobFilters, map[string]string{"name": job})
+	}
+
 	path := "/releases/export"
 
 	body := map[string]interface{}{
@@ -438,6 +443,7 @@ func (c Client) ExportRelease(deploymentName string, release ReleaseSlug, os OSV
 		"stemcell_os":      os.OS(),
 		"stemcell_version": os.Version(),
 		"sha2":             true,
+		"jobs":             jobFilters,
 	}
 
 	reqBody, err := json.Marshal(body)

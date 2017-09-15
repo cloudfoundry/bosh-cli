@@ -1531,6 +1531,15 @@ var _ = Describe("Opts", func() {
 				))
 			})
 		})
+
+		Describe("Jobs", func() {
+			It("contains desired value", func() {
+				Expect(getStructTagForName("Jobs", opts)).To(Equal(
+					`long:"job" description:"Name of job to export"`,
+				))
+			})
+		})
+
 	})
 
 	Describe("ExportReleaseArgs", func() {

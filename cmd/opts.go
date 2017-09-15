@@ -510,6 +510,7 @@ type ExportReleaseOpts struct {
 
 	Directory DirOrCWDArg `long:"dir" description:"Destination directory" default:"."`
 
+	Jobs []string `long:"job" description:"Name of job to export"`
 	cmd
 }
 
