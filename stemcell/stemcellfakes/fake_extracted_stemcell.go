@@ -46,6 +46,11 @@ type FakeExtractedStemcell struct {
 	setVersionArgsForCall []struct {
 		arg1 string
 	}
+	SetFormatStub        func([]string)
+	setFormatMutex       sync.RWMutex
+	setFormatArgsForCall []struct {
+		arg1 []string
+	}
 	SetCloudPropertiesStub        func(biproperty.Map)
 	setCloudPropertiesMutex       sync.RWMutex
 	setCloudPropertiesArgsForCall []struct {
@@ -261,6 +266,35 @@ func (fake *FakeExtractedStemcell) SetVersionArgsForCall(i int) string {
 	return fake.setVersionArgsForCall[i].arg1
 }
 
+func (fake *FakeExtractedStemcell) SetFormat(arg1 []string) {
+	var arg1Copy []string
+	if arg1 != nil {
+		arg1Copy = make([]string, len(arg1))
+		copy(arg1Copy, arg1)
+	}
+	fake.setFormatMutex.Lock()
+	fake.setFormatArgsForCall = append(fake.setFormatArgsForCall, struct {
+		arg1 []string
+	}{arg1Copy})
+	fake.recordInvocation("SetFormat", []interface{}{arg1Copy})
+	fake.setFormatMutex.Unlock()
+	if fake.SetFormatStub != nil {
+		fake.SetFormatStub(arg1)
+	}
+}
+
+func (fake *FakeExtractedStemcell) SetFormatCallCount() int {
+	fake.setFormatMutex.RLock()
+	defer fake.setFormatMutex.RUnlock()
+	return len(fake.setFormatArgsForCall)
+}
+
+func (fake *FakeExtractedStemcell) SetFormatArgsForCall(i int) []string {
+	fake.setFormatMutex.RLock()
+	defer fake.setFormatMutex.RUnlock()
+	return fake.setFormatArgsForCall[i].arg1
+}
+
 func (fake *FakeExtractedStemcell) SetCloudProperties(arg1 biproperty.Map) {
 	fake.setCloudPropertiesMutex.Lock()
 	fake.setCloudPropertiesArgsForCall = append(fake.setCloudPropertiesArgsForCall, struct {
@@ -466,6 +500,8 @@ func (fake *FakeExtractedStemcell) Invocations() map[string][][]interface{} {
 	defer fake.setNameMutex.RUnlock()
 	fake.setVersionMutex.RLock()
 	defer fake.setVersionMutex.RUnlock()
+	fake.setFormatMutex.RLock()
+	defer fake.setFormatMutex.RUnlock()
 	fake.setCloudPropertiesMutex.RLock()
 	defer fake.setCloudPropertiesMutex.RUnlock()
 	fake.getExtractedPathMutex.RLock()
