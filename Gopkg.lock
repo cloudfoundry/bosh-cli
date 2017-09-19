@@ -61,8 +61,8 @@
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
   packages = ["types","types/typesfakes"]
-  revision = "5b56d1f55db7dce17d08fb6dcf0a304965a30e87"
-  version = "v0.0.131"
+  revision = "2d6f3ab66c92c437fae71a077c5bc6992466b35b"
+  version = "v0.0.132"
 
 [[projects]]
   name = "github.com/cppforlife/go-patch"
