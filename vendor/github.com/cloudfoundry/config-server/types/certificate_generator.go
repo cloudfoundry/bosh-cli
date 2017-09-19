@@ -57,7 +57,7 @@ func (cfg CertificateGenerator) Generate(parameters interface{}) (interface{}, e
 func (cfg CertificateGenerator) generateCertificate(cParams certParams) (CertResponse, error) {
 	var certResponse CertResponse
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(rand.Reader, 3072)
 	if err != nil {
 		return certResponse, errors.WrapError(err, "Generating Key")
 	}

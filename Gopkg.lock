@@ -61,7 +61,8 @@
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
   packages = ["types","types/typesfakes"]
-  revision = "a76bda8"
+  revision = "5b56d1f55db7dce17d08fb6dcf0a304965a30e87"
+  version = "v0.0.131"
 
 [[projects]]
   name = "github.com/cppforlife/go-patch"
@@ -183,8 +184,8 @@
 
 [[projects]]
   name = "golang.org/x/crypto"
-  packages = ["ssh","ssh/terminal"]
-  revision = "1e856cb"
+  packages = ["curve25519","ed25519","ed25519/internal/edwards25519","ssh","ssh/terminal"]
+  revision = "7e9105388ebff089b3f99f0ef676ea55a6da3a7e"
 
 [[projects]]
   branch = "master"
@@ -237,7 +238,7 @@
 [[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "a5b47d3"
+  revision = "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
 
 [solve-meta]
   analyzer-name = "dep"
