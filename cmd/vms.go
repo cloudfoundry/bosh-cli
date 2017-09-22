@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
 	"code.cloudfoundry.org/workpool"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type VMsCmd struct {
@@ -75,7 +75,7 @@ type deploymentInfo struct {
 
 func parallelVMInfos(deployments []boshdir.Deployment, parallel int) (map[string][]boshdir.VMInfo, error) {
 	if parallel == 0 {
-		parallel = 5
+		parallel = 1
 	}
 	workSize := len(deployments)
 	resultc := make(chan deploymentInfo, workSize)
@@ -99,17 +99,17 @@ func parallelVMInfos(deployments []boshdir.Deployment, parallel int) (map[string
 	}
 	throttler.Work()
 	vms := make(map[string][]boshdir.VMInfo, workSize)
-	var vmInfoErrors []string
+	var vmInfoErrors []error
 	for i := 0; i < workSize; i++ {
 		errc := <-errorc
 		result := <-resultc
 		if errc != nil {
-			vmInfoErrors = append(vmInfoErrors, errc.Error())
+			vmInfoErrors = append(vmInfoErrors, errc)
 		}
 		vms[result.depName] = result.vmInfos
 	}
 	if len(vmInfoErrors) > 0 {
-		err := fmt.Errorf("%s", strings.Join(vmInfoErrors, "\n"))
+		err := bosherr.NewMultiError(vmInfoErrors...)
 		return nil, err
 	}
 	return vms, nil

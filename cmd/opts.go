@@ -632,7 +632,7 @@ type VMsOpts struct {
 	DNS         bool `long:"dns"               description:"Show DNS A records"`
 	Vitals      bool `long:"vitals"            description:"Show vitals"`
 	Deployment  string
-	ParallelOpt int `long:"parallel" description:"Sets the max number of parallel deployment vms fetching" default:"5"`
+	ParallelOpt int `long:"parallel" description:"Sets the max number of parallel deployment vms fetching" default:"1"`
 	cmd
 }
 
