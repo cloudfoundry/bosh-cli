@@ -30,6 +30,7 @@ version: '2690'
 operating_system: ubuntu-trusty
 sha1: sha
 bosh_protocol: 1
+stemcell_formats: ['aws-raw']
 cloud_properties:
   infrastructure: aws
   ami:
@@ -50,11 +51,12 @@ cloud_properties:
 		Expect(err).ToNot(HaveOccurred())
 		expectedStemcell := NewExtractedStemcell(
 			Manifest{
-				Name:         "fake-stemcell-name",
-				Version:      "2690",
-				OS:           "ubuntu-trusty",
-				SHA1:         "sha",
-				BoshProtocol: "1",
+				Name:            "fake-stemcell-name",
+				Version:         "2690",
+				OS:              "ubuntu-trusty",
+				SHA1:            "sha",
+				BoshProtocol:    "1",
+				StemcellFormats: []string{"aws-raw"},
 				CloudProperties: biproperty.Map{
 					"infrastructure": "aws",
 					"ami": biproperty.Map{
@@ -66,6 +68,7 @@ cloud_properties:
 			compressor,
 			fs,
 		)
+		Expect(stemcell.Manifest().CloudProperties).To(Equal(expectedStemcell.Manifest().CloudProperties))
 		Expect(stemcell).To(Equal(expectedStemcell))
 	})
 
