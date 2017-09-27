@@ -128,11 +128,12 @@ type FakeRelease struct {
 	manifestReturnsOnCall map[int]struct {
 		result1 boshman.Manifest
 	}
-	BuildStub        func(dev, final release.ArchiveIndicies) error
+	BuildStub        func(dev, final release.ArchiveIndicies, parallel int) error
 	buildMutex       sync.RWMutex
 	buildArgsForCall []struct {
-		dev   release.ArchiveIndicies
-		final release.ArchiveIndicies
+		dev      release.ArchiveIndicies
+		final    release.ArchiveIndicies
+		parallel int
 	}
 	buildReturns struct {
 		result1 error
@@ -693,17 +694,18 @@ func (fake *FakeRelease) ManifestReturnsOnCall(i int, result1 boshman.Manifest) 
 	}{result1}
 }
 
-func (fake *FakeRelease) Build(dev release.ArchiveIndicies, final release.ArchiveIndicies) error {
+func (fake *FakeRelease) Build(dev release.ArchiveIndicies, final release.ArchiveIndicies, parallel int) error {
 	fake.buildMutex.Lock()
 	ret, specificReturn := fake.buildReturnsOnCall[len(fake.buildArgsForCall)]
 	fake.buildArgsForCall = append(fake.buildArgsForCall, struct {
-		dev   release.ArchiveIndicies
-		final release.ArchiveIndicies
-	}{dev, final})
-	fake.recordInvocation("Build", []interface{}{dev, final})
+		dev      release.ArchiveIndicies
+		final    release.ArchiveIndicies
+		parallel int
+	}{dev, final, parallel})
+	fake.recordInvocation("Build", []interface{}{dev, final, parallel})
 	fake.buildMutex.Unlock()
 	if fake.BuildStub != nil {
-		return fake.BuildStub(dev, final)
+		return fake.BuildStub(dev, final, parallel)
 	}
 	if specificReturn {
 		return ret.result1
@@ -717,10 +719,10 @@ func (fake *FakeRelease) BuildCallCount() int {
 	return len(fake.buildArgsForCall)
 }
 
-func (fake *FakeRelease) BuildArgsForCall(i int) (release.ArchiveIndicies, release.ArchiveIndicies) {
+func (fake *FakeRelease) BuildArgsForCall(i int) (release.ArchiveIndicies, release.ArchiveIndicies, int) {
 	fake.buildMutex.RLock()
 	defer fake.buildMutex.RUnlock()
-	return fake.buildArgsForCall[i].dev, fake.buildArgsForCall[i].final
+	return fake.buildArgsForCall[i].dev, fake.buildArgsForCall[i].final, fake.buildArgsForCall[i].parallel
 }
 
 func (fake *FakeRelease) BuildReturns(result1 error) {

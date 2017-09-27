@@ -1,6 +1,7 @@
 package release
 
 import (
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
@@ -149,19 +150,50 @@ func (r *release) Manifest() birelman.Manifest {
 	}
 }
 
-func (r *release) Build(devIndicies, finalIndicies ArchiveIndicies) error {
+type builder struct {
+	job   *bireljob.Job
+	pkg   *birelpkg.Package
+	dev   ArchiveIndicies
+	final ArchiveIndicies
+}
+
+func (r *release) Build(devIndicies, finalIndicies ArchiveIndicies, parallel int) error {
+	downloads := make(chan builder)
+	numJobs := len(r.Jobs())
+	numPackages := len(r.Packages())
+	err := make(chan error, (numJobs + numPackages))
+	var errs []error
+
+	DownloadChannels(downloads, err, parallel)
+
 	for _, job := range r.Jobs() {
-		err := job.Build(devIndicies.Jobs, finalIndicies.Jobs)
-		if err != nil {
-			return err
+		downloads <- builder{
+			job:   job,
+			pkg:   nil,
+			dev:   devIndicies,
+			final: finalIndicies,
 		}
 	}
 
 	for _, pkg := range r.Packages() {
-		err := pkg.Build(devIndicies.Packages, finalIndicies.Packages)
-		if err != nil {
-			return err
+		downloads <- builder{
+			job:   nil,
+			pkg:   pkg,
+			dev:   devIndicies,
+			final: finalIndicies,
 		}
+	}
+
+	close(downloads)
+	for i := 1; i <= (numJobs + numPackages); i++ {
+		e := <-err
+		if e != nil {
+			errs = append(errs, e)
+		}
+	}
+
+	if errs != nil {
+		return bosherr.NewMultiError(errs...)
 	}
 
 	if r.License() != nil {
@@ -172,6 +204,21 @@ func (r *release) Build(devIndicies, finalIndicies ArchiveIndicies) error {
 	}
 
 	return nil
+}
+
+func DownloadChannels(downloads chan builder, err chan error, parallel int) {
+	for i := 0; i < parallel; i++ {
+		go func() {
+			for d := range downloads {
+				if d.job != nil {
+					err <- d.job.Build(d.dev.Jobs, d.final.Jobs)
+				} else {
+					err <- d.pkg.Build(d.dev.Packages, d.final.Packages)
+				}
+
+			}
+		}()
+	}
 }
 
 func (r *release) Finalize(finalIndicies ArchiveIndicies) error {

@@ -123,6 +123,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("Parallel", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Parallel", opts)).To(Equal(
+					`long:"parallel" description:"The max number of parallel operations" default:"5"`,
+				))
+			})
+		})
+
 		Describe("CACertOpt", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("CACertOpt", opts)).To(Equal(
@@ -1103,12 +1111,6 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("NoRedact", opts)).To(Equal(`long:"no-redact" description:"Show non-redacted manifest diff"`))
 			})
 		})
-
-		Describe("ParallelOpt", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("ParallelOpt", opts)).To(Equal(`long:"parallel" description:"Upload releases from manifest in parallel with given number of nodes (default: 5)" default:"5"`))
-			})
-		})
 	})
 
 	Describe("UpdateRuntimeConfigArgs", func() {
@@ -1153,12 +1155,6 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("NoRedact", opts)).To(Equal(
 					`long:"no-redact" description:"Show non-redacted manifest diff"`,
 				))
-			})
-		})
-
-		Describe("ParallelOpt", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("ParallelOpt", opts)).To(Equal(`long:"parallel" description:"Upload releases from manifest in parallel with given number of nodes (default: 5)" default:"5"`))
 			})
 		})
 
@@ -1462,10 +1458,12 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		It("allows to provide stemcell configuration for remote compiled releases", func() {
-			Expect(getStructTagForName("Stemcell", opts)).To(Equal(
-				`long:"stemcell" value-name:"OS/VERSION" description:"Stemcell that the release is compiled against (applies to remote releases)"`,
-			))
+		Describe("Stemcell", func() {
+			It("allows to provide stemcell configuration for remote compiled releases", func() {
+				Expect(getStructTagForName("Stemcell", opts)).To(Equal(
+					`long:"stemcell" value-name:"OS/VERSION" description:"Stemcell that the release is compiled against (applies to remote releases)"`,
+				))
+			})
 		})
 	})
 
@@ -2852,14 +2850,6 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Directory", opts)).To(Equal(
 					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
-				))
-			})
-		})
-
-		Describe("Parallel", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("ParallelOpt", opts)).To(Equal(
-					`long:"parallel" description:"Sets the max number of parallel downloads" default:"5"`,
 				))
 			})
 		})

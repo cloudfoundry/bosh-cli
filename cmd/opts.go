@@ -18,6 +18,7 @@ type BoshOpts struct {
 	EnvironmentOpt string    `long:"environment" short:"e" description:"Director environment name or URL" env:"BOSH_ENVIRONMENT"`
 	CACertOpt      CACertArg `long:"ca-cert"               description:"Director CA certificate path or value" env:"BOSH_CA_CERT"`
 	Sha2           bool      `long:"sha2"                  description:"Use SHA256 checksums"`
+	Parallel       int       `long:"parallel" description:"The max number of parallel operations" default:"5"`
 
 	// Hidden
 	UsernameOpt string `long:"user" hidden:"true" env:"BOSH_USER"`
@@ -335,9 +336,8 @@ type UpdateRuntimeConfigOpts struct {
 	VarFlags
 	OpsFlags
 
-	NoRedact    bool   `long:"no-redact" description:"Show non-redacted manifest diff"`
-	Name        string `long:"name" description:"Runtime-Config name (default: '')" default:""`
-	ParallelOpt int    `long:"parallel" description:"Upload releases from manifest in parallel with given number of nodes (default: 5)" default:"5"`
+	NoRedact bool   `long:"no-redact" description:"Show non-redacted manifest diff"`
+	Name     string `long:"name" description:"Runtime-Config name (default: '')" default:""`
 
 	cmd
 }
@@ -361,8 +361,7 @@ type DeployOpts struct {
 	VarFlags
 	OpsFlags
 
-	NoRedact    bool `long:"no-redact" description:"Show non-redacted manifest diff"`
-	ParallelOpt int  `long:"parallel" description:"Upload releases from manifest in parallel with given number of nodes (default: 5)" default:"5"`
+	NoRedact bool `long:"no-redact" description:"Show non-redacted manifest diff"`
 
 	Recreate  bool                `long:"recreate"                          description:"Recreate all VMs in deployment"`
 	Fix       bool                `long:"fix"                               description:"Recreate unresponsive instances"`
@@ -915,8 +914,7 @@ type RemoveBlobArgs struct {
 }
 
 type SyncBlobsOpts struct {
-	Directory   DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
-	ParallelOpt int         `long:"parallel" description:"Sets the max number of parallel downloads" default:"5"`
+	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 	cmd
 }
 

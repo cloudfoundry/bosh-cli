@@ -388,6 +388,7 @@ var _ = Describe("Factory", func() {
 			// Check against entire BoshOpts to avoid future missing assertions
 			Expect(clearNonGlobalOpts(cmd.BoshOpts)).To(Equal(BoshOpts{
 				ConfigPathOpt: "~/.bosh/config",
+				Parallel:      5,
 			}))
 		})
 
@@ -403,6 +404,7 @@ var _ = Describe("Factory", func() {
 				"--tty",
 				"--no-color",
 				"--non-interactive",
+				"--parallel", "123",
 				"locks",
 			}
 
@@ -420,6 +422,7 @@ var _ = Describe("Factory", func() {
 				TTYOpt:            true,
 				NoColorOpt:        true,
 				NonInteractiveOpt: true,
+				Parallel:          123,
 			}))
 		})
 
