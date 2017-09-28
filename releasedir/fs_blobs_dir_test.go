@@ -9,7 +9,6 @@ import (
 	"syscall"
 
 	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
-	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakelogger "github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -26,7 +25,7 @@ var _ = Describe("FSBlobsDir", func() {
 	var (
 		fs               *fakesys.FakeFileSystem
 		reporter         *fakereldir.FakeBlobsDirReporter
-		blobstore        *fakeblob.FakeDigestBlobstore
+		blobstore        *fakereldir.FakeDigestBlobstore
 		digestCalculator *fakecrypto.FakeDigestCalculator
 		blobsDir         FSBlobsDir
 		logger           *fakelogger.FakeLogger
@@ -35,7 +34,7 @@ var _ = Describe("FSBlobsDir", func() {
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		reporter = &fakereldir.FakeBlobsDirReporter{}
-		blobstore = &fakeblob.FakeDigestBlobstore{}
+		blobstore = &fakereldir.FakeDigestBlobstore{}
 		digestCalculator = fakecrypto.NewFakeDigestCalculator()
 		logger = &fakelogger.FakeLogger{}
 		blobsDir = NewFSBlobsDir(filepath.Join("/", "dir"), reporter, blobstore, digestCalculator, fs, logger)
@@ -232,10 +231,14 @@ already-downloaded.tgz:
 
 			Context("when more than one blob fails to download", func() {
 				It("reports error", func() {
-					times := 0
-					blobstore.GetStub = func(blobID string, digest boshcrypto.Digest) (string, error) {
-						defer func() { times += 1 }()
-						return []string{filepath.Join("/", "blob1-tmp"), filepath.Join("/", "blob2-tmp")}[times], []error{errors.New("fake-err1"), errors.New("fake-err2")}[times]
+					blobstore.GetStub = func(blobID string, _ boshcrypto.Digest) (fileName string, err error) {
+						switch blobID {
+						case "blob1":
+							return filepath.Join("/", "blob1-tmp"), errors.New("fake-err1")
+						case "blob2":
+							return filepath.Join("/", "blob2-tmp"), errors.New("fake-err2")
+						}
+						return "", nil
 					}
 
 					err := act(2)
@@ -266,12 +269,14 @@ already-downloaded.tgz:
 
 			Context("without placing any local blobs", func() {
 				It("returns error", func() {
-					times := 0
-					blobstore.GetStub = func(blobID string, digest boshcrypto.Digest) (string, error) {
-						defer func() { times += 1 }()
-						path := []string{filepath.Join("/", "blob1-tmp"), filepath.Join("/", "blob2-tmp")}[times]
-						err := []error{nil, errors.New("fake-err")}[times]
-						return path, err
+					blobstore.GetStub = func(blobID string, _ boshcrypto.Digest) (fileName string, err error) {
+						switch blobID {
+						case "blob1":
+							return filepath.Join("/", "blob1-tmp"), nil
+						case "blob2":
+							return filepath.Join("/", "blob2-tmp"), errors.New("fake-err")
+						}
+						return "", nil
 					}
 
 					err := act(1)

@@ -141,10 +141,11 @@ type FakeRelease struct {
 	buildReturnsOnCall map[int]struct {
 		result1 error
 	}
-	FinalizeStub        func(final release.ArchiveIndicies) error
+	FinalizeStub        func(final release.ArchiveIndicies, parallel int) error
 	finalizeMutex       sync.RWMutex
 	finalizeArgsForCall []struct {
-		final release.ArchiveIndicies
+		final    release.ArchiveIndicies
+		parallel int
 	}
 	finalizeReturns struct {
 		result1 error
@@ -744,16 +745,17 @@ func (fake *FakeRelease) BuildReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeRelease) Finalize(final release.ArchiveIndicies) error {
+func (fake *FakeRelease) Finalize(final release.ArchiveIndicies, parallel int) error {
 	fake.finalizeMutex.Lock()
 	ret, specificReturn := fake.finalizeReturnsOnCall[len(fake.finalizeArgsForCall)]
 	fake.finalizeArgsForCall = append(fake.finalizeArgsForCall, struct {
-		final release.ArchiveIndicies
-	}{final})
-	fake.recordInvocation("Finalize", []interface{}{final})
+		final    release.ArchiveIndicies
+		parallel int
+	}{final, parallel})
+	fake.recordInvocation("Finalize", []interface{}{final, parallel})
 	fake.finalizeMutex.Unlock()
 	if fake.FinalizeStub != nil {
-		return fake.FinalizeStub(final)
+		return fake.FinalizeStub(final, parallel)
 	}
 	if specificReturn {
 		return ret.result1
@@ -767,10 +769,10 @@ func (fake *FakeRelease) FinalizeCallCount() int {
 	return len(fake.finalizeArgsForCall)
 }
 
-func (fake *FakeRelease) FinalizeArgsForCall(i int) release.ArchiveIndicies {
+func (fake *FakeRelease) FinalizeArgsForCall(i int) (release.ArchiveIndicies, int) {
 	fake.finalizeMutex.RLock()
 	defer fake.finalizeMutex.RUnlock()
-	return fake.finalizeArgsForCall[i].final
+	return fake.finalizeArgsForCall[i].final, fake.finalizeArgsForCall[i].parallel
 }
 
 func (fake *FakeRelease) FinalizeReturns(result1 error) {

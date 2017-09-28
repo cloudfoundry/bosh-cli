@@ -50,7 +50,19 @@ var _ = Describe("FSGenerator", func() {
 		timeService = fakeclock.NewFakeClock(time.Date(2009, time.November, 10, 23, 1, 2, 333, time.UTC))
 		fs = fakesys.NewFakeFileSystem()
 		releaseDir = NewFSReleaseDir(
-			"/dir", config, gitRepo, blobsDir, gen, devReleases, finalReleases, finalIndicies, reader, timeService, fs)
+			"/dir",
+			config,
+			gitRepo,
+			blobsDir,
+			gen,
+			devReleases,
+			finalReleases,
+			finalIndicies,
+			reader,
+			timeService,
+			fs,
+			2,
+		)
 	})
 
 	Describe("Init", func() {
@@ -81,7 +93,19 @@ var _ = Describe("FSGenerator", func() {
 
 		It("saves release name to directory base name stripping '-release' suffix from the name", func() {
 			releaseDir := NewFSReleaseDir(
-				"/dir-release", config, gitRepo, blobsDir, gen, devReleases, finalReleases, finalIndicies, reader, timeService, fs)
+				"/dir-release",
+				config,
+				gitRepo,
+				blobsDir,
+				gen,
+				devReleases,
+				finalReleases,
+				finalIndicies,
+				reader,
+				timeService,
+				fs,
+				2,
+			)
 
 			err := releaseDir.Init(true)
 			Expect(err).ToNot(HaveOccurred())
@@ -759,7 +783,8 @@ fingerprint: pkg4-fp
 				return false, nil
 			}
 
-			release.FinalizeStub = func(indicies boshrel.ArchiveIndicies) error {
+			release.FinalizeStub = func(indicies boshrel.ArchiveIndicies, parallel int) error {
+				Expect(parallel).To(Equal(2))
 				Expect(indicies.Jobs).To(Equal(finalIndicies.Jobs)) // unique check
 				ops = append(ops, "finalize")
 				return nil

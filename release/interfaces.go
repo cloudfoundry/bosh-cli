@@ -52,7 +52,7 @@ type Release interface {
 	Manifest() boshman.Manifest
 
 	Build(dev, final ArchiveIndicies, parallel int) error
-	Finalize(final ArchiveIndicies) error
+	Finalize(final ArchiveIndicies, parallel int) error
 
 	CopyWith(jobs []*boshjob.Job,
 		packages []*boshpkg.Package,

@@ -75,8 +75,20 @@ func (p Provider) NewFSReleaseDir(dirPath string, parallel int) FSReleaseDir {
 
 	releaseReader := p.NewReleaseReader(dirPath, parallel)
 
-	return NewFSReleaseDir(dirPath, p.newConfig(dirPath), gitRepo, blobsDir,
-		generator, devReleases, finalReleases, finalIndex, releaseReader, p.timeService, p.fs)
+	return NewFSReleaseDir(
+		dirPath,
+		p.newConfig(dirPath),
+		gitRepo,
+		blobsDir,
+		generator,
+		devReleases,
+		finalReleases,
+		finalIndex,
+		releaseReader,
+		p.timeService,
+		p.fs,
+		parallel,
+	)
 }
 
 func (p Provider) NewFSBlobsDir(dirPath string) FSBlobsDir {

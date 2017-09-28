@@ -186,19 +186,30 @@ func (r *release) Build(devIndices, finalIndices ArchiveIndicies, parallel int) 
 	return nil
 }
 
-func (r *release) Finalize(finalIndicies ArchiveIndicies) error {
+func (r *release) Finalize(finalIndicies ArchiveIndicies, parallel int) error {
+	pool := work.Pool{
+		Count: parallel,
+	}
+
+	var tasks []func() error
+
 	for _, job := range r.Jobs() {
-		err := job.Finalize(finalIndicies.Jobs)
-		if err != nil {
-			return err
-		}
+		job := job
+		tasks = append(tasks, func() error {
+			return job.Finalize(finalIndicies.Jobs)
+		})
 	}
 
 	for _, pkg := range r.Packages() {
-		err := pkg.Finalize(finalIndicies.Packages)
-		if err != nil {
-			return err
-		}
+		pkg := pkg
+		tasks = append(tasks, func() error {
+			return pkg.Finalize(finalIndicies.Packages)
+		})
+	}
+
+	err := pool.ParallelDo(tasks...)
+	if err != nil {
+		return err
 	}
 
 	if r.License() != nil {
