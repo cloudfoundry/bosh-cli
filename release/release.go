@@ -1,13 +1,13 @@
 package release
 
 import (
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
 	birellic "github.com/cloudfoundry/bosh-cli/release/license"
 	birelman "github.com/cloudfoundry/bosh-cli/release/manifest"
 	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	"github.com/cloudfoundry/bosh-cli/work"
 )
 
 type release struct {
@@ -150,75 +150,40 @@ func (r *release) Manifest() birelman.Manifest {
 	}
 }
 
-type builder struct {
-	job   *bireljob.Job
-	pkg   *birelpkg.Package
-	dev   ArchiveIndicies
-	final ArchiveIndicies
-}
+func (r *release) Build(devIndices, finalIndices ArchiveIndicies, parallel int) error {
+	pool := work.Pool{
+		Count: parallel,
+	}
 
-func (r *release) Build(devIndicies, finalIndicies ArchiveIndicies, parallel int) error {
-	downloads := make(chan builder)
-	numJobs := len(r.Jobs())
-	numPackages := len(r.Packages())
-	err := make(chan error, (numJobs + numPackages))
-	var errs []error
-
-	DownloadChannels(downloads, err, parallel)
+	var tasks []func() error
 
 	for _, job := range r.Jobs() {
-		downloads <- builder{
-			job:   job,
-			pkg:   nil,
-			dev:   devIndicies,
-			final: finalIndicies,
-		}
+		job := job
+		tasks = append(tasks, func() error {
+			return job.Build(devIndices.Jobs, finalIndices.Jobs)
+		})
 	}
 
 	for _, pkg := range r.Packages() {
-		downloads <- builder{
-			job:   nil,
-			pkg:   pkg,
-			dev:   devIndicies,
-			final: finalIndicies,
-		}
+		pkg := pkg
+		tasks = append(tasks, func() error {
+			return pkg.Build(devIndices.Packages, finalIndices.Packages)
+		})
 	}
 
-	close(downloads)
-	for i := 1; i <= (numJobs + numPackages); i++ {
-		e := <-err
-		if e != nil {
-			errs = append(errs, e)
-		}
-	}
-
-	if errs != nil {
-		return bosherr.NewMultiError(errs...)
+	err := pool.ParallelDo(tasks...)
+	if err != nil {
+		return err
 	}
 
 	if r.License() != nil {
-		err := r.License().Build(devIndicies.Licenses, finalIndicies.Licenses)
+		err := r.License().Build(devIndices.Licenses, finalIndices.Licenses)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func DownloadChannels(downloads chan builder, err chan error, parallel int) {
-	for i := 0; i < parallel; i++ {
-		go func() {
-			for d := range downloads {
-				if d.job != nil {
-					err <- d.job.Build(d.dev.Jobs, d.final.Jobs)
-				} else {
-					err <- d.pkg.Build(d.dev.Packages, d.final.Packages)
-				}
-
-			}
-		}()
-	}
 }
 
 func (r *release) Finalize(finalIndicies ArchiveIndicies) error {

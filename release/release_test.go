@@ -254,7 +254,7 @@ var _ = Describe("Release", func() {
 			jobResTwo.BuildReturns(errors.New("build-two-failed"))
 			release = NewRelease("", "", "", true, jobs, nil, nil, nil, "", fs)
 
-			err := release.Build(ArchiveIndicies{}, ArchiveIndicies{}, 1)
+			err := release.Build(ArchiveIndicies{}, ArchiveIndicies{}, 2)
 			Expect(err.(bosherr.MultiError).Errors).To(ConsistOf(errors.New("build-one-failed"), errors.New("build-two-failed")))
 		})
 
@@ -267,7 +267,7 @@ var _ = Describe("Release", func() {
 			pkgResTwo.BuildReturns(errors.New("package-two-failed"))
 			release = NewRelease("", "", "", true, nil, pkgs, nil, nil, "", fs)
 
-			err := release.Build(ArchiveIndicies{}, ArchiveIndicies{}, 1)
+			err := release.Build(ArchiveIndicies{}, ArchiveIndicies{}, 2)
 			Expect(err.(bosherr.MultiError).Errors).To(ConsistOf(errors.New("package-one-failed"), errors.New("package-two-failed")))
 		})
 
