@@ -17,6 +17,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"fmt"
+
 	. "github.com/cloudfoundry/bosh-cli/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
 )
@@ -221,7 +222,7 @@ already-downloaded.tgz:
 			It("reports error", func() {
 				blobstore.GetReturns("", errors.New("fake-err"))
 
-				err := act(1)
+				err := act(2)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Getting blob 'blob1' for path '" + filepath.Join("dir", "file-in-directory.tgz") + "': fake-err"))
 
@@ -237,7 +238,7 @@ already-downloaded.tgz:
 						return []string{filepath.Join("/", "blob1-tmp"), filepath.Join("/", "blob2-tmp")}[times], []error{errors.New("fake-err1"), errors.New("fake-err2")}[times]
 					}
 
-					err := act(1)
+					err := act(2)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Getting blob 'blob1' for path '" + filepath.Join("dir", "file-in-directory.tgz") + "': fake-err1"))
 					Expect(err.Error()).To(ContainSubstring("Getting blob 'blob2' for path 'file-in-root.tgz': fake-err2"))
