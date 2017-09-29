@@ -408,6 +408,7 @@ var _ = Describe("Factory", func() {
 			boshOpts.Deploy = DeployOpts{}
 			boshOpts.UpdateRuntimeConfig = UpdateRuntimeConfigOpts{}
 			boshOpts.VMs = VMsOpts{}
+			boshOpts.Instances = InstancesOpts{}
 			boshOpts.Config = ConfigOpts{}
 			boshOpts.UpdateConfig = UpdateConfigOpts{}
 			boshOpts.DeleteConfig = DeleteConfigOpts{}
