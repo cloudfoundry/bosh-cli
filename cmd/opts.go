@@ -619,12 +619,13 @@ type InstanceSlugArgs struct {
 
 // Instances
 type InstancesOpts struct {
-	Details    bool `long:"details" short:"i" description:"Show details including VM CID, persistent disk CID, etc."`
-	DNS        bool `long:"dns"               description:"Show DNS A records"`
-	Vitals     bool `long:"vitals"            description:"Show vitals"`
-	Processes  bool `long:"ps"      short:"p" description:"Show processes"`
-	Failing    bool `long:"failing" short:"f" description:"Only show failing instances"`
-	Deployment string
+	Details     bool `long:"details" short:"i" description:"Show details including VM CID, persistent disk CID, etc."`
+	DNS         bool `long:"dns"               description:"Show DNS A records"`
+	Vitals      bool `long:"vitals"            description:"Show vitals"`
+	Processes   bool `long:"ps"      short:"p" description:"Show processes"`
+	Failing     bool `long:"failing" short:"f" description:"Only show failing instances"`
+	Deployment  string
+	ParallelOpt int `long:"parallel" description:"Sets the max number of parallel deployment instances fetching" default:"1"`
 	cmd
 }
 

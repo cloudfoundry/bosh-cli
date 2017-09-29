@@ -894,5 +894,35 @@ var _ = Describe("InstancesCmd", func() {
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 			})
 		})
+
+		Context("when listing multiple deployments", func() {
+
+			It("retrieves deployment vms in parallel", func() {
+				opts.ParallelOpt = 5
+				dep1 := &fakedir.FakeDeployment{
+					NameStub:             func() string { return "dep1" },
+					InstanceInfosStub:    func() ([]boshdir.VMInfo, error) { return infos, nil },
+					InstanceInfoDuration: 1500,
+				}
+				dep2 := &fakedir.FakeDeployment{
+					NameStub:          func() string { return "dep2" },
+					InstanceInfosStub: func() ([]boshdir.VMInfo, error) { return infos, nil },
+					InstanceInfoDelay: 500,
+				}
+				deployments := []boshdir.Deployment{
+					dep1,
+					dep2,
+				}
+
+				director.DeploymentsReturns(deployments, nil)
+				Expect(act()).ToNot(HaveOccurred())
+				Expect(dep1.InstanceInfosCallCount()).To(Equal(1))
+				Expect(dep2.InstanceInfosCallCount()).To(Equal(1))
+				instanceInfos1Start, instanceInfos1End := dep1.InstanceInfosStartEndTimes()
+				instanceInfos2Start, instanceInfos2End := dep2.InstanceInfosStartEndTimes()
+				Expect(instanceInfos2Start.After(instanceInfos1Start)).To(Equal(true))
+				Expect(instanceInfos1End.After(instanceInfos2End)).To(Equal(true))
+			})
+		})
 	})
 })
