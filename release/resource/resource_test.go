@@ -207,14 +207,33 @@ var _ = Describe("NewResource", func() {
 			Expect(sha1).To(Equal("found-sha1"))
 		})
 
-		It("returns error when final index addition fails", func() {
-			buildBeforeFinalizing()
+		Context("when adding an index fails", func() {
+			Context("when a duplicate error occurs", func() {
+				It("calls finalize again", func() {
+					buildBeforeFinalizing()
 
-			finalIndex.AddReturns("", "", errors.New("fake-err"))
+					finalIndex.AddReturnsOnCall(0, "", "", duplicateError{})
+					finalIndex.FindReturnsOnCall(1, "/found-now", "found-sha1", nil)
 
-			err := resource.Finalize(finalIndex)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
+					err := resource.Finalize(finalIndex)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(finalIndex.FindCallCount()).To(Equal(2))
+					Expect(finalIndex.AddCallCount()).To(Equal(1))
+				})
+			})
+
+			Context("when final index addition fails", func() {
+				It("returns an error", func() {
+					buildBeforeFinalizing()
+
+					finalIndex.AddReturns("", "", errors.New("fake-err"))
+
+					err := resource.Finalize(finalIndex)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+				})
+			})
 		})
 	})
 })
