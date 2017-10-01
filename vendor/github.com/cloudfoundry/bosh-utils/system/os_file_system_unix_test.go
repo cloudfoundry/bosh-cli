@@ -3,10 +3,11 @@
 package system_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"os"
 	"path/filepath"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	"runtime"
 	"syscall"
@@ -26,7 +27,7 @@ var _ = Describe("OS FileSystem", func() {
 			defer os.RemoveAll(testPath)
 		})
 
-		if runtime.GOOS == "linux" {
+		if runtime.GOOS == "linux" && os.Getenv("USER") == "root" {
 			It("should chown file with owner:group syntax", func() {
 				osFs := createOsFs()
 

@@ -5,11 +5,11 @@ import (
 	"net"
 	"net/url"
 
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshhttp "github.com/cloudfoundry/bosh-utils/http"
-	boshhttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"time"
+
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cloudfoundry/bosh-utils/httpclient"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type Factory struct {
@@ -51,10 +51,10 @@ func (f Factory) httpClient(config Config) (Client, error) {
 		f.logger.Debug(f.logTag, "Using custom root CAs")
 	}
 
-	rawClient := boshhttpclient.CreateDefaultClient(certPool)
-	retryClient := boshhttp.NewNetworkSafeRetryClient(rawClient, 5, 500*time.Millisecond, f.logger)
+	rawClient := httpclient.CreateDefaultClient(certPool)
+	retryClient := httpclient.NewNetworkSafeRetryClient(rawClient, 5, 500*time.Millisecond, f.logger)
 
-	httpClient := boshhttpclient.NewHTTPClient(retryClient, f.logger)
+	httpClient := httpclient.NewHTTPClient(retryClient, f.logger)
 
 	endpoint := url.URL{
 		Scheme: "https",

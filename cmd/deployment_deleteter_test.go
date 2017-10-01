@@ -7,7 +7,6 @@ import (
 
 	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -208,9 +207,8 @@ cloud_provider:
 			releaseSetParser := birelsetmanifest.NewParser(fs, logger, releaseSetValidator)
 			installationValidator := biinstallmanifest.NewValidator(logger)
 			installationParser := biinstallmanifest.NewParser(fs, fakeUUIDGenerator, logger, installationValidator)
-			fakeHTTPClient := fakebihttpclient.NewFakeHTTPClient()
 			tarballCache := bitarball.NewCache("fake-base-path", fs, logger)
-			tarballProvider := bitarball.NewProvider(tarballCache, fs, fakeHTTPClient, 1, 0, logger)
+			tarballProvider := bitarball.NewProvider(tarballCache, fs, nil, 1, 0, logger)
 			deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, ""))
 
 			cpiInstaller := bicpirel.CpiInstaller{

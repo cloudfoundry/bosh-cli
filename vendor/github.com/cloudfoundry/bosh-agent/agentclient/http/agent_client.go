@@ -26,7 +26,7 @@ func NewAgentClient(
 	directorID string,
 	getTaskDelay time.Duration,
 	toleratedErrorCount int,
-	httpClient httpclient.HTTPClient,
+	httpClient *httpclient.HTTPClient,
 	logger boshlog.Logger,
 ) agentclient.AgentClient {
 	// if this were NATS, we would need the agentID, but since it's http, the endpoint is unique to the agent

@@ -18,6 +18,7 @@ type ExtractedStemcell interface {
 	OsAndVersion() string
 	SetName(string)
 	SetVersion(string)
+	SetFormat([]string)
 	SetCloudProperties(biproperty.Map)
 	GetExtractedPath() string
 	Pack(string) error
@@ -66,6 +67,10 @@ func (s *extractedStemcell) SetName(newName string) {
 
 func (s *extractedStemcell) SetVersion(newVersion string) {
 	s.manifest.Version = newVersion
+}
+
+func (s *extractedStemcell) SetFormat(newFormats []string) {
+	s.manifest.StemcellFormats = newFormats
 }
 
 func (s *extractedStemcell) SetCloudProperties(newCloudProperties biproperty.Map) {
@@ -119,5 +124,6 @@ type Manifest struct {
 	OS              string         `yaml:"operating_system"`
 	SHA1            string         `yaml:"sha1"`
 	BoshProtocol    string         `yaml:"bosh_protocol"`
+	StemcellFormats []string       `yaml:"stemcell_formats"`
 	CloudProperties biproperty.Map `yaml:"cloud_properties"`
 }

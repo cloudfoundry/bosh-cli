@@ -20,8 +20,9 @@ func NewExportReleaseCmd(deployment boshdir.Deployment, downloader Downloader) E
 func (c ExportReleaseCmd) Run(opts ExportReleaseOpts) error {
 	rel := opts.Args.ReleaseSlug
 	os := opts.Args.OSVersionSlug
+	jobs := opts.Jobs
 
-	result, err := c.deployment.ExportRelease(rel, os)
+	result, err := c.deployment.ExportRelease(rel, os, jobs)
 	if err != nil {
 		return err
 	}

@@ -1,19 +1,33 @@
 package system
 
 import (
-	"errors"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"fmt"
+	"net"
 	"strconv"
 	"strings"
+
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 func CalculateNetworkAndBroadcast(ipAddress, netmask string) (network, broadcast string, err error) {
+	ip := net.ParseIP(ipAddress)
+	if ip == nil {
+		return "", "", fmt.Errorf("Invalid IP '%s'", ipAddress)
+	}
+
+	if ip.To4() != nil {
+		return calculateV4NetworkAndBroadcast(ipAddress, netmask)
+	}
+
+	return "", "", nil
+}
+
+func calculateV4NetworkAndBroadcast(ipAddress, netmask string) (network, broadcast string, err error) {
 	ipComponents := strings.Split(ipAddress, ".")
 	maskComponents := strings.Split(netmask, ".")
 
 	if len(ipComponents) != 4 || len(maskComponents) != 4 {
-		err = errors.New("Invalid ip or netmask")
-		return
+		return "", "", fmt.Errorf("Invalid netmask '%s'", netmask)
 	}
 
 	networkComponents := []string{}
@@ -25,14 +39,12 @@ func CalculateNetworkAndBroadcast(ipAddress, netmask string) (network, broadcast
 
 		ipComponent, err = strconv.Atoi(ipComponents[i])
 		if err != nil {
-			err = bosherr.WrapError(err, "Parsing number from ip address")
-			return
+			return "", "", bosherr.WrapError(err, "Parsing number from ip address")
 		}
 
 		maskComponent, err = strconv.Atoi(maskComponents[i])
 		if err != nil {
-			err = bosherr.WrapError(err, "Parsing number from netmask")
-			return
+			return "", "", bosherr.WrapError(err, "Parsing number from netmask")
 		}
 
 		networkComponent := strconv.Itoa(ipComponent & maskComponent)
@@ -45,5 +57,5 @@ func CalculateNetworkAndBroadcast(ipAddress, netmask string) (network, broadcast
 	network = strings.Join(networkComponents, ".")
 	broadcast = strings.Join(broadcastComponents, ".")
 
-	return
+	return network, broadcast, nil
 }

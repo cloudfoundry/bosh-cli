@@ -19,7 +19,7 @@ import (
 
 var _ = Describe("HTTPClient", func() {
 	var (
-		httpClient HTTPClient
+		httpClient *HTTPClient
 		server     *ghttp.Server
 		logger     loggerfakes.FakeLogger
 	)

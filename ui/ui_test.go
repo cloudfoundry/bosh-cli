@@ -196,8 +196,8 @@ var _ = Describe("UI", func() {
 Title
 
 Header1|Header2|
-r1c1...|r1c2...|
-r2c1...|r2c2...|
+r1c1...|r1c2|
+r2c1...|r2c2|
 
 note1
 note2

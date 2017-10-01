@@ -9,6 +9,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-agent/agent"
 
+	"code.cloudfoundry.org/clock/fakeclock"
 	boshalert "github.com/cloudfoundry/bosh-agent/agent/alert"
 	boshas "github.com/cloudfoundry/bosh-agent/agent/applier/applyspec"
 	fakeas "github.com/cloudfoundry/bosh-agent/agent/applier/applyspec/fakes"
@@ -23,7 +24,6 @@ import (
 	fakesyslog "github.com/cloudfoundry/bosh-agent/syslog/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
-	"github.com/pivotal-golang/clock/fakeclock"
 )
 
 func init() {
@@ -97,6 +97,7 @@ func init() {
 			Context("when heartbeats can be sent", func() {
 				BeforeEach(func() {
 					handler.KeepOnRunning()
+
 				})
 
 				BeforeEach(func() {
@@ -160,6 +161,8 @@ func init() {
 							Message: expectedHb,
 						},
 					}))
+
+					Expect(jobSupervisor.GetHealthRecorded()).To(Equal(1))
 				})
 
 				It("sends periodic heartbeats", func() {
@@ -184,6 +187,7 @@ func init() {
 							Message: expectedHb,
 						}))
 					}
+					Expect(jobSupervisor.GetHealthRecorded()).To(BeNumerically(">=", 3))
 				})
 			})
 

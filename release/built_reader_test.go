@@ -39,7 +39,7 @@ var _ = Describe("BuiltReader", func() {
 				Licenses: &fakeres.FakeArchiveIndex{},
 			}
 
-			reader = NewBuiltReader(innerReader, devIndicies, finalIndicies)
+			reader = NewBuiltReader(innerReader, devIndicies, finalIndicies, 3)
 		})
 
 		It("reads and builds release", func() {
@@ -52,9 +52,10 @@ var _ = Describe("BuiltReader", func() {
 
 			Expect(readRelease.BuildCallCount()).To(Equal(1))
 
-			dev, final := readRelease.BuildArgsForCall(0)
+			dev, final, parallel := readRelease.BuildArgsForCall(0)
 			Expect(dev).To(Equal(devIndicies))
 			Expect(final).To(Equal(finalIndicies))
+			Expect(parallel).To(Equal(3))
 		})
 
 		It("returns error if read fails", func() {
@@ -72,6 +73,23 @@ var _ = Describe("BuiltReader", func() {
 
 			_, err := reader.Read("/release.tgz")
 			Expect(err).To(Equal(errors.New("fake-err")))
+		})
+
+		Context("parallel is less than 1", func() {
+			BeforeEach(func() {
+				reader = NewBuiltReader(innerReader, devIndicies, finalIndicies, 0)
+			})
+
+			It("builds with parallel of 1", func() {
+				readRelease := &fakerel.FakeRelease{}
+				innerReader.ReadReturns(readRelease, nil)
+
+				_, err := reader.Read("/release.tgz")
+				Expect(err).NotTo(HaveOccurred())
+
+				_, _, parallel := readRelease.BuildArgsForCall(0)
+				Expect(parallel).To(Equal(1))
+			})
 		})
 	})
 })

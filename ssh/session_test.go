@@ -70,12 +70,13 @@ var _ = Describe("SessionImpl", func() {
 			result.Hosts = []boshdir.Host{
 				{Host: "127.0.0.1", HostPublicKey: "pub-key1"},
 				{Host: "127.0.0.2", HostPublicKey: "pub-key2"},
+				{Host: "::1", HostPublicKey: "pub-key3"},
 			}
 
 			_, err := act().Start()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fs.ReadFileString("/tmp/known-hosts")).To(Equal(
-				"127.0.0.1 pub-key1\n127.0.0.2 pub-key2\n"))
+				"127.0.0.1 pub-key1\n127.0.0.2 pub-key2\n[::1] pub-key3\n"))
 		})
 
 		It("returns error if cannot create known hosts temp file and deletes private key", func() {

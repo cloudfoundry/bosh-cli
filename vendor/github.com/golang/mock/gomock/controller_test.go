@@ -48,7 +48,7 @@ func (e *ErrorReporter) assertPass(msg string) {
 
 func (e *ErrorReporter) assertFail(msg string) {
 	if !e.failed {
-		e.t.Error("Expected failure, but got pass: %s", msg)
+		e.t.Errorf("Expected failure, but got pass: %s", msg)
 	}
 }
 
@@ -121,7 +121,7 @@ func (s *Subject) BarMethod(arg string) int {
 
 func assertEqual(t *testing.T, expected interface{}, actual interface{}) {
 	if !reflect.DeepEqual(expected, actual) {
-		t.Error("Expected %+v, but got %+v", expected, actual)
+		t.Errorf("Expected %+v, but got %+v", expected, actual)
 	}
 }
 
@@ -207,6 +207,86 @@ func TestAnyTimes(t *testing.T) {
 		ctrl.Call(subject, "FooMethod", "argument")
 	}
 	reporter.assertPass("After 100 method calls.")
+	ctrl.Finish()
+}
+
+func TestMinTimes1(t *testing.T) {
+	// It fails if there are no calls
+	reporter, ctrl := createFixtures(t)
+	subject := new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MinTimes(1)
+	reporter.assertFatal(func() {
+		ctrl.Finish()
+	})
+
+	// It succeeds if there is one call
+	reporter, ctrl = createFixtures(t)
+	subject = new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MinTimes(1)
+	ctrl.Call(subject, "FooMethod", "argument")
+	ctrl.Finish()
+
+	// It succeeds if there are many calls
+	reporter, ctrl = createFixtures(t)
+	subject = new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MinTimes(1)
+	for i := 0; i < 100; i++ {
+		ctrl.Call(subject, "FooMethod", "argument")
+	}
+	ctrl.Finish()
+}
+
+func TestMaxTimes1(t *testing.T) {
+	// It succeeds if there are no calls
+	_, ctrl := createFixtures(t)
+	subject := new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MaxTimes(1)
+	ctrl.Finish()
+
+	// It succeeds if there is one call
+	_, ctrl = createFixtures(t)
+	subject = new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MaxTimes(1)
+	ctrl.Call(subject, "FooMethod", "argument")
+	ctrl.Finish()
+
+	//It fails if there are more
+	reporter, ctrl := createFixtures(t)
+	subject = new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MaxTimes(1)
+	ctrl.Call(subject, "FooMethod", "argument")
+	reporter.assertFatal(func() {
+		ctrl.Call(subject, "FooMethod", "argument")
+	})
+	ctrl.Finish()
+}
+
+func TestMinMaxTimes(t *testing.T) {
+	// It fails if there are less calls than specified
+	reporter, ctrl := createFixtures(t)
+	subject := new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MinTimes(2).MaxTimes(2)
+	ctrl.Call(subject, "FooMethod", "argument")
+	reporter.assertFatal(func() {
+		ctrl.Finish()
+	})
+
+	// It fails if there are more calls than specified
+	reporter, ctrl = createFixtures(t)
+	subject = new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MinTimes(2).MaxTimes(2)
+	ctrl.Call(subject, "FooMethod", "argument")
+	ctrl.Call(subject, "FooMethod", "argument")
+	reporter.assertFatal(func() {
+		ctrl.Call(subject, "FooMethod", "argument")
+	})
+
+	// It succeeds if there is just the right number of calls
+	reporter, ctrl = createFixtures(t)
+	subject = new(Subject)
+	ctrl.RecordCall(subject, "FooMethod", "argument").MaxTimes(2).MinTimes(2)
+	ctrl.Call(subject, "FooMethod", "argument")
+	ctrl.Call(subject, "FooMethod", "argument")
 	ctrl.Finish()
 }
 
@@ -343,9 +423,9 @@ func TestCallAfterLoopPanic(t *testing.T) {
 
 	subject := new(Subject)
 
-	firstCall := ctrl.RecordCall(subject, "Foo", "1")
-	secondCall := ctrl.RecordCall(subject, "Foo", "2")
-	thirdCall := ctrl.RecordCall(subject, "Foo", "3")
+	firstCall := ctrl.RecordCall(subject, "FooMethod", "1")
+	secondCall := ctrl.RecordCall(subject, "FooMethod", "2")
+	thirdCall := ctrl.RecordCall(subject, "FooMethod", "3")
 
 	gomock.InOrder(firstCall, secondCall, thirdCall)
 

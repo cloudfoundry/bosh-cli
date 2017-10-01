@@ -121,6 +121,7 @@ func (w *Writer) Flush() error {
 			continue
 		}
 
+		lastColIdx := len(row.Values) - 1
 		for colIdx, col := range row.Values {
 			if customWriter, ok := col.Value.(hasCustomWriter); ok {
 				_, err := customWriter.Fprintf(w.w, "%s", col.String)
@@ -135,10 +136,16 @@ func (w *Writer) Flush() error {
 			}
 
 			paddingSize := w.widths[colIdx] - len(col.String)
-
-			_, err := fmt.Fprintf(w.w, strings.Repeat(w.bgStr, paddingSize)+w.borderStr)
-			if err != nil {
-				return err
+			if colIdx == lastColIdx {
+				_, err := fmt.Fprintf(w.w, w.borderStr)
+				if err != nil {
+					return err
+				}
+			} else {
+				_, err := fmt.Fprintf(w.w, strings.Repeat(w.bgStr, paddingSize)+w.borderStr)
+				if err != nil {
+					return err
+				}
 			}
 		}
 

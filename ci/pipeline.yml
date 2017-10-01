@@ -48,9 +48,6 @@ jobs:
           trigger: true
       - task: build-linux
         file: bosh-cli/ci/tasks/build-linux.yml
-        params:
-          SKIP_BOSH_IO: true
-          BOSHIO_BEARER_TOKEN:
       - aggregate:
         - task: test-group-1
           privileged: true
@@ -107,16 +104,10 @@ jobs:
       - aggregate:
         - task: build-linux
           file: bosh-cli/ci/tasks/build-linux.yml
-          params:
-            BOSHIO_BEARER_TOKEN: {{boshio_bearer_token}}
         - task: build-darwin
           file: bosh-cli/ci/tasks/build-darwin.yml
-          params:
-            BOSHIO_BEARER_TOKEN: {{boshio_bearer_token}}
         - task: build-windows
           file: bosh-cli/ci/tasks/build-windows.yml
-          params:
-            BOSHIO_BEARER_TOKEN: {{boshio_bearer_token}}
 
       - task: create-dockerfile
         config:
@@ -195,19 +186,16 @@ jobs:
           input_mapping: {version-semver: alpha-version-semver}
           file: bosh-cli/ci/tasks/build-linux.yml
           params:
-            SKIP_BOSH_IO: true
             FILENAME_PREFIX: "alpha-"
         - task: build-darwin
           input_mapping: {version-semver: alpha-version-semver}
           file: bosh-cli/ci/tasks/build-darwin.yml
           params:
-            SKIP_BOSH_IO: true
             FILENAME_PREFIX: "alpha-"
         - task: build-windows
           input_mapping: {version-semver: alpha-version-semver}
           file: bosh-cli/ci/tasks/build-windows.yml
           params:
-            SKIP_BOSH_IO: true
             FILENAME_PREFIX: "alpha-"
 
       - aggregate:

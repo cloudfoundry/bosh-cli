@@ -41,6 +41,16 @@ func NewDirReaderImpl(
 }
 
 func (r DirReaderImpl) Read(path string) (*Package, error) {
+	manifestLock, err := r.collectLock(path)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Collecting package spec lock")
+	}
+
+	if manifestLock != nil {
+		resource := NewExistingResource(manifestLock.Name, manifestLock.Fingerprint, "")
+		return NewPackage(resource, manifestLock.Dependencies), nil
+	}
+
 	manifest, files, prepFiles, err := r.collectFiles(path)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Collecting package files")
@@ -58,6 +68,21 @@ func (r DirReaderImpl) Read(path string) (*Package, error) {
 	resource := NewResource(manifest.Name, fp, archive)
 
 	return NewPackage(resource, manifest.Dependencies), nil
+}
+
+func (r DirReaderImpl) collectLock(path string) (*ManifestLock, error) {
+	path = filepath.Join(path, "spec.lock")
+
+	if r.fs.FileExists(path) {
+		manifestLock, err := NewManifestLockFromPath(path, r.fs)
+		if err != nil {
+			return nil, err
+		}
+
+		return &manifestLock, nil
+	}
+
+	return nil, nil
 }
 
 func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, error) {

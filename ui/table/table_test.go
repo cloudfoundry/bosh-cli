@@ -38,8 +38,8 @@ var _ = Describe("Table", func() {
 			table.Print(buf)
 			Expect("\n" + buf.String()).To(Equal(strings.Replace(`
 Header1  Header2  +
-r1c1     r1c2     +
-r2c1     r2c2     +
+r1c1     r1c2  +
+r2c1     r2c2  +
 
 note1
 note2
@@ -68,8 +68,8 @@ note2
 			table.Print(buf)
 			Expect("\n" + buf.String()).To(Equal(`
 Header1|Header2|
-r1c1...|r1c2...|
-r2c1...|r2c2...|
+r1c1...|r1c2|
+r2c1...|r2c2|
 
 note1
 note2
@@ -98,8 +98,8 @@ note2
 			table.Print(buf)
 			Expect("\n" + buf.String()).To(Equal(`
 Header1|Header2|
-r1c1...|r1c2...|
-r2c1...|r2c2...|
+r1c1...|r1c2|
+r2c1...|r2c2|
 
 note1
 note2
@@ -124,10 +124,10 @@ note2
 			table.Print(buf)
 			Expect("\n" + buf.String()).To(Equal(`
 d|100|
-c|20.|
-d|20.|
-b|0..|
-a|-1.|
+c|20|
+d|20|
+b|0|
+a|-1|
 `))
 		})
 
@@ -173,8 +173,8 @@ r2c1|r2c2|
 Title
 
 Header1|Header2|
-r1c1...|r1c2...|
-r2c1...|r2c2...|
+r1c1...|r1c2|
+r2c1...|r2c2|
 
 note1
 note2
@@ -309,10 +309,10 @@ r4c1|r6c2|
 				table.Print(buf)
 				Expect("\n" + buf.String()).To(Equal(`
 Header1|Header2|
-s1c1...|s1r1c2.|
-s1c1...|s1r2c2.|
-r3c1...|r3c2...|
-r4c1...|r4c2...|
+s1c1...|s1r1c2|
+s1c1...|s1r2c2|
+r3c1...|r3c2|
+r4c1...|r4c2|
 
 4 things
 `))
@@ -335,7 +335,7 @@ r4c1...|r4c2...|
 			Expect("\n" + buf.String()).To(Equal(`
 r1c1|r1c2.1|
 ....|r1c2.2|
-r2c1|r2c2..|
+r2c1|r2c2|
 `))
 		})
 
@@ -504,13 +504,13 @@ Header1|Header2|
 				}
 				table.Print(buf)
 				Expect("\n" + buf.String()).To(Equal(`
-Header1.....|r1c1....|
+Header1.....|r1c1|
 OtherHeader2|longr1c2|
-Header3.....|r1c3....|
+Header3.....|r1c3|
 
-Header1.....|r2c1....|
-OtherHeader2|r2c2....|
-Header3.....|r2c3....|
+Header1.....|r2c1|
+OtherHeader2|r2c2|
+Header3.....|r2c3|
 
 2 errands
 `))
@@ -565,13 +565,13 @@ Header2|v2|
 					}
 					table.Print(buf)
 					Expect("\n" + buf.String()).To(Equal(`
-Header1.....|r1c1....|
+Header1.....|r1c1|
 OtherHeader2|longr1c2|
-Header3.....|r1c3....|
+Header3.....|r1c3|
 
-Header1.....|r2c1....|
-OtherHeader2|r2c2....|
-Header3.....|r2c3....|
+Header1.....|r2c1|
+OtherHeader2|r2c2|
+Header3.....|r2c3|
 
 2 errands
 `))
@@ -600,7 +600,7 @@ Header3.....|r2c3....|
 				table.Print(buf)
 				Expect("\n" + buf.String()).To(Equal(`
 Header1|Header2|
-v1     |v2     |
+v1     |v2|
 
 1 content
 `))

@@ -39,12 +39,13 @@
 [[projects]]
   name = "github.com/cloudfoundry/bosh-agent"
   packages = ["agentclient","agentclient/applyspec","agentclient/fakes","agentclient/http","agentclient/http/mocks"]
-  revision = "6898825"
+  revision = "a74fc7069b604abe84f1ddd899f58ae1e6b1f8ee"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
   packages = ["client","client/fakes","config"]
-  revision = "37f54c6"
+  revision = "294c88120d21a59450da0bd106938e56a45ecf16"
+  version = "v0.0.24"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-gcscli"
@@ -54,13 +55,14 @@
 [[projects]]
   branch = "master"
   name = "github.com/cloudfoundry/bosh-utils"
-  packages = ["blobstore","blobstore/fakes","crypto","crypto/cryptofakes","errors","fileutil","fileutil/fakes","http","httpclient","httpclient/fakes","logger","logger/file","logger/loggerfakes","property","retrystrategy","system","system/fakes","uuid","uuid/fakes"]
-  revision = "a438c74159cef509a903057eb8ada4db88c38070"
+  packages = ["blobstore","blobstore/fakes","crypto","crypto/cryptofakes","errors","fileutil","fileutil/fakes","httpclient","logger","logger/file","logger/loggerfakes","property","retrystrategy","system","system/fakes","uuid","uuid/fakes"]
+  revision = "a960ab178e64b43d19051be6fd2891ff695bb206"
 
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
   packages = ["types","types/typesfakes"]
-  revision = "a76bda8"
+  revision = "2d6f3ab66c92c437fae71a077c5bc6992466b35b"
+  version = "v0.0.132"
 
 [[projects]]
   name = "github.com/cppforlife/go-patch"
@@ -91,7 +93,8 @@
 [[projects]]
   name = "github.com/golang/mock"
   packages = ["gomock"]
-  revision = "15f8b22"
+  revision = "13f360950a79f5864a972c786a10a50e44b69541"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -148,7 +151,7 @@
 
 [[projects]]
   name = "github.com/onsi/ginkgo"
-  packages = [".","config","internal/codelocation","internal/containernode","internal/failer","internal/leafnodes","internal/remote","internal/spec","internal/spec_iterator","internal/specrunner","internal/suite","internal/testingtproxy","internal/writer","reporters","reporters/stenographer","reporters/stenographer/support/go-colorable","reporters/stenographer/support/go-isatty","types"]
+  packages = [".","config","ginkgo","ginkgo/convert","ginkgo/interrupthandler","ginkgo/nodot","ginkgo/testrunner","ginkgo/testsuite","ginkgo/watch","internal/codelocation","internal/containernode","internal/failer","internal/leafnodes","internal/remote","internal/spec","internal/spec_iterator","internal/specrunner","internal/suite","internal/testingtproxy","internal/writer","reporters","reporters/stenographer","reporters/stenographer/support/go-colorable","reporters/stenographer/support/go-isatty","types"]
   revision = "77a8c1e5c40d6bb6c5eb4dd4bdce9763564f6298"
   version = "v1.3.1"
 
@@ -181,8 +184,8 @@
 
 [[projects]]
   name = "golang.org/x/crypto"
-  packages = ["ssh","ssh/terminal"]
-  revision = "1e856cb"
+  packages = ["curve25519","ed25519","ed25519/internal/edwards25519","ssh","ssh/terminal"]
+  revision = "7e9105388ebff089b3f99f0ef676ea55a6da3a7e"
 
 [[projects]]
   branch = "master"
@@ -235,11 +238,11 @@
 [[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "a5b47d3"
+  revision = "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d56518f90235146a7e57357e6121779a55c389c6491b0d10fb10aca74725cf26"
+  inputs-digest = "a1f3173a0fc98ac7dd613a08f615c64d86625154890e2031a87a1d89d70f38ae"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -13,6 +13,7 @@ import (
 
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
 	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
 	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/resourcefakes"
 	. "github.com/cloudfoundry/bosh-cli/releasedir"
@@ -42,13 +43,26 @@ var _ = Describe("FSGenerator", func() {
 		devReleases = &fakereldir.FakeReleaseIndex{}
 		finalReleases = &fakereldir.FakeReleaseIndex{}
 		finalIndicies = boshrel.ArchiveIndicies{
-			Jobs: &fakeres.FakeArchiveIndex{},
+			Jobs:     &fakeres.FakeArchiveIndex{},
+			Packages: &fakeres.FakeArchiveIndex{},
 		}
 		reader = &fakerel.FakeReader{}
 		timeService = fakeclock.NewFakeClock(time.Date(2009, time.November, 10, 23, 1, 2, 333, time.UTC))
 		fs = fakesys.NewFakeFileSystem()
 		releaseDir = NewFSReleaseDir(
-			"/dir", config, gitRepo, blobsDir, gen, devReleases, finalReleases, finalIndicies, reader, timeService, fs)
+			"/dir",
+			config,
+			gitRepo,
+			blobsDir,
+			gen,
+			devReleases,
+			finalReleases,
+			finalIndicies,
+			reader,
+			timeService,
+			fs,
+			2,
+		)
 	})
 
 	Describe("Init", func() {
@@ -79,7 +93,19 @@ var _ = Describe("FSGenerator", func() {
 
 		It("saves release name to directory base name stripping '-release' suffix from the name", func() {
 			releaseDir := NewFSReleaseDir(
-				"/dir-release", config, gitRepo, blobsDir, gen, devReleases, finalReleases, finalIndicies, reader, timeService, fs)
+				"/dir-release",
+				config,
+				gitRepo,
+				blobsDir,
+				gen,
+				devReleases,
+				finalReleases,
+				finalIndicies,
+				reader,
+				timeService,
+				fs,
+				2,
+			)
 
 			err := releaseDir.Init(true)
 			Expect(err).ToNot(HaveOccurred())
@@ -597,6 +623,137 @@ var _ = Describe("FSGenerator", func() {
 		})
 	})
 
+	Describe("VendorPackage", func() {
+		It("finalizes given package and its dependencies and records vendored package manifest locks", func() {
+			pkg1Res := &fakeres.FakeResource{
+				NameStub:        func() string { return "pkg1-name" },
+				FingerprintStub: func() string { return "pkg1-fp" },
+			}
+			pkg2Res := &fakeres.FakeResource{
+				NameStub:        func() string { return "pkg2-name" },
+				FingerprintStub: func() string { return "pkg2-fp" },
+			}
+			pkg3Res := &fakeres.FakeResource{
+				NameStub:        func() string { return "pkg3-name" },
+				FingerprintStub: func() string { return "pkg3-fp" },
+			}
+			pkg4Res := &fakeres.FakeResource{
+				NameStub:        func() string { return "pkg4-name" },
+				FingerprintStub: func() string { return "pkg4-fp" },
+			}
+
+			pkg1 := boshpkg.NewPackage(pkg1Res, []string{"pkg2-name", "pkg3-name"})
+			pkg2 := boshpkg.NewPackage(pkg2Res, []string{"pkg4-name"})
+			pkg3 := boshpkg.NewPackage(pkg3Res, []string{"pkg4-name"})
+			pkg4 := boshpkg.NewPackage(pkg4Res, nil)
+			pkg1.AttachDependencies([]*boshpkg.Package{pkg2, pkg3})
+			pkg2.AttachDependencies([]*boshpkg.Package{pkg4})
+			pkg3.AttachDependencies([]*boshpkg.Package{pkg4})
+
+			// previous content will be overwritten
+			Expect(fs.WriteFileString("/dir/packages/pkg1-name/spec", "old-spec")).ToNot(HaveOccurred())
+			Expect(fs.WriteFileString("/dir/packages/pkg1-name/packaging", "old-packaging")).ToNot(HaveOccurred())
+			Expect(fs.WriteFileString("/dir/packages/pkg2-name/spec.lock", "old-spec-lock")).ToNot(HaveOccurred())
+
+			err := releaseDir.VendorPackage(pkg1)
+			Expect(err).ToNot(HaveOccurred())
+
+			// recorded files
+			Expect(fs.FileExists("/dir/packages/pkg1-name/spec")).To(BeFalse())
+			Expect(fs.FileExists("/dir/packages/pkg1-name/packaging")).To(BeFalse())
+			Expect(fs.ReadFileString("/dir/packages/pkg1-name/spec.lock")).To(Equal(`name: pkg1-name
+fingerprint: pkg1-fp
+dependencies:
+- pkg2-name
+- pkg3-name
+`))
+
+			Expect(fs.ReadFileString("/dir/packages/pkg2-name/spec.lock")).To(Equal(`name: pkg2-name
+fingerprint: pkg2-fp
+dependencies:
+- pkg4-name
+`))
+
+			Expect(fs.ReadFileString("/dir/packages/pkg3-name/spec.lock")).To(Equal(`name: pkg3-name
+fingerprint: pkg3-fp
+dependencies:
+- pkg4-name
+`))
+
+			Expect(fs.ReadFileString("/dir/packages/pkg4-name/spec.lock")).To(Equal(`name: pkg4-name
+fingerprint: pkg4-fp
+`))
+
+			// Use == for pointer equality
+			Expect(finalIndicies.Packages).ToNot(BeNil())
+
+			Expect(pkg1Res.FinalizeCallCount()).To(Equal(1))
+			Expect(pkg1Res.FinalizeArgsForCall(0) == finalIndicies.Packages).To(BeTrue())
+
+			Expect(pkg2Res.FinalizeCallCount()).To(Equal(1))
+			Expect(pkg2Res.FinalizeArgsForCall(0) == finalIndicies.Packages).To(BeTrue())
+
+			Expect(pkg3Res.FinalizeCallCount()).To(Equal(1))
+			Expect(pkg3Res.FinalizeArgsForCall(0) == finalIndicies.Packages).To(BeTrue())
+
+			Expect(pkg4Res.FinalizeCallCount()).To(Equal(1))
+			Expect(pkg4Res.FinalizeArgsForCall(0) == finalIndicies.Packages).To(BeTrue())
+		})
+
+		It("returns error if package finalize fails", func() {
+			pkg1Res := &fakeres.FakeResource{
+				NameStub:        func() string { return "pkg1-name" },
+				FingerprintStub: func() string { return "pkg1-fp" },
+			}
+			pkg1 := boshpkg.NewPackage(pkg1Res, nil)
+
+			pkg1Res.FinalizeReturns(errors.New("fake-err"))
+
+			err := releaseDir.VendorPackage(pkg1)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+
+		It("returns error if removing old package dir fails", func() {
+			pkg1Res := &fakeres.FakeResource{
+				NameStub:        func() string { return "pkg1-name" },
+				FingerprintStub: func() string { return "pkg1-fp" },
+			}
+			pkg1 := boshpkg.NewPackage(pkg1Res, nil)
+
+			fs.RemoveAllStub = func(path string) error { return errors.New("fake-err") }
+
+			err := releaseDir.VendorPackage(pkg1)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+
+		It("returns error if serializing manifest lock fails", func() {
+			pkg1Res := &fakeres.FakeResource{
+				NameStub: func() string { return "pkg1-name" },
+			}
+			pkg1 := boshpkg.NewPackage(pkg1Res, nil)
+
+			err := releaseDir.VendorPackage(pkg1)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Marshaling vendored package 'pkg1-name' spec lock"))
+		})
+
+		It("returns error if writing manifest lock fails", func() {
+			pkg1Res := &fakeres.FakeResource{
+				NameStub:        func() string { return "pkg1-name" },
+				FingerprintStub: func() string { return "pkg1-fp" },
+			}
+			pkg1 := boshpkg.NewPackage(pkg1Res, nil)
+
+			fs.WriteFileErrors["/dir/packages/pkg1-name/spec.lock"] = errors.New("fake-err")
+
+			err := releaseDir.VendorPackage(pkg1)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+	})
+
 	Describe("FinalizeRelease", func() {
 		var (
 			release *fakerel.FakeRelease
@@ -626,7 +783,8 @@ var _ = Describe("FSGenerator", func() {
 				return false, nil
 			}
 
-			release.FinalizeStub = func(indicies boshrel.ArchiveIndicies) error {
+			release.FinalizeStub = func(indicies boshrel.ArchiveIndicies, parallel int) error {
+				Expect(parallel).To(Equal(2))
 				Expect(indicies.Jobs).To(Equal(finalIndicies.Jobs)) // unique check
 				ops = append(ops, "finalize")
 				return nil

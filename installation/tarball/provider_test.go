@@ -1,36 +1,41 @@
 package tarball_test
 
 import (
+	"crypto/sha1"
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 
 	. "github.com/cloudfoundry/bosh-cli/installation/tarball"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
-	fakebihttpclient "github.com/cloudfoundry/bosh-utils/httpclient/fakes"
+	"github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 )
 
 var _ = Describe("Provider", func() {
 	var (
-		provider   Provider
-		cache      Cache
-		fs         *fakesys.FakeFileSystem
-		httpClient *fakebihttpclient.FakeHTTPClient
-		source     *fakeSource
-		fakeStage  *fakebiui.FakeStage
+		server    *ghttp.Server
+		provider  Provider
+		cache     Cache
+		fs        *fakesys.FakeFileSystem
+		source    *fakeSource
+		fakeStage *fakebiui.FakeStage
 	)
 
 	BeforeEach(func() {
+		server = ghttp.NewServer()
 		fs = fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		cache = NewCache(filepath.Join("/", "fake-base-path"), fs, logger)
-		httpClient = fakebihttpclient.NewFakeHTTPClient()
+		httpClient := httpclient.NewHTTPClient(httpclient.DefaultClient, logger)
 		provider = NewProvider(cache, fs, httpClient, 3, 0, logger)
 		fakeStage = fakebiui.NewFakeStage()
 	})
@@ -52,7 +57,7 @@ var _ = Describe("Provider", func() {
 
 		Context("when URL starts with http(s)://", func() {
 			BeforeEach(func() {
-				source = newFakeSource("http://fake-url", "da39a3ee5e6b4b0d3255bfef95601890afd80709", "fake-description")
+				source = newFakeSource(server.URL(), "da39a3ee5e6b4b0d3255bfef95601890afd80709", "fake-description")
 			})
 
 			Context("when tarball is present in cache", func() {
@@ -64,7 +69,9 @@ var _ = Describe("Provider", func() {
 				It("returns cached tarball path", func() {
 					path, err := provider.Get(source, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
-					Expect(path).To(Equal(filepath.Join("/", "fake-base-path", "9db1fb7c47637e8709e944a232e1aa98ce6fec26-da39a3ee5e6b4b0d3255bfef95601890afd80709")))
+					shaSum := sha1.Sum([]byte(source.GetURL()))
+					expectedFileName := fmt.Sprintf("%x-da39a3ee5e6b4b0d3255bfef95601890afd80709", string(shaSum[:]))
+					Expect(path).To(Equal(filepath.Join("/", "fake-base-path", expectedFileName)))
 				})
 
 				It("skips downloading stage", func() {
@@ -104,18 +111,23 @@ var _ = Describe("Provider", func() {
 
 				Context("when downloading succeds", func() {
 					BeforeEach(func() {
-						httpClient.SetGetBehavior("fake-body", 200, nil)
-						httpClient.SetGetBehavior("fake-body", 200, nil)
-						httpClient.SetGetBehavior("fake-body", 200, nil)
+						server.AppendHandlers(
+							ghttp.CombineHandlers(
+								ghttp.RespondWith(200, "fake-body"),
+								ghttp.VerifyRequest("GET", "/"),
+							),
+							ghttp.RespondWith(200, "fake-body"),
+							ghttp.RespondWith(200, "fake-body"),
+						)
 					})
 
 					It("downloads tarball from given URL and returns saved cache tarball path", func() {
 						path, err := provider.Get(source, fakeStage)
 						Expect(err).ToNot(HaveOccurred())
-						Expect(path).To(Equal(filepath.Join("/", "fake-base-path", "9db1fb7c47637e8709e944a232e1aa98ce6fec26-da39a3ee5e6b4b0d3255bfef95601890afd80709")))
-
-						Expect(httpClient.GetInputs).To(HaveLen(1))
-						Expect(httpClient.GetInputs[0].Endpoint).To(Equal("http://fake-url"))
+						shaSum := sha1.Sum([]byte(source.GetURL()))
+						expectedFileName := fmt.Sprintf("%x-da39a3ee5e6b4b0d3255bfef95601890afd80709", string(shaSum[:]))
+						Expect(path).To(Equal(filepath.Join("/", "fake-base-path", expectedFileName)))
+						Expect(server.ReceivedRequests()).To(HaveLen(1))
 					})
 
 					It("logs downloading stage", func() {
@@ -129,20 +141,20 @@ var _ = Describe("Provider", func() {
 
 					Context("when sha1 does not match", func() {
 						BeforeEach(func() {
-							source = newFakeSource("http://fake-url", "expectedsha1", "fake-description")
+							source = newFakeSource(server.URL(), "expectedsha1", "fake-description")
 						})
 
 						It("returns an error", func() {
 							_, err := provider.Get(source, fakeStage)
 							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("Failed to download from 'http://fake-url': Verifying digest for downloaded file: Expected stream to have digest 'expectedsha1' but was 'da39a3ee5e6b4b0d3255bfef95601890afd80709'"))
+							Expect(err.Error()).To(ContainSubstring("Failed to download from '%s': Verifying digest for downloaded file: Expected stream to have digest 'expectedsha1' but was 'da39a3ee5e6b4b0d3255bfef95601890afd80709'", server.URL()))
 						})
 
 						It("retries downloading up to 3 times", func() {
 							_, err := provider.Get(source, fakeStage)
 							Expect(err).To(HaveOccurred())
 
-							Expect(httpClient.GetInputs).To(HaveLen(3))
+							Expect(server.ReceivedRequests()).To(HaveLen(3))
 						})
 
 						It("removes the downloaded file", func() {
@@ -177,18 +189,30 @@ var _ = Describe("Provider", func() {
 				})
 
 				Context("when downloading fails", func() {
+					disconnectingRequestHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+						conn, _, err := w.(http.Hijacker).Hijack()
+						Expect(err).NotTo(HaveOccurred())
+
+						conn.Close()
+					})
+
 					BeforeEach(func() {
-						httpClient.SetGetBehavior("", 500, errors.New("fake-download-error-1"))
-						httpClient.SetGetBehavior("", 500, errors.New("fake-download-error-2"))
-						httpClient.SetGetBehavior("", 500, errors.New("fake-download-error-3"))
+						server.AppendHandlers(
+							ghttp.CombineHandlers(
+								ghttp.VerifyRequest("GET", "/"),
+								disconnectingRequestHandler,
+							),
+							disconnectingRequestHandler,
+							disconnectingRequestHandler,
+						)
 					})
 
 					It("retries downloading up to 3 times", func() {
 						_, err := provider.Get(source, fakeStage)
 						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("fake-download-error-3"))
+						Expect(err).To(MatchError(ContainSubstring("Get %s: EOF", server.URL())))
 
-						Expect(httpClient.GetInputs).To(HaveLen(3))
+						Expect(server.ReceivedRequests()).To(HaveLen(3))
 					})
 
 					It("removes the downloaded file", func() {

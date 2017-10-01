@@ -32,7 +32,7 @@ func init() {
 					NodeID: "node-id",
 				}
 
-				expectedJSON := `{"deployment":"FakeDeployment","job":"foo","index":0,"job_state":"running","vitals":{"cpu":{},"disk":{"ephemeral":{},"persistent":{},"system":{}},"mem":{},"swap":{}},"node_id":"node-id"}`
+				expectedJSON := `{"deployment":"FakeDeployment","job":"foo","index":0,"job_state":"running","vitals":{"cpu":{},"disk":{"ephemeral":{},"persistent":{},"system":{}},"mem":{},"swap":{},"uptime":{}},"node_id":"node-id"}`
 
 				hbBytes, err := json.Marshal(hb)
 				Expect(err).ToNot(HaveOccurred())
@@ -55,7 +55,7 @@ func init() {
 					NodeID: "node-id",
 				}
 
-				expectedJSON := `{"deployment":"FakeDeployment","job":null,"index":null,"job_state":"running","vitals":{"cpu":{},"disk":{"ephemeral":{},"persistent":{},"system":{}},"mem":{},"swap":{}},"node_id":"node-id"}`
+				expectedJSON := `{"deployment":"FakeDeployment","job":null,"index":null,"job_state":"running","vitals":{"cpu":{},"disk":{"ephemeral":{},"persistent":{},"system":{}},"mem":{},"swap":{},"uptime":{}},"node_id":"node-id"}`
 
 				hbBytes, err := json.Marshal(hb)
 				Expect(err).ToNot(HaveOccurred())

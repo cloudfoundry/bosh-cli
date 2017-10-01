@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -20,6 +21,7 @@ type FSIndex struct {
 
 	useSubdir           bool
 	expectsBlobstoreIDs bool
+	mutex               *sync.Mutex
 }
 
 type indexEntry struct {
@@ -45,6 +47,19 @@ builds:
     blobstore_id: cd26953d-b811-4127-b512-6f48639bd069
 format-version: '2'
 */
+
+type duplicateError struct {
+	msg  string
+	args []interface{}
+}
+
+func (de duplicateError) Error() string {
+	return fmt.Sprintf(de.msg, de.args...)
+}
+
+func (de duplicateError) IsDuplicate() bool {
+	return true
+}
 
 type fsIndexSchema struct {
 	Builds fsIndexSchema_SortedEntries `yaml:"builds"`
@@ -94,6 +109,7 @@ func NewFSIndex(
 
 		useSubdir:           useSubdir,
 		expectsBlobstoreIDs: expectsBlobstoreIDs,
+		mutex:               &sync.Mutex{},
 	}
 }
 
@@ -150,8 +166,10 @@ func (i FSIndex) Add(name, fingerprint, path, sha1 string) (string, string, erro
 
 	for _, entry := range entries {
 		if entry.Version == fingerprint {
-			errMsg := "Trying to add duplicate index entry '%s/%s' and SHA1 '%s' (conflicts with '%#v')"
-			return "", "", bosherr.Errorf(errMsg, name, fingerprint, sha1, entry)
+			return "", "", duplicateError{
+				msg:  "Trying to add duplicate index entry '%s/%s' and SHA1 '%s' (conflicts with '%#v')",
+				args: []interface{}{name, fingerprint, sha1, entry},
+			}
 		}
 	}
 
@@ -253,6 +271,9 @@ func (i FSIndex) save(name string, entries []indexEntry) error {
 	}
 
 	indexPath := i.indexPath(name)
+
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
 
 	err = i.fs.WriteFile(indexPath, bytes)
 	if err != nil {

@@ -7,10 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-utils/httpclient"
-	"github.com/cloudfoundry/bosh-utils/httpclient/fakes"
 )
-
-var _ HTTPClient = &fakes.FakeHTTPClient{}
 
 var _ = Describe("Default HTTP clients", func() {
 	Describe("DefaultClient", func() {

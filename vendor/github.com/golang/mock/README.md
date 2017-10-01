@@ -1,3 +1,6 @@
+gomock [![Build Status](https://travis-ci.org/golang/mock.svg?branch=master)](https://travis-ci.org/golang/mock)
+======
+
 GoMock is a mocking framework for the [Go programming language][golang]. It
 integrates well with Go's built-in `testing` package, but can be used in other
 contexts too.
@@ -27,12 +30,29 @@ Alternatively, there is an online reference for the package hosted on GoPkgDoc
 Running mockgen
 ---------------
 
+`mockgen` has two modes of operation: source and reflect.
+Source mode generates mock interfaces from a source file.
+It is enabled by using the -source flag. Other flags that
+may be useful in this mode are -imports and -aux_files.
+
+Example:
+
+	mockgen -source=foo.go [other options]
+
+Reflect mode generates mock interfaces by building a program
+that uses reflection to understand interfaces. It is enabled
+by passing two non-flag arguments: an import path, and a
+comma-separated list of symbols.
+
+Example:
+
+	mockgen database/sql/driver Conn,Driver
+
 The `mockgen` command is used to generate source code for a mock
 class given a Go source file containing interfaces to be mocked.
 It supports the following flags:
 
- *  `-source`: The file containing interfaces to be mocked. You must
-    supply this flag.
+ *  `-source`: A file containing interfaces to be mocked.
 
  *  `-destination`: A file to which to write the resulting source code. If you
     don't set this, the code is printed to standard output.
@@ -51,6 +71,8 @@ It supports the following flags:
     specified as a comma-separated list of elements of the form
     `foo=bar/baz.go`, where `bar/baz.go` is the source file and `foo` is the
     package name of that file used by the -source file.
+
+*  `-build_flags`: (reflect mode only) Flags passed verbatim to `go build`.
 
 For an example of the use of `mockgen`, see the `sample/` directory. In simple
 cases, you will need only the `-source` flag.

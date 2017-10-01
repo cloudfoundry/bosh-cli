@@ -3,7 +3,7 @@ package director
 import (
 	"time"
 
-	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
+	"github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
@@ -14,7 +14,7 @@ type Client struct {
 
 func NewClient(
 	endpoint string,
-	httpClient boshhttp.HTTPClient,
+	httpClient *httpclient.HTTPClient,
 	taskReporter TaskReporter,
 	fileReporter FileReporter,
 	logger boshlog.Logger,

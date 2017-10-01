@@ -6,17 +6,9 @@
 * CI: <https://main.bosh-ci.cf-app.com/teams/main/pipelines/bosh:cli>
 * Roadmap: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/956238)
 
-## Usage
+## Install
 
-- [Install](https://bosh.io/docs/cli-v2.html)
-
-### Installing using a package manager
-
-**Mac OS X** (using [Homebrew](http://brew.sh/) via the [cloudfoundry tap](https://github.com/cloudfoundry/homebrew-tap)):
-
-```sh
-$ brew install cloudfoundry/tap/bosh-cli
-```
+- [https://bosh.io/docs/cli-v2.html#install](https://bosh.io/docs/cli-v2.html#install)
 
 ## Client Library
 

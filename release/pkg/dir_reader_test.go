@@ -387,5 +387,21 @@ files: [in-file1, in-file2]
 
 			Expect(collectedChunks).To(BeEmpty())
 		})
+
+		It("returns a package with spec lock", func() {
+			fs.WriteFileString(filepath.Join("/", "dir", "spec.lock"), "name: name\nfingerprint: fp\ndependencies: [pkg1]")
+
+			pkg, err := reader.Read(filepath.Join("/", "dir"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(pkg).To(Equal(NewPackage(NewExistingResource("name", "fp", ""), []string{"pkg1"})))
+		})
+
+		It("returns error if cannot deserialize spec lock", func() {
+			fs.WriteFileString(filepath.Join("/", "dir", "spec.lock"), "-")
+
+			_, err := reader.Read(filepath.Join("/", "dir"))
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Unmarshalling package spec lock"))
+		})
 	})
 })
