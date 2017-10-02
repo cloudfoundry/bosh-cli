@@ -3,6 +3,7 @@ package pkg
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/cloudfoundry/bosh-cli/installation/blobextract"
 	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
@@ -96,13 +97,13 @@ func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageR
 		Name: "bash",
 		Args: []string{"-x", "packaging"},
 		Env: map[string]string{
-			"BOSH_COMPILE_TARGET": packageSrcDir,
-			"BOSH_INSTALL_TARGET": installDir,
+			"BOSH_COMPILE_TARGET": filepath.ToSlash(packageSrcDir),
+			"BOSH_INSTALL_TARGET": filepath.ToSlash(installDir),
 			"BOSH_PACKAGE_NAME":   pkg.Name(),
-			"BOSH_PACKAGES_DIR":   c.packagesDir,
+			"BOSH_PACKAGES_DIR":   filepath.ToSlash(c.packagesDir),
 			"PATH":                "/usr/local/bin:/usr/bin:/bin",
 		},
-		UseIsolatedEnv: true,
+		UseIsolatedEnv: runtime.GOOS != "windows",
 		WorkingDir:     packageSrcDir,
 	}
 

@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
+	"runtime"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -87,11 +89,11 @@ func (r *cpiCmdRunner) Run(context CmdContext, method string, args ...interface{
 	cmd := boshsys.Command{
 		Name: cmdPath,
 		Env: map[string]string{
-			"BOSH_PACKAGES_DIR": r.cpi.PackagesDir,
-			"BOSH_JOBS_DIR":     r.cpi.JobsDir,
+			"BOSH_PACKAGES_DIR": filepath.ToSlash(r.cpi.PackagesDir),
+			"BOSH_JOBS_DIR":     filepath.ToSlash(r.cpi.JobsDir),
 			"PATH":              "/usr/local/bin:/usr/bin:/bin:/sbin",
 		},
-		UseIsolatedEnv: true,
+		UseIsolatedEnv: runtime.GOOS != "windows",
 		Stdin:          bytes.NewReader(inputBytes),
 	}
 	stdout, stderr, exitCode, err := r.cmdRunner.RunComplexCommand(cmd)
