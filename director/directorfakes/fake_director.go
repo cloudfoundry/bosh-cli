@@ -366,6 +366,21 @@ type FakeDirector struct {
 		result1 bool
 		result2 error
 	}
+	DiffConfigStub        func(configType string, name string, manifest []byte) (director.ConfigDiff, error)
+	diffConfigMutex       sync.RWMutex
+	diffConfigArgsForCall []struct {
+		configType string
+		name       string
+		manifest   []byte
+	}
+	diffConfigReturns struct {
+		result1 director.ConfigDiff
+		result2 error
+	}
+	diffConfigReturnsOnCall map[int]struct {
+		result1 director.ConfigDiff
+		result2 error
+	}
 	LatestCloudConfigStub        func() (director.CloudConfig, error)
 	latestCloudConfigMutex       sync.RWMutex
 	latestCloudConfigArgsForCall []struct{}
@@ -1934,6 +1949,64 @@ func (fake *FakeDirector) DeleteConfigReturnsOnCall(i int, result1 bool, result2
 	}{result1, result2}
 }
 
+func (fake *FakeDirector) DiffConfig(configType string, name string, manifest []byte) (director.ConfigDiff, error) {
+	var manifestCopy []byte
+	if manifest != nil {
+		manifestCopy = make([]byte, len(manifest))
+		copy(manifestCopy, manifest)
+	}
+	fake.diffConfigMutex.Lock()
+	ret, specificReturn := fake.diffConfigReturnsOnCall[len(fake.diffConfigArgsForCall)]
+	fake.diffConfigArgsForCall = append(fake.diffConfigArgsForCall, struct {
+		configType string
+		name       string
+		manifest   []byte
+	}{configType, name, manifestCopy})
+	fake.recordInvocation("DiffConfig", []interface{}{configType, name, manifestCopy})
+	fake.diffConfigMutex.Unlock()
+	if fake.DiffConfigStub != nil {
+		return fake.DiffConfigStub(configType, name, manifest)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.diffConfigReturns.result1, fake.diffConfigReturns.result2
+}
+
+func (fake *FakeDirector) DiffConfigCallCount() int {
+	fake.diffConfigMutex.RLock()
+	defer fake.diffConfigMutex.RUnlock()
+	return len(fake.diffConfigArgsForCall)
+}
+
+func (fake *FakeDirector) DiffConfigArgsForCall(i int) (string, string, []byte) {
+	fake.diffConfigMutex.RLock()
+	defer fake.diffConfigMutex.RUnlock()
+	return fake.diffConfigArgsForCall[i].configType, fake.diffConfigArgsForCall[i].name, fake.diffConfigArgsForCall[i].manifest
+}
+
+func (fake *FakeDirector) DiffConfigReturns(result1 director.ConfigDiff, result2 error) {
+	fake.DiffConfigStub = nil
+	fake.diffConfigReturns = struct {
+		result1 director.ConfigDiff
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) DiffConfigReturnsOnCall(i int, result1 director.ConfigDiff, result2 error) {
+	fake.DiffConfigStub = nil
+	if fake.diffConfigReturnsOnCall == nil {
+		fake.diffConfigReturnsOnCall = make(map[int]struct {
+			result1 director.ConfigDiff
+			result2 error
+		})
+	}
+	fake.diffConfigReturnsOnCall[i] = struct {
+		result1 director.ConfigDiff
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDirector) LatestCloudConfig() (director.CloudConfig, error) {
 	fake.latestCloudConfigMutex.Lock()
 	ret, specificReturn := fake.latestCloudConfigReturnsOnCall[len(fake.latestCloudConfigArgsForCall)]
@@ -2748,6 +2821,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.updateConfigMutex.RUnlock()
 	fake.deleteConfigMutex.RLock()
 	defer fake.deleteConfigMutex.RUnlock()
+	fake.diffConfigMutex.RLock()
+	defer fake.diffConfigMutex.RUnlock()
 	fake.latestCloudConfigMutex.RLock()
 	defer fake.latestCloudConfigMutex.RUnlock()
 	fake.updateCloudConfigMutex.RLock()

@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
@@ -88,7 +89,7 @@ var _ = Describe("UpdateConfigCmd", func() {
 			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\nxyz: val\n")))
 		})
 
-		It("does not stop if confirmation is rejected", func() {
+		It("does not update if confirmation is rejected", func() {
 			ui.AskedConfirmationErr = errors.New("stop")
 
 			err := act()
@@ -104,6 +105,30 @@ var _ = Describe("UpdateConfigCmd", func() {
 			err := act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+
+		It("returns an error if diffing failed", func() {
+			director.DiffConfigReturns(boshdir.ConfigDiff{}, errors.New("Fetching diff result"))
+
+			err := act()
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("gets the diff from the config", func() {
+			diff := [][]interface{}{
+				[]interface{}{"some line that stayed", nil},
+				[]interface{}{"some line that was added", "added"},
+				[]interface{}{"some line that was removed", "removed"},
+			}
+
+			expectedDiff := boshdir.NewConfigDiff(diff)
+			director.DiffConfigReturns(expectedDiff, nil)
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(director.DiffConfigCallCount()).To(Equal(1))
+			Expect(ui.Said).To(ContainElement("  some line that stayed\n"))
+			Expect(ui.Said).To(ContainElement("+ some line that was added\n"))
+			Expect(ui.Said).To(ContainElement("- some line that was removed\n"))
 		})
 
 		Context("when uploading an empty YAML document", func() {
