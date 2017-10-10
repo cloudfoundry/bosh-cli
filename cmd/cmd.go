@@ -237,6 +237,9 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *UpdateConfigOpts:
 		return NewUpdateConfigCmd(deps.UI, c.director()).Run(*opts)
 
+	case *DeleteConfigOpts:
+		return NewDeleteConfigCmd(deps.UI, c.director()).Run(*opts)
+
 	case *CloudConfigOpts:
 		return NewCloudConfigCmd(deps.UI, c.director()).Run()
 

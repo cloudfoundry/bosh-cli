@@ -352,6 +352,20 @@ type FakeDirector struct {
 	updateConfigReturnsOnCall map[int]struct {
 		result1 error
 	}
+	DeleteConfigStub        func(configType string, name string) (bool, error)
+	deleteConfigMutex       sync.RWMutex
+	deleteConfigArgsForCall []struct {
+		configType string
+		name       string
+	}
+	deleteConfigReturns struct {
+		result1 bool
+		result2 error
+	}
+	deleteConfigReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
 	LatestCloudConfigStub        func() (director.CloudConfig, error)
 	latestCloudConfigMutex       sync.RWMutex
 	latestCloudConfigArgsForCall []struct{}
@@ -1868,6 +1882,58 @@ func (fake *FakeDirector) UpdateConfigReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDirector) DeleteConfig(configType string, name string) (bool, error) {
+	fake.deleteConfigMutex.Lock()
+	ret, specificReturn := fake.deleteConfigReturnsOnCall[len(fake.deleteConfigArgsForCall)]
+	fake.deleteConfigArgsForCall = append(fake.deleteConfigArgsForCall, struct {
+		configType string
+		name       string
+	}{configType, name})
+	fake.recordInvocation("DeleteConfig", []interface{}{configType, name})
+	fake.deleteConfigMutex.Unlock()
+	if fake.DeleteConfigStub != nil {
+		return fake.DeleteConfigStub(configType, name)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.deleteConfigReturns.result1, fake.deleteConfigReturns.result2
+}
+
+func (fake *FakeDirector) DeleteConfigCallCount() int {
+	fake.deleteConfigMutex.RLock()
+	defer fake.deleteConfigMutex.RUnlock()
+	return len(fake.deleteConfigArgsForCall)
+}
+
+func (fake *FakeDirector) DeleteConfigArgsForCall(i int) (string, string) {
+	fake.deleteConfigMutex.RLock()
+	defer fake.deleteConfigMutex.RUnlock()
+	return fake.deleteConfigArgsForCall[i].configType, fake.deleteConfigArgsForCall[i].name
+}
+
+func (fake *FakeDirector) DeleteConfigReturns(result1 bool, result2 error) {
+	fake.DeleteConfigStub = nil
+	fake.deleteConfigReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) DeleteConfigReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.DeleteConfigStub = nil
+	if fake.deleteConfigReturnsOnCall == nil {
+		fake.deleteConfigReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.deleteConfigReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDirector) LatestCloudConfig() (director.CloudConfig, error) {
 	fake.latestCloudConfigMutex.Lock()
 	ret, specificReturn := fake.latestCloudConfigReturnsOnCall[len(fake.latestCloudConfigArgsForCall)]
@@ -2680,6 +2746,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.listConfigsMutex.RUnlock()
 	fake.updateConfigMutex.RLock()
 	defer fake.updateConfigMutex.RUnlock()
+	fake.deleteConfigMutex.RLock()
+	defer fake.deleteConfigMutex.RUnlock()
 	fake.latestCloudConfigMutex.RLock()
 	defer fake.latestCloudConfigMutex.RUnlock()
 	fake.updateCloudConfigMutex.RLock()

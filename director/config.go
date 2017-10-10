@@ -45,6 +45,10 @@ func (d DirectorImpl) UpdateConfig(configType string, name string, content []byt
 	return d.client.updateConfig(configType, name, content)
 }
 
+func (d DirectorImpl) DeleteConfig(configType string, name string) (bool, error) {
+	return d.client.deleteConfig(configType, name)
+}
+
 func (c Client) latestConfig(configType string, name string) ([]Config, error) {
 	var resps []Config
 
@@ -99,4 +103,21 @@ func (c Client) updateConfig(configType string, name string, content []byte) err
 	}
 
 	return nil
+}
+
+func (c Client) deleteConfig(configType string, name string) (bool, error) {
+	query := gourl.Values{}
+	query.Add("type", configType)
+	query.Add("name", name)
+	path := fmt.Sprintf("/configs?%s", query.Encode())
+
+	_, response, err := c.clientRequest.RawDelete(path)
+	if err != nil {
+		if response != nil && response.StatusCode == http.StatusNotFound {
+			return false, nil
+		}
+		return false, bosherr.WrapErrorf(err, "Deleting config")
+	}
+
+	return true, nil
 }
