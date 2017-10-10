@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"gopkg.in/yaml.v2"
 	gourl "net/url"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -21,6 +22,12 @@ type ConfigListItem struct {
 type ConfigsFilter struct {
 	Type string
 	Name string
+}
+
+type UpdateConfigBody struct {
+	Type    string
+	Name    string
+	Content string
 }
 
 func (d DirectorImpl) LatestConfig(configType string, name string) (Config, error) {
@@ -42,7 +49,11 @@ func (d DirectorImpl) ListConfigs(filter ConfigsFilter) ([]ConfigListItem, error
 }
 
 func (d DirectorImpl) UpdateConfig(configType string, name string, content []byte) error {
-	return d.client.updateConfig(configType, name, content)
+	y, err := yaml.Marshal(UpdateConfigBody{configType, name, string(content)})
+	if err != nil {
+		return bosherr.WrapError(err, "Can't marshal request body to yaml")
+	}
+	return d.client.updateConfig(y)
 }
 
 func (d DirectorImpl) DeleteConfig(configType string, name string) (bool, error) {
@@ -60,7 +71,7 @@ func (c Client) latestConfig(configType string, name string) ([]Config, error) {
 
 	err := c.clientRequest.Get(path, &resps)
 	if err != nil {
-		return resps, bosherr.WrapErrorf(err, "Finding config")
+		return resps, bosherr.WrapError(err, "Finding config")
 	}
 
 	return resps, nil
@@ -87,17 +98,12 @@ func (c Client) listConfigs(filter ConfigsFilter) ([]ConfigListItem, error) {
 	return resps, nil
 }
 
-func (c Client) updateConfig(configType string, name string, content []byte) error {
-	query := gourl.Values{}
-	query.Add("type", configType)
-	query.Add("name", name)
-	path := fmt.Sprintf("/configs?%s", query.Encode())
-
+func (c Client) updateConfig(content []byte) error {
 	setHeaders := func(req *http.Request) {
 		req.Header.Add("Content-Type", "text/yaml")
 	}
 
-	_, _, err := c.clientRequest.RawPost(path, content, setHeaders)
+	_, _, err := c.clientRequest.RawPost("/configs", content, setHeaders)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Updating config")
 	}
