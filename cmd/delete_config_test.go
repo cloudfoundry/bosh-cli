@@ -67,7 +67,7 @@ var _ = Describe("DeleteConfigCmd", func() {
 
 					err := act()
 					Expect(err).To(Not(HaveOccurred()))
-					Expect(ui.Said[0]).To(ContainSubstring("Deleted 0 configs: No config matching given type 'my-type' and name 'my-name' found."))
+					Expect(ui.Said[0]).To(ContainSubstring("No configs to delete: no matches for type 'my-type' and name 'my-name' found."))
 				})
 			})
 
