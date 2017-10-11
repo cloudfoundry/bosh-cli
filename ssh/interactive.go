@@ -29,7 +29,7 @@ func (r InteractiveRunner) Run(connOpts ConnectionOpts, result boshdir.SSHResult
 	cmdFactory := func(host boshdir.Host) boshsys.Command {
 		return boshsys.Command{
 			Name: "ssh",
-			Args: []string{printableHost{host}.String(), "-l", host.Username},
+			Args: []string{host.Host, "-l", host.Username},
 
 			Stdin:  os.Stdin,
 			Stdout: os.Stdout,
