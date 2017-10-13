@@ -118,7 +118,7 @@ var _ = Describe("Opts", func() {
 		Describe("Sha2", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Sha2", opts)).To(Equal(
-					`long:"sha2" description:"Use SHA256 checksums"`,
+					`long:"sha2" description:"Use SHA256 checksums" env:"BOSH_SHA2"`,
 				))
 			})
 		})
