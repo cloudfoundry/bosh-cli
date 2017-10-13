@@ -17,7 +17,7 @@ type ReporterImpl struct {
 	eventMarkers    []eventMarker
 	lastGlobalEvent *Event
 
-	outputRest string
+	outputRest map[int]string
 	sync.Mutex
 }
 
@@ -33,7 +33,13 @@ const (
 )
 
 func NewReporter(ui boshui.UI, isForEvents bool) *ReporterImpl {
-	return &ReporterImpl{ui: ui, isForEvents: isForEvents, events: map[int][]*Event{}, eventMarkers: []eventMarker{}}
+	return &ReporterImpl{
+		ui:           ui,
+		isForEvents:  isForEvents,
+		events:       map[int][]*Event{},
+		eventMarkers: []eventMarker{},
+		outputRest:   map[int]string{},
+	}
 }
 
 func (r *ReporterImpl) TaskStarted(id int) {
@@ -83,17 +89,17 @@ func (r *ReporterImpl) TaskOutputChunk(id int, chunk []byte) {
 	}
 
 	if r.isForEvents {
-		r.outputRest += string(chunk)
+		r.outputRest[id] += string(chunk)
 
 		for {
-			idx := strings.Index(r.outputRest, "\n")
+			idx := strings.Index(r.outputRest[id], "\n")
 			if idx == -1 {
 				break
 			}
-			if len(r.outputRest[0:idx]) > 0 {
-				r.showEvent(id, r.outputRest[0:idx])
+			if len(r.outputRest[id][0:idx]) > 0 {
+				r.showEvent(id, r.outputRest[id][0:idx])
 			}
-			r.outputRest = r.outputRest[idx+1:]
+			r.outputRest[id] = r.outputRest[id][idx+1:]
 		}
 	} else {
 		r.showChunk(chunk)
