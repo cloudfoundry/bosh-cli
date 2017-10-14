@@ -56,6 +56,14 @@ func (ui *ConfUI) EnableNonInteractive() {
 	ui.parent = NewNonInteractiveUI(ui.parent)
 }
 
+func (ui *ConfUI) BeginAdditionLinef(pattern string, args ...interface{}) {
+	ui.parent.BeginAdditionLinef(pattern, args...)
+}
+
+func (ui *ConfUI) BeginRemovalLinef(pattern string, args ...interface{}) {
+	ui.parent.BeginRemovalLinef(pattern, args...)
+}
+
 func (ui *ConfUI) ErrorLinef(pattern string, args ...interface{}) {
 	ui.parent.ErrorLinef(pattern, args...)
 }

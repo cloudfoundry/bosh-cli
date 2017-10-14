@@ -49,6 +49,22 @@ var _ = Describe("IndentingUI", func() {
 		})
 	})
 
+	Describe("BeginAdditionLinef", func() {
+		It("delegates to the parent UI with an indent", func() {
+			ui.BeginAdditionLinef("fake-start")
+			Expect(uiOut.String()).To(ContainSubstring("  fake-start"))
+			Expect(uiErr.String()).To(BeEmpty())
+		})
+	})
+
+	Describe("BeginRemovalLinef", func() {
+		It("delegates to the parent UI with an indent", func() {
+			ui.BeginRemovalLinef("fake-start")
+			Expect(uiOut.String()).To(ContainSubstring("  fake-start"))
+			Expect(uiErr.String()).To(BeEmpty())
+		})
+	})
+
 	Describe("BeginLinef", func() {
 		It("delegates to the parent UI with an indent", func() {
 			ui.BeginLinef("fake-start")

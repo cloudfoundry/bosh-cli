@@ -41,6 +41,20 @@ var _ = Describe("NonInteractiveUI", func() {
 		})
 	})
 
+	Describe("BeginAdditionLinef", func() {
+		It("delegates to the parent UI", func() {
+			ui.BeginAdditionLinef("fake-start")
+			Expect(parentUI.SaidAddedLine).To(Equal([]string{"fake-start"}))
+		})
+	})
+
+	Describe("BeginRemovalLinef", func() {
+		It("delegates to the parent UI", func() {
+			ui.BeginRemovalLinef("fake-start")
+			Expect(parentUI.SaidRemovedLine).To(Equal([]string{"fake-start"}))
+		})
+	})
+
 	Describe("EndLinef", func() {
 		It("delegates to the parent UI", func() {
 			ui.EndLinef("fake-end")

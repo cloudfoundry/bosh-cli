@@ -19,9 +19,9 @@ func (d Diff) Print(ui boshui.UI) {
 		lineMod, _ := line[1].(string)
 
 		if lineMod == "added" {
-			ui.BeginLinef("+ %s\n", line[0])
+			ui.BeginAdditionLinef("+ %s\n", line[0])
 		} else if lineMod == "removed" {
-			ui.BeginLinef("- %s\n", line[0])
+			ui.BeginRemovalLinef("- %s\n", line[0])
 		} else {
 			ui.BeginLinef("  %s\n", line[0])
 		}

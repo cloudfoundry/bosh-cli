@@ -8,6 +8,9 @@ import (
 )
 
 type FakeUI struct {
+	SaidAddedLine []string
+	SaidRemovedLine []string
+
 	Said   []string
 	Errors []string
 
@@ -41,6 +44,20 @@ type FakeUI struct {
 type Answer struct {
 	Text  string
 	Error error
+}
+
+func (ui *FakeUI) BeginAdditionLinef(pattern string, args ...interface{}) {
+	ui.mutex.Lock()
+	defer ui.mutex.Unlock()
+
+	ui.SaidAddedLine = append(ui.SaidAddedLine, fmt.Sprintf(pattern, args...))
+}
+
+func (ui *FakeUI) BeginRemovalLinef(pattern string, args ...interface{}) {
+	ui.mutex.Lock()
+	defer ui.mutex.Unlock()
+
+	ui.SaidRemovedLine = append(ui.SaidRemovedLine, fmt.Sprintf(pattern, args...))
 }
 
 func (ui *FakeUI) ErrorLinef(pattern string, args ...interface{}) {

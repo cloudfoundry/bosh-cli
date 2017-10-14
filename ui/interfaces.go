@@ -5,6 +5,9 @@ import (
 )
 
 type UI interface {
+	BeginAdditionLinef(pattern string, args ...interface{})
+	BeginRemovalLinef(pattern string, args ...interface{})
+
 	ErrorLinef(pattern string, args ...interface{})
 	PrintLinef(pattern string, args ...interface{})
 

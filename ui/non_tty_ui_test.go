@@ -44,6 +44,22 @@ var _ = Describe("NonTTYUI", func() {
 		})
 	})
 
+	Describe("BeginAdditionLinef", func() {
+		It("does not include in Lines", func() {
+			ui.BeginAdditionLinef("fake-line1")
+			Expect(parentUI.Said).To(BeEmpty())
+			Expect(parentUI.Errors).To(BeEmpty())
+		})
+	})
+
+	Describe("BeginRemovalLinef", func() {
+		It("does not include in Lines", func() {
+			ui.BeginRemovalLinef("fake-line1")
+			Expect(parentUI.Said).To(BeEmpty())
+			Expect(parentUI.Errors).To(BeEmpty())
+		})
+	})
+
 	Describe("EndLinef", func() {
 		It("does not include in Lines", func() {
 			ui.EndLinef("fake-line1")

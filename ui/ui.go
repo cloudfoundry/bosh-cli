@@ -41,6 +41,22 @@ func (ui *WriterUI) IsTTY() bool {
 	return ok && isatty.IsTerminal(file.Fd())
 }
 
+func (ui *WriterUI) BeginAdditionLinef(pattern string, args ...interface{}) {
+	message := fmt.Sprintf(pattern, args...)
+	_, err := fmt.Fprint(ui.outWriter, message)
+	if err != nil {
+		ui.logger.Error(ui.logTag, "UI.BeginAdditionLinef failed (message='%s'): %s", message, err)
+	}
+}
+
+func (ui *WriterUI) BeginRemovalLinef(pattern string, args ...interface{}) {
+	message := fmt.Sprintf(pattern, args...)
+	_, err := fmt.Fprint(ui.outWriter, message)
+	if err != nil {
+		ui.logger.Error(ui.logTag, "UI.BeginRemovalLinef failed (message='%s'): %s", message, err)
+	}
+}
+
 // ErrorLinef starts and ends a text error line
 func (ui *WriterUI) ErrorLinef(pattern string, args ...interface{}) {
 	message := fmt.Sprintf(pattern, args...)

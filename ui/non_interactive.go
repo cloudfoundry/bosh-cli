@@ -12,6 +12,14 @@ func NewNonInteractiveUI(parent UI) UI {
 	return &nonInteractiveUI{parent: parent}
 }
 
+func (ui *nonInteractiveUI) BeginAdditionLinef(pattern string, args ...interface{}) {
+	ui.parent.BeginAdditionLinef(pattern, args...)
+}
+
+func (ui *nonInteractiveUI) BeginRemovalLinef(pattern string, args ...interface{}) {
+	ui.parent.BeginRemovalLinef(pattern, args...)
+}
+
 func (ui *nonInteractiveUI) ErrorLinef(pattern string, args ...interface{}) {
 	ui.parent.ErrorLinef(pattern, args...)
 }

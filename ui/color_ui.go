@@ -22,6 +22,14 @@ func NewColorUI(parent UI) UI {
 	}
 }
 
+func (ui *ColorUI) BeginAdditionLinef(pattern string, args ...interface{}) {
+	ui.parent.BeginAdditionLinef("%s", ui.okFunc(pattern, args...))
+}
+
+func (ui *ColorUI) BeginRemovalLinef(pattern string, args ...interface{}) {
+	ui.parent.BeginRemovalLinef("%s", ui.errFunc(pattern, args...))
+}
+
 func (ui *ColorUI) ErrorLinef(pattern string, args ...interface{}) {
 	ui.parent.ErrorLinef("%s", ui.errFunc(pattern, args...))
 }

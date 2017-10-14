@@ -36,6 +36,14 @@ func NewJSONUI(parent UI, logger boshlog.Logger) UI {
 	return &jsonUI{parent: parent, logTag: "JSONUI", logger: logger}
 }
 
+func (ui *jsonUI) BeginAdditionLinef(pattern string, args ...interface{}) {
+	ui.addLine(pattern, args)
+}
+
+func (ui *jsonUI) BeginRemovalLinef(pattern string, args ...interface{}) {
+	ui.addLine(pattern, args)
+}
+
 func (ui *jsonUI) ErrorLinef(pattern string, args ...interface{}) {
 	ui.addLine(pattern, args)
 }

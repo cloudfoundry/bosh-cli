@@ -14,6 +14,14 @@ func NewIndentingUI(parent UI) UI {
 	return &indentingUI{parent: parent}
 }
 
+func (ui *indentingUI) BeginAdditionLinef(pattern string, args ...interface{}) {
+	ui.parent.BeginAdditionLinef("  %s", fmt.Sprintf(pattern, args...))
+}
+
+func (ui *indentingUI) BeginRemovalLinef(pattern string, args ...interface{}) {
+	ui.parent.BeginRemovalLinef("  %s", fmt.Sprintf(pattern, args...))
+}
+
 func (ui *indentingUI) ErrorLinef(pattern string, args ...interface{}) {
 	ui.parent.ErrorLinef("  %s", fmt.Sprintf(pattern, args...))
 }

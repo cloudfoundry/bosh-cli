@@ -16,6 +16,9 @@ func (ui *NonTTYUI) ErrorLinef(pattern string, args ...interface{}) {
 	ui.parent.ErrorLinef(pattern, args...)
 }
 
+func (ui *NonTTYUI) BeginAdditionLinef(pattern string, args ...interface{}) {}
+func (ui *NonTTYUI) BeginRemovalLinef(pattern string, args ...interface{}) {}
+
 func (ui *NonTTYUI) PrintLinef(pattern string, args ...interface{}) {}
 func (ui *NonTTYUI) BeginLinef(pattern string, args ...interface{}) {}
 func (ui *NonTTYUI) EndLinef(pattern string, args ...interface{})   {}

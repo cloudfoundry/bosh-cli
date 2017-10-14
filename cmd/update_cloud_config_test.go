@@ -103,8 +103,8 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(director.DiffCloudConfigCallCount()).To(Equal(1))
 			Expect(ui.Said).To(ContainElement("  some line that stayed\n"))
-			Expect(ui.Said).To(ContainElement("+ some line that was added\n"))
-			Expect(ui.Said).To(ContainElement("- some line that was removed\n"))
+			Expect(ui.SaidAddedLine).To(ContainElement("+ some line that was added\n"))
+			Expect(ui.SaidRemovedLine).To(ContainElement("- some line that was removed\n"))
 		})
 
 		It("does not stop if confirmation is rejected", func() {

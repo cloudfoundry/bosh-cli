@@ -80,6 +80,26 @@ var _ = Describe("JSONUI", func() {
 		})
 	})
 
+	Describe("BeginAdditionLinef", func() {
+		It("includes in Lines", func() {
+			ui.BeginAdditionLinef("fake-line1")
+			ui.BeginAdditionLinef("fake-line2")
+			Expect(finalOutput()).To(Equal(uiResp{
+				Lines: []string{"fake-line1", "fake-line2"},
+			}))
+		})
+	})
+
+	Describe("BeginRemovalLinef", func() {
+		It("includes in Lines", func() {
+			ui.BeginRemovalLinef("fake-line1")
+			ui.BeginRemovalLinef("fake-line2")
+			Expect(finalOutput()).To(Equal(uiResp{
+				Lines: []string{"fake-line1", "fake-line2"},
+			}))
+		})
+	})
+
 	Describe("EndLinef", func() {
 		It("includes in Lines", func() {
 			ui.EndLinef("fake-line1")

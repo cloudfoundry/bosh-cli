@@ -106,6 +106,52 @@ var _ = Describe("UI", func() {
 		})
 	})
 
+	Describe("BeginAdditionLinef", func() {
+		It("prints to outWriter", func() {
+			ui.BeginLinef("fake-start")
+			Expect(uiOutBuffer.String()).To(ContainSubstring("fake-start"))
+		})
+
+		Context("when writing fails", func() {
+			BeforeEach(func() {
+				reader, writer := io.Pipe()
+				uiOut = writer
+				reader.Close()
+			})
+
+			It("logs an error", func() {
+				ui.BeginAdditionLinef("fake-start")
+
+				Expect(uiOutBuffer.String()).To(Equal(""))
+				Expect(uiErrBuffer.String()).To(Equal(""))
+				Expect(logOutBuffer.String()).To(ContainSubstring("UI.BeginAdditionLinef failed (message='fake-start')"))
+			})
+		})
+	})
+
+	Describe("BeginRemovalLinef", func() {
+		It("prints to outWriter", func() {
+			ui.BeginLinef("fake-start")
+			Expect(uiOutBuffer.String()).To(ContainSubstring("fake-start"))
+		})
+
+		Context("when writing fails", func() {
+			BeforeEach(func() {
+				reader, writer := io.Pipe()
+				uiOut = writer
+				reader.Close()
+			})
+
+			It("logs an error", func() {
+				ui.BeginRemovalLinef("fake-start")
+
+				Expect(uiOutBuffer.String()).To(Equal(""))
+				Expect(uiErrBuffer.String()).To(Equal(""))
+				Expect(logOutBuffer.String()).To(ContainSubstring("UI.BeginRemovalLinef failed (message='fake-start')"))
+			})
+		})
+	})
+
 	Describe("EndLinef", func() {
 		It("prints to outWriter with a trailing newline", func() {
 			ui.EndLinef("fake-end")

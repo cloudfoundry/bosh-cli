@@ -22,6 +22,16 @@ func NewPaddingUI(parent UI) UI {
 	return &paddingUI{parent: parent}
 }
 
+func (ui *paddingUI) BeginAdditionLinef(pattern string, args ...interface{}) {
+	ui.padBefore(paddingUIModeAuto)
+	ui.parent.BeginAdditionLinef(pattern, args...)
+}
+
+func (ui *paddingUI) BeginRemovalLinef(pattern string, args ...interface{}) {
+	ui.padBefore(paddingUIModeAuto)
+	ui.parent.BeginRemovalLinef(pattern, args...)
+}
+
 func (ui *paddingUI) ErrorLinef(pattern string, args ...interface{}) {
 	ui.padBefore(paddingUIModeAuto)
 	ui.parent.ErrorLinef(pattern, args...)
