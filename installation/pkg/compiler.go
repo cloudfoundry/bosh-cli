@@ -2,8 +2,10 @@ package pkg
 
 import (
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/cloudfoundry/bosh-cli/installation/blobextract"
 	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
@@ -93,18 +95,44 @@ func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageR
 		return record, isCompiledPackage, bosherr.Errorf("Packaging script for package '%s' not found", pkg.Name())
 	}
 
-	cmd := boshsys.Command{
-		Name: "bash",
-		Args: []string{"-x", "packaging"},
-		Env: map[string]string{
-			"BOSH_COMPILE_TARGET": filepath.ToSlash(packageSrcDir),
-			"BOSH_INSTALL_TARGET": filepath.ToSlash(installDir),
-			"BOSH_PACKAGE_NAME":   pkg.Name(),
-			"BOSH_PACKAGES_DIR":   filepath.ToSlash(c.packagesDir),
-			"PATH":                "/usr/local/bin:/usr/bin:/bin",
-		},
-		UseIsolatedEnv: runtime.GOOS != "windows",
-		WorkingDir:     packageSrcDir,
+	var cmd boshsys.Command
+	if runtime.GOOS == "windows" {
+		workingDirCmd := boshsys.Command{
+			Name: "bash",
+			Args: []string{"-c", "pwd"},
+		}
+		workingDir, _, _, err := c.runner.RunComplexCommand(workingDirCmd)
+		if err != nil {
+			return record, isCompiledPackage, bosherr.WrapError(err, "Obtaining working directory")
+		}
+		workingDir = strings.TrimSpace(workingDir)
+
+		cmd = boshsys.Command{
+			Name: "bash",
+			Args: []string{"-x", "packaging"},
+			Env: map[string]string{
+				"BOSH_COMPILE_TARGET": path.Join(workingDir, filepath.ToSlash(packageSrcDir)),
+				"BOSH_INSTALL_TARGET": path.Join(workingDir, filepath.ToSlash(installDir)),
+				"BOSH_PACKAGE_NAME":   pkg.Name(),
+				"BOSH_PACKAGES_DIR":   path.Join(workingDir, filepath.ToSlash(c.packagesDir)),
+			},
+			UseIsolatedEnv: false,
+			WorkingDir:     packageSrcDir,
+		}
+	} else {
+		cmd = boshsys.Command{
+			Name: "bash",
+			Args: []string{"-x", "packaging"},
+			Env: map[string]string{
+				"BOSH_COMPILE_TARGET": packageSrcDir,
+				"BOSH_INSTALL_TARGET": installDir,
+				"BOSH_PACKAGE_NAME":   pkg.Name(),
+				"BOSH_PACKAGES_DIR":   c.packagesDir,
+				"PATH":                "/usr/local/bin:/usr/bin:/bin",
+			},
+			UseIsolatedEnv: true,
+			WorkingDir:     packageSrcDir,
+		}
 	}
 
 	_, _, _, err = c.runner.RunComplexCommand(cmd)

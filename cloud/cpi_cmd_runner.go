@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -86,15 +88,39 @@ func (r *cpiCmdRunner) Run(context CmdContext, method string, args ...interface{
 	}
 
 	cmdPath := r.cpi.ExecutablePath()
-	cmd := boshsys.Command{
-		Name: cmdPath,
-		Env: map[string]string{
-			"BOSH_PACKAGES_DIR": filepath.ToSlash(r.cpi.PackagesDir),
-			"BOSH_JOBS_DIR":     filepath.ToSlash(r.cpi.JobsDir),
-			"PATH":              "/usr/local/bin:/usr/bin:/bin:/sbin",
-		},
-		UseIsolatedEnv: runtime.GOOS != "windows",
-		Stdin:          bytes.NewReader(inputBytes),
+	var cmd boshsys.Command
+	if runtime.GOOS == "windows" {
+		workingDirCmd := boshsys.Command{
+			Name: "bash",
+			Args: []string{"-c", "pwd"},
+		}
+		workingDir, _, _, err := r.cmdRunner.RunComplexCommand(workingDirCmd)
+		if err != nil {
+			return CmdOutput{}, bosherr.WrapErrorf(err, "Obtaining working directory")
+		}
+		workingDir = strings.TrimSpace(workingDir)
+
+		cmd = boshsys.Command{
+			Name: "bash",
+			Args: []string{"-x", path.Join(workingDir, filepath.ToSlash(cmdPath))},
+			Env: map[string]string{
+				"BOSH_PACKAGES_DIR": path.Join(workingDir, filepath.ToSlash(r.cpi.PackagesDir)),
+				"BOSH_JOBS_DIR":     path.Join(workingDir, filepath.ToSlash(r.cpi.JobsDir)),
+			},
+			UseIsolatedEnv: false,
+			Stdin:          bytes.NewReader(inputBytes),
+		}
+	} else {
+		cmd = boshsys.Command{
+			Name: cmdPath,
+			Env: map[string]string{
+				"BOSH_PACKAGES_DIR": r.cpi.PackagesDir,
+				"BOSH_JOBS_DIR":     r.cpi.JobsDir,
+				"PATH":              "/usr/local/bin:/usr/bin:/bin:/sbin",
+			},
+			UseIsolatedEnv: true,
+			Stdin:          bytes.NewReader(inputBytes),
+		}
 	}
 	stdout, stderr, exitCode, err := r.cmdRunner.RunComplexCommand(cmd)
 	r.logger.Debug(r.logTag, "Exit Code %d when executing external CPI command '%s'\nSTDIN: '%s'\nSTDOUT: '%s'\nSTDERR: '%s'", exitCode, cmdPath, string(inputBytes), stdout, stderr)

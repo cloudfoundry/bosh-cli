@@ -15,6 +15,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	. "github.com/cloudfoundry/bosh-cli/cloud"
 	"github.com/cloudfoundry/bosh-cli/installation/blobextract/fakeblobextract"
 	. "github.com/cloudfoundry/bosh-cli/installation/pkg"
 	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
@@ -160,25 +161,58 @@ var _ = Describe("PackageCompiler", func() {
 		})
 
 		It("runs the packaging script in package extractedPath dir", func() {
-			_, _, err := compiler.Compile(pkg)
-			Expect(err).ToNot(HaveOccurred())
+			if runtime.GOOS == "windows" {
+				pwdResult := fakesys.FakeCmdResult{
+					Stdout:     "/working/directory",
+					ExitStatus: 0,
+				}
+				runner.AddCmdResult("bash -c pwd", pwdResult)
 
-			expectedCmd := boshsys.Command{
-				Name: "bash",
-				Args: []string{"-x", "packaging"},
-				Env: map[string]string{
-					"BOSH_COMPILE_TARGET": "/pkg-dir",
-					"BOSH_INSTALL_TARGET": filepath.ToSlash(installPath),
-					"BOSH_PACKAGE_NAME":   "pkg1-name",
-					"BOSH_PACKAGES_DIR":   filepath.ToSlash(packagesDir),
-					"PATH":                "/usr/local/bin:/usr/bin:/bin",
-				},
-				UseIsolatedEnv: runtime.GOOS != "windows",
-				WorkingDir:     filepath.Join("/", "pkg-dir"),
+				_, _, err := compiler.Compile(pkg)
+				Expect(err).ToNot(HaveOccurred())
+
+				pwdExpectedCmd := boshsys.Command{
+					Name: "bash",
+					Args: []string{"-c", "pwd"},
+				}
+
+				cpiExpectedCmd := boshsys.Command{
+					Name: "bash",
+					Args: []string{"-x", "packaging"},
+					Env: map[string]string{
+						"BOSH_COMPILE_TARGET": "/working/directory/pkg-dir",
+						"BOSH_INSTALL_TARGET": "/working/directory/" + filepath.ToSlash(installPath),
+						"BOSH_PACKAGE_NAME":   "pkg1-name",
+						"BOSH_PACKAGES_DIR":   "/working/directory/" + filepath.ToSlash(packagesDir),
+					},
+					UseIsolatedEnv: false,
+					WorkingDir:     "\\pkg-dir",
+				}
+
+				Expect(runner.RunComplexCommands).To(HaveLen(2))
+				Expect(runner.RunComplexCommands[0]).To(Equal(pwdExpectedCmd))
+				Expect(runner.RunComplexCommands[1]).To(Equal(cpiExpectedCmd))
+			} else {
+				_, _, err := compiler.Compile(pkg)
+				Expect(err).ToNot(HaveOccurred())
+
+				expectedCmd := boshsys.Command{
+					Name: "bash",
+					Args: []string{"-x", "packaging"},
+					Env: map[string]string{
+						"BOSH_COMPILE_TARGET": "/pkg-dir",
+						"BOSH_INSTALL_TARGET": installPath,
+						"BOSH_PACKAGE_NAME":   "pkg1-name",
+						"BOSH_PACKAGES_DIR":   packagesDir,
+						"PATH":                "/usr/local/bin:/usr/bin:/bin",
+					},
+					UseIsolatedEnv: true,
+					WorkingDir:     "/pkg-dir",
+				}
+
+				Expect(runner.RunComplexCommands).To(HaveLen(1))
+				Expect(runner.RunComplexCommands[0]).To(Equal(expectedCmd))
 			}
-
-			Expect(runner.RunComplexCommands).To(HaveLen(1))
-			Expect(runner.RunComplexCommands[0]).To(Equal(expectedCmd))
 		})
 
 		It("compresses the compiled package", func() {
