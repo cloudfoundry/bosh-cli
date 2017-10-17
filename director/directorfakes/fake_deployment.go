@@ -3,6 +3,7 @@ package directorfakes
 
 import (
 	"sync"
+	"time"
 
 	"github.com/cloudfoundry/bosh-cli/director"
 )
@@ -91,10 +92,14 @@ type FakeDeployment struct {
 		result1 []director.VMInfo
 		result2 error
 	}
-	ErrandsStub        func() ([]director.Errand, error)
-	errandsMutex       sync.RWMutex
-	errandsArgsForCall []struct{}
-	errandsReturns     struct {
+	InstanceInfoDelay     time.Duration
+	InstanceInfoDuration  time.Duration
+	instanceInfoStartTime time.Time
+	instanceInfoEndTime   time.Time
+	ErrandsStub           func() ([]director.Errand, error)
+	errandsMutex          sync.RWMutex
+	errandsArgsForCall    []struct{}
+	errandsReturns        struct {
 		result1 []director.Errand
 		result2 error
 	}
@@ -569,8 +574,12 @@ func (fake *FakeDeployment) InstancesReturns(result1 []director.Instance, result
 
 func (fake *FakeDeployment) InstanceInfos() ([]director.VMInfo, error) {
 	fake.instanceInfosMutex.Lock()
+	time.Sleep(fake.InstanceInfoDelay * time.Millisecond)
+	fake.instanceInfoStartTime = time.Now()
 	fake.instanceInfosArgsForCall = append(fake.instanceInfosArgsForCall, struct{}{})
 	fake.recordInvocation("InstanceInfos", []interface{}{})
+	time.Sleep(fake.InstanceInfoDuration * time.Millisecond)
+	fake.instanceInfoEndTime = time.Now()
 	fake.instanceInfosMutex.Unlock()
 	if fake.InstanceInfosStub != nil {
 		return fake.InstanceInfosStub()
@@ -590,6 +599,10 @@ func (fake *FakeDeployment) InstanceInfosReturns(result1 []director.VMInfo, resu
 		result1 []director.VMInfo
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeDeployment) InstanceInfosStartEndTimes() (time.Time, time.Time) {
+	return fake.instanceInfoStartTime, fake.instanceInfoEndTime
 }
 
 func (fake *FakeDeployment) Errands() ([]director.Errand, error) {
