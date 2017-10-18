@@ -24,6 +24,14 @@ func (c UpdateConfigCmd) Run(opts UpdateConfigOpts) error {
 		return bosherr.WrapErrorf(err, "Evaluating config")
 	}
 
+	configDiff, err := c.director.DiffConfig(opts.Args.Type, opts.Name, bytes)
+	if err != nil {
+		return err
+	}
+
+	diff := NewDiff(configDiff.Diff)
+	diff.Print(c.ui)
+
 	err = c.ui.AskForConfirmation()
 	if err != nil {
 		return err

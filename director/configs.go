@@ -127,3 +127,23 @@ func (c Client) deleteConfig(configType string, name string) (bool, error) {
 
 	return true, nil
 }
+
+func (d DirectorImpl) DiffConfig(configType string, name string, manifest []byte) (ConfigDiff, error) {
+	y, err := yaml.Marshal(UpdateConfigBody{configType, name, string(manifest)})
+	if err != nil {
+		return ConfigDiff{}, bosherr.WrapError(err, "Can't marshal request body to yaml")
+	}
+	resp, err := d.client.DiffConfig(y)
+	if err != nil {
+		return ConfigDiff{}, err
+	}
+
+	return NewConfigDiff(resp.Diff), nil
+}
+
+func (c Client) DiffConfig(manifest []byte) (ConfigDiffResponse, error) {
+	setHeaders := func(req *http.Request) {
+		req.Header.Add("Content-Type", "text/yaml")
+	}
+	return c.postConfigDiff("/configs/diff", manifest, setHeaders)
+}

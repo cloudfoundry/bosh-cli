@@ -47,6 +47,7 @@ type Director interface {
 	ListConfigs(filter ConfigsFilter) ([]ConfigListItem, error)
 	UpdateConfig(configType string, name string, content []byte) error
 	DeleteConfig(configType string, name string) (bool, error)
+	DiffConfig(configType string, name string, manifest []byte) (ConfigDiff, error)
 
 	LatestCloudConfig() (CloudConfig, error)
 	UpdateCloudConfig([]byte) error

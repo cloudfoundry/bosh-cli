@@ -80,7 +80,7 @@ var _ = Describe("Director", func() {
 
 				cc, err := director.ListConfigs(ConfigsFilter{})
 				Expect(err).ToNot(HaveOccurred())
-				Expect(cc).To(Equal([]ConfigListItem{ConfigListItem{Type: "my-type", Name: "first"}}))
+				Expect(cc).To(Equal([]ConfigListItem{{Type: "my-type", Name: "first"}}))
 			})
 		})
 
@@ -96,7 +96,7 @@ var _ = Describe("Director", func() {
 
 				cc, err := director.ListConfigs(ConfigsFilter{Type: "my-type", Name: "first"})
 				Expect(err).ToNot(HaveOccurred())
-				Expect(cc).To(Equal([]ConfigListItem{ConfigListItem{Type: "my-type", Name: "first"}}))
+				Expect(cc).To(Equal([]ConfigListItem{{Type: "my-type", Name: "first"}}))
 			})
 		})
 
@@ -199,4 +199,43 @@ var _ = Describe("Director", func() {
 			})
 		})
 	})
+
+	Describe("DiffConfig", func() {
+		expectedDiffResponse := ConfigDiff{
+			Diff: [][]interface{}{
+				{"release:", nil},
+				{"  version: 0.0.1", "removed"},
+				{"  version: 0.0.2", "added"},
+			},
+		}
+
+		It("diffs the config with the given name", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/configs/diff"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.VerifyBody([]byte("type: myType\nname: myName\ncontent: myConfig\n")),
+					ghttp.RespondWith(http.StatusOK, `{"diff":[["release:",null],["  version: 0.0.1","removed"],["  version: 0.0.2","added"]]}`),
+				),
+			)
+
+			diff, err := director.DiffConfig("myType", "myName", []byte("myConfig"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(diff).To(Equal(expectedDiffResponse))
+		})
+
+		It("returns error if info response in non-200", func() {
+			AppendBadRequest(ghttp.VerifyRequest("POST", "/configs/diff"), server)
+
+			_, err := director.DiffConfig("myType", "myName", nil)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(
+				"Fetching diff result: Director responded with non-successful status code"))
+		})
+
+	})
+
 })
