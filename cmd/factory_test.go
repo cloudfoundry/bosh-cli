@@ -378,6 +378,8 @@ var _ = Describe("Factory", func() {
 			boshOpts.SCP = SCPOpts{}
 			boshOpts.Deploy = DeployOpts{}
 			boshOpts.UpdateRuntimeConfig = UpdateRuntimeConfigOpts{}
+			boshOpts.Config = ConfigOpts{}
+			boshOpts.UpdateConfig = UpdateConfigOpts{}
 			return boshOpts
 		}
 
