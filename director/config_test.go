@@ -72,7 +72,7 @@ var _ = Describe("Director", func() {
 			It("uses no query params and returns list of config items", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/configs", "latest=false"),
+						ghttp.VerifyRequest("GET", "/configs", "latest=true"),
 						ghttp.VerifyBasicAuth("username", "password"),
 						ghttp.RespondWith(http.StatusOK, `[{"name": "first", "type": "my-type"}]`),
 					),
@@ -88,7 +88,7 @@ var _ = Describe("Director", func() {
 			It("uses them as query parameters and returns list of config items", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/configs", "latest=false&name=first&type=my-type"),
+						ghttp.VerifyRequest("GET", "/configs", "latest=true&name=first&type=my-type"),
 						ghttp.VerifyBasicAuth("username", "password"),
 						ghttp.RespondWith(http.StatusOK, `[{"name": "first", "type": "my-type"}]`),
 					),

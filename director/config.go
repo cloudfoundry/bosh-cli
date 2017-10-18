@@ -70,7 +70,7 @@ func (c Client) listConfigs(filter ConfigsFilter) ([]ConfigListItem, error) {
 	var resps []ConfigListItem
 
 	query := gourl.Values{}
-	query.Add("latest", "false")
+	query.Add("latest", "true")
 	if filter.Type != "" {
 		query.Add("type", filter.Type)
 	}
