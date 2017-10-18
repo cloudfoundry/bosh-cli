@@ -116,16 +116,30 @@ var _ = Describe("Director", func() {
 		It("updates config", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/configs", "type=my-type&name=my-name"),
+					ghttp.VerifyRequest("POST", "/configs"),
 					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.VerifyHeader(http.Header{
-						"Content-Type": []string{"text/yaml"},
-					}),
-					ghttp.RespondWith(http.StatusNoContent, `{'id': '1', 'type': 'my-type', 'name': 'my-name', 'content': '---'}`),
+					ghttp.VerifyBody([]byte("type: my-type\nname: my-name\ncontent: '---'\n")),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"text/yaml"}}),
+					ghttp.RespondWith(http.StatusNoContent, nil),
 				),
 			)
 
 			err := director.UpdateConfig("my-type", "my-name", []byte("---"))
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("keeps yaml content intact", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/configs"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyBody([]byte("type: my-type\nname: my-name\ncontent: |\n  abc\n  def\n")),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"text/yaml"}}),
+					ghttp.RespondWith(http.StatusNoContent, nil),
+				),
+			)
+
+			err := director.UpdateConfig("my-type", "my-name", []byte("abc\ndef\n"))
 			Expect(err).ToNot(HaveOccurred())
 		})
 
