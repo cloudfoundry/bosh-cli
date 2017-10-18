@@ -318,7 +318,15 @@ var _ = Describe("Opts", func() {
 		Describe("UpdateConfig", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("UpdateConfig", opts)).To(Equal(
-					`command:"update-config" alias:"uc" description:"Update current config"`,
+					`command:"update-config" alias:"uc" description:"Update config"`,
+				))
+			})
+		})
+
+		Describe("DeleteConfig", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DeleteConfig", opts)).To(Equal(
+					`command:"delete-config" alias:"dc" description:"Delete config"`,
 				))
 			})
 		})
@@ -959,6 +967,40 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Type", opts)).To(Equal(`positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud-config'"`))
 				Expect(getStructTagForName("Config", opts)).To(Equal(`positional-arg-name:"PATH" description:"Path to a YAML config file"`))
+			})
+		})
+	})
+
+	Describe("DeleteConfigOpts", func() {
+		var opts *DeleteConfigOpts
+
+		BeforeEach(func() {
+			opts = &DeleteConfigOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(`long:"name" description:"Config name" default:"default"`))
+			})
+		})
+	})
+
+	Describe("DeleteConfigArgs", func() {
+		var opts *DeleteConfigArgs
+
+		BeforeEach(func() {
+			opts = &DeleteConfigArgs{}
+		})
+
+		Describe("Type", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Type", opts)).To(Equal(`positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud-config'"`))
 			})
 		})
 	})

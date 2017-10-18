@@ -63,7 +63,8 @@ type BoshOpts struct {
 	// Config
 	Config       ConfigOpts       `command:"config" alias:"c" description:"Show current config"`
 	Configs      ConfigsOpts      `command:"configs" alias:"cs" description:"List configs"`
-	UpdateConfig UpdateConfigOpts `command:"update-config" alias:"uc" description:"Update current config"`
+	UpdateConfig UpdateConfigOpts `command:"update-config" alias:"uc" description:"Update config"`
+	DeleteConfig DeleteConfigOpts `command:"delete-config" alias:"dc" description:"Delete config"`
 
 	// Cloud config
 	CloudConfig       CloudConfigOpts       `command:"cloud-config"        alias:"cc"  description:"Show current cloud config"`
@@ -326,6 +327,17 @@ type UpdateConfigOpts struct {
 type UpdateConfigArgs struct {
 	Type   string       `positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud-config'"`
 	Config FileBytesArg `positional-arg-name:"PATH" description:"Path to a YAML config file"`
+}
+
+type DeleteConfigOpts struct {
+	Args DeleteConfigArgs `positional-args:"true" required:"true"`
+	Name string           `long:"name" description:"Config name" default:"default"`
+
+	cmd
+}
+
+type DeleteConfigArgs struct {
+	Type string `positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud-config'"`
 }
 
 // Cloud config
