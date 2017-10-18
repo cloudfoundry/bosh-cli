@@ -20,6 +20,6 @@ func (c ConfigCmd) Run(opts ConfigOpts) error {
 		return err
 	}
 
-	c.ui.PrintBlock(config.Content)
+	c.ui.PrintBlock([]byte(config.Content))
 	return nil
 }
