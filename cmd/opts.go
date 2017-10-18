@@ -306,7 +306,7 @@ type ConfigOpts struct {
 }
 
 type ConfigArgs struct {
-	Type string `positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud-config'"`
+	Type string `positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud', 'runtime', or 'cpi'"`
 }
 
 type ConfigsOpts struct {
@@ -325,7 +325,7 @@ type UpdateConfigOpts struct {
 }
 
 type UpdateConfigArgs struct {
-	Type   string       `positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud-config'"`
+	Type   string       `positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud', 'runtime', or 'cpi'"`
 	Config FileBytesArg `positional-arg-name:"PATH" description:"Path to a YAML config file"`
 }
 
@@ -337,7 +337,7 @@ type DeleteConfigOpts struct {
 }
 
 type DeleteConfigArgs struct {
-	Type string `positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud-config'"`
+	Type string `positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud', 'runtime', or 'cpi'"`
 }
 
 // Cloud config
