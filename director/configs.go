@@ -1,10 +1,10 @@
 package director
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"gopkg.in/yaml.v2"
 	gourl "net/url"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -25,9 +25,9 @@ type ConfigsFilter struct {
 }
 
 type UpdateConfigBody struct {
-	Type    string
-	Name    string
-	Content string
+	Type    string `json:"type"`
+	Name    string `json:"name"`
+	Content string `json:"content"`
 }
 
 func (d DirectorImpl) LatestConfig(configType string, name string) (Config, error) {
@@ -49,11 +49,11 @@ func (d DirectorImpl) ListConfigs(filter ConfigsFilter) ([]ConfigListItem, error
 }
 
 func (d DirectorImpl) UpdateConfig(configType string, name string, content []byte) error {
-	y, err := yaml.Marshal(UpdateConfigBody{configType, name, string(content)})
+	body, err := json.Marshal(UpdateConfigBody{configType, name, string(content)})
 	if err != nil {
-		return bosherr.WrapError(err, "Can't marshal request body to yaml")
+		return bosherr.WrapError(err, "Can't marshal request body")
 	}
-	return d.client.updateConfig(y)
+	return d.client.updateConfig(body)
 }
 
 func (d DirectorImpl) DeleteConfig(configType string, name string) (bool, error) {
@@ -100,7 +100,7 @@ func (c Client) listConfigs(filter ConfigsFilter) ([]ConfigListItem, error) {
 
 func (c Client) updateConfig(content []byte) error {
 	setHeaders := func(req *http.Request) {
-		req.Header.Add("Content-Type", "text/yaml")
+		req.Header.Add("Content-Type", "application/json")
 	}
 
 	_, _, err := c.clientRequest.RawPost("/configs", content, setHeaders)
@@ -129,11 +129,11 @@ func (c Client) deleteConfig(configType string, name string) (bool, error) {
 }
 
 func (d DirectorImpl) DiffConfig(configType string, name string, manifest []byte) (ConfigDiff, error) {
-	y, err := yaml.Marshal(UpdateConfigBody{configType, name, string(manifest)})
+	body, err := json.Marshal(UpdateConfigBody{configType, name, string(manifest)})
 	if err != nil {
-		return ConfigDiff{}, bosherr.WrapError(err, "Can't marshal request body to yaml")
+		return ConfigDiff{}, bosherr.WrapError(err, "Can't marshal request body")
 	}
-	resp, err := d.client.DiffConfig(y)
+	resp, err := d.client.DiffConfig(body)
 	if err != nil {
 		return ConfigDiff{}, err
 	}
@@ -143,7 +143,7 @@ func (d DirectorImpl) DiffConfig(configType string, name string, manifest []byte
 
 func (c Client) DiffConfig(manifest []byte) (ConfigDiffResponse, error) {
 	setHeaders := func(req *http.Request) {
-		req.Header.Add("Content-Type", "text/yaml")
+		req.Header.Add("Content-Type", "application/json")
 	}
 	return c.postConfigDiff("/configs/diff", manifest, setHeaders)
 }

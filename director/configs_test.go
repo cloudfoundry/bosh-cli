@@ -118,8 +118,8 @@ var _ = Describe("Director", func() {
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/configs"),
 					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.VerifyBody([]byte("type: my-type\nname: my-name\ncontent: '---'\n")),
-					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"text/yaml"}}),
+					ghttp.VerifyBody([]byte(`{"type":"my-type","name":"my-name","content":"---"}`)),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/json"}}),
 					ghttp.RespondWith(http.StatusNoContent, nil),
 				),
 			)
@@ -133,8 +133,8 @@ var _ = Describe("Director", func() {
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/configs"),
 					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.VerifyBody([]byte("type: my-type\nname: my-name\ncontent: |\n  abc\n  def\n")),
-					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"text/yaml"}}),
+					ghttp.VerifyBody([]byte(`{"type":"my-type","name":"my-name","content":"abc\ndef\n"}`)),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/json"}}),
 					ghttp.RespondWith(http.StatusNoContent, nil),
 				),
 			)
@@ -215,9 +215,9 @@ var _ = Describe("Director", func() {
 					ghttp.VerifyRequest("POST", "/configs/diff"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
-						"Content-Type": []string{"text/yaml"},
+						"Content-Type": []string{"application/json"},
 					}),
-					ghttp.VerifyBody([]byte("type: myType\nname: myName\ncontent: myConfig\n")),
+					ghttp.VerifyBody([]byte(`{"type":"myType","name":"myName","content":"myConfig"}`)),
 					ghttp.RespondWith(http.StatusOK, `{"diff":[["release:",null],["  version: 0.0.1","removed"],["  version: 0.0.2","added"]]}`),
 				),
 			)
