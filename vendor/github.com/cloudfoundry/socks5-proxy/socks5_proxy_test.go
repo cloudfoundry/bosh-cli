@@ -164,10 +164,7 @@ var _ = Describe("Socks5Proxy", func() {
 
 			Context("when it cannot dial the jumpbox url", func() {
 				It("returns an error", func() {
-					dialer, err := socks5Proxy.Dialer(sshPrivateKey, "some-bad-url")
-					Expect(err).NotTo(HaveOccurred())
-
-					_, err = dialer("tcp", "some-bad-url")
+					_, err := socks5Proxy.Dialer(sshPrivateKey, "some-bad-url")
 					Expect(err).To(MatchError("ssh dial: dial tcp: address some-bad-url: missing port in address"))
 				})
 			})

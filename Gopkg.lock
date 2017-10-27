@@ -74,7 +74,7 @@
   branch = "master"
   name = "github.com/cloudfoundry/socks5-proxy"
   packages = ["."]
-  revision = "ba06087df7eb1cccec98487e6112608e4d63b0d3"
+  revision = "6afb711f4b32a266b51160288e98fd3c4b28f0cb"
 
 [[projects]]
   branch = "master"

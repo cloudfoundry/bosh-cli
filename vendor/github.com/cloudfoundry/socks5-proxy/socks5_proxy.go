@@ -72,14 +72,12 @@ func (s *Socks5Proxy) Dialer(key, url string) (DialFunc, error) {
 		HostKeyCallback: ssh.FixedHostKey(hostKey),
 	}
 
-	return func(network, addr string) (net.Conn, error) {
-		serverConn, err := ssh.Dial("tcp", url, clientConfig)
-		if err != nil {
-			return nil, fmt.Errorf("ssh dial: %s", err)
-		}
+	conn, err := ssh.Dial("tcp", url, clientConfig)
+	if err != nil {
+		return nil, fmt.Errorf("ssh dial: %s", err)
+	}
 
-		return serverConn.Dial(network, addr)
-	}, nil
+	return conn.Dial, nil
 }
 
 func (s *Socks5Proxy) StartWithDialer(dialer DialFunc) error {
