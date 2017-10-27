@@ -7,6 +7,7 @@ import (
 	birellic "github.com/cloudfoundry/bosh-cli/release/license"
 	birelman "github.com/cloudfoundry/bosh-cli/release/manifest"
 	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	"github.com/cloudfoundry/bosh-cli/work"
 )
 
 type release struct {
@@ -149,23 +150,34 @@ func (r *release) Manifest() birelman.Manifest {
 	}
 }
 
-func (r *release) Build(devIndicies, finalIndicies ArchiveIndicies) error {
+func (r *release) Build(devIndices, finalIndices ArchiveIndicies, parallel int) error {
+	pool := work.Pool{
+		Count: parallel,
+	}
+
+	var tasks []func() error
+
 	for _, job := range r.Jobs() {
-		err := job.Build(devIndicies.Jobs, finalIndicies.Jobs)
-		if err != nil {
-			return err
-		}
+		job := job
+		tasks = append(tasks, func() error {
+			return job.Build(devIndices.Jobs, finalIndices.Jobs)
+		})
 	}
 
 	for _, pkg := range r.Packages() {
-		err := pkg.Build(devIndicies.Packages, finalIndicies.Packages)
-		if err != nil {
-			return err
-		}
+		pkg := pkg
+		tasks = append(tasks, func() error {
+			return pkg.Build(devIndices.Packages, finalIndices.Packages)
+		})
+	}
+
+	err := pool.ParallelDo(tasks...)
+	if err != nil {
+		return err
 	}
 
 	if r.License() != nil {
-		err := r.License().Build(devIndicies.Licenses, finalIndicies.Licenses)
+		err := r.License().Build(devIndices.Licenses, finalIndices.Licenses)
 		if err != nil {
 			return err
 		}
@@ -174,19 +186,30 @@ func (r *release) Build(devIndicies, finalIndicies ArchiveIndicies) error {
 	return nil
 }
 
-func (r *release) Finalize(finalIndicies ArchiveIndicies) error {
+func (r *release) Finalize(finalIndicies ArchiveIndicies, parallel int) error {
+	pool := work.Pool{
+		Count: parallel,
+	}
+
+	var tasks []func() error
+
 	for _, job := range r.Jobs() {
-		err := job.Finalize(finalIndicies.Jobs)
-		if err != nil {
-			return err
-		}
+		job := job
+		tasks = append(tasks, func() error {
+			return job.Finalize(finalIndicies.Jobs)
+		})
 	}
 
 	for _, pkg := range r.Packages() {
-		err := pkg.Finalize(finalIndicies.Packages)
-		if err != nil {
-			return err
-		}
+		pkg := pkg
+		tasks = append(tasks, func() error {
+			return pkg.Finalize(finalIndicies.Packages)
+		})
+	}
+
+	err := pool.ParallelDo(tasks...)
+	if err != nil {
+		return err
 	}
 
 	if r.License() != nil {

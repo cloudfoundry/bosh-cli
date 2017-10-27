@@ -8,6 +8,7 @@ import (
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshrelman "github.com/cloudfoundry/bosh-cli/release/manifest"
 	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 //go:generate counterfeiter . ReleaseDir
@@ -110,4 +111,14 @@ type ReleaseIndex interface {
 
 type ReleaseIndexReporter interface {
 	ReleaseIndexAdded(name, desc string, err error)
+}
+
+//go:generate counterfeiter . DigestBlobstore
+
+type DigestBlobstore interface {
+	Get(blobID string, digest boshcrypto.Digest) (fileName string, err error)
+	CleanUp(fileName string) (err error)
+	Create(fileName string) (blobID string, digest boshcrypto.MultipleDigest, err error)
+	Validate() (err error)
+	Delete(blobId string) (err error)
 }

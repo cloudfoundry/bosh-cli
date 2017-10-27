@@ -50,13 +50,13 @@ func (e opMissingMapKeyErr) siblingKeysErrStr() string {
 	return "found map keys: '" + strings.Join(keys, "', '") + "'"
 }
 
-type opMissingIndexErr struct {
-	idx int
-	obj []interface{}
+type OpMissingIndexErr struct {
+	Idx int
+	Obj []interface{}
 }
 
-func (e opMissingIndexErr) Error() string {
-	return fmt.Sprintf("Expected to find array index '%d' but found array of length '%d'", e.idx, len(e.obj))
+func (e OpMissingIndexErr) Error() string {
+	return fmt.Sprintf("Expected to find array index '%d' but found array of length '%d'", e.Idx, len(e.Obj))
 }
 
 type opMultipleMatchingIndexErr struct {

@@ -39,6 +39,8 @@ type FSReleaseDir struct {
 
 	timeService clock.Clock
 	fs          boshsys.FileSystem
+
+	parallel int
 }
 
 func NewFSReleaseDir(
@@ -53,6 +55,7 @@ func NewFSReleaseDir(
 	releaseReader boshrel.Reader,
 	timeService clock.Clock,
 	fs boshsys.FileSystem,
+	parallel int,
 ) FSReleaseDir {
 	return FSReleaseDir{
 		dirPath: dirPath,
@@ -70,6 +73,8 @@ func NewFSReleaseDir(
 
 		timeService: timeService,
 		fs:          fs,
+
+		parallel: parallel,
 	}
 }
 
@@ -304,7 +309,7 @@ func (d FSReleaseDir) FinalizeRelease(release boshrel.Release, force bool) error
 		return bosherr.Errorf("Release '%s' version '%s' already exists", release.Name(), release.Version())
 	}
 
-	err = release.Finalize(d.finalIndicies)
+	err = release.Finalize(d.finalIndicies, d.parallel)
 	if err != nil {
 		return err
 	}

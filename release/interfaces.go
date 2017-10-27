@@ -51,8 +51,8 @@ type Release interface {
 	FindJobByName(string) (boshjob.Job, bool)
 	Manifest() boshman.Manifest
 
-	Build(dev, final ArchiveIndicies) error
-	Finalize(final ArchiveIndicies) error
+	Build(dev, final ArchiveIndicies, parallel int) error
+	Finalize(final ArchiveIndicies, parallel int) error
 
 	CopyWith(jobs []*boshjob.Job,
 		packages []*boshpkg.Package,

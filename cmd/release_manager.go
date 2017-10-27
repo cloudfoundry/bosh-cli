@@ -8,6 +8,7 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	"github.com/cloudfoundry/bosh-cli/work"
 )
 
 type ReleaseManager struct {
@@ -54,26 +55,33 @@ func (m ReleaseManager) UploadReleases(bytes []byte) ([]byte, error) {
 }
 
 func (m ReleaseManager) parallelCreateAndUpload(manifest boshdir.Manifest) (patch.Ops, error) {
-	pool := WorkerPool{
-		WorkerCount: m.parallelThreads,
+	pool := work.Pool{
+		Count: m.parallelThreads,
 	}
 
-	tasks := []func() (interface{}, error){}
+	patchOpsChan := make(chan patch.Ops, len(manifest.Releases))
+	tasks := []func() error{}
 	for _, r := range manifest.Releases {
 		release := r
-		tasks = append(tasks, func() (interface{}, error) {
-			return m.createAndUploadRelease(release)
+		tasks = append(tasks, func() error {
+			patchOps, err := m.createAndUploadRelease(release)
+			if err != nil {
+				return err
+			}
+			patchOpsChan <- patchOps
+			return nil
 		})
 	}
 
-	results, err := pool.ParallelDo(tasks...)
+	err := pool.ParallelDo(tasks...)
 	if err != nil {
 		return nil, err
 	}
+	close(patchOpsChan)
 
 	var opss patch.Ops
-	for _, result := range results {
-		opss = append(opss, result.(patch.Ops))
+	for result := range patchOpsChan {
+		opss = append(opss, result)
 	}
 
 	return opss, nil

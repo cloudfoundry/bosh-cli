@@ -59,7 +59,7 @@ func NewProvider(
 	}
 }
 
-func (p Provider) NewFSReleaseDir(dirPath string) FSReleaseDir {
+func (p Provider) NewFSReleaseDir(dirPath string, parallel int) FSReleaseDir {
 	gitRepo := NewFSGitRepo(dirPath, p.cmdRunner, p.fs)
 	blobsDir := p.NewFSBlobsDir(dirPath)
 	generator := NewFSGenerator(dirPath, p.fs)
@@ -73,21 +73,33 @@ func (p Provider) NewFSReleaseDir(dirPath string) FSReleaseDir {
 	indiciesProvider := boshidx.NewProvider(p.indexReporter, p.newBlobstore(dirPath), p.fs)
 	_, finalIndex := indiciesProvider.DevAndFinalIndicies(dirPath)
 
-	releaseReader := p.NewReleaseReader(dirPath)
+	releaseReader := p.NewReleaseReader(dirPath, parallel)
 
-	return NewFSReleaseDir(dirPath, p.newConfig(dirPath), gitRepo, blobsDir,
-		generator, devReleases, finalReleases, finalIndex, releaseReader, p.timeService, p.fs)
+	return NewFSReleaseDir(
+		dirPath,
+		p.newConfig(dirPath),
+		gitRepo,
+		blobsDir,
+		generator,
+		devReleases,
+		finalReleases,
+		finalIndex,
+		releaseReader,
+		p.timeService,
+		p.fs,
+		parallel,
+	)
 }
 
 func (p Provider) NewFSBlobsDir(dirPath string) FSBlobsDir {
 	return NewFSBlobsDir(dirPath, p.blobsReporter, p.newBlobstore(dirPath), p.digestCalculator, p.fs, p.logger)
 }
 
-func (p Provider) NewReleaseReader(dirPath string) boshrel.BuiltReader {
+func (p Provider) NewReleaseReader(dirPath string, parallel int) boshrel.BuiltReader {
 	multiReader := p.releaseProvider.NewMultiReader(dirPath)
 	indiciesProvider := boshidx.NewProvider(p.indexReporter, p.newBlobstore(dirPath), p.fs)
 	devIndex, finalIndex := indiciesProvider.DevAndFinalIndicies(dirPath)
-	return boshrel.NewBuiltReader(multiReader, devIndex, finalIndex)
+	return boshrel.NewBuiltReader(multiReader, devIndex, finalIndex, parallel)
 }
 
 func (p Provider) newBlobstore(dirPath string) boshblob.DigestBlobstore {

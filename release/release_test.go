@@ -3,6 +3,7 @@ package release_test
 import (
 	"errors"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -219,7 +220,7 @@ var _ = Describe("Release", func() {
 			finalLic := &fakeres.FakeArchiveIndex{}
 			finalIndicies := ArchiveIndicies{Jobs: finalJobs, Packages: finalPkgs, Licenses: finalLic}
 
-			Expect(release.Build(devIndicies, finalIndicies)).ToNot(HaveOccurred())
+			Expect(release.Build(devIndicies, finalIndicies, 1)).ToNot(HaveOccurred())
 
 			// Use == for pointer equality
 			Expect(jobRes.BuildCallCount()).To(Equal(1))
@@ -240,29 +241,34 @@ var _ = Describe("Release", func() {
 
 		It("does nothing when there is nothing to build", func() {
 			release = NewRelease("", "", "", true, nil, nil, nil, nil, "", fs)
-			Expect(release.Build(ArchiveIndicies{}, ArchiveIndicies{})).ToNot(HaveOccurred())
+			Expect(release.Build(ArchiveIndicies{}, ArchiveIndicies{}, 0)).ToNot(HaveOccurred())
 		})
 
 		It("returns error if job building fails", func() {
-			jobRes := &fakeres.FakeResource{}
-			jobs := []*boshjob.Job{boshjob.NewJob(jobRes)}
+			jobResOne := &fakeres.FakeResource{}
+			jobResTwo := &fakeres.FakeResource{}
 
-			jobRes.BuildReturns(errors.New("fake-err"))
+			jobs := []*boshjob.Job{boshjob.NewJob(jobResOne), boshjob.NewJob(jobResTwo)}
+
+			jobResOne.BuildReturns(errors.New("build-one-failed"))
+			jobResTwo.BuildReturns(errors.New("build-two-failed"))
 			release = NewRelease("", "", "", true, jobs, nil, nil, nil, "", fs)
 
-			err := release.Build(ArchiveIndicies{}, ArchiveIndicies{})
-			Expect(err).To(Equal(errors.New("fake-err")))
+			err := release.Build(ArchiveIndicies{}, ArchiveIndicies{}, 2)
+			Expect(err.(bosherr.MultiError).Errors).To(ConsistOf(errors.New("build-one-failed"), errors.New("build-two-failed")))
 		})
 
 		It("returns error if package building fails", func() {
-			pkgRes := &fakeres.FakeResource{}
-			pkgs := []*boshpkg.Package{boshpkg.NewPackage(pkgRes, nil)}
+			pkgResOne := &fakeres.FakeResource{}
+			pkgResTwo := &fakeres.FakeResource{}
+			pkgs := []*boshpkg.Package{boshpkg.NewPackage(pkgResOne, nil), boshpkg.NewPackage(pkgResTwo, nil)}
 
-			pkgRes.BuildReturns(errors.New("fake-err"))
+			pkgResOne.BuildReturns(errors.New("package-one-failed"))
+			pkgResTwo.BuildReturns(errors.New("package-two-failed"))
 			release = NewRelease("", "", "", true, nil, pkgs, nil, nil, "", fs)
 
-			err := release.Build(ArchiveIndicies{}, ArchiveIndicies{})
-			Expect(err).To(Equal(errors.New("fake-err")))
+			err := release.Build(ArchiveIndicies{}, ArchiveIndicies{}, 2)
+			Expect(err.(bosherr.MultiError).Errors).To(ConsistOf(errors.New("package-one-failed"), errors.New("package-two-failed")))
 		})
 
 		It("returns error if license building fails", func() {
@@ -272,7 +278,7 @@ var _ = Describe("Release", func() {
 			licRes.BuildReturns(errors.New("fake-err"))
 			release = NewRelease("", "", "", true, nil, nil, nil, lic, "", fs)
 
-			err := release.Build(ArchiveIndicies{}, ArchiveIndicies{})
+			err := release.Build(ArchiveIndicies{}, ArchiveIndicies{}, 1)
 			Expect(err).To(Equal(errors.New("fake-err")))
 		})
 	})
@@ -295,7 +301,7 @@ var _ = Describe("Release", func() {
 			finalLic := &fakeres.FakeArchiveIndex{}
 			finalIndicies := ArchiveIndicies{Jobs: finalJobs, Packages: finalPkgs, Licenses: finalLic}
 
-			Expect(release.Finalize(finalIndicies)).ToNot(HaveOccurred())
+			Expect(release.Finalize(finalIndicies, 2)).ToNot(HaveOccurred())
 
 			// Use == for pointer equality
 			Expect(jobRes.FinalizeCallCount()).To(Equal(1))
@@ -310,7 +316,7 @@ var _ = Describe("Release", func() {
 
 		It("does nothing when there is nothing to finalize", func() {
 			release = NewRelease("", "", "", true, nil, nil, nil, nil, "", fs)
-			Expect(release.Finalize(ArchiveIndicies{})).ToNot(HaveOccurred())
+			Expect(release.Finalize(ArchiveIndicies{}, 2)).ToNot(HaveOccurred())
 		})
 
 		It("returns error if job finalizing fails", func() {
@@ -320,8 +326,8 @@ var _ = Describe("Release", func() {
 			jobRes.FinalizeReturns(errors.New("fake-err"))
 			release = NewRelease("", "", "", true, jobs, nil, nil, nil, "", fs)
 
-			err := release.Finalize(ArchiveIndicies{})
-			Expect(err).To(Equal(errors.New("fake-err")))
+			err := release.Finalize(ArchiveIndicies{}, 2)
+			Expect(err).To(MatchError("fake-err"))
 		})
 
 		It("returns error if package finalizing fails", func() {
@@ -331,8 +337,8 @@ var _ = Describe("Release", func() {
 			pkgRes.FinalizeReturns(errors.New("fake-err"))
 			release = NewRelease("", "", "", true, nil, pkgs, nil, nil, "", fs)
 
-			err := release.Finalize(ArchiveIndicies{})
-			Expect(err).To(Equal(errors.New("fake-err")))
+			err := release.Finalize(ArchiveIndicies{}, 2)
+			Expect(err).To(MatchError("fake-err"))
 		})
 
 		It("returns error if license finalizing fails", func() {
@@ -342,8 +348,8 @@ var _ = Describe("Release", func() {
 			licRes.FinalizeReturns(errors.New("fake-err"))
 			release = NewRelease("", "", "", true, nil, nil, nil, lic, "", fs)
 
-			err := release.Finalize(ArchiveIndicies{})
-			Expect(err).To(Equal(errors.New("fake-err")))
+			err := release.Finalize(ArchiveIndicies{}, 2)
+			Expect(err).To(MatchError("fake-err"))
 		})
 	})
 

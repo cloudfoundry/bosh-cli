@@ -289,5 +289,38 @@ Task 2663 Duration 00:00:00
 Task 2663 error
 `))
 		})
+
+		It("is able to deal with partial event chunks coming in parallel", func() {
+			chunk1 := `
+{"time":1478564798,"stage":"chunk1"`
+			chunk2 := `{"time":1478564798,"stage":"chunk2","tags":[],"total":1,"task":"Finding packages to compile","index":1,"state":"started","progress":0}
+`
+			chunk3 := `,"tags":[],"total":1,"task":"Preparing deployment","index":1,"state":"started","progress":0}
+`
+
+			reporter.TaskStarted(100)
+			reporter.TaskStarted(101)
+			reporter.TaskOutputChunk(100, []byte(chunk1))
+			reporter.TaskOutputChunk(101, []byte(chunk2))
+			reporter.TaskOutputChunk(100, []byte(chunk3))
+			reporter.TaskFinished(100, "done")
+			reporter.TaskFinished(101, "done")
+			Expect(outBuf.String()).To(Equal(`Task 100
+Task 101
+Task 101 | 00:26:38 | chunk2: Finding packages to compile
+Task 100 | 00:26:38 | chunk1: Preparing deployment
+
+Task 100 Started  Tue Nov  8 00:26:38 UTC 2016
+Task 100 Finished Tue Nov  8 00:26:38 UTC 2016
+Task 100 Duration 00:00:00
+Task 100 done
+
+
+Task 101 Started  Tue Nov  8 00:26:38 UTC 2016
+Task 101 Finished Tue Nov  8 00:26:38 UTC 2016
+Task 101 Duration 00:00:00
+Task 101 done
+`))
+		})
 	})
 })

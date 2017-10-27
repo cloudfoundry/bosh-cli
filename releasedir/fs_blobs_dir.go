@@ -1,6 +1,11 @@
 package releasedir
 
 import (
+	"io"
+	"os"
+	"path/filepath"
+	"sort"
+
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -8,13 +13,11 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
-	"io"
-	"os"
-	"path/filepath"
-	"sort"
 
 	"fmt"
+
 	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
+	"github.com/cloudfoundry/bosh-cli/work"
 )
 
 type FSBlobsDir struct {
@@ -112,7 +115,11 @@ func (d FSBlobsDir) Blobs() ([]Blob, error) {
 	return blobs, nil
 }
 
-func (d FSBlobsDir) SyncBlobs(numOfParallelWorkers int) error {
+func (d FSBlobsDir) SyncBlobs(parallel int) error {
+	pool := work.Pool{
+		Count: parallel,
+	}
+
 	blobs, err := d.Blobs()
 	if err != nil {
 		return err
@@ -131,31 +138,21 @@ func (d FSBlobsDir) SyncBlobs(numOfParallelWorkers int) error {
 		return bosherr.WrapErrorf(err, "Syncing blobs")
 	}
 
-	resultsCh := make(chan error, len(blobs))
-	defer close(resultsCh)
-
-	blobsCh := make(chan Blob, numOfParallelWorkers)
-	defer close(blobsCh)
-
-	for w := 0; w < numOfParallelWorkers; w++ {
-		go d.downloadBlobsWorker(blobsCh, resultsCh)
-	}
-
+	var tasks []func() error
 	for _, blob := range blobs {
-		blobsCh <- blob
+		blob := blob
+		tasks = append(tasks, func() error {
+			if len(blob.BlobstoreID) > 0 {
+				return d.downloadBlob(blob)
+			}
+
+			return nil
+		})
 	}
 
-	var errs []error
-
-	for i := 0; i < len(blobs); i++ {
-		err := <-resultsCh
-		if err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	if errs != nil {
-		return bosherr.NewMultiError(errs...)
+	err = pool.ParallelDo(tasks...)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -194,18 +191,6 @@ func (d FSBlobsDir) removeUnknownBlobs(blobs []Blob) error {
 	}
 
 	return nil
-}
-
-func (d FSBlobsDir) downloadBlobsWorker(blobsCh chan Blob, resultsCh chan<- error) {
-	for blob := range blobsCh {
-		var err error
-
-		if len(blob.BlobstoreID) > 0 {
-			err = d.downloadBlob(blob)
-		}
-
-		resultsCh <- err
-	}
 }
 
 func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser) (Blob, error) {

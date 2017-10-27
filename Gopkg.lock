@@ -65,9 +65,10 @@
   version = "v0.0.132"
 
 [[projects]]
+  branch = "master"
   name = "github.com/cppforlife/go-patch"
   packages = ["patch"]
-  revision = "37a72c6"
+  revision = "250da0e0e68ce3367b4302f34218f6c064eb9559"
 
 [[projects]]
   name = "github.com/cppforlife/go-semi-semantic"
