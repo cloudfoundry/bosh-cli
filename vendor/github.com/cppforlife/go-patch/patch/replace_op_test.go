@@ -46,12 +46,38 @@ var _ = Describe("ReplaceOp.Apply", func() {
 			Expect(res).To(Equal([]interface{}{1, 2, 10}))
 		})
 
+		It("replaces relative array item", func() {
+			res, err := ReplaceOp{Path: MustNewPointerFromString("/3:prev"), Value: 10}.Apply([]interface{}{1, 2, 3})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal([]interface{}{1, 2, 10}))
+
+			res, err = ReplaceOp{Path: MustNewPointerFromString("/0:before"), Value: 10}.Apply([]interface{}{1, 2, 3})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal([]interface{}{10, 1, 2, 3}))
+
+			res, err = ReplaceOp{Path: MustNewPointerFromString("/1:before"), Value: 10}.Apply([]interface{}{1, 2, 3})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal([]interface{}{1, 10, 2, 3}))
+
+			res, err = ReplaceOp{Path: MustNewPointerFromString("/3:prev:after"), Value: 10}.Apply([]interface{}{1, 2, 3})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal([]interface{}{1, 2, 3, 10}))
+		})
+
 		It("replaces nested array item", func() {
 			doc := []interface{}{[]interface{}{10, 11, 12}, 2, 3}
 
 			res, err := ReplaceOp{Path: MustNewPointerFromString("/0/1"), Value: 100}.Apply(doc)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal([]interface{}{[]interface{}{10, 100, 12}, 2, 3}))
+		})
+
+		It("replaces relative nested array item", func() {
+			doc := []interface{}{1, []interface{}{10, 11, 12}, 3}
+
+			res, err := ReplaceOp{Path: MustNewPointerFromString("/0:next/1"), Value: 100}.Apply(doc)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal([]interface{}{1, []interface{}{10, 100, 12}, 3}))
 		})
 
 		It("replaces array item from an array that is inside a map", func() {
@@ -160,6 +186,46 @@ var _ = Describe("ReplaceOp.Apply", func() {
 			Expect(res).To(Equal([]interface{}{
 				100,
 				map[interface{}]interface{}{"key": "val2"},
+			}))
+		})
+
+		It("replaces relative array item if found", func() {
+			doc := []interface{}{
+				map[interface{}]interface{}{"key": "val"},
+				map[interface{}]interface{}{"key": "val2"},
+			}
+
+			res, err := ReplaceOp{Path: MustNewPointerFromString("/key=val2:prev"), Value: 100}.Apply(doc)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal([]interface{}{
+				100,
+				map[interface{}]interface{}{"key": "val2"},
+			}))
+
+			doc = []interface{}{
+				map[interface{}]interface{}{"key": "val"},
+				map[interface{}]interface{}{"key": "val2"},
+			}
+
+			res, err = ReplaceOp{Path: MustNewPointerFromString("/key=val2:before"), Value: 100}.Apply(doc)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal([]interface{}{
+				map[interface{}]interface{}{"key": "val"},
+				100,
+				map[interface{}]interface{}{"key": "val2"},
+			}))
+
+			doc = []interface{}{
+				map[interface{}]interface{}{"key": "val"},
+				map[interface{}]interface{}{"key": "val2"},
+			}
+
+			res, err = ReplaceOp{Path: MustNewPointerFromString("/key=val:next:after"), Value: 100}.Apply(doc)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal([]interface{}{
+				map[interface{}]interface{}{"key": "val"},
+				map[interface{}]interface{}{"key": "val2"},
+				100,
 			}))
 		})
 

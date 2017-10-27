@@ -25,9 +25,10 @@ func (c VMsCmd) Run(opts VMsOpts) error {
 		// VMs command should always show VM specifics
 		VMDetails: true,
 
-		Details: false,
-		DNS:     opts.DNS,
-		Vitals:  opts.Vitals,
+		Details:         false,
+		DNS:             opts.DNS,
+		Vitals:          opts.Vitals,
+		CloudProperties: opts.CloudProperties,
 	}
 
 	if len(opts.Deployment) > 0 {

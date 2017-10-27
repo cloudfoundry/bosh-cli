@@ -2,8 +2,10 @@ package index_test
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
@@ -211,6 +213,35 @@ format-version: "2"
 `))
 		})
 
+		It("blocks on concurrent writes to the file system", func() {
+			blobs.AddReturns("blob-id", "blob-path", nil)
+
+			wg := sync.WaitGroup{}
+			wg.Add(10)
+			for i := 0; i < 10; i++ {
+				i := i
+				go func() {
+					defer wg.Done()
+					defer GinkgoRecover()
+					name := fmt.Sprintf("name%d", i)
+
+					path, sha1, err := index.Add(name, "fp", "path", "sha1")
+					Expect(err).ToNot(HaveOccurred())
+					Expect(path).To(Equal("blob-path"))
+					Expect(sha1).To(Equal("sha1"))
+
+					Expect(fs.ReadFileString(filepath.Join("/", "dir", name, "index.yml"))).To(Equal(`builds:
+  fp:
+    version: fp
+    blobstore_id: blob-id
+    sha1: sha1
+format-version: "2"
+`))
+				}()
+			}
+			wg.Wait()
+		})
+
 		It("adds new entry to a non-prefixed index file", func() {
 			index = boshidx.NewFSIndex("index-name", filepath.Join("/", "dir"), false, true, reporter, blobs, fs)
 
@@ -369,6 +400,14 @@ format-version: "2"`)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(
 				`Trying to add duplicate index entry 'name/fp' and SHA1 'sha1' (conflicts with 'index.indexEntry{Key:"fp", Version:"fp", BlobstoreID:"", SHA1:""}')`))
+
+			type dupe interface {
+				IsDuplicate() bool
+			}
+
+			de, ok := err.(dupe)
+			Expect(ok).To(BeTrue())
+			Expect(de.IsDuplicate()).To(BeTrue())
 		})
 
 		It("does not reorder keys needlessly", func() {

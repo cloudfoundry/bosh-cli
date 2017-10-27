@@ -34,13 +34,30 @@ var testCases = []PointerTestCase{
 	}},
 
 	// Array indices
-	{"/0", []Token{RootToken{}, IndexToken{0}}},
-	{"/1000001", []Token{RootToken{}, IndexToken{1000001}}},
-	{"/-2", []Token{RootToken{}, IndexToken{-2}}},
+	{"/0", []Token{RootToken{}, IndexToken{Index: 0}}},
+	{"/1000001", []Token{RootToken{}, IndexToken{Index: 1000001}}},
+	{"/-2", []Token{RootToken{}, IndexToken{Index: -2}}},
 
 	{"/-", []Token{RootToken{}, AfterLastIndexToken{}}},
 	{"/ary/-", []Token{RootToken{}, KeyToken{Key: "ary"}, AfterLastIndexToken{}}},
 	{"/-/key", []Token{RootToken{}, KeyToken{Key: "-"}, KeyToken{Key: "key"}}},
+
+	{"/0:before", []Token{
+		RootToken{},
+		IndexToken{Index: 0, Modifiers: []Modifier{BeforeModifier{}}},
+	}},
+	{"/0:after", []Token{
+		RootToken{},
+		IndexToken{Index: 0, Modifiers: []Modifier{AfterModifier{}}},
+	}},
+	{"/-1:before", []Token{
+		RootToken{},
+		IndexToken{Index: -1, Modifiers: []Modifier{BeforeModifier{}}},
+	}},
+	{"/-1:prev:before", []Token{
+		RootToken{},
+		IndexToken{Index: -1, Modifiers: []Modifier{PrevModifier{}, BeforeModifier{}}},
+	}},
 
 	// Matching index token
 	{"/name=val", []Token{RootToken{}, MatchingIndexToken{Key: "name", Value: "val"}}},
@@ -55,6 +72,15 @@ var testCases = []PointerTestCase{
 	{"/name=", []Token{RootToken{}, MatchingIndexToken{Key: "name", Value: ""}}},
 	{"/=val", []Token{RootToken{}, MatchingIndexToken{Key: "", Value: "val"}}},
 	{"/==", []Token{RootToken{}, MatchingIndexToken{Key: "", Value: "="}}},
+
+	{"/name=val:before", []Token{
+		RootToken{},
+		MatchingIndexToken{Key: "name", Value: "val", Modifiers: []Modifier{BeforeModifier{}}},
+	}},
+	{"/name=val:after", []Token{
+		RootToken{},
+		MatchingIndexToken{Key: "name", Value: "val", Modifiers: []Modifier{AfterModifier{}}},
+	}},
 
 	// Optionality
 	{"/key?/name=val", []Token{
@@ -73,6 +99,7 @@ var testCases = []PointerTestCase{
 	{"/a~01b", []Token{RootToken{}, KeyToken{Key: "a~1b"}}},
 	{"/a~1b", []Token{RootToken{}, KeyToken{Key: "a/b"}}},
 	{"/name~0n=val~0n", []Token{RootToken{}, MatchingIndexToken{Key: "name~n", Value: "val~n"}}},
+	{"/m~7n", []Token{RootToken{}, KeyToken{Key: "m:n"}}},
 
 	// Special chars
 	{"/c%d", []Token{RootToken{}, KeyToken{Key: "c%d"}}},
@@ -101,6 +128,24 @@ var _ = Describe("NewPointerFromString", func() {
 		_, err := NewPointerFromString("abc")
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("Expected to start with '/'"))
+	})
+
+	It("returns error if string includes unknown modifiers", func() {
+		_, err := NewPointerFromString("/abc:unknown")
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Expected to find one of the following modifiers: 'prev', 'next', 'before', or 'after' but found 'unknown'"))
+	})
+
+	It("returns error if string has modifiers in after-last-index-token", func() {
+		_, err := NewPointerFromString("/-:prev")
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Expected not to find any modifiers with after last index token"))
+	})
+
+	It("returns error if string has modifiers in key-token", func() {
+		_, err := NewPointerFromString("/key:prev")
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("Expected not to find any modifiers with key token"))
 	})
 })
 

@@ -13,6 +13,17 @@ import (
 	fakesfs "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
+type duplicateError struct {
+}
+
+func (de duplicateError) Error() string {
+	return "error"
+}
+
+func (de duplicateError) IsDuplicate() bool {
+	return true
+}
+
 var _ = Describe("NewResource", func() {
 	var (
 		devIndex, finalIndex *fakeres.FakeArchiveIndex
@@ -116,14 +127,31 @@ var _ = Describe("NewResource", func() {
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
-		It("returns error when dev index addition fails of newly built archive", func() {
-			archive.BuildReturns("/built", "built-sha1", nil)
+		Context("when adding an index fails", func() {
+			Context("when a duplicate error occurs", func() {
+				It("attempts to find and attach", func() {
+					devIndex.FindReturnsOnCall(1, "/found", "sha1", nil)
+					archive.BuildReturns("/built", "built-sha1", nil)
+					devIndex.AddReturns("", "", duplicateError{})
 
-			devIndex.AddReturns("", "", errors.New("fake-err"))
+					err := resource.Build(devIndex, finalIndex)
+					Expect(err).NotTo(HaveOccurred())
 
-			err := resource.Build(devIndex, finalIndex)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
+					Expect(devIndex.FindCallCount()).To(Equal(2))
+				})
+			})
+
+			Context("when any other error occurs", func() {
+				It("returns error", func() {
+					archive.BuildReturns("/built", "built-sha1", nil)
+
+					devIndex.AddReturns("", "", errors.New("fake-err"))
+
+					err := resource.Build(devIndex, finalIndex)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+				})
+			})
 		})
 	})
 
@@ -179,14 +207,33 @@ var _ = Describe("NewResource", func() {
 			Expect(sha1).To(Equal("found-sha1"))
 		})
 
-		It("returns error when final index addition fails", func() {
-			buildBeforeFinalizing()
+		Context("when adding an index fails", func() {
+			Context("when a duplicate error occurs", func() {
+				It("calls finalize again", func() {
+					buildBeforeFinalizing()
 
-			finalIndex.AddReturns("", "", errors.New("fake-err"))
+					finalIndex.AddReturnsOnCall(0, "", "", duplicateError{})
+					finalIndex.FindReturnsOnCall(1, "/found-now", "found-sha1", nil)
 
-			err := resource.Finalize(finalIndex)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
+					err := resource.Finalize(finalIndex)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(finalIndex.FindCallCount()).To(Equal(2))
+					Expect(finalIndex.AddCallCount()).To(Equal(1))
+				})
+			})
+
+			Context("when final index addition fails", func() {
+				It("returns an error", func() {
+					buildBeforeFinalizing()
+
+					finalIndex.AddReturns("", "", errors.New("fake-err"))
+
+					err := resource.Finalize(finalIndex)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+				})
+			})
 		})
 	})
 })

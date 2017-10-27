@@ -16,6 +16,8 @@ releases:
   version: 0.1
 
 instance_groups:
+- name: foo
+
 - name: cloud_controller
   instances: 0
   jobs:
@@ -54,6 +56,28 @@ instance_groups:
   value:
     name: uaadb
     instances: 2
+
+- type: replace
+  path: /instance_groups/name=cloud_controller:before
+  value:
+    name: cc-before
+    instances: 2
+
+- type: replace
+  path: /instance_groups/name=cloud_controller:after
+  value:
+    name: cc-after
+    instances: 1
+
+- type: replace
+  path: /instance_groups/name=uaadb:after
+  value:
+    name: uaadb-after
+    instances: 1
+
+- type: replace
+  path: /instance_groups/name=uaadb:next/instances
+  value: 4
 `
 
 		var opDefs1 []OpDefinition
@@ -89,6 +113,11 @@ releases:
   version: latest
 
 instance_groups:
+- name: foo
+
+- name: cc-before
+  instances: 2
+
 - name: cloud_controller
   instances: 1
   jobs:
@@ -102,11 +131,17 @@ instance_groups:
           username: user
           password: pass
 
+- name: cc-after
+  instances: 1
+
 - name: uaa
   instances: 1
 
 - name: uaadb
   instances: 2
+
+- name: uaadb-after
+  instances: 4
 `
 
 		var out interface{}

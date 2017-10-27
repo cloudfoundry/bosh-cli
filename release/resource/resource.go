@@ -21,6 +21,10 @@ type ResourceImpl struct {
 	archive       Archive
 }
 
+type duplicateError interface {
+	IsDuplicate() bool
+}
+
 func NewResource(name, fp string, archive Archive) *ResourceImpl {
 	return &ResourceImpl{
 		name:        name,
@@ -87,6 +91,11 @@ func (r *ResourceImpl) Build(devIndex, finalIndex ArchiveIndex) error {
 	}
 
 	newDevPath, newDevSHA1, err := devIndex.Add(r.name, r.fingerprint, path, sha1)
+	de, ok := err.(duplicateError)
+	if ok && de.IsDuplicate() {
+		return r.findAndAttach(devIndex, finalIndex, r.expectToExist)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -106,6 +115,10 @@ func (r *ResourceImpl) Finalize(finalIndex ArchiveIndex) error {
 	}
 
 	_, _, err = finalIndex.Add(r.name, r.fingerprint, r.ArchivePath(), r.ArchiveDigest())
+	de, ok := err.(duplicateError)
+	if ok && de.IsDuplicate() {
+		return r.Finalize(finalIndex)
+	}
 
 	return err
 }

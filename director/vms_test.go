@@ -55,6 +55,7 @@ var _ = Describe("VMs", func() {
 	"vm_type": "vm-type",
 	"resource_pool": "rp",
 	"vm_created_at": "2016-01-09T06:23:25+00:00",
+	"cloud_properties": "cp1",
 	"processes": [{
 		"name": "service",
 		"state": "running",
@@ -101,15 +102,16 @@ var _ = Describe("VMs", func() {
 				IPs: []string{"ip"},
 				DNS: []string{"dns"},
 
-				AZ:             "az",
-				Ignore:         true,
-				VMID:           "vm-cid",
-				VMType:         "vm-type",
-				ResourcePool:   "rp",
-				VMCreatedAtRaw: "2016-01-09T06:23:25+00:00",
-				VMCreatedAt:    time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
-				DiskID:         "disk-cid",
-				DiskIDs:        []string{"disk-cid1", "disk-cid2"},
+				AZ:              "az",
+				Ignore:          true,
+				VMID:            "vm-cid",
+				VMType:          "vm-type",
+				ResourcePool:    "rp",
+				VMCreatedAtRaw:  "2016-01-09T06:23:25+00:00",
+				VMCreatedAt:     time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
+				CloudProperties: "cp1",
+				DiskID:          "disk-cid",
+				DiskIDs:         []string{"disk-cid1", "disk-cid2"},
 
 				Processes: []VMInfoProcess{
 					VMInfoProcess{
@@ -159,6 +161,7 @@ var _ = Describe("VMs", func() {
 	"vm_type": "vm-type",
 	"resource_pool": "rp",
 	"vm_created_at": "2016-01-09T06:23:25+00:00",
+	"cloud_properties": "cp1",
 	"processes": [{
 		"name": "service",
 		"state": "running",
@@ -205,14 +208,15 @@ var _ = Describe("VMs", func() {
 				IPs: []string{"ip"},
 				DNS: []string{"dns"},
 
-				AZ:             "az",
-				VMID:           "vm-cid",
-				VMType:         "vm-type",
-				ResourcePool:   "rp",
-				VMCreatedAtRaw: "2016-01-09T06:23:25+00:00",
-				VMCreatedAt:    time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
-				DiskID:         "disk-cid",
-				DiskIDs:        []string{"disk-cid"},
+				AZ:              "az",
+				VMID:            "vm-cid",
+				VMType:          "vm-type",
+				ResourcePool:    "rp",
+				VMCreatedAtRaw:  "2016-01-09T06:23:25+00:00",
+				VMCreatedAt:     time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
+				CloudProperties: "cp1",
+				DiskID:          "disk-cid",
+				DiskIDs:         []string{"disk-cid"},
 
 				Processes: []VMInfoProcess{
 					VMInfoProcess{
@@ -263,6 +267,7 @@ var _ = Describe("VMs", func() {
 	"vm_type": "vm-type",
 	"resource_pool": "rp",
 	"vm_created_at": "2016-01-09T06:23:25+00:00",
+	"cloud_properties": "cp1",
 	"processes": [{
 		"name": "service",
 		"state": "running",
@@ -309,14 +314,15 @@ var _ = Describe("VMs", func() {
 				IPs: []string{"ip"},
 				DNS: []string{"dns"},
 
-				AZ:             "az",
-				VMID:           "vm-cid",
-				VMType:         "vm-type",
-				ResourcePool:   "rp",
-				VMCreatedAtRaw: "2016-01-09T06:23:25+00:00",
-				VMCreatedAt:    time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
-				DiskID:         "",
-				DiskIDs:        []string{},
+				AZ:              "az",
+				VMID:            "vm-cid",
+				VMType:          "vm-type",
+				ResourcePool:    "rp",
+				VMCreatedAtRaw:  "2016-01-09T06:23:25+00:00",
+				VMCreatedAt:     time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
+				CloudProperties: "cp1",
+				DiskID:          "",
+				DiskIDs:         []string{},
 
 				Processes: []VMInfoProcess{
 					VMInfoProcess{
@@ -404,6 +410,7 @@ var _ = Describe("VMs", func() {
 	"vm_type": "vm-type",
 	"resource_pool": "rp",
 	"vm_created_at": "2016",
+	"cloud_properties": "cp1",
 	"processes": [{
 		"name": "service",
 		"state": "running",
