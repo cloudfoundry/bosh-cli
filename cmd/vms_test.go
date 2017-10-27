@@ -6,12 +6,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"time"
+
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
-	"time"
 )
 
 var _ = Describe("VMsCmd", func() {
@@ -431,6 +432,36 @@ var _ = Describe("VMsCmd", func() {
 				err := act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+		})
+
+		Context("when listing multiple deployments", func() {
+
+			It("retrieves deployment vms in parallel", func() {
+				opts.ParallelOpt = 5
+				dep1 := &fakedir.FakeDeployment{
+					NameStub:       func() string { return "dep1" },
+					VMInfosStub:    func() ([]boshdir.VMInfo, error) { return infos, nil },
+					VMInfoDuration: 1500,
+				}
+				dep2 := &fakedir.FakeDeployment{
+					NameStub:    func() string { return "dep2" },
+					VMInfosStub: func() ([]boshdir.VMInfo, error) { return infos, nil },
+					VMInfoDelay: 500,
+				}
+				deployments := []boshdir.Deployment{
+					dep1,
+					dep2,
+				}
+
+				director.DeploymentsReturns(deployments, nil)
+				Expect(act()).ToNot(HaveOccurred())
+				Expect(dep1.VMInfosCallCount()).To(Equal(1))
+				Expect(dep2.VMInfosCallCount()).To(Equal(1))
+				vMInfos1Start, vMInfos1End := dep1.VMInfosStartEndTimes()
+				vMInfos2Start, vMInfos2End := dep2.VMInfosStartEndTimes()
+				Expect(vMInfos2Start.After(vMInfos1Start)).To(Equal(true))
+				Expect(vMInfos1End.After(vMInfos2End)).To(Equal(true))
 			})
 		})
 	})

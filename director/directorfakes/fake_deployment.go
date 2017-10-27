@@ -3,6 +3,7 @@ package directorfakes
 
 import (
 	"sync"
+	"time"
 
 	"github.com/cloudfoundry/bosh-cli/director"
 )
@@ -77,6 +78,10 @@ type FakeDeployment struct {
 		result1 []director.VMInfo
 		result2 error
 	}
+	VMInfoDelay          time.Duration
+	VMInfoDuration       time.Duration
+	vMInfoStartTime      time.Time
+	vMInfoEndTime        time.Time
 	InstancesStub        func() ([]director.Instance, error)
 	instancesMutex       sync.RWMutex
 	instancesArgsForCall []struct{}
@@ -519,8 +524,12 @@ func (fake *FakeDeployment) StemcellsReturns(result1 []director.Stemcell, result
 
 func (fake *FakeDeployment) VMInfos() ([]director.VMInfo, error) {
 	fake.vMInfosMutex.Lock()
+	time.Sleep(fake.VMInfoDelay * time.Millisecond)
+	fake.vMInfoStartTime = time.Now()
 	fake.vMInfosArgsForCall = append(fake.vMInfosArgsForCall, struct{}{})
 	fake.recordInvocation("VMInfos", []interface{}{})
+	time.Sleep(fake.VMInfoDuration * time.Millisecond)
+	fake.vMInfoEndTime = time.Now()
 	fake.vMInfosMutex.Unlock()
 	if fake.VMInfosStub != nil {
 		return fake.VMInfosStub()
@@ -540,6 +549,10 @@ func (fake *FakeDeployment) VMInfosReturns(result1 []director.VMInfo, result2 er
 		result1 []director.VMInfo
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeDeployment) VMInfosStartEndTimes() (time.Time, time.Time) {
+	return fake.vMInfoStartTime, fake.vMInfoEndTime
 }
 
 func (fake *FakeDeployment) Instances() ([]director.Instance, error) {
