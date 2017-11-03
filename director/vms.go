@@ -21,16 +21,17 @@ type VMInfo struct {
 	IPs []string `json:"ips"`
 	DNS []string `json:"dns"`
 
-	AZ             string    `json:"az"`
-	State          string    `json:"state"`
-	VMID           string    `json:"vm_cid"`
-	VMType         string    `json:"vm_type"`
-	ResourcePool   string    `json:"resource_pool"`
-	DiskID         string    `json:"disk_cid"`
-	Ignore         bool      `json:"ignore"`
-	DiskIDs        []string  `json:"disk_cids"`
-	VMCreatedAtRaw string    `json:"vm_created_at"`
-	VMCreatedAt    time.Time `json:"-"`
+	AZ              string      `json:"az"`
+	State           string      `json:"state"`
+	VMID            string      `json:"vm_cid"`
+	VMType          string      `json:"vm_type"`
+	ResourcePool    string      `json:"resource_pool"`
+	DiskID          string      `json:"disk_cid"`
+	Ignore          bool        `json:"ignore"`
+	DiskIDs         []string    `json:"disk_cids"`
+	VMCreatedAtRaw  string      `json:"vm_created_at"`
+	VMCreatedAt     time.Time   `json:"-"`
+	CloudProperties interface{} `json:"cloud_properties"`
 
 	Processes []VMInfoProcess
 

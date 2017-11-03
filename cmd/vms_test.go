@@ -43,6 +43,8 @@ var _ = Describe("VMsCmd", func() {
 			index1 := 1
 			index2 := 2
 
+			var cloudProperties interface{} = map[string]string{"instance_type": "m1.small"}
+
 			infos = []boshdir.VMInfo{
 				{
 					JobName:      "job-name",
@@ -59,6 +61,7 @@ var _ = Describe("VMsCmd", func() {
 					Ignore:             false,
 					DiskIDs:            []string{"diskcid1", "diskcid2"},
 					VMCreatedAt:        time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
+					CloudProperties:    cloudProperties,
 
 					Vitals: boshdir.VMInfoVitals{
 						Load: []string{"0.02", "0.06", "0.11"},
@@ -90,6 +93,7 @@ var _ = Describe("VMsCmd", func() {
 					Ignore:             true,
 					DiskIDs:            []string{"diskcid1", "diskcid2"},
 					VMCreatedAt:        time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC),
+					CloudProperties:    cloudProperties,
 
 					Vitals: boshdir.VMInfoVitals{
 						Load: []string{"0.52", "0.56", "0.51"},
@@ -322,6 +326,60 @@ var _ = Describe("VMsCmd", func() {
 								ValueDiskSize{},
 								ValueDiskSize{},
 								ValueDiskSize{},
+							},
+						},
+					}))
+				})
+
+				It("lists VMs for the deployment including cloud properties", func() {
+					opts.CloudProperties = true
+
+					Expect(act()).ToNot(HaveOccurred())
+
+					Expect(ui.Table).To(Equal(boshtbl.Table{
+						Title: "Deployment 'dep1'",
+
+						Content: "vms",
+
+						Header: []boshtbl.Header{
+							boshtbl.NewHeader("Instance"),
+							boshtbl.NewHeader("Process State"),
+							boshtbl.NewHeader("AZ"),
+							boshtbl.NewHeader("IPs"),
+							boshtbl.NewHeader("VM CID"),
+							boshtbl.NewHeader("VM Type"),
+							boshtbl.NewHeader("Cloud Properties"),
+						},
+
+						SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+
+						Rows: [][]boshtbl.Value{
+							{
+								boshtbl.NewValueString("job-name"),
+								boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
+								boshtbl.ValueString{},
+								boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
+								boshtbl.NewValueString("in1-cid"),
+								boshtbl.NewValueString("in1-rp"),
+								boshtbl.NewValueInterface(map[string]string{"instance_type": "m1.small"}),
+							},
+							{
+								boshtbl.NewValueString("job-name"),
+								boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
+								boshtbl.NewValueString("in2-az"),
+								boshtbl.NewValueStrings([]string{"in2-ip1"}),
+								boshtbl.NewValueString("in2-cid"),
+								boshtbl.NewValueString("in2-rp"),
+								boshtbl.NewValueInterface(map[string]string{"instance_type": "m1.small"}),
+							},
+							{
+								boshtbl.NewValueString("?"),
+								boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
+								boshtbl.ValueString{},
+								boshtbl.ValueStrings{},
+								boshtbl.ValueString{},
+								boshtbl.ValueString{},
+								boshtbl.ValueInterface{},
 							},
 						},
 					}))
