@@ -2091,6 +2091,14 @@ var _ = Describe("Opts", func() {
 				))
 			})
 		})
+
+		Describe("CloudProperties", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CloudProperties", opts)).To(Equal(
+					`long:"cloud-properties" description:"Show cloud properties"`,
+				))
+			})
+		})
 	})
 
 	Describe("CloudCheckOpts", func() {
