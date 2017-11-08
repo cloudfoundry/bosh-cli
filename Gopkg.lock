@@ -194,7 +194,7 @@
   branch = "master"
   name = "github.com/vito/go-interact"
   packages = ["interact","interact/terminal"]
-  revision = "60caa86f173a89ef7a479fa400cc50faf6a2e369"
+  revision = "c5733929fb71999ab2f1cfd57fdab195965994de"
 
 [[projects]]
   name = "golang.org/x/crypto"

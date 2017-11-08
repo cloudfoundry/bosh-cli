@@ -16,3 +16,7 @@ required = ["github.com/onsi/ginkgo/ginkgo", "github.com/maxbrunsfeld/counterfei
 [[constraint]]
   name = "github.com/cloudfoundry/bosh-agent"
   revision = "a74fc7069b604abe84f1ddd899f58ae1e6b1f8ee"
+
+[[constraint]]
+  name = "github.com/vito/go-interact"
+  revision = "c5733929fb71999ab2f1cfd57fdab195965994de"
