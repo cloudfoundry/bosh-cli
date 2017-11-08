@@ -1,4 +1,4 @@
-required = ["github.com/onsi/ginkgo/ginkgo"]
+required = ["github.com/onsi/ginkgo/ginkgo", "github.com/maxbrunsfeld/counterfeiter"]
 
 [[constraint]]
   branch = "cli-patches"

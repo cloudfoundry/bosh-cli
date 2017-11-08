@@ -13,6 +13,7 @@ import (
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 var _ = Describe("VMsCmd", func() {
@@ -25,7 +26,7 @@ var _ = Describe("VMsCmd", func() {
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewVMsCmd(ui, director)
+		command = NewVMsCmd(ui, director, 1)
 	})
 
 	Describe("Run", func() {
@@ -494,32 +495,109 @@ var _ = Describe("VMsCmd", func() {
 		})
 
 		Context("when listing multiple deployments", func() {
+			BeforeEach(func() {
+				command = NewVMsCmd(ui, director, 5)
+			})
 
 			It("retrieves deployment vms in parallel", func() {
-				opts.ParallelOpt = 5
 				dep1 := &fakedir.FakeDeployment{
-					NameStub:       func() string { return "dep1" },
-					VMInfosStub:    func() ([]boshdir.VMInfo, error) { return infos, nil },
-					VMInfoDuration: 1500,
+					NameStub: func() string { return "dep1" },
+					VMInfosStub: func() ([]boshdir.VMInfo, error) {
+						time.Sleep(1500 * time.Millisecond)
+
+						return infos, nil
+					},
 				}
 				dep2 := &fakedir.FakeDeployment{
-					NameStub:    func() string { return "dep2" },
-					VMInfosStub: func() ([]boshdir.VMInfo, error) { return infos, nil },
-					VMInfoDelay: 500,
+					NameStub: func() string { return "dep2" },
+					VMInfosStub: func() ([]boshdir.VMInfo, error) {
+						time.Sleep(1500 * time.Millisecond)
+
+						return infos, nil
+					},
 				}
 				deployments := []boshdir.Deployment{
 					dep1,
 					dep2,
 				}
-
 				director.DeploymentsReturns(deployments, nil)
-				Expect(act()).ToNot(HaveOccurred())
+				startTime := time.Now()
+				err := act()
+				cmdDuration := time.Since(startTime)
+				Expect(err).To(BeNil())
+				Expect(int64(cmdDuration / time.Millisecond)).To(BeNumerically("<", 2000))
 				Expect(dep1.VMInfosCallCount()).To(Equal(1))
 				Expect(dep2.VMInfosCallCount()).To(Equal(1))
-				vMInfos1Start, vMInfos1End := dep1.VMInfosStartEndTimes()
-				vMInfos2Start, vMInfos2End := dep2.VMInfosStartEndTimes()
-				Expect(vMInfos2Start.After(vMInfos1Start)).To(Equal(true))
-				Expect(vMInfos1End.After(vMInfos2End)).To(Equal(true))
+			})
+
+			Context("when fetching vms infos from subset of deployment fail", func() {
+				It("returns vm info and errors", func() {
+					vmError := bosherr.Error("failed")
+					dep1 := &fakedir.FakeDeployment{
+						NameStub: func() string { return "dep1" },
+						VMInfosStub: func() ([]boshdir.VMInfo, error) {
+							return infos, nil
+						},
+					}
+					dep2 := &fakedir.FakeDeployment{
+						NameStub: func() string { return "dep2" },
+						VMInfosStub: func() ([]boshdir.VMInfo, error) {
+							return nil, vmError
+						},
+					}
+					deployments := []boshdir.Deployment{
+						dep1,
+						dep2,
+					}
+					director.DeploymentsReturns(deployments, nil)
+					err := act()
+					Expect(err).To(Equal(bosherr.NewMultiError(vmError)))
+					Expect(ui.Table).To(Equal(boshtbl.Table{
+						Title: "Deployment 'dep1'",
+
+						Content: "vms",
+
+						Header: []boshtbl.Header{
+							boshtbl.NewHeader("Instance"),
+							boshtbl.NewHeader("Process State"),
+							boshtbl.NewHeader("AZ"),
+							boshtbl.NewHeader("IPs"),
+							boshtbl.NewHeader("VM CID"),
+							boshtbl.NewHeader("VM Type"),
+						},
+
+						SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+
+						Rows: [][]boshtbl.Value{
+							{
+								boshtbl.NewValueString("job-name"),
+								boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
+								boshtbl.ValueString{},
+								boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
+								boshtbl.NewValueString("in1-cid"),
+								boshtbl.NewValueString("in1-rp"),
+							},
+							{
+								boshtbl.NewValueString("job-name"),
+								boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
+								boshtbl.NewValueString("in2-az"),
+								boshtbl.NewValueStrings([]string{"in2-ip1"}),
+								boshtbl.NewValueString("in2-cid"),
+								boshtbl.NewValueString("in2-rp"),
+							},
+							{
+								boshtbl.NewValueString("?"),
+								boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
+								boshtbl.ValueString{},
+								boshtbl.ValueStrings{},
+								boshtbl.ValueString{},
+								boshtbl.ValueString{},
+							},
+						},
+					}))
+					Expect(dep1.VMInfosCallCount()).To(Equal(1))
+					Expect(dep2.VMInfosCallCount()).To(Equal(1))
+				})
 			})
 		})
 	})

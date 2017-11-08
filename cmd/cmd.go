@@ -273,7 +273,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewInspectReleaseCmd(deps.UI, c.director()).Run(*opts)
 
 	case *VMsOpts:
-		return NewVMsCmd(deps.UI, c.director()).Run(*opts)
+		return NewVMsCmd(deps.UI, c.director(), c.BoshOpts.Parallel).Run(*opts)
 
 	case *InstancesOpts:
 		return NewInstancesCmd(deps.UI, c.director()).Run(*opts)

@@ -2092,12 +2092,6 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("ParallelOpt", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("ParallelOpt", opts)).To(Equal(`long:"parallel" description:"Sets the max number of parallel deployment vms fetching" default:"1"`))
-			})
-		})
-
 		Describe("CloudProperties", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("CloudProperties", opts)).To(Equal(

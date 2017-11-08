@@ -14,10 +14,11 @@ import (
 type VMsCmd struct {
 	ui       boshui.UI
 	director boshdir.Director
+	parallel int
 }
 
-func NewVMsCmd(ui boshui.UI, director boshdir.Director) VMsCmd {
-	return VMsCmd{ui: ui, director: director}
+func NewVMsCmd(ui boshui.UI, director boshdir.Director, parallel int) VMsCmd {
+	return VMsCmd{ui: ui, director: director, parallel: parallel}
 }
 
 func (c VMsCmd) Run(opts VMsOpts) error {
@@ -42,10 +43,11 @@ func (c VMsCmd) Run(opts VMsOpts) error {
 			return err
 		}
 
-		return c.printDeployment(dep, instTable, vmInfos)
+		c.printDeployment(dep, instTable, vmInfos)
+		return nil
 	}
 
-	return c.printDeployments(instTable, opts.ParallelOpt)
+	return c.printDeployments(instTable, c.parallel)
 }
 
 func (c VMsCmd) printDeployments(instTable InstanceTable, parallel int) error {
@@ -55,18 +57,14 @@ func (c VMsCmd) printDeployments(instTable InstanceTable, parallel int) error {
 	}
 
 	vmInfos, err := parallelVMInfos(deployments, parallel)
-	if err != nil {
-		return err
-	}
 
 	for _, dep := range deployments {
-		err := c.printDeployment(dep, instTable, vmInfos[dep.Name()])
-		if err != nil {
-			return err
+		if vmInfo, ok := vmInfos[dep.Name()]; ok {
+			c.printDeployment(dep, instTable, vmInfo)
 		}
 	}
 
-	return nil
+	return err
 }
 
 type deploymentInfo struct {
@@ -98,25 +96,29 @@ func parallelVMInfos(deployments []boshdir.Deployment, parallel int) (map[string
 	if err != nil {
 		return nil, err
 	}
+
 	throttler.Work()
 	vms := make(map[string][]boshdir.VMInfo, workSize)
 	var vmInfoErrors []error
+
 	for i := 0; i < workSize; i++ {
 		errc := <-errorc
 		result := <-resultc
 		if errc != nil {
 			vmInfoErrors = append(vmInfoErrors, errc)
+		} else {
+			vms[result.depName] = result.vmInfos
 		}
-		vms[result.depName] = result.vmInfos
 	}
+
 	if len(vmInfoErrors) > 0 {
-		err := bosherr.NewMultiError(vmInfoErrors...)
-		return nil, err
+		err = bosherr.NewMultiError(vmInfoErrors...)
 	}
-	return vms, nil
+
+	return vms, err
 }
 
-func (c VMsCmd) printDeployment(dep boshdir.Deployment, instTable InstanceTable, vmInfos []boshdir.VMInfo) error {
+func (c VMsCmd) printDeployment(dep boshdir.Deployment, instTable InstanceTable, vmInfos []boshdir.VMInfo) {
 	table := boshtbl.Table{
 		Title: fmt.Sprintf("Deployment '%s'", dep.Name()),
 
@@ -134,6 +136,4 @@ func (c VMsCmd) printDeployment(dep boshdir.Deployment, instTable InstanceTable,
 	}
 
 	c.ui.PrintTable(table)
-
-	return nil
 }

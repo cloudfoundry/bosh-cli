@@ -681,7 +681,6 @@ type VMsOpts struct {
 	Vitals          bool `long:"vitals"            description:"Show vitals"`
 	CloudProperties bool `long:"cloud-properties"  description:"Show cloud properties"`
 	Deployment      string
-	ParallelOpt     int `long:"parallel" description:"Sets the max number of parallel deployment vms fetching" default:"1"`
 	cmd
 }
 
