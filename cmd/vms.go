@@ -17,6 +17,11 @@ type VMsCmd struct {
 	parallel int
 }
 
+type deploymentInfo struct {
+	depName string
+	vmInfos []boshdir.VMInfo
+}
+
 func NewVMsCmd(ui boshui.UI, director boshdir.Director, parallel int) VMsCmd {
 	return VMsCmd{ui: ui, director: director, parallel: parallel}
 }
@@ -65,11 +70,6 @@ func (c VMsCmd) printDeployments(instTable InstanceTable, parallel int) error {
 	}
 
 	return err
-}
-
-type deploymentInfo struct {
-	depName string
-	vmInfos []boshdir.VMInfo
 }
 
 func parallelVMInfos(deployments []boshdir.Deployment, parallel int) (map[string][]boshdir.VMInfo, error) {

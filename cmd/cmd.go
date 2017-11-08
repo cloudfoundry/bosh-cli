@@ -276,7 +276,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewVMsCmd(deps.UI, c.director(), c.BoshOpts.Parallel).Run(*opts)
 
 	case *InstancesOpts:
-		return NewInstancesCmd(deps.UI, c.director()).Run(*opts)
+		return NewInstancesCmd(deps.UI, c.director(), c.BoshOpts.Parallel).Run(*opts)
 
 	case *UpdateResurrectionOpts:
 		return NewUpdateResurrectionCmd(c.director()).Run(*opts)
