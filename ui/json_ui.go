@@ -7,8 +7,9 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
-	. "github.com/cloudfoundry/bosh-cli/ui/table"
 	"strconv"
+
+	. "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 type jsonUI struct {
@@ -60,7 +61,7 @@ func (ui *jsonUI) PrintErrorBlock(block string) {
 	ui.uiResp.Blocks = append(ui.uiResp.Blocks, block)
 }
 
-func (ui *jsonUI) PrintTable(table Table) {
+func (ui *jsonUI) PrintTable(table Table) error {
 	table.FillFirstColumn = true
 
 	header := map[string]string{}
@@ -98,6 +99,7 @@ func (ui *jsonUI) PrintTable(table Table) {
 	}
 
 	ui.uiResp.Tables = append(ui.uiResp.Tables, resp)
+	return nil
 }
 
 func (ui *jsonUI) AskForText(_ string) (string, error) {

@@ -14,7 +14,7 @@ type UI interface {
 	PrintBlock([]byte) // takes []byte to avoid string copy
 	PrintErrorBlock(string)
 
-	PrintTable(Table)
+	PrintTable(Table) error
 
 	AskForText(label string) (string, error)
 	AskForChoice(label string, options []string) (int, error)

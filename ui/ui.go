@@ -91,11 +91,13 @@ func (ui *WriterUI) PrintErrorBlock(block string) {
 	}
 }
 
-func (ui *WriterUI) PrintTable(table Table) {
+func (ui *WriterUI) PrintTable(table Table) error {
 	err := table.Print(ui.outWriter)
 	if err != nil {
 		ui.logger.Error(ui.logTag, "UI.PrintTable failed: %s", err)
+		return err
 	}
+	return nil
 }
 
 func (ui *WriterUI) AskForText(label string) (string, error) {
