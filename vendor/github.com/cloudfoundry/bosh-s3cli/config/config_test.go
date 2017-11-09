@@ -3,8 +3,9 @@ package config_test
 import (
 	"bytes"
 	"errors"
+	"fmt"
 
-	"github.com/pivotal-golang/s3cli/config"
+	"github.com/cloudfoundry/bosh-s3cli/config"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -21,15 +22,18 @@ var _ = Describe("BlobstoreClient configuration", func() {
 		Describe("checking that either host or region has been set", func() {
 
 			Context("when AWS endpoint has been set but not region", func() {
-				dummyJSONBytes := []byte(`{"access_key_id": "id", "secret_access_key": "key", "bucket_name": "some-bucket", "host": "s3-eu-central-1.amazonaws.com"}`)
-				dummyJSONReader := bytes.NewReader(dummyJSONBytes)
 
 				It("sets the AWS region based on the hostname", func() {
-					c, err := config.NewFromReader(dummyJSONReader)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(c.UseRegion()).To(BeTrue(), "Expected UseRegion to be true")
-					Expect(c.Host).To(Equal("s3-eu-central-1.amazonaws.com"))
-					Expect(c.Region).To(Equal("eu-central-1"))
+					Expect(config.AWSHostToRegion).ToNot(BeEmpty())
+					for endpoint, region := range config.AWSHostToRegion {
+						dummyJSONBytes := []byte(fmt.Sprintf(`{"access_key_id": "id", "secret_access_key": "key", "bucket_name": "some-bucket", "host": "%s"}`, endpoint))
+						dummyJSONReader := bytes.NewReader(dummyJSONBytes)
+						c, err := config.NewFromReader(dummyJSONReader)
+						Expect(err).ToNot(HaveOccurred())
+						Expect(c.UseRegion()).To(BeTrue(), "Expected UseRegion to be true")
+						Expect(c.Host).To(Equal(endpoint))
+						Expect(c.Region).To(Equal(region))
+					}
 				})
 			})
 
@@ -116,6 +120,22 @@ var _ = Describe("BlobstoreClient configuration", func() {
 				c, err := config.NewFromReader(emptyJSONReader)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(c.BucketName).To(Equal("some-bucket"))
+			})
+		})
+
+		Describe("when folder is specified", func() {
+			emptyJSONBytes := []byte(`{
+				"access_key_id": "id",
+				"secret_access_key": "key",
+				"bucket_name": "some-bucket",
+				"folder_name": "some-folder/other-folder"
+			}`)
+			emptyJSONReader := bytes.NewReader(emptyJSONBytes)
+
+			It("uses the given folder", func() {
+				c, err := config.NewFromReader(emptyJSONReader)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(c.FolderName).To(Equal("some-folder/other-folder"))
 			})
 		})
 

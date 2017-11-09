@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/pivotal-golang/s3cli/config"
+	"github.com/cloudfoundry/bosh-s3cli/config"
 )
 
 func NewSDK(c config.S3Cli) (*s3.S3, error) {

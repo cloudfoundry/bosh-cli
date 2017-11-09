@@ -5,10 +5,12 @@ blobstore.
 
 Continuous integration: <https://bosh-cpi.ci.cf-app.com/pipelines/s3cli>
 
+Releases can be found in https://s3cli-artifacts.s3.amazonaws.com. The Linux binaries follow the regex `s3cli-(\d+\.\d+\.\d+)-linux-amd64` and the windows binaries `s3cli-(\d+\.\d+\.\d+)-windows-amd64`.
+
 ## Installation
 
 ```
-go get github.com/pivotal-golang/s3cli
+go get github.com/cloudfoundry/bosh-s3cli
 ```
 
 ## Usage

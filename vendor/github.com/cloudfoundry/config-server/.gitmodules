@@ -1,0 +1,3 @@
+[submodule "src/vendor/github.com/cloudfoundry/bosh-utils"]
+	path = vendor/github.com/cloudfoundry/bosh-utils
+	url = https://github.com/cloudfoundry/bosh-utils.git

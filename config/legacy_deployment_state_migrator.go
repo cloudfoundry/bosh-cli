@@ -1,9 +1,10 @@
 package config
 
 import (
-	"github.com/pivotal-golang/yaml"
 	"path/filepath"
 	"regexp"
+
+	"gopkg.in/yaml.v2"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"

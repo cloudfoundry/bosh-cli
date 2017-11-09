@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/pivotal-golang/s3cli/client"
-	"github.com/pivotal-golang/s3cli/config"
+	"github.com/cloudfoundry/bosh-s3cli/client"
+	"github.com/cloudfoundry/bosh-s3cli/config"
 )
 
 var version string

@@ -59,6 +59,12 @@
   revision = "e8cfa90"
 
 [[projects]]
+  name = "github.com/cloudfoundry/bosh-s3cli"
+  packages = ["client","config"]
+  revision = "3a73869d3a33078403c896bbe32061dffc87c864"
+  version = "v0.0.64"
+
+[[projects]]
   branch = "master"
   name = "github.com/cloudfoundry/bosh-utils"
   packages = ["blobstore","blobstore/fakes","crypto","crypto/cryptofakes","errors","fileutil","fileutil/fakes","httpclient","logger","logger/file","logger/loggerfakes","property","retrystrategy","system","system/fakes","uuid","uuid/fakes"]
@@ -67,8 +73,8 @@
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
   packages = ["types","types/typesfakes"]
-  revision = "2d6f3ab66c92c437fae71a077c5bc6992466b35b"
-  version = "v0.0.132"
+  revision = "d29aa99b7c301778efea4714252b6ef549089d6b"
+  version = "v0.0.124"
 
 [[projects]]
   branch = "master"
@@ -181,20 +187,9 @@
   revision = "e34e13867a42f12943d6d5448e90b294dc85601d"
 
 [[projects]]
-  name = "github.com/pivotal-golang/s3cli"
-  packages = ["client","config"]
-  revision = "90561c0"
-
-[[projects]]
-  name = "github.com/pivotal-golang/yaml"
-  packages = ["."]
-  revision = "8b09e4a"
-
-[[projects]]
-  branch = "master"
   name = "github.com/vito/go-interact"
   packages = ["interact","interact/terminal"]
-  revision = "c5733929fb71999ab2f1cfd57fdab195965994de"
+  revision = "60caa86f173a89ef7a479fa400cc50faf6a2e369"
 
 [[projects]]
   name = "golang.org/x/crypto"
@@ -256,13 +251,14 @@
   version = "v1.4.2"
 
 [[projects]]
+  branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
+  revision = "eb3733d160e74a9c7e442f435eb3bea458e1d19f"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "225edf67d80f67fcd54382be818dc2d4989168f54dd59d37cd61869bdbe623cf"
+  inputs-digest = "33c98bacc8ca693fdc9fd9c30af312bb02b1fe55fbbdb2636ebd525e9adb6776"
   solver-name = "gps-cdcl"
   solver-version = 1

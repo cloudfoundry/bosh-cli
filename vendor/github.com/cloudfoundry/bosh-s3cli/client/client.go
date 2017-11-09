@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/pivotal-golang/s3cli/config"
+	"github.com/cloudfoundry/bosh-s3cli/config"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -36,7 +36,7 @@ func (client *S3Blobstore) Get(src string, dest io.WriterAt) error {
 
 	_, err := downloader.Download(dest, &s3.GetObjectInput{
 		Bucket: aws.String(client.s3cliConfig.BucketName),
-		Key:    aws.String(src),
+		Key:    client.key(src),
 	})
 
 	if err != nil {
@@ -64,7 +64,7 @@ func (client *S3Blobstore) Put(src io.ReadSeeker, dest string) error {
 	uploadInput := &s3manager.UploadInput{
 		Body:   src,
 		Bucket: aws.String(cfg.BucketName),
-		Key:    aws.String(dest),
+		Key:    client.key(dest),
 	}
 	if cfg.ServerSideEncryption != "" {
 		uploadInput.ServerSideEncryption = aws.String(cfg.ServerSideEncryption)
@@ -105,7 +105,7 @@ func (client *S3Blobstore) Delete(dest string) error {
 
 	deleteParams := &s3.DeleteObjectInput{
 		Bucket: aws.String(client.s3cliConfig.BucketName),
-		Key:    aws.String(dest),
+		Key:    client.key(dest),
 	}
 
 	_, err := client.s3Client.DeleteObject(deleteParams)
@@ -127,7 +127,7 @@ func (client *S3Blobstore) Exists(dest string) (bool, error) {
 
 	existsParams := &s3.HeadObjectInput{
 		Bucket: aws.String(client.s3cliConfig.BucketName),
-		Key:    aws.String(dest),
+		Key:    client.key(dest),
 	}
 
 	_, err := client.s3Client.HeadObject(existsParams)
@@ -144,4 +144,13 @@ func (client *S3Blobstore) Exists(dest string) (bool, error) {
 		}
 	}
 	return false, err
+}
+
+func (client *S3Blobstore) key(srcOrDest string) *string {
+	formattedKey := aws.String(srcOrDest)
+	if len(client.s3cliConfig.FolderName) != 0 {
+		formattedKey = aws.String(fmt.Sprintf("%s/%s", client.s3cliConfig.FolderName, srcOrDest))
+	}
+
+	return formattedKey
 }

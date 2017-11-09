@@ -5,7 +5,7 @@ import (
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"github.com/pivotal-golang/yaml"
+	"gopkg.in/yaml.v2"
 )
 
 type RepackStemcellCmd struct {

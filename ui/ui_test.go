@@ -3,7 +3,6 @@ package ui_test
 import (
 	"bytes"
 	"io"
-	"os"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
@@ -216,52 +215,6 @@ note2
 	Describe("Flush", func() {
 		It("does nothing", func() {
 			Expect(func() { ui.Flush() }).ToNot(Panic())
-		})
-	})
-
-	Describe("AskForText", func() {
-		It("allows empty and non-empty text input", func() {
-			r, w, err := os.Pipe()
-			Expect(err).ToNot(HaveOccurred())
-
-			os.Stdin = r
-
-			_, err = w.Write([]byte("\ntest\n"))
-			Expect(err).ToNot(HaveOccurred())
-
-			err = w.Close()
-			Expect(err).ToNot(HaveOccurred())
-
-			text, err := ui.AskForText("ask-test")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(text).To(Equal(""))
-
-			text, err = ui.AskForText("ask-test2")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(text).To(Equal("test"))
-		})
-	})
-
-	Describe("AskForPassword", func() {
-		It("allows empty and non-empty password input", func() {
-			r, w, err := os.Pipe()
-			Expect(err).ToNot(HaveOccurred())
-
-			os.Stdin = r
-
-			_, err = w.Write([]byte("\npassword\n"))
-			Expect(err).ToNot(HaveOccurred())
-
-			err = w.Close()
-			Expect(err).ToNot(HaveOccurred())
-
-			text, err := ui.AskForPassword("ask-test")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(text).To(Equal(""))
-
-			text, err = ui.AskForPassword("ask-test2")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(text).To(Equal("password"))
 		})
 	})
 })
