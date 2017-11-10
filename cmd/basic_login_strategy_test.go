@@ -74,7 +74,7 @@ var _ = Describe("BasicLoginStrategy", func() {
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(ui.Said).To(Equal([]string{fmt.Sprintf("Logged in to '%s'", expectedEnvironment)}))
+					Expect(ui.Said).To(Equal([]string{"Using environment 'environment'", fmt.Sprintf("Logged in to '%s'", expectedEnvironment)}))
 				})
 
 				It("saves the config with new credentials", func() {
@@ -125,7 +125,7 @@ var _ = Describe("BasicLoginStrategy", func() {
 						"Failed to login to 'environment'",
 					}))
 
-					Expect(ui.Said).To(Equal([]string{"Logged in to 'environment'"}))
+					Expect(ui.Said).To(Equal([]string{"Using environment 'environment'", "Logged in to 'environment'"}))
 				})
 
 				It("only saves config upon successful log in", func() {

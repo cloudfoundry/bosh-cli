@@ -74,6 +74,8 @@ func (c UAALoginStrategy) tryUser(sess Session, uaa boshuaa.UAA) error {
 		return err
 	}
 
+	c.ui.PrintLinef("Using environment '%s'", sess.Environment())
+
 	for {
 		authed, err := c.tryUserOnce(sess.Environment(), prompts, uaa)
 		if err != nil {
@@ -88,8 +90,6 @@ func (c UAALoginStrategy) tryUser(sess Session, uaa boshuaa.UAA) error {
 
 func (c UAALoginStrategy) tryUserOnce(environment string, prompts []boshuaa.Prompt, uaa boshuaa.UAA) (bool, error) {
 	var answers []boshuaa.PromptAnswer
-
-	c.ui.PrintLinef("Using environment '%s'", environment)
 
 	for _, prompt := range prompts {
 		var askFunc func(string) (string, error)

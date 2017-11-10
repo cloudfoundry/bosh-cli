@@ -140,7 +140,7 @@ var _ = Describe("UAALoginStrategy", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(ui.Said).To(Equal([]string{"Successfully authenticated with UAA"}))
+						Expect(ui.Said).To(Equal([]string{"Using environment 'environment'", "Successfully authenticated with UAA"}))
 					})
 
 					It("saves the config with a refresh token", func() {
@@ -178,7 +178,7 @@ var _ = Describe("UAALoginStrategy", func() {
 							"Failed to authenticate with UAA",
 						}))
 
-						Expect(ui.Said).To(Equal([]string{"Successfully authenticated with UAA"}))
+						Expect(ui.Said).To(Equal([]string{"Using environment 'environment'", "Successfully authenticated with UAA"}))
 					})
 
 					It("only saves config upon successful log in", func() {
