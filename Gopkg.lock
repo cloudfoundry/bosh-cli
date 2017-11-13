@@ -189,7 +189,7 @@
 [[projects]]
   name = "github.com/vito/go-interact"
   packages = ["interact","interact/terminal"]
-  revision = "60caa86f173a89ef7a479fa400cc50faf6a2e369"
+  revision = "fa338ed9e9ecbb0e9c2e6c7a0160d9fc9b0efbd9"
 
 [[projects]]
   name = "golang.org/x/crypto"
@@ -259,6 +259,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "33c98bacc8ca693fdc9fd9c30af312bb02b1fe55fbbdb2636ebd525e9adb6776"
+  inputs-digest = "4983ad90b0e1c8f576e3c13494efa474841bf4ec2ab2115f5056764534b08fca"
   solver-name = "gps-cdcl"
   solver-version = 1
