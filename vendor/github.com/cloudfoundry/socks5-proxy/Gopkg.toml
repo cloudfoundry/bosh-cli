@@ -1,33 +1,4 @@
 
-[[constraint]]
-  revision = "c45b897f13350786ccaf2b7403b92b1c7ad85844"
-  name = "github.com/BurntSushi/migration"
-
-[[constraint]]
-  name = "github.com/dgrijalva/jwt-go"
-  version = "3.0.0"
-
-[[constraint]]
-  name = "github.com/go-sql-driver/mysql"
-  version = "1.3.0"
-
-[[constraint]]
-  revision = "2704adc878c21e1329f46f6e56a1c387d788ff94"
-  name = "github.com/lib/pq"
-
-[[constraint]]
-  revision = "7e9105388ebff089b3f99f0ef676ea55a6da3a7e"
-  name = "golang.org/x/crypto"
-
-[[constraint]]
-  revision = "b90f89a1e7a9c1f6b918820b3daa7f08488c8594"
-  name = "golang.org/x/sys"
-
-[[constraint]]
-  revision = "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
-  name = "gopkg.in/yaml.v2"
-
-
 ## Gopkg.toml example (these lines may be deleted)
 
 ## "metadata" defines metadata about the project that could be used by other independent
@@ -92,3 +63,29 @@
 ## enforce that the alternate location is used for that project, regardless of
 ## what source location any dependent projects specify.
 # source = "https://github.com/myfork/package.git"
+
+
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/armon/go-socks5"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/cloudfoundry/bosh-deployment-resource"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/onsi/ginkgo"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/onsi/gomega"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/net"

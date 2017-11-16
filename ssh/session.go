@@ -47,15 +47,13 @@ func (r *SessionImpl) Start() (SSHArgs, error) {
 		return SSHArgs{}, err
 	}
 
-	args := SSHArgs{
-		ConnOpts: r.connOpts,
-		Result:   r.result,
-
-		ForceTTY: r.sessOpts.ForceTTY,
-
-		PrivKeyFile:    r.privKeyFile,
-		KnownHostsFile: r.knownHostsFile,
-	}
+	args := NewSSHArgs(
+		r.connOpts,
+		r.result,
+		r.sessOpts.ForceTTY,
+		r.privKeyFile,
+		r.knownHostsFile,
+	)
 
 	return args, nil
 }

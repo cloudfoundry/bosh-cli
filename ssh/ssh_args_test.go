@@ -192,6 +192,35 @@ var _ = Describe("SSHArgs", func() {
 			}))
 		})
 
+		It("starts a socks5 proxy and uses the address if SOCKS5Proxy has ssh+socks5:// schema", func() {
+			connOpts.GatewayDisable = true
+			connOpts.GatewayUsername = "user-gw-user"
+			connOpts.GatewayHost = "user-gw-host"
+			connOpts.SOCKS5Proxy = "ssh+socks5://some-jumpbox-address?private-key=some-private-key-path"
+
+			result.GatewayUsername = "gw-user"
+			result.GatewayHost = "gw-host"
+
+			args := NewSSHArgs(
+				connOpts,
+				result,
+				forceTTY,
+				privKeyFile,
+				knownHostsFile,
+			)
+
+			Expect(args.OptsForHost(host)).To(ConsistOf(
+				"-o", "ServerAliveInterval=30",
+				"-o", "ForwardAgent=no",
+				"-o", "PasswordAuthentication=no",
+				"-o", "IdentitiesOnly=yes",
+				"-o", "IdentityFile=/tmp/priv-key",
+				"-o", "StrictHostKeyChecking=yes",
+				"-o", "UserKnownHostsFile=/tmp/known-hosts",
+				"-o", MatchRegexp("ProxyCommand=nc -x 127.0.0.1:\\d+ %h %p"),
+			))
+		})
+
 		It("returns ssh options with bracketed gateway proxy command if host IP is IPv6", func() {
 			result.GatewayUsername = "gw-user"
 			result.GatewayHost = "gw-host"
