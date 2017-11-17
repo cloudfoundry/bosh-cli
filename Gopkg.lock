@@ -81,15 +81,12 @@
   packages = ["types","types/typesfakes"]
   revision = "d29aa99b7c301778efea4714252b6ef549089d6b"
   version = "v0.0.124"
-<<<<<<< HEAD
-=======
 
 [[projects]]
   branch = "master"
   name = "github.com/cloudfoundry/socks5-proxy"
   packages = ["."]
   revision = "6afb711f4b32a266b51160288e98fd3c4b28f0cb"
->>>>>>> ipv6_oct_19
 
 [[projects]]
   branch = "master"
@@ -202,20 +199,6 @@
   revision = "e34e13867a42f12943d6d5448e90b294dc85601d"
 
 [[projects]]
-<<<<<<< HEAD
-=======
-  name = "github.com/pivotal-golang/s3cli"
-  packages = ["client","config"]
-  revision = "90561c0"
-
-[[projects]]
-  name = "github.com/pivotal-golang/yaml"
-  packages = ["."]
-  revision = "8b09e4a"
-
-[[projects]]
-  branch = "master"
->>>>>>> ipv6_oct_19
   name = "github.com/vito/go-interact"
   packages = ["interact","interact/terminal"]
   revision = "fa338ed9e9ecbb0e9c2e6c7a0160d9fc9b0efbd9"
@@ -289,10 +272,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-<<<<<<< HEAD
-  inputs-digest = "4983ad90b0e1c8f576e3c13494efa474841bf4ec2ab2115f5056764534b08fca"
-=======
-  inputs-digest = "6960c253ada99889a89005a8bf8fc8e16e92604ed6d5125899c8ba7862405cff"
->>>>>>> ipv6_oct_19
+  inputs-digest = "b4ce68f24eef1c2053f490a4ea8305b55714da34bc96af60215a0dd5d75a745f"
   solver-name = "gps-cdcl"
   solver-version = 1
