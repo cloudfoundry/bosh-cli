@@ -50,8 +50,8 @@
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
   packages = ["client","client/fakes","config"]
-  revision = "15612fdfcfd4ed7302ab02291b0c67778b774d36"
-  version = "v0.0.25"
+  revision = "81142822dc5f81b6c2af2e2f512be802f3d6f69c"
+  version = "v0.0.26"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-gcscli"
@@ -62,7 +62,7 @@
   branch = "master"
   name = "github.com/cloudfoundry/bosh-utils"
   packages = ["blobstore","blobstore/fakes","crypto","crypto/cryptofakes","errors","fileutil","fileutil/fakes","httpclient","logger","logger/file","logger/loggerfakes","property","retrystrategy","system","system/fakes","uuid","uuid/fakes"]
-  revision = "a960ab178e64b43d19051be6fd2891ff695bb206"
+  revision = "ed82fb0d5fa7fae184cb247d7446b4b69839fa17"
 
 [[projects]]
   name = "github.com/cloudfoundry/config-server"

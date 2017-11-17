@@ -26,7 +26,7 @@ type SSHArgs struct {
 
 func NewSSHArgs(connOpts ConnectionOpts, result boshdir.SSHResult, forceTTY bool, privKeyFile boshsys.File, knownHostsFile boshsys.File) SSHArgs {
 	socks5Proxy := proxy.NewSocks5Proxy(proxy.NewHostKeyGetter())
-	boshhttpDialer := boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial)
+	boshhttpDialer := boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial, socks5Proxy)
 	dialer := func(net, addr string) (net.Conn, error) {
 		return boshhttpDialer(net, addr)
 	}

@@ -5,5 +5,13 @@ type Config struct {
 	Password      string
 	Endpoint      string
 	RetryAttempts uint
-	CACert        string `json:"ca_cert"`
+	TLS           TLS
+}
+
+type TLS struct {
+	Cert Cert
+}
+
+type Cert struct {
+	CA string
 }
