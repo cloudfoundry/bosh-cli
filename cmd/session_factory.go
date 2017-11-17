@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
@@ -18,6 +19,7 @@ func NewSessionFromOpts(
 	logger boshlog.Logger,
 ) Session {
 	context := NewSessionContextImpl(opts, config, fs)
+	clientFactory := boshhttp.NewClientFactory()
 
-	return NewSessionImpl(context, ui, printEnvironment, printDeployment, logger)
+	return NewSessionImpl(context, ui, printEnvironment, printDeployment, clientFactory, logger)
 }

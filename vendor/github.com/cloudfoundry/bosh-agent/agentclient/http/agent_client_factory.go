@@ -3,6 +3,7 @@ package http
 //go:generate mockgen -source=agent_client_factory.go -package=mocks -destination=mocks/mocks.go
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/cloudfoundry/bosh-agent/agentclient"
@@ -16,29 +17,33 @@ type AgentClientFactory interface {
 }
 
 type agentClientFactory struct {
-	getTaskDelay time.Duration
-	logger       boshlog.Logger
+	getTaskDelay  time.Duration
+	clientFactory httpclient.ClientFactory
+	logger        boshlog.Logger
 }
 
 func NewAgentClientFactory(
 	getTaskDelay time.Duration,
+	clientFactory httpclient.ClientFactory,
 	logger boshlog.Logger,
 ) AgentClientFactory {
 	return &agentClientFactory{
-		getTaskDelay: getTaskDelay,
-		logger:       logger,
+		getTaskDelay:  getTaskDelay,
+		logger:        logger,
+		clientFactory: clientFactory,
 	}
 }
 
 func (f *agentClientFactory) NewAgentClient(directorID, mbusURL, caCert string) (agentclient.AgentClient, error) {
-	client := httpclient.DefaultClient
-
+	var client *http.Client
 	if caCert != "" {
 		caCertPool, err := crypto.CertPoolFromPEM([]byte(caCert))
 		if err != nil {
 			return nil, err
 		}
-		client = httpclient.CreateDefaultClient(caCertPool)
+		client = f.clientFactory.CreateDefaultClient(caCertPool)
+	} else {
+		client = f.clientFactory.CreateDefaultClientInsecureSkipVerify()
 	}
 
 	httpClient := httpclient.NewHTTPClient(client, f.logger)

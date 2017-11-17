@@ -1,8 +1,9 @@
 package client
 
 import (
-	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
+	"crypto/tls"
 	"net/http"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -12,12 +13,25 @@ import (
 )
 
 func NewSDK(c config.S3Cli) (*s3.S3, error) {
-	var httpClient *http.Client
+	// Wiring in the httpclient.ClientFactory
+	// proved difficult, so we bailed and just did
+	// this instead for now... maybe there's a better way?
+	//
+	// Notably, the gcscli just uses the http.DefaultClient.
+	// We're guessing we just have logic to skip verify because
+	// there may be s3-compatible blobstores without real certs,
+	// but even for gsc, we might want to take a look at adding
+	// sane timeouts, etc.
+	httpClient := http.DefaultClient
+	httpClient.Transport = &http.Transport{
+		TLSHandshakeTimeout: 30 * time.Second,
+		DisableKeepAlives:   true,
+	}
 
-	if c.SSLVerifyPeer {
-		httpClient = boshhttp.CreateDefaultClient(nil)
-	} else {
-		httpClient = boshhttp.CreateDefaultClientInsecureSkipVerify()
+	if !c.SSLVerifyPeer {
+		httpClient.Transport.(*http.Transport).TLSClientConfig = &tls.Config{
+			InsecureSkipVerify: true,
+		}
 	}
 
 	s3Config := aws.NewConfig().

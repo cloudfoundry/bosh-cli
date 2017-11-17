@@ -64,6 +64,7 @@ type envFactory struct {
 	blobstoreFactory   biblobstore.Factory
 	deploymentFactory  bidepl.Factory
 	deploymentRecord   bidepl.Record
+	clientFactory      httpclient.ClientFactory
 }
 
 func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manifestVars boshtpl.Variables, manifestOp patch.Op) *envFactory {
@@ -83,7 +84,8 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manife
 	{
 		tarballCacheBasePath := filepath.Join(workspaceRootPath, "downloads")
 		tarballCache := bitarball.NewCache(tarballCacheBasePath, deps.FS, deps.Logger)
-		httpClient := httpclient.NewHTTPClient(httpclient.CreateDefaultClient(nil), deps.Logger)
+		f.clientFactory = httpclient.NewClientFactory()
+		httpClient := httpclient.NewHTTPClient(f.clientFactory.CreateDefaultClient(nil), deps.Logger)
 		tarballProvider := bitarball.NewProvider(
 			tarballCache, deps.FS, httpClient, 3, 500*time.Millisecond, deps.Logger)
 
@@ -144,7 +146,7 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manife
 	{
 		f.blobstoreFactory = biblobstore.NewBlobstoreFactory(deps.UUIDGen, deps.FS, deps.Logger)
 		f.deploymentFactory = bidepl.NewFactory(10*time.Second, 500*time.Millisecond)
-		f.agentClientFactory = bihttpagent.NewAgentClientFactory(1*time.Second, deps.Logger)
+		f.agentClientFactory = bihttpagent.NewAgentClientFactory(1*time.Second, f.clientFactory, deps.Logger)
 		f.cloudFactory = bicloud.NewFactory(deps.FS, deps.CmdRunner, deps.Logger)
 	}
 
@@ -223,6 +225,7 @@ func (f *envFactory) Preparer() DeploymentPreparer {
 		),
 		NewTempRootConfigurator(f.deps.FS),
 		f.targetProvider,
+		f.clientFactory,
 	)
 }
 
@@ -252,5 +255,6 @@ func (f *envFactory) Deleter() DeploymentDeleter {
 		f.installationManifestParser,
 		NewTempRootConfigurator(f.deps.FS),
 		f.targetProvider,
+		f.clientFactory,
 	)
 }

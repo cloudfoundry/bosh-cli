@@ -47,6 +47,7 @@ func NewDeploymentPreparer(
 	deploymentManifestParser DeploymentManifestParser,
 	tempRootConfigurator TempRootConfigurator,
 	targetProvider biinstall.TargetProvider,
+	clientFactory bihttpclient.ClientFactory,
 ) DeploymentPreparer {
 	return DeploymentPreparer{
 		ui:                                      ui,
@@ -72,6 +73,7 @@ func NewDeploymentPreparer(
 		deploymentManifestParser:                deploymentManifestParser,
 		tempRootConfigurator:                    tempRootConfigurator,
 		targetProvider:                          targetProvider,
+		clientFactory:                           clientFactory,
 	}
 }
 
@@ -99,6 +101,7 @@ type DeploymentPreparer struct {
 	deploymentManifestParser                DeploymentManifestParser
 	tempRootConfigurator                    TempRootConfigurator
 	targetProvider                          biinstall.TargetProvider
+	clientFactory                           bihttpclient.ClientFactory
 }
 
 func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool) (err error) {
@@ -233,7 +236,7 @@ func (c *DeploymentPreparer) deploy(
 	}
 	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
 
-	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus, bihttpclient.CreateDefaultClientInsecureSkipVerify())
+	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus, c.clientFactory.CreateDefaultClientInsecureSkipVerify())
 	if err != nil {
 		return bosherr.WrapError(err, "Creating blobstore client")
 	}

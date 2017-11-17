@@ -43,6 +43,7 @@ func NewDeploymentDeleter(
 	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser,
 	tempRootConfigurator TempRootConfigurator,
 	targetProvider biinstall.TargetProvider,
+	clientFactory bihttpclient.ClientFactory,
 ) DeploymentDeleter {
 	return &deploymentDeleter{
 		ui:                                      ui,
@@ -63,6 +64,7 @@ func NewDeploymentDeleter(
 		releaseSetAndInstallationManifestParser: releaseSetAndInstallationManifestParser,
 		tempRootConfigurator:                    tempRootConfigurator,
 		targetProvider:                          targetProvider,
+		clientFactory:                           clientFactory,
 	}
 }
 
@@ -85,6 +87,7 @@ type deploymentDeleter struct {
 	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser
 	tempRootConfigurator                    TempRootConfigurator
 	targetProvider                          biinstall.TargetProvider
+	clientFactory                           bihttpclient.ClientFactory
 }
 
 func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
@@ -214,7 +217,7 @@ func (c *deploymentDeleter) deploymentManager(installation biinstall.Installatio
 
 	c.logger.Debug(c.logTag, "Creating blobstore client...")
 
-	blobstore, err := c.blobstoreFactory.Create(installationMbus, bihttpclient.CreateDefaultClientInsecureSkipVerify())
+	blobstore, err := c.blobstoreFactory.Create(installationMbus, c.clientFactory.CreateDefaultClientInsecureSkipVerify())
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Creating blobstore client")
 	}

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
@@ -17,6 +18,7 @@ type SessionImpl struct {
 	ui               boshui.UI
 	printEnvironment bool
 	printDeployment  bool
+	clientFactory    boshhttp.ClientFactory
 
 	logger boshlog.Logger
 
@@ -31,6 +33,7 @@ func NewSessionImpl(
 	ui boshui.UI,
 	printEnvironment bool,
 	printDeployment bool,
+	clientFactory boshhttp.ClientFactory,
 	logger boshlog.Logger,
 ) *SessionImpl {
 	return &SessionImpl{
@@ -39,6 +42,7 @@ func NewSessionImpl(
 		ui:               ui,
 		printEnvironment: printEnvironment,
 		printDeployment:  printDeployment,
+		clientFactory:    clientFactory,
 
 		logger: logger,
 	}
@@ -75,7 +79,7 @@ func (c SessionImpl) UAA() (boshuaa.UAA, error) {
 		uaaConfig.Client = "bosh_cli"
 	}
 
-	return boshuaa.NewFactory(c.logger).New(uaaConfig)
+	return boshuaa.NewFactory(c.clientFactory, c.logger).New(uaaConfig)
 }
 
 func (c *SessionImpl) Director() (boshdir.Director, error) {
@@ -121,7 +125,7 @@ func (c *SessionImpl) Director() (boshdir.Director, error) {
 	taskReporter := boshuit.NewReporter(c.ui, true)
 	fileReporter := boshui.NewFileReporter(c.ui)
 
-	director, err := boshdir.NewFactory(c.logger).New(dirConfig, taskReporter, fileReporter)
+	director, err := boshdir.NewFactory(c.clientFactory, c.logger).New(dirConfig, taskReporter, fileReporter)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +164,7 @@ func (c *SessionImpl) AnonymousDirector() (boshdir.Director, error) {
 
 	dirConfig.CACert = c.context.CACert()
 
-	return boshdir.NewFactory(c.logger).New(dirConfig, nil, nil)
+	return boshdir.NewFactory(c.clientFactory, c.logger).New(dirConfig, nil, nil)
 }
 
 func (c *SessionImpl) Deployment() (boshdir.Deployment, error) {

@@ -14,14 +14,16 @@ import (
 )
 
 type Factory struct {
-	logTag string
-	logger boshlog.Logger
+	logTag        string
+	logger        boshlog.Logger
+	clientFactory httpclient.ClientFactory
 }
 
-func NewFactory(logger boshlog.Logger) Factory {
+func NewFactory(clientFactory httpclient.ClientFactory, logger boshlog.Logger) Factory {
 	return Factory{
-		logTag: "director.Factory",
-		logger: logger,
+		logTag:        "director.Factory",
+		clientFactory: clientFactory,
+		logger:        logger,
 	}
 }
 
@@ -32,7 +34,7 @@ func (f Factory) New(config FactoryConfig, taskReporter TaskReporter, fileReport
 			err, "Validating Director connection config")
 	}
 
-	client, err := f.httpClient(config, taskReporter, fileReporter)
+	client, err := f.httpClient(config, taskReporter, fileReporter, f.clientFactory)
 	if err != nil {
 		return DirectorImpl{}, err
 	}
@@ -40,7 +42,7 @@ func (f Factory) New(config FactoryConfig, taskReporter TaskReporter, fileReport
 	return DirectorImpl{client: client}, nil
 }
 
-func (f Factory) httpClient(config FactoryConfig, taskReporter TaskReporter, fileReporter FileReporter) (Client, error) {
+func (f Factory) httpClient(config FactoryConfig, taskReporter TaskReporter, fileReporter FileReporter, clientFactory httpclient.ClientFactory) (Client, error) {
 	certPool, err := config.CACertPool()
 	if err != nil {
 		return Client{}, err
@@ -52,7 +54,7 @@ func (f Factory) httpClient(config FactoryConfig, taskReporter TaskReporter, fil
 		f.logger.Debug(f.logTag, "Using custom root CAs")
 	}
 
-	rawClient := httpclient.CreateDefaultClient(certPool)
+	rawClient := clientFactory.CreateDefaultClient(certPool)
 	authAdjustment := NewAuthRequestAdjustment(
 		config.TokenFunc, config.Client, config.ClientSecret)
 	rawClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {

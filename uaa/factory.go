@@ -13,14 +13,16 @@ import (
 )
 
 type Factory struct {
-	logTag string
-	logger boshlog.Logger
+	logTag        string
+	logger        boshlog.Logger
+	clientFactory httpclient.ClientFactory
 }
 
-func NewFactory(logger boshlog.Logger) Factory {
+func NewFactory(clientFactory httpclient.ClientFactory, logger boshlog.Logger) Factory {
 	return Factory{
-		logTag: "uaa.Factory",
-		logger: logger,
+		logTag:        "uaa.Factory",
+		logger:        logger,
+		clientFactory: clientFactory,
 	}
 }
 
@@ -51,7 +53,7 @@ func (f Factory) httpClient(config Config) (Client, error) {
 		f.logger.Debug(f.logTag, "Using custom root CAs")
 	}
 
-	rawClient := httpclient.CreateDefaultClient(certPool)
+	rawClient := f.clientFactory.CreateDefaultClient(certPool)
 	retryClient := httpclient.NewNetworkSafeRetryClient(rawClient, 5, 500*time.Millisecond, f.logger)
 
 	httpClient := httpclient.NewHTTPClient(retryClient, f.logger)
