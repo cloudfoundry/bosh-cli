@@ -20,6 +20,12 @@
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/armon/go-socks5"
+  packages = ["."]
+  revision = "e75332964ef517daa070d7c38a9466a0d687e0a5"
+
+[[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/shareddefaults","private/protocol","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/restxml","private/protocol/xml/xmlutil","service/s3","service/s3/s3iface","service/s3/s3manager","service/sts"]
   revision = "b1a7b51924b90a6ecdbaeb17e96418740ff07a1e"
@@ -68,13 +74,22 @@
   branch = "master"
   name = "github.com/cloudfoundry/bosh-utils"
   packages = ["blobstore","blobstore/fakes","crypto","crypto/cryptofakes","errors","fileutil","fileutil/fakes","httpclient","logger","logger/file","logger/loggerfakes","property","retrystrategy","system","system/fakes","uuid","uuid/fakes"]
-  revision = "a960ab178e64b43d19051be6fd2891ff695bb206"
+  revision = "07e3008c701173c247c62ed8901d5e40b80a3f9d"
 
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
   packages = ["types","types/typesfakes"]
   revision = "d29aa99b7c301778efea4714252b6ef549089d6b"
   version = "v0.0.124"
+<<<<<<< HEAD
+=======
+
+[[projects]]
+  branch = "master"
+  name = "github.com/cloudfoundry/socks5-proxy"
+  packages = ["."]
+  revision = "6afb711f4b32a266b51160288e98fd3c4b28f0cb"
+>>>>>>> ipv6_oct_19
 
 [[projects]]
   branch = "master"
@@ -187,14 +202,29 @@
   revision = "e34e13867a42f12943d6d5448e90b294dc85601d"
 
 [[projects]]
+<<<<<<< HEAD
+=======
+  name = "github.com/pivotal-golang/s3cli"
+  packages = ["client","config"]
+  revision = "90561c0"
+
+[[projects]]
+  name = "github.com/pivotal-golang/yaml"
+  packages = ["."]
+  revision = "8b09e4a"
+
+[[projects]]
+  branch = "master"
+>>>>>>> ipv6_oct_19
   name = "github.com/vito/go-interact"
   packages = ["interact","interact/terminal"]
   revision = "fa338ed9e9ecbb0e9c2e6c7a0160d9fc9b0efbd9"
 
 [[projects]]
+  branch = "master"
   name = "golang.org/x/crypto"
   packages = ["curve25519","ed25519","ed25519/internal/edwards25519","ssh","ssh/terminal"]
-  revision = "7e9105388ebff089b3f99f0ef676ea55a6da3a7e"
+  revision = "2509b142fb2b797aa7587dad548f113b2c0f20ce"
 
 [[projects]]
   branch = "master"
@@ -211,7 +241,7 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix"]
+  packages = ["unix","windows"]
   revision = "6faef541c73732f438fb660a212750a9ba9f9362"
 
 [[projects]]
@@ -259,6 +289,10 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
+<<<<<<< HEAD
   inputs-digest = "4983ad90b0e1c8f576e3c13494efa474841bf4ec2ab2115f5056764534b08fca"
+=======
+  inputs-digest = "6960c253ada99889a89005a8bf8fc8e16e92604ed6d5125899c8ba7862405cff"
+>>>>>>> ipv6_oct_19
   solver-name = "gps-cdcl"
   solver-version = 1

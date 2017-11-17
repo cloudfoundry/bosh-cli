@@ -110,25 +110,21 @@ var _ = Describe("SessionImpl", func() {
 
 			args, err := act().Start()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(args).To(Equal(SSHArgs{
-				ConnOpts:       connOpts,
-				Result:         result,
-				ForceTTY:       false,
-				PrivKeyFile:    privKeyFile,
-				KnownHostsFile: knownHostsFile,
-			}))
+			Expect(args.ConnOpts).To(Equal(connOpts))
+			Expect(args.Result).To(Equal(result))
+			Expect(args.ForceTTY).To(BeFalse())
+			Expect(args.PrivKeyFile).To(Equal(privKeyFile))
+			Expect(args.KnownHostsFile).To(Equal(knownHostsFile))
 
 			sessOpts.ForceTTY = true
 
 			args, err = act().Start()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(args).To(Equal(SSHArgs{
-				ConnOpts:       connOpts,
-				Result:         result,
-				ForceTTY:       true,
-				PrivKeyFile:    privKeyFile,
-				KnownHostsFile: knownHostsFile,
-			}))
+			Expect(args.ConnOpts).To(Equal(connOpts))
+			Expect(args.Result).To(Equal(result))
+			Expect(args.ForceTTY).To(BeTrue())
+			Expect(args.PrivKeyFile).To(Equal(privKeyFile))
+			Expect(args.KnownHostsFile).To(Equal(knownHostsFile))
 		})
 	})
 

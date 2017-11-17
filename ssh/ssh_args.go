@@ -2,11 +2,13 @@ package ssh
 
 import (
 	"fmt"
+	"net"
 	"strings"
 
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	proxy "github.com/cloudfoundry/socks5-proxy"
 )
 
 type SSHArgs struct {
@@ -17,6 +19,27 @@ type SSHArgs struct {
 
 	PrivKeyFile    boshsys.File
 	KnownHostsFile boshsys.File
+
+	socks5Proxy *proxy.Socks5Proxy
+	dialer      proxy.DialFunc
+}
+
+func NewSSHArgs(connOpts ConnectionOpts, result boshdir.SSHResult, forceTTY bool, privKeyFile boshsys.File, knownHostsFile boshsys.File) SSHArgs {
+	socks5Proxy := proxy.NewSocks5Proxy(proxy.NewHostKeyGetter())
+	boshhttpDialer := boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial, socks5Proxy)
+	dialer := func(net, addr string) (net.Conn, error) {
+		return boshhttpDialer(net, addr)
+	}
+
+	return SSHArgs{
+		ConnOpts:       connOpts,
+		Result:         result,
+		ForceTTY:       forceTTY,
+		PrivKeyFile:    privKeyFile,
+		KnownHostsFile: knownHostsFile,
+		socks5Proxy:    socks5Proxy,
+		dialer:         dialer,
+	}
 }
 
 func (a SSHArgs) LoginForHost(host boshdir.Host) []string {
@@ -44,9 +67,15 @@ func (a SSHArgs) OptsForHost(host boshdir.Host) []string {
 	gwUsername, gwHost, gwPrivKeyPath := a.gwOpts()
 
 	if len(a.ConnOpts.SOCKS5Proxy) > 0 {
+		proxyString := a.ConnOpts.SOCKS5Proxy
+		if strings.HasPrefix(proxyString, "ssh+") {
+			a.socks5Proxy.StartWithDialer(a.dialer)
+			proxyString, _ = a.socks5Proxy.Addr()
+		}
+
 		proxyOpt := fmt.Sprintf(
 			"ProxyCommand=nc -x %s %%h %%p",
-			strings.TrimPrefix(a.ConnOpts.SOCKS5Proxy, "socks5://"),
+			strings.TrimPrefix(proxyString, "socks5://"),
 		)
 
 		cmdOpts = append(cmdOpts, "-o", proxyOpt)
