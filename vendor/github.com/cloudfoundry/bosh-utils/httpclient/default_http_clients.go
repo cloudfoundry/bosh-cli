@@ -12,6 +12,10 @@ import (
 
 var (
 	DefaultClient = CreateDefaultClientInsecureSkipVerify()
+	defaultDialer = SOCKS5DialFuncFromEnvironment((&net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+	}).Dial, proxy.NewSocks5Proxy(proxy.NewHostKeyGetter()))
 )
 
 type Client interface {
@@ -40,10 +44,7 @@ func (f factory) New(insecureSkipVerify bool, certPool *x509.CertPool) *http.Cli
 			},
 
 			Proxy: http.ProxyFromEnvironment,
-			Dial: SOCKS5DialFuncFromEnvironment((&net.Dialer{
-				Timeout:   30 * time.Second,
-				KeepAlive: 30 * time.Second,
-			}).Dial, proxy.NewSocks5Proxy(proxy.NewHostKeyGetter())),
+			Dial:  defaultDialer,
 
 			TLSHandshakeTimeout: 30 * time.Second,
 			DisableKeepAlives:   true,

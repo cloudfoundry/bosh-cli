@@ -62,7 +62,7 @@
   branch = "master"
   name = "github.com/cloudfoundry/bosh-utils"
   packages = ["blobstore","blobstore/fakes","crypto","crypto/cryptofakes","errors","fileutil","fileutil/fakes","httpclient","logger","logger/file","logger/loggerfakes","property","retrystrategy","system","system/fakes","uuid","uuid/fakes"]
-  revision = "ed82fb0d5fa7fae184cb247d7446b4b69839fa17"
+  revision = "07e3008c701173c247c62ed8901d5e40b80a3f9d"
 
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
@@ -194,7 +194,7 @@
   branch = "master"
   name = "github.com/vito/go-interact"
   packages = ["interact","interact/terminal"]
-  revision = "60caa86f173a89ef7a479fa400cc50faf6a2e369"
+  revision = "fa338ed9e9ecbb0e9c2e6c7a0160d9fc9b0efbd9"
 
 [[projects]]
   branch = "master"
