@@ -62,7 +62,8 @@
 [[projects]]
   name = "github.com/cloudfoundry/bosh-gcscli"
   packages = ["client","config"]
-  revision = "e8cfa90"
+  revision = "20aff213fc28a609c3da1cbdb29bd8906e0e90fa"
+  version = "v0.0.5"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-s3cli"

@@ -27,7 +27,7 @@ type GCSCli struct {
 	// BucketName is the GCS bucket operations will use.
 	BucketName string `json:"bucket_name"`
 	// CredentialsSource is the location of a Service Account File.
-	// If left empty, Application Default Credentials will be used.
+	// If left empty, Application Default Credentials will be used if available.
 	// If equal to 'none', read-only scope will be used.
 	// If equal to 'static', json_key will be used.
 	CredentialsSource string `json:"credentials_source"`
@@ -52,9 +52,10 @@ const (
 	defaultMultiRegionalStorageClass = "MULTI_REGIONAL"
 )
 
-// ApplicationDefaultCredentialsSource specifies that
-// Application Default Credentials should be used for authentication.
-const ApplicationDefaultCredentialsSource = ""
+// DefaultCredentialsSource specifies that credentials should be detected.
+// Application Default Credentials will be used if avaliable.
+// A read-only client will be used otherwise.
+const DefaultCredentialsSource = ""
 
 // NoneCredentialsSource specifies that credentials are explicitly empty
 // and that the client should be restricted to a read-only scope.
@@ -142,9 +143,4 @@ func (c *GCSCli) FitCompatibleLocation(loc string) error {
 	}
 
 	return validLocationStorageClass(loc, c.StorageClass)
-}
-
-// IsReadOnly returns if the configuration is limited to only read operations.
-func (c *GCSCli) IsReadOnly() bool {
-	return c.CredentialsSource == NoneCredentialsSource
 }
