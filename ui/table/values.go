@@ -55,8 +55,9 @@ func (t ValueStrings) Compare(other Value) int {
 
 func NewValueInt(i int) ValueInt { return ValueInt{I: i} }
 
-func (t ValueInt) String() string { return strconv.Itoa(t.I) }
-func (t ValueInt) Value() Value   { return t }
+func (t ValueInt) String() string   { return strconv.Itoa(t.I) }
+func (t ValueInt) Value() Value     { return t }
+func (t ValueInt) Raw() interface{} { return t.I }
 
 func (t ValueInt) Compare(other Value) int {
 	otherI := other.(ValueInt).I
@@ -168,6 +169,7 @@ func (t ValueInterface) String() string {
 	return strings.TrimSpace(string(bytes))
 }
 func (t ValueInterface) Value() Value            { return t }
+func (t ValueInterface) Raw() interface{}        { return t.I }
 func (t ValueInterface) Compare(other Value) int { panic("Never called") }
 
 func (t ValueError) Value() Value            { return t }
