@@ -296,8 +296,8 @@ var _ = Describe("JSONUI", func() {
 				Content: "things",
 				Header:  []Header{NewHeader("Header1")},
 				Rows: [][]Value{
-					{ValueString{"something"}},
-					{ValueString{""}},
+					{ValueString{S: "something"}},
+					{ValueString{S: ""}},
 				},
 				Notes: []string{"note1"},
 			}
@@ -315,7 +315,7 @@ var _ = Describe("JSONUI", func() {
 				Content: "things",
 				Header:  []Header{NewHeader("Header1")},
 				Rows: [][]Value{
-					{ValueInt{99}},
+					{ValueInt{I: 99}},
 				},
 				Notes: []string{"note1"},
 			}
@@ -337,7 +337,7 @@ var _ = Describe("JSONUI", func() {
 				Content: "things",
 				Header:  []Header{NewHeader("Header1")},
 				Rows: [][]Value{
-					{ValueInterface{data}},
+					{ValueInterface{I: data}},
 				},
 				Notes: []string{"note1"},
 			}
