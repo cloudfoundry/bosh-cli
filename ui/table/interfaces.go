@@ -51,10 +51,6 @@ type Value interface {
 	Compare(Value) int
 }
 
-type Raw interface {
-	Raw() interface{}
-}
-
 type ValueString struct {
 	S string
 }

@@ -28,7 +28,7 @@ type uiResp struct {
 type tableResp struct {
 	Content string
 	Header  map[string]string
-	Rows    []map[string]interface{}
+	Rows    []map[string]string
 	Notes   []string
 }
 
@@ -134,22 +134,18 @@ func (ui *jsonUI) Flush() {
 	}
 }
 
-func (ui *jsonUI) stringRows(header []Header, rows [][]Value) []map[string]interface{} {
-	result := []map[string]interface{}{}
+func (ui *jsonUI) stringRows(header []Header, rows [][]Value) []map[string]string {
+	result := []map[string]string{}
 
 	for _, row := range rows {
-		data := map[string]interface{}{}
+		data := map[string]string{}
 
 		for i, col := range row {
-			if header[i].Hidden || col.String() == "" {
+			if header[i].Hidden {
 				continue
 			}
 
-			if v, ok := col.(Raw); ok {
-				data[header[i].Key] = v.Raw()
-			} else {
-				data[header[i].Key] = col.String()
-			}
+			data[header[i].Key] = col.String()
 		}
 
 		result = append(result, data)
