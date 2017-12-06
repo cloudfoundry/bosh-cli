@@ -6,6 +6,10 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
+	"errors"
+	"fmt"
+	"strings"
+
 	boshjobman "github.com/cloudfoundry/bosh-cli/release/job/manifest"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 )
@@ -47,6 +51,14 @@ func (r DirReaderImpl) collectFiles(path string) (boshjobman.Manifest, []File, e
 	manifest, err := boshjobman.NewManifestFromPath(specPath, r.fs)
 	if err != nil {
 		return boshjobman.Manifest{}, nil, err
+	}
+
+	dirPathSegments := strings.Split(filepath.ToSlash(path), "/")
+	jobDirName := dirPathSegments[len(dirPathSegments)-1]
+
+	if jobDirName != manifest.Name {
+		errorMsg := fmt.Sprintf("Job directory '%s' does not match job name '%s' in spec", jobDirName, manifest.Name)
+		return boshjobman.Manifest{}, nil, errors.New(errorMsg)
 	}
 
 	// Note that job's spec file is included (unlike for a package)
