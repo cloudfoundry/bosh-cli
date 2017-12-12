@@ -178,5 +178,41 @@ var _ = Describe("ConfigsCmd", func() {
 				}))
 			})
 		})
+
+		Context("When include-outdated flag is set", func() {
+			BeforeEach(func() {
+				opts = ConfigsOpts{
+					IncludeOutdated: true,
+				}
+				configs = []boshdir.ConfigListItem{boshdir.ConfigListItem{Type: "my-type", Name: "some-name", Id: "123"}}
+			})
+
+			It("lists all outdated configs versioned by ID", func() {
+				director.ListConfigsReturns(configs, nil)
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(director.ListConfigsCallCount()).To(Equal(1))
+				Expect(director.ListConfigsArgsForCall(0)).To(Equal(boshdir.ConfigsFilter{IncludeOutdated: true}))
+
+				Expect(ui.Table).To(Equal(boshtbl.Table{
+					Content: "configs",
+
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("ID"),
+						boshtbl.NewHeader("Type"),
+						boshtbl.NewHeader("Name"),
+					},
+
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.NewValueString("123"),
+							boshtbl.NewValueString("my-type"),
+							boshtbl.NewValueString("some-name"),
+						},
+					},
+				}))
+			})
+		})
 	})
 })

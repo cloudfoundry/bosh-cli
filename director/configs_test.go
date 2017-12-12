@@ -10,7 +10,7 @@ import (
 	"github.com/onsi/gomega/ghttp"
 )
 
-var _ = Describe("Director", func() {
+var _ bool = Describe("Director", func() {
 	var (
 		director Director
 		server   *ghttp.Server
@@ -68,35 +68,52 @@ var _ = Describe("Director", func() {
 	})
 
 	Describe("ListConfigs", func() {
-		Context("when no filters are given", func() {
-			It("uses no query params and returns list of config items", func() {
-				server.AppendHandlers(
-					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/configs", "latest=true"),
-						ghttp.VerifyBasicAuth("username", "password"),
-						ghttp.RespondWith(http.StatusOK, `[{"name": "first", "type": "my-type"}]`),
-					),
-				)
+		Context("when IncludeOutdated is set to false", func() {
+			Context("when no additional filters are given", func() {
+				It("uses no query params and returns list of config items", func() {
+					server.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", "/configs", "latest=true"),
+							ghttp.VerifyBasicAuth("username", "password"),
+							ghttp.RespondWith(http.StatusOK, `[{"name": "first", "type": "my-type"}]`),
+						),
+					)
+					cc, err := director.ListConfigs(ConfigsFilter{IncludeOutdated: false})
+					Expect(err).ToNot(HaveOccurred())
+					Expect(cc).To(Equal([]ConfigListItem{{Type: "my-type", Name: "first"}}))
+				})
+			})
 
-				cc, err := director.ListConfigs(ConfigsFilter{})
-				Expect(err).ToNot(HaveOccurred())
-				Expect(cc).To(Equal([]ConfigListItem{{Type: "my-type", Name: "first"}}))
+			Context("when additional filters are given", func() {
+				It("uses them as query parameters and returns list of config items", func() {
+					server.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", "/configs", "latest=true&name=first&type=my-type"),
+							ghttp.VerifyBasicAuth("username", "password"),
+							ghttp.RespondWith(http.StatusOK, `[{"name": "first", "type": "my-type"}]`),
+						),
+					)
+
+					cc, err := director.ListConfigs(ConfigsFilter{Type: "my-type", Name: "first", IncludeOutdated: false})
+					Expect(err).ToNot(HaveOccurred())
+					Expect(cc).To(Equal([]ConfigListItem{{Type: "my-type", Name: "first"}}))
+				})
 			})
 		})
 
-		Context("when filters are given", func() {
-			It("uses them as query parameters and returns list of config items", func() {
+		Context("when IncludeOutdated is set to true", func() {
+			It("returns a list of config items", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/configs", "latest=true&name=first&type=my-type"),
+						ghttp.VerifyRequest("GET", "/configs", "latest=false"),
 						ghttp.VerifyBasicAuth("username", "password"),
-						ghttp.RespondWith(http.StatusOK, `[{"name": "first", "type": "my-type"}]`),
+						ghttp.RespondWith(http.StatusOK, `[{"id": "some-id", "name": "first", "type": "my-type"}, {"id": "some-other-id", "name": "first", "type": "my-type"}]`),
 					),
 				)
 
-				cc, err := director.ListConfigs(ConfigsFilter{Type: "my-type", Name: "first"})
+				cc, err := director.ListConfigs(ConfigsFilter{IncludeOutdated: true})
 				Expect(err).ToNot(HaveOccurred())
-				Expect(cc).To(Equal([]ConfigListItem{{Type: "my-type", Name: "first"}}))
+				Expect(cc).To(Equal([]ConfigListItem{{Id: "some-id", Type: "my-type", Name: "first"}, {Id: "some-other-id", Type: "my-type", Name: "first"}}))
 			})
 		})
 

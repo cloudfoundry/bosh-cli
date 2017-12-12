@@ -310,8 +310,9 @@ type ConfigArgs struct {
 }
 
 type ConfigsOpts struct {
-	Name string `long:"name" description:"Config name" optional:"true"`
-	Type string `long:"type" description:"Config type" optional:"true"`
+	Name            string `long:"name" description:"Config name" optional:"true"`
+	Type            string `long:"type" description:"Config type" optional:"true"`
+	IncludeOutdated bool   `long:"include-outdated" description:"Include outdated configs"`
 
 	cmd
 }

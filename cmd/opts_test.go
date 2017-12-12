@@ -898,6 +898,12 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("Type", opts)).To(Equal(`long:"type" description:"Config type" optional:"true"`))
 			})
 		})
+
+		Describe("IncludeOutdated", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("IncludeOutdated", opts)).To(Equal(`long:"include-outdated" description:"Include outdated configs"`))
+			})
+		})
 	})
 
 	Describe("ConfigOpts", func() {
