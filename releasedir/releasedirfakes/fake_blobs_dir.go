@@ -49,11 +49,12 @@ type FakeBlobsDir struct {
 	uploadBlobsReturnsOnCall map[int]struct {
 		result1 error
 	}
-	TrackBlobStub        func(string, io.ReadCloser) (releasedir.Blob, error)
+	TrackBlobStub        func(path string, digest string, src io.ReadCloser) (releasedir.Blob, error)
 	trackBlobMutex       sync.RWMutex
 	trackBlobArgsForCall []struct {
-		arg1 string
-		arg2 io.ReadCloser
+		path   string
+		digest string
+		src    io.ReadCloser
 	}
 	trackBlobReturns struct {
 		result1 releasedir.Blob
@@ -249,17 +250,18 @@ func (fake *FakeBlobsDir) UploadBlobsReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeBlobsDir) TrackBlob(arg1 string, arg2 io.ReadCloser) (releasedir.Blob, error) {
+func (fake *FakeBlobsDir) TrackBlob(path string, digest string, src io.ReadCloser) (releasedir.Blob, error) {
 	fake.trackBlobMutex.Lock()
 	ret, specificReturn := fake.trackBlobReturnsOnCall[len(fake.trackBlobArgsForCall)]
 	fake.trackBlobArgsForCall = append(fake.trackBlobArgsForCall, struct {
-		arg1 string
-		arg2 io.ReadCloser
-	}{arg1, arg2})
-	fake.recordInvocation("TrackBlob", []interface{}{arg1, arg2})
+		path   string
+		digest string
+		src    io.ReadCloser
+	}{path, digest, src})
+	fake.recordInvocation("TrackBlob", []interface{}{path, digest, src})
 	fake.trackBlobMutex.Unlock()
 	if fake.TrackBlobStub != nil {
-		return fake.TrackBlobStub(arg1, arg2)
+		return fake.TrackBlobStub(path, digest, src)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -273,10 +275,10 @@ func (fake *FakeBlobsDir) TrackBlobCallCount() int {
 	return len(fake.trackBlobArgsForCall)
 }
 
-func (fake *FakeBlobsDir) TrackBlobArgsForCall(i int) (string, io.ReadCloser) {
+func (fake *FakeBlobsDir) TrackBlobArgsForCall(i int) (string, string, io.ReadCloser) {
 	fake.trackBlobMutex.RLock()
 	defer fake.trackBlobMutex.RUnlock()
-	return fake.trackBlobArgsForCall[i].arg1, fake.trackBlobArgsForCall[i].arg2
+	return fake.trackBlobArgsForCall[i].path, fake.trackBlobArgsForCall[i].digest, fake.trackBlobArgsForCall[i].src
 }
 
 func (fake *FakeBlobsDir) TrackBlobReturns(result1 releasedir.Blob, result2 error) {

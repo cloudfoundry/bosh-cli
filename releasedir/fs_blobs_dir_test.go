@@ -8,7 +8,6 @@ import (
 	"strings"
 	"syscall"
 
-	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakelogger "github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -23,21 +22,19 @@ import (
 
 var _ = Describe("FSBlobsDir", func() {
 	var (
-		fs               *fakesys.FakeFileSystem
-		reporter         *fakereldir.FakeBlobsDirReporter
-		blobstore        *fakereldir.FakeDigestBlobstore
-		digestCalculator *fakecrypto.FakeDigestCalculator
-		blobsDir         FSBlobsDir
-		logger           *fakelogger.FakeLogger
+		fs        *fakesys.FakeFileSystem
+		reporter  *fakereldir.FakeBlobsDirReporter
+		blobstore *fakereldir.FakeDigestBlobstore
+		blobsDir  FSBlobsDir
+		logger    *fakelogger.FakeLogger
 	)
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
 		reporter = &fakereldir.FakeBlobsDirReporter{}
 		blobstore = &fakereldir.FakeDigestBlobstore{}
-		digestCalculator = fakecrypto.NewFakeDigestCalculator()
 		logger = &fakelogger.FakeLogger{}
-		blobsDir = NewFSBlobsDir(filepath.Join("/", "dir"), reporter, blobstore, digestCalculator, fs, logger)
+		blobsDir = NewFSBlobsDir(filepath.Join("/", "dir"), reporter, blobstore, fs, logger)
 	})
 
 	Describe("Blobs", func() {
@@ -152,7 +149,7 @@ already-downloaded.tgz:
 					}
 				}
 
-				blobsDir = NewFSBlobsDir(filepath.Join("/", "dir"), reporter, blobstore, digestCalculator, fs, logger)
+				blobsDir = NewFSBlobsDir(filepath.Join("/", "dir"), reporter, blobstore, fs, logger)
 
 				err := act(4)
 				Expect(err).ToNot(HaveOccurred())
@@ -485,17 +482,13 @@ bad-sha-blob.tgz:
 	Describe("TrackBlob", func() {
 		act := func() (Blob, error) {
 			content := ioutil.NopCloser(strings.NewReader(string("content")))
-			return blobsDir.TrackBlob(filepath.Join("dir", "file.tgz"), content)
+			return blobsDir.TrackBlob(filepath.Join("dir", "file.tgz"), "contentsha1", content)
 		}
 
 		BeforeEach(func() {
 			fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), "")
 
 			fs.ReturnTempFile = fakesys.NewFakeFile(filepath.Join("/", "tmp-file"), fs)
-
-			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-				filepath.Join("/", "tmp-file"): fakecrypto.CalculateInput{DigestStr: "contentsha1"},
-			})
 		})
 
 		It("adds a blob to the list if it's not already tracked", func() {
@@ -573,18 +566,6 @@ file2.tgz:
 			file := fakesys.NewFakeFile(filepath.Join("/", "tmp-file"), fs)
 			file.StatErr = errors.New("fake-err")
 			fs.ReturnTempFile = file
-
-			_, err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
-
-			Expect(blobsDir.Blobs()).To(BeEmpty())
-		})
-
-		It("returns error and does not update blobs.yml if calculating sha1 fails", func() {
-			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-				filepath.Join("/", "tmp-file"): fakecrypto.CalculateInput{Err: errors.New("fake-err")},
-			})
 
 			_, err := act()
 			Expect(err).To(HaveOccurred())

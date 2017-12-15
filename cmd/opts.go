@@ -939,9 +939,9 @@ type BlobsOpts struct {
 }
 
 type AddBlobOpts struct {
-	Args AddBlobArgs `positional-args:"true" required:"true"`
-
+	Args      AddBlobArgs `positional-args:"true" required:"true"`
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
+	SHA1      string      `long:"sha1" description:"SHA1 of the remote blob"`
 
 	cmd
 }

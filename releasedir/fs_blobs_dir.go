@@ -16,7 +16,6 @@ import (
 
 	"fmt"
 
-	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
 	"github.com/cloudfoundry/bosh-cli/work"
 )
 
@@ -24,10 +23,9 @@ type FSBlobsDir struct {
 	indexPath string
 	dirPath   string
 
-	reporter         BlobsDirReporter
-	blobstore        boshblob.DigestBlobstore
-	digestCalculator bicrypto.DigestCalculator
-	fs               boshsys.FileSystem
+	reporter  BlobsDirReporter
+	blobstore boshblob.DigestBlobstore
+	fs        boshsys.FileSystem
 
 	logTag string
 	logger boshlog.Logger
@@ -54,7 +52,6 @@ func NewFSBlobsDir(
 	dirPath string,
 	reporter BlobsDirReporter,
 	blobstore boshblob.DigestBlobstore,
-	digestCalculator bicrypto.DigestCalculator,
 	fs boshsys.FileSystem,
 	logger boshlog.Logger,
 ) FSBlobsDir {
@@ -62,10 +59,9 @@ func NewFSBlobsDir(
 		indexPath: filepath.Join(dirPath, "config", "blobs.yml"),
 		dirPath:   filepath.Join(dirPath, "blobs"),
 
-		reporter:         reporter,
-		blobstore:        blobstore,
-		digestCalculator: digestCalculator,
-		fs:               fs,
+		reporter:  reporter,
+		blobstore: blobstore,
+		fs:        fs,
 
 		logTag: "releasedir.FSBlobsDir",
 		logger: logger,
@@ -193,7 +189,7 @@ func (d FSBlobsDir) removeUnknownBlobs(blobs []Blob) error {
 	return nil
 }
 
-func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser) (Blob, error) {
+func (d FSBlobsDir) TrackBlob(path, digest string, src io.ReadCloser) (Blob, error) {
 	tempFile, err := d.fs.TempFile("track-blob")
 	if err != nil {
 		return Blob{}, bosherr.WrapErrorf(err, "Creating temp blob")
@@ -204,12 +200,6 @@ func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser) (Blob, error) {
 	_, err = io.Copy(tempFile, src)
 	if err != nil {
 		return Blob{}, bosherr.WrapErrorf(err, "Populating temp blob")
-	}
-
-	//generation of digest string
-	sha1, err := d.digestCalculator.Calculate(tempFile.Name())
-	if err != nil {
-		return Blob{}, bosherr.WrapErrorf(err, "Calculating temp blob sha1")
 	}
 
 	fileInfo, err := tempFile.Stat()
@@ -236,7 +226,7 @@ func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser) (Blob, error) {
 		idx = len(blobs) - 1
 	}
 
-	blobs[idx] = Blob{Path: path, Size: fileInfo.Size(), SHA1: sha1}
+	blobs[idx] = Blob{Path: path, Size: fileInfo.Size(), SHA1: digest}
 
 	tempFile.Close()
 

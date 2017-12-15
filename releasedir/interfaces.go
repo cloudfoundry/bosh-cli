@@ -74,7 +74,7 @@ type BlobsDir interface {
 	SyncBlobs(numOfParallelWorkers int) error
 	UploadBlobs() error
 
-	TrackBlob(string, io.ReadCloser) (Blob, error)
+	TrackBlob(path string, digest string, src io.ReadCloser) (Blob, error)
 	UntrackBlob(string) error
 }
 

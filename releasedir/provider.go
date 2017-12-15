@@ -92,7 +92,7 @@ func (p Provider) NewFSReleaseDir(dirPath string, parallel int) FSReleaseDir {
 }
 
 func (p Provider) NewFSBlobsDir(dirPath string) FSBlobsDir {
-	return NewFSBlobsDir(dirPath, p.blobsReporter, p.newBlobstore(dirPath), p.digestCalculator, p.fs, p.logger)
+	return NewFSBlobsDir(dirPath, p.blobsReporter, p.newBlobstore(dirPath), p.fs, p.logger)
 }
 
 func (p Provider) NewReleaseReader(dirPath string, parallel int) boshrel.BuiltReader {

@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/cppforlife/go-patch/patch"
 
@@ -10,6 +12,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/crypto"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	bitarball "github.com/cloudfoundry/bosh-cli/installation/tarball"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
 	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
@@ -20,6 +23,7 @@ import (
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
+	"github.com/cloudfoundry/bosh-utils/httpclient"
 )
 
 type Cmd struct {
@@ -367,8 +371,8 @@ func (c Cmd) Execute() (cmdErr error) {
 		_, err := NewCreateReleaseCmd(
 			releaseDirFactory,
 			relProv.NewArchiveWriter(),
-			c.deps.FS,
-			c.deps.UI,
+			deps.FS,
+			deps.UI,
 		).Run(*opts)
 		return err
 
@@ -378,10 +382,10 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewRedigestReleaseCmd(
 			relProv.NewArchiveReader(),
 			relProv.NewArchiveWriter(),
-			crypto.NewDigestCalculator(c.deps.FS, []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1}),
-			boshfu.NewFileMover(c.deps.FS),
-			c.deps.FS,
-			c.deps.UI,
+			crypto.NewDigestCalculator(deps.FS, []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1}),
+			boshfu.NewFileMover(deps.FS),
+			deps.FS,
+			deps.UI,
 		).Run(opts.Args)
 
 	case *Sha2ifyReleaseOpts:
@@ -390,17 +394,19 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewRedigestReleaseCmd(
 			relProv.NewArchiveReader(),
 			relProv.NewArchiveWriter(),
-			crypto.NewDigestCalculator(c.deps.FS, []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA256}),
-			boshfu.NewFileMover(c.deps.FS),
-			c.deps.FS,
-			c.deps.UI,
+			crypto.NewDigestCalculator(deps.FS, []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA256}),
+			boshfu.NewFileMover(deps.FS),
+			deps.FS,
+			deps.UI,
 		).Run(opts.Args)
 
 	case *BlobsOpts:
 		return NewBlobsCmd(c.blobsDir(opts.Directory), deps.UI).Run()
 
 	case *AddBlobOpts:
-		return NewAddBlobCmd(c.blobsDir(opts.Directory), deps.FS, deps.UI).Run(*opts)
+		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
+		digestCalculator := crypto.NewDigestCalculator(deps.FS, []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA256})
+		return NewAddBlobCmd(c.blobsDir(opts.Directory), c.tarballProvider(), digestCalculator, deps.FS, deps.UI).Run(stage, *opts)
 
 	case *RemoveBlobOpts:
 		return NewRemoveBlobCmd(c.blobsDir(opts.Directory), deps.UI).Run(*opts)
@@ -422,6 +428,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		return fmt.Errorf("Unhandled command: %#v", c.Opts)
 	}
 }
+
 func (c Cmd) configureUI() {
 	c.deps.UI.EnableTTY(c.BoshOpts.TTYOpt)
 
@@ -505,6 +512,16 @@ func (c Cmd) releaseProviders() (boshrel.Provider, boshreldir.Provider) {
 		c.deps.DigestCalculator, c.deps.CmdRunner, c.deps.UUIDGen, c.deps.Time, c.deps.FS, c.deps.DigestCreationAlgorithms, c.deps.Logger)
 
 	return releaseProvider, releaseDirProvider
+}
+
+func (c Cmd) tarballProvider() bitarball.Provider {
+	workspaceRootPath := filepath.Join(os.Getenv("HOME"), ".bosh")
+	tarballCacheBasePath := filepath.Join(workspaceRootPath, "downloads")
+
+	tarballCache := bitarball.NewCache(tarballCacheBasePath, c.deps.FS, c.deps.Logger)
+	httpClient := httpclient.NewHTTPClient(httpclient.CreateDefaultClient(nil), c.deps.Logger)
+	return bitarball.NewProvider(
+		tarballCache, c.deps.FS, httpClient, 3, 500*time.Millisecond, c.deps.Logger)
 }
 
 func (c Cmd) releaseManager(director boshdir.Director) ReleaseManager {

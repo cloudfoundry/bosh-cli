@@ -1,10 +1,11 @@
 package crypto
 
 import (
+	"strings"
+
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"strings"
 )
 
 type DigestCalculator interface {
