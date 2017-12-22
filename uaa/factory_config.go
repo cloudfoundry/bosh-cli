@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
@@ -85,9 +84,16 @@ func (c Config) Validate() error {
 }
 
 func (c Config) CACertPool() (*x509.CertPool, error) {
-	if len(c.CACert) == 0 {
-		return nil, nil
+	pool, err := x509.SystemCertPool()
+	if err != nil {
+		return nil, err
 	}
 
-	return crypto.CertPoolFromPEM([]byte(c.CACert))
+	if len(c.CACert) != 0 {
+		if ok := pool.AppendCertsFromPEM([]byte(c.CACert)); !ok {
+			return nil, bosherr.Error("No certs found")
+		}
+	}
+
+	return pool, err
 }

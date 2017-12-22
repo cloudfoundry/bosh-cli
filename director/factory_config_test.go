@@ -1,6 +1,8 @@
 package director_test
 
 import (
+	"crypto/x509"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -102,7 +104,7 @@ var _ = Describe("FactoryConfig", func() {
 			}.Validate()
 
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Parsing certificate 1: Missing PEM block"))
+			Expect(err.Error()).To(ContainSubstring("No certs found"))
 		})
 	})
 
@@ -115,15 +117,19 @@ var _ = Describe("FactoryConfig", func() {
 			}.CACertPool()
 
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Parsing certificate 1: Missing PEM block"))
+			Expect(err.Error()).To(ContainSubstring("No certs found"))
 		})
 
-		It("does not create a cert pool from an empty string", func() {
+		It("uses the system certificates an empty string", func() {
 			caCert := ``
 
 			certPool, err := FactoryConfig{CACert: caCert}.CACertPool()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(certPool).To(BeNil())
+
+			systemPool, err := x509.SystemCertPool()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(certPool.Subjects()).To(Equal(systemPool.Subjects()))
 		})
 
 		It("returns without error for basic config", func() {
@@ -151,7 +157,7 @@ QAOSxgrLBblGLWcDF9fjMeYaUnI34pHviCKeVxfgsxDR+Jg11F78sPdYLOF6ipBe
 
 			certPool, err := FactoryConfig{CACert: caCert}.CACertPool()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(certPool.Subjects()[0]).To(ContainSubstring("Internet Widgits Pty Ltd"))
+			Expect(certPool.Subjects()[len(certPool.Subjects())-1]).To(ContainSubstring("Internet Widgits Pty Ltd"))
 		})
 	})
 })
