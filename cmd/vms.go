@@ -3,18 +3,27 @@ package cmd
 import (
 	"fmt"
 
+	"code.cloudfoundry.org/workpool"
+
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type VMsCmd struct {
 	ui       boshui.UI
 	director boshdir.Director
+	parallel int
 }
 
-func NewVMsCmd(ui boshui.UI, director boshdir.Director) VMsCmd {
-	return VMsCmd{ui: ui, director: director}
+type deploymentInfo struct {
+	depName string
+	vmInfos []boshdir.VMInfo
+}
+
+func NewVMsCmd(ui boshui.UI, director boshdir.Director, parallel int) VMsCmd {
+	return VMsCmd{ui: ui, director: director, parallel: parallel}
 }
 
 func (c VMsCmd) Run(opts VMsOpts) error {
@@ -22,9 +31,10 @@ func (c VMsCmd) Run(opts VMsOpts) error {
 		// VMs command should always show VM specifics
 		VMDetails: true,
 
-		Details: false,
-		DNS:     opts.DNS,
-		Vitals:  opts.Vitals,
+		Details:         false,
+		DNS:             opts.DNS,
+		Vitals:          opts.Vitals,
+		CloudProperties: opts.CloudProperties,
 	}
 
 	if len(opts.Deployment) > 0 {
@@ -33,34 +43,82 @@ func (c VMsCmd) Run(opts VMsOpts) error {
 			return err
 		}
 
-		return c.printDeployment(dep, instTable)
+		vmInfos, err := dep.VMInfos()
+		if err != nil {
+			return err
+		}
+
+		c.printDeployment(dep, instTable, vmInfos)
+		return nil
 	}
 
-	return c.printDeployments(instTable)
+	return c.printDeployments(instTable, c.parallel)
 }
 
-func (c VMsCmd) printDeployments(instTable InstanceTable) error {
+func (c VMsCmd) printDeployments(instTable InstanceTable, parallel int) error {
 	deployments, err := c.director.Deployments()
 	if err != nil {
 		return err
 	}
 
+	vmInfos, err := parallelVMInfos(deployments, parallel)
+
 	for _, dep := range deployments {
-		err := c.printDeployment(dep, instTable)
-		if err != nil {
-			return err
+		if vmInfo, ok := vmInfos[dep.Name()]; ok {
+			c.printDeployment(dep, instTable, vmInfo)
 		}
 	}
 
-	return nil
+	return err
 }
 
-func (c VMsCmd) printDeployment(dep boshdir.Deployment, instTable InstanceTable) error {
-	vmInfos, err := dep.VMInfos()
-	if err != nil {
-		return err
+func parallelVMInfos(deployments []boshdir.Deployment, parallel int) (map[string][]boshdir.VMInfo, error) {
+	if parallel == 0 {
+		parallel = 1
+	}
+	workSize := len(deployments)
+	resultc := make(chan deploymentInfo, workSize)
+	errorc := make(chan error, workSize)
+	defer close(resultc)
+	defer close(errorc)
+	works := make([]func(), workSize)
+
+	for i, dep := range deployments {
+		dep := dep
+		works[i] = func() {
+			vmInfos, err := dep.VMInfos()
+			errorc <- err
+			resultc <- deploymentInfo{dep.Name(), vmInfos}
+		}
 	}
 
+	throttler, err := workpool.NewThrottler(parallel, works)
+	if err != nil {
+		return nil, err
+	}
+
+	throttler.Work()
+	vms := make(map[string][]boshdir.VMInfo, workSize)
+	var vmInfoErrors []error
+
+	for i := 0; i < workSize; i++ {
+		errc := <-errorc
+		result := <-resultc
+		if errc != nil {
+			vmInfoErrors = append(vmInfoErrors, errc)
+		} else {
+			vms[result.depName] = result.vmInfos
+		}
+	}
+
+	if len(vmInfoErrors) > 0 {
+		err = bosherr.NewMultiError(vmInfoErrors...)
+	}
+
+	return vms, err
+}
+
+func (c VMsCmd) printDeployment(dep boshdir.Deployment, instTable InstanceTable, vmInfos []boshdir.VMInfo) {
 	table := boshtbl.Table{
 		Title: fmt.Sprintf("Deployment '%s'", dep.Name()),
 
@@ -78,6 +136,4 @@ func (c VMsCmd) printDeployment(dep boshdir.Deployment, instTable InstanceTable)
 	}
 
 	c.ui.PrintTable(table)
-
-	return nil
 }

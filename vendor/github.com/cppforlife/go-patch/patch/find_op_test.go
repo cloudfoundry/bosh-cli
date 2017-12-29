@@ -27,12 +27,30 @@ var _ = Describe("FindOp.Apply", func() {
 			res, err = FindOp{Path: MustNewPointerFromString("/2")}.Apply([]interface{}{1, 2, 3})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal(3))
+
+			res, err = FindOp{Path: MustNewPointerFromString("/-1")}.Apply([]interface{}{1, 2, 3})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal(3))
+		})
+
+		It("finds relative array item", func() {
+			res, err := FindOp{Path: MustNewPointerFromString("/3:prev")}.Apply([]interface{}{1, 2, 3})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal(3))
 		})
 
 		It("finds nested array item", func() {
 			doc := []interface{}{[]interface{}{10, 11, 12}, 2, 3}
 
 			res, err := FindOp{Path: MustNewPointerFromString("/0/1")}.Apply(doc)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal(11))
+		})
+
+		It("finds relative nested array item", func() {
+			doc := []interface{}{1, []interface{}{10, 11, 12}, 3}
+
+			res, err := FindOp{Path: MustNewPointerFromString("/0:next/1")}.Apply(doc)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal(11))
 		})
@@ -136,6 +154,17 @@ var _ = Describe("FindOp.Apply", func() {
 			Expect(res).To(Equal(map[interface{}]interface{}{"key": "val"}))
 		})
 
+		It("finds relative array item", func() {
+			doc := []interface{}{
+				map[interface{}]interface{}{"key": "val"},
+				map[interface{}]interface{}{"key": "val2"},
+			}
+
+			res, err := FindOp{Path: MustNewPointerFromString("/key=val2:prev")}.Apply(doc)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal(map[interface{}]interface{}{"key": "val"}))
+		})
+
 		It("returns an error if no items found and matching is not optional", func() {
 			doc := []interface{}{
 				map[interface{}]interface{}{"key": "val2"},
@@ -184,6 +213,23 @@ var _ = Describe("FindOp.Apply", func() {
 			}
 
 			res, err := FindOp{Path: MustNewPointerFromString("/key=val/items/nested-key=val")}.Apply(doc)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal(map[interface{}]interface{}{"nested-key": "val"}))
+		})
+
+		It("finds relative nested matching item", func() {
+			doc := []interface{}{
+				map[interface{}]interface{}{
+					"key": "val",
+					"items": []interface{}{
+						map[interface{}]interface{}{"nested-key": "val"},
+						map[interface{}]interface{}{"nested-key": "val2"},
+					},
+				},
+				map[interface{}]interface{}{"key": "val2"},
+			}
+
+			res, err := FindOp{Path: MustNewPointerFromString("/key=val2:prev/items/nested-key=val")}.Apply(doc)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal(map[interface{}]interface{}{"nested-key": "val"}))
 		})

@@ -22,15 +22,14 @@ func (op FindOp) Apply(doc interface{}) (interface{}, error) {
 
 		switch typedToken := token.(type) {
 		case IndexToken:
-			idx := typedToken.Index
-
 			typedObj, ok := obj.([]interface{})
 			if !ok {
 				return nil, newOpArrayMismatchTypeErr(tokens[:i+2], obj)
 			}
 
-			if idx >= len(typedObj) {
-				return nil, opMissingIndexErr{idx, typedObj}
+			idx, err := ArrayIndex{Index: typedToken.Index, Modifiers: typedToken.Modifiers, Array: typedObj}.Concrete()
+			if err != nil {
+				return nil, err
 			}
 
 			if isLast {
@@ -61,6 +60,7 @@ func (op FindOp) Apply(doc interface{}) (interface{}, error) {
 			}
 
 			if typedToken.Optional && len(idxs) == 0 {
+				// todo /blah=foo?:after, modifiers
 				obj = map[interface{}]interface{}{typedToken.Key: typedToken.Value}
 
 				if isLast {
@@ -71,7 +71,10 @@ func (op FindOp) Apply(doc interface{}) (interface{}, error) {
 					return nil, opMultipleMatchingIndexErr{NewPointer(tokens[:i+2]), idxs}
 				}
 
-				idx := idxs[0]
+				idx, err := ArrayIndex{Index: idxs[0], Modifiers: typedToken.Modifiers, Array: typedObj}.Concrete()
+				if err != nil {
+					return nil, err
+				}
 
 				if isLast {
 					return typedObj[idx], nil

@@ -1,0 +1,41 @@
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+# Folders
+_obj
+_test
+
+# Architecture specific extensions/prefixes
+*.[568vq]
+[568vq].out
+
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+
+_testmain.go
+
+*.exe
+*.test
+*.iml
+
+arguments/argumentsfakes/
+fixtures/aliased_package/aliased_packagefakes/
+fixtures/another_package/another_packagefakes/
+fixtures/fixturesfakes/
+fixtures/symlinked_fixturesfakes/
+locator/locatorfakes/
+terminal/terminalfakes/
+fixtures/dup_packages/a/afakes/
+fixtures/dup_packages/a/v1/v1fakes/
+fixtures/dup_packages/b/v1/v1fakes/
+fixtures/dup_packages/dup_packagesfakes/
+fixtures/dup_packages/v1/v1fakes/
+fixtures/dup_packages/v1/v1fakes/
+fixtures/hyphenated_package_same_name/some_package/some_packagefakes/
+fixtures/alias_import_name/test/testfakes/
+

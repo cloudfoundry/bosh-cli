@@ -160,17 +160,6 @@ var _ = Describe("BlobstoreClient configuration", func() {
 		})
 	})
 
-	Describe("when credentials_source is 'none'", func() {
-		dummyJSONBytes := []byte(`{"credentials_source": "none", "bucket_name": "some-bucket"}`)
-		dummyJSONReader := bytes.NewReader(dummyJSONBytes)
-
-		It("is ReadOnly", func() {
-			c, err := NewFromReader(dummyJSONReader)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(c.IsReadOnly()).To(BeTrue())
-		})
-	})
-
 	Describe("when credentials_source is not specified", func() {
 		dummyJSONBytes := []byte(`{"credentials_source": "", "bucket_name": "some-bucket"}`)
 		dummyJSONReader := bytes.NewReader(dummyJSONBytes)

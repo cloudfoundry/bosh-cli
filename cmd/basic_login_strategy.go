@@ -31,6 +31,8 @@ func (s BasicLoginStrategy) Try() error {
 
 	initialCreds := sess.Credentials()
 
+	s.ui.PrintLinef("Using environment '%s'", sess.Environment())
+
 	for {
 		authed, err := s.tryOnce(sess.Environment(), initialCreds)
 		if err != nil {

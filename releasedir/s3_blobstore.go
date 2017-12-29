@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"os"
 
+	s3client "github.com/cloudfoundry/bosh-s3cli/client"
+	s3config "github.com/cloudfoundry/bosh-s3cli/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	s3client "github.com/pivotal-golang/s3cli/client"
-	s3config "github.com/pivotal-golang/s3cli/config"
 )
 
 type S3Blobstore struct {

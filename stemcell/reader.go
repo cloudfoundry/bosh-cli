@@ -1,8 +1,9 @@
 package stemcell
 
 import (
-	"github.com/pivotal-golang/yaml"
 	"path/filepath"
+
+	"gopkg.in/yaml.v2"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"

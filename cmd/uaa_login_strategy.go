@@ -74,6 +74,8 @@ func (c UAALoginStrategy) tryUser(sess Session, uaa boshuaa.UAA) error {
 		return err
 	}
 
+	c.ui.PrintLinef("Using environment '%s'", sess.Environment())
+
 	for {
 		authed, err := c.tryUserOnce(sess.Environment(), prompts, uaa)
 		if err != nil {

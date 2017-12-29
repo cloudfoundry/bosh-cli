@@ -17,7 +17,7 @@ type BoshOpts struct {
 
 	EnvironmentOpt string    `long:"environment" short:"e" description:"Director environment name or URL" env:"BOSH_ENVIRONMENT"`
 	CACertOpt      CACertArg `long:"ca-cert"               description:"Director CA certificate path or value" env:"BOSH_CA_CERT"`
-	Sha2           bool      `long:"sha2"                  description:"Use SHA256 checksums"`
+	Sha2           bool      `long:"sha2"                  description:"Use SHA256 checksums" env:"BOSH_SHA2"`
 	Parallel       int       `long:"parallel" description:"The max number of parallel operations" default:"5"`
 
 	// Hidden
@@ -59,6 +59,12 @@ type BoshOpts struct {
 	// Misc
 	Locks   LocksOpts   `command:"locks"    description:"List current locks"`
 	CleanUp CleanUpOpts `command:"clean-up" description:"Clean up releases, stemcells, disks, etc."`
+
+	// Config
+	Config       ConfigOpts       `command:"config" alias:"c" description:"Show current config"`
+	Configs      ConfigsOpts      `command:"configs" alias:"cs" description:"List configs"`
+	UpdateConfig UpdateConfigOpts `command:"update-config" alias:"uc" description:"Update config"`
+	DeleteConfig DeleteConfigOpts `command:"delete-config" alias:"dc" description:"Delete config"`
 
 	// Cloud config
 	CloudConfig       CloudConfigOpts       `command:"cloud-config"        alias:"cc"  description:"Show current cloud config"`
@@ -289,6 +295,50 @@ type InterpolateOpts struct {
 
 type InterpolateArgs struct {
 	Manifest FileBytesArg `positional-arg-name:"PATH" description:"Path to a template that will be interpolated"`
+}
+
+// Config
+type ConfigOpts struct {
+	Args ConfigArgs `positional-args:"true" required:"true"`
+	Name string     `long:"name" description:"Config name" default:"default"`
+
+	cmd
+}
+
+type ConfigArgs struct {
+	Type string `positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud', 'runtime', or 'cpi'"`
+}
+
+type ConfigsOpts struct {
+	Name            string `long:"name" description:"Config name" optional:"true"`
+	Type            string `long:"type" description:"Config type" optional:"true"`
+	IncludeOutdated bool   `long:"include-outdated" description:"Include outdated configs"`
+
+	cmd
+}
+
+type UpdateConfigOpts struct {
+	Args UpdateConfigArgs `positional-args:"true" required:"true"`
+	Name string           `long:"name" description:"Config name" default:"default"`
+	VarFlags
+	OpsFlags
+	cmd
+}
+
+type UpdateConfigArgs struct {
+	Type   string       `positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud', 'runtime', or 'cpi'"`
+	Config FileBytesArg `positional-arg-name:"PATH" description:"Path to a YAML config file"`
+}
+
+type DeleteConfigOpts struct {
+	Args DeleteConfigArgs `positional-args:"true" required:"true"`
+	Name string           `long:"name" description:"Config name" default:"default"`
+
+	cmd
+}
+
+type DeleteConfigArgs struct {
+	Type string `positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud', 'runtime', or 'cpi'"`
 }
 
 // Cloud config
@@ -628,9 +678,10 @@ type InstancesOpts struct {
 }
 
 type VMsOpts struct {
-	DNS        bool `long:"dns"               description:"Show DNS A records"`
-	Vitals     bool `long:"vitals"            description:"Show vitals"`
-	Deployment string
+	DNS             bool `long:"dns"               description:"Show DNS A records"`
+	Vitals          bool `long:"vitals"            description:"Show vitals"`
+	CloudProperties bool `long:"cloud-properties"  description:"Show cloud properties"`
+	Deployment      string
 	cmd
 }
 

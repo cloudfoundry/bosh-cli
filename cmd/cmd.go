@@ -228,6 +228,18 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *InterpolateOpts:
 		return NewInterpolateCmd(deps.UI).Run(*opts)
 
+	case *ConfigOpts:
+		return NewConfigCmd(deps.UI, c.director()).Run(*opts)
+
+	case *ConfigsOpts:
+		return NewConfigsCmd(deps.UI, c.director()).Run(*opts)
+
+	case *UpdateConfigOpts:
+		return NewUpdateConfigCmd(deps.UI, c.director()).Run(*opts)
+
+	case *DeleteConfigOpts:
+		return NewDeleteConfigCmd(deps.UI, c.director()).Run(*opts)
+
 	case *CloudConfigOpts:
 		return NewCloudConfigCmd(deps.UI, c.director()).Run()
 
@@ -261,10 +273,10 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewInspectReleaseCmd(deps.UI, c.director()).Run(*opts)
 
 	case *VMsOpts:
-		return NewVMsCmd(deps.UI, c.director()).Run(*opts)
+		return NewVMsCmd(deps.UI, c.director(), c.BoshOpts.Parallel).Run(*opts)
 
 	case *InstancesOpts:
-		return NewInstancesCmd(deps.UI, c.director()).Run(*opts)
+		return NewInstancesCmd(deps.UI, c.director(), c.BoshOpts.Parallel).Run(*opts)
 
 	case *UpdateResurrectionOpts:
 		return NewUpdateResurrectionCmd(c.director()).Run(*opts)

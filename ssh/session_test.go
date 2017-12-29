@@ -76,7 +76,7 @@ var _ = Describe("SessionImpl", func() {
 			_, err := act().Start()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fs.ReadFileString("/tmp/known-hosts")).To(Equal(
-				"127.0.0.1 pub-key1\n127.0.0.2 pub-key2\n[::1] pub-key3\n"))
+				"127.0.0.1 pub-key1\n127.0.0.2 pub-key2\n::1 pub-key3\n"))
 		})
 
 		It("returns error if cannot create known hosts temp file and deletes private key", func() {
@@ -104,155 +104,27 @@ var _ = Describe("SessionImpl", func() {
 			Expect(fs.FileExists("/tmp/priv-key")).To(BeFalse())
 		})
 
-		It("returns ssh options with correct paths to private key and known hosts", func() {
-			cmdOpts, err := session.Start()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(cmdOpts).To(Equal([]string{
-				"-o", "ServerAliveInterval=30",
-				"-o", "ForwardAgent=no",
-				"-o", "PasswordAuthentication=no",
-				"-o", "IdentitiesOnly=yes",
-				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
-				"-o", "UserKnownHostsFile=/tmp/known-hosts",
-			}))
-		})
+		It("returns ssh arguments with appropriate configuration", func() {
+			result.Hosts = []boshdir.Host{{Host: "127.0.0.1"}} // populate results
+			connOpts.PrivateKey = "priv-key"                   // populate connOpts
 
-		It("returns ssh options with forced tty option if requested", func() {
+			args, err := act().Start()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(args.ConnOpts).To(Equal(connOpts))
+			Expect(args.Result).To(Equal(result))
+			Expect(args.ForceTTY).To(BeFalse())
+			Expect(args.PrivKeyFile).To(Equal(privKeyFile))
+			Expect(args.KnownHostsFile).To(Equal(knownHostsFile))
+
 			sessOpts.ForceTTY = true
 
-			cmdOpts, err := act().Start()
+			args, err = act().Start()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(cmdOpts).To(Equal([]string{
-				"-tt",
-				"-o", "ServerAliveInterval=30",
-				"-o", "ForwardAgent=no",
-				"-o", "PasswordAuthentication=no",
-				"-o", "IdentitiesOnly=yes",
-				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
-				"-o", "UserKnownHostsFile=/tmp/known-hosts",
-			}))
-		})
-
-		It("returns ssh options with custom raw options specified", func() {
-			connOpts.RawOpts = []string{"raw1", "raw2"}
-
-			cmdOpts, err := act().Start()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(cmdOpts).To(Equal([]string{
-				"-o", "ServerAliveInterval=30",
-				"-o", "ForwardAgent=no",
-				"-o", "PasswordAuthentication=no",
-				"-o", "IdentitiesOnly=yes",
-				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
-				"-o", "UserKnownHostsFile=/tmp/known-hosts",
-				"raw1", "raw2",
-			}))
-		})
-
-		It("returns ssh options with gateway settings returned from the Director", func() {
-			result.GatewayUsername = "gw-user"
-			result.GatewayHost = "gw-host"
-
-			cmdOpts, err := act().Start()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(cmdOpts).To(Equal([]string{
-				"-o", "ServerAliveInterval=30",
-				"-o", "ForwardAgent=no",
-				"-o", "PasswordAuthentication=no",
-				"-o", "IdentitiesOnly=yes",
-				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
-				"-o", "UserKnownHostsFile=/tmp/known-hosts",
-				"-o", "ProxyCommand=ssh -tt -W %h:%p -l gw-user gw-host -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
-			}))
-		})
-
-		It("returns ssh options with gateway settings returned from the Director and private key set by user", func() {
-			connOpts.GatewayPrivateKeyPath = "/tmp/gw-priv-key"
-
-			result.GatewayUsername = "gw-user"
-			result.GatewayHost = "gw-host"
-
-			cmdOpts, err := act().Start()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(cmdOpts).To(Equal([]string{
-				"-o", "ServerAliveInterval=30",
-				"-o", "ForwardAgent=no",
-				"-o", "PasswordAuthentication=no",
-				"-o", "IdentitiesOnly=yes",
-				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
-				"-o", "UserKnownHostsFile=/tmp/known-hosts",
-				"-o", "ProxyCommand=ssh -tt -W %h:%p -l gw-user gw-host -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PasswordAuthentication=no -o IdentitiesOnly=yes -o IdentityFile=/tmp/gw-priv-key",
-			}))
-		})
-
-		It("returns ssh options with gateway settings overridden by user even if the Director specifies some", func() {
-			connOpts.GatewayUsername = "user-gw-user"
-			connOpts.GatewayHost = "user-gw-host"
-
-			result.GatewayUsername = "gw-user"
-			result.GatewayHost = "gw-host"
-
-			cmdOpts, err := act().Start()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(cmdOpts).To(Equal([]string{
-				"-o", "ServerAliveInterval=30",
-				"-o", "ForwardAgent=no",
-				"-o", "PasswordAuthentication=no",
-				"-o", "IdentitiesOnly=yes",
-				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
-				"-o", "UserKnownHostsFile=/tmp/known-hosts",
-				"-o", "ProxyCommand=ssh -tt -W %h:%p -l user-gw-user user-gw-host -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
-			}))
-		})
-
-		It("returns ssh options without gateway settings if disabled even if user or the Director specifies some", func() {
-			connOpts.GatewayDisable = true
-			connOpts.GatewayUsername = "user-gw-user"
-			connOpts.GatewayHost = "user-gw-host"
-
-			result.GatewayUsername = "gw-user"
-			result.GatewayHost = "gw-host"
-
-			cmdOpts, err := act().Start()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(cmdOpts).To(Equal([]string{
-				"-o", "ServerAliveInterval=30",
-				"-o", "ForwardAgent=no",
-				"-o", "PasswordAuthentication=no",
-				"-o", "IdentitiesOnly=yes",
-				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
-				"-o", "UserKnownHostsFile=/tmp/known-hosts",
-			}))
-		})
-
-		It("returns ssh options without socks5 settings if SOCKS5Proxy is set", func() {
-			connOpts.GatewayDisable = true
-			connOpts.GatewayUsername = "user-gw-user"
-			connOpts.GatewayHost = "user-gw-host"
-			connOpts.SOCKS5Proxy = "socks5://some-proxy"
-
-			result.GatewayUsername = "gw-user"
-			result.GatewayHost = "gw-host"
-
-			cmdOpts, err := act().Start()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(cmdOpts).To(Equal([]string{
-				"-o", "ServerAliveInterval=30",
-				"-o", "ForwardAgent=no",
-				"-o", "PasswordAuthentication=no",
-				"-o", "IdentitiesOnly=yes",
-				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
-				"-o", "UserKnownHostsFile=/tmp/known-hosts",
-				"-o", "ProxyCommand=nc -X 5 -x some-proxy %h %p",
-			}))
+			Expect(args.ConnOpts).To(Equal(connOpts))
+			Expect(args.Result).To(Equal(result))
+			Expect(args.ForceTTY).To(BeTrue())
+			Expect(args.PrivKeyFile).To(Equal(privKeyFile))
+			Expect(args.KnownHostsFile).To(Equal(knownHostsFile))
 		})
 	})
 

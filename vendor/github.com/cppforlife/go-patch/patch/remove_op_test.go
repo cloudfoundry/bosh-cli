@@ -27,10 +27,26 @@ var _ = Describe("RemoveOp.Apply", func() {
 			res, err = RemoveOp{Path: MustNewPointerFromString("/2")}.Apply([]interface{}{1, 2, 3})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal([]interface{}{1, 2}))
+
+			res, err = RemoveOp{Path: MustNewPointerFromString("/-1")}.Apply([]interface{}{1, 2, 3})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal([]interface{}{1, 2}))
+		})
+
+		It("removes relative array item", func() {
+			res, err := RemoveOp{Path: MustNewPointerFromString("/3:prev")}.Apply([]interface{}{1, 2, 3})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal([]interface{}{1, 2}))
 		})
 
 		It("removes nested array item", func() {
 			res, err := RemoveOp{Path: MustNewPointerFromString("/0/1")}.Apply([]interface{}{[]interface{}{10, 11, 12}, 2, 3})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal([]interface{}{[]interface{}{10, 12}, 2, 3}))
+		})
+
+		It("removes relative nested array item", func() {
+			res, err := RemoveOp{Path: MustNewPointerFromString("/1:prev/1")}.Apply([]interface{}{[]interface{}{10, 11, 12}, 2, 3})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal([]interface{}{[]interface{}{10, 12}, 2, 3}))
 		})
@@ -94,6 +110,19 @@ var _ = Describe("RemoveOp.Apply", func() {
 			}))
 		})
 
+		It("removes relative array item", func() {
+			doc := []interface{}{
+				map[interface{}]interface{}{"key": "val"},
+				map[interface{}]interface{}{"key": "val2"},
+			}
+
+			res, err := RemoveOp{Path: MustNewPointerFromString("/key=val:next")}.Apply(doc)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal([]interface{}{
+				map[interface{}]interface{}{"key": "val"},
+			}))
+		})
+
 		It("returns an error if no items found", func() {
 			doc := []interface{}{
 				map[interface{}]interface{}{"key": "val2"},
@@ -142,6 +171,32 @@ var _ = Describe("RemoveOp.Apply", func() {
 			}
 
 			res, err := RemoveOp{Path: MustNewPointerFromString("/key=val/items/nested-key=val")}.Apply(doc)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(res).To(Equal([]interface{}{
+				map[interface{}]interface{}{
+					"key": "val",
+					"items": []interface{}{
+						map[interface{}]interface{}{"nested-key": "val2"},
+					},
+				},
+				map[interface{}]interface{}{"key": "val2"},
+			}))
+		})
+
+		It("removes relative nested matching item", func() {
+			doc := []interface{}{
+				map[interface{}]interface{}{
+					"key": "val",
+					"items": []interface{}{
+						map[interface{}]interface{}{"nested-key": "val"},
+						map[interface{}]interface{}{"nested-key": "val2"},
+					},
+				},
+				map[interface{}]interface{}{"key": "val2"},
+			}
+
+			res, err := RemoveOp{Path: MustNewPointerFromString("/key=val2:prev/items/nested-key=val")}.Apply(doc)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(res).To(Equal([]interface{}{
