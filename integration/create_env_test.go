@@ -122,8 +122,8 @@ var _ = Describe("bosh", func() {
 			directorID string
 
 			stemcellTarballPath    = "/fake-stemcell-release.tgz"
-			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
-			deploymentStatePath    = "/deployment-dir/fake-deployment-manifest-state.json"
+			deploymentManifestPath = filepath.Join("/", "deployment-dir", "fake-deployment-manifest.yml")
+			deploymentStatePath    = filepath.Join("/", "deployment-dir", "fake-deployment-manifest-state.json")
 
 			stemcellCID             = "fake-stemcell-cid"
 			stemcellCloudProperties = biproperty.Map{}
@@ -259,14 +259,14 @@ cloud_provider:
 		}
 
 		var writeCPIReleaseTarball = func() {
-			err := fs.WriteFileString("/fake-cpi-release.tgz", "fake-tgz-content")
+			err := fs.WriteFileString(filepath.Join("/", "fake-cpi-release.tgz"), "fake-tgz-content")
 			Expect(err).ToNot(HaveOccurred())
 		}
 
 		var allowCPIToBeInstalled = func() {
 			cpiPackage := birelpkg.NewPackage(NewResource("fake-package-name", "fake-package-fingerprint-cpi", nil), nil)
 			job := bireljob.NewJob(NewResource("fake-cpi-release-job-name", "", nil))
-			job.Templates = map[string]string{"templates/cpi.erb": "bin/cpi"}
+			job.Templates = map[string]string{filepath.Join("templates", "cpi.erb"): "bin/cpi"}
 			job.PackageNames = []string{"fake-package-name"}
 			job.AttachPackages([]*birelpkg.Package{cpiPackage})
 			cpiRelease := birel.NewRelease(
@@ -492,7 +492,7 @@ cloud_provider:
 			//TODO: use a real StateBuilder and test mockBlobstore.Add & mockAgentClient.CompilePackage
 
 			gomock.InOrder(
-				mockCloud.EXPECT().CreateStemcell("fake-stemcell-extracted-dir/image", stemcellCloudProperties).Return(stemcellCID, nil),
+				mockCloud.EXPECT().CreateStemcell(filepath.Join("fake-stemcell-extracted-dir", "image"), stemcellCloudProperties).Return(stemcellCID, nil),
 				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(vmCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(vmCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
@@ -803,7 +803,7 @@ cloud_provider:
 
 		Context("when multiple releases are provided", func() {
 			var (
-				otherReleaseTarballPath = "/fake-other-release.tgz"
+				otherReleaseTarballPath = filepath.Join("/", "fake-other-release.tgz")
 			)
 
 			BeforeEach(func() {
@@ -872,14 +872,14 @@ cloud_provider:
 
 			Context("and it's specified", func() {
 				BeforeEach(func() {
-					err := fs.RemoveAll("/tmp/new/state/path/state")
+					err := fs.RemoveAll(filepath.Join("/", "tmp", "new", "state", "path", "state"))
 					Expect(err).ToNot(HaveOccurred())
 
 					directorID = "fake-uuid-1"
 				})
 
 				It("creates one", func() {
-					createsStatePath("/tmp/new/state/path/state", "/tmp/new/state/path/state")
+					createsStatePath(filepath.Join("/", "tmp", "new", "state", "path", "state"), filepath.Join("/", "tmp", "new", "state", "path", "state"))
 				})
 			})
 		})
