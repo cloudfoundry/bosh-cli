@@ -38,6 +38,23 @@ func ConfigureTaskResult(firstHandler http.HandlerFunc, result string, server *g
 	)
 }
 
+func ConfigureTask(firstHandler http.HandlerFunc, result string, server *ghttp.Server) {
+	redirectHeader := http.Header{}
+	redirectHeader.Add("Location", "/tasks/123")
+
+	server.AppendHandlers(
+		ghttp.CombineHandlers(
+			firstHandler,
+			ghttp.RespondWith(http.StatusFound, nil, redirectHeader),
+		),
+		ghttp.CombineHandlers(
+			ghttp.VerifyRequest("GET", "/tasks/123"),
+			ghttp.VerifyBasicAuth("username", "password"),
+			ghttp.RespondWith(http.StatusOK, `{"id":123, "state":"done"}`),
+		),
+	)
+}
+
 func AppendBadRequest(firstHandler http.HandlerFunc, server *ghttp.Server) {
 	server.AppendHandlers(
 		ghttp.CombineHandlers(

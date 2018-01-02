@@ -170,11 +170,18 @@ func (d DeploymentImpl) ExportRelease(release ReleaseSlug, os OSVersionSlug, job
 }
 
 func (d DeploymentImpl) Update(manifest []byte, opts UpdateOpts) error {
+	opts.async = false
+	_, err := d.client.UpdateDeployment(manifest, opts)
+	return err
+}
+
+func (d DeploymentImpl) UpdateAsync(manifest []byte, opts UpdateOpts) (int, error) {
+	opts.async = true
 	return d.client.UpdateDeployment(manifest, opts)
 }
 
 func (d DeploymentImpl) Delete(force bool) error {
-	err := d.client.DeleteDeployment(d.name, force)
+	_, err := d.client.DeleteDeployment(d.name, force, false)
 	if err != nil {
 		resps, listErr := d.client.Deployments()
 		if listErr != nil {
@@ -189,6 +196,24 @@ func (d DeploymentImpl) Delete(force bool) error {
 	}
 
 	return nil
+}
+
+func (d DeploymentImpl) DeleteAsync(force bool) (int, error) {
+	taskID, err := d.client.DeleteDeployment(d.name, force, true)
+	if err != nil {
+		resps, listErr := d.client.Deployments()
+		if listErr != nil {
+			return taskID, err
+		}
+
+		for _, resp := range resps {
+			if resp.Name == d.name {
+				return taskID, err
+			}
+		}
+	}
+
+	return taskID, nil
 }
 
 func (d DeploymentImpl) AttachDisk(slug InstanceSlug, diskCID string) error {
@@ -468,7 +493,7 @@ func (c Client) ExportRelease(deploymentName string, release ReleaseSlug, os OSV
 	return resp, nil
 }
 
-func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
+func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) (int, error) {
 	query := gourl.Values{}
 
 	if opts.Recreate {
@@ -504,7 +529,7 @@ func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
 
 		contextJson, err := json.Marshal(context)
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Marshaling context")
+			return -1, bosherr.WrapErrorf(err, "Marshaling context")
 		}
 
 		query.Add("context", string(contextJson))
@@ -516,17 +541,25 @@ func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
 		req.Header.Add("Content-Type", "text/yaml")
 	}
 
-	_, err := c.taskClientRequest.PostResult(path, manifest, setHeaders)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Updating deployment")
+	if opts.async {
+		taskID, err := c.taskClientRequest.Post(path, manifest, setHeaders)
+		if err != nil {
+			return -1, bosherr.WrapErrorf(err, "Updating deployment")
+		}
+		return taskID, nil
 	}
 
-	return nil
+	_, err := c.taskClientRequest.PostResult(path, manifest, setHeaders)
+	if err != nil {
+		return -1, bosherr.WrapErrorf(err, "Updating deployment")
+	}
+
+	return 0, nil
 }
 
-func (c Client) DeleteDeployment(deploymentName string, force bool) error {
+func (c Client) DeleteDeployment(deploymentName string, force, async bool) (int, error) {
 	if len(deploymentName) == 0 {
-		return bosherr.Error("Expected non-empty deployment name")
+		return -1, bosherr.Error("Expected non-empty deployment name")
 	}
 
 	query := gourl.Values{}
@@ -537,12 +570,20 @@ func (c Client) DeleteDeployment(deploymentName string, force bool) error {
 
 	path := fmt.Sprintf("/deployments/%s?%s", deploymentName, query.Encode())
 
-	_, err := c.taskClientRequest.DeleteResult(path)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Deleting deployment '%s'", deploymentName)
+	if async{
+		taskID, err := c.taskClientRequest.Delete(path)
+		if err != nil {
+			return -1, bosherr.WrapErrorf(err, "Deleting deployment '%s'", deploymentName)
+		}
+		return taskID, nil
 	}
 
-	return nil
+	_, err := c.taskClientRequest.DeleteResult(path)
+	if err != nil {
+		return -1, bosherr.WrapErrorf(err, "Deleting deployment '%s'", deploymentName)
+	}
+
+	return 0, nil
 }
 
 type DeploymentVMResp struct {

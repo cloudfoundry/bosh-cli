@@ -786,6 +786,139 @@ var _ = Describe("Deployment", func() {
 		})
 	})
 
+	Describe("UpdateAsync", func() {
+		It("succeeds updating deployment", func() {
+			ConfigureTask(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments", ""),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.VerifyBody([]byte("manifest")),
+				),
+				``,
+				server,
+			)
+
+			taskID, err := deployment.UpdateAsync([]byte("manifest"), UpdateOpts{})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(taskID).To(Equal(123))
+		})
+
+		It("succeeds updating deployment with recreate, fix and skip drain flags", func() {
+			ConfigureTask(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments", "recreate=true&fix=true&skip_drain=*"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.VerifyBody([]byte("manifest")),
+				),
+				``,
+				server,
+			)
+
+			updateOpts := UpdateOpts{
+				Recreate:  true,
+				Fix:       true,
+				SkipDrain: SkipDrains{SkipDrain{All: true}},
+			}
+			taskID, err := deployment.UpdateAsync([]byte("manifest"), updateOpts)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(taskID).To(Equal(123))
+		})
+
+		It("succeeds updating deployment with canaries and max-in-flight flags", func() {
+			canaries := "100%"
+
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments", fmt.Sprintf("canaries=%s&max_in_flight=5", url.QueryEscape(canaries))),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.VerifyBody([]byte("manifest")),
+				),
+				``,
+				server,
+			)
+
+			updateOpts := UpdateOpts{
+				Canaries:    canaries,
+				MaxInFlight: "5",
+			}
+			taskID, err := deployment.UpdateAsync([]byte("manifest"), updateOpts)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(taskID).To(Equal(123))
+		})
+
+		It("succeeds updating deployment with dry-run flags", func() {
+			dryRun := true
+
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments", fmt.Sprintf("dry_run=%t", dryRun)),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.VerifyBody([]byte("manifest")),
+				),
+				``,
+				server,
+			)
+
+			updateOpts := UpdateOpts{
+				DryRun: dryRun,
+			}
+			taskID, err := deployment.UpdateAsync([]byte("manifest"), updateOpts)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(taskID).To(Equal(123))
+		})
+
+		It("succeeds updating deployment with diff context values", func() {
+			context := map[string]interface{}{
+				"cloud_config_id":          "2",
+				"runtime_config_id":        4,
+				"some_other_context_field": "value",
+			}
+
+			requestParams := "context=%7B%22cloud_config_id%22%3A%222%22%2C%22runtime_config_id%22%3A4%2C%22some_other_context_field%22%3A%22value%22%7D"
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments", requestParams),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.VerifyBody([]byte("manifest")),
+				),
+				``,
+				server,
+			)
+
+			updateOpts := UpdateOpts{
+				Diff: NewDeploymentDiff(nil, context),
+			}
+
+			taskID, err := deployment.UpdateAsync([]byte("manifest"), updateOpts)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(taskID).To(Equal(123))
+		})
+
+		It("returns error if task response is non-200", func() {
+			AppendBadRequest(ghttp.VerifyRequest("POST", "/deployments"), server)
+
+			taskID, err := deployment.UpdateAsync([]byte("manifest"), UpdateOpts{})
+			Expect(err).To(HaveOccurred())
+			Expect(taskID).To(Equal(-1))
+			Expect(err.Error()).To(ContainSubstring("Updating deployment"))
+		})
+	})
+
 	Describe("Delete", func() {
 		It("succeeds deleting", func() {
 			ConfigureTaskResult(
@@ -852,6 +985,82 @@ var _ = Describe("Deployment", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Deleting deployment 'dep': Director responded with non-successful status code"))
+		})
+	})
+
+	Describe("DeleteAsync", func() {
+		It("succeeds deleting", func() {
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("DELETE", "/deployments/dep", ""),
+					ghttp.VerifyBasicAuth("username", "password"),
+				),
+				``,
+				server,
+			)
+
+			taskID, err := deployment.DeleteAsync(false)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(taskID).To(Equal(123))
+		})
+
+		It("succeeds deleting with force flag", func() {
+			ConfigureTaskResult(ghttp.VerifyRequest("DELETE", "/deployments/dep", "force=true"), ``, server)
+			taskID, err := deployment.DeleteAsync(true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(taskID).To(Equal(123))
+		})
+
+		It("succeeds even if error occurs if deployment no longer exists", func() {
+			AppendBadRequest(ghttp.VerifyRequest("DELETE", "/deployments/dep"), server)
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/deployments"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[]`),
+				),
+			)
+
+			taskID, err := deployment.DeleteAsync(true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(taskID).To(Equal(-1))
+		})
+
+		It("returns delete error if listing deployments fails", func() {
+			AppendBadRequest(ghttp.VerifyRequest("DELETE", "/deployments/dep"), server)
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/deployments"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, ``),
+				),
+			)
+
+			taskID, err := deployment.DeleteAsync(false)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(
+				"Deleting deployment 'dep': Director responded with non-successful status code"))
+			Expect(taskID).To(Equal(-1))
+		})
+
+		It("returns delete error if response is non-200 and deployment still exists", func() {
+			AppendBadRequest(ghttp.VerifyRequest("DELETE", "/deployments/dep"), server)
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/deployments"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[{"name": "dep"}]`),
+				),
+			)
+
+			taskID, err := deployment.DeleteAsync(false)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(
+				"Deleting deployment 'dep': Director responded with non-successful status code"))
+			Expect(taskID).To(Equal(-1))
 		})
 	})
 

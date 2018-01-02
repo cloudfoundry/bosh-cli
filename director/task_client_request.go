@@ -47,20 +47,28 @@ func (r TaskClientRequest) GetResult(path string) (int, []byte, error) {
 		return 0, nil, err
 	}
 
-	respBody, err := r.waitForResult(taskResp)
+	respBody, err := r.waitForResult(taskResp.ID)
 
 	return taskResp.ID, respBody, err
 }
 
-func (r TaskClientRequest) PostResult(path string, payload []byte, f func(*http.Request)) ([]byte, error) {
+func (r TaskClientRequest) Post(path string, payload []byte, f func(*http.Request)) (int, error) {
 	var taskResp taskShortResp
 
 	err := r.clientRequest.Post(path, payload, f, &taskResp)
 	if err != nil {
-		return nil, err
+		return -1, err
 	}
 
-	return r.waitForResult(taskResp)
+	return taskResp.ID, nil
+}
+
+func (r TaskClientRequest) PostResult(path string, payload []byte, f func(*http.Request)) ([]byte, error) {
+	taskID, err := r.Post(path, payload, f)
+	if err != nil {
+		return nil, err
+	}
+	return r.waitForResult(taskID)
 }
 
 func (r TaskClientRequest) PutResult(path string, payload []byte, f func(*http.Request)) ([]byte, error) {
@@ -71,18 +79,27 @@ func (r TaskClientRequest) PutResult(path string, payload []byte, f func(*http.R
 		return nil, err
 	}
 
-	return r.waitForResult(taskResp)
+	return r.waitForResult(taskResp.ID)
 }
 
-func (r TaskClientRequest) DeleteResult(path string) ([]byte, error) {
+func (r TaskClientRequest) Delete(path string) (int, error) {
 	var taskResp taskShortResp
 
 	err := r.clientRequest.Delete(path, &taskResp)
 	if err != nil {
+		return -1, err
+	}
+
+	return taskResp.ID, nil
+}
+
+func (r TaskClientRequest) DeleteResult(path string) ([]byte, error) {
+	taskID, err := r.Delete(path)
+	if err != nil {
 		return nil, err
 	}
 
-	return r.waitForResult(taskResp)
+	return r.waitForResult(taskID)
 }
 
 func (r TaskClientRequest) WaitForCompletion(id int, type_ string, taskReporter TaskReporter) error {
@@ -125,13 +142,13 @@ func (r TaskClientRequest) WaitForCompletion(id int, type_ string, taskReporter 
 	}
 }
 
-func (r TaskClientRequest) waitForResult(taskResp taskShortResp) ([]byte, error) {
-	err := r.WaitForCompletion(taskResp.ID, "event", r.taskReporter)
+func (r TaskClientRequest) waitForResult(taskID int) ([]byte, error) {
+	err := r.WaitForCompletion(taskID, "event", r.taskReporter)
 	if err != nil {
 		return nil, err
 	}
 
-	resultPath := fmt.Sprintf("/tasks/%d/output?type=result", taskResp.ID)
+	resultPath := fmt.Sprintf("/tasks/%d/output?type=result", taskID)
 
 	respBody, _, err := r.clientRequest.RawGet(resultPath, nil, nil)
 	if err != nil {
