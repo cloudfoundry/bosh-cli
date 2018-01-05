@@ -16,6 +16,7 @@ type VMInfo struct {
 	ID           string `json:"id"`
 	Index        *int   `json:"index"`
 	ProcessState string `json:"job_state"` // e.g. "running"
+	Active       bool   `json:"active"`
 	Bootstrap    bool
 
 	IPs []string `json:"ips"`

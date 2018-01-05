@@ -53,6 +53,7 @@ var _ = Describe("VMsCmd", func() {
 					Index:        &index1,
 					ProcessState: "in1-process-state",
 					ResourcePool: "in1-rp",
+					Active:       true,
 
 					IPs: []string{"in1-ip1", "in1-ip2"},
 					DNS: []string{"in1-dns1", "in1-dns2"},
@@ -85,6 +86,7 @@ var _ = Describe("VMsCmd", func() {
 					ProcessState: "in2-process-state",
 					AZ:           "in2-az",
 					ResourcePool: "in2-rp",
+					Active:       false,
 
 					IPs: []string{"in2-ip1"},
 					DNS: []string{"in2-dns1"},
@@ -148,6 +150,7 @@ var _ = Describe("VMsCmd", func() {
 							boshtbl.NewHeader("IPs"),
 							boshtbl.NewHeader("VM CID"),
 							boshtbl.NewHeader("VM Type"),
+							boshtbl.NewHeader("Active"),
 						},
 
 						SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
@@ -160,6 +163,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 								boshtbl.NewValueString("in1-cid"),
 								boshtbl.NewValueString("in1-rp"),
+								boshtbl.NewValueBool(true),
 							},
 							{
 								boshtbl.NewValueString("job-name"),
@@ -168,6 +172,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.NewValueStrings([]string{"in2-ip1"}),
 								boshtbl.NewValueString("in2-cid"),
 								boshtbl.NewValueString("in2-rp"),
+								boshtbl.NewValueBool(false),
 							},
 							{
 								boshtbl.NewValueString("?"),
@@ -176,6 +181,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.ValueStrings{},
 								boshtbl.ValueString{},
 								boshtbl.ValueString{},
+								boshtbl.ValueBool{},
 							},
 						},
 					}))
@@ -198,6 +204,7 @@ var _ = Describe("VMsCmd", func() {
 							boshtbl.NewHeader("IPs"),
 							boshtbl.NewHeader("VM CID"),
 							boshtbl.NewHeader("VM Type"),
+							boshtbl.NewHeader("Active"),
 							boshtbl.NewHeader("DNS A Records"),
 						},
 
@@ -211,6 +218,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 								boshtbl.NewValueString("in1-cid"),
 								boshtbl.NewValueString("in1-rp"),
+								boshtbl.NewValueBool(true),
 								boshtbl.NewValueStrings([]string{"in1-dns1", "in1-dns2"}),
 							},
 							{
@@ -220,6 +228,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.NewValueStrings([]string{"in2-ip1"}),
 								boshtbl.NewValueString("in2-cid"),
 								boshtbl.NewValueString("in2-rp"),
+								boshtbl.NewValueBool(false),
 								boshtbl.NewValueStrings([]string{"in2-dns1"}),
 							},
 							{
@@ -229,6 +238,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.ValueStrings{},
 								boshtbl.ValueString{},
 								boshtbl.ValueString{},
+								boshtbl.ValueBool{},
 								boshtbl.ValueStrings{},
 							},
 						},
@@ -252,6 +262,7 @@ var _ = Describe("VMsCmd", func() {
 							boshtbl.NewHeader("IPs"),
 							boshtbl.NewHeader("VM CID"),
 							boshtbl.NewHeader("VM Type"),
+							boshtbl.NewHeader("Active"),
 							boshtbl.NewHeader("VM Created At"),
 							boshtbl.NewHeader("Uptime"),
 							boshtbl.NewHeader("Load\n(1m, 5m, 15m)"),
@@ -276,6 +287,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 								boshtbl.NewValueString("in1-cid"),
 								boshtbl.NewValueString("in1-rp"),
+								boshtbl.NewValueBool(true),
 								boshtbl.NewValueTime(time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC)),
 								ValueUptime{},
 								boshtbl.NewValueString("0.02, 0.06, 0.11"),
@@ -296,6 +308,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.NewValueStrings([]string{"in2-ip1"}),
 								boshtbl.NewValueString("in2-cid"),
 								boshtbl.NewValueString("in2-rp"),
+								boshtbl.NewValueBool(false),
 								boshtbl.NewValueTime(time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC)),
 								ValueUptime{},
 								boshtbl.NewValueString("0.52, 0.56, 0.51"),
@@ -316,6 +329,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.ValueStrings{},
 								boshtbl.ValueString{},
 								boshtbl.ValueString{},
+								boshtbl.ValueBool{},
 								boshtbl.NewValueTime(time.Time{}.UTC()),
 								ValueUptime{},
 								boshtbl.ValueString{},
@@ -350,6 +364,7 @@ var _ = Describe("VMsCmd", func() {
 							boshtbl.NewHeader("IPs"),
 							boshtbl.NewHeader("VM CID"),
 							boshtbl.NewHeader("VM Type"),
+							boshtbl.NewHeader("Active"),
 							boshtbl.NewHeader("Cloud Properties"),
 						},
 
@@ -363,6 +378,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 								boshtbl.NewValueString("in1-cid"),
 								boshtbl.NewValueString("in1-rp"),
+								boshtbl.NewValueBool(true),
 								boshtbl.NewValueInterface(map[string]string{"instance_type": "m1.small"}),
 							},
 							{
@@ -372,6 +388,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.NewValueStrings([]string{"in2-ip1"}),
 								boshtbl.NewValueString("in2-cid"),
 								boshtbl.NewValueString("in2-rp"),
+								boshtbl.NewValueBool(false),
 								boshtbl.NewValueInterface(map[string]string{"instance_type": "m1.small"}),
 							},
 							{
@@ -381,6 +398,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.ValueStrings{},
 								boshtbl.ValueString{},
 								boshtbl.ValueString{},
+								boshtbl.ValueBool{},
 								boshtbl.ValueInterface{},
 							},
 						},
@@ -439,6 +457,7 @@ var _ = Describe("VMsCmd", func() {
 						boshtbl.NewHeader("IPs"),
 						boshtbl.NewHeader("VM CID"),
 						boshtbl.NewHeader("VM Type"),
+						boshtbl.NewHeader("Active"),
 					},
 
 					SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
@@ -451,6 +470,7 @@ var _ = Describe("VMsCmd", func() {
 							boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 							boshtbl.NewValueString("in1-cid"),
 							boshtbl.NewValueString("in1-rp"),
+							boshtbl.NewValueBool(true),
 						},
 						{
 							boshtbl.NewValueString("job-name"),
@@ -459,6 +479,7 @@ var _ = Describe("VMsCmd", func() {
 							boshtbl.NewValueStrings([]string{"in2-ip1"}),
 							boshtbl.NewValueString("in2-cid"),
 							boshtbl.NewValueString("in2-rp"),
+							boshtbl.NewValueBool(false),
 						},
 						{
 							boshtbl.NewValueString("?"),
@@ -467,6 +488,7 @@ var _ = Describe("VMsCmd", func() {
 							boshtbl.ValueStrings{},
 							boshtbl.ValueString{},
 							boshtbl.ValueString{},
+							boshtbl.ValueBool{},
 						},
 					},
 				}))
@@ -564,6 +586,7 @@ var _ = Describe("VMsCmd", func() {
 							boshtbl.NewHeader("IPs"),
 							boshtbl.NewHeader("VM CID"),
 							boshtbl.NewHeader("VM Type"),
+							boshtbl.NewHeader("Active"),
 						},
 
 						SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
@@ -576,6 +599,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 								boshtbl.NewValueString("in1-cid"),
 								boshtbl.NewValueString("in1-rp"),
+								boshtbl.NewValueBool(true),
 							},
 							{
 								boshtbl.NewValueString("job-name"),
@@ -584,6 +608,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.NewValueStrings([]string{"in2-ip1"}),
 								boshtbl.NewValueString("in2-cid"),
 								boshtbl.NewValueString("in2-rp"),
+								boshtbl.NewValueBool(false),
 							},
 							{
 								boshtbl.NewValueString("?"),
@@ -592,6 +617,7 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.ValueStrings{},
 								boshtbl.ValueString{},
 								boshtbl.ValueString{},
+								boshtbl.ValueBool{},
 							},
 						},
 					}))
