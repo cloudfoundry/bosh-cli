@@ -8,12 +8,42 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/director"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	"io"
 	"io/ioutil"
 	"strings"
+
+	. "github.com/cloudfoundry/bosh-cli/director"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 )
+
+type FakeResponseBodyFactory struct {
+	Bodies []*FakeResponseBody
+}
+
+func (frbf *FakeResponseBodyFactory) Verify() {
+	for _, frb := range frbf.Bodies {
+		Expect(frb.ClosedCount).To(Equal(1))
+	}
+}
+
+func (frbf *FakeResponseBodyFactory) NewResponseBody() io.ReadCloser {
+	rv := &FakeResponseBody{}
+	frbf.Bodies = append(frbf.Bodies, rv)
+	return rv
+}
+
+type FakeResponseBody struct {
+	ClosedCount int
+}
+
+func (frb *FakeResponseBody) Read(p []byte) (n int, err error) {
+	return 0, nil
+}
+
+func (frb *FakeResponseBody) Close() error {
+	frb.ClosedCount += 1
+	return nil
+}
 
 type FakeIOReader struct{}
 
@@ -23,15 +53,21 @@ func (reader FakeIOReader) Read(p []byte) (n int, err error) {
 
 var _ = Describe("AdjustableClient", func() {
 	var (
-		innerClient *fakedir.FakeAdjustedClient
-		adjustment  *fakedir.FakeAdjustment
-		client      AdjustableClient
+		innerClient     *fakedir.FakeAdjustedClient
+		adjustment      *fakedir.FakeAdjustment
+		client          AdjustableClient
+		respBodyFactory *FakeResponseBodyFactory
 	)
 
 	BeforeEach(func() {
 		innerClient = &fakedir.FakeAdjustedClient{}
 		adjustment = &fakedir.FakeAdjustment{}
 		client = NewAdjustableClient(innerClient, adjustment)
+		respBodyFactory = &FakeResponseBodyFactory{}
+	})
+
+	AfterEach(func() {
+		respBodyFactory.Verify()
 	})
 
 	Describe("Do", func() {
@@ -65,9 +101,12 @@ var _ = Describe("AdjustableClient", func() {
 				innerClient.DoStub = func(reqToExec *http.Request) (*http.Response, error) {
 					Expect(reqToExec.Header["Adjustment"]).To(Equal([]string{"1"}))
 					Expect(reqToExec.Body).ToNot(BeNil())
-					return nil, nil
+					return &http.Response{Body: respBodyFactory.NewResponseBody()}, nil
 				}
-				client.Do(req)
+				resp, err := client.Do(req)
+				if err == nil {
+					resp.Body.Close()
+				}
 			})
 
 			Context("request body is type converted by innerclient when it needs adjusting", func() {
@@ -88,9 +127,13 @@ var _ = Describe("AdjustableClient", func() {
 						newNopCloser := ioutil.NopCloser(newReader)
 
 						reqToExec.Body = newNopCloser
-						return nil, nil
+
+						return &http.Response{Body: respBodyFactory.NewResponseBody()}, nil
 					}
-					client.Do(req)
+					resp, err := client.Do(req)
+					if err == nil {
+						resp.Body.Close()
+					}
 				})
 			})
 		})
@@ -104,10 +147,14 @@ var _ = Describe("AdjustableClient", func() {
 
 			innerClient.DoStub = func(reqToExec *http.Request) (*http.Response, error) {
 				Expect(reqToExec.Header["Adjustment"]).To(Equal([]string{"1"}))
-				return nil, nil
+
+				return &http.Response{Body: respBodyFactory.NewResponseBody()}, nil
 			}
 
-			_, err := client.Do(req)
+			resp, err := client.Do(req)
+			if err == nil {
+				resp.Body.Close()
+			}
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(adjustment.AdjustCallCount()).To(Equal(1))
@@ -118,6 +165,9 @@ var _ = Describe("AdjustableClient", func() {
 			adjustment.AdjustReturns(errors.New("fake-err"))
 
 			resp, err := client.Do(req)
+			if err == nil {
+				resp.Body.Close()
+			}
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 			Expect(resp).To(BeNil())
@@ -131,7 +181,10 @@ var _ = Describe("AdjustableClient", func() {
 				return nil, errors.New("fake-err")
 			}
 
-			_, err := client.Do(req)
+			resp, err := client.Do(req)
+			if err == nil {
+				resp.Body.Close()
+			}
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 
@@ -141,8 +194,8 @@ var _ = Describe("AdjustableClient", func() {
 		})
 
 		It("adjusts and readjusts request when readjustment is necessary", func() {
-			firstResp := &http.Response{}
-			secondResp := &http.Response{}
+			firstResp := &http.Response{Body: respBodyFactory.NewResponseBody()}
+			secondResp := &http.Response{Body: respBodyFactory.NewResponseBody()}
 
 			adjustment.AdjustStub = func(reqToAdjust *http.Request, retried bool) error {
 				if adjustment.AdjustCallCount() == 1 {
@@ -176,6 +229,9 @@ var _ = Describe("AdjustableClient", func() {
 			}
 
 			resp, err := client.Do(req)
+			if err == nil {
+				resp.Body.Close()
+			}
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp).To(Equal(secondResp))
 
@@ -185,7 +241,7 @@ var _ = Describe("AdjustableClient", func() {
 		})
 
 		It("adjusts and does not readjust request when readjustment is not necessary", func() {
-			firstResp := &http.Response{}
+			firstResp := &http.Response{Body: respBodyFactory.NewResponseBody()}
 
 			adjustment.AdjustStub = func(reqToAdjust *http.Request, retried bool) error {
 				if adjustment.AdjustCallCount() == 1 {
@@ -210,6 +266,9 @@ var _ = Describe("AdjustableClient", func() {
 			}
 
 			resp, err := client.Do(req)
+			if err == nil {
+				resp.Body.Close()
+			}
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp).To(Equal(firstResp))
 
@@ -229,7 +288,14 @@ var _ = Describe("AdjustableClient", func() {
 
 			adjustment.NeedsReadjustmentReturns(true)
 
-			_, err := client.Do(req)
+			innerClient.DoStub = func(reqToExec *http.Request) (*http.Response, error) {
+				return &http.Response{Body: respBodyFactory.NewResponseBody()}, nil
+			}
+
+			resp, err := client.Do(req)
+			if err == nil {
+				resp.Body.Close()
+			}
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 
@@ -240,7 +306,7 @@ var _ = Describe("AdjustableClient", func() {
 		It("returns request error after readjustment if second request fails", func() {
 			innerClient.DoStub = func(req *http.Request) (*http.Response, error) {
 				if adjustment.AdjustCallCount() == 1 {
-					return nil, nil
+					return &http.Response{Body: respBodyFactory.NewResponseBody()}, nil
 				}
 				if adjustment.AdjustCallCount() == 2 {
 					return nil, errors.New("fake-err")
@@ -250,7 +316,10 @@ var _ = Describe("AdjustableClient", func() {
 
 			adjustment.NeedsReadjustmentReturns(true)
 
-			_, err := client.Do(req)
+			resp, err := client.Do(req)
+			if err == nil {
+				resp.Body.Close()
+			}
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 
