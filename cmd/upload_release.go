@@ -162,7 +162,12 @@ func (c UploadReleaseCmd) needToUpload(opts UploadReleaseOpts) (bool, error) {
 	}
 
 	if found {
-		c.ui.PrintLinef("Release '%s/%s' already exists.", opts.Name, version)
+		if opts.Stemcell.IsProvided() {
+			c.ui.PrintLinef("Release '%s/%s' for stemcell '%s' already exists.", opts.Name, version, opts.Stemcell)
+		} else {
+			c.ui.PrintLinef("Release '%s/%s' already exists.", opts.Name, version)
+		}
+
 		return false, nil
 	}
 
