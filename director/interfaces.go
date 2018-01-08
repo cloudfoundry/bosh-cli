@@ -48,6 +48,7 @@ type Director interface {
 	UpdateConfig(configType string, name string, content []byte) error
 	DeleteConfig(configType string, name string) (bool, error)
 	DiffConfig(configType string, name string, manifest []byte) (ConfigDiff, error)
+	DiffConfigByID(fromID string, toID string) (ConfigDiff, error)
 
 	LatestCloudConfig() (CloudConfig, error)
 	UpdateCloudConfig([]byte) error
