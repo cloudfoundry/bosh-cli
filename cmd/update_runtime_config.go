@@ -31,7 +31,16 @@ func (c UpdateRuntimeConfigCmd) Run(opts UpdateRuntimeConfigOpts) error {
 		return err
 	}
 
+	latestConfig, err := c.director.LatestRuntimeConfig(opts.Name)
+	if err != nil && err.Error() != "No runtime config" {
+		return err
+	}
+
 	diff := NewDiff(configDiff.Diff)
+	if (latestConfig != boshdir.RuntimeConfig{} && len(diff.lines) == 0) {
+		c.ui.PrintLinef("no changes in config, nothing to update\n")
+		return nil
+	}
 	diff.Print(c.ui)
 
 	bytes, err = c.releaseUploader.UploadReleases(bytes)

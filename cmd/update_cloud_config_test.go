@@ -83,6 +83,26 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\nxyz: val\n")))
 		})
 
+		It("handles latest config errors", func() {
+			director.LatestCloudConfigReturns(boshdir.CloudConfig{}, errors.New("fake-connection-error"))
+			err := act()
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("ignores the error for existing config while checking if upload is required", func() {
+			director.LatestCloudConfigReturns(boshdir.CloudConfig{}, errors.New("No cloud config"))
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("does not update, instead prints message and exits with success for same content", func() {
+			director.LatestCloudConfigReturns(boshdir.CloudConfig{Properties: "fake"}, nil)
+			err := act()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(director.UpdateConfigCallCount()).To(Equal(0))
+			Expect(ui.Said).To(ContainElement("no changes in config, nothing to update\n"))
+		})
+
 		It("returns an error if diffing failed", func() {
 			director.DiffCloudConfigReturns(boshdir.ConfigDiff{}, errors.New("Fetching diff result"))
 
