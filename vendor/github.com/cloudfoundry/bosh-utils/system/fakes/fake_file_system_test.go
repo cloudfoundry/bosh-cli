@@ -309,6 +309,24 @@ var _ = Describe("FakeFileSystem", func() {
 		})
 	})
 
+	Describe("ReadFileWithOpts", func() {
+		It("reads the file", func() {
+			fs.WriteFileQuietly("foo", []byte("hello"))
+
+			writtenContent, err := fs.ReadFileWithOpts("foo", boshsys.ReadOpts{})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(string(writtenContent)).To(ContainSubstring("hello"))
+		})
+
+		It("Records the number of times the method was called", func() {
+			fs.WriteFileQuietly("foo", []byte("hello"))
+			fs.ReadFileWithOpts("foo", boshsys.ReadOpts{})
+			fs.ReadFileWithOpts("foo", boshsys.ReadOpts{Quiet: true})
+
+			Expect(fs.ReadFileWithOptsCallCount).To(Equal(2))
+		})
+	})
+
 	Describe("WriteFileQuietly", func() {
 		It("Writes the file", func() {
 			fs.WriteFileQuietly("foo", []byte("hello"))
@@ -375,6 +393,29 @@ var _ = Describe("FakeFileSystem", func() {
 			fileStat, err := fs.Stat("foobar")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fileStat.ModTime()).To(Equal(setModTime))
+		})
+
+		It("records the invocation", func() {
+			err := fs.WriteFileString("somepath", "some file contents")
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = fs.Stat("somepath")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.StatCallCount).To(Equal(1))
+		})
+	})
+
+	Describe("StatWithOpts", func() {
+		It("records the invocation", func() {
+			err := fs.WriteFileString("somepath", "some file contents")
+			Expect(err).ToNot(HaveOccurred())
+			statOpts := boshsys.StatOpts{Quiet: true}
+
+			_, err = fs.StatWithOpts("somepath", statOpts)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.StatWithOptsCallCount).To(Equal(1))
 		})
 	})
 

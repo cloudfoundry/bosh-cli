@@ -46,8 +46,9 @@ type FakeFileSystem struct {
 	openFileRegistry *FakeFileRegistry
 	OpenFileErr      error
 
-	ReadFileError       error
-	readFileErrorByPath map[string]error
+	ReadFileError             error
+	ReadFileWithOptsCallCount int
+	readFileErrorByPath       map[string]error
 
 	WriteFileError            error
 	WriteFileErrors           map[string]error
@@ -76,6 +77,9 @@ type FakeFileSystem struct {
 	RemoveAllStub removeAllFn
 
 	ReadAndFollowLinkError error
+
+	StatWithOptsCallCount int
+	StatCallCount         int
 
 	TempFileError           error
 	TempFileErrorsByPrefix  map[string]error
@@ -324,6 +328,16 @@ func (fs *FakeFileSystem) OpenFile(path string, flag int, perm os.FileMode) (bos
 }
 
 func (fs *FakeFileSystem) Stat(path string) (os.FileInfo, error) {
+	fs.StatCallCount++
+	return fs.StatHelper(path)
+}
+
+func (fs *FakeFileSystem) StatWithOpts(path string, opts boshsys.StatOpts) (os.FileInfo, error) {
+	fs.StatWithOptsCallCount++
+	return fs.StatHelper(path)
+}
+
+func (fs *FakeFileSystem) StatHelper(path string) (os.FileInfo, error) {
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
@@ -526,6 +540,11 @@ func (fs *FakeFileSystem) RegisterReadFileError(path string, err error) {
 
 func (fs *FakeFileSystem) UnregisterReadFileError(path string) {
 	delete(fs.readFileErrorByPath, path)
+}
+
+func (fs *FakeFileSystem) ReadFileWithOpts(path string, opts boshsys.ReadOpts) ([]byte, error) {
+	fs.ReadFileWithOptsCallCount++
+	return fs.ReadFile(path)
 }
 
 func (fs *FakeFileSystem) ReadFile(path string) ([]byte, error) {
@@ -802,9 +821,11 @@ func (fs *FakeFileSystem) removeAll(path string) error {
 
 func (fs *FakeFileSystem) Glob(pattern string) (matches []string, err error) {
 	if fs.GlobStub != nil {
-		_, err = fs.GlobStub(pattern)
+		matches, err = fs.GlobStub(pattern)
 		if err != nil {
 			return nil, err
+		} else {
+			return matches, nil
 		}
 	}
 

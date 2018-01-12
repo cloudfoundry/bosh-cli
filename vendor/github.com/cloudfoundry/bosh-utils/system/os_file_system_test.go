@@ -323,6 +323,30 @@ var _ = Describe("OS FileSystem", func() {
 		})
 	})
 
+	Context("we want to stat a file quietly, i.e. without logging", func() {
+		It("Stats the file but doesn't write any logs", func() {
+			logger := &loggerfakes.FakeLogger{}
+			osFs := NewOsFileSystem(logger)
+			testPath := filepath.Join(TempDir, "OpenFileTestFile")
+
+			file, err := osFs.OpenFile(testPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+			Expect(err).ToNot(HaveOccurred())
+			defer file.Close()
+			defer os.Remove(testPath)
+
+			fsInfo, err := osFs.StatWithOpts(testPath, StatOpts{Quiet: true})
+			Expect(err).ToNot(HaveOccurred())
+
+			// Go standard library
+			osInfo, err := os.Stat(testPath)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(os.SameFile(fsInfo, osInfo)).To(BeTrue())
+			Expect(logger.DebugCallCount()).To(Equal(0))
+			Expect(logger.DebugWithDetailsCallCount()).To(Equal(0))
+		})
+	})
+
 	Context("we want to write a file quietly, i.e. without logging", func() {
 		It("Still writes the file but doesn't write any logs", func() {
 			logger := &loggerfakes.FakeLogger{}
@@ -338,20 +362,50 @@ var _ = Describe("OS FileSystem", func() {
 
 			writtenContent, _ := osFs.ReadFileString(testPath)
 			Expect(writtenContent).To(Equal("test"))
-
 		})
 	})
 
-	It("read file", func() {
-		osFs := createOsFs()
-		testPath := filepath.Join(TempDir, "ReadFileTestFile")
+	Describe("reading files", func() {
+		Context("with quiet enabled", func() {
+			It("logs nothing", func() {
+				logger := &loggerfakes.FakeLogger{}
+				osFs := NewOsFileSystem(logger)
+				testPath := filepath.Join(TempDir, "ReadFileTestFile")
 
-		osFs.WriteFileString(testPath, "some contents")
-		defer os.Remove(testPath)
+				osFs.WriteFileQuietly(testPath, []byte("some contents"))
+				defer os.Remove(testPath)
 
-		content, err := osFs.ReadFile(testPath)
-		Expect(err).ToNot(HaveOccurred())
-		Expect("some contents").To(Equal(string(content)))
+				beforeCount := logger.DebugCallCount()
+
+				opts := ReadOpts{Quiet: true}
+				content, err := osFs.ReadFileWithOpts(testPath, opts)
+				Expect(err).ToNot(HaveOccurred())
+				Expect("some contents").To(Equal(string(content)))
+
+				Expect(logger.DebugCallCount() - beforeCount).To(Equal(0))
+			})
+		})
+
+		Context("with default strategy", func() {
+			It("logs the file content", func() {
+				logger := &loggerfakes.FakeLogger{}
+				osFs := NewOsFileSystem(logger)
+				testPath := filepath.Join(TempDir, "ReadFileTestFile")
+
+				osFs.WriteFileQuietly(testPath, []byte("some contents"))
+				defer os.Remove(testPath)
+
+				beforeCount := logger.DebugCallCount()
+				beforeCountDetails := logger.DebugWithDetailsCallCount()
+
+				content, err := osFs.ReadFile(testPath)
+				Expect(err).ToNot(HaveOccurred())
+				Expect("some contents").To(Equal(string(content)))
+
+				Expect(logger.DebugCallCount() - beforeCount).To(Equal(1))
+				Expect(logger.DebugWithDetailsCallCount() - beforeCountDetails).To(Equal(1))
+			})
+		})
 	})
 
 	It("file exists", func() {
