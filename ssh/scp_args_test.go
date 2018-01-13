@@ -85,6 +85,20 @@ var _ = Describe("SCPArgs", func() {
 				"user@127.0.0.1:some:file-id", "user@127.0.0.1:file-id", "file-id"}))
 		})
 
+		It("ignores Windows-style drive references", func() {
+			scpArgs := NewSCPArgs([]string{"host:C:\\file", "C:\\localfile"}, false)
+			Expect(scpArgs.ForHost(host)).To(Equal([]string{
+				"user@127.0.0.1:C:\\file", "C:\\localfile",
+			}))
+		})
+
+		It("ignores lowercase Windows-style drive references", func() {
+			scpArgs := NewSCPArgs([]string{"host:c:\\file", "c:\\localfile"}, false)
+			Expect(scpArgs.ForHost(host)).To(Equal([]string{
+				"user@127.0.0.1:c:\\file", "c:\\localfile",
+			}))
+		})
+
 		It("returns empty when it's empty", func() {
 			scpArgs := NewSCPArgs([]string{}, false)
 			Expect(scpArgs.ForHost(host)).To(Equal([]string{}))

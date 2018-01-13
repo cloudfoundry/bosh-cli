@@ -2,12 +2,15 @@ package ssh
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 )
+
+var windowsDisk = regexp.MustCompile(`^[A-Za-z]:\\`)
 
 type SCPArgs struct {
 	raw       []string
@@ -42,12 +45,12 @@ func (a SCPArgs) ForHost(host boshdir.Host) []string {
 	for _, rawArg := range a.raw {
 		pieces := strings.SplitN(rawArg, ":", 2)
 
-		if len(pieces) == 2 {
+		if len(pieces) == 2 && !windowsDisk.MatchString(rawArg) {
 			// Resolve named host to actual user@ip
 			pieces[0] = fmt.Sprintf("%s@%s", host.Username, printableHost{host})
 		}
 
-		for i, _ := range pieces {
+		for i := range pieces {
 			pieces[i] = strings.Replace(pieces[i], "((instance_id))", host.IndexOrID, -1)
 		}
 

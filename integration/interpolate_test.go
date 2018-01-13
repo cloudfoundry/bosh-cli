@@ -3,6 +3,7 @@ package integration_test
 import (
 	"crypto/x509"
 	"encoding/pem"
+	"path/filepath"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -32,10 +33,10 @@ var _ = Describe("interpolate command", func() {
 	})
 
 	It("interpolates manifest with variables", func() {
-		err := fs.WriteFileString("/file", "file: ((key))")
+		err := fs.WriteFileString(filepath.Join("/", "file"), "file: ((key))")
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{"interpolate", "/file", "-v", "key=val"})
+		cmd, err := cmdFactory.New([]string{"interpolate", filepath.Join("/", "file"), "-v", "key=val"})
 		Expect(err).ToNot(HaveOccurred())
 
 		err = cmd.Execute()
@@ -44,17 +45,17 @@ var _ = Describe("interpolate command", func() {
 	})
 
 	It("interpolates manifest with variables provided piece by piece via dot notation", func() {
-		err := fs.WriteFileString("/template", "file: ((key))\nfile2: ((key.subkey2))\n")
+		err := fs.WriteFileString(filepath.Join("/", "template"), "file: ((key))\nfile2: ((key.subkey2))\n")
 		Expect(err).ToNot(HaveOccurred())
 
-		err = fs.WriteFileString("/file-val", "file-val-content")
+		err = fs.WriteFileString(filepath.Join("/", "file-val"), "file-val-content")
 		Expect(err).ToNot(HaveOccurred())
 
 		cmd, err := cmdFactory.New([]string{
-			"interpolate", "/template",
+			"interpolate", filepath.Join("/", "template"),
 			"-v", "key.subkey=val",
 			"-v", "key.subkey2=val2",
-			"--var-file", "key.subkey3=/file-val",
+			"--var-file", "key.subkey3=" + filepath.Join("/", "file-val"),
 		})
 		Expect(err).ToNot(HaveOccurred())
 
@@ -64,10 +65,10 @@ var _ = Describe("interpolate command", func() {
 	})
 
 	It("returns portion of the template when --path flag is provided", func() {
-		err := fs.WriteFileString("/file", "file: ((key))")
+		err := fs.WriteFileString(filepath.Join("/", "file"), "file: ((key))")
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{"interpolate", "/file", "-v", `key={"nested": true}`, "--path", "/file/nested"})
+		cmd, err := cmdFactory.New([]string{"interpolate", filepath.Join("/", "file"), "-v", `key={"nested": true}`, "--path", "/file/nested"})
 		Expect(err).ToNot(HaveOccurred())
 
 		err = cmd.Execute()
@@ -76,7 +77,7 @@ var _ = Describe("interpolate command", func() {
 	})
 
 	It("generates and stores missing password variable when --vars-store is provided", func() {
-		err := fs.WriteFileString("/file", `password: ((key))
+		err := fs.WriteFileString(filepath.Join("/", "file"), `password: ((key))
 variables:
 - name: key
   type: password
@@ -86,7 +87,7 @@ variables:
 		var genedPass string
 
 		{ // running command first time
-			cmd, err := cmdFactory.New([]string{"interpolate", "/file", "--vars-store", "/vars", "--path", "/password"})
+			cmd, err := cmdFactory.New([]string{"interpolate", filepath.Join("/", "file"), "--vars-store", filepath.Join("/", "vars"), "--path", "/password"})
 			Expect(err).ToNot(HaveOccurred())
 
 			err = cmd.Execute()
@@ -96,7 +97,7 @@ variables:
 			genedPass = ui.Blocks[0]
 			Expect(len(genedPass)).To(BeNumerically(">", 10))
 
-			contents, err := fs.ReadFileString("/vars")
+			contents, err := fs.ReadFileString(filepath.Join("/", "vars"))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(contents).To(Equal("key: " + genedPass))
 		}
@@ -104,7 +105,7 @@ variables:
 		ui.Blocks = []string{}
 
 		{ // running command second time
-			cmd, err := cmdFactory.New([]string{"interpolate", "/file", "--vars-store", "/vars", "--path", "/password"})
+			cmd, err := cmdFactory.New([]string{"interpolate", filepath.Join("/", "file"), "--vars-store", filepath.Join("/", "vars"), "--path", "/password"})
 			Expect(err).ToNot(HaveOccurred())
 
 			err = cmd.Execute()
@@ -134,7 +135,7 @@ variables:
 `)
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{"interpolate", "/file", "--vars-store", "/vars", "-v", "common_name=test.com"})
+		cmd, err := cmdFactory.New([]string{"interpolate", filepath.Join("/", "file"), "--vars-store", filepath.Join("/", "vars"), "-v", "common_name=test.com"})
 		Expect(err).ToNot(HaveOccurred())
 
 		err = cmd.Execute()
@@ -153,7 +154,7 @@ variables:
 		var store, output expectedStore
 
 		{
-			contents, err := fs.ReadFileString("/vars")
+			contents, err := fs.ReadFileString(filepath.Join("/", "vars"))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(contents).ToNot(BeEmpty())
 
@@ -207,13 +208,13 @@ variables:
 `)
 		Expect(err).ToNot(HaveOccurred())
 
-		err = fs.WriteFileString("/ro-vars", "used_key: true\nunused_file: true")
+		err = fs.WriteFileString(filepath.Join("/", "ro-vars"), "used_key: true\nunused_file: true")
 		Expect(err).ToNot(HaveOccurred())
 
 		cmd, err := cmdFactory.New([]string{
-			"interpolate", "/file",
+			"interpolate", filepath.Join("/", "file"),
 			"-v", "used_key=val",
-			"--vars-store", "/vars",
+			"--vars-store", filepath.Join("/", "vars"),
 			"--var-errs",
 		})
 		Expect(err).ToNot(HaveOccurred())
@@ -224,7 +225,7 @@ variables:
 	})
 
 	It("returns errors if there are unused variables and --var-errs-unused is provided", func() {
-		err := fs.WriteFileString("/file", `
+		err := fs.WriteFileString(filepath.Join("/", "file"), `
 ca: ((ca.certificate))
 used_key: ((used_key))
 
@@ -242,16 +243,16 @@ variables:
 `)
 		Expect(err).ToNot(HaveOccurred())
 
-		err = fs.WriteFileString("/ro-vars", "used_key: true\nunused_file: true")
+		err = fs.WriteFileString(filepath.Join("/", "ro-vars"), "used_key: true\nunused_file: true")
 		Expect(err).ToNot(HaveOccurred())
 
 		cmd, err := cmdFactory.New([]string{
-			"interpolate", "/file",
+			"interpolate", filepath.Join("/", "file"),
 			"-v", "common_name=name",
 			"-v", "used_key=val",
 			"-v", "unused_flag=val",
-			"-l", "/ro-vars",
-			"--vars-store", "/vars",
+			"-l", filepath.Join("/", "ro-vars"),
+			"--vars-store", filepath.Join("/", "vars"),
 			"--var-errs-unused",
 		})
 		Expect(err).ToNot(HaveOccurred())

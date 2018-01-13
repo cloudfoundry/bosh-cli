@@ -72,7 +72,7 @@ class TemplateEvaluationContext
     yield *values
     InactiveElseBlock.new
   end
-  
+
   def if_link(name)
     false
   end
@@ -174,7 +174,7 @@ class ERBRenderer
   end
 
   def render(src_path, dst_path)
-    erb = ERB.new(File.read(src_path))
+    erb = ERB.new(File.read(src_path), safe_level = nil, trim_mode = "-")
     erb.filename = src_path
 
     File.open(dst_path, "w") do |f|

@@ -234,6 +234,9 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *ConfigsOpts:
 		return NewConfigsCmd(deps.UI, c.director()).Run(*opts)
 
+	case *DiffConfigOpts:
+		return NewDiffConfigCmd(deps.UI, c.director()).Run(*opts)
+
 	case *UpdateConfigOpts:
 		return NewUpdateConfigCmd(deps.UI, c.director()).Run(*opts)
 

@@ -355,6 +355,7 @@ var _ = Describe("Stemcell", func() {
 				newStemcellMFContent, err := fakefs.ReadFileString("extracted-path/stemcell.MF")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(newStemcellMFContent).To(ContainSubstring("name: new-name"))
+				Expect(newStemcellMFContent).NotTo(ContainSubstring("stemcell_formats:"))
 
 				Expect(fakefs.FileExists(compressedTarballPath)).To(BeFalse())
 				Expect(fakefs.FileExists(destinationPath)).To(BeTrue())

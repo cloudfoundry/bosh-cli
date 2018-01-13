@@ -30,7 +30,16 @@ func (c UpdateCPIConfigCmd) Run(opts UpdateCPIConfigOpts) error {
 		return err
 	}
 
+	latestConfig, err := c.director.LatestCPIConfig()
+	if err != nil && err.Error() != "No CPI config" {
+		return err
+	}
+
 	diff := NewDiff(configDiff.Diff)
+	if (latestConfig != boshdir.CPIConfig{} && len(diff.lines) == 0) {
+		c.ui.PrintLinef("no changes in config, nothing to update\n")
+		return nil
+	}
 	diff.Print(c.ui)
 
 	err = c.ui.AskForConfirmation()

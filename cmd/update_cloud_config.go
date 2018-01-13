@@ -30,7 +30,16 @@ func (c UpdateCloudConfigCmd) Run(opts UpdateCloudConfigOpts) error {
 		return err
 	}
 
+	latestConfig, err := c.director.LatestCloudConfig()
+	if err != nil && err.Error() != "No cloud config" {
+		return err
+	}
+
 	diff := NewDiff(cloudConfigDiff.Diff)
+	if (latestConfig != boshdir.CloudConfig{} && len(diff.lines) == 0) {
+		c.ui.PrintLinef("no changes in config, nothing to update\n")
+		return nil
+	}
 	diff.Print(c.ui)
 
 	err = c.ui.AskForConfirmation()

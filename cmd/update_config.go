@@ -29,7 +29,16 @@ func (c UpdateConfigCmd) Run(opts UpdateConfigOpts) error {
 		return err
 	}
 
+	config, err := c.director.LatestConfig(opts.Args.Type, opts.Name)
+	if err != nil && err.Error() != "No config" {
+		return err
+	}
+
 	diff := NewDiff(configDiff.Diff)
+	if (config != boshdir.Config{} && len(diff.lines) == 0) {
+		c.ui.PrintLinef("no changes in config, nothing to update\n")
+		return nil
+	}
 	diff.Print(c.ui)
 
 	err = c.ui.AskForConfirmation()

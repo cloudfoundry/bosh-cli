@@ -33,6 +33,16 @@ type extractedStemcell struct {
 	fs            boshsys.FileSystem
 }
 
+type Manifest struct {
+	Name            string         `yaml:"name"`
+	Version         string         `yaml:"version"`
+	OS              string         `yaml:"operating_system"`
+	SHA1            string         `yaml:"sha1"`
+	BoshProtocol    string         `yaml:"bosh_protocol"`
+	StemcellFormats []string       `yaml:"stemcell_formats,omitempty"`
+	CloudProperties biproperty.Map `yaml:"cloud_properties"`
+}
+
 func NewExtractedStemcell(
 	manifest Manifest,
 	extractedPath string,
@@ -116,14 +126,4 @@ func (s *extractedStemcell) save() error {
 		return err
 	}
 	return nil
-}
-
-type Manifest struct {
-	Name            string         `yaml:"name"`
-	Version         string         `yaml:"version"`
-	OS              string         `yaml:"operating_system"`
-	SHA1            string         `yaml:"sha1"`
-	BoshProtocol    string         `yaml:"bosh_protocol"`
-	StemcellFormats []string       `yaml:"stemcell_formats"`
-	CloudProperties biproperty.Map `yaml:"cloud_properties"`
 }
