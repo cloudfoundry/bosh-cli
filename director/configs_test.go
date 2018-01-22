@@ -75,12 +75,12 @@ var _ bool = Describe("Director", func() {
 						ghttp.CombineHandlers(
 							ghttp.VerifyRequest("GET", "/configs", "latest=true"),
 							ghttp.VerifyBasicAuth("username", "password"),
-							ghttp.RespondWith(http.StatusOK, `[{"name": "first", "type": "my-type"}]`),
+							ghttp.RespondWith(http.StatusOK, `[{"name": "first", "type": "my-type", "teams": ["team1"]}]`),
 						),
 					)
 					cc, err := director.ListConfigs(ConfigsFilter{IncludeOutdated: false})
 					Expect(err).ToNot(HaveOccurred())
-					Expect(cc).To(Equal([]ConfigListItem{{Type: "my-type", Name: "first"}}))
+					Expect(cc).To(Equal([]ConfigListItem{{Type: "my-type", Name: "first", Teams: []string{"team1"}}}))
 				})
 			})
 

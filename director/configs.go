@@ -16,9 +16,10 @@ type Config struct {
 }
 
 type ConfigListItem struct {
-	Id   string
-	Name string
-	Type string
+	Id    string
+	Name  string
+	Type  string
+	Teams []string
 }
 
 type ConfigsFilter struct {

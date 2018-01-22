@@ -33,6 +33,7 @@ func (c ConfigsCmd) Run(opts ConfigsOpts) error {
 	}
 	headers = append(headers, boshtbl.NewHeader("Type"))
 	headers = append(headers, boshtbl.NewHeader("Name"))
+	headers = append(headers, boshtbl.NewHeader("Teams"))
 
 	table := boshtbl.Table{
 		Content: "configs",
@@ -46,6 +47,7 @@ func (c ConfigsCmd) Run(opts ConfigsOpts) error {
 		}
 		result = append(result, boshtbl.NewValueString(config.Type))
 		result = append(result, boshtbl.NewValueString(config.Name))
+		result = append(result, boshtbl.NewValueStrings(config.Teams))
 		table.Rows = append(table.Rows, result)
 	}
 
