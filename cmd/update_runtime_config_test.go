@@ -91,26 +91,6 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\nxyz: val\n")))
 		})
 
-		It("handles latest config errors", func() {
-			director.LatestRuntimeConfigReturns(boshdir.RuntimeConfig{}, errors.New("fake-connection-error"))
-			err := act()
-			Expect(err).To(HaveOccurred())
-		})
-
-		It("ignores the error for existing config while checking if upload is required", func() {
-			director.LatestRuntimeConfigReturns(boshdir.RuntimeConfig{}, errors.New("No runtime config"))
-			err := act()
-			Expect(err).ToNot(HaveOccurred())
-		})
-
-		It("does not update, instead prints message and exits with success for same content", func() {
-			director.LatestRuntimeConfigReturns(boshdir.RuntimeConfig{Properties: "fake"}, nil)
-			err := act()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(director.UpdateConfigCallCount()).To(Equal(0))
-			Expect(ui.Said).To(ContainElement("no changes in config, nothing to update\n"))
-		})
-
 		It("uploads releases provided in the manifest after manifest has been interpolated", func() {
 			opts.Args.RuntimeConfig = FileBytesArg{
 				Bytes: []byte("before-upload-config: ((key))"),

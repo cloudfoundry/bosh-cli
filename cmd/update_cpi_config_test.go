@@ -83,26 +83,6 @@ var _ = Describe("UpdateCPIConfigCmd", func() {
 			Expect(bytes).To(Equal([]byte("name: val1-from-kv\ntype: val2-from-file\nxyz: val\n")))
 		})
 
-		It("handles latest config errors", func() {
-			director.LatestCPIConfigReturns(boshdir.CPIConfig{}, errors.New("fake-connection-error"))
-			err := act()
-			Expect(err).To(HaveOccurred())
-		})
-
-		It("ignores the error for existing config while checking if upload is required", func() {
-			director.LatestCPIConfigReturns(boshdir.CPIConfig{}, errors.New("No CPI config"))
-			err := act()
-			Expect(err).ToNot(HaveOccurred())
-		})
-
-		It("does not update, instead prints message and exits with success for same content", func() {
-			director.LatestCPIConfigReturns(boshdir.CPIConfig{Properties: "fake"}, nil)
-			err := act()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(director.UpdateConfigCallCount()).To(Equal(0))
-			Expect(ui.Said).To(ContainElement("no changes in config, nothing to update\n"))
-		})
-
 		It("does not stop if confirmation is rejected", func() {
 			ui.AskedConfirmationErr = errors.New("stop")
 

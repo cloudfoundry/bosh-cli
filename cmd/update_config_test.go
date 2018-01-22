@@ -89,26 +89,6 @@ var _ = Describe("UpdateConfigCmd", func() {
 			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\nxyz: val\n")))
 		})
 
-		It("handles latest config errors besides no config", func() {
-			director.LatestConfigReturns(boshdir.Config{}, errors.New("fake-connection-error"))
-			err := act()
-			Expect(err).To(HaveOccurred())
-		})
-
-		It("ignores the error for existing config while checking if upload is required", func() {
-			director.LatestConfigReturns(boshdir.Config{}, errors.New("No config"))
-			err := act()
-			Expect(err).ToNot(HaveOccurred())
-		})
-
-		It("does not update, instead prints message and exits with success for same content", func() {
-			director.LatestConfigReturns(boshdir.Config{Content: "fake-content"}, nil)
-			err := act()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(director.UpdateConfigCallCount()).To(Equal(0))
-			Expect(ui.Said).To(ContainElement("no changes in config, nothing to update\n"))
-		})
-
 		It("does not update if confirmation is rejected", func() {
 			ui.AskedConfirmationErr = errors.New("stop")
 
