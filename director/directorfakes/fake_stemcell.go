@@ -393,11 +393,7 @@ func (fake *FakeStemcell) Invocations() map[string][][]interface{} {
 	defer fake.cIDMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
-	copiedInvocations := map[string][][]interface{}{}
-	for key, value := range fake.invocations {
-		copiedInvocations[key] = value
-	}
-	return copiedInvocations
+	return fake.invocations
 }
 
 func (fake *FakeStemcell) recordInvocation(key string, args []interface{}) {

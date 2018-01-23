@@ -160,11 +160,7 @@ func (fake *FakeIndexBlobs) Invocations() map[string][][]interface{} {
 	defer fake.getMutex.RUnlock()
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
-	copiedInvocations := map[string][][]interface{}{}
-	for key, value := range fake.invocations {
-		copiedInvocations[key] = value
-	}
-	return copiedInvocations
+	return fake.invocations
 }
 
 func (fake *FakeIndexBlobs) recordInvocation(key string, args []interface{}) {

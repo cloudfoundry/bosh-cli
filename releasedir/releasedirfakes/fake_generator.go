@@ -137,11 +137,7 @@ func (fake *FakeGenerator) Invocations() map[string][][]interface{} {
 	defer fake.generateJobMutex.RUnlock()
 	fake.generatePackageMutex.RLock()
 	defer fake.generatePackageMutex.RUnlock()
-	copiedInvocations := map[string][][]interface{}{}
-	for key, value := range fake.invocations {
-		copiedInvocations[key] = value
-	}
-	return copiedInvocations
+	return fake.invocations
 }
 
 func (fake *FakeGenerator) recordInvocation(key string, args []interface{}) {

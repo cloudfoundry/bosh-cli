@@ -81,11 +81,7 @@ func (fake *FakeDeploymentTemplateFactory) Invocations() map[string][][]interfac
 	defer fake.invocationsMutex.RUnlock()
 	fake.newDeploymentTemplateFromPathMutex.RLock()
 	defer fake.newDeploymentTemplateFromPathMutex.RUnlock()
-	copiedInvocations := map[string][][]interface{}{}
-	for key, value := range fake.invocations {
-		copiedInvocations[key] = value
-	}
-	return copiedInvocations
+	return fake.invocations
 }
 
 func (fake *FakeDeploymentTemplateFactory) recordInvocation(key string, args []interface{}) {

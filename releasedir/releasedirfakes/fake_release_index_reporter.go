@@ -50,11 +50,7 @@ func (fake *FakeReleaseIndexReporter) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.releaseIndexAddedMutex.RLock()
 	defer fake.releaseIndexAddedMutex.RUnlock()
-	copiedInvocations := map[string][][]interface{}{}
-	for key, value := range fake.invocations {
-		copiedInvocations[key] = value
-	}
-	return copiedInvocations
+	return fake.invocations
 }
 
 func (fake *FakeReleaseIndexReporter) recordInvocation(key string, args []interface{}) {

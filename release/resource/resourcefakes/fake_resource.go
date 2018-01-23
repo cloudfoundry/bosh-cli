@@ -413,11 +413,7 @@ func (fake *FakeResource) Invocations() map[string][][]interface{} {
 	defer fake.finalizeMutex.RUnlock()
 	fake.rehashWithCalculatorMutex.RLock()
 	defer fake.rehashWithCalculatorMutex.RUnlock()
-	copiedInvocations := map[string][][]interface{}{}
-	for key, value := range fake.invocations {
-		copiedInvocations[key] = value
-	}
-	return copiedInvocations
+	return fake.invocations
 }
 
 func (fake *FakeResource) recordInvocation(key string, args []interface{}) {

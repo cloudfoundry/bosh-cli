@@ -821,11 +821,7 @@ func (fake *FakeTask) Invocations() map[string][][]interface{} {
 	defer fake.resultOutputMutex.RUnlock()
 	fake.cancelMutex.RLock()
 	defer fake.cancelMutex.RUnlock()
-	copiedInvocations := map[string][][]interface{}{}
-	for key, value := range fake.invocations {
-		copiedInvocations[key] = value
-	}
-	return copiedInvocations
+	return fake.invocations
 }
 
 func (fake *FakeTask) recordInvocation(key string, args []interface{}) {

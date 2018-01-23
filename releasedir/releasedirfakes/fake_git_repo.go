@@ -188,11 +188,7 @@ func (fake *FakeGitRepo) Invocations() map[string][][]interface{} {
 	defer fake.lastCommitSHAMutex.RUnlock()
 	fake.mustNotBeDirtyMutex.RLock()
 	defer fake.mustNotBeDirtyMutex.RUnlock()
-	copiedInvocations := map[string][][]interface{}{}
-	for key, value := range fake.invocations {
-		copiedInvocations[key] = value
-	}
-	return copiedInvocations
+	return fake.invocations
 }
 
 func (fake *FakeGitRepo) recordInvocation(key string, args []interface{}) {

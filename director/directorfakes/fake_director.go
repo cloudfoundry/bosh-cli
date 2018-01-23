@@ -274,6 +274,21 @@ type FakeDirector struct {
 		result1 bool
 		result2 error
 	}
+	MatchesStemcellsStub        func([]director.StemcellMatch) ([]director.StemcellMatch, bool, error)
+	matchesStemcellsMutex       sync.RWMutex
+	matchesStemcellsArgsForCall []struct {
+		arg1 []director.StemcellMatch
+	}
+	matchesStemcellsReturns struct {
+		result1 []director.StemcellMatch
+		result2 bool
+		result3 error
+	}
+	matchesStemcellsReturnsOnCall map[int]struct {
+		result1 []director.StemcellMatch
+		result2 bool
+		result3 error
+	}
 	FindStemcellStub        func(director.StemcellSlug) (director.Stemcell, error)
 	findStemcellMutex       sync.RWMutex
 	findStemcellArgsForCall []struct {
@@ -1603,6 +1618,65 @@ func (fake *FakeDirector) HasStemcellReturnsOnCall(i int, result1 bool, result2 
 	}{result1, result2}
 }
 
+func (fake *FakeDirector) MatchesStemcells(arg1 []director.StemcellMatch) ([]director.StemcellMatch, bool, error) {
+	var arg1Copy []director.StemcellMatch
+	if arg1 != nil {
+		arg1Copy = make([]director.StemcellMatch, len(arg1))
+		copy(arg1Copy, arg1)
+	}
+	fake.matchesStemcellsMutex.Lock()
+	ret, specificReturn := fake.matchesStemcellsReturnsOnCall[len(fake.matchesStemcellsArgsForCall)]
+	fake.matchesStemcellsArgsForCall = append(fake.matchesStemcellsArgsForCall, struct {
+		arg1 []director.StemcellMatch
+	}{arg1Copy})
+	fake.recordInvocation("MatchesStemcells", []interface{}{arg1Copy})
+	fake.matchesStemcellsMutex.Unlock()
+	if fake.MatchesStemcellsStub != nil {
+		return fake.MatchesStemcellsStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	return fake.matchesStemcellsReturns.result1, fake.matchesStemcellsReturns.result2, fake.matchesStemcellsReturns.result3
+}
+
+func (fake *FakeDirector) MatchesStemcellsCallCount() int {
+	fake.matchesStemcellsMutex.RLock()
+	defer fake.matchesStemcellsMutex.RUnlock()
+	return len(fake.matchesStemcellsArgsForCall)
+}
+
+func (fake *FakeDirector) MatchesStemcellsArgsForCall(i int) []director.StemcellMatch {
+	fake.matchesStemcellsMutex.RLock()
+	defer fake.matchesStemcellsMutex.RUnlock()
+	return fake.matchesStemcellsArgsForCall[i].arg1
+}
+
+func (fake *FakeDirector) MatchesStemcellsReturns(result1 []director.StemcellMatch, result2 bool, result3 error) {
+	fake.MatchesStemcellsStub = nil
+	fake.matchesStemcellsReturns = struct {
+		result1 []director.StemcellMatch
+		result2 bool
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeDirector) MatchesStemcellsReturnsOnCall(i int, result1 []director.StemcellMatch, result2 bool, result3 error) {
+	fake.MatchesStemcellsStub = nil
+	if fake.matchesStemcellsReturnsOnCall == nil {
+		fake.matchesStemcellsReturnsOnCall = make(map[int]struct {
+			result1 []director.StemcellMatch
+			result2 bool
+			result3 error
+		})
+	}
+	fake.matchesStemcellsReturnsOnCall[i] = struct {
+		result1 []director.StemcellMatch
+		result2 bool
+		result3 error
+	}{result1, result2, result3}
+}
+
 func (fake *FakeDirector) FindStemcell(arg1 director.StemcellSlug) (director.Stemcell, error) {
 	fake.findStemcellMutex.Lock()
 	ret, specificReturn := fake.findStemcellReturnsOnCall[len(fake.findStemcellArgsForCall)]
@@ -2873,6 +2947,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.stemcellsMutex.RUnlock()
 	fake.hasStemcellMutex.RLock()
 	defer fake.hasStemcellMutex.RUnlock()
+	fake.matchesStemcellsMutex.RLock()
+	defer fake.matchesStemcellsMutex.RUnlock()
 	fake.findStemcellMutex.RLock()
 	defer fake.findStemcellMutex.RUnlock()
 	fake.uploadStemcellURLMutex.RLock()
@@ -2921,11 +2997,7 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.cleanUpMutex.RUnlock()
 	fake.downloadResourceUncheckedMutex.RLock()
 	defer fake.downloadResourceUncheckedMutex.RUnlock()
-	copiedInvocations := map[string][][]interface{}{}
-	for key, value := range fake.invocations {
-		copiedInvocations[key] = value
-	}
-	return copiedInvocations
+	return fake.invocations
 }
 
 func (fake *FakeDirector) recordInvocation(key string, args []interface{}) {
