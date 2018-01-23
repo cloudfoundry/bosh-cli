@@ -39,6 +39,7 @@ type Director interface {
 
 	Stemcells() ([]Stemcell, error)
 	HasStemcell(name, version string) (bool, error)
+	MatchesStemcells([]StemcellMatch) ([]StemcellMatch, bool, error)
 	FindStemcell(StemcellSlug) (Stemcell, error)
 	UploadStemcellURL(url, sha1 string, fix bool) error
 	UploadStemcellFile(file UploadFile, fix bool) error

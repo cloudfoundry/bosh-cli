@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	gourl "net/url"
+	"regexp"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	semver "github.com/cppforlife/go-semi-semantic/version"
@@ -62,6 +63,11 @@ type StemcellResp struct {
 	Deployments []interface{}
 }
 
+type StemcellMatch struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
+
 func (d DirectorImpl) Stemcells() ([]Stemcell, error) {
 	resps, err := d.client.Stemcells()
 	if err != nil {
@@ -116,6 +122,10 @@ func (d DirectorImpl) HasStemcell(name, version string) (bool, error) {
 	return d.client.HasStemcell(name, version)
 }
 
+func (d DirectorImpl) MatchesStemcells(stemcells []StemcellMatch) ([]StemcellMatch, bool, error) {
+	return d.client.MatchesStemcells(stemcells)
+}
+
 func (d DirectorImpl) UploadStemcellURL(url, sha1 string, fix bool) error {
 	return d.client.UploadStemcellURL(url, sha1, fix)
 }
@@ -148,6 +158,33 @@ func (c Client) HasStemcell(name, version string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+var notFoundRegexp = regexp.MustCompile(`\b404\b`)
+
+func (c Client) MatchesStemcells(stemcells []StemcellMatch) ([]StemcellMatch, bool, error) {
+	var resps struct {
+		Missing []StemcellMatch
+	}
+
+	setHeaders := func(req *http.Request) {
+		req.Header.Add("Content-Type", "application/json")
+	}
+
+	jsonBody, err := json.Marshal(stemcells)
+	if err != nil {
+		return nil, true, err
+	}
+
+	err = c.clientRequest.Post("/stemcell_matches", jsonBody, setHeaders, &resps)
+	if err != nil {
+		if notFoundRegexp.MatchString(err.Error()) {
+			return stemcells, false, bosherr.WrapErrorf(err, "Finding stemcells")
+		}
+		return resps.Missing, true, bosherr.WrapErrorf(err, "Finding stemcells")
+	}
+
+	return resps.Missing, true, nil
 }
 
 func (c Client) UploadStemcellURL(url, sha1 string, fix bool) error {

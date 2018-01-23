@@ -76,6 +76,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(director.HasStemcellCallCount()).To(Equal(0))
+				Expect(director.MatchesStemcellsCallCount()).To(Equal(0))
 
 				Expect(director.UploadStemcellURLCallCount()).To(Equal(1))
 
@@ -99,56 +100,118 @@ var _ = Describe("UploadStemcellCmd", func() {
 				Expect(fix).To(BeFalse())
 			})
 
-			It("does not upload stemcell if name and version match existing stemcell", func() {
-				opts.Name = "existing-name"
-				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
+			Context("when a director supports StemcellMatches", func() {
+				It("uploads a stemcell when any CPI is missing it", func() {
+					opts.Name = "existing-name"
+					opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
 
-				director.HasStemcellReturns(true, nil)
+					director.MatchesStemcellsReturns(
+						[]boshdir.StemcellMatch{{Name: "existing-name", Version: "existing-ver"}},
+						true,
+						nil,
+					)
 
-				err := act()
-				Expect(err).ToNot(HaveOccurred())
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
 
-				Expect(director.UploadStemcellURLCallCount()).To(Equal(0))
+					Expect(director.UploadStemcellURLCallCount()).To(Equal(1))
 
-				name, version := director.HasStemcellArgsForCall(0)
-				Expect(name).To(Equal("existing-name"))
-				Expect(version).To(Equal("existing-ver"))
+					url, sha1, fix := director.UploadStemcellURLArgsForCall(0)
+					Expect(url).To(Equal("https://some-file.tzg"))
+					Expect(sha1).To(Equal(""))
+					Expect(fix).To(BeFalse())
 
-				Expect(ui.Said).To(Equal(
-					[]string{"Stemcell 'existing-name/existing-ver' already exists."}))
+					Expect(director.MatchesStemcellsCallCount()).To(Equal(1))
+					submission := director.MatchesStemcellsArgsForCall(0)
+					Expect(submission).To(Equal([]boshdir.StemcellMatch{{Name: "existing-name", Version: "existing-ver"}}))
+
+					Expect(ui.Said).To(BeEmpty())
+				})
+
+				It("does not upload stemcell if no CPI needs that name and version", func() {
+					opts.Name = "existing-name"
+					opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
+
+					director.MatchesStemcellsReturns([]boshdir.StemcellMatch{}, true, nil)
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(director.UploadStemcellURLCallCount()).To(Equal(0))
+
+					Expect(director.MatchesStemcellsCallCount()).To(Equal(1))
+					submission := director.MatchesStemcellsArgsForCall(0)
+					Expect(submission).To(Equal([]boshdir.StemcellMatch{{Name: "existing-name", Version: "existing-ver"}}))
+
+					Expect(ui.Said).To(Equal([]string{"Stemcell 'existing-name/existing-ver' already exists."}))
+				})
+
+				It("returns error if checking for stemcell existence fails", func() {
+					director.MatchesStemcellsReturns(nil, true, errors.New("fake-err"))
+
+					err := act()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+
+					Expect(director.UploadStemcellURLCallCount()).To(Equal(0))
+				})
 			})
 
-			It("uploads stemcell if name and version does not match existing stemcell", func() {
-				opts.Name = "existing-name"
-				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
+			Context("when a legacy director does not support StemcellMatches", func() {
+				BeforeEach(func() {
+					director.MatchesStemcellsReturns([]boshdir.StemcellMatch{{}}, false, nil)
+				})
 
-				director.HasStemcellReturns(false, nil)
+				It("does not upload stemcell if name and version match existing stemcell", func() {
+					opts.Name = "existing-name"
+					opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
 
-				err := act()
-				Expect(err).ToNot(HaveOccurred())
+					director.HasStemcellReturns(true, nil)
 
-				Expect(director.UploadStemcellURLCallCount()).To(Equal(1))
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
 
-				url, sha1, fix := director.UploadStemcellURLArgsForCall(0)
-				Expect(url).To(Equal("https://some-file.tzg"))
-				Expect(sha1).To(Equal(""))
-				Expect(fix).To(BeFalse())
+					Expect(director.UploadStemcellURLCallCount()).To(Equal(0))
 
-				name, version := director.HasStemcellArgsForCall(0)
-				Expect(name).To(Equal("existing-name"))
-				Expect(version).To(Equal("existing-ver"))
+					name, version := director.HasStemcellArgsForCall(0)
+					Expect(name).To(Equal("existing-name"))
+					Expect(version).To(Equal("existing-ver"))
 
-				Expect(ui.Said).To(BeEmpty())
-			})
+					Expect(ui.Said).To(Equal([]string{"Stemcell 'existing-name/existing-ver' already exists."}))
+				})
 
-			It("returns error if checking for stemcell existence fails", func() {
-				director.HasStemcellReturns(false, errors.New("fake-err"))
+				It("uploads stemcell if name and version does not match existing stemcell", func() {
+					opts.Name = "existing-name"
+					opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
 
-				err := act()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-err"))
+					director.HasStemcellReturns(false, nil)
 
-				Expect(director.UploadStemcellURLCallCount()).To(Equal(0))
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(director.UploadStemcellURLCallCount()).To(Equal(1))
+
+					url, sha1, fix := director.UploadStemcellURLArgsForCall(0)
+					Expect(url).To(Equal("https://some-file.tzg"))
+					Expect(sha1).To(Equal(""))
+					Expect(fix).To(BeFalse())
+
+					name, version := director.HasStemcellArgsForCall(0)
+					Expect(name).To(Equal("existing-name"))
+					Expect(version).To(Equal("existing-ver"))
+
+					Expect(ui.Said).To(BeEmpty())
+				})
+
+				It("returns error if checking for stemcell existence fails", func() {
+					director.HasStemcellReturns(false, errors.New("fake-err"))
+
+					err := act()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+
+					Expect(director.UploadStemcellURLCallCount()).To(Equal(0))
+				})
 			})
 
 			It("returns error if uploading stemcell failed", func() {
@@ -183,51 +246,13 @@ var _ = Describe("UploadStemcellCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(director.HasStemcellCallCount()).To(Equal(0))
+				Expect(director.MatchesStemcellsCallCount()).To(Equal(0))
 
 				Expect(director.UploadStemcellFileCallCount()).To(Equal(1))
 
 				file, fix := director.UploadStemcellFileArgsForCall(0)
 				Expect(file.(*fakesys.FakeFile).Name()).To(Equal("./some-file.tgz"))
 				Expect(fix).To(BeTrue())
-			})
-
-			It("does not upload stemcell if name and version match existing stemcell", func() {
-				archive.InfoReturns("existing-name", "existing-ver", nil)
-
-				director.HasStemcellReturns(true, nil)
-
-				err := act()
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(director.UploadStemcellFileCallCount()).To(Equal(0))
-
-				name, version := director.HasStemcellArgsForCall(0)
-				Expect(name).To(Equal("existing-name"))
-				Expect(version).To(Equal("existing-ver"))
-
-				Expect(ui.Said).To(Equal(
-					[]string{"Stemcell 'existing-name/existing-ver' already exists."}))
-			})
-
-			It("uploads stemcell if name and version does not match existing stemcell", func() {
-				archive.InfoReturns("existing-name", "existing-ver", nil)
-
-				director.HasStemcellReturns(false, nil)
-
-				err := act()
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(director.UploadStemcellFileCallCount()).To(Equal(1))
-
-				file, fix := director.UploadStemcellFileArgsForCall(0)
-				Expect(file.(*fakesys.FakeFile).Name()).To(Equal("./some-file.tgz"))
-				Expect(fix).To(BeFalse())
-
-				name, version := director.HasStemcellArgsForCall(0)
-				Expect(name).To(Equal("existing-name"))
-				Expect(version).To(Equal("existing-ver"))
-
-				Expect(ui.Said).To(BeEmpty())
 			})
 
 			It("returns error if retrieving stemcell archive info fails", func() {
@@ -252,22 +277,122 @@ var _ = Describe("UploadStemcellCmd", func() {
 				Expect(director.UploadStemcellFileCallCount()).To(Equal(0))
 			})
 
-			It("returns error if checking for stemcell existence fails", func() {
-				director.HasStemcellReturns(false, errors.New("fake-err"))
-
-				err := act()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-err"))
-
-				Expect(director.UploadStemcellFileCallCount()).To(Equal(0))
-			})
-
 			It("returns error if uploading stemcell failed", func() {
 				director.UploadStemcellFileReturns(errors.New("fake-err"))
 
 				err := act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+
+			Context("when a director supports StemcellMatches", func() {
+				It("uploads a stemcell when any CPI is missing it", func() {
+					archive.InfoReturns("existing-name", "existing-ver", nil)
+
+					director.MatchesStemcellsReturns(
+						[]boshdir.StemcellMatch{{Name: "existing-name", Version: "existing-ver"}},
+						true,
+						nil,
+					)
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(director.UploadStemcellFileCallCount()).To(Equal(1))
+
+					file, fix := director.UploadStemcellFileArgsForCall(0)
+					Expect(file.(*fakesys.FakeFile).Name()).To(Equal("./some-file.tgz"))
+					Expect(fix).To(BeFalse())
+
+					Expect(director.MatchesStemcellsCallCount()).To(Equal(1))
+					submission := director.MatchesStemcellsArgsForCall(0)
+					Expect(submission).To(Equal([]boshdir.StemcellMatch{{Name: "existing-name", Version: "existing-ver"}}))
+
+					Expect(ui.Said).To(BeEmpty())
+				})
+
+				It("does not upload stemcell if no CPI needs that name and version", func() {
+					archive.InfoReturns("existing-name", "existing-ver", nil)
+
+					director.MatchesStemcellsReturns([]boshdir.StemcellMatch{}, true, nil)
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(director.UploadStemcellFileCallCount()).To(Equal(0))
+
+					Expect(director.MatchesStemcellsCallCount()).To(Equal(1))
+					submission := director.MatchesStemcellsArgsForCall(0)
+					Expect(submission).To(Equal([]boshdir.StemcellMatch{{Name: "existing-name", Version: "existing-ver"}}))
+
+					Expect(ui.Said).To(Equal([]string{"Stemcell 'existing-name/existing-ver' already exists."}))
+				})
+
+				It("returns error if checking for stemcell existence fails", func() {
+					director.MatchesStemcellsReturns(nil, true, errors.New("fake-err"))
+
+					err := act()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+
+					Expect(director.UploadStemcellFileCallCount()).To(Equal(0))
+				})
+			})
+
+			Context("when a legacy director does not support StemcellMatches", func() {
+				BeforeEach(func() {
+					director.MatchesStemcellsReturns([]boshdir.StemcellMatch{{}}, false, nil)
+				})
+
+				It("uploads stemcell if name and version does not match existing stemcell", func() {
+					archive.InfoReturns("existing-name", "existing-ver", nil)
+
+					director.HasStemcellReturns(false, nil)
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(director.UploadStemcellFileCallCount()).To(Equal(1))
+
+					file, fix := director.UploadStemcellFileArgsForCall(0)
+					Expect(file.(*fakesys.FakeFile).Name()).To(Equal("./some-file.tgz"))
+					Expect(fix).To(BeFalse())
+
+					name, version := director.HasStemcellArgsForCall(0)
+					Expect(name).To(Equal("existing-name"))
+					Expect(version).To(Equal("existing-ver"))
+
+					Expect(ui.Said).To(BeEmpty())
+				})
+
+				It("does not upload stemcell if name and version match existing stemcell", func() {
+					archive.InfoReturns("existing-name", "existing-ver", nil)
+
+					director.HasStemcellReturns(true, nil)
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(director.UploadStemcellFileCallCount()).To(Equal(0))
+
+					name, version := director.HasStemcellArgsForCall(0)
+					Expect(name).To(Equal("existing-name"))
+					Expect(version).To(Equal("existing-ver"))
+
+					Expect(ui.Said).To(Equal(
+						[]string{"Stemcell 'existing-name/existing-ver' already exists."}))
+				})
+
+				It("returns error if checking for stemcell existence fails", func() {
+					director.HasStemcellReturns(false, errors.New("fake-err"))
+
+					err := act()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
+
+					Expect(director.UploadStemcellFileCallCount()).To(Equal(0))
+				})
+
 			})
 		})
 	})
