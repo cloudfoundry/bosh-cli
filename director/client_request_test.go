@@ -649,6 +649,48 @@ var _ = Describe("ClientRequest", func() {
 					Expect(err.Error()).To(ContainSubstring("Unmarshaling Director response"))
 				})
 			})
+
+			Context("when context id is not set", func() {
+				verifyContextIdNotSet := func(_ http.ResponseWriter, req *http.Request) {
+					_, found := req.Header["X-Bosh-Context-Id"]
+					Expect(found).To(BeFalse())
+				}
+
+				It("does not set a X-Bosh-Context-Id header", func() {
+					server.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("DELETE", "/path", ""),
+							ghttp.VerifyBody([]byte("")),
+							verifyContextIdNotSet,
+							ghttp.RespondWith(code, `["val"]`),
+						),
+					)
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+				})
+			})
+
+			Context("when context id set", func() {
+				contextId := "example-context-id"
+				BeforeEach(func() {
+					req = req.WithContext(contextId)
+				})
+
+				It("makes request with correct header", func() {
+					server.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("DELETE", "/path", ""),
+							ghttp.VerifyBody([]byte("")),
+							ghttp.VerifyHeaderKV("X-Bosh-Context-Id", contextId),
+							ghttp.RespondWith(code, `["val"]`),
+						),
+					)
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+				})
+			})
 		}
 
 		Describe("'302' response", func() {
