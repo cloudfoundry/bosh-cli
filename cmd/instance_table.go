@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"strings"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
@@ -112,6 +113,11 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 		vmInfoIndex = boshtbl.NewValueInt(*i.Index)
 	}
 
+	activeStatus := "-"
+	if i.Active != nil {
+		activeStatus = fmt.Sprintf("%t", *i.Active)
+	}
+
 	vals := InstanceTableValues{
 		Name:    t.buildName(i),
 		Process: boshtbl.ValueString{},
@@ -123,7 +129,7 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 
 		AZ:     boshtbl.NewValueString(i.AZ),
 		VMType: boshtbl.NewValueString(i.VMType),
-		Active: boshtbl.NewValueBool(i.Active),
+		Active: boshtbl.NewValueString(activeStatus),
 		IPs:    boshtbl.NewValueStrings(i.IPs),
 
 		// Details
