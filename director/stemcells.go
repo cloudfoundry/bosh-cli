@@ -176,12 +176,17 @@ func (c Client) MatchesStemcells(stemcells []StemcellMatch) ([]StemcellMatch, bo
 		return nil, true, err
 	}
 
-	err = c.clientRequest.Post("/stemcell_matches", jsonBody, setHeaders, &resps)
+	respBody, response, err := c.clientRequest.RawPost("/stemcell_matches", jsonBody, setHeaders)
 	if err != nil {
-		if notFoundRegexp.MatchString(err.Error()) {
+		if response.StatusCode == http.StatusNotFound {
 			return stemcells, false, bosherr.WrapErrorf(err, "Finding stemcells")
 		}
-		return resps.Missing, true, bosherr.WrapErrorf(err, "Finding stemcells")
+		return []StemcellMatch{}, true, bosherr.WrapErrorf(err, "Finding stemcells")
+	}
+
+	err = json.Unmarshal(respBody, &resps)
+	if err != nil {
+		return []StemcellMatch{}, true, bosherr.WrapError(err, "Unmarshaling stemcell matches")
 	}
 
 	return resps.Missing, true, nil
