@@ -326,6 +326,19 @@ type FakeDirector struct {
 		result1 director.Config
 		result2 error
 	}
+	LatestConfigByIdStub        func(configId string) (director.Config, error)
+	latestConfigByIdMutex       sync.RWMutex
+	latestConfigByIdArgsForCall []struct {
+		configId string
+	}
+	latestConfigByIdReturns struct {
+		result1 director.Config
+		result2 error
+	}
+	latestConfigByIdReturnsOnCall map[int]struct {
+		result1 director.Config
+		result2 error
+	}
 	ListConfigsStub        func(filter director.ConfigsFilter) ([]director.ConfigListItem, error)
 	listConfigsMutex       sync.RWMutex
 	listConfigsArgsForCall []struct {
@@ -1805,6 +1818,57 @@ func (fake *FakeDirector) LatestConfigReturnsOnCall(i int, result1 director.Conf
 	}{result1, result2}
 }
 
+func (fake *FakeDirector) LatestConfigById(configId string) (director.Config, error) {
+	fake.latestConfigByIdMutex.Lock()
+	ret, specificReturn := fake.latestConfigByIdReturnsOnCall[len(fake.latestConfigByIdArgsForCall)]
+	fake.latestConfigByIdArgsForCall = append(fake.latestConfigByIdArgsForCall, struct {
+		configId string
+	}{configId})
+	fake.recordInvocation("LatestConfigById", []interface{}{configId})
+	fake.latestConfigByIdMutex.Unlock()
+	if fake.LatestConfigByIdStub != nil {
+		return fake.LatestConfigByIdStub(configId)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.latestConfigByIdReturns.result1, fake.latestConfigByIdReturns.result2
+}
+
+func (fake *FakeDirector) LatestConfigByIdCallCount() int {
+	fake.latestConfigByIdMutex.RLock()
+	defer fake.latestConfigByIdMutex.RUnlock()
+	return len(fake.latestConfigByIdArgsForCall)
+}
+
+func (fake *FakeDirector) LatestConfigByIdArgsForCall(i int) string {
+	fake.latestConfigByIdMutex.RLock()
+	defer fake.latestConfigByIdMutex.RUnlock()
+	return fake.latestConfigByIdArgsForCall[i].configId
+}
+
+func (fake *FakeDirector) LatestConfigByIdReturns(result1 director.Config, result2 error) {
+	fake.LatestConfigByIdStub = nil
+	fake.latestConfigByIdReturns = struct {
+		result1 director.Config
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) LatestConfigByIdReturnsOnCall(i int, result1 director.Config, result2 error) {
+	fake.LatestConfigByIdStub = nil
+	if fake.latestConfigByIdReturnsOnCall == nil {
+		fake.latestConfigByIdReturnsOnCall = make(map[int]struct {
+			result1 director.Config
+			result2 error
+		})
+	}
+	fake.latestConfigByIdReturnsOnCall[i] = struct {
+		result1 director.Config
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDirector) ListConfigs(filter director.ConfigsFilter) ([]director.ConfigListItem, error) {
 	fake.listConfigsMutex.Lock()
 	ret, specificReturn := fake.listConfigsReturnsOnCall[len(fake.listConfigsArgsForCall)]
@@ -2881,6 +2945,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.uploadStemcellFileMutex.RUnlock()
 	fake.latestConfigMutex.RLock()
 	defer fake.latestConfigMutex.RUnlock()
+	fake.latestConfigByIdMutex.RLock()
+	defer fake.latestConfigByIdMutex.RUnlock()
 	fake.listConfigsMutex.RLock()
 	defer fake.listConfigsMutex.RUnlock()
 	fake.updateConfigMutex.RLock()

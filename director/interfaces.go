@@ -44,6 +44,7 @@ type Director interface {
 	UploadStemcellFile(file UploadFile, fix bool) error
 
 	LatestConfig(configType string, name string) (Config, error)
+	LatestConfigById(configId string) (Config, error)
 	ListConfigs(filter ConfigsFilter) ([]ConfigListItem, error)
 	UpdateConfig(configType string, name string, content []byte) error
 	DeleteConfig(configType string, name string) (bool, error)

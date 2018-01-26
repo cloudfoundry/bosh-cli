@@ -47,6 +47,34 @@ func (d DirectorImpl) LatestConfig(configType string, name string) (Config, erro
 	return resps[0], nil
 }
 
+func (d DirectorImpl) LatestConfigById(configId string) (Config, error) {
+	return d.client.latestConfigById(configId)
+}
+
+func (c Client) latestConfigById(configId string) (Config, error) {
+	var config Config
+
+	query := gourl.Values{}
+	query.Add("/", configId)
+	path := fmt.Sprintf("/configs/%s", configId)
+
+	respBody, response, err := c.clientRequest.RawGet(path, nil, nil)
+	if err != nil {
+		if response != nil && response.StatusCode == http.StatusNotFound {
+			return config, bosherr.WrapErrorf(err, "No config")
+		}
+		return config, bosherr.WrapErrorf(err, "Finding config")
+	}
+
+	err = json.Unmarshal(respBody, &config)
+
+	if err != nil {
+		return config, bosherr.WrapError(err, "Unmarshaling Director response")
+	}
+
+	return config, nil
+}
+
 func (d DirectorImpl) ListConfigs(filter ConfigsFilter) ([]ConfigListItem, error) {
 	return d.client.listConfigs(filter)
 }

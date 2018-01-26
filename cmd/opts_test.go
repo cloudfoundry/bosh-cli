@@ -22,6 +22,11 @@ func getStructTagForName(field string, opts interface{}) string {
 	return dupSpaces.ReplaceAllString(string(st.Tag), " ")
 }
 
+func getStructTagForType(field string, opts interface{}) string {
+	st, _ := reflect.TypeOf(opts).Elem().FieldByName(field)
+	return dupSpaces.ReplaceAllString(string(st.Tag), " ")
+}
+
 var _ = Describe("Opts", func() {
 	Describe("BoshOpts", func() {
 		var opts *BoshOpts
@@ -923,13 +928,19 @@ var _ = Describe("Opts", func() {
 
 		Describe("Args", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
 			})
 		})
 
 		Describe("Name", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("Name", opts)).To(Equal(`long:"name" description:"Config name" default:"default"`))
+				Expect(getStructTagForName("Name", opts)).To(Equal(`long:"name" description:"Config name"`))
+			})
+		})
+
+		Describe("Type", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForType("Type", opts)).To(Equal(`long:"type" description:"Config type"`))
 			})
 		})
 	})
@@ -943,8 +954,8 @@ var _ = Describe("Opts", func() {
 
 		Describe("Type", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("Type", opts)).To(Equal(
-					`positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud', 'runtime', or 'cpi'"`,
+				Expect(getStructTagForName("ID", opts)).To(Equal(
+					`positional-arg-name:"ID" description:"Config ID"`,
 				))
 			})
 		})
