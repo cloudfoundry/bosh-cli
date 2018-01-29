@@ -67,6 +67,49 @@ var _ bool = Describe("Director", func() {
 		})
 	})
 
+	Describe("LatestConfigById", func() {
+		It("returns config by Id", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/configs/123"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `{"id": "123", "type": "my-type", "name": "default", "content": "1"}`),
+				),
+			)
+
+			cc, err := director.LatestConfigById("123")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(cc).To(Equal(Config{Content: "1"}))
+		})
+
+		Context("when there is no config and director responds with status 404", func() {
+			It("returns 'no config' error", func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/configs/bla"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.RespondWith(http.StatusNotFound, ""),
+					),
+				)
+
+				_, err := director.LatestConfigById("bla")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("No config"))
+			})
+		})
+
+		Context("when server returns an error", func() {
+			It("returns error", func() {
+				AppendBadRequest(ghttp.VerifyRequest("GET", "/configs/123"), server)
+
+				_, err := director.LatestConfigById("123")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(
+					"Finding config: Director responded with non-successful status code"))
+			})
+		})
+	})
+
 	Describe("ListConfigs", func() {
 		Context("when IncludeOutdated is set to false", func() {
 			Context("when no additional filters are given", func() {
