@@ -373,7 +373,11 @@ func (fake *FakeOrphanDisk) Invocations() map[string][][]interface{} {
 	defer fake.orphanedAtMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
-	return fake.invocations
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeOrphanDisk) recordInvocation(key string, args []interface{}) {

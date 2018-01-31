@@ -63,7 +63,7 @@ type StemcellResp struct {
 	Deployments []interface{}
 }
 
-type StemcellMatch struct {
+type StemcellInfo struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 }
@@ -122,8 +122,8 @@ func (d DirectorImpl) HasStemcell(name, version string) (bool, error) {
 	return d.client.HasStemcell(name, version)
 }
 
-func (d DirectorImpl) MatchesStemcells(stemcells []StemcellMatch) ([]StemcellMatch, bool, error) {
-	return d.client.MatchesStemcells(stemcells)
+func (d DirectorImpl) StemcellNeedsUpload(stemcells StemcellInfo) (bool, bool, error) {
+	return d.client.StemcellNeedsUpload(stemcells)
 }
 
 func (d DirectorImpl) UploadStemcellURL(url, sha1 string, fix bool) error {
@@ -162,34 +162,34 @@ func (c Client) HasStemcell(name, version string) (bool, error) {
 
 var notFoundRegexp = regexp.MustCompile(`\b404\b`)
 
-func (c Client) MatchesStemcells(stemcells []StemcellMatch) ([]StemcellMatch, bool, error) {
-	var resps struct {
-		Missing []StemcellMatch
-	}
-
+func (c Client) StemcellNeedsUpload(stemcells StemcellInfo) (bool, bool, error) {
 	setHeaders := func(req *http.Request) {
 		req.Header.Add("Content-Type", "application/json")
 	}
 
-	jsonBody, err := json.Marshal(stemcells)
+	jsonBody, err := json.Marshal(map[string]StemcellInfo{"stemcell": stemcells})
 	if err != nil {
-		return nil, true, err
+		return false, true, err
 	}
 
-	respBody, response, err := c.clientRequest.RawPost("/stemcell_matches", jsonBody, setHeaders)
+	respBody, response, err := c.clientRequest.RawPost("/stemcell_uploads", jsonBody, setHeaders)
 	if err != nil {
 		if response.StatusCode == http.StatusNotFound {
-			return stemcells, false, bosherr.WrapErrorf(err, "Finding stemcells")
+			return false, false, bosherr.WrapErrorf(err, "Finding stemcells")
 		}
-		return []StemcellMatch{}, true, bosherr.WrapErrorf(err, "Finding stemcells")
+		return false, true, bosherr.WrapErrorf(err, "Finding stemcells")
 	}
 
-	err = json.Unmarshal(respBody, &resps)
+	var parsedResponse struct {
+		Needed bool
+	}
+
+	err = json.Unmarshal(respBody, &parsedResponse)
 	if err != nil {
-		return []StemcellMatch{}, true, bosherr.WrapError(err, "Unmarshaling stemcell matches")
+		return false, true, bosherr.WrapError(err, "Unmarshaling stemcell matches")
 	}
 
-	return resps.Missing, true, nil
+	return parsedResponse.Needed, true, nil
 }
 
 func (c Client) UploadStemcellURL(url, sha1 string, fix bool) error {

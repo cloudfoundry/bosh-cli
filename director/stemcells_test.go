@@ -180,78 +180,75 @@ var _ = Describe("Director", func() {
 	})
 
 	Describe("MatchesStemcell", func() {
-		It("returns tuples for stemcells that need upload", func() {
+		It("returns true for stemcells that need upload", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/stemcell_matches"),
+					ghttp.VerifyRequest("POST", "/stemcell_uploads"),
 					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.VerifyJSON(`[{"name":"name","version": "ver"}]`),
-					ghttp.RespondWith(http.StatusOK, `{"missing": [{"name":"name","version":"ver"}]}`),
+					ghttp.VerifyJSON(`{"stemcell": {"name": "name", "version": "ver"}}`),
+					ghttp.RespondWith(http.StatusOK, `{"needed": true}`),
 				),
 			)
 
-			submission := []StemcellMatch{
-				{Name: "name", Version: "ver"},
+			submission := StemcellInfo{
+				Name: "name", Version: "ver",
 			}
-			missing, supported, err := director.MatchesStemcells(submission)
-			Expect(supported).To(Equal(true))
+			needed, supported, err := director.StemcellNeedsUpload(submission)
+			Expect(supported).To(BeTrue())
 			Expect(err).ToNot(HaveOccurred())
-			Expect(missing).To(Equal(submission))
+			Expect(needed).To(BeTrue())
 		})
 
-		It("returns empty array and no error if director does not need stemcell", func() {
+		It("returns false when no stemcell upload is needed", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/stemcell_matches"),
+					ghttp.VerifyRequest("POST", "/stemcell_uploads"),
 					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.VerifyJSON(`[{"name":"name","version":"ver"}]`),
-					ghttp.RespondWith(http.StatusOK, `{"missing": []}`),
+					ghttp.VerifyJSON(`{"stemcell": {"name": "name", "version": "ver"}}`),
+					ghttp.RespondWith(http.StatusOK, `{"needed": false}`),
 				),
 			)
 
-			submission := []StemcellMatch{
-				{Name: "name", Version: "ver"},
+			submission := StemcellInfo{
+				Name: "name", Version: "ver",
 			}
-			missing, supported, err := director.MatchesStemcells(submission)
-			Expect(supported).To(Equal(true))
+			needed, supported, err := director.StemcellNeedsUpload(submission)
+			Expect(supported).To(BeTrue())
 			Expect(err).ToNot(HaveOccurred())
-			Expect(missing).To(Equal([]StemcellMatch{}))
+			Expect(needed).To(BeFalse())
 		})
 
-		It("returns entire submission and 'not supported' if director returns 404", func() {
+		It("returns 'not supported' if director returns 404", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/stemcell_matches"),
+					ghttp.VerifyRequest("POST", "/stemcell_uploads"),
 					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.VerifyJSON(`[{"name":"name","version":"ver"}]`),
 					ghttp.RespondWith(http.StatusNotFound, ``),
 				),
 			)
 
-			submission := []StemcellMatch{
-				{Name: "name", Version: "ver"},
+			submission := StemcellInfo{
+				Name: "name", Version: "ver",
 			}
-			missing, supported, _ := director.MatchesStemcells(submission)
+			_, supported, _ := director.StemcellNeedsUpload(submission)
 			Expect(supported).To(Equal(false))
-			Expect(missing).To(Equal(submission))
 		})
 
 		It("promotes any other error", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/stemcell_matches"),
+					ghttp.VerifyRequest("POST", "/stemcell_uploads"),
 					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.VerifyJSON(`[{"name":"name","version": "ver"}]`),
 					ghttp.RespondWith(http.StatusInternalServerError, ``),
 				),
 			)
 
-			submission := []StemcellMatch{
-				{Name: "name", Version: "ver"},
+			submission := StemcellInfo{
+				Name: "name", Version: "ver",
 			}
-			_, supported, err := director.MatchesStemcells(submission)
-			Expect(supported).To(Equal(true))
+			_, supported, err := director.StemcellNeedsUpload(submission)
 			Expect(err).To(HaveOccurred())
+			Expect(supported).To(BeTrue())
 		})
 	})
 

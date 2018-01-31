@@ -143,7 +143,11 @@ func (fake *FakeFileReporter) Invocations() map[string][][]interface{} {
 	defer fake.trackUploadMutex.RUnlock()
 	fake.trackDownloadMutex.RLock()
 	defer fake.trackDownloadMutex.RUnlock()
-	return fake.invocations
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeFileReporter) recordInvocation(key string, args []interface{}) {
