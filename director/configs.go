@@ -7,8 +7,9 @@ import (
 
 	gourl "net/url"
 
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"strconv"
+
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Config struct {
@@ -16,6 +17,7 @@ type Config struct {
 	Name      string
 	Type      string
 	CreatedAt string
+	Teams     []string
 	Content   string
 }
 
