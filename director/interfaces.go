@@ -149,7 +149,9 @@ type Deployment interface {
 	EnableResurrection(InstanceSlug, bool) error
 
 	Update(manifest []byte, opts UpdateOpts) error
+	UpdateAsync(manifest []byte, opts UpdateOpts) (int, error)
 	Delete(force bool) error
+	DeleteAsync(force bool) (int, error)
 
 	AttachDisk(slug InstanceSlug, diskCID string) error
 }
@@ -191,6 +193,7 @@ type UpdateOpts struct {
 	MaxInFlight string
 	DryRun      bool
 	Diff        DeploymentDiff
+	async       bool
 }
 
 //go:generate counterfeiter . ReleaseSeries

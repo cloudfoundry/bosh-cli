@@ -149,6 +149,47 @@ var _ = Describe("TaskClientRequest", func() {
 		})
 	})
 
+	Describe("Post", func() {
+		act := func() (int, error) {
+			setHeaders := func(req *http.Request) {
+				req.Header.Add("Test", "val")
+			}
+			return req.Post("/path", []byte("req-body"), setHeaders)
+		}
+
+		It("doesn't wait for task to finish", func() {
+			redirectHeader := http.Header{}
+			redirectHeader.Add("Location", "/tasks/123")
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/path"),
+					ghttp.VerifyBody([]byte("req-body")),
+					ghttp.VerifyHeader(http.Header{"Test": []string{"val"}}),
+					ghttp.RespondWith(http.StatusFound, nil, redirectHeader),
+				),
+				// followed redirect
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/123"),
+					ghttp.RespondWith(http.StatusOK, `{"id":123, "state":"done"}`),
+				),
+			)
+
+			resp, err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(resp).To(Equal(123))
+		})
+
+		It("returns error if any request fails", func() {
+			AppendBadRequest(ghttp.VerifyRequest("POST", "/path"), server)
+
+			_, err := act()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(
+				"Director responded with non-successful status code '400' response"))
+		})
+	})
+
 	Describe("PutResult", func() {
 		act := func() ([]byte, error) {
 			setHeaders := func(req *http.Request) {
@@ -236,6 +277,40 @@ var _ = Describe("TaskClientRequest", func() {
 			resp, err := act()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp).To(Equal([]byte("task-result")))
+		})
+
+		It("returns error if any request fails", func() {
+			AppendBadRequest(ghttp.VerifyRequest("DELETE", "/path"), server)
+
+			_, err := act()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(
+				"Director responded with non-successful status code '400' response"))
+		})
+	})
+
+	Describe("Delete", func() {
+		act := func() (int, error) { return req.Delete("/path") }
+
+		It("does not wait for task to finish", func() {
+			redirectHeader := http.Header{}
+			redirectHeader.Add("Location", "/tasks/123")
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("DELETE", "/path"),
+					ghttp.RespondWith(http.StatusFound, nil, redirectHeader),
+				),
+				// followed redirect
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/123"),
+					ghttp.RespondWith(http.StatusOK, `{"id":123, "state":"done"}`),
+				),
+			)
+
+			resp, err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(resp).To(Equal(123))
 		})
 
 		It("returns error if any request fails", func() {

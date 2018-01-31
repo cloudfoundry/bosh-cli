@@ -381,6 +381,20 @@ type FakeDeployment struct {
 	updateReturnsOnCall map[int]struct {
 		result1 error
 	}
+	UpdateAsyncStub        func(manifest []byte, opts director.UpdateOpts) (int, error)
+	updateAsyncMutex       sync.RWMutex
+	updateAsyncArgsForCall []struct {
+		manifest []byte
+		opts     director.UpdateOpts
+	}
+	updateAsyncReturns struct {
+		result1 int
+		result2 error
+	}
+	updateAsyncReturnsOnCall map[int]struct {
+		result1 int
+		result2 error
+	}
 	DeleteStub        func(force bool) error
 	deleteMutex       sync.RWMutex
 	deleteArgsForCall []struct {
@@ -391,6 +405,19 @@ type FakeDeployment struct {
 	}
 	deleteReturnsOnCall map[int]struct {
 		result1 error
+	}
+	DeleteAsyncStub        func(force bool) (int, error)
+	deleteAsyncMutex       sync.RWMutex
+	deleteAsyncArgsForCall []struct {
+		force bool
+	}
+	deleteAsyncReturns struct {
+		result1 int
+		result2 error
+	}
+	deleteAsyncReturnsOnCall map[int]struct {
+		result1 int
+		result2 error
 	}
 	AttachDiskStub        func(slug director.InstanceSlug, diskCID string) error
 	attachDiskMutex       sync.RWMutex
@@ -1922,6 +1949,63 @@ func (fake *FakeDeployment) UpdateReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDeployment) UpdateAsync(manifest []byte, opts director.UpdateOpts) (int, error) {
+	var manifestCopy []byte
+	if manifest != nil {
+		manifestCopy = make([]byte, len(manifest))
+		copy(manifestCopy, manifest)
+	}
+	fake.updateAsyncMutex.Lock()
+	ret, specificReturn := fake.updateAsyncReturnsOnCall[len(fake.updateAsyncArgsForCall)]
+	fake.updateAsyncArgsForCall = append(fake.updateAsyncArgsForCall, struct {
+		manifest []byte
+		opts     director.UpdateOpts
+	}{manifestCopy, opts})
+	fake.recordInvocation("UpdateAsync", []interface{}{manifestCopy, opts})
+	fake.updateAsyncMutex.Unlock()
+	if fake.UpdateAsyncStub != nil {
+		return fake.UpdateAsyncStub(manifest, opts)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.updateAsyncReturns.result1, fake.updateAsyncReturns.result2
+}
+
+func (fake *FakeDeployment) UpdateAsyncCallCount() int {
+	fake.updateAsyncMutex.RLock()
+	defer fake.updateAsyncMutex.RUnlock()
+	return len(fake.updateAsyncArgsForCall)
+}
+
+func (fake *FakeDeployment) UpdateAsyncArgsForCall(i int) ([]byte, director.UpdateOpts) {
+	fake.updateAsyncMutex.RLock()
+	defer fake.updateAsyncMutex.RUnlock()
+	return fake.updateAsyncArgsForCall[i].manifest, fake.updateAsyncArgsForCall[i].opts
+}
+
+func (fake *FakeDeployment) UpdateAsyncReturns(result1 int, result2 error) {
+	fake.UpdateAsyncStub = nil
+	fake.updateAsyncReturns = struct {
+		result1 int
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) UpdateAsyncReturnsOnCall(i int, result1 int, result2 error) {
+	fake.UpdateAsyncStub = nil
+	if fake.updateAsyncReturnsOnCall == nil {
+		fake.updateAsyncReturnsOnCall = make(map[int]struct {
+			result1 int
+			result2 error
+		})
+	}
+	fake.updateAsyncReturnsOnCall[i] = struct {
+		result1 int
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDeployment) Delete(force bool) error {
 	fake.deleteMutex.Lock()
 	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
@@ -1968,6 +2052,57 @@ func (fake *FakeDeployment) DeleteReturnsOnCall(i int, result1 error) {
 	fake.deleteReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeDeployment) DeleteAsync(force bool) (int, error) {
+	fake.deleteAsyncMutex.Lock()
+	ret, specificReturn := fake.deleteAsyncReturnsOnCall[len(fake.deleteAsyncArgsForCall)]
+	fake.deleteAsyncArgsForCall = append(fake.deleteAsyncArgsForCall, struct {
+		force bool
+	}{force})
+	fake.recordInvocation("DeleteAsync", []interface{}{force})
+	fake.deleteAsyncMutex.Unlock()
+	if fake.DeleteAsyncStub != nil {
+		return fake.DeleteAsyncStub(force)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.deleteAsyncReturns.result1, fake.deleteAsyncReturns.result2
+}
+
+func (fake *FakeDeployment) DeleteAsyncCallCount() int {
+	fake.deleteAsyncMutex.RLock()
+	defer fake.deleteAsyncMutex.RUnlock()
+	return len(fake.deleteAsyncArgsForCall)
+}
+
+func (fake *FakeDeployment) DeleteAsyncArgsForCall(i int) bool {
+	fake.deleteAsyncMutex.RLock()
+	defer fake.deleteAsyncMutex.RUnlock()
+	return fake.deleteAsyncArgsForCall[i].force
+}
+
+func (fake *FakeDeployment) DeleteAsyncReturns(result1 int, result2 error) {
+	fake.DeleteAsyncStub = nil
+	fake.deleteAsyncReturns = struct {
+		result1 int
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) DeleteAsyncReturnsOnCall(i int, result1 int, result2 error) {
+	fake.DeleteAsyncStub = nil
+	if fake.deleteAsyncReturnsOnCall == nil {
+		fake.deleteAsyncReturnsOnCall = make(map[int]struct {
+			result1 int
+			result2 error
+		})
+	}
+	fake.deleteAsyncReturnsOnCall[i] = struct {
+		result1 int
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeDeployment) AttachDisk(slug director.InstanceSlug, diskCID string) error {
@@ -2086,8 +2221,12 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.enableResurrectionMutex.RUnlock()
 	fake.updateMutex.RLock()
 	defer fake.updateMutex.RUnlock()
+	fake.updateAsyncMutex.RLock()
+	defer fake.updateAsyncMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
+	fake.deleteAsyncMutex.RLock()
+	defer fake.deleteAsyncMutex.RUnlock()
 	fake.attachDiskMutex.RLock()
 	defer fake.attachDiskMutex.RUnlock()
 	return fake.invocations
