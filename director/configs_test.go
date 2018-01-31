@@ -79,7 +79,7 @@ var _ bool = Describe("Director", func() {
 
 			cc, err := director.LatestConfigById("123")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(cc).To(Equal(Config{Content: "1"}))
+			Expect(cc).To(Equal(Config{ID: "123", Name: "default", Type: "my-type", CreatedAt: "", Content: "1"}))
 		})
 
 		Context("when there is no config and director responds with status 404", func() {

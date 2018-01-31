@@ -12,7 +12,11 @@ import (
 )
 
 type Config struct {
-	Content string
+	ID        string
+	Name      string
+	Type      string
+	CreatedAt string
+	Content   string
 }
 
 type ConfigListItem struct {

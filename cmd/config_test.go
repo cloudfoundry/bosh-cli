@@ -10,6 +10,7 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 var _ = Describe("ConfigCmd", func() {
@@ -55,6 +56,7 @@ var _ = Describe("ConfigCmd", func() {
 
 			It("shows config if ID is correct", func() {
 				config := boshdir.Config{
+					ID:      "123",
 					Content: "some-content",
 				}
 
@@ -62,7 +64,34 @@ var _ = Describe("ConfigCmd", func() {
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(ui.Blocks).To(Equal([]string{"some-content"}))
+				Expect(ui.Table).To(Equal(
+					boshtbl.Table{
+						Content: "config",
+
+						Header: []boshtbl.Header{
+							boshtbl.NewHeader("ID"),
+							boshtbl.NewHeader("Type"),
+							boshtbl.NewHeader("Name"),
+							boshtbl.NewHeader("Created at"),
+							boshtbl.NewHeader("Content"),
+						},
+
+						Rows: [][]boshtbl.Value{
+							{
+								boshtbl.NewValueString("123"),
+								boshtbl.NewValueString(""),
+								boshtbl.NewValueString(""),
+								boshtbl.NewValueString(""),
+								boshtbl.NewValueString("some-content"),
+							},
+						},
+
+						Notes: []string{},
+
+						FillFirstColumn: true,
+
+						Transpose: true,
+					}))
 			})
 
 			It("returns error if config cannot be retrieved", func() {
@@ -144,6 +173,9 @@ var _ = Describe("ConfigCmd", func() {
 
 			It("shows config", func() {
 				config := boshdir.Config{
+					ID:      "123",
+					Type:    "my-type",
+					Name:    "my-name",
 					Content: "some-content",
 				}
 
@@ -151,7 +183,34 @@ var _ = Describe("ConfigCmd", func() {
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(ui.Blocks).To(Equal([]string{"some-content"}))
+				Expect(ui.Table).To(Equal(
+					boshtbl.Table{
+						Content: "config",
+
+						Header: []boshtbl.Header{
+							boshtbl.NewHeader("ID"),
+							boshtbl.NewHeader("Type"),
+							boshtbl.NewHeader("Name"),
+							boshtbl.NewHeader("Created at"),
+							boshtbl.NewHeader("Content"),
+						},
+
+						Rows: [][]boshtbl.Value{
+							{
+								boshtbl.NewValueString("123"),
+								boshtbl.NewValueString("my-type"),
+								boshtbl.NewValueString("my-name"),
+								boshtbl.NewValueString(""),
+								boshtbl.NewValueString("some-content"),
+							},
+						},
+
+						Notes: []string{},
+
+						FillFirstColumn: true,
+
+						Transpose: true,
+					}))
 			})
 
 			It("returns error if config cannot be retrieved", func() {
