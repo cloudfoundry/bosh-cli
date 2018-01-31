@@ -19,12 +19,6 @@ type Config struct {
 	Content   string
 }
 
-type ConfigListItem struct {
-	Id   string
-	Name string
-	Type string
-}
-
 type ConfigsFilter struct {
 	Type            string
 	Name            string
@@ -51,16 +45,16 @@ func (d DirectorImpl) LatestConfig(configType string, name string) (Config, erro
 	return resps[0], nil
 }
 
-func (d DirectorImpl) LatestConfigById(configId string) (Config, error) {
-	return d.client.latestConfigById(configId)
+func (d DirectorImpl) LatestConfigByID(configID string) (Config, error) {
+	return d.client.latestConfigByID(configID)
 }
 
-func (c Client) latestConfigById(configId string) (Config, error) {
+func (c Client) latestConfigByID(configID string) (Config, error) {
 	var config Config
 
 	query := gourl.Values{}
-	query.Add("/", configId)
-	path := fmt.Sprintf("/configs/%s", configId)
+	query.Add("/", configID)
+	path := fmt.Sprintf("/configs/%s", configID)
 
 	respBody, response, err := c.clientRequest.RawGet(path, nil, nil)
 	if err != nil {
@@ -79,7 +73,7 @@ func (c Client) latestConfigById(configId string) (Config, error) {
 	return config, nil
 }
 
-func (d DirectorImpl) ListConfigs(filter ConfigsFilter) ([]ConfigListItem, error) {
+func (d DirectorImpl) ListConfigs(filter ConfigsFilter) ([]Config, error) {
 	return d.client.listConfigs(filter)
 }
 
@@ -112,8 +106,8 @@ func (c Client) latestConfig(configType string, name string) ([]Config, error) {
 	return resps, nil
 }
 
-func (c Client) listConfigs(filter ConfigsFilter) ([]ConfigListItem, error) {
-	var resps []ConfigListItem
+func (c Client) listConfigs(filter ConfigsFilter) ([]Config, error) {
+	var resps []Config
 
 	query := gourl.Values{}
 	query.Add("latest", strconv.FormatBool(!filter.IncludeOutdated))

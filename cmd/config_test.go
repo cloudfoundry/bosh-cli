@@ -60,7 +60,7 @@ var _ = Describe("ConfigCmd", func() {
 					Content: "some-content",
 				}
 
-				director.LatestConfigByIdReturns(config, nil)
+				director.LatestConfigByIDReturns(config, nil)
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -95,7 +95,7 @@ var _ = Describe("ConfigCmd", func() {
 			})
 
 			It("returns error if config cannot be retrieved", func() {
-				director.LatestConfigByIdReturns(boshdir.Config{}, errors.New("fake-err"))
+				director.LatestConfigByIDReturns(boshdir.Config{}, errors.New("fake-err"))
 
 				err := act()
 				Expect(err).To(HaveOccurred())

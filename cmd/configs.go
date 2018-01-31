@@ -42,7 +42,7 @@ func (c ConfigsCmd) Run(opts ConfigsOpts) error {
 	for _, config := range configs {
 		var result []boshtbl.Value
 		if filter.IncludeOutdated {
-			result = append(result, boshtbl.NewValueString(config.Id))
+			result = append(result, boshtbl.NewValueString(config.ID))
 		}
 		result = append(result, boshtbl.NewValueString(config.Type))
 		result = append(result, boshtbl.NewValueString(config.Name))

@@ -67,8 +67,8 @@ var _ bool = Describe("Director", func() {
 		})
 	})
 
-	Describe("LatestConfigById", func() {
-		It("returns config by Id", func() {
+	Describe("LatestConfigByID", func() {
+		It("returns config by ID", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/configs/123"),
@@ -77,7 +77,7 @@ var _ bool = Describe("Director", func() {
 				),
 			)
 
-			cc, err := director.LatestConfigById("123")
+			cc, err := director.LatestConfigByID("123")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cc).To(Equal(Config{ID: "123", Name: "default", Type: "my-type", CreatedAt: "", Content: "1"}))
 		})
@@ -92,7 +92,7 @@ var _ bool = Describe("Director", func() {
 					),
 				)
 
-				_, err := director.LatestConfigById("bla")
+				_, err := director.LatestConfigByID("bla")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("No config"))
 			})
@@ -102,7 +102,7 @@ var _ bool = Describe("Director", func() {
 			It("returns error", func() {
 				AppendBadRequest(ghttp.VerifyRequest("GET", "/configs/123"), server)
 
-				_, err := director.LatestConfigById("123")
+				_, err := director.LatestConfigByID("123")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(
 					"Finding config: Director responded with non-successful status code"))
@@ -123,7 +123,7 @@ var _ bool = Describe("Director", func() {
 					)
 					cc, err := director.ListConfigs(ConfigsFilter{IncludeOutdated: false})
 					Expect(err).ToNot(HaveOccurred())
-					Expect(cc).To(Equal([]ConfigListItem{{Type: "my-type", Name: "first"}}))
+					Expect(cc).To(Equal([]Config{{Type: "my-type", Name: "first"}}))
 				})
 			})
 
@@ -139,7 +139,7 @@ var _ bool = Describe("Director", func() {
 
 					cc, err := director.ListConfigs(ConfigsFilter{Type: "my-type", Name: "first", IncludeOutdated: false})
 					Expect(err).ToNot(HaveOccurred())
-					Expect(cc).To(Equal([]ConfigListItem{{Type: "my-type", Name: "first"}}))
+					Expect(cc).To(Equal([]Config{{Type: "my-type", Name: "first"}}))
 				})
 			})
 		})
@@ -156,7 +156,7 @@ var _ bool = Describe("Director", func() {
 
 				cc, err := director.ListConfigs(ConfigsFilter{IncludeOutdated: true})
 				Expect(err).ToNot(HaveOccurred())
-				Expect(cc).To(Equal([]ConfigListItem{{Id: "some-id", Type: "my-type", Name: "first"}, {Id: "some-other-id", Type: "my-type", Name: "first"}}))
+				Expect(cc).To(Equal([]Config{{ID: "some-id", Type: "my-type", Name: "first"}, {ID: "some-other-id", Type: "my-type", Name: "first"}}))
 			})
 		})
 

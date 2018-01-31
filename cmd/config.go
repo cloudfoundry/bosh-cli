@@ -34,7 +34,7 @@ func (c ConfigCmd) Run(opts ConfigOpts) error {
 	var err error
 
 	if opts.Args.ID != "" {
-		config, err = c.director.LatestConfigById(opts.Args.ID)
+		config, err = c.director.LatestConfigByID(opts.Args.ID)
 	} else {
 		config, err = c.director.LatestConfig(opts.Type, opts.Name)
 	}

@@ -18,7 +18,7 @@ var _ = Describe("ConfigsCmd", func() {
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
 		command  ConfigsCmd
-		configs  []boshdir.ConfigListItem
+		configs  []boshdir.Config
 	)
 
 	BeforeEach(func() {
@@ -34,7 +34,7 @@ var _ = Describe("ConfigsCmd", func() {
 
 		BeforeEach(func() {
 			opts = ConfigsOpts{}
-			configs = []boshdir.ConfigListItem{boshdir.ConfigListItem{Type: "my-type", Name: "some-name"}, boshdir.ConfigListItem{Type: "my-type", Name: "other-name"}}
+			configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name"}, boshdir.Config{Type: "my-type", Name: "other-name"}}
 		})
 
 		act := func() error { return command.Run(opts) }
@@ -69,7 +69,7 @@ var _ = Describe("ConfigsCmd", func() {
 		})
 
 		It("returns error if configs cannot be listed", func() {
-			director.ListConfigsReturns([]boshdir.ConfigListItem{}, errors.New("fake-err"))
+			director.ListConfigsReturns([]boshdir.Config{}, errors.New("fake-err"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())
@@ -81,7 +81,7 @@ var _ = Describe("ConfigsCmd", func() {
 				opts = ConfigsOpts{
 					Type: "my-type",
 				}
-				configs = []boshdir.ConfigListItem{boshdir.ConfigListItem{Type: "my-type", Name: "some-name"}}
+				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name"}}
 			})
 
 			It("applies filters for just type", func() {
@@ -115,7 +115,7 @@ var _ = Describe("ConfigsCmd", func() {
 				opts = ConfigsOpts{
 					Name: "some-name",
 				}
-				configs = []boshdir.ConfigListItem{boshdir.ConfigListItem{Type: "my-type", Name: "some-name"}}
+				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name"}}
 			})
 
 			It("applies filters for just name", func() {
@@ -150,7 +150,7 @@ var _ = Describe("ConfigsCmd", func() {
 					Type: "my-type",
 					Name: "some-name",
 				}
-				configs = []boshdir.ConfigListItem{boshdir.ConfigListItem{Type: "my-type", Name: "some-name"}}
+				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name"}}
 			})
 
 			It("applies filters for type and name", func() {
@@ -184,7 +184,7 @@ var _ = Describe("ConfigsCmd", func() {
 				opts = ConfigsOpts{
 					IncludeOutdated: true,
 				}
-				configs = []boshdir.ConfigListItem{boshdir.ConfigListItem{Type: "my-type", Name: "some-name", Id: "123"}}
+				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name", ID: "123"}}
 			})
 
 			It("lists all outdated configs versioned by ID", func() {
