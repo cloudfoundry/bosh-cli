@@ -31,7 +31,7 @@ jobs:
           file: bosh-cli/ci/tasks/test-acceptance.yml
           privileged: true
 
-  - name: integration-2.3-postgres-gocli
+  - name: integration-postgres
     public: true
     serial: true
     build_logs_to_retain: 250
@@ -57,7 +57,7 @@ jobs:
           tags: ["bosh-integration-1"]
           params:
             DB:           postgresql
-            RUBY_VERSION: 2.3.1
+            RUBY_VERSION: 2.4.2
             NUM_GROUPS: 24
             GROUP:      1,4,7,10,13,16,19,22
         - task: test-group-2
@@ -68,7 +68,7 @@ jobs:
           tags: ["bosh-integration-2"]
           params:
             DB:           postgresql
-            RUBY_VERSION: 2.3.1
+            RUBY_VERSION: 2.4.2
             NUM_GROUPS: 24
             GROUP:      2,5,8,11,14,17,20,23
         - task: test-group-3
@@ -79,7 +79,7 @@ jobs:
           tags: ["bosh-integration-3"]
           params:
             DB:           postgresql
-            RUBY_VERSION: 2.3.1
+            RUBY_VERSION: 2.4.2
             NUM_GROUPS: 24
             GROUP:      3,6,9,12,15,18,21,24
         on_failure:
@@ -96,7 +96,7 @@ jobs:
         - get: bosh-cli
           passed:
            - test-acceptance
-           - integration-2.3-postgres-gocli
+           - integration-postgres
         - get: version-semver
           params: {bump: patch}
         - get: homebrew-tap
@@ -176,7 +176,7 @@ jobs:
         - get: bosh-cli
           passed:
            - test-acceptance
-           - integration-2.3-postgres-gocli
+           - integration-postgres
           trigger: true
         - get: alpha-version-semver
           params: {bump: patch}
