@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	gourl "net/url"
-	"regexp"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	semver "github.com/cppforlife/go-semi-semantic/version"
@@ -159,8 +158,6 @@ func (c Client) HasStemcell(name, version string) (bool, error) {
 
 	return false, nil
 }
-
-var notFoundRegexp = regexp.MustCompile(`\b404\b`)
 
 func (c Client) StemcellNeedsUpload(stemcells StemcellInfo) (bool, bool, error) {
 	setHeaders := func(req *http.Request) {
