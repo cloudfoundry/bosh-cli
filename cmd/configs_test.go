@@ -34,7 +34,7 @@ var _ = Describe("ConfigsCmd", func() {
 
 		BeforeEach(func() {
 			opts = ConfigsOpts{}
-			configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name", Teams: []string{"team1"}}, boshdir.Config{Type: "my-type", Name: "other-name"}}
+			configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name", Team: "team1"}, boshdir.Config{Type: "my-type", Name: "other-name"}}
 		})
 
 		act := func() error { return command.Run(opts) }
@@ -53,19 +53,19 @@ var _ = Describe("ConfigsCmd", func() {
 				Header: []boshtbl.Header{
 					boshtbl.NewHeader("Type"),
 					boshtbl.NewHeader("Name"),
-					boshtbl.NewHeader("Teams"),
+					boshtbl.NewHeader("Team"),
 				},
 
 				Rows: [][]boshtbl.Value{
 					{
 						boshtbl.NewValueString("my-type"),
 						boshtbl.NewValueString("some-name"),
-						boshtbl.NewValueStrings([]string{"team1"}),
+						boshtbl.NewValueString("team1"),
 					},
 					{
 						boshtbl.NewValueString("my-type"),
 						boshtbl.NewValueString("other-name"),
-						boshtbl.NewValueStrings(nil),
+						boshtbl.NewValueString(""),
 					},
 				},
 			}))
@@ -84,7 +84,7 @@ var _ = Describe("ConfigsCmd", func() {
 				opts = ConfigsOpts{
 					Type: "my-type",
 				}
-				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name", Teams: []string{""}}}
+				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name"}}
 			})
 
 			It("applies filters for just type", func() {
@@ -101,14 +101,14 @@ var _ = Describe("ConfigsCmd", func() {
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Type"),
 						boshtbl.NewHeader("Name"),
-						boshtbl.NewHeader("Teams"),
+						boshtbl.NewHeader("Team"),
 					},
 
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("my-type"),
 							boshtbl.NewValueString("some-name"),
-							boshtbl.NewValueStrings([]string{""}),
+							boshtbl.NewValueString(""),
 						},
 					},
 				}))
@@ -120,7 +120,7 @@ var _ = Describe("ConfigsCmd", func() {
 				opts = ConfigsOpts{
 					Name: "some-name",
 				}
-				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name", Teams: []string{""}}}
+				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name"}}
 			})
 
 			It("applies filters for just name", func() {
@@ -137,14 +137,14 @@ var _ = Describe("ConfigsCmd", func() {
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Type"),
 						boshtbl.NewHeader("Name"),
-						boshtbl.NewHeader("Teams"),
+						boshtbl.NewHeader("Team"),
 					},
 
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("my-type"),
 							boshtbl.NewValueString("some-name"),
-							boshtbl.NewValueStrings([]string{""}),
+							boshtbl.NewValueString(""),
 						},
 					},
 				}))
@@ -157,7 +157,7 @@ var _ = Describe("ConfigsCmd", func() {
 					Type: "my-type",
 					Name: "some-name",
 				}
-				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name", Teams: []string{""}}}
+				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name"}}
 			})
 
 			It("applies filters for type and name", func() {
@@ -174,14 +174,14 @@ var _ = Describe("ConfigsCmd", func() {
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Type"),
 						boshtbl.NewHeader("Name"),
-						boshtbl.NewHeader("Teams"),
+						boshtbl.NewHeader("Team"),
 					},
 
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueString("my-type"),
 							boshtbl.NewValueString("some-name"),
-							boshtbl.NewValueStrings([]string{""}),
+							boshtbl.NewValueString(""),
 						},
 					},
 				}))
@@ -193,7 +193,7 @@ var _ = Describe("ConfigsCmd", func() {
 				opts = ConfigsOpts{
 					IncludeOutdated: true,
 				}
-				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name", ID: "123", Teams: []string{""}}}
+				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name", ID: "123"}}
 			})
 
 			It("lists all outdated configs versioned by ID", func() {
@@ -211,7 +211,7 @@ var _ = Describe("ConfigsCmd", func() {
 						boshtbl.NewHeader("ID"),
 						boshtbl.NewHeader("Type"),
 						boshtbl.NewHeader("Name"),
-						boshtbl.NewHeader("Teams"),
+						boshtbl.NewHeader("Team"),
 					},
 
 					Rows: [][]boshtbl.Value{
@@ -219,7 +219,7 @@ var _ = Describe("ConfigsCmd", func() {
 							boshtbl.NewValueString("123"),
 							boshtbl.NewValueString("my-type"),
 							boshtbl.NewValueString("some-name"),
-							boshtbl.NewValueStrings([]string{""}),
+							boshtbl.NewValueString(""),
 						},
 					},
 				}))

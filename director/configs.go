@@ -17,7 +17,7 @@ type Config struct {
 	Name      string
 	Type      string
 	CreatedAt string
-	Teams     []string
+	Team      string
 	Content   string
 }
 
