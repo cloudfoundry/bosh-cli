@@ -17,23 +17,21 @@ func NewConfigsCmd(ui boshui.UI, director boshdir.Director) ConfigsCmd {
 
 func (c ConfigsCmd) Run(opts ConfigsOpts) error {
 	filter := boshdir.ConfigsFilter{
-		Type:            opts.Type,
-		Name:            opts.Name,
-		IncludeOutdated: opts.IncludeOutdated,
+		Type: opts.Type,
+		Name: opts.Name,
 	}
 
-	configs, err := c.director.ListConfigs(filter)
+	configs, err := c.director.ListConfigs(opts.Recent, filter)
 	if err != nil {
 		return err
 	}
 
 	var headers []boshtbl.Header
-	if filter.IncludeOutdated {
-		headers = append(headers, boshtbl.NewHeader("ID"))
-	}
+	headers = append(headers, boshtbl.NewHeader("ID"))
 	headers = append(headers, boshtbl.NewHeader("Type"))
 	headers = append(headers, boshtbl.NewHeader("Name"))
 	headers = append(headers, boshtbl.NewHeader("Team"))
+	headers = append(headers, boshtbl.NewHeader("Created At"))
 
 	table := boshtbl.Table{
 		Content: "configs",
@@ -42,12 +40,11 @@ func (c ConfigsCmd) Run(opts ConfigsOpts) error {
 
 	for _, config := range configs {
 		var result []boshtbl.Value
-		if filter.IncludeOutdated {
-			result = append(result, boshtbl.NewValueString(config.ID))
-		}
+		result = append(result, boshtbl.NewValueString(config.ID))
 		result = append(result, boshtbl.NewValueString(config.Type))
 		result = append(result, boshtbl.NewValueString(config.Name))
 		result = append(result, boshtbl.NewValueString(config.Team))
+		result = append(result, boshtbl.NewValueString(config.CreatedAt))
 		table.Rows = append(table.Rows, result)
 	}
 

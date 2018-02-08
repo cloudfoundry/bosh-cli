@@ -274,17 +274,17 @@ type FakeDirector struct {
 		result1 bool
 		result2 error
 	}
-	StemcellNeedsUploadStub     func(director.StemcellInfo) (bool, bool, error)
-	matchesStemcellsMutex       sync.RWMutex
-	matchesStemcellsArgsForCall []struct {
+	StemcellNeedsUploadStub        func(director.StemcellInfo) (bool, bool, error)
+	stemcellNeedsUploadMutex       sync.RWMutex
+	stemcellNeedsUploadArgsForCall []struct {
 		arg1 director.StemcellInfo
 	}
-	matchesStemcellsReturns struct {
+	stemcellNeedsUploadReturns struct {
 		result1 bool
 		result2 bool
 		result3 error
 	}
-	matchesStemcellsReturnsOnCall map[int]struct {
+	stemcellNeedsUploadReturnsOnCall map[int]struct {
 		result1 bool
 		result2 bool
 		result3 error
@@ -341,10 +341,10 @@ type FakeDirector struct {
 		result1 director.Config
 		result2 error
 	}
-	LatestConfigByIDStub        func(configID string) (director.Config, error)
+	LatestConfigByIDStub        func(configId string) (director.Config, error)
 	latestConfigByIDMutex       sync.RWMutex
 	latestConfigByIDArgsForCall []struct {
-		configID string
+		configId string
 	}
 	latestConfigByIDReturns struct {
 		result1 director.Config
@@ -354,9 +354,10 @@ type FakeDirector struct {
 		result1 director.Config
 		result2 error
 	}
-	ListConfigsStub        func(filter director.ConfigsFilter) ([]director.Config, error)
+	ListConfigsStub        func(limit int, filter director.ConfigsFilter) ([]director.Config, error)
 	listConfigsMutex       sync.RWMutex
 	listConfigsArgsForCall []struct {
+		limit  int
 		filter director.ConfigsFilter
 	}
 	listConfigsReturns struct {
@@ -1632,37 +1633,37 @@ func (fake *FakeDirector) HasStemcellReturnsOnCall(i int, result1 bool, result2 
 }
 
 func (fake *FakeDirector) StemcellNeedsUpload(arg1 director.StemcellInfo) (bool, bool, error) {
-	fake.matchesStemcellsMutex.Lock()
-	ret, specificReturn := fake.matchesStemcellsReturnsOnCall[len(fake.matchesStemcellsArgsForCall)]
-	fake.matchesStemcellsArgsForCall = append(fake.matchesStemcellsArgsForCall, struct {
+	fake.stemcellNeedsUploadMutex.Lock()
+	ret, specificReturn := fake.stemcellNeedsUploadReturnsOnCall[len(fake.stemcellNeedsUploadArgsForCall)]
+	fake.stemcellNeedsUploadArgsForCall = append(fake.stemcellNeedsUploadArgsForCall, struct {
 		arg1 director.StemcellInfo
 	}{arg1})
 	fake.recordInvocation("StemcellNeedsUpload", []interface{}{arg1})
-	fake.matchesStemcellsMutex.Unlock()
+	fake.stemcellNeedsUploadMutex.Unlock()
 	if fake.StemcellNeedsUploadStub != nil {
 		return fake.StemcellNeedsUploadStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	return fake.matchesStemcellsReturns.result1, fake.matchesStemcellsReturns.result2, fake.matchesStemcellsReturns.result3
+	return fake.stemcellNeedsUploadReturns.result1, fake.stemcellNeedsUploadReturns.result2, fake.stemcellNeedsUploadReturns.result3
 }
 
 func (fake *FakeDirector) StemcellNeedsUploadCallCount() int {
-	fake.matchesStemcellsMutex.RLock()
-	defer fake.matchesStemcellsMutex.RUnlock()
-	return len(fake.matchesStemcellsArgsForCall)
+	fake.stemcellNeedsUploadMutex.RLock()
+	defer fake.stemcellNeedsUploadMutex.RUnlock()
+	return len(fake.stemcellNeedsUploadArgsForCall)
 }
 
 func (fake *FakeDirector) StemcellNeedsUploadArgsForCall(i int) director.StemcellInfo {
-	fake.matchesStemcellsMutex.RLock()
-	defer fake.matchesStemcellsMutex.RUnlock()
-	return fake.matchesStemcellsArgsForCall[i].arg1
+	fake.stemcellNeedsUploadMutex.RLock()
+	defer fake.stemcellNeedsUploadMutex.RUnlock()
+	return fake.stemcellNeedsUploadArgsForCall[i].arg1
 }
 
 func (fake *FakeDirector) StemcellNeedsUploadReturns(result1 bool, result2 bool, result3 error) {
 	fake.StemcellNeedsUploadStub = nil
-	fake.matchesStemcellsReturns = struct {
+	fake.stemcellNeedsUploadReturns = struct {
 		result1 bool
 		result2 bool
 		result3 error
@@ -1671,14 +1672,14 @@ func (fake *FakeDirector) StemcellNeedsUploadReturns(result1 bool, result2 bool,
 
 func (fake *FakeDirector) StemcellNeedsUploadReturnsOnCall(i int, result1 bool, result2 bool, result3 error) {
 	fake.StemcellNeedsUploadStub = nil
-	if fake.matchesStemcellsReturnsOnCall == nil {
-		fake.matchesStemcellsReturnsOnCall = make(map[int]struct {
+	if fake.stemcellNeedsUploadReturnsOnCall == nil {
+		fake.stemcellNeedsUploadReturnsOnCall = make(map[int]struct {
 			result1 bool
 			result2 bool
 			result3 error
 		})
 	}
-	fake.matchesStemcellsReturnsOnCall[i] = struct {
+	fake.stemcellNeedsUploadReturnsOnCall[i] = struct {
 		result1 bool
 		result2 bool
 		result3 error
@@ -1887,16 +1888,16 @@ func (fake *FakeDirector) LatestConfigReturnsOnCall(i int, result1 director.Conf
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) LatestConfigByID(configID string) (director.Config, error) {
+func (fake *FakeDirector) LatestConfigByID(configId string) (director.Config, error) {
 	fake.latestConfigByIDMutex.Lock()
 	ret, specificReturn := fake.latestConfigByIDReturnsOnCall[len(fake.latestConfigByIDArgsForCall)]
 	fake.latestConfigByIDArgsForCall = append(fake.latestConfigByIDArgsForCall, struct {
-		configID string
-	}{configID})
-	fake.recordInvocation("LatestConfigByID", []interface{}{configID})
+		configId string
+	}{configId})
+	fake.recordInvocation("LatestConfigByID", []interface{}{configId})
 	fake.latestConfigByIDMutex.Unlock()
 	if fake.LatestConfigByIDStub != nil {
-		return fake.LatestConfigByIDStub(configID)
+		return fake.LatestConfigByIDStub(configId)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -1913,7 +1914,7 @@ func (fake *FakeDirector) LatestConfigByIDCallCount() int {
 func (fake *FakeDirector) LatestConfigByIDArgsForCall(i int) string {
 	fake.latestConfigByIDMutex.RLock()
 	defer fake.latestConfigByIDMutex.RUnlock()
-	return fake.latestConfigByIDArgsForCall[i].configID
+	return fake.latestConfigByIDArgsForCall[i].configId
 }
 
 func (fake *FakeDirector) LatestConfigByIDReturns(result1 director.Config, result2 error) {
@@ -1938,16 +1939,17 @@ func (fake *FakeDirector) LatestConfigByIDReturnsOnCall(i int, result1 director.
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) ListConfigs(filter director.ConfigsFilter) ([]director.Config, error) {
+func (fake *FakeDirector) ListConfigs(limit int, filter director.ConfigsFilter) ([]director.Config, error) {
 	fake.listConfigsMutex.Lock()
 	ret, specificReturn := fake.listConfigsReturnsOnCall[len(fake.listConfigsArgsForCall)]
 	fake.listConfigsArgsForCall = append(fake.listConfigsArgsForCall, struct {
+		limit  int
 		filter director.ConfigsFilter
-	}{filter})
-	fake.recordInvocation("ListConfigs", []interface{}{filter})
+	}{limit, filter})
+	fake.recordInvocation("ListConfigs", []interface{}{limit, filter})
 	fake.listConfigsMutex.Unlock()
 	if fake.ListConfigsStub != nil {
-		return fake.ListConfigsStub(filter)
+		return fake.ListConfigsStub(limit, filter)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -1961,10 +1963,10 @@ func (fake *FakeDirector) ListConfigsCallCount() int {
 	return len(fake.listConfigsArgsForCall)
 }
 
-func (fake *FakeDirector) ListConfigsArgsForCall(i int) director.ConfigsFilter {
+func (fake *FakeDirector) ListConfigsArgsForCall(i int) (int, director.ConfigsFilter) {
 	fake.listConfigsMutex.RLock()
 	defer fake.listConfigsMutex.RUnlock()
-	return fake.listConfigsArgsForCall[i].filter
+	return fake.listConfigsArgsForCall[i].limit, fake.listConfigsArgsForCall[i].filter
 }
 
 func (fake *FakeDirector) ListConfigsReturns(result1 []director.Config, result2 error) {
@@ -3006,8 +3008,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.stemcellsMutex.RUnlock()
 	fake.hasStemcellMutex.RLock()
 	defer fake.hasStemcellMutex.RUnlock()
-	fake.matchesStemcellsMutex.RLock()
-	defer fake.matchesStemcellsMutex.RUnlock()
+	fake.stemcellNeedsUploadMutex.RLock()
+	defer fake.stemcellNeedsUploadMutex.RUnlock()
 	fake.findStemcellMutex.RLock()
 	defer fake.findStemcellMutex.RUnlock()
 	fake.uploadStemcellURLMutex.RLock()

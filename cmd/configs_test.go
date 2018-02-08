@@ -33,8 +33,11 @@ var _ = Describe("ConfigsCmd", func() {
 		)
 
 		BeforeEach(func() {
-			opts = ConfigsOpts{}
-			configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name", Team: "team1"}, boshdir.Config{Type: "my-type", Name: "other-name"}}
+			opts = ConfigsOpts{Recent: 1}
+			configs = []boshdir.Config{
+				boshdir.Config{Type: "my-type", Name: "some-name", Team: "team1"},
+				boshdir.Config{Type: "my-type", Name: "other-name"},
+			}
 		})
 
 		act := func() error { return command.Run(opts) }
@@ -45,26 +48,34 @@ var _ = Describe("ConfigsCmd", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(director.ListConfigsCallCount()).To(Equal(1))
-			Expect(director.ListConfigsArgsForCall(0)).To(Equal(boshdir.ConfigsFilter{}))
+			limit, filter := director.ListConfigsArgsForCall(0)
+			Expect(limit).To(Equal(1))
+			Expect(filter).To(Equal(boshdir.ConfigsFilter{}))
 
 			Expect(ui.Table).To(Equal(boshtbl.Table{
 				Content: "configs",
 
 				Header: []boshtbl.Header{
+					boshtbl.NewHeader("ID"),
 					boshtbl.NewHeader("Type"),
 					boshtbl.NewHeader("Name"),
 					boshtbl.NewHeader("Team"),
+					boshtbl.NewHeader("Created At"),
 				},
 
 				Rows: [][]boshtbl.Value{
 					{
+						boshtbl.NewValueString(""),
 						boshtbl.NewValueString("my-type"),
 						boshtbl.NewValueString("some-name"),
 						boshtbl.NewValueString("team1"),
+						boshtbl.NewValueString(""),
 					},
 					{
+						boshtbl.NewValueString(""),
 						boshtbl.NewValueString("my-type"),
 						boshtbl.NewValueString("other-name"),
+						boshtbl.NewValueString(""),
 						boshtbl.NewValueString(""),
 					},
 				},
@@ -82,7 +93,8 @@ var _ = Describe("ConfigsCmd", func() {
 		Context("When filtering for type", func() {
 			BeforeEach(func() {
 				opts = ConfigsOpts{
-					Type: "my-type",
+					Type:   "my-type",
+					Recent: 1,
 				}
 				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name"}}
 			})
@@ -93,21 +105,27 @@ var _ = Describe("ConfigsCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(director.ListConfigsCallCount()).To(Equal(1))
-				Expect(director.ListConfigsArgsForCall(0)).To(Equal(boshdir.ConfigsFilter{Type: "my-type"}))
+				limit, filter := director.ListConfigsArgsForCall(0)
+				Expect(limit).To(Equal(1))
+				Expect(filter).To(Equal(boshdir.ConfigsFilter{Type: "my-type"}))
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
 					Content: "configs",
 
 					Header: []boshtbl.Header{
+						boshtbl.NewHeader("ID"),
 						boshtbl.NewHeader("Type"),
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Team"),
+						boshtbl.NewHeader("Created At"),
 					},
 
 					Rows: [][]boshtbl.Value{
 						{
+							boshtbl.NewValueString(""),
 							boshtbl.NewValueString("my-type"),
 							boshtbl.NewValueString("some-name"),
+							boshtbl.NewValueString(""),
 							boshtbl.NewValueString(""),
 						},
 					},
@@ -118,7 +136,8 @@ var _ = Describe("ConfigsCmd", func() {
 		Context("When filtering for name", func() {
 			BeforeEach(func() {
 				opts = ConfigsOpts{
-					Name: "some-name",
+					Name:   "some-name",
+					Recent: 1,
 				}
 				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name"}}
 			})
@@ -129,21 +148,27 @@ var _ = Describe("ConfigsCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(director.ListConfigsCallCount()).To(Equal(1))
-				Expect(director.ListConfigsArgsForCall(0)).To(Equal(boshdir.ConfigsFilter{Name: "some-name"}))
+				limit, filter := director.ListConfigsArgsForCall(0)
+				Expect(limit).To(Equal(1))
+				Expect(filter).To(Equal(boshdir.ConfigsFilter{Name: "some-name"}))
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
 					Content: "configs",
 
 					Header: []boshtbl.Header{
+						boshtbl.NewHeader("ID"),
 						boshtbl.NewHeader("Type"),
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Team"),
+						boshtbl.NewHeader("Created At"),
 					},
 
 					Rows: [][]boshtbl.Value{
 						{
+							boshtbl.NewValueString(""),
 							boshtbl.NewValueString("my-type"),
 							boshtbl.NewValueString("some-name"),
+							boshtbl.NewValueString(""),
 							boshtbl.NewValueString(""),
 						},
 					},
@@ -154,8 +179,9 @@ var _ = Describe("ConfigsCmd", func() {
 		Context("When filtering for both, type and name", func() {
 			BeforeEach(func() {
 				opts = ConfigsOpts{
-					Type: "my-type",
-					Name: "some-name",
+					Type:   "my-type",
+					Name:   "some-name",
+					Recent: 1,
 				}
 				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name"}}
 			})
@@ -166,43 +192,9 @@ var _ = Describe("ConfigsCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(director.ListConfigsCallCount()).To(Equal(1))
-				Expect(director.ListConfigsArgsForCall(0)).To(Equal(boshdir.ConfigsFilter{Type: "my-type", Name: "some-name"}))
-
-				Expect(ui.Table).To(Equal(boshtbl.Table{
-					Content: "configs",
-
-					Header: []boshtbl.Header{
-						boshtbl.NewHeader("Type"),
-						boshtbl.NewHeader("Name"),
-						boshtbl.NewHeader("Team"),
-					},
-
-					Rows: [][]boshtbl.Value{
-						{
-							boshtbl.NewValueString("my-type"),
-							boshtbl.NewValueString("some-name"),
-							boshtbl.NewValueString(""),
-						},
-					},
-				}))
-			})
-		})
-
-		Context("When include-outdated flag is set", func() {
-			BeforeEach(func() {
-				opts = ConfigsOpts{
-					IncludeOutdated: true,
-				}
-				configs = []boshdir.Config{boshdir.Config{Type: "my-type", Name: "some-name", ID: "123"}}
-			})
-
-			It("lists all outdated configs versioned by ID", func() {
-				director.ListConfigsReturns(configs, nil)
-
-				err := act()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(director.ListConfigsCallCount()).To(Equal(1))
-				Expect(director.ListConfigsArgsForCall(0)).To(Equal(boshdir.ConfigsFilter{IncludeOutdated: true}))
+				limit, filter := director.ListConfigsArgsForCall(0)
+				Expect(limit).To(Equal(1))
+				Expect(filter).To(Equal(boshdir.ConfigsFilter{Name: "some-name", Type: "my-type"}))
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
 					Content: "configs",
@@ -212,6 +204,50 @@ var _ = Describe("ConfigsCmd", func() {
 						boshtbl.NewHeader("Type"),
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Team"),
+						boshtbl.NewHeader("Created At"),
+					},
+
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.NewValueString(""),
+							boshtbl.NewValueString("my-type"),
+							boshtbl.NewValueString("some-name"),
+							boshtbl.NewValueString(""),
+							boshtbl.NewValueString(""),
+						},
+					},
+				}))
+			})
+		})
+
+		Context("limit is specified", func() {
+			BeforeEach(func() {
+				opts = ConfigsOpts{Recent: 2}
+				configs = []boshdir.Config{
+					boshdir.Config{Type: "my-type", Name: "some-name", ID: "123"},
+					boshdir.Config{Type: "my-type", Name: "some-name", ID: "234"},
+				}
+			})
+
+			It("lists outdated configs versioned by ID", func() {
+				director.ListConfigsReturns(configs, nil)
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(director.ListConfigsCallCount()).To(Equal(1))
+				limit, filter := director.ListConfigsArgsForCall(0)
+				Expect(limit).To(Equal(2))
+				Expect(filter).To(Equal(boshdir.ConfigsFilter{}))
+
+				Expect(ui.Table).To(Equal(boshtbl.Table{
+					Content: "configs",
+
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("ID"),
+						boshtbl.NewHeader("Type"),
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("Team"),
+						boshtbl.NewHeader("Created At"),
 					},
 
 					Rows: [][]boshtbl.Value{
@@ -219,6 +255,14 @@ var _ = Describe("ConfigsCmd", func() {
 							boshtbl.NewValueString("123"),
 							boshtbl.NewValueString("my-type"),
 							boshtbl.NewValueString("some-name"),
+							boshtbl.NewValueString(""),
+							boshtbl.NewValueString(""),
+						},
+						{
+							boshtbl.NewValueString("234"),
+							boshtbl.NewValueString("my-type"),
+							boshtbl.NewValueString("some-name"),
+							boshtbl.NewValueString(""),
 							boshtbl.NewValueString(""),
 						},
 					},

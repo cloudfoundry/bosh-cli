@@ -28,7 +28,7 @@ var _ bool = Describe("Director", func() {
 		It("returns the latest config", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/configs", "type=my-type&name=my-name&latest=true"),
+					ghttp.VerifyRequest("GET", "/configs", "type=my-type&name=my-name&limit=1"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `[{"content": "first"}]`),
 				),
@@ -43,7 +43,7 @@ var _ bool = Describe("Director", func() {
 			It("returns error", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/configs", "type=missing-type&latest=true&name=default"),
+						ghttp.VerifyRequest("GET", "/configs", "type=missing-type&limit=1&name=default"),
 						ghttp.VerifyBasicAuth("username", "password"),
 						ghttp.RespondWith(http.StatusOK, `[]`),
 					),
@@ -57,7 +57,7 @@ var _ bool = Describe("Director", func() {
 
 		Context("when server returns an error", func() {
 			It("returns error", func() {
-				AppendBadRequest(ghttp.VerifyRequest("GET", "/configs", "type=fake-type&latest=true&name=default"), server)
+				AppendBadRequest(ghttp.VerifyRequest("GET", "/configs", "type=fake-type&limit=1&name=default"), server)
 
 				_, err := director.LatestConfig("fake-type", "default")
 				Expect(err).To(HaveOccurred())
@@ -111,19 +111,19 @@ var _ bool = Describe("Director", func() {
 	})
 
 	Describe("ListConfigs", func() {
-		Context("when IncludeOutdated is set to false", func() {
+		Context("when limit is one", func() {
 			Context("when no additional filters are given", func() {
 				It("uses no query params and returns list of config items", func() {
 					server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/configs", "latest=true"),
+							ghttp.VerifyRequest("GET", "/configs", "limit=1"),
 							ghttp.VerifyBasicAuth("username", "password"),
-							ghttp.RespondWith(http.StatusOK, `[{"name": "first", "type": "my-type", "team": "team1"}]`),
+							ghttp.RespondWith(http.StatusOK, `[{"name": "first", "type": "my-type", "created_at": "some-date", "team": "team1"}]`),
 						),
 					)
-					cc, err := director.ListConfigs(ConfigsFilter{IncludeOutdated: false})
+					cc, err := director.ListConfigs(1, ConfigsFilter{})
 					Expect(err).ToNot(HaveOccurred())
-					Expect(cc).To(Equal([]Config{{Type: "my-type", Name: "first", Team: "team1"}}))
+					Expect(cc).To(Equal([]Config{{Type: "my-type", Name: "first", CreatedAt: "some-date", Team: "team1"}}))
 				})
 			})
 
@@ -131,30 +131,30 @@ var _ bool = Describe("Director", func() {
 				It("uses them as query parameters and returns list of config items", func() {
 					server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/configs", "latest=true&name=first&type=my-type"),
+							ghttp.VerifyRequest("GET", "/configs", "limit=1&name=first&type=my-type"),
 							ghttp.VerifyBasicAuth("username", "password"),
 							ghttp.RespondWith(http.StatusOK, `[{"name": "first", "type": "my-type"}]`),
 						),
 					)
 
-					cc, err := director.ListConfigs(ConfigsFilter{Type: "my-type", Name: "first", IncludeOutdated: false})
+					cc, err := director.ListConfigs(1, ConfigsFilter{Type: "my-type", Name: "first"})
 					Expect(err).ToNot(HaveOccurred())
 					Expect(cc).To(Equal([]Config{{Type: "my-type", Name: "first"}}))
 				})
 			})
 		})
 
-		Context("when IncludeOutdated is set to true", func() {
+		Context("when limit is greater one", func() {
 			It("returns a list of config items", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/configs", "latest=false"),
+						ghttp.VerifyRequest("GET", "/configs", "limit=2"),
 						ghttp.VerifyBasicAuth("username", "password"),
 						ghttp.RespondWith(http.StatusOK, `[{"id": "some-id", "name": "first", "type": "my-type"}, {"id": "some-other-id", "name": "first", "type": "my-type"}]`),
 					),
 				)
 
-				cc, err := director.ListConfigs(ConfigsFilter{IncludeOutdated: true})
+				cc, err := director.ListConfigs(2, ConfigsFilter{})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(cc).To(Equal([]Config{{ID: "some-id", Type: "my-type", Name: "first"}, {ID: "some-other-id", Type: "my-type", Name: "first"}}))
 			})
@@ -164,7 +164,7 @@ var _ bool = Describe("Director", func() {
 			It("returns error", func() {
 				AppendBadRequest(ghttp.VerifyRequest("GET", "/configs"), server)
 
-				_, err := director.ListConfigs(ConfigsFilter{})
+				_, err := director.ListConfigs(1, ConfigsFilter{})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(
 					"Listing configs: Director responded with non-successful status code '400'"))
@@ -297,5 +297,4 @@ var _ bool = Describe("Director", func() {
 		})
 
 	})
-
 })

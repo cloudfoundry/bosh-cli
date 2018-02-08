@@ -7,8 +7,6 @@ import (
 
 	gourl "net/url"
 
-	"strconv"
-
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
@@ -16,15 +14,14 @@ type Config struct {
 	ID        string
 	Name      string
 	Type      string
-	CreatedAt string
+	CreatedAt string `json:"created_at"`
 	Team      string
 	Content   string
 }
 
 type ConfigsFilter struct {
-	Type            string
-	Name            string
-	IncludeOutdated bool
+	Type string
+	Name string
 }
 
 type UpdateConfigBody struct {
@@ -75,8 +72,8 @@ func (c Client) latestConfigByID(configID string) (Config, error) {
 	return config, nil
 }
 
-func (d DirectorImpl) ListConfigs(filter ConfigsFilter) ([]Config, error) {
-	return d.client.listConfigs(filter)
+func (d DirectorImpl) ListConfigs(limit int, filter ConfigsFilter) ([]Config, error) {
+	return d.client.listConfigs(limit, filter)
 }
 
 func (d DirectorImpl) UpdateConfig(configType string, name string, content []byte) error {
@@ -97,7 +94,7 @@ func (c Client) latestConfig(configType string, name string) ([]Config, error) {
 	query := gourl.Values{}
 	query.Add("type", configType)
 	query.Add("name", name)
-	query.Add("latest", "true")
+	query.Add("limit", "1")
 	path := fmt.Sprintf("/configs?%s", query.Encode())
 
 	err := c.clientRequest.Get(path, &resps)
@@ -108,17 +105,17 @@ func (c Client) latestConfig(configType string, name string) ([]Config, error) {
 	return resps, nil
 }
 
-func (c Client) listConfigs(filter ConfigsFilter) ([]Config, error) {
+func (c Client) listConfigs(limit int, filter ConfigsFilter) ([]Config, error) {
 	var resps []Config
 
 	query := gourl.Values{}
-	query.Add("latest", strconv.FormatBool(!filter.IncludeOutdated))
 	if filter.Type != "" {
 		query.Add("type", filter.Type)
 	}
 	if filter.Name != "" {
 		query.Add("name", filter.Name)
 	}
+	query.Add("limit", fmt.Sprintf("%d", limit))
 	path := fmt.Sprintf("/configs?%s", query.Encode())
 
 	err := c.clientRequest.Get(path, &resps)

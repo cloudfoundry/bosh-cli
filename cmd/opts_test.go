@@ -912,9 +912,11 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("IncludeOutdated", func() {
+		Describe("Recent", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("IncludeOutdated", opts)).To(Equal(`long:"include-outdated" description:"Include outdated configs"`))
+				Expect(getStructTagForName("Recent", opts)).To(Equal(
+					`long:"recent" short:"r" description:"Number of configs to show" optional:"true" optional-value:"1" default:"1"`,
+				))
 			})
 		})
 	})
