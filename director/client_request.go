@@ -153,7 +153,9 @@ func (r ClientRequest) RawPut(path string, payload []byte, f func(*http.Request)
 func (r ClientRequest) RawDelete(path string) ([]byte, *http.Response, error) {
 	url := fmt.Sprintf("%s%s", r.endpoint, path)
 
-	resp, err := r.httpClient.Delete(url)
+	wrapperFunc := r.setContextIDHeader(nil)
+
+	resp, err := r.httpClient.DeleteCustomized(url, wrapperFunc)
 	if err != nil {
 		return nil, nil, bosherr.WrapErrorf(err, "Performing request DELETE '%s'", url)
 	}
