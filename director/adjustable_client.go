@@ -41,6 +41,7 @@ func (c AdjustableClient) Do(req *http.Request) (*http.Response, error) {
 	}
 
 	if c.adjustment.NeedsReadjustment(resp) {
+		resp.Body.Close()
 		err := c.adjustment.Adjust(req, true)
 		if err != nil {
 			return nil, err
