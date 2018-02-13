@@ -341,10 +341,10 @@ type FakeDirector struct {
 		result1 director.Config
 		result2 error
 	}
-	LatestConfigByIDStub        func(configId string) (director.Config, error)
+	LatestConfigByIDStub        func(configID string) (director.Config, error)
 	latestConfigByIDMutex       sync.RWMutex
 	latestConfigByIDArgsForCall []struct {
-		configId string
+		configID string
 	}
 	latestConfigByIDReturns struct {
 		result1 director.Config
@@ -368,7 +368,7 @@ type FakeDirector struct {
 		result1 []director.Config
 		result2 error
 	}
-	UpdateConfigStub        func(configType string, name string, content []byte) error
+	UpdateConfigStub        func(configType string, name string, content []byte) (director.Config, error)
 	updateConfigMutex       sync.RWMutex
 	updateConfigArgsForCall []struct {
 		configType string
@@ -376,10 +376,12 @@ type FakeDirector struct {
 		content    []byte
 	}
 	updateConfigReturns struct {
-		result1 error
+		result1 director.Config
+		result2 error
 	}
 	updateConfigReturnsOnCall map[int]struct {
-		result1 error
+		result1 director.Config
+		result2 error
 	}
 	DeleteConfigStub        func(configType string, name string) (bool, error)
 	deleteConfigMutex       sync.RWMutex
@@ -1888,16 +1890,16 @@ func (fake *FakeDirector) LatestConfigReturnsOnCall(i int, result1 director.Conf
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) LatestConfigByID(configId string) (director.Config, error) {
+func (fake *FakeDirector) LatestConfigByID(configID string) (director.Config, error) {
 	fake.latestConfigByIDMutex.Lock()
 	ret, specificReturn := fake.latestConfigByIDReturnsOnCall[len(fake.latestConfigByIDArgsForCall)]
 	fake.latestConfigByIDArgsForCall = append(fake.latestConfigByIDArgsForCall, struct {
-		configId string
-	}{configId})
-	fake.recordInvocation("LatestConfigByID", []interface{}{configId})
+		configID string
+	}{configID})
+	fake.recordInvocation("LatestConfigByID", []interface{}{configID})
 	fake.latestConfigByIDMutex.Unlock()
 	if fake.LatestConfigByIDStub != nil {
-		return fake.LatestConfigByIDStub(configId)
+		return fake.LatestConfigByIDStub(configID)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -1914,7 +1916,7 @@ func (fake *FakeDirector) LatestConfigByIDCallCount() int {
 func (fake *FakeDirector) LatestConfigByIDArgsForCall(i int) string {
 	fake.latestConfigByIDMutex.RLock()
 	defer fake.latestConfigByIDMutex.RUnlock()
-	return fake.latestConfigByIDArgsForCall[i].configId
+	return fake.latestConfigByIDArgsForCall[i].configID
 }
 
 func (fake *FakeDirector) LatestConfigByIDReturns(result1 director.Config, result2 error) {
@@ -1991,7 +1993,7 @@ func (fake *FakeDirector) ListConfigsReturnsOnCall(i int, result1 []director.Con
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) UpdateConfig(configType string, name string, content []byte) error {
+func (fake *FakeDirector) UpdateConfig(configType string, name string, content []byte) (director.Config, error) {
 	var contentCopy []byte
 	if content != nil {
 		contentCopy = make([]byte, len(content))
@@ -2010,9 +2012,9 @@ func (fake *FakeDirector) UpdateConfig(configType string, name string, content [
 		return fake.UpdateConfigStub(configType, name, content)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fake.updateConfigReturns.result1
+	return fake.updateConfigReturns.result1, fake.updateConfigReturns.result2
 }
 
 func (fake *FakeDirector) UpdateConfigCallCount() int {
@@ -2027,23 +2029,26 @@ func (fake *FakeDirector) UpdateConfigArgsForCall(i int) (string, string, []byte
 	return fake.updateConfigArgsForCall[i].configType, fake.updateConfigArgsForCall[i].name, fake.updateConfigArgsForCall[i].content
 }
 
-func (fake *FakeDirector) UpdateConfigReturns(result1 error) {
+func (fake *FakeDirector) UpdateConfigReturns(result1 director.Config, result2 error) {
 	fake.UpdateConfigStub = nil
 	fake.updateConfigReturns = struct {
-		result1 error
-	}{result1}
+		result1 director.Config
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeDirector) UpdateConfigReturnsOnCall(i int, result1 error) {
+func (fake *FakeDirector) UpdateConfigReturnsOnCall(i int, result1 director.Config, result2 error) {
 	fake.UpdateConfigStub = nil
 	if fake.updateConfigReturnsOnCall == nil {
 		fake.updateConfigReturnsOnCall = make(map[int]struct {
-			result1 error
+			result1 director.Config
+			result2 error
 		})
 	}
 	fake.updateConfigReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
+		result1 director.Config
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeDirector) DeleteConfig(configType string, name string) (bool, error) {

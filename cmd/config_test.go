@@ -72,7 +72,7 @@ var _ = Describe("ConfigCmd", func() {
 							boshtbl.NewHeader("ID"),
 							boshtbl.NewHeader("Type"),
 							boshtbl.NewHeader("Name"),
-							boshtbl.NewHeader("Created at"),
+							boshtbl.NewHeader("Created At"),
 							boshtbl.NewHeader("Content"),
 						},
 
@@ -191,7 +191,7 @@ var _ = Describe("ConfigCmd", func() {
 							boshtbl.NewHeader("ID"),
 							boshtbl.NewHeader("Type"),
 							boshtbl.NewHeader("Name"),
-							boshtbl.NewHeader("Created at"),
+							boshtbl.NewHeader("Created At"),
 							boshtbl.NewHeader("Content"),
 						},
 

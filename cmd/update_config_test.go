@@ -12,6 +12,7 @@ import (
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 var _ = Describe("UpdateConfigCmd", func() {
@@ -89,6 +90,35 @@ var _ = Describe("UpdateConfigCmd", func() {
 			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\nxyz: val\n")))
 		})
 
+		It("outputs a table that should be transposed", func() {
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(ui.Table.Transpose).To(Equal(true))
+		})
+
+		It("output table contains headers and rows", func() {
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
+				boshtbl.NewHeader("ID"),
+				boshtbl.NewHeader("Type"),
+				boshtbl.NewHeader("Name"),
+				boshtbl.NewHeader("Created At"),
+				boshtbl.NewHeader("Content"),
+			}))
+			Expect(ui.Table.Rows).To(Equal([][]boshtbl.Value{
+				{
+					boshtbl.NewValueString(""),
+					boshtbl.NewValueString(""),
+					boshtbl.NewValueString(""),
+					boshtbl.NewValueString(""),
+					boshtbl.NewValueString(""),
+				},
+			}))
+		})
+
 		It("does not update if confirmation is rejected", func() {
 			ui.AskedConfirmationErr = errors.New("stop")
 
@@ -100,7 +130,7 @@ var _ = Describe("UpdateConfigCmd", func() {
 		})
 
 		It("returns error if updating failed", func() {
-			director.UpdateConfigReturns(errors.New("fake-err"))
+			director.UpdateConfigReturns(boshdir.Config{}, errors.New("fake-err"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())

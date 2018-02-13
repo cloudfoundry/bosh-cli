@@ -3,7 +3,6 @@ package cmd
 import (
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
-	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
@@ -43,32 +42,7 @@ func (c ConfigCmd) Run(opts ConfigOpts) error {
 		return err
 	}
 
-	table := boshtbl.Table{
-		Content: "config",
+	ConfigTable{config, c.ui}.Print()
 
-		Header: []boshtbl.Header{
-			boshtbl.NewHeader("ID"),
-			boshtbl.NewHeader("Type"),
-			boshtbl.NewHeader("Name"),
-			boshtbl.NewHeader("Created at"),
-			boshtbl.NewHeader("Content"),
-		},
-
-		Notes: []string{},
-
-		FillFirstColumn: true,
-
-		Transpose: true,
-	}
-
-	table.Rows = append(table.Rows, []boshtbl.Value{
-		boshtbl.NewValueString(config.ID),
-		boshtbl.NewValueString(config.Type),
-		boshtbl.NewValueString(config.Name),
-		boshtbl.NewValueString(config.CreatedAt),
-		boshtbl.NewValueString(config.Content),
-	})
-
-	c.ui.PrintTable(table)
 	return nil
 }

@@ -76,10 +76,10 @@ func (d DirectorImpl) ListConfigs(limit int, filter ConfigsFilter) ([]Config, er
 	return d.client.listConfigs(limit, filter)
 }
 
-func (d DirectorImpl) UpdateConfig(configType string, name string, content []byte) error {
+func (d DirectorImpl) UpdateConfig(configType string, name string, content []byte) (Config, error) {
 	body, err := json.Marshal(UpdateConfigBody{configType, name, string(content)})
 	if err != nil {
-		return bosherr.WrapError(err, "Can't marshal request body")
+		return Config{}, bosherr.WrapError(err, "Can't marshal request body")
 	}
 	return d.client.updateConfig(body)
 }
@@ -126,17 +126,24 @@ func (c Client) listConfigs(limit int, filter ConfigsFilter) ([]Config, error) {
 	return resps, nil
 }
 
-func (c Client) updateConfig(content []byte) error {
+func (c Client) updateConfig(content []byte) (Config, error) {
+	var config Config
+
 	setHeaders := func(req *http.Request) {
 		req.Header.Add("Content-Type", "application/json")
 	}
 
-	_, _, err := c.clientRequest.RawPost("/configs", content, setHeaders)
+	respBody, _, err := c.clientRequest.RawPost("/configs", content, setHeaders)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Updating config")
+		return config, bosherr.WrapErrorf(err, "Updating config")
 	}
 
-	return nil
+	err = json.Unmarshal(respBody, &config)
+	if err != nil {
+		return config, bosherr.WrapError(err, "Unmarshaling Director response")
+	}
+
+	return config, nil
 }
 
 func (c Client) deleteConfig(configType string, name string) (bool, error) {

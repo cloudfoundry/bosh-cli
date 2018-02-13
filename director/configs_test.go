@@ -180,11 +180,11 @@ var _ bool = Describe("Director", func() {
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyBody([]byte(`{"type":"my-type","name":"my-name","content":"---"}`)),
 					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/json"}}),
-					ghttp.RespondWith(http.StatusNoContent, nil),
+					ghttp.RespondWith(http.StatusOK, []byte("{}")),
 				),
 			)
 
-			err := director.UpdateConfig("my-type", "my-name", []byte("---"))
+			_, err := director.UpdateConfig("my-type", "my-name", []byte("---"))
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -195,22 +195,51 @@ var _ bool = Describe("Director", func() {
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyBody([]byte(`{"type":"my-type","name":"my-name","content":"abc\ndef\n"}`)),
 					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/json"}}),
-					ghttp.RespondWith(http.StatusNoContent, nil),
+					ghttp.RespondWith(http.StatusOK, []byte("{}")),
 				),
 			)
 
-			err := director.UpdateConfig("my-type", "my-name", []byte("abc\ndef\n"))
+			_, err := director.UpdateConfig("my-type", "my-name", []byte("abc\ndef\n"))
 			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns config", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/configs"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, []byte(`{"id":"123","type":"my-type","name":"my-name","created_at":"","content":"a"}`)),
+				),
+			)
+
+			config, err := director.UpdateConfig("my-type", "my-name", []byte("abc\ndef\n"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(config).To(Equal(Config{ID: "123", Name: "my-name", Type: "my-type", CreatedAt: "", Content: "a"}))
 		})
 
 		Context("when server returns an error", func() {
 			It("returns error", func() {
 				AppendBadRequest(ghttp.VerifyRequest("POST", "/configs"), server)
 
-				err := director.UpdateConfig("fake-type", "fake-name", nil)
+				_, err := director.UpdateConfig("fake-type", "fake-name", nil)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(
 					"Updating config: Director responded with non-successful status code '400'"))
+			})
+
+			It("returns error for invalid JSON", func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/configs"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.RespondWith(http.StatusOK, []byte(`abc\ndef\n`)),
+					),
+				)
+
+				config, err := director.UpdateConfig("my-type", "my-name", nil)
+				Expect(err).To(HaveOccurred())
+				Expect(config).To(Equal(Config{}))
+				Expect(err.Error()).To(ContainSubstring("Unmarshaling Director response"))
 			})
 		})
 	})
