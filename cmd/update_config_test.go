@@ -35,9 +35,9 @@ var _ = Describe("UpdateConfigCmd", func() {
 		BeforeEach(func() {
 			opts = UpdateConfigOpts{
 				Args: UpdateConfigArgs{
-					Type:   "my-type",
 					Config: FileBytesArg{Bytes: []byte("fake-config")},
 				},
+				Type: "my-type",
 				Name: "my-name",
 			}
 		})
@@ -135,9 +135,9 @@ var _ = Describe("UpdateConfigCmd", func() {
 			BeforeEach(func() {
 				opts = UpdateConfigOpts{
 					Args: UpdateConfigArgs{
-						Type:   "my-type",
 						Config: FileBytesArg{Bytes: []byte("---")},
 					},
+					Type: "my-type",
 					Name: "",
 				}
 			})

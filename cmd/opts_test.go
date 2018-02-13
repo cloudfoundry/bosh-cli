@@ -1016,7 +1016,8 @@ var _ = Describe("Opts", func() {
 
 		Describe("Name", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("Name", opts)).To(Equal(`long:"name" description:"Config name" default:"default"`))
+				Expect(getStructTagForName("Type", opts)).To(Equal(`long:"type" required:"true" description:"Config type, e.g. 'cloud', 'runtime', or 'cpi'"`))
+				Expect(getStructTagForName("Name", opts)).To(Equal(`long:"name" required:"true" description:"Config name"`))
 			})
 		})
 	})
@@ -1030,7 +1031,6 @@ var _ = Describe("Opts", func() {
 
 		Describe("Type", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("Type", opts)).To(Equal(`positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud', 'runtime', or 'cpi'"`))
 				Expect(getStructTagForName("Config", opts)).To(Equal(`positional-arg-name:"PATH" description:"Path to a YAML config file"`))
 			})
 		})
