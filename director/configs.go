@@ -51,8 +51,6 @@ func (d DirectorImpl) LatestConfigByID(configID string) (Config, error) {
 func (c Client) latestConfigByID(configID string) (Config, error) {
 	var config Config
 
-	query := gourl.Values{}
-	query.Add("/", configID)
 	path := fmt.Sprintf("/configs/%s", configID)
 
 	respBody, response, err := c.clientRequest.RawGet(path, nil, nil)
@@ -86,6 +84,10 @@ func (d DirectorImpl) UpdateConfig(configType string, name string, content []byt
 
 func (d DirectorImpl) DeleteConfig(configType string, name string) (bool, error) {
 	return d.client.deleteConfig(configType, name)
+}
+
+func (d DirectorImpl) DeleteConfigByID(configID string) (bool, error) {
+	return d.client.deleteConfigByID(configID)
 }
 
 func (c Client) latestConfig(configType string, name string) ([]Config, error) {
@@ -151,6 +153,20 @@ func (c Client) deleteConfig(configType string, name string) (bool, error) {
 	query.Add("type", configType)
 	query.Add("name", name)
 	path := fmt.Sprintf("/configs?%s", query.Encode())
+
+	_, response, err := c.clientRequest.RawDelete(path)
+	if err != nil {
+		if response != nil && response.StatusCode == http.StatusNotFound {
+			return false, nil
+		}
+		return false, bosherr.WrapErrorf(err, "Deleting config")
+	}
+
+	return true, nil
+}
+
+func (c Client) deleteConfigByID(configID string) (bool, error) {
+	path := fmt.Sprintf("/configs/%s", configID)
 
 	_, response, err := c.clientRequest.RawDelete(path)
 	if err != nil {

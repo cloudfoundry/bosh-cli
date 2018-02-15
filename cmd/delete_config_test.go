@@ -31,16 +31,14 @@ var _ = Describe("DeleteConfigCmd", func() {
 
 		BeforeEach(func() {
 			opts = DeleteConfigOpts{
-				Args: DeleteConfigArgs{
-					Type: "my-type",
-				},
+				Type: "my-type",
 				Name: "my-name",
 			}
 		})
 
 		act := func() error { return command.Run(opts) }
 
-		It("does not stop if confirmation is rejected", func() {
+		It("does stop if confirmation is rejected", func() {
 			ui.AskedConfirmationErr = errors.New("stop")
 
 			err := act()
@@ -50,7 +48,105 @@ var _ = Describe("DeleteConfigCmd", func() {
 			Expect(director.DeleteConfigCallCount()).To(Equal(0))
 		})
 
-		Context("when type and name are given", func() {
+		Context("when neither ID nor options are given", func() {
+			BeforeEach(func() {
+				opts = DeleteConfigOpts{}
+			})
+
+			It("returns an error", func() {
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Either <ID> or parameters --type and --name must be provided"))
+			})
+		})
+
+		Context("when only ID is given", func() {
+			BeforeEach(func() {
+				opts = DeleteConfigOpts{
+					Args: DeleteConfigArgs{ID: "123"},
+				}
+			})
+
+			Context("when there is a matching config", func() {
+				It("succeeds", func() {
+					director.DeleteConfigByIDReturns(true, nil)
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+				})
+			})
+
+			Context("when there is NO matching config", func() {
+				It("succeeds with a message as hint", func() {
+					director.DeleteConfigByIDReturns(false, nil)
+
+					err := act()
+					Expect(err).To(Not(HaveOccurred()))
+					Expect(ui.Said[0]).To(ContainSubstring("No configs to delete: no matches for id '123'"))
+				})
+			})
+		})
+
+		Context("when ID and type option is given", func() {
+
+			BeforeEach(func() {
+				opts = DeleteConfigOpts{
+					Args: DeleteConfigArgs{ID: "123"},
+					Type: "my-type",
+				}
+			})
+
+			It("returns an error", func() {
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Can only specify one of ID or parameters '--type' and '--name'"))
+			})
+		})
+
+		Context("when ID and name option is given", func() {
+			BeforeEach(func() {
+				opts = DeleteConfigOpts{
+					Args: DeleteConfigArgs{ID: "123"},
+					Name: "my-name",
+				}
+			})
+
+			It("returns an error", func() {
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Can only specify one of ID or parameters '--type' and '--name'"))
+			})
+		})
+
+		Context("when only the name option is given", func() {
+			BeforeEach(func() {
+				opts = DeleteConfigOpts{
+					Name: "my-name",
+				}
+			})
+
+			It("returns an error", func() {
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Need to specify both parameters '--type' and '--name'"))
+			})
+		})
+
+		Context("when only the type option is given", func() {
+			BeforeEach(func() {
+				opts = DeleteConfigOpts{
+					Type: "my-type",
+				}
+			})
+
+			It("returns an error", func() {
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Need to specify both parameters '--type' and '--name'"))
+			})
+		})
+
+		Context("when ID is not given and both options are given", func() {
 
 			Context("when there is a matching config", func() {
 				It("succeeds", func() {
@@ -71,7 +167,7 @@ var _ = Describe("DeleteConfigCmd", func() {
 				})
 			})
 
-			It("fails", func() {
+			It("returns error if config cannot be deleted", func() {
 				director.DeleteConfigReturns(false, errors.New("fake-err"))
 
 				err := act()

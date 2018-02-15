@@ -397,6 +397,19 @@ type FakeDirector struct {
 		result1 bool
 		result2 error
 	}
+	DeleteConfigByIDStub        func(configID string) (bool, error)
+	deleteConfigByIDMutex       sync.RWMutex
+	deleteConfigByIDArgsForCall []struct {
+		configID string
+	}
+	deleteConfigByIDReturns struct {
+		result1 bool
+		result2 error
+	}
+	deleteConfigByIDReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
 	DiffConfigStub        func(configType string, name string, manifest []byte) (director.ConfigDiff, error)
 	diffConfigMutex       sync.RWMutex
 	diffConfigArgsForCall []struct {
@@ -2103,6 +2116,57 @@ func (fake *FakeDirector) DeleteConfigReturnsOnCall(i int, result1 bool, result2
 	}{result1, result2}
 }
 
+func (fake *FakeDirector) DeleteConfigByID(configID string) (bool, error) {
+	fake.deleteConfigByIDMutex.Lock()
+	ret, specificReturn := fake.deleteConfigByIDReturnsOnCall[len(fake.deleteConfigByIDArgsForCall)]
+	fake.deleteConfigByIDArgsForCall = append(fake.deleteConfigByIDArgsForCall, struct {
+		configID string
+	}{configID})
+	fake.recordInvocation("DeleteConfigByID", []interface{}{configID})
+	fake.deleteConfigByIDMutex.Unlock()
+	if fake.DeleteConfigByIDStub != nil {
+		return fake.DeleteConfigByIDStub(configID)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.deleteConfigByIDReturns.result1, fake.deleteConfigByIDReturns.result2
+}
+
+func (fake *FakeDirector) DeleteConfigByIDCallCount() int {
+	fake.deleteConfigByIDMutex.RLock()
+	defer fake.deleteConfigByIDMutex.RUnlock()
+	return len(fake.deleteConfigByIDArgsForCall)
+}
+
+func (fake *FakeDirector) DeleteConfigByIDArgsForCall(i int) string {
+	fake.deleteConfigByIDMutex.RLock()
+	defer fake.deleteConfigByIDMutex.RUnlock()
+	return fake.deleteConfigByIDArgsForCall[i].configID
+}
+
+func (fake *FakeDirector) DeleteConfigByIDReturns(result1 bool, result2 error) {
+	fake.DeleteConfigByIDStub = nil
+	fake.deleteConfigByIDReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) DeleteConfigByIDReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.DeleteConfigByIDStub = nil
+	if fake.deleteConfigByIDReturnsOnCall == nil {
+		fake.deleteConfigByIDReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.deleteConfigByIDReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDirector) DiffConfig(configType string, name string, manifest []byte) (director.ConfigDiff, error) {
 	var manifestCopy []byte
 	if manifest != nil {
@@ -3031,6 +3095,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.updateConfigMutex.RUnlock()
 	fake.deleteConfigMutex.RLock()
 	defer fake.deleteConfigMutex.RUnlock()
+	fake.deleteConfigByIDMutex.RLock()
+	defer fake.deleteConfigByIDMutex.RUnlock()
 	fake.diffConfigMutex.RLock()
 	defer fake.diffConfigMutex.RUnlock()
 	fake.diffConfigByIDMutex.RLock()

@@ -320,17 +320,6 @@ var _ = Describe("Factory", func() {
 		})
 	})
 
-	Describe("delete-config command", func() {
-		It("uses 'default' as default name", func() {
-			cmd, err := factory.New([]string{"delete-config", "my-type"})
-			Expect(err).ToNot(HaveOccurred())
-
-			opts := cmd.Opts.(*DeleteConfigOpts)
-
-			Expect(opts.Name).To(Equal("default"))
-		})
-	})
-
 	Describe("help options", func() {
 		It("has a help flag", func() {
 			cmd, err := factory.New([]string{"--help"})

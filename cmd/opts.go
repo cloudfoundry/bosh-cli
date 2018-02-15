@@ -344,14 +344,15 @@ type UpdateConfigArgs struct {
 }
 
 type DeleteConfigOpts struct {
-	Args DeleteConfigArgs `positional-args:"true" required:"true"`
-	Name string           `long:"name" description:"Config name" default:"default"`
+	Args DeleteConfigArgs `positional-args:"true"`
+	Type string           `long:"type" description:"Config type, e.g. 'cloud', 'runtime', or 'cpi'"`
+	Name string           `long:"name" description:"Config name"`
 
 	cmd
 }
 
 type DeleteConfigArgs struct {
-	Type string `positional-arg-name:"TYPE" description:"Config type, e.g. 'cloud', 'runtime', or 'cpi'"`
+	ID string `positional-arg-name:"ID" description:"Config ID"`
 }
 
 // Cloud config
