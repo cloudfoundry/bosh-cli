@@ -7,6 +7,8 @@ import (
 
 	gourl "net/url"
 
+	"strconv"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
@@ -97,6 +99,7 @@ func (c Client) latestConfig(configType string, name string) ([]Config, error) {
 	query.Add("type", configType)
 	query.Add("name", name)
 	query.Add("limit", "1")
+	query.Add("latest", "true")
 	path := fmt.Sprintf("/configs?%s", query.Encode())
 
 	err := c.clientRequest.Get(path, &resps)
@@ -118,6 +121,7 @@ func (c Client) listConfigs(limit int, filter ConfigsFilter) ([]Config, error) {
 		query.Add("name", filter.Name)
 	}
 	query.Add("limit", fmt.Sprintf("%d", limit))
+	query.Add("latest", strconv.FormatBool(limit == 1))
 	path := fmt.Sprintf("/configs?%s", query.Encode())
 
 	err := c.clientRequest.Get(path, &resps)

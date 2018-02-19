@@ -28,7 +28,7 @@ var _ bool = Describe("Director", func() {
 		It("returns the latest config", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/configs", "type=my-type&name=my-name&limit=1"),
+					ghttp.VerifyRequest("GET", "/configs", "type=my-type&name=my-name&limit=1&latest=true"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `[{"content": "first"}]`),
 				),
@@ -43,7 +43,7 @@ var _ bool = Describe("Director", func() {
 			It("returns error", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/configs", "type=missing-type&limit=1&name=default"),
+						ghttp.VerifyRequest("GET", "/configs", "type=missing-type&limit=1&latest=true&name=default"),
 						ghttp.VerifyBasicAuth("username", "password"),
 						ghttp.RespondWith(http.StatusOK, `[]`),
 					),
@@ -57,7 +57,7 @@ var _ bool = Describe("Director", func() {
 
 		Context("when server returns an error", func() {
 			It("returns error", func() {
-				AppendBadRequest(ghttp.VerifyRequest("GET", "/configs", "type=fake-type&limit=1&name=default"), server)
+				AppendBadRequest(ghttp.VerifyRequest("GET", "/configs", "type=fake-type&limit=1&latest=true&name=default"), server)
 
 				_, err := director.LatestConfig("fake-type", "default")
 				Expect(err).To(HaveOccurred())
@@ -116,7 +116,7 @@ var _ bool = Describe("Director", func() {
 				It("uses no query params and returns list of config items", func() {
 					server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/configs", "limit=1"),
+							ghttp.VerifyRequest("GET", "/configs", "limit=1&latest=true"),
 							ghttp.VerifyBasicAuth("username", "password"),
 							ghttp.RespondWith(http.StatusOK, `[{"name": "first", "type": "my-type", "created_at": "some-date", "team": "team1"}]`),
 						),
@@ -131,7 +131,7 @@ var _ bool = Describe("Director", func() {
 				It("uses them as query parameters and returns list of config items", func() {
 					server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/configs", "limit=1&name=first&type=my-type"),
+							ghttp.VerifyRequest("GET", "/configs", "limit=1&latest=true&name=first&type=my-type"),
 							ghttp.VerifyBasicAuth("username", "password"),
 							ghttp.RespondWith(http.StatusOK, `[{"name": "first", "type": "my-type"}]`),
 						),
@@ -148,7 +148,7 @@ var _ bool = Describe("Director", func() {
 			It("returns a list of config items", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/configs", "limit=2"),
+						ghttp.VerifyRequest("GET", "/configs", "limit=2&latest=false"),
 						ghttp.VerifyBasicAuth("username", "password"),
 						ghttp.RespondWith(http.StatusOK, `[{"id": "some-id", "name": "first", "type": "my-type"}, {"id": "some-other-id", "name": "first", "type": "my-type"}]`),
 					),
