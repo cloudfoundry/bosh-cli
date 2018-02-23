@@ -1,5 +1,10 @@
 required = ["github.com/onsi/ginkgo/ginkgo", "github.com/maxbrunsfeld/counterfeiter"]
 
+[prune]
+  unused-packages = true
+  non-go = true
+  go-tests = true
+
 [[constraint]]
   branch = "cli-patches"
   name = "github.com/jessevdk/go-flags"
