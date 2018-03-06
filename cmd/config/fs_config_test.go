@@ -2,6 +2,7 @@ package config_test
 
 import (
 	"errors"
+	"os"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
@@ -389,13 +390,30 @@ var _ = Describe("FSConfig", func() {
 	})
 
 	Describe("Save", func() {
-		It("returns error if writing file fails", func() {
-			fs.WriteFileError = errors.New("fake-err")
+		It("chmods the file to 600", func() {
+			config := readConfig()
+			err := config.Save()
+			Expect(err).ToNot(HaveOccurred())
+			fileInfo, _ := fs.Stat("/dir/sub-dir/config")
+			Expect(fileInfo.Mode()).To(Equal(os.FileMode(0600)))
+		})
+
+		It("returns error if chmoding file fails", func() {
+			fs.ChmodErr = errors.New("chmod error")
 
 			config := readConfig()
 			err := config.Save()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
+			Expect(err.Error()).To(ContainSubstring("chmod error"))
+		})
+
+		It("returns error if writing file fails", func() {
+			fs.WriteFileError = errors.New("write error")
+
+			config := readConfig()
+			err := config.Save()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("write error"))
 		})
 	})
 })
