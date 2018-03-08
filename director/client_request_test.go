@@ -167,7 +167,7 @@ var _ = Describe("ClientRequest", func() {
 			It("includes response body in the error if response errors", func() {
 				server.SetHandler(0, ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/path"),
-					ghttp.RespondWith(0, "body"),
+					ghttp.RespondWith(500, "body"),
 				))
 
 				body, resp, err := req.RawGet("/path", nil, nil)
@@ -203,7 +203,7 @@ var _ = Describe("ClientRequest", func() {
 			It("is not used if response errors", func() {
 				server.SetHandler(0, ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/path"),
-					ghttp.RespondWith(0, "body"),
+					ghttp.RespondWith(500, "body"),
 				))
 
 				buf := bytes.NewBufferString("")
