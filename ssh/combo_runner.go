@@ -2,12 +2,13 @@ package ssh
 
 import (
 	"os"
+	"syscall"
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"github.com/hashicorp/go-multierror"
+	multierror "github.com/hashicorp/go-multierror"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
@@ -188,6 +189,9 @@ func (r ComboRunner) setUpInterrupt(cancelCh chan<- struct{}, sess Session) {
 	signalCh := make(chan os.Signal, 1)
 
 	r.signalNotifyFunc(signalCh, os.Interrupt)
+	r.signalNotifyFunc(signalCh, syscall.SIGTERM)
+	r.signalNotifyFunc(signalCh, syscall.SIGHUP)
+	r.signalNotifyFunc(signalCh, syscall.SIGQUIT)
 
 	for _ = range signalCh {
 		r.logger.Debug(r.logTag, "Received an interrupt")
