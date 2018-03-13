@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"os"
+	"syscall"
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -187,12 +188,12 @@ func (r ComboRunner) waitProcs(ps []boshsys.Process, doneCh chan []boshsys.Resul
 func (r ComboRunner) setUpInterrupt(cancelCh chan<- struct{}, sess Session) {
 	signalCh := make(chan os.Signal, 1)
 
-	r.signalNotifyFunc(signalCh, os.Interrupt)
+	r.signalNotifyFunc(signalCh, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 
-	for _ = range signalCh {
-		r.logger.Debug(r.logTag, "Received an interrupt")
+	for sig := range signalCh {
+		r.logger.Debug(r.logTag, "Received a signal: %v", sig)
 
-		r.ui.PrintLinef("\nReceived an interrupt, exiting...\n")
+		r.ui.PrintLinef("\nReceived a signal, exiting...\n")
 
 		// Aggressively clear session, even though it may be cleared later
 		_ = sess.Finish()

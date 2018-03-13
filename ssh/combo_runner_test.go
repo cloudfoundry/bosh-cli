@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
+	"syscall"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -299,45 +299,73 @@ var _ = Describe("ComboRunner", func() {
 			Expect(err.Error()).To(ContainSubstring("fake-err3"))
 		})
 
-		It("terminates processes nicely upon interrupt", func() {
-			result.Hosts = []boshdir.Host{
-				{Host: "127.0.0.1"},
-				{Host: "127.0.0.2"},
-				{Host: "127.0.0.3"},
-			}
+		Describe("signal handling", func() {
+			var errCh chan error
 
-			proc1 := &fakesys.FakeProcess{
-				TerminatedNicelyCallBack: func(p *fakesys.FakeProcess) {
-					p.WaitCh <- boshsys.Result{}
-				},
-			}
-			cmdRunner.AddProcess("cmd 127.0.0.1", proc1)
+			BeforeEach(func() {
+				errCh = make(chan error)
 
-			proc2 := &fakesys.FakeProcess{}
-			cmdRunner.AddProcess("cmd 127.0.0.2", proc2)
-
-			proc3 := &fakesys.FakeProcess{
-				TerminatedNicelyCallBack: func(p *fakesys.FakeProcess) {
-					p.WaitCh <- boshsys.Result{Error: errors.New("term-err")}
-				},
-			}
-			cmdRunner.AddProcess("cmd 127.0.0.3", proc3)
-
-			go func() {
-				// Wait for interrupt goroutine to set channel
-				for signalCh == nil {
-					time.Sleep(0 * time.Millisecond)
+				result.Hosts = []boshdir.Host{
+					{Host: "127.0.0.1"},
+					{Host: "127.0.0.2"},
+					{Host: "127.0.0.3"},
 				}
-				signalCh <- os.Interrupt
-			}()
 
-			logger.Debug("test", "LOL")
+				proc1 := &fakesys.FakeProcess{
+					TerminatedNicelyCallBack: func(p *fakesys.FakeProcess) {
+						p.WaitCh <- boshsys.Result{}
+					},
+				}
+				cmdRunner.AddProcess("cmd 127.0.0.1", proc1)
 
-			err := comboRunner.Run(connOpts, result, cmdFactory)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("term-err"))
+				proc2 := &fakesys.FakeProcess{}
+				cmdRunner.AddProcess("cmd 127.0.0.2", proc2)
 
-			Expect(session.FinishCallCount()).To(Equal(2))
+				proc3 := &fakesys.FakeProcess{
+					TerminatedNicelyCallBack: func(p *fakesys.FakeProcess) {
+						p.WaitCh <- boshsys.Result{Error: errors.New("term-err")}
+					},
+				}
+				cmdRunner.AddProcess("cmd 127.0.0.3", proc3)
+
+				go func() {
+					defer GinkgoRecover()
+					// Wait for interrupt goroutine to set channel
+					errCh <- comboRunner.Run(connOpts, result, cmdFactory)
+				}()
+
+				Eventually(func() chan<- os.Signal { return signalCh }).ShouldNot(BeNil())
+			})
+
+			It("terminates processes nicely upon interrupt", func() {
+				Eventually(signalCh).Should(BeSent(os.Interrupt))
+
+				var err error
+				Eventually(errCh).Should(Receive(&err))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("term-err"))
+				Expect(session.FinishCallCount()).To(Equal(2))
+			})
+
+			It("terminates processes nicely upon sigterm", func() {
+				Eventually(signalCh).Should(BeSent(syscall.SIGTERM))
+
+				var err error
+				Eventually(errCh).Should(Receive(&err))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("term-err"))
+				Expect(session.FinishCallCount()).To(Equal(2))
+			})
+
+			It("terminates processes nicely upon sighup", func() {
+				Eventually(signalCh).Should(BeSent(syscall.SIGHUP))
+
+				var err error
+				Eventually(errCh).Should(Receive(&err))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("term-err"))
+				Expect(session.FinishCallCount()).To(Equal(2))
+			})
 		})
 	})
 })
