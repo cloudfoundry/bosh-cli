@@ -7,8 +7,7 @@ import (
 )
 
 func newExecCmd(name string, args ...string) *exec.Cmd {
-	args = append([]string{name}, args...)
-	return exec.Command(`powershell`, args...)
+	return exec.Command(name, args...)
 }
 
 // mergeEnv case-insensitive merge of system and command environments variables.
