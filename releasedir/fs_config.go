@@ -1,6 +1,8 @@
 package releasedir
 
 import (
+	"strings"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
@@ -69,7 +71,7 @@ func (c FSConfig) Name() (string, error) {
 
 func (c FSConfig) SaveName(name string) error {
 	publicSchema, _, err := c.read()
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "isn't a release directory") {
 		return err
 	}
 
@@ -117,7 +119,15 @@ func (c FSConfig) read() (fsConfigPublicSchema, fsConfigPrivateSchema, error) {
 	var publicSchema fsConfigPublicSchema
 	var privateSchema fsConfigPrivateSchema
 
-	if c.fs.FileExists(c.publicPath) {
+	pubExists := c.fs.FileExists(c.publicPath)
+	privExists := c.fs.FileExists(c.privatePath)
+
+	if !pubExists && !privExists {
+		return publicSchema, privateSchema,
+			bosherr.Error("Sorry, it looks like your current directory isn't a release directory")
+	}
+
+	if pubExists {
 		bytes, err := c.fs.ReadFile(c.publicPath)
 		if err != nil {
 			return publicSchema, privateSchema,
@@ -131,7 +141,7 @@ func (c FSConfig) read() (fsConfigPublicSchema, fsConfigPrivateSchema, error) {
 		}
 	}
 
-	if c.fs.FileExists(c.privatePath) {
+	if privExists {
 		bytes, err := c.fs.ReadFile(c.privatePath)
 		if err != nil {
 			return publicSchema, privateSchema,

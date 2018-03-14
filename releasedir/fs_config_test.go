@@ -54,6 +54,12 @@ var _ = Describe("FSConfig", func() {
 			Expect(err.Error()).To(Equal("Expected 'name' or 'final_name' but not both in config '/dir/public.yml'"))
 		})
 
+		It("returns error if public and private files don't exist", func() {
+			_, err := config.Name()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("isn't a release directory"))
+		})
+
 		It("returns error if cannot read public config", func() {
 			fs.WriteFileString("/dir/public.yml", "-")
 			fs.RegisterReadFileError("/dir/public.yml", errors.New("fake-err"))
