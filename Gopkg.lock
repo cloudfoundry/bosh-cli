@@ -145,9 +145,10 @@
     "system",
     "system/fakes",
     "uuid",
-    "uuid/fakes"
+    "uuid/fakes",
+    "work"
   ]
-  revision = "01cfe283d17a7b5aa18f03c1a1d8eb78cf25e249"
+  revision = "c6a922e299b8eb5eaadad8a2842e3ab7e043dc5d"
 
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
@@ -486,6 +487,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b4ce68f24eef1c2053f490a4ea8305b55714da34bc96af60215a0dd5d75a745f"
+  inputs-digest = "69f890e386d5a3038b6433abf576a8dbeb8a562fc73daf631db13fa652366cf7"
   solver-name = "gps-cdcl"
   solver-version = 1

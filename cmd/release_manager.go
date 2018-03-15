@@ -8,7 +8,7 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	"github.com/cloudfoundry/bosh-cli/work"
+	"github.com/cloudfoundry/bosh-utils/work"
 )
 
 type ReleaseManager struct {

@@ -17,7 +17,7 @@ import (
 	"fmt"
 
 	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
-	"github.com/cloudfoundry/bosh-cli/work"
+	"github.com/cloudfoundry/bosh-utils/work"
 )
 
 type FSBlobsDir struct {

@@ -7,7 +7,7 @@ import (
 	birellic "github.com/cloudfoundry/bosh-cli/release/license"
 	birelman "github.com/cloudfoundry/bosh-cli/release/manifest"
 	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	"github.com/cloudfoundry/bosh-cli/work"
+	"github.com/cloudfoundry/bosh-utils/work"
 )
 
 type release struct {
