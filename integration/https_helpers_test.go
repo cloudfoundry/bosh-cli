@@ -2,6 +2,8 @@ package integration_test
 
 import (
 	"crypto/tls"
+	"io/ioutil"
+	"net/http"
 
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -20,6 +22,15 @@ func BuildHTTPSServer() (string, *ghttp.Server) {
 	server.HTTPTestServer.StartTLS()
 
 	return validCACert, server
+}
+
+func VerifyBodyContains(content string) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		body, err := ioutil.ReadAll(req.Body)
+		req.Body.Close()
+		Expect(err).ToNot(HaveOccurred())
+		Expect(body).To(ContainSubstring(content))
+	}
 }
 
 var validCert = []byte(`-----BEGIN CERTIFICATE-----

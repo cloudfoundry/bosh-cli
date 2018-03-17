@@ -10,14 +10,16 @@ import (
 )
 
 type VarsFSStore struct {
-	FS boshsys.FileSystem
-
+	FS                    boshsys.FileSystem
+	path                  string
 	ValueGeneratorFactory cfgtypes.ValueGeneratorFactory
-
-	path string
 }
 
 var _ boshtpl.Variables = VarsFSStore{}
+
+func NewVarsFSStore(fs boshsys.FileSystem, path string) VarsFSStore {
+	return VarsFSStore{fs, path, cfgtypes.NewValueGeneratorConcrete(nil)}
+}
 
 func (s VarsFSStore) IsSet() bool { return len(s.path) > 0 }
 
@@ -114,22 +116,6 @@ func (s VarsFSStore) save(vars boshtpl.StaticVariables) error {
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Writing variables to file store '%s'", s.path)
 	}
-
-	return nil
-}
-
-func (s *VarsFSStore) UnmarshalFlag(data string) error {
-	if len(data) == 0 {
-		return bosherr.Errorf("Expected file path to be non-empty")
-	}
-
-	absPath, err := s.FS.ExpandPath(data)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Getting absolute path '%s'", data)
-	}
-
-	(*s).path = absPath
-	(*s).ValueGeneratorFactory = cfgtypes.NewValueGeneratorConcrete(nil)
 
 	return nil
 }

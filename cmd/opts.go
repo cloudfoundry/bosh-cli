@@ -38,6 +38,8 @@ type BoshOpts struct {
 
 	Help HelpOpts `command:"help" description:"Show this help message"`
 
+	ConfigServerFlags
+
 	// -----> Director management
 
 	// Environments
@@ -195,6 +197,14 @@ type DeleteEnvOpts struct {
 
 type DeleteEnvArgs struct {
 	Manifest FileBytesWithPathArg `positional-arg-name:"PATH" description:"Path to a manifest file"`
+}
+
+type ConfigServerFlags struct {
+	URL            string    `long:"config-server-url"             hidden:"true" value-name:"URL"  description:"Config server URL"`
+	TLSCA          CACertArg `long:"config-server-tls-ca"          hidden:"true" value-name:"PATH" description:"Config server CA certificate"`
+	TLSCertificate CACertArg `long:"config-server-tls-certificate" hidden:"true" value-name:"PATH" description:"Config server client certificate"`
+	TLSPrivateKey  CACertArg `long:"config-server-tls-private-key" hidden:"true" value-name:"PATH" description:"Config server client private key"`
+	Namespace      string    `long:"config-server-namespace"       hidden:"true" value-name:"URL"  description:"Config server URL"`
 }
 
 // Environment

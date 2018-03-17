@@ -9,6 +9,10 @@ import (
 
 	// Should only be imported here to avoid leaking use of goflags through project
 	goflags "github.com/jessevdk/go-flags"
+
+	bconfigserver "github.com/cloudfoundry/bosh-cli/configserver"
+	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	fsext "github.com/cloudfoundry/bosh-cli/fsext"
 )
 
 type Factory struct {
@@ -46,6 +50,12 @@ func (f Factory) New(args []string) (Cmd, error) {
 		c.ShortDescription += strings.Repeat(" ", fillerLen+1) + docsURL
 	}
 
+	schemaFS := fsext.NewSchemaDelegatingFS(f.deps.FS)
+	schemaFS.RegisterSchema("config-server", bconfigserver.NewFS(bconfigserver.NewErrClient()))
+	schemaFS.RegisterSchema("memory", fsext.NewInMemoryFS())
+
+	f.deps.FS = schemaFS
+
 	parser.CommandHandler = func(command goflags.Commander, extraArgs []string) error {
 		if opts, ok := command.(*SSHOpts); ok {
 			if len(opts.Command) == 0 {
@@ -77,6 +87,42 @@ func (f Factory) New(args []string) (Cmd, error) {
 
 		if opts, ok := command.(*TaskOpts); ok {
 			opts.Deployment = boshOpts.DeploymentOpt
+		}
+
+		var client bconfigserver.Client
+
+		if len(boshOpts.ConfigServerFlags.URL) > 0 {
+			clientOpts := bconfigserver.HTTPClientOpts{
+				URL:            boshOpts.ConfigServerFlags.URL,
+				TLSCA:          []byte(boshOpts.ConfigServerFlags.TLSCA.Content),
+				TLSCertificate: []byte(boshOpts.ConfigServerFlags.TLSCertificate.Content),
+				TLSPrivateKey:  []byte(boshOpts.ConfigServerFlags.TLSPrivateKey.Content),
+				Namespace:      boshOpts.ConfigServerFlags.Namespace,
+			}
+
+			var err error
+
+			client, err = bconfigserver.NewHTTPClient(clientOpts, f.deps.Logger)
+			if err != nil {
+				return fmt.Errorf("Failed to build config server HTTP client: %s", err)
+			}
+		} else {
+			client = bconfigserver.NewErrClient()
+		}
+
+		schemaFS.RegisterSchema("config-server", bconfigserver.NewFS(client))
+
+		varsStores := map[string]boshtpl.Variables{
+			"config-server": NewConfigServerVarsStore(client),
+		}
+
+		switch opts := command.(type) {
+		case *CreateEnvOpts:
+			opts.VarFlags.VarsStore.RegisterSchemas(varsStores)
+		case *DeleteEnvOpts:
+			opts.VarFlags.VarsStore.RegisterSchemas(varsStores)
+		case *InterpolateOpts:
+			opts.VarFlags.VarsStore.RegisterSchemas(varsStores)
 		}
 
 		if len(extraArgs) > 0 {

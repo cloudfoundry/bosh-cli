@@ -237,6 +237,52 @@ var _ = Describe("Factory", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("open manifest.yml: no such file or directory"))
 		})
+
+		It("is configured with config server flags for vars store", func() {
+			err := fs.WriteFileString(fakeFilePath, "")
+			Expect(err).ToNot(HaveOccurred())
+
+			configServerTLSConfig := NewFakeTLSConfig()
+
+			cmd, err := factory.New([]string{
+				"create-env", fakeFilePath,
+				"--config-server-url", "config-server-url",
+				"--config-server-tls-ca", configServerTLSConfig.CA,
+				"--config-server-tls-certificate", configServerTLSConfig.Certificate,
+				"--config-server-tls-private-key", configServerTLSConfig.PrivateKey,
+				"--config-server-namespace", "config-server-ns",
+				"--vars-store", "config-server://",
+			})
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = cmd.Opts.(*CreateEnvOpts).VarsStore.List()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Listing of variables in config server is not supported"))
+		})
+	})
+
+	Describe("delete-env command", func() {
+		It("is configured with config server flags for vars store", func() {
+			err := fs.WriteFileString(fakeFilePath, "")
+			Expect(err).ToNot(HaveOccurred())
+
+			configServerTLSConfig := NewFakeTLSConfig()
+
+			cmd, err := factory.New([]string{
+				"delete-env", fakeFilePath,
+				"--config-server-url", "config-server-url",
+				"--config-server-tls-ca", configServerTLSConfig.CA,
+				"--config-server-tls-certificate", configServerTLSConfig.Certificate,
+				"--config-server-tls-private-key", configServerTLSConfig.PrivateKey,
+				"--config-server-namespace", "config-server-ns",
+				"--vars-store", "config-server://",
+			})
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = cmd.Opts.(*DeleteEnvOpts).VarsStore.List()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Listing of variables in config server is not supported"))
+		})
 	})
 
 	Describe("alias-env command", func() {
@@ -320,6 +366,30 @@ var _ = Describe("Factory", func() {
 		})
 	})
 
+	Describe("interpolate command", func() {
+		It("is configured with config server flags for vars store", func() {
+			err := fs.WriteFileString(fakeFilePath, "")
+			Expect(err).ToNot(HaveOccurred())
+
+			configServerTLSConfig := NewFakeTLSConfig()
+
+			cmd, err := factory.New([]string{
+				"interpolate", fakeFilePath,
+				"--config-server-url", "config-server-url",
+				"--config-server-tls-ca", configServerTLSConfig.CA,
+				"--config-server-tls-certificate", configServerTLSConfig.Certificate,
+				"--config-server-tls-private-key", configServerTLSConfig.PrivateKey,
+				"--config-server-namespace", "config-server-ns",
+				"--vars-store", "config-server://",
+			})
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = cmd.Opts.(*InterpolateOpts).VarsStore.List()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Listing of variables in config server is not supported"))
+		})
+	})
+
 	Describe("help options", func() {
 		It("has a help flag", func() {
 			cmd, err := factory.New([]string{"--help"})
@@ -357,8 +427,16 @@ var _ = Describe("Factory", func() {
 
 	Describe("global options", func() {
 		clearNonGlobalOpts := func(boshOpts BoshOpts) BoshOpts {
-			boshOpts.VersionOpt = nil   // can't compare functions
-			boshOpts.CACertOpt.FS = nil // fs is populated by factory.New
+			boshOpts.VersionOpt = nil // can't compare functions
+
+			// fs is populated by factory.New
+			boshOpts.CACertOpt.FS = nil
+			boshOpts.ConfigServerFlags.TLSCA.FS = nil
+			boshOpts.ConfigServerFlags.TLSCertificate.FS = nil
+			boshOpts.ConfigServerFlags.TLSPrivateKey.FS = nil
+
+			boshOpts.CreateEnv = CreateEnvOpts{}
+			boshOpts.DeleteEnv = DeleteEnvOpts{}
 			boshOpts.UploadRelease = UploadReleaseOpts{}
 			boshOpts.ExportRelease = ExportReleaseOpts{}
 			boshOpts.RunErrand = RunErrandOpts{}
@@ -379,6 +457,8 @@ var _ = Describe("Factory", func() {
 			boshOpts.SSH = SSHOpts{}
 			boshOpts.SCP = SCPOpts{}
 			boshOpts.Deploy = DeployOpts{}
+			boshOpts.UpdateCloudConfig = UpdateCloudConfigOpts{}
+			boshOpts.UpdateCPIConfig = UpdateCPIConfigOpts{}
 			boshOpts.UpdateRuntimeConfig = UpdateRuntimeConfigOpts{}
 			boshOpts.VMs = VMsOpts{}
 			boshOpts.Instances = InstancesOpts{}
@@ -401,6 +481,8 @@ var _ = Describe("Factory", func() {
 		})
 
 		It("can set variety of options", func() {
+			configServerTLSConfig := NewFakeTLSConfig()
+
 			opts := []string{
 				"--config", "config",
 				"--environment", "env",
@@ -413,6 +495,11 @@ var _ = Describe("Factory", func() {
 				"--no-color",
 				"--non-interactive",
 				"--parallel", "123",
+				"--config-server-url", "config-server-url",
+				"--config-server-tls-ca", configServerTLSConfig.CA,
+				"--config-server-tls-certificate", configServerTLSConfig.Certificate,
+				"--config-server-tls-private-key", configServerTLSConfig.PrivateKey,
+				"--config-server-namespace", "config-server-ns",
 				"locks",
 			}
 
@@ -430,7 +517,14 @@ var _ = Describe("Factory", func() {
 				TTYOpt:            true,
 				NoColorOpt:        true,
 				NonInteractiveOpt: true,
-				Parallel:          123,
+				ConfigServerFlags: ConfigServerFlags{
+					URL:            "config-server-url",
+					TLSCA:          CACertArg{Content: configServerTLSConfig.CA},
+					TLSCertificate: CACertArg{Content: configServerTLSConfig.Certificate},
+					TLSPrivateKey:  CACertArg{Content: configServerTLSConfig.PrivateKey},
+					Namespace:      "config-server-ns",
+				},
+				Parallel: 123,
 			}))
 		})
 
@@ -452,3 +546,17 @@ var _ = Describe("Factory", func() {
 		})
 	})
 })
+
+type fakeTLSConfig struct {
+	CA          string
+	Certificate string
+	PrivateKey  string
+}
+
+func NewFakeTLSConfig() fakeTLSConfig {
+	return fakeTLSConfig{
+		CA:          "-----BEGIN CERTIFICATE-----\nMIIDFDCCAfygAwIBAgIRAOIUrZu8YXP+aC0Df+ERlyAwDQYJKoZIhvcNAQELBQAw\nMzEMMAoGA1UEBhMDVVNBMRYwFAYDVQQKEw1DbG91ZCBGb3VuZHJ5MQswCQYDVQQD\nEwJjYTAeFw0xODAxMzEwMjA0MDZaFw0xOTAxMzEwMjA0MDZaMDMxDDAKBgNVBAYT\nA1VTQTEWMBQGA1UEChMNQ2xvdWQgRm91bmRyeTELMAkGA1UEAxMCY2EwggEiMA0G\nCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDhe27Hrcc/bsrQK4Xp/jm5kebU9Mn3\nh4C3DMMJH3klIiAGCToxK9ygHdrXJzvdLFJlulw8qBYznRKmVMubW6MOeQBWhiB0\nuijT6ZGoiiwjQwvE6ASSVLSaE2byOnXHDPrdgXJg1BuBt7ZZ7VXp7bGTVjXetpz4\nZsfP8di4YcuC76PqxgVFNTyPpmPNoSY9DW5Up4tKLetiOpxRmb7+vGvPiqrCZ4Dx\npq8caKOYr5dkBYL2ndQbHO9zU05xPBttOxPwJkTmI2RRfw8U5D5Dj5QdA8Gwctua\n2mCjpjnfZ6qQcYMFCHLS9GWKxwfxM3ZhaXHbOPzdmWOWSP3dEtbGInQBAgMBAAGj\nIzAhMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEB\nCwUAA4IBAQC2D2N71wABMVOzBeIvWF7FmTFUd0zQ428h6MzAXWoKrc0aIQyhVs0m\nJrp1ieFxk3r+nAMRQXI6/Fg2W6sKGGy+0MbgAuDAcn/cxmES3VJzydx0I3EK0MBF\nY0NUOq83F1EBMR0x/M9QdePNoLWqaB6LHX0cW/UpIZPvpdjmbxeBEs84KhT/pKcF\n11rdLLr7Gs4ndg0CI8DXqR5SB+cxo2FfQ+TzATVtkRN7bNXYm3kWbGAfxThs6zBs\nmua9ksakqsOViqQFruxCUeHMxCZ+Jr5LYsjwGS9h6DDVU3rG+EM1v5+rlzyrV/E6\n028qgNmb9GC86sUMJP63Pgnor+/emp9N\n-----END CERTIFICATE-----",
+		Certificate: "-----BEGIN CERTIFICATE-----\nMIIDSjCCAjKgAwIBAgIQWyNlE989qt4Jq5e3uPnEvzANBgkqhkiG9w0BAQsFADAz\nMQwwCgYDVQQGEwNVU0ExFjAUBgNVBAoTDUNsb3VkIEZvdW5kcnkxCzAJBgNVBAMT\nAmNhMB4XDTE4MDEzMTAyMDQwNloXDTE5MDEzMTAyMDQwNlowPDEMMAoGA1UEBhMD\nVVNBMRYwFAYDVQQKEw1DbG91ZCBGb3VuZHJ5MRQwEgYDVQQDEwtzZXJ2ZXItY2Vy\ndDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALZCZGt0DlFNSiRCZU83\nefftOa+EaXmkrMMr1chlb4rdSE5ft3G6Jw9cmdMDB4ZrA3pbQo6ENcFQn1AI6h/2\nC8q2XASUzzO7vDo/oYfsK4YGXXCgVEKB+aQagKDBhPCFW2m6SaoaHjxfZtS4TVBL\nepr7SwZfFBxFKLlInTOdy+i/TARFNf+xszrffVlhRTbTozCwI0wrURQeXPU0V5kh\nM4vOyDrN0/K9GmgO9dNC5X7T1JS2BQ7vtceAf7eSCyiuP3Zi8Gja9/51l3JKAXA7\nceY0+r0U+c4yd2XhaY0gHPYzJegzFilF+bC311heMJpQYm5KdAmeHMOtWW1m2zeU\nxLECAwEAAaNRME8wDgYDVR0PAQH/BAQDAgWgMBMGA1UdJQQMMAoGCCsGAQUFBwMB\nMAwGA1UdEwEB/wQCMAAwGgYDVR0RBBMwEYIJbG9jYWxob3N0hwR/AAABMA0GCSqG\nSIb3DQEBCwUAA4IBAQANsC2yzCvdQFW0Lr7iVNr44O4J3HLVdMuMGoNoYBGGk7+k\njiExDkY1BNvXtYxGTQo8x0a9i/DzrT1qTsxYQbmSUa35vh08bMhht6aRr4G5LkEq\nneHgJF3oo0G7sEu06dokKZLWkpHtHU9s2csXrLWYCIcejyWhkJGlKTN6WYgum3dS\nWjMSq20Hn+SW/PcUTBpB+gJDKnz2XCX9Hu0elVJOIv+DsRBNlrU0LUyF79Dbnl6j\n/nW3vZF9r7+LfYgLdLB661hvyv5F2e97ic7mmekG7nRop5j074vNPCj8yMdADqVn\nue3UUC2R6+gWoOxY0HVhVlGX9vVJap+/1O7rHBLr\n-----END CERTIFICATE-----",
+		PrivateKey:  "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEAtkJka3QOUU1KJEJlTzd59+05r4RpeaSswyvVyGVvit1ITl+3\ncbonD1yZ0wMHhmsDeltCjoQ1wVCfUAjqH/YLyrZcBJTPM7u8Oj+hh+wrhgZdcKBU\nQoH5pBqAoMGE8IVbabpJqhoePF9m1LhNUEt6mvtLBl8UHEUouUidM53L6L9MBEU1\n/7GzOt99WWFFNtOjMLAjTCtRFB5c9TRXmSEzi87IOs3T8r0aaA7100LlftPUlLYF\nDu+1x4B/t5ILKK4/dmLwaNr3/nWXckoBcDtx5jT6vRT5zjJ3ZeFpjSAc9jMl6DMW\nKUX5sLfXWF4wmlBibkp0CZ4cw61ZbWbbN5TEsQIDAQABAoIBADL52tBbA24l6ei+\nUUuYvppjVVEL/dwx/MgRyJdmF46FWaXiC5LZd/dJ9RQZss8buztLrw/hVo+dFxHx\njFooHSAzZQU7AcD8bybziSBVI882lIfdr/NyGvqVFwjfV2lWQz0NB3F2IKLOJBq2\n+ZjNo5sZUeCUUzGc/kjkUGORbOjJr4OBkZM2hRqtdDbdaPK7OSiSFEpCwTuTLbhD\nCnP6ay+WWGADcgUSeYKrREohnjAhL8VuAOiQcveU4gmPfdMDZcq1cSdyEEO+NHs2\nFXLBKfdU42C61PRDfa5NNd1suTLBYAZWcr8AEnEvUEp/BeGhEBAdAlgVRHkjKs3G\nuD4GDGECgYEA03EQzRUbog6S2u8cIplUc5bJ9Wj+b+zmix22ve3FIxLTGfPb3cLL\nQe3JIkxLICYP7ZO1MaYy34+30lbPUbogkEzLP7fpt/qUk938CwLFL53ikOiWVA7k\np4hAC2G4Q20qP2biH6G4/h4eRhuXiJALu54GLtjMk2v9bQM2biYoWQUCgYEA3Kr8\n68vjIMU/xemllpafgVWICQMPOPCh6qdL9Fn7Atdt0BkjfDo3h1iaedEhKYQDZNvF\nxaiScSiByk9IFPyvIs0JEcywrKy5NQ4/0dMSQEOzfxBg9bPKI7/etHi9/ALW+XKB\naRZ4GNsr6YjC9szcE8LfQrCAsUe3BOX2zSUcnL0CgYAbiH+dlQASLD+nTrelMb4z\nhxEpadCoFns25lmjhdDD7nGa0Yxx5im9ng8w7ipiN1KfpzpTCsdZIUfYlgFNLSWM\nZNOaqoI+uNycHK3zaRrwRmj4YbEhpQbVYgKk+Mab0R1NQEJ1yANk49shWfpzh/5f\nIgbAFu8cy1Um2uI9ma5rWQKBgQDBdWankuhdIpD2ghCaJRNR4BqTTAtccBqEDoeY\nggp+Q0AS4PcrQh7MmfFUOvRH4WTYV5Tb5R399vVS2I7pV15ztC3vXPTHbeYxjXyG\nB/ZIQRJso39d6XGeReiJcBGfjx3JM4ohB4HiyMOGyk+i75dB++agIP2ybp0VvkbR\nM2gSQQKBgEm8KxlNQoI8FsV5I+9maL9ArFwUQX7Ck+5Z0/ldCviZdSAwDThY7Zng\nbY7my03T1A+gtVsgc/u8hsWuQh6wFPsB20wZoI0zDqcHnvmjgUUyQv18qhsAxiuO\nq3/JxAGV043+WleFaD9jGgBgPeqR3Aoch0U1AqDHDat5jVg2KLLT\n-----END RSA PRIVATE KEY-----",
+	}
+}

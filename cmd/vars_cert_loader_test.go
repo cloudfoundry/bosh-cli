@@ -92,13 +92,18 @@ var _ = Describe("VarsCertLoader", func() {
 })
 
 type FakeVariables struct {
-	GetErr error
+	GetResult interface{}
+	GetFound  bool
+	GetErr    error
+
+	ListResults []boshtpl.VariableDefinition
+	ListErr     error
 }
 
 func (v *FakeVariables) Get(varDef boshtpl.VariableDefinition) (interface{}, bool, error) {
-	return nil, false, v.GetErr
+	return v.GetResult, v.GetFound, v.GetErr
 }
 
 func (v *FakeVariables) List() ([]boshtpl.VariableDefinition, error) {
-	return nil, nil
+	return v.ListResults, v.ListErr
 }

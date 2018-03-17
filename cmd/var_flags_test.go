@@ -92,7 +92,7 @@ var _ = Describe("VarFlags", func() {
 		})
 
 		It("adds vars store as last resort if configured", func() {
-			varsStore := &VarsFSStore{FS: fakesys.NewFakeFileSystem()}
+			varsStore := &VarsStore{FS: fakesys.NewFakeFileSystem()}
 
 			err := varsStore.UnmarshalFlag("/file")
 			Expect(err).ToNot(HaveOccurred())
@@ -119,7 +119,7 @@ env: store
 				VarsEnvs: []VarsEnvArg{
 					{Vars: StaticVariables{"env": "env"}},
 				},
-				VarsFSStore: *varsStore,
+				VarsStore: varsStore,
 			}
 
 			vars := flags.AsVariables()
@@ -141,7 +141,7 @@ env: store
 		})
 
 		It("configures vars store to have ability to look up all variables for value generation", func() {
-			varsStore := &VarsFSStore{FS: fakesys.NewFakeFileSystem()}
+			varsStore := &VarsStore{FS: fakesys.NewFakeFileSystem()}
 			varsStore.UnmarshalFlag("/file")
 
 			// https://github.com/cloudfoundry/bosh-lite/blob/master/ca/certs as an example
@@ -155,7 +155,7 @@ env: store
 						"private_key": caPrivKey,
 					}},
 				},
-				VarsFSStore: *varsStore,
+				VarsStore: varsStore,
 			}
 
 			vars := flags.AsVariables()

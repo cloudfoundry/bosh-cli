@@ -21,15 +21,10 @@ var _ = Describe("VarsFSStore", func() {
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
-		store = VarsFSStore{FS: fs}
+		store = NewVarsFSStore(fs, "/file")
 	})
 
 	Describe("Get", func() {
-		BeforeEach(func() {
-			err := (&store).UnmarshalFlag("/file")
-			Expect(err).ToNot(HaveOccurred())
-		})
-
 		It("returns value and found if store finds variable", func() {
 			fs.WriteFileString("/file", "key: val")
 
@@ -135,11 +130,6 @@ var _ = Describe("VarsFSStore", func() {
 	})
 
 	Describe("List", func() {
-		BeforeEach(func() {
-			err := (&store).UnmarshalFlag("/file")
-			Expect(err).ToNot(HaveOccurred())
-		})
-
 		It("returns list of names without considering nested keys", func() {
 			fs.WriteFileString("/file", "key1: val\nkey2: {key3: nested}")
 
@@ -174,29 +164,13 @@ var _ = Describe("VarsFSStore", func() {
 
 	Describe("IsSet", func() {
 		It("returns true if store is configured with file path", func() {
-			err := (&store).UnmarshalFlag("/file")
-			Expect(err).ToNot(HaveOccurred())
+			store := NewVarsFSStore(fs, "/file")
 			Expect(store.IsSet()).To(BeTrue())
 		})
 
 		It("returns false if store is not configured", func() {
+			store := NewVarsFSStore(fs, "")
 			Expect(store.IsSet()).To(BeFalse())
-		})
-	})
-
-	Describe("UnmarshalFlag", func() {
-		It("returns error if file path is empty", func() {
-			err := (&store).UnmarshalFlag("")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Expected file path to be non-empty"))
-		})
-
-		It("returns error if path cannot be expanded", func() {
-			fs.ExpandPathErr = errors.New("fake-err")
-
-			err := (&store).UnmarshalFlag("/file")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 	})
 })
