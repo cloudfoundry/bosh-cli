@@ -97,6 +97,9 @@ func (s VarsFSStore) load() (boshtpl.StaticVariables, error) {
 			return vars, bosherr.WrapErrorf(err, "Deserializing variables file store '%s'", s.path)
 		}
 	}
+	if vars == nil {
+		return boshtpl.StaticVariables{}, nil
+	}
 
 	return vars, nil
 }

@@ -120,6 +120,18 @@ var _ = Describe("VarsFSStore", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Deserializing variables file store '/file'"))
 		})
+
+		Context("when file contains only the yaml header", func() {
+			It("tries to generate value and save it if variable type is available", func() {
+				fs.WriteFileString("/file", "---")
+
+				val, found, err := store.Get(boshtpl.VariableDefinition{Name: "key", Type: "password"})
+				Expect(len(val.(string))).To(BeNumerically(">", 10))
+				Expect(found).To(BeTrue())
+				Expect(err).ToNot(HaveOccurred())
+				Expect(fs.ReadFileString("/file")).To(MatchYAML(fmt.Sprintf("---\nkey:  %s\n", val.(string))))
+			})
+		})
 	})
 
 	Describe("List", func() {
