@@ -425,17 +425,19 @@ type FakeDirector struct {
 		result1 director.ConfigDiff
 		result2 error
 	}
-	DiffConfigByIDStub        func(fromID string, toID string) (director.ConfigDiff, error)
-	diffConfigByIDMutex       sync.RWMutex
-	diffConfigByIDArgsForCall []struct {
-		fromID string
-		toID   string
+	DiffConfigByIDOrContentStub        func(fromID string, fromContent []byte, toID string, toContent []byte) (director.ConfigDiff, error)
+	diffConfigByIDOrContentMutex       sync.RWMutex
+	diffConfigByIDOrContentArgsForCall []struct {
+		fromID      string
+		fromContent []byte
+		toID        string
+		toContent   []byte
 	}
-	diffConfigByIDReturns struct {
+	diffConfigByIDOrContentReturns struct {
 		result1 director.ConfigDiff
 		result2 error
 	}
-	diffConfigByIDReturnsOnCall map[int]struct {
+	diffConfigByIDOrContentReturnsOnCall map[int]struct {
 		result1 director.ConfigDiff
 		result2 error
 	}
@@ -2225,53 +2227,65 @@ func (fake *FakeDirector) DiffConfigReturnsOnCall(i int, result1 director.Config
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) DiffConfigByID(fromID string, toID string) (director.ConfigDiff, error) {
-	fake.diffConfigByIDMutex.Lock()
-	ret, specificReturn := fake.diffConfigByIDReturnsOnCall[len(fake.diffConfigByIDArgsForCall)]
-	fake.diffConfigByIDArgsForCall = append(fake.diffConfigByIDArgsForCall, struct {
-		fromID string
-		toID   string
-	}{fromID, toID})
-	fake.recordInvocation("DiffConfigByID", []interface{}{fromID, toID})
-	fake.diffConfigByIDMutex.Unlock()
-	if fake.DiffConfigByIDStub != nil {
-		return fake.DiffConfigByIDStub(fromID, toID)
+func (fake *FakeDirector) DiffConfigByIDOrContent(fromID string, fromContent []byte, toID string, toContent []byte) (director.ConfigDiff, error) {
+	var fromContentCopy []byte
+	if fromContent != nil {
+		fromContentCopy = make([]byte, len(fromContent))
+		copy(fromContentCopy, fromContent)
+	}
+	var toContentCopy []byte
+	if toContent != nil {
+		toContentCopy = make([]byte, len(toContent))
+		copy(toContentCopy, toContent)
+	}
+	fake.diffConfigByIDOrContentMutex.Lock()
+	ret, specificReturn := fake.diffConfigByIDOrContentReturnsOnCall[len(fake.diffConfigByIDOrContentArgsForCall)]
+	fake.diffConfigByIDOrContentArgsForCall = append(fake.diffConfigByIDOrContentArgsForCall, struct {
+		fromID      string
+		fromContent []byte
+		toID        string
+		toContent   []byte
+	}{fromID, fromContentCopy, toID, toContentCopy})
+	fake.recordInvocation("DiffConfigByIDOrContent", []interface{}{fromID, fromContentCopy, toID, toContentCopy})
+	fake.diffConfigByIDOrContentMutex.Unlock()
+	if fake.DiffConfigByIDOrContentStub != nil {
+		return fake.DiffConfigByIDOrContentStub(fromID, fromContent, toID, toContent)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.diffConfigByIDReturns.result1, fake.diffConfigByIDReturns.result2
+	return fake.diffConfigByIDOrContentReturns.result1, fake.diffConfigByIDOrContentReturns.result2
 }
 
-func (fake *FakeDirector) DiffConfigByIDCallCount() int {
-	fake.diffConfigByIDMutex.RLock()
-	defer fake.diffConfigByIDMutex.RUnlock()
-	return len(fake.diffConfigByIDArgsForCall)
+func (fake *FakeDirector) DiffConfigByIDOrContentCallCount() int {
+	fake.diffConfigByIDOrContentMutex.RLock()
+	defer fake.diffConfigByIDOrContentMutex.RUnlock()
+	return len(fake.diffConfigByIDOrContentArgsForCall)
 }
 
-func (fake *FakeDirector) DiffConfigByIDArgsForCall(i int) (string, string) {
-	fake.diffConfigByIDMutex.RLock()
-	defer fake.diffConfigByIDMutex.RUnlock()
-	return fake.diffConfigByIDArgsForCall[i].fromID, fake.diffConfigByIDArgsForCall[i].toID
+func (fake *FakeDirector) DiffConfigByIDOrContentArgsForCall(i int) (string, []byte, string, []byte) {
+	fake.diffConfigByIDOrContentMutex.RLock()
+	defer fake.diffConfigByIDOrContentMutex.RUnlock()
+	return fake.diffConfigByIDOrContentArgsForCall[i].fromID, fake.diffConfigByIDOrContentArgsForCall[i].fromContent, fake.diffConfigByIDOrContentArgsForCall[i].toID, fake.diffConfigByIDOrContentArgsForCall[i].toContent
 }
 
-func (fake *FakeDirector) DiffConfigByIDReturns(result1 director.ConfigDiff, result2 error) {
-	fake.DiffConfigByIDStub = nil
-	fake.diffConfigByIDReturns = struct {
+func (fake *FakeDirector) DiffConfigByIDOrContentReturns(result1 director.ConfigDiff, result2 error) {
+	fake.DiffConfigByIDOrContentStub = nil
+	fake.diffConfigByIDOrContentReturns = struct {
 		result1 director.ConfigDiff
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) DiffConfigByIDReturnsOnCall(i int, result1 director.ConfigDiff, result2 error) {
-	fake.DiffConfigByIDStub = nil
-	if fake.diffConfigByIDReturnsOnCall == nil {
-		fake.diffConfigByIDReturnsOnCall = make(map[int]struct {
+func (fake *FakeDirector) DiffConfigByIDOrContentReturnsOnCall(i int, result1 director.ConfigDiff, result2 error) {
+	fake.DiffConfigByIDOrContentStub = nil
+	if fake.diffConfigByIDOrContentReturnsOnCall == nil {
+		fake.diffConfigByIDOrContentReturnsOnCall = make(map[int]struct {
 			result1 director.ConfigDiff
 			result2 error
 		})
 	}
-	fake.diffConfigByIDReturnsOnCall[i] = struct {
+	fake.diffConfigByIDOrContentReturnsOnCall[i] = struct {
 		result1 director.ConfigDiff
 		result2 error
 	}{result1, result2}
@@ -3099,8 +3113,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.deleteConfigByIDMutex.RUnlock()
 	fake.diffConfigMutex.RLock()
 	defer fake.diffConfigMutex.RUnlock()
-	fake.diffConfigByIDMutex.RLock()
-	defer fake.diffConfigByIDMutex.RUnlock()
+	fake.diffConfigByIDOrContentMutex.RLock()
+	defer fake.diffConfigByIDOrContentMutex.RUnlock()
 	fake.latestCloudConfigMutex.RLock()
 	defer fake.latestCloudConfigMutex.RUnlock()
 	fake.updateCloudConfigMutex.RLock()

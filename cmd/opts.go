@@ -61,11 +61,11 @@ type BoshOpts struct {
 	CleanUp CleanUpOpts `command:"clean-up" description:"Clean up releases, stemcells, disks, etc."`
 
 	// Config
-	Config         ConfigOpts       `command:"config" alias:"c" description:"Show current config for either ID or both type and name"`
-	Configs        ConfigsOpts      `command:"configs" alias:"cs" description:"List configs"`
-	UpdateConfig   UpdateConfigOpts `command:"update-config" alias:"uc" description:"Update config"`
-	DeleteConfig   DeleteConfigOpts `command:"delete-config" alias:"dc" description:"Delete config"`
-	DiffConfigByID DiffConfigOpts   `command:"diff-config" description:"Diff two configs by ID"`
+	Config       ConfigOpts       `command:"config" alias:"c" description:"Show current config for either ID or both type and name"`
+	Configs      ConfigsOpts      `command:"configs" alias:"cs" description:"List configs"`
+	UpdateConfig UpdateConfigOpts `command:"update-config" alias:"uc" description:"Update config"`
+	DeleteConfig DeleteConfigOpts `command:"delete-config" alias:"dc" description:"Delete config"`
+	DiffConfig   DiffConfigOpts   `command:"diff-config" description:"Diff two configs by ID or content"`
 
 	// Cloud config
 	CloudConfig       CloudConfigOpts       `command:"cloud-config"        alias:"cc"  description:"Show current cloud config"`
@@ -320,14 +320,11 @@ type ConfigsOpts struct {
 }
 
 type DiffConfigOpts struct {
-	Args DiffConfigArgs `positional-args:"true" required:"true"`
-
+	FromID      string       `long:"from-id" description:"ID of first config to compare"`
+	ToID        string       `long:"to-id" description:"ID of second config to compare"`
+	FromContent FileBytesArg `long:"from-content" description:"Path to first config file to compare"`
+	ToContent   FileBytesArg `long:"to-content" description:"Path to second config file to compare"`
 	cmd
-}
-
-type DiffConfigArgs struct {
-	FromID string `positional-arg-name:"FROM" description:"ID of first config to compare"`
-	ToID   string `positional-arg-name:"TO" description:"ID of second config to compare"`
 }
 
 type UpdateConfigOpts struct {

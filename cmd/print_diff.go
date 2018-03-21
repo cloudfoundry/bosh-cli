@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
@@ -26,4 +27,20 @@ func (d Diff) Print(ui boshui.UI) {
 			ui.BeginLinef("  %s\n", line[0])
 		}
 	}
+}
+
+func (d Diff) String() string {
+	var result string
+	for _, line := range d.lines {
+		lineMod, _ := line[1].(string)
+
+		if lineMod == "added" {
+			result += fmt.Sprintf("+ %s\n", line[0])
+		} else if lineMod == "removed" {
+			result += fmt.Sprintf("- %s\n", line[0])
+		} else {
+			result += fmt.Sprintf("  %s\n", line[0])
+		}
+	}
+	return result
 }
