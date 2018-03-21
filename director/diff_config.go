@@ -8,36 +8,67 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
-type ID struct {
-	ID string `json:"id"`
+type DiffInput struct {
+	ID      string `json:"id"`
+	Content string `json:"content"`
 }
 
 type DiffConfigBody struct {
-	From ID `json:"from"`
-	To   ID `json:"to"`
+	From DiffInput `json:"from"`
+	To   DiffInput `json:"to"`
 }
 
-func (d DirectorImpl) DiffConfigByID(fromID string, toID string) (ConfigDiff, error) {
-	resp, err := d.client.DiffConfigByID(fromID, toID)
+func (d DirectorImpl) DiffConfigByIDOrContent(fromID string, fromContent []byte, toID string, toContent []byte) (ConfigDiff, error) {
+
+	from := DiffInput{fromID, string(fromContent)}
+	to := DiffInput{toID, string(toContent)}
+	err := d.validateInput(from, to)
+
+	if err != nil {
+		return ConfigDiff{}, err
+	}
+
+	resp, err := d.client.DiffConfigs(from, to)
 	if err != nil {
 		return ConfigDiff{}, err
 	}
 	return NewConfigDiff(resp.Diff), nil
 }
 
-func (c Client) DiffConfigByID(fromID string, toID string) (ConfigDiffResponse, error) {
+func (d DirectorImpl) validateInput(from DiffInput, to DiffInput) error {
+	errTo := validateDiffInput("to", to)
+	if errTo != nil {
+		return errTo
+	}
+
+	errFrom := validateDiffInput("from", from)
+	if errFrom != nil {
+		return errFrom
+	}
+	return nil
+}
+
+func validateDiffInput(name string, input DiffInput) error {
+	if input.ID != "" && input.Content != "" {
+		return bosherr.Errorf("only one of --%s-id and --%s-content can be specified", name, name)
+	}
+	if input.ID == "" && input.Content == "" {
+		return bosherr.Errorf("one of --%s-id or --%s-content must be specified", name, name)
+	}
+
+	_, err := strconv.Atoi(input.ID)
+	if input.ID != "" && err != nil {
+		return bosherr.Errorf("--%s-id needs to be an integer.", name)
+	}
+	return nil
+}
+
+func (c Client) DiffConfigs(from DiffInput, to DiffInput) (ConfigDiffResponse, error) {
 	setHeaders := func(req *http.Request) {
 		req.Header.Add("Content-Type", "application/json")
 	}
 
-	_, errFromId := strconv.Atoi(fromID)
-	_, errToId := strconv.Atoi(toID)
-
-	if (errFromId != nil) || (errToId != nil) {
-		return ConfigDiffResponse{}, bosherr.Error("Config ID needs to be an integer.")
-	}
-
-	body, err := json.Marshal(DiffConfigBody{ID{fromID}, ID{toID}})
+	body, err := json.Marshal(DiffConfigBody{from, to})
 	if err != nil {
 		return ConfigDiffResponse{}, bosherr.WrapError(err, "Can't marshal request body")
 	}

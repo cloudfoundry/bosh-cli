@@ -322,8 +322,8 @@ var _ = Describe("Opts", func() {
 
 		Describe("DiffConfig", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("DiffConfigByID", opts)).To(Equal(
-					`command:"diff-config" description:"Diff two configs by ID"`,
+				Expect(getStructTagForName("DiffConfig", opts)).To(Equal(
+					`command:"diff-config" description:"Diff two configs by ID or content"`,
 				))
 			})
 		})
@@ -972,30 +972,17 @@ var _ = Describe("Opts", func() {
 
 		Describe("Args", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
-			})
-		})
-	})
-
-	Describe("DiffConfigArgs", func() {
-		var opts *DiffConfigArgs
-
-		BeforeEach(func() {
-			opts = &DiffConfigArgs{}
-		})
-
-		Describe("FromID", func() {
-			It("contains desired values", func() {
 				Expect(getStructTagForName("FromID", opts)).To(Equal(
-					`positional-arg-name:"FROM" description:"ID of first config to compare"`,
+					`long:"from-id" description:"ID of first config to compare"`,
 				))
-			})
-		})
-
-		Describe("ToID", func() {
-			It("contains desired values", func() {
 				Expect(getStructTagForName("ToID", opts)).To(Equal(
-					`positional-arg-name:"TO" description:"ID of second config to compare"`,
+					`long:"to-id" description:"ID of second config to compare"`,
+				))
+				Expect(getStructTagForName("FromContent", opts)).To(Equal(
+					`long:"from-content" description:"Path to first config file to compare"`,
+				))
+				Expect(getStructTagForName("ToContent", opts)).To(Equal(
+					`long:"to-content" description:"Path to second config file to compare"`,
 				))
 			})
 		})
