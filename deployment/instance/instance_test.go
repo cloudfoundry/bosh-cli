@@ -18,12 +18,12 @@ import (
 	bisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	"github.com/cloudfoundry/bosh-agent/agentclient"
 	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/fakes"
 	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/fakes"
+	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
@@ -48,6 +48,8 @@ var _ = Describe("Instance", func() {
 		fakeSSHTunnelFactory *fakebisshtunnel.FakeFactory
 		fakeSSHTunnel        *fakebisshtunnel.FakeTunnel
 		fakeStage            *fakebiui.FakeStage
+		logger               fakedir.Logger
+		logCalls             []fakedir.LogCallArgs
 
 		instance Instance
 
@@ -70,7 +72,8 @@ var _ = Describe("Instance", func() {
 		mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
 		mockState = mock_instance_state.NewMockState(mockCtrl)
 
-		logger := boshlog.NewLogger(boshlog.LevelNone)
+		logCalls = []fakedir.LogCallArgs{}
+		logger = fakedir.NewFakeLogger(&logCalls)
 
 		instance = NewInstance(
 			jobName,
@@ -558,6 +561,30 @@ var _ = Describe("Instance", func() {
 							Error: waitError,
 						},
 					}))
+				})
+			})
+
+			Context("when receiving SSH tunnel errors", func() {
+				BeforeEach(func() {
+					fakeSSHTunnel.SetStartBehavior(nil, bosherr.Error("fake-ssh-tunnel-error"))
+				})
+
+				It("logs the error", func() {
+					err := instance.WaitUntilReady(registryConfig, fakeStage)
+					Expect(err).NotTo(HaveOccurred())
+
+					logCallArgs := (*logger.LogCallArgs)[0]
+					expectedlogCallArgs := fakedir.LogCallArgs{
+						LogLevel: "Warn",
+						Tag:      "instance",
+						Msg:      "Received SSH tunnel error: %s",
+						Args:     []string{"fake-ssh-tunnel-error"},
+					}
+
+					Expect(logCallArgs.LogLevel).To(Equal(expectedlogCallArgs.LogLevel))
+					Expect(logCallArgs.Tag).To(Equal(expectedlogCallArgs.Tag))
+					Expect(logCallArgs.Msg).To(Equal(expectedlogCallArgs.Msg))
+					Expect(logCallArgs.Args[0]).To(Equal(expectedlogCallArgs.Args[0]))
 				})
 			})
 		})
