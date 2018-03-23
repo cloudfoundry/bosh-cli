@@ -47,7 +47,7 @@ type Director interface {
 	LatestConfig(configType string, name string) (Config, error)
 	LatestConfigByID(configID string) (Config, error)
 	ListConfigs(limit int, filter ConfigsFilter) ([]Config, error)
-	UpdateConfig(configType string, name string, content []byte) (Config, error)
+	UpdateConfig(configType string, name string, expectedLatestId string, content []byte) (Config, error)
 	DeleteConfig(configType string, name string) (bool, error)
 	DeleteConfigByID(configID string) (bool, error)
 	DiffConfig(configType string, name string, manifest []byte) (ConfigDiff, error)

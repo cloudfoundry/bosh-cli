@@ -1005,6 +1005,7 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Type", opts)).To(Equal(`long:"type" required:"true" description:"Config type, e.g. 'cloud', 'runtime', or 'cpi'"`))
 				Expect(getStructTagForName("Name", opts)).To(Equal(`long:"name" required:"true" description:"Config name"`))
+				Expect(getStructTagForName("ExpectedLatestId", opts)).To(Equal(`long:"expected-latest-id" description:"Expected ID of latest config"`))
 			})
 		})
 	})

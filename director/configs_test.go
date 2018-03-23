@@ -184,7 +184,7 @@ var _ bool = Describe("Director", func() {
 				),
 			)
 
-			_, err := director.UpdateConfig("my-type", "my-name", []byte("---"))
+			_, err := director.UpdateConfig("my-type", "my-name", "", []byte("---"))
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -199,7 +199,7 @@ var _ bool = Describe("Director", func() {
 				),
 			)
 
-			_, err := director.UpdateConfig("my-type", "my-name", []byte("abc\ndef\n"))
+			_, err := director.UpdateConfig("my-type", "my-name", "", []byte("abc\ndef\n"))
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -212,7 +212,21 @@ var _ bool = Describe("Director", func() {
 				),
 			)
 
-			config, err := director.UpdateConfig("my-type", "my-name", []byte("abc\ndef\n"))
+			config, err := director.UpdateConfig("my-type", "my-name", "", []byte("abc\ndef\n"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(config).To(Equal(Config{ID: "123", Name: "my-name", Type: "my-type", CreatedAt: "", Content: "a"}))
+		})
+
+		It("returns config when expected_latest_id is specified", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/configs"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, []byte(`{"id":"123","type":"my-type","name":"my-name","created_at":"","content":"a"}`)),
+				),
+			)
+
+			config, err := director.UpdateConfig("my-type", "my-name", "", []byte("abc\ndef\n"))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(config).To(Equal(Config{ID: "123", Name: "my-name", Type: "my-type", CreatedAt: "", Content: "a"}))
 		})
@@ -221,7 +235,7 @@ var _ bool = Describe("Director", func() {
 			It("returns error", func() {
 				AppendBadRequest(ghttp.VerifyRequest("POST", "/configs"), server)
 
-				_, err := director.UpdateConfig("fake-type", "fake-name", nil)
+				_, err := director.UpdateConfig("fake-type", "", "fake-name", nil)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(
 					"Updating config: Director responded with non-successful status code '400'"))
@@ -236,10 +250,40 @@ var _ bool = Describe("Director", func() {
 					),
 				)
 
-				config, err := director.UpdateConfig("my-type", "my-name", nil)
+				config, err := director.UpdateConfig("my-type", "", "my-name", nil)
 				Expect(err).To(HaveOccurred())
 				Expect(config).To(Equal(Config{}))
 				Expect(err.Error()).To(ContainSubstring("Unmarshaling Director response"))
+			})
+
+			It("returns an error if latest id does not match", func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/configs"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.RespondWith(http.StatusPreconditionFailed, []byte(`{"latest_id":"999","expected_latest_id":"123"}`)),
+					),
+				)
+
+				config, err := director.UpdateConfig("my-type", "my-name", "123", nil)
+				Expect(err).To(HaveOccurred())
+				Expect(config).To(Equal(Config{}))
+				Expect(err.Error()).To(ContainSubstring("Config update rejected: The provided latest ID '123' doesn't match the latest ID '999'"))
+			})
+
+			It("returns an error if json is invalid for precondition failed", func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/configs"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.RespondWith(http.StatusPreconditionFailed, []byte(`"123"`)),
+					),
+				)
+
+				config, err := director.UpdateConfig("my-type", "my-name", "123", nil)
+				Expect(err).To(HaveOccurred())
+				Expect(config).To(Equal(Config{}))
+				Expect(err.Error()).To(ContainSubstring(`Could not unmarshal response: '"123"'`))
 			})
 		})
 	})

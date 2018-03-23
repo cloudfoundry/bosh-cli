@@ -37,7 +37,7 @@ func (c UpdateConfigCmd) Run(opts UpdateConfigOpts) error {
 		return err
 	}
 
-	config, err := c.director.UpdateConfig(opts.Type, opts.Name, bytes)
+	config, err := c.director.UpdateConfig(opts.Type, opts.Name, opts.ExpectedLatestId, bytes)
 	if err != nil {
 		return err
 	}

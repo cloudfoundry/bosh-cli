@@ -173,7 +173,7 @@ var _ = Describe("ClientRequest", func() {
 				body, resp, err := req.RawGet("/path", nil, nil)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("'body'"))
-				Expect(body).To(BeNil())
+				Expect(body).To(Equal([]byte("body")))
 				Expect(resp).ToNot(BeNil())
 			})
 
