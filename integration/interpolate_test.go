@@ -414,4 +414,52 @@ variables:
 			Expect(ui.Blocks[0]).ToNot(Equal(genedPass))
 		}
 	})
+
+	It("allows to use config server with UAA as vars store when --vars-store is configured with config-server:// schema", func() {
+		err := fs.WriteFileString(filepath.Join("/", "file"), `
+interpolation_order_guarantee:
+- missing_key: ((key))
+`)
+		Expect(err).ToNot(HaveOccurred())
+
+		caCert, configServer := BuildHTTPSServer()
+		defer configServer.Close()
+
+		configServer.AppendHandlers(
+			ghttp.CombineHandlers(
+				ghttp.VerifyRequest("POST", "/oauth/token"),
+				ghttp.VerifyBody([]byte("grant_type=client_credentials")),
+				ghttp.VerifyBasicAuth("uaa-client", "uaa-client-secret"),
+				ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
+				ghttp.RespondWith(http.StatusOK, `{"access_token": "bearer uaa-token"}`),
+			),
+			ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/api/v1/data", "name=config-server-ns/key"),
+				ghttp.RespondWith(http.StatusOK, `{"data": [{"value":"value"}]}`),
+			),
+			ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/api/v1/data", "name=config-server-ns/key"),
+				ghttp.RespondWith(http.StatusOK, `{"data": [{"value":"value"}]}`),
+			),
+		)
+
+		cmd, err := cmdFactory.New([]string{
+			"interpolate", filepath.Join("/", "file"),
+			"-v", "common_name=name",
+			"--vars-store", "config-server://",
+			"--config-server-url", configServer.URL(),
+			"--config-server-tls-ca", caCert,
+			"--config-server-uaa-url", configServer.URL(),
+			"--config-server-uaa-client", "uaa-client",
+			"--config-server-uaa-client-secret", "uaa-client-secret",
+			"--config-server-namespace", "config-server-ns",
+		})
+		Expect(err).ToNot(HaveOccurred())
+
+		err = cmd.Execute()
+		Expect(err).ToNot(HaveOccurred())
+		Expect(ui.Blocks).To(Equal([]string{`interpolation_order_guarantee:
+- missing_key: value
+`}))
+	})
 })

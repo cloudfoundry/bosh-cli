@@ -47,7 +47,7 @@ var _ = Describe("HTTPClient", func() {
 		It("returns error if x509 key pair is not valid", func() {
 			_, err := NewHTTPClient(HTTPClientOpts{URL: "https://test-url", Namespace: "test-ns"}, logger)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Building config server client certificate"))
+			Expect(err.Error()).To(ContainSubstring("Expected non-empty config server authentication details"))
 		})
 
 		It("returns error if TLS cannot be verified", func() {
@@ -62,6 +62,18 @@ var _ = Describe("HTTPClient", func() {
 			_, err = client.Read("test-key")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("x509: certificate signed by unknown authority"))
+		})
+
+		It("returns error if UAA URL is specified without UAA client", func() {
+			_, err := NewHTTPClient(HTTPClientOpts{
+				URL:       "https://test-url",
+				Namespace: "test-ns",
+
+				UAAURL:    "https://uaa-url",
+				UAAClient: "",
+			}, logger)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Building config server UAA"))
 		})
 	})
 
@@ -161,6 +173,59 @@ var _ = Describe("HTTPClient", func() {
 			_, err := client.Read("test-key")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Reading config server value 'test-ns/test-key'"))
+		})
+	})
+
+	Describe("Read with UAA client", func() {
+		var (
+			server *ghttp.Server
+			client HTTPClient
+		)
+
+		BeforeEach(func() {
+			var clientOpts HTTPClientOpts
+			var err error
+
+			clientOpts, _, server = BuildServer()
+
+			clientOpts.UAAURL = server.URL()
+			clientOpts.UAAClient = "uaa-client"
+			clientOpts.UAAClientSecret = "uaa-client-secret"
+
+			client, err = NewHTTPClient(clientOpts, logger)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		AfterEach(func() {
+			server.Close()
+		})
+
+		It("succeeds doing a read with UAA configuration", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/oauth/token"),
+					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
+					ghttp.VerifyBasicAuth("uaa-client", "uaa-client-secret"),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
+					ghttp.RespondWith(http.StatusOK, `{"access_token": "bearer uaa-token"}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/api/v1/data", "name=test-ns/test-key"),
+					ghttp.VerifyHeader(http.Header{"Authorization": []string{"bearer uaa-token"}}),
+					ghttp.VerifyHeader(http.Header{"Accept": []string{"application/json"}}),
+					ghttp.RespondWith(http.StatusOK, `{
+						"data": [{
+							"name": "test-key",
+							"type": "test-type",
+							"value": "test-value"
+						}]
+					}`),
+				),
+			)
+
+			val, err := client.Read("test-key")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(val).To(Equal("test-value"))
 		})
 	})
 

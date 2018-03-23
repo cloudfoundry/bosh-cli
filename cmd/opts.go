@@ -200,11 +200,17 @@ type DeleteEnvArgs struct {
 }
 
 type ConfigServerFlags struct {
-	URL            string    `long:"config-server-url"             hidden:"true" value-name:"URL"  description:"Config server URL"`
-	TLSCA          CACertArg `long:"config-server-tls-ca"          hidden:"true" value-name:"PATH" description:"Config server CA certificate"`
+	URL   string    `long:"config-server-url"    hidden:"true" value-name:"URL"  description:"Config server URL"`
+	TLSCA CACertArg `long:"config-server-tls-ca" hidden:"true" value-name:"PATH" description:"Config server CA certificate"`
+
+	UAAURL          string `long:"config-server-uaa-url"           hidden:"true" value-name:"URL"    description:"UAA URL"`
+	UAAClient       string `long:"config-server-uaa-client"        hidden:"true" value-name:"CLIENT" description:"UAA client"`
+	UAAClientSecret string `long:"config-server-uaa-client-secret" hidden:"true" value-name:"SECRET" description:"UAA client secret"`
+
 	TLSCertificate CACertArg `long:"config-server-tls-certificate" hidden:"true" value-name:"PATH" description:"Config server client certificate"`
 	TLSPrivateKey  CACertArg `long:"config-server-tls-private-key" hidden:"true" value-name:"PATH" description:"Config server client private key"`
-	Namespace      string    `long:"config-server-namespace"       hidden:"true" value-name:"URL"  description:"Config server URL"`
+
+	Namespace string `long:"config-server-namespace" hidden:"true" value-name:"URL"  description:"Config server URL"`
 }
 
 // Environment

@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"time"
 
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
 	boshcry "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
@@ -18,11 +20,17 @@ import (
 )
 
 type HTTPClientOpts struct {
-	URL            string
+	URL string
+
+	UAAURL          string
+	UAAClient       string
+	UAAClientSecret string
+
 	TLSCA          []byte
 	TLSCertificate []byte
 	TLSPrivateKey  []byte
-	Namespace      string
+
+	Namespace string
 }
 
 type HTTPClient struct {
@@ -53,16 +61,42 @@ func NewHTTPClient(opts HTTPClientOpts, logger boshlog.Logger) (HTTPClient, erro
 		}
 	}
 
-	cert, err := tls.X509KeyPair(opts.TLSCertificate, opts.TLSPrivateKey)
-	if err != nil {
-		return HTTPClient{}, bosherr.WrapErrorf(err, "Building config server client certificate")
+	var client boshhttp.Client
+
+	switch {
+	case len(opts.UAAURL) > 0:
+		uaaConfig, err := boshuaa.NewConfigFromURL(opts.UAAURL)
+		if err != nil {
+			return HTTPClient{}, err
+		}
+
+		uaaConfig.CACert = string(opts.TLSCA)
+		uaaConfig.Client = opts.UAAClient
+		uaaConfig.ClientSecret = opts.UAAClientSecret
+
+		uaa, err := boshuaa.NewFactory(logger).New(uaaConfig)
+		if err != nil {
+			return HTTPClient{}, bosherr.WrapErrorf(err, "Building config server UAA")
+		}
+
+		rawClient := boshhttp.CreateDefaultClient(caCertPool)
+		retryClient := boshhttp.NewNetworkSafeRetryClient(rawClient, 5, 500*time.Millisecond, logger)
+		authAdjustment := boshdir.NewAuthRequestAdjustment(boshuaa.NewClientTokenSession(uaa).TokenFunc, "", "")
+		client = boshdir.NewAdjustableClient(retryClient, authAdjustment)
+
+	case len(opts.TLSCertificate) > 0:
+		cert, err := tls.X509KeyPair(opts.TLSCertificate, opts.TLSPrivateKey)
+		if err != nil {
+			return HTTPClient{}, bosherr.WrapErrorf(err, "Building config server client certificate")
+		}
+		client = boshhttp.NewMutualTLSClient(cert, caCertPool, "")
+		client = boshhttp.NewNetworkSafeRetryClient(client, 4, 500*time.Millisecond, logger)
+
+	default:
+		return HTTPClient{}, bosherr.Errorf("Expected non-empty config server authentication details")
 	}
 
-	client := boshhttp.NewMutualTLSClient(cert, caCertPool, "")
-	httpClient := boshhttp.NewHTTPClient(
-		boshhttp.NewNetworkSafeRetryClient(client, 4, 500*time.Millisecond, logger),
-		logger,
-	)
+	httpClient := boshhttp.NewHTTPClient(client, logger)
 
 	return HTTPClient{opts.URL, opts.Namespace, httpClient, logger}, nil
 }

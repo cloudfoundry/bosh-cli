@@ -93,11 +93,17 @@ func (f Factory) New(args []string) (Cmd, error) {
 
 		if len(boshOpts.ConfigServerFlags.URL) > 0 {
 			clientOpts := bconfigserver.HTTPClientOpts{
-				URL:            boshOpts.ConfigServerFlags.URL,
+				URL: boshOpts.ConfigServerFlags.URL,
+
+				UAAURL:          boshOpts.ConfigServerFlags.UAAURL,
+				UAAClient:       boshOpts.ConfigServerFlags.UAAClient,
+				UAAClientSecret: boshOpts.ConfigServerFlags.UAAClientSecret,
+
 				TLSCA:          []byte(boshOpts.ConfigServerFlags.TLSCA.Content),
 				TLSCertificate: []byte(boshOpts.ConfigServerFlags.TLSCertificate.Content),
 				TLSPrivateKey:  []byte(boshOpts.ConfigServerFlags.TLSPrivateKey.Content),
-				Namespace:      boshOpts.ConfigServerFlags.Namespace,
+
+				Namespace: boshOpts.ConfigServerFlags.Namespace,
 			}
 
 			var err error
