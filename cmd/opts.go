@@ -59,6 +59,7 @@ type BoshOpts struct {
 	// Misc
 	Locks   LocksOpts   `command:"locks"    description:"List current locks"`
 	CleanUp CleanUpOpts `command:"clean-up" description:"Clean up releases, stemcells, disks, etc."`
+	Curl    CurlOpts    `command:"curl"     description:"Make an HTTP request to the Director" hidden:"true"`
 
 	// Config
 	Config         ConfigOpts       `command:"config" alias:"c" description:"Show current config for either ID or both type and name"`
@@ -986,6 +987,22 @@ type SyncBlobsOpts struct {
 type UploadBlobsOpts struct {
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 	cmd
+}
+
+type CurlOpts struct {
+	Args CurlArgs `positional-args:"true"`
+
+	Method  string       `long:"method" short:"X" description:"HTTP method" default:"GET"`
+	Headers []CurlHeader `long:"header" short:"H" description:"HTTP header in 'name: value' format"`
+	Body    FileBytesArg `long:"body"             description:"HTTP request body (path)"`
+
+	ShowHeaders bool `long:"show-headers" short:"i"   description:"Show HTTP headers"`
+
+	cmd
+}
+
+type CurlArgs struct {
+	Path string `positional-arg-name:"PATH" description:"URL path which can include query string"`
 }
 
 // MessageOpts is used for version and help flags
