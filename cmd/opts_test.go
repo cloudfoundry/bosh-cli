@@ -1078,6 +1078,36 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
+	Describe("DeleteAliasOpts", func() {
+		var opts *DeleteAliasOpts
+
+		BeforeEach(func() {
+			opts = &DeleteAliasOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+	})
+
+	Describe("DeleteAliasArgs", func() {
+		var args *DeleteAliasArgs
+
+		BeforeEach(func() {
+			args = &DeleteAliasArgs{}
+		})
+
+		Describe("Alias", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Alias", args)).To(Equal(
+					`positional-arg-name:"ALIAS" description:"Environment alias"`,
+				))
+			})
+		})
+	})
+
 	Describe("TaskOpts", func() {
 		var opts *TaskOpts
 

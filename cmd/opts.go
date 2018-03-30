@@ -46,6 +46,7 @@ type BoshOpts struct {
 	CreateEnv    CreateEnvOpts    `command:"create-env"                description:"Create or update BOSH environment"`
 	DeleteEnv    DeleteEnvOpts    `command:"delete-env"                description:"Delete BOSH environment"`
 	AliasEnv     AliasEnvOpts     `command:"alias-env"                 description:"Alias environment to save URL and CA certificate"`
+	DeleteAlias  DeleteAliasOpts  `command:"delete-alias"              description:"Remove an aliased environment"`
 
 	// Authentication
 	LogIn  LogInOpts  `command:"log-in"  alias:"l" alias:"login"  description:"Log in"`
@@ -216,6 +217,16 @@ type AliasEnvOpts struct {
 }
 
 type AliasEnvArgs struct {
+	Alias string `positional-arg-name:"ALIAS" description:"Environment alias"`
+}
+
+type DeleteAliasOpts struct {
+	Args DeleteAliasArgs `positional-args:"true" required:"true"`
+
+	cmd
+}
+
+type DeleteAliasArgs struct {
 	Alias string `positional-arg-name:"ALIAS" description:"Environment alias"`
 }
 

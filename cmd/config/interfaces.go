@@ -6,6 +6,7 @@ type Config interface {
 	Environments() []Environment
 	ResolveEnvironment(urlOrAlias string) string
 	AliasEnvironment(url, alias, caCert string) (Config, error)
+	DeleteAlias(alias string) (Config, error)
 
 	CACert(url string) string
 

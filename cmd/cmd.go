@@ -88,6 +88,9 @@ func (c Cmd) Execute() (cmdErr error) {
 
 		return NewAliasEnvCmd(sessionFactory, c.config(), deps.UI).Run(*opts)
 
+	case *DeleteAliasOpts:
+		return NewDeleteAliasCmd(c.config()).Run(*opts)
+
 	case *LogInOpts:
 		sessionFactory := func(config cmdconf.Config) Session {
 			return NewSessionFromOpts(c.BoshOpts, config, deps.UI, true, true, deps.FS, deps.Logger)

@@ -48,6 +48,10 @@ func (f *FakeConfig2) AliasEnvironment(environment, alias, caCert string) (confi
 	}, f.AliasEnvironmentErr
 }
 
+func (f *FakeConfig2) DeleteAlias(alias string) (config.Config, error) {
+	panic("Not implemented")
+}
+
 func (f *FakeConfig2) CACert(environment string) string {
 	return f.Existing.EnvironmentCACert
 }

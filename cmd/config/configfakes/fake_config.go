@@ -43,6 +43,19 @@ type FakeConfig struct {
 		result1 config.Config
 		result2 error
 	}
+	DeleteAliasStub        func(alias string) (config.Config, error)
+	deleteAliasMutex       sync.RWMutex
+	deleteAliasArgsForCall []struct {
+		alias string
+	}
+	deleteAliasReturns struct {
+		result1 config.Config
+		result2 error
+	}
+	deleteAliasReturnsOnCall map[int]struct {
+		result1 config.Config
+		result2 error
+	}
 	CACertStub        func(url string) string
 	cACertMutex       sync.RWMutex
 	cACertArgsForCall []struct {
@@ -237,6 +250,57 @@ func (fake *FakeConfig) AliasEnvironmentReturnsOnCall(i int, result1 config.Conf
 		})
 	}
 	fake.aliasEnvironmentReturnsOnCall[i] = struct {
+		result1 config.Config
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeConfig) DeleteAlias(alias string) (config.Config, error) {
+	fake.deleteAliasMutex.Lock()
+	ret, specificReturn := fake.deleteAliasReturnsOnCall[len(fake.deleteAliasArgsForCall)]
+	fake.deleteAliasArgsForCall = append(fake.deleteAliasArgsForCall, struct {
+		alias string
+	}{alias})
+	fake.recordInvocation("DeleteAlias", []interface{}{alias})
+	fake.deleteAliasMutex.Unlock()
+	if fake.DeleteAliasStub != nil {
+		return fake.DeleteAliasStub(alias)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.deleteAliasReturns.result1, fake.deleteAliasReturns.result2
+}
+
+func (fake *FakeConfig) DeleteAliasCallCount() int {
+	fake.deleteAliasMutex.RLock()
+	defer fake.deleteAliasMutex.RUnlock()
+	return len(fake.deleteAliasArgsForCall)
+}
+
+func (fake *FakeConfig) DeleteAliasArgsForCall(i int) string {
+	fake.deleteAliasMutex.RLock()
+	defer fake.deleteAliasMutex.RUnlock()
+	return fake.deleteAliasArgsForCall[i].alias
+}
+
+func (fake *FakeConfig) DeleteAliasReturns(result1 config.Config, result2 error) {
+	fake.DeleteAliasStub = nil
+	fake.deleteAliasReturns = struct {
+		result1 config.Config
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeConfig) DeleteAliasReturnsOnCall(i int, result1 config.Config, result2 error) {
+	fake.DeleteAliasStub = nil
+	if fake.deleteAliasReturnsOnCall == nil {
+		fake.deleteAliasReturnsOnCall = make(map[int]struct {
+			result1 config.Config
+			result2 error
+		})
+	}
+	fake.deleteAliasReturnsOnCall[i] = struct {
 		result1 config.Config
 		result2 error
 	}{result1, result2}
@@ -484,6 +548,8 @@ func (fake *FakeConfig) Invocations() map[string][][]interface{} {
 	defer fake.resolveEnvironmentMutex.RUnlock()
 	fake.aliasEnvironmentMutex.RLock()
 	defer fake.aliasEnvironmentMutex.RUnlock()
+	fake.deleteAliasMutex.RLock()
+	defer fake.deleteAliasMutex.RUnlock()
 	fake.cACertMutex.RLock()
 	defer fake.cACertMutex.RUnlock()
 	fake.credentialsMutex.RLock()
