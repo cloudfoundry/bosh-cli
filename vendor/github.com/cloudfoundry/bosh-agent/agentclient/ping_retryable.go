@@ -32,7 +32,8 @@ func (r *pingRetryable) Attempt() (bool, error) {
 		if r.MatchString(err.Error()) {
 			return false, err
 		}
+		return true, err
 	}
 
-	return true, err
+	return false, nil
 }

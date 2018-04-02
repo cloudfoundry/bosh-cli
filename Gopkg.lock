@@ -95,7 +95,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "a74fc7069b604abe84f1ddd899f58ae1e6b1f8ee"
+  revision = "3735206b1c5200d222e6e833701f2d55008b148a"
+  version = "v2.76.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -148,7 +149,7 @@
     "uuid/fakes",
     "work"
   ]
-  revision = "c6a922e299b8eb5eaadad8a2842e3ab7e043dc5d"
+  revision = "456fcd7a252e0b5689244d164b01e855fb83f90c"
 
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
@@ -487,6 +488,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "69f890e386d5a3038b6433abf576a8dbeb8a562fc73daf631db13fa652366cf7"
+  inputs-digest = "7bab94bc2e0df65a3de8c93ccc682b2dc51a32397aa92d7ef87f3253e85b6991"
   solver-name = "gps-cdcl"
   solver-version = 1

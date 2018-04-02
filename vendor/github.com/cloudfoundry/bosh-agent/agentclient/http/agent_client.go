@@ -243,7 +243,7 @@ func (c *AgentClient) SendAsyncTaskMessage(method string, arguments []interface{
 			if !ok {
 				c.logger.Warn(c.logTag, "Unable to parse get_task response value: %#v", response.Value)
 			}
-			return true, nil
+			return false, nil
 		}
 
 		return true, bosherr.Errorf("Task %s is still running", method)

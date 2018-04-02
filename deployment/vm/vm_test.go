@@ -194,6 +194,7 @@ var _ = Describe("VM", func() {
 
 	Describe("WaitToBeRunning", func() {
 		var invocations int
+
 		BeforeEach(func() {
 			responses := []struct {
 				state biagentclient.AgentState

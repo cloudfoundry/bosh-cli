@@ -124,18 +124,16 @@ func (r *RequestRetryable) Response() *http.Response {
 	return r.response
 }
 
-func (r *RequestRetryable) wasSuccessful(resp *http.Response) bool {
-	return resp.StatusCode >= 200 && resp.StatusCode < 300
-}
-
 func defaultIsAttemptable(resp *http.Response, err error) (bool, error) {
 	if err != nil {
 		return true, err
 	}
-	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		return false, nil
-	}
-	return true, bosherr.Errorf("Request failed, response: %s", formatResponse(resp))
+
+	return !wasSuccessful(resp), nil
+}
+
+func wasSuccessful(resp *http.Response) bool {
+	return resp.StatusCode >= 200 && resp.StatusCode < http.StatusMultipleChoices
 }
 
 func formatRequest(req *http.Request) string {
