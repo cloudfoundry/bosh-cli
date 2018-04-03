@@ -148,10 +148,14 @@ func (s *Server) ServeConn(conn net.Conn) error {
 	if err != nil {
 		if err == unrecognizedAddrType {
 			if err := sendReply(conn, addrTypeNotSupported, nil); err != nil {
-				return fmt.Errorf("Failed to send reply: %v", err)
+				err = fmt.Errorf("Failed to send reply: %v", err)
+				s.config.Logger.Printf("[ERR] socks: %v", err)
+				return err
 			}
 		}
-		return fmt.Errorf("Failed to read destination address: %v", err)
+		err = fmt.Errorf("Failed to read destination address: %v", err)
+		s.config.Logger.Printf("[ERR] socks: %v", err)
+		return err
 	}
 	request.AuthContext = authContext
 	if client, ok := conn.RemoteAddr().(*net.TCPAddr); ok {
@@ -160,8 +164,7 @@ func (s *Server) ServeConn(conn net.Conn) error {
 
 	// Process the client request
 	if err := s.handleRequest(request, conn); err != nil {
-		err = fmt.Errorf("Failed to handle request: %v", err)
-		s.config.Logger.Printf("[ERR] socks: %v", err)
+		s.config.Logger.Printf("[INFO] waiting for jumpbox to be available...")
 		return err
 	}
 

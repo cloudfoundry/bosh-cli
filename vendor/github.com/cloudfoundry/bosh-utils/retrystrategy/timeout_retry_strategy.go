@@ -39,19 +39,15 @@ func NewTimeoutRetryStrategy(
 
 func (s *timeoutRetryStrategy) Try() error {
 	var err error
-	var isRetryable bool
+	var shouldRetry bool
 
 	now := s.timeService.Now()
 	deadlineMinusDelay := now.Add(s.timeout).Add(-1 * s.delay)
 
 	for i := 0; true; i++ {
 		s.logger.Debug(s.logTag, "Making attempt #%d", i)
-		isRetryable, err = s.retryable.Attempt()
-		if err == nil {
-			return nil
-		}
-
-		if !isRetryable {
+		shouldRetry, err = s.retryable.Attempt()
+		if !shouldRetry {
 			return err
 		}
 

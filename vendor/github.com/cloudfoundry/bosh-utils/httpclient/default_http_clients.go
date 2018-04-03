@@ -15,7 +15,7 @@ var (
 	defaultDialer = SOCKS5DialFuncFromEnvironment((&net.Dialer{
 		Timeout:   30 * time.Second,
 		KeepAlive: 30 * time.Second,
-	}).Dial, proxy.NewSocks5Proxy(proxy.NewHostKeyGetter()))
+	}).Dial, proxy.NewSocks5Proxy(proxy.NewHostKey(), nil))
 )
 
 type Client interface {

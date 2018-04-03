@@ -30,12 +30,6 @@
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/armon/go-socks5"
-  packages = ["."]
-  revision = "e75332964ef517daa070d7c38a9466a0d687e0a5"
-
-[[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -95,8 +89,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "3735206b1c5200d222e6e833701f2d55008b148a"
-  version = "v2.76.0"
+  revision = "252949572e07b2822dd1fde82894554fff6bd9ad"
+  version = "v2.77.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -149,7 +143,7 @@
     "uuid/fakes",
     "work"
   ]
-  revision = "456fcd7a252e0b5689244d164b01e855fb83f90c"
+  revision = "f4c293340f7527c63b0679a8eb6d4c25a70b31ef"
 
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
@@ -162,9 +156,15 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/cloudfoundry/go-socks5"
+  packages = ["."]
+  revision = "54f73bdb8a8e85a6611d3d29ab9bbf98c2a060d7"
+
+[[projects]]
+  branch = "master"
   name = "github.com/cloudfoundry/socks5-proxy"
   packages = ["."]
-  revision = "6afb711f4b32a266b51160288e98fd3c4b28f0cb"
+  revision = "3c6b4eec9c2d16c1dac4c42bdb5f755ba09daff8"
 
 [[projects]]
   branch = "master"

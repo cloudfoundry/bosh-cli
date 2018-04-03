@@ -5,7 +5,7 @@ type RetryStrategy interface {
 }
 
 type Retryable interface {
-	Attempt() (bool, error)
+	Attempt() (shouldRetry bool, err error)
 }
 
 type retryable struct {

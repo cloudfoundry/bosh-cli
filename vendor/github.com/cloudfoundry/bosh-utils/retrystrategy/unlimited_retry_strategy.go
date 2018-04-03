@@ -29,16 +29,15 @@ func NewUnlimitedRetryStrategy(
 
 func (s *unlimitedRetryStrategy) Try() error {
 	var err error
-	var isRetryable bool
+	var shouldRetry bool
 	for i := 0; ; i++ {
 		s.logger.Debug(s.logTag, "Making attempt #%d", i)
-		isRetryable, err = s.retryable.Attempt()
-		if err == nil {
-			return nil
-		}
-		if !isRetryable {
+
+		shouldRetry, err = s.retryable.Attempt()
+		if !shouldRetry {
 			return err
 		}
+
 		time.Sleep(s.delay)
 	}
 }
