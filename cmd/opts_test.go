@@ -1078,11 +1078,11 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
-	Describe("DeleteAliasOpts", func() {
-		var opts *DeleteAliasOpts
+	Describe("UnaliasEnvOpts", func() {
+		var opts *UnaliasEnvOpts
 
 		BeforeEach(func() {
-			opts = &DeleteAliasOpts{}
+			opts = &UnaliasEnvOpts{}
 		})
 
 		Describe("Args", func() {
@@ -1092,11 +1092,11 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
-	Describe("DeleteAliasArgs", func() {
-		var args *DeleteAliasArgs
+	Describe("UnaliasEnvArgs", func() {
+		var args *UnaliasEnvArgs
 
 		BeforeEach(func() {
-			args = &DeleteAliasArgs{}
+			args = &UnaliasEnvArgs{}
 		})
 
 		Describe("Alias", func() {

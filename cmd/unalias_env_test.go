@@ -9,17 +9,17 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("DeleteAliasCmd", func() {
+var _ = Describe("UnaliasEnvCmd", func() {
 	var (
 		config  *configfakes.FakeConfig
-		command *cmd.DeleteAliasCmd
-		opts    cmd.DeleteAliasOpts
+		command *cmd.UnaliasEnvCmd
+		opts    cmd.UnaliasEnvOpts
 	)
 
 	BeforeEach(func() {
 		config = &configfakes.FakeConfig{}
-		command = cmd.NewDeleteAliasCmd(config)
-		opts = cmd.DeleteAliasOpts{Args: cmd.DeleteAliasArgs{Alias: "foo"}}
+		command = cmd.NewUnaliasEnvCmd(config)
+		opts = cmd.UnaliasEnvOpts{Args: cmd.UnaliasEnvArgs{Alias: "foo"}}
 	})
 
 	Describe("Run", func() {

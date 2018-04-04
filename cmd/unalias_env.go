@@ -2,15 +2,15 @@ package cmd
 
 import cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
 
-type DeleteAliasCmd struct {
+type UnaliasEnvCmd struct {
 	config cmdconf.Config
 }
 
-func NewDeleteAliasCmd(config cmdconf.Config) *DeleteAliasCmd {
-	return &DeleteAliasCmd{config: config}
+func NewUnaliasEnvCmd(config cmdconf.Config) *UnaliasEnvCmd {
+	return &UnaliasEnvCmd{config: config}
 }
 
-func (c DeleteAliasCmd) Run(opts DeleteAliasOpts) error {
+func (c UnaliasEnvCmd) Run(opts UnaliasEnvOpts) error {
 	updatedConfig, err := c.config.DeleteAlias(opts.Args.Alias)
 	if err != nil {
 		return err
