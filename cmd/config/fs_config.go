@@ -98,7 +98,7 @@ func (c FSConfig) AliasEnvironment(url, alias, caCert string) (Config, error) {
 	return config, nil
 }
 
-func (c FSConfig) DeleteAlias(alias string) (Config, error) {
+func (c FSConfig) UnaliasEnvironment(alias string) (Config, error) {
 	if len(alias) == 0 {
 		return nil, bosherr.Error("expected non-empty environment alias")
 	}

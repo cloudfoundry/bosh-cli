@@ -24,19 +24,19 @@ var _ = Describe("UnaliasEnvCmd", func() {
 
 	Describe("Run", func() {
 		It("returns an error if deleting fails", func() {
-			config.DeleteAliasReturns(nil, errors.New("cannot delete"))
+			config.UnaliasEnvironmentReturns(nil, errors.New("cannot delete"))
 			Expect(command.Run(opts)).NotTo(Succeed())
 		})
 
 		It("saves the updated config", func() {
-			config.DeleteAliasReturns(config, nil)
+			config.UnaliasEnvironmentReturns(config, nil)
 			config.SaveReturns(nil)
 			Expect(command.Run(opts)).To(Succeed())
 			Expect(config.SaveCallCount()).To(Equal(1))
 		})
 
 		It("returns an error if it cannot save the config", func() {
-			config.DeleteAliasReturns(config, nil)
+			config.UnaliasEnvironmentReturns(config, nil)
 			config.SaveReturns(errors.New("cannot save"))
 			Expect(command.Run(opts)).NotTo(Succeed())
 		})

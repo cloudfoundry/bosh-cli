@@ -132,14 +132,14 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns an error if the alias does not exist", func() {
-			_, err := config.DeleteAlias("alias-does-not-exist")
+			_, err := config.UnaliasEnvironment("alias-does-not-exist")
 			Expect(err).To(HaveOccurred())
 		})
 
 		It("deletes an environment with a particular alias", func() {
 			len := len(config.Environments())
 			var err error
-			config, err = config.DeleteAlias("alias")
+			config, err = config.UnaliasEnvironment("alias")
 			Expect(err).ToNot(HaveOccurred())
 
 			envs := config.Environments()

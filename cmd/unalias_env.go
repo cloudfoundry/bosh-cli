@@ -11,7 +11,7 @@ func NewUnaliasEnvCmd(config cmdconf.Config) *UnaliasEnvCmd {
 }
 
 func (c UnaliasEnvCmd) Run(opts UnaliasEnvOpts) error {
-	updatedConfig, err := c.config.DeleteAlias(opts.Args.Alias)
+	updatedConfig, err := c.config.UnaliasEnvironment(opts.Args.Alias)
 	if err != nil {
 		return err
 	}
