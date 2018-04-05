@@ -1,4 +1,16 @@
 ---
+groups:
+- name: all
+  jobs:
+  - test-unit
+  - test-integration
+  - test-acceptance
+  - integration-postgres
+  - build
+  - build-alpha
+  - bump-minor
+  - bump-major
+
 jobs:
   - name: test-unit
     public: true
