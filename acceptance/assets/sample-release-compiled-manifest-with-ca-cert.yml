@@ -47,6 +47,8 @@ cloud_provider:
       {{ . }}{{ end }}{{ end }}
   properties:
     warden_cpi: &warden_cpi
+      actions:
+        expand_stemcell_tarball: false
       warden:
         connect_network: tcp
         connect_address: 0.0.0.0:7777
