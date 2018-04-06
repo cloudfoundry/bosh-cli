@@ -1,3 +1,9 @@
+groups:
+- name: bosh-cli:docker-images
+  jobs:
+  - build-bosh-cli-go-1-8
+  - build-bosh-cli
+
 jobs:
   - name: build-bosh-cli
     public: true
