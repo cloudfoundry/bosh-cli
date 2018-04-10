@@ -3,7 +3,7 @@ package stemcell
 import (
 	"fmt"
 
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
@@ -29,7 +29,7 @@ type ExtractedStemcell interface {
 type extractedStemcell struct {
 	manifest      Manifest
 	extractedPath string
-	compressor    boshcmd.Compressor
+	compressor    boshfu.Compressor
 	fs            boshsys.FileSystem
 }
 
@@ -46,7 +46,7 @@ type Manifest struct {
 func NewExtractedStemcell(
 	manifest Manifest,
 	extractedPath string,
-	compressor boshcmd.Compressor,
+	compressor boshfu.Compressor,
 	fs boshsys.FileSystem,
 ) ExtractedStemcell {
 	return &extractedStemcell{
@@ -102,7 +102,7 @@ func (s *extractedStemcell) Pack(destinationPath string) error {
 		return err
 	}
 
-	return s.fs.Rename(intermediateStemcellPath, destinationPath)
+	return boshfu.NewFileMover(s.fs).Move(intermediateStemcellPath, destinationPath)
 }
 
 func (s *extractedStemcell) EmptyImage() error {
