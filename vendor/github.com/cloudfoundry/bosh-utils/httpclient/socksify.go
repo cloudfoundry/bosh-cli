@@ -41,6 +41,11 @@ func SOCKS5DialFuncFromEnvironment(origDialer DialFunc, socks5Proxy ProxyDialer)
 			return origDialer
 		}
 
+		username := ""
+		if proxyURL.User != nil {
+			username = proxyURL.User.Username()
+		}
+
 		proxySSHKeyPath, ok := queryMap["private-key"]
 		if !ok {
 			return origDialer
@@ -71,7 +76,7 @@ func SOCKS5DialFuncFromEnvironment(origDialer DialFunc, socks5Proxy ProxyDialer)
 			mut.Lock()
 			defer mut.Unlock()
 			if dialer == nil {
-				proxyDialer, err := socks5Proxy.Dialer("", string(proxySSHKey), proxyURL.Host)
+				proxyDialer, err := socks5Proxy.Dialer(username, string(proxySSHKey), proxyURL.Host)
 				if err != nil {
 					return nil, bosherr.WrapErrorf(err, "Creating SOCKS5 dialer")
 				}
