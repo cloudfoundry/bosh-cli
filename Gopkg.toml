@@ -29,3 +29,7 @@ required = ["github.com/onsi/ginkgo/ginkgo", "github.com/maxbrunsfeld/counterfei
 [[constraint]]
   name = "github.com/vito/go-interact"
   revision = "fa338ed9e9ecbb0e9c2e6c7a0160d9fc9b0efbd9"
+
+[[constraint]]
+  name = "github.com/cheggaaa/pb"
+  branch = "master"

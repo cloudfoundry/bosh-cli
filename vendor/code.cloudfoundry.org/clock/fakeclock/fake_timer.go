@@ -77,4 +77,8 @@ func (ft *fakeTimer) timeUpdated(now time.Time) {
 		// godoc of the `time' package a ticker can loose ticks in case of a slow
 		// receiver
 	}
+
+	if ft.repeatable() {
+		ft.Reset(ft.duration)
+	}
 }

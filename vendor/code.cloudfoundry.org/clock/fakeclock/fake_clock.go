@@ -1,6 +1,7 @@
 package fakeclock
 
 import (
+	"errors"
 	"sync"
 	"time"
 
@@ -71,6 +72,10 @@ func (clock *FakeClock) After(d time.Duration) <-chan time.Time {
 }
 
 func (clock *FakeClock) NewTicker(d time.Duration) clock.Ticker {
+	if d <= 0 {
+		panic(errors.New("duration must be greater than zero"))
+	}
+
 	timer := newFakeTimer(clock, d, true)
 	clock.addTimeWatcher(timer)
 
@@ -86,7 +91,6 @@ func (clock *FakeClock) WatcherCount() int {
 
 func (clock *FakeClock) increment(duration time.Duration, waitForWatchers bool, numWatchers int) {
 	clock.cond.L.Lock()
-	defer clock.cond.L.Unlock()
 
 	for waitForWatchers && len(clock.watchers) < numWatchers {
 		clock.cond.Wait()
@@ -109,6 +113,8 @@ func (clock *FakeClock) increment(duration time.Duration, waitForWatchers bool, 
 	}
 
 	clock.watchers = newWatchers
+
+	clock.cond.L.Unlock()
 
 	for _, w := range watchers {
 		w.timeUpdated(now)

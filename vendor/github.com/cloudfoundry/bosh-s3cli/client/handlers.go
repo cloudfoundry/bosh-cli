@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/cloudfoundry/bosh-s3cli/config"
 )
 
 const (
@@ -122,8 +123,19 @@ func (v2 *signer) Sign() error {
 		return err
 	}
 	host, canonicalPath := parsedURL.Host, parsedURL.Path
+
+	// Host can not be parsed successfully results from v2.Request.URL has a non-empty Opaque.
+	if len(host) < 1 {
+		host = v2.Request.URL.Host
+	}
+
 	v2.Request.Header["Host"] = []string{host}
 	v2.Request.Header["x-amz-date"] = []string{v2.Time.In(time.UTC).Format(time.RFC1123)}
+
+	// Alibaba Cloud OSS date's formate must be http.TimeFormat
+	if config.Provider(host) == "alicloud" {
+		v2.Request.Header["x-amz-date"] = []string{v2.Time.In(time.UTC).Format(http.TimeFormat)}
+	}
 
 	for k, v := range headers {
 		k = strings.ToLower(k)
