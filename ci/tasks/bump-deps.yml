@@ -7,7 +7,7 @@ image_resource:
     repository: bosh/go-dep-bumper
 
 inputs:
-- name: bosh-bosh-cli
+- name: bosh-cli
 
 outputs:
 - name: bumped-bosh-cli
