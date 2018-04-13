@@ -10,23 +10,24 @@ groups:
   - build-alpha
   - bump-minor
   - bump-major
+  - bump-deps
 
 jobs:
-- name: bump-deps
-  public: true
-  plan:
-    - get: daily-at-10am-utc
-      trigger: true
-    - get: bosh-cli
-    - task: bump-deps
-      file: bosh-cli/ci/tasks/bump-deps.yml
-    - task: test-unit
-      input_mapping:
-        bosh-cli: bumped-bosh-cli
-      file: bosh-cli/ci/tasks/test-unit.yml
-    - put: bosh-cli
-      params:
-        repository: bumped-bosh-cli
+  - name: bump-deps
+    public: true
+    plan:
+      - get: daily-at-10am-utc
+        trigger: true
+      - get: bosh-cli
+      - task: bump-deps
+        file: bosh-cli/ci/tasks/bump-deps.yml
+      - task: test-unit
+        input_mapping:
+          bosh-cli: bumped-bosh-cli
+        file: bosh-cli/ci/tasks/test-unit.yml
+      - put: bosh-cli
+        params:
+          repository: bumped-bosh-cli
 
   - name: test-unit
     public: true
