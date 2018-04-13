@@ -46,7 +46,7 @@ func (ui *ColorUI) PrintErrorBlock(block string) {
 	ui.parent.PrintErrorBlock(ui.errFunc("%s", block))
 }
 
-func (ui *ColorUI) PrintTable(table Table) {
+func (ui *ColorUI) PrintTable(table Table) error {
 	table.HeaderFormatFunc = ui.boldFunc
 
 	for k, s := range table.Sections {
@@ -63,7 +63,7 @@ func (ui *ColorUI) PrintTable(table Table) {
 		}
 	}
 
-	ui.parent.PrintTable(table)
+	return ui.parent.PrintTable(table)
 }
 
 func (ui *ColorUI) AskForText(label string) (string, error) {

@@ -58,9 +58,7 @@ func (t DeploymentsTable) Print() error {
 		})
 	}
 
-	t.UI.PrintTable(table)
-
-	return nil
+	return t.UI.PrintTable(table)
 }
 
 func (t DeploymentsTable) takeReleases(rels []boshdir.Release) []string {

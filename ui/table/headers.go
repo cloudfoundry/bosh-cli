@@ -35,7 +35,10 @@ func (t *Table) SetColumnVisibility(headers []Header) error {
 
 		if !foundHeader {
 			// key may be empty; if title is present
-			return fmt.Errorf("Failed to find header: %s", header.Key)
+			var validHeaders []string
+			for _, h := range t.Header {validHeaders = append(validHeaders, h.Title)}
+			validHeadersString := strings.Join(validHeaders, ", ")
+			return fmt.Errorf("Failed to find header: %s\nValid headers: %v", header.Key, validHeadersString)
 		}
 	}
 

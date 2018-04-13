@@ -80,15 +80,15 @@ func (ui *ConfUI) PrintErrorBlock(block string) {
 	ui.parent.PrintErrorBlock(block)
 }
 
-func (ui *ConfUI) PrintTable(table Table) {
+func (ui *ConfUI) PrintTable(table Table) error {
 	if len(ui.showColumns) > 0 {
 		err := table.SetColumnVisibility(ui.showColumns)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 
-	ui.parent.PrintTable(table)
+	return ui.parent.PrintTable(table)
 }
 
 func (ui *ConfUI) AskForText(label string) (string, error) {

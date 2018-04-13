@@ -85,12 +85,13 @@ func (ui *FakeUI) PrintErrorBlock(block string) {
 	ui.Blocks = append(ui.Blocks, block)
 }
 
-func (ui *FakeUI) PrintTable(table Table) {
+func (ui *FakeUI) PrintTable(table Table) error {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
 	ui.Table = table
 	ui.Tables = append(ui.Tables, table)
+	return nil
 }
 
 func (ui *FakeUI) AskForText(label string) (string, error) {

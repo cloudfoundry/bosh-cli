@@ -36,8 +36,8 @@ func (ui *nonInteractiveUI) PrintErrorBlock(block string) {
 	ui.parent.PrintErrorBlock(block)
 }
 
-func (ui *nonInteractiveUI) PrintTable(table Table) {
-	ui.parent.PrintTable(table)
+func (ui *nonInteractiveUI) PrintTable(table Table) error {
+	return ui.parent.PrintTable(table)
 }
 
 func (ui *nonInteractiveUI) AskForText(label string) (string, error) {
