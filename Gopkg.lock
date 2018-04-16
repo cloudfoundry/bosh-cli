@@ -406,7 +406,7 @@
     "proxy",
     "trace"
   ]
-  revision = "61147c48b25b599e5b561d2e9c4f3e1ef489ca41"
+  revision = "500e7a4f953ddaf55d316b4d3adc516aa0379622"
 
 [[projects]]
   branch = "master"
@@ -469,7 +469,7 @@
     "go/ast/astutil",
     "imports"
   ]
-  revision = "d11f6ec946130207fd66b479a9a6def585b5110b"
+  revision = "d9caac373771d868e508d835ebc3294a9a611c50"
 
 [[projects]]
   branch = "master"
@@ -485,7 +485,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "fca24fcb41126b846105a93fb9e30f416bdd55ce"
+  revision = "9c79deebf7496e355d7e95d82d4af1fe4e769b2f"
 
 [[projects]]
   name = "google.golang.org/appengine"
