@@ -93,8 +93,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "a232f351ae8febdc23af3bb68c6f885b08526bc0"
-  version = "v2.81.0"
+  revision = "c9743401cdefa2e152b225e322d70ec028195f69"
+  version = "v2.83.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -121,8 +121,8 @@
     "client",
     "config"
   ]
-  revision = "c4a0fe135010b8dc43230fc63445b8566d89f6e0"
-  version = "v0.0.67"
+  revision = "267e48c442da6057d332484024c025ecc96ff604"
+  version = "v0.0.68"
 
 [[projects]]
   branch = "master"
@@ -397,6 +397,7 @@
     "html",
     "html/atom",
     "html/charset",
+    "http/httpguts",
     "http2",
     "http2/hpack",
     "idna",
@@ -406,7 +407,7 @@
     "proxy",
     "trace"
   ]
-  revision = "500e7a4f953ddaf55d316b4d3adc516aa0379622"
+  revision = "8d16fa6dc9a85c1cd3ed24ad08ff21cf94f10888"
 
 [[projects]]
   branch = "master"
@@ -418,7 +419,7 @@
     "jws",
     "jwt"
   ]
-  revision = "921ae394b9430ed4fb549668d7b087601bd60a81"
+  revision = "6881fee410a5daf86371371f9ad451b95e168b71"
 
 [[projects]]
   branch = "master"
@@ -427,7 +428,7 @@
     "unix",
     "windows"
   ]
-  revision = "2281fa97ef7b0c26324634d5a22f04babdac8713"
+  revision = "b126b21c05a91c856b027c16779c12e3bf236954"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -467,9 +468,10 @@
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
-    "imports"
+    "imports",
+    "internal/fastwalk"
   ]
-  revision = "d9caac373771d868e508d835ebc3294a9a611c50"
+  revision = "94b14834a20132093826ea5e2da5502a13908ad3"
 
 [[projects]]
   branch = "master"
