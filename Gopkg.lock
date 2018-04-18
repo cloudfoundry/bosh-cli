@@ -93,8 +93,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "c9743401cdefa2e152b225e322d70ec028195f69"
-  version = "v2.83.0"
+  revision = "1ff1d9b6aee6ee7a67ad5d9c67d6885f23587d37"
+  version = "v2.84.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -407,7 +407,7 @@
     "proxy",
     "trace"
   ]
-  revision = "8d16fa6dc9a85c1cd3ed24ad08ff21cf94f10888"
+  revision = "d41e8174641f662c5a2d1c7a5f9e828788eb8706"
 
 [[projects]]
   branch = "master"
