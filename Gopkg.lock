@@ -93,8 +93,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "1ff1d9b6aee6ee7a67ad5d9c67d6885f23587d37"
-  version = "v2.84.0"
+  revision = "3e4f77267dd71ae5fbdd74a478b009a8207aa739"
+  version = "v2.85.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -428,7 +428,7 @@
     "unix",
     "windows"
   ]
-  revision = "b126b21c05a91c856b027c16779c12e3bf236954"
+  revision = "3ccc7e5779793fd54564baf60c51bf017955e0ba"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -487,7 +487,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "9c79deebf7496e355d7e95d82d4af1fe4e769b2f"
+  revision = "3b68a98d995a13543132bfe07c72a77bfbdf0689"
 
 [[projects]]
   name = "google.golang.org/appengine"
