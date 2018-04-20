@@ -63,8 +63,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "9b0098a71f6d4d473a26ec8ad3c2feaac6eb1da6"
-  version = "v1.13.32"
+  revision = "63f395001dd8f8d48ef82aad68256167e4051652"
+  version = "v1.13.33"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -93,8 +93,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "3e4f77267dd71ae5fbdd74a478b009a8207aa739"
-  version = "v2.85.0"
+  revision = "d7221d6447c6505c01b6e1fa99d0cf0a4b3b1796"
+  version = "v2.86.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -428,7 +428,7 @@
     "unix",
     "windows"
   ]
-  revision = "3ccc7e5779793fd54564baf60c51bf017955e0ba"
+  revision = "a2a45943ae67364d56c5d7d62dee78cff16c8dc8"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -487,7 +487,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "3b68a98d995a13543132bfe07c72a77bfbdf0689"
+  revision = "b08f8989af4899034b9816f5291a5bbb1bd576bb"
 
 [[projects]]
   name = "google.golang.org/appengine"
