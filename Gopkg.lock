@@ -93,8 +93,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "892141f233f93ae0a64e7af55208e7b6d5c40359"
-  version = "v2.87.0"
+  revision = "aee3498b9428c8124a7dfab5e2824d9f18429f54"
+  version = "v2.88.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -186,7 +186,7 @@
   branch = "master"
   name = "github.com/dustin/go-humanize"
   packages = ["."]
-  revision = "bb3d318650d48840a39aa21a027c6630e198e626"
+  revision = "02af3965c54e8cacf948b97fef38925c4120652c"
 
 [[projects]]
   name = "github.com/fatih/color"
