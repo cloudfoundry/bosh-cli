@@ -2,7 +2,6 @@ package releasedir
 
 import (
 	"path/filepath"
-	"strings"
 
 	"code.cloudfoundry.org/clock"
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
@@ -114,7 +113,7 @@ func (p Provider) newBlobstore(dirPath string) boshblob.DigestBlobstore {
 	switch provider {
 	case "local":
 		blobstorePath, found := options["blobstore_path"].(string)
-		if found && !strings.HasPrefix(blobstorePath, "/") {
+		if found && !filepath.IsAbs(blobstorePath) {
 			options["blobstore_path"] = filepath.Join(dirPath, blobstorePath)
 		}
 		blobstore = boshblob.NewLocalBlobstore(p.fs, p.uuidGen, options)
