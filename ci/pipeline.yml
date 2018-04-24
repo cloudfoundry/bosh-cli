@@ -75,42 +75,19 @@ jobs:
           trigger: true
         - get: bosh-agent
           trigger: true
+        - get: integration-tests-parallel-runtime
+
       - task: build-linux
         file: bosh-cli/ci/tasks/build-linux.yml
-      - aggregate:
-        - task: test-group-1
-          privileged: true
-          input_mapping:
-            bosh-cli: compiled-linux
-          file: bosh-src/ci/tasks/test-integration-gocli.yml
-          tags: ["bosh-integration-1"]
-          params:
-            DB:           postgresql
-            RUBY_VERSION: 2.4.2
-            NUM_GROUPS: 24
-            GROUP:      1,4,7,10,13,16,19,22
-        - task: test-group-2
-          privileged: true
-          input_mapping:
-            bosh-cli: compiled-linux
-          file: bosh-src/ci/tasks/test-integration-gocli.yml
-          tags: ["bosh-integration-2"]
-          params:
-            DB:           postgresql
-            RUBY_VERSION: 2.4.2
-            NUM_GROUPS: 24
-            GROUP:      2,5,8,11,14,17,20,23
-        - task: test-group-3
-          privileged: true
-          input_mapping:
-            bosh-cli: compiled-linux
-          file: bosh-src/ci/tasks/test-integration-gocli.yml
-          tags: ["bosh-integration-3"]
-          params:
-            DB:           postgresql
-            RUBY_VERSION: 2.4.2
-            NUM_GROUPS: 24
-            GROUP:      3,6,9,12,15,18,21,24
+
+      - task: tests
+        privileged: true
+        input_mapping:
+          bosh-cli: compiled-linux
+        file: bosh-src/ci/tasks/test-integration-gocli.yml
+        tags: ["bosh-integration"]
+        params:
+          DB: postgresql
         on_failure:
           put: slack-alert
           params:
@@ -385,6 +362,13 @@ resources:
       stop: 4:30 -0700
       interval: 24h
 
+  - name: integration-tests-parallel-runtime
+    type: s3
+    source:
+      bucket: ((integration_runtime_bucket))
+      access_key_id: ((integration_runtime_access_key_id))
+      secret_access_key: ((integration_runtime_secret_access_key))
+      versioned_file: "parallel_runtime_rspec.log"
 
 resource_types:
   - name: github-status
