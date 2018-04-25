@@ -268,7 +268,7 @@ var _ bool = Describe("Director", func() {
 				config, err := director.UpdateConfig("my-type", "my-name", "123", nil)
 				Expect(err).To(HaveOccurred())
 				Expect(config).To(Equal(Config{}))
-				Expect(err.Error()).To(ContainSubstring("Config update rejected: The provided latest ID '123' doesn't match the latest ID '999'"))
+				Expect(err.Error()).To(ContainSubstring("Config update rejected: The expected latest ID '123' doesn't match the latest ID '999'. This most likely means that a concurrent update of the config happened. Please try to upload again."))
 			})
 
 			It("returns an error if json is invalid for precondition failed", func() {
@@ -334,40 +334,84 @@ var _ bool = Describe("Director", func() {
 	})
 
 	Describe("DiffConfig", func() {
-		expectedDiffResponse := ConfigDiff{
-			Diff: [][]interface{}{
-				{"release:", nil},
-				{"  version: 0.0.1", "removed"},
-				{"  version: 0.0.2", "added"},
-			},
-		}
+		Context("With a FromId", func() {
+			expectedDiffResponse := ConfigDiff{
+				Diff: [][]interface{}{
+					{"release:", nil},
+					{"  version: 0.0.1", "removed"},
+					{"  version: 0.0.2", "added"},
+				},
+				FromId: "1",
+			}
 
-		It("diffs the config with the given name", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/configs/diff"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.VerifyHeader(http.Header{
-						"Content-Type": []string{"application/json"},
-					}),
-					ghttp.VerifyBody([]byte(`{"type":"myType","name":"myName","content":"myConfig"}`)),
-					ghttp.RespondWith(http.StatusOK, `{"diff":[["release:",null],["  version: 0.0.1","removed"],["  version: 0.0.2","added"]]}`),
-				),
-			)
+			It("diffs the config with the given name", func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/configs/diff"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.VerifyHeader(http.Header{
+							"Content-Type": []string{"application/json"},
+						}),
+						ghttp.VerifyBody([]byte(`{"type":"myType","name":"myName","content":"myConfig"}`)),
+						ghttp.RespondWith(http.StatusOK, `{"diff":[["release:",null],["  version: 0.0.1","removed"],["  version: 0.0.2","added"]], "from":{"id":"1"}}`),
+					),
+				)
 
-			diff, err := director.DiffConfig("myType", "myName", []byte("myConfig"))
-			Expect(err).ToNot(HaveOccurred())
-			Expect(diff).To(Equal(expectedDiffResponse))
+				diff, err := director.DiffConfig("myType", "myName", []byte("myConfig"))
+				Expect(err).ToNot(HaveOccurred())
+				Expect(diff).To(Equal(expectedDiffResponse))
+			})
 		})
 
-		It("returns error if info response in non-200", func() {
-			AppendBadRequest(ghttp.VerifyRequest("POST", "/configs/diff"), server)
+		Context("Without a FromId", func() {
+			It("diffs the config with the given name", func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/configs/diff"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.VerifyHeader(http.Header{
+							"Content-Type": []string{"application/json"},
+						}),
+						ghttp.VerifyBody([]byte(`{"type":"myType","name":"myName","content":"myConfig"}`)),
+						ghttp.RespondWith(http.StatusOK, `{"diff":[], "from":{"id":""}}`),
+					),
+				)
 
-			_, err := director.DiffConfig("myType", "myName", nil)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(
-				"Fetching diff result: Director responded with non-successful status code"))
+				diff, err := director.DiffConfig("myType", "myName", []byte("myConfig"))
+				Expect(err).ToNot(HaveOccurred())
+				Expect(diff.FromId).To(Equal(""))
+			})
 		})
 
+		Context("Without the field FromId (compatibility test against old directors)", func() {
+			It("diffs the config with the given name", func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/configs/diff"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.VerifyHeader(http.Header{
+							"Content-Type": []string{"application/json"},
+						}),
+						ghttp.VerifyBody([]byte(`{"type":"myType","name":"myName","content":"myConfig"}`)),
+						ghttp.RespondWith(http.StatusOK, `{"diff":[]}`),
+					),
+				)
+
+				diff, err := director.DiffConfig("myType", "myName", []byte("myConfig"))
+				Expect(err).ToNot(HaveOccurred())
+				Expect(diff.FromId).To(Equal(""))
+			})
+		})
+
+		Context("If info return code is not 200", func() {
+			It("returns an error", func() {
+				AppendBadRequest(ghttp.VerifyRequest("POST", "/configs/diff"), server)
+
+				_, err := director.DiffConfig("myType", "myName", nil)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(
+					"Fetching diff result: Director responded with non-successful status code"))
+			})
+		})
 	})
 })

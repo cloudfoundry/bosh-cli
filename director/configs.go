@@ -155,7 +155,7 @@ func (c Client) updateConfig(content []byte) (Config, error) {
 				return config, bosherr.WrapErrorf(err, "Could not unmarshal response: '%s'", respBody)
 			}
 
-			return config, bosherr.Errorf("Config update rejected: The provided latest ID '%s' doesn't match the latest ID '%s'", configResp.ExpectedLatestId, configResp.LatestId)
+			return config, bosherr.Errorf("Config update rejected: The expected latest ID '%s' doesn't match the latest ID '%s'. This most likely means that a concurrent update of the config happened. Please try to upload again.", configResp.ExpectedLatestId, configResp.LatestId)
 		}
 		return config, bosherr.WrapErrorf(err, "Updating config")
 	}
@@ -209,7 +209,7 @@ func (d DirectorImpl) DiffConfig(configType string, name string, manifest []byte
 		return ConfigDiff{}, err
 	}
 
-	return NewConfigDiff(resp.Diff), nil
+	return NewConfigDiffWithFromId(resp.Diff, resp.From["id"]), nil
 }
 
 func (c Client) DiffConfig(manifest []byte) (ConfigDiffResponse, error) {
