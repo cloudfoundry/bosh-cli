@@ -63,8 +63,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "bd40d9f476190b2bd95120911312160641dba41e"
-  version = "v1.13.35"
+  revision = "6454c9c7415974700e9d0d7f480edbe669f7b2f8"
+  version = "v1.13.36"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -93,8 +93,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "aee3498b9428c8124a7dfab5e2824d9f18429f54"
-  version = "v2.88.0"
+  revision = "4b70e725117e1878261e34323b12afbdf02eb70c"
+  version = "v2.89.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -386,7 +386,7 @@
     "ssh",
     "ssh/terminal"
   ]
-  revision = "2b6c08872f4b66da917bb4ce98df4f0307330f78"
+  revision = "b0697eccbea9adec5b7ba8008f4c33d98d733388"
 
 [[projects]]
   branch = "master"
