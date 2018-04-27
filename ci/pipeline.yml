@@ -358,7 +358,10 @@ resources:
 
   - name: weekly
     type: time
-    source: { interval: 1w }
+    source:
+      start: 3:00 -0700
+      stop: 4:30 -0700
+      days: [Saturday]
 
   - name: integration-tests-parallel-runtime
     type: s3
