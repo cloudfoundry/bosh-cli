@@ -16,7 +16,7 @@ jobs:
   - name: bump-deps
     public: true
     plan:
-      - get: daily-at-10am-utc
+      - get: weekly
         trigger: true
       - get: bosh-cli
       - task: bump-deps
@@ -355,12 +355,10 @@ resources:
       username: {{docker_username}}
       password: {{docker_password}}
       email: foo@bar.com
-  - name: daily-at-10am-utc
+
+  - name: weekly
     type: time
-    source:
-      start: 3:00 -0700
-      stop: 4:30 -0700
-      interval: 24h
+    source: { interval: 1w }
 
   - name: integration-tests-parallel-runtime
     type: s3
