@@ -33,19 +33,12 @@ func (t ConfigDiffTable) Print() {
 	}
 
 	result := []boshtbl.Value{
-		boshtbl.NewValueString(formatId(t.opts.FromID)),
-		boshtbl.NewValueString(formatId(t.opts.ToID)),
+		boshtbl.NewValueString(t.opts.FromID),
+		boshtbl.NewValueString(t.opts.ToID),
 		boshtbl.NewValueString(t.diff.String()),
 	}
 
 	table.Rows = append(table.Rows, result)
 
 	t.ui.PrintTable(table)
-}
-
-func formatId(id string) string {
-	if id == "" {
-		return "-"
-	}
-	return id
 }

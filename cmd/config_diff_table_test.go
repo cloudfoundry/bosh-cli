@@ -31,61 +31,34 @@ var _ = Describe("DiffConfigTable", func() {
 	})
 
 	Describe("Print", func() {
-		Context("when FromID and ToID are specified", func() {
-			It("shows diff config as transposed table", func() {
-				NewConfigDiffTable(diff, opts, ui).Print()
+		It("shows diff config as transposed table", func() {
+			NewConfigDiffTable(diff, opts, ui).Print()
 
-				Expect(ui.Table).To(Equal(
-					boshtbl.Table{
-						Content: "",
+			Expect(ui.Table).To(Equal(
+				boshtbl.Table{
+					Content: "",
 
-						Header: []boshtbl.Header{
-							boshtbl.NewHeader("From ID"),
-							boshtbl.NewHeader("To ID"),
-							boshtbl.NewHeader("Diff"),
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("From ID"),
+						boshtbl.NewHeader("To ID"),
+						boshtbl.NewHeader("Diff"),
+					},
+
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.NewValueString("1"),
+							boshtbl.NewValueString("2"),
+							boshtbl.NewValueString("  some line that stayed\n+ some line that was added\n- some line that was removed\n"),
 						},
+					},
 
-						Rows: [][]boshtbl.Value{
-							{
-								boshtbl.NewValueString("1"),
-								boshtbl.NewValueString("2"),
-								boshtbl.NewValueString("  some line that stayed\n+ some line that was added\n- some line that was removed\n"),
-							},
-						},
+					Notes: []string{},
 
-						Notes: []string{},
+					FillFirstColumn: true,
 
-						FillFirstColumn: true,
-
-						Transpose: true,
-					}))
-			})
+					Transpose: true,
+				}))
 		})
-
-		Context("when FromID is not specified in the response", func() {
-			optsWithoutFromID := DiffConfigOpts{
-				ToID: "2",
-			}
-			It("marks From ID with -", func() {
-				NewConfigDiffTable(diff, optsWithoutFromID, ui).Print()
-
-				fromIdContent := ui.Table.Rows[0][0].String()
-				Expect(fromIdContent).To(Equal("-"))
-			})
-		})
-
-		Context("when ToID is not specified in the response", func() {
-			optsWithoutToID := DiffConfigOpts{
-				FromID: "1",
-			}
-			It("marks To ID with -", func() {
-				NewConfigDiffTable(diff, optsWithoutToID, ui).Print()
-
-				toIdContent := ui.Table.Rows[0][1].String()
-				Expect(toIdContent).To(Equal("-"))
-			})
-		})
-
 	})
 
 })
