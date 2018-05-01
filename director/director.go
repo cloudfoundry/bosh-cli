@@ -14,11 +14,11 @@ type DirectorImpl struct {
 }
 
 type OrphanedVMResponse struct {
+	AZName         string   `json:"az"`
 	CID            string   `json:"cid"`
 	DeploymentName string   `json:"deployment_name"`
-	InstanceName   string   `json:"instance_name"`
-	AZName         string   `json:"availability_zone"`
 	IPAddresses    []string `json:"ip_addresses"`
+	InstanceName   string   `json:"instance_name"`
 	OrphanedAt     string   `json:"orphaned_at"`
 }
 
