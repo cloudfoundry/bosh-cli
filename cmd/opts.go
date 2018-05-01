@@ -129,6 +129,7 @@ type BoshOpts struct {
 	Ignore             IgnoreOpts             `command:"ignore"                                         description:"Ignore an instance"`
 	Unignore           UnignoreOpts           `command:"unignore"                                       description:"Unignore an instance"`
 	CloudCheck         CloudCheckOpts         `command:"cloud-check"     alias:"cck" alias:"cloudcheck" description:"Cloud consistency check and interactive repair"`
+	OrphanedVMs        OrphanedVMsOpts        `command:"orphaned-vms"                                   description:"List all the orphaned VMs in all deployments"`
 
 	// Instance management
 	Logs     LogsOpts     `command:"logs"      description:"Fetch logs from instance(s)"`
@@ -172,6 +173,7 @@ type HelpOpts struct {
 }
 
 // Original bosh-init
+
 type CreateEnvOpts struct {
 	Args CreateEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
@@ -198,6 +200,7 @@ type DeleteEnvArgs struct {
 }
 
 // Environment
+
 type EnvironmentOpts struct {
 	cmd
 }
@@ -228,6 +231,7 @@ type LogOutOpts struct {
 }
 
 // Tasks
+
 type TaskOpts struct {
 	Args TaskArgs `positional-args:"true"`
 
@@ -260,6 +264,7 @@ type CancelTaskOpts struct {
 }
 
 // Misc
+
 type LocksOpts struct {
 	cmd
 }
@@ -299,6 +304,7 @@ type InterpolateArgs struct {
 }
 
 // Config
+
 type ConfigOpts struct {
 	Args ConfigArgs `positional-args:"true"`
 	Name string     `long:"name" description:"Config name"`
@@ -354,6 +360,7 @@ type DeleteConfigArgs struct {
 }
 
 // Cloud config
+
 type CloudConfigOpts struct {
 	cmd
 }
@@ -388,6 +395,7 @@ type UpdateCPIConfigArgs struct {
 }
 
 // Runtime config
+
 type RuntimeConfigOpts struct {
 	Name string `long:"name" description:"Runtime-Config name (default: '')" default:""`
 	cmd
@@ -409,6 +417,7 @@ type UpdateRuntimeConfigArgs struct {
 }
 
 // Deployments
+
 type DeploymentOpts struct {
 	cmd
 }
@@ -451,6 +460,7 @@ type DeleteDeploymentOpts struct {
 }
 
 // Events
+
 type EventsOpts struct {
 	BeforeID   string `long:"before-id"    description:"Show events with ID less than the given ID"`
 	Before     string `long:"before"       description:"Show events before the given timestamp (ex: 2016-05-08 17:26:32)"`
@@ -477,6 +487,7 @@ type EventArgs struct {
 }
 
 // Stemcells
+
 type StemcellsOpts struct {
 	cmd
 }
@@ -527,6 +538,7 @@ type RepackStemcellArgs struct {
 }
 
 // Releases
+
 type ReleasesOpts struct {
 	cmd
 }
@@ -592,6 +604,7 @@ type InspectReleaseArgs struct {
 }
 
 // Errands
+
 type ErrandsOpts struct {
 	cmd
 }
@@ -619,6 +632,7 @@ type RunErrandArgs struct {
 }
 
 // Disks
+
 type DisksOpts struct {
 	Orphaned bool `long:"orphaned" short:"o" description:"List orphaned disks"`
 	cmd
@@ -642,6 +656,7 @@ type OrphanDiskArgs struct {
 }
 
 // Snapshots
+
 type SnapshotsOpts struct {
 	Args InstanceSlugArgs `positional-args:"true"`
 	cmd
@@ -679,6 +694,7 @@ type InstanceSlugArgs struct {
 }
 
 // Instances
+
 type InstancesOpts struct {
 	Details    bool `long:"details" short:"i" description:"Show details including VM CID, persistent disk CID, etc."`
 	DNS        bool `long:"dns"               description:"Show DNS A records"`
@@ -704,7 +720,12 @@ type CloudCheckOpts struct {
 	cmd
 }
 
+type OrphanedVMsOpts struct {
+	cmd
+}
+
 // Instance management
+
 type UpdateResurrectionOpts struct {
 	Args UpdateResurrectionArgs `positional-args:"true" required:"true"`
 	cmd
@@ -800,6 +821,7 @@ type AllOrInstanceGroupOrInstanceSlugArgs struct {
 }
 
 // SSH instance
+
 type SSHOpts struct {
 	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
 
@@ -840,6 +862,7 @@ type GatewayFlags struct {
 }
 
 // Release creation
+
 type InitReleaseOpts struct {
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 
@@ -946,6 +969,7 @@ type FinalizeReleaseArgs struct {
 }
 
 // Blobs
+
 type BlobsOpts struct {
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 	cmd

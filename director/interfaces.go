@@ -72,6 +72,8 @@ type Director interface {
 	EnableResurrection(bool) error
 	CleanUp(bool) error
 	DownloadResourceUnchecked(blobstoreID string, out io.Writer) error
+
+	OrphanedVMs() ([]OrphanedVM, error)
 }
 
 var _ Director = &DirectorImpl{}
@@ -278,6 +280,15 @@ type OrphanDisk interface {
 	OrphanedAt() time.Time
 
 	Delete() error
+}
+
+type OrphanedVM struct {
+	CID            string
+	DeploymentName string
+	InstanceName   string
+	AZName         string
+	IPAddresses    []string
+	OrphanedAt     time.Time
 }
 
 type EventsFilter struct {

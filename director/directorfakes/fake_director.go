@@ -622,6 +622,17 @@ type FakeDirector struct {
 	downloadResourceUncheckedReturnsOnCall map[int]struct {
 		result1 error
 	}
+	OrphanedVMsStub        func() ([]director.OrphanedVM, error)
+	orphanedVMsMutex       sync.RWMutex
+	orphanedVMsArgsForCall []struct{}
+	orphanedVMsReturns     struct {
+		result1 []director.OrphanedVM
+		result2 error
+	}
+	orphanedVMsReturnsOnCall map[int]struct {
+		result1 []director.OrphanedVM
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -3048,6 +3059,49 @@ func (fake *FakeDirector) DownloadResourceUncheckedReturnsOnCall(i int, result1 
 	}{result1}
 }
 
+func (fake *FakeDirector) OrphanedVMs() ([]director.OrphanedVM, error) {
+	fake.orphanedVMsMutex.Lock()
+	ret, specificReturn := fake.orphanedVMsReturnsOnCall[len(fake.orphanedVMsArgsForCall)]
+	fake.orphanedVMsArgsForCall = append(fake.orphanedVMsArgsForCall, struct{}{})
+	fake.recordInvocation("OrphanedVMs", []interface{}{})
+	fake.orphanedVMsMutex.Unlock()
+	if fake.OrphanedVMsStub != nil {
+		return fake.OrphanedVMsStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.orphanedVMsReturns.result1, fake.orphanedVMsReturns.result2
+}
+
+func (fake *FakeDirector) OrphanedVMsCallCount() int {
+	fake.orphanedVMsMutex.RLock()
+	defer fake.orphanedVMsMutex.RUnlock()
+	return len(fake.orphanedVMsArgsForCall)
+}
+
+func (fake *FakeDirector) OrphanedVMsReturns(result1 []director.OrphanedVM, result2 error) {
+	fake.OrphanedVMsStub = nil
+	fake.orphanedVMsReturns = struct {
+		result1 []director.OrphanedVM
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) OrphanedVMsReturnsOnCall(i int, result1 []director.OrphanedVM, result2 error) {
+	fake.OrphanedVMsStub = nil
+	if fake.orphanedVMsReturnsOnCall == nil {
+		fake.orphanedVMsReturnsOnCall = make(map[int]struct {
+			result1 []director.OrphanedVM
+			result2 error
+		})
+	}
+	fake.orphanedVMsReturnsOnCall[i] = struct {
+		result1 []director.OrphanedVM
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -3147,6 +3201,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.cleanUpMutex.RUnlock()
 	fake.downloadResourceUncheckedMutex.RLock()
 	defer fake.downloadResourceUncheckedMutex.RUnlock()
+	fake.orphanedVMsMutex.RLock()
+	defer fake.orphanedVMsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
