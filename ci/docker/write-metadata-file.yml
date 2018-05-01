@@ -1,0 +1,20 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: bosh/cli
+    tag: 'latest'
+
+inputs:
+  - name: bosh-cli-src
+
+outputs:
+  - name: docker-files
+
+run:
+  path: bosh-cli-src/ci/docker/write-metadata-file.sh
+
+params:
+  DOCKER_IMAGE_TAG: latest

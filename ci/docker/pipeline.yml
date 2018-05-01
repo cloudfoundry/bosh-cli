@@ -10,6 +10,10 @@ jobs:
     plan:
       - get: bosh-cli-src
         trigger: true
+      - task: write-metadata-file
+        file: bosh-cli-src/ci/docker/write-metadata-file.yml
+        params:
+          DOCKER_IMAGE_TAG: latest
       - put: bosh-cli
         params:
           build: "docker-files"
