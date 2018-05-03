@@ -76,6 +76,22 @@ var _ = Describe("UIDownloader", func() {
 				Expect(director.DownloadResourceUncheckedCallCount()).To(Equal(0))
 				Expect(fs.FileExists(expectedPath)).To(BeFalse())
 			})
+
+			It("returns error if temp file cannot be closed", func() {
+				fakeFile := fakesys.NewFakeFile("/some-tmp-file", fs)
+				fakeFile.CloseErr = errors.New("fake-err")
+				fs.ReturnTempFile = fakeFile
+
+				director.DownloadResourceUncheckedStub = func(_ string, out io.Writer) error {
+					out.Write([]byte("file-contents"))
+					return nil
+				}
+
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+				Expect(fs.FileExists(expectedPath)).To(BeFalse())
+			})
 		}
 
 		Context("when SHA1 is provided", func() {
