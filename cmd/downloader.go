@@ -71,6 +71,11 @@ func (d UIDownloader) Download(blobstoreID, sha1, prefix, dstDirPath string) err
 		}
 	}
 
+	err = tmpFile.Close()
+	if err != nil {
+		return err
+	}
+
 	err = boshfu.NewFileMover(d.fs).Move(tmpFile.Name(), dstFilePath)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Moving to final destination")
