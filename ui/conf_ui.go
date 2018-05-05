@@ -114,3 +114,7 @@ func (ui *ConfUI) IsInteractive() bool {
 func (ui *ConfUI) Flush() {
 	ui.parent.Flush()
 }
+
+func (ui *ConfUI) EnableLocking() {
+	ui.parent = NewLockingUI(ui.parent)
+}

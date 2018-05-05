@@ -61,25 +61,17 @@ func (c VMsCmd) printDeployments(instTable InstanceTable, parallel int) error {
 		return err
 	}
 
-	vmInfos, err := parallelVMInfos(deployments, parallel)
-
-	for _, dep := range deployments {
-		if vmInfo, ok := vmInfos[dep.Name()]; ok {
-			c.printDeployment(dep, instTable, vmInfo)
-		}
-	}
+	err = c.parallelVMInfos(deployments, parallel, instTable)
 
 	return err
 }
 
-func parallelVMInfos(deployments []boshdir.Deployment, parallel int) (map[string][]boshdir.VMInfo, error) {
+func (c VMsCmd) parallelVMInfos(deployments []boshdir.Deployment, parallel int, instTable InstanceTable) error {
 	if parallel == 0 {
 		parallel = 1
 	}
 	workSize := len(deployments)
-	resultc := make(chan deploymentInfo, workSize)
 	errorc := make(chan error, workSize)
-	defer close(resultc)
 	defer close(errorc)
 	works := make([]func(), workSize)
 
@@ -88,26 +80,24 @@ func parallelVMInfos(deployments []boshdir.Deployment, parallel int) (map[string
 		works[i] = func() {
 			vmInfos, err := dep.VMInfos()
 			errorc <- err
-			resultc <- deploymentInfo{dep.Name(), vmInfos}
+			if err == nil {
+				c.printDeployment(dep, instTable, vmInfos)
+			}
 		}
 	}
 
 	throttler, err := workpool.NewThrottler(parallel, works)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	throttler.Work()
-	vms := make(map[string][]boshdir.VMInfo, workSize)
 	var vmInfoErrors []error
 
 	for i := 0; i < workSize; i++ {
 		errc := <-errorc
-		result := <-resultc
 		if errc != nil {
 			vmInfoErrors = append(vmInfoErrors, errc)
-		} else {
-			vms[result.depName] = result.vmInfos
 		}
 	}
 
@@ -115,7 +105,7 @@ func parallelVMInfos(deployments []boshdir.Deployment, parallel int) (map[string
 		err = bosherr.NewMultiError(vmInfoErrors...)
 	}
 
-	return vms, err
+	return err
 }
 
 func (c VMsCmd) printDeployment(dep boshdir.Deployment, instTable InstanceTable, vmInfos []boshdir.VMInfo) {

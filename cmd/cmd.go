@@ -451,6 +451,10 @@ func (c Cmd) configureUI() {
 
 		c.deps.UI.ShowColumns(headers)
 	}
+
+	if c.BoshOpts.Parallel > 1 {
+		c.deps.UI.EnableLocking()
+	}
 }
 
 func (c Cmd) configureFS() {
