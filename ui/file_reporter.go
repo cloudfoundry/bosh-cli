@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/cheggaaa/pb"
+	bio "github.com/cloudfoundry/bosh-cli/io"
 )
 
 type FileReporter struct {
@@ -14,17 +15,12 @@ func NewFileReporter(ui UI) FileReporter {
 	return FileReporter{ui: ui}
 }
 
-type ReadSeekCloser interface {
-	io.Seeker
-	io.ReadCloser
-}
-
 func (r FileReporter) Write(b []byte) (int, error) {
 	r.ui.BeginLinef("%s", b)
 	return len(b), nil
 }
 
-func (r FileReporter) TrackUpload(size int64, reader io.ReadCloser) ReadSeekCloser {
+func (r FileReporter) TrackUpload(size int64, reader io.ReadCloser) bio.ReadSeekCloser {
 	return &ReadCloserProxy{reader: reader, bar: r.buildBar(size), ui: r.ui}
 }
 

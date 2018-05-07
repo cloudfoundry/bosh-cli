@@ -1,8 +1,9 @@
 package director
 
 import (
-	"github.com/cloudfoundry/bosh-cli/ui"
 	"io"
+
+	bio "github.com/cloudfoundry/bosh-cli/io"
 )
 
 type NoopFileReporter struct{}
@@ -31,7 +32,7 @@ func NewNoopFileReporter() NoopFileReporter {
 	return NoopFileReporter{}
 }
 
-func (r NoopFileReporter) TrackUpload(size int64, reader io.ReadCloser) ui.ReadSeekCloser {
+func (r NoopFileReporter) TrackUpload(size int64, reader io.ReadCloser) bio.ReadSeekCloser {
 	return NoopReadSeekCloser{reader}
 }
 func (r NoopFileReporter) TrackDownload(size int64, writer io.Writer) io.Writer { return writer }

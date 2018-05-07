@@ -6,21 +6,21 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/director"
-	"github.com/cloudfoundry/bosh-cli/ui"
+	bio "github.com/cloudfoundry/bosh-cli/io"
 )
 
 type FakeFileReporter struct {
-	TrackUploadStub        func(int64, io.ReadCloser) ui.ReadSeekCloser
+	TrackUploadStub        func(int64, io.ReadCloser) bio.ReadSeekCloser
 	trackUploadMutex       sync.RWMutex
 	trackUploadArgsForCall []struct {
 		arg1 int64
 		arg2 io.ReadCloser
 	}
 	trackUploadReturns struct {
-		result1 ui.ReadSeekCloser
+		result1 bio.ReadSeekCloser
 	}
 	trackUploadReturnsOnCall map[int]struct {
-		result1 ui.ReadSeekCloser
+		result1 bio.ReadSeekCloser
 	}
 	TrackDownloadStub        func(int64, io.Writer) io.Writer
 	trackDownloadMutex       sync.RWMutex
@@ -38,7 +38,7 @@ type FakeFileReporter struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeFileReporter) TrackUpload(arg1 int64, arg2 io.ReadCloser) ui.ReadSeekCloser {
+func (fake *FakeFileReporter) TrackUpload(arg1 int64, arg2 io.ReadCloser) bio.ReadSeekCloser {
 	fake.trackUploadMutex.Lock()
 	ret, specificReturn := fake.trackUploadReturnsOnCall[len(fake.trackUploadArgsForCall)]
 	fake.trackUploadArgsForCall = append(fake.trackUploadArgsForCall, struct {
@@ -68,22 +68,22 @@ func (fake *FakeFileReporter) TrackUploadArgsForCall(i int) (int64, io.ReadClose
 	return fake.trackUploadArgsForCall[i].arg1, fake.trackUploadArgsForCall[i].arg2
 }
 
-func (fake *FakeFileReporter) TrackUploadReturns(result1 ui.ReadSeekCloser) {
+func (fake *FakeFileReporter) TrackUploadReturns(result1 bio.ReadSeekCloser) {
 	fake.TrackUploadStub = nil
 	fake.trackUploadReturns = struct {
-		result1 ui.ReadSeekCloser
+		result1 bio.ReadSeekCloser
 	}{result1}
 }
 
-func (fake *FakeFileReporter) TrackUploadReturnsOnCall(i int, result1 ui.ReadSeekCloser) {
+func (fake *FakeFileReporter) TrackUploadReturnsOnCall(i int, result1 bio.ReadSeekCloser) {
 	fake.TrackUploadStub = nil
 	if fake.trackUploadReturnsOnCall == nil {
 		fake.trackUploadReturnsOnCall = make(map[int]struct {
-			result1 ui.ReadSeekCloser
+			result1 bio.ReadSeekCloser
 		})
 	}
 	fake.trackUploadReturnsOnCall[i] = struct {
-		result1 ui.ReadSeekCloser
+		result1 bio.ReadSeekCloser
 	}{result1}
 }
 
