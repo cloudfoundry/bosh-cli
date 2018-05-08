@@ -11,15 +11,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 
-package stats
+// +build !go1.11
 
-// Units are encoded according to the case-sensitive abbreviations from the
-// Unified Code for Units of Measure: http://unitsofmeasure.org/ucum.html
-const (
-	UnitNone          = "1" // Deprecated: Use UnitDimensionless.
-	UnitDimensionless = "1"
-	UnitBytes         = "By"
-	UnitMilliseconds  = "ms"
+package trace
+
+import (
+	"context"
 )
+
+func startExecutionTracerTask(ctx context.Context, name string) (context.Context, func()) {
+	return ctx, func() {}
+}

@@ -63,8 +63,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "cb873de7862ba08c63e82f37ffebc5ba02d87d26"
-  version = "v1.13.38"
+  revision = "31bd69f7db00cbf3d85d129e16d42304cb6e455f"
+  version = "v1.13.44"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -82,7 +82,7 @@
   branch = "master"
   name = "github.com/cheggaaa/pb"
   packages = ["."]
-  revision = "75a8cbd866a7bad0d4a3b2b8cb6cab48a1475155"
+  revision = "d931a9997fe189609982aeb8eaa8a11b9ce5e013"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-agent"
@@ -93,8 +93,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "07b55bc374f5af94fdbb7b80da9a87cca9172e72"
-  version = "v2.92.0"
+  revision = "b539b662465935ceb83e253144e64e8745750723"
+  version = "v2.95.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -147,7 +147,7 @@
     "uuid/fakes",
     "work"
   ]
-  revision = "2c869a1a0ccef38c01c41d833db6eb02a23bd6e6"
+  revision = "33ed1a85e211b44617ebe8957f0991cdbd72ba8f"
 
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
@@ -216,8 +216,8 @@
     "ptypes/duration",
     "ptypes/timestamp"
   ]
-  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
-  version = "v1.0.0"
+  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/googleapis/gax-go"
@@ -371,8 +371,8 @@
     "trace/internal",
     "trace/propagation"
   ]
-  revision = "0095aec66ae14801c6711210f6f0716411cefdd3"
-  version = "v0.8.0"
+  revision = "10cec2c05ea2cfb8b0d856711daedc49d8a45c56"
+  version = "v0.9.0"
 
 [[projects]]
   branch = "master"
@@ -386,7 +386,7 @@
     "ssh",
     "ssh/terminal"
   ]
-  revision = "ae8bce0030810cf999bb2b9868ae5c7c58e6343b"
+  revision = "4ec37c66abab2c7e02ae775328b2ff001c3f025a"
 
 [[projects]]
   branch = "master"
@@ -403,11 +403,10 @@
     "idna",
     "internal/socks",
     "internal/timeseries",
-    "lex/httplex",
     "proxy",
     "trace"
   ]
-  revision = "5f9ae10d9af5b1c89ae6904293b14b064d4ada23"
+  revision = "d11bb6cd8e3c4e60239c9cb20ef68586d74500d0"
 
 [[projects]]
   branch = "master"
@@ -419,7 +418,7 @@
     "jws",
     "jwt"
   ]
-  revision = "6881fee410a5daf86371371f9ad451b95e168b71"
+  revision = "cdc340f7c179dbbfa4afd43b7614e8fcadde4269"
 
 [[projects]]
   branch = "master"
@@ -428,7 +427,7 @@
     "unix",
     "windows"
   ]
-  revision = "4adea008a5e5f820b6028611ae0b6b3fbcec534b"
+  revision = "7db1c3b1a98089d0071c84f646ff5c96aad43682"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -471,7 +470,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "8e070db38e5c55da6a85c81878ab769bf5667848"
+  revision = "87723262609ca8fd55d449c027454c29cadefd68"
 
 [[projects]]
   branch = "master"
@@ -487,7 +486,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "2b26f0d5dbe6eea8c0924349bb024673f8105fd9"
+  revision = "20530fd5d65ad2caee87891f9896d7547cb400c9"
 
 [[projects]]
   name = "google.golang.org/appengine"
