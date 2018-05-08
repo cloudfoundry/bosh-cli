@@ -12,10 +12,9 @@ import (
 
 var _ = Describe("SessionContextImpl", func() {
 	var (
-		opts    BoshOpts
-		config  *fakeconf.FakeConfig
-		fs      *fakesys.FakeFileSystem
-		context *SessionContextImpl
+		opts   BoshOpts
+		config *fakeconf.FakeConfig
+		fs     *fakesys.FakeFileSystem
 	)
 
 	BeforeEach(func() {
@@ -24,7 +23,6 @@ var _ = Describe("SessionContextImpl", func() {
 			ResolveEnvironmentStub: func(in string) string { return in },
 		}
 		fs = fakesys.NewFakeFileSystem()
-		context = nil
 	})
 
 	build := func() *SessionContextImpl { return NewSessionContextImpl(opts, config, fs) }

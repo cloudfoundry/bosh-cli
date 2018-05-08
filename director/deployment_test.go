@@ -367,7 +367,6 @@ var _ = Describe("Deployment", func() {
 		var (
 			slug         AllOrInstanceGroupOrInstanceSlug
 			force        bool
-			dryRun       bool
 			startOpts    StartOpts
 			stopOpts     StopOpts
 			detachedOpts StopOpts
@@ -378,7 +377,6 @@ var _ = Describe("Deployment", func() {
 		BeforeEach(func() {
 			slug = AllOrInstanceGroupOrInstanceSlug{}
 			force = false
-			dryRun = false
 
 			startOpts = StartOpts{}
 			stopOpts = StopOpts{

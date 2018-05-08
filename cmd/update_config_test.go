@@ -185,7 +185,7 @@ var _ = Describe("UpdateConfigCmd", func() {
 		Context("when expected-latest-id is not specified", func() {
 			Context("when a config is already uploaded", func() {
 				It("calls update config with the latest id returned by diff config", func() {
-					director.DiffConfigReturns(boshdir.ConfigDiff{[][]interface{}{}, "1"}, nil)
+					director.DiffConfigReturns(boshdir.ConfigDiff{Diff: [][]interface{}{}, FromId: "1"}, nil)
 
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
