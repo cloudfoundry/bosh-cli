@@ -7,6 +7,7 @@ import (
 
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	proxy "github.com/cloudfoundry/socks5-proxy"
 )
@@ -17,14 +18,20 @@ type SSHArgs struct {
 
 	ForceTTY bool
 
-	PrivKeyFile    boshsys.File
-	KnownHostsFile boshsys.File
+	PrivKeyFile         boshsys.File
+	KnownHostsFile      boshsys.File
+	CmdExistenceChecker cmdExistenceChecker
 
-	socks5Proxy *proxy.Socks5Proxy
+	Socks5Proxy *proxy.Socks5Proxy
 	dialer      proxy.DialFunc
 }
 
+type cmdExistenceChecker interface {
+	CommandExists(cmdName string) (exists bool)
+}
+
 func NewSSHArgs(connOpts ConnectionOpts, result boshdir.SSHResult, forceTTY bool, privKeyFile boshsys.File, knownHostsFile boshsys.File) SSHArgs {
+	cmdRunner := boshsys.NewExecCmdRunner(boshlog.NewLogger(boshlog.LevelNone))
 	socks5Proxy := proxy.NewSocks5Proxy(proxy.NewHostKey(), nil)
 	boshhttpDialer := boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial, socks5Proxy)
 	dialer := func(net, addr string) (net.Conn, error) {
@@ -32,18 +39,31 @@ func NewSSHArgs(connOpts ConnectionOpts, result boshdir.SSHResult, forceTTY bool
 	}
 
 	return SSHArgs{
-		ConnOpts:       connOpts,
-		Result:         result,
-		ForceTTY:       forceTTY,
-		PrivKeyFile:    privKeyFile,
-		KnownHostsFile: knownHostsFile,
-		socks5Proxy:    socks5Proxy,
-		dialer:         dialer,
+		ConnOpts:            connOpts,
+		Result:              result,
+		ForceTTY:            forceTTY,
+		PrivKeyFile:         privKeyFile,
+		CmdExistenceChecker: cmdRunner,
+		KnownHostsFile:      knownHostsFile,
+		Socks5Proxy:         socks5Proxy,
+		dialer:              dialer,
 	}
 }
 
 func (a SSHArgs) LoginForHost(host boshdir.Host) []string {
 	return []string{host.Host, "-l", host.Username}
+}
+
+func formProxyOpt(existenceChecker cmdExistenceChecker, proxyHostString string) string {
+	if existenceChecker.CommandExists("connect-proxy") {
+		return fmtAsProxyCommandOpt("connect-proxy -S %s %%h %%p", proxyHostString)
+	}
+	// TODO: detect nc -h contains \-x.*proxy address or similar?
+	return fmtAsProxyCommandOpt("nc -x %s %%h %%p", proxyHostString)
+}
+
+func fmtAsProxyCommandOpt(command, proxyHost string) string {
+	return fmt.Sprintf("ProxyCommand=%s", fmt.Sprintf(command, proxyHost))
 }
 
 func (a SSHArgs) OptsForHost(host boshdir.Host) []string {
@@ -69,17 +89,13 @@ func (a SSHArgs) OptsForHost(host boshdir.Host) []string {
 	if len(a.ConnOpts.SOCKS5Proxy) > 0 {
 		proxyString := a.ConnOpts.SOCKS5Proxy
 		if strings.HasPrefix(proxyString, "ssh+") {
-			a.socks5Proxy.StartWithDialer(a.dialer)
-			proxyString, _ = a.socks5Proxy.Addr()
+			a.Socks5Proxy.StartWithDialer(a.dialer)
+			proxyString, _ = a.Socks5Proxy.Addr()
 		}
 
-		proxyOpt := fmt.Sprintf(
-			"ProxyCommand=nc -x %s %%h %%p",
-			strings.TrimPrefix(proxyString, "socks5://"),
-		)
+		proxyOpt := formProxyOpt(a.CmdExistenceChecker, strings.TrimPrefix(proxyString, "socks5://"))
 
 		cmdOpts = append(cmdOpts, "-o", proxyOpt)
-
 	} else if len(gwHost) > 0 {
 		gwCmdOpts := []string{
 			"-o", "ServerAliveInterval=30",

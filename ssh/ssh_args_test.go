@@ -2,6 +2,7 @@ package ssh_test
 
 import (
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	proxy "github.com/cloudfoundry/socks5-proxy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -11,13 +12,14 @@ import (
 
 var _ = Describe("SSHArgs", func() {
 	var (
-		connOpts       ConnectionOpts
-		result         boshdir.SSHResult
-		forceTTY       bool
-		privKeyFile    *fakesys.FakeFile
-		knownHostsFile *fakesys.FakeFile
-		fs             *fakesys.FakeFileSystem
-		host           boshdir.Host
+		connOpts              ConnectionOpts
+		result                boshdir.SSHResult
+		forceTTY              bool
+		privKeyFile           *fakesys.FakeFile
+		knownHostsFile        *fakesys.FakeFile
+		connectProxyCmdRunner *fakesys.FakeCmdRunner
+		fs                    *fakesys.FakeFileSystem
+		host                  boshdir.Host
 	)
 
 	BeforeEach(func() {
@@ -28,6 +30,8 @@ var _ = Describe("SSHArgs", func() {
 		privKeyFile = fakesys.NewFakeFile("/tmp/priv-key", fs)
 		knownHostsFile = fakesys.NewFakeFile("/tmp/known-hosts", fs)
 		host = boshdir.Host{Host: "127.0.0.1", Username: "user"}
+		connectProxyCmdRunner = fakesys.NewFakeCmdRunner()
+		connectProxyCmdRunner.CommandExistsValue = false
 	})
 
 	Describe("LoginForHost", func() {
@@ -48,11 +52,13 @@ var _ = Describe("SSHArgs", func() {
 	Describe("OptsForHost", func() {
 		act := func() []string {
 			args := SSHArgs{
-				ConnOpts:       connOpts,
-				Result:         result,
-				ForceTTY:       forceTTY,
-				PrivKeyFile:    privKeyFile,
-				KnownHostsFile: knownHostsFile,
+				ConnOpts:            connOpts,
+				Result:              result,
+				ForceTTY:            forceTTY,
+				PrivKeyFile:         privKeyFile,
+				KnownHostsFile:      knownHostsFile,
+				CmdExistenceChecker: connectProxyCmdRunner,
+				Socks5Proxy:         proxy.NewSocks5Proxy(proxy.NewHostKey(), nil),
 			}
 			return args.OptsForHost(host)
 		}
@@ -192,6 +198,29 @@ var _ = Describe("SSHArgs", func() {
 			}))
 		})
 
+		It("returns ssh options that use connect-proxy when it's available on the PATH and SOCKS5Proxy is set", func() {
+			connOpts.GatewayDisable = true
+			connOpts.GatewayUsername = "user-gw-user"
+			connOpts.GatewayHost = "user-gw-host"
+			connOpts.SOCKS5Proxy = "socks5://some-proxy"
+
+			result.GatewayUsername = "gw-user"
+			result.GatewayHost = "gw-host"
+
+			connectProxyCmdRunner.CommandExistsValue = true
+
+			Expect(act()).To(Equal([]string{
+				"-o", "ServerAliveInterval=30",
+				"-o", "ForwardAgent=no",
+				"-o", "PasswordAuthentication=no",
+				"-o", "IdentitiesOnly=yes",
+				"-o", "IdentityFile=/tmp/priv-key",
+				"-o", "StrictHostKeyChecking=yes",
+				"-o", "UserKnownHostsFile=/tmp/known-hosts",
+				"-o", "ProxyCommand=connect-proxy -S some-proxy %h %p",
+			}))
+		})
+
 		It("starts a socks5 proxy and uses the address if SOCKS5Proxy has ssh+socks5:// schema", func() {
 			connOpts.GatewayDisable = true
 			connOpts.GatewayUsername = "user-gw-user"
@@ -201,15 +230,7 @@ var _ = Describe("SSHArgs", func() {
 			result.GatewayUsername = "gw-user"
 			result.GatewayHost = "gw-host"
 
-			args := NewSSHArgs(
-				connOpts,
-				result,
-				forceTTY,
-				privKeyFile,
-				knownHostsFile,
-			)
-
-			Expect(args.OptsForHost(host)).To(ConsistOf(
+			Expect(act()).To(ConsistOf(
 				"-o", "ServerAliveInterval=30",
 				"-o", "ForwardAgent=no",
 				"-o", "PasswordAuthentication=no",
