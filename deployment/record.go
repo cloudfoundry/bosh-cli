@@ -11,6 +11,7 @@ type Record interface {
 	IsDeployed(manifestSHA string, releases []birel.Release, stemcell bistemcell.ExtractedStemcell) (bool, error)
 	Clear() error
 	Update(manifestSHA string, releases []birel.Release) error
+	UpdateCurrentIP(ip string) error
 }
 
 type deploymentRecord struct {
@@ -110,6 +111,15 @@ func (v *deploymentRecord) Update(manifestSHA string, releases []birel.Release) 
 	err = v.releaseRepo.Update(releases)
 	if err != nil {
 		return bosherr.WrapError(err, "Updating releases")
+	}
+
+	return nil
+}
+
+func (v *deploymentRecord) UpdateCurrentIP(ip string) error {
+	err := v.deploymentRepo.UpdateCurrentIP(ip)
+	if err != nil {
+		return bosherr.WrapError(err, "Saving current IP of deployed manifest")
 	}
 
 	return nil

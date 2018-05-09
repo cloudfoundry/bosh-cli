@@ -250,6 +250,7 @@ func (vm *vm) Delete() error {
 		return bosherr.WrapError(err, "Finding currently IP address of deployed vm")
 	}
 
+	// If current dynamic ip exists, SL CPI can reuse this VM by OS reload. So this VM should not to be truly deleted.
 	var deleteErr error
 	if !found {
 		deleteErr = vm.cloud.DeleteVM(vm.cid)

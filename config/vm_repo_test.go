@@ -88,8 +88,9 @@ var _ = Describe("VMRepo", func() {
 	Describe("FindCurrentIP", func() {
 		Context("when current IP is specified", func() {
 			BeforeEach(func() {
-				err := repo.UpdateCurrentIP("10.10.1.3")
-				Expect(err).ToNot(HaveOccurred())
+				deploymentStateService.Save(DeploymentState{
+					CurrentIP: "10.10.1.3",
+				})
 			})
 
 			It("returns current IP", func() {
@@ -102,8 +103,9 @@ var _ = Describe("VMRepo", func() {
 
 		Context("when current IP is not valid", func() {
 			BeforeEach(func() {
-				err := repo.UpdateCurrentIP("fake-ip-address")
-				Expect(err).ToNot(HaveOccurred())
+				deploymentStateService.Save(DeploymentState{
+					CurrentIP: "fake-ip-address",
+				})
 			})
 
 			It("returns an error", func() {
@@ -122,22 +124,6 @@ var _ = Describe("VMRepo", func() {
 				Expect(found).To(BeFalse())
 				Expect(ip).To(Equal(""))
 			})
-		})
-	})
-
-	Describe("UpdateCurrentIP", func() {
-		It("updates vm current IP", func() {
-			err := repo.UpdateCurrentIP("10.10.1.3")
-			Expect(err).ToNot(HaveOccurred())
-
-			deploymentState, err := deploymentStateService.Load()
-			Expect(err).ToNot(HaveOccurred())
-
-			expectedConfig := DeploymentState{
-				DirectorID: "fake-uuid-0",
-				CurrentIP:  "10.10.1.3",
-			}
-			Expect(deploymentState).To(Equal(expectedConfig))
 		})
 	})
 })

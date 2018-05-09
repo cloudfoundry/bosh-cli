@@ -1,12 +1,10 @@
 package cmd
 
 import (
-	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/cppforlife/go-patch/patch"
+	"net"
+	"net/url"
 
+	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
 	biblobstore "github.com/cloudfoundry/bosh-cli/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
@@ -21,6 +19,10 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cppforlife/go-patch/patch"
 )
 
 func NewDeploymentPreparer(
@@ -262,6 +264,22 @@ func (c *DeploymentPreparer) deploy(
 			return bosherr.WrapError(err, "Updating deployment record")
 		}
 
+		networkIsDynamic := false
+
+		for _, network := range deploymentManifest.Networks {
+			if network.Type == "dynamic" {
+				networkIsDynamic = true
+				break
+			}
+		}
+
+		if networkIsDynamic {
+			err = c.parseAndUpdateCurrentIP(installationManifest.Mbus)
+			if err != nil {
+				return bosherr.WrapError(err, "Parsing and updating current ip for dynamic network")
+			}
+		}
+
 		return nil
 	})
 	if err != nil {
@@ -273,6 +291,35 @@ func (c *DeploymentPreparer) deploy(
 	err = stemcellManager.DeleteUnused(stage)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (c *DeploymentPreparer) parseAndUpdateCurrentIP(mbusURL string) error {
+	c.logger.Debug(c.logTag, "Parsing mbus url '%s'", mbusURL)
+	mbus, err := url.Parse(mbusURL)
+	if err != nil {
+		return bosherr.WrapError(err, "Parsing mbus from installation manifest")
+	}
+
+	hostname, _, err := net.SplitHostPort(mbus.Host)
+	if err != nil {
+		return bosherr.WrapError(err, "Splitting hostname and port by given Host")
+	}
+	c.logger.Debug(c.logTag, "Split hostname: %s", hostname)
+
+	addrs, err := net.LookupHost(hostname)
+	if err != nil {
+		return bosherr.WrapError(err, "Resolving IP by given hostname")
+	}
+	if len(addrs) < 1 {
+		return bosherr.Errorf("IP list for host '%s' is empty", hostname)
+	}
+
+	err = c.deploymentRecord.UpdateCurrentIP(addrs[0])
+	if err != nil {
+		return bosherr.WrapError(err, "Updating current IP record")
 	}
 
 	return nil

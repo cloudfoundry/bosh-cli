@@ -64,4 +64,20 @@ var _ = Describe("DeploymentRepo", func() {
 			})
 		})
 	})
+
+	Describe("UpdateCurrentIP", func() {
+		It("updates current IP", func() {
+			err := repo.UpdateCurrentIP("fake-current-ip")
+			Expect(err).ToNot(HaveOccurred())
+
+			deploymentState, err := deploymentStateService.Load()
+			Expect(err).ToNot(HaveOccurred())
+
+			expectedConfig := DeploymentState{
+				DirectorID: "fake-uuid-0",
+				CurrentIP:  "fake-current-ip",
+			}
+			Expect(deploymentState).To(Equal(expectedConfig))
+		})
+	})
 })

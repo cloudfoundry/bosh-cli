@@ -7,6 +7,7 @@ import (
 type DeploymentRepo interface {
 	UpdateCurrent(manifestSHA string) error
 	FindCurrent() (manifestSHA string, found bool, err error)
+	UpdateCurrentIP(ip string) error
 }
 
 type deploymentRepo struct {
@@ -44,6 +45,21 @@ func (r deploymentRepo) UpdateCurrent(manifestSHA string) error {
 	err = r.deploymentStateService.Save(deploymentState)
 	if err != nil {
 		return bosherr.WrapError(err, "Saving new config")
+	}
+	return nil
+}
+
+func (r deploymentRepo) UpdateCurrentIP(ip string) error {
+	deploymentState, err := r.deploymentStateService.Load()
+	if err != nil {
+		return bosherr.WrapError(err, "Loading existing config")
+	}
+
+	deploymentState.CurrentIP = ip
+
+	err = r.deploymentStateService.Save(deploymentState)
+	if err != nil {
+		return bosherr.WrapError(err, "Saving new current ip")
 	}
 	return nil
 }
