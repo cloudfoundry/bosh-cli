@@ -1,15 +1,17 @@
-FROM bosh/main-ruby-go
+FROM golang
 
 RUN \
   apt-get update \
   && apt-get -y install \
-    libmysqlclient-dev \
+    default-libmysqlclient-dev \
     libpq-dev \
     libsqlite3-dev \
     lsof \
+    ruby \
     openssh-server \
     psmisc \
     sshpass \
     strace \
     zlib1g-dev \
-  && apt-get clean
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
