@@ -109,7 +109,7 @@ func (s VersionSegment) IncrementSemVer(MajorMinorOrPatch string) (VersionSegmen
 		}
 		minor = minorComp.I
 	} else {
-		minor = -1
+		minor = 0
 	}
 
 	if len(s.Components) > 2 {
@@ -120,7 +120,7 @@ func (s VersionSegment) IncrementSemVer(MajorMinorOrPatch string) (VersionSegmen
 		}
 		patch = patchComp.I
 	} else {
-		patch = -1
+		patch = 0
 	}
 
 	switch strings.ToUpper(MajorMinorOrPatch) {
@@ -132,7 +132,6 @@ func (s VersionSegment) IncrementSemVer(MajorMinorOrPatch string) (VersionSegmen
 		minor = minor + 1
 		patch = 0
 	case "PATCH":
-		if minor == -1 { minor = 0 }
 		patch = patch + 1
 	default:
 		return VersionSegment{}, errors.New("Must bump by Major, Minor, or Patch")
