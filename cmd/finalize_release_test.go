@@ -88,6 +88,43 @@ var _ = Describe("FinalizeReleaseCmd", func() {
 			}))
 		})
 
+		It("finalizes release based on path, picking next final version from semver", func() {
+			opts.BumpVersion = "minor"
+			releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
+				Expect(path).To(Equal("/archive-path"))
+				return release, nil
+			}
+
+			releaseDir.NextFinalVersionBumpStub = func(name, MajorMinorOrPatch string) (semver.Version, error) {
+				Expect(name).To(Equal("rel"))
+				Expect(MajorMinorOrPatch).To(Equal("minor"))
+				return semver.MustNewVersionFromString("1.1.0"), nil
+			}
+
+			releaseDir.FinalizeReleaseStub = func(rel boshrel.Release, force bool) error {
+				Expect(rel).To(Equal(release))
+				Expect(rel.Name()).To(Equal("rel"))
+				Expect(rel.Version()).To(Equal("1.1.0"))
+				Expect(force).To(BeFalse())
+				return nil
+			}
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Header: []boshtbl.Header{boshtbl.NewHeader("Name"), boshtbl.NewHeader("Version"), boshtbl.NewHeader("Commit Hash")},
+				Rows: [][]boshtbl.Value{
+					{
+						boshtbl.NewValueString("rel"),
+						boshtbl.NewValueString("1.1.0"),
+						boshtbl.NewValueString("commit"),
+					},
+				},
+				Transpose: true,
+			}))
+		})
+
 		It("finalizes release based on path, using custom name and version", func() {
 			opts.Name = "custom-name"
 			opts.Version = VersionArg(semver.MustNewVersionFromString("custom-ver"))

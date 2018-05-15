@@ -105,7 +105,12 @@ func (c CreateReleaseCmd) finalizeRelease(releaseDir boshreldir.ReleaseDir, rele
 	version := semver.Version(opts.Version)
 
 	if version.Empty() {
-		version, err := releaseDir.NextFinalVersion(release.Name())
+		var err error
+		if opts.BumpVersion != "" {
+			version, err = releaseDir.NextFinalVersionBump(release.Name(), opts.BumpVersion)
+		} else {
+			version, err = releaseDir.NextFinalVersion(release.Name())
+		}
 		if err != nil {
 			return err
 		}

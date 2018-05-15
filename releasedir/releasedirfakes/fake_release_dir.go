@@ -91,6 +91,20 @@ type FakeReleaseDir struct {
 		result1 semver.Version
 		result2 error
 	}
+	NextFinalVersionBumpStub        func(name, MajorMinorOrPatch string) (semver.Version, error)
+	nextFinalVersionBumpMutex       sync.RWMutex
+	nextFinalVersionBumpArgsForCall []struct {
+		name              string
+		MajorMinorOrPatch string
+	}
+	nextFinalVersionBumpReturns struct {
+		result1 semver.Version
+		result2 error
+	}
+	nextFinalVersionBumpReturnsOnCall map[int]struct {
+		result1 semver.Version
+		result2 error
+	}
 	FindReleaseStub        func(name string, version semver.Version) (boshrel.Release, error)
 	findReleaseMutex       sync.RWMutex
 	findReleaseArgsForCall []struct {
@@ -477,6 +491,58 @@ func (fake *FakeReleaseDir) NextFinalVersionReturnsOnCall(i int, result1 semver.
 	}{result1, result2}
 }
 
+func (fake *FakeReleaseDir) NextFinalVersionBump(name string, MajorMinorOrPatch string) (semver.Version, error) {
+	fake.nextFinalVersionBumpMutex.Lock()
+	ret, specificReturn := fake.nextFinalVersionBumpReturnsOnCall[len(fake.nextFinalVersionBumpArgsForCall)]
+	fake.nextFinalVersionBumpArgsForCall = append(fake.nextFinalVersionBumpArgsForCall, struct {
+		name              string
+		MajorMinorOrPatch string
+	}{name, MajorMinorOrPatch})
+	fake.recordInvocation("NextFinalVersionBump", []interface{}{name, MajorMinorOrPatch})
+	fake.nextFinalVersionBumpMutex.Unlock()
+	if fake.NextFinalVersionBumpStub != nil {
+		return fake.NextFinalVersionBumpStub(name, MajorMinorOrPatch)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.nextFinalVersionBumpReturns.result1, fake.nextFinalVersionBumpReturns.result2
+}
+
+func (fake *FakeReleaseDir) NextFinalVersionBumpCallCount() int {
+	fake.nextFinalVersionBumpMutex.RLock()
+	defer fake.nextFinalVersionBumpMutex.RUnlock()
+	return len(fake.nextFinalVersionBumpArgsForCall)
+}
+
+func (fake *FakeReleaseDir) NextFinalVersionBumpArgsForCall(i int) (string, string) {
+	fake.nextFinalVersionBumpMutex.RLock()
+	defer fake.nextFinalVersionBumpMutex.RUnlock()
+	return fake.nextFinalVersionBumpArgsForCall[i].name, fake.nextFinalVersionBumpArgsForCall[i].MajorMinorOrPatch
+}
+
+func (fake *FakeReleaseDir) NextFinalVersionBumpReturns(result1 semver.Version, result2 error) {
+	fake.NextFinalVersionBumpStub = nil
+	fake.nextFinalVersionBumpReturns = struct {
+		result1 semver.Version
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeReleaseDir) NextFinalVersionBumpReturnsOnCall(i int, result1 semver.Version, result2 error) {
+	fake.NextFinalVersionBumpStub = nil
+	if fake.nextFinalVersionBumpReturnsOnCall == nil {
+		fake.nextFinalVersionBumpReturnsOnCall = make(map[int]struct {
+			result1 semver.Version
+			result2 error
+		})
+	}
+	fake.nextFinalVersionBumpReturnsOnCall[i] = struct {
+		result1 semver.Version
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeReleaseDir) FindRelease(name string, version semver.Version) (boshrel.Release, error) {
 	fake.findReleaseMutex.Lock()
 	ret, specificReturn := fake.findReleaseReturnsOnCall[len(fake.findReleaseArgsForCall)]
@@ -696,6 +762,8 @@ func (fake *FakeReleaseDir) Invocations() map[string][][]interface{} {
 	defer fake.nextDevVersionMutex.RUnlock()
 	fake.nextFinalVersionMutex.RLock()
 	defer fake.nextFinalVersionMutex.RUnlock()
+	fake.nextFinalVersionBumpMutex.RLock()
+	defer fake.nextFinalVersionBumpMutex.RUnlock()
 	fake.findReleaseMutex.RLock()
 	defer fake.findReleaseMutex.RUnlock()
 	fake.buildReleaseMutex.RLock()

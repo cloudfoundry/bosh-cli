@@ -917,6 +917,7 @@ type CreateReleaseOpts struct {
 
 	Name             string     `long:"name"               description:"Custom release name"`
 	Version          VersionArg `long:"version"            description:"Custom release version (e.g.: 1.0.0, 1.0-beta.2+dev.10)"`
+	BumpVersion      string     `long:"bump" description:"Create release version from previous version, semver bumping Major, Minor, or Patch"`
 	TimestampVersion bool       `long:"timestamp-version"  description:"Create release with the timestamp as the dev version (e.g.: 1+dev.TIMESTAMP)"`
 
 	Final   bool    `long:"final"   description:"Make it a final release"`
@@ -935,8 +936,9 @@ type FinalizeReleaseOpts struct {
 
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 
-	Name    string     `long:"name"    description:"Custom release name"`
-	Version VersionArg `long:"version" description:"Custom release version (e.g.: 1.0.0, 1.0-beta.2+dev.10)"`
+	Name        string     `long:"name"    description:"Custom release name"`
+	Version     VersionArg `long:"version" description:"Custom release version (e.g.: 1.0.0, 1.0-beta.2+dev.10)"`
+	BumpVersion string     `long:"bump" description:"Create release version from previous version, semver bumping Major, Minor, or Patch"`
 
 	Force bool `long:"force" description:"Ignore Git dirty state check"`
 

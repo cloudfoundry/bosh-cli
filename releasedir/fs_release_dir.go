@@ -147,6 +147,22 @@ func (d FSReleaseDir) NextFinalVersion(name string) (semver.Version, error) {
 	return incVer, nil
 }
 
+func (d FSReleaseDir) NextFinalVersionBump(name, MajorMinorOrPatch string) (semver.Version, error) {
+	lastVer, err := d.finalReleases.LastVersion(name)
+	if err != nil {
+		return semver.Version{}, err
+	} else if lastVer == nil {
+		return DefaultFinalVersion, nil
+	}
+
+	incVer, err := lastVer.IncrementReleaseSemVer(MajorMinorOrPatch)
+	if err != nil {
+		return semver.Version{}, bosherr.WrapErrorf(err, "Incrementing last final version")
+	}
+
+	return incVer, nil
+}
+
 func (d FSReleaseDir) NextDevVersion(name string, timestamp bool) (semver.Version, error) {
 	lastVer, _, err := d.lastDevOrFinalVersion(name)
 	if err != nil {

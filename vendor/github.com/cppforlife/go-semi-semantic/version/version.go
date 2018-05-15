@@ -94,6 +94,15 @@ func (v Version) IncrementRelease() (Version, error) {
 	return NewVersion(incRelease, VersionSegment{}, VersionSegment{})
 }
 
+func (v Version) IncrementReleaseSemVer(MajorMinorOrPatch string) (Version, error) {
+	incRelease, err := v.Release.IncrementSemVer(MajorMinorOrPatch)
+	if err != nil {
+		return Version{}, err
+	}
+
+	return NewVersion(incRelease, VersionSegment{}, VersionSegment{})
+}
+
 func (v Version) IncrementPostRelease(defaultPostRelease VersionSegment) (Version, error) {
 	var newPostRelease VersionSegment
 	var err error
