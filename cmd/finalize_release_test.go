@@ -89,7 +89,7 @@ var _ = Describe("FinalizeReleaseCmd", func() {
 		})
 
 		It("finalizes release based on path, picking next final version from semver", func() {
-			opts.BumpVersion = "minor"
+			opts.SemverBump = "minor"
 			releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
 				Expect(path).To(Equal("/archive-path"))
 				return release, nil

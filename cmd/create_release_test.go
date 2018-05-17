@@ -366,7 +366,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 
 			It("builds and then finalizes release with bump options", func() {
 				opts.Final = true
-				opts.BumpVersion = "minor"
+				opts.SemverBump = "minor"
 
 				releaseDir.DefaultNameReturns("default-rel-name", nil)
 				releaseDir.NextDevVersionReturns(semver.MustNewVersionFromString("next-dev+ver"), nil)
