@@ -80,6 +80,7 @@ type FakeFileSystem struct {
 	RemoveAllStub removeAllFn
 
 	ReadAndFollowLinkError error
+	ReadlinkError error
 
 	StatWithOptsCallCount int
 	StatCallCount         int
@@ -368,6 +369,10 @@ func (fs *FakeFileSystem) StatHelper(path string) (os.FileInfo, error) {
 }
 
 func (fs *FakeFileSystem) Readlink(path string) (string, error) {
+	if fs.ReadlinkError != nil {
+		return "", fs.ReadlinkError
+	}
+
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
 
