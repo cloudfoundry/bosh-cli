@@ -50,10 +50,10 @@ func (d DirectorImpl) validateInput(from DiffInput, to DiffInput) error {
 
 func validateDiffInput(name string, input DiffInput) error {
 	if input.ID != "" && input.Content != "" {
-		return bosherr.Errorf("only one of --%s-id and --%s-content can be specified", name, name)
+		return bosherr.Errorf("Only one of --%s-id and --%s-content can be specified", name, name)
 	}
 	if input.ID == "" && input.Content == "" {
-		return bosherr.Errorf("one of --%s-id or --%s-content must be specified", name, name)
+		return bosherr.Errorf("One of --%s-id or --%s-content must be specified", name, name)
 	}
 
 	_, err := strconv.Atoi(input.ID)

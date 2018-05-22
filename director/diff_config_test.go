@@ -92,12 +92,12 @@ var _ bool = Describe("Director", func() {
 
 		It("returns error if from-id and from-content are specified", func() {
 			_, err := director.DiffConfigByIDOrContent("1", []byte("config"), "2", nil)
-			Expect(err.Error()).To(Equal("only one of --from-id and --from-content can be specified"))
+			Expect(err.Error()).To(Equal("Only one of --from-id and --from-content can be specified"))
 		})
 
 		It("returns error if to-id and to-content are specified", func() {
 			_, err := director.DiffConfigByIDOrContent("1", nil, "2", []byte("config"))
-			Expect(err.Error()).To(Equal("only one of --to-id and --to-content can be specified"))
+			Expect(err.Error()).To(Equal("Only one of --to-id and --to-content can be specified"))
 		})
 
 		It("returns no error if only from-content is specified", func() {
@@ -134,12 +134,12 @@ var _ bool = Describe("Director", func() {
 
 		It("returns error if neither from-id nor from-content are specified", func() {
 			_, err := director.DiffConfigByIDOrContent("", nil, "", []byte("config"))
-			Expect(err.Error()).To(Equal("one of --from-id or --from-content must be specified"))
+			Expect(err.Error()).To(Equal("One of --from-id or --from-content must be specified"))
 		})
 
 		It("returns error if neither to-id nor to-content are specified", func() {
 			_, err := director.DiffConfigByIDOrContent("", []byte("config"), "", nil)
-			Expect(err.Error()).To(Equal("one of --to-id or --to-content must be specified"))
+			Expect(err.Error()).To(Equal("One of --to-id or --to-content must be specified"))
 		})
 	})
 })
