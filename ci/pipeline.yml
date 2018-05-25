@@ -88,12 +88,6 @@ jobs:
         tags: ["bosh-integration"]
         params:
           DB: postgresql
-        on_failure:
-          put: slack-alert
-          params:
-            channel: {{slack_channel_name}}
-            icon_url: http://cl.ly/image/3e1h0H3H2s0P/concourse-logo.png
-            text: {{slack_failure_message}}
 
   - name: build
     public: true
@@ -317,11 +311,6 @@ resources:
       region_name: {{aws_s3_release_bucket_region}}
       access_key_id: {{aws_s3_release_bucket_access_key}}
       secret_access_key: {{aws_s3_release_bucket_secret_key}}
-
-  - name: slack-alert
-    type: slack-notification
-    source:
-      url: {{slack_hook_url}}
 
   - name: version-semver
     type: semver
