@@ -573,7 +573,8 @@ var _ = Describe("Instance", func() {
 					err := instance.WaitUntilReady(registryConfig, fakeStage)
 					Expect(err).NotTo(HaveOccurred())
 
-					logCallArgs := (*logger.LogCallArgs)[0]
+					Eventually(logCalls).Should(HaveLen(1))
+					logCallArgs := logCalls[0]
 					expectedlogCallArgs := fakedir.LogCallArgs{
 						LogLevel: "Warn",
 						Tag:      "instance",
