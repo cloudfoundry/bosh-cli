@@ -100,6 +100,12 @@ func (i *instance) WaitUntilReady(
 			sshTunnel := i.sshTunnelFactory.NewSSHTunnel(sshTunnelOptions)
 			go sshTunnel.Start(sshReadyErrCh, sshErrCh)
 
+			go func() {
+				for sshErr := range sshErrCh {
+					i.logger.Warn(i.logTag, "Received SSH tunnel error: %s", sshErr)
+				}
+			}()
+
 			err := <-sshReadyErrCh
 			if err != nil {
 				return bosherr.WrapError(err, "Starting SSH tunnel")
