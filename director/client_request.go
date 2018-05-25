@@ -34,6 +34,7 @@ func NewClientRequest(
 		logger:       logger,
 	}
 }
+
 func (r ClientRequest) WithContext(contextId string) ClientRequest {
 	// returns a copy of the ClientRequest
 	r.contextId = contextId

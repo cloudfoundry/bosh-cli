@@ -18,12 +18,12 @@ import (
 	bisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 
 	"github.com/cloudfoundry/bosh-agent/agentclient"
 	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/fakes"
 	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/fakes"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
@@ -48,8 +48,7 @@ var _ = Describe("Instance", func() {
 		fakeSSHTunnelFactory *fakebisshtunnel.FakeFactory
 		fakeSSHTunnel        *fakebisshtunnel.FakeTunnel
 		fakeStage            *fakebiui.FakeStage
-		logger               fakedir.Logger
-		logCalls             []fakedir.LogCallArgs
+		logger               *loggerfakes.FakeLogger
 
 		instance Instance
 
@@ -72,8 +71,7 @@ var _ = Describe("Instance", func() {
 		mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
 		mockState = mock_instance_state.NewMockState(mockCtrl)
 
-		logCalls = []fakedir.LogCallArgs{}
-		logger = fakedir.NewFakeLogger(&logCalls)
+		logger = &loggerfakes.FakeLogger{}
 
 		instance = NewInstance(
 			jobName,
@@ -573,19 +571,10 @@ var _ = Describe("Instance", func() {
 					err := instance.WaitUntilReady(registryConfig, fakeStage)
 					Expect(err).NotTo(HaveOccurred())
 
-					Eventually(logCalls).Should(HaveLen(1))
-					logCallArgs := logCalls[0]
-					expectedlogCallArgs := fakedir.LogCallArgs{
-						LogLevel: "Warn",
-						Tag:      "instance",
-						Msg:      "Received SSH tunnel error: %s",
-						Args:     []string{"fake-ssh-tunnel-error"},
-					}
-
-					Expect(logCallArgs.LogLevel).To(Equal(expectedlogCallArgs.LogLevel))
-					Expect(logCallArgs.Tag).To(Equal(expectedlogCallArgs.Tag))
-					Expect(logCallArgs.Msg).To(Equal(expectedlogCallArgs.Msg))
-					Expect(logCallArgs.Args[0]).To(Equal(expectedlogCallArgs.Args[0]))
+					Eventually(logger.WarnCallCount).Should(Equal(1))
+					tag, message, _ := logger.WarnArgsForCall(0)
+					Expect(tag).To(Equal("instance"))
+					Expect(message).To(Equal("Received SSH tunnel error: %s"))
 				})
 			})
 		})
