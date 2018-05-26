@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"sync"
 
 	socks5 "github.com/cloudfoundry/go-socks5"
 
@@ -27,6 +28,7 @@ type Socks5Proxy struct {
 	port    int
 	started bool
 	logger  *log.Logger
+	mtx     sync.Mutex
 }
 
 func NewSocks5Proxy(hostKey hostKey, logger *log.Logger) *Socks5Proxy {
@@ -38,7 +40,7 @@ func NewSocks5Proxy(hostKey hostKey, logger *log.Logger) *Socks5Proxy {
 }
 
 func (s *Socks5Proxy) Start(username, key, url string) error {
-	if s.started {
+	if s.isStarted() {
 		return nil
 	}
 
@@ -53,6 +55,13 @@ func (s *Socks5Proxy) Start(username, key, url string) error {
 	}
 
 	return nil
+}
+
+// thread safety
+func (s *Socks5Proxy) isStarted() bool {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+	return s.started
 }
 
 func (s *Socks5Proxy) Dialer(username, key, url string) (DialFunc, error) {
@@ -99,6 +108,8 @@ func (s *Socks5Proxy) StartWithDialer(dialer DialFunc) error {
 		return fmt.Errorf("new socks5 server: %s", err) // not tested
 	}
 
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
 	if s.port == 0 {
 		s.port, err = openPort()
 		if err != nil {
@@ -115,6 +126,8 @@ func (s *Socks5Proxy) StartWithDialer(dialer DialFunc) error {
 }
 
 func (s *Socks5Proxy) Addr() (string, error) {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
 	if s.port == 0 {
 		return "", errors.New("socks5 proxy is not running")
 	}

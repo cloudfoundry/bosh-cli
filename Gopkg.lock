@@ -63,8 +63,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "5f796043d63bfddca929cfbcffce01e5a894aad5"
-  version = "v1.13.52"
+  revision = "854f9d07a932452f1552955e127e50ba5ebb25cc"
+  version = "v1.13.56"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -79,10 +79,10 @@
   revision = "7dc373669fa10ddf827c37c595dee30a2f001be9"
 
 [[projects]]
-  branch = "master"
   name = "github.com/cheggaaa/pb"
   packages = ["."]
-  revision = "d931a9997fe189609982aeb8eaa8a11b9ce5e013"
+  revision = "2af8bbdea9e99e83b3ac400d8f6b6d1b8cbbf338"
+  version = "v1.0.25"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-agent"
@@ -93,8 +93,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "7e4048a1c3369c91a711b28a52dbc89dd386ce14"
-  version = "v2.101.0"
+  revision = "338fe9af6763a075b0649251a294d2c4946ed9a9"
+  version = "v2.104.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -121,8 +121,8 @@
     "client",
     "config"
   ]
-  revision = "ee7c752245eec95d5f81d229443ef4c47f301aa7"
-  version = "v0.0.71"
+  revision = "0141030b5ae352c0737a6aab6fa3b790f2ca332a"
+  version = "v0.0.72"
 
 [[projects]]
   branch = "master"
@@ -147,7 +147,7 @@
     "uuid/fakes",
     "work"
   ]
-  revision = "fad7a5ad622c066cf1b36eb44b9612cec680e48c"
+  revision = "b082aa9a81950fa8df1a969575319417b1e073f4"
 
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
@@ -168,7 +168,7 @@
   branch = "master"
   name = "github.com/cloudfoundry/socks5-proxy"
   packages = ["."]
-  revision = "3c6b4eec9c2d16c1dac4c42bdb5f755ba09daff8"
+  revision = "75791c35e37dfa939d956361aaf9569e66c0e318"
 
 [[projects]]
   branch = "master"
@@ -371,8 +371,8 @@
     "trace/internal",
     "trace/propagation"
   ]
-  revision = "10cec2c05ea2cfb8b0d856711daedc49d8a45c56"
-  version = "v0.9.0"
+  revision = "f7730ab009c252771b19074bd05217d054c0c93f"
+  version = "v0.10.0"
 
 [[projects]]
   branch = "master"
@@ -386,7 +386,7 @@
     "ssh",
     "ssh/terminal"
   ]
-  revision = "1a580b3eff7814fc9b40602fd35256c63b50f491"
+  revision = "a3beeb748656e13e54256fd2cde19e058f41f60f"
 
 [[projects]]
   branch = "master"
@@ -406,7 +406,7 @@
     "proxy",
     "trace"
   ]
-  revision = "2491c5de3490fced2f6cff376127c667efeed857"
+  revision = "dfa909b99c79129e1100513e5cd36307665e5723"
 
 [[projects]]
   branch = "master"
@@ -418,7 +418,7 @@
     "jws",
     "jwt"
   ]
-  revision = "cdc340f7c179dbbfa4afd43b7614e8fcadde4269"
+  revision = "770e5ebd4ab27c4d70b0983674d138217f5e2c72"
 
 [[projects]]
   branch = "master"
@@ -427,7 +427,7 @@
     "unix",
     "windows"
   ]
-  revision = "7c87d13f8e835d2fb3a70a2912c811ed0c1d241b"
+  revision = "c11f84a56e43e20a78cee75a7c034031ecf57d1f"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -470,7 +470,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "28aef64757f4d432485ab970b094e1af8b301e84"
+  revision = "a5b4c53f6e8bdcafa95a94671bf2d1203365858b"
 
 [[projects]]
   branch = "master"
@@ -486,7 +486,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "4f7dd2b006a4ffd9fd683c1c734d2fe91ca0ea1c"
+  revision = "348810ff778af56686d572415ce79e6c9fad9613"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -514,7 +514,7 @@
     "googleapis/rpc/code",
     "googleapis/rpc/status"
   ]
-  revision = "11a468237815f3a3ddf9f7c6e8b6b3b382a24d15"
+  revision = "694d95ba50e67b2e363f3483057db5d4910c18f9"
 
 [[projects]]
   name = "google.golang.org/grpc"
