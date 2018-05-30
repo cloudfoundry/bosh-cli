@@ -3,10 +3,14 @@ package cloud
 import (
 	"fmt"
 
+	"encoding/json"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	"strings"
 )
+
+const MaxCpiApiVersionSupported = 2
 
 type Cloud interface {
 	CreateStemcell(imagePath string, cloudProperties biproperty.Map) (stemcellCID string, err error)
@@ -26,6 +30,7 @@ type Cloud interface {
 	AttachDisk(vmCID, diskCID string) error
 	DetachDisk(vmCID, diskCID string) error
 	DeleteDisk(diskCID string) error
+	Info() (cpiInfo CpiInfo, err error)
 	fmt.Stringer
 }
 
@@ -34,6 +39,11 @@ type cloud struct {
 	context      CmdContext
 	logger       boshlog.Logger
 	logTag       string
+}
+
+type CpiInfo struct {
+	StemcellFormats []string `json:"stemcell_formats"`
+	ApiVersion      int      `json:"api_version"`
 }
 
 type VMMetadata map[string]string
@@ -279,6 +289,53 @@ func (c cloud) DeleteDisk(diskCID string) error {
 	}
 
 	return nil
+}
+
+func (c cloud) Info() (cpiInfo CpiInfo, err error) {
+	c.logger.Debug(c.logTag, "Info")
+
+	method := "info"
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method)
+
+	if err != nil {
+		return CpiInfo{}, bosherr.WrapError(err, "Calling CPI 'info' method")
+	}
+
+	if cmdOutput.Error != nil {
+		return CpiInfo{}, NewCPIError(method, *cmdOutput.Error)
+	}
+
+	cpiInfo, err = c.infoParser(cmdOutput.Result.(string))
+
+	return cpiInfo, err
+}
+
+func (c cloud) infoParser(cmdOutput string) (cpiInfo CpiInfo, err error) {
+	incoming := map[string]interface{}{}
+	cpiInfo = CpiInfo{}
+
+	err = json.Unmarshal([]byte(cmdOutput), &incoming)
+	if err != nil {
+		return CpiInfo{}, bosherr.WrapError(err, "Unmarshalling 'info' method response failed")
+	}
+
+	stemcellFormats, ok := incoming["stemcell_formats"].(string)
+	if !ok {
+		return CpiInfo{}, bosherr.Error("`stemcell_formats` must be a string")
+	}
+	cpiInfo.StemcellFormats = strings.Split(stemcellFormats, " ")
+
+	version, ok := incoming["api_version"].(float64)
+	if !ok {
+		return CpiInfo{}, bosherr.Error("`api_version` must be a number")
+	}
+
+	cpiInfo.ApiVersion = int(version)
+	if cpiInfo.ApiVersion > MaxCpiApiVersionSupported {
+		cpiInfo.ApiVersion = MaxCpiApiVersionSupported
+	}
+
+	return cpiInfo, err
 }
 
 func (c cloud) String() string {

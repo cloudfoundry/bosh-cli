@@ -44,6 +44,13 @@ type FakeCloud struct {
 	SetDiskMetadataCid      string
 	SetDiskMetadataMetadata cloud.DiskMetadata
 	SetDiskMetadataError    error
+
+	InfoStub        func() (cpiInfo cloud.CpiInfo, err error)
+	infoArgsForCall []struct{}
+	infoReturns     struct {
+		result1 cloud.CpiInfo
+		result2 error
+	}
 }
 
 type CreateStemcellInput struct {
@@ -193,6 +200,15 @@ func (c *FakeCloud) DeleteDisk(diskCID string) error {
 		DiskCID: diskCID,
 	})
 	return c.DeleteDiskErr
+}
+
+func (c *FakeCloud) Info() (cpiInfo cloud.CpiInfo, err error) {
+	c.infoArgsForCall = append(c.infoArgsForCall, struct{}{})
+	if c.InfoStub != nil {
+		return c.InfoStub()
+	} else {
+		return c.infoReturns.result1, c.infoReturns.result2
+	}
 }
 
 func (c *FakeCloud) String() string {

@@ -49,6 +49,99 @@ var _ = Describe("Cloud", func() {
 		})
 	}
 
+	Describe("Info", func() {
+		It("return info based on cpi", func() {
+			infoResult := `{"stemcell_formats":"aws-raw aws-light","api_version":2}`
+			infoParsed := CpiInfo{
+				StemcellFormats: []string{"aws-raw", "aws-light"},
+				ApiVersion:      2,
+			}
+			fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+				Result: infoResult,
+			}
+			found, err := cloud.Info()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(Equal(infoParsed))
+
+			Expect(fakeCPICmdRunner.RunInputs).To(Equal([]fakebicloud.RunInput{
+				{
+					Context:   context,
+					Method:    "info",
+					Arguments: nil,
+				},
+			}))
+		})
+
+		It("return error if cpi api does not support info call", func() {
+			fakeCPICmdRunner.RunErr = errors.New("404, info method not found")
+			_, err := cloud.Info()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("Calling CPI 'info' method: 404, info method not found"))
+		})
+
+		Context("when the cpi command execution fails", func() {
+			BeforeEach(func() {
+				fakeCPICmdRunner.RunErr = errors.New("info")
+			})
+
+			It("returns an error", func() {
+				_, err := cloud.Info()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("info"))
+			})
+		})
+
+		Context("when the cpi version is > 2", func() {
+			It("should return MAX supported version by CLI", func() {
+				infoResult := `{"stemcell_formats":"aws-raw aws-light","api_version":42}`
+				infoParsed := CpiInfo{
+					StemcellFormats: []string{"aws-raw", "aws-light"},
+					ApiVersion:      2,
+				}
+				fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+					Result: infoResult,
+				}
+				found, err := cloud.Info()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(found).To(Equal(infoParsed))
+			})
+		})
+
+		Context("when info return unexpected format result", func() {
+			Context("when api_version is not a number format", func() {
+				BeforeEach(func() {
+					infoResult := `{"stemcell_formats":"aws-raw aws-light","api_version":"2"}`
+					fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+						Result: infoResult,
+					}
+				})
+				It("should raise error", func() {
+					_, err := cloud.Info()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("`api_version` must be a number"))
+				})
+			})
+			Context("when stemcell formats is not a string (space separated)", func() {
+				BeforeEach(func() {
+					infoResult := `{"stemcell_formats":["aws-raw","aws-light"],"api_version":2}`
+					fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+						Result: infoResult,
+					}
+				})
+				It("should raise error", func() {
+					_, err := cloud.Info()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("`stemcell_formats` must be a string"))
+				})
+			})
+		})
+
+		itHandlesCPIErrors("info", func() error {
+			_, err := cloud.Info()
+			return err
+		})
+	})
+
 	Describe("CreateStemcell", func() {
 		var (
 			stemcellImagePath string
