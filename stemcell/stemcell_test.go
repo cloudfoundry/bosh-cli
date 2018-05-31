@@ -44,6 +44,26 @@ var _ = Describe("Stemcell", func() {
 		It("returns the manifest", func() {
 			Expect(stemcell.Manifest()).To(Equal(manifest))
 		})
+
+		Context("when stemcell.MF contains api_version", func() {
+			BeforeEach(func() {
+				manifest = Manifest{
+					Name:       "new-name",
+					ApiVersion: "2",
+				}
+
+				stemcell = NewExtractedStemcell(
+					manifest,
+					extractedPath,
+					compressor,
+					fakefs,
+				)
+			})
+
+			It("it populates api_version in manifest", func() {
+				Expect(stemcell.Manifest()).To(Equal(manifest))
+			})
+		})
 	})
 
 	Describe("Delete", func() {

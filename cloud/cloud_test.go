@@ -23,7 +23,7 @@ var _ = Describe("Cloud", func() {
 	BeforeEach(func() {
 		fakeCPICmdRunner = fakebicloud.NewFakeCPICmdRunner()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		cloud = NewCloud(fakeCPICmdRunner, "fake-director-id", logger)
+		cloud = NewCloud(fakeCPICmdRunner, "fake-director-id", 0, logger)
 		context = CmdContext{DirectorID: "fake-director-id"}
 	})
 
@@ -681,6 +681,44 @@ var _ = Describe("Cloud", func() {
 
 		itHandlesCPIErrors("delete_disk", func() error {
 			return cloud.DeleteDisk("fake-disk-cid")
+		})
+	})
+
+	Describe("Whem stemcell api_version is specifed", func() {
+		BeforeEach(func() {
+			stemcellApiVersion := 2
+			logger := boshlog.NewLogger(boshlog.LevelNone)
+			cloud = NewCloud(fakeCPICmdRunner, "fake-director-id", stemcellApiVersion, logger)
+			context = CmdContext{
+				DirectorID: "fake-director-id",
+				VM: &VM{
+					Stemcell: &Stemcell{
+						ApiVersion: stemcellApiVersion,
+					},
+				},
+			}
+		})
+
+		It("return info based on cpi", func() {
+			infoResult := `{"stemcell_formats":"aws-raw aws-light","api_version":2}`
+			infoParsed := CpiInfo{
+				StemcellFormats: []string{"aws-raw", "aws-light"},
+				ApiVersion:      2,
+			}
+			fakeCPICmdRunner.RunCmdOutput = CmdOutput{
+				Result: infoResult,
+			}
+			found, err := cloud.Info()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(Equal(infoParsed))
+
+			Expect(fakeCPICmdRunner.RunInputs).To(Equal([]fakebicloud.RunInput{
+				{
+					Context:   context,
+					Method:    "info",
+					Arguments: nil,
+				},
+			}))
 		})
 	})
 })

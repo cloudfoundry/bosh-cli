@@ -67,7 +67,7 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.S
 			return bosherr.WrapErrorf(err, "creating stemcell (%s %s)", manifest.Name, manifest.Version)
 		}
 
-		stemcellRecord, err := m.repo.Save(manifest.Name, manifest.Version, cid)
+		stemcellRecord, err := m.repo.Save(manifest.Name, manifest.Version, cid, manifest.ApiVersion)
 		if err != nil {
 			//TODO: delete stemcell from cloud when saving fails
 			return bosherr.WrapErrorf(err, "saving stemcell record in repo (cid=%s, stemcell=%s)", cid, extractedStemcell)

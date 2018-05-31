@@ -16,8 +16,18 @@ type CmdInput struct {
 	Context   CmdContext    `json:"context"`
 }
 
+//vm_context = {'vm' => {'stemcell' => { 'api_version' => @stemcell_api_version }}}
 type CmdContext struct {
 	DirectorID string `json:"director_uuid"`
+	VM         *VM    `json:"vm,omitempty"`
+}
+
+type VM struct {
+	Stemcell *Stemcell `json:"stemcell,omitempty"`
+}
+
+type Stemcell struct {
+	ApiVersion int `json:"api_version,omitempty"`
 }
 
 func (c CmdContext) String() string {

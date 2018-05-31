@@ -16,6 +16,7 @@ import (
 	bitestutils "github.com/cloudfoundry/bosh-cli/testutils"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"os"
 )
 
 const (
@@ -223,7 +224,12 @@ var _ = Describe("bosh", func() {
 	}
 
 	BeforeSuite(func() {
-		err := bitestutils.BuildExecutableForArch("linux-amd64")
+		arch := "linux-amd64"
+		if os.Getenv("BUILD_ARCH") != "" {
+			arch = ""
+			os.Setenv("GOOS", arch)
+		}
+		err := bitestutils.BuildExecutableForArch(arch)
 		Expect(err).NotTo(HaveOccurred())
 	})
 

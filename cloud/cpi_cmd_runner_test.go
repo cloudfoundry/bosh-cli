@@ -72,6 +72,55 @@ var _ = Describe("CpiCmdRunner", func() {
 			))
 		})
 
+		Context("when stemcell api_version is sepcified in context", func() {
+			BeforeEach(func() {
+				context = CmdContext{
+					DirectorID: "fake-director-id",
+					VM: &VM{
+						Stemcell: &Stemcell{
+							ApiVersion: 2,
+						},
+					},
+				}
+			})
+
+			It("creates correct command with stemcell api_version in context", func() {
+				cmdOutput := CmdOutput{}
+				outputBytes, err := json.Marshal(cmdOutput)
+				Expect(err).NotTo(HaveOccurred())
+
+				result := fakesys.FakeCmdResult{
+					Stdout:     string(outputBytes),
+					ExitStatus: 0,
+				}
+				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
+
+				_, err = cpiCmdRunner.Run(context, "fake-method", "fake-argument-1", "fake-argument-2")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
+
+				actualCmd := cmdRunner.RunComplexCommands[0]
+				Expect(actualCmd.Name).To(Equal("/jobs/cpi/bin/cpi"))
+				Expect(actualCmd.Args).To(BeNil())
+				Expect(actualCmd.Env).To(Equal(map[string]string{
+					"BOSH_PACKAGES_DIR": cpi.PackagesDir,
+					"BOSH_JOBS_DIR":     cpi.JobsDir,
+					"PATH":              "/usr/local/bin:/usr/bin:/bin:/sbin",
+				}))
+				Expect(actualCmd.UseIsolatedEnv).To(BeTrue())
+				bytes, err := ioutil.ReadAll(actualCmd.Stdin)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(bytes)).To(Equal(
+					`{` +
+						`"method":"fake-method",` +
+						`"arguments":["fake-argument-1","fake-argument-2"],` +
+						`"context":{"director_uuid":"fake-director-id","vm":{"stemcell":{"api_version":2}}}` +
+						`}`,
+				))
+			})
+
+		})
+
 		Context("when the command succeeds", func() {
 			BeforeEach(func() {
 				cmdOutput := CmdOutput{

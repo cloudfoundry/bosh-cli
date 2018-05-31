@@ -53,11 +53,21 @@ type DiskMetadata map[string]string
 func NewCloud(
 	cpiCmdRunner CPICmdRunner,
 	directorID string,
+	stemcellApiVersion int,
 	logger boshlog.Logger,
 ) Cloud {
+
+	cmdContext := CmdContext{DirectorID: directorID}
+	if stemcellApiVersion > 0 {
+		cmdContext.VM = &VM{
+			Stemcell: &Stemcell{
+				ApiVersion: stemcellApiVersion,
+			},
+		}
+	}
 	return cloud{
 		cpiCmdRunner: cpiCmdRunner,
-		context:      CmdContext{DirectorID: directorID},
+		context:      cmdContext,
 		logger:       logger,
 		logTag:       "cloud",
 	}

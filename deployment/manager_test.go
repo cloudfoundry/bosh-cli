@@ -160,7 +160,8 @@ var _ = Describe("Manager", func() {
 
 			fakeStage *fakebiui.FakeStage
 
-			deploymentManager Manager
+			deploymentManager  Manager
+			stemcellApiVersion = "2"
 		)
 
 		BeforeEach(func() {
@@ -215,7 +216,7 @@ var _ = Describe("Manager", func() {
 				err = diskRepo.UpdateCurrent(currentDiskRecord.ID)
 				Expect(err).ToNot(HaveOccurred())
 
-				currentStemcellRecord, err = stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid")
+				currentStemcellRecord, err = stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid", stemcellApiVersion)
 				Expect(err).ToNot(HaveOccurred())
 				err = stemcellRepo.UpdateCurrent(currentStemcellRecord.ID)
 				Expect(err).ToNot(HaveOccurred())
@@ -304,7 +305,7 @@ var _ = Describe("Manager", func() {
 
 		Context("orphan stemcell records exist", func() {
 			BeforeEach(func() {
-				_, err := stemcellRepo.Save("orphan-stemcell-name", "orphan-stemcell-version", "orphan-stemcell-cid")
+				_, err := stemcellRepo.Save("orphan-stemcell-name", "orphan-stemcell-version", "orphan-stemcell-cid", stemcellApiVersion)
 				Expect(err).ToNot(HaveOccurred())
 			})
 

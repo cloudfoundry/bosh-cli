@@ -220,14 +220,14 @@ func (m *MockFactory) EXPECT() *MockFactoryMockRecorder {
 }
 
 // NewCloud mocks base method
-func (m *MockFactory) NewCloud(arg0 installation.Installation, arg1 string) (cloud.Cloud, error) {
-	ret := m.ctrl.Call(m, "NewCloud", arg0, arg1)
+func (m *MockFactory) NewCloud(arg0 installation.Installation, arg1 string, arg2 int) (cloud.Cloud, error) {
+	ret := m.ctrl.Call(m, "NewCloud", arg0, arg1, arg2)
 	ret0, _ := ret[0].(cloud.Cloud)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // NewCloud indicates an expected call of NewCloud
-func (mr *MockFactoryMockRecorder) NewCloud(arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewCloud", reflect.TypeOf((*MockFactory)(nil).NewCloud), arg0, arg1)
+func (mr *MockFactoryMockRecorder) NewCloud(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewCloud", reflect.TypeOf((*MockFactory)(nil).NewCloud), arg0, arg1, arg2)
 }

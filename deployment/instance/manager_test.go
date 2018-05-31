@@ -32,7 +32,10 @@ import (
 )
 
 var _ = Describe("Manager", func() {
-	var mockCtrl *gomock.Controller
+	var (
+		mockCtrl   *gomock.Controller
+		apiVersion = "2"
+	)
 
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
@@ -165,7 +168,7 @@ var _ = Describe("Manager", func() {
 				},
 			}
 
-			fakeCloudStemcell = fakebistemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version")
+			fakeCloudStemcell = fakebistemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version", apiVersion)
 			registry = biinstallmanifest.Registry{}
 
 			fakeVM = fakebivm.NewFakeVM("fake-vm-cid")

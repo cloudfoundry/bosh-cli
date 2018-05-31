@@ -126,6 +126,7 @@ var _ = Describe("bosh", func() {
 			deploymentStatePath    = filepath.Join("/", "deployment-dir", "fake-deployment-manifest-state.json")
 
 			stemcellCID             = "fake-stemcell-cid"
+			stemcellApiVersion      = 0
 			stemcellCloudProperties = biproperty.Map{}
 
 			vmCloudProperties = biproperty.Map{}
@@ -315,7 +316,7 @@ cloud_provider:
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(installation, nil).AnyTimes()
 			mockInstaller.EXPECT().Cleanup(installation).AnyTimes()
-			mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(mockCloud, nil).AnyTimes()
+			mockCloudFactory.EXPECT().NewCloud(installation, directorID, stemcellApiVersion).Return(mockCloud, nil).AnyTimes()
 		}
 
 		var writeStemcellReleaseTarball = func() {

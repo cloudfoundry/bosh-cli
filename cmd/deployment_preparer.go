@@ -21,6 +21,7 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
+	"strconv"
 )
 
 func NewDeploymentPreparer(
@@ -215,7 +216,15 @@ func (c *DeploymentPreparer) deploy(
 	manifestSHA string,
 	stage biui.Stage,
 ) (err error) {
-	cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID)
+	stemcellApiVersion := 0
+	if extractedStemcell.Manifest().ApiVersion != "" {
+		stemcellApiVersion, err = strconv.Atoi(extractedStemcell.Manifest().ApiVersion)
+		if err != nil {
+			return bosherr.WrapError(err, "Invalid stemcell api_version specified")
+		}
+	}
+
+	cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID, stemcellApiVersion)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating CPI client from CPI installation")
 	}

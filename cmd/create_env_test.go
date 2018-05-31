@@ -56,6 +56,7 @@ import (
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	"strconv"
 )
 
 var _ = Describe("CreateEnvCmd", func() {
@@ -119,6 +120,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			deploymentStatePath    string
 			cpiReleaseTarballPath  string
 			stemcellTarballPath    string
+			stemcellApiVersion     = 2
 			extractedStemcell      bistemcell.ExtractedStemcell
 
 			expectDeploy *gomock.Call
@@ -214,6 +216,7 @@ var _ = Describe("CreateEnvCmd", func() {
 					Name:            "fake-stemcell-name",
 					Version:         "fake-stemcell-version",
 					SHA1:            "fake-stemcell-sha1",
+					ApiVersion:      strconv.Itoa(stemcellApiVersion),
 					CloudProperties: biproperty.Map{},
 				},
 				"fake-extracted-path",
@@ -298,9 +301,9 @@ var _ = Describe("CreateEnvCmd", func() {
 				return cpiRelease, nil
 			}
 
-			cloud = bicloud.NewCloud(fakebicloud.NewFakeCPICmdRunner(), "fake-director-id", logger)
 			cloudStemcell = fakebistemcell.NewFakeCloudStemcell(
-				"fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version")
+				"fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version", "2")
+			cloud = bicloud.NewCloud(fakebicloud.NewFakeCPICmdRunner(), "fake-director-id", 2, logger)
 
 			defaultCreateEnvOpts = bicmd.CreateEnvOpts{
 				Args: bicmd.CreateEnvArgs{
@@ -429,7 +432,7 @@ var _ = Describe("CreateEnvCmd", func() {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(mockDeployment, nil).AnyTimes()
 
-			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(installation, directorID).Return(cloud, nil).AnyTimes()
+			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(installation, directorID, stemcellApiVersion).Return(cloud, nil).AnyTimes()
 		})
 
 		Describe("prints the deployment manifest and state file", func() {

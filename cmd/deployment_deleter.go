@@ -203,7 +203,7 @@ func (c *deploymentDeleter) findCurrentDeploymentAndDelete(stage biui.Stage, dep
 func (c *deploymentDeleter) deploymentManager(installation biinstall.Installation, directorID, installationMbus, caCert string) (bidepl.Manager, error) {
 	c.logger.Debug(c.logTag, "Creating cloud client...")
 
-	cloud, err := c.cloudFactory.NewCloud(installation, directorID)
+	cloud, err := c.cloudFactory.NewCloud(installation, directorID, 0)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Creating CPI client from CPI installation")
 	}

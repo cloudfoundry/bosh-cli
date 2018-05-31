@@ -89,7 +89,8 @@ var _ = Describe("DeploymentDeleter", func() {
 			expectCPIInstall *gomock.Call
 			expectNewCloud   *gomock.Call
 
-			mbusURL = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
+			mbusURL                     = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
+			stemcellApiVersionForDelete = 0
 		)
 
 		var certificate = `-----BEGIN CERTIFICATE-----
@@ -199,7 +200,7 @@ cloud_provider:
 			}).Return(fakeInstallation, nil).AnyTimes()
 			mockCpiInstaller.EXPECT().Cleanup(fakeInstallation).AnyTimes()
 
-			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID).Return(mockCloud, nil).AnyTimes()
+			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID, stemcellApiVersionForDelete).Return(mockCloud, nil).AnyTimes()
 		}
 
 		var newDeploymentDeleter = func() bicmd.DeploymentDeleter {
@@ -507,7 +508,7 @@ cloud_provider:
 				}).Return(fakeInstallation, nil).AnyTimes()
 				mockCpiInstaller.EXPECT().Cleanup(fakeInstallation).AnyTimes()
 
-				expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID).Return(mockCloud, nil).AnyTimes()
+				expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID, stemcellApiVersionForDelete).Return(mockCloud, nil).AnyTimes()
 			})
 
 			Context("when the call to delete the deployment returns an error", func() {
