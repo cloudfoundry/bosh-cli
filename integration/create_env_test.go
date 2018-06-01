@@ -55,6 +55,7 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	"github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	"strconv"
 )
 
 var _ = Describe("bosh", func() {
@@ -991,6 +992,52 @@ cloud_provider:
 					Expect(err).ToNot(HaveOccurred())
 					Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 				})
+			})
+		})
+
+		Context("when the stemcell supports api_version 2", func() {
+			stateFilePath := filepath.Join("/", "tmp", "new", "state", "path", "state")
+			stemcellApiVersion = 2
+			allowStemcellToBeExtracted = func() {
+				stemcellManifest := bistemcell.Manifest{
+					Name:            "fake-stemcell-name",
+					Version:         "fake-stemcell-version",
+					SHA1:            "fake-stemcell-sha1",
+					ApiVersion:      strconv.Itoa(stemcellApiVersion),
+					CloudProperties: biproperty.Map{},
+				}
+
+				extractedStemcell := bistemcell.NewExtractedStemcell(
+					stemcellManifest,
+					"fake-stemcell-extracted-dir",
+					fakes.NewFakeCompressor(),
+					fs,
+				)
+				fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, extractedStemcell, nil)
+			}
+
+			BeforeEach(func() {
+				err := fs.RemoveAll(stateFilePath)
+				Expect(err).ToNot(HaveOccurred())
+
+				directorID = "fake-uuid-1"
+			})
+
+			It("uses the version with the cpi api calls", func() {
+				expectDeployFlow()
+
+				// new directorID will be generated
+				mockCloudFactory.EXPECT().NewCloud(gomock.Any(), directorID, stemcellApiVersion).Return(mockCloud, nil).AnyTimes()
+				mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), mbusURL, caCert).Return(mockAgentClient, nil)
+
+				err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, stateFilePath))
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fs.FileExists(stateFilePath)).To(BeTrue())
+
+				deploymentState, err := deploymentStateService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(deploymentState.Stemcells[0].ApiVersion).To(Equal("2"))
 			})
 		})
 	})
