@@ -63,8 +63,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "854f9d07a932452f1552955e127e50ba5ebb25cc"
-  version = "v1.13.56"
+  revision = "5197757a58a794d49d2d0c50a932997157734100"
+  version = "v1.13.60"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -93,8 +93,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "338fe9af6763a075b0649251a294d2c4946ed9a9"
-  version = "v2.104.0"
+  revision = "de93f41fba875f70253b0b8af7e590481e7751f4"
+  version = "v2.107.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -168,7 +168,7 @@
   branch = "master"
   name = "github.com/cloudfoundry/socks5-proxy"
   packages = ["."]
-  revision = "75791c35e37dfa939d956361aaf9569e66c0e318"
+  revision = "3659db090cb23a57807b53e2f8580b2427dc2659"
 
 [[projects]]
   branch = "master"
@@ -197,8 +197,8 @@
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "6529cf7c58879c08d927016dde4477f18a0634cb"
-  version = "v1.36.0"
+  revision = "06f5f3d67269ccec1fe5fe4134ba6e982984f7f5"
+  version = "v1.37.0"
 
 [[projects]]
   name = "github.com/golang/mock"
@@ -371,8 +371,8 @@
     "trace/internal",
     "trace/propagation"
   ]
-  revision = "f7730ab009c252771b19074bd05217d054c0c93f"
-  version = "v0.10.0"
+  revision = "c3ed530f775d85e577ca652cb052a52c078aad26"
+  version = "v0.11.0"
 
 [[projects]]
   branch = "master"
@@ -386,7 +386,7 @@
     "ssh",
     "ssh/terminal"
   ]
-  revision = "a3beeb748656e13e54256fd2cde19e058f41f60f"
+  revision = "5ba7f63082460102a45837dbd1827e10f9479ac0"
 
 [[projects]]
   branch = "master"
@@ -406,7 +406,7 @@
     "proxy",
     "trace"
   ]
-  revision = "dfa909b99c79129e1100513e5cd36307665e5723"
+  revision = "1e491301e022f8f977054da4c2d852decd59571f"
 
 [[projects]]
   branch = "master"
@@ -418,7 +418,7 @@
     "jws",
     "jwt"
   ]
-  revision = "770e5ebd4ab27c4d70b0983674d138217f5e2c72"
+  revision = "ec22f46f877b4505e0117eeaab541714644fdd28"
 
 [[projects]]
   branch = "master"
@@ -486,7 +486,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "348810ff778af56686d572415ce79e6c9fad9613"
+  revision = "f71c6d4abd9757df4168c39856698c341d07251f"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -514,7 +514,7 @@
     "googleapis/rpc/code",
     "googleapis/rpc/status"
   ]
-  revision = "694d95ba50e67b2e363f3483057db5d4910c18f9"
+  revision = "81158efcc9f219c511e4d3c0d61a0e6e49c01a24"
 
 [[projects]]
   name = "google.golang.org/grpc"

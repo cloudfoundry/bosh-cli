@@ -79,13 +79,7 @@ func (s *Socks5Proxy) Dialer(username, key, url string) (DialFunc, error) {
 		return nil, fmt.Errorf("get host key: %s", err)
 	}
 
-	clientConfig := &ssh.ClientConfig{
-		User: username,
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		},
-		HostKeyCallback: ssh.FixedHostKey(hostKey),
-	}
+	clientConfig := NewSSHClientConfig(username, ssh.FixedHostKey(hostKey), ssh.PublicKeys(signer))
 
 	conn, err := ssh.Dial("tcp", url, clientConfig)
 	if err != nil {

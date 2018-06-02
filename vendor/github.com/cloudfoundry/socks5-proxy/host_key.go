@@ -28,13 +28,7 @@ func (h HostKey) Get(username, privateKey, serverURL string) (ssh.PublicKey, err
 		return nil, err
 	}
 
-	clientConfig := &ssh.ClientConfig{
-		User: username,
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		},
-		HostKeyCallback: h.keyScanCallback,
-	}
+	clientConfig := NewSSHClientConfig(username, h.keyScanCallback, ssh.PublicKeys(signer))
 
 	go func() {
 		conn, err := ssh.Dial("tcp", serverURL, clientConfig)
