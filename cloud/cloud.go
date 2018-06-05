@@ -137,6 +137,12 @@ func (c cloud) CreateVM(
 ) (string, error) {
 	method := "create_vm"
 	diskLocality := []interface{}{} // not used with bosh-init
+
+	cpiInfo, err := c.Info()
+	if err != nil {
+		return "", err
+	}
+
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		method,
@@ -155,11 +161,23 @@ func (c cloud) CreateVM(
 		return "", NewCPIError(method, *cmdOutput.Error)
 	}
 
-	// for create_vm, the result is a string of the vm cid
-	cidString, ok := cmdOutput.Result.(string)
+	var ok = true
+	var cidString string
+
+	// Also consider stemcell version before interpreting the result
+	if cpiInfo.ApiVersion == MaxCpiApiVersionSupported {
+		result, ok := cmdOutput.Result.([]string)
+		if ok {
+			cidString = result[0]
+		}
+	} else {
+		cidString, ok = cmdOutput.Result.(string)
+	}
+
 	if !ok {
 		return "", bosherr.Errorf("Unexpected external CPI command result: '%#v'", cmdOutput.Result)
 	}
+
 	return cidString, nil
 }
 
@@ -335,14 +353,17 @@ func (c cloud) infoParser(cmdOutput string) (cpiInfo CpiInfo, err error) {
 	}
 	cpiInfo.StemcellFormats = strings.Split(stemcellFormats, " ")
 
-	version, ok := incoming["api_version"].(float64)
-	if !ok {
-		return CpiInfo{}, bosherr.Error("`api_version` must be a number")
-	}
+	version, exists := incoming["api_version"]
+	if exists {
+		versionFloat, ok := version.(float64)
+		if !ok {
+			return CpiInfo{}, bosherr.Error("`api_version` must be a number")
+		}
 
-	cpiInfo.ApiVersion = int(version)
-	if cpiInfo.ApiVersion > MaxCpiApiVersionSupported {
-		cpiInfo.ApiVersion = MaxCpiApiVersionSupported
+		cpiInfo.ApiVersion = int(versionFloat)
+		if cpiInfo.ApiVersion > MaxCpiApiVersionSupported {
+			cpiInfo.ApiVersion = MaxCpiApiVersionSupported
+		}
 	}
 
 	return cpiInfo, err
