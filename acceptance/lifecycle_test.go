@@ -365,7 +365,7 @@ var _ = Describe("bosh", func() {
 		})
 	})
 
-	FContext("when deploying with a mbus CA cert", func() {
+	Context("when deploying with a mbus CA cert", func() {
 		var extraDeployArgs []string
 
 		BeforeEach(func() {
