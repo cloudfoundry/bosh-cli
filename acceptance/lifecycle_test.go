@@ -388,7 +388,7 @@ var _ = Describe("bosh", func() {
 						testEnv.Path("bosh"),
 						"delete-env", "--tty", testEnv.Path("test-compiled-manifest.yml"),
 					},
-					extraDeployArgs...
+					extraDeployArgs...,
 				)...,
 			)
 			if exitCode != 0 || err != nil {
@@ -427,7 +427,7 @@ var _ = Describe("bosh", func() {
 							"create-env", "--tty", testEnv.Path("test-compiled-manifest.yml"),
 							"-o", "./assets/use-bogus-mbus-ca.yml",
 						},
-						extraDeployArgs...
+						extraDeployArgs...,
 					)...,
 				)
 				Expect(err).To(HaveOccurred())
