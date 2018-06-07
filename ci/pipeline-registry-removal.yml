@@ -1,0 +1,103 @@
+---
+groups:
+- name: all
+  jobs:
+  - test-unit
+  - test-integration
+  - test-acceptance
+  - integration-postgres
+
+jobs:
+  - name: test-unit
+    public: true
+    plan:
+      - get: bosh-cli
+        trigger: true
+      - task: test-unit
+        file: bosh-cli/ci/tasks/test-unit.yml
+
+  - name: test-integration
+    public: true
+    plan:
+      - get: bosh-cli
+        trigger: true
+      - task: test-integration
+        file: bosh-cli/ci/tasks/test-integration.yml
+        privileged: true
+
+  - name: test-acceptance
+    public: true
+    plan:
+      - aggregate:
+        - get: bosh-cli
+          passed: [test-unit,test-integration]
+          trigger: true
+        - get: bosh-warden-cpi-release
+          trigger: true
+      - aggregate:
+        - task: test-acceptance
+          file: bosh-cli/ci/tasks/test-acceptance.yml
+          privileged: true
+
+  - name: integration-postgres
+    public: true
+    serial: true
+    build_logs_to_retain: 250
+    plan:
+      - aggregate:
+        - get: bosh-src
+          trigger: true
+        - get: bosh-cli
+          passed: [test-unit,test-integration]
+          trigger: true
+        - get: bosh-agent
+          trigger: true
+        - get: integration-tests-parallel-runtime
+
+      - task: tests
+        privileged: true
+        input_mapping:
+          bosh-cli: compiled-linux
+        file: bosh-src/ci/tasks/test-integration-gocli.yml
+        tags: ["bosh-integration"]
+        params:
+          DB: postgresql
+resources:
+  - name: bosh-src
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh.git
+      branch: master
+
+  - name: bosh-agent
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-agent.git
+      branch: master
+
+  - name: bosh-cli
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry/bosh-cli.git
+      branch: external-cpi-refactor
+      private_key: {{concourse_github_private_key}}
+
+  - name: bosh-warden-cpi-release
+    type: bosh-io-release
+    source:
+      repository: cppforlife/bosh-warden-cpi-release
+
+  - name: integration-tests-parallel-runtime
+    type: s3
+    source:
+      bucket: ((integration_runtime_bucket))
+      access_key_id: ((integration_runtime_access_key_id))
+      secret_access_key: ((integration_runtime_secret_access_key))
+      versioned_file: "parallel_runtime_rspec.log"
+
+resource_types:
+  - name: github-status
+    type: docker-image
+    source:
+      repository: dpb587/github-status-resource
+      tag: master
