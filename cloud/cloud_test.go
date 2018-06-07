@@ -15,16 +15,28 @@ import (
 
 var _ = Describe("Cloud", func() {
 	var (
-		cloud            Cloud
-		context          CmdContext
-		fakeCPICmdRunner *fakebicloud.FakeCPICmdRunner
+		cloud              Cloud
+		context            CmdContext
+		fakeCPICmdRunner   *fakebicloud.FakeCPICmdRunner
+		logger             boshlog.Logger
+		stemcellApiVersion interface{} = 2
+		infoResult         map[string]interface{}
+
+		infoResultWithApiV2 map[string]interface{}
 	)
 
 	BeforeEach(func() {
 		fakeCPICmdRunner = fakebicloud.NewFakeCPICmdRunner()
-		logger := boshlog.NewLogger(boshlog.LevelNone)
+		logger = boshlog.NewLogger(boshlog.LevelNone)
 		cloud = NewCloud(fakeCPICmdRunner, "fake-director-id", 0, logger)
 		context = CmdContext{DirectorID: "fake-director-id"}
+		infoResult = map[string]interface{}{
+			"stemcell_formats": []interface{}{"aws-raw", "aws-light"},
+		}
+		infoResultWithApiV2 = map[string]interface{}{
+			"stemcell_formats": []interface{}{"aws-raw", "aws-light"},
+			"api_version":      stemcellApiVersion,
+		}
 	})
 
 	var itHandlesCPIErrors = func(method string, exec func() error, hasInfoCall bool) {
@@ -35,7 +47,7 @@ var _ = Describe("Cloud", func() {
 			if hasInfoCall {
 				fakeCPICmdRunner.RunCmdOutputs = append(
 					fakeCPICmdRunner.RunCmdOutputs,
-					CmdOutput{Result: `{"stemcell_formats":"aws-raw aws-light","api_version":2}`},
+					CmdOutput{Result: infoResult},
 				)
 			}
 
@@ -64,13 +76,12 @@ var _ = Describe("Cloud", func() {
 
 	Describe("Info", func() {
 		It("return info based on cpi", func() {
-			infoResult := `{"stemcell_formats":"aws-raw aws-light","api_version":2}`
 			infoParsed := CpiInfo{
 				StemcellFormats: []string{"aws-raw", "aws-light"},
 				ApiVersion:      2,
 			}
 			fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{{
-				Result: infoResult,
+				Result: infoResultWithApiV2,
 			}}
 			found, err := cloud.Info()
 			Expect(err).ToNot(HaveOccurred())
@@ -80,13 +91,12 @@ var _ = Describe("Cloud", func() {
 				{
 					Context:   context,
 					Method:    "info",
-					Arguments: nil,
+					Arguments: []interface{}{" "},
 				},
 			}))
 		})
 
 		It("uses a default cpi api version if an old cpi does not have api version", func() {
-			infoResult := `{"stemcell_formats":"aws-raw aws-light"}`
 			infoParsed := CpiInfo{
 				StemcellFormats: []string{"aws-raw", "aws-light"},
 				ApiVersion:      0,
@@ -120,7 +130,10 @@ var _ = Describe("Cloud", func() {
 
 		Context("when the cpi version is > 2", func() {
 			It("should return MAX supported version by CLI", func() {
-				infoResult := `{"stemcell_formats":"aws-raw aws-light","api_version":42}`
+				infoResult = map[string]interface{}{
+					"stemcell_formats": []interface{}{"aws-raw", "aws-light"},
+					"api_version":      42,
+				}
 				infoParsed := CpiInfo{
 					StemcellFormats: []string{"aws-raw", "aws-light"},
 					ApiVersion:      2,
@@ -137,28 +150,35 @@ var _ = Describe("Cloud", func() {
 		Context("when info return unexpected format result", func() {
 			Context("when api_version is not a number format", func() {
 				BeforeEach(func() {
-					infoResult := `{"stemcell_formats":"aws-raw aws-light","api_version":"2"}`
+					infoResultWithApiV2 = map[string]interface{}{
+						"stemcell_formats": []interface{}{"aws-raw", "aws-light"},
+						"api_version":      "57",
+					}
+
 					fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{{
-						Result: infoResult,
+						Result: infoResultWithApiV2,
 					}}
 				})
 				It("should raise error", func() {
 					_, err := cloud.Info()
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("`api_version` must be a number"))
+					Expect(err.Error()).To(ContainSubstring("Unmarshalling 'info' method response failed."))
 				})
 			})
-			Context("when stemcell formats is not a string (space separated)", func() {
+			Context("when stemcell formats is not a []string", func() {
 				BeforeEach(func() {
-					infoResult := `{"stemcell_formats":["aws-raw","aws-light"],"api_version":2}`
+					infoResultWithApiV2 = map[string]interface{}{
+						"stemcell_formats": "aws-raw",
+						"api_version":      stemcellApiVersion,
+					}
 					fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{{
-						Result: infoResult,
+						Result: infoResultWithApiV2,
 					}}
 				})
 				It("should raise error", func() {
 					_, err := cloud.Info()
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("`stemcell_formats` must be a string"))
+					Expect(err.Error()).To(ContainSubstring("Unmarshalling 'info' method response failed."))
 				})
 			})
 		})
@@ -327,7 +347,6 @@ var _ = Describe("Cloud", func() {
 			cloudProperties   biproperty.Map
 			networkInterfaces map[string]biproperty.Map
 			env               biproperty.Map
-			infoResult        = `{"stemcell_formats":"aws-raw aws-light"}`
 		)
 
 		BeforeEach(func() {
@@ -389,11 +408,10 @@ var _ = Describe("Cloud", func() {
 				Context("when cpi api_version is 2", func() {
 
 					BeforeEach(func() {
-						infoResult := `{"stemcell_formats":"aws-raw aws-light","api_version":2}`
-
+						cloud = NewCloud(fakeCPICmdRunner, "fake-director-id", stemcellApiVersion.(int), logger)
 						fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
 							{
-								Result: infoResult,
+								Result: infoResultWithApiV2,
 							},
 							{
 								Result: []string{"fake-vm-cid", "network-hash"},
@@ -747,29 +765,28 @@ var _ = Describe("Cloud", func() {
 		}, false)
 	})
 
-	Describe("When stemcell api_version is specified", func() {
+	Describe("When stemcell api_version is specified in context", func() {
 		BeforeEach(func() {
-			stemcellApiVersion := 2
+			apiVersion := 2
 			logger := boshlog.NewLogger(boshlog.LevelNone)
-			cloud = NewCloud(fakeCPICmdRunner, "fake-director-id", stemcellApiVersion, logger)
 			context = CmdContext{
-				DirectorID: "fake-director-id",
+				DirectorID: "fake-director-id-recreated",
 				VM: &VM{
 					Stemcell: &Stemcell{
-						ApiVersion: stemcellApiVersion,
+						ApiVersion: apiVersion,
 					},
 				},
 			}
+			cloud = NewCloud(fakeCPICmdRunner, "fake-director-id-recreated", apiVersion, logger)
 		})
 
 		It("return info based on cpi", func() {
-			infoResult := `{"stemcell_formats":"aws-raw aws-light","api_version":2}`
 			infoParsed := CpiInfo{
 				StemcellFormats: []string{"aws-raw", "aws-light"},
 				ApiVersion:      2,
 			}
 			fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{{
-				Result: infoResult,
+				Result: infoResultWithApiV2,
 			}}
 			found, err := cloud.Info()
 			Expect(err).ToNot(HaveOccurred())
@@ -779,7 +796,7 @@ var _ = Describe("Cloud", func() {
 				{
 					Context:   context,
 					Method:    "info",
-					Arguments: nil,
+					Arguments: []interface{}{" "},
 				},
 			}))
 		})

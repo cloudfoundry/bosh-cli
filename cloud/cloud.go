@@ -3,14 +3,16 @@ package cloud
 import (
 	"fmt"
 
-	"encoding/json"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	"strings"
 )
 
 const MaxCpiApiVersionSupported = 2
+
+// The agent on stemcells with version 2
+// will avoid the registry IFF CPI and Director support CPI API v2 (above)
+const StemcellPrefersMetadataVersion = 2
 
 type Cloud interface {
 	CreateStemcell(imagePath string, cloudProperties biproperty.Map) (stemcellCID string, err error)
@@ -43,7 +45,7 @@ type cloud struct {
 
 type CpiInfo struct {
 	StemcellFormats []string `json:"stemcell_formats"`
-	ApiVersion      int      `json:"api_version"`
+	ApiVersion      int      `json:"api_version,omitempty"`
 }
 
 type VMMetadata map[string]string
@@ -135,8 +137,13 @@ func (c cloud) CreateVM(
 	networksInterfaces map[string]biproperty.Map,
 	env biproperty.Map,
 ) (string, error) {
-	method := "create_vm"
-	diskLocality := []interface{}{} // not used with bosh-init
+	var (
+		ok                 = true
+		cidString          string
+		stemcellApiVersion int
+		method             = "create_vm"
+		diskLocality       = []interface{}{} // not used with bosh-init
+	)
 
 	cpiInfo, err := c.Info()
 	if err != nil {
@@ -161,11 +168,13 @@ func (c cloud) CreateVM(
 		return "", NewCPIError(method, *cmdOutput.Error)
 	}
 
-	var ok = true
-	var cidString string
+	vm := c.context.VM
+	if vm != nil {
+		stemcellApiVersion = vm.Stemcell.ApiVersion
+	}
 
-	// Also consider stemcell version before interpreting the result
-	if cpiInfo.ApiVersion == MaxCpiApiVersionSupported {
+	if cpiInfo.ApiVersion == MaxCpiApiVersionSupported &&
+		stemcellApiVersion == StemcellPrefersMetadataVersion {
 		result, ok := cmdOutput.Result.([]string)
 		if ok {
 			cidString = result[0]
@@ -323,7 +332,7 @@ func (c cloud) Info() (cpiInfo CpiInfo, err error) {
 	c.logger.Debug(c.logTag, "Info")
 
 	method := "info"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, " ")
 
 	if err != nil {
 		return CpiInfo{}, bosherr.WrapError(err, "Calling CPI 'info' method")
@@ -333,40 +342,45 @@ func (c cloud) Info() (cpiInfo CpiInfo, err error) {
 		return CpiInfo{}, NewCPIError(method, *cmdOutput.Error)
 	}
 
-	cpiInfo, err = c.infoParser(cmdOutput.Result.(string))
+	cpiInfo, err = c.infoParser(cmdOutput)
 
 	return cpiInfo, err
 }
 
-func (c cloud) infoParser(cmdOutput string) (cpiInfo CpiInfo, err error) {
-	incoming := map[string]interface{}{}
+func (c cloud) infoParser(cmdOutput CmdOutput) (cpiInfo CpiInfo, err error) {
 	cpiInfo = CpiInfo{}
 
-	err = json.Unmarshal([]byte(cmdOutput), &incoming)
-	if err != nil {
-		return CpiInfo{}, bosherr.WrapError(err, "Unmarshalling 'info' method response failed")
-	}
-
-	stemcellFormats, ok := incoming["stemcell_formats"].(string)
+	data, ok := cmdOutput.Result.(map[string]interface{})
 	if !ok {
-		return CpiInfo{}, bosherr.Error("`stemcell_formats` must be a string")
+		return c.raiseParsingError(fmt.Sprintf("%s", cmdOutput))
 	}
-	cpiInfo.StemcellFormats = strings.Split(stemcellFormats, " ")
 
-	version, exists := incoming["api_version"]
-	if exists {
-		versionFloat, ok := version.(float64)
-		if !ok {
-			return CpiInfo{}, bosherr.Error("`api_version` must be a number")
+	if stemcellFormats, ok := data["stemcell_formats"].([]interface{}); ok {
+		formats := []string{}
+		for i := range stemcellFormats {
+			formats = append(formats, stemcellFormats[i].(string))
 		}
+		cpiInfo.StemcellFormats = formats
+	} else {
+		return c.raiseParsingError(fmt.Sprintf("%s", cmdOutput))
+	}
 
-		cpiInfo.ApiVersion = int(versionFloat)
-		if cpiInfo.ApiVersion > MaxCpiApiVersionSupported {
-			cpiInfo.ApiVersion = MaxCpiApiVersionSupported
+	if apiVersion, ok := data["api_version"]; ok {
+		if cpiInfo.ApiVersion, ok = apiVersion.(int); !ok {
+			return c.raiseParsingError(fmt.Sprintf("%s", cmdOutput))
 		}
+	}
+
+	if cpiInfo.ApiVersion > MaxCpiApiVersionSupported {
+		cpiInfo.ApiVersion = MaxCpiApiVersionSupported
 	}
 
 	return cpiInfo, err
+}
+
+func (c cloud) raiseParsingError(cmdOutput string) (cpiInfo CpiInfo, err error) {
+	msg := fmt.Sprintf("Unmarshalling 'info' method response failed. Result: %s", cmdOutput)
+	return CpiInfo{}, bosherr.Error(msg)
 }
 
 func (c cloud) String() string {
