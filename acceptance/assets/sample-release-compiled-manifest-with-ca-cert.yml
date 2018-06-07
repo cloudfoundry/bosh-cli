@@ -15,13 +15,7 @@ resource_pools:
     bosh:
       password: pjF0EjcwDTvyQ # openssl passwd -crypt sshpassword
       mbus:
-        cert: # this is for the server / agent
-          ca: |{{ range .AgentMbusCACert }}
-            {{ . }}{{ end }}
-          private_key: |{{ range .AgentMbusPrivateKey }}
-            {{ . }}{{ end }}
-          certificate: |{{ range .AgentMbusCertificate }}
-            {{ . }}{{ end }}
+        cert: ((mbus))
 
   stemcell:
     url: {{ .StemcellURL }}
@@ -41,10 +35,9 @@ cloud_provider:
   template:
     name: warden_cpi
     release: bosh-warden-cpi
-  mbus: https://admin:admin@10.244.0.42:6868{{ if .MbusCACert }}
-  cert: # this is for the client
-    ca: |{{ range .MbusCACert }}
-      {{ . }}{{ end }}{{ end }}
+  mbus: https://admin:admin@10.244.0.42:6868
+  cert:
+    ca: ((mbus.ca))
   properties:
     warden_cpi: &warden_cpi
       actions:
@@ -76,3 +69,15 @@ jobs:
     dummy_with_properties:
       echo_value: "hi"
     ntp: []
+
+variables:
+- name: default_ca
+  type: certificate
+  options:
+    is_ca: true
+- name: mbus
+  type: certificate
+  options:
+    common_name: bosh.integration.test
+    alternative_names: [10.244.0.42]
+    ca: default_ca
