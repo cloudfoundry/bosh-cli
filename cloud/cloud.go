@@ -37,10 +37,11 @@ type Cloud interface {
 }
 
 type cloud struct {
-	cpiCmdRunner CPICmdRunner
-	context      CmdContext
-	logger       boshlog.Logger
-	logTag       string
+	cpiCmdRunner  CPICmdRunner
+	cpiApiVersion int
+	context       CmdContext
+	logger        boshlog.Logger
+	logTag        string
 }
 
 type CpiInfo struct {
@@ -79,7 +80,7 @@ func (c cloud) CreateStemcell(imagePath string, cloudProperties biproperty.Map) 
 	c.logger.Debug(c.logTag, "Creating stemcell")
 
 	method := "create_stemcell"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, imagePath, cloudProperties)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.cpiApiVersion, imagePath, cloudProperties)
 	if err != nil {
 		return "", err
 	}
@@ -100,7 +101,7 @@ func (c cloud) DeleteStemcell(stemcellCID string) error {
 	c.logger.Debug(c.logTag, "Deleting stemcell '%s'", stemcellCID)
 
 	method := "delete_stemcell"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, stemcellCID)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.cpiApiVersion, stemcellCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Calling CPI 'delete_stemcell' method")
 	}
@@ -114,7 +115,7 @@ func (c cloud) DeleteStemcell(stemcellCID string) error {
 
 func (c cloud) HasVM(vmCID string) (bool, error) {
 	method := "has_vm"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, vmCID)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.cpiApiVersion, vmCID)
 	if err != nil {
 		return false, err
 	}
@@ -153,6 +154,7 @@ func (c cloud) CreateVM(
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		method,
+		c.cpiApiVersion,
 		agentID,
 		stemcellCID,
 		cloudProperties,
@@ -194,6 +196,7 @@ func (c cloud) SetVMMetadata(vmCID string, metadata VMMetadata) error {
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		"set_vm_metadata",
+		c.cpiApiVersion,
 		vmCID,
 		metadata,
 	)
@@ -213,6 +216,7 @@ func (c cloud) SetDiskMetadata(diskCID string, metadata DiskMetadata) error {
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		"set_disk_metadata",
+		c.cpiApiVersion,
 		diskCID,
 		metadata,
 	)
@@ -239,6 +243,7 @@ func (c cloud) CreateDisk(size int, cloudProperties biproperty.Map, vmCID string
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		method,
+		c.cpiApiVersion,
 		size,
 		cloudProperties,
 		vmCID,
@@ -264,6 +269,7 @@ func (c cloud) AttachDisk(vmCID, diskCID string) error {
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		method,
+		c.cpiApiVersion,
 		vmCID,
 		diskCID,
 	)
@@ -284,6 +290,7 @@ func (c cloud) DetachDisk(vmCID, diskCID string) error {
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		method,
+		c.cpiApiVersion,
 		vmCID,
 		diskCID,
 	)
@@ -301,7 +308,7 @@ func (c cloud) DetachDisk(vmCID, diskCID string) error {
 func (c cloud) DeleteVM(vmCID string) error {
 	c.logger.Debug(c.logTag, "Deleting vm '%s'", vmCID)
 	method := "delete_vm"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, vmCID)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.cpiApiVersion, vmCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Calling CPI 'delete_vm' method")
 	}
@@ -316,7 +323,7 @@ func (c cloud) DeleteVM(vmCID string) error {
 func (c cloud) DeleteDisk(diskCID string) error {
 	c.logger.Debug(c.logTag, "Deleting disk '%s'", diskCID)
 	method := "delete_disk"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, diskCID)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.cpiApiVersion, diskCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Calling CPI 'delete_disk' method")
 	}
@@ -332,7 +339,7 @@ func (c cloud) Info() (cpiInfo CpiInfo, err error) {
 	c.logger.Debug(c.logTag, "Info")
 
 	method := "info"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, " ")
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.cpiApiVersion, " ")
 
 	if err != nil {
 		return CpiInfo{}, bosherr.WrapError(err, "Calling CPI 'info' method")
@@ -373,6 +380,7 @@ func (c cloud) infoParser(cmdOutput CmdOutput) (cpiInfo CpiInfo, err error) {
 
 	if cpiInfo.ApiVersion > MaxCpiApiVersionSupported {
 		cpiInfo.ApiVersion = MaxCpiApiVersionSupported
+		c.cpiApiVersion = cpiInfo.ApiVersion
 	}
 
 	return cpiInfo, err

@@ -14,10 +14,11 @@ import (
 
 var _ = Describe("CpiCmdRunner", func() {
 	var (
-		cpiCmdRunner CPICmdRunner
-		context      CmdContext
-		cmdRunner    *fakesys.FakeCmdRunner
-		cpi          CPI
+		cpiCmdRunner  CPICmdRunner
+		context       CmdContext
+		cmdRunner     *fakesys.FakeCmdRunner
+		cpi           CPI
+		cpiApiVersion int
 	)
 
 	BeforeEach(func() {
@@ -48,7 +49,7 @@ var _ = Describe("CpiCmdRunner", func() {
 			}
 			cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
 
-			_, err = cpiCmdRunner.Run(context, "fake-method", "fake-argument-1", "fake-argument-2")
+			_, err = cpiCmdRunner.Run(context, "fake-method", cpiApiVersion, "fake-argument-1", "fake-argument-2")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
 
@@ -67,7 +68,8 @@ var _ = Describe("CpiCmdRunner", func() {
 				`{` +
 					`"method":"fake-method",` +
 					`"arguments":["fake-argument-1","fake-argument-2"],` +
-					`"context":{"director_uuid":"fake-director-id"}` +
+					`"context":{"director_uuid":"fake-director-id"},` +
+					`"api_version":0` +
 					`}`,
 			))
 		})
@@ -95,7 +97,7 @@ var _ = Describe("CpiCmdRunner", func() {
 				}
 				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
 
-				_, err = cpiCmdRunner.Run(context, "fake-method", "fake-argument-1", "fake-argument-2")
+				_, err = cpiCmdRunner.Run(context, "fake-method", cpiApiVersion, "fake-argument-1", "fake-argument-2")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
 
@@ -114,11 +116,61 @@ var _ = Describe("CpiCmdRunner", func() {
 					`{` +
 						`"method":"fake-method",` +
 						`"arguments":["fake-argument-1","fake-argument-2"],` +
-						`"context":{"director_uuid":"fake-director-id","vm":{"stemcell":{"api_version":2}}}` +
+						`"context":{"director_uuid":"fake-director-id","vm":{"stemcell":{"api_version":2}}},` +
+						`"api_version":0` +
 						`}`,
 				))
 			})
 
+		})
+
+		Context("when cpi api_version is specified in CmdInput", func() {
+			BeforeEach(func() {
+				context = CmdContext{
+					DirectorID: "fake-director-id",
+					VM: &VM{
+						Stemcell: &Stemcell{
+							ApiVersion: 2,
+						},
+					},
+				}
+			})
+
+			It("creates correct command with stemcell api_version in context", func() {
+				cmdOutput := CmdOutput{}
+				outputBytes, err := json.Marshal(cmdOutput)
+				Expect(err).NotTo(HaveOccurred())
+
+				result := fakesys.FakeCmdResult{
+					Stdout:     string(outputBytes),
+					ExitStatus: 0,
+				}
+				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
+
+				_, err = cpiCmdRunner.Run(context, "fake-method", cpiApiVersion, "fake-argument-1", "fake-argument-2")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
+
+				actualCmd := cmdRunner.RunComplexCommands[0]
+				Expect(actualCmd.Name).To(Equal("/jobs/cpi/bin/cpi"))
+				Expect(actualCmd.Args).To(BeNil())
+				Expect(actualCmd.Env).To(Equal(map[string]string{
+					"BOSH_PACKAGES_DIR": cpi.PackagesDir,
+					"BOSH_JOBS_DIR":     cpi.JobsDir,
+					"PATH":              "/usr/local/bin:/usr/bin:/bin:/sbin",
+				}))
+				Expect(actualCmd.UseIsolatedEnv).To(BeTrue())
+				bytes, err := ioutil.ReadAll(actualCmd.Stdin)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(bytes)).To(Equal(
+					`{` +
+						`"method":"fake-method",` +
+						`"arguments":["fake-argument-1","fake-argument-2"],` +
+						`"context":{"director_uuid":"fake-director-id","vm":{"stemcell":{"api_version":2}}},` +
+						`"api_version":0` +
+						`}`,
+				))
+			})
 		})
 
 		Context("when the command succeeds", func() {
@@ -137,7 +189,7 @@ var _ = Describe("CpiCmdRunner", func() {
 			})
 
 			It("returns the result", func() {
-				cmdOutput, err := cpiCmdRunner.Run(context, "fake-method", "fake-argument")
+				cmdOutput, err := cpiCmdRunner.Run(context, "fake-method", cpiApiVersion, "fake-argument")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cmdOutput).To(Equal(CmdOutput{
 					Result: "fake-cid",
@@ -156,7 +208,7 @@ var _ = Describe("CpiCmdRunner", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := cpiCmdRunner.Run(context, "fake-method", "fake-argument")
+				_, err := cpiCmdRunner.Run(context, "fake-method", cpiApiVersion, "fake-argument")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-error-trying-to-run-command"))
 			})
@@ -181,7 +233,7 @@ var _ = Describe("CpiCmdRunner", func() {
 			})
 
 			It("returns the command output and no error", func() {
-				cmdOutput, err := cpiCmdRunner.Run(context, "fake-method", "fake-argument")
+				cmdOutput, err := cpiCmdRunner.Run(context, "fake-method", cpiApiVersion, "fake-argument")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(cmdOutput.Error.Message).To(ContainSubstring("fake-run-error"))
 			})
