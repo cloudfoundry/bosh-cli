@@ -15,13 +15,12 @@ import (
 
 var _ = Describe("Cloud", func() {
 	var (
-		cloud              Cloud
-		context            CmdContext
-		fakeCPICmdRunner   *fakebicloud.FakeCPICmdRunner
-		logger             boshlog.Logger
-		stemcellApiVersion interface{} = 2
-		infoResult         map[string]interface{}
-
+		cloud               Cloud
+		context             CmdContext
+		fakeCPICmdRunner    *fakebicloud.FakeCPICmdRunner
+		logger              boshlog.Logger
+		stemcellApiVersion  interface{} = 2
+		infoResult          map[string]interface{}
 		infoResultWithApiV2 map[string]interface{}
 	)
 
@@ -632,12 +631,53 @@ var _ = Describe("Cloud", func() {
 	})
 
 	Describe("AttachDisk", func() {
-		Context("when the cpi successfully attaches the disk", func() {
+		Context("when stemcell api version and cpi api version are 2", func() {
+			BeforeEach(func() {
+				fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
+					{Result: infoResultWithApiV2},
+					{Result: "/dev/sdf"},
+				}
+
+				context = CmdContext{
+					DirectorID: "fake-director-id-recreated",
+					VM: &VM{
+						Stemcell: &Stemcell{
+							ApiVersion: stemcellApiVersion.(int),
+						},
+					},
+				}
+
+				cloud = NewCloud(fakeCPICmdRunner, "fake-director-id-recreated", stemcellApiVersion.(int), logger)
+			})
+
 			It("executes the cpi job script with the correct arguments", func() {
-				err := cloud.AttachDisk("fake-vm-cid", "fake-disk-cid")
+				deviceBlockId, err := cloud.AttachDisk("fake-vm-cid", "fake-disk-cid")
 				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeCPICmdRunner.CurrentRunInput).To(HaveLen(1))
-				Expect(fakeCPICmdRunner.CurrentRunInput[0]).To(Equal(fakebicloud.RunInput{
+				Expect(fakeCPICmdRunner.CurrentRunInput).To(HaveLen(2))
+				Expect(fakeCPICmdRunner.CurrentRunInput[1]).To(Equal(fakebicloud.RunInput{
+					Context: context,
+					Method:  "attach_disk",
+					Arguments: []interface{}{
+						"fake-vm-cid",
+						"fake-disk-cid",
+					},
+				}))
+				Expect(deviceBlockId).To(Equal("/dev/sdf"))
+			})
+
+		})
+
+		Context("when the cpi successfully attaches the disk", func() {
+			BeforeEach(func() {
+				fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
+					{Result: infoResult},
+				}
+			})
+			It("executes the cpi job script with the correct arguments", func() {
+				_, err := cloud.AttachDisk("fake-vm-cid", "fake-disk-cid")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeCPICmdRunner.CurrentRunInput).To(HaveLen(2))
+				Expect(fakeCPICmdRunner.CurrentRunInput[1]).To(Equal(fakebicloud.RunInput{
 					Context: context,
 					Method:  "attach_disk",
 					Arguments: []interface{}{
@@ -654,15 +694,16 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("returns an error", func() {
-				err := cloud.AttachDisk("fake-vm-cid", "fake-disk-cid")
+				_, err := cloud.AttachDisk("fake-vm-cid", "fake-disk-cid")
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-run-error"))
 			})
 		})
 
 		itHandlesCPIErrors("attach_disk", func() error {
-			return cloud.AttachDisk("fake-vm-cid", "fake-disk-cid")
-		}, false)
+			_, err := cloud.AttachDisk("fake-vm-cid", "fake-disk-cid")
+			return err
+		}, true)
 	})
 
 	Describe("DetachDisk", func() {

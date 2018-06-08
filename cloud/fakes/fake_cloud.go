@@ -22,8 +22,9 @@ type FakeCloud struct {
 	CreateDiskCID   string
 	CreateDiskErr   error
 
-	AttachDiskInput AttachDiskInput
-	AttachDiskErr   error
+	AttachDiskInput         AttachDiskInput
+	AttachDiskBlockDeviceId string
+	AttachDiskErr           error
 
 	DetachDiskInput DetachDiskInput
 	DetachDiskErr   error
@@ -172,12 +173,12 @@ func (c *FakeCloud) CreateDisk(
 	return c.CreateDiskCID, c.CreateDiskErr
 }
 
-func (c *FakeCloud) AttachDisk(vmCID, diskCID string) error {
+func (c *FakeCloud) AttachDisk(vmCID, diskCID string) (string, error) {
 	c.AttachDiskInput = AttachDiskInput{
 		VMCID:   vmCID,
 		DiskCID: diskCID,
 	}
-	return c.AttachDiskErr
+	return c.AttachDiskBlockDeviceId, c.AttachDiskErr
 }
 
 func (c *FakeCloud) DetachDisk(vmCID, diskCID string) error {

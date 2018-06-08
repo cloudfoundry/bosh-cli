@@ -29,7 +29,7 @@ type Cloud interface {
 	SetDiskMetadata(diskCID string, metadata DiskMetadata) error
 	DeleteVM(vmCID string) error
 	CreateDisk(size int, cloudProperties biproperty.Map, vmCID string) (diskCID string, err error)
-	AttachDisk(vmCID, diskCID string) error
+	AttachDisk(vmCID, diskCID string) (string, error)
 	DetachDisk(vmCID, diskCID string) error
 	DeleteDisk(diskCID string) error
 	Info() (cpiInfo CpiInfo, err error)
@@ -263,9 +263,20 @@ func (c cloud) CreateDisk(size int, cloudProperties biproperty.Map, vmCID string
 	return cidString, nil
 }
 
-func (c cloud) AttachDisk(vmCID, diskCID string) error {
+func (c cloud) AttachDisk(vmCID, diskCID string) (string, error) {
+	var (
+		deviceBlockId      string
+		method             = "attach_disk"
+		vm                 = c.context.VM
+		stemcellApiVersion = 1
+	)
 	c.logger.Debug(c.logTag, "Attaching disk '%s' to vm '%s'", diskCID, vmCID)
-	method := "attach_disk"
+
+	cpiInfo, err := c.Info()
+	if err != nil {
+		return "", err
+	}
+
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		method,
@@ -274,14 +285,26 @@ func (c cloud) AttachDisk(vmCID, diskCID string) error {
 		diskCID,
 	)
 	if err != nil {
-		return bosherr.WrapError(err, "Calling CPI 'attach_disk' method")
+		return deviceBlockId, bosherr.WrapError(err, "Calling CPI 'attach_disk' method")
 	}
 
 	if cmdOutput.Error != nil {
-		return NewCPIError(method, *cmdOutput.Error)
+		return deviceBlockId, NewCPIError(method, *cmdOutput.Error)
 	}
 
-	return nil
+	if vm != nil {
+		stemcellApiVersion = vm.Stemcell.ApiVersion
+	}
+
+	if cpiInfo.ApiVersion == MaxCpiApiVersionSupported &&
+		stemcellApiVersion == StemcellPrefersMetadataVersion {
+		result, ok := cmdOutput.Result.(string)
+		if ok {
+			deviceBlockId = result
+		}
+	}
+
+	return deviceBlockId, nil
 }
 
 func (c cloud) DetachDisk(vmCID, diskCID string) error {

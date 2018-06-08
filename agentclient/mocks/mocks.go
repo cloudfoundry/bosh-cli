@@ -110,15 +110,15 @@ func (mr *MockAgentClientMockRecorder) MigrateDisk() *gomock.Call {
 }
 
 // MountDisk mocks base method
-func (m *MockAgentClient) MountDisk(arg0 string) error {
-	ret := m.ctrl.Call(m, "MountDisk", arg0)
+func (m *MockAgentClient) MountDisk(arg0, arg1 string) error {
+	ret := m.ctrl.Call(m, "MountDisk", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // MountDisk indicates an expected call of MountDisk
-func (mr *MockAgentClientMockRecorder) MountDisk(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MountDisk", reflect.TypeOf((*MockAgentClient)(nil).MountDisk), arg0)
+func (mr *MockAgentClientMockRecorder) MountDisk(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MountDisk", reflect.TypeOf((*MockAgentClient)(nil).MountDisk), arg0, arg1)
 }
 
 // Ping mocks base method

@@ -174,7 +174,7 @@ func (vm *vm) WaitToBeRunning(maxAttempts int, delay time.Duration) error {
 }
 
 func (vm *vm) AttachDisk(disk bidisk.Disk) error {
-	err := vm.cloud.AttachDisk(vm.cid, disk.CID())
+	deviceBlockId, err := vm.cloud.AttachDisk(vm.cid, disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Attaching disk in the cloud")
 	}
@@ -194,7 +194,7 @@ func (vm *vm) AttachDisk(disk bidisk.Disk) error {
 		return bosherr.WrapError(err, "Waiting for agent to be accessible after attaching disk")
 	}
 
-	err = vm.agentClient.MountDisk(disk.CID())
+	err = vm.agentClient.MountDisk(disk.CID(), deviceBlockId)
 	if err != nil {
 		return bosherr.WrapError(err, "Mounting disk")
 	}
