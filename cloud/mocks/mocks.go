@@ -36,9 +36,9 @@ func (m *MockCloud) EXPECT() *MockCloudMockRecorder {
 }
 
 // AttachDisk mocks base method
-func (m *MockCloud) AttachDisk(arg0, arg1 string) (string, error) {
+func (m *MockCloud) AttachDisk(arg0, arg1 string) (interface{}, error) {
 	ret := m.ctrl.Call(m, "AttachDisk", arg0, arg1)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(interface{})
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

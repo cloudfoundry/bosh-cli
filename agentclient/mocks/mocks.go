@@ -110,7 +110,7 @@ func (mr *MockAgentClientMockRecorder) MigrateDisk() *gomock.Call {
 }
 
 // MountDisk mocks base method
-func (m *MockAgentClient) MountDisk(arg0, arg1 string) error {
+func (m *MockAgentClient) MountDisk(arg0 string, arg1 interface{}) error {
 	ret := m.ctrl.Call(m, "MountDisk", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0

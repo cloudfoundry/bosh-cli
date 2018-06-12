@@ -10,7 +10,7 @@ type AgentClient interface {
 	Apply(applyspec.ApplySpec) error
 	Start() error
 	GetState() (AgentState, error)
-	MountDisk(string, string) error
+	MountDisk(string, interface{}) error
 	UnmountDisk(string) error
 	ListDisk() ([]string, error)
 	MigrateDisk() error

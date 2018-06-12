@@ -43,11 +43,11 @@ type FakeAgentClient struct {
 		result1 agentclient.AgentState
 		result2 error
 	}
-	MountDiskStub        func(string, string) error
+	MountDiskStub        func(string, interface{}) error
 	mountDiskMutex       sync.RWMutex
 	mountDiskArgsForCall []struct {
 		arg1 string
-		arg2 string
+		arg2 interface{}
 	}
 	mountDiskReturns struct {
 		result1 error
@@ -250,11 +250,11 @@ func (fake *FakeAgentClient) GetStateReturns(result1 agentclient.AgentState, res
 	}{result1, result2}
 }
 
-func (fake *FakeAgentClient) MountDisk(arg1 string, arg2 string) error {
+func (fake *FakeAgentClient) MountDisk(arg1 string, arg2 interface{}) error {
 	fake.mountDiskMutex.Lock()
 	fake.mountDiskArgsForCall = append(fake.mountDiskArgsForCall, struct {
 		arg1 string
-		arg2 string
+		arg2 interface{}
 	}{arg1, arg2})
 	fake.recordInvocation("MountDisk", []interface{}{arg1, arg2})
 	fake.mountDiskMutex.Unlock()
@@ -271,7 +271,7 @@ func (fake *FakeAgentClient) MountDiskCallCount() int {
 	return len(fake.mountDiskArgsForCall)
 }
 
-func (fake *FakeAgentClient) MountDiskArgsForCall(i int) (string, string) {
+func (fake *FakeAgentClient) MountDiskArgsForCall(i int) (string, interface{}) {
 	fake.mountDiskMutex.RLock()
 	defer fake.mountDiskMutex.RUnlock()
 	return fake.mountDiskArgsForCall[i].arg1, fake.mountDiskArgsForCall[i].arg2

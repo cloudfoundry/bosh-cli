@@ -114,8 +114,8 @@ func (c *AgentClient) ListDisk() ([]string, error) {
 	return response.Value, nil
 }
 
-func (c *AgentClient) MountDisk(diskCID string, deviceBlockId string) error {
-	_, err := c.SendAsyncTaskMessage("mount_disk", []interface{}{diskCID})
+func (c *AgentClient) MountDisk(diskCID string, diskHints interface{}) error {
+	_, err := c.SendAsyncTaskMessage("mount_disk", []interface{}{diskCID, diskHints})
 	return err
 }
 
