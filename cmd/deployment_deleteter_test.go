@@ -90,7 +90,7 @@ var _ = Describe("DeploymentDeleter", func() {
 			expectNewCloud   *gomock.Call
 
 			mbusURL                     = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
-			stemcellApiVersionForDelete = 0
+			stemcellApiVersionForDelete = 1
 		)
 
 		var certificate = `-----BEGIN CERTIFICATE-----
@@ -360,6 +360,8 @@ cloud_provider:
 
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
+
+			stemcellApiVersionForDelete = 1
 		})
 
 		JustBeforeEach(func() {
@@ -367,6 +369,7 @@ cloud_provider:
 		})
 
 		Context("when the CPI installs", func() {
+
 			JustBeforeEach(func() {
 				allowCPIToBeInstalled()
 			})
@@ -393,6 +396,29 @@ cloud_provider:
 					// create deployment manifest yaml file
 					setupDeploymentStateService.Save(biconfig.DeploymentState{
 						DirectorID: directorID,
+					})
+				})
+
+				Context("stemcell version is 2 and present in deployment state", func() {
+					BeforeEach(func() {
+						setupDeploymentStateService.Save(biconfig.DeploymentState{
+							DirectorID:        directorID,
+							CurrentStemcellID: "stemcell-id",
+							Stemcells: []biconfig.StemcellRecord{
+								{
+									ID:         "stemcell-id",
+									ApiVersion: "2",
+								},
+							},
+						})
+
+						stemcellApiVersionForDelete = 2
+					})
+
+					It("sets stemcell version for cloud", func() {
+						expectDeleteAndCleanup(true)
+						err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+						Expect(err).ToNot(HaveOccurred())
 					})
 				})
 
@@ -465,7 +491,6 @@ cloud_provider:
 
 					Expect(fs.FileExists(deploymentStatePath)).To(BeFalse())
 				})
-
 			})
 
 			Context("when nothing has been deployed", func() {

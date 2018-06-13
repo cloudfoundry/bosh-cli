@@ -1076,5 +1076,28 @@ var _ = Describe("CreateEnvCmd", func() {
 				Expect(deploymentState.CurrentReleaseIDs).To(Equal([]string{}))
 			})
 		})
+
+		Context("when there is no stemcell version in the stemcell manifest", func() {
+			BeforeEach(func() {
+				extractedStemcell = bistemcell.NewExtractedStemcell(
+					bistemcell.Manifest{
+						Name:            "fake-stemcell-name",
+						Version:         "fake-stemcell-version",
+						SHA1:            "fake-stemcell-sha1",
+						CloudProperties: biproperty.Map{},
+					},
+					"fake-extracted-path",
+					nil,
+					fs,
+				)
+
+				stemcellApiVersion = 1
+			})
+
+			It("should default to 1 for stemcell api version", func() {
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
 	})
 })

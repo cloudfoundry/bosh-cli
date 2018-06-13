@@ -14,7 +14,7 @@ type CmdInput struct {
 	Method     string        `json:"method"`
 	Arguments  []interface{} `json:"arguments"`
 	Context    CmdContext    `json:"context"`
-	ApiVersion int           `json:"api_version"`
+	ApiVersion int           `json:"api_version,omitempty"`
 }
 
 //vm_context = {'vm' => {'stemcell' => { 'api_version' => @stemcell_api_version }}}

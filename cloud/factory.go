@@ -44,6 +44,5 @@ func (f *factory) NewCloud(installation biinstall.Installation, directorID strin
 	}
 
 	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, cpi, f.logger)
-	//Need to pass stemcellversion to initialized??
 	return NewCloud(cpiCmdRunner, directorID, stemcellApiVersion, f.logger), nil
 }

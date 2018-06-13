@@ -216,7 +216,7 @@ func (c *DeploymentPreparer) deploy(
 	manifestSHA string,
 	stage biui.Stage,
 ) (err error) {
-	stemcellApiVersion := 0
+	stemcellApiVersion := 1
 	if extractedStemcell.Manifest().ApiVersion != "" {
 		stemcellApiVersion, err = strconv.Atoi(extractedStemcell.Manifest().ApiVersion)
 		if err != nil {

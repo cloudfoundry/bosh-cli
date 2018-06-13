@@ -68,13 +68,12 @@ var _ = Describe("CpiCmdRunner", func() {
 				`{` +
 					`"method":"fake-method",` +
 					`"arguments":["fake-argument-1","fake-argument-2"],` +
-					`"context":{"director_uuid":"fake-director-id"},` +
-					`"api_version":0` +
+					`"context":{"director_uuid":"fake-director-id"}` +
 					`}`,
 			))
 		})
 
-		Context("when stemcell api_version is sepcified in context", func() {
+		Context("when stemcell api_version is specified in context", func() {
 			BeforeEach(func() {
 				context = CmdContext{
 					DirectorID: "fake-director-id",
@@ -116,8 +115,7 @@ var _ = Describe("CpiCmdRunner", func() {
 					`{` +
 						`"method":"fake-method",` +
 						`"arguments":["fake-argument-1","fake-argument-2"],` +
-						`"context":{"director_uuid":"fake-director-id","vm":{"stemcell":{"api_version":2}}},` +
-						`"api_version":0` +
+						`"context":{"director_uuid":"fake-director-id","vm":{"stemcell":{"api_version":2}}}` +
 						`}`,
 				))
 			})
@@ -134,6 +132,7 @@ var _ = Describe("CpiCmdRunner", func() {
 						},
 					},
 				}
+				cpiApiVersion = 2
 			})
 
 			It("creates correct command with stemcell api_version in context", func() {
@@ -167,7 +166,7 @@ var _ = Describe("CpiCmdRunner", func() {
 						`"method":"fake-method",` +
 						`"arguments":["fake-argument-1","fake-argument-2"],` +
 						`"context":{"director_uuid":"fake-director-id","vm":{"stemcell":{"api_version":2}}},` +
-						`"api_version":0` +
+						`"api_version":2` +
 						`}`,
 				))
 			})

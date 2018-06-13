@@ -203,13 +203,9 @@ func (c *FakeCloud) DeleteDisk(diskCID string) error {
 	return c.DeleteDiskErr
 }
 
-func (c *FakeCloud) Info() (cpiInfo cloud.CpiInfo, err error) {
+func (c *FakeCloud) Info() (cpiInfo cloud.CpiInfo) {
 	c.infoArgsForCall = append(c.infoArgsForCall, struct{}{})
-	if c.InfoStub != nil {
-		return c.InfoStub()
-	} else {
-		return c.infoReturns.result1, c.infoReturns.result2
-	}
+	return c.infoReturns.result1
 }
 
 func (c *FakeCloud) String() string {
