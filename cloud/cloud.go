@@ -397,14 +397,14 @@ func (c cloud) infoParser(cmdOutput CmdOutput) (cpiInfo CpiInfo, err error) {
 		}
 		cpiInfo.StemcellFormats = formats
 	} else {
-		return c.raiseParsingError(fmt.Sprintf("%s", cmdOutput))
+		return c.raiseParsingError(fmt.Sprintf("Extracting stemcell_formats %s", cmdOutput))
 	}
 
 	cpiInfo.ApiVersion = DefaultCPIVersion
 
 	if apiVersion, ok := data["api_version"]; ok {
 		if cpiInfo.ApiVersion, ok = apiVersion.(int); !ok {
-			return c.raiseParsingError(fmt.Sprintf("%s", cmdOutput))
+			return c.raiseParsingError(fmt.Sprintf("Extracting api_version %s", cmdOutput))
 		}
 	}
 
