@@ -29,6 +29,7 @@ jobs:
     public: true
     plan:
       - aggregate:
+        - get: bosh-warden-stemcell-agentv2
         - get: bosh-cli
           passed: [test-unit,test-integration]
           trigger: true
@@ -96,10 +97,22 @@ resources:
       branch: external-cpi-refactor
       private_key: {{concourse_github_private_key}}
 
+#  - name: bosh-warden-cpi-release
+#    type: bosh-io-release
+#    source:
+#      repository: cppforlife/bosh-warden-cpi-release
+
   - name: bosh-warden-cpi-release
-    type: bosh-io-release
+    type: s3
     source:
-      repository: cppforlife/bosh-warden-cpi-release
+      bucket: bosh-toronto-warden-cpi-v2
+      regexp: bosh-warden-cpiv2-(.*).tgz
+
+  - name: bosh-warden-stemcell-agentv2
+    type: s3
+    source:
+      bucket: bosh-toronto-bag
+      regexp: bosh-registry-removal/stemcells/warden/bosh-stemcell-(3546.3)-warden-boshlite-ubuntu-trusty-go_agent.tgz
 
   - name: integration-tests-parallel-runtime
     type: s3

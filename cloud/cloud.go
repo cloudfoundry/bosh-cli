@@ -69,6 +69,9 @@ func NewCloud(
 			},
 		}
 	}
+
+	logger.Debug("cloud", "Init cloud with stemcell version: %v", stemcellApiVersion)
+
 	return cloud{
 		cpiCmdRunner: cpiCmdRunner,
 		context:      cmdContext,
@@ -372,6 +375,8 @@ func (c cloud) Info() (cpiInfo CpiInfo) {
 		return defaultResponse
 	}
 
+	c.logger.Info(c.logTag, "CPI Info resulted in %v", cpiInfo)
+
 	return cpiInfo
 }
 
@@ -382,6 +387,8 @@ func (c cloud) infoParser(cmdOutput CmdOutput) (cpiInfo CpiInfo, err error) {
 	if !ok {
 		return c.raiseParsingError(fmt.Sprintf("%s", cmdOutput))
 	}
+
+	c.logger.Info(c.logTag, "CPI Info returned %v", data)
 
 	if stemcellFormats, ok := data["stemcell_formats"].([]interface{}); ok {
 		formats := []string{}

@@ -287,6 +287,10 @@ var _ = Describe("bosh", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
+	AfterEach(func() {
+		sshCmdRunner.RunCommand(cmdEnv, testEnv.Path("bosh"), "logs")
+	})
+
 	Context("when deploying with a compiled release", func() {
 		AfterEach(func() {
 			flushLog(cmdEnv["BOSH_LOG_PATH"])
