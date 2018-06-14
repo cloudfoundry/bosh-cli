@@ -34,7 +34,7 @@ var _ = Describe("Cloud", func() {
 		}
 		infoResultWithApiV2 = map[string]interface{}{
 			"stemcell_formats": []interface{}{"aws-raw", "aws-light"},
-			"api_version":      2,
+			"api_version":      float64(2),
 		}
 	})
 
@@ -140,7 +140,7 @@ var _ = Describe("Cloud", func() {
 				It("should return MAX supported version by CLI", func() {
 					infoResult = map[string]interface{}{
 						"stemcell_formats": []interface{}{"aws-raw", "aws-light"},
-						"api_version":      42,
+						"api_version":      float64(42),
 					}
 					infoParsed := CpiInfo{
 						StemcellFormats: []string{"aws-raw", "aws-light"},

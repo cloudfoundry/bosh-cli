@@ -403,7 +403,9 @@ func (c cloud) infoParser(cmdOutput CmdOutput) (cpiInfo CpiInfo, err error) {
 	cpiInfo.ApiVersion = DefaultCPIVersion
 
 	if apiVersion, ok := data["api_version"]; ok {
-		if cpiInfo.ApiVersion, ok = apiVersion.(int); !ok {
+		if fltVersion, ok := apiVersion.(float64); ok {
+			cpiInfo.ApiVersion = int(fltVersion)
+		} else {
 			return c.raiseParsingError(fmt.Sprintf("Extracting api_version %s", cmdOutput))
 		}
 	}
