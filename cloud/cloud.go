@@ -12,7 +12,7 @@ const MaxCpiApiVersionSupported = 2
 
 // The agent on stemcells with version 2
 // will avoid the registry IFF CPI and Director support CPI API v2 (above)
-const StemcellNoRegistryVersion = 2
+const StemcellNoRegistryAsOfVersion = 2
 const DefaultCPIVersion = 1
 const CPIAPIVersionOmit = 0
 
@@ -61,13 +61,9 @@ func NewCloud(
 	logger boshlog.Logger,
 ) Cloud {
 
-	cmdContext := CmdContext{DirectorID: directorID}
-	if stemcellApiVersion > 0 {
-		cmdContext.VM = &VM{
-			Stemcell: &Stemcell{
-				ApiVersion: stemcellApiVersion,
-			},
-		}
+	cmdContext := CmdContext{
+		DirectorID:         directorID,
+		StemcellApiVersion: stemcellApiVersion,
 	}
 
 	logger.Debug("cloud", "Init cloud with stemcell version: %v", stemcellApiVersion)
@@ -84,7 +80,7 @@ func (c cloud) CreateStemcell(imagePath string, cloudProperties biproperty.Map) 
 	c.logger.Debug(c.logTag, "Creating stemcell")
 
 	method := "create_stemcell"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.Info().ApiVersion, imagePath, cloudProperties)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, imagePath, cloudProperties)
 	if err != nil {
 		return "", err
 	}
@@ -105,7 +101,7 @@ func (c cloud) DeleteStemcell(stemcellCID string) error {
 	c.logger.Debug(c.logTag, "Deleting stemcell '%s'", stemcellCID)
 
 	method := "delete_stemcell"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.Info().ApiVersion, stemcellCID)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, stemcellCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Calling CPI 'delete_stemcell' method")
 	}
@@ -119,7 +115,7 @@ func (c cloud) DeleteStemcell(stemcellCID string) error {
 
 func (c cloud) HasVM(vmCID string) (bool, error) {
 	method := "has_vm"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.Info().ApiVersion, vmCID)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, vmCID)
 	if err != nil {
 		return false, err
 	}
@@ -143,19 +139,15 @@ func (c cloud) CreateVM(
 	env biproperty.Map,
 ) (string, error) {
 	var (
-		ok                 = true
-		cidString          string
-		stemcellApiVersion int
-		method             = "create_vm"
-		diskLocality       = []interface{}{} // not used with bosh-init
+		ok           = true
+		cidString    string
+		method       = "create_vm"
+		diskLocality = []interface{}{} // not used with bosh-init
 	)
-
-	cpiInfo := c.Info()
 
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		method,
-		cpiInfo.ApiVersion,
 		agentID,
 		stemcellCID,
 		cloudProperties,
@@ -163,6 +155,7 @@ func (c cloud) CreateVM(
 		diskLocality,
 		env,
 	)
+
 	if err != nil {
 		return "", err
 	}
@@ -171,14 +164,9 @@ func (c cloud) CreateVM(
 		return "", NewCPIError(method, *cmdOutput.Error)
 	}
 
-	vm := c.context.VM
-	if vm != nil {
-		stemcellApiVersion = vm.Stemcell.ApiVersion
-	}
-
-	if c.shouldInterpretV2Response(stemcellApiVersion, cpiInfo.ApiVersion) {
-		result, ok := cmdOutput.Result.([]string)
-		if ok {
+	if c.shouldInterpretNonRegistryResponse(c.context.StemcellApiVersion, c.Info().ApiVersion) {
+		// TODO [vm_cid string, networks {}]; Networks is currently unused
+		if result, ok := cmdOutput.Result.([]string); ok {
 			cidString = result[0]
 		}
 	} else {
@@ -196,7 +184,6 @@ func (c cloud) SetVMMetadata(vmCID string, metadata VMMetadata) error {
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		"set_vm_metadata",
-		c.Info().ApiVersion,
 		vmCID,
 		metadata,
 	)
@@ -216,7 +203,6 @@ func (c cloud) SetDiskMetadata(diskCID string, metadata DiskMetadata) error {
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		"set_disk_metadata",
-		c.Info().ApiVersion,
 		diskCID,
 		metadata,
 	)
@@ -244,11 +230,11 @@ func (c cloud) CreateDisk(size int, cloudProperties biproperty.Map, vmCID string
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		method,
-		c.Info().ApiVersion,
 		size,
 		cloudProperties,
 		vmCID,
 	)
+
 	if err != nil {
 		return "", err
 	}
@@ -266,22 +252,18 @@ func (c cloud) CreateDisk(size int, cloudProperties biproperty.Map, vmCID string
 
 func (c cloud) AttachDisk(vmCID, diskCID string) (interface{}, error) {
 	var (
-		diskHint           interface{}
-		method             = "attach_disk"
-		vm                 = c.context.VM
-		stemcellApiVersion = 1
+		diskHint interface{}
+		method   = "attach_disk"
 	)
 	c.logger.Debug(c.logTag, "Attaching disk '%s' to vm '%s'", diskCID, vmCID)
-
-	cpiInfo := c.Info()
 
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		method,
-		cpiInfo.ApiVersion,
 		vmCID,
 		diskCID,
 	)
+
 	if err != nil {
 		return diskHint, bosherr.WrapError(err, "Calling CPI 'attach_disk' method")
 	}
@@ -290,13 +272,8 @@ func (c cloud) AttachDisk(vmCID, diskCID string) (interface{}, error) {
 		return diskHint, NewCPIError(method, *cmdOutput.Error)
 	}
 
-	if vm != nil {
-		stemcellApiVersion = vm.Stemcell.ApiVersion
-	}
-
-	if c.shouldInterpretV2Response(stemcellApiVersion, cpiInfo.ApiVersion) {
-		result, ok := cmdOutput.Result.(string)
-		if ok {
+	if c.shouldInterpretNonRegistryResponse(c.context.StemcellApiVersion, c.Info().ApiVersion) {
+		if result, ok := cmdOutput.Result.(string); ok {
 			diskHint = result
 		}
 	}
@@ -311,7 +288,6 @@ func (c cloud) DetachDisk(vmCID, diskCID string) error {
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		method,
-		c.Info().ApiVersion,
 		vmCID,
 		diskCID,
 	)
@@ -330,7 +306,7 @@ func (c cloud) DeleteVM(vmCID string) error {
 	c.logger.Debug(c.logTag, "Deleting vm '%s'", vmCID)
 
 	method := "delete_vm"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.Info().ApiVersion, vmCID)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, vmCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Calling CPI 'delete_vm' method")
 	}
@@ -345,7 +321,7 @@ func (c cloud) DeleteVM(vmCID string) error {
 func (c cloud) DeleteDisk(diskCID string) error {
 	c.logger.Debug(c.logTag, "Deleting disk '%s'", diskCID)
 	method := "delete_disk"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.Info().ApiVersion, diskCID)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, diskCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Calling CPI 'delete_disk' method")
 	}
@@ -361,7 +337,7 @@ func (c cloud) Info() (cpiInfo CpiInfo) {
 	c.logger.Debug(c.logTag, "Info")
 
 	method := "info"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, CPIAPIVersionOmit, " ")
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, " ")
 
 	defaultResponse := CpiInfo{StemcellFormats: []string{}, ApiVersion: 1}
 
@@ -414,10 +390,6 @@ func (c cloud) infoParser(cmdOutput CmdOutput) (cpiInfo CpiInfo, err error) {
 		cpiInfo.ApiVersion = MaxCpiApiVersionSupported
 	}
 
-	if c.context.VM == nil || c.context.VM.Stemcell.ApiVersion < StemcellNoRegistryVersion {
-		cpiInfo.ApiVersion = DefaultCPIVersion
-	}
-
 	return cpiInfo, err
 }
 
@@ -430,6 +402,6 @@ func (c cloud) String() string {
 	return fmt.Sprintf("Cloud{Context=%s}", c.context)
 }
 
-func (c cloud) shouldInterpretV2Response(stemcellVersion int, cpiApiVersion int) bool {
-	return stemcellVersion == StemcellNoRegistryVersion && cpiApiVersion == MaxCpiApiVersionSupported
+func (c cloud) shouldInterpretNonRegistryResponse(stemcellVersion int, cpiApiVersion int) bool {
+	return stemcellVersion >= StemcellNoRegistryAsOfVersion && cpiApiVersion == MaxCpiApiVersionSupported
 }

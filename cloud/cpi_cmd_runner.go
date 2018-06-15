@@ -11,16 +11,14 @@ import (
 )
 
 type CmdInput struct {
-	Method     string        `json:"method"`
-	Arguments  []interface{} `json:"arguments"`
-	Context    CmdContext    `json:"context"`
-	ApiVersion int           `json:"api_version,omitempty"`
+	Method    string        `json:"method"`
+	Arguments []interface{} `json:"arguments"`
+	Context   CmdContext    `json:"context"`
 }
 
-//vm_context = {'vm' => {'stemcell' => { 'api_version' => @stemcell_api_version }}}
 type CmdContext struct {
-	DirectorID string `json:"director_uuid"`
-	VM         *VM    `json:"vm,omitempty"`
+	DirectorID         string `json:"director_uuid"`
+	StemcellApiVersion int    `json:"sc_api_version"`
 }
 
 type VM struct {
@@ -60,7 +58,7 @@ type CmdOutput struct {
 }
 
 type CPICmdRunner interface {
-	Run(context CmdContext, method string, cpiApiVersion int, args ...interface{}) (CmdOutput, error)
+	Run(context CmdContext, method string, args ...interface{}) (CmdOutput, error)
 }
 
 type cpiCmdRunner struct {
@@ -83,12 +81,11 @@ func NewCPICmdRunner(
 	}
 }
 
-func (r *cpiCmdRunner) Run(context CmdContext, method string, cpiApiVersion int, args ...interface{}) (CmdOutput, error) {
+func (r *cpiCmdRunner) Run(context CmdContext, method string, args ...interface{}) (CmdOutput, error) {
 	cmdInput := CmdInput{
-		Method:     method,
-		Arguments:  args,
-		Context:    context,
-		ApiVersion: cpiApiVersion,
+		Method:    method,
+		Arguments: args,
+		Context:   context,
 	}
 	inputBytes, err := json.Marshal(cmdInput)
 	if err != nil {
