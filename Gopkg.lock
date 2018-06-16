@@ -66,8 +66,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "c9af76f2478f81c6566d0f7f4d522254ec7c0b52"
-  version = "v1.14.3"
+  revision = "bfc1a07cf158c30c41a3eefba8aae043d0bb5bff"
+  version = "v1.14.8"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -96,8 +96,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "23619f90f3a72e223f92449e2dc6378aaab0599b"
-  version = "v2.111.0"
+  revision = "e2d2cb8ba88f22b6966e6234cf1e3734e7426226"
+  version = "v2.114.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -361,8 +361,8 @@
 [[projects]]
   name = "go.opencensus.io"
   packages = [
+    ".",
     "exporter/stackdriver/propagation",
-    "exporterutil",
     "internal",
     "internal/tagencoding",
     "plugin/ochttp",
@@ -375,8 +375,8 @@
     "trace/internal",
     "trace/propagation"
   ]
-  revision = "5897c5ce32247fc8af19c7710abd96e3304fb43c"
-  version = "v0.12.0"
+  revision = "6edeb78af2d9e4f169abb223feaef35da2e45d06"
+  version = "v0.13.0"
 
 [[projects]]
   branch = "master"
@@ -386,11 +386,12 @@
     "ed25519",
     "ed25519/internal/edwards25519",
     "internal/chacha20",
+    "internal/subtle",
     "poly1305",
     "ssh",
     "ssh/terminal"
   ]
-  revision = "8ac0e0d97ce45cd83d1d7243c060cb8461dda5e9"
+  revision = "a8fb68e7206f8c78be19b432c58eb52a6aa34462"
 
 [[projects]]
   branch = "master"
@@ -410,7 +411,7 @@
     "proxy",
     "trace"
   ]
-  revision = "1e491301e022f8f977054da4c2d852decd59571f"
+  revision = "db08ff08e8622530d9ed3a0e8ac279f6d4c02196"
 
 [[projects]]
   branch = "master"
@@ -431,7 +432,7 @@
     "unix",
     "windows"
   ]
-  revision = "9527bec2660bd847c050fda93a0f0c6dee0800bb"
+  revision = "6c888cc515d3ed83fc103cf1d84468aad274b0a7"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -474,7 +475,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "c65208ee29128450a4a024e3b7710f3a8d14028d"
+  revision = "465e6f399236d0ea2466584539d4eab4d3d83720"
 
 [[projects]]
   branch = "master"
@@ -490,7 +491,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "4d8a15a217e46f47fb724569d74702bec99852d3"
+  revision = "2eea9ba0a3d94f6ab46508083e299a00bbbc65f6"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -506,8 +507,8 @@
     "internal/urlfetch",
     "urlfetch"
   ]
-  revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
-  version = "v1.0.0"
+  revision = "b1f26356af11148e710935ed1ac8a7f5702c7612"
+  version = "v1.1.0"
 
 [[projects]]
   branch = "master"
