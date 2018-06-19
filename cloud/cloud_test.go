@@ -396,16 +396,34 @@ var _ = Describe("Cloud", func() {
 				Expect(cid).To(Equal("fake-vm-cid"))
 			})
 
-			Context("when stemcell api_version is 2", func() {
+			Context("when stemcell api_version is 2 and cpi api_version is 2", func() {
 				BeforeEach(func() {
+					var networks interface{}
+
+					fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
+						{
+							Result: []interface{}{"fake-vm-cid", networks},
+						},
+						{
+							Result: infoResultWithApiV2,
+						},
+					}
 					stemcellApiVersion = 2
 				})
 
-				Context("when cpi api_version is 2", func() {
+				It("returns the vm cid", func() {
+					cid, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(cid).To(Equal("fake-vm-cid"))
+				})
+
+				Context("when the cpi's response is unexpected", func() {
 					BeforeEach(func() {
+						var networkHash = "can be anything, not checked right now"
 						fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
 							{
-								Result: []string{"fake-vm-cid", "network-hash"},
+								// result: [vm-cid, network-hash{}]
+								Result: []interface{}{1, networkHash},
 							},
 							{
 								Result: infoResultWithApiV2,
@@ -413,10 +431,10 @@ var _ = Describe("Cloud", func() {
 						}
 					})
 
-					It("returns the vm cid", func() {
-						cid, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env)
-						Expect(err).NotTo(HaveOccurred())
-						Expect(cid).To(Equal("fake-vm-cid"))
+					It("returns error", func() {
+						_, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("Unexpected external CPI command result: '[]interface {}"))
 					})
 				})
 			})

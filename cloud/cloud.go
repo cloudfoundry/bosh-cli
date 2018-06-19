@@ -14,7 +14,6 @@ const MaxCpiApiVersionSupported = 2
 // will avoid the registry IFF CPI and Director support CPI API v2 (above)
 const StemcellNoRegistryAsOfVersion = 2
 const DefaultCPIVersion = 1
-const CPIAPIVersionOmit = 0
 
 type Cloud interface {
 	CreateStemcell(imagePath string, cloudProperties biproperty.Map) (stemcellCID string, err error)
@@ -139,7 +138,7 @@ func (c cloud) CreateVM(
 	env biproperty.Map,
 ) (string, error) {
 	var (
-		ok           = true
+		ok           bool
 		cidString    string
 		method       = "create_vm"
 		diskLocality = []interface{}{} // not used with bosh-init
@@ -164,10 +163,11 @@ func (c cloud) CreateVM(
 		return "", NewCPIError(method, *cmdOutput.Error)
 	}
 
+
 	if c.shouldInterpretNonRegistryResponse(c.context.StemcellApiVersion, c.Info().ApiVersion) {
-		// TODO [vm_cid string, networks {}]; Networks is currently unused
-		if result, ok := cmdOutput.Result.([]string); ok {
-			cidString = result[0]
+		var result []interface{}
+		if result, ok = cmdOutput.Result.([]interface{}); ok {
+			cidString, ok = result[0].(string)
 		}
 	} else {
 		cidString, ok = cmdOutput.Result.(string)
