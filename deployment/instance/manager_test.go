@@ -244,24 +244,6 @@ var _ = Describe("Manager", func() {
 			}))
 		})
 
-		Context("when registry settings are empty", func() {
-			BeforeEach(func() {
-				registry = biinstallmanifest.Registry{}
-			})
-
-			It("does not start the registry", func() {
-				_, _, err := manager.Create(
-					"fake-job-name",
-					0,
-					deploymentManifest,
-					fakeCloudStemcell,
-					registry,
-					fakeStage,
-				)
-				Expect(err).ToNot(HaveOccurred())
-			})
-		})
-
 		It("waits for the vm", func() {
 			_, _, err := manager.Create(
 				"fake-job-name",

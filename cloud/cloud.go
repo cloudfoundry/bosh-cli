@@ -163,7 +163,6 @@ func (c cloud) CreateVM(
 		return "", NewCPIError(method, *cmdOutput.Error)
 	}
 
-
 	if c.shouldInterpretNonRegistryResponse(c.context.StemcellApiVersion, c.Info().ApiVersion) {
 		var result []interface{}
 		if result, ok = cmdOutput.Result.([]interface{}); ok {

@@ -191,7 +191,17 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool) 
 	}
 
 	err = c.cpiInstaller.WithInstalledCpiRelease(installationManifest, target, stage, func(installation biinstall.Installation) error {
-		return installation.WithRunningRegistry(c.logger, stage, func() error {
+		stemcellApiVersion, err := c.stemcellApiVersion(extractedStemcell)
+		if err != nil {
+			return err
+		}
+
+		cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID, stemcellApiVersion)
+		if err != nil {
+			return bosherr.WrapError(err, "Creating CPI client from CPI installation")
+		}
+
+		deploy := func(usesRegistry bool) error {
 			return c.deploy(
 				installation,
 				deploymentState,
@@ -199,12 +209,22 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool) 
 				installationManifest,
 				deploymentManifest,
 				manifestSHA,
-				stage)
-		})
+				stage,
+				cloud,
+				usesRegistry)
+		}
+
+		cpiInfo := cloud.Info()
+		if stemcellApiVersion >= bicloud.StemcellNoRegistryAsOfVersion &&
+			cpiInfo.ApiVersion == bicloud.MaxCpiApiVersionSupported {
+			return deploy(false)
+		} else {
+			return installation.WithRunningRegistry(c.logger, stage, func() error {
+				return deploy(true)
+			})
+		}
 	})
-
 	return err
-
 }
 
 func (c *DeploymentPreparer) deploy(
@@ -215,20 +235,9 @@ func (c *DeploymentPreparer) deploy(
 	deploymentManifest bideplmanifest.Manifest,
 	manifestSHA string,
 	stage biui.Stage,
+	cloud bicloud.Cloud,
+	usesRegistry bool,
 ) (err error) {
-	stemcellApiVersion := 1
-	if extractedStemcell.Manifest().ApiVersion != "" {
-		stemcellApiVersion, err = strconv.Atoi(extractedStemcell.Manifest().ApiVersion)
-		if err != nil {
-			return bosherr.WrapError(err, "Invalid stemcell api_version specified")
-		}
-	}
-
-	cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID, stemcellApiVersion)
-	if err != nil {
-		return bosherr.WrapError(err, "Creating CPI client from CPI installation")
-	}
-
 	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
 
 	cloudStemcell, err := stemcellManager.Upload(extractedStemcell, stage)
@@ -253,11 +262,16 @@ func (c *DeploymentPreparer) deploy(
 			return bosherr.WrapError(err, "Clearing deployment record")
 		}
 
+		registrySettings := installationManifest.Registry
+		if !usesRegistry {
+			registrySettings = biinstallmanifest.Registry{}
+		}
+
 		_, err = c.deployer.Deploy(
 			cloud,
 			deploymentManifest,
 			cloudStemcell,
-			installationManifest.Registry,
+			registrySettings,
 			vmManager,
 			blobstore,
 			deployStage,
@@ -285,4 +299,15 @@ func (c *DeploymentPreparer) deploy(
 	}
 
 	return nil
+}
+
+func (c *DeploymentPreparer) stemcellApiVersion(stemcell bistemcell.ExtractedStemcell) (stemcellApiVersion int, err error) {
+	stemcellApiVersion = 1
+	if stemcell.Manifest().ApiVersion != "" {
+		stemcellApiVersion, err = strconv.Atoi(stemcell.Manifest().ApiVersion)
+		if err != nil {
+			return stemcellApiVersion, bosherr.WrapError(err, "Invalid stemcell api_version specified")
+		}
+	}
+	return
 }
