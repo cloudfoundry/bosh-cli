@@ -127,7 +127,8 @@ var _ = Describe("bosh", func() {
 			deploymentStatePath    = filepath.Join("/", "deployment-dir", "fake-deployment-manifest-state.json")
 
 			stemcellCID             = "fake-stemcell-cid"
-			stemcellApiVersion      = 0
+			stemcellApiVersion      = 2
+			cpiApiVersion           = 2
 			stemcellCloudProperties = biproperty.Map{}
 
 			vmCloudProperties = biproperty.Map{}
@@ -136,7 +137,7 @@ var _ = Describe("bosh", func() {
 			diskCloudProperties = biproperty.Map{}
 
 			networkInterfaces = map[string]biproperty.Map{
-				"network-1": biproperty.Map{
+				"network-1": {
 					"type":             "dynamic",
 					"default":          []bideplmanifest.NetworkDefault{"dns", "gateway"},
 					"cloud_properties": biproperty.Map{},
@@ -494,6 +495,7 @@ cloud_provider:
 			//TODO: use a real StateBuilder and test mockBlobstore.Add & mockAgentClient.CompilePackage
 
 			gomock.InOrder(
+				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}),
 				mockCloud.EXPECT().CreateStemcell(filepath.Join("fake-stemcell-extracted-dir", "image"), stemcellCloudProperties).Return(stemcellCID, nil),
 				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(vmCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(vmCID, gomock.Any()).Return(nil),
@@ -527,6 +529,7 @@ cloud_provider:
 			expectHasVM1 = mockCloud.EXPECT().HasVM(oldVMCID).Return(true, nil)
 
 			gomock.InOrder(
+				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}),
 				expectHasVM1,
 
 				// shutdown old vm
@@ -579,6 +582,7 @@ cloud_provider:
 			expectDeleteVM1 = mockCloud.EXPECT().DeleteVM(oldVMCID)
 
 			gomock.InOrder(
+				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}),
 				mockCloud.EXPECT().HasVM(oldVMCID).Return(false, nil),
 
 				// delete old vm (without talking to agent) so that the cpi can clean up related resources
@@ -623,6 +627,7 @@ cloud_provider:
 			oldDiskCID := "fake-disk-cid-1"
 
 			gomock.InOrder(
+				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}),
 				mockCloud.EXPECT().HasVM(oldVMCID).Return(true, nil),
 
 				// shutdown old vm
@@ -657,6 +662,7 @@ cloud_provider:
 			newDiskSize := 2048
 
 			gomock.InOrder(
+				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}),
 				mockCloud.EXPECT().HasVM(oldVMCID).Return(true, nil),
 
 				// shutdown old vm
@@ -696,6 +702,7 @@ cloud_provider:
 			newDiskSize := 2048
 
 			gomock.InOrder(
+				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}),
 				mockCloud.EXPECT().HasVM(oldVMCID).Return(true, nil),
 
 				// shutdown old vm
@@ -705,7 +712,6 @@ cloud_provider:
 				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
-				// create new vm
 				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
