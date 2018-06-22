@@ -272,9 +272,7 @@ func (c cloud) AttachDisk(vmCID, diskCID string) (interface{}, error) {
 	}
 
 	if c.shouldInterpretNonRegistryResponse(c.context.StemcellApiVersion, c.Info().ApiVersion) {
-		if result, ok := cmdOutput.Result.(string); ok {
-			diskHint = result
-		}
+		diskHint = cmdOutput.Result
 	}
 
 	return diskHint, nil
