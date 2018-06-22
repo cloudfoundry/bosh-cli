@@ -11,6 +11,7 @@ import (
 	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
 
 	. "github.com/cloudfoundry/bosh-cli/cloud"
+	. "github.com/onsi/ginkgo/extensions/table"
 )
 
 var _ = Describe("Cloud", func() {
@@ -642,29 +643,36 @@ var _ = Describe("Cloud", func() {
 
 	Describe("AttachDisk", func() {
 		Context("when stemcell api version and cpi api version are 2", func() {
-			BeforeEach(func() {
-				fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
-					{Result: "/dev/sdf"},
-					{Result: infoResultWithApiV2},
-				}
-				stemcellApiVersion = 2
-			})
+			DescribeTable("parsing disk hints as different types",
+				func(inputHint interface{}, expected interface{}) {
+					fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
+						{Result: inputHint},
+						{Result: infoResultWithApiV2},
+					}
+					stemcellApiVersion = 2
 
-			It("executes the cpi job script with the correct arguments", func() {
-				diskHint, err := cloud.AttachDisk("fake-vm-cid", "fake-disk-cid")
-				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeCPICmdRunner.CurrentRunInput).To(HaveLen(2))
-				Expect(fakeCPICmdRunner.CurrentRunInput[0]).To(Equal(fakebicloud.RunInput{
-					Context: expectedContext,
-					Method:  "attach_disk",
-					Arguments: []interface{}{
-						"fake-vm-cid",
-						"fake-disk-cid",
-					},
-				}))
-				Expect(diskHint).To(Equal("/dev/sdf"))
-			})
-
+					diskHint, err := cloud.AttachDisk("fake-vm-cid", "fake-disk-cid")
+					Expect(err).NotTo(HaveOccurred())
+					Expect(fakeCPICmdRunner.CurrentRunInput).To(HaveLen(2))
+					Expect(fakeCPICmdRunner.CurrentRunInput[0]).To(Equal(fakebicloud.RunInput{
+						Context: expectedContext,
+						Method:  "attach_disk",
+						Arguments: []interface{}{
+							"fake-vm-cid",
+							"fake-disk-cid",
+						},
+					}))
+					Expect(diskHint).To(Equal(expected))
+				},
+				Entry("string", "/dev/sdf", "/dev/sdf"),
+				Entry("map", map[string]interface{}{
+					"path": "/dev/1337",
+					"lun":  "1",
+				}, map[string]interface{}{
+					"path": "/dev/1337",
+					"lun":  "1",
+				}),
+			)
 		})
 
 		Context("when the cpi successfully attaches the disk", func() {
