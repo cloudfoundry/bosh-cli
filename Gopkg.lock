@@ -96,8 +96,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "23619f90f3a72e223f92449e2dc6378aaab0599b"
-  version = "v2.111.0"
+  revision = "d33ecdb7e383fb6dc21f0c4cd367c8be9d21d26e"
+  version = "v2.117.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -295,6 +295,7 @@
   packages = [
     ".",
     "config",
+    "extensions/table",
     "ginkgo",
     "ginkgo/convert",
     "ginkgo/interrupthandler",
@@ -560,6 +561,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a27dd163ab54ef9b45c0986ffe66f34b31ff711138a204a31270bd4e09c6078b"
+  inputs-digest = "a7830376dceeac9c907d38b2f6184d5d7473f3e076ac4bed3e250b822cb44e64"
   solver-name = "gps-cdcl"
   solver-version = 1

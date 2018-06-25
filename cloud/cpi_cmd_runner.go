@@ -14,6 +14,7 @@ type CmdInput struct {
 	Method    string        `json:"method"`
 	Arguments []interface{} `json:"arguments"`
 	Context   CmdContext    `json:"context"`
+	ApiVersion   int    `json:"api_version"`
 }
 
 type CmdContext struct {
@@ -59,13 +60,15 @@ type CmdOutput struct {
 
 type CPICmdRunner interface {
 	Run(context CmdContext, method string, args ...interface{}) (CmdOutput, error)
+	SetApiVersion(apiVersion int)
 }
 
 type cpiCmdRunner struct {
-	cmdRunner boshsys.CmdRunner
-	cpi       CPI
-	logger    boshlog.Logger
-	logTag    string
+	cmdRunner  boshsys.CmdRunner
+	cpi        CPI
+	logger     boshlog.Logger
+	apiVersion int
+	logTag     string
 }
 
 func NewCPICmdRunner(
@@ -81,11 +84,16 @@ func NewCPICmdRunner(
 	}
 }
 
+func (r *cpiCmdRunner) SetApiVersion(apiVersion int) {
+	r.apiVersion = apiVersion
+}
+
 func (r *cpiCmdRunner) Run(context CmdContext, method string, args ...interface{}) (CmdOutput, error) {
 	cmdInput := CmdInput{
 		Method:    method,
 		Arguments: args,
 		Context:   context,
+		ApiVersion: r.apiVersion
 	}
 	inputBytes, err := json.Marshal(cmdInput)
 	if err != nil {
