@@ -14,17 +14,17 @@ type FakeCPICmdRunner struct {
 }
 
 type RunInput struct {
-	Context   bicloud.CmdContext
-	Method    string
-	Arguments []interface{}
+	Context    bicloud.CmdContext
+	Method     string
+	Arguments  []interface{}
+	ApiVersion int
 }
 
 func NewFakeCPICmdRunner() *FakeCPICmdRunner {
 	return &FakeCPICmdRunner{}
 }
 
-func (r *FakeCPICmdRunner) Run(context bicloud.CmdContext, method string, args ...interface{}) (bicloud.CmdOutput, error) {
-
+func (r *FakeCPICmdRunner) Run(context bicloud.CmdContext, method string, apiVersion int, args ...interface{}) (bicloud.CmdOutput, error) {
 	if len(r.RunCmdOutputs) > 0 {
 		r.CurrentRunCmdOutput = r.RunCmdOutputs[0]
 
@@ -50,9 +50,10 @@ func (r *FakeCPICmdRunner) Run(context bicloud.CmdContext, method string, args .
 	}
 
 	r.CurrentRunInput = append(r.CurrentRunInput, RunInput{
-		Context:   context,
-		Method:    method,
-		Arguments: args,
+		Context:    context,
+		Method:     method,
+		Arguments:  args,
+		ApiVersion: apiVersion,
 	})
 
 	return r.CurrentRunCmdOutput, r.CurrentRunError

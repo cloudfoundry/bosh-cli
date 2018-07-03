@@ -11,15 +11,15 @@ import (
 )
 
 type CmdInput struct {
-	Method    string        `json:"method"`
-	Arguments []interface{} `json:"arguments"`
-	Context   CmdContext    `json:"context"`
-	ApiVersion   int    `json:"api_version"`
+	Method     string        `json:"method"`
+	Arguments  []interface{} `json:"arguments"`
+	Context    CmdContext    `json:"context"`
+	ApiVersion int           `json:"api_version"`
 }
 
 type CmdContext struct {
-	DirectorID         string `json:"director_uuid"`
-	StemcellApiVersion int    `json:"sc_api_version"`
+	DirectorID string `json:"director_uuid"`
+	Vm         *VM    `json:"vm,omitempty"`
 }
 
 type VM struct {
@@ -58,9 +58,10 @@ type CmdOutput struct {
 	Log    string      `json:"log"`
 }
 
+//#go:generate counterfeiter -o fakes/fake_cpi_cmd_runner.go . CPICmdRunner
+
 type CPICmdRunner interface {
-	Run(context CmdContext, method string, args ...interface{}) (CmdOutput, error)
-	SetApiVersion(apiVersion int)
+	Run(context CmdContext, method string, apiVersion int, args ...interface{}) (CmdOutput, error)
 }
 
 type cpiCmdRunner struct {
@@ -84,16 +85,12 @@ func NewCPICmdRunner(
 	}
 }
 
-func (r *cpiCmdRunner) SetApiVersion(apiVersion int) {
-	r.apiVersion = apiVersion
-}
-
-func (r *cpiCmdRunner) Run(context CmdContext, method string, args ...interface{}) (CmdOutput, error) {
+func (r *cpiCmdRunner) Run(context CmdContext, method string, apiVersion int, args ...interface{}) (CmdOutput, error) {
 	cmdInput := CmdInput{
-		Method:    method,
-		Arguments: args,
-		Context:   context,
-		ApiVersion: r.apiVersion
+		Method:     method,
+		Arguments:  args,
+		Context:    context,
+		ApiVersion: apiVersion,
 	}
 	inputBytes, err := json.Marshal(cmdInput)
 	if err != nil {
