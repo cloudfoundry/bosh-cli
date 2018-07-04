@@ -24,7 +24,7 @@ required = ["github.com/onsi/ginkgo/ginkgo", "github.com/maxbrunsfeld/counterfei
 
 [[constraint]]
   name = "github.com/cloudfoundry/bosh-agent"
-  branch = "master"
+  branch = "registry-removal"
 
 [[constraint]]
   name = "github.com/vito/go-interact"

@@ -88,6 +88,7 @@
   version = "v1.0.25"
 
 [[projects]]
+  branch = "registry-removal"
   name = "github.com/cloudfoundry/bosh-agent"
   packages = [
     "agentclient",
@@ -96,8 +97,7 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "d33ecdb7e383fb6dc21f0c4cd367c8be9d21d26e"
-  version = "v2.117.0"
+  revision = "b805ea09504c6aebab5fe97729e06463a7baba41"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -561,6 +561,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a7830376dceeac9c907d38b2f6184d5d7473f3e076ac4bed3e250b822cb44e64"
+  inputs-digest = "94200a7703cc1507965bcd5a1bb0484cf0ae34c7f79200d30d52eae98888dfac"
   solver-name = "gps-cdcl"
   solver-version = 1
