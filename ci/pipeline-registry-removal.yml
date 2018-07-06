@@ -112,7 +112,7 @@ resources:
     type: s3
     source:
       bucket: bosh-toronto-bag
-      regexp: bosh-registry-removal/stemcells/warden/bosh-stemcell-(3546.3)-warden-boshlite-ubuntu-trusty-go_agent.tgz
+      regexp: bosh-registry-removal/stemcells/warden/bosh-stemcell-(.*)-warden-boshlite-ubuntu-trusty-go_agent.tgz
 
   - name: integration-tests-parallel-runtime
     type: s3

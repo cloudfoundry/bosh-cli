@@ -29,6 +29,6 @@ export BOSH_INIT_STEMCELL_PATH=`ls $PWD/stemcell/*.tgz`
 
 cd "$GOPATH/src/github.com/cloudfoundry/bosh-cli"
 
-start-garden
+start-garden 1> /dev/null
 
 base=$PWD ./bin/test-acceptance-with-garden

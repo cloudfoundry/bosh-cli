@@ -14,9 +14,15 @@ resource_pools:
   env:
     bosh:
       password: pjF0EjcwDTvyQ # openssl passwd -crypt sshpassword
+      authorized_keys:
+      - ((ssh_tunnel.public_key))
   stemcell:
     url: {{ .StemcellURL }}
     sha1: {{ .StemcellSHA1 }}
+
+disk_pools:
+- name: default
+  disk_size: 2048
 
 networks:
 - name: fake-network-name
@@ -36,13 +42,13 @@ cloud_provider:
     host: 10.244.0.42
     port: 22
     user: vcap
-    password: c1oudc0w
+    private_key: ((ssh_tunnel.private_key))
   mbus: https://admin:admin@10.244.0.42:6868
   properties:
     warden_cpi: &warden_cpi
       actions:
         expand_stemcell_tarball: false
-      enable_registry: true
+      enable_registry: false
       warden:
         connect_network: tcp
         connect_address: 0.0.0.0:7777
@@ -55,10 +61,10 @@ cloud_provider:
           options:
             blobstore_path: /var/vcap/micro_bosh/data/cache
 
-jobs:
+instance_groups:
 - name: dummy_job
   instances: 1
-  templates:
+  jobs:
   - {name: dummy_with_package, release: dummy}
   - {name: dummy_with_properties, release: dummy}
   - {name: dummy, release: dummy}
@@ -66,9 +72,13 @@ jobs:
   networks:
   - name: fake-network-name
     static_ips: [10.244.0.42]
-  persistent_disk: 2048
+  persistent_disk_pool: default
   properties:
     cpi: *warden_cpi
     dummy_with_properties:
       echo_value: "hi"
     ntp: []
+
+variables:
+- name: ssh_tunnel
+  type: ssh

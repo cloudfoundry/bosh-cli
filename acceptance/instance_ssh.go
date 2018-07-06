@@ -55,11 +55,13 @@ Host warden-vm
 	Hostname %s
 	User %s
 	StrictHostKeyChecking no
+    IdentityFile %s
 `
 	sshConfig := fmt.Sprintf(
 		sshConfigTemplate,
 		s.instanceIP,
 		s.instanceUsername,
+		"/tmp/test_private_key",
 	)
 
 	err = s.fileSystem.WriteFileString(sshConfigFile.Name(), sshConfig)
@@ -79,8 +81,6 @@ func (s *instanceSSH) RunCommand(cmd string) (stdout, stderr string, exitCode in
 	defer s.fileSystem.RemoveAll(sshConfigFile.Name())
 
 	return s.runner.RunCommand(
-		"sshpass",
-		"-p"+s.instancePassword,
 		"ssh",
 		"warden-vm",
 		"-F",
@@ -97,8 +97,6 @@ func (s *instanceSSH) RunCommandWithSudo(cmd string) (stdout, stderr string, exi
 	defer s.fileSystem.RemoveAll(sshConfigFile.Name())
 
 	return s.runner.RunCommand(
-		"sshpass",
-		"-p"+s.instancePassword,
 		"ssh",
 		"warden-vm",
 		"-F",
