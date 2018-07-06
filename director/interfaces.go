@@ -29,6 +29,7 @@ type Director interface {
 	Deployments() ([]Deployment, error)
 	FindDeployment(string) (Deployment, error)
 	ListDeployments() ([]DeploymentResp, error)
+	ListDeploymentConfigs(name string) ([]DeploymentConfig, bool, error)
 
 	Releases() ([]Release, error)
 	HasRelease(name, version string, stemcell OSVersionSlug) (bool, error)

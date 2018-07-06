@@ -127,7 +127,7 @@ func (c Cmd) Execute() (cmdErr error) {
 			return NewSessionFromOpts(c.BoshOpts, config, deps.UI, true, false, deps.FS, deps.Logger)
 		}
 
-		return NewDeploymentCmd(sessionFactory, c.config(), deps.UI).Run()
+		return NewDeploymentCmd(sessionFactory, c.config(), deps.UI, c.director()).Run()
 
 	case *DeploymentsOpts:
 		return NewDeploymentsCmd(deps.UI, c.director()).Run()

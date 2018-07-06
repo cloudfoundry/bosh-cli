@@ -20,6 +20,7 @@ var _ = Describe("DeploymentCmd", func() {
 		sessions map[cmdconf.Config]*fakecmd.FakeSession
 		config   *fakecmdconf.FakeConfig
 		ui       *fakeui.FakeUI
+		director *fakedir.FakeDirector
 		command  DeploymentCmd
 	)
 
@@ -30,7 +31,8 @@ var _ = Describe("DeploymentCmd", func() {
 		}
 		config = &fakecmdconf.FakeConfig{}
 		ui = &fakeui.FakeUI{}
-		command = NewDeploymentCmd(sessionFactory, config, ui)
+		director = &fakedir.FakeDirector{}
+		command = NewDeploymentCmd(sessionFactory, config, ui, director)
 	})
 
 	Describe("Run", func() {

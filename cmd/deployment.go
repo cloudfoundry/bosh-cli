@@ -9,16 +9,18 @@ import (
 type DeploymentCmd struct {
 	sessionFactory func(cmdconf.Config) Session
 
-	config cmdconf.Config
-	ui     biui.UI
+	director boshdir.Director
+	config   cmdconf.Config
+	ui       biui.UI
 }
 
 func NewDeploymentCmd(
 	sessionFactory func(cmdconf.Config) Session,
 	config cmdconf.Config,
 	ui biui.UI,
+	director boshdir.Director,
 ) DeploymentCmd {
-	return DeploymentCmd{sessionFactory: sessionFactory, config: config, ui: ui}
+	return DeploymentCmd{sessionFactory: sessionFactory, config: config, ui: ui, director: director}
 }
 
 func (c DeploymentCmd) Run() error {
@@ -29,5 +31,17 @@ func (c DeploymentCmd) Run() error {
 		return err
 	}
 
+	// check if deployment exists
+	_, err = deployment.Teams()
+	if err != nil {
+		return err
+	}
+
+	_, _, err = c.director.ListDeploymentConfigs(deployment.Name())
+	if err != nil {
+		return err
+	}
+
+	//      show configs instead of cloud configs
 	return DeploymentTable{[]boshdir.Deployment{deployment}, c.ui}.Print()
 }

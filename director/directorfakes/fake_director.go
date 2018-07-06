@@ -167,6 +167,21 @@ type FakeDirector struct {
 		result1 []director.DeploymentResp
 		result2 error
 	}
+	ListDeploymentConfigsStub        func(name string) ([]director.DeploymentConfig, bool, error)
+	listDeploymentConfigsMutex       sync.RWMutex
+	listDeploymentConfigsArgsForCall []struct {
+		name string
+	}
+	listDeploymentConfigsReturns struct {
+		result1 []director.DeploymentConfig
+		result2 bool
+		result3 error
+	}
+	listDeploymentConfigsReturnsOnCall map[int]struct {
+		result1 []director.DeploymentConfig
+		result2 bool
+		result3 error
+	}
 	ReleasesStub        func() ([]director.Release, error)
 	releasesMutex       sync.RWMutex
 	releasesArgsForCall []struct{}
@@ -1267,6 +1282,60 @@ func (fake *FakeDirector) ListDeploymentsReturnsOnCall(i int, result1 []director
 		result1 []director.DeploymentResp
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeDirector) ListDeploymentConfigs(name string) ([]director.DeploymentConfig, bool, error) {
+	fake.listDeploymentConfigsMutex.Lock()
+	ret, specificReturn := fake.listDeploymentConfigsReturnsOnCall[len(fake.listDeploymentConfigsArgsForCall)]
+	fake.listDeploymentConfigsArgsForCall = append(fake.listDeploymentConfigsArgsForCall, struct {
+		name string
+	}{name})
+	fake.recordInvocation("ListDeploymentConfigs", []interface{}{name})
+	fake.listDeploymentConfigsMutex.Unlock()
+	if fake.ListDeploymentConfigsStub != nil {
+		return fake.ListDeploymentConfigsStub(name)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	return fake.listDeploymentConfigsReturns.result1, fake.listDeploymentConfigsReturns.result2, fake.listDeploymentConfigsReturns.result3
+}
+
+func (fake *FakeDirector) ListDeploymentConfigsCallCount() int {
+	fake.listDeploymentConfigsMutex.RLock()
+	defer fake.listDeploymentConfigsMutex.RUnlock()
+	return len(fake.listDeploymentConfigsArgsForCall)
+}
+
+func (fake *FakeDirector) ListDeploymentConfigsArgsForCall(i int) string {
+	fake.listDeploymentConfigsMutex.RLock()
+	defer fake.listDeploymentConfigsMutex.RUnlock()
+	return fake.listDeploymentConfigsArgsForCall[i].name
+}
+
+func (fake *FakeDirector) ListDeploymentConfigsReturns(result1 []director.DeploymentConfig, result2 bool, result3 error) {
+	fake.ListDeploymentConfigsStub = nil
+	fake.listDeploymentConfigsReturns = struct {
+		result1 []director.DeploymentConfig
+		result2 bool
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeDirector) ListDeploymentConfigsReturnsOnCall(i int, result1 []director.DeploymentConfig, result2 bool, result3 error) {
+	fake.ListDeploymentConfigsStub = nil
+	if fake.listDeploymentConfigsReturnsOnCall == nil {
+		fake.listDeploymentConfigsReturnsOnCall = make(map[int]struct {
+			result1 []director.DeploymentConfig
+			result2 bool
+			result3 error
+		})
+	}
+	fake.listDeploymentConfigsReturnsOnCall[i] = struct {
+		result1 []director.DeploymentConfig
+		result2 bool
+		result3 error
+	}{result1, result2, result3}
 }
 
 func (fake *FakeDirector) Releases() ([]director.Release, error) {
@@ -3185,6 +3254,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.findDeploymentMutex.RUnlock()
 	fake.listDeploymentsMutex.RLock()
 	defer fake.listDeploymentsMutex.RUnlock()
+	fake.listDeploymentConfigsMutex.RLock()
+	defer fake.listDeploymentConfigsMutex.RUnlock()
 	fake.releasesMutex.RLock()
 	defer fake.releasesMutex.RUnlock()
 	fake.hasReleaseMutex.RLock()
