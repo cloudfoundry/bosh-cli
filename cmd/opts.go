@@ -116,6 +116,10 @@ type BoshOpts struct {
 	DeleteDisk DeleteDiskOpts `command:"delete-disk" description:"Delete disk"`
 	OrphanDisk OrphanDiskOpts `command:"orphan-disk" description:"Orphan disk"`
 
+	// Networks
+	Networks      NetworksOpts      `command:"networks"       description:"List networks"`
+	DeleteNetwork DeleteNetworkOpts `command:"delete-network" description:"Delete network"`
+
 	// Snapshots
 	Snapshots       SnapshotsOpts       `command:"snapshots"        description:"List snapshots"`
 	TakeSnapshot    TakeSnapshotOpts    `command:"take-snapshot"    description:"Take snapshot"`
@@ -633,6 +637,22 @@ type RunErrandOpts struct {
 
 type RunErrandArgs struct {
 	Name string `positional-arg-name:"NAME"`
+}
+
+// Networks
+
+type NetworksOpts struct {
+	Orphaned bool `long:"orphaned" short:"o" description:"List orphaned networks"`
+	cmd
+}
+
+type DeleteNetworkOpts struct {
+	Args DeleteNetworkArgs `positional-args:"true" required:"true"`
+	cmd
+}
+
+type DeleteNetworkArgs struct {
+	Name string `positional-arg-name:"name"`
 }
 
 // Disks
