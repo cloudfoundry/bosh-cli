@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/private/protocol"
 	"github.com/aws/aws-sdk-go/private/protocol/eventstream"
@@ -6062,6 +6064,7 @@ func (c *S3) SelectObjectContentRequest(input *SelectObjectContentInput) (req *r
 
 	output = &SelectObjectContentOutput{}
 	req = c.newRequest(op, input, output)
+	req.Handlers.Send.Swap(client.LogHTTPResponseHandler.Name, client.LogHTTPResponseHeaderHandler)
 	req.Handlers.Unmarshal.Swap(restxml.UnmarshalHandler.Name, rest.UnmarshalHandler)
 	req.Handlers.Unmarshal.PushBack(output.runEventStreamLoop)
 	return
@@ -7064,6 +7067,11 @@ func (s *CORSRule) SetMaxAgeSeconds(v int64) *CORSRule {
 type CSVInput struct {
 	_ struct{} `type:"structure"`
 
+	// Specifies that CSV field values may contain quoted record delimiters and
+	// such records should be allowed. Default value is FALSE. Setting this value
+	// to TRUE may lower performance.
+	AllowQuotedRecordDelimiter *bool `type:"boolean"`
+
 	// Single character used to indicate a row should be ignored when present at
 	// the start of a row.
 	Comments *string `type:"string"`
@@ -7093,6 +7101,12 @@ func (s CSVInput) String() string {
 // GoString returns the string representation
 func (s CSVInput) GoString() string {
 	return s.String()
+}
+
+// SetAllowQuotedRecordDelimiter sets the AllowQuotedRecordDelimiter field's value.
+func (s *CSVInput) SetAllowQuotedRecordDelimiter(v bool) *CSVInput {
+	s.AllowQuotedRecordDelimiter = &v
+	return s
 }
 
 // SetComments sets the Comments field's value.
@@ -7562,7 +7576,7 @@ func (s *Condition) SetKeyPrefixEquals(v string) *Condition {
 }
 
 type ContinuationEvent struct {
-	_ struct{} `type:"structure"`
+	_ struct{} `locationName:"ContinuationEvent" type:"structure"`
 }
 
 // String returns the string representation
@@ -10033,7 +10047,7 @@ func (s *EncryptionConfiguration) SetReplicaKmsKeyID(v string) *EncryptionConfig
 }
 
 type EndEvent struct {
-	_ struct{} `type:"structure"`
+	_ struct{} `locationName:"EndEvent" type:"structure"`
 }
 
 // String returns the string representation
@@ -16561,7 +16575,7 @@ func (s *Progress) SetBytesScanned(v int64) *Progress {
 }
 
 type ProgressEvent struct {
-	_ struct{} `type:"structure" payload:"Details"`
+	_ struct{} `locationName:"ProgressEvent" type:"structure" payload:"Details"`
 
 	// The Progress event details.
 	Details *Progress `locationName:"Details" type:"structure"`
@@ -16595,7 +16609,7 @@ func (s *ProgressEvent) UnmarshalEvent(
 	if err := payloadUnmarshaler.UnmarshalPayload(
 		bytes.NewReader(msg.Payload), s,
 	); err != nil {
-		return fmt.Errorf("failed to unmarshal payload, %v", err)
+		return err
 	}
 	return nil
 }
@@ -18843,7 +18857,7 @@ func (s *QueueConfigurationDeprecated) SetQueue(v string) *QueueConfigurationDep
 }
 
 type RecordsEvent struct {
-	_ struct{} `type:"structure" payload:"Payload"`
+	_ struct{} `locationName:"RecordsEvent" type:"structure" payload:"Payload"`
 
 	// The byte array of partial, one or more result records.
 	//
@@ -19887,8 +19901,11 @@ func (r *readSelectObjectContentEventStream) unmarshalerForEventType(
 	case "Stats":
 		return &StatsEvent{}, nil
 	default:
-		return nil, fmt.Errorf(
-			"unknown event type name, %s, for SelectObjectContentEventStream", eventType)
+		return nil, awserr.New(
+			request.ErrCodeSerialization,
+			fmt.Sprintf("unknown event type name, %s, for SelectObjectContentEventStream", eventType),
+			nil,
+		)
 	}
 }
 
@@ -20451,7 +20468,7 @@ func (s *Stats) SetBytesScanned(v int64) *Stats {
 }
 
 type StatsEvent struct {
-	_ struct{} `type:"structure" payload:"Details"`
+	_ struct{} `locationName:"StatsEvent" type:"structure" payload:"Details"`
 
 	// The Stats event details.
 	Details *Stats `locationName:"Details" type:"structure"`
@@ -20485,7 +20502,7 @@ func (s *StatsEvent) UnmarshalEvent(
 	if err := payloadUnmarshaler.UnmarshalPayload(
 		bytes.NewReader(msg.Payload), s,
 	); err != nil {
-		return fmt.Errorf("failed to unmarshal payload, %v", err)
+		return err
 	}
 	return nil
 }

@@ -29,5 +29,5 @@ func (c DeploymentCmd) Run() error {
 		return err
 	}
 
-	return DeploymentsTable{[]boshdir.Deployment{deployment}, c.ui}.Print()
+	return DeploymentTable{[]boshdir.Deployment{deployment}, c.ui}.Print()
 }

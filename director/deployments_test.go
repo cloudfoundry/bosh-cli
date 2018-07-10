@@ -25,6 +25,50 @@ var _ = Describe("Director", func() {
 		server.Close()
 	})
 
+	Describe("ListDeployments", func() {
+		It("tries to exclude cloud configs", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/deployments", "exclude_configs=true"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[
+  {
+    "name": "dep1-name",
+    "stemcells": [
+      {"name": "stem1-name", "version": "3147"}
+    ],
+    "releases": [
+      {"name": "rel1-name", "version": "3"},
+      {"name": "rel2-name", "version": "243"}
+    ],
+    "teams": ["team1", "team2"]
+  }
+]`),
+				),
+			)
+			deps, err := director.ListDeployments()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deps).To(HaveLen(1))
+
+			Expect(deps[0].Name).To(Equal("dep1-name"))
+
+			rels := deps[0].Releases
+			Expect(rels[0].Name).To(Equal("rel1-name"))
+			Expect(rels[0].Version).To(Equal("3"))
+			Expect(rels[1].Name).To(Equal("rel2-name"))
+			Expect(rels[1].Version).To(Equal("243"))
+
+			stems := deps[0].Stemcells
+			Expect(stems[0].Name).To(Equal("stem1-name"))
+			Expect(stems[0].Version).To(Equal("3147"))
+
+			teams := deps[0].Teams
+			Expect(len(teams)).To(Equal(2))
+			Expect(teams[0]).To(Equal("team1"))
+			Expect(teams[1]).To(Equal("team2"))
+		})
+	})
+
 	Describe("Deployments", func() {
 		It("returns deployments", func() {
 			server.AppendHandlers(

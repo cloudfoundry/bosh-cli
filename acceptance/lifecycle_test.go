@@ -26,13 +26,13 @@ const (
 
 var _ = Describe("bosh", func() {
 	var (
-		logger       boshlog.Logger
-		fileSystem   boshsys.FileSystem
-		sshCmdRunner CmdRunner
-		cmdEnv       map[string]string
-		quietCmdEnv  map[string]string
-		testEnv      Environment
-		config       *Config
+		logger          boshlog.Logger
+		fileSystem      boshsys.FileSystem
+		sshCmdRunner    CmdRunner
+		cmdEnv          map[string]string
+		quietCmdEnv     map[string]string
+		testEnv         Environment
+		config          *Config
 		extraDeployArgs []string
 
 		instanceSSH      InstanceSSH

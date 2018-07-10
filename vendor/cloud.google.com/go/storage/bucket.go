@@ -1,4 +1,4 @@
-// Copyright 2014 Google Inc. LiveAndArchived Rights Reserved.
+// Copyright 2014 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -309,7 +309,7 @@ const (
 	rfc3339Date = "2006-01-02"
 
 	// DeleteAction is a lifecycle action that deletes a live and/or archived
-	// objects. Takes precendence over SetStorageClass actions.
+	// objects. Takes precedence over SetStorageClass actions.
 	DeleteAction = "Delete"
 
 	// SetStorageClassAction changes the storage class of live and/or archived
@@ -533,6 +533,9 @@ type BucketAttrsToUpdate struct {
 	// configuration.
 	Encryption *BucketEncryption
 
+	// If set, replaces the lifecycle configuration of the bucket.
+	Lifecycle *Lifecycle
+
 	setLabels    map[string]string
 	deleteLabels map[string]bool
 }
@@ -588,6 +591,9 @@ func (ua *BucketAttrsToUpdate) toRawBucket() *raw.Bucket {
 		} else {
 			rb.Encryption = ua.Encryption.toRawBucketEncryption()
 		}
+	}
+	if ua.Lifecycle != nil {
+		rb.Lifecycle = toRawLifecycle(*ua.Lifecycle)
 	}
 	if ua.setLabels != nil || ua.deleteLabels != nil {
 		rb.Labels = map[string]string{}
