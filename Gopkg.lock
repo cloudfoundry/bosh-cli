@@ -12,8 +12,8 @@
     "internal/version",
     "storage"
   ]
-  revision = "777200caa7fb8936aed0f12b1fd79af64cc83ec9"
-  version = "v0.24.0"
+  revision = "aad3f485ee528456e0768f20397b4d9dd941e755"
+  version = "v0.25.0"
 
 [[projects]]
   branch = "master"
@@ -52,6 +52,7 @@
     "aws/signer/v4",
     "internal/sdkio",
     "internal/sdkrand",
+    "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
     "private/protocol/eventstream",
@@ -66,8 +67,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "16cb9f62f8a8b7af4f38725567f5ce762e1d562b"
-  version = "v1.14.21"
+  revision = "9e9afa0895e9daff556cc18f90dc53eb91f41ffd"
+  version = "v1.14.26"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -96,8 +97,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "a70ddb4864da0d49603e59717aa9e2ce744c3243"
-  version = "v2.123.0"
+  revision = "48f20b6d7befdf2767a66a0ec8c320fb385b9506"
+  version = "v2.124.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -150,7 +151,7 @@
     "uuid/fakes",
     "work"
   ]
-  revision = "b082aa9a81950fa8df1a969575319417b1e073f4"
+  revision = "8407325b97e759e58a377421422c476d042e0290"
 
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
@@ -200,8 +201,8 @@
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "06f5f3d67269ccec1fe5fe4134ba6e982984f7f5"
-  version = "v1.37.0"
+  revision = "358ee7663966325963d4e8b2e1fbd570c5195153"
+  version = "v1.38.1"
 
 [[projects]]
   name = "github.com/golang/mock"
@@ -411,7 +412,7 @@
     "proxy",
     "trace"
   ]
-  revision = "32a936f46389aa10549d60bd7833e54b01685d09"
+  revision = "d0887baf81f4598189d4e12a37c6da86f0bba4d0"
 
 [[projects]]
   branch = "master"
@@ -432,7 +433,7 @@
     "unix",
     "windows"
   ]
-  revision = "3c6ecd8f22c6f40fbeec94c000a069d7d87c7624"
+  revision = "1b2967e3c290b7c545b3db0deeda16e9be4f98a2"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -475,7 +476,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "827133af57adc910f5a5f91130bbc3c15a520991"
+  revision = "2087f8c10712366cfc2f4fcb1bf99eeef61ab21e"
 
 [[projects]]
   branch = "master"
@@ -491,7 +492,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "61180b1196c9b6bec3ea78396c7805bdc117dcdc"
+  revision = "781db45e5b94469718b0c615037e76333cd050e3"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -519,7 +520,7 @@
     "googleapis/rpc/code",
     "googleapis/rpc/status"
   ]
-  revision = "8b2cc369ab52e0003a878865c9372afdd6ca5c5a"
+  revision = "e92b116572682a5b432ddd840aeaba2a559eeff1"
 
 [[projects]]
   name = "google.golang.org/grpc"
