@@ -190,7 +190,7 @@
   branch = "master"
   name = "github.com/dustin/go-humanize"
   packages = ["."]
-  revision = "02af3965c54e8cacf948b97fef38925c4120652c"
+  revision = "9f541cc9db5d55bce703bd99987c9d5cb8eea45e"
 
 [[projects]]
   name = "github.com/fatih/color"
@@ -476,7 +476,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "2087f8c10712366cfc2f4fcb1bf99eeef61ab21e"
+  revision = "18e9dfbf20567d5156dd6f1dd987092c021f7fa6"
 
 [[projects]]
   branch = "master"
