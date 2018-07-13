@@ -403,5 +403,42 @@ files: [in-file1, in-file2]
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Unmarshalling package spec lock"))
 		})
+
+		Context("when the glob matches a path that contains a directory symlink", func() {
+			BeforeEach(func() {
+				fs.WriteFileString(filepath.Join("/", "dir", "spec"), `---
+name: name
+files: ["stuff/**/*"]
+`)
+				fs.WriteFileString(filepath.Join("/", "dir", "packaging"), "")
+				fs.WriteFileString(filepath.Join("/", "symlink-target", "file"), "")
+				fs.WriteFileString(filepath.Join("/", "src", "stuff", "symlink-dir", "file"), "")
+
+				fs.Symlink(
+					filepath.Join("/", "symlink-target"),
+					filepath.Join("/", "src", "stuff", "symlink-dir"),
+				)
+
+				fs.SetGlob(
+					"/src/stuff/**/*",
+					[]string{
+						filepath.Join("/", "src", "stuff", "symlink-dir"),
+						filepath.Join("/", "src", "stuff", "symlink-dir", "file"),
+					},
+				)
+				archive.FingerprintReturns("fp", nil)
+			})
+
+			It("does not include any files that are nested underneath the symlink", func() {
+				pkg, err := reader.Read(filepath.Join("/", "dir"))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
+
+				Expect(collectedFiles).To(ConsistOf([]File{
+					File{Path: filepath.Join("/", "dir", "packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "packaging", ExcludeMode: true},
+					File{Path: filepath.Join("/", "src", "stuff", "symlink-dir"), DirPath: filepath.Join("/", "src"), RelativePath: "stuff/symlink-dir", ExcludeMode: false},
+				}))
+			})
+		})
 	})
 })
