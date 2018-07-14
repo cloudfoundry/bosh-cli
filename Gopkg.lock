@@ -67,8 +67,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "9e9afa0895e9daff556cc18f90dc53eb91f41ffd"
-  version = "v1.14.26"
+  revision = "94b80148ea4b1b136682116294b151766a3b85c2"
+  version = "v1.14.27"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -125,8 +125,8 @@
     "client",
     "config"
   ]
-  revision = "0141030b5ae352c0737a6aab6fa3b790f2ca332a"
-  version = "v0.0.72"
+  revision = "4dc50e6a981c036cec6677b412981166664e1b84"
+  version = "v0.0.73"
 
 [[projects]]
   branch = "master"
