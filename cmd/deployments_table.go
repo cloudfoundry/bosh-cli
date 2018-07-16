@@ -30,11 +30,11 @@ func (t DeploymentsTable) Print() error {
 	}
 
 	for _, d := range t.Deployments {
-		releases, err := t.takeReleases(d.Releases)
+		releases, err := takeReleases(d.Releases)
 		if err != nil {
 			return err
 		}
-		stemcells, err := t.takeStemcells(d.Stemcells)
+		stemcells, err := takeStemcells(d.Stemcells)
 		if err != nil {
 			return err
 		}
@@ -52,7 +52,7 @@ func (t DeploymentsTable) Print() error {
 	return nil
 }
 
-func (t DeploymentsTable) takeReleases(rels []boshdir.DeploymentReleaseResp) ([]string, error) {
+func takeReleases(rels []boshdir.DeploymentReleaseResp) ([]string, error) {
 	var names []string
 	for _, r := range rels {
 		parsedVersion, err := semver.NewVersionFromString(r.Version)
@@ -65,7 +65,7 @@ func (t DeploymentsTable) takeReleases(rels []boshdir.DeploymentReleaseResp) ([]
 	return names, nil
 }
 
-func (t DeploymentsTable) takeStemcells(stemcells []boshdir.DeploymentStemcellResp) ([]string, error) {
+func takeStemcells(stemcells []boshdir.DeploymentStemcellResp) ([]string, error) {
 	var names []string
 	for _, s := range stemcells {
 		parsedVersion, err := semver.NewVersionFromString(s.Version)
