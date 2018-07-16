@@ -51,13 +51,6 @@ type FileSystem interface {
 	// to make newPath a symlink to the file at oldPath.
 	Symlink(oldPath, newPath string) error
 
-	// deprecated - The fake_file_system version of this method behaves differently
-	// 				than the os_file_system.  It doesn't traverse all intermediate directories
-	// 				of symlinkPath and only attempts to follow the specific file.
-	//              This method used to be called ReadLink(path) (string,error),
-	//              which was misleading. This method errors when the target exists,
-	//			    unlike the os.Readlink method (lower case l). This method should
-	//              probably just go away.
 	ReadAndFollowLink(symlinkPath string) (targetPath string, err error)
 	Readlink(symlinkPath string) (targetPath string, err error)
 

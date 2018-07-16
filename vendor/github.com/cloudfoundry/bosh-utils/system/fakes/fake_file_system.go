@@ -80,7 +80,7 @@ type FakeFileSystem struct {
 	RemoveAllStub removeAllFn
 
 	ReadAndFollowLinkError error
-	ReadlinkError error
+	ReadlinkError          error
 
 	StatWithOptsCallCount int
 	StatCallCount         int
@@ -645,22 +645,42 @@ func (fs *FakeFileSystem) ReadAndFollowLink(symlinkPath string) (string, error) 
 		return "", fs.ReadAndFollowLinkError
 	}
 
-	symlinkPath = gopath.Join(symlinkPath)
-
-	stat := fs.GetFileTestStat(symlinkPath)
-	if stat != nil {
-		targetStat := fs.GetFileTestStat(stat.SymlinkTarget)
-
-		if targetStat == nil {
-			return stat.SymlinkTarget, os.ErrNotExist
-		} else if FakeFileTypeSymlink == targetStat.FileType {
-			return fs.ReadAndFollowLink(stat.SymlinkTarget)
-		}
-
-		return stat.SymlinkTarget, nil
+	if symlinkPath == "" ||
+		symlinkPath == "/" ||
+		symlinkPath == filepath.VolumeName(symlinkPath)+"\\" {
+		return symlinkPath, nil
 	}
 
-	return "", os.ErrNotExist
+	if symlinkPath == "." {
+		return fs.fileRegistry.UnifiedPath("."), nil
+	}
+
+	symlinkPath = filepath.Join(symlinkPath)
+
+	stat := fs.GetFileTestStat(symlinkPath)
+	if stat == nil {
+		return "", os.ErrNotExist
+	}
+
+	if stat.FileType != FakeFileTypeSymlink {
+		dirPath, err := fs.ReadAndFollowLink(filepath.Dir(symlinkPath))
+		if err != nil {
+			return "", err
+		}
+
+		return filepath.Join(dirPath, filepath.Base(symlinkPath)), nil
+	}
+
+	if gopath.IsAbs(stat.SymlinkTarget) {
+		return fs.ReadAndFollowLink(stat.SymlinkTarget)
+	}
+
+	dirPath, err := fs.ReadAndFollowLink(filepath.Dir(symlinkPath))
+	if err != nil {
+		return "", err
+	}
+
+	return fs.ReadAndFollowLink(filepath.Join(dirPath, stat.SymlinkTarget))
 }
 
 func (fs *FakeFileSystem) CopyFile(srcPath, dstPath string) error {

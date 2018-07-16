@@ -250,5 +250,21 @@ func (r DirReaderImpl) isPackageableFile(path string) (bool, error) {
 		return false, err
 	}
 
-	return info.Mode()&os.ModeSymlink != 0 || !info.IsDir(), nil
+	if info.IsDir() {
+		return false, nil
+	}
+
+	fileIsSymlink := info.Mode()&os.ModeSymlink != 0
+	if !fileIsSymlink {
+		fullPath, err := r.fs.ReadAndFollowLink(path)
+		if err != nil {
+			return false, err
+		}
+
+		if path != fullPath {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }
