@@ -59,7 +59,7 @@ var _ = Describe("DeploymentCmd", func() {
 				initialSession.DeploymentReturns(deployment, nil)
 				director.ListDeploymentConfigsReturns(
 					boshdir.DeploymentConfigs{
-						[]boshdir.DeploymentConfig{
+						Configs: []boshdir.DeploymentConfig{
 							boshdir.DeploymentConfig{
 								Config: boshdir.DeploymentConfigProperties{
 									Id:   123,
