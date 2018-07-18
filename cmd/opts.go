@@ -434,9 +434,10 @@ type DeployOpts struct {
 
 	NoRedact bool `long:"no-redact" description:"Show non-redacted manifest diff"`
 
-	Recreate  bool                `long:"recreate"                          description:"Recreate all VMs in deployment"`
-	Fix       bool                `long:"fix"                               description:"Recreate unresponsive instances"`
-	SkipDrain []boshdir.SkipDrain `long:"skip-drain" value-name:"INSTANCE-GROUP"  description:"Skip running drain scripts for specific instance groups" optional:"true" optional-value:"*"`
+	Recreate                bool                `long:"recreate"                                description:"Recreate all VMs in deployment"`
+	RecreatePersistentDisks bool                `long:"recreate-persistent-disks"               description:"Recreate all persistent disks in deployment"`
+	Fix                     bool                `long:"fix"                                     description:"Recreate unresponsive instances"`
+	SkipDrain               []boshdir.SkipDrain `long:"skip-drain" value-name:"INSTANCE-GROUP"  description:"Skip running drain scripts for specific instance groups" optional:"true" optional-value:"*"`
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`

@@ -189,13 +189,14 @@ type RecreateOpts struct {
 }
 
 type UpdateOpts struct {
-	Recreate    bool
-	Fix         bool
-	SkipDrain   SkipDrains
-	Canaries    string
-	MaxInFlight string
-	DryRun      bool
-	Diff        DeploymentDiff
+	Recreate                bool
+	RecreatePersistentDisks bool
+	Fix                     bool
+	SkipDrain               SkipDrains
+	Canaries                string
+	MaxInFlight             string
+	DryRun                  bool
+	Diff                    DeploymentDiff
 }
 
 //go:generate counterfeiter . ReleaseSeries

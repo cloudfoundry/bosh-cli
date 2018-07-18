@@ -1368,6 +1368,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("RecreatePersistentDisks", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("RecreatePersistentDisks", opts)).To(Equal(
+					`long:"recreate-persistent-disks" description:"Recreate all persistent disks in deployment"`,
+				))
+			})
+		})
+
 		Describe("NoRedact", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("NoRedact", opts)).To(Equal(
