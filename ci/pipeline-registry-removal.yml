@@ -97,16 +97,10 @@ resources:
       branch: external-cpi-refactor
       private_key: {{concourse_github_private_key}}
 
-#  - name: bosh-warden-cpi-release
-#    type: bosh-io-release
-#    source:
-#      repository: cppforlife/bosh-warden-cpi-release
-
   - name: bosh-warden-cpi-release
-    type: s3
+    type: bosh-io-release
     source:
-      bucket: bosh-toronto-warden-cpi-v2
-      regexp: bosh-warden-cpiv2-(.*).tgz
+      repository: cppforlife/bosh-warden-cpi-release
 
   - name: bosh-warden-stemcell-agentv2
     type: s3
