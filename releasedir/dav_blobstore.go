@@ -83,9 +83,12 @@ func (c client) Put(content io.ReadSeeker, path string, local_path string) (err 
 	if c.config.Artifactory {
 		// Add artifactory properties
 		// filepath
-		res := strings.Split(local_path, "/blobs/")
-		relative_path := res[1]
-		path = path + ";filepath=" + relative_path
+		if strings.Contains(local_path, "/blobs/") {
+			res := strings.Split(local_path, "/blobs/")
+			relative_path := res[1]
+			path = path + ";filepath=" + relative_path
+		}
+		// TODO add data for jobs/licenses/packages
 	}
 
 	req, err := c.createReq("PUT", path, content)
