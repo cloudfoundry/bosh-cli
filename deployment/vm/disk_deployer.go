@@ -18,19 +18,21 @@ type DiskDeployer interface {
 }
 
 type diskDeployer struct {
-	diskRepo           biconfig.DiskRepo
-	diskManagerFactory bidisk.ManagerFactory
-	diskManager        bidisk.Manager
-	logger             boshlog.Logger
-	logTag             string
+	diskRepo               biconfig.DiskRepo
+	diskManagerFactory     bidisk.ManagerFactory
+	diskManager            bidisk.Manager
+	logger                 boshlog.Logger
+	logTag                 string
+	recreatePersistentDisk bool
 }
 
-func NewDiskDeployer(diskManagerFactory bidisk.ManagerFactory, diskRepo biconfig.DiskRepo, logger boshlog.Logger) DiskDeployer {
+func NewDiskDeployer(diskManagerFactory bidisk.ManagerFactory, diskRepo biconfig.DiskRepo, logger boshlog.Logger, recreatePersistentDisk bool) DiskDeployer {
 	return &diskDeployer{
-		diskManagerFactory: diskManagerFactory,
-		diskRepo:           diskRepo,
-		logger:             logger,
-		logTag:             "diskDeployer",
+		diskManagerFactory:     diskManagerFactory,
+		diskRepo:               diskRepo,
+		logger:                 logger,
+		logTag:                 "diskDeployer",
+		recreatePersistentDisk: recreatePersistentDisk,
 	}
 }
 
@@ -81,7 +83,7 @@ func (d *diskDeployer) deployExistingDisk(disk bidisk.Disk, diskPool bideplmanif
 		return disks, err
 	}
 
-	if disk.NeedsMigration(diskPool.DiskSize, diskPool.CloudProperties) {
+	if d.recreatePersistentDisk || disk.NeedsMigration(diskPool.DiskSize, diskPool.CloudProperties) {
 		disk, err = d.migrateDisk(disk, diskPool, vm, stage)
 		if err != nil {
 			return disks, err

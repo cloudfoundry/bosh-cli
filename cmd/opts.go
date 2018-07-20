@@ -178,8 +178,9 @@ type CreateEnvOpts struct {
 	Args CreateEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
-	StatePath string `long:"state" value-name:"PATH" description:"State file path"`
-	Recreate  bool   `long:"recreate" description:"Recreate VM in deployment"`
+	StatePath               string `long:"state" value-name:"PATH" description:"State file path"`
+	Recreate                bool   `long:"recreate" description:"Recreate VM in deployment"`
+	RecreatePersistentDisks bool   `long:"recreate-persistent-disks" description:"Recreate persistent disks in the deployment"`
 	cmd
 }
 

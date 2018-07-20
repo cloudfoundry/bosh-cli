@@ -66,7 +66,14 @@ type envFactory struct {
 	deploymentRecord   bidepl.Record
 }
 
-func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manifestVars boshtpl.Variables, manifestOp patch.Op) *envFactory {
+func NewEnvFactory(
+	deps BasicDeps,
+	manifestPath string,
+	statePath string,
+	manifestVars boshtpl.Variables,
+	manifestOp patch.Op,
+	recreatePersistentDisks bool,
+) *envFactory {
 	f := envFactory{
 		deps:         deps,
 		manifestPath: manifestPath,
@@ -130,7 +137,7 @@ func NewEnvFactory(deps BasicDeps, manifestPath string, statePath string, manife
 		vmRepo := biconfig.NewVMRepo(f.deploymentStateService)
 
 		f.diskManagerFactory = bidisk.NewManagerFactory(diskRepo, deps.Logger)
-		diskDeployer := bivm.NewDiskDeployer(f.diskManagerFactory, diskRepo, deps.Logger)
+		diskDeployer := bivm.NewDiskDeployer(f.diskManagerFactory, diskRepo, deps.Logger, recreatePersistentDisks)
 
 		f.stemcellManagerFactory = bistemcell.NewManagerFactory(stemcellRepo)
 		f.vmManagerFactory = bivm.NewManagerFactory(

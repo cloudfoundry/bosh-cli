@@ -809,6 +809,12 @@ var _ = Describe("Opts", func() {
 				`long:"recreate" description:"Recreate VM in deployment"`,
 			))
 		})
+
+		It("has --recreate-persistent-disks", func() {
+			Expect(getStructTagForName("RecreatePersistentDisks", opts)).To(Equal(
+				`long:"recreate-persistent-disks" description:"Recreate persistent disks in the deployment"`,
+			))
+		})
 	})
 
 	Describe("CreateEnvArgs", func() {

@@ -3,9 +3,10 @@ package deployment_test
 import (
 	. "github.com/cloudfoundry/bosh-cli/deployment"
 
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"time"
 
 	mock_agentclient "github.com/cloudfoundry/bosh-cli/agentclient/mocks"
 	mock_blobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
@@ -134,7 +135,7 @@ var _ = Describe("Deployment", func() {
 		JustBeforeEach(func() {
 			// all these local factories & managers are just used to construct a Deployment based on the deployment state
 			diskManagerFactory := bidisk.NewManagerFactory(diskRepo, logger)
-			diskDeployer := bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
+			diskDeployer := bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger, false)
 
 			vmManagerFactory := bivm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeUUIDGenerator, fs, logger)
 			sshTunnelFactory := bisshtunnel.NewFactory(logger)
