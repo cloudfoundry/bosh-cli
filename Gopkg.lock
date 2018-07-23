@@ -67,8 +67,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "94b80148ea4b1b136682116294b151766a3b85c2"
-  version = "v1.14.27"
+  revision = "bc3f534c19ffdf835e524e11f0f825b3eaf541c3"
+  version = "v1.14.31"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -239,7 +239,19 @@
   branch = "master"
   name = "github.com/hashicorp/go-multierror"
   packages = ["."]
-  revision = "12f8a7e29b823bba3e5ca3d9526b96ddfca48906"
+  revision = "3d5d8f294aa03d8e98859feac328afbdf1ae0703"
+
+[[projects]]
+  name = "github.com/hpcloud/tail"
+  packages = [
+    ".",
+    "ratelimiter",
+    "util",
+    "watch",
+    "winfile"
+  ]
+  revision = "a30252cb686a21eb2d0b98132633053ec2f7f1e5"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "cli-patches"
@@ -320,8 +332,8 @@
     "reporters/stenographer/support/go-isatty",
     "types"
   ]
-  revision = "fa5fabab2a1bfbd924faf4c067d07ae414e2aedf"
-  version = "v1.5.0"
+  revision = "3774a09d95489ccaa16032e0770d08ea77ba6184"
+  version = "v1.6.0"
 
 [[projects]]
   name = "github.com/onsi/gomega"
@@ -342,8 +354,8 @@
     "matchers/support/goraph/util",
     "types"
   ]
-  revision = "62bff4df71bdbc266561a0caee19f0594b17c240"
-  version = "v1.4.0"
+  revision = "b6ea1ea48f981d0f615a154a45eabb9dd466556d"
+  version = "v1.4.1"
 
 [[projects]]
   branch = "master"
@@ -392,7 +404,7 @@
     "ssh",
     "ssh/terminal"
   ]
-  revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
+  revision = "c126467f60eb25f8f27e5a981f32a87e3965053f"
 
 [[projects]]
   branch = "master"
@@ -412,7 +424,7 @@
     "proxy",
     "trace"
   ]
-  revision = "d0887baf81f4598189d4e12a37c6da86f0bba4d0"
+  revision = "a680a1efc54dd51c040b3b5ce4939ea3cf2ea0d1"
 
 [[projects]]
   branch = "master"
@@ -476,7 +488,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "fd2d2c45eb2dff7b87eab4303a1016b4dbf95e81"
+  revision = "ded554d0681e0cba3cf074977cdc12e2c0906fe6"
 
 [[projects]]
   branch = "master"
@@ -492,7 +504,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "81e9282165ac0866b8cc2a3952772ecf8a710b94"
+  revision = "cd7aead8ef3786a3a18faf2d54d3960991153b64"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -520,7 +532,7 @@
     "googleapis/rpc/code",
     "googleapis/rpc/status"
   ]
-  revision = "2731d4fa720b67f9fe38e9051a2a9b38e4609260"
+  revision = "02b4e95473316948020af0b7a4f0f22c73929b0e"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -555,6 +567,19 @@
   version = "v1.13.0"
 
 [[projects]]
+  name = "gopkg.in/fsnotify.v1"
+  packages = ["."]
+  revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
+  source = "https://github.com/fsnotify/fsnotify.git"
+  version = "v1.4.7"
+
+[[projects]]
+  branch = "v1"
+  name = "gopkg.in/tomb.v1"
+  packages = ["."]
+  revision = "dd632973f1e7218eb1089048e0798ec9ae7dceb8"
+
+[[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
@@ -563,6 +588,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a27dd163ab54ef9b45c0986ffe66f34b31ff711138a204a31270bd4e09c6078b"
+  inputs-digest = "45253065ec8346553eee5ad807b7ff6f111c804332e59d8ebfc3ae635e6dd916"
   solver-name = "gps-cdcl"
   solver-version = 1
