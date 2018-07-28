@@ -67,8 +67,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "bc3f534c19ffdf835e524e11f0f825b3eaf541c3"
-  version = "v1.14.31"
+  revision = "8475c414b1bd58b8cc214873a8854e3a621e67d7"
+  version = "v1.15.0"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -97,8 +97,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "48f20b6d7befdf2767a66a0ec8c320fb385b9506"
-  version = "v2.124.0"
+  revision = "c2eed22dd09505b7bfac8980b3658a7becc254cf"
+  version = "v2.125.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -151,7 +151,7 @@
     "uuid/fakes",
     "work"
   ]
-  revision = "081a897d1c82e1747d24bb34215bb8011cbbd071"
+  revision = "407dd7546455f1a0a50feba2dcaef0ae88da1810"
 
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
@@ -424,7 +424,7 @@
     "proxy",
     "trace"
   ]
-  revision = "a680a1efc54dd51c040b3b5ce4939ea3cf2ea0d1"
+  revision = "3673e40ba22529d22c3fd7c93e97b0ce50fa7bdd"
 
 [[projects]]
   branch = "master"
@@ -436,7 +436,7 @@
     "jws",
     "jwt"
   ]
-  revision = "ef147856a6ddbb60760db74283d2424e98c87bff"
+  revision = "3d292e4d0cdc3a0113e6d207bb137145ef1de42f"
 
 [[projects]]
   branch = "master"
@@ -445,7 +445,7 @@
     "unix",
     "windows"
   ]
-  revision = "ac767d655b305d4e9612f5f6e33120b9176c4ad4"
+  revision = "bd9dbc187b6e1dacfdd2722a87e83093c2d7bd6e"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -488,7 +488,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "ded554d0681e0cba3cf074977cdc12e2c0906fe6"
+  revision = "8cc4e8a6f4841aa92a8683fca47bc5d64b58875b"
 
 [[projects]]
   branch = "master"
@@ -504,7 +504,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "cd7aead8ef3786a3a18faf2d54d3960991153b64"
+  revision = "082d5fa4f1f046d7c35245229282ed6f488892c0"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -532,7 +532,7 @@
     "googleapis/rpc/code",
     "googleapis/rpc/status"
   ]
-  revision = "02b4e95473316948020af0b7a4f0f22c73929b0e"
+  revision = "2a72893556e4d1f6c795a4c039314c9fa751eedb"
 
 [[projects]]
   name = "google.golang.org/grpc"
