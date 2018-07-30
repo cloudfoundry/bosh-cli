@@ -1202,6 +1202,12 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
 		})
+
+		Describe("CopyPrevious", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CopyPrevious", opts)).To(Equal(`long:"copy-previous" description:"Copy previous disk properties"`))
+			})
+		})
 	})
 
 	Describe("AttachDiskArgs", func() {

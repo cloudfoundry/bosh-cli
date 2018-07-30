@@ -392,11 +392,12 @@ type FakeDeployment struct {
 	deleteReturnsOnCall map[int]struct {
 		result1 error
 	}
-	AttachDiskStub        func(slug director.InstanceSlug, diskCID string) error
+	AttachDiskStub        func(slug director.InstanceSlug, diskCID string, CopyPrevious bool) error
 	attachDiskMutex       sync.RWMutex
 	attachDiskArgsForCall []struct {
-		slug    director.InstanceSlug
-		diskCID string
+		slug         director.InstanceSlug
+		diskCID      string
+		copyPrevious bool
 	}
 	attachDiskReturns struct {
 		result1 error
@@ -1970,17 +1971,18 @@ func (fake *FakeDeployment) DeleteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) AttachDisk(slug director.InstanceSlug, diskCID string) error {
+func (fake *FakeDeployment) AttachDisk(slug director.InstanceSlug, diskCID string, copyPrevious bool) error {
 	fake.attachDiskMutex.Lock()
 	ret, specificReturn := fake.attachDiskReturnsOnCall[len(fake.attachDiskArgsForCall)]
 	fake.attachDiskArgsForCall = append(fake.attachDiskArgsForCall, struct {
-		slug    director.InstanceSlug
-		diskCID string
-	}{slug, diskCID})
-	fake.recordInvocation("AttachDisk", []interface{}{slug, diskCID})
+		slug         director.InstanceSlug
+		diskCID      string
+		copyPrevious bool
+	}{slug, diskCID, copyPrevious})
+	fake.recordInvocation("AttachDisk", []interface{}{slug, diskCID, copyPrevious})
 	fake.attachDiskMutex.Unlock()
 	if fake.AttachDiskStub != nil {
-		return fake.AttachDiskStub(slug, diskCID)
+		return fake.AttachDiskStub(slug, diskCID, copyPrevious)
 	}
 	if specificReturn {
 		return ret.result1
@@ -1994,10 +1996,10 @@ func (fake *FakeDeployment) AttachDiskCallCount() int {
 	return len(fake.attachDiskArgsForCall)
 }
 
-func (fake *FakeDeployment) AttachDiskArgsForCall(i int) (director.InstanceSlug, string) {
+func (fake *FakeDeployment) AttachDiskArgsForCall(i int) (director.InstanceSlug, string, bool) {
 	fake.attachDiskMutex.RLock()
 	defer fake.attachDiskMutex.RUnlock()
-	return fake.attachDiskArgsForCall[i].slug, fake.attachDiskArgsForCall[i].diskCID
+	return fake.attachDiskArgsForCall[i].slug, fake.attachDiskArgsForCall[i].diskCID, fake.attachDiskArgsForCall[i].copyPrevious
 }
 
 func (fake *FakeDeployment) AttachDiskReturns(result1 error) {
