@@ -278,7 +278,7 @@ type CleanUpOpts struct {
 type AttachDiskOpts struct {
 	Args AttachDiskArgs `positional-args:"true" required:"true"`
 
-	CopyPrevious bool `long:"copy-previous" description:"Copy previous disk properties"`
+	Copy bool `long:"copy" description:"Copy previous disk properties and size"`
 
 	cmd
 }

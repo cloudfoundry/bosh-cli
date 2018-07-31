@@ -1203,9 +1203,9 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("CopyPrevious", func() {
+		Describe("Copy", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("CopyPrevious", opts)).To(Equal(`long:"copy-previous" description:"Copy previous disk properties"`))
+				Expect(getStructTagForName("Copy", opts)).To(Equal(`long:"copy" description:"Copy previous disk properties and size"`))
 			})
 		})
 	})

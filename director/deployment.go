@@ -191,15 +191,15 @@ func (d DeploymentImpl) Delete(force bool) error {
 	return nil
 }
 
-func (d DeploymentImpl) AttachDisk(slug InstanceSlug, diskCID string, copyPrevious bool) error {
+func (d DeploymentImpl) AttachDisk(slug InstanceSlug, diskCID string, copy bool) error {
 	values := gourl.Values{}
 	values.Add("deployment", d.Name())
 	values.Add("job", slug.Name())
 	values.Add("instance_id", slug.IndexOrID())
-	if copyPrevious == true {
-		values.Add("copy_previous", "true")
+	if copy == true {
+		values.Add("copy", "true")
 	} else {
-		values.Add("copy_previous", "false")
+		values.Add("copy", "false")
 	}
 
 	path := fmt.Sprintf("/disks/%s/attachments?%s", diskCID, values.Encode())

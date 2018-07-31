@@ -44,7 +44,7 @@ var _ = Describe("AttachDisk", func() {
 					DiskCID: diskCid,
 				},
 			}
-			opts.CopyPrevious = false
+			opts.Copy = false
 		})
 
 		It("tells the director to attach a disk", func() {
@@ -52,11 +52,11 @@ var _ = Describe("AttachDisk", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deployment.AttachDiskCallCount()).To(Equal(1))
 
-			receivedInstanceSlug, recievedDiskCid, recievedCopyPrevious := deployment.AttachDiskArgsForCall(0)
+			receivedInstanceSlug, recievedDiskCid, recievedCopy := deployment.AttachDiskArgsForCall(0)
 
 			Expect(receivedInstanceSlug).To(Equal(instanceSlug))
 			Expect(recievedDiskCid).To(Equal(diskCid))
-			Expect(recievedCopyPrevious).To(Equal(false))
+			Expect(recievedCopy).To(Equal(false))
 		})
 
 		Context("attaching a disk returns an error", func() {
