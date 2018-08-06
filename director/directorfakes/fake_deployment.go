@@ -392,12 +392,12 @@ type FakeDeployment struct {
 	deleteReturnsOnCall map[int]struct {
 		result1 error
 	}
-	AttachDiskStub        func(slug director.InstanceSlug, diskCID string, Copy bool) error
+	AttachDiskStub        func(slug director.InstanceSlug, diskCID string, DiskProperties string) error
 	attachDiskMutex       sync.RWMutex
 	attachDiskArgsForCall []struct {
-		slug    director.InstanceSlug
-		diskCID string
-		copy    bool
+		slug           director.InstanceSlug
+		diskCID        string
+		diskProperties string
 	}
 	attachDiskReturns struct {
 		result1 error
@@ -1971,18 +1971,18 @@ func (fake *FakeDeployment) DeleteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) AttachDisk(slug director.InstanceSlug, diskCID string, copy bool) error {
+func (fake *FakeDeployment) AttachDisk(slug director.InstanceSlug, diskCID string, diskProperties string) error {
 	fake.attachDiskMutex.Lock()
 	ret, specificReturn := fake.attachDiskReturnsOnCall[len(fake.attachDiskArgsForCall)]
 	fake.attachDiskArgsForCall = append(fake.attachDiskArgsForCall, struct {
-		slug    director.InstanceSlug
-		diskCID string
-		copy    bool
-	}{slug, diskCID, copy})
-	fake.recordInvocation("AttachDisk", []interface{}{slug, diskCID, copy})
+		slug           director.InstanceSlug
+		diskCID        string
+		diskProperties string
+	}{slug, diskCID, diskProperties})
+	fake.recordInvocation("AttachDisk", []interface{}{slug, diskCID, diskProperties})
 	fake.attachDiskMutex.Unlock()
 	if fake.AttachDiskStub != nil {
-		return fake.AttachDiskStub(slug, diskCID, copy)
+		return fake.AttachDiskStub(slug, diskCID, diskProperties)
 	}
 	if specificReturn {
 		return ret.result1
@@ -1996,10 +1996,10 @@ func (fake *FakeDeployment) AttachDiskCallCount() int {
 	return len(fake.attachDiskArgsForCall)
 }
 
-func (fake *FakeDeployment) AttachDiskArgsForCall(i int) (director.InstanceSlug, string, bool) {
+func (fake *FakeDeployment) AttachDiskArgsForCall(i int) (director.InstanceSlug, string, string) {
 	fake.attachDiskMutex.RLock()
 	defer fake.attachDiskMutex.RUnlock()
-	return fake.attachDiskArgsForCall[i].slug, fake.attachDiskArgsForCall[i].diskCID, fake.attachDiskArgsForCall[i].copy
+	return fake.attachDiskArgsForCall[i].slug, fake.attachDiskArgsForCall[i].diskCID, fake.attachDiskArgsForCall[i].diskProperties
 }
 
 func (fake *FakeDeployment) AttachDiskReturns(result1 error) {

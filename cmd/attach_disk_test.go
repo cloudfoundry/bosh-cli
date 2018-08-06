@@ -23,10 +23,11 @@ var _ = Describe("AttachDisk", func() {
 
 	Describe("Run", func() {
 		var (
-			opts         AttachDiskOpts
-			act          func() error
-			instanceSlug boshdir.InstanceSlug
-			diskCid      string
+			opts           AttachDiskOpts
+			act            func() error
+			instanceSlug   boshdir.InstanceSlug
+			diskCid        string
+			diskProperties string
 		)
 
 		BeforeEach(func() {
@@ -37,6 +38,7 @@ var _ = Describe("AttachDisk", func() {
 
 			instanceSlug = boshdir.NewInstanceSlug("instance-group-name", "1")
 			diskCid = "some-disk-id"
+			diskProperties = "default"
 
 			opts = AttachDiskOpts{
 				Args: AttachDiskArgs{
@@ -44,7 +46,7 @@ var _ = Describe("AttachDisk", func() {
 					DiskCID: diskCid,
 				},
 			}
-			opts.Copy = false
+			opts.DiskProperties = diskProperties
 		})
 
 		It("tells the director to attach a disk", func() {
@@ -52,11 +54,11 @@ var _ = Describe("AttachDisk", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deployment.AttachDiskCallCount()).To(Equal(1))
 
-			receivedInstanceSlug, recievedDiskCid, recievedCopy := deployment.AttachDiskArgsForCall(0)
+			receivedInstanceSlug, recievedDiskCid, recievedDiskProperties := deployment.AttachDiskArgsForCall(0)
 
 			Expect(receivedInstanceSlug).To(Equal(instanceSlug))
 			Expect(recievedDiskCid).To(Equal(diskCid))
-			Expect(recievedCopy).To(Equal(false))
+			Expect(recievedDiskProperties).To(Equal("default"))
 		})
 
 		Context("attaching a disk returns an error", func() {
