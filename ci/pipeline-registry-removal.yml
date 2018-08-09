@@ -82,13 +82,13 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh.git
-      branch: master
+      branch: external-cpi-refactor
 
   - name: bosh-agent
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh-agent.git
-      branch: master
+      branch: registry-removal
 
   - name: bosh-cli
     type: git
