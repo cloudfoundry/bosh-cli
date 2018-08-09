@@ -10,6 +10,7 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
 	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
 	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
@@ -20,6 +21,7 @@ var _ = Describe("DeploymentCmd", func() {
 		sessions map[cmdconf.Config]*fakecmd.FakeSession
 		config   *fakecmdconf.FakeConfig
 		ui       *fakeui.FakeUI
+		director *fakedir.FakeDirector
 		command  DeploymentCmd
 	)
 
@@ -30,7 +32,8 @@ var _ = Describe("DeploymentCmd", func() {
 		}
 		config = &fakecmdconf.FakeConfig{}
 		ui = &fakeui.FakeUI{}
-		command = NewDeploymentCmd(sessionFactory, config, ui)
+		director = &fakedir.FakeDirector{}
+		command = NewDeploymentCmd(sessionFactory, config, ui, director)
 	})
 
 	Describe("Run", func() {
@@ -48,40 +51,52 @@ var _ = Describe("DeploymentCmd", func() {
 
 		act := func() error { return command.Run() }
 
-		It("shows current deployment name when director finds deployment", func() {
-			deployment = &fakedir.FakeDeployment{
-				NameStub: func() string { return "deployment-name" },
-			}
-			initialSession.DeploymentReturns(deployment, nil)
+		Context("when director finds deployment", func() {
+			It("shows current deployment name and list of configs", func() {
+				deployment = &fakedir.FakeDeployment{
+					NameStub: func() string { return "deployment-name" },
+				}
+				initialSession.DeploymentReturns(deployment, nil)
+				director.ListDeploymentConfigsReturns(
+					boshdir.DeploymentConfigs{
+						Configs: []boshdir.DeploymentConfig{
+							boshdir.DeploymentConfig{
+								Config: boshdir.DeploymentConfigProperties{
+									Id:   123,
+									Type: "cloud",
+									Name: "default",
+								},
+							}}}, nil)
 
-			err := act()
-			Expect(err).ToNot(HaveOccurred())
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Table).To(Equal(boshtbl.Table{
-				Content: "deployments",
+				Expect(ui.Table).To(Equal(boshtbl.Table{
+					Content: "deployments",
 
-				Header: []boshtbl.Header{
-					boshtbl.NewHeader("Name"),
-					boshtbl.NewHeader("Release(s)"),
-					boshtbl.NewHeader("Stemcell(s)"),
-					boshtbl.NewHeader("Team(s)"),
-					boshtbl.NewHeader("Cloud Config"),
-				},
-
-				SortBy: []boshtbl.ColumnSort{
-					{Column: 0, Asc: true},
-				},
-
-				Rows: [][]boshtbl.Value{
-					{
-						boshtbl.NewValueString("deployment-name"),
-						boshtbl.NewValueStrings(nil),
-						boshtbl.NewValueStrings(nil),
-						boshtbl.NewValueStrings(nil),
-						boshtbl.NewValueString(""),
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("Release(s)"),
+						boshtbl.NewHeader("Stemcell(s)"),
+						boshtbl.NewHeader("Config(s)"),
+						boshtbl.NewHeader("Team(s)"),
 					},
-				},
-			}))
+
+					SortBy: []boshtbl.ColumnSort{
+						{Column: 0, Asc: true},
+					},
+
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.NewValueString("deployment-name"),
+							boshtbl.NewValueStrings(nil),
+							boshtbl.NewValueStrings(nil),
+							boshtbl.NewValueStrings([]string{"123 cloud/default"}),
+							boshtbl.NewValueStrings(nil),
+						},
+					},
+				}))
+			})
 		})
 
 		It("returns an error when director does not find deployment", func() {

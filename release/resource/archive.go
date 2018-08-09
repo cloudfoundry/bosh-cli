@@ -181,13 +181,7 @@ func (a ArchiveImpl) copyFile(sourceFile File, stagingDir string) error {
 	sourceFilePath := sourceFile.Path
 
 	if isSymlink {
-		if a.followSymlinks {
-			symlinkTarget, err := a.fs.ReadAndFollowLink(sourceFilePath)
-			if err != nil {
-				return err
-			}
-			sourceFilePath = symlinkTarget
-		} else {
+		if !a.followSymlinks {
 			symlinkTarget, err := a.fs.Readlink(sourceFilePath)
 			if err != nil {
 				return err
@@ -195,6 +189,12 @@ func (a ArchiveImpl) copyFile(sourceFile File, stagingDir string) error {
 
 			return a.fs.Symlink(symlinkTarget, dstPath)
 		}
+
+		symlinkTarget, err := a.fs.ReadAndFollowLink(sourceFilePath)
+		if err != nil {
+			return err
+		}
+		sourceFilePath = symlinkTarget
 	}
 
 	err = a.fs.CopyFile(sourceFilePath, dstPath)

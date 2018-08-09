@@ -758,10 +758,19 @@ var _ = Describe("CreateEnvCmd", func() {
 				Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 			})
 
-			It("deploys if recreate flag is specified", func() {
+			It("deploys if `recreate` flag is specified", func() {
 				expectDeploy.Times(1)
 
 				defaultCreateEnvOpts.Recreate = true
+
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("deploys if `recreate-persistent-disks` flag is specified", func() {
+				expectDeploy.Times(1)
+
+				defaultCreateEnvOpts.RecreatePersistentDisks = true
 
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())

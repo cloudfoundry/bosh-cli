@@ -102,7 +102,7 @@ type DeploymentPreparer struct {
 	targetProvider                          biinstall.TargetProvider
 }
 
-func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool) (err error) {
+func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, recreatePersistentDisks bool) (err error) {
 	c.ui.BeginLinef("Deployment state: '%s'\n", c.deploymentStateService.Path())
 
 	if !c.deploymentStateService.Exists() {
@@ -185,7 +185,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool) 
 		return bosherr.WrapError(err, "Checking if deployment has changed")
 	}
 
-	if isDeployed && !recreate {
+	if isDeployed && !recreate && !recreatePersistentDisks {
 		c.ui.BeginLinef("No deployment, stemcell or release changes. Skipping deploy.\n")
 		return nil
 	}

@@ -12,8 +12,8 @@
     "internal/version",
     "storage"
   ]
-  revision = "777200caa7fb8936aed0f12b1fd79af64cc83ec9"
-  version = "v0.24.0"
+  revision = "aad3f485ee528456e0768f20397b4d9dd941e755"
+  version = "v0.25.0"
 
 [[projects]]
   branch = "master"
@@ -29,6 +29,12 @@
   name = "code.cloudfoundry.org/workpool"
   packages = ["."]
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
+
+[[projects]]
+  name = "contrib.go.opencensus.io/exporter/stackdriver"
+  packages = ["propagation"]
+  revision = "37aa2801fbf0205003e15636096ebf0373510288"
+  version = "v0.5.0"
 
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
@@ -52,6 +58,7 @@
     "aws/signer/v4",
     "internal/sdkio",
     "internal/sdkrand",
+    "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
     "private/protocol/eventstream",
@@ -66,8 +73,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "16cb9f62f8a8b7af4f38725567f5ce762e1d562b"
-  version = "v1.14.21"
+  revision = "f70339bb6af843c8ab1974381b3f4fcaee2b1a41"
+  version = "v1.15.5"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -124,8 +131,8 @@
     "client",
     "config"
   ]
-  revision = "0141030b5ae352c0737a6aab6fa3b790f2ca332a"
-  version = "v0.0.72"
+  revision = "4dc50e6a981c036cec6677b412981166664e1b84"
+  version = "v0.0.73"
 
 [[projects]]
   branch = "master"
@@ -150,7 +157,7 @@
     "uuid/fakes",
     "work"
   ]
-  revision = "b082aa9a81950fa8df1a969575319417b1e073f4"
+  revision = "407dd7546455f1a0a50feba2dcaef0ae88da1810"
 
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
@@ -189,7 +196,7 @@
   branch = "master"
   name = "github.com/dustin/go-humanize"
   packages = ["."]
-  revision = "02af3965c54e8cacf948b97fef38925c4120652c"
+  revision = "9f541cc9db5d55bce703bd99987c9d5cb8eea45e"
 
 [[projects]]
   name = "github.com/fatih/color"
@@ -200,8 +207,8 @@
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "06f5f3d67269ccec1fe5fe4134ba6e982984f7f5"
-  version = "v1.37.0"
+  revision = "358ee7663966325963d4e8b2e1fbd570c5195153"
+  version = "v1.38.1"
 
 [[projects]]
   name = "github.com/golang/mock"
@@ -232,13 +239,25 @@
   branch = "master"
   name = "github.com/hashicorp/errwrap"
   packages = ["."]
-  revision = "7554cd9344cec97297fa6649b055a8c98c2a1e55"
+  revision = "d6c0cd88035724dd42e0f335ae30161c20575ecc"
 
 [[projects]]
   branch = "master"
   name = "github.com/hashicorp/go-multierror"
   packages = ["."]
-  revision = "b7773ae218740a7be65057fc60b366a49b538a44"
+  revision = "3d5d8f294aa03d8e98859feac328afbdf1ae0703"
+
+[[projects]]
+  name = "github.com/hpcloud/tail"
+  packages = [
+    ".",
+    "ratelimiter",
+    "util",
+    "watch",
+    "winfile"
+  ]
+  revision = "a30252cb686a21eb2d0b98132633053ec2f7f1e5"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "cli-patches"
@@ -320,8 +339,8 @@
     "reporters/stenographer/support/go-isatty",
     "types"
   ]
-  revision = "fa5fabab2a1bfbd924faf4c067d07ae414e2aedf"
-  version = "v1.5.0"
+  revision = "3774a09d95489ccaa16032e0770d08ea77ba6184"
+  version = "v1.6.0"
 
 [[projects]]
   name = "github.com/onsi/gomega"
@@ -342,8 +361,8 @@
     "matchers/support/goraph/util",
     "types"
   ]
-  revision = "62bff4df71bdbc266561a0caee19f0594b17c240"
-  version = "v1.4.0"
+  revision = "b6ea1ea48f981d0f615a154a45eabb9dd466556d"
+  version = "v1.4.1"
 
 [[projects]]
   branch = "master"
@@ -363,7 +382,6 @@
   name = "go.opencensus.io"
   packages = [
     ".",
-    "exporter/stackdriver/propagation",
     "internal",
     "internal/tagencoding",
     "plugin/ochttp",
@@ -392,7 +410,7 @@
     "ssh",
     "ssh/terminal"
   ]
-  revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
+  revision = "56440b844dfe139a8ac053f4ecac0b20b79058f4"
 
 [[projects]]
   branch = "master"
@@ -412,7 +430,7 @@
     "proxy",
     "trace"
   ]
-  revision = "32a936f46389aa10549d60bd7833e54b01685d09"
+  revision = "f4c29de78a2a91c00474a2e689954305c350adf9"
 
 [[projects]]
   branch = "master"
@@ -424,7 +442,7 @@
     "jws",
     "jwt"
   ]
-  revision = "ef147856a6ddbb60760db74283d2424e98c87bff"
+  revision = "3d292e4d0cdc3a0113e6d207bb137145ef1de42f"
 
 [[projects]]
   branch = "master"
@@ -433,7 +451,7 @@
     "unix",
     "windows"
   ]
-  revision = "3c6ecd8f22c6f40fbeec94c000a069d7d87c7624"
+  revision = "0ffbfd41fbef8ffcf9b62b0b0aa3a5873ed7a4fe"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -476,7 +494,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "827133af57adc910f5a5f91130bbc3c15a520991"
+  revision = "3c07937fe18c27668fd78bbaed3d6b8b39e202ea"
 
 [[projects]]
   branch = "master"
@@ -492,7 +510,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "61180b1196c9b6bec3ea78396c7805bdc117dcdc"
+  revision = "f6d94689cbd71030af1108ddac733886fcae1d75"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -520,7 +538,7 @@
     "googleapis/rpc/code",
     "googleapis/rpc/status"
   ]
-  revision = "8b2cc369ab52e0003a878865c9372afdd6ca5c5a"
+  revision = "daca94659cb50e9f37c1b834680f2e46358f10b0"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -538,7 +556,9 @@
     "internal",
     "internal/backoff",
     "internal/channelz",
+    "internal/envconfig",
     "internal/grpcrand",
+    "internal/transport",
     "keepalive",
     "metadata",
     "naming",
@@ -548,11 +568,23 @@
     "resolver/passthrough",
     "stats",
     "status",
-    "tap",
-    "transport"
+    "tap"
   ]
-  revision = "168a6198bcb0ef175f7dacec0b8691fc141dc9b8"
-  version = "v1.13.0"
+  revision = "32fb0ac620c32ba40a4626ddf94d90d12cce3455"
+  version = "v1.14.0"
+
+[[projects]]
+  name = "gopkg.in/fsnotify.v1"
+  packages = ["."]
+  revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
+  source = "https://github.com/fsnotify/fsnotify.git"
+  version = "v1.4.7"
+
+[[projects]]
+  branch = "v1"
+  name = "gopkg.in/tomb.v1"
+  packages = ["."]
+  revision = "dd632973f1e7218eb1089048e0798ec9ae7dceb8"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"

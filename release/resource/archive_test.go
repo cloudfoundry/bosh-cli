@@ -183,19 +183,23 @@ var _ = Describe("Archive", func() {
 			cmdRunner := boshsys.NewExecCmdRunner(logger)
 			compressor = boshcmd.NewTarballCompressor(cmdRunner, fs)
 
-			files :=
-				[]File{
-					NewFile(filepath.Join(uniqueDir, "file1"), uniqueDir),
-					NewFile(filepath.Join(uniqueDir, "dir", "file2"), uniqueDir),
-					NewFile(filepath.Join(uniqueDir, "dir", "file3"), uniqueDir),
-					NewFile(filepath.Join(uniqueDir, "dir", "symlink-file"), uniqueDir),
-				}
+			files := []File{
+				NewFile(filepath.Join(uniqueDir, "file1"), uniqueDir),
+				NewFile(filepath.Join(uniqueDir, "dir", "file2"), uniqueDir),
+				NewFile(filepath.Join(uniqueDir, "dir", "file3"), uniqueDir),
+				NewFile(filepath.Join(uniqueDir, "dir", "symlink-file"), uniqueDir),
+				NewFile(filepath.Join(uniqueDir, "dir", "symlink-dir-target", "file4"), uniqueDir),
+			}
 
-			if followSymlinks {
-				files = append(files, NewFile(filepath.Join(uniqueDir, "dir", "symlink-dir", "file4"), uniqueDir))
-			} else {
-				files = append(files, NewFile(filepath.Join(uniqueDir, "dir", "symlink-dir"), uniqueDir))
+			if !followSymlinks {
+				// Only include the broken symlink when not following links
 				files = append(files, NewFile(filepath.Join(uniqueDir, "dir", "symlink-file-missing"), uniqueDir))
+
+				// Only include symlink directory when not following links
+				files = append(files, NewFile(filepath.Join(uniqueDir, "dir", "symlink-dir"), uniqueDir))
+			} else {
+				// Only include paths that are nested under a symlink when following links
+				files = append(files, NewFile(filepath.Join(uniqueDir, "dir", "symlink-dir", "file4"), uniqueDir))
 			}
 
 			archiveFactoryArgs := ArchiveFactoryArgs{
@@ -232,7 +236,7 @@ var _ = Describe("Archive", func() {
 		}
 
 		It("returns archive, sha1 when built successfully", func() {
-			archivePath, archiveSHA1, err := archive.Build("31a86e1b2b76e47ca5455645bb35018fe7f73e5d")
+			archivePath, archiveSHA1, err := archive.Build("3fd0dc3b29697087690e4ec8449a9ed14d0060b7")
 			Expect(err).ToNot(HaveOccurred())
 
 			actualArchiveDigest, err := digestCalculator.Calculate(archivePath)
@@ -304,7 +308,7 @@ var _ = Describe("Archive", func() {
 			})
 
 			It("copies the contents of the symlink", func() {
-				archivePath, archiveSHA1, err := archive.Build("1e18c219903f57abe1d28730660fe387e077f378")
+				archivePath, archiveSHA1, err := archive.Build("de9cfc3866390619d0129c71304e4886858e4c5b")
 				Expect(err).ToNot(HaveOccurred())
 
 				actualArchiveDigest, err := digestCalculator.Calculate(archivePath)

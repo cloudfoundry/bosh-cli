@@ -676,10 +676,10 @@ var _ = Describe("Deployment", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("succeeds updating deployment with recreate, fix and skip drain flags", func() {
+		It("succeeds updating deployment with recreate, recreate_persistent_disks, fix and skip drain flags", func() {
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/deployments", "recreate=true&fix=true&skip_drain=*"),
+					ghttp.VerifyRequest("POST", "/deployments", "recreate=true&recreate_persistent_disks=true&fix=true&skip_drain=*"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"text/yaml"},
@@ -691,9 +691,10 @@ var _ = Describe("Deployment", func() {
 			)
 
 			updateOpts := UpdateOpts{
-				Recreate:  true,
-				Fix:       true,
-				SkipDrain: SkipDrains{SkipDrain{All: true}},
+				RecreatePersistentDisks: true,
+				Recreate:                true,
+				Fix:                     true,
+				SkipDrain:               SkipDrains{SkipDrain{All: true}},
 			}
 			err := deployment.Update([]byte("manifest"), updateOpts)
 			Expect(err).ToNot(HaveOccurred())

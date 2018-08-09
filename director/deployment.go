@@ -475,6 +475,10 @@ func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
 		query.Add("recreate", "true")
 	}
 
+	if opts.RecreatePersistentDisks {
+		query.Add("recreate_persistent_disks", "true")
+	}
+
 	if opts.Fix {
 		query.Add("fix", "true")
 	}
