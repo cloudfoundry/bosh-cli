@@ -4,7 +4,7 @@ type FakeCloudStemcell struct {
 	cid        string
 	name       string
 	version    string
-	apiVersion string
+	apiVersion int
 
 	PromoteAsCurrentCalledTimes int
 	PromoteAsCurrentErr         error
@@ -13,7 +13,7 @@ type FakeCloudStemcell struct {
 	DeleteErr         error
 }
 
-func NewFakeCloudStemcell(cid, name, version, apiVersion string) *FakeCloudStemcell {
+func NewFakeCloudStemcell(cid, name, version string, apiVersion int) *FakeCloudStemcell {
 	return &FakeCloudStemcell{
 		cid:        cid,
 		name:       name,
@@ -34,7 +34,7 @@ func (s *FakeCloudStemcell) Version() string {
 	return s.version
 }
 
-func (s *FakeCloudStemcell) ApiVersion() string {
+func (s *FakeCloudStemcell) ApiVersion() int {
 	return s.apiVersion
 }
 

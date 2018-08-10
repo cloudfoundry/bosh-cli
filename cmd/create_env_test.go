@@ -55,7 +55,6 @@ import (
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
-	"strconv"
 )
 
 var _ = Describe("CreateEnvCmd", func() {
@@ -383,7 +382,7 @@ var _ = Describe("CreateEnvCmd", func() {
 					Name:            "fake-stemcell-name",
 					Version:         "fake-stemcell-version",
 					SHA1:            "fake-stemcell-sha1",
-					ApiVersion:      strconv.Itoa(stemcellApiVersion),
+					ApiVersion:      stemcellApiVersion,
 					CloudProperties: biproperty.Map{},
 				},
 				"fake-extracted-path",
@@ -394,7 +393,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			stemcellTarballPath = filepath.Join("/", "stemcell", "tarball", "path")
 
 			cloudStemcell = fakebistemcell.NewFakeCloudStemcell(
-				"fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version", strconv.Itoa(stemcellApiVersion))
+				"fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version", stemcellApiVersion)
 
 			mockCloud = mock_cloud.NewMockCloud(mockCloudCtrl)
 			mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{

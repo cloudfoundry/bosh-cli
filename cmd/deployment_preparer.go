@@ -21,7 +21,6 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
-	"strconv"
 )
 
 func NewDeploymentPreparer(
@@ -191,10 +190,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, 
 	}
 
 	err = c.cpiInstaller.WithInstalledCpiRelease(installationManifest, target, stage, func(installation biinstall.Installation) error {
-		stemcellApiVersion, err := c.stemcellApiVersion(extractedStemcell)
-		if err != nil {
-			return err
-		}
+		stemcellApiVersion := c.stemcellApiVersion(extractedStemcell)
 
 		cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID, stemcellApiVersion)
 		if err != nil {
@@ -301,13 +297,10 @@ func (c *DeploymentPreparer) deploy(
 	return nil
 }
 
-func (c *DeploymentPreparer) stemcellApiVersion(stemcell bistemcell.ExtractedStemcell) (stemcellApiVersion int, err error) {
-	stemcellApiVersion = 1
-	if stemcell.Manifest().ApiVersion != "" {
-		stemcellApiVersion, err = strconv.Atoi(stemcell.Manifest().ApiVersion)
-		if err != nil {
-			return stemcellApiVersion, bosherr.WrapError(err, "Invalid stemcell api_version specified")
-		}
+func (c *DeploymentPreparer) stemcellApiVersion(stemcell bistemcell.ExtractedStemcell) int {
+	stemcellApiVersion := stemcell.Manifest().ApiVersion
+	if stemcellApiVersion == 0 {
+		return 1
 	}
-	return
+	return stemcellApiVersion
 }

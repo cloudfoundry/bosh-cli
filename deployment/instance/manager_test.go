@@ -34,7 +34,7 @@ import (
 var _ = Describe("Manager", func() {
 	var (
 		mockCtrl   *gomock.Controller
-		apiVersion = "2"
+		apiVersion = 2
 	)
 
 	BeforeEach(func() {

@@ -102,7 +102,7 @@ cloud_properties:
 					OS:              "ubuntu-trusty",
 					SHA1:            "sha",
 					BoshProtocol:    "1",
-					ApiVersion:      "2",
+					ApiVersion:      2,
 					StemcellFormats: []string{"aws-raw"},
 					CloudProperties: biproperty.Map{
 						"infrastructure": "aws",

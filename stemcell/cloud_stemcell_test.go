@@ -21,7 +21,7 @@ var _ = Describe("CloudStemcell", func() {
 		fakeUUIDGenerator  *fakeuuid.FakeGenerator
 		fakeCloud          *fakebicloud.FakeCloud
 		cloudStemcell      CloudStemcell
-		stemcellApiVersion = "2"
+		stemcellApiVersion = 2
 	)
 
 	BeforeEach(func() {

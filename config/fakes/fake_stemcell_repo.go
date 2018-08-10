@@ -12,7 +12,7 @@ type StemcellRepoSaveInput struct {
 	Name       string
 	Version    string
 	CID        string
-	ApiVersion string
+	ApiVersion int
 }
 
 type StemcellRepoSaveOutput struct {
@@ -90,7 +90,7 @@ func (fr *FakeStemcellRepo) All() ([]biconfig.StemcellRecord, error) {
 	return fr.AllStemcellRecords, fr.AllErr
 }
 
-func (fr *FakeStemcellRepo) Save(name, version, cid, apiVersion string) (biconfig.StemcellRecord, error) {
+func (fr *FakeStemcellRepo) Save(name, version, cid string, apiVersion int) (biconfig.StemcellRecord, error) {
 	input := StemcellRepoSaveInput{
 		Name:       name,
 		Version:    version,

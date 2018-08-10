@@ -68,7 +68,7 @@ var _ = Describe("Deployment", func() {
 			deploymentFactory Factory
 
 			deployment         Deployment
-			stemcellApiVersion = "2"
+			stemcellApiVersion = 2
 		)
 
 		var expectNormalFlow = func() {

@@ -32,7 +32,7 @@ var _ = Describe("Manager", func() {
 		tempExtractionDir   string
 
 		expectedExtractedStemcell ExtractedStemcell
-		stemcellApiVersion        = "2"
+		stemcellApiVersion        = 2
 	)
 
 	BeforeEach(func() {

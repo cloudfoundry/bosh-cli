@@ -18,7 +18,6 @@ import (
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
-	"strconv"
 )
 
 type DeploymentDeleter interface {
@@ -209,7 +208,7 @@ func (c *deploymentDeleter) deploymentManager(installation biinstall.Installatio
 	if err == nil {
 		for _, s := range deploymentStateService.Stemcells {
 			if deploymentStateService.CurrentStemcellID == s.ID {
-				stemcellApiVersion, _ = strconv.Atoi(s.ApiVersion)
+				stemcellApiVersion = s.ApiVersion
 				break
 			}
 		}

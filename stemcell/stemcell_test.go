@@ -51,7 +51,7 @@ var _ = Describe("Stemcell", func() {
 			BeforeEach(func() {
 				manifest = Manifest{
 					Name:       "new-name",
-					ApiVersion: "2",
+					ApiVersion: 42,
 				}
 
 				stemcell = NewExtractedStemcell(
@@ -348,8 +348,8 @@ var _ = Describe("Stemcell", func() {
 			})
 
 			DescribeTable("pack stemcell",
-				func(apiVersion string) {
-					if apiVersion != "" {
+				func(apiVersion int) {
+					if apiVersion > 0 {
 						manifest.ApiVersion = apiVersion
 						stemcell = NewExtractedStemcell(
 							manifest,
@@ -388,8 +388,8 @@ var _ = Describe("Stemcell", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(newStemcellMFContent).To(ContainSubstring("name: new-name"))
 					Expect(newStemcellMFContent).NotTo(ContainSubstring("stemcell_formats:"))
-					if apiVersion != "" {
-						Expect(newStemcellMFContent).To(ContainSubstring(fmt.Sprintf("api_version: \"%s\"", apiVersion)))
+					if apiVersion > 0 {
+						Expect(newStemcellMFContent).To(ContainSubstring(fmt.Sprintf("api_version: %d", apiVersion)))
 					} else {
 						Expect(newStemcellMFContent).NotTo(ContainSubstring("api_version:"))
 					}
@@ -399,8 +399,8 @@ var _ = Describe("Stemcell", func() {
 
 					Expect(removeAllCalled).To(BeTrue())
 				},
-				Entry("api_version spefied", "42"),
-				Entry("api_version NOT specified", ""),
+				Entry("api_version spefied", 42),
+				Entry("api_version NOT specified", 0),
 			)
 		})
 

@@ -15,7 +15,7 @@ var _ = Describe("StemcellRepo", func() {
 		deploymentStateService DeploymentStateService
 		fs                     *fakesys.FakeFileSystem
 		fakeUUIDGenerator      *fakeuuid.FakeGenerator
-		apiVersion             = "1"
+		apiVersion             = 1
 	)
 
 	BeforeEach(func() {

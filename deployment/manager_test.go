@@ -161,7 +161,7 @@ var _ = Describe("Manager", func() {
 			fakeStage *fakebiui.FakeStage
 
 			deploymentManager  Manager
-			stemcellApiVersion = "2"
+			stemcellApiVersion = 2
 		)
 
 		BeforeEach(func() {

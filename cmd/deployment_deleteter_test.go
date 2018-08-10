@@ -407,7 +407,7 @@ cloud_provider:
 							Stemcells: []biconfig.StemcellRecord{
 								{
 									ID:         "stemcell-id",
-									ApiVersion: "2",
+									ApiVersion: 2,
 								},
 							},
 						})
