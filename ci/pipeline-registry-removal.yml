@@ -1,12 +1,4 @@
 ---
-groups:
-- name: all
-  jobs:
-  - test-unit
-  - test-integration
-  - test-acceptance
-  - integration-postgres
-
 jobs:
   - name: test-unit
     public: true
@@ -68,6 +60,42 @@ jobs:
         tags: ["bosh-integration"]
         params:
           DB: postgresql
+
+
+  - name: build-alpha
+    public: true
+    plan:
+      - aggregate:
+        - get: bosh-cli
+          passed:
+           - test-acceptance
+           - integration-postgres
+          trigger: true
+        - get: alpha-version-semver
+          params: {bump: patch}
+      - {put: alpha-version-semver, params: {file: alpha-version-semver/number}}
+      - aggregate:
+        - task: build-linux
+          input_mapping: {version-semver: alpha-version-semver}
+          file: bosh-cli/ci/tasks/build-linux.yml
+          params:
+            FILENAME_PREFIX: "alpha-"
+        - task: build-darwin
+          input_mapping: {version-semver: alpha-version-semver}
+          file: bosh-cli/ci/tasks/build-darwin.yml
+          params:
+            FILENAME_PREFIX: "alpha-"
+        - task: build-windows
+          input_mapping: {version-semver: alpha-version-semver}
+          file: bosh-cli/ci/tasks/build-windows.yml
+          params:
+            FILENAME_PREFIX: "alpha-"
+
+      - aggregate:
+        - {put: alpha-release-bucket-linux, params: {file: compiled-linux/alpha-bosh-cli-*-linux-amd64}}
+        - {put: alpha-release-bucket-darwin, params: {file: compiled-darwin/alpha-bosh-cli-*-darwin-amd64}}
+        - {put: alpha-release-bucket-windows, params: {file: compiled-windows/alpha-bosh-cli-*-windows-amd64.exe}}
+
 resources:
   - name: version-semver
     type: semver
@@ -115,6 +143,43 @@ resources:
       access_key_id: ((integration_runtime_access_key_id))
       secret_access_key: ((integration_runtime_secret_access_key))
       versioned_file: "parallel_runtime_rspec.log"
+
+  - name: alpha-version-semver
+    type: semver
+    source:
+      initial_version: 0.0.1
+      key: bosh-registry-removal/bosh-cli/cli-alpha-current-version
+      bucket: bosh-toronto-bag
+      region_name: {{aws_region}}
+      access_key_id: {{aws_access_key}}
+      secret_access_key: {{aws_secret_key}}
+
+  - name: alpha-release-bucket-linux
+    type: s3
+    source:
+      regexp: bosh-registry-removal/bosh-cli/alpha-bosh-cli-(.*)-linux-amd64
+      bucket: bosh-toronto-bag
+      region_name: {{aws_region}}
+      access_key_id: {{aws_access_key}}
+      secret_access_key: {{aws_secret_key}}
+
+  - name: alpha-release-bucket-darwin
+    type: s3
+    source:
+      regexp: bosh-registry-removal/bosh-cli/alpha-bosh-cli-(.*)-darwin-amd64
+      bucket: bosh-toronto-bag
+      region_name: {{aws_region}}
+      access_key_id: {{aws_access_key}}
+      secret_access_key: {{aws_secret_key}}
+
+  - name: alpha-release-bucket-windows
+    type: s3
+    source:
+      regexp: bosh-registry-removal/bosh-cli/alpha-bosh-cli-(.*)-windows-amd64.exe
+      bucket: bosh-toronto-bag
+      region_name: {{aws_region}}
+      access_key_id: {{aws_access_key}}
+      secret_access_key: {{aws_secret_key}}
 
 resource_types:
   - name: github-status

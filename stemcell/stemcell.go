@@ -40,7 +40,7 @@ type Manifest struct {
 	SHA1            string         `yaml:"sha1"`
 	BoshProtocol    string         `yaml:"bosh_protocol"`
 	StemcellFormats []string       `yaml:"stemcell_formats,omitempty"`
-	ApiVersion      string         `yaml:"api_version"`
+	ApiVersion      string         `yaml:"api_version,omitempty"`
 	CloudProperties biproperty.Map `yaml:"cloud_properties"`
 }
 
