@@ -7,6 +7,7 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"fmt"
 )
 
 var _ = Describe("StemcellRepo", func() {
@@ -104,11 +105,15 @@ var _ = Describe("StemcellRepo", func() {
 			It("returns an error", func() {
 				_, err := repo.Save("fake-name", "fake-version", "fake-cid-2", apiVersion)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("duplicate name/version"))
+				oldStemcellRecord := "{ID:fake-uuid-1 Name:fake-name Version:fake-version ApiVersion:1 CID:fake-cid}"
+				newStemcellRecord := "{ID:fake-uuid-2 Name:fake-name Version:fake-version ApiVersion:1 CID:fake-cid-2}"
+				errorString := fmt.Sprintf("Failed to save stemcell record '%s' (duplicate name/version), existing record found '%s'", newStemcellRecord, oldStemcellRecord)
+				
+				Expect(err.Error()).To(Equal(errorString))
 			})
 		})
 
-		Context("when there stemcell record with the same cid exists (cpi does not garentee cid uniqueness)", func() {
+		Context("when there stemcell record with the same cid exists (cpi does not guarantee cid uniqueness)", func() {
 			BeforeEach(func() {
 				_, err := repo.Save("fake-name-1", "fake-version-1", "fake-cid-1", apiVersion)
 				Expect(err).ToNot(HaveOccurred())

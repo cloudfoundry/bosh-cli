@@ -55,7 +55,6 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	"github.com/cloudfoundry/bosh-utils/fileutil/fakes"
-	"strconv"
 )
 
 var _ = Describe("bosh", func() {
@@ -1010,7 +1009,7 @@ cloud_provider:
 					Name:            "fake-stemcell-name",
 					Version:         "fake-stemcell-version",
 					SHA1:            "fake-stemcell-sha1",
-					ApiVersion:      strconv.Itoa(stemcellApiVersion),
+					ApiVersion:      stemcellApiVersion,
 					CloudProperties: biproperty.Map{},
 				}
 

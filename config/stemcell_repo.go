@@ -51,7 +51,7 @@ func (r stemcellRepo) Save(name, version, cid string, apiVersion int) (StemcellR
 
 		for _, oldRecord := range records {
 			if oldRecord.Name == newRecord.Name && oldRecord.Version == newRecord.Version {
-				return bosherr.Errorf("Failed to save stemcell record '%s' (duplicate name/version), existing record found '%s'", newRecord, oldRecord)
+				return bosherr.Errorf("Failed to save stemcell record '%+v' (duplicate name/version), existing record found '%+v'", newRecord, oldRecord)
 			}
 		}
 
