@@ -1043,7 +1043,7 @@ cloud_provider:
 
 				deploymentState, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(deploymentState.Stemcells[0].ApiVersion).To(Equal("2"))
+				Expect(deploymentState.Stemcells[0].ApiVersion).To(Equal(2))
 			})
 		})
 	})

@@ -108,7 +108,7 @@ var _ = Describe("StemcellRepo", func() {
 				oldStemcellRecord := "{ID:fake-uuid-1 Name:fake-name Version:fake-version ApiVersion:1 CID:fake-cid}"
 				newStemcellRecord := "{ID:fake-uuid-2 Name:fake-name Version:fake-version ApiVersion:1 CID:fake-cid-2}"
 				errorString := fmt.Sprintf("Failed to save stemcell record '%s' (duplicate name/version), existing record found '%s'", newStemcellRecord, oldStemcellRecord)
-				
+
 				Expect(err.Error()).To(Equal(errorString))
 			})
 		})
