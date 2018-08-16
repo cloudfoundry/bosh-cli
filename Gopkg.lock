@@ -12,8 +12,8 @@
     "internal/version",
     "storage"
   ]
-  revision = "aad3f485ee528456e0768f20397b4d9dd941e755"
-  version = "v0.25.0"
+  revision = "64a2037ec6be8a4b0c1d1f706ed35b428b989239"
+  version = "v0.26.0"
 
 [[projects]]
   branch = "master"
@@ -33,8 +33,8 @@
 [[projects]]
   name = "contrib.go.opencensus.io/exporter/stackdriver"
   packages = ["propagation"]
-  revision = "37aa2801fbf0205003e15636096ebf0373510288"
-  version = "v0.5.0"
+  revision = "2b93072101d466aa4120b3c23c2e1b08af01541c"
+  version = "v0.6.0"
 
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
@@ -73,14 +73,14 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "f70339bb6af843c8ab1974381b3f4fcaee2b1a41"
-  version = "v1.15.5"
+  revision = "2d51b5082ad9f540e68761c27522b0677b9a75c0"
+  version = "v1.15.13"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
   packages = ["."]
-  revision = "b3608229437ba4dc33dae64d56a79a2a73f1f6b2"
-  version = "v1.0.9"
+  revision = "85a78806aa1b4707d1dbace9be592cf1ece91ab3"
+  version = "v1.1.1"
 
 [[projects]]
   branch = "master"
@@ -103,8 +103,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "abad63545db0cf3d96018ef15f5144d1de6bd91f"
-  version = "v2.128.0"
+  revision = "206a915ba8492aae9c8a801c0f3e273be899b9fb"
+  version = "v2.133.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -286,8 +286,8 @@
 [[projects]]
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
-  revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
-  version = "v0.0.2"
+  revision = "ce7b0b5c7b45a81508558cd1dba6bb1e4ddb51bb"
+  version = "v0.0.3"
 
 [[projects]]
   name = "github.com/maxbrunsfeld/counterfeiter"
@@ -393,8 +393,8 @@
     "trace/internal",
     "trace/propagation"
   ]
-  revision = "e262766cd0d230a1bb7c37281e345e465f19b41b"
-  version = "v0.14.0"
+  revision = "7b558058b7cc960667590e5413ef55157b06652e"
+  version = "v0.15.0"
 
 [[projects]]
   branch = "master"
@@ -409,7 +409,7 @@
     "ssh",
     "ssh/terminal"
   ]
-  revision = "56440b844dfe139a8ac053f4ecac0b20b79058f4"
+  revision = "de0752318171da717af4ce24d0a2e8626afaeb11"
 
 [[projects]]
   branch = "master"
@@ -429,7 +429,7 @@
     "proxy",
     "trace"
   ]
-  revision = "f4c29de78a2a91c00474a2e689954305c350adf9"
+  revision = "aaf60122140d3fcf75376d319f0554393160eb50"
 
 [[projects]]
   branch = "master"
@@ -450,7 +450,7 @@
     "unix",
     "windows"
   ]
-  revision = "0ffbfd41fbef8ffcf9b62b0b0aa3a5873ed7a4fe"
+  revision = "1c9583448a9c3aa0f9a6a5241bf73c0bd8aafded"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -493,7 +493,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "3c07937fe18c27668fd78bbaed3d6b8b39e202ea"
+  revision = "1dfe8478fdec02e49c998048ab9f761d64949349"
 
 [[projects]]
   branch = "master"
@@ -509,7 +509,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "f6d94689cbd71030af1108ddac733886fcae1d75"
+  revision = "0e8d13b5c025da6a7cf249bb854e5869921dd459"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -537,7 +537,7 @@
     "googleapis/rpc/code",
     "googleapis/rpc/status"
   ]
-  revision = "daca94659cb50e9f37c1b834680f2e46358f10b0"
+  revision = "d0a8f471bba2dbb160885b0000d814ee5d559bad"
 
 [[projects]]
   name = "google.golang.org/grpc"
