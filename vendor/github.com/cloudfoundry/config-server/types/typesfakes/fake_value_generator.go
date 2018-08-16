@@ -2,9 +2,8 @@
 package typesfakes
 
 import (
-	"sync"
-
 	"github.com/cloudfoundry/config-server/types"
+	"sync"
 )
 
 type FakeValueGenerator struct {
@@ -30,8 +29,9 @@ func (fake *FakeValueGenerator) Generate(arg1 interface{}) (interface{}, error) 
 	fake.generateMutex.Unlock()
 	if fake.GenerateStub != nil {
 		return fake.GenerateStub(arg1)
+	} else {
+		return fake.generateReturns.result1, fake.generateReturns.result2
 	}
-	return fake.generateReturns.result1, fake.generateReturns.result2
 }
 
 func (fake *FakeValueGenerator) GenerateCallCount() int {
