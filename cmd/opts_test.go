@@ -1205,7 +1205,7 @@ var _ = Describe("Opts", func() {
 
 		Describe("DiskProperties", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("DiskProperties", opts)).To(Equal(`long:"disk-properties" description:"Disk properties to use while attaching, e.g. 'copy' or 'default'" optional:"true"`))
+				Expect(getStructTagForName("DiskProperties", opts)).To(Equal(`long:"disk-properties" description:"Disk properties to use while attaching, e.g. 'copy' " optional:"true"`))
 			})
 		})
 	})

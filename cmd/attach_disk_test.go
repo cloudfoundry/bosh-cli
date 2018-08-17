@@ -38,7 +38,7 @@ var _ = Describe("AttachDisk", func() {
 
 			instanceSlug = boshdir.NewInstanceSlug("instance-group-name", "1")
 			diskCid = "some-disk-id"
-			diskProperties = "default"
+			diskProperties = "copy"
 
 			opts = AttachDiskOpts{
 				Args: AttachDiskArgs{
@@ -58,7 +58,7 @@ var _ = Describe("AttachDisk", func() {
 
 			Expect(receivedInstanceSlug).To(Equal(instanceSlug))
 			Expect(recievedDiskCid).To(Equal(diskCid))
-			Expect(recievedDiskProperties).To(Equal("default"))
+			Expect(recievedDiskProperties).To(Equal("copy"))
 		})
 
 		Context("attaching a disk returns an error", func() {
