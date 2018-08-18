@@ -73,8 +73,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "2d51b5082ad9f540e68761c27522b0677b9a75c0"
-  version = "v1.15.13"
+  revision = "ca229c7730be9278527fbb287f5a26c91e328d86"
+  version = "v1.15.15"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -409,7 +409,7 @@
     "ssh",
     "ssh/terminal"
   ]
-  revision = "de0752318171da717af4ce24d0a2e8626afaeb11"
+  revision = "aabede6cba87e37f413b3e60ebfc214f8eeca1b0"
 
 [[projects]]
   branch = "master"
@@ -493,7 +493,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "1dfe8478fdec02e49c998048ab9f761d64949349"
+  revision = "7d1dc997617fb662918b6ea95efc19faa87e1cf8"
 
 [[projects]]
   branch = "master"
@@ -509,7 +509,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "0e8d13b5c025da6a7cf249bb854e5869921dd459"
+  revision = "e21acd801f91da814261b938941d193bb036441a"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -537,7 +537,7 @@
     "googleapis/rpc/code",
     "googleapis/rpc/status"
   ]
-  revision = "d0a8f471bba2dbb160885b0000d814ee5d559bad"
+  revision = "c66870c02cf823ceb633bcd05be3c7cda29976f4"
 
 [[projects]]
   name = "google.golang.org/grpc"
