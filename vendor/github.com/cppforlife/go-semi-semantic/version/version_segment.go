@@ -87,6 +87,62 @@ func (s VersionSegment) Increment() (VersionSegment, error) {
 	return NewVersionSegment(copiedComponents)
 }
 
+func (s VersionSegment) IncrementSemVer(MajorMinorOrPatch string) (VersionSegment, error) {
+	var major, minor, patch int
+	if len(s.Components) == 0 {
+		errMsg := "Expected version segment to have at least one component to be incremented"
+		return VersionSegment{}, errors.New(errMsg)
+	}
+
+	majorComp, isInt := s.Components[0].(VerSegCompInt)
+	if !isInt {
+		errMsg := fmt.Sprintf("Expected version segment '%s' to have major component '%s' to be an integer", s, majorComp)
+		return VersionSegment{}, errors.New(errMsg)
+	}
+	major = majorComp.I
+
+	if len(s.Components) > 1 {
+		minorComp, isInt := s.Components[1].(VerSegCompInt)
+		if !isInt {
+			errMsg := fmt.Sprintf("Expected version segment '%s' to have minor component '%s' to be an integer", s, minorComp)
+			return VersionSegment{}, errors.New(errMsg)
+		}
+		minor = minorComp.I
+	} else {
+		minor = 0
+	}
+
+	if len(s.Components) > 2 {
+		patchComp, isInt := s.Components[2].(VerSegCompInt)
+		if !isInt {
+			errMsg := fmt.Sprintf("Expected version segment '%s' to have patch component '%s' to be an integer", s, patchComp)
+			return VersionSegment{}, errors.New(errMsg)
+		}
+		patch = patchComp.I
+	} else {
+		patch = 0
+	}
+
+	switch strings.ToUpper(MajorMinorOrPatch) {
+	case "MAJOR":
+		major = major + 1
+		minor = 0
+		patch = 0
+	case "MINOR":
+		minor = minor + 1
+		patch = 0
+	case "PATCH":
+		patch = patch + 1
+	default:
+		return VersionSegment{}, errors.New("Must bump by Major, Minor, or Patch")
+	}
+
+	newComponents := make([]VerSegComp, 0)
+	newComponents = append(newComponents, VerSegCompInt{I: major }, VerSegCompInt{I: minor}, VerSegCompInt{I: patch})
+
+	return NewVersionSegment(newComponents)
+}
+
 func (s VersionSegment) Copy() VersionSegment {
 	// Don't use constructor; assuming that original components are valid
 	copiedComponents := make([]VerSegComp, len(s.Components))

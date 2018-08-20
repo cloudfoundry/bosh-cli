@@ -254,6 +254,69 @@ var _ = Describe("FSGenerator", func() {
 		})
 	})
 
+	Describe("NextFinalVersionBump", func() {
+		It("returns major incremented last final version for specific release name", func() {
+			finalReleases.LastVersionStub = func(name string) (*semver.Version, error) {
+				Expect(name).To(Equal("rel1"))
+				lastVer := semver.MustNewVersionFromString("3.2.1+build-0")
+				return &lastVer, nil
+			}
+
+			ver, err := releaseDir.NextFinalVersionBump("rel1", "MAJOR")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ver.String()).To(Equal(semver.MustNewVersionFromString("4.0.0").String()))
+		})
+
+		It("returns minor incremented last final version for specific release name", func() {
+			finalReleases.LastVersionStub = func(name string) (*semver.Version, error) {
+				Expect(name).To(Equal("rel1"))
+				lastVer := semver.MustNewVersionFromString("3.2.1+build-1")
+				return &lastVer, nil
+			}
+
+			ver, err := releaseDir.NextFinalVersionBump("rel1", "MINOR")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ver.String()).To(Equal(semver.MustNewVersionFromString("3.3.0").String()))
+		})
+
+		It("returns patch incremented last final version for specific release name", func() {
+			finalReleases.LastVersionStub = func(name string) (*semver.Version, error) {
+				Expect(name).To(Equal("rel1"))
+				lastVer := semver.MustNewVersionFromString("3.2.1+build-1")
+				return &lastVer, nil
+			}
+
+			ver, err := releaseDir.NextFinalVersionBump("rel1", "PATCH")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ver.String()).To(Equal(semver.MustNewVersionFromString("3.2.2").String()))
+		})
+
+		It("returns '1' if there are no versions so that when it's finalized it will be '1'", func() {
+			finalReleases.LastVersionReturns(nil, nil)
+
+			ver, err := releaseDir.NextFinalVersionBump("rel1", "anything")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ver.String()).To(Equal(semver.MustNewVersionFromString("1").String()))
+		})
+
+		It("returns error if cannot find out last version", func() {
+			finalReleases.LastVersionReturns(nil, errors.New("fake-err"))
+
+			_, err := releaseDir.NextFinalVersionBump("rel1", "anything")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+
+		It("returns error if incrementing fails", func() {
+			lastVer := semver.MustNewVersionFromString("a")
+			finalReleases.LastVersionReturns(&lastVer, nil)
+
+			_, err := releaseDir.NextFinalVersionBump("rel1", "WRONG")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Incrementing last final version"))
+		})
+	})
+
 	Describe("NextDevVersion", func() {
 		It("returns incremented last final version for specific release name", func() {
 			finalReleases.LastVersionStub = func(name string) (*semver.Version, error) {

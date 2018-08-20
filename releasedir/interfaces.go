@@ -27,6 +27,7 @@ type ReleaseDir interface {
 	// It does not account for gaps and just plainly increments.
 	NextDevVersion(name string, timestamp bool) (semver.Version, error)
 	NextFinalVersion(name string) (semver.Version, error)
+	NextFinalVersionBump(name, MajorMinorOrPatch string) (semver.Version, error)
 
 	// FindRelease returns last dev or final release version if it's empty;
 	// otherwise it finds a release by given name and version.

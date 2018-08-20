@@ -934,17 +934,18 @@ type RedigestReleaseArgs struct {
 }
 
 type CreateReleaseOpts struct {
-	Args CreateReleaseArgs `positional-args:"true"`
+	Args             CreateReleaseArgs `positional-args:"true"`
 
-	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
+	Directory        DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 
 	Name             string     `long:"name"               description:"Custom release name"`
 	Version          VersionArg `long:"version"            description:"Custom release version (e.g.: 1.0.0, 1.0-beta.2+dev.10)"`
+	SemverBump       string     `long:"semver-bump"               description:"Create release version from previous version, semver bumping Major, Minor, or Patch"`
 	TimestampVersion bool       `long:"timestamp-version"  description:"Create release with the timestamp as the dev version (e.g.: 1+dev.TIMESTAMP)"`
 
-	Final   bool    `long:"final"   description:"Make it a final release"`
-	Tarball FileArg `long:"tarball" description:"Create release tarball at path (e.g. /tmp/release.tgz)"`
-	Force   bool    `long:"force"   description:"Ignore Git dirty state check"`
+	Final            bool    `long:"final"   description:"Make it a final release"`
+	Tarball          FileArg `long:"tarball" description:"Create release tarball at path (e.g. /tmp/release.tgz)"`
+	Force            bool    `long:"force"   description:"Ignore Git dirty state check"`
 
 	cmd
 }
@@ -954,14 +955,15 @@ type CreateReleaseArgs struct {
 }
 
 type FinalizeReleaseOpts struct {
-	Args FinalizeReleaseArgs `positional-args:"true" required:"true"`
+	Args       FinalizeReleaseArgs `positional-args:"true" required:"true"`
 
-	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
+	Directory  DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 
-	Name    string     `long:"name"    description:"Custom release name"`
-	Version VersionArg `long:"version" description:"Custom release version (e.g.: 1.0.0, 1.0-beta.2+dev.10)"`
+	Name       string     `long:"name"        description:"Custom release name"`
+	Version    VersionArg `long:"version"     description:"Custom release version (e.g.: 1.0.0, 1.0-beta.2+dev.10)"`
+	SemverBump string     `long:"semver-bump" description:"Create release version from previous version, semver bumping Major, Minor, or Patch"`
 
-	Force bool `long:"force" description:"Ignore Git dirty state check"`
+	Force      bool `long:"force" description:"Ignore Git dirty state check"`
 
 	cmd
 }

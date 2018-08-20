@@ -41,7 +41,11 @@ func (c FinalizeReleaseCmd) Run(opts FinalizeReleaseOpts) error {
 	if !version.Empty() {
 		release.SetVersion(version.AsString())
 	} else {
-		version, err := c.releaseDir.NextFinalVersion(release.Name())
+		if opts.SemverBump != "" {
+			version, err = c.releaseDir.NextFinalVersionBump(release.Name(), opts.SemverBump)
+		} else {
+			version, err = c.releaseDir.NextFinalVersion(release.Name())
+		}
 		if err != nil {
 			return err
 		}

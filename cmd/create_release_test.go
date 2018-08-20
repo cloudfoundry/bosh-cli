@@ -364,6 +364,49 @@ var _ = Describe("CreateReleaseCmd", func() {
 				}))
 			})
 
+			It("builds and then finalizes release with bump options", func() {
+				opts.Final = true
+				opts.SemverBump = "minor"
+
+				releaseDir.DefaultNameReturns("default-rel-name", nil)
+				releaseDir.NextDevVersionReturns(semver.MustNewVersionFromString("next-dev+ver"), nil)
+				releaseDir.NextFinalVersionBumpReturns(semver.MustNewVersionFromString("next-final+ver"), nil)
+
+				releaseDir.BuildReleaseStub = func(name string, version semver.Version, force bool) (boshrel.Release, error) {
+					release.SetName(name)
+					release.SetVersion(version.String())
+					Expect(force).To(BeFalse())
+					return release, nil
+				}
+
+				releaseDir.FinalizeReleaseStub = func(rel boshrel.Release, force bool) error {
+					Expect(rel).To(Equal(release))
+					Expect(rel.Name()).To(Equal("default-rel-name"))
+					Expect(rel.Version()).To(Equal("next-final+ver"))
+					Expect(force).To(BeFalse())
+					return nil
+				}
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Commit Hash"),
+					},
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.NewValueString("default-rel-name"),
+							boshtbl.NewValueString("next-final+ver"),
+							boshtbl.NewValueString("commit"),
+						},
+					},
+					Transpose: true,
+				}))
+			})
+
 			It("builds and then finalizes release with custom version", func() {
 				opts.Final = true
 				opts.Version = VersionArg(semver.MustNewVersionFromString("custom-ver"))
