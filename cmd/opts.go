@@ -112,7 +112,7 @@ type BoshOpts struct {
 
 	// Disks
 	Disks      DisksOpts      `command:"disks"       description:"List disks"`
-	AttachDisk AttachDiskOpts `command:"attach-disk" description:"Attaches disk to an instance"`
+	AttachDisk AttachDiskOpts `command:"attach-disk" description:"Attach disk to an instance"`
 	DeleteDisk DeleteDiskOpts `command:"delete-disk" description:"Delete disk"`
 	OrphanDisk OrphanDiskOpts `command:"orphan-disk" description:"Orphan disk"`
 

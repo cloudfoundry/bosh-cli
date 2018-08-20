@@ -779,7 +779,7 @@ var _ = Describe("Opts", func() {
 		Describe("AttachDisk", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("AttachDisk", opts)).To(Equal(
-					`command:"attach-disk" description:"Attaches disk to an instance"`,
+					`command:"attach-disk" description:"Attach disk to an instance"`,
 				))
 			})
 		})
