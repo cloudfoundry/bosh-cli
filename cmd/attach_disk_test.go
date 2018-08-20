@@ -54,11 +54,11 @@ var _ = Describe("AttachDisk", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deployment.AttachDiskCallCount()).To(Equal(1))
 
-			receivedInstanceSlug, recievedDiskCid, recievedDiskProperties := deployment.AttachDiskArgsForCall(0)
+			receivedInstanceSlug, receivedDiskCid, receivedDiskProperties := deployment.AttachDiskArgsForCall(0)
 
 			Expect(receivedInstanceSlug).To(Equal(instanceSlug))
-			Expect(recievedDiskCid).To(Equal(diskCid))
-			Expect(recievedDiskProperties).To(Equal("copy"))
+			Expect(receivedDiskCid).To(Equal(diskCid))
+			Expect(receivedDiskProperties).To(Equal("copy"))
 		})
 
 		Context("attaching a disk returns an error", func() {
