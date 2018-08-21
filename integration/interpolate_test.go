@@ -180,6 +180,13 @@ variables:
 			cert, err := x509.ParseCertificate(block.Bytes)
 			Expect(err).ToNot(HaveOccurred())
 
+			caBlock, _ := pem.Decode([]byte(store.CA.Certificate))
+			ca, err := x509.ParseCertificate(caBlock.Bytes)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(cert.SubjectKeyId).ToNot(BeNil())
+			Expect(cert.AuthorityKeyId).To(Equal(ca.SubjectKeyId))
+
 			_, err = cert.Verify(x509.VerifyOptions{DNSName: "test.com", Roots: roots})
 			Expect(err).ToNot(HaveOccurred())
 
