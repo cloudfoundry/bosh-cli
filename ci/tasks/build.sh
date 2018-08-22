@@ -28,4 +28,5 @@ bin/build
 shasum_value=`sha1sum out/bosh | cut -f 1 -d' '`
 echo "sha1: ${shasum_value}"
 
+echo $shasum_value > $base/compiled-${GOOS}/checksum
 mv out/bosh $base/compiled-${GOOS}/${filename}
