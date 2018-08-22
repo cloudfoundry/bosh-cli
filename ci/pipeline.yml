@@ -109,6 +109,9 @@ jobs:
         - task: build-windows
           file: bosh-cli/ci/tasks/build-windows.yml
 
+      - task: build-checksum-file
+        file: bosh-cli/ci/tasks/build-checksum-file.yml
+
       - task: create-dockerfile
         config:
           platform: linux
@@ -172,6 +175,7 @@ jobs:
             - compiled-linux/bosh-cli-*-linux-amd64
             - compiled-darwin/bosh-cli-*-darwin-amd64
             - compiled-windows/bosh-cli-*-windows-amd64.exe
+          body: checksums/checksums
 
       - task: update-homebrew-formula
         file: bosh-cli/ci/tasks/update-homebrew-formula.yml
@@ -352,7 +356,7 @@ resources:
     source:
       owner: cloudfoundry
       repository: bosh-cli
-      access_token: {{concourse_github_access_token}}
+      access_token: {{github_release_token}}
 
   - name: final-docker
     type: docker-image

@@ -47,7 +47,7 @@ resources:
     type: git
     source:
       uri: git@github.com:bosh-ci-push-pull/bosh-cli.git
-      branch: develop
+      branch: test-checksum-pipeline
       private_key: {{concourse_github_private_key}}
 
 
@@ -58,6 +58,13 @@ resources:
   #     access_token: {{repo_github_token}}
   #     branch: develop
   #     context: ci/published
+
+  - name: bosh-cli-promoted
+    type: git
+    source:
+      uri: git@github.com:bosh-ci-push-pull/bosh-cli.git
+      branch: master
+      private_key: {{concourse_github_private_key}}
 
   - name: version-semver
     type: semver
