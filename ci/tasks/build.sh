@@ -15,7 +15,7 @@ if [[ $GOOS = 'windows' ]]; then
   filename="${filename}.exe"
 fi
 
-cd gopath/src/github.com/cloudfoundry/bosh-cli
+cd bosh-cli
 
 git_rev=`git rev-parse --short HEAD`
 version="${semver}-${git_rev}-${timestamp}"
