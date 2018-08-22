@@ -90,7 +90,6 @@ func (t Table) Print(w io.Writer) error {
 		// we're removing process rows from the instance count
 		rowCount += len(section.Rows)
 		for _, r := range section.Rows {
-			fmt.Println(r)
 			if r[0].String() == "" {
 				rowCount -= 1
 			}
