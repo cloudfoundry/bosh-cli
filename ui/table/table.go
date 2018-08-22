@@ -87,7 +87,7 @@ func (t Table) Print(w io.Writer) error {
 	writer := NewWriter(w, "-", t.BackgroundStr, t.BorderStr)
 	rowCount := len(t.Rows)
 	for _, section := range t.Sections {
-		// rowDupes := 4 //ValueString{"~"}
+		// we're removing process rows from the instance count
 		rowCount += len(section.Rows)
 		for _, r := range section.Rows {
 			fmt.Println(r)
