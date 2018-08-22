@@ -9,6 +9,7 @@ image_resource:
 
 inputs:
 - name: bosh-cli
+  path: gopath/src/github.com/cloudfoundry/bosh-cli
 - name: version-semver
 
 outputs:
@@ -21,4 +22,4 @@ params:
   FILENAME_PREFIX: ''
 
 run:
-  path: bosh-cli/ci/tasks/build.sh
+  path: gopath/src/github.com/cloudfoundry/bosh-cli/ci/tasks/build.sh
