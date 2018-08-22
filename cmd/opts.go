@@ -542,6 +542,10 @@ type RepackStemcellArgs struct {
 	PathToResult   FileArg `positional-arg-name:"PATH-TO-RESULT" description:"Path to repacked stemcell"`
 }
 
+type InspectStemcellTarballOpts struct {
+	cmd
+}
+
 // Releases
 
 type ReleasesOpts struct {
