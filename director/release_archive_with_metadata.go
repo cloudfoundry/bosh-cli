@@ -22,10 +22,10 @@ func NewFSReleaseArchive(path string, fs boshsys.FileSystem) ReleaseArchive {
 	return ReleaseArchiveWithMetadata{path, "release.MF", fs}
 }
 
-func (a ReleaseArchiveWithMetadata) Info() (string, string, error) {
+func (a ReleaseArchiveWithMetadata) Info() (ReleaseMetadata, error) {
 	bytes, err := a.readMFBytes()
 	if err != nil {
-		return "", "", err
+		return ReleaseMetadata{}, err
 	}
 
 	return a.extractNameAndVersion(bytes)
@@ -79,13 +79,11 @@ func (a ReleaseArchiveWithMetadata) readMFBytes() ([]byte, error) {
 	return nil, bosherr.Errorf("Missing '%s'", a.fileName)
 }
 
-func (a ReleaseArchiveWithMetadata) extractNameAndVersion(bytes []byte) (string, string, error) {
-	var mf ReleaseMetadata
-
-	err := yaml.Unmarshal(bytes, &mf)
+func (a ReleaseArchiveWithMetadata) extractNameAndVersion(bytes []byte) (metadata ReleaseMetadata, err error) {
+	err = yaml.Unmarshal(bytes, &metadata)
 	if err != nil {
-		return "", "", bosherr.WrapErrorf(err, "Unmarshalling '%s'", a.fileName)
+		return metadata, bosherr.WrapErrorf(err, "Unmarshalling '%s'", a.fileName)
 	}
 
-	return mf.Name, mf.Version, nil
+	return metadata, nil
 }

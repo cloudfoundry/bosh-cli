@@ -94,7 +94,7 @@ type ReleaseMetadata struct {
 //go:generate counterfeiter . ReleaseArchive
 
 type ReleaseArchive interface {
-	Info() (string, string, error)
+	Info() (ReleaseMetadata, error)
 	File() (UploadFile, error)
 }
 

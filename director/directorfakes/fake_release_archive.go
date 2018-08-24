@@ -8,18 +8,16 @@ import (
 )
 
 type FakeReleaseArchive struct {
-	InfoStub        func() (string, string, error)
+	InfoStub        func() (director.ReleaseMetadata, error)
 	infoMutex       sync.RWMutex
 	infoArgsForCall []struct{}
 	infoReturns     struct {
-		result1 string
-		result2 string
-		result3 error
+		result1 director.ReleaseMetadata
+		result2 error
 	}
 	infoReturnsOnCall map[int]struct {
-		result1 string
-		result2 string
-		result3 error
+		result1 director.ReleaseMetadata
+		result2 error
 	}
 	FileStub        func() (director.UploadFile, error)
 	fileMutex       sync.RWMutex
@@ -36,7 +34,7 @@ type FakeReleaseArchive struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeReleaseArchive) Info() (string, string, error) {
+func (fake *FakeReleaseArchive) Info() (director.ReleaseMetadata, error) {
 	fake.infoMutex.Lock()
 	ret, specificReturn := fake.infoReturnsOnCall[len(fake.infoArgsForCall)]
 	fake.infoArgsForCall = append(fake.infoArgsForCall, struct{}{})
@@ -46,9 +44,9 @@ func (fake *FakeReleaseArchive) Info() (string, string, error) {
 		return fake.InfoStub()
 	}
 	if specificReturn {
-		return ret.result1, ret.result2, ret.result3
+		return ret.result1, ret.result2
 	}
-	return fake.infoReturns.result1, fake.infoReturns.result2, fake.infoReturns.result3
+	return fake.infoReturns.result1, fake.infoReturns.result2
 }
 
 func (fake *FakeReleaseArchive) InfoCallCount() int {
@@ -57,29 +55,26 @@ func (fake *FakeReleaseArchive) InfoCallCount() int {
 	return len(fake.infoArgsForCall)
 }
 
-func (fake *FakeReleaseArchive) InfoReturns(result1 string, result2 string, result3 error) {
+func (fake *FakeReleaseArchive) InfoReturns(result1 director.ReleaseMetadata, result2 error) {
 	fake.InfoStub = nil
 	fake.infoReturns = struct {
-		result1 string
-		result2 string
-		result3 error
-	}{result1, result2, result3}
+		result1 director.ReleaseMetadata
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeReleaseArchive) InfoReturnsOnCall(i int, result1 string, result2 string, result3 error) {
+func (fake *FakeReleaseArchive) InfoReturnsOnCall(i int, result1 director.ReleaseMetadata, result2 error) {
 	fake.InfoStub = nil
 	if fake.infoReturnsOnCall == nil {
 		fake.infoReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 string
-			result3 error
+			result1 director.ReleaseMetadata
+			result2 error
 		})
 	}
 	fake.infoReturnsOnCall[i] = struct {
-		result1 string
-		result2 string
-		result3 error
-	}{result1, result2, result3}
+		result1 director.ReleaseMetadata
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeReleaseArchive) File() (director.UploadFile, error) {
