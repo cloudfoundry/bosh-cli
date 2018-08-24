@@ -85,11 +85,23 @@ type UploadFile interface {
 	Stat() (os.FileInfo, error)
 }
 
+type ReleaseMetadata struct {
+	Name    string `yaml:"name"`
+	Version string `yaml:"version"`
+	// other fields ignored
+}
+
 //go:generate counterfeiter . ReleaseArchive
 
 type ReleaseArchive interface {
 	Info() (string, string, error)
 	File() (UploadFile, error)
+}
+
+type StemcellMetadata struct {
+	Name    string `yaml:"name"`
+	Version string `yaml:"version"`
+	// other fields ignored
 }
 
 //go:generate counterfeiter . StemcellArchive

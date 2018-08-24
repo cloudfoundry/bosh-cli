@@ -12,25 +12,17 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type FSArchiveWithMetadata struct {
+type ReleaseArchiveWithMetadata struct {
 	path     string
 	fileName string
 	fs       boshsys.FileSystem
 }
 
 func NewFSReleaseArchive(path string, fs boshsys.FileSystem) ReleaseArchive {
-	return NewFSArchiveWithMetadata(path, "release.MF", fs)
+	return ReleaseArchiveWithMetadata{path, "release.MF", fs}
 }
 
-func NewFSStemcellArchive(path string, fs boshsys.FileSystem) ReleaseArchive {
-	return NewFSArchiveWithMetadata(path, "stemcell.MF", fs)
-}
-
-func NewFSArchiveWithMetadata(path, fileName string, fs boshsys.FileSystem) StemcellArchive {
-	return FSArchiveWithMetadata{path: path, fileName: fileName, fs: fs}
-}
-
-func (a FSArchiveWithMetadata) Info() (string, string, error) {
+func (a ReleaseArchiveWithMetadata) Info() (string, string, error) {
 	bytes, err := a.readMFBytes()
 	if err != nil {
 		return "", "", err
@@ -39,7 +31,7 @@ func (a FSArchiveWithMetadata) Info() (string, string, error) {
 	return a.extractNameAndVersion(bytes)
 }
 
-func (a FSArchiveWithMetadata) File() (UploadFile, error) {
+func (a ReleaseArchiveWithMetadata) File() (UploadFile, error) {
 	file, err := a.fs.OpenFile(a.path, os.O_RDONLY, 0)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Opening archive")
@@ -48,7 +40,7 @@ func (a FSArchiveWithMetadata) File() (UploadFile, error) {
 	return file, nil
 }
 
-func (a FSArchiveWithMetadata) readMFBytes() ([]byte, error) {
+func (a ReleaseArchiveWithMetadata) readMFBytes() ([]byte, error) {
 	file, err := a.fs.OpenFile(a.path, os.O_RDONLY, 0)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Opening archive")
@@ -87,14 +79,8 @@ func (a FSArchiveWithMetadata) readMFBytes() ([]byte, error) {
 	return nil, bosherr.Errorf("Missing '%s'", a.fileName)
 }
 
-func (a FSArchiveWithMetadata) extractNameAndVersion(bytes []byte) (string, string, error) {
-	type mfSchema struct {
-		Name    string `yaml:"name"`
-		Version string `yaml:"version"`
-		// other fields ignored
-	}
-
-	var mf mfSchema
+func (a ReleaseArchiveWithMetadata) extractNameAndVersion(bytes []byte) (string, string, error) {
+	var mf ReleaseMetadata
 
 	err := yaml.Unmarshal(bytes, &mf)
 	if err != nil {
