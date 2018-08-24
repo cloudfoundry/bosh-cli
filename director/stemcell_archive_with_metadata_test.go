@@ -1,49 +1,32 @@
 package director_test
 
 import (
-	"archive/tar"
-	"bytes"
-	"compress/gzip"
-	"errors"
-
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"archive/tar"
+	"bytes"
+	"compress/gzip"
+	"errors"
 	. "github.com/cloudfoundry/bosh-cli/director"
 )
 
-var _ = Describe("NewFSReleaseArchive", func() {
-	It("returns release archive", func() {
-		fs := fakesys.NewFakeFileSystem()
-		Expect(NewFSReleaseArchive("/path", fs)).To(
-			Equal(NewFSArchiveWithMetadata("/path", "release.MF", fs)))
-	})
-})
-
 var _ = Describe("NewFSStemcellArchive", func() {
-	It("returns stemcell archive", func() {
-		fs := fakesys.NewFakeFileSystem()
-		Expect(NewFSStemcellArchive("/path", fs)).To(
-			Equal(NewFSArchiveWithMetadata("/path", "stemcell.MF", fs)))
-	})
-})
-
-var _ = Describe("FSArchiveWithMetadata", func() {
 	var (
 		fs      *fakesys.FakeFileSystem
-		archive ReleaseArchive
+		archive StemcellArchive
 	)
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
-		archive = NewFSArchiveWithMetadata("/path", "metadata.MF", fs)
+		archive = NewFSStemcellArchive("/path", fs)
 	})
 
 	Describe("Info", func() {
 		validContent := "---\nname: name\nversion: ver\n"
 
-		validReleaseTgzBytes := func(fileName, content string) []byte {
+		validStemcellTgzBytes := func(fileName, content string) []byte {
 			fileBytes := &bytes.Buffer{}
 			gzipWriter := gzip.NewWriter(fileBytes)
 			tarWriter := tar.NewWriter(gzipWriter)
@@ -100,7 +83,7 @@ var _ = Describe("FSArchiveWithMetadata", func() {
 		}
 
 		It("returns release name and version from metadata file", func() {
-			err := fs.WriteFile("/path", validReleaseTgzBytes("metadata.MF", validContent))
+			err := fs.WriteFile("/path", validStemcellTgzBytes("stemcell.MF", validContent))
 			Expect(err).ToNot(HaveOccurred())
 
 			name, version, err := archive.Info()
@@ -110,7 +93,7 @@ var _ = Describe("FSArchiveWithMetadata", func() {
 		})
 
 		It("returns release name and version from dotted metadata file", func() {
-			err := fs.WriteFile("/path", validReleaseTgzBytes("./metadata.MF", validContent))
+			err := fs.WriteFile("/path", validStemcellTgzBytes("./stemcell.MF", validContent))
 			Expect(err).ToNot(HaveOccurred())
 
 			name, version, err := archive.Info()
@@ -147,21 +130,21 @@ var _ = Describe("FSArchiveWithMetadata", func() {
 		})
 
 		It("returns error if cannot find manifest file", func() {
-			err := fs.WriteFile("/path", validReleaseTgzBytes("./wrong.MF", ""))
+			err := fs.WriteFile("/path", validStemcellTgzBytes("./wrong.MF", ""))
 			Expect(err).ToNot(HaveOccurred())
 
 			_, _, err = archive.Info()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Missing 'metadata.MF'"))
+			Expect(err.Error()).To(ContainSubstring("Missing 'stemcell.MF'"))
 		})
 
 		It("returns error if cannot parse manifest file", func() {
-			err := fs.WriteFile("/path", validReleaseTgzBytes("./metadata.MF", "-"))
+			err := fs.WriteFile("/path", validStemcellTgzBytes("./stemcell.MF", "-"))
 			Expect(err).ToNot(HaveOccurred())
 
 			_, _, err = archive.Info()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Unmarshalling 'metadata.MF'"))
+			Expect(err.Error()).To(ContainSubstring("Unmarshalling 'stemcell.MF'"))
 		})
 
 		It("returns error if cannot open archive", func() {
