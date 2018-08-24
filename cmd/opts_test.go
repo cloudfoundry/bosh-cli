@@ -496,6 +496,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("InspectStemcellTarball", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("InspectStemcellTarball", opts)).To(Equal(
+					`command:"inspect-stemcell-tarball" description:"Display information from stemcell metadata"`,
+				))
+			})
+		})
+
 		Describe("DeleteRelease", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("DeleteRelease", opts)).To(Equal(

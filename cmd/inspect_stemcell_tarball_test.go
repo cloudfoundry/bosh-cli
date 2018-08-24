@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("InspectStemcellTarballCmd", func() {
+var _ = Describe("InspectStemcellTarballCmd", func() {
 	Describe("Run", func() {
 		var (
 			fs               *fakesys.FakeFileSystem
@@ -20,13 +20,13 @@ var _ = FDescribe("InspectStemcellTarballCmd", func() {
 			command          InspectStemcellTarballCmd
 			ui               *fakeui.FakeUI
 			opts             InspectStemcellTarballOpts
-			existingMetadata boshdir.StemcellMetadata
+			stemcellMetadata boshdir.StemcellMetadata
 		)
 
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
 			archive = &fakedir.FakeStemcellArchive{}
-			existingMetadata = boshdir.StemcellMetadata{Name: "example-name", Version: "example.version"}
+			stemcellMetadata = boshdir.StemcellMetadata{Name: "example-name", OS: "example-os", Version: "example.version"}
 
 			stemcellArchiveFactory := func(path string) boshdir.StemcellArchive {
 				if archive.FileStub == nil {
@@ -44,7 +44,7 @@ var _ = FDescribe("InspectStemcellTarballCmd", func() {
 		})
 
 		It("returns a table with name, os, and version", func() {
-			archive.InfoReturns(existingMetadata, nil)
+			archive.InfoReturns(stemcellMetadata, nil)
 
 			err := command.Run(opts)
 			Expect(err).ToNot(HaveOccurred())
@@ -72,17 +72,8 @@ var _ = FDescribe("InspectStemcellTarballCmd", func() {
 			}))
 		})
 
-		PIt("returns error if retrieving stemcell archive info fails", func() {
+		It("returns error if retrieving stemcell archive info fails", func() {
 			archive.InfoReturns(boshdir.StemcellMetadata{}, errors.New("fake-err"))
-
-			err := command.Run(opts)
-			Expect(err).To(HaveOccurred())
-		})
-
-		PIt("returns error if opening file fails", func() {
-			archive.FileStub = func() (boshdir.UploadFile, error) {
-				return nil, errors.New("fake-err")
-			}
 
 			err := command.Run(opts)
 			Expect(err).To(HaveOccurred())

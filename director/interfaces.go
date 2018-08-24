@@ -100,6 +100,7 @@ type ReleaseArchive interface {
 
 type StemcellMetadata struct {
 	Name    string `yaml:"name"`
+	OS      string `yaml:"operating_system"`
 	Version string `yaml:"version"`
 	// other fields ignored
 }

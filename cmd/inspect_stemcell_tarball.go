@@ -22,13 +22,11 @@ func NewInspectStemcellTarballCmd(
 }
 
 func (c InspectStemcellTarballCmd) Run(opts InspectStemcellTarballOpts) error {
-
-	//archive := c.stemcellArchiveFactory(path)
-	//
-	//name, version, err := archive.Info()
-	//if err != nil {
-	//	return bosherr.WrapErrorf(err, "Retrieving stemcell info")
-	//}
+	archive := c.stemcellArchiveFactory(opts.Args.PathToStemcell)
+	metadata, err := archive.Info()
+	if err != nil {
+		return err
+	}
 
 	metadataTable := boshtbl.Table{
 		Content: "stemcell-metadata",
@@ -40,9 +38,9 @@ func (c InspectStemcellTarballCmd) Run(opts InspectStemcellTarballOpts) error {
 		SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 		Rows: [][]boshtbl.Value{
 			{
-				boshtbl.NewValueString("example-name"),
-				boshtbl.NewValueString("example-os"),
-				boshtbl.NewValueString("example.version"),
+				boshtbl.NewValueString(metadata.Name),
+				boshtbl.NewValueString(metadata.OS),
+				boshtbl.NewValueString(metadata.Version),
 			},
 		},
 	}

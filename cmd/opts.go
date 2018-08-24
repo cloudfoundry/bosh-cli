@@ -95,10 +95,11 @@ type BoshOpts struct {
 	Event  EventOpts  `command:"event" description:"Show event details"`
 
 	// Stemcells
-	Stemcells      StemcellsOpts      `command:"stemcells"       alias:"ss"   description:"List stemcells"`
-	UploadStemcell UploadStemcellOpts `command:"upload-stemcell" alias:"us"   description:"Upload stemcell"`
-	DeleteStemcell DeleteStemcellOpts `command:"delete-stemcell" alias:"dels" description:"Delete stemcell"`
-	RepackStemcell RepackStemcellOpts `command:"repack-stemcell"              description:"Repack stemcell"`
+	Stemcells              StemcellsOpts              `command:"stemcells"       alias:"ss"   description:"List stemcells"`
+	InspectStemcellTarball InspectStemcellTarballOpts `command:"inspect-stemcell-tarball"     description:"Display information from stemcell metadata"`
+	UploadStemcell         UploadStemcellOpts         `command:"upload-stemcell" alias:"us"   description:"Upload stemcell"`
+	DeleteStemcell         DeleteStemcellOpts         `command:"delete-stemcell" alias:"dels" description:"Delete stemcell"`
+	RepackStemcell         RepackStemcellOpts         `command:"repack-stemcell"              description:"Repack stemcell"`
 
 	// Releases
 	Releases       ReleasesOpts       `command:"releases"        alias:"rs"   description:"List releases"`
@@ -543,7 +544,12 @@ type RepackStemcellArgs struct {
 }
 
 type InspectStemcellTarballOpts struct {
+	Args InspectStemcellTarballArgs `positional-args:"true" required:"true"`
 	cmd
+}
+
+type InspectStemcellTarballArgs struct {
+	PathToStemcell string `positional-arg-name:"PATH-TO-STEMCELL" description:"Path to stemcell"`
 }
 
 // Releases
