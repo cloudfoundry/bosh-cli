@@ -254,6 +254,11 @@ func (r DirReaderImpl) isPackageableFile(path string) (bool, error) {
 		return false, nil
 	}
 
+	fullSrcDirPath, err := r.fs.ReadAndFollowLink(r.srcDirPath)
+	if err != nil {
+		return false, err
+	}
+
 	fileIsSymlink := info.Mode()&os.ModeSymlink != 0
 	if !fileIsSymlink {
 		fullPath, err := r.fs.ReadAndFollowLink(path)
@@ -261,7 +266,17 @@ func (r DirReaderImpl) isPackageableFile(path string) (bool, error) {
 			return false, err
 		}
 
-		if path != fullPath {
+		relPath, err := filepath.Rel(r.srcDirPath, path)
+		if err != nil {
+			return false, err
+		}
+
+		fullRelPath, err := filepath.Rel(fullSrcDirPath, fullPath)
+		if err != nil {
+			return false, err
+		}
+
+		if relPath != fullRelPath {
 			return false, nil
 		}
 	}

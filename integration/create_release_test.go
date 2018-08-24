@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	"fmt"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -12,12 +13,14 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"github.com/cloudfoundry/bosh-utils/uuid"
+
+	"os"
 
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshrelman "github.com/cloudfoundry/bosh-cli/release/manifest"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
-	"os"
 )
 
 var _ = Describe("create-release command", func() {
@@ -58,10 +61,21 @@ var _ = Describe("create-release command", func() {
 	}
 
 	It("can iterate on a basic release", func() {
-		tmpDir, err := fs.TempDir("bosh-create-release-int-test")
+		suffix, err := uuid.NewGenerator().Generate()
 		Expect(err).ToNot(HaveOccurred())
 
-		defer fs.RemoveAll(tmpDir)
+		// containing the release in a directory that is a symlink
+		// to ensure we can work inside symlinks (i.e. macOS /tmp)
+		containerDir := filepath.Join("/", "tmp", suffix)
+		symlinkedContainerDir := fmt.Sprintf("%s-symlinked", containerDir)
+		fs.MkdirAll(containerDir, 0755)
+		fs.Symlink(containerDir, symlinkedContainerDir)
+		tmpDir := filepath.Join(symlinkedContainerDir, "release")
+
+		defer func() {
+			fs.RemoveAll(containerDir)
+			fs.RemoveAll(symlinkedContainerDir)
+		}()
 
 		relName := filepath.Base(tmpDir)
 

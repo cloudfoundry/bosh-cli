@@ -4,8 +4,9 @@ package typesfakes
 import (
 	"crypto/rsa"
 	"crypto/x509"
-	"github.com/cloudfoundry/config-server/types"
 	"sync"
+
+	"github.com/cloudfoundry/config-server/types"
 )
 
 type FakeCertsLoader struct {
@@ -32,9 +33,8 @@ func (fake *FakeCertsLoader) LoadCerts(arg1 string) (*x509.Certificate, *rsa.Pri
 	fake.loadCertsMutex.Unlock()
 	if fake.LoadCertsStub != nil {
 		return fake.LoadCertsStub(arg1)
-	} else {
-		return fake.loadCertsReturns.result1, fake.loadCertsReturns.result2, fake.loadCertsReturns.result3
 	}
+	return fake.loadCertsReturns.result1, fake.loadCertsReturns.result2, fake.loadCertsReturns.result3
 }
 
 func (fake *FakeCertsLoader) LoadCertsCallCount() int {
