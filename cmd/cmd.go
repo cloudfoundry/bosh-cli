@@ -187,6 +187,13 @@ func (c Cmd) Execute() (cmdErr error) {
 
 		return NewRepackStemcellCmd(deps.UI, deps.FS, stemcellExtractor).Run(*opts)
 
+	case *InspectStemcellTarballOpts:
+		stemcellArchiveFactory := func(path string) boshdir.StemcellArchive {
+			return boshdir.NewFSStemcellArchive(path, deps.FS)
+		}
+
+		return NewInspectStemcellTarballCmd(stemcellArchiveFactory, deps.UI).Run(*opts)
+
 	case *LocksOpts:
 		return NewLocksCmd(deps.UI, c.director()).Run()
 
