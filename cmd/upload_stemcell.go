@@ -23,7 +23,7 @@ func NewUploadStemcellCmd(
 	return UploadStemcellCmd{
 		director:               director,
 		stemcellArchiveFactory: stemcellArchiveFactory,
-		ui:                     ui,
+		ui: ui,
 	}
 }
 
