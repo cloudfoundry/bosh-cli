@@ -261,7 +261,7 @@ resources:
     type: github-status
     source:
       repository: cloudfoundry/bosh-cli
-      access_token: {{repo_github_token}}
+      access_token: {{github_token}}
       branch: develop
       context: ci/published
 
@@ -356,7 +356,7 @@ resources:
     source:
       owner: cloudfoundry
       repository: bosh-cli
-      access_token: {{github_release_token}}
+      access_token: {{github_token}}
       drafts: true
 
   - name: final-docker
