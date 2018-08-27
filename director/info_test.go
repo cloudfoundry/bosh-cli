@@ -128,7 +128,7 @@ var _ = Describe("Director", func() {
 				Features: map[string]bool{
 					"snapshots":              false,
 					"compiled_package_cache": true,
-					"dns": false,
+					"dns":                    false,
 				},
 
 				CPI: "cpi",

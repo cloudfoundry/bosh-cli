@@ -46,7 +46,7 @@ func NewBasicDepsWithFS(ui *boshui.ConfUI, fs boshsys.FileSystem, logger boshlog
 		Compressor:               boshcmd.NewTarballCompressor(cmdRunner, fs),
 		DigestCalculator:         digestCalculator,
 		DigestCreationAlgorithms: digestCreationAlgorithms,
-		Time: clock.NewClock(),
+		Time:                     clock.NewClock(),
 	}
 }
 

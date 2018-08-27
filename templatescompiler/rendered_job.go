@@ -47,7 +47,7 @@ func (j *renderedJob) Path() string { return j.path }
 func (j *renderedJob) Delete() error {
 	err := j.fs.RemoveAll(j.path)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Deleting rendered job '%s' tarball '%s'", j.job.Name, j.path)
+		return bosherr.WrapErrorf(err, "Deleting rendered job '%s' tarball '%s'", j.job.Name(), j.path)
 	}
 	return nil
 }

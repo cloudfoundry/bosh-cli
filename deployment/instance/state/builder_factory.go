@@ -34,7 +34,7 @@ func NewBuilderFactory(
 		releaseJobResolver:        releaseJobResolver,
 		jobRenderer:               jobRenderer,
 		renderedJobListCompressor: renderedJobListCompressor,
-		logger: logger,
+		logger:                    logger,
 	}
 }
 
