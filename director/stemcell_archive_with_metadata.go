@@ -22,10 +22,10 @@ func NewFSStemcellArchive(path string, fs boshsys.FileSystem) (stemcellArchive S
 	return StemcellArchiveWithMetadata{path, "stemcell.MF", fs}
 }
 
-func (a StemcellArchiveWithMetadata) Info() (string, string, error) {
+func (a StemcellArchiveWithMetadata) Info() (StemcellMetadata, error) {
 	bytes, err := a.readMFBytes()
 	if err != nil {
-		return "", "", err
+		return StemcellMetadata{}, err
 	}
 
 	return a.extractNameAndVersion(bytes)
@@ -79,13 +79,11 @@ func (a StemcellArchiveWithMetadata) readMFBytes() ([]byte, error) {
 	return nil, bosherr.Errorf("Missing '%s'", a.fileName)
 }
 
-func (a StemcellArchiveWithMetadata) extractNameAndVersion(bytes []byte) (string, string, error) {
-	var mf StemcellMetadata
-
-	err := yaml.Unmarshal(bytes, &mf)
+func (a StemcellArchiveWithMetadata) extractNameAndVersion(bytes []byte) (metadata StemcellMetadata, err error) {
+	err = yaml.Unmarshal(bytes, &metadata)
 	if err != nil {
-		return "", "", bosherr.WrapErrorf(err, "Unmarshalling '%s'", a.fileName)
+		return metadata, bosherr.WrapErrorf(err, "Unmarshalling '%s'", a.fileName)
 	}
 
-	return mf.Name, mf.Version, nil
+	return metadata, nil
 }

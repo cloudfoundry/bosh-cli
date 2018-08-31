@@ -8,18 +8,16 @@ import (
 )
 
 type FakeStemcellArchive struct {
-	InfoStub        func() (string, string, error)
+	InfoStub        func() (director.StemcellMetadata, error)
 	infoMutex       sync.RWMutex
 	infoArgsForCall []struct{}
 	infoReturns     struct {
-		result1 string
-		result2 string
-		result3 error
+		result1 director.StemcellMetadata
+		result2 error
 	}
 	infoReturnsOnCall map[int]struct {
-		result1 string
-		result2 string
-		result3 error
+		result1 director.StemcellMetadata
+		result2 error
 	}
 	FileStub        func() (director.UploadFile, error)
 	fileMutex       sync.RWMutex
@@ -36,7 +34,7 @@ type FakeStemcellArchive struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeStemcellArchive) Info() (string, string, error) {
+func (fake *FakeStemcellArchive) Info() (director.StemcellMetadata, error) {
 	fake.infoMutex.Lock()
 	ret, specificReturn := fake.infoReturnsOnCall[len(fake.infoArgsForCall)]
 	fake.infoArgsForCall = append(fake.infoArgsForCall, struct{}{})
@@ -46,9 +44,9 @@ func (fake *FakeStemcellArchive) Info() (string, string, error) {
 		return fake.InfoStub()
 	}
 	if specificReturn {
-		return ret.result1, ret.result2, ret.result3
+		return ret.result1, ret.result2
 	}
-	return fake.infoReturns.result1, fake.infoReturns.result2, fake.infoReturns.result3
+	return fake.infoReturns.result1, fake.infoReturns.result2
 }
 
 func (fake *FakeStemcellArchive) InfoCallCount() int {
@@ -57,29 +55,26 @@ func (fake *FakeStemcellArchive) InfoCallCount() int {
 	return len(fake.infoArgsForCall)
 }
 
-func (fake *FakeStemcellArchive) InfoReturns(result1 string, result2 string, result3 error) {
+func (fake *FakeStemcellArchive) InfoReturns(result1 director.StemcellMetadata, result2 error) {
 	fake.InfoStub = nil
 	fake.infoReturns = struct {
-		result1 string
-		result2 string
-		result3 error
-	}{result1, result2, result3}
+		result1 director.StemcellMetadata
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeStemcellArchive) InfoReturnsOnCall(i int, result1 string, result2 string, result3 error) {
+func (fake *FakeStemcellArchive) InfoReturnsOnCall(i int, result1 director.StemcellMetadata, result2 error) {
 	fake.InfoStub = nil
 	if fake.infoReturnsOnCall == nil {
 		fake.infoReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 string
-			result3 error
+			result1 director.StemcellMetadata
+			result2 error
 		})
 	}
 	fake.infoReturnsOnCall[i] = struct {
-		result1 string
-		result2 string
-		result3 error
-	}{result1, result2, result3}
+		result1 director.StemcellMetadata
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeStemcellArchive) File() (director.UploadFile, error) {
