@@ -193,7 +193,11 @@ func (fake *FakeConfig) Invocations() map[string][][]interface{} {
 	defer fake.saveNameMutex.RUnlock()
 	fake.blobstoreMutex.RLock()
 	defer fake.blobstoreMutex.RUnlock()
-	return fake.invocations
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeConfig) recordInvocation(key string, args []interface{}) {
