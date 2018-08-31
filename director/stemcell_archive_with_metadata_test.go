@@ -86,27 +86,27 @@ var _ = Describe("NewFSStemcellArchive", func() {
 			err := fs.WriteFile("/path", validStemcellTgzBytes("stemcell.MF", validContent))
 			Expect(err).ToNot(HaveOccurred())
 
-			name, version, err := archive.Info()
+			stemcellMetadata, err := archive.Info()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(name).To(Equal("name"))
-			Expect(version).To(Equal("ver"))
+			Expect(stemcellMetadata.Name).To(Equal("name"))
+			Expect(stemcellMetadata.Version).To(Equal("ver"))
 		})
 
 		It("returns release name and version from dotted metadata file", func() {
 			err := fs.WriteFile("/path", validStemcellTgzBytes("./stemcell.MF", validContent))
 			Expect(err).ToNot(HaveOccurred())
 
-			name, version, err := archive.Info()
+			stemcellMetadata, err := archive.Info()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(name).To(Equal("name"))
-			Expect(version).To(Equal("ver"))
+			Expect(stemcellMetadata.Name).To(Equal("name"))
+			Expect(stemcellMetadata.Version).To(Equal("ver"))
 		})
 
 		It("returns error if cannot read gzip", func() {
 			err := fs.WriteFileString("/path", "invalid-gzip")
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = archive.Info()
+			_, err = archive.Info()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("gzip: invalid header"))
 		})
@@ -124,7 +124,7 @@ var _ = Describe("NewFSStemcellArchive", func() {
 			err = fs.WriteFile("/path", fileBytes.Bytes())
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = archive.Info()
+			_, err = archive.Info()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Reading next tar entry"))
 		})
@@ -133,7 +133,7 @@ var _ = Describe("NewFSStemcellArchive", func() {
 			err := fs.WriteFile("/path", validStemcellTgzBytes("./wrong.MF", ""))
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = archive.Info()
+			_, err = archive.Info()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Missing 'stemcell.MF'"))
 		})
@@ -142,7 +142,7 @@ var _ = Describe("NewFSStemcellArchive", func() {
 			err := fs.WriteFile("/path", validStemcellTgzBytes("./stemcell.MF", "-"))
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = archive.Info()
+			_, err = archive.Info()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Unmarshalling 'stemcell.MF'"))
 		})
@@ -150,7 +150,7 @@ var _ = Describe("NewFSStemcellArchive", func() {
 		It("returns error if cannot open archive", func() {
 			fs.OpenFileErr = errors.New("fake-err")
 
-			_, _, err := archive.Info()
+			_, err := archive.Info()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})

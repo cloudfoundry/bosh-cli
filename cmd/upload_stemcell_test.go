@@ -16,11 +16,13 @@ import (
 
 var _ = Describe("UploadStemcellCmd", func() {
 	var (
-		director *fakedir.FakeDirector
-		fs       *fakesys.FakeFileSystem
-		archive  *fakedir.FakeStemcellArchive
-		ui       *fakeui.FakeUI
-		command  UploadStemcellCmd
+		director         *fakedir.FakeDirector
+		fs               *fakesys.FakeFileSystem
+		archive          *fakedir.FakeStemcellArchive
+		ui               *fakeui.FakeUI
+		command          UploadStemcellCmd
+		existingInfo     boshdir.StemcellInfo
+		existingMetadata boshdir.StemcellMetadata
 	)
 
 	BeforeEach(func() {
@@ -28,6 +30,8 @@ var _ = Describe("UploadStemcellCmd", func() {
 		fs = fakesys.NewFakeFileSystem()
 		archive = &fakedir.FakeStemcellArchive{}
 		ui = &fakeui.FakeUI{}
+		existingInfo = boshdir.StemcellInfo{Name: "existing-name", Version: "existing-ver"}
+		existingMetadata = boshdir.StemcellMetadata{Name: "existing-name", Version: "existing-ver"}
 
 		stemcellArchiveFactory := func(path string) boshdir.StemcellArchive {
 			if archive.FileStub == nil {
@@ -123,7 +127,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 
 					Expect(director.StemcellNeedsUploadCallCount()).To(Equal(1))
 					submission := director.StemcellNeedsUploadArgsForCall(0)
-					Expect(submission).To(Equal(boshdir.StemcellInfo{Name: "existing-name", Version: "existing-ver"}))
+					Expect(submission).To(Equal(existingInfo))
 
 					Expect(ui.Said).To(BeEmpty())
 				})
@@ -141,7 +145,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 
 					Expect(director.StemcellNeedsUploadCallCount()).To(Equal(1))
 					submission := director.StemcellNeedsUploadArgsForCall(0)
-					Expect(submission).To(Equal(boshdir.StemcellInfo{Name: "existing-name", Version: "existing-ver"}))
+					Expect(submission).To(Equal(existingInfo))
 
 					Expect(ui.Said).To(Equal([]string{"Stemcell 'existing-name/existing-ver' already exists."}))
 				})
@@ -256,7 +260,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 			})
 
 			It("returns error if retrieving stemcell archive info fails", func() {
-				archive.InfoReturns("", "", errors.New("fake-err"))
+				archive.InfoReturns(boshdir.StemcellMetadata{}, errors.New("fake-err"))
 
 				err := act()
 				Expect(err).To(HaveOccurred())
@@ -287,7 +291,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 
 			Context("when a director supports StemcellMatches", func() {
 				It("uploads a stemcell when any CPI is missing it", func() {
-					archive.InfoReturns("existing-name", "existing-ver", nil)
+					archive.InfoReturns(existingMetadata, nil)
 
 					director.StemcellNeedsUploadReturns(
 						true,
@@ -306,13 +310,13 @@ var _ = Describe("UploadStemcellCmd", func() {
 
 					Expect(director.StemcellNeedsUploadCallCount()).To(Equal(1))
 					submission := director.StemcellNeedsUploadArgsForCall(0)
-					Expect(submission).To(Equal(boshdir.StemcellInfo{Name: "existing-name", Version: "existing-ver"}))
+					Expect(submission).To(Equal(existingInfo))
 
 					Expect(ui.Said).To(BeEmpty())
 				})
 
 				It("does not upload stemcell if no CPI needs that name and version", func() {
-					archive.InfoReturns("existing-name", "existing-ver", nil)
+					archive.InfoReturns(existingMetadata, nil)
 
 					director.StemcellNeedsUploadReturns(false, true, nil)
 
@@ -323,7 +327,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 
 					Expect(director.StemcellNeedsUploadCallCount()).To(Equal(1))
 					submission := director.StemcellNeedsUploadArgsForCall(0)
-					Expect(submission).To(Equal(boshdir.StemcellInfo{Name: "existing-name", Version: "existing-ver"}))
+					Expect(submission).To(Equal(existingInfo))
 
 					Expect(ui.Said).To(Equal([]string{"Stemcell 'existing-name/existing-ver' already exists."}))
 				})
@@ -345,7 +349,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 				})
 
 				It("uploads stemcell if name and version does not match existing stemcell", func() {
-					archive.InfoReturns("existing-name", "existing-ver", nil)
+					archive.InfoReturns(existingMetadata, nil)
 
 					director.HasStemcellReturns(false, nil)
 
@@ -366,7 +370,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 				})
 
 				It("does not upload stemcell if name and version match existing stemcell", func() {
-					archive.InfoReturns("existing-name", "existing-ver", nil)
+					archive.InfoReturns(existingMetadata, nil)
 
 					director.HasStemcellReturns(true, nil)
 

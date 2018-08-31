@@ -15,16 +15,18 @@ import (
 var _ = FDescribe("InspectStemcellTarballCmd", func() {
 	Describe("Run", func() {
 		var (
-			fs      *fakesys.FakeFileSystem
-			archive *fakedir.FakeStemcellArchive
-			command InspectStemcellTarballCmd
-			ui      *fakeui.FakeUI
-			opts    InspectStemcellTarballOpts
+			fs               *fakesys.FakeFileSystem
+			archive          *fakedir.FakeStemcellArchive
+			command          InspectStemcellTarballCmd
+			ui               *fakeui.FakeUI
+			opts             InspectStemcellTarballOpts
+			existingMetadata boshdir.StemcellMetadata
 		)
 
 		BeforeEach(func() {
 			fs = fakesys.NewFakeFileSystem()
 			archive = &fakedir.FakeStemcellArchive{}
+			existingMetadata = boshdir.StemcellMetadata{Name: "example-name", Version: "example.version"}
 
 			stemcellArchiveFactory := func(path string) boshdir.StemcellArchive {
 				if archive.FileStub == nil {
@@ -42,7 +44,7 @@ var _ = FDescribe("InspectStemcellTarballCmd", func() {
 		})
 
 		It("returns a table with name, os, and version", func() {
-			archive.InfoReturns("example-name", "example.version", nil)
+			archive.InfoReturns(existingMetadata, nil)
 
 			err := command.Run(opts)
 			Expect(err).ToNot(HaveOccurred())
@@ -71,7 +73,7 @@ var _ = FDescribe("InspectStemcellTarballCmd", func() {
 		})
 
 		PIt("returns error if retrieving stemcell archive info fails", func() {
-			archive.InfoReturns("", "", errors.New("fake-err"))
+			archive.InfoReturns(boshdir.StemcellMetadata{}, errors.New("fake-err"))
 
 			err := command.Run(opts)
 			Expect(err).To(HaveOccurred())

@@ -107,7 +107,7 @@ type StemcellMetadata struct {
 //go:generate counterfeiter . StemcellArchive
 
 type StemcellArchive interface {
-	Info() (string, string, error)
+	Info() (StemcellMetadata, error)
 	File() (UploadFile, error)
 }
 
