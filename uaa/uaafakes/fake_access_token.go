@@ -224,7 +224,11 @@ func (fake *FakeAccessToken) Invocations() map[string][][]interface{} {
 	defer fake.refreshTokenMutex.RUnlock()
 	fake.refreshMutex.RLock()
 	defer fake.refreshMutex.RUnlock()
-	return fake.invocations
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeAccessToken) recordInvocation(key string, args []interface{}) {

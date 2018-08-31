@@ -165,7 +165,11 @@ func (fake *FakeArchiveIndex) Invocations() map[string][][]interface{} {
 	defer fake.findMutex.RUnlock()
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
-	return fake.invocations
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeArchiveIndex) recordInvocation(key string, args []interface{}) {
