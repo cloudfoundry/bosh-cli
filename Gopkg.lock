@@ -73,8 +73,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "4324bc9d8865bdb3e6aa86ec7772ca1272d2750e"
-  version = "v1.15.21"
+  revision = "04abd557eeaab3cfdded45467eea00fc03db9cb9"
+  version = "v1.15.26"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -103,8 +103,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "cbfc5060b5b3955aa72c044a557ee734122f23b0"
-  version = "v2.136.0"
+  revision = "edd6a3094aa703b9bca7a1a8d4c0d0199dfb6d3b"
+  version = "v2.137.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -280,8 +280,8 @@
 [[projects]]
   name = "github.com/mattn/go-isatty"
   packages = ["."]
-  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
-  version = "v0.0.3"
+  revision = "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c"
+  version = "v0.0.4"
 
 [[projects]]
   name = "github.com/mattn/go-runewidth"
@@ -409,7 +409,7 @@
     "ssh",
     "ssh/terminal"
   ]
-  revision = "614d502a4dac94afa3a6ce146bd1736da82514c6"
+  revision = "182538f80094b6a8efaade63a8fd8e0d9d5843dd"
 
 [[projects]]
   branch = "master"
@@ -450,7 +450,7 @@
     "unix",
     "windows"
   ]
-  revision = "4910a1d54f876d7b22162a85f4d066d3ee649450"
+  revision = "fa5fdf94c78965f1aa8423f0cc50b8b8d728b05a"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -493,7 +493,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "f6ba5742950514ddd66494151ed5498ed77969ca"
+  revision = "7ca132754999accbaa5c1735eda29e7ce0f3bf03"
 
 [[projects]]
   branch = "master"
@@ -509,7 +509,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "7954115fcf34e0dcda6981c9ed8a81a293f0489b"
+  revision = "b810576d88a056b90ef18a0b5328544c9c074c68"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -537,7 +537,7 @@
     "googleapis/rpc/code",
     "googleapis/rpc/status"
   ]
-  revision = "c66870c02cf823ceb633bcd05be3c7cda29976f4"
+  revision = "11092d34479b07829b72e10713b159248caf5dad"
 
 [[projects]]
   name = "google.golang.org/grpc"
