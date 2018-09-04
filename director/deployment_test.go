@@ -865,7 +865,21 @@ var _ = Describe("Deployment", func() {
 				server,
 			)
 
-			err := deployment.AttachDisk(NewInstanceSlug("dea", "17f01a35-bf9c-4949-bcf2-c07a95e4df33"), "disk_cid")
+			err := deployment.AttachDisk(NewInstanceSlug("dea", "17f01a35-bf9c-4949-bcf2-c07a95e4df33"), "disk_cid", "")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("calls attachdisk director api with disk_properties if not empty", func() {
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("PUT", "/disks/disk_cid/attachments", "deployment=dep&job=dea&instance_id=17f01a35-bf9c-4949-bcf2-c07a95e4df33&disk_properties=copy"),
+					ghttp.VerifyBasicAuth("username", "password"),
+				),
+				"",
+				server,
+			)
+
+			err := deployment.AttachDisk(NewInstanceSlug("dea", "17f01a35-bf9c-4949-bcf2-c07a95e4df33"), "disk_cid", "copy")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -881,7 +895,7 @@ var _ = Describe("Deployment", func() {
 					server,
 				)
 
-				err := deployment.AttachDisk(NewInstanceSlug("dea", "17f01a35-bf9c-4949-bcf2-c07a95e4df33"), "disk_cid")
+				err := deployment.AttachDisk(NewInstanceSlug("dea", "17f01a35-bf9c-4949-bcf2-c07a95e4df33"), "disk_cid", "")
 				Expect(err).To(HaveOccurred())
 			})
 		})

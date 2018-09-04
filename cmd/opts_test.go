@@ -779,7 +779,7 @@ var _ = Describe("Opts", func() {
 		Describe("AttachDisk", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("AttachDisk", opts)).To(Equal(
-					`command:"attach-disk" description:"Attaches disk to an instance"`,
+					`command:"attach-disk" description:"Attach disk to an instance"`,
 				))
 			})
 		})
@@ -1206,6 +1206,12 @@ var _ = Describe("Opts", func() {
 		Describe("Args", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+
+		Describe("DiskProperties", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DiskProperties", opts)).To(Equal(`long:"disk-properties" description:"Disk properties to use for the new disk. Use 'copy' to copy the properties from the currently attached disk" optional:"true"`))
 			})
 		})
 	})
