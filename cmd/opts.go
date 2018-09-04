@@ -278,7 +278,7 @@ type CleanUpOpts struct {
 type AttachDiskOpts struct {
 	Args AttachDiskArgs `positional-args:"true" required:"true"`
 
-	DiskProperties string `long:"disk-properties" description:"Disk properties to use while attaching, e.g. 'copy' " optional:"true"`
+	DiskProperties string `long:"disk-properties" description:"Disk properties to use for the new disk. Use 'copy' to copy the properties from the currently attached disk" optional:"true"`
 
 	cmd
 }
