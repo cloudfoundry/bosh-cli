@@ -84,16 +84,16 @@ var _ = Describe("CurlCmd", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("GET", "/path"),
-						ghttp.RespondWith(http.StatusInternalServerError, "resp-body"),
+						ghttp.RespondWith(http.StatusInternalServerError, `{"code":12345,"description":"Some Error"}`),
 					),
 				)
 
 				err := act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(
-					"Executing HTTP request: Director responded with non-successful status code '500' response 'resp-body'"))
+					`Executing HTTP request: Director responded with non-successful status code '500' response '{"code":12345,"description":"Some Error"}'`))
 
-				Expect(ui.Blocks).To(Equal([]string{""})) // does not include body
+				Expect(ui.Blocks).To(Equal([]string{`{"code":12345,"description":"Some Error"}`}))
 			})
 
 			It("shows response headers if requested", func() {
@@ -188,16 +188,16 @@ var _ = Describe("CurlCmd", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("POST", "/path"),
-						ghttp.RespondWith(http.StatusInternalServerError, "resp-body"),
+						ghttp.RespondWith(http.StatusInternalServerError, `{"code":12345,"description":"Some Error"}`),
 					),
 				)
 
 				err := act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(
-					"Executing HTTP request: Director responded with non-successful status code '500' response 'resp-body'"))
+					`Executing HTTP request: Director responded with non-successful status code '500' response '{"code":12345,"description":"Some Error"}'`))
 
-				Expect(ui.Blocks).To(Equal([]string{""})) // does not include body
+				Expect(ui.Blocks).To(Equal([]string{`{"code":12345,"description":"Some Error"}`}))
 			})
 
 			It("shows response headers if requested", func() {
@@ -292,16 +292,16 @@ var _ = Describe("CurlCmd", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("PUT", "/path"),
-						ghttp.RespondWith(http.StatusInternalServerError, "resp-body"),
+						ghttp.RespondWith(http.StatusInternalServerError, `{"code":12345,"description":"Some Error"}`),
 					),
 				)
 
 				err := act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(
-					"Executing HTTP request: Director responded with non-successful status code '500' response 'resp-body'"))
+					`Executing HTTP request: Director responded with non-successful status code '500' response '{"code":12345,"description":"Some Error"}'`))
 
-				Expect(ui.Blocks).To(Equal([]string{""})) // does not include body
+				Expect(ui.Blocks).To(Equal([]string{`{"code":12345,"description":"Some Error"}`}))
 			})
 
 			It("shows response headers if requested", func() {
@@ -384,16 +384,16 @@ var _ = Describe("CurlCmd", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("DELETE", "/path"),
-						ghttp.RespondWith(http.StatusInternalServerError, "resp-body"),
+						ghttp.RespondWith(http.StatusInternalServerError, `{"code":12345,"description":"Some Error"}`),
 					),
 				)
 
 				err := act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(
-					"Executing HTTP request: Director responded with non-successful status code '500' response 'resp-body'"))
+					`Executing HTTP request: Director responded with non-successful status code '500' response '{"code":12345,"description":"Some Error"}'`))
 
-				Expect(ui.Blocks).To(Equal([]string{""})) // does not include body
+				Expect(ui.Blocks).To(Equal([]string{`{"code":12345,"description":"Some Error"}`}))
 			})
 
 			It("shows response headers if requested", func() {
