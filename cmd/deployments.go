@@ -15,7 +15,7 @@ func NewDeploymentsCmd(ui biui.UI, director boshdir.Director) DeploymentsCmd {
 }
 
 func (c DeploymentsCmd) Run() error {
-	deployments, err := c.director.Deployments()
+	deployments, err := c.director.ListDeployments()
 	if err != nil {
 		return err
 	}

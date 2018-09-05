@@ -18,7 +18,7 @@ import (
 	bisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 
 	"github.com/cloudfoundry/bosh-agent/agentclient"
 	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/fakes"
@@ -48,6 +48,7 @@ var _ = Describe("Instance", func() {
 		fakeSSHTunnelFactory *fakebisshtunnel.FakeFactory
 		fakeSSHTunnel        *fakebisshtunnel.FakeTunnel
 		fakeStage            *fakebiui.FakeStage
+		logger               *loggerfakes.FakeLogger
 
 		instance Instance
 
@@ -70,7 +71,7 @@ var _ = Describe("Instance", func() {
 		mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
 		mockState = mock_instance_state.NewMockState(mockCtrl)
 
-		logger := boshlog.NewLogger(boshlog.LevelNone)
+		logger = &loggerfakes.FakeLogger{}
 
 		instance = NewInstance(
 			jobName,
@@ -558,6 +559,22 @@ var _ = Describe("Instance", func() {
 							Error: waitError,
 						},
 					}))
+				})
+			})
+
+			Context("when receiving SSH tunnel errors", func() {
+				BeforeEach(func() {
+					fakeSSHTunnel.SetStartBehavior(nil, bosherr.Error("fake-ssh-tunnel-error"))
+				})
+
+				It("logs the error", func() {
+					err := instance.WaitUntilReady(registryConfig, fakeStage)
+					Expect(err).NotTo(HaveOccurred())
+
+					Eventually(logger.WarnCallCount).Should(Equal(1))
+					tag, message, _ := logger.WarnArgsForCall(0)
+					Expect(tag).To(Equal("instance"))
+					Expect(message).To(Equal("Received SSH tunnel error: %s"))
 				})
 			})
 		})

@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"regexp"
 
-	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -28,7 +27,6 @@ import (
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	mock_config "github.com/cloudfoundry/bosh-cli/config/mocks"
 	bicpirel "github.com/cloudfoundry/bosh-cli/cpi/release"
-	"github.com/cloudfoundry/bosh-cli/crypto"
 	"github.com/cloudfoundry/bosh-cli/deployment"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	fakebideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest/manifestfakes"
@@ -73,13 +71,12 @@ var _ = Describe("CreateEnvCmd", func() {
 
 	Describe("Run", func() {
 		var (
-			command          *bicmd.CreateEnvCmd
-			fs               *fakesys.FakeFileSystem
-			stdOut           *gbytes.Buffer
-			stdErr           *gbytes.Buffer
-			userInterface    biui.UI
-			digestCalculator crypto.DigestCalculator
-			manifestSHA      string
+			command       *bicmd.CreateEnvCmd
+			fs            *fakesys.FakeFileSystem
+			stdOut        *gbytes.Buffer
+			stdErr        *gbytes.Buffer
+			userInterface biui.UI
+			manifestSHA   string
 
 			mockDeployer              *mock_deployment.MockDeployer
 			mockInstaller             *mock_install.MockInstaller
@@ -203,8 +200,6 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			fakeStage = fakebiui.NewFakeStage()
 
-			algos := []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1}
-			digestCalculator = crypto.NewDigestCalculator(fs, algos)
 			fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 
 			var err error
@@ -698,10 +693,19 @@ var _ = Describe("CreateEnvCmd", func() {
 				Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
 			})
 
-			It("deploys if recreate flag is specified", func() {
+			It("deploys if `recreate` flag is specified", func() {
 				expectDeploy.Times(1)
 
 				defaultCreateEnvOpts.Recreate = true
+
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("deploys if `recreate-persistent-disks` flag is specified", func() {
+				expectDeploy.Times(1)
+
+				defaultCreateEnvOpts.RecreatePersistentDisks = true
 
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())

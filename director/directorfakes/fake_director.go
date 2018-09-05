@@ -156,6 +156,30 @@ type FakeDirector struct {
 		result1 director.Deployment
 		result2 error
 	}
+	ListDeploymentsStub        func() ([]director.DeploymentResp, error)
+	listDeploymentsMutex       sync.RWMutex
+	listDeploymentsArgsForCall []struct{}
+	listDeploymentsReturns     struct {
+		result1 []director.DeploymentResp
+		result2 error
+	}
+	listDeploymentsReturnsOnCall map[int]struct {
+		result1 []director.DeploymentResp
+		result2 error
+	}
+	ListDeploymentConfigsStub        func(name string) (director.DeploymentConfigs, error)
+	listDeploymentConfigsMutex       sync.RWMutex
+	listDeploymentConfigsArgsForCall []struct {
+		name string
+	}
+	listDeploymentConfigsReturns struct {
+		result1 director.DeploymentConfigs
+		result2 error
+	}
+	listDeploymentConfigsReturnsOnCall map[int]struct {
+		result1 director.DeploymentConfigs
+		result2 error
+	}
 	ReleasesStub        func() ([]director.Release, error)
 	releasesMutex       sync.RWMutex
 	releasesArgsForCall []struct{}
@@ -368,12 +392,13 @@ type FakeDirector struct {
 		result1 []director.Config
 		result2 error
 	}
-	UpdateConfigStub        func(configType string, name string, content []byte) (director.Config, error)
+	UpdateConfigStub        func(configType string, name string, expectedLatestId string, content []byte) (director.Config, error)
 	updateConfigMutex       sync.RWMutex
 	updateConfigArgsForCall []struct {
-		configType string
-		name       string
-		content    []byte
+		configType       string
+		name             string
+		expectedLatestId string
+		content          []byte
 	}
 	updateConfigReturns struct {
 		result1 director.Config
@@ -425,17 +450,19 @@ type FakeDirector struct {
 		result1 director.ConfigDiff
 		result2 error
 	}
-	DiffConfigByIDStub        func(fromID string, toID string) (director.ConfigDiff, error)
-	diffConfigByIDMutex       sync.RWMutex
-	diffConfigByIDArgsForCall []struct {
-		fromID string
-		toID   string
+	DiffConfigByIDOrContentStub        func(fromID string, fromContent []byte, toID string, toContent []byte) (director.ConfigDiff, error)
+	diffConfigByIDOrContentMutex       sync.RWMutex
+	diffConfigByIDOrContentArgsForCall []struct {
+		fromID      string
+		fromContent []byte
+		toID        string
+		toContent   []byte
 	}
-	diffConfigByIDReturns struct {
+	diffConfigByIDOrContentReturns struct {
 		result1 director.ConfigDiff
 		result2 error
 	}
-	diffConfigByIDReturnsOnCall map[int]struct {
+	diffConfigByIDOrContentReturnsOnCall map[int]struct {
 		result1 director.ConfigDiff
 		result2 error
 	}
@@ -618,6 +645,17 @@ type FakeDirector struct {
 	}
 	downloadResourceUncheckedReturnsOnCall map[int]struct {
 		result1 error
+	}
+	OrphanedVMsStub        func() ([]director.OrphanedVM, error)
+	orphanedVMsMutex       sync.RWMutex
+	orphanedVMsArgsForCall []struct{}
+	orphanedVMsReturns     struct {
+		result1 []director.OrphanedVM
+		result2 error
+	}
+	orphanedVMsReturnsOnCall map[int]struct {
+		result1 []director.OrphanedVM
+		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -1197,6 +1235,100 @@ func (fake *FakeDirector) FindDeploymentReturnsOnCall(i int, result1 director.De
 	}
 	fake.findDeploymentReturnsOnCall[i] = struct {
 		result1 director.Deployment
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) ListDeployments() ([]director.DeploymentResp, error) {
+	fake.listDeploymentsMutex.Lock()
+	ret, specificReturn := fake.listDeploymentsReturnsOnCall[len(fake.listDeploymentsArgsForCall)]
+	fake.listDeploymentsArgsForCall = append(fake.listDeploymentsArgsForCall, struct{}{})
+	fake.recordInvocation("ListDeployments", []interface{}{})
+	fake.listDeploymentsMutex.Unlock()
+	if fake.ListDeploymentsStub != nil {
+		return fake.ListDeploymentsStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.listDeploymentsReturns.result1, fake.listDeploymentsReturns.result2
+}
+
+func (fake *FakeDirector) ListDeploymentsCallCount() int {
+	fake.listDeploymentsMutex.RLock()
+	defer fake.listDeploymentsMutex.RUnlock()
+	return len(fake.listDeploymentsArgsForCall)
+}
+
+func (fake *FakeDirector) ListDeploymentsReturns(result1 []director.DeploymentResp, result2 error) {
+	fake.ListDeploymentsStub = nil
+	fake.listDeploymentsReturns = struct {
+		result1 []director.DeploymentResp
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) ListDeploymentsReturnsOnCall(i int, result1 []director.DeploymentResp, result2 error) {
+	fake.ListDeploymentsStub = nil
+	if fake.listDeploymentsReturnsOnCall == nil {
+		fake.listDeploymentsReturnsOnCall = make(map[int]struct {
+			result1 []director.DeploymentResp
+			result2 error
+		})
+	}
+	fake.listDeploymentsReturnsOnCall[i] = struct {
+		result1 []director.DeploymentResp
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) ListDeploymentConfigs(name string) (director.DeploymentConfigs, error) {
+	fake.listDeploymentConfigsMutex.Lock()
+	ret, specificReturn := fake.listDeploymentConfigsReturnsOnCall[len(fake.listDeploymentConfigsArgsForCall)]
+	fake.listDeploymentConfigsArgsForCall = append(fake.listDeploymentConfigsArgsForCall, struct {
+		name string
+	}{name})
+	fake.recordInvocation("ListDeploymentConfigs", []interface{}{name})
+	fake.listDeploymentConfigsMutex.Unlock()
+	if fake.ListDeploymentConfigsStub != nil {
+		return fake.ListDeploymentConfigsStub(name)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.listDeploymentConfigsReturns.result1, fake.listDeploymentConfigsReturns.result2
+}
+
+func (fake *FakeDirector) ListDeploymentConfigsCallCount() int {
+	fake.listDeploymentConfigsMutex.RLock()
+	defer fake.listDeploymentConfigsMutex.RUnlock()
+	return len(fake.listDeploymentConfigsArgsForCall)
+}
+
+func (fake *FakeDirector) ListDeploymentConfigsArgsForCall(i int) string {
+	fake.listDeploymentConfigsMutex.RLock()
+	defer fake.listDeploymentConfigsMutex.RUnlock()
+	return fake.listDeploymentConfigsArgsForCall[i].name
+}
+
+func (fake *FakeDirector) ListDeploymentConfigsReturns(result1 director.DeploymentConfigs, result2 error) {
+	fake.ListDeploymentConfigsStub = nil
+	fake.listDeploymentConfigsReturns = struct {
+		result1 director.DeploymentConfigs
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) ListDeploymentConfigsReturnsOnCall(i int, result1 director.DeploymentConfigs, result2 error) {
+	fake.ListDeploymentConfigsStub = nil
+	if fake.listDeploymentConfigsReturnsOnCall == nil {
+		fake.listDeploymentConfigsReturnsOnCall = make(map[int]struct {
+			result1 director.DeploymentConfigs
+			result2 error
+		})
+	}
+	fake.listDeploymentConfigsReturnsOnCall[i] = struct {
+		result1 director.DeploymentConfigs
 		result2 error
 	}{result1, result2}
 }
@@ -2006,7 +2138,7 @@ func (fake *FakeDirector) ListConfigsReturnsOnCall(i int, result1 []director.Con
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) UpdateConfig(configType string, name string, content []byte) (director.Config, error) {
+func (fake *FakeDirector) UpdateConfig(configType string, name string, expectedLatestId string, content []byte) (director.Config, error) {
 	var contentCopy []byte
 	if content != nil {
 		contentCopy = make([]byte, len(content))
@@ -2015,14 +2147,15 @@ func (fake *FakeDirector) UpdateConfig(configType string, name string, content [
 	fake.updateConfigMutex.Lock()
 	ret, specificReturn := fake.updateConfigReturnsOnCall[len(fake.updateConfigArgsForCall)]
 	fake.updateConfigArgsForCall = append(fake.updateConfigArgsForCall, struct {
-		configType string
-		name       string
-		content    []byte
-	}{configType, name, contentCopy})
-	fake.recordInvocation("UpdateConfig", []interface{}{configType, name, contentCopy})
+		configType       string
+		name             string
+		expectedLatestId string
+		content          []byte
+	}{configType, name, expectedLatestId, contentCopy})
+	fake.recordInvocation("UpdateConfig", []interface{}{configType, name, expectedLatestId, contentCopy})
 	fake.updateConfigMutex.Unlock()
 	if fake.UpdateConfigStub != nil {
-		return fake.UpdateConfigStub(configType, name, content)
+		return fake.UpdateConfigStub(configType, name, expectedLatestId, content)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -2036,10 +2169,10 @@ func (fake *FakeDirector) UpdateConfigCallCount() int {
 	return len(fake.updateConfigArgsForCall)
 }
 
-func (fake *FakeDirector) UpdateConfigArgsForCall(i int) (string, string, []byte) {
+func (fake *FakeDirector) UpdateConfigArgsForCall(i int) (string, string, string, []byte) {
 	fake.updateConfigMutex.RLock()
 	defer fake.updateConfigMutex.RUnlock()
-	return fake.updateConfigArgsForCall[i].configType, fake.updateConfigArgsForCall[i].name, fake.updateConfigArgsForCall[i].content
+	return fake.updateConfigArgsForCall[i].configType, fake.updateConfigArgsForCall[i].name, fake.updateConfigArgsForCall[i].expectedLatestId, fake.updateConfigArgsForCall[i].content
 }
 
 func (fake *FakeDirector) UpdateConfigReturns(result1 director.Config, result2 error) {
@@ -2225,53 +2358,65 @@ func (fake *FakeDirector) DiffConfigReturnsOnCall(i int, result1 director.Config
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) DiffConfigByID(fromID string, toID string) (director.ConfigDiff, error) {
-	fake.diffConfigByIDMutex.Lock()
-	ret, specificReturn := fake.diffConfigByIDReturnsOnCall[len(fake.diffConfigByIDArgsForCall)]
-	fake.diffConfigByIDArgsForCall = append(fake.diffConfigByIDArgsForCall, struct {
-		fromID string
-		toID   string
-	}{fromID, toID})
-	fake.recordInvocation("DiffConfigByID", []interface{}{fromID, toID})
-	fake.diffConfigByIDMutex.Unlock()
-	if fake.DiffConfigByIDStub != nil {
-		return fake.DiffConfigByIDStub(fromID, toID)
+func (fake *FakeDirector) DiffConfigByIDOrContent(fromID string, fromContent []byte, toID string, toContent []byte) (director.ConfigDiff, error) {
+	var fromContentCopy []byte
+	if fromContent != nil {
+		fromContentCopy = make([]byte, len(fromContent))
+		copy(fromContentCopy, fromContent)
+	}
+	var toContentCopy []byte
+	if toContent != nil {
+		toContentCopy = make([]byte, len(toContent))
+		copy(toContentCopy, toContent)
+	}
+	fake.diffConfigByIDOrContentMutex.Lock()
+	ret, specificReturn := fake.diffConfigByIDOrContentReturnsOnCall[len(fake.diffConfigByIDOrContentArgsForCall)]
+	fake.diffConfigByIDOrContentArgsForCall = append(fake.diffConfigByIDOrContentArgsForCall, struct {
+		fromID      string
+		fromContent []byte
+		toID        string
+		toContent   []byte
+	}{fromID, fromContentCopy, toID, toContentCopy})
+	fake.recordInvocation("DiffConfigByIDOrContent", []interface{}{fromID, fromContentCopy, toID, toContentCopy})
+	fake.diffConfigByIDOrContentMutex.Unlock()
+	if fake.DiffConfigByIDOrContentStub != nil {
+		return fake.DiffConfigByIDOrContentStub(fromID, fromContent, toID, toContent)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.diffConfigByIDReturns.result1, fake.diffConfigByIDReturns.result2
+	return fake.diffConfigByIDOrContentReturns.result1, fake.diffConfigByIDOrContentReturns.result2
 }
 
-func (fake *FakeDirector) DiffConfigByIDCallCount() int {
-	fake.diffConfigByIDMutex.RLock()
-	defer fake.diffConfigByIDMutex.RUnlock()
-	return len(fake.diffConfigByIDArgsForCall)
+func (fake *FakeDirector) DiffConfigByIDOrContentCallCount() int {
+	fake.diffConfigByIDOrContentMutex.RLock()
+	defer fake.diffConfigByIDOrContentMutex.RUnlock()
+	return len(fake.diffConfigByIDOrContentArgsForCall)
 }
 
-func (fake *FakeDirector) DiffConfigByIDArgsForCall(i int) (string, string) {
-	fake.diffConfigByIDMutex.RLock()
-	defer fake.diffConfigByIDMutex.RUnlock()
-	return fake.diffConfigByIDArgsForCall[i].fromID, fake.diffConfigByIDArgsForCall[i].toID
+func (fake *FakeDirector) DiffConfigByIDOrContentArgsForCall(i int) (string, []byte, string, []byte) {
+	fake.diffConfigByIDOrContentMutex.RLock()
+	defer fake.diffConfigByIDOrContentMutex.RUnlock()
+	return fake.diffConfigByIDOrContentArgsForCall[i].fromID, fake.diffConfigByIDOrContentArgsForCall[i].fromContent, fake.diffConfigByIDOrContentArgsForCall[i].toID, fake.diffConfigByIDOrContentArgsForCall[i].toContent
 }
 
-func (fake *FakeDirector) DiffConfigByIDReturns(result1 director.ConfigDiff, result2 error) {
-	fake.DiffConfigByIDStub = nil
-	fake.diffConfigByIDReturns = struct {
+func (fake *FakeDirector) DiffConfigByIDOrContentReturns(result1 director.ConfigDiff, result2 error) {
+	fake.DiffConfigByIDOrContentStub = nil
+	fake.diffConfigByIDOrContentReturns = struct {
 		result1 director.ConfigDiff
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) DiffConfigByIDReturnsOnCall(i int, result1 director.ConfigDiff, result2 error) {
-	fake.DiffConfigByIDStub = nil
-	if fake.diffConfigByIDReturnsOnCall == nil {
-		fake.diffConfigByIDReturnsOnCall = make(map[int]struct {
+func (fake *FakeDirector) DiffConfigByIDOrContentReturnsOnCall(i int, result1 director.ConfigDiff, result2 error) {
+	fake.DiffConfigByIDOrContentStub = nil
+	if fake.diffConfigByIDOrContentReturnsOnCall == nil {
+		fake.diffConfigByIDOrContentReturnsOnCall = make(map[int]struct {
 			result1 director.ConfigDiff
 			result2 error
 		})
 	}
-	fake.diffConfigByIDReturnsOnCall[i] = struct {
+	fake.diffConfigByIDOrContentReturnsOnCall[i] = struct {
 		result1 director.ConfigDiff
 		result2 error
 	}{result1, result2}
@@ -3032,6 +3177,49 @@ func (fake *FakeDirector) DownloadResourceUncheckedReturnsOnCall(i int, result1 
 	}{result1}
 }
 
+func (fake *FakeDirector) OrphanedVMs() ([]director.OrphanedVM, error) {
+	fake.orphanedVMsMutex.Lock()
+	ret, specificReturn := fake.orphanedVMsReturnsOnCall[len(fake.orphanedVMsArgsForCall)]
+	fake.orphanedVMsArgsForCall = append(fake.orphanedVMsArgsForCall, struct{}{})
+	fake.recordInvocation("OrphanedVMs", []interface{}{})
+	fake.orphanedVMsMutex.Unlock()
+	if fake.OrphanedVMsStub != nil {
+		return fake.OrphanedVMsStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.orphanedVMsReturns.result1, fake.orphanedVMsReturns.result2
+}
+
+func (fake *FakeDirector) OrphanedVMsCallCount() int {
+	fake.orphanedVMsMutex.RLock()
+	defer fake.orphanedVMsMutex.RUnlock()
+	return len(fake.orphanedVMsArgsForCall)
+}
+
+func (fake *FakeDirector) OrphanedVMsReturns(result1 []director.OrphanedVM, result2 error) {
+	fake.OrphanedVMsStub = nil
+	fake.orphanedVMsReturns = struct {
+		result1 []director.OrphanedVM
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) OrphanedVMsReturnsOnCall(i int, result1 []director.OrphanedVM, result2 error) {
+	fake.OrphanedVMsStub = nil
+	if fake.orphanedVMsReturnsOnCall == nil {
+		fake.orphanedVMsReturnsOnCall = make(map[int]struct {
+			result1 []director.OrphanedVM
+			result2 error
+		})
+	}
+	fake.orphanedVMsReturnsOnCall[i] = struct {
+		result1 []director.OrphanedVM
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -3059,6 +3247,10 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.deploymentsMutex.RUnlock()
 	fake.findDeploymentMutex.RLock()
 	defer fake.findDeploymentMutex.RUnlock()
+	fake.listDeploymentsMutex.RLock()
+	defer fake.listDeploymentsMutex.RUnlock()
+	fake.listDeploymentConfigsMutex.RLock()
+	defer fake.listDeploymentConfigsMutex.RUnlock()
 	fake.releasesMutex.RLock()
 	defer fake.releasesMutex.RUnlock()
 	fake.hasReleaseMutex.RLock()
@@ -3099,8 +3291,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.deleteConfigByIDMutex.RUnlock()
 	fake.diffConfigMutex.RLock()
 	defer fake.diffConfigMutex.RUnlock()
-	fake.diffConfigByIDMutex.RLock()
-	defer fake.diffConfigByIDMutex.RUnlock()
+	fake.diffConfigByIDOrContentMutex.RLock()
+	defer fake.diffConfigByIDOrContentMutex.RUnlock()
 	fake.latestCloudConfigMutex.RLock()
 	defer fake.latestCloudConfigMutex.RUnlock()
 	fake.updateCloudConfigMutex.RLock()
@@ -3131,6 +3323,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.cleanUpMutex.RUnlock()
 	fake.downloadResourceUncheckedMutex.RLock()
 	defer fake.downloadResourceUncheckedMutex.RUnlock()
+	fake.orphanedVMsMutex.RLock()
+	defer fake.orphanedVMsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -4,10 +4,12 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	semver "github.com/cppforlife/go-semi-semantic/version"
 )
 
 type DeploymentsTable struct {
-	Deployments []boshdir.Deployment
+	Deployments []boshdir.DeploymentResp
 	UI          boshui.UI
 }
 
@@ -20,7 +22,6 @@ func (t DeploymentsTable) Print() error {
 			boshtbl.NewHeader("Release(s)"),
 			boshtbl.NewHeader("Stemcell(s)"),
 			boshtbl.NewHeader("Team(s)"),
-			boshtbl.NewHeader("Cloud Config"),
 		},
 
 		SortBy: []boshtbl.ColumnSort{
@@ -29,32 +30,20 @@ func (t DeploymentsTable) Print() error {
 	}
 
 	for _, d := range t.Deployments {
-		releases, err := d.Releases()
+		releases, err := takeReleases(d.Releases)
 		if err != nil {
 			return err
 		}
-
-		stemcells, err := d.Stemcells()
-		if err != nil {
-			return err
-		}
-
-		teams, err := d.Teams()
-		if err != nil {
-			return err
-		}
-
-		cloudConfig, err := d.CloudConfig()
+		stemcells, err := takeStemcells(d.Stemcells)
 		if err != nil {
 			return err
 		}
 
 		table.Rows = append(table.Rows, []boshtbl.Value{
-			boshtbl.NewValueString(d.Name()),
-			boshtbl.NewValueStrings(t.takeReleases(releases)),
-			boshtbl.NewValueStrings(t.takeStemcells(stemcells)),
-			boshtbl.NewValueStrings(teams),
-			boshtbl.NewValueString(cloudConfig),
+			boshtbl.NewValueString(d.Name),
+			boshtbl.NewValueStrings(releases),
+			boshtbl.NewValueStrings(stemcells),
+			boshtbl.NewValueStrings(d.Teams),
 		})
 	}
 
@@ -63,18 +52,28 @@ func (t DeploymentsTable) Print() error {
 	return nil
 }
 
-func (t DeploymentsTable) takeReleases(rels []boshdir.Release) []string {
+func takeReleases(rels []boshdir.DeploymentReleaseResp) ([]string, error) {
 	var names []string
 	for _, r := range rels {
-		names = append(names, r.Name()+"/"+r.Version().String())
+		parsedVersion, err := semver.NewVersionFromString(r.Version)
+		if err != nil {
+			return nil, bosherr.WrapErrorf(
+				err, "Parsing version for release '%s/%s'", r.Name, r.Version)
+		}
+		names = append(names, r.Name+"/"+parsedVersion.String())
 	}
-	return names
+	return names, nil
 }
 
-func (t DeploymentsTable) takeStemcells(stemcells []boshdir.Stemcell) []string {
+func takeStemcells(stemcells []boshdir.DeploymentStemcellResp) ([]string, error) {
 	var names []string
 	for _, s := range stemcells {
-		names = append(names, s.Name()+"/"+s.Version().String())
+		parsedVersion, err := semver.NewVersionFromString(s.Version)
+		if err != nil {
+			return nil, bosherr.WrapErrorf(
+				err, "Parsing version for stemcell '%s/%s'", s.Name, s.Version)
+		}
+		names = append(names, s.Name+"/"+parsedVersion.String())
 	}
-	return names
+	return names, nil
 }

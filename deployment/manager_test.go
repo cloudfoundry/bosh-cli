@@ -185,7 +185,7 @@ var _ = Describe("Manager", func() {
 
 		JustBeforeEach(func() {
 			diskManagerFactory := bidisk.NewManagerFactory(diskRepo, logger)
-			diskDeployer := bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger)
+			diskDeployer := bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger, false)
 
 			vmManagerFactory := bivm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeUUIDGenerator, fs, logger)
 			sshTunnelFactory := bisshtunnel.NewFactory(logger)

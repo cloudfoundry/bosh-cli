@@ -23,7 +23,6 @@ func (c UpdateConfigCmd) Run(opts UpdateConfigOpts) error {
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Evaluating config")
 	}
-
 	configDiff, err := c.director.DiffConfig(opts.Type, opts.Name, bytes)
 	if err != nil {
 		return err
@@ -37,7 +36,13 @@ func (c UpdateConfigCmd) Run(opts UpdateConfigOpts) error {
 		return err
 	}
 
-	config, err := c.director.UpdateConfig(opts.Type, opts.Name, bytes)
+	var expectedId string
+	if opts.ExpectedLatestId == "" {
+		expectedId = configDiff.FromId
+	} else {
+		expectedId = opts.ExpectedLatestId
+	}
+	config, err := c.director.UpdateConfig(opts.Type, opts.Name, expectedId, bytes)
 	if err != nil {
 		return err
 	}

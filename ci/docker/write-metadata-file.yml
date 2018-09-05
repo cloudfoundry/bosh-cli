@@ -17,6 +17,4 @@ run:
   path: bosh-cli-src/ci/docker/write-metadata-file.sh
 
 params:
-  GO_VERSION: 1.7.1
-  GO_SHA: change-me
   DOCKER_IMAGE_TAG: latest

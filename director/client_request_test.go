@@ -10,6 +10,7 @@ import (
 	"time"
 
 	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
+	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -27,16 +28,13 @@ var _ = Describe("ClientRequest", func() {
 		buildReq func(FileReporter) ClientRequest
 		req      ClientRequest
 
-		logger   fakedir.Logger
-		logCalls []fakedir.LogCallArgs
-
+		logger         *loggerfakes.FakeLogger
 		locationHeader http.Header
 	)
 
 	BeforeEach(func() {
 		_, server = BuildServer()
-		logCalls = []fakedir.LogCallArgs{}
-		logger = fakedir.NewFakeLogger(&logCalls)
+		logger = &loggerfakes.FakeLogger{}
 
 		buildReq = func(fileReporter FileReporter) ClientRequest {
 			httpTransport := &http.Transport{
@@ -173,7 +171,7 @@ var _ = Describe("ClientRequest", func() {
 				body, resp, err := req.RawGet("/path", nil, nil)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("'body'"))
-				Expect(body).To(BeNil())
+				Expect(body).To(Equal([]byte("body")))
 				Expect(resp).ToNot(BeNil())
 			})
 
@@ -263,7 +261,6 @@ var _ = Describe("ClientRequest", func() {
 
 		Describe("Request logging", func() {
 			It("Sanitizes requests for logging", func() {
-
 				_, resp, err := req.RawGet("/path", nil, func(r *http.Request) {
 					r.Header.Add("Authorization", "basic=")
 				})
@@ -271,20 +268,13 @@ var _ = Describe("ClientRequest", func() {
 				Expect(resp).ToNot(BeNil())
 
 				host := resp.Request.Host
-				expectedLogCallArgs := fakedir.LogCallArgs{
-					LogLevel: "Debug",
-					Tag:      "director.clientRequest",
-					Msg:      "Dumping Director client request:\n%s",
-					Args: []string{
-						fmt.Sprintf("GET /path HTTP/1.1\r\nHost: %s\r\nAuthorization: [removed]\r\n\r\n", host),
-					},
-				}
-				actualLogCallArgs := (*logger.LogCallArgs)[1]
-
-				Expect(expectedLogCallArgs.LogLevel).To(Equal(actualLogCallArgs.LogLevel))
-				Expect(expectedLogCallArgs.Tag).To(Equal(actualLogCallArgs.Tag))
-				Expect(expectedLogCallArgs.Msg).To(Equal(actualLogCallArgs.Msg))
-				Expect(expectedLogCallArgs.Args[0]).To(Equal(actualLogCallArgs.Args[0]))
+				Expect(logger.DebugCallCount()).To(Equal(3))
+				tag, msg, s := logger.DebugArgsForCall(1)
+				Expect(s).To(HaveLen(1))
+				format := s[0].(string)
+				Expect(tag).To(Equal("director.clientRequest"))
+				Expect(msg).To(Equal("Dumping Director client request:\n%s"))
+				Expect(format).To(Equal(fmt.Sprintf("GET /path HTTP/1.1\r\nHost: %s\r\nAuthorization: [removed]\r\n\r\n", host)))
 			})
 		})
 	})

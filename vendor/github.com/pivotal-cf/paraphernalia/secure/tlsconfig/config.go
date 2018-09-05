@@ -74,7 +74,8 @@ func (c Config) Client(opts ...ClientOption) *tls.Config {
 // strict definition of acceptable standards.
 //
 // The standards were taken from the "Consolidated Remarks" internal document
-// from Pivotal.
+// from Pivotal. The one exception to this is the use of the P256 curve in
+// order to support gRPC clients which hardcode this configuration.
 //
 // Note: Due to the aggressive nature of the ciphersuites chosen here (they do
 // not support any ECC signing) it is not possible to use ECC keys with this
@@ -89,6 +90,14 @@ func WithInternalServiceDefaults() TLSOption {
 		}
 		c.CurvePreferences = []tls.CurveID{
 			tls.CurveP384,
+
+			// XXX: This curve is not DoD certified as of the "Commercial National
+			// Security Algorithm Suite and Quantum Computing FAQ" document but was
+			// included in Suite B. As this is not an egregious violation and there are
+			// third-party libraries (gRPC) which hard-code this value it is included
+			// here as a fallback option. If libraries eventually adopt the above curve
+			// then we can drop this.
+			tls.CurveP256,
 		}
 	}
 }

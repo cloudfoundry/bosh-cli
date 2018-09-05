@@ -25,10 +25,7 @@ export BOSH_INIT_CPI_RELEASE_PATH=`ls $PWD/cpi-release/*.tgz`
 export BOSH_INIT_CPI_RELEASE_URL=""
 export BOSH_INIT_CPI_RELEASE_SHA1=""
 
-cd $GOPATH/src/github.com/cloudfoundry/bosh-cli
-
-source /etc/profile.d/chruby.sh
-chruby 2.3.1
+cd "$GOPATH/src/github.com/cloudfoundry/bosh-cli"
 
 start-garden
 

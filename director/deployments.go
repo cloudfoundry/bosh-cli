@@ -29,6 +29,10 @@ type DeploymentStemcellResp struct {
 	Version string
 }
 
+func (d DirectorImpl) ListDeployments() ([]DeploymentResp, error) {
+	return d.client.DeploymentsWithoutConfigs()
+}
+
 func (d DirectorImpl) Deployments() ([]Deployment, error) {
 	deps := []Deployment{}
 
@@ -54,6 +58,17 @@ func (d DirectorImpl) FindDeployment(name string) (Deployment, error) {
 	}
 
 	return &DeploymentImpl{client: d.client, name: name}, nil
+}
+
+func (c Client) DeploymentsWithoutConfigs() ([]DeploymentResp, error) {
+	var deps []DeploymentResp
+
+	err := c.clientRequest.Get("/deployments?exclude_configs=true", &deps)
+	if err != nil {
+		return deps, bosherr.WrapErrorf(err, "Finding deployments")
+	}
+
+	return deps, nil
 }
 
 func (c Client) Deployments() ([]DeploymentResp, error) {

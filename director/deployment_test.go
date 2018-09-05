@@ -367,7 +367,6 @@ var _ = Describe("Deployment", func() {
 		var (
 			slug         AllOrInstanceGroupOrInstanceSlug
 			force        bool
-			dryRun       bool
 			startOpts    StartOpts
 			stopOpts     StopOpts
 			detachedOpts StopOpts
@@ -378,7 +377,6 @@ var _ = Describe("Deployment", func() {
 		BeforeEach(func() {
 			slug = AllOrInstanceGroupOrInstanceSlug{}
 			force = false
-			dryRun = false
 
 			startOpts = StartOpts{}
 			stopOpts = StopOpts{
@@ -678,10 +676,10 @@ var _ = Describe("Deployment", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("succeeds updating deployment with recreate, fix and skip drain flags", func() {
+		It("succeeds updating deployment with recreate, recreate_persistent_disks, fix and skip drain flags", func() {
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/deployments", "recreate=true&fix=true&skip_drain=*"),
+					ghttp.VerifyRequest("POST", "/deployments", "recreate=true&recreate_persistent_disks=true&fix=true&skip_drain=*"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"text/yaml"},
@@ -693,9 +691,10 @@ var _ = Describe("Deployment", func() {
 			)
 
 			updateOpts := UpdateOpts{
-				Recreate:  true,
-				Fix:       true,
-				SkipDrain: SkipDrains{SkipDrain{All: true}},
+				RecreatePersistentDisks: true,
+				Recreate:                true,
+				Fix:                     true,
+				SkipDrain:               SkipDrains{SkipDrain{All: true}},
 			}
 			err := deployment.Update([]byte("manifest"), updateOpts)
 			Expect(err).ToNot(HaveOccurred())
@@ -866,7 +865,21 @@ var _ = Describe("Deployment", func() {
 				server,
 			)
 
-			err := deployment.AttachDisk(NewInstanceSlug("dea", "17f01a35-bf9c-4949-bcf2-c07a95e4df33"), "disk_cid")
+			err := deployment.AttachDisk(NewInstanceSlug("dea", "17f01a35-bf9c-4949-bcf2-c07a95e4df33"), "disk_cid", "")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("calls attachdisk director api with disk_properties if not empty", func() {
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("PUT", "/disks/disk_cid/attachments", "deployment=dep&job=dea&instance_id=17f01a35-bf9c-4949-bcf2-c07a95e4df33&disk_properties=copy"),
+					ghttp.VerifyBasicAuth("username", "password"),
+				),
+				"",
+				server,
+			)
+
+			err := deployment.AttachDisk(NewInstanceSlug("dea", "17f01a35-bf9c-4949-bcf2-c07a95e4df33"), "disk_cid", "copy")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -882,7 +895,7 @@ var _ = Describe("Deployment", func() {
 					server,
 				)
 
-				err := deployment.AttachDisk(NewInstanceSlug("dea", "17f01a35-bf9c-4949-bcf2-c07a95e4df33"), "disk_cid")
+				err := deployment.AttachDisk(NewInstanceSlug("dea", "17f01a35-bf9c-4949-bcf2-c07a95e4df33"), "disk_cid", "")
 				Expect(err).To(HaveOccurred())
 			})
 		})

@@ -49,6 +49,7 @@ func (s *sshTunnel) Start(readyErrCh chan<- error, errCh chan<- error) {
 		s.logger.Debug(s.logTag, "Received connection")
 		if err != nil {
 			errCh <- bosherr.WrapError(err, "Accepting connection on remote server")
+			return
 		}
 
 		defer func() {
@@ -65,36 +66,36 @@ func (s *sshTunnel) Start(readyErrCh chan<- error, errCh chan<- error) {
 			return
 		}
 
-		go func() {
-			bytesNum, err := io.Copy(remoteConn, localConn)
-
+		go func(localConn, remoteConn net.Conn) {
 			defer func() {
 				if err = localConn.Close(); err != nil {
 					s.logger.Warn(s.logTag, "Failed to close local dial connection: %s", err.Error())
 				}
 			}()
+
+			bytesNum, err := io.Copy(remoteConn, localConn)
 
 			s.logger.Debug(s.logTag, "Copying bytes from local to remote %d", bytesNum)
 
 			if err != nil {
 				errCh <- bosherr.WrapError(err, "Copying bytes from local to remote")
 			}
-		}()
+		}(localConn, remoteConn)
 
-		go func() {
-			bytesNum, err := io.Copy(localConn, remoteConn)
-
+		go func(localConn, remoteConn net.Conn) {
 			defer func() {
 				if err = localConn.Close(); err != nil {
 					s.logger.Warn(s.logTag, "Failed to close local dial connection: %s", err.Error())
 				}
 			}()
 
+			bytesNum, err := io.Copy(localConn, remoteConn)
+
 			s.logger.Debug(s.logTag, "Copying bytes from remote to local %d", bytesNum)
 
 			if err != nil {
 				errCh <- bosherr.WrapError(err, "Copying bytes from remote to local")
 			}
-		}()
+		}(localConn, remoteConn)
 	}
 }

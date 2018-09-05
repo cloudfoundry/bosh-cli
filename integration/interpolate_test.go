@@ -114,6 +114,46 @@ variables:
 		}
 	})
 
+	It("generates and stores missing password variable with custom length when --vars-store is provided", func() {
+		err := fs.WriteFileString(filepath.Join("/", "file"), `password: ((key))
+variables:
+- name: key
+  type: password
+  options:
+    length: 42
+`)
+		Expect(err).ToNot(HaveOccurred())
+
+		var genedPass string
+
+		{ // running command first time
+			cmd, err := cmdFactory.New([]string{"interpolate", filepath.Join("/", "file"), "--vars-store", filepath.Join("/", "vars"), "--path", "/password"})
+			Expect(err).ToNot(HaveOccurred())
+
+			err = cmd.Execute()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ui.Blocks).To(HaveLen(1))
+
+			genedPass = ui.Blocks[0]
+			Expect(len(genedPass)).To(Equal(42 + 1))
+
+			contents, err := fs.ReadFileString(filepath.Join("/", "vars"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(contents).To(Equal("key: " + genedPass))
+		}
+
+		ui.Blocks = []string{}
+
+		{ // running command second time
+			cmd, err := cmdFactory.New([]string{"interpolate", filepath.Join("/", "file"), "--vars-store", filepath.Join("/", "vars"), "--path", "/password"})
+			Expect(err).ToNot(HaveOccurred())
+
+			err = cmd.Execute()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ui.Blocks[0]).To(Equal(genedPass))
+		}
+	})
+
 	It("generates and stores missing certificate variable when --vars-store is provided", func() {
 		err := fs.WriteFileString("/file", `
 ca:
@@ -180,12 +220,79 @@ variables:
 			cert, err := x509.ParseCertificate(block.Bytes)
 			Expect(err).ToNot(HaveOccurred())
 
+			caBlock, _ := pem.Decode([]byte(store.CA.Certificate))
+			ca, err := x509.ParseCertificate(caBlock.Bytes)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(cert.SubjectKeyId).ToNot(BeNil())
+			Expect(cert.AuthorityKeyId).To(Equal(ca.SubjectKeyId))
+
 			_, err = cert.Verify(x509.VerifyOptions{DNSName: "test.com", Roots: roots})
 			Expect(err).ToNot(HaveOccurred())
 
 			_, err = cert.Verify(x509.VerifyOptions{DNSName: "not-test.com", Roots: roots})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("certificate is valid"))
+		}
+	})
+
+	It("generates and stores missing certificate variable with organization when --vars-store is provided", func() {
+		err := fs.WriteFileString("/file", `
+ca:
+  certificate: ((ca.certificate))
+
+variables:
+- name: ca
+  type: certificate
+  options:
+    is_ca: true
+    common_name: ca
+    organization: "org-AB"
+`)
+		Expect(err).ToNot(HaveOccurred())
+
+		cmd, err := cmdFactory.New([]string{"interpolate", filepath.Join("/", "file"), "--vars-store", filepath.Join("/", "vars"), "-v", "common_name=test.com"})
+		Expect(err).ToNot(HaveOccurred())
+
+		err = cmd.Execute()
+		Expect(err).ToNot(HaveOccurred())
+		Expect(ui.Blocks).To(HaveLen(1))
+
+		type expectedCert struct {
+			Certificate string
+		}
+
+		type expectedStore struct {
+			CA expectedCert
+		}
+
+		var store, output expectedStore
+
+		{
+			contents, err := fs.ReadFileString(filepath.Join("/", "vars"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(contents).ToNot(BeEmpty())
+
+			err = yaml.Unmarshal([]byte(contents), &store)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = yaml.Unmarshal([]byte(ui.Blocks[0]), &output)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(output.CA.Certificate).To(Equal(store.CA.Certificate))
+		}
+
+		{
+			roots := x509.NewCertPool()
+
+			ok := roots.AppendCertsFromPEM([]byte(store.CA.Certificate))
+			Expect(ok).To(BeTrue())
+
+			caBlock, _ := pem.Decode([]byte(store.CA.Certificate))
+			ca, err := x509.ParseCertificate(caBlock.Bytes)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(ca.Subject).To(ContainSubstring("org-AB"))
 		}
 	})
 

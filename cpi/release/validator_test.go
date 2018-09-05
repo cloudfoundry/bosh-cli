@@ -1,7 +1,6 @@
 package release_test
 
 import (
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -13,14 +12,7 @@ import (
 )
 
 var _ = Describe("Validator", func() {
-	var (
-		fs                *fakesys.FakeFileSystem
-		cpiReleaseJobName = "fake-cpi-release-job-name"
-	)
-
-	BeforeEach(func() {
-		fs = fakesys.NewFakeFileSystem()
-	})
+	var cpiReleaseJobName = "fake-cpi-release-job-name"
 
 	It("validates a valid release without error", func() {
 		job := boshjob.NewJob(NewResourceWithBuiltArchive(

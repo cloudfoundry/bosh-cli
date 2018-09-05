@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"sync"
 
-	socks5 "github.com/armon/go-socks5"
+	socks5 "github.com/cloudfoundry/go-socks5"
+
+	"log"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/context"
@@ -14,33 +17,34 @@ import (
 
 var netListen = net.Listen
 
-//go:generate counterfeiter . Proxy
-type Proxy interface {
-	Start(string, string) error
-	Addr() (string, error)
+type hostKey interface {
+	Get(username, privateKey, serverURL string) (ssh.PublicKey, error)
 }
 
 type DialFunc func(network, address string) (net.Conn, error)
 
 type Socks5Proxy struct {
-	hostKeyGetter KeyGetter
-	port          int
-	started       bool
+	hostKey hostKey
+	port    int
+	started bool
+	logger  *log.Logger
+	mtx     sync.Mutex
 }
 
-func NewSocks5Proxy(hostKeyGetter KeyGetter) *Socks5Proxy {
+func NewSocks5Proxy(hostKey hostKey, logger *log.Logger) *Socks5Proxy {
 	return &Socks5Proxy{
-		hostKeyGetter: hostKeyGetter,
-		started:       false,
+		hostKey: hostKey,
+		started: false,
+		logger:  logger,
 	}
 }
 
-func (s *Socks5Proxy) Start(key, url string) error {
-	if s.started {
+func (s *Socks5Proxy) Start(username, key, url string) error {
+	if s.isStarted() {
 		return nil
 	}
 
-	dialer, err := s.Dialer(key, url)
+	dialer, err := s.Dialer(username, key, url)
 	if err != nil {
 		return err
 	}
@@ -53,24 +57,29 @@ func (s *Socks5Proxy) Start(key, url string) error {
 	return nil
 }
 
-func (s *Socks5Proxy) Dialer(key, url string) (DialFunc, error) {
+// thread safety
+func (s *Socks5Proxy) isStarted() bool {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+	return s.started
+}
+
+func (s *Socks5Proxy) Dialer(username, key, url string) (DialFunc, error) {
+	if username == "" {
+		username = "jumpbox"
+	}
+
 	signer, err := ssh.ParsePrivateKey([]byte(key))
 	if err != nil {
 		return nil, fmt.Errorf("parse private key: %s", err)
 	}
 
-	hostKey, err := s.hostKeyGetter.Get(key, url)
+	hostKey, err := s.hostKey.Get(username, key, url)
 	if err != nil {
 		return nil, fmt.Errorf("get host key: %s", err)
 	}
 
-	clientConfig := &ssh.ClientConfig{
-		User: "jumpbox",
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		},
-		HostKeyCallback: ssh.FixedHostKey(hostKey),
-	}
+	clientConfig := NewSSHClientConfig(username, ssh.FixedHostKey(hostKey), ssh.PublicKeys(signer))
 
 	conn, err := ssh.Dial("tcp", url, clientConfig)
 	if err != nil {
@@ -85,6 +94,7 @@ func (s *Socks5Proxy) StartWithDialer(dialer DialFunc) error {
 		Dial: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			return dialer(network, addr)
 		},
+		Logger: s.logger,
 	}
 
 	server, err := socks5.New(conf)
@@ -92,6 +102,8 @@ func (s *Socks5Proxy) StartWithDialer(dialer DialFunc) error {
 		return fmt.Errorf("new socks5 server: %s", err) // not tested
 	}
 
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
 	if s.port == 0 {
 		s.port, err = openPort()
 		if err != nil {
@@ -100,11 +112,7 @@ func (s *Socks5Proxy) StartWithDialer(dialer DialFunc) error {
 	}
 
 	go func() {
-		err = server.ListenAndServe("tcp", fmt.Sprintf("127.0.0.1:%d", s.port))
-		if err != nil {
-			// untested; commands that require the proxy will return errors
-			fmt.Printf("socks5 proxy: %s", err.Error())
-		}
+		server.ListenAndServe("tcp", fmt.Sprintf("127.0.0.1:%d", s.port))
 	}()
 
 	s.started = true
@@ -112,6 +120,8 @@ func (s *Socks5Proxy) StartWithDialer(dialer DialFunc) error {
 }
 
 func (s *Socks5Proxy) Addr() (string, error) {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
 	if s.port == 0 {
 		return "", errors.New("socks5 proxy is not running")
 	}

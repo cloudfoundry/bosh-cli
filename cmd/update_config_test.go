@@ -51,10 +51,11 @@ var _ = Describe("UpdateConfigCmd", func() {
 
 			Expect(director.UpdateConfigCallCount()).To(Equal(1))
 
-			t, name, bytes := director.UpdateConfigArgsForCall(0)
+			t, name, expectedLatestId, bytes := director.UpdateConfigArgsForCall(0)
 			Expect(t).To(Equal("my-type"))
 			Expect(name).To(Equal("my-name"))
 			Expect(bytes).To(Equal([]byte("fake-config\n")))
+			Expect(expectedLatestId).To(Equal(""))
 		})
 
 		It("updates templated config", func() {
@@ -84,7 +85,7 @@ var _ = Describe("UpdateConfigCmd", func() {
 
 			Expect(director.UpdateConfigCallCount()).To(Equal(1))
 
-			t, name, bytes := director.UpdateConfigArgsForCall(0)
+			t, name, _, bytes := director.UpdateConfigArgsForCall(0)
 			Expect(t).To(Equal("my-type"))
 			Expect(name).To(Equal("my-name"))
 			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\nxyz: val\n")))
@@ -161,6 +162,47 @@ var _ = Describe("UpdateConfigCmd", func() {
 			Expect(ui.Said).To(ContainElement("- some line that was removed\n"))
 		})
 
+		Context("when expected-latest-id is specified", func() {
+			BeforeEach(func() {
+				opts = UpdateConfigOpts{
+					Args: UpdateConfigArgs{
+						Config: FileBytesArg{Bytes: []byte("---")},
+					},
+					Type:             "my-type",
+					Name:             "my-name",
+					ExpectedLatestId: "123",
+				}
+			})
+
+			It("passes expected latest id when calling update config", func() {
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+				_, _, expectedLatestId, _ := director.UpdateConfigArgsForCall(0)
+				Expect(expectedLatestId).To(Equal("123"))
+			})
+		})
+
+		Context("when expected-latest-id is not specified", func() {
+			Context("when a config is already uploaded", func() {
+				It("calls update config with the latest id returned by diff config", func() {
+					director.DiffConfigReturns(boshdir.ConfigDiff{Diff: [][]interface{}{}, FromId: "1"}, nil)
+
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+					_, _, expectedLatestId, _ := director.UpdateConfigArgsForCall(0)
+					Expect(expectedLatestId).To(Equal("1"))
+				})
+			})
+			Context("when no config is uploaded", func() {
+				It("calls update config without a latest id", func() {
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+					_, _, expectedLatestId, _ := director.UpdateConfigArgsForCall(0)
+					Expect(expectedLatestId).To(Equal(""))
+				})
+			})
+		})
+
 		Context("when uploading an empty YAML document", func() {
 			BeforeEach(func() {
 				opts = UpdateConfigOpts{
@@ -175,7 +217,7 @@ var _ = Describe("UpdateConfigCmd", func() {
 			It("returns YAML null", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
-				_, _, bytes := director.UpdateConfigArgsForCall(0)
+				_, _, _, bytes := director.UpdateConfigArgsForCall(0)
 				Expect(bytes).To(Equal([]byte("null\n")))
 			})
 		})

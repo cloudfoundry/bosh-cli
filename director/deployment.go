@@ -191,11 +191,14 @@ func (d DeploymentImpl) Delete(force bool) error {
 	return nil
 }
 
-func (d DeploymentImpl) AttachDisk(slug InstanceSlug, diskCID string) error {
+func (d DeploymentImpl) AttachDisk(slug InstanceSlug, diskCID string, diskProperties string) error {
 	values := gourl.Values{}
 	values.Add("deployment", d.Name())
 	values.Add("job", slug.Name())
 	values.Add("instance_id", slug.IndexOrID())
+	if diskProperties != "" {
+		values.Add("disk_properties", diskProperties)
+	}
 
 	path := fmt.Sprintf("/disks/%s/attachments?%s", diskCID, values.Encode())
 	_, err := d.client.taskClientRequest.PutResult(path, []byte{}, func(*http.Request) {})
@@ -473,6 +476,10 @@ func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
 
 	if opts.Recreate {
 		query.Add("recreate", "true")
+	}
+
+	if opts.RecreatePersistentDisks {
+		query.Add("recreate_persistent_disks", "true")
 	}
 
 	if opts.Fix {

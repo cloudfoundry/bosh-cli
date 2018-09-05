@@ -18,6 +18,8 @@ import (
 
 var _ = Describe("DirReaderImpl", func() {
 	var (
+		srcDirPath = filepath.Join("/", "src")
+
 		collectedFiles          []File
 		collectedPrepFiles      []File
 		collectedChunks         []string
@@ -38,35 +40,35 @@ var _ = Describe("DirReaderImpl", func() {
 		}
 		fs = fakesys.NewFakeFileSystem()
 
-		reader = NewDirReaderImpl(archiveFactory, filepath.Join("/", "src"), filepath.Join("/", "blobs"), fs)
+		reader = NewDirReaderImpl(archiveFactory, srcDirPath, filepath.Join(srcDirPath, "blobs"), fs)
 	})
 
 	Describe("Read", func() {
 		It("returns a package with the details collected from a directory", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec"), `---
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), `---
 name: name
 dependencies: [pkg1, pkg2]
 files: [in-file1, in-file2]
 excluded_files: [ex-file1, ex-file2]
 `)
 
-			fs.WriteFileString(filepath.Join("/", "dir", "packaging"), "")
-			fs.WriteFileString(filepath.Join("/", "src", "in-file1"), "")
-			fs.WriteFileString(filepath.Join("/", "src", "in-file2"), "")
-			fs.SetGlob(filepath.Join("/", "src", "in-file1"), []string{filepath.Join("/", "src", "in-file1")})
-			fs.SetGlob(filepath.Join("/", "src", "in-file2"), []string{filepath.Join("/", "src", "in-file2")})
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "in-file1"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "in-file2"), "")
+			fs.SetGlob(filepath.Join(srcDirPath, "in-file1"), []string{filepath.Join(srcDirPath, "in-file1")})
+			fs.SetGlob(filepath.Join(srcDirPath, "in-file2"), []string{filepath.Join(srcDirPath, "in-file2")})
 
 			archive.FingerprintReturns("fp", nil)
 
-			pkg, err := reader.Read(filepath.Join("/", "dir"))
+			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), []string{"pkg1", "pkg2"})))
 
 			Expect(collectedFiles).To(ConsistOf(
 				// does not include spec
-				File{Path: filepath.Join("/", "dir", "packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "packaging", ExcludeMode: true},
-				File{Path: filepath.Join("/", "src", "in-file1"), DirPath: filepath.Join("/", "src"), RelativePath: "in-file1"},
-				File{Path: filepath.Join("/", "src", "in-file2"), DirPath: filepath.Join("/", "src"), RelativePath: "in-file2"},
+				File{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
+				File{Path: filepath.Join(srcDirPath, "in-file1"), DirPath: srcDirPath, RelativePath: "in-file1"},
+				File{Path: filepath.Join(srcDirPath, "in-file2"), DirPath: srcDirPath, RelativePath: "in-file2"},
 			))
 
 			Expect(collectedPrepFiles).To(BeEmpty())
@@ -75,87 +77,87 @@ excluded_files: [ex-file1, ex-file2]
 		})
 
 		It("returns a package with the details with pre_packaging file", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec"), "name: name")
-			fs.WriteFileString(filepath.Join("/", "dir", "packaging"), "")
-			fs.WriteFileString(filepath.Join("/", "dir", "pre_packaging"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), "name: name")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "pre_packaging"), "")
 
 			archive.FingerprintReturns("fp", nil)
 
-			pkg, err := reader.Read(filepath.Join("/", "dir"))
+			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
 
 			Expect(collectedFiles).To(Equal([]File{
-				File{Path: filepath.Join("/", "dir", "packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "packaging", ExcludeMode: true},
-				File{Path: filepath.Join("/", "dir", "pre_packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "pre_packaging", ExcludeMode: true},
+				File{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
+				File{Path: filepath.Join(srcDirPath, "dir", "pre_packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "pre_packaging", ExcludeMode: true},
 			}))
 
 			Expect(collectedPrepFiles).To(Equal([]File{
-				File{Path: filepath.Join("/", "dir", "pre_packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "pre_packaging", ExcludeMode: true},
+				File{Path: filepath.Join(srcDirPath, "dir", "pre_packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "pre_packaging", ExcludeMode: true},
 			}))
 
 			Expect(collectedChunks).To(BeEmpty())
 		})
 
 		It("returns a package with src files and blob files", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec"), `---
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), `---
 name: name
 files: [in-file1, in-file2]
 `)
 
-			fs.WriteFileString(filepath.Join("/", "dir", "packaging"), "")
-			fs.WriteFileString(filepath.Join("/", "dir", "pre_packaging"), "")
-			fs.WriteFileString(filepath.Join("/", "src", "in-file1"), "")
-			fs.WriteFileString(filepath.Join("/", "blobs", "in-file2"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "pre_packaging"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "in-file1"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "blobs", "in-file2"), "")
 
-			fs.SetGlob(filepath.Join("/", "src", "in-file1"), []string{filepath.Join("/", "src", "in-file1")})
-			fs.SetGlob(filepath.Join("/", "blobs", "in-file2"), []string{filepath.Join("/", "blobs", "in-file2")})
+			fs.SetGlob(filepath.Join(srcDirPath, "in-file1"), []string{filepath.Join(srcDirPath, "in-file1")})
+			fs.SetGlob(filepath.Join(srcDirPath, "blobs", "in-file2"), []string{filepath.Join(srcDirPath, "blobs", "in-file2")})
 
 			archive.FingerprintReturns("fp", nil)
 
-			pkg, err := reader.Read(filepath.Join("/", "dir"))
+			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
 
 			Expect(collectedFiles).To(ConsistOf([]File{
-				File{Path: filepath.Join("/", "dir", "packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "packaging", ExcludeMode: true},
-				File{Path: filepath.Join("/", "dir", "pre_packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "pre_packaging", ExcludeMode: true},
-				File{Path: filepath.Join("/", "src", "in-file1"), DirPath: filepath.Join("/", "src"), RelativePath: "in-file1"},
-				File{Path: filepath.Join("/", "blobs", "in-file2"), DirPath: filepath.Join("/", "blobs"), RelativePath: "in-file2"},
+				File{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
+				File{Path: filepath.Join(srcDirPath, "dir", "pre_packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "pre_packaging", ExcludeMode: true},
+				File{Path: filepath.Join(srcDirPath, "in-file1"), DirPath: srcDirPath, RelativePath: "in-file1"},
+				File{Path: filepath.Join(srcDirPath, "blobs", "in-file2"), DirPath: filepath.Join(srcDirPath, "blobs"), RelativePath: "in-file2"},
 			}))
 
 			Expect(collectedPrepFiles).To(Equal([]File{
-				File{Path: filepath.Join("/", "dir", "pre_packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "pre_packaging", ExcludeMode: true},
+				File{Path: filepath.Join(srcDirPath, "dir", "pre_packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "pre_packaging", ExcludeMode: true},
 			}))
 
 			Expect(collectedChunks).To(BeEmpty())
 		})
 
 		It("prefers src files over blob files", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec"), `---
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), `---
 name: name
 files: [in-file1, in-file2]
 `)
 
-			fs.WriteFileString(filepath.Join("/", "dir", "packaging"), "")
-			fs.WriteFileString(filepath.Join("/", "src", "in-file1"), "")
-			fs.WriteFileString(filepath.Join("/", "src", "in-file2"), "")
-			fs.WriteFileString(filepath.Join("/", "blobs", "in-file2"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "in-file1"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "in-file2"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "blobs", "in-file2"), "")
 
-			fs.SetGlob(filepath.Join("/", "src", "in-file1"), []string{filepath.Join("/", "src", "in-file1")})
-			fs.SetGlob(filepath.Join("/", "src", "in-file2"), []string{filepath.Join("/", "src", "in-file2")})
-			fs.SetGlob(filepath.Join("/", "blobs", "in-file2"), []string{filepath.Join("/", "blobs", "in-file2")})
+			fs.SetGlob(filepath.Join(srcDirPath, "in-file1"), []string{filepath.Join(srcDirPath, "in-file1")})
+			fs.SetGlob(filepath.Join(srcDirPath, "in-file2"), []string{filepath.Join(srcDirPath, "in-file2")})
+			fs.SetGlob(filepath.Join(srcDirPath, "blobs", "in-file2"), []string{filepath.Join(srcDirPath, "blobs", "in-file2")})
 
 			archive.FingerprintReturns("fp", nil)
 
-			pkg, err := reader.Read(filepath.Join("/", "dir"))
+			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
 
 			Expect(collectedFiles).To(ConsistOf([]File{
-				File{Path: filepath.Join("/", "dir", "packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "packaging", ExcludeMode: true},
-				File{Path: filepath.Join("/", "src", "in-file1"), DirPath: filepath.Join("/", "src"), RelativePath: "in-file1"},
-				File{Path: filepath.Join("/", "src", "in-file2"), DirPath: filepath.Join("/", "src"), RelativePath: "in-file2"},
+				File{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
+				File{Path: filepath.Join(srcDirPath, "in-file1"), DirPath: srcDirPath, RelativePath: "in-file1"},
+				File{Path: filepath.Join(srcDirPath, "in-file2"), DirPath: srcDirPath, RelativePath: "in-file2"},
 			}))
 
 			Expect(collectedPrepFiles).To(BeEmpty())
@@ -163,54 +165,54 @@ files: [in-file1, in-file2]
 		})
 
 		It("returns an error if glob doesnt match src or blob files", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec"), `---
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), `---
 name: name
 files: [in-file1, in-file2, missing-file2]
 `)
 
-			fs.WriteFileString(filepath.Join("/", "dir", "packaging"), "")
-			fs.WriteFileString(filepath.Join("/", "src", "in-file1"), "")
-			fs.WriteFileString(filepath.Join("/", "blobs", "in-file2"), "")
-			fs.SetGlob(filepath.Join("/", "src", "in-file1"), []string{filepath.Join("/", "src", "in-file1")})
-			fs.SetGlob(filepath.Join("/", "blobs", "in-file2"), []string{filepath.Join("/", "blobs", "in-file2")})
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "in-file1"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "blobs", "in-file2"), "")
+			fs.SetGlob(filepath.Join(srcDirPath, "in-file1"), []string{filepath.Join(srcDirPath, "in-file1")})
+			fs.SetGlob(filepath.Join(srcDirPath, "blobs", "in-file2"), []string{filepath.Join(srcDirPath, "blobs", "in-file2")})
 
 			// Directories are not packageable
-			fs.MkdirAll(filepath.Join("/", "src", "missing-file2"), os.ModePerm)
-			fs.MkdirAll(filepath.Join("/", "blobs", "missing-file2"), os.ModePerm)
-			fs.SetGlob(filepath.Join("/", "src", "missing-file2"), []string{filepath.Join("/", "src", "missing-file2")})
-			fs.SetGlob(filepath.Join("/", "blobs", "missing-file2"), []string{filepath.Join("/", "blobs", "missing-file2")})
+			fs.MkdirAll(filepath.Join(srcDirPath, "missing-file2"), os.ModePerm)
+			fs.MkdirAll(filepath.Join(srcDirPath, "blobs", "missing-file2"), os.ModePerm)
+			fs.SetGlob(filepath.Join(srcDirPath, "missing-file2"), []string{filepath.Join(srcDirPath, "missing-file2")})
+			fs.SetGlob(filepath.Join(srcDirPath, "blobs", "missing-file2"), []string{filepath.Join(srcDirPath, "blobs", "missing-file2")})
 
 			archive.FingerprintReturns("fp", nil)
 
-			_, err := reader.Read(filepath.Join("/", "dir"))
+			_, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Missing files for pattern 'missing-file2'"))
 		})
 
 		It("excludes files and blobs", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec"), `---
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), `---
 name: name
 files: [in-file1, in-file2]
 excluded_files: [ex-file1, ex-file2]
 `)
 
-			fs.WriteFileString(filepath.Join("/", "dir", "packaging"), "")
-			fs.WriteFileString(filepath.Join("/", "src", "in-file1"), "")
-			fs.WriteFileString(filepath.Join("/", "blobs", "in-file2"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "in-file1"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "blobs", "in-file2"), "")
 
-			fs.SetGlob(filepath.Join("/", "src", "in-file1"), []string{filepath.Join("/", "src", "in-file1")})
-			fs.SetGlob(filepath.Join("/", "blobs", "in-file2"), []string{filepath.Join("/", "blobs", "in-file2")})
-			fs.SetGlob(filepath.Join("/", "src", "ex-file1"), []string{filepath.Join("/", "src", "in-file1")})
-			fs.SetGlob(filepath.Join("/", "blobs", "ex-file2"), []string{filepath.Join("/", "blobs", "in-file2")})
+			fs.SetGlob(filepath.Join(srcDirPath, "in-file1"), []string{filepath.Join(srcDirPath, "in-file1")})
+			fs.SetGlob(filepath.Join(srcDirPath, "blobs", "in-file2"), []string{filepath.Join(srcDirPath, "blobs", "in-file2")})
+			fs.SetGlob(filepath.Join(srcDirPath, "ex-file1"), []string{filepath.Join(srcDirPath, "in-file1")})
+			fs.SetGlob(filepath.Join(srcDirPath, "blobs", "ex-file2"), []string{filepath.Join(srcDirPath, "blobs", "in-file2")})
 
 			archive.FingerprintReturns("fp", nil)
 
-			pkg, err := reader.Read(filepath.Join("/", "dir"))
+			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
 
 			Expect(collectedFiles).To(Equal([]File{
-				File{Path: filepath.Join("/", "dir", "packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "packaging", ExcludeMode: true},
+				File{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
 			}))
 
 			Expect(collectedPrepFiles).To(BeEmpty())
@@ -218,21 +220,21 @@ excluded_files: [ex-file1, ex-file2]
 		})
 
 		It("allows to only have packaging file and to exclude all files", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec"), `---
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), `---
 name: name
 excluded_files: [ex-file1, ex-file2]
 `)
 
-			fs.WriteFileString(filepath.Join("/", "dir", "packaging"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
 
 			archive.FingerprintReturns("fp", nil)
 
-			pkg, err := reader.Read(filepath.Join("/", "dir"))
+			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
 
 			Expect(collectedFiles).To(Equal([]File{
-				File{Path: filepath.Join("/", "dir", "packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "packaging", ExcludeMode: true},
+				File{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
 			}))
 
 			Expect(collectedPrepFiles).To(BeEmpty())
@@ -240,168 +242,205 @@ excluded_files: [ex-file1, ex-file2]
 		})
 
 		It("matches files in blobs directory even if glob also matches empty folders in src directory", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec"), `---
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), `---
 name: name
 dependencies: [pkg1, pkg2]
 files:
 - "**/*"
 excluded_files: [ex-file1, ex-file2]
 `)
-			fs.SetGlob(filepath.Join("/", "src", "**", "*"), []string{filepath.Join("/", "src", "directory")})
+			fs.SetGlob(filepath.Join(srcDirPath, "**", "*"), []string{filepath.Join(srcDirPath, "directory")})
 
-			err := fs.MkdirAll(filepath.Join("/", "src", "directory"), 0777)
+			err := fs.MkdirAll(filepath.Join(srcDirPath, "directory"), 0777)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = fs.WriteFileString(filepath.Join("/", "dir", "packaging"), "")
+			err = fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
 			Expect(err).NotTo(HaveOccurred())
 
-			err = fs.MkdirAll(filepath.Join("/", "src", "directory", "f1", "/"), 0777)
+			err = fs.MkdirAll(filepath.Join(srcDirPath, "directory", "f1", "/"), 0777)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = fs.WriteFileString(filepath.Join("/", "blobs", "directory", "f1"), "")
+			err = fs.WriteFileString(filepath.Join(srcDirPath, "blobs", "directory", "f1"), "")
 			Expect(err).NotTo(HaveOccurred())
 
-			fs.SetGlob(filepath.Join("/", "blobs", "**", "*"), []string{filepath.Join("/", "blobs", "directory"), filepath.Join("/", "blobs", "directory", "f1")})
-			fs.SetGlob(filepath.Join("/", "src", "**", "*"), []string{filepath.Join("/", "src", "directory"), filepath.Join("/", "src", "directory", "f1")})
+			fs.SetGlob(filepath.Join(srcDirPath, "blobs", "**", "*"), []string{filepath.Join(srcDirPath, "blobs", "directory"), filepath.Join(srcDirPath, "blobs", "directory", "f1")})
+			fs.SetGlob(filepath.Join(srcDirPath, "**", "*"), []string{filepath.Join(srcDirPath, "directory"), filepath.Join(srcDirPath, "directory", "f1")})
 
-			_, err = reader.Read(filepath.Join("/", "dir"))
+			_, err = reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(collectedFiles).To(Equal([]File{
-				File{Path: filepath.Join("/", "dir", "packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "packaging", ExcludeMode: true},
-				File{Path: filepath.Join("/", "blobs", "directory", "f1"), DirPath: filepath.Join("/", "blobs"), RelativePath: filepath.Join("directory", "f1")},
+				File{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
+				File{Path: filepath.Join(srcDirPath, "blobs", "directory", "f1"), DirPath: filepath.Join(srcDirPath, "blobs"), RelativePath: filepath.Join("directory", "f1")},
 			}))
 		})
 
 		It("returns error if packaging is included in specified files", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec"), "name: name\nfiles: [packaging]")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), "name: name\nfiles: [packaging]")
 
-			fs.WriteFileString(filepath.Join("/", "dir", "packaging"), "")
-			fs.WriteFileString(filepath.Join("/", "src", "packaging"), "")
-			fs.SetGlob(filepath.Join("/", "src", "packaging"), []string{filepath.Join("/", "src", "packaging")})
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "packaging"), "")
+			fs.SetGlob(filepath.Join(srcDirPath, "packaging"), []string{filepath.Join(srcDirPath, "packaging")})
 
-			_, err := reader.Read(filepath.Join("/", "dir"))
+			_, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Expected special 'packaging' file to not be included via 'files' key for package 'name'"))
 		})
 
 		It("returns error if pre_packaging is included in specified files", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec"), "name: name\nfiles: [pre_packaging]")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), "name: name\nfiles: [pre_packaging]")
 
-			fs.WriteFileString(filepath.Join("/", "dir", "packaging"), "")
-			fs.WriteFileString(filepath.Join("/", "dir", "pre_packaging"), "")
-			fs.WriteFileString(filepath.Join("/", "src", "pre_packaging"), "")
-			fs.SetGlob(filepath.Join("/", "src", "pre_packaging"), []string{filepath.Join("/", "src", "pre_packaging")})
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "pre_packaging"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "pre_packaging"), "")
+			fs.SetGlob(filepath.Join(srcDirPath, "pre_packaging"), []string{filepath.Join(srcDirPath, "pre_packaging")})
 
-			_, err := reader.Read(filepath.Join("/", "dir"))
+			_, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Expected special 'pre_packaging' file to not be included via 'files' key for package 'name'"))
 		})
 
 		It("returns error if spec file is not valid", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec"), `-`)
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), `-`)
 
-			_, err := reader.Read(filepath.Join("/", "dir"))
+			_, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Collecting package files"))
 		})
 
 		It("returns error if packaging file is not found", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec"), "name: name")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), "name: name")
 
-			_, err := reader.Read(filepath.Join("/", "dir"))
+			_, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Expected to find '" + filepath.Join("/", "dir", "packaging") + "' for package 'name'"))
+			Expect(err.Error()).To(ContainSubstring("Expected to find '" + filepath.Join(srcDirPath, "dir", "packaging") + "' for package 'name'"))
 		})
 
 		globErrChecks := map[string]string{
-			"src files dir (files)":            filepath.Join("/", "src", "file1"),
-			"blobs files dir (files)":          filepath.Join("/", "blobs", "file1"),
-			"src files dir (excluded files)":   filepath.Join("/", "src", "ex-file1"),
-			"blobs files dir (excluded files)": filepath.Join("/", "blobs", "ex-file1"),
+			"src files dir (files)":            filepath.Join(srcDirPath, "file1"),
+			"blobs files dir (files)":          filepath.Join(srcDirPath, "blobs", "file1"),
+			"src files dir (excluded files)":   filepath.Join(srcDirPath, "ex-file1"),
+			"blobs files dir (excluded files)": filepath.Join(srcDirPath, "blobs", "ex-file1"),
 		}
 
 		for desc, pattern := range globErrChecks {
 			desc, pattern := desc, pattern // copy
 
-			It(fmt.Sprintf("returns error if globbing '%s' fails", desc), func() {
-				fs.WriteFileString(filepath.Join("/", "dir", "spec"), "name: name\nfiles: [file1]\nexcluded_files: [ex-file1]")
-				fs.WriteFileString(filepath.Join("/", "dir", "packaging"), "")
+			It(fmt.Sprintf("returns error if globbing '%s' (%s) fails", desc, pattern), func() {
+				fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), "name: name\nfiles: [file1]\nexcluded_files: [ex-file1]")
+				fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
 
-				fs.WriteFileString(filepath.Join("/", "src", "file1"), "")
-				fs.WriteFileString(filepath.Join("/", "blobs", "file1"), "")
-				fs.SetGlob(filepath.Join("/", "src", "file1"), []string{filepath.Join("/", "src", "file1")})
-				fs.SetGlob(filepath.Join("/", "blobs", "file1"), []string{filepath.Join("/", "blobs", "file1")})
+				fs.WriteFileString(filepath.Join(srcDirPath, "file1"), "")
+				fs.WriteFileString(filepath.Join(srcDirPath, "blobs", "file1"), "")
+				fs.SetGlob(filepath.Join(srcDirPath, "file1"), []string{filepath.Join(srcDirPath, "file1")})
+				fs.SetGlob(filepath.Join(srcDirPath, "blobs", "file1"), []string{filepath.Join(srcDirPath, "blobs", "file1")})
 
 				fs.GlobErrs[pattern] = errors.New("fake-err")
 
-				_, err := reader.Read(filepath.Join("/", "dir"))
+				_, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 			})
 		}
 
 		It("returns error if fingerprinting fails", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec"), "")
-			fs.WriteFileString(filepath.Join("/", "dir", "packaging"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
 
 			archive.FingerprintReturns("", errors.New("fake-err"))
 
-			_, err := reader.Read(filepath.Join("/", "dir"))
+			_, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
 		It("include bad src symlinks", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec"), `---
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), `---
 name: name
 files: [in-file1, in-file2]
 `)
 
-			fs.WriteFileString(filepath.Join("/", "dir", "packaging"), "")
-			fs.WriteFileString(filepath.Join("/", "dir", "pre_packaging"), "")
-			fs.Symlink(filepath.Join("/", "invalid", "path"), filepath.Join("/", "src", "in-file1"))
-			fs.WriteFileString(filepath.Join("/", "blobs", "in-file2"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "pre_packaging"), "")
+			fs.Symlink(filepath.Join(srcDirPath, "invalid", "path"), filepath.Join(srcDirPath, "in-file1"))
+			fs.WriteFileString(filepath.Join(srcDirPath, "blobs", "in-file2"), "")
 
-			fs.SetGlob(filepath.Join("/", "src", "in-file1"), []string{filepath.Join("/", "src", "in-file1")})
-			fs.SetGlob(filepath.Join("/", "blobs", "in-file2"), []string{filepath.Join("/", "blobs", "in-file2")})
+			fs.SetGlob(filepath.Join(srcDirPath, "in-file1"), []string{filepath.Join(srcDirPath, "in-file1")})
+			fs.SetGlob(filepath.Join(srcDirPath, "blobs", "in-file2"), []string{filepath.Join(srcDirPath, "blobs", "in-file2")})
 
 			archive.FingerprintReturns("fp", nil)
 
-			pkg, err := reader.Read(filepath.Join("/", "dir"))
+			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
 
 			Expect(collectedFiles).To(ConsistOf([]File{
-				File{Path: filepath.Join("/", "dir", "packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "packaging", ExcludeMode: true},
-				File{Path: filepath.Join("/", "dir", "pre_packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "pre_packaging", ExcludeMode: true},
-				File{Path: filepath.Join("/", "src", "in-file1"), DirPath: filepath.Join("/", "src"), RelativePath: "in-file1"},
-				File{Path: filepath.Join("/", "blobs", "in-file2"), DirPath: filepath.Join("/", "blobs"), RelativePath: "in-file2"},
+				File{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
+				File{Path: filepath.Join(srcDirPath, "dir", "pre_packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "pre_packaging", ExcludeMode: true},
+				File{Path: filepath.Join(srcDirPath, "in-file1"), DirPath: srcDirPath, RelativePath: "in-file1"},
+				File{Path: filepath.Join(srcDirPath, "blobs", "in-file2"), DirPath: filepath.Join(srcDirPath, "blobs"), RelativePath: "in-file2"},
 			}))
 
 			Expect(collectedPrepFiles).To(Equal([]File{
-				File{Path: filepath.Join("/", "dir", "pre_packaging"), DirPath: filepath.Join("/", "dir"), RelativePath: "pre_packaging", ExcludeMode: true},
+				File{Path: filepath.Join(srcDirPath, "dir", "pre_packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "pre_packaging", ExcludeMode: true},
 			}))
 
 			Expect(collectedChunks).To(BeEmpty())
 		})
 
 		It("returns a package with spec lock", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec.lock"), "name: name\nfingerprint: fp\ndependencies: [pkg1]")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec.lock"), "name: name\nfingerprint: fp\ndependencies: [pkg1]")
 
-			pkg, err := reader.Read(filepath.Join("/", "dir"))
+			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(pkg).To(Equal(NewPackage(NewExistingResource("name", "fp", ""), []string{"pkg1"})))
 		})
 
 		It("returns error if cannot deserialize spec lock", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "spec.lock"), "-")
+			fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec.lock"), "-")
 
-			_, err := reader.Read(filepath.Join("/", "dir"))
+			_, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Unmarshalling package spec lock"))
+		})
+
+		Context("when the glob matches a path that contains a directory symlink", func() {
+			BeforeEach(func() {
+				fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), `---
+name: name
+files: ["stuff/**/*"]
+`)
+				fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
+				fs.WriteFileString(filepath.Join(srcDirPath, "symlink-target", "file"), "")
+				fs.WriteFileString(filepath.Join(srcDirPath, "stuff", "symlink-dir", "file"), "")
+
+				fs.Symlink(
+					filepath.Join(srcDirPath, "symlink-target"),
+					filepath.Join(srcDirPath, "stuff", "symlink-dir"),
+				)
+
+				fs.SetGlob(
+					"/src/stuff/**/*",
+					[]string{
+						filepath.Join(srcDirPath, "stuff", "symlink-dir"),
+						filepath.Join(srcDirPath, "stuff", "symlink-dir", "file"),
+					},
+				)
+				archive.FingerprintReturns("fp", nil)
+			})
+
+			It("does not include any files that are nested underneath the symlink", func() {
+				pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
+
+				Expect(collectedFiles).To(ConsistOf([]File{
+					File{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
+					File{Path: filepath.Join(srcDirPath, "stuff", "symlink-dir"), DirPath: srcDirPath, RelativePath: "stuff/symlink-dir", ExcludeMode: false},
+				}))
+			})
 		})
 	})
 })

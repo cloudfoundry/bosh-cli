@@ -8,7 +8,6 @@ import (
 
 	mock_cmd "github.com/cloudfoundry/bosh-cli/cmd/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	"github.com/golang/mock/gomock"
 
@@ -32,7 +31,6 @@ var _ = Describe("DeleteCmd", func() {
 		var (
 			mockDeploymentDeleter *mock_cmd.MockDeploymentDeleter
 			fs                    *fakesys.FakeFileSystem
-			logger                boshlog.Logger
 
 			fakeUI                 *fakeui.FakeUI
 			fakeStage              *fakebiui.FakeStage
@@ -60,7 +58,6 @@ var _ = Describe("DeleteCmd", func() {
 			mockDeploymentDeleter = mock_cmd.NewMockDeploymentDeleter(mockCtrl)
 			fs = fakesys.NewFakeFileSystem()
 			fs.EnableStrictTempRootBehavior()
-			logger = boshlog.NewLogger(boshlog.LevelNone)
 			fakeUI = &fakeui.FakeUI{}
 			writeDeploymentManifest()
 		})

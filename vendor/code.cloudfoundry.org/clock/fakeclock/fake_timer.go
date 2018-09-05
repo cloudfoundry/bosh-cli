@@ -31,16 +31,19 @@ func (ft *fakeTimer) C() <-chan time.Time {
 	return ft.channel
 }
 
-func (ft *fakeTimer) Reset(d time.Duration) bool {
+func (ft *fakeTimer) reset(d time.Duration) bool {
 	currentTime := ft.clock.Now()
 
 	ft.mutex.Lock()
 	active := !ft.completionTime.IsZero()
 	ft.completionTime = currentTime.Add(d)
 	ft.mutex.Unlock()
+	return active
+}
 
+func (ft *fakeTimer) Reset(d time.Duration) bool {
+	active := ft.reset(d)
 	ft.clock.addTimeWatcher(ft)
-
 	return active
 }
 
@@ -76,5 +79,9 @@ func (ft *fakeTimer) timeUpdated(now time.Time) {
 		// drop on the floor. timers have a buffered channel anyway. according to
 		// godoc of the `time' package a ticker can loose ticks in case of a slow
 		// receiver
+	}
+
+	if ft.repeatable() {
+		ft.reset(ft.duration)
 	}
 }

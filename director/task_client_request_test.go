@@ -18,7 +18,6 @@ import (
 var _ = Describe("TaskClientRequest", func() {
 	var (
 		server *ghttp.Server
-		resp   []string
 
 		buildReq func(TaskReporter) TaskClientRequest
 		req      TaskClientRequest
@@ -41,7 +40,6 @@ var _ = Describe("TaskClientRequest", func() {
 			return NewTaskClientRequest(clientReq, taskReporter, 0*time.Second)
 		}
 
-		resp = nil
 		req = buildReq(NewNoopTaskReporter())
 	})
 

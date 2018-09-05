@@ -3,6 +3,8 @@ package httpclient
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"time"
@@ -15,7 +17,7 @@ var (
 	defaultDialer = SOCKS5DialFuncFromEnvironment((&net.Dialer{
 		Timeout:   30 * time.Second,
 		KeepAlive: 30 * time.Second,
-	}).Dial, proxy.NewSocks5Proxy(proxy.NewHostKeyGetter()))
+	}).Dial, proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(ioutil.Discard, "", log.LstdFlags)))
 )
 
 type Client interface {

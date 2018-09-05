@@ -22,7 +22,7 @@ func (r *getStateRetryable) Attempt() (bool, error) {
 	}
 
 	if stateResponse.JobState == "running" {
-		return true, nil
+		return false, nil
 	}
 
 	return true, bosherr.Errorf("Received non-running job state: '%s'", stateResponse.JobState)

@@ -27,9 +27,15 @@ type ConfigsFilter struct {
 }
 
 type UpdateConfigBody struct {
-	Type    string `json:"type"`
-	Name    string `json:"name"`
-	Content string `json:"content"`
+	Type             string `json:"type"`
+	Name             string `json:"name"`
+	Content          string `json:"content"`
+	ExpectedLatestId string `json:"expected_latest_id,omitempty"`
+}
+
+type ConfigResponse struct {
+	LatestId         string `json:"latest_id"`
+	ExpectedLatestId string `json:"expected_latest_id"`
 }
 
 func (d DirectorImpl) LatestConfig(configType string, name string) (Config, error) {
@@ -76,8 +82,8 @@ func (d DirectorImpl) ListConfigs(limit int, filter ConfigsFilter) ([]Config, er
 	return d.client.listConfigs(limit, filter)
 }
 
-func (d DirectorImpl) UpdateConfig(configType string, name string, content []byte) (Config, error) {
-	body, err := json.Marshal(UpdateConfigBody{configType, name, string(content)})
+func (d DirectorImpl) UpdateConfig(configType string, name string, expectedLatestId string, content []byte) (Config, error) {
+	body, err := json.Marshal(UpdateConfigBody{configType, name, string(content), expectedLatestId})
 	if err != nil {
 		return Config{}, bosherr.WrapError(err, "Can't marshal request body")
 	}
@@ -139,8 +145,18 @@ func (c Client) updateConfig(content []byte) (Config, error) {
 		req.Header.Add("Content-Type", "application/json")
 	}
 
-	respBody, _, err := c.clientRequest.RawPost("/configs", content, setHeaders)
+	respBody, resp, err := c.clientRequest.RawPost("/configs", content, setHeaders)
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusPreconditionFailed {
+			var configResp ConfigResponse
+
+			err = json.Unmarshal(respBody, &configResp)
+			if err != nil {
+				return config, bosherr.WrapErrorf(err, "Could not unmarshal response: '%s'", respBody)
+			}
+
+			return config, bosherr.Errorf("Config update rejected: The expected latest ID '%s' doesn't match the latest ID '%s'. This most likely means that a concurrent update of the config happened. Please try to upload again.", configResp.ExpectedLatestId, configResp.LatestId)
+		}
 		return config, bosherr.WrapErrorf(err, "Updating config")
 	}
 
@@ -184,7 +200,7 @@ func (c Client) deleteConfigByID(configID string) (bool, error) {
 }
 
 func (d DirectorImpl) DiffConfig(configType string, name string, manifest []byte) (ConfigDiff, error) {
-	body, err := json.Marshal(UpdateConfigBody{configType, name, string(manifest)})
+	body, err := json.Marshal(UpdateConfigBody{configType, name, string(manifest), ""})
 	if err != nil {
 		return ConfigDiff{}, bosherr.WrapError(err, "Can't marshal request body")
 	}
@@ -193,7 +209,7 @@ func (d DirectorImpl) DiffConfig(configType string, name string, manifest []byte
 		return ConfigDiff{}, err
 	}
 
-	return NewConfigDiff(resp.Diff), nil
+	return NewConfigDiffWithFromId(resp.Diff, resp.From["id"]), nil
 }
 
 func (c Client) DiffConfig(manifest []byte) (ConfigDiffResponse, error) {

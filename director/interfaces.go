@@ -28,6 +28,8 @@ type Director interface {
 
 	Deployments() ([]Deployment, error)
 	FindDeployment(string) (Deployment, error)
+	ListDeployments() ([]DeploymentResp, error)
+	ListDeploymentConfigs(name string) (DeploymentConfigs, error)
 
 	Releases() ([]Release, error)
 	HasRelease(name, version string, stemcell OSVersionSlug) (bool, error)
@@ -47,11 +49,11 @@ type Director interface {
 	LatestConfig(configType string, name string) (Config, error)
 	LatestConfigByID(configID string) (Config, error)
 	ListConfigs(limit int, filter ConfigsFilter) ([]Config, error)
-	UpdateConfig(configType string, name string, content []byte) (Config, error)
+	UpdateConfig(configType string, name string, expectedLatestId string, content []byte) (Config, error)
 	DeleteConfig(configType string, name string) (bool, error)
 	DeleteConfigByID(configID string) (bool, error)
 	DiffConfig(configType string, name string, manifest []byte) (ConfigDiff, error)
-	DiffConfigByID(fromID string, toID string) (ConfigDiff, error)
+	DiffConfigByIDOrContent(fromID string, fromContent []byte, toID string, toContent []byte) (ConfigDiff, error)
 
 	LatestCloudConfig() (CloudConfig, error)
 	UpdateCloudConfig([]byte) error
@@ -72,6 +74,8 @@ type Director interface {
 	EnableResurrection(bool) error
 	CleanUp(bool) error
 	DownloadResourceUnchecked(blobstoreID string, out io.Writer) error
+
+	OrphanedVMs() ([]OrphanedVM, error)
 }
 
 var _ Director = &DirectorImpl{}
@@ -152,7 +156,7 @@ type Deployment interface {
 	Update(manifest []byte, opts UpdateOpts) error
 	Delete(force bool) error
 
-	AttachDisk(slug InstanceSlug, diskCID string) error
+	AttachDisk(slug InstanceSlug, diskCID string, diskProperties string) error
 }
 
 type StartOpts struct {
@@ -185,13 +189,14 @@ type RecreateOpts struct {
 }
 
 type UpdateOpts struct {
-	Recreate    bool
-	Fix         bool
-	SkipDrain   SkipDrains
-	Canaries    string
-	MaxInFlight string
-	DryRun      bool
-	Diff        DeploymentDiff
+	Recreate                bool
+	RecreatePersistentDisks bool
+	Fix                     bool
+	SkipDrain               SkipDrains
+	Canaries                string
+	MaxInFlight             string
+	DryRun                  bool
+	Diff                    DeploymentDiff
 }
 
 //go:generate counterfeiter . ReleaseSeries
@@ -278,6 +283,15 @@ type OrphanDisk interface {
 	OrphanedAt() time.Time
 
 	Delete() error
+}
+
+type OrphanedVM struct {
+	CID            string
+	DeploymentName string
+	InstanceName   string
+	AZName         string
+	IPAddresses    []string
+	OrphanedAt     time.Time
 }
 
 type EventsFilter struct {

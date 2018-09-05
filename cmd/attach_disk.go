@@ -13,5 +13,5 @@ func NewAttachDiskCmd(deployment boshdir.Deployment) AttachDiskCmd {
 }
 
 func (c AttachDiskCmd) Run(opts AttachDiskOpts) error {
-	return c.deployment.AttachDisk(opts.Args.Slug, opts.Args.DiskCID)
+	return c.deployment.AttachDisk(opts.Args.Slug, opts.Args.DiskCID, opts.DiskProperties)
 }

@@ -1,0 +1,40 @@
+groups:
+- name: bosh-cli:docker-images
+  jobs:
+  - build-bosh-cli
+
+jobs:
+  - name: build-bosh-cli
+    public: true
+    serial: true
+    plan:
+      - get: bosh-cli-src
+        trigger: true
+      - task: write-metadata-file
+        file: bosh-cli-src/ci/docker/write-metadata-file.yml
+        params:
+          DOCKER_IMAGE_TAG: latest
+      - put: bosh-cli
+        params:
+          build: "docker-files"
+          tag: "docker-files/tag"
+        get_params:
+          skip_download: true
+
+resources:
+  - name: bosh-cli-src
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-cli.git
+      branch: develop
+      paths:
+        - "ci/docker"
+
+  - name: bosh-cli
+    type: docker-image
+    source:
+      repository: bosh/cli
+      email: {{dockerhub_email}}
+      username: {{dockerhub_username}}
+      password: {{dockerhub_password}}
+

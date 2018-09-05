@@ -1,0 +1,16 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: bosh/go-dep-bumper
+
+inputs:
+- name: bosh-cli
+
+outputs:
+- name: bumped-bosh-cli
+
+run:
+  path: bosh-cli/ci/tasks/bump-deps.sh
