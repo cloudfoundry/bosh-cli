@@ -37,7 +37,6 @@ type certParams struct {
 var supportedCertParameters = []string{
 	"common_name",
 	"organization",
-	"organizations",
 	"alternative_names",
 	"is_ca",
 	"ca",
@@ -170,13 +169,11 @@ func generateCertTemplate(cParams certParams) (x509.Certificate, error) {
 
 	now := time.Now()
 	notAfter := now.Add(365 * 24 * time.Hour)
-	organizations := cParams.Organizations
-	if len(organizations) == 0 {
-		if cParams.Organization == "" {
-			organizations = []string{"Cloud Foundry"}
-		} else {
-			organizations = []string{cParams.Organization}
-		}
+	var organizations []string
+	if cParams.Organization == "" {
+		organizations = []string{"Cloud Foundry"}
+	} else {
+		organizations = []string{cParams.Organization}
 	}
 
 	template := x509.Certificate{
@@ -189,7 +186,7 @@ func generateCertTemplate(cParams certParams) (x509.Certificate, error) {
 		NotBefore:             now,
 		NotAfter:              notAfter,
 		BasicConstraintsValid: true,
-		IsCA: cParams.IsCA,
+		IsCA:                  cParams.IsCA,
 	}
 	return template, nil
 }

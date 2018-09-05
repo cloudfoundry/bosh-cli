@@ -224,8 +224,7 @@ func (c *AgentClient) SendAsyncTaskMessage(method string, arguments []interface{
 			sendErrors++
 			shouldRetry := sendErrors <= c.toleratedErrorCount
 			err = bosherr.WrapError(err, "Sending 'get_task' to the agent")
-			msg := fmt.Sprintf("Error occured sending get_task. Error retry %d of %d", sendErrors, c.toleratedErrorCount)
-			c.logger.Debug(c.logTag, msg, err)
+			c.logger.Debug(c.logTag, "Error occured sending get_task. Error retry %d of %d: %s", sendErrors, c.toleratedErrorCount, err.Error())
 			return shouldRetry, err
 		}
 		sendErrors = 0

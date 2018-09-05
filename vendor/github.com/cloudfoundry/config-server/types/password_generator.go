@@ -31,6 +31,11 @@ func (passwordGenerator) Generate(parameters interface{}) (interface{}, error) {
 	if err != nil {
 		return nil, errors.WrapError(err, "Failed to generate password, parameters are invalid")
 	}
+
+	if params.Length < 0 {
+		return nil, errors.Error("Failed to generate password, 'length' param cannot be negative")
+	}
+
 	if params.Length == 0 {
 		params.Length = DefaultPasswordLength
 	}
