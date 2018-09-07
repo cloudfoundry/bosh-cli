@@ -90,14 +90,20 @@ var _ = Describe("Cloud", func() {
 				Expect(cpiInfo).To(Equal(infoParsed))
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeCPICmdRunner.CurrentRunInput).To(Equal([]fakebicloud.RunInput{
-					{
-						Context:    expectedContext,
-						Method:     "info",
-						Arguments:  []interface{}{" "},
-						ApiVersion: 1,
-					},
-				}))
+				inputs := fakeCPICmdRunner.CurrentRunInput
+				Expect(inputs).To(HaveLen(1))
+				input := inputs[0]
+				expectedInput := fakebicloud.RunInput{
+					Context: expectedContext,
+					Method:  "info",
+					// The correct answer should be `[]interface{}{}` but because of https://github.com/golang/go/issues/4133 we have to use nil.
+					Arguments:  nil,
+					ApiVersion: 1,
+				}
+				Expect(input.ApiVersion).To(Equal(expectedInput.ApiVersion))
+				Expect(input.Method).To(Equal(expectedInput.Method))
+				Expect(input.Context).To(Equal(expectedInput.Context))
+				Expect(input.Arguments).To(Equal(expectedInput.Arguments))
 			})
 
 			It("uses a default cpi api version if an old cpi does not have api version", func() {

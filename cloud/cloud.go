@@ -401,7 +401,7 @@ func (c cloud) Info() (cpiInfo CpiInfo, err error) {
 	c.logger.Debug(c.logTag, "Info")
 
 	method := "info"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, DefaultCPIVersion, " ")
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, DefaultCPIVersion)
 	if err != nil {
 		return CpiInfo{}, err
 	}
