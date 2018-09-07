@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
@@ -63,19 +64,20 @@ func (c LogsCmd) tail(opts LogsOpts) error {
 }
 
 func (c LogsCmd) buildTailCmd(opts LogsOpts) []string {
-	cmd := []string{"sudo", "tail"}
+	cmd := []string{"sudo", "bash", "-c"}
+	tail := []string{"exec", "tail"}
 
 	if opts.Follow {
 		// -F for continuing to follow after renames
-		cmd = append(cmd, "-F")
+		tail = append(tail, "-F")
 	}
 
 	if opts.Num > 0 {
-		cmd = append(cmd, "-n", strconv.Itoa(opts.Num))
+		tail = append(tail, "-n", strconv.Itoa(opts.Num))
 	}
 
 	if opts.Quiet {
-		cmd = append(cmd, "-q")
+		tail = append(tail, "-q")
 	}
 
 	var logsDir string
@@ -88,17 +90,19 @@ func (c LogsCmd) buildTailCmd(opts LogsOpts) []string {
 
 	if len(opts.Jobs) > 0 {
 		for _, job := range opts.Jobs {
-			cmd = append(cmd, fmt.Sprintf("%s/%s/*.log", logsDir, job))
+			tail = append(tail, fmt.Sprintf("%s/%s/*.log", logsDir, job))
 		}
 	} else if len(opts.Filters) > 0 {
 		for _, filter := range opts.Filters {
-			cmd = append(cmd, fmt.Sprintf("%s/%s", logsDir, filter))
+			tail = append(tail, fmt.Sprintf("%s/%s", logsDir, filter))
 		}
 	} else {
 		// includes only directory and its subdirectories
-		cmd = append(cmd, fmt.Sprintf("%s/{**/,}*.log", logsDir))
+		tail = append(tail, fmt.Sprintf("%s/{**/,}*.log", logsDir))
 	}
 
+	// append combined tail command
+	cmd = append(cmd, "'"+strings.Join(tail, " ")+"'")
 	return cmd
 }
 
