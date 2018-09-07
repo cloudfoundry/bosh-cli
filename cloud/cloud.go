@@ -3,7 +3,6 @@ package cloud
 import (
 	"fmt"
 
-	"errors"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -406,7 +405,12 @@ func (c cloud) Info() (cpiInfo CpiInfo, err error) {
 		return CpiInfo{}, err
 	}
 	if cmdOutput.Error != nil {
-		return CpiInfo{}, errors.New(cmdOutput.Error.Message)
+		cpiErr := NewCPIError("info", *cmdOutput.Error)
+		if cpiErr.Type() != NotImplementedError {
+			return CpiInfo{}, cpiErr
+		}
+
+		return CpiInfo{ApiVersion: DefaultCPIVersion}, nil
 	}
 
 	cpiInfo, err = c.infoParser(cmdOutput)

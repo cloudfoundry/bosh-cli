@@ -21,6 +21,7 @@ var _ = Describe("Cloud", func() {
 		fakeCPICmdRunner    *fakebicloud.FakeCPICmdRunner
 		logger              boshlog.Logger
 		stemcellApiVersion  = 1
+		cpiApiVersion       = 1
 		infoResult          map[string]interface{}
 		infoResultWithApiV2 map[string]interface{}
 	)
@@ -184,6 +185,24 @@ var _ = Describe("Cloud", func() {
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("Extracting stemcell_formats"))
 					})
+				})
+			})
+
+			Context("when info method is not implemented in CPI", func() {
+				BeforeEach(func() {
+					fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{{
+						Result: nil,
+						Error: &CmdError{
+							Type:    "InvalidCall",
+							Message: "Method is not known, got 'info'",
+						},
+					}}
+				})
+
+				It("should return default APIVersion", func() {
+					cpiInfo, err := cloud.Info()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(cpiInfo.ApiVersion).To(Equal(cpiApiVersion))
 				})
 			})
 		})
