@@ -396,9 +396,7 @@ var _ = Describe("CreateEnvCmd", func() {
 				"fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version", stemcellApiVersion)
 
 			mockCloud = mock_cloud.NewMockCloud(mockCloudCtrl)
-			mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{
-				ApiVersion: cpiApiVersion,
-			}).AnyTimes()
+			mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}, nil).AnyTimes()
 			mockCloud.EXPECT().String().AnyTimes()
 
 			fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, extractedStemcell, nil)

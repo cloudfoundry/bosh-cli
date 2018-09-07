@@ -149,10 +149,11 @@ func (mr *MockCloudMockRecorder) HasVM(arg0 interface{}) *gomock.Call {
 }
 
 // Info mocks base method
-func (m *MockCloud) Info() cloud.CpiInfo {
+func (m *MockCloud) Info() (cloud.CpiInfo, error) {
 	ret := m.ctrl.Call(m, "Info")
 	ret0, _ := ret[0].(cloud.CpiInfo)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Info indicates an expected call of Info

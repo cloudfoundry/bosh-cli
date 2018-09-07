@@ -20,7 +20,7 @@ var _ = Describe("Cloud", func() {
 		expectedContext     CmdContext
 		fakeCPICmdRunner    *fakebicloud.FakeCPICmdRunner
 		logger              boshlog.Logger
-		stemcellApiVersion  interface{} = 1
+		stemcellApiVersion  = 1
 		infoResult          map[string]interface{}
 		infoResultWithApiV2 map[string]interface{}
 	)
@@ -38,8 +38,8 @@ var _ = Describe("Cloud", func() {
 	})
 
 	JustBeforeEach(func() {
-		expectedContext = CmdContext{DirectorID: "fake-director-id", Vm: &VM{Stemcell: &Stemcell{ApiVersion: stemcellApiVersion.(int)}}}
-		cloud = NewCloud(fakeCPICmdRunner, "fake-director-id", stemcellApiVersion.(int), logger)
+		expectedContext = CmdContext{DirectorID: "fake-director-id", Vm: &VM{Stemcell: &Stemcell{ApiVersion: stemcellApiVersion}}}
+		cloud = NewCloud(fakeCPICmdRunner, "fake-director-id", stemcellApiVersion, logger)
 	})
 
 	var itHandlesCPIErrors = func(method string, exec func() error) {
@@ -73,17 +73,6 @@ var _ = Describe("Cloud", func() {
 	}
 
 	Describe("Info", func() {
-
-		var itReturnsAValidDefaultCpiInfo = func() {
-			It("returns a valid cpi info", func() {
-				cpiInfo := cloud.Info()
-				Expect(cpiInfo).To(Equal(CpiInfo{
-					StemcellFormats: []string{},
-					ApiVersion:      1,
-				}))
-			})
-		}
-
 		Context("when the stemcell version is 2", func() {
 			BeforeEach(func() {
 				stemcellApiVersion = 2
@@ -97,8 +86,9 @@ var _ = Describe("Cloud", func() {
 				fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{{
 					Result: infoResultWithApiV2,
 				}}
-				cpiInfo := cloud.Info()
+				cpiInfo, err := cloud.Info()
 				Expect(cpiInfo).To(Equal(infoParsed))
+				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeCPICmdRunner.CurrentRunInput).To(Equal([]fakebicloud.RunInput{
 					{
@@ -118,8 +108,9 @@ var _ = Describe("Cloud", func() {
 				fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{{
 					Result: infoResult,
 				}}
-				cpiInfo := cloud.Info()
+				cpiInfo, err := cloud.Info()
 				Expect(cpiInfo).To(Equal(infoParsed))
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			Context("when the cpi command execution fails", func() {
@@ -127,7 +118,10 @@ var _ = Describe("Cloud", func() {
 					fakeCPICmdRunner.RunErrs = []error{errors.New("info")}
 				})
 
-				itReturnsAValidDefaultCpiInfo()
+				It("returns an error", func() {
+					_, err := cloud.Info()
+					Expect(err).To(HaveOccurred())
+				})
 			})
 
 			Context("when the cpi version is > 2", func() {
@@ -143,7 +137,8 @@ var _ = Describe("Cloud", func() {
 					fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{{
 						Result: infoResult,
 					}}
-					cpiInfo := cloud.Info()
+					cpiInfo, err := cloud.Info()
+					Expect(err).ToNot(HaveOccurred())
 					Expect(cpiInfo).To(Equal(infoParsed))
 				})
 			})
@@ -161,7 +156,11 @@ var _ = Describe("Cloud", func() {
 						}}
 					})
 
-					itReturnsAValidDefaultCpiInfo()
+					It("returns an error", func() {
+						_, err := cloud.Info()
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("Extracting api_version"))
+					})
 				})
 				Context("when stemcell formats is not a []string", func() {
 					BeforeEach(func() {
@@ -174,7 +173,11 @@ var _ = Describe("Cloud", func() {
 						}}
 					})
 
-					itReturnsAValidDefaultCpiInfo()
+					It("returns an error", func() {
+						_, err := cloud.Info()
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("Extracting stemcell_formats"))
+					})
 				})
 			})
 		})
@@ -191,14 +194,16 @@ var _ = Describe("Cloud", func() {
 			cloudProperties = biproperty.Map{
 				"fake-key": "fake-value",
 			}
+
+			fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
+				{Result: infoResult},
+				{Result: 1},
+			}
 		})
 
 		Context("when the cpi successfully creates the stemcell", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
-					{Result: infoResult},
-					{Result: "fake-cid"},
-				}
+				fakeCPICmdRunner.RunCmdOutputs[1] = CmdOutput{Result: "fake-cid"}
 			})
 
 			It("executes the cpi job script with stemcell image path & cloud_properties", func() {
@@ -224,13 +229,6 @@ var _ = Describe("Cloud", func() {
 		})
 
 		Context("when the result is of an unexpected type", func() {
-			BeforeEach(func() {
-				fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
-					{Result: infoResult},
-					{Result: 1},
-				}
-			})
-
 			It("returns an error", func() {
 				_, err := cloud.CreateStemcell(stemcellImagePath, cloudProperties)
 				Expect(err).To(HaveOccurred())
@@ -257,6 +255,12 @@ var _ = Describe("Cloud", func() {
 	})
 
 	Describe("DeleteStemcell", func() {
+		BeforeEach(func() {
+			fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
+				{Result: infoResult},
+			}
+		})
+
 		It("executes the delete_stemcell method on the CPI with stemcell cid", func() {
 			err := cloud.DeleteStemcell("fake-stemcell-cid")
 			Expect(err).NotTo(HaveOccurred())
@@ -320,6 +324,9 @@ var _ = Describe("Cloud", func() {
 
 		Context("when the cpi command execution fails", func() {
 			BeforeEach(func() {
+				fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
+					{Result: infoResult},
+				}
 				fakeCPICmdRunner.RunErrs = []error{nil, errors.New("fake-run-error")}
 			})
 
@@ -484,6 +491,11 @@ var _ = Describe("Cloud", func() {
 	})
 
 	Describe("SetDiskMetadata", func() {
+		BeforeEach(func() {
+			fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
+				{Result: infoResult},
+			}
+		})
 		metadata := DiskMetadata{
 			"director":       "bosh-init",
 			"deployment":     "some-deployment",
@@ -524,6 +536,11 @@ var _ = Describe("Cloud", func() {
 	})
 
 	Describe("SetVMMetadata", func() {
+		BeforeEach(func() {
+			fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
+				{Result: infoResult},
+			}
+		})
 		It("calls the set_vm_metadata CPI method", func() {
 			vmCID := "fake-vm-cid"
 			metadata := VMMetadata{
@@ -622,9 +639,10 @@ var _ = Describe("Cloud", func() {
 
 		Context("when the result is of an unexpected type", func() {
 			BeforeEach(func() {
-				fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{{
-					Result: 1,
-				}}
+				fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{
+					{Result: infoResult},
+					{Result: 1},
+				}
 			})
 
 			It("returns an error", func() {
@@ -831,6 +849,7 @@ var _ = Describe("Cloud", func() {
 
 		Context("when the cpi command execution fails", func() {
 			BeforeEach(func() {
+				fakeCPICmdRunner.RunCmdOutputs = []CmdOutput{{Result: infoResult}}
 				fakeCPICmdRunner.RunErrs = []error{nil, errors.New("fake-run-error")}
 			})
 

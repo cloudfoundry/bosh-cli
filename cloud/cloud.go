@@ -3,6 +3,7 @@ package cloud
 import (
 	"fmt"
 
+	"errors"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -33,7 +34,7 @@ type Cloud interface {
 	AttachDisk(vmCID, diskCID string) (interface{}, error)
 	DetachDisk(vmCID, diskCID string) error
 	DeleteDisk(diskCID string) error
-	Info() (cpiInfo CpiInfo)
+	Info() (cpiInfo CpiInfo, err error)
 	fmt.Stringer
 }
 
@@ -82,8 +83,13 @@ func NewCloud(
 func (c cloud) CreateStemcell(imagePath string, cloudProperties biproperty.Map) (string, error) {
 	c.logger.Debug(c.logTag, "Creating stemcell")
 
+	cpiInfo, err := c.Info()
+	if err != nil {
+		return "", err
+	}
+
 	method := "create_stemcell"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.Info().ApiVersion, imagePath, cloudProperties)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, cpiInfo.ApiVersion, imagePath, cloudProperties)
 	if err != nil {
 		return "", err
 	}
@@ -103,8 +109,13 @@ func (c cloud) CreateStemcell(imagePath string, cloudProperties biproperty.Map) 
 func (c cloud) DeleteStemcell(stemcellCID string) error {
 	c.logger.Debug(c.logTag, "Deleting stemcell '%s'", stemcellCID)
 
+	cpiInfo, err := c.Info()
+	if err != nil {
+		return err
+	}
+
 	method := "delete_stemcell"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.Info().ApiVersion, stemcellCID)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, cpiInfo.ApiVersion, stemcellCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Calling CPI 'delete_stemcell' method")
 	}
@@ -117,8 +128,13 @@ func (c cloud) DeleteStemcell(stemcellCID string) error {
 }
 
 func (c cloud) HasVM(vmCID string) (bool, error) {
+	cpiInfo, err := c.Info()
+	if err != nil {
+		return false, err
+	}
+
 	method := "has_vm"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.Info().ApiVersion, vmCID)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, cpiInfo.ApiVersion, vmCID)
 	if err != nil {
 		return false, err
 	}
@@ -148,7 +164,10 @@ func (c cloud) CreateVM(
 		diskLocality = []interface{}{} // not used with bosh-init
 	)
 
-	cpiInfo := c.Info()
+	cpiInfo, err := c.Info()
+	if err != nil {
+		return "", err
+	}
 
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
@@ -187,10 +206,15 @@ func (c cloud) CreateVM(
 }
 
 func (c cloud) SetVMMetadata(vmCID string, metadata VMMetadata) error {
+	cpiInfo, err := c.Info()
+	if err != nil {
+		return err
+	}
+
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		"set_vm_metadata",
-		c.Info().ApiVersion,
+		cpiInfo.ApiVersion,
 		vmCID,
 		metadata,
 	)
@@ -207,10 +231,15 @@ func (c cloud) SetVMMetadata(vmCID string, metadata VMMetadata) error {
 }
 
 func (c cloud) SetDiskMetadata(diskCID string, metadata DiskMetadata) error {
+	cpiInfo, err := c.Info()
+	if err != nil {
+		return err
+	}
+
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		"set_disk_metadata",
-		c.Info().ApiVersion,
+		cpiInfo.ApiVersion,
 		diskCID,
 		metadata,
 	)
@@ -234,11 +263,16 @@ func (c cloud) CreateDisk(size int, cloudProperties biproperty.Map, vmCID string
 		vmCID,
 	)
 
+	cpiInfo, err := c.Info()
+	if err != nil {
+		return "", err
+	}
+
 	method := "create_disk"
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		method,
-		c.Info().ApiVersion,
+		cpiInfo.ApiVersion,
 		size,
 		cloudProperties,
 		vmCID,
@@ -266,7 +300,10 @@ func (c cloud) AttachDisk(vmCID, diskCID string) (interface{}, error) {
 	)
 	c.logger.Debug(c.logTag, "Attaching disk '%s' to vm '%s'", diskCID, vmCID)
 
-	cpiInfo := c.Info()
+	cpiInfo, err := c.Info()
+	if err != nil {
+		return nil, err
+	}
 
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
@@ -294,11 +331,16 @@ func (c cloud) AttachDisk(vmCID, diskCID string) (interface{}, error) {
 func (c cloud) DetachDisk(vmCID, diskCID string) error {
 	c.logger.Debug(c.logTag, "Detaching disk '%s' from vm '%s'", diskCID, vmCID)
 
+	cpiInfo, err := c.Info()
+	if err != nil {
+		return err
+	}
+
 	method := "detach_disk"
 	cmdOutput, err := c.cpiCmdRunner.Run(
 		c.context,
 		method,
-		c.Info().ApiVersion,
+		cpiInfo.ApiVersion,
 		vmCID,
 		diskCID,
 	)
@@ -316,8 +358,13 @@ func (c cloud) DetachDisk(vmCID, diskCID string) error {
 func (c cloud) DeleteVM(vmCID string) error {
 	c.logger.Debug(c.logTag, "Deleting vm '%s'", vmCID)
 
+	cpiInfo, err := c.Info()
+	if err != nil {
+		return err
+	}
+
 	method := "delete_vm"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.Info().ApiVersion, vmCID)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, cpiInfo.ApiVersion, vmCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Calling CPI 'delete_vm' method")
 	}
@@ -331,8 +378,14 @@ func (c cloud) DeleteVM(vmCID string) error {
 
 func (c cloud) DeleteDisk(diskCID string) error {
 	c.logger.Debug(c.logTag, "Deleting disk '%s'", diskCID)
+
+	cpiInfo, err := c.Info()
+	if err != nil {
+		return err
+	}
+
 	method := "delete_disk"
-	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, c.Info().ApiVersion, diskCID)
+	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, cpiInfo.ApiVersion, diskCID)
 	if err != nil {
 		return bosherr.WrapError(err, "Calling CPI 'delete_disk' method")
 	}
@@ -344,27 +397,27 @@ func (c cloud) DeleteDisk(diskCID string) error {
 	return nil
 }
 
-func (c cloud) Info() (cpiInfo CpiInfo) {
+func (c cloud) Info() (cpiInfo CpiInfo, err error) {
 	c.logger.Debug(c.logTag, "Info")
 
 	method := "info"
 	cmdOutput, err := c.cpiCmdRunner.Run(c.context, method, DefaultCPIVersion, " ")
-
-	defaultResponse := CpiInfo{StemcellFormats: []string{}, ApiVersion: 1}
-
-	if err != nil || cmdOutput.Error != nil {
-		return defaultResponse
+	if err != nil {
+		return CpiInfo{}, err
+	}
+	if cmdOutput.Error != nil {
+		return CpiInfo{}, errors.New(cmdOutput.Error.Message)
 	}
 
 	cpiInfo, err = c.infoParser(cmdOutput)
 	if err != nil {
 		c.logger.Debug(c.logTag, err.Error())
-		return defaultResponse
+		return CpiInfo{}, err
 	}
 
 	c.logger.Info(c.logTag, "CPI Info resulted in %v", cpiInfo)
 
-	return cpiInfo
+	return cpiInfo, err
 }
 
 func (c cloud) infoParser(cmdOutput CmdOutput) (cpiInfo CpiInfo, err error) {

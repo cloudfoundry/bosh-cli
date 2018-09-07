@@ -210,7 +210,11 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, 
 				usesRegistry)
 		}
 
-		cpiInfo := cloud.Info()
+		cpiInfo, err := cloud.Info()
+		if err != nil {
+			return bosherr.WrapError(err, "Error getting CPI info")
+		}
+
 		if stemcellApiVersion >= bicloud.StemcellNoRegistryAsOfVersion &&
 			cpiInfo.ApiVersion == bicloud.MaxCpiApiVersionSupported {
 			return deploy(false)
