@@ -2552,7 +2552,7 @@ var _ = Describe("Opts", func() {
 		Describe("Fix", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Fix", opts)).To(Equal(
-					`long:"fix" description:"Fix unresponsive VMs"`,
+					`long:"fix" description:"Recreate an instance with an unresponsive agent instead of erroring"`,
 				))
 			})
 		})
