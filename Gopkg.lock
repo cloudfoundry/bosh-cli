@@ -12,8 +12,8 @@
     "internal/version",
     "storage"
   ]
-  revision = "64a2037ec6be8a4b0c1d1f706ed35b428b989239"
-  version = "v0.26.0"
+  revision = "c728a003b238b26cef9ab6753a5dc424b331c3ad"
+  version = "v0.27.0"
 
 [[projects]]
   branch = "master"
@@ -73,8 +73,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "04abd557eeaab3cfdded45467eea00fc03db9cb9"
-  version = "v1.15.26"
+  revision = "56018901efd0b8084af1fb83b7e2604aba53f143"
+  version = "v1.15.31"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -103,8 +103,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "8eb64413886d0cacc6264a7cdb740f0ac58bcfde"
-  version = "v2.138.0"
+  revision = "cca5fb777ab448fe73b7fe01d8731007fa0f7132"
+  version = "v2.139.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -409,7 +409,7 @@
     "ssh",
     "ssh/terminal"
   ]
-  revision = "182538f80094b6a8efaade63a8fd8e0d9d5843dd"
+  revision = "0e37d006457bf46f9e6692014ba72ef82c33022c"
 
 [[projects]]
   branch = "master"
@@ -429,7 +429,7 @@
     "proxy",
     "trace"
   ]
-  revision = "8a410e7b638dca158bf9e766925842f6651ff828"
+  revision = "161cd47e91fd58ac17490ef4d742dc98bb4cf60e"
 
 [[projects]]
   branch = "master"
@@ -450,7 +450,7 @@
     "unix",
     "windows"
   ]
-  revision = "fa5fdf94c78965f1aa8423f0cc50b8b8d728b05a"
+  revision = "d0be0721c37eeb5299f245a996a483160fc36940"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -493,7 +493,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "7ca132754999accbaa5c1735eda29e7ce0f3bf03"
+  revision = "18207bb12d3a3338e74403fed8ca1ba866dd3a57"
 
 [[projects]]
   branch = "master"
@@ -509,7 +509,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "b810576d88a056b90ef18a0b5328544c9c074c68"
+  revision = "7ca32eb868bf53ea2fc406698eb98583a8073d19"
 
 [[projects]]
   name = "google.golang.org/appengine"
