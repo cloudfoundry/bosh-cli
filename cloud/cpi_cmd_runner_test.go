@@ -190,5 +190,39 @@ var _ = Describe("CpiCmdRunner", func() {
 				Expect(cmdOutput.Error.Message).To(ContainSubstring("fake-run-error"))
 			})
 		})
+
+		Context("when arguments passed to cmd runner is empty", func() {
+			BeforeEach(func() {
+				cmdOutput := CmdOutput{
+					Result: "fake-cid",
+				}
+				outputBytes, err := json.Marshal(cmdOutput)
+				Expect(err).NotTo(HaveOccurred())
+
+				result := fakesys.FakeCmdResult{
+					Stdout:     string(outputBytes),
+					ExitStatus: 0,
+				}
+				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
+			})
+
+			It("it should not pass null in arguments", func() {
+				_, err := cpiCmdRunner.Run(context, "info", apiVersion)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
+
+				actualCmd := cmdRunner.RunComplexCommands[0]
+				bytes, err := ioutil.ReadAll(actualCmd.Stdin)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(bytes)).To(Equal(
+					`{` +
+						`"method":"info",` +
+						`"arguments":[],` +
+						`"context":{"director_uuid":"fake-director-id"},` +
+						`"api_version":1` +
+						`}`,
+				))
+			})
+		})
 	})
 })

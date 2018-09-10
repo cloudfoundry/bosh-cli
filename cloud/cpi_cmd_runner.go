@@ -86,6 +86,9 @@ func NewCPICmdRunner(
 }
 
 func (r *cpiCmdRunner) Run(context CmdContext, method string, apiVersion int, args ...interface{}) (CmdOutput, error) {
+	if len(args) == 0 {
+		args = make([]interface{}, 0)
+	}
 	cmdInput := CmdInput{
 		Method:     method,
 		Arguments:  args,
