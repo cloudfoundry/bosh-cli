@@ -121,9 +121,8 @@ resources:
   - name: bosh-cli
     type: git
     source:
-      uri: git@github.com:cloudfoundry/bosh-cli.git
+      uri: https://github.com/cloudfoundry/bosh-cli.git
       branch: external-cpi-refactor
-      private_key: {{concourse_github_private_key}}
 
   - name: bosh-warden-cpi-release
     type: bosh-io-release
