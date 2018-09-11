@@ -109,6 +109,9 @@ jobs:
         - task: build-windows
           file: bosh-cli/ci/tasks/build-windows.yml
 
+      - task: build-checksum-file
+        file: bosh-cli/ci/tasks/build-checksum-file.yml
+
       - task: create-dockerfile
         config:
           platform: linux
@@ -162,6 +165,17 @@ jobs:
             build: docker-assets
             tag: version-semver/number
             tag_as_latest: true
+
+      - put: github-release
+        params:
+          name: version-semver/number
+          tag: version-semver/number
+          tag_prefix: v
+          globs:
+            - compiled-linux/bosh-cli-*-linux-amd64
+            - compiled-darwin/bosh-cli-*-darwin-amd64
+            - compiled-windows/bosh-cli-*-windows-amd64.exe
+          body: checksums/checksums
 
       - task: update-homebrew-formula
         file: bosh-cli/ci/tasks/update-homebrew-formula.yml
@@ -247,7 +261,7 @@ resources:
     type: github-status
     source:
       repository: cloudfoundry/bosh-cli
-      access_token: {{repo_github_token}}
+      access_token: {{github_token}}
       branch: develop
       context: ci/published
 
@@ -336,6 +350,14 @@ resources:
       uri: git@github.com:cloudfoundry/homebrew-tap
       branch: master
       private_key: {{cloudfoundry_homebrew_tap_deploy_key}}
+
+  - name: github-release
+    type: github-release
+    source:
+      owner: cloudfoundry
+      repository: bosh-cli
+      access_token: {{github_token}}
+      drafts: true
 
   - name: final-docker
     type: docker-image

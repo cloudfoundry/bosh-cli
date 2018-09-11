@@ -59,6 +59,7 @@ type BoshOpts struct {
 	// Misc
 	Locks   LocksOpts   `command:"locks"    description:"List current locks"`
 	CleanUp CleanUpOpts `command:"clean-up" description:"Clean up releases, stemcells, disks, etc."`
+	Curl    CurlOpts    `command:"curl"     description:"Make an HTTP request to the Director" hidden:"true"`
 
 	// Config
 	Config       ConfigOpts       `command:"config" alias:"c" description:"Show current config for either ID or both type and name"`
@@ -112,7 +113,7 @@ type BoshOpts struct {
 
 	// Disks
 	Disks      DisksOpts      `command:"disks"       description:"List disks"`
-	AttachDisk AttachDiskOpts `command:"attach-disk" description:"Attaches disk to an instance"`
+	AttachDisk AttachDiskOpts `command:"attach-disk" description:"Attach disk to an instance"`
 	DeleteDisk DeleteDiskOpts `command:"delete-disk" description:"Delete disk"`
 	OrphanDisk OrphanDiskOpts `command:"orphan-disk" description:"Orphan disk"`
 
@@ -279,6 +280,8 @@ type CleanUpOpts struct {
 type AttachDiskOpts struct {
 	Args AttachDiskArgs `positional-args:"true" required:"true"`
 
+	DiskProperties string `long:"disk-properties" description:"Disk properties to use for the new disk. Use 'copy' to copy the properties from the currently attached disk" optional:"true"`
+
 	cmd
 }
 
@@ -437,7 +440,7 @@ type DeployOpts struct {
 
 	Recreate                bool                `long:"recreate"                                description:"Recreate all VMs in deployment"`
 	RecreatePersistentDisks bool                `long:"recreate-persistent-disks"               description:"Recreate all persistent disks in deployment"`
-	Fix                     bool                `long:"fix"                                     description:"Recreate unresponsive instances"`
+	Fix                     bool                `long:"fix"                                     description:"Recreate an instance with an unresponsive agent instead of erroring"`
 	SkipDrain               []boshdir.SkipDrain `long:"skip-drain" value-name:"INSTANCE-GROUP"  description:"Skip running drain scripts for specific instance groups" optional:"true" optional-value:"*"`
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
@@ -808,7 +811,7 @@ type RecreateOpts struct {
 
 	SkipDrain bool `long:"skip-drain" description:"Skip running drain scripts"`
 	Force     bool `long:"force"      description:"No-op for backwards compatibility"`
-	Fix       bool `long:"fix"        description:"Fix unresponsive VMs"`
+	Fix       bool `long:"fix"        description:"Recreate an instance with an unresponsive agent instead of erroring"`
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
@@ -1010,6 +1013,22 @@ type SyncBlobsOpts struct {
 type UploadBlobsOpts struct {
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 	cmd
+}
+
+type CurlOpts struct {
+	Args CurlArgs `positional-args:"true"`
+
+	Method  string       `long:"method" short:"X" description:"HTTP method" default:"GET"`
+	Headers []CurlHeader `long:"header" short:"H" description:"HTTP header in 'name: value' format"`
+	Body    FileBytesArg `long:"body"             description:"HTTP request body (path)"`
+
+	ShowHeaders bool `long:"show-headers" short:"i"   description:"Show HTTP headers"`
+
+	cmd
+}
+
+type CurlArgs struct {
+	Path string `positional-arg-name:"PATH" description:"URL path which can include query string"`
 }
 
 // MessageOpts is used for version and help flags

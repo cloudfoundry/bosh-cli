@@ -10,8 +10,8 @@ import (
 	"net"
 	"time"
 
+	"crypto/sha1"
 	"github.com/cloudfoundry/bosh-utils/errors"
-	"gopkg.in/yaml.v2"
 )
 
 type CertificateGenerator struct {
@@ -26,6 +26,8 @@ type CertResponse struct {
 
 type certParams struct {
 	CommonName       string   `yaml:"common_name"`
+	Organization     string   `yaml:"organization"`
+	Organizations    []string `yaml:"organizations"`
 	AlternativeNames []string `yaml:"alternative_names"`
 	IsCA             bool     `yaml:"is_ca"`
 	CAName           string   `yaml:"ca"`
@@ -34,6 +36,7 @@ type certParams struct {
 
 var supportedCertParameters = []string{
 	"common_name",
+	"organization",
 	"alternative_names",
 	"is_ca",
 	"ca",
@@ -46,7 +49,7 @@ func NewCertificateGenerator(loader CertsLoader) CertificateGenerator {
 
 func (cfg CertificateGenerator) Generate(parameters interface{}) (interface{}, error) {
 	var params certParams
-	err := objToStruct(parameters, &params)
+	err := objToStruct(parameters, &params, supportedCertParameters)
 	if err != nil {
 		return nil, errors.WrapError(err, "Failed to generate certificate, parameters are invalid")
 	}
@@ -54,10 +57,16 @@ func (cfg CertificateGenerator) Generate(parameters interface{}) (interface{}, e
 	return cfg.generateCertificate(params)
 }
 
+func (cfg CertificateGenerator) bigIntHash(n *big.Int) []byte {
+	h := sha1.New()
+	h.Write(n.Bytes())
+	return h.Sum(nil)
+}
+
 func (cfg CertificateGenerator) generateCertificate(cParams certParams) (CertResponse, error) {
 	var certResponse CertResponse
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(rand.Reader, 3072)
 	if err != nil {
 		return certResponse, errors.WrapError(err, "Generating Key")
 	}
@@ -82,6 +91,8 @@ func (cfg CertificateGenerator) generateCertificate(cParams certParams) (CertRes
 		}
 	}
 
+	certTemplate.SubjectKeyId = cfg.bigIntHash(privateKey.N)
+
 	if cParams.IsCA {
 		certTemplate.KeyUsage = x509.KeyUsageCertSign | x509.KeyUsageCRLSign
 
@@ -92,18 +103,25 @@ func (cfg CertificateGenerator) generateCertificate(cParams certParams) (CertRes
 			signingKey = rootPKey
 			signingCA = rootCA
 		}
+		certTemplate.AuthorityKeyId = signingCA.SubjectKeyId
 
 		certificateRaw, err = x509.CreateCertificate(rand.Reader, &certTemplate, signingCA, &privateKey.PublicKey, signingKey)
 		if err != nil {
 			return certResponse, errors.WrapError(err, "Generating CA certificate")
 		}
 
-		rootCARaw = certificateRaw
+		if cParams.CAName != "" {
+			rootCARaw = rootCA.Raw
+		} else {
+			rootCARaw = certificateRaw
+		}
 	} else {
 		if cParams.CAName == "" {
 			return certResponse, errors.Error("Missing required CA name")
 		}
 		certTemplate.KeyUsage = x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature
+
+		certTemplate.AuthorityKeyId = rootCA.SubjectKeyId
 
 		extKeyUsages := certTemplate.ExtKeyUsage
 		if len(cParams.ExtKeyUsage) != 0 {
@@ -151,18 +169,24 @@ func generateCertTemplate(cParams certParams) (x509.Certificate, error) {
 
 	now := time.Now()
 	notAfter := now.Add(365 * 24 * time.Hour)
+	var organizations []string
+	if cParams.Organization == "" {
+		organizations = []string{"Cloud Foundry"}
+	} else {
+		organizations = []string{cParams.Organization}
+	}
 
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Country:      []string{"USA"},
-			Organization: []string{"Cloud Foundry"},
+			Organization: organizations,
 			CommonName:   cParams.CommonName,
 		},
 		NotBefore:             now,
 		NotAfter:              notAfter,
 		BasicConstraintsValid: true,
-		IsCA: cParams.IsCA,
+		IsCA:                  cParams.IsCA,
 	}
 	return template, nil
 }
@@ -179,39 +203,4 @@ func generateCertResponse(privateKey *rsa.PrivateKey, certificateRaw, rootCARaw 
 	}
 
 	return certResponse
-}
-
-func stringInArray(key string, list []string) bool {
-	for _, value := range list {
-		if key == value {
-			return true
-		}
-	}
-	return false
-}
-
-func objToStruct(input interface{}, str interface{}) error {
-	valBytes, err := yaml.Marshal(input)
-	if err != nil {
-		return errors.WrapErrorf(err, "Expected input to be serializable")
-	}
-
-	parametersMap := make(map[string]interface{})
-	err = yaml.Unmarshal(valBytes, parametersMap)
-	if err != nil {
-		return errors.WrapErrorf(err, "Expected input to be deserializable")
-	}
-
-	for key := range parametersMap {
-		if !stringInArray(key, supportedCertParameters) {
-			return errors.Errorf("Unsupported certificate parameter '%s'", key)
-		}
-	}
-
-	err = yaml.Unmarshal(valBytes, str)
-	if err != nil {
-		return errors.WrapErrorf(err, "Expected input to be deserializable")
-	}
-
-	return nil
 }

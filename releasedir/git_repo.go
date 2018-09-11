@@ -100,5 +100,15 @@ func (r FSGitRepo) MustNotBeDirty(force bool) (bool, error) {
 }
 
 func (r FSGitRepo) isNotGitRepo(stderr string) bool {
-	return strings.Contains(stderr, "Not a git repository")
+	if r.fs.FileExists(filepath.Join(r.dirPath, ".git")) {
+		return false
+	}
+
+	cmd := boshsys.Command{
+		Name:       "git",
+		Args:       []string{"rev-parse", "--git-dir"},
+		WorkingDir: r.dirPath,
+	}
+	_, _, _, err := r.runner.RunComplexCommand(cmd)
+	return err != nil
 }

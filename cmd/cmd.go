@@ -417,6 +417,9 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *SyncBlobsOpts:
 		return NewSyncBlobsCmd(c.blobsDir(opts.Directory), c.BoshOpts.Parallel).Run()
 
+	case *CurlOpts:
+		return NewCurlCmd(deps.UI, c.director().(boshdir.DirectorImpl).NewHTTPClientRequest()).Run(*opts)
+
 	case *MessageOpts:
 		deps.UI.PrintBlock([]byte(opts.Message))
 		return nil
