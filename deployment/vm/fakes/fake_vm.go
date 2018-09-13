@@ -29,6 +29,9 @@ type FakeVM struct {
 	StartCalled int
 	StartErr    error
 
+	DrainCalled int
+	DrainErr    error
+
 	AttachDiskInputs   []AttachDiskInput
 	attachDiskBehavior map[string]error
 
@@ -151,6 +154,11 @@ func (vm *FakeVM) Apply(applySpec bias.ApplySpec) error {
 func (vm *FakeVM) Start() error {
 	vm.StartCalled++
 	return vm.StartErr
+}
+
+func (vm *FakeVM) Drain() error {
+	vm.DrainCalled++
+	return vm.DrainErr
 }
 
 func (vm *FakeVM) WaitToBeRunning(maxAttempts int, delay time.Duration) error {
