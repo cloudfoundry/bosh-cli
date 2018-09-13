@@ -31,7 +31,7 @@ func (r NonInteractiveRunner) Run(connOpts ConnectionOpts, result boshdir.SSHRes
 			Name: "ssh",
 			Args: append(append(sshArgs.OptsForHost(host), sshArgs.LoginForHost(host)...), rawCmd...),
 
-			Stdin:  os.Stdin,
+			Stdin: os.Stdin,
 
 			KeepAttached: true,
 		}
