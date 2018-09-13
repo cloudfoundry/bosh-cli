@@ -247,6 +247,10 @@ func (i *instance) shutdown(
 		return nil
 	}
 
+	if err := i.drainJobs(stage); err != nil {
+		return err
+	}
+
 	if err := i.stopJobs(stage); err != nil {
 		return err
 	}
@@ -266,6 +270,13 @@ func (i *instance) waitUntilJobsAreRunning(updateWatchTime bideplmanifest.WatchT
 	return stage.Perform(stepName, func() error {
 		time.Sleep(start)
 		return i.vm.WaitToBeRunning(maxAttempts, delayBetweenAttempts)
+	})
+}
+
+func (i *instance) drainJobs(stage biui.Stage) error {
+	stepName := fmt.Sprintf("Draining jobs on instance '%s/%d'", i.jobName, i.id)
+	return stage.Perform(stepName, func() error {
+		return i.vm.Drain()
 	})
 }
 
