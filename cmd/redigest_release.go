@@ -29,12 +29,12 @@ func NewRedigestReleaseCmd(
 	ui boshui.UI,
 ) RedigestReleaseCmd {
 	return RedigestReleaseCmd{
-		reader:           reader,
-		writer:           writer,
-		digestCalculator: digestCalculator,
-		mv:               mv,
+		reader:                reader,
+		writer:                writer,
+		digestCalculator:      digestCalculator,
+		mv:                    mv,
 		archiveFilePathReader: archiveFilePathReader,
-		ui: ui,
+		ui:                    ui,
 	}
 }
 

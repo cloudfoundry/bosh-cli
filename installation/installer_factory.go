@@ -48,28 +48,28 @@ func NewInstallerFactory(
 	digestCreateAlgorithms []boshcrypto.Algorithm,
 ) InstallerFactory {
 	return &installerFactory{
-		ui:                    ui,
-		runner:                runner,
-		extractor:             extractor,
-		releaseJobResolver:    releaseJobResolver,
-		uuidGenerator:         uuidGenerator,
-		registryServerManager: registryServerManager,
-		logger:                logger,
-		logTag:                "installer",
-		fs:                    fs,
+		ui:                     ui,
+		runner:                 runner,
+		extractor:              extractor,
+		releaseJobResolver:     releaseJobResolver,
+		uuidGenerator:          uuidGenerator,
+		registryServerManager:  registryServerManager,
+		logger:                 logger,
+		logTag:                 "installer",
+		fs:                     fs,
 		digestCreateAlgorithms: digestCreateAlgorithms,
 	}
 }
 
 func (f *installerFactory) NewInstaller(target Target) Installer {
 	context := &installerFactoryContext{
-		target:             target,
-		runner:             f.runner,
-		logger:             f.logger,
-		extractor:          f.extractor,
-		uuidGenerator:      f.uuidGenerator,
-		releaseJobResolver: f.releaseJobResolver,
-		fs:                 f.fs,
+		target:                 target,
+		runner:                 f.runner,
+		logger:                 f.logger,
+		extractor:              f.extractor,
+		uuidGenerator:          f.uuidGenerator,
+		releaseJobResolver:     f.releaseJobResolver,
+		fs:                     f.fs,
 		digestCreateAlgorithms: f.digestCreateAlgorithms,
 	}
 
