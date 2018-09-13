@@ -196,8 +196,9 @@ var _ = Describe("Deployer", func() {
 
 			Expect(fakeExistingVM.DeleteCalled).To(Equal(1))
 
-			Expect(fakeStage.PerformCalls[:3]).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[:4]).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Waiting for the agent on VM 'existing-vm-cid'"},
+				{Name: "Draining jobs on instance 'unknown/0'"},
 				{Name: "Stopping jobs on instance 'unknown/0'"},
 				{Name: "Deleting VM 'existing-vm-cid'"},
 			}))
