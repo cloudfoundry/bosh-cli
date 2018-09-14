@@ -169,7 +169,7 @@ type Deployment interface {
 	Update(manifest []byte, opts UpdateOpts) error
 	Delete(force bool) error
 
-	AttachDisk(slug InstanceSlug, diskCID string) error
+	AttachDisk(slug InstanceSlug, diskCID string, diskProperties string) error
 }
 
 type StartOpts struct {

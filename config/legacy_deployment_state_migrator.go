@@ -33,10 +33,10 @@ func NewLegacyDeploymentStateMigrator(
 ) LegacyDeploymentStateMigrator {
 	return &legacyDeploymentStateMigrator{
 		deploymentStateService: deploymentStateService,
-		fs:            fs,
-		uuidGenerator: uuidGenerator,
-		logger:        logger,
-		logTag:        "legacyDeploymentStateMigrator",
+		fs:                     fs,
+		uuidGenerator:          uuidGenerator,
+		logger:                 logger,
+		logTag:                 "legacyDeploymentStateMigrator",
 	}
 }
 

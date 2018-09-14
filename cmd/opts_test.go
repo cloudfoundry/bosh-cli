@@ -787,7 +787,15 @@ var _ = Describe("Opts", func() {
 		Describe("AttachDisk", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("AttachDisk", opts)).To(Equal(
-					`command:"attach-disk" description:"Attaches disk to an instance"`,
+					`command:"attach-disk" description:"Attach disk to an instance"`,
+				))
+			})
+		})
+
+		Describe("Curl", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Curl", opts)).To(Equal(
+					`command:"curl" description:"Make an HTTP request to the Director" hidden:"true"`,
 				))
 			})
 		})
@@ -1214,6 +1222,12 @@ var _ = Describe("Opts", func() {
 		Describe("Args", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+
+		Describe("DiskProperties", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("DiskProperties", opts)).To(Equal(`long:"disk-properties" description:"Disk properties to use for the new disk. Use 'copy' to copy the properties from the currently attached disk" optional:"true"`))
 			})
 		})
 	})
@@ -2546,7 +2560,7 @@ var _ = Describe("Opts", func() {
 		Describe("Fix", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Fix", opts)).To(Equal(
-					`long:"fix" description:"Fix unresponsive VMs"`,
+					`long:"fix" description:"Recreate an instance with an unresponsive agent instead of erroring"`,
 				))
 			})
 		})
@@ -3114,6 +3128,68 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Directory", opts)).To(Equal(
 					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
+			})
+		})
+	})
+
+	Describe("CurlOpts", func() {
+		var opts *CurlOpts
+
+		BeforeEach(func() {
+			opts = &CurlOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
+			})
+		})
+
+		Describe("Method", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Method", opts)).To(Equal(
+					`long:"method" short:"X" description:"HTTP method" default:"GET"`,
+				))
+			})
+		})
+
+		Describe("Headers", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Headers", opts)).To(Equal(
+					`long:"header" short:"H" description:"HTTP header in 'name: value' format"`,
+				))
+			})
+		})
+
+		Describe("Body", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Body", opts)).To(Equal(
+					`long:"body" description:"HTTP request body (path)"`,
+				))
+			})
+		})
+
+		Describe("ShowHeaders", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("ShowHeaders", opts)).To(Equal(
+					`long:"show-headers" short:"i" description:"Show HTTP headers"`,
+				))
+			})
+		})
+	})
+
+	Describe("CurlArgs", func() {
+		var args *CurlArgs
+
+		BeforeEach(func() {
+			args = &CurlArgs{}
+		})
+
+		Describe("Path", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Path", args)).To(Equal(
+					`positional-arg-name:"PATH" description:"URL path which can include query string"`,
 				))
 			})
 		})

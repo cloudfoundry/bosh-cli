@@ -247,7 +247,6 @@ variables:
   options:
     is_ca: true
     common_name: ca
-    organizations: ["org-A", "org-B"]
     organization: "org-AB"
 `)
 		Expect(err).ToNot(HaveOccurred())
@@ -293,9 +292,7 @@ variables:
 			ca, err := x509.ParseCertificate(caBlock.Bytes)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ca.Subject).To(ContainSubstring("org-A"))
-			Expect(ca.Subject).To(ContainSubstring("org-B"))
-			Expect(ca.Subject).ToNot(ContainSubstring("org-AB"))
+			Expect(ca.Subject).To(ContainSubstring("org-AB"))
 		}
 	})
 

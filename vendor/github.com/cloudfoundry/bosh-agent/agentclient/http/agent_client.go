@@ -60,6 +60,17 @@ func (c *AgentClient) Stop() error {
 	return err
 }
 
+func (c *AgentClient) Drain(drainType string) (int64, error) {
+	responseRaw, err := c.SendAsyncTaskMessage("drain", []interface{}{drainType, map[string]interface{}{}})
+	if err != nil {
+		return 0, err
+	}
+
+	responseValue := int64(responseRaw.(float64))
+
+	return responseValue, err
+}
+
 func (c *AgentClient) Apply(spec applyspec.ApplySpec) error {
 	_, err := c.SendAsyncTaskMessage("apply", []interface{}{spec})
 	return err
@@ -160,7 +171,11 @@ func (c *AgentClient) CompilePackage(packageSource agentclient.BlobRef, compiled
 		dependencies,
 	}
 
-	responseValue, err := c.SendAsyncTaskMessage("compile_package", args)
+	responseRaw, err := c.SendAsyncTaskMessage("compile_package", args)
+	responseValue, ok := responseRaw.(map[string]interface{})
+	if !ok {
+		c.logger.Warn(c.logTag, "Unable to parse compile_package response value: %#v", responseRaw)
+	}
 	if err != nil {
 		return agentclient.BlobRef{}, bosherr.WrapError(err, "Sending 'compile_package' to the agent")
 	}
@@ -204,7 +219,7 @@ func (c *AgentClient) SyncDNS(blobID, sha1 string, version uint64) (string, erro
 	return response.Value, nil
 }
 
-func (c *AgentClient) SendAsyncTaskMessage(method string, arguments []interface{}) (value map[string]interface{}, err error) {
+func (c *AgentClient) SendAsyncTaskMessage(method string, arguments []interface{}) (value interface{}, err error) {
 	var response TaskResponse
 	err = c.AgentRequest.Send(method, arguments, &response)
 	if err != nil {
@@ -224,8 +239,7 @@ func (c *AgentClient) SendAsyncTaskMessage(method string, arguments []interface{
 			sendErrors++
 			shouldRetry := sendErrors <= c.toleratedErrorCount
 			err = bosherr.WrapError(err, "Sending 'get_task' to the agent")
-			msg := fmt.Sprintf("Error occured sending get_task. Error retry %d of %d", sendErrors, c.toleratedErrorCount)
-			c.logger.Debug(c.logTag, msg, err)
+			c.logger.Debug(c.logTag, "Error occured sending get_task. Error retry %d of %d: %s", sendErrors, c.toleratedErrorCount, err.Error())
 			return shouldRetry, err
 		}
 		sendErrors = 0
@@ -238,11 +252,7 @@ func (c *AgentClient) SendAsyncTaskMessage(method string, arguments []interface{
 		}
 
 		if taskState != "running" {
-			var ok bool
-			value, ok = response.Value.(map[string]interface{})
-			if !ok {
-				c.logger.Warn(c.logTag, "Unable to parse get_task response value: %#v", response.Value)
-			}
+			value = response.Value
 			return false, nil
 		}
 

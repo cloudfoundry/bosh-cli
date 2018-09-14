@@ -12,8 +12,8 @@
     "internal/version",
     "storage"
   ]
-  revision = "64a2037ec6be8a4b0c1d1f706ed35b428b989239"
-  version = "v0.26.0"
+  revision = "c728a003b238b26cef9ab6753a5dc424b331c3ad"
+  version = "v0.27.0"
 
 [[projects]]
   branch = "master"
@@ -73,8 +73,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "4324bc9d8865bdb3e6aa86ec7772ca1272d2750e"
-  version = "v1.15.21"
+  revision = "56018901efd0b8084af1fb83b7e2604aba53f143"
+  version = "v1.15.31"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -103,8 +103,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "cbfc5060b5b3955aa72c044a557ee734122f23b0"
-  version = "v2.136.0"
+  revision = "7e28fea778c6a235d9257150a383e26dfdaf08b9"
+  version = "v2.143.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -165,8 +165,8 @@
     "types",
     "types/typesfakes"
   ]
-  revision = "a241782d2b4fef92730094d48727f6386eb113de"
-  version = "v0.1.10"
+  revision = "5b33cbdec5929168ce338ec827e866ec333ed889"
+  version = "v0.1.12"
 
 [[projects]]
   branch = "master"
@@ -280,8 +280,8 @@
 [[projects]]
   name = "github.com/mattn/go-isatty"
   packages = ["."]
-  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
-  version = "v0.0.3"
+  revision = "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c"
+  version = "v0.0.4"
 
 [[projects]]
   name = "github.com/mattn/go-runewidth"
@@ -409,7 +409,7 @@
     "ssh",
     "ssh/terminal"
   ]
-  revision = "614d502a4dac94afa3a6ce146bd1736da82514c6"
+  revision = "0e37d006457bf46f9e6692014ba72ef82c33022c"
 
 [[projects]]
   branch = "master"
@@ -429,7 +429,7 @@
     "proxy",
     "trace"
   ]
-  revision = "8a410e7b638dca158bf9e766925842f6651ff828"
+  revision = "161cd47e91fd58ac17490ef4d742dc98bb4cf60e"
 
 [[projects]]
   branch = "master"
@@ -450,7 +450,7 @@
     "unix",
     "windows"
   ]
-  revision = "4910a1d54f876d7b22162a85f4d066d3ee649450"
+  revision = "d0be0721c37eeb5299f245a996a483160fc36940"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -493,7 +493,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "f6ba5742950514ddd66494151ed5498ed77969ca"
+  revision = "18207bb12d3a3338e74403fed8ca1ba866dd3a57"
 
 [[projects]]
   branch = "master"
@@ -509,7 +509,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "7954115fcf34e0dcda6981c9ed8a81a293f0489b"
+  revision = "7ca32eb868bf53ea2fc406698eb98583a8073d19"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -537,7 +537,7 @@
     "googleapis/rpc/code",
     "googleapis/rpc/status"
   ]
-  revision = "c66870c02cf823ceb633bcd05be3c7cda29976f4"
+  revision = "11092d34479b07829b72e10713b159248caf5dad"
 
 [[projects]]
   name = "google.golang.org/grpc"

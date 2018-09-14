@@ -314,7 +314,7 @@ s1c1...|s1r2c2|
 r3c1...|r3c2|
 r4c1...|r4c2|
 
-4 things
+2 things
 `))
 			})
 		})

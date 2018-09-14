@@ -74,6 +74,7 @@ var _ = Describe("Deployment", func() {
 			gomock.InOrder(
 				mockCloud.EXPECT().HasVM("fake-vm-cid").Return(true, nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),                   // ping to make sure agent is responsive
+				mockAgentClient.EXPECT().Drain("shutdown"),                                 // drain all jobs
 				mockAgentClient.EXPECT().Stop(),                                            // stop all jobs
 				mockAgentClient.EXPECT().ListDisk().Return([]string{"fake-disk-cid"}, nil), // get mounted disks to be unmounted
 				mockAgentClient.EXPECT().UnmountDisk("fake-disk-cid"),
@@ -201,6 +202,7 @@ var _ = Describe("Deployment", func() {
 
 				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 					{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+					{Name: "Draining jobs on instance 'unknown/0'"},
 					{Name: "Stopping jobs on instance 'unknown/0'"},
 					{Name: "Unmounting disk 'fake-disk-cid'"},
 					{Name: "Deleting VM 'fake-vm-cid'"},
@@ -310,6 +312,7 @@ var _ = Describe("Deployment", func() {
 			It("stops the agent and deletes the VM", func() {
 				gomock.InOrder(
 					mockAgentClient.EXPECT().Ping().Return("any-state", nil),                   // ping to make sure agent is responsive
+					mockAgentClient.EXPECT().Drain("shutdown"),                                 // drain all jobs
 					mockAgentClient.EXPECT().Stop(),                                            // stop all jobs
 					mockAgentClient.EXPECT().ListDisk().Return([]string{"fake-disk-cid"}, nil), // get mounted disks to be unmounted
 					mockAgentClient.EXPECT().UnmountDisk("fake-disk-cid"),

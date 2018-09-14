@@ -2,11 +2,12 @@ package agentclient
 
 import "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 
-//go:generate mockgen -source=agent_client_interface.go -package=mocks -destination=mocks/mocks.go -imports=.=github.com/cloudfoundry/bosh-agent/agentclient
+//go:generate counterfeiter -o fakes/fake_agent_client.go . AgentClient
 
 type AgentClient interface {
 	Ping() (string, error)
 	Stop() error
+	Drain(string) (int64, error)
 	Apply(applyspec.ApplySpec) error
 	Start() error
 	GetState() (AgentState, error)

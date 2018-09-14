@@ -107,6 +107,7 @@ var _ = Describe("Factory", func() {
 			"upload-release":           []string{filepath.Join("/", "file")},
 			"upload-stemcell":          []string{filepath.Join("/", "file")},
 			"vms":                      []string{},
+			"curl":                     []string{"/"},
 		}
 
 		for cmd, requiredArgs := range cmds {
@@ -387,6 +388,7 @@ var _ = Describe("Factory", func() {
 			boshOpts.Configs = ConfigsOpts{}
 			boshOpts.UpdateConfig = UpdateConfigOpts{}
 			boshOpts.DeleteConfig = DeleteConfigOpts{}
+			boshOpts.Curl = CurlOpts{}
 			return boshOpts
 		}
 
