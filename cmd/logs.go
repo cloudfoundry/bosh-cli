@@ -98,7 +98,8 @@ func (c LogsCmd) buildTailCmd(opts LogsOpts) []string {
 		}
 	} else {
 		// includes only directory and its subdirectories
-		tail = append(tail, fmt.Sprintf("%s/{**/,}*.log", logsDir))
+		tail = append(tail, fmt.Sprintf("%s/**/*.log", logsDir))
+		tail = append(tail, fmt.Sprintf("$(if [ -f %s/*.log ]; then echo %s/*.log ; fi)", logsDir, logsDir))
 	}
 
 	// append combined tail command
