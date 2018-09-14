@@ -1,8 +1,6 @@
 package ssh
 
 import (
-	"os"
-
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
@@ -30,10 +28,6 @@ func (r NonInteractiveRunner) Run(connOpts ConnectionOpts, result boshdir.SSHRes
 		return boshsys.Command{
 			Name: "ssh",
 			Args: append(append(sshArgs.OptsForHost(host), sshArgs.LoginForHost(host)...), rawCmd...),
-
-			Stdin: os.Stdin,
-
-			KeepAttached: true,
 		}
 	}
 
