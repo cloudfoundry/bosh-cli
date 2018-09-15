@@ -73,8 +73,8 @@
     "service/s3/s3manager",
     "service/sts"
   ]
-  revision = "56018901efd0b8084af1fb83b7e2604aba53f143"
-  version = "v1.15.31"
+  revision = "87474c2d2bbdf6bd31275e435648aeb6c3d6815d"
+  version = "v1.15.35"
 
 [[projects]]
   name = "github.com/bmatcuk/doublestar"
@@ -103,8 +103,8 @@
     "agentclient/http",
     "agentclient/http/mocks"
   ]
-  revision = "7e28fea778c6a235d9257150a383e26dfdaf08b9"
-  version = "v2.143.0"
+  revision = "44aeaef6bf799d17fdeee8d6e3a127d7ee4a6c7e"
+  version = "v2.146.0"
 
 [[projects]]
   name = "github.com/cloudfoundry/bosh-davcli"
@@ -360,8 +360,8 @@
     "matchers/support/goraph/util",
     "types"
   ]
-  revision = "b6ea1ea48f981d0f615a154a45eabb9dd466556d"
-  version = "v1.4.1"
+  revision = "7615b9433f86a8bdf29709bf288bc4fd0636a369"
+  version = "v1.4.2"
 
 [[projects]]
   branch = "master"
@@ -391,10 +391,11 @@
     "tag",
     "trace",
     "trace/internal",
-    "trace/propagation"
+    "trace/propagation",
+    "trace/tracestate"
   ]
-  revision = "7b558058b7cc960667590e5413ef55157b06652e"
-  version = "v0.15.0"
+  revision = "79993219becaa7e29e3b60cb67f5b8e82dee11d6"
+  version = "v0.17.0"
 
 [[projects]]
   branch = "master"
@@ -429,7 +430,7 @@
     "proxy",
     "trace"
   ]
-  revision = "161cd47e91fd58ac17490ef4d742dc98bb4cf60e"
+  revision = "26e67e76b6c3f6ce91f7c52def5af501b4e0f3a2"
 
 [[projects]]
   branch = "master"
@@ -493,7 +494,7 @@
     "imports",
     "internal/fastwalk"
   ]
-  revision = "18207bb12d3a3338e74403fed8ca1ba866dd3a57"
+  revision = "677d2ff680c188ddb7dcd2bfa6bc7d3f2f2f75b2"
 
 [[projects]]
   branch = "master"
@@ -509,7 +510,7 @@
     "storage/v1",
     "transport/http"
   ]
-  revision = "7ca32eb868bf53ea2fc406698eb98583a8073d19"
+  revision = "1644ed9defba3c60a9bc80d0ce82c9595f786f76"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -537,7 +538,7 @@
     "googleapis/rpc/code",
     "googleapis/rpc/status"
   ]
-  revision = "11092d34479b07829b72e10713b159248caf5dad"
+  revision = "4b56f30a1fd96a133a036b62cdd2a249883dd89b"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -569,8 +570,8 @@
     "status",
     "tap"
   ]
-  revision = "32fb0ac620c32ba40a4626ddf94d90d12cce3455"
-  version = "v1.14.0"
+  revision = "8dea3dc473e90c8179e519d91302d0597c0ca1d1"
+  version = "v1.15.0"
 
 [[projects]]
   name = "gopkg.in/fsnotify.v1"
