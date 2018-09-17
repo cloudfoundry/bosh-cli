@@ -392,7 +392,7 @@ type FakeDeployment struct {
 	deleteReturnsOnCall map[int]struct {
 		result1 error
 	}
-	AttachDiskStub        func(slug director.InstanceSlug, diskCID string, DiskProperties string) error
+	AttachDiskStub        func(slug director.InstanceSlug, diskCID string, diskProperties string) error
 	attachDiskMutex       sync.RWMutex
 	attachDiskArgsForCall []struct {
 		slug           director.InstanceSlug
