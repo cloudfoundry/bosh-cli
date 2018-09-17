@@ -17,7 +17,7 @@ func NewInspectStemcellTarballCmd(
 ) InspectStemcellTarballCmd {
 	return InspectStemcellTarballCmd{
 		stemcellArchiveFactory: stemcellArchiveFactory,
-		ui: ui,
+		ui:                     ui,
 	}
 }
 
