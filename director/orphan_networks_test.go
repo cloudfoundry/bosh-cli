@@ -29,19 +29,19 @@ var _ = Describe("Director", func() {
 		It("returns orphaned networks", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/networks"),
+					ghttp.VerifyRequest("GET", "/networks", "orphaned=true"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `[
 	{
 		"name": "nw-1",
 		"type": "manual",
-		"created_at": "2015-01-09 06:23:25 +0000", 
+		"created_at": "2015-01-09 06:23:25 +0000",
 		"orphaned_at": "2016-01-09 06:23:25 +0000"
 	},
 	{
 		"name": "nw-2",
 		"type": "manual",
-		"created_at": "2010-01-09 06:23:25 +0000", 
+		"created_at": "2010-01-09 06:23:25 +0000",
 		"orphaned_at": "2011-08-25 00:17:16 UTC"
 	}
 ]`),

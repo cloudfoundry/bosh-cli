@@ -84,7 +84,7 @@ func (d DirectorImpl) OrphanNetworks() ([]OrphanNetwork, error) {
 func (c Client) OrphanNetworks() ([]OrphanNetworkResp, error) {
 	var networks []OrphanNetworkResp
 
-	err := c.clientRequest.Get("/networks", &networks)
+	err := c.clientRequest.Get("/networks?orphaned=true", &networks)
 	if err != nil {
 		return networks, bosherr.WrapErrorf(err, "Finding orphaned networks")
 	}
