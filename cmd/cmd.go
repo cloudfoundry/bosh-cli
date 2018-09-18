@@ -79,7 +79,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		}
 
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
-		return NewDeleteCmd(deps.UI, envProvider).Run(stage, *opts)
+		return NewDeleteEnvCmd(deps.UI, envProvider).Run(stage, *opts)
 
 	case *AliasEnvOpts:
 		sessionFactory := func(config cmdconf.Config) Session {

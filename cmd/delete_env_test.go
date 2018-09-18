@@ -16,7 +16,7 @@ import (
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
-var _ = Describe("DeleteCmd", func() {
+var _ = Describe("DeleteEnvCmd", func() {
 	var mockCtrl *gomock.Controller
 
 	BeforeEach(func() {
@@ -39,7 +39,7 @@ var _ = Describe("DeleteCmd", func() {
 			skipDrain              bool
 		)
 
-		var newDeleteCmd = func() *bicmd.DeleteCmd {
+		var newDeleteEnvCmd = func() *bicmd.DeleteEnvCmd {
 			doGetFunc := func(manifestPath string, statePath_ string, vars boshtpl.Variables, op patch.Op) bicmd.DeploymentDeleter {
 				Expect(manifestPath).To(Equal(deploymentManifestPath))
 				Expect(vars).To(Equal(boshtpl.NewMultiVars([]boshtpl.Variables{boshtpl.StaticVariables{"key": "value"}})))
@@ -48,7 +48,7 @@ var _ = Describe("DeleteCmd", func() {
 				return mockDeploymentDeleter
 			}
 
-			return bicmd.NewDeleteCmd(fakeUI, doGetFunc)
+			return bicmd.NewDeleteEnvCmd(fakeUI, doGetFunc)
 		}
 
 		var writeDeploymentManifest = func() {
@@ -68,7 +68,7 @@ var _ = Describe("DeleteCmd", func() {
 			It("gets passed to DeleteDeployment", func() {
 				skipDrain = true
 				mockDeploymentDeleter.EXPECT().DeleteDeployment(skipDrain, fakeStage).Return(nil)
-				newDeleteCmd().Run(fakeStage, bicmd.DeleteEnvOpts{
+				newDeleteEnvCmd().Run(fakeStage, bicmd.DeleteEnvOpts{
 					Args: bicmd.DeleteEnvArgs{
 						Manifest: bicmd.FileBytesWithPathArg{Path: deploymentManifestPath},
 					},
@@ -88,7 +88,7 @@ var _ = Describe("DeleteCmd", func() {
 		Context("state path is NOT specified", func() {
 			It("sends the manifest on to the deleter", func() {
 				mockDeploymentDeleter.EXPECT().DeleteDeployment(skipDrain, fakeStage).Return(nil)
-				newDeleteCmd().Run(fakeStage, bicmd.DeleteEnvOpts{
+				newDeleteEnvCmd().Run(fakeStage, bicmd.DeleteEnvOpts{
 					Args: bicmd.DeleteEnvArgs{
 						Manifest: bicmd.FileBytesWithPathArg{Path: deploymentManifestPath},
 					},
@@ -110,7 +110,7 @@ var _ = Describe("DeleteCmd", func() {
 		Context("state path is specified", func() {
 			It("sends the manifest on to the deleter", func() {
 				mockDeploymentDeleter.EXPECT().DeleteDeployment(skipDrain, fakeStage).Return(nil)
-				newDeleteCmd().Run(fakeStage, bicmd.DeleteEnvOpts{
+				newDeleteEnvCmd().Run(fakeStage, bicmd.DeleteEnvOpts{
 					StatePath: "/new/state/file/path/state.json",
 					SkipDrain: skipDrain,
 					Args: bicmd.DeleteEnvArgs{
@@ -134,7 +134,7 @@ var _ = Describe("DeleteCmd", func() {
 			It("sends the manifest on to the deleter", func() {
 				err := bosherr.Error("boom")
 				mockDeploymentDeleter.EXPECT().DeleteDeployment(skipDrain, fakeStage).Return(err)
-				returnedErr := newDeleteCmd().Run(fakeStage, bicmd.DeleteEnvOpts{
+				returnedErr := newDeleteEnvCmd().Run(fakeStage, bicmd.DeleteEnvOpts{
 					Args: bicmd.DeleteEnvArgs{
 						Manifest: bicmd.FileBytesWithPathArg{Path: deploymentManifestPath},
 					},

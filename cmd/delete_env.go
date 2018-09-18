@@ -7,16 +7,16 @@ import (
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
-type DeleteCmd struct {
+type DeleteEnvCmd struct {
 	ui          boshui.UI
 	envProvider func(string, string, boshtpl.Variables, patch.Op) DeploymentDeleter
 }
 
-func NewDeleteCmd(ui boshui.UI, envProvider func(string, string, boshtpl.Variables, patch.Op) DeploymentDeleter) *DeleteCmd {
-	return &DeleteCmd{ui: ui, envProvider: envProvider}
+func NewDeleteEnvCmd(ui boshui.UI, envProvider func(string, string, boshtpl.Variables, patch.Op) DeploymentDeleter) *DeleteEnvCmd {
+	return &DeleteEnvCmd{ui: ui, envProvider: envProvider}
 }
 
-func (c *DeleteCmd) Run(stage boshui.Stage, opts DeleteEnvOpts) error {
+func (c *DeleteEnvCmd) Run(stage boshui.Stage, opts DeleteEnvOpts) error {
 	c.ui.BeginLinef("Deployment manifest: '%s'\n", opts.Args.Manifest.Path)
 
 	depDeleter := c.envProvider(
