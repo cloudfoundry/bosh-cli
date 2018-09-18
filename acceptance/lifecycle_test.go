@@ -25,13 +25,13 @@ const (
 
 var _ = Describe("bosh", func() {
 	var (
-		logger       boshlog.Logger
-		fileSystem   boshsys.FileSystem
-		sshCmdRunner CmdRunner
-		cmdEnv       map[string]string
-		quietCmdEnv  map[string]string
-		testEnv      Environment
-		config       *Config
+		logger      boshlog.Logger
+		fileSystem  boshsys.FileSystem
+		cmdRunner   CmdRunner
+		cmdEnv      map[string]string
+		quietCmdEnv map[string]string
+		testEnv     Environment
+		config      *Config
 
 		instanceSSH      InstanceSSH
 		instanceUsername = "vcap"
@@ -40,14 +40,14 @@ var _ = Describe("bosh", func() {
 	)
 
 	var readLogFile = func(logPath string) (stdout string) {
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, "cat", logPath)
+		stdout, _, exitCode, err := cmdRunner.RunCommand(cmdEnv, "cat", logPath)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		return stdout
 	}
 
 	var deleteLogFile = func(logPath string) {
-		_, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, "rm", "-f", logPath)
+		_, _, exitCode, err := cmdRunner.RunCommand(cmdEnv, "rm", "-f", logPath)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 	}
@@ -138,7 +138,7 @@ var _ = Describe("bosh", func() {
 
 		args = append([]string{testEnv.Path("bosh"), "create-env", "--tty", testEnv.Path(manifestFile)}, args...)
 
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, args...)
+		_, _, exitCode, err := cmdRunner.RunStreamingCommand(multiWriter, cmdEnv, args...)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 
@@ -151,7 +151,7 @@ var _ = Describe("bosh", func() {
 		stdout := &bytes.Buffer{}
 		multiWriter := io.MultiWriter(stdout, GinkgoWriter)
 
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh"), "create-env", "--tty", testEnv.Path("test-manifest.yml"))
+		_, _, exitCode, err := cmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh"), "create-env", "--tty", testEnv.Path("test-manifest.yml"))
 		Expect(err).To(HaveOccurred())
 		Expect(exitCode).To(Equal(1))
 
@@ -164,7 +164,7 @@ var _ = Describe("bosh", func() {
 		stdout := &bytes.Buffer{}
 		multiWriter := io.MultiWriter(stdout, GinkgoWriter)
 
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh"),
+		_, _, exitCode, err := cmdRunner.RunStreamingCommand(multiWriter, cmdEnv, testEnv.Path("bosh"),
 			"delete-env", "--tty", testEnv.Path("test-manifest.yml"))
 
 		Expect(err).ToNot(HaveOccurred())
@@ -231,7 +231,7 @@ var _ = Describe("bosh", func() {
 			logger,
 		)
 
-		sshCmdRunner = NewCmdRunner(
+		cmdRunner = NewCmdRunner(
 			logger,
 		)
 
@@ -286,7 +286,7 @@ var _ = Describe("bosh", func() {
 			flushLog(cmdEnv["BOSH_LOG_PATH"])
 
 			// quietly delete the deployment
-			_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh"), "delete-env", "--tty", testEnv.Path("test-compiled-manifest.yml"))
+			_, _, exitCode, err := cmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh"), "delete-env", "--tty", testEnv.Path("test-compiled-manifest.yml"))
 			if exitCode != 0 || err != nil {
 				// only flush the delete log if the delete failed
 				flushLog(quietCmdEnv["BOSH_LOG_PATH"])
@@ -381,7 +381,7 @@ var _ = Describe("bosh", func() {
 			flushLog(cmdEnv["BOSH_LOG_PATH"])
 
 			// quietly delete the deployment
-			_, _, exitCode, err := sshCmdRunner.RunCommand(
+			_, _, exitCode, err := cmdRunner.RunCommand(
 				quietCmdEnv,
 				append(
 					[]string{
@@ -418,7 +418,7 @@ var _ = Describe("bosh", func() {
 				stdoutBuffer := &bytes.Buffer{}
 				multiWriter := io.MultiWriter(stdoutBuffer, GinkgoWriter)
 
-				_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(
+				_, _, exitCode, err := cmdRunner.RunStreamingCommand(
 					multiWriter,
 					cmdEnv,
 					append(
@@ -446,7 +446,7 @@ var _ = Describe("bosh", func() {
 			flushLog(cmdEnv["BOSH_LOG_PATH"])
 
 			// quietly delete the deployment
-			_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh"), "delete-env", "--tty", testEnv.Path("test-manifest.yml"))
+			_, _, exitCode, err := cmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh"), "delete-env", "--tty", testEnv.Path("test-manifest.yml"))
 			if exitCode != 0 || err != nil {
 				// only flush the delete log if the delete failed
 				flushLog(quietCmdEnv["BOSH_LOG_PATH"])
@@ -611,7 +611,7 @@ var _ = Describe("bosh", func() {
 			flushLog(cmdEnv["BOSH_LOG_PATH"])
 
 			// quietly delete the deployment
-			_, _, exitCode, err := sshCmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh"), "delete-env", "--tty", testEnv.Path("test-manifest.yml"))
+			_, _, exitCode, err := cmdRunner.RunCommand(quietCmdEnv, testEnv.Path("bosh"), "delete-env", "--tty", testEnv.Path("test-manifest.yml"))
 			if exitCode != 0 || err != nil {
 				// only flush the delete log if the delete failed
 				flushLog(quietCmdEnv["BOSH_LOG_PATH"])
