@@ -81,11 +81,7 @@ func (fake *FakeReader) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.readMutex.RLock()
 	defer fake.readMutex.RUnlock()
-	copiedInvocations := map[string][][]interface{}{}
-	for key, value := range fake.invocations {
-		copiedInvocations[key] = value
-	}
-	return copiedInvocations
+	return fake.invocations
 }
 
 func (fake *FakeReader) recordInvocation(key string, args []interface{}) {

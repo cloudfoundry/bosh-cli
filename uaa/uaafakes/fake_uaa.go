@@ -259,11 +259,7 @@ func (fake *FakeUAA) Invocations() map[string][][]interface{} {
 	defer fake.clientCredentialsGrantMutex.RUnlock()
 	fake.ownerPasswordCredentialsGrantMutex.RLock()
 	defer fake.ownerPasswordCredentialsGrantMutex.RUnlock()
-	copiedInvocations := map[string][][]interface{}{}
-	for key, value := range fake.invocations {
-		copiedInvocations[key] = value
-	}
-	return copiedInvocations
+	return fake.invocations
 }
 
 func (fake *FakeUAA) recordInvocation(key string, args []interface{}) {

@@ -93,11 +93,7 @@ func (fake *FakeFingerprinter) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.calculateMutex.RLock()
 	defer fake.calculateMutex.RUnlock()
-	copiedInvocations := map[string][][]interface{}{}
-	for key, value := range fake.invocations {
-		copiedInvocations[key] = value
-	}
-	return copiedInvocations
+	return fake.invocations
 }
 
 func (fake *FakeFingerprinter) recordInvocation(key string, args []interface{}) {
