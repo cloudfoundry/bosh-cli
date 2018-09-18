@@ -89,6 +89,8 @@ var _ = Describe("DeploymentDeleter", func() {
 			expectCPIInstall *gomock.Call
 			expectNewCloud   *gomock.Call
 
+			skipDrain bool
+
 			mbusURL = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
 		)
 
@@ -253,12 +255,12 @@ cloud_provider:
 			)
 		}
 
-		var expectDeleteAndCleanup = func(defaultUninstallerUsed bool) {
+		var expectDeleteAndCleanup = func(skipDrain, defaultUninstallerUsed bool) {
 			mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, mockBlobstore).Return(mockDeploymentManager)
 			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
 
 			gomock.InOrder(
-				mockDeployment.EXPECT().Delete(gomock.Any()).Do(func(stage biui.Stage) {
+				mockDeployment.EXPECT().Delete(skipDrain, gomock.Any()).Do(func(_ bool, stage biui.Stage) {
 					Expect(fakeStage.SubStages).To(ContainElement(stage))
 				}),
 				mockDeploymentManager.EXPECT().Cleanup(fakeStage),
@@ -350,6 +352,7 @@ cloud_provider:
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
 			directorID = "fake-uuid-0"
+			skipDrain = false
 
 			mockAgentClientFactory.EXPECT().NewAgentClient(
 				directorID,
@@ -377,7 +380,7 @@ cloud_provider:
 				})
 
 				It("does not delete anything", func() {
-					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeUI.Said).To(Equal([]string{
@@ -398,73 +401,80 @@ cloud_provider:
 				Context("when change temp root fails", func() {
 					It("returns an error", func() {
 						fs.ChangeTempRootErr = errors.New("fake ChangeTempRootErr")
-						err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+						err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(Equal("Setting temp root: fake ChangeTempRootErr"))
 					})
 				})
 
 				It("sets the temp root", func() {
-					expectDeleteAndCleanup(true)
-					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					expectDeleteAndCleanup(skipDrain, true)
+					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(fs.TempRootPath).To(Equal(filepath.Join("fake-install-dir", "fake-installation-id", "tmp")))
 				})
 
 				It("extracts & install CPI release tarball", func() {
-					expectDeleteAndCleanup(true)
+					expectDeleteAndCleanup(skipDrain, true)
 
 					gomock.InOrder(
 						expectCPIInstall.Times(1),
 						expectNewCloud.Times(1),
 					)
 
-					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
 				It("deletes the extracted CPI release", func() {
-					expectDeleteAndCleanup(true)
+					expectDeleteAndCleanup(skipDrain, true)
 
-					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(fs.FileExists("fake-cpi-extracted-dir")).To(BeFalse())
 				})
 
 				It("deletes the deployment & cleans up orphans", func() {
-					expectDeleteAndCleanup(true)
+					expectDeleteAndCleanup(skipDrain, true)
 
-					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(fakeUI.Errors).To(BeEmpty())
 				})
 
 				It("deletes the local CPI installation", func() {
-					expectDeleteAndCleanup(false)
+					expectDeleteAndCleanup(skipDrain, false)
 					mockCpiUninstaller.EXPECT().Uninstall(gomock.Any()).Return(nil)
 
-					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 				})
 
 				It("logs validating & deleting stages", func() {
-					expectDeleteAndCleanup(true)
+					expectDeleteAndCleanup(skipDrain, true)
 
-					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 
 					expectValidationInstallationDeletionEvents()
 				})
 
 				It("deletes the local deployment state file", func() {
-					expectDeleteAndCleanup(true)
+					expectDeleteAndCleanup(skipDrain, true)
 
-					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fs.FileExists(deploymentStatePath)).To(BeFalse())
 				})
 
+				It("skips draining if specified", func() {
+					skipDrain = true
+					expectDeleteAndCleanup(skipDrain, true)
+
+					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+				})
 			})
 
 			Context("when nothing has been deployed", func() {
@@ -475,7 +485,7 @@ cloud_provider:
 				It("cleans up orphans, but does not delete any deployment", func() {
 					expectCleanup()
 
-					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(fakeUI.Errors).To(BeEmpty())
 				})
@@ -517,9 +527,9 @@ cloud_provider:
 
 					deleteError := bosherr.Error("delete error")
 
-					mockDeployment.EXPECT().Delete(gomock.Any()).Return(deleteError)
+					mockDeployment.EXPECT().Delete(skipDrain, gomock.Any()).Return(deleteError)
 
-					err := newDeploymentDeleter().DeleteDeployment(fakeStage)
+					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 
 					Expect(err).To(HaveOccurred())
 				})

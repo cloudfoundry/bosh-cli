@@ -30,6 +30,7 @@ type Manager interface {
 	DeleteAll(
 		pingTimeout time.Duration,
 		pingDelay time.Duration,
+		skipDrain bool,
 		eventLoggerStage biui.Stage,
 	) error
 }
@@ -136,6 +137,7 @@ func (m *manager) Create(
 func (m *manager) DeleteAll(
 	pingTimeout time.Duration,
 	pingDelay time.Duration,
+	skipDrain bool,
 	eventLoggerStage biui.Stage,
 ) error {
 	instances, err := m.FindCurrent()
@@ -144,7 +146,7 @@ func (m *manager) DeleteAll(
 	}
 
 	for _, instance := range instances {
-		if err = instance.Delete(pingTimeout, pingDelay, eventLoggerStage); err != nil {
+		if err = instance.Delete(pingTimeout, pingDelay, skipDrain, eventLoggerStage); err != nil {
 			return bosherr.WrapErrorf(err, "Deleting existing instance '%s/%d'", instance.JobName(), instance.ID())
 		}
 	}

@@ -22,5 +22,5 @@ func (c *DeleteCmd) Run(stage boshui.Stage, opts DeleteEnvOpts) error {
 	depDeleter := c.envProvider(
 		opts.Args.Manifest.Path, opts.StatePath, opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp())
 
-	return depDeleter.DeleteDeployment(stage)
+	return depDeleter.DeleteDeployment(opts.SkipDrain, stage)
 }

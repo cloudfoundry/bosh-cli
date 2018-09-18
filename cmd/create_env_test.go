@@ -135,6 +135,8 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			defaultCreateEnvOpts bicmd.CreateEnvOpts
 
+			expectedSkipDrain bool
+
 			expectLegacyMigrate        *gomock.Call
 			expectStemcellUpload       *gomock.Call
 			expectStemcellDeleteUnused *gomock.Call
@@ -143,6 +145,7 @@ var _ = Describe("CreateEnvCmd", func() {
 		)
 
 		BeforeEach(func() {
+			expectedSkipDrain = false
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			stdOut = gbytes.NewBuffer()
 			stdErr = gbytes.NewBuffer()
@@ -424,8 +427,9 @@ var _ = Describe("CreateEnvCmd", func() {
 				installationManifest.Registry,
 				fakeVMManager,
 				mockBlobstore,
+				expectedSkipDrain,
 				gomock.Any(),
-			).Do(func(_, _, _, _, _, _ interface{}, stage biui.Stage) {
+			).Do(func(_, _, _, _, _, _, _ interface{}, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(mockDeployment, nil).AnyTimes()
 
@@ -660,6 +664,21 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
+		})
+
+		Context("when SkipDrain is specified", func() {
+			BeforeEach(func() {
+				expectedSkipDrain = true
+			})
+
+			It("passes it through", func() {
+				expectDeploy.Times(1)
+
+				defaultCreateEnvOpts.SkipDrain = true
+
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+			})
 		})
 
 		Context("when deployment has not changed", func() {
@@ -1053,6 +1072,7 @@ var _ = Describe("CreateEnvCmd", func() {
 					installationManifest.Registry,
 					fakeVMManager,
 					mockBlobstore,
+					expectedSkipDrain,
 					gomock.Any(),
 				).Return(nil, errors.New("fake-deploy-error")).AnyTimes()
 

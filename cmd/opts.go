@@ -180,6 +180,7 @@ type CreateEnvOpts struct {
 	Args CreateEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
+	SkipDrain               bool   `long:"skip-drain" description:"Skip running drain scripts"`
 	StatePath               string `long:"state" value-name:"PATH" description:"State file path"`
 	Recreate                bool   `long:"recreate" description:"Recreate VM in deployment"`
 	RecreatePersistentDisks bool   `long:"recreate-persistent-disks" description:"Recreate persistent disks in the deployment"`
@@ -194,6 +195,7 @@ type DeleteEnvOpts struct {
 	Args DeleteEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
+	SkipDrain bool   `long:"skip-drain" description:"Skip running drain scripts"`
 	StatePath string `long:"state" value-name:"PATH" description:"State file path"`
 	cmd
 }

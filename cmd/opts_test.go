@@ -831,6 +831,12 @@ var _ = Describe("Opts", func() {
 				`long:"recreate-persistent-disks" description:"Recreate persistent disks in the deployment"`,
 			))
 		})
+
+		It("has --skip-drain", func() {
+			Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
+				`long:"skip-drain" description:"Skip running drain scripts"`,
+			))
+		})
 	})
 
 	Describe("CreateEnvArgs", func() {
@@ -865,6 +871,12 @@ var _ = Describe("Opts", func() {
 		It("has --state", func() {
 			Expect(getStructTagForName("StatePath", opts)).To(Equal(
 				`long:"state" value-name:"PATH" description:"State file path"`,
+			))
+		})
+
+		It("has --skip-drain", func() {
+			Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
+				`long:"skip-drain" description:"Skip running drain scripts"`,
 			))
 		})
 	})
