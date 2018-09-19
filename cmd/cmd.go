@@ -217,6 +217,12 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *OrphanDiskOpts:
 		return NewOrphanDiskCmd(deps.UI, c.director()).Run(*opts)
 
+	case *NetworksOpts:
+		return NewNetworksCmd(deps.UI, c.director()).Run(*opts)
+
+	case *DeleteNetworkOpts:
+		return NewDeleteNetworkCmd(deps.UI, c.director()).Run(*opts)
+
 	case *SnapshotsOpts:
 		return NewSnapshotsCmd(deps.UI, c.deployment()).Run(*opts)
 

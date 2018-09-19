@@ -71,6 +71,9 @@ type Director interface {
 	OrphanDisks() ([]OrphanDisk, error)
 	OrphanDisk(string) error
 
+	FindOrphanNetwork(string) (OrphanNetwork, error)
+	OrphanNetworks() ([]OrphanNetwork, error)
+
 	EnableResurrection(bool) error
 	CleanUp(bool) error
 	DownloadResourceUnchecked(blobstoreID string, out io.Writer) error
@@ -295,6 +298,16 @@ type OrphanDisk interface {
 
 	OrphanedAt() time.Time
 
+	Delete() error
+}
+
+//go:generate counterfeiter . OrphanNetwork
+
+type OrphanNetwork interface {
+	Name() string
+	Type() string
+	OrphanedAt() time.Time
+	CreatedAt() time.Time
 	Delete() error
 }
 
