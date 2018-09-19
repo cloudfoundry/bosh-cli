@@ -1,6 +1,7 @@
 package director_test
 
 import (
+	"bytes"
 	"errors"
 	"net/http"
 	gourl "net/url"
@@ -45,12 +46,6 @@ func (frb *FakeResponseBody) Close() error {
 	return nil
 }
 
-type FakeIOReader struct{}
-
-func (reader FakeIOReader) Read(p []byte) (n int, err error) {
-	return 0, nil
-}
-
 var _ = Describe("AdjustableClient", func() {
 	var (
 		innerClient     *fakedir.FakeAdjustedClient
@@ -86,7 +81,7 @@ var _ = Describe("AdjustableClient", func() {
 			var nopCloser io.ReadCloser
 
 			BeforeEach(func() {
-				reader := FakeIOReader{}
+				reader := bytes.NewBuffer([]byte("fake-body"))
 				nopCloser = ioutil.NopCloser(reader)
 				req.Body = nopCloser
 			})
@@ -121,7 +116,9 @@ var _ = Describe("AdjustableClient", func() {
 					}
 
 					innerClient.DoStub = func(reqToExec *http.Request) (*http.Response, error) {
-						Expect(reqToExec.Body).To(BeIdenticalTo(nopCloser))
+						b, err := ioutil.ReadAll(reqToExec.Body)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(b).To(Equal([]byte("fake-body")))
 
 						newReader := strings.NewReader("changed_request_body")
 						newNopCloser := ioutil.NopCloser(newReader)
@@ -130,10 +127,13 @@ var _ = Describe("AdjustableClient", func() {
 
 						return &http.Response{Body: respBodyFactory.NewResponseBody()}, nil
 					}
+
 					resp, err := client.Do(req)
 					if err == nil {
 						resp.Body.Close()
 					}
+
+					Expect(innerClient.DoCallCount()).To(Equal(2))
 				})
 			})
 		})

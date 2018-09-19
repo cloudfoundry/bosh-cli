@@ -2,6 +2,10 @@ package director
 
 import (
 	"net/http"
+
+	"github.com/cloudfoundry/bosh-utils/httpclient"
+
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 //go:generate counterfeiter . Adjustment
@@ -34,7 +38,14 @@ func (c AdjustableClient) Do(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 
-	requestBodyBeforeAdjustment := req.Body
+	originalBody, err := httpclient.MakeReplayable(req)
+	if originalBody != nil {
+		defer originalBody.Close()
+	}
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Making the request retryable")
+	}
+
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return resp, err
@@ -42,13 +53,20 @@ func (c AdjustableClient) Do(req *http.Request) (*http.Response, error) {
 
 	if c.adjustment.NeedsReadjustment(resp) {
 		resp.Body.Close()
+
+		if req.GetBody != nil {
+			req.Body, err = req.GetBody()
+			if err != nil {
+				return nil, bosherr.WrapError(err, "Updating request body for retry")
+			}
+		}
+
 		err := c.adjustment.Adjust(req, true)
 		if err != nil {
 			return nil, err
 		}
 
 		// Try one more time again after an adjustment
-		req.Body = requestBodyBeforeAdjustment
 		return c.client.Do(req)
 	}
 

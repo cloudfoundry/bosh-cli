@@ -157,7 +157,7 @@
     "uuid/fakes",
     "work"
   ]
-  revision = "407dd7546455f1a0a50feba2dcaef0ae88da1810"
+  revision = "15c556314b68953d0449541ded010b033767c805"
 
 [[projects]]
   name = "github.com/cloudfoundry/config-server"
