@@ -58,7 +58,7 @@ func formProxyOpt(existenceChecker cmdExistenceChecker, proxyHostString string) 
 	if existenceChecker.CommandExists("connect-proxy") {
 		return fmtAsProxyCommandOpt("connect-proxy -S %s %%h %%p", proxyHostString)
 	}
-	// TODO: detect nc -h contains \-x.*proxy address or similar?
+
 	return fmtAsProxyCommandOpt("nc -x %s %%h %%p", proxyHostString)
 }
 
