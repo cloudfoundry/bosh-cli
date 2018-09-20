@@ -8,7 +8,6 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
-	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
 	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
@@ -18,35 +17,27 @@ import (
 
 var _ = Describe("DeploymentCmd", func() {
 	var (
-		sessions map[cmdconf.Config]*fakecmd.FakeSession
-		config   *fakecmdconf.FakeConfig
-		ui       *fakeui.FakeUI
-		director *fakedir.FakeDirector
-		command  DeploymentCmd
+		session *fakecmd.FakeSession
+		config  *fakecmdconf.FakeConfig
+		ui      *fakeui.FakeUI
+		command DeploymentCmd
 	)
 
 	BeforeEach(func() {
-		sessions = map[cmdconf.Config]*fakecmd.FakeSession{}
-		sessionFactory := func(config cmdconf.Config) Session {
-			return sessions[config]
-		}
+		session = &fakecmd.FakeSession{}
 		config = &fakecmdconf.FakeConfig{}
 		ui = &fakeui.FakeUI{}
-		director = &fakedir.FakeDirector{}
-		command = NewDeploymentCmd(sessionFactory, config, ui, director)
+		command = NewDeploymentCmd(session, config, ui)
 	})
 
 	Describe("Run", func() {
 		var (
-			initialSession *fakecmd.FakeSession
-			deployment     *fakedir.FakeDeployment
+			deployment *fakedir.FakeDeployment
+			director   *fakedir.FakeDirector
 		)
 
 		BeforeEach(func() {
-			initialSession = &fakecmd.FakeSession{}
-			sessions[config] = initialSession
-
-			initialSession.EnvironmentReturns("environment-url")
+			session.EnvironmentReturns("environment-url")
 		})
 
 		act := func() error { return command.Run() }
@@ -56,7 +47,9 @@ var _ = Describe("DeploymentCmd", func() {
 				deployment = &fakedir.FakeDeployment{
 					NameStub: func() string { return "deployment-name" },
 				}
-				initialSession.DeploymentReturns(deployment, nil)
+				director = &fakedir.FakeDirector{}
+				session.DeploymentReturns(deployment, nil)
+				session.DirectorReturns(director, nil)
 				director.ListDeploymentConfigsReturns(
 					boshdir.DeploymentConfigs{
 						Configs: []boshdir.DeploymentConfig{
@@ -100,7 +93,7 @@ var _ = Describe("DeploymentCmd", func() {
 		})
 
 		It("returns an error when director does not find deployment", func() {
-			initialSession.DeploymentReturns(nil, errors.New("fake-err"))
+			session.DeploymentReturns(nil, errors.New("fake-err"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())

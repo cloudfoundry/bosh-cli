@@ -123,11 +123,8 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewCancelTaskCmd(c.director()).Run(*opts)
 
 	case *DeploymentOpts:
-		sessionFactory := func(config cmdconf.Config) Session {
-			return NewSessionFromOpts(c.BoshOpts, config, deps.UI, true, false, deps.FS, deps.Logger)
-		}
-
-		return NewDeploymentCmd(sessionFactory, c.config(), deps.UI, c.director()).Run()
+		sess := NewSessionFromOpts(c.BoshOpts, c.config(), deps.UI, true, false, deps.FS, deps.Logger)
+		return NewDeploymentCmd(sess, c.config(), deps.UI).Run()
 
 	case *DeploymentsOpts:
 		return NewDeploymentsCmd(deps.UI, c.director()).Run()
