@@ -112,8 +112,7 @@ func NewClient(ctx context.Context, opts ...option.ClientOption) (*Client, error
 //
 // Close need not be called at program exit.
 func (c *Client) Close() error {
-	// Set fields to nil so that subsequent uses
-	// will panic.
+	// Set fields to nil so that subsequent uses will panic.
 	c.hc = nil
 	c.raw = nil
 	return nil
@@ -485,6 +484,16 @@ func (o *ObjectHandle) Update(ctx context.Context, uattrs ObjectAttrsToUpdate) (
 	return newObject(obj), nil
 }
 
+// BucketName returns the name of the bucket.
+func (o *ObjectHandle) BucketName() string {
+	return o.bucket
+}
+
+// ObjectName returns the name of the object.
+func (o *ObjectHandle) ObjectName() string {
+	return o.object
+}
+
 // ObjectAttrsToUpdate is used to update the attributes of an object.
 // Only fields set to non-nil values will be updated.
 // Set a field to its zero value to delete it.
@@ -556,7 +565,8 @@ func (o *ObjectHandle) ReadCompressed(compressed bool) *ObjectHandle {
 // attribute is specified, the content type will be automatically sniffed
 // using net/http.DetectContentType.
 //
-// It is the caller's responsibility to call Close when writing is done.
+// It is the caller's responsibility to call Close when writing is done. To
+// stop writing without saving the data, cancel the context.
 func (o *ObjectHandle) NewWriter(ctx context.Context) *Writer {
 	return &Writer{
 		ctx:         ctx,
