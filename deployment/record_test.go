@@ -361,4 +361,24 @@ var _ = Describe("Record", func() {
 			})
 		})
 	})
+
+	Describe("UpdateCurrentIP", func() {
+		It("updates current IP", func() {
+			err := deploymentRecord.UpdateCurrentIP("fake-current-ip")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deploymentRepo.UpdateStateCurrentIP).To(Equal("fake-current-ip"))
+		})
+
+		Context("when updating current IP fails", func() {
+			BeforeEach(func() {
+				deploymentRepo.UpdateCurrentIPErr = errors.New("fake-update-error")
+			})
+
+			It("returns an error", func() {
+				err := deploymentRecord.UpdateCurrentIP("fake-current-ip")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-update-error"))
+			})
+		})
+	})
 })

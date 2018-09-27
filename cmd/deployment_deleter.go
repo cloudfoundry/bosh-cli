@@ -100,6 +100,14 @@ func (c *deploymentDeleter) DeleteDeployment(skipDrain bool, stage biui.Stage) (
 		return bosherr.WrapError(err, "Loading deployment state")
 	}
 
+	if deploymentState.CurrentIP != "" {
+		deploymentState.CurrentIP = ""
+		err = c.deploymentStateService.Save(deploymentState)
+		if err != nil {
+			return bosherr.WrapError(err, "Removing currentIP")
+		}
+	}
+
 	target, err := c.targetProvider.NewTarget()
 	if err != nil {
 		return bosherr.WrapError(err, "Determining installation target")

@@ -2,10 +2,12 @@ package config
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"net"
 )
 
 type VMRepo interface {
 	FindCurrent() (cid string, found bool, err error)
+	FindCurrentIP() (ip string, found bool, err error)
 	UpdateCurrent(cid string) error
 	ClearCurrent() error
 }
@@ -62,4 +64,23 @@ func (r vMRepo) ClearCurrent() error {
 		return bosherr.WrapError(err, "Saving new config")
 	}
 	return nil
+}
+
+func (r vMRepo) FindCurrentIP() (string, bool, error) {
+	deploymentState, err := r.deploymentStateService.Load()
+	if err != nil {
+		return "", false, bosherr.WrapError(err, "Loading existing config")
+	}
+
+	currentIP := deploymentState.CurrentIP
+	if currentIP == "" {
+		return "", false, nil
+	}
+
+	parsedIP := net.ParseIP(currentIP)
+	if parsedIP == nil {
+		return "", false, bosherr.Errorf("%v is not a valid IP address", currentIP)
+	} else {
+		return parsedIP.String(), true, nil
+	}
 }

@@ -5,6 +5,9 @@ type FakeDeploymentRepo struct {
 	UpdateCurrentErr         error
 
 	findCurrentOutput deploymentRepoFindCurrentOutput
+
+	UpdateStateCurrentIP string
+	UpdateCurrentIPErr   error
 }
 
 type deploymentRepoFindCurrentOutput struct {
@@ -32,4 +35,9 @@ func (r *FakeDeploymentRepo) SetFindCurrentBehavior(manifestSHA string, found bo
 		found:       found,
 		err:         err,
 	}
+}
+
+func (r *FakeDeploymentRepo) UpdateCurrentIP(ip string) error {
+	r.UpdateStateCurrentIP = ip
+	return r.UpdateCurrentIPErr
 }
