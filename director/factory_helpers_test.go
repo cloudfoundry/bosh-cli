@@ -3,11 +3,14 @@ package director_test
 import (
 	"crypto/tls"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	. "github.com/cloudfoundry/bosh-cli/director"
 	. "github.com/onsi/gomega"
+
 	"github.com/onsi/gomega/ghttp"
 
-	. "github.com/cloudfoundry/bosh-cli/director"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
+	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
 )
 
 func BuildServer() (Director, *ghttp.Server) {
@@ -22,18 +25,20 @@ func BuildServer() (Director, *ghttp.Server) {
 
 	server.HTTPTestServer.StartTLS()
 
-	config, err := NewConfigFromURL(server.URL())
+	factoryConfig, err := NewConfigFromURL(server.URL())
 	Expect(err).ToNot(HaveOccurred())
 
-	config.Client = "username"
-	config.ClientSecret = "password"
-	config.CACert = validCACert
+	factoryConfig.Client = "username"
+	factoryConfig.ClientSecret = "password"
+	factoryConfig.CACert = validCACert
+
+	config := &fakecmdconf.FakeConfig{}
 
 	logger := boshlog.NewLogger(boshlog.LevelNone)
 	taskReporter := NewNoopTaskReporter()
 	fileReporter := NewNoopFileReporter()
 
-	director, err := NewFactory(logger).New(config, taskReporter, fileReporter)
+	director, err := NewFactory(logger).New(factoryConfig, config, taskReporter, fileReporter)
 	Expect(err).ToNot(HaveOccurred())
 
 	return director, server

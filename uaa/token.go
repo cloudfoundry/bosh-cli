@@ -8,44 +8,30 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
-type TokenImpl struct {
-	type_ string
-	value string
-}
-
-func (t TokenImpl) Type() string  { return t.type_ }
-func (t TokenImpl) Value() string { return t.value }
-
 type AccessTokenImpl struct {
-	client Client
-
-	type_        string
-	accessValue  string
-	refreshValue string
+	type_       string
+	accessValue string
 }
+
+var _ AccessToken = &AccessTokenImpl{}
 
 func (t AccessTokenImpl) Type() string  { return t.type_ }
 func (t AccessTokenImpl) Value() string { return t.accessValue }
+func (t AccessTokenImpl) IsValid() bool { return t.type_ != "" && t.accessValue != "" }
 
-func (t AccessTokenImpl) RefreshToken() Token {
-	return TokenImpl{type_: t.type_, value: t.refreshValue}
+type RefreshableAccessTokenImpl struct {
+	accessToken  AccessToken
+	refreshValue string
 }
 
-func (t AccessTokenImpl) Refresh() (AccessToken, error) {
-	resp, err := t.client.RefreshTokenGrant(t.refreshValue)
-	if err != nil {
-		return nil, err
-	}
+var _ RefreshableAccessToken = &RefreshableAccessTokenImpl{}
 
-	token := AccessTokenImpl{
-		client: t.client,
+func (t RefreshableAccessTokenImpl) Type() string  { return t.accessToken.Type() }
+func (t RefreshableAccessTokenImpl) Value() string { return t.accessToken.Value() }
+func (t RefreshableAccessTokenImpl) IsValid() bool { return t.accessToken.IsValid() }
 
-		type_:        resp.Type,
-		accessValue:  resp.AccessToken,
-		refreshValue: resp.RefreshToken,
-	}
-
-	return token, nil
+func (t RefreshableAccessTokenImpl) RefreshValue() string {
+	return t.refreshValue
 }
 
 type TokenInfo struct {
@@ -74,4 +60,25 @@ func NewTokenInfoFromValue(value string) (TokenInfo, error) {
 	}
 
 	return info, nil
+}
+
+func NewAccessToken(accessValueType, accessValue string) AccessToken {
+	return AccessTokenImpl{
+		type_:       accessValueType,
+		accessValue: accessValue,
+	}
+}
+
+func NewRefreshableAccessToken(accessValueType, accessValue, refreshValue string) RefreshableAccessToken {
+	if len(refreshValue) == 0 {
+		panic("Expected non-empty refresh token value")
+	}
+
+	return &RefreshableAccessTokenImpl{
+		accessToken: AccessTokenImpl{
+			type_:       accessValueType,
+			accessValue: accessValue,
+		},
+		refreshValue: refreshValue,
+	}
 }

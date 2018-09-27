@@ -4,11 +4,13 @@ import (
 	"errors"
 	"os"
 
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	. "github.com/cloudfoundry/bosh-cli/cmd/config"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd/config"
+	"github.com/cloudfoundry/bosh-cli/uaa"
+
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("NewFSConfigFromPath", func() {
@@ -279,6 +281,44 @@ var _ = Describe("FSConfig", func() {
 		})
 	})
 
+	Describe("UpdateConfigWithToken", func() {
+		var envAlias string
+
+		BeforeEach(func() {
+			envAlias = "test-env"
+		})
+
+		It("updates based on a non-refreshable token and saves", func() {
+			err := config.UpdateConfigWithToken(envAlias, uaa.NewAccessToken("next-access-type", "next-access-token"))
+			Expect(err).ToNot(HaveOccurred())
+			reloadedConfig := readConfig()
+			Expect(reloadedConfig.Credentials(envAlias)).To(Equal(Creds{
+				AccessToken:     "next-access-token",
+				AccessTokenType: "next-access-type",
+				RefreshToken:    "",
+			}))
+		})
+
+		It("updates based on a refreshable token and saves", func() {
+			err := config.UpdateConfigWithToken(envAlias, uaa.NewRefreshableAccessToken("next-access-type", "next-access-token", "next-refresh-token"))
+			Expect(err).ToNot(HaveOccurred())
+			reloadedConfig := readConfig()
+			Expect(reloadedConfig.Credentials(envAlias)).To(Equal(Creds{
+				AccessToken:     "next-access-token",
+				AccessTokenType: "next-access-type",
+				RefreshToken:    "next-refresh-token",
+			}))
+		})
+
+		It("returns an error when save fails", func() {
+			fs.WriteFileError = errors.New("write error")
+
+			err := config.UpdateConfigWithToken(envAlias, uaa.NewRefreshableAccessToken("next-access-type", "next-access-token", "next-refresh-token"))
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("write error"))
+		})
+	})
+
 	Describe("SetCredentials/Credentials/UnsetCredentials", func() {
 		It("returns empty if environment is not found", func() {
 			Expect(config.Credentials("url")).To(Equal(Creds{}))
@@ -333,14 +373,14 @@ var _ = Describe("FSConfig", func() {
 			updatedConfig, err := config.AliasEnvironment("url", "alias", "")
 			Expect(err).ToNot(HaveOccurred())
 
-			updatedConfig = config.SetCredentials("url", Creds{RefreshToken: "token"})
-			Expect(updatedConfig.Credentials("url")).To(Equal(Creds{RefreshToken: "token"}))
+			updatedConfig = config.SetCredentials("url", Creds{AccessToken: "access", AccessTokenType: "access-type", RefreshToken: "token"})
+			Expect(updatedConfig.Credentials("url")).To(Equal(Creds{AccessToken: "access", AccessTokenType: "access-type", RefreshToken: "token"}))
 
 			err = updatedConfig.Save()
 			Expect(err).ToNot(HaveOccurred())
 
 			reloadedConfig := readConfig()
-			Expect(reloadedConfig.Credentials("url")).To(Equal(Creds{RefreshToken: "token"}))
+			Expect(reloadedConfig.Credentials("url")).To(Equal(Creds{AccessToken: "access", AccessTokenType: "access-type", RefreshToken: "token"}))
 
 			updatedConfig = reloadedConfig.UnsetCredentials("url")
 			Expect(updatedConfig.Credentials("url")).To(Equal(Creds{}))
@@ -356,14 +396,14 @@ var _ = Describe("FSConfig", func() {
 			updatedConfig, err := config.AliasEnvironment("url", "alias", "")
 			Expect(err).ToNot(HaveOccurred())
 
-			updatedConfig = config.SetCredentials("alias", Creds{RefreshToken: "token"})
-			Expect(updatedConfig.Credentials("alias")).To(Equal(Creds{RefreshToken: "token"}))
+			updatedConfig = config.SetCredentials("alias", Creds{AccessToken: "access", AccessTokenType: "access-type", RefreshToken: "token"})
+			Expect(updatedConfig.Credentials("alias")).To(Equal(Creds{AccessToken: "access", AccessTokenType: "access-type", RefreshToken: "token"}))
 
 			err = updatedConfig.Save()
 			Expect(err).ToNot(HaveOccurred())
 
 			reloadedConfig := readConfig()
-			Expect(reloadedConfig.Credentials("alias")).To(Equal(Creds{RefreshToken: "token"}))
+			Expect(reloadedConfig.Credentials("alias")).To(Equal(Creds{AccessToken: "access", AccessTokenType: "access-type", RefreshToken: "token"}))
 
 			updatedConfig = reloadedConfig.UnsetCredentials("alias")
 			Expect(updatedConfig.Credentials("alias")).To(Equal(Creds{}))

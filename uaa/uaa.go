@@ -20,27 +20,15 @@ type TokenResp struct {
 	RefreshToken string `json:"refresh_token"` // e.g. "eyJhbGciOiJSUzI1NiJ9.eyJq<snip>fQ.Mr<snip>RawG"
 }
 
-func (u UAAImpl) NewStaleAccessToken(refreshValue string) StaleAccessToken {
-	if len(refreshValue) == 0 {
-		panic("Expected non-empty refresh token value")
-	}
-
-	return &AccessTokenImpl{
-		client:       u.client,
-		type_:        "bearer",
-		refreshValue: refreshValue,
-	}
-}
-
-func (u UAAImpl) ClientCredentialsGrant() (Token, error) {
+func (u UAAImpl) ClientCredentialsGrant() (AccessToken, error) {
 	resp, err := u.client.ClientCredentialsGrant()
 	if err != nil {
 		return nil, err
 	}
 
-	token := TokenImpl{
-		type_: resp.Type,
-		value: resp.AccessToken,
+	token := AccessTokenImpl{
+		type_:       resp.Type,
+		accessValue: resp.AccessToken,
 	}
 
 	return token, nil
@@ -52,14 +40,24 @@ func (u UAAImpl) OwnerPasswordCredentialsGrant(answers []PromptAnswer) (AccessTo
 		return nil, err
 	}
 
-	token := AccessTokenImpl{
-		client:       u.client,
-		type_:        resp.Type,
-		accessValue:  resp.AccessToken,
-		refreshValue: resp.RefreshToken,
+	return NewRefreshableAccessToken(
+		resp.Type,
+		resp.AccessToken,
+		resp.RefreshToken,
+	), nil
+}
+
+func (u UAAImpl) RefreshTokenGrant(refreshValue string) (AccessToken, error) {
+	resp, err := u.client.RefreshTokenGrant(refreshValue)
+	if err != nil {
+		return nil, err
 	}
 
-	return token, nil
+	return NewRefreshableAccessToken(
+		resp.Type,
+		resp.AccessToken,
+		resp.RefreshToken,
+	), nil
 }
 
 func (c Client) ClientCredentialsGrant() (TokenResp, error) {

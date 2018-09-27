@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -87,17 +88,18 @@ func buildDirector(uaa boshuaa.UAA) (boshdir.Director, error) {
 
 	// Build a Director config from address-like string.
 	// HTTPS is required and certificates are always verified.
-	config, err := boshdir.NewConfigFromURL(directorURL)
+	factoryConfig, err := boshdir.NewConfigFromURL(directorURL)
 	if err != nil {
 		return nil, err
 	}
 
 	// Configure custom trusted CA certificates.
 	// If nothing is provided default system certificates are used.
-	config.CACert = someCA
+	factoryConfig.CACert = someCA
 
 	// Allow Director to fetch UAA tokens when necessary.
-	config.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
+	factoryConfig.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
+	config := cmdconf.FSConfig{}
 
-	return factory.New(config, boshdir.NewNoopTaskReporter(), boshdir.NewNoopFileReporter())
+	return factory.New(factoryConfig, config, boshdir.NewNoopTaskReporter(), boshdir.NewNoopFileReporter())
 }

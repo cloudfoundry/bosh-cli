@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"net/http"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	. "github.com/cloudfoundry/bosh-cli/cmd"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
 	"github.com/onsi/gomega/ghttp"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
 	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
+	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
@@ -26,7 +29,10 @@ var _ = Describe("SessionImpl", func() {
 	)
 
 	BeforeEach(func() {
-		context = &fakecmd.FakeSessionContext{}
+		fakeConfig := &configfakes.FakeConfig{}
+		context = &fakecmd.FakeSessionContext{
+			ConfigStub: func() cmdconf.Config { return fakeConfig },
+		}
 		ui = &fakeui.FakeUI{}
 		printEnvironment = false
 		printDeployment = false
@@ -230,7 +236,7 @@ var _ = Describe("SessionImpl", func() {
 							ghttp.VerifyBasicAuth("bosh_cli", ""),
 							ghttp.VerifyHeader(http.Header{"Accept": []string{"application/json"}}),
 							ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
-							ghttp.RespondWith(http.StatusOK, `{"token_type":"bearer","access_token":"access-token"}`),
+							ghttp.RespondWith(http.StatusOK, `{"token_type":"bearer","access_token":"access-token", "refresh_token":"refresh-token"}`),
 						),
 						// Authed info request to Director
 						ghttp.CombineHandlers(

@@ -3,11 +3,10 @@ package uaa
 //go:generate counterfeiter . UAA
 
 type UAA interface {
-	NewStaleAccessToken(refreshValue string) StaleAccessToken
-
 	Prompts() ([]Prompt, error)
 
-	ClientCredentialsGrant() (Token, error)
+	RefreshTokenGrant(string) (AccessToken, error)
+	ClientCredentialsGrant() (AccessToken, error)
 	OwnerPasswordCredentialsGrant([]PromptAnswer) (AccessToken, error)
 }
 
@@ -17,20 +16,22 @@ type UAA interface {
 type Token interface {
 	Type() string
 	Value() string
+	IsValid() bool
 }
 
 //go:generate counterfeiter . AccessToken
 
-// AccessToken is a token that can be refreshed.
+// AccessToken is purely an access token. It does not contain a refresh token and
+// cannot be refreshed for another token.
 type AccessToken interface {
 	Token
-	RefreshToken() Token
-	Refresh() (AccessToken, error)
 }
 
-// StaleAccessToken represents a token that should only be refreshed.
-// Its value cannot be retrieved since it's stale hence should not be used.
-type StaleAccessToken interface {
-	RefreshToken() Token
-	Refresh() (AccessToken, error)
+//go:generate counterfeiter . RefreshableAccessToken
+
+// RefreshableAccessToken is an access token with a refresh token that can be used
+// to get another access token.
+type RefreshableAccessToken interface {
+	AccessToken
+	RefreshValue() string
 }

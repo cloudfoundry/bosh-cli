@@ -22,6 +22,10 @@ func NewSessionContextImpl(
 	return &SessionContextImpl{opts: opts, config: config, fs: fs}
 }
 
+func (c SessionContextImpl) Config() cmdconf.Config {
+	return c.config
+}
+
 func (c SessionContextImpl) Environment() string {
 	return c.config.ResolveEnvironment(c.opts.EnvironmentOpt)
 }
