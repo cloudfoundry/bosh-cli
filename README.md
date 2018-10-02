@@ -8,7 +8,7 @@
 
 ## Install
 
-- [https://bosh.io/docs/cli-v2.html#install](https://bosh.io/docs/cli-v2.html#install)
+- [https://bosh.io/docs/cli-v2-install/](https://bosh.io/docs/cli-v2-install/)
 
 ## Client Library
 
