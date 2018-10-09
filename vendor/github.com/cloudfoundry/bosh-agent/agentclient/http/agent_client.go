@@ -265,3 +265,8 @@ func (c *AgentClient) SendAsyncTaskMessage(method string, arguments []interface{
 	err = getTaskRetryStrategy.Try()
 	return value, err
 }
+
+func (c *AgentClient) AddPersistentDisk(diskCID string, diskHints interface{}) (error) {
+	_, err := c.SendAsyncTaskMessage("add_persistent_disk", []interface{}{diskCID, diskHints})
+	return err
+}

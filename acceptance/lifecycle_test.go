@@ -28,13 +28,12 @@ var _ = Describe("bosh", func() {
 	var (
 		logger          boshlog.Logger
 		fileSystem      boshsys.FileSystem
-		sshCmdRunner    CmdRunner
+		cmdRunner       CmdRunner
 		cmdEnv          map[string]string
 		quietCmdEnv     map[string]string
 		testEnv         Environment
 		config          *Config
 		extraDeployArgs []string
-		cmdRunner       CmdRunner
 
 		instanceSSH      InstanceSSH
 		instanceUsername = "vcap"
@@ -139,7 +138,7 @@ var _ = Describe("bosh", func() {
 
 		args := append([]string{testEnv.Path("bosh"), "int", varsFile}, "--path /ssh_tunnel/private_key")
 
-		_, _, _, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, args...)
+		_, _, _, err := cmdRunner.RunStreamingCommand(multiWriter, cmdEnv, args...)
 		Expect(err).ToNot(HaveOccurred())
 
 		fileSystem.WriteFile("/tmp/test_private_key", stdout.Bytes())
@@ -171,7 +170,7 @@ var _ = Describe("bosh", func() {
 
 		args := append([]string{testEnv.Path("bosh"), "create-env", "--tty", testEnv.Path("test-manifest.yml")}, extraDeployArgs...)
 
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, args...)
+		_, _, exitCode, err := cmdRunner.RunStreamingCommand(multiWriter, cmdEnv, args...)
 		Expect(err).To(HaveOccurred())
 		Expect(exitCode).To(Equal(1))
 
@@ -185,7 +184,7 @@ var _ = Describe("bosh", func() {
 		multiWriter := io.MultiWriter(stdout, GinkgoWriter)
 
 		args := append([]string{testEnv.Path("bosh"), "delete-env", "--tty", testEnv.Path(manifest)}, extraDeployArgs...)
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, args...)
+		_, _, exitCode, err := cmdRunner.RunStreamingCommand(multiWriter, cmdEnv, args...)
 
 		if err != nil || exitCode != 0 {
 			flushLog(quietCmdEnv["BOSH_LOG_PATH"])
@@ -262,9 +261,7 @@ var _ = Describe("bosh", func() {
 
 		extraDeployArgs = []string{"--vars-store", testEnv.Path("vars.yml")}
 
-		sshCmdRunner = NewCmdRunner(
-			logger,
-		)
+		cmdRunner = NewCmdRunner(logger)
 
 		cmdEnv = map[string]string{
 			"TMPDIR":         testEnv.Home(),

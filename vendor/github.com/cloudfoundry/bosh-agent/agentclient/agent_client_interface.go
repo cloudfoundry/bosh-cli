@@ -11,6 +11,7 @@ type AgentClient interface {
 	Apply(applyspec.ApplySpec) error
 	Start() error
 	GetState() (AgentState, error)
+	AddPersistentDisk(string, interface{}) error
 	MountDisk(string, interface{}) error
 	UnmountDisk(string) error
 	ListDisk() ([]string, error)

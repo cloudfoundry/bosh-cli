@@ -105,7 +105,7 @@
 
 [[projects]]
   branch = "registry-removal"
-  digest = "1:7943ee30f85043c99f3b31419410e114cc3392aa76daba6a8975829c9bae7038"
+  digest = "1:619d283786ce3729c61fe89e01255abb52b9444c5e7173b6a687c920fad4a3ae"
   name = "github.com/cloudfoundry/bosh-agent"
   packages = [
     "agentclient",
@@ -115,7 +115,7 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "d7f96272d266d683df3d63d4d921593dc805fc38"
+  revision = "15d4ea2205114a211413212d1ef1a6039fbee20a"
 
 [[projects]]
   branch = "master"

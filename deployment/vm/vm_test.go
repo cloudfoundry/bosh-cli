@@ -307,6 +307,18 @@ var _ = Describe("VM", func() {
 			}))
 		})
 
+		It("adds the persistent disk to the agent", func() {
+			fakeCloud.AttachDiskHints = "/dev/sdb"
+
+			err := vm.AttachDisk(disk)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.AddPersistentDiskCallCount()).To(Equal(1))
+			diskCid, diskHints := fakeAgentClient.AddPersistentDiskArgsForCall(0)
+			Expect(diskCid).To(Equal("fake-disk-cid"))
+			Expect(diskHints).To(Equal("/dev/sdb"))
+		})
+
 		It("sends mount disk to the agent after pinging the agent", func() {
 			err := vm.AttachDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
