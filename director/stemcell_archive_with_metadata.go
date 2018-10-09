@@ -12,34 +12,26 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type FSArchiveWithMetadata struct {
+type StemcellArchiveWithMetadata struct {
 	path     string
 	fileName string
 	fs       boshsys.FileSystem
 }
 
-func NewFSReleaseArchive(path string, fs boshsys.FileSystem) ReleaseArchive {
-	return NewFSArchiveWithMetadata(path, "release.MF", fs)
+func NewFSStemcellArchive(path string, fs boshsys.FileSystem) (stemcellArchive StemcellArchive) {
+	return StemcellArchiveWithMetadata{path, "stemcell.MF", fs}
 }
 
-func NewFSStemcellArchive(path string, fs boshsys.FileSystem) ReleaseArchive {
-	return NewFSArchiveWithMetadata(path, "stemcell.MF", fs)
-}
-
-func NewFSArchiveWithMetadata(path, fileName string, fs boshsys.FileSystem) StemcellArchive {
-	return FSArchiveWithMetadata{path: path, fileName: fileName, fs: fs}
-}
-
-func (a FSArchiveWithMetadata) Info() (string, string, error) {
+func (a StemcellArchiveWithMetadata) Info() (StemcellMetadata, error) {
 	bytes, err := a.readMFBytes()
 	if err != nil {
-		return "", "", err
+		return StemcellMetadata{}, err
 	}
 
 	return a.extractNameAndVersion(bytes)
 }
 
-func (a FSArchiveWithMetadata) File() (UploadFile, error) {
+func (a StemcellArchiveWithMetadata) File() (UploadFile, error) {
 	file, err := a.fs.OpenFile(a.path, os.O_RDONLY, 0)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Opening archive")
@@ -48,7 +40,7 @@ func (a FSArchiveWithMetadata) File() (UploadFile, error) {
 	return file, nil
 }
 
-func (a FSArchiveWithMetadata) readMFBytes() ([]byte, error) {
+func (a StemcellArchiveWithMetadata) readMFBytes() ([]byte, error) {
 	file, err := a.fs.OpenFile(a.path, os.O_RDONLY, 0)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Opening archive")
@@ -87,19 +79,11 @@ func (a FSArchiveWithMetadata) readMFBytes() ([]byte, error) {
 	return nil, bosherr.Errorf("Missing '%s'", a.fileName)
 }
 
-func (a FSArchiveWithMetadata) extractNameAndVersion(bytes []byte) (string, string, error) {
-	type mfSchema struct {
-		Name    string `yaml:"name"`
-		Version string `yaml:"version"`
-		// other fields ignored
-	}
-
-	var mf mfSchema
-
-	err := yaml.Unmarshal(bytes, &mf)
+func (a StemcellArchiveWithMetadata) extractNameAndVersion(bytes []byte) (metadata StemcellMetadata, err error) {
+	err = yaml.Unmarshal(bytes, &metadata)
 	if err != nil {
-		return "", "", bosherr.WrapErrorf(err, "Unmarshalling '%s'", a.fileName)
+		return metadata, bosherr.WrapErrorf(err, "Unmarshalling '%s'", a.fileName)
 	}
 
-	return mf.Name, mf.Version, nil
+	return metadata, nil
 }

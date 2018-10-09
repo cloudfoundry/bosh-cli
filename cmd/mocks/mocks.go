@@ -34,13 +34,13 @@ func (m *MockDeploymentDeleter) EXPECT() *MockDeploymentDeleterMockRecorder {
 }
 
 // DeleteDeployment mocks base method
-func (m *MockDeploymentDeleter) DeleteDeployment(arg0 ui.Stage) error {
-	ret := m.ctrl.Call(m, "DeleteDeployment", arg0)
+func (m *MockDeploymentDeleter) DeleteDeployment(arg0 bool, arg1 ui.Stage) error {
+	ret := m.ctrl.Call(m, "DeleteDeployment", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteDeployment indicates an expected call of DeleteDeployment
-func (mr *MockDeploymentDeleterMockRecorder) DeleteDeployment(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteDeployment", reflect.TypeOf((*MockDeploymentDeleter)(nil).DeleteDeployment), arg0)
+func (mr *MockDeploymentDeleterMockRecorder) DeleteDeployment(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteDeployment", reflect.TypeOf((*MockDeploymentDeleter)(nil).DeleteDeployment), arg0, arg1)
 }

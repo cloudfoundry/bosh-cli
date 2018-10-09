@@ -533,6 +533,7 @@ cloud_provider:
 
 				// shutdown old vm
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
+				mockAgentClient.EXPECT().Drain("shutdown"),
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
 				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
@@ -631,6 +632,7 @@ cloud_provider:
 
 				// shutdown old vm
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
+				mockAgentClient.EXPECT().Drain("shutdown"),
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
 				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
@@ -666,6 +668,7 @@ cloud_provider:
 
 				// shutdown old vm
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
+				mockAgentClient.EXPECT().Drain("shutdown"),
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
 				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
@@ -706,6 +709,7 @@ cloud_provider:
 
 				// shutdown old vm
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
+				mockAgentClient.EXPECT().Drain("shutdown"),
 				mockAgentClient.EXPECT().Stop(),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
 				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),

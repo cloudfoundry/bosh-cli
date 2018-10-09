@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"math"
 	"time"
 
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
@@ -21,6 +22,8 @@ type Clock interface {
 	Now() time.Time
 }
 
+// go:generate counterfeiter . VM
+
 type VM interface {
 	CID() string
 	Exists() (bool, error)
@@ -28,6 +31,7 @@ type VM interface {
 	WaitUntilReady(timeout time.Duration, delay time.Duration) error
 	Start() error
 	Stop() error
+	Drain() error
 	Apply(bias.ApplySpec) error
 	UpdateDisks(bideplmanifest.DiskPool, biui.Stage) ([]bidisk.Disk, error)
 	WaitToBeRunning(maxAttempts int, delay time.Duration) error
@@ -135,6 +139,25 @@ func (vm *vm) Start() error {
 	if err != nil {
 		return bosherr.WrapError(err, "Starting agent")
 	}
+
+	return nil
+}
+
+func (vm *vm) Drain() error {
+	vm.logger.Debug(vm.logTag, "Draining VM")
+	drainTime, err := vm.agentClient.Drain("shutdown")
+	if err != nil {
+		return bosherr.WrapError(err, "Draining VM")
+	}
+
+	for drainTime < 0 {
+		vm.timeService.Sleep(time.Duration(math.Abs(float64(drainTime))) * time.Second)
+		drainTime, err = vm.agentClient.Drain("status")
+		if err != nil {
+			return bosherr.WrapError(err, "Draining VM")
+		}
+	}
+	vm.timeService.Sleep(time.Duration(drainTime) * time.Second)
 
 	return nil
 }

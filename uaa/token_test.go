@@ -2,113 +2,94 @@ package uaa_test
 
 import (
 	"errors"
-	"net/http"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/ghttp"
 
 	. "github.com/cloudfoundry/bosh-cli/uaa"
 )
 
-var _ = Describe("AccessToken", func() {
-	var (
-		uaa    UAA
-		token  AccessToken
-		server *ghttp.Server
-	)
+var _ = Describe("AccessTokenImpl", func() {
+	var token AccessToken
 
 	BeforeEach(func() {
-		uaa, server = BuildServer()
+		token = NewAccessToken("token-type", "token-value")
 	})
 
-	AfterEach(func() {
-		server.Close()
+	Describe("IsValid", func() {
+		It("is invalid if it has an empty type", func() {
+			token = NewAccessToken("", "token-value")
+			Expect(token.IsValid()).To(BeFalse())
+		})
+
+		It("is invalid if it has an empty value", func() {
+			token = NewAccessToken("token-type", "")
+			Expect(token.IsValid()).To(BeFalse())
+		})
+
+		It("is valid if it has both type and value", func() {
+			token = NewAccessToken("token-type", "token-value")
+			Expect(token.IsValid()).To(BeTrue())
+		})
 	})
 
-	Describe("Refresh", func() {
-		BeforeEach(func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token"),
-					ghttp.RespondWith(http.StatusOK, `{
-                 		"token_type": "bearer",
-                 		"access_token": "access-token",
-                 		"refresh_token": "refresh-token"
-	                }`),
-				),
-			)
+	Describe("Type", func() {
+		It("returns", func() {
+			Expect(token.Type()).To(Equal("token-type"))
+		})
+	})
 
-			var err error
+	Describe("Value", func() {
+		It("returns", func() {
+			Expect(token.Value()).To(Equal("token-value"))
+		})
+	})
+})
 
-			token, err = uaa.OwnerPasswordCredentialsGrant(nil)
-			Expect(err).ToNot(HaveOccurred())
+var _ = Describe("RefreshableAccessTokenImpl", func() {
+	var token RefreshableAccessToken
+
+	BeforeEach(func() {
+		token = NewRefreshableAccessToken("token-type", "token-value", "refresh-value")
+	})
+
+	Describe("Type", func() {
+		It("returns", func() {
+			Expect(token.Type()).To(Equal("token-type"))
+		})
+	})
+
+	Describe("Value", func() {
+		It("returns", func() {
+			Expect(token.Value()).To(Equal("token-value"))
+		})
+	})
+
+	Describe("RefreshValue", func() {
+		It("returns", func() {
+			Expect(token.RefreshValue()).To(Equal("refresh-value"))
+		})
+	})
+
+	Describe("IsValid", func() {
+		It("is invalid if it has an empty type", func() {
+			token = NewRefreshableAccessToken("", "token-value", "refresh-value")
+			Expect(token.IsValid()).To(BeFalse())
 		})
 
-		It("returns a new access token by using refresh token", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token"),
-					ghttp.VerifyRequest("POST", "/oauth/token"),
-					ghttp.VerifyBody([]byte("grant_type=refresh_token&refresh_token=refresh-token")),
-					ghttp.RespondWith(http.StatusOK, `{
-                 		"token_type": "new-bearer",
-                 		"access_token": "new-access-token",
-                 		"refresh_token": "new-refresh-token"
-	                }`),
-				),
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token"),
-					ghttp.VerifyRequest("POST", "/oauth/token"),
-					ghttp.VerifyBody([]byte("grant_type=refresh_token&refresh_token=new-refresh-token")),
-					ghttp.RespondWith(http.StatusOK, `{
-                 		"token_type": "newer-bearer",
-                 		"access_token": "newer-access-token",
-                 		"refresh_token": "newer-refresh-token"
-	                }`),
-				),
-			)
-
-			newToken, err := token.Refresh()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(newToken.Type()).To(Equal("new-bearer"))
-			Expect(newToken.Value()).To(Equal("new-access-token"))
-			Expect(newToken.RefreshToken().Type()).To(Equal("new-bearer"))
-			Expect(newToken.RefreshToken().Value()).To(Equal("new-refresh-token"))
-
-			newerToken, err := newToken.Refresh()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(newerToken.Type()).To(Equal("newer-bearer"))
-			Expect(newerToken.Value()).To(Equal("newer-access-token"))
-			Expect(newerToken.RefreshToken().Type()).To(Equal("newer-bearer"))
-			Expect(newerToken.RefreshToken().Value()).To(Equal("newer-refresh-token"))
+		It("is invalid if it has an empty value", func() {
+			token = NewRefreshableAccessToken("token-type", "", "refresh-value")
+			Expect(token.IsValid()).To(BeFalse())
 		})
 
-		It("returns error if token response in non-200", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token"),
-					ghttp.RespondWith(http.StatusBadRequest, ``),
-				),
-			)
-
-			_, err := token.Refresh()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("UAA responded with non-successful status code"))
+		It("is valid if it has both type and value", func() {
+			token = NewRefreshableAccessToken("token-type", "token-value", "refresh-value")
+			Expect(token.IsValid()).To(BeTrue())
 		})
+	})
 
-		It("returns error if token cannot be unmarshalled", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token"),
-					ghttp.RespondWith(http.StatusOK, ``),
-				),
-			)
-
-			_, err := token.Refresh()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Unmarshaling UAA response"))
-		})
+	It("panics if refresh value is empty", func() {
+		Expect(func() { NewRefreshableAccessToken("access-token-type", "access-token", "") }).To(Panic())
 	})
 })
 

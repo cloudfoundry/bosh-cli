@@ -12,7 +12,9 @@ type Creds struct {
 	ClientSecret string
 
 	// For UAA users
-	RefreshToken string
+	AccessTokenType string
+	AccessToken     string
+	RefreshToken    string
 }
 
 func (c Creds) IsBasicComplete() bool {

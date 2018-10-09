@@ -1,12 +1,25 @@
 package uaa
 
+import (
+	"errors"
+
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+)
+
 type AccessTokenSession struct {
-	initToken StaleAccessToken
-	lastToken AccessToken
+	uaa         UAA
+	token       AccessToken
+	config      ConfigUpdater
+	environment string
 }
 
-func NewAccessTokenSession(accessToken StaleAccessToken) *AccessTokenSession {
-	return &AccessTokenSession{initToken: accessToken}
+func NewAccessTokenSession(uaa UAA, token AccessToken, config ConfigUpdater, environment string) *AccessTokenSession {
+	return &AccessTokenSession{
+		uaa:         uaa,
+		token:       token,
+		config:      config,
+		environment: environment,
+	}
 }
 
 // TokenFunc retrieves new access token on first time use
@@ -14,15 +27,31 @@ func NewAccessTokenSession(accessToken StaleAccessToken) *AccessTokenSession {
 // being valid for a longer period of time. Subsequent calls
 // will reuse access token until it's time for it to be refreshed.
 func (s *AccessTokenSession) TokenFunc(retried bool) (string, error) {
-	if s.lastToken == nil || retried {
-		token, err := s.initToken.Refresh()
-		if err != nil {
-			return "", err
+	if !s.token.IsValid() || retried {
+		refreshToken, refreshable := s.token.(RefreshableAccessToken)
+		if !refreshable {
+			return "", errors.New("not a refresh token")
 		}
 
-		s.lastToken = token
-		s.initToken = token
+		tokenResp, err := s.uaa.RefreshTokenGrant(refreshToken.RefreshValue())
+		if err != nil {
+			return "", bosherr.WrapError(err, "refreshing token")
+		}
+
+		s.token = tokenResp
+		if err = s.saveTokenCreds(); err != nil {
+			return "", err
+		}
 	}
 
-	return s.lastToken.Type() + " " + s.lastToken.Value(), nil
+	return s.token.Type() + " " + s.token.Value(), nil
+}
+
+type ConfigUpdater interface {
+	UpdateConfigWithToken(environment string, token AccessToken) error
+	Save() error
+}
+
+func (s *AccessTokenSession) saveTokenCreds() error {
+	return s.config.UpdateConfigWithToken(s.environment, s.token)
 }

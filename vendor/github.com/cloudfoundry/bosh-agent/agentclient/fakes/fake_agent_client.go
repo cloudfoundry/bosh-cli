@@ -29,6 +29,19 @@ type FakeAgentClient struct {
 	stopReturnsOnCall map[int]struct {
 		result1 error
 	}
+	DrainStub        func(string) (int64, error)
+	drainMutex       sync.RWMutex
+	drainArgsForCall []struct {
+		arg1 string
+	}
+	drainReturns struct {
+		result1 int64
+		result2 error
+	}
+	drainReturnsOnCall map[int]struct {
+		result1 int64
+		result2 error
+	}
 	ApplyStub        func(applyspec.ApplySpec) error
 	applyMutex       sync.RWMutex
 	applyArgsForCall []struct {
@@ -240,6 +253,57 @@ func (fake *FakeAgentClient) StopReturnsOnCall(i int, result1 error) {
 	fake.stopReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeAgentClient) Drain(arg1 string) (int64, error) {
+	fake.drainMutex.Lock()
+	ret, specificReturn := fake.drainReturnsOnCall[len(fake.drainArgsForCall)]
+	fake.drainArgsForCall = append(fake.drainArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("Drain", []interface{}{arg1})
+	fake.drainMutex.Unlock()
+	if fake.DrainStub != nil {
+		return fake.DrainStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.drainReturns.result1, fake.drainReturns.result2
+}
+
+func (fake *FakeAgentClient) DrainCallCount() int {
+	fake.drainMutex.RLock()
+	defer fake.drainMutex.RUnlock()
+	return len(fake.drainArgsForCall)
+}
+
+func (fake *FakeAgentClient) DrainArgsForCall(i int) string {
+	fake.drainMutex.RLock()
+	defer fake.drainMutex.RUnlock()
+	return fake.drainArgsForCall[i].arg1
+}
+
+func (fake *FakeAgentClient) DrainReturns(result1 int64, result2 error) {
+	fake.DrainStub = nil
+	fake.drainReturns = struct {
+		result1 int64
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeAgentClient) DrainReturnsOnCall(i int, result1 int64, result2 error) {
+	fake.DrainStub = nil
+	if fake.drainReturnsOnCall == nil {
+		fake.drainReturnsOnCall = make(map[int]struct {
+			result1 int64
+			result2 error
+		})
+	}
+	fake.drainReturnsOnCall[i] = struct {
+		result1 int64
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeAgentClient) Apply(arg1 applyspec.ApplySpec) error {
@@ -772,6 +836,8 @@ func (fake *FakeAgentClient) Invocations() map[string][][]interface{} {
 	defer fake.pingMutex.RUnlock()
 	fake.stopMutex.RLock()
 	defer fake.stopMutex.RUnlock()
+	fake.drainMutex.RLock()
+	defer fake.drainMutex.RUnlock()
 	fake.applyMutex.RLock()
 	defer fake.applyMutex.RUnlock()
 	fake.startMutex.RLock()

@@ -12,7 +12,7 @@ import (
 )
 
 type Deployment interface {
-	Delete(biui.Stage) error
+	Delete(bool, biui.Stage) error
 }
 
 type deployment struct {
@@ -39,13 +39,13 @@ func NewDeployment(
 	}
 }
 
-func (d *deployment) Delete(deleteStage biui.Stage) error {
+func (d *deployment) Delete(skipDrain bool, deleteStage biui.Stage) error {
 	// le sigh... consuming from an array sucks without generics
 	for len(d.instances) > 0 {
 		lastIdx := len(d.instances) - 1
 		instance := d.instances[lastIdx]
 
-		if err := instance.Delete(d.pingTimeout, d.pingDelay, deleteStage); err != nil {
+		if err := instance.Delete(d.pingTimeout, d.pingDelay, skipDrain, deleteStage); err != nil {
 			return err
 		}
 

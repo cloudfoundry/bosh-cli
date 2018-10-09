@@ -71,6 +71,19 @@ func (mr *MockAgentClientMockRecorder) DeleteARPEntries(arg0 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteARPEntries", reflect.TypeOf((*MockAgentClient)(nil).DeleteARPEntries), arg0)
 }
 
+// Drain mocks base method
+func (m *MockAgentClient) Drain(arg0 string) (int64, error) {
+	ret := m.ctrl.Call(m, "Drain", arg0)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Drain indicates an expected call of Drain
+func (mr *MockAgentClientMockRecorder) Drain(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Drain", reflect.TypeOf((*MockAgentClient)(nil).Drain), arg0)
+}
+
 // GetState mocks base method
 func (m *MockAgentClient) GetState() (agentclient.AgentState, error) {
 	ret := m.ctrl.Call(m, "GetState")

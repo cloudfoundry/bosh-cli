@@ -34,6 +34,7 @@ var _ = Describe("bosh", func() {
 		testEnv         Environment
 		config          *Config
 		extraDeployArgs []string
+		cmdRunner       CmdRunner
 
 		instanceSSH      InstanceSSH
 		instanceUsername = "vcap"
@@ -42,14 +43,14 @@ var _ = Describe("bosh", func() {
 	)
 
 	var readLogFile = func(logPath string) (stdout string) {
-		stdout, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, "cat", logPath)
+		stdout, _, exitCode, err := cmdRunner.RunCommand(cmdEnv, "cat", logPath)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 		return stdout
 	}
 
 	var deleteLogFile = func(logPath string) {
-		_, _, exitCode, err := sshCmdRunner.RunCommand(cmdEnv, "rm", "-f", logPath)
+		_, _, exitCode, err := cmdRunner.RunCommand(cmdEnv, "rm", "-f", logPath)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 	}
@@ -153,7 +154,7 @@ var _ = Describe("bosh", func() {
 
 		args = append([]string{testEnv.Path("bosh"), "create-env", "--tty", testEnv.Path(manifestFile)}, args...)
 
-		_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(multiWriter, cmdEnv, args...)
+		_, _, exitCode, err := cmdRunner.RunStreamingCommand(multiWriter, cmdEnv, args...)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 
@@ -419,7 +420,7 @@ var _ = Describe("bosh", func() {
 				stdoutBuffer := &bytes.Buffer{}
 				multiWriter := io.MultiWriter(stdoutBuffer, GinkgoWriter)
 
-				_, _, exitCode, err := sshCmdRunner.RunStreamingCommand(
+				_, _, exitCode, err := cmdRunner.RunStreamingCommand(
 					multiWriter,
 					cmdEnv,
 					append(

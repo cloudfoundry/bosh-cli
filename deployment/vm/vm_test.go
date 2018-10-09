@@ -130,6 +130,58 @@ var _ = Describe("VM", func() {
 		})
 	})
 
+	Describe("Drain", func() {
+		It("drains and waits a specific amount of time", func() {
+			fakeAgentClient.DrainReturns(15, nil)
+			err := vm.Drain()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.DrainCallCount()).To(Equal(1))
+			Expect(len(timeService.SleepCalls)).To(Equal(1))
+			Expect(timeService.SleepCalls[0]).To(Equal(15 * time.Second))
+		})
+
+		It("drains, waits, and retries until given a positive result", func() {
+			fakeAgentClient.DrainReturnsOnCall(0, -15, nil)
+			fakeAgentClient.DrainReturnsOnCall(1, -16, nil)
+			fakeAgentClient.DrainReturnsOnCall(2, 10, nil)
+			err := vm.Drain()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.DrainCallCount()).To(Equal(3))
+			Expect(fakeAgentClient.DrainArgsForCall(0)).To(Equal("shutdown"))
+			Expect(fakeAgentClient.DrainArgsForCall(1)).To(Equal("status"))
+			Expect(fakeAgentClient.DrainArgsForCall(2)).To(Equal("status"))
+			Expect(len(timeService.SleepCalls)).To(Equal(3))
+			Expect(timeService.SleepCalls[0]).To(Equal(15 * time.Second))
+			Expect(timeService.SleepCalls[1]).To(Equal(16 * time.Second))
+			Expect(timeService.SleepCalls[2]).To(Equal(10 * time.Second))
+		})
+
+		Context("when draining an agent fails", func() {
+			BeforeEach(func() {
+				fakeAgentClient.DrainReturns(0, errors.New("fake-drain-error"))
+			})
+
+			It("returns an error", func() {
+				err := vm.Drain()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-drain-error"))
+			})
+		})
+
+		Context("when drain get_status fails", func() {
+			BeforeEach(func() {
+				fakeAgentClient.DrainReturnsOnCall(0, -15, nil)
+				fakeAgentClient.DrainReturnsOnCall(1, 0, errors.New("fake-drain-error"))
+			})
+
+			It("returns an error", func() {
+				err := vm.Drain()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-drain-error"))
+			})
+		})
+	})
+
 	Describe("Stop", func() {
 		It("stops agent services", func() {
 			err := vm.Stop()
@@ -548,10 +600,13 @@ var _ = Describe("VM", func() {
 })
 
 type FakeClock struct {
-	Times []time.Time
+	Times      []time.Time
+	SleepCalls []time.Duration
 }
 
-func (c *FakeClock) Sleep(_ time.Duration) {}
+func (c *FakeClock) Sleep(t time.Duration) {
+	c.SleepCalls = append(c.SleepCalls, t)
+}
 
 func (c *FakeClock) Now() time.Time {
 	t1 := c.Times[0]

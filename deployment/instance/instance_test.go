@@ -55,6 +55,8 @@ var _ = Describe("Instance", func() {
 		pingTimeout = 1 * time.Second
 		pingDelay   = 500 * time.Millisecond
 
+		skipDrain bool
+
 		jobName  = "fake-job-name"
 		jobIndex = 0
 	)
@@ -73,6 +75,8 @@ var _ = Describe("Instance", func() {
 
 		logger = &loggerfakes.FakeLogger{}
 
+		skipDrain = false
+
 		instance = NewInstance(
 			jobName,
 			jobIndex,
@@ -88,7 +92,7 @@ var _ = Describe("Instance", func() {
 
 	Describe("Delete", func() {
 		It("checks if the agent on the vm is responsive", func() {
-			err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+			err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebivm.WaitUntilReadyInput{
@@ -98,18 +102,19 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("deletes existing vm", func() {
-			err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+			err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeVM.DeleteCalled).To(Equal(1))
 		})
 
 		It("logs start and stop events", func() {
-			err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+			err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+				{Name: "Draining jobs on instance 'fake-job-name/0'"},
 				{Name: "Stopping jobs on instance 'fake-job-name/0'"},
 				{Name: "Deleting VM 'fake-vm-cid'"},
 			}))
@@ -117,7 +122,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when agent is responsive", func() {
 			It("logs waiting for the agent event", func() {
-				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeStage.PerformCalls[0]).To(Equal(&fakebiui.PerformCall{
@@ -125,8 +130,23 @@ var _ = Describe("Instance", func() {
 				}))
 			})
 
+			It("drains", func() {
+				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeVM.DrainCalled).To(Equal(1))
+			})
+
+			It("can skip draining", func() {
+				skipDrain = true
+				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeVM.DrainCalled).To(Equal(0))
+			})
+
 			It("stops vm", func() {
-				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeVM.StopCalled).To(Equal(1))
@@ -137,7 +157,7 @@ var _ = Describe("Instance", func() {
 				secondDisk := fakebidisk.NewFakeDisk("fake-disk-2")
 				fakeVM.ListDisksDisks = []bidisk.Disk{firstDisk, secondDisk}
 
-				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeVM.UnmountDiskInputs).To(Equal([]fakebivm.UnmountDiskInput{
@@ -145,7 +165,7 @@ var _ = Describe("Instance", func() {
 					{Disk: secondDisk},
 				}))
 
-				Expect(fakeStage.PerformCalls[2:4]).To(Equal([]*fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls[3:5]).To(Equal([]*fakebiui.PerformCall{
 					{Name: "Unmounting disk 'fake-disk-1'"},
 					{Name: "Unmounting disk 'fake-disk-2'"},
 				}))
@@ -161,12 +181,13 @@ var _ = Describe("Instance", func() {
 				})
 
 				It("returns an error", func() {
-					err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+					err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
 
 					Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 						{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+						{Name: "Draining jobs on instance 'fake-job-name/0'"},
 						{
 							Name:  "Stopping jobs on instance 'fake-job-name/0'",
 							Error: stopError,
@@ -182,13 +203,13 @@ var _ = Describe("Instance", func() {
 				})
 
 				It("returns an error", func() {
-					err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+					err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-unmount-error"))
 
-					Expect(fakeStage.PerformCalls[2].Name).To(Equal("Unmounting disk 'fake-disk'"))
-					Expect(fakeStage.PerformCalls[2].Error).To(HaveOccurred())
-					Expect(fakeStage.PerformCalls[2].Error.Error()).To(Equal("Unmounting disk 'fake-disk' from VM 'fake-vm-cid': fake-unmount-error"))
+					Expect(fakeStage.PerformCalls[3].Name).To(Equal("Unmounting disk 'fake-disk'"))
+					Expect(fakeStage.PerformCalls[3].Error).To(HaveOccurred())
+					Expect(fakeStage.PerformCalls[3].Error.Error()).To(Equal("Unmounting disk 'fake-disk' from VM 'fake-vm-cid': fake-unmount-error"))
 				})
 			})
 		})
@@ -199,7 +220,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs failed event", func() {
-				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Waiting for the agent on VM 'fake-vm-cid'"))
@@ -217,12 +238,13 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("returns an error", func() {
-				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-delete-error"))
 
 				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 					{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+					{Name: "Draining jobs on instance 'fake-job-name/0'"},
 					{Name: "Stopping jobs on instance 'fake-job-name/0'"},
 					{
 						Name:  "Deleting VM 'fake-vm-cid'",
@@ -242,14 +264,14 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("deletes existing vm", func() {
-				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeVM.DeleteCalled).To(Equal(1))
 			})
 
 			It("does not contact the agent", func() {
-				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeVM.WaitUntilReadyInputs).To(HaveLen(0))
@@ -258,7 +280,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs vm delete as skipped", func() {
-				err := instance.Delete(pingTimeout, pingDelay, fakeStage)
+				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Deleting VM 'fake-vm-cid'"))

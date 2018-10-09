@@ -24,7 +24,7 @@ var _ = Describe("UAA", func() {
 		server.Close()
 	})
 
-	Describe("NewStaleAccessToken", func() {
+	Describe("RefreshTokenGrant", func() {
 		It("returns a new access token that can only be refreshed", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
@@ -34,36 +34,22 @@ var _ = Describe("UAA", func() {
 					ghttp.RespondWith(http.StatusOK, `{
                  		"token_type": "new-bearer",
                  		"access_token": "new-access-token",
-                 		"refresh_token": "new-refresh-token"
-	                }`),
-				),
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/oauth/token"),
-					ghttp.VerifyBody([]byte("grant_type=refresh_token&refresh_token=new-refresh-token")),
-					ghttp.RespondWith(http.StatusOK, `{
-                 		"token_type": "newer-bearer",
-                 		"access_token": "newer-access-token",
-                 		"refresh_token": "newer-refresh-token"
+										"refresh_token": "new-refresh-token"
 	                }`),
 				),
 			)
 
-			newToken, err := uaa.NewStaleAccessToken("refresh-token").Refresh()
+			newToken, err := uaa.RefreshTokenGrant("refresh-token")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(newToken.Type()).To(Equal("new-bearer"))
 			Expect(newToken.Value()).To(Equal("new-access-token"))
-			Expect(newToken.RefreshToken().Type()).To(Equal("new-bearer"))
-			Expect(newToken.RefreshToken().Value()).To(Equal("new-refresh-token"))
 
-			newerToken, err := newToken.Refresh()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(newerToken.Type()).To(Equal("newer-bearer"))
-			Expect(newerToken.Value()).To(Equal("newer-access-token"))
-			Expect(newerToken.RefreshToken().Type()).To(Equal("newer-bearer"))
-			Expect(newerToken.RefreshToken().Value()).To(Equal("newer-refresh-token"))
+			newRefreshToken, refreshable := newToken.(RefreshableAccessToken)
+			Expect(refreshable).To(BeTrue())
+			Expect(newRefreshToken.RefreshValue()).To(Equal("new-refresh-token"))
 		})
 
-		It("returns error if token response in non-200", func() {
+		It("returns error if token response is non-200", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/oauth/token"),
@@ -71,7 +57,7 @@ var _ = Describe("UAA", func() {
 				),
 			)
 
-			_, err := uaa.NewStaleAccessToken("refresh-token").Refresh()
+			_, err := uaa.RefreshTokenGrant("refresh-token")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("UAA responded with non-successful status code"))
 		})
@@ -84,13 +70,9 @@ var _ = Describe("UAA", func() {
 				),
 			)
 
-			_, err := uaa.NewStaleAccessToken("refresh-token").Refresh()
+			_, err := uaa.RefreshTokenGrant("refresh-token")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Unmarshaling UAA response"))
-		})
-
-		It("panics if refresh value is empty", func() {
-			Expect(func() { uaa.NewStaleAccessToken("") }).To(Panic())
 		})
 	})
 
@@ -173,8 +155,10 @@ var _ = Describe("UAA", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(token.Type()).To(Equal("bearer"))
 			Expect(token.Value()).To(Equal("access-token"))
-			Expect(token.RefreshToken().Type()).To(Equal("bearer"))
-			Expect(token.RefreshToken().Value()).To(Equal("refresh-token"))
+
+			newRefreshToken, refreshable := token.(RefreshableAccessToken)
+			Expect(refreshable).To(BeTrue())
+			Expect(newRefreshToken.RefreshValue()).To(Equal("refresh-token"))
 		})
 
 		It("returns error if prompts response in non-200", func() {

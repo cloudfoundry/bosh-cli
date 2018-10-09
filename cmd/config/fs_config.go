@@ -3,9 +3,11 @@ package config
 import (
 	"os"
 
+	"github.com/cloudfoundry/bosh-cli/uaa"
+	"gopkg.in/yaml.v2"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"gopkg.in/yaml.v2"
 )
 
 /*
@@ -34,9 +36,11 @@ type fsConfigSchema_Environment struct {
 	Alias string `yaml:"alias,omitempty"`
 
 	// Auth
-	Username     string `yaml:"username,omitempty"`
-	Password     string `yaml:"password,omitempty"`
-	RefreshToken string `yaml:"refresh_token,omitempty"`
+	Username        string `yaml:"username,omitempty"`
+	Password        string `yaml:"password,omitempty"`
+	AccessTokenType string `yaml:"access_token_type,omitempty"`
+	AccessToken     string `yaml:"access_token,omitempty"`
+	RefreshToken    string `yaml:"refresh_token,omitempty"`
 }
 
 func NewFSConfigFromPath(path string, fs boshsys.FileSystem) (FSConfig, error) {
@@ -111,7 +115,9 @@ func (c FSConfig) Credentials(urlOrAlias string) Creds {
 		Client:       tg.Username,
 		ClientSecret: tg.Password,
 
-		RefreshToken: tg.RefreshToken,
+		AccessTokenType: tg.AccessTokenType,
+		AccessToken:     tg.AccessToken,
+		RefreshToken:    tg.RefreshToken,
 	}
 }
 
@@ -121,6 +127,8 @@ func (c FSConfig) SetCredentials(urlOrAlias string, creds Creds) Config {
 	i, tg := config.findOrCreateEnvironment(urlOrAlias)
 	tg.Username = creds.Client
 	tg.Password = creds.ClientSecret
+	tg.AccessTokenType = creds.AccessTokenType
+	tg.AccessToken = creds.AccessToken
 	tg.RefreshToken = creds.RefreshToken
 	config.schema.Environments[i] = tg
 
@@ -133,6 +141,8 @@ func (c FSConfig) UnsetCredentials(urlOrAlias string) Config {
 	i, tg := config.findOrCreateEnvironment(urlOrAlias)
 	tg.Username = ""
 	tg.Password = ""
+	tg.AccessTokenType = ""
+	tg.AccessToken = ""
 	tg.RefreshToken = ""
 	config.schema.Environments[i] = tg
 
@@ -155,6 +165,19 @@ func (c FSConfig) Save() error {
 	}
 
 	return nil
+}
+
+func (c FSConfig) UpdateConfigWithToken(environment string, t uaa.AccessToken) error {
+	creds := Creds{
+		AccessToken:     t.Value(),
+		AccessTokenType: t.Type(),
+	}
+
+	if refreshToken, ok := t.(uaa.RefreshableAccessToken); ok {
+		creds.RefreshToken = refreshToken.RefreshValue()
+	}
+	config := c.SetCredentials(environment, creds)
+	return config.Save()
 }
 
 func (c *FSConfig) findOrCreateEnvironment(urlOrAlias string) (int, fsConfigSchema_Environment) {

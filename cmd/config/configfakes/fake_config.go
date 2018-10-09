@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/cmd/config"
+	"github.com/cloudfoundry/bosh-cli/uaa"
 )
 
 type FakeConfig struct {
@@ -87,6 +88,18 @@ type FakeConfig struct {
 	}
 	unsetCredentialsReturnsOnCall map[int]struct {
 		result1 config.Config
+	}
+	UpdateConfigWithTokenStub        func(environment string, t uaa.AccessToken) error
+	updateConfigWithTokenMutex       sync.RWMutex
+	updateConfigWithTokenArgsForCall []struct {
+		environment string
+		t           uaa.AccessToken
+	}
+	updateConfigWithTokenReturns struct {
+		result1 error
+	}
+	updateConfigWithTokenReturnsOnCall map[int]struct {
+		result1 error
 	}
 	SaveStub        func() error
 	saveMutex       sync.RWMutex
@@ -435,6 +448,55 @@ func (fake *FakeConfig) UnsetCredentialsReturnsOnCall(i int, result1 config.Conf
 	}{result1}
 }
 
+func (fake *FakeConfig) UpdateConfigWithToken(environment string, t uaa.AccessToken) error {
+	fake.updateConfigWithTokenMutex.Lock()
+	ret, specificReturn := fake.updateConfigWithTokenReturnsOnCall[len(fake.updateConfigWithTokenArgsForCall)]
+	fake.updateConfigWithTokenArgsForCall = append(fake.updateConfigWithTokenArgsForCall, struct {
+		environment string
+		t           uaa.AccessToken
+	}{environment, t})
+	fake.recordInvocation("UpdateConfigWithToken", []interface{}{environment, t})
+	fake.updateConfigWithTokenMutex.Unlock()
+	if fake.UpdateConfigWithTokenStub != nil {
+		return fake.UpdateConfigWithTokenStub(environment, t)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.updateConfigWithTokenReturns.result1
+}
+
+func (fake *FakeConfig) UpdateConfigWithTokenCallCount() int {
+	fake.updateConfigWithTokenMutex.RLock()
+	defer fake.updateConfigWithTokenMutex.RUnlock()
+	return len(fake.updateConfigWithTokenArgsForCall)
+}
+
+func (fake *FakeConfig) UpdateConfigWithTokenArgsForCall(i int) (string, uaa.AccessToken) {
+	fake.updateConfigWithTokenMutex.RLock()
+	defer fake.updateConfigWithTokenMutex.RUnlock()
+	return fake.updateConfigWithTokenArgsForCall[i].environment, fake.updateConfigWithTokenArgsForCall[i].t
+}
+
+func (fake *FakeConfig) UpdateConfigWithTokenReturns(result1 error) {
+	fake.UpdateConfigWithTokenStub = nil
+	fake.updateConfigWithTokenReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeConfig) UpdateConfigWithTokenReturnsOnCall(i int, result1 error) {
+	fake.UpdateConfigWithTokenStub = nil
+	if fake.updateConfigWithTokenReturnsOnCall == nil {
+		fake.updateConfigWithTokenReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.updateConfigWithTokenReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeConfig) Save() error {
 	fake.saveMutex.Lock()
 	ret, specificReturn := fake.saveReturnsOnCall[len(fake.saveArgsForCall)]
@@ -492,9 +554,15 @@ func (fake *FakeConfig) Invocations() map[string][][]interface{} {
 	defer fake.setCredentialsMutex.RUnlock()
 	fake.unsetCredentialsMutex.RLock()
 	defer fake.unsetCredentialsMutex.RUnlock()
+	fake.updateConfigWithTokenMutex.RLock()
+	defer fake.updateConfigWithTokenMutex.RUnlock()
 	fake.saveMutex.RLock()
 	defer fake.saveMutex.RUnlock()
-	return fake.invocations
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeConfig) recordInvocation(key string, args []interface{}) {

@@ -71,6 +71,9 @@ type Director interface {
 	OrphanDisks() ([]OrphanDisk, error)
 	OrphanDisk(string) error
 
+	FindOrphanNetwork(string) (OrphanNetwork, error)
+	OrphanNetworks() ([]OrphanNetwork, error)
+
 	EnableResurrection(bool) error
 	CleanUp(bool) error
 	DownloadResourceUnchecked(blobstoreID string, out io.Writer) error
@@ -85,17 +88,30 @@ type UploadFile interface {
 	Stat() (os.FileInfo, error)
 }
 
+type ReleaseMetadata struct {
+	Name    string `yaml:"name"`
+	Version string `yaml:"version"`
+	// other fields ignored
+}
+
 //go:generate counterfeiter . ReleaseArchive
 
 type ReleaseArchive interface {
-	Info() (string, string, error)
+	Info() (ReleaseMetadata, error)
 	File() (UploadFile, error)
+}
+
+type StemcellMetadata struct {
+	Name    string `yaml:"name"`
+	OS      string `yaml:"operating_system"`
+	Version string `yaml:"version"`
+	// other fields ignored
 }
 
 //go:generate counterfeiter . StemcellArchive
 
 type StemcellArchive interface {
-	Info() (string, string, error)
+	Info() (StemcellMetadata, error)
 	File() (UploadFile, error)
 }
 
@@ -282,6 +298,16 @@ type OrphanDisk interface {
 
 	OrphanedAt() time.Time
 
+	Delete() error
+}
+
+//go:generate counterfeiter . OrphanNetwork
+
+type OrphanNetwork interface {
+	Name() string
+	Type() string
+	OrphanedAt() time.Time
+	CreatedAt() time.Time
 	Delete() error
 }
 

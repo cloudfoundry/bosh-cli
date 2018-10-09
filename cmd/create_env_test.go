@@ -139,6 +139,8 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			defaultCreateEnvOpts bicmd.CreateEnvOpts
 
+			expectedSkipDrain bool
+
 			expectLegacyMigrate        *gomock.Call
 			expectStemcellUpload       *gomock.Call
 			expectStemcellDeleteUnused *gomock.Call
@@ -151,6 +153,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 		BeforeEach(func() {
 			expectedDeployError = nil
+			expectedSkipDrain = false
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			stdOut = gbytes.NewBuffer()
 			stdErr = gbytes.NewBuffer()
@@ -441,8 +444,9 @@ var _ = Describe("CreateEnvCmd", func() {
 				expectedRegistryConfig,
 				fakeVMManager,
 				mockBlobstore,
+				expectedSkipDrain,
 				gomock.Any(),
-			).Do(func(_, _, _, _, _, _ interface{}, stage biui.Stage) {
+			).Do(func(_, _, _, _, _, _, _ interface{}, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(nil, expectedDeployError).AnyTimes()
 
@@ -722,6 +726,21 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
+		})
+
+		Context("when SkipDrain is specified", func() {
+			BeforeEach(func() {
+				expectedSkipDrain = true
+			})
+
+			It("passes it through", func() {
+				expectDeploy.Times(1)
+
+				defaultCreateEnvOpts.SkipDrain = true
+
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+			})
 		})
 
 		Context("when deployment has not changed", func() {
@@ -1109,6 +1128,18 @@ var _ = Describe("CreateEnvCmd", func() {
 		Context("when deploy fails", func() {
 			BeforeEach(func() {
 				expectedDeployError = errors.New("fake-deploy-error")
+
+				mockDeployer.EXPECT().Deploy(
+					mockCloud,
+					boshDeploymentManifest,
+					cloudStemcell,
+					installationManifest.Registry,
+					fakeVMManager,
+					mockBlobstore,
+					expectedSkipDrain,
+					gomock.Any(),
+				).Return(nil, expectedDeployError).AnyTimes()
+
 				previousDeploymentState := biconfig.DeploymentState{
 					CurrentReleaseIDs: []string{"my-release-id-1"},
 					Releases: []biconfig.ReleaseRecord{{

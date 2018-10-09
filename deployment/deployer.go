@@ -24,6 +24,7 @@ type Deployer interface {
 		biinstallmanifest.Registry,
 		bivm.Manager,
 		biblobstore.Blobstore,
+		bool,
 		biui.Stage,
 	) (Deployment, error)
 }
@@ -58,13 +59,14 @@ func (d *deployer) Deploy(
 	registryConfig biinstallmanifest.Registry,
 	vmManager bivm.Manager,
 	blobstore biblobstore.Blobstore,
+	skipDrain bool,
 	deployStage biui.Stage,
 ) (Deployment, error) {
 	instanceManager := d.instanceManagerFactory.NewManager(cloud, vmManager, blobstore)
 
 	pingTimeout := 10 * time.Second
 	pingDelay := 500 * time.Millisecond
-	if err := instanceManager.DeleteAll(pingTimeout, pingDelay, deployStage); err != nil {
+	if err := instanceManager.DeleteAll(pingTimeout, pingDelay, skipDrain, deployStage); err != nil {
 		return nil, err
 	}
 

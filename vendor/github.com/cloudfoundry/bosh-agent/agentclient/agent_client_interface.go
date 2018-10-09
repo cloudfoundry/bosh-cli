@@ -7,6 +7,7 @@ import "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 type AgentClient interface {
 	Ping() (string, error)
 	Stop() error
+	Drain(string) (int64, error)
 	Apply(applyspec.ApplySpec) error
 	Start() error
 	GetState() (AgentState, error)

@@ -21,7 +21,7 @@ import (
 )
 
 type DeploymentDeleter interface {
-	DeleteDeployment(stage biui.Stage) (err error)
+	DeleteDeployment(skipDrain bool, stage biui.Stage) (err error)
 }
 
 func NewDeploymentDeleter(
@@ -87,7 +87,7 @@ type deploymentDeleter struct {
 	targetProvider                          biinstall.TargetProvider
 }
 
-func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
+func (c *deploymentDeleter) DeleteDeployment(skipDrain bool, stage biui.Stage) (err error) {
 	c.ui.BeginLinef("Deployment state: '%s'\n", c.deploymentStateService.Path())
 
 	if !c.deploymentStateService.Exists() {
@@ -147,7 +147,7 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 
 	err = c.cpiInstaller.WithInstalledCpiRelease(installationManifest, target, stage, func(localCpiInstallation biinstall.Installation) error {
 		return localCpiInstallation.WithRunningRegistry(c.logger, stage, func() error {
-			err = c.findAndDeleteDeployment(stage, localCpiInstallation, deploymentState.DirectorID, installationManifest.Mbus, installationManifest.Cert.CA)
+			err = c.findAndDeleteDeployment(skipDrain, stage, localCpiInstallation, deploymentState.DirectorID, installationManifest.Mbus, installationManifest.Cert.CA)
 
 			if err != nil {
 				return err
@@ -167,13 +167,13 @@ func (c *deploymentDeleter) DeleteDeployment(stage biui.Stage) (err error) {
 	return err
 }
 
-func (c *deploymentDeleter) findAndDeleteDeployment(stage biui.Stage, installation biinstall.Installation, directorID, installationMbus, caCert string) error {
+func (c *deploymentDeleter) findAndDeleteDeployment(skipDrain bool, stage biui.Stage, installation biinstall.Installation, directorID, installationMbus, caCert string) error {
 	deploymentManager, err := c.deploymentManager(installation, directorID, installationMbus, caCert)
 	if err != nil {
 		return err
 	}
 
-	err = c.findCurrentDeploymentAndDelete(stage, deploymentManager)
+	err = c.findCurrentDeploymentAndDelete(skipDrain, stage, deploymentManager)
 	if err != nil {
 		return bosherr.WrapError(err, "Deleting deployment")
 	}
@@ -181,7 +181,7 @@ func (c *deploymentDeleter) findAndDeleteDeployment(stage biui.Stage, installati
 	return deploymentManager.Cleanup(stage)
 }
 
-func (c *deploymentDeleter) findCurrentDeploymentAndDelete(stage biui.Stage, deploymentManager bidepl.Manager) error {
+func (c *deploymentDeleter) findCurrentDeploymentAndDelete(skipDrain bool, stage biui.Stage, deploymentManager bidepl.Manager) error {
 	c.logger.Debug(c.logTag, "Finding current deployment...")
 
 	deployment, found, err := deploymentManager.FindCurrent()
@@ -196,7 +196,7 @@ func (c *deploymentDeleter) findCurrentDeploymentAndDelete(stage biui.Stage, dep
 			return nil
 		}
 
-		return deployment.Delete(deleteStage)
+		return deployment.Delete(skipDrain, deleteStage)
 	})
 }
 

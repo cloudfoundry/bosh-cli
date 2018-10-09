@@ -496,6 +496,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("InspectLocalStemcell", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("InspectLocalStemcell", opts)).To(Equal(
+					`command:"inspect-local-stemcell" description:"Display information from stemcell metadata"`,
+				))
+			})
+		})
+
 		Describe("DeleteRelease", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("DeleteRelease", opts)).To(Equal(
@@ -823,6 +831,12 @@ var _ = Describe("Opts", func() {
 				`long:"recreate-persistent-disks" description:"Recreate persistent disks in the deployment"`,
 			))
 		})
+
+		It("has --skip-drain", func() {
+			Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
+				`long:"skip-drain" description:"Skip running drain scripts"`,
+			))
+		})
 	})
 
 	Describe("CreateEnvArgs", func() {
@@ -857,6 +871,12 @@ var _ = Describe("Opts", func() {
 		It("has --state", func() {
 			Expect(getStructTagForName("StatePath", opts)).To(Equal(
 				`long:"state" value-name:"PATH" description:"State file path"`,
+			))
+		})
+
+		It("has --skip-drain", func() {
+			Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
+				`long:"skip-drain" description:"Skip running drain scripts"`,
 			))
 		})
 	})

@@ -68,17 +68,35 @@ var _ = Describe("UAALoginStrategy", func() {
 
 		act := func() error { return strategy.Try() }
 
+		Context("when the access token is not refreshable", func() {
+			BeforeEach(func() {
+				accessToken := &fakeuaa.FakeAccessToken{}
+				accessToken.ValueReturns("access-token")
+				accessToken.TypeReturns("type")
+
+				uaa.OwnerPasswordCredentialsGrantReturns(accessToken, nil)
+			})
+
+			Context("when credentials are correct", func() {
+				It("successfully logs in", func() {
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(ui.Said).To(Equal([]string{"Using environment 'environment'", "Successfully authenticated with UAA"}))
+				})
+			})
+		})
+
 		Context("when session credentials are not set for UAA client (implies user login)", func() {
 			var (
-				accessToken *fakeuaa.FakeAccessToken
+				accessToken *fakeuaa.FakeRefreshableAccessToken
 			)
 
 			BeforeEach(func() {
-				refreshToken := &fakeuaa.FakeToken{}
-				refreshToken.ValueReturns("refresh-token")
-
-				accessToken = &fakeuaa.FakeAccessToken{}
-				accessToken.RefreshTokenReturns(refreshToken)
+				accessToken = &fakeuaa.FakeRefreshableAccessToken{}
+				accessToken.ValueReturns("access-token")
+				accessToken.TypeReturns("type")
+				accessToken.RefreshValueReturns("refresh-token")
 
 				ui.AskedText = []fakeui.Answer{
 					{Text: "asked-username1"},
@@ -143,19 +161,19 @@ var _ = Describe("UAALoginStrategy", func() {
 						Expect(ui.Said).To(Equal([]string{"Using environment 'environment'", "Successfully authenticated with UAA"}))
 					})
 
-					It("saves the config with a refresh token", func() {
+					It("saves the config with refresh and access tokens", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(updatedConfig.SaveCallCount()).To(Equal(1))
 						Expect(updatedConfig.Credentials("environment")).To(
-							Equal(cmdconf.Creds{RefreshToken: "refresh-token"}))
+							Equal(cmdconf.Creds{RefreshToken: "refresh-token", AccessToken: "access-token", AccessTokenType: "type"}))
 					})
 				})
 
 				Context("when cannot check credentials or they are not correct", func() {
 					BeforeEach(func() {
-						tokens := []*fakeuaa.FakeAccessToken{nil, nil, accessToken}
+						tokens := []*fakeuaa.FakeRefreshableAccessToken{nil, nil, accessToken}
 						errs := []error{errors.New("fail"), errors.New("fail"), nil}
 
 						grantFunc := func([]boshuaa.PromptAnswer) (boshuaa.AccessToken, error) {
@@ -187,7 +205,9 @@ var _ = Describe("UAALoginStrategy", func() {
 
 						Expect(updatedConfig.SaveCallCount()).To(Equal(1))
 						Expect(updatedConfig.Credentials("environment")).To(Equal(cmdconf.Creds{
-							RefreshToken: "refresh-token",
+							AccessTokenType: "type",
+							AccessToken:     "access-token",
+							RefreshToken:    "refresh-token",
 						}))
 					})
 				})

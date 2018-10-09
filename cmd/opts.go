@@ -95,10 +95,11 @@ type BoshOpts struct {
 	Event  EventOpts  `command:"event" description:"Show event details"`
 
 	// Stemcells
-	Stemcells      StemcellsOpts      `command:"stemcells"       alias:"ss"   description:"List stemcells"`
-	UploadStemcell UploadStemcellOpts `command:"upload-stemcell" alias:"us"   description:"Upload stemcell"`
-	DeleteStemcell DeleteStemcellOpts `command:"delete-stemcell" alias:"dels" description:"Delete stemcell"`
-	RepackStemcell RepackStemcellOpts `command:"repack-stemcell"              description:"Repack stemcell"`
+	Stemcells            StemcellsOpts              `command:"stemcells"       alias:"ss"   description:"List stemcells"`
+	InspectLocalStemcell InspectStemcellTarballOpts `command:"inspect-local-stemcell"     description:"Display information from stemcell metadata"`
+	UploadStemcell       UploadStemcellOpts         `command:"upload-stemcell" alias:"us"   description:"Upload stemcell"`
+	DeleteStemcell       DeleteStemcellOpts         `command:"delete-stemcell" alias:"dels" description:"Delete stemcell"`
+	RepackStemcell       RepackStemcellOpts         `command:"repack-stemcell"              description:"Repack stemcell"`
 
 	// Releases
 	Releases       ReleasesOpts       `command:"releases"        alias:"rs"   description:"List releases"`
@@ -116,6 +117,10 @@ type BoshOpts struct {
 	AttachDisk AttachDiskOpts `command:"attach-disk" description:"Attach disk to an instance"`
 	DeleteDisk DeleteDiskOpts `command:"delete-disk" description:"Delete disk"`
 	OrphanDisk OrphanDiskOpts `command:"orphan-disk" description:"Orphan disk"`
+
+	// Networks
+	Networks      NetworksOpts      `command:"networks"       description:"List networks"`
+	DeleteNetwork DeleteNetworkOpts `command:"delete-network" description:"Delete network"`
 
 	// Snapshots
 	Snapshots       SnapshotsOpts       `command:"snapshots"        description:"List snapshots"`
@@ -179,6 +184,7 @@ type CreateEnvOpts struct {
 	Args CreateEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
+	SkipDrain               bool   `long:"skip-drain" description:"Skip running drain scripts"`
 	StatePath               string `long:"state" value-name:"PATH" description:"State file path"`
 	Recreate                bool   `long:"recreate" description:"Recreate VM in deployment"`
 	RecreatePersistentDisks bool   `long:"recreate-persistent-disks" description:"Recreate persistent disks in the deployment"`
@@ -193,6 +199,7 @@ type DeleteEnvOpts struct {
 	Args DeleteEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
+	SkipDrain bool   `long:"skip-drain" description:"Skip running drain scripts"`
 	StatePath string `long:"state" value-name:"PATH" description:"State file path"`
 	cmd
 }
@@ -542,6 +549,15 @@ type RepackStemcellArgs struct {
 	PathToResult   FileArg `positional-arg-name:"PATH-TO-RESULT" description:"Path to repacked stemcell"`
 }
 
+type InspectStemcellTarballOpts struct {
+	Args InspectStemcellTarballArgs `positional-args:"true" required:"true"`
+	cmd
+}
+
+type InspectStemcellTarballArgs struct {
+	PathToStemcell string `positional-arg-name:"PATH-TO-STEMCELL" description:"Path to stemcell"`
+}
+
 // Releases
 
 type ReleasesOpts struct {
@@ -634,6 +650,22 @@ type RunErrandOpts struct {
 
 type RunErrandArgs struct {
 	Name string `positional-arg-name:"NAME"`
+}
+
+// Networks
+
+type NetworksOpts struct {
+	Orphaned bool `long:"orphaned" short:"o" description:"List orphaned networks"`
+	cmd
+}
+
+type DeleteNetworkOpts struct {
+	Args DeleteNetworkArgs `positional-args:"true" required:"true"`
+	cmd
+}
+
+type DeleteNetworkArgs struct {
+	Name string `positional-arg-name:"name"`
 }
 
 // Disks

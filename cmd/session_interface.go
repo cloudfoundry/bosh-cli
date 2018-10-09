@@ -11,6 +11,7 @@ import (
 type SessionContext interface {
 	Environment() string
 	CACert() string
+	Config() cmdconf.Config
 	Credentials() cmdconf.Creds
 
 	Deployment() string

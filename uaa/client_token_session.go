@@ -1,8 +1,8 @@
 package uaa
 
 type ClientTokenSession struct {
-	uaa       UAA
-	lastToken Token
+	uaa   UAA
+	token AccessToken
 }
 
 func NewClientTokenSession(uaa UAA) *ClientTokenSession {
@@ -10,14 +10,14 @@ func NewClientTokenSession(uaa UAA) *ClientTokenSession {
 }
 
 func (c *ClientTokenSession) TokenFunc(retried bool) (string, error) {
-	if c.lastToken == nil || retried {
+	if c.token == nil || retried {
 		token, err := c.uaa.ClientCredentialsGrant()
 		if err != nil {
 			return "", err
 		}
 
-		c.lastToken = token
+		c.token = token
 	}
 
-	return c.lastToken.Type() + " " + c.lastToken.Value(), nil
+	return c.token.Type() + " " + c.token.Value(), nil
 }

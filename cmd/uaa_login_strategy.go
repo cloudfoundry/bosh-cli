@@ -119,7 +119,12 @@ func (c UAALoginStrategy) tryUserOnce(environment string, prompts []boshuaa.Prom
 	}
 
 	creds := cmdconf.Creds{
-		RefreshToken: accessToken.RefreshToken().Value(),
+		AccessToken:     accessToken.Value(),
+		AccessTokenType: accessToken.Type(),
+	}
+
+	if refreshToken, ok := accessToken.(boshuaa.RefreshableAccessToken); ok {
+		creds.RefreshToken = refreshToken.RefreshValue()
 	}
 
 	updatedConfig := c.config.SetCredentials(environment, creds)

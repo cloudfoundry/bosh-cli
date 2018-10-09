@@ -27,6 +27,15 @@ type FakeSessionContext struct {
 	cACertReturnsOnCall map[int]struct {
 		result1 string
 	}
+	ConfigStub        func() cmdconf.Config
+	configMutex       sync.RWMutex
+	configArgsForCall []struct{}
+	configReturns     struct {
+		result1 cmdconf.Config
+	}
+	configReturnsOnCall map[int]struct {
+		result1 cmdconf.Config
+	}
 	CredentialsStub        func() cmdconf.Creds
 	credentialsMutex       sync.RWMutex
 	credentialsArgsForCall []struct{}
@@ -129,6 +138,46 @@ func (fake *FakeSessionContext) CACertReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
+func (fake *FakeSessionContext) Config() cmdconf.Config {
+	fake.configMutex.Lock()
+	ret, specificReturn := fake.configReturnsOnCall[len(fake.configArgsForCall)]
+	fake.configArgsForCall = append(fake.configArgsForCall, struct{}{})
+	fake.recordInvocation("Config", []interface{}{})
+	fake.configMutex.Unlock()
+	if fake.ConfigStub != nil {
+		return fake.ConfigStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.configReturns.result1
+}
+
+func (fake *FakeSessionContext) ConfigCallCount() int {
+	fake.configMutex.RLock()
+	defer fake.configMutex.RUnlock()
+	return len(fake.configArgsForCall)
+}
+
+func (fake *FakeSessionContext) ConfigReturns(result1 cmdconf.Config) {
+	fake.ConfigStub = nil
+	fake.configReturns = struct {
+		result1 cmdconf.Config
+	}{result1}
+}
+
+func (fake *FakeSessionContext) ConfigReturnsOnCall(i int, result1 cmdconf.Config) {
+	fake.ConfigStub = nil
+	if fake.configReturnsOnCall == nil {
+		fake.configReturnsOnCall = make(map[int]struct {
+			result1 cmdconf.Config
+		})
+	}
+	fake.configReturnsOnCall[i] = struct {
+		result1 cmdconf.Config
+	}{result1}
+}
+
 func (fake *FakeSessionContext) Credentials() cmdconf.Creds {
 	fake.credentialsMutex.Lock()
 	ret, specificReturn := fake.credentialsReturnsOnCall[len(fake.credentialsArgsForCall)]
@@ -216,11 +265,17 @@ func (fake *FakeSessionContext) Invocations() map[string][][]interface{} {
 	defer fake.environmentMutex.RUnlock()
 	fake.cACertMutex.RLock()
 	defer fake.cACertMutex.RUnlock()
+	fake.configMutex.RLock()
+	defer fake.configMutex.RUnlock()
 	fake.credentialsMutex.RLock()
 	defer fake.credentialsMutex.RUnlock()
 	fake.deploymentMutex.RLock()
 	defer fake.deploymentMutex.RUnlock()
-	return fake.invocations
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeSessionContext) recordInvocation(key string, args []interface{}) {

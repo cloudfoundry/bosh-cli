@@ -26,6 +26,7 @@ type Instance interface {
 	Delete(
 		pingTimeout time.Duration,
 		pingDelay time.Duration,
+		skipDrain bool,
 		stage biui.Stage,
 	) error
 }
@@ -205,6 +206,7 @@ func (i *instance) UpdateJobs(
 func (i *instance) Delete(
 	pingTimeout time.Duration,
 	pingDelay time.Duration,
+	skipDrain bool,
 	stage biui.Stage,
 ) error {
 	vmExists, err := i.vm.Exists()
@@ -213,7 +215,7 @@ func (i *instance) Delete(
 	}
 
 	if vmExists {
-		if err = i.shutdown(pingTimeout, pingDelay, stage); err != nil {
+		if err = i.shutdown(pingTimeout, pingDelay, skipDrain, stage); err != nil {
 			return err
 		}
 	}
@@ -233,6 +235,7 @@ func (i *instance) Delete(
 func (i *instance) shutdown(
 	pingTimeout time.Duration,
 	pingDelay time.Duration,
+	skipDrain bool,
 	stage biui.Stage,
 ) error {
 	stepName := fmt.Sprintf("Waiting for the agent on VM '%s'", i.vm.CID())
@@ -245,6 +248,12 @@ func (i *instance) shutdown(
 	if waitingForAgentErr != nil {
 		i.logger.Warn(i.logTag, "Gave up waiting for agent: %s", waitingForAgentErr.Error())
 		return nil
+	}
+
+	if !skipDrain {
+		if err := i.drainJobs(stage); err != nil {
+			return err
+		}
 	}
 
 	if err := i.stopJobs(stage); err != nil {
@@ -266,6 +275,13 @@ func (i *instance) waitUntilJobsAreRunning(updateWatchTime bideplmanifest.WatchT
 	return stage.Perform(stepName, func() error {
 		time.Sleep(start)
 		return i.vm.WaitToBeRunning(maxAttempts, delayBetweenAttempts)
+	})
+}
+
+func (i *instance) drainJobs(stage biui.Stage) error {
+	stepName := fmt.Sprintf("Draining jobs on instance '%s/%d'", i.jobName, i.id)
+	return stage.Perform(stepName, func() error {
+		return i.vm.Drain()
 	})
 }
 

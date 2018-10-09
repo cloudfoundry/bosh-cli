@@ -2,6 +2,7 @@ package configfakes
 
 import (
 	"github.com/cloudfoundry/bosh-cli/cmd/config"
+	"github.com/cloudfoundry/bosh-cli/uaa"
 )
 
 type FakeConfig2 struct {
@@ -46,6 +47,10 @@ func (f *FakeConfig2) AliasEnvironment(environment, alias, caCert string) (confi
 		Saved:   f.Saved,
 		SaveErr: f.SaveErr,
 	}, f.AliasEnvironmentErr
+}
+
+func (fake *FakeConfig2) UpdateConfigWithToken(environment string, t uaa.AccessToken) error {
+	panic("Not implemented")
 }
 
 func (f *FakeConfig2) CACert(environment string) string {

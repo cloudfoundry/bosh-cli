@@ -26,6 +26,15 @@ type FakeToken struct {
 	valueReturnsOnCall map[int]struct {
 		result1 string
 	}
+	IsValidStub        func() bool
+	isValidMutex       sync.RWMutex
+	isValidArgsForCall []struct{}
+	isValidReturns     struct {
+		result1 bool
+	}
+	isValidReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -110,6 +119,46 @@ func (fake *FakeToken) ValueReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
+func (fake *FakeToken) IsValid() bool {
+	fake.isValidMutex.Lock()
+	ret, specificReturn := fake.isValidReturnsOnCall[len(fake.isValidArgsForCall)]
+	fake.isValidArgsForCall = append(fake.isValidArgsForCall, struct{}{})
+	fake.recordInvocation("IsValid", []interface{}{})
+	fake.isValidMutex.Unlock()
+	if fake.IsValidStub != nil {
+		return fake.IsValidStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.isValidReturns.result1
+}
+
+func (fake *FakeToken) IsValidCallCount() int {
+	fake.isValidMutex.RLock()
+	defer fake.isValidMutex.RUnlock()
+	return len(fake.isValidArgsForCall)
+}
+
+func (fake *FakeToken) IsValidReturns(result1 bool) {
+	fake.IsValidStub = nil
+	fake.isValidReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeToken) IsValidReturnsOnCall(i int, result1 bool) {
+	fake.IsValidStub = nil
+	if fake.isValidReturnsOnCall == nil {
+		fake.isValidReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.isValidReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *FakeToken) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -117,7 +166,13 @@ func (fake *FakeToken) Invocations() map[string][][]interface{} {
 	defer fake.typeMutex.RUnlock()
 	fake.valueMutex.RLock()
 	defer fake.valueMutex.RUnlock()
-	return fake.invocations
+	fake.isValidMutex.RLock()
+	defer fake.isValidMutex.RUnlock()
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeToken) recordInvocation(key string, args []interface{}) {

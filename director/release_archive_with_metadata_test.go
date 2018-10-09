@@ -1,35 +1,18 @@
 package director_test
 
 import (
-	"archive/tar"
-	"bytes"
-	"compress/gzip"
-	"errors"
-
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"archive/tar"
+	"bytes"
+	"compress/gzip"
+	"errors"
 	. "github.com/cloudfoundry/bosh-cli/director"
 )
 
 var _ = Describe("NewFSReleaseArchive", func() {
-	It("returns release archive", func() {
-		fs := fakesys.NewFakeFileSystem()
-		Expect(NewFSReleaseArchive("/path", fs)).To(
-			Equal(NewFSArchiveWithMetadata("/path", "release.MF", fs)))
-	})
-})
-
-var _ = Describe("NewFSStemcellArchive", func() {
-	It("returns stemcell archive", func() {
-		fs := fakesys.NewFakeFileSystem()
-		Expect(NewFSStemcellArchive("/path", fs)).To(
-			Equal(NewFSArchiveWithMetadata("/path", "stemcell.MF", fs)))
-	})
-})
-
-var _ = Describe("FSArchiveWithMetadata", func() {
 	var (
 		fs      *fakesys.FakeFileSystem
 		archive ReleaseArchive
@@ -37,7 +20,7 @@ var _ = Describe("FSArchiveWithMetadata", func() {
 
 	BeforeEach(func() {
 		fs = fakesys.NewFakeFileSystem()
-		archive = NewFSArchiveWithMetadata("/path", "metadata.MF", fs)
+		archive = NewFSReleaseArchive("/path", fs)
 	})
 
 	Describe("Info", func() {
@@ -100,30 +83,30 @@ var _ = Describe("FSArchiveWithMetadata", func() {
 		}
 
 		It("returns release name and version from metadata file", func() {
-			err := fs.WriteFile("/path", validReleaseTgzBytes("metadata.MF", validContent))
+			err := fs.WriteFile("/path", validReleaseTgzBytes("release.MF", validContent))
 			Expect(err).ToNot(HaveOccurred())
 
-			name, version, err := archive.Info()
+			releaseMetadata, err := archive.Info()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(name).To(Equal("name"))
-			Expect(version).To(Equal("ver"))
+			Expect(releaseMetadata.Name).To(Equal("name"))
+			Expect(releaseMetadata.Version).To(Equal("ver"))
 		})
 
 		It("returns release name and version from dotted metadata file", func() {
-			err := fs.WriteFile("/path", validReleaseTgzBytes("./metadata.MF", validContent))
+			err := fs.WriteFile("/path", validReleaseTgzBytes("./release.MF", validContent))
 			Expect(err).ToNot(HaveOccurred())
 
-			name, version, err := archive.Info()
+			releaseMetadata, err := archive.Info()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(name).To(Equal("name"))
-			Expect(version).To(Equal("ver"))
+			Expect(releaseMetadata.Name).To(Equal("name"))
+			Expect(releaseMetadata.Version).To(Equal("ver"))
 		})
 
 		It("returns error if cannot read gzip", func() {
 			err := fs.WriteFileString("/path", "invalid-gzip")
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = archive.Info()
+			_, err = archive.Info()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("gzip: invalid header"))
 		})
@@ -141,7 +124,7 @@ var _ = Describe("FSArchiveWithMetadata", func() {
 			err = fs.WriteFile("/path", fileBytes.Bytes())
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = archive.Info()
+			_, err = archive.Info()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Reading next tar entry"))
 		})
@@ -150,24 +133,24 @@ var _ = Describe("FSArchiveWithMetadata", func() {
 			err := fs.WriteFile("/path", validReleaseTgzBytes("./wrong.MF", ""))
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = archive.Info()
+			_, err = archive.Info()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Missing 'metadata.MF'"))
+			Expect(err.Error()).To(ContainSubstring("Missing 'release.MF'"))
 		})
 
 		It("returns error if cannot parse manifest file", func() {
-			err := fs.WriteFile("/path", validReleaseTgzBytes("./metadata.MF", "-"))
+			err := fs.WriteFile("/path", validReleaseTgzBytes("./release.MF", "-"))
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = archive.Info()
+			_, err = archive.Info()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Unmarshalling 'metadata.MF'"))
+			Expect(err.Error()).To(ContainSubstring("Unmarshalling 'release.MF'"))
 		})
 
 		It("returns error if cannot open archive", func() {
 			fs.OpenFileErr = errors.New("fake-err")
 
-			_, _, err := archive.Info()
+			_, err := archive.Info()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})

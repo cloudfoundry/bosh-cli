@@ -40,15 +40,15 @@ func (m *MockInstance) EXPECT() *MockInstanceMockRecorder {
 }
 
 // Delete mocks base method
-func (m *MockInstance) Delete(arg0, arg1 time.Duration, arg2 ui.Stage) error {
-	ret := m.ctrl.Call(m, "Delete", arg0, arg1, arg2)
+func (m *MockInstance) Delete(arg0, arg1 time.Duration, arg2 bool, arg3 ui.Stage) error {
+	ret := m.ctrl.Call(m, "Delete", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete
-func (mr *MockInstanceMockRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockInstance)(nil).Delete), arg0, arg1, arg2)
+func (mr *MockInstanceMockRecorder) Delete(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockInstance)(nil).Delete), arg0, arg1, arg2, arg3)
 }
 
 // Disks mocks base method
@@ -163,15 +163,15 @@ func (mr *MockManagerMockRecorder) Create(arg0, arg1, arg2, arg3, arg4, arg5 int
 }
 
 // DeleteAll mocks base method
-func (m *MockManager) DeleteAll(arg0, arg1 time.Duration, arg2 ui.Stage) error {
-	ret := m.ctrl.Call(m, "DeleteAll", arg0, arg1, arg2)
+func (m *MockManager) DeleteAll(arg0, arg1 time.Duration, arg2 bool, arg3 ui.Stage) error {
+	ret := m.ctrl.Call(m, "DeleteAll", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteAll indicates an expected call of DeleteAll
-func (mr *MockManagerMockRecorder) DeleteAll(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockManager)(nil).DeleteAll), arg0, arg1, arg2)
+func (mr *MockManagerMockRecorder) DeleteAll(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockManager)(nil).DeleteAll), arg0, arg1, arg2, arg3)
 }
 
 // FindCurrent mocks base method

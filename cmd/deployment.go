@@ -2,31 +2,26 @@ package cmd
 
 import (
 	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type DeploymentCmd struct {
-	sessionFactory func(cmdconf.Config) Session
+	session Session
 
-	director boshdir.Director
-	config   cmdconf.Config
-	ui       biui.UI
+	config cmdconf.Config
+	ui     biui.UI
 }
 
 func NewDeploymentCmd(
-	sessionFactory func(cmdconf.Config) Session,
+	session Session,
 	config cmdconf.Config,
 	ui biui.UI,
-	director boshdir.Director,
 ) DeploymentCmd {
-	return DeploymentCmd{sessionFactory: sessionFactory, config: config, ui: ui, director: director}
+	return DeploymentCmd{session: session, config: config, ui: ui}
 }
 
 func (c DeploymentCmd) Run() error {
-	sess := c.sessionFactory(c.config)
-
-	deployment, err := sess.Deployment()
+	deployment, err := c.session.Deployment()
 	if err != nil {
 		return err
 	}
@@ -46,7 +41,12 @@ func (c DeploymentCmd) Run() error {
 		return err
 	}
 
-	configs, err := c.director.ListDeploymentConfigs(deployment.Name())
+	director, err := c.session.Director()
+	if err != nil {
+		return err
+	}
+
+	configs, err := director.ListDeploymentConfigs(deployment.Name())
 	if err != nil {
 		return err
 	}

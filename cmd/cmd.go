@@ -79,7 +79,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		}
 
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
-		return NewDeleteCmd(deps.UI, envProvider).Run(stage, *opts)
+		return NewDeleteEnvCmd(deps.UI, envProvider).Run(stage, *opts)
 
 	case *AliasEnvOpts:
 		sessionFactory := func(config cmdconf.Config) Session {
@@ -123,11 +123,8 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewCancelTaskCmd(c.director()).Run(*opts)
 
 	case *DeploymentOpts:
-		sessionFactory := func(config cmdconf.Config) Session {
-			return NewSessionFromOpts(c.BoshOpts, config, deps.UI, true, false, deps.FS, deps.Logger)
-		}
-
-		return NewDeploymentCmd(sessionFactory, c.config(), deps.UI, c.director()).Run()
+		sess := NewSessionFromOpts(c.BoshOpts, c.config(), deps.UI, true, false, deps.FS, deps.Logger)
+		return NewDeploymentCmd(sess, c.config(), deps.UI).Run()
 
 	case *DeploymentsOpts:
 		return NewDeploymentsCmd(deps.UI, c.director()).Run()
@@ -187,6 +184,13 @@ func (c Cmd) Execute() (cmdErr error) {
 
 		return NewRepackStemcellCmd(deps.UI, deps.FS, stemcellExtractor).Run(*opts)
 
+	case *InspectStemcellTarballOpts:
+		stemcellArchiveFactory := func(path string) boshdir.StemcellArchive {
+			return boshdir.NewFSStemcellArchive(path, deps.FS)
+		}
+
+		return NewInspectStemcellTarballCmd(stemcellArchiveFactory, deps.UI).Run(*opts)
+
 	case *LocksOpts:
 		return NewLocksCmd(deps.UI, c.director()).Run()
 
@@ -209,6 +213,12 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *OrphanDiskOpts:
 		return NewOrphanDiskCmd(deps.UI, c.director()).Run(*opts)
+
+	case *NetworksOpts:
+		return NewNetworksCmd(deps.UI, c.director()).Run(*opts)
+
+	case *DeleteNetworkOpts:
+		return NewDeleteNetworkCmd(deps.UI, c.director()).Run(*opts)
 
 	case *SnapshotsOpts:
 		return NewSnapshotsCmd(deps.UI, c.deployment()).Run(*opts)

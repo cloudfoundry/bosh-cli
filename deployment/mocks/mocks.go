@@ -44,15 +44,15 @@ func (m *MockDeployment) EXPECT() *MockDeploymentMockRecorder {
 }
 
 // Delete mocks base method
-func (m *MockDeployment) Delete(arg0 ui.Stage) error {
-	ret := m.ctrl.Call(m, "Delete", arg0)
+func (m *MockDeployment) Delete(arg0 bool, arg1 ui.Stage) error {
+	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete
-func (mr *MockDeploymentMockRecorder) Delete(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockDeployment)(nil).Delete), arg0)
+func (mr *MockDeploymentMockRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockDeployment)(nil).Delete), arg0, arg1)
 }
 
 // MockFactory is a mock of Factory interface
@@ -114,16 +114,16 @@ func (m *MockDeployer) EXPECT() *MockDeployerMockRecorder {
 }
 
 // Deploy mocks base method
-func (m *MockDeployer) Deploy(arg0 cloud.Cloud, arg1 manifest.Manifest, arg2 stemcell.CloudStemcell, arg3 manifest0.Registry, arg4 vm.Manager, arg5 blobstore.Blobstore, arg6 ui.Stage) (deployment.Deployment, error) {
-	ret := m.ctrl.Call(m, "Deploy", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+func (m *MockDeployer) Deploy(arg0 cloud.Cloud, arg1 manifest.Manifest, arg2 stemcell.CloudStemcell, arg3 manifest0.Registry, arg4 vm.Manager, arg5 blobstore.Blobstore, arg6 bool, arg7 ui.Stage) (deployment.Deployment, error) {
+	ret := m.ctrl.Call(m, "Deploy", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 	ret0, _ := ret[0].(deployment.Deployment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Deploy indicates an expected call of Deploy
-func (mr *MockDeployerMockRecorder) Deploy(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Deploy", reflect.TypeOf((*MockDeployer)(nil).Deploy), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+func (mr *MockDeployerMockRecorder) Deploy(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Deploy", reflect.TypeOf((*MockDeployer)(nil).Deploy), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 }
 
 // MockManager is a mock of Manager interface

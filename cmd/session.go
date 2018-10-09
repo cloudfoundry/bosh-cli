@@ -109,8 +109,8 @@ func (c *SessionImpl) Director() (boshdir.Director, error) {
 		if creds.IsUAAClient() {
 			dirConfig.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
 		} else {
-			origToken := uaa.NewStaleAccessToken(creds.RefreshToken)
-			dirConfig.TokenFunc = boshuaa.NewAccessTokenSession(origToken).TokenFunc
+			origToken := boshuaa.NewRefreshableAccessToken(creds.AccessTokenType, creds.AccessToken, creds.RefreshToken)
+			dirConfig.TokenFunc = boshuaa.NewAccessTokenSession(uaa, origToken, c.context.Config(), c.Environment()).TokenFunc
 		}
 	}
 
@@ -121,12 +121,12 @@ func (c *SessionImpl) Director() (boshdir.Director, error) {
 	taskReporter := boshuit.NewReporter(c.ui, true)
 	fileReporter := boshui.NewFileReporter(c.ui)
 
-	director, err := boshdir.NewFactory(c.logger).New(dirConfig, taskReporter, fileReporter)
+	director, err := boshdir.NewFactory(c.logger).New(dirConfig, c.context.Config(), taskReporter, fileReporter)
 	if err != nil {
 		return nil, err
 	}
 
-	// Memoize only on successfuly creation
+	// Memoize only on successful creation
 	c.director = director
 
 	return c.director, nil
@@ -160,7 +160,7 @@ func (c *SessionImpl) AnonymousDirector() (boshdir.Director, error) {
 
 	dirConfig.CACert = c.context.CACert()
 
-	return boshdir.NewFactory(c.logger).New(dirConfig, nil, nil)
+	return boshdir.NewFactory(c.logger).New(dirConfig, c.context.Config(), nil, nil)
 }
 
 func (c *SessionImpl) Deployment() (boshdir.Deployment, error) {

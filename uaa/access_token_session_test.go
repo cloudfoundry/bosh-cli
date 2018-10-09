@@ -3,125 +3,137 @@ package uaa_test
 import (
 	"errors"
 
+	. "github.com/cloudfoundry/bosh-cli/uaa"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/uaa"
+	"github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
+
 	fakeuaa "github.com/cloudfoundry/bosh-cli/uaa/uaafakes"
 )
 
 var _ = Describe("AccessTokenSession", func() {
 	var (
-		initToken *fakeuaa.FakeAccessToken
+		uaa       *fakeuaa.FakeUAA
+		initToken *fakeuaa.FakeRefreshableAccessToken
+		config    *configfakes.FakeConfig
 		sess      *AccessTokenSession
 	)
 
 	BeforeEach(func() {
-		initToken = &fakeuaa.FakeAccessToken{}
-		sess = NewAccessTokenSession(initToken)
+		uaa = &fakeuaa.FakeUAA{}
 	})
 
 	Describe("TokenFunc", func() {
-		Context("on first call", func() {
-			Context("when retrying is set", func() {
-				It("returns an auth header with a new token", func() {
-					firstToken := &fakeuaa.FakeAccessToken{
-						TypeStub:  func() string { return "type1" },
-						ValueStub: func() string { return "value1" },
-					}
-					initToken.RefreshReturns(firstToken, nil)
+		BeforeEach(func() {
+			initToken = &fakeuaa.FakeRefreshableAccessToken{}
+			config = &configfakes.FakeConfig{}
+			sess = NewAccessTokenSession(uaa, initToken, config, "url")
+			initToken.IsValidReturns(false)
+		})
 
-					header, err := sess.TokenFunc(true)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(header).To(Equal("type1 value1"))
-				})
+		Context("when initial token is invalid", func() {
+			It("returns an auth header with a new token and updates config", func() {
+				token := &fakeuaa.FakeRefreshableAccessToken{
+					TypeStub:         func() string { return "type1" },
+					ValueStub:        func() string { return "value1" },
+					RefreshValueStub: func() string { return "refresh-value1" },
+				}
+				uaa.RefreshTokenGrantReturns(token, nil)
 
-				It("returns an error if obtaining first token fails", func() {
-					firstToken := &fakeuaa.FakeAccessToken{}
-					initToken.RefreshReturns(firstToken, errors.New("fake-err"))
-
-					_, err := sess.TokenFunc(true)
-					Expect(err).To(HaveOccurred())
-				})
+				header, err := sess.TokenFunc(false)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(header).To(Equal("type1 value1"))
+				Expect(config.UpdateConfigWithTokenCallCount()).To(Equal(1))
+				env, updatedToken := config.UpdateConfigWithTokenArgsForCall(0)
+				Expect(env).To(Equal("url"))
+				Expect(updatedToken).To(Equal(token))
 			})
 
-			Context("when retrying is not set", func() {
-				It("returns an auth header with a new token", func() {
-					firstToken := &fakeuaa.FakeAccessToken{
-						TypeStub:  func() string { return "type1" },
-						ValueStub: func() string { return "value1" },
-					}
-					initToken.RefreshReturns(firstToken, nil)
+			It("returns an error if obtaining token fails", func() {
+				token := &fakeuaa.FakeRefreshableAccessToken{}
+				uaa.RefreshTokenGrantReturns(token, errors.New("fake-err"))
 
-					header, err := sess.TokenFunc(false)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(header).To(Equal("type1 value1"))
-				})
-
-				It("returns an error if obtaining first token fails", func() {
-					firstToken := &fakeuaa.FakeAccessToken{}
-					initToken.RefreshReturns(firstToken, errors.New("fake-err"))
-
-					_, err := sess.TokenFunc(false)
-					Expect(err).To(HaveOccurred())
-				})
+				_, err := sess.TokenFunc(false)
+				Expect(err).To(HaveOccurred())
+				Expect(config.UpdateConfigWithTokenCallCount()).To(Equal(0))
 			})
 		})
 
-		Context("on second call", func() {
-			var (
-				firstToken *fakeuaa.FakeAccessToken
-			)
+		Context("when retrying is set", func() {
+			It("returns an auth header with a new token", func() {
+				token := &fakeuaa.FakeRefreshableAccessToken{
+					TypeStub:         func() string { return "type1" },
+					ValueStub:        func() string { return "value1" },
+					RefreshValueStub: func() string { return "refresh-value1" },
+				}
+				uaa.RefreshTokenGrantReturns(token, nil)
 
-			BeforeEach(func() {
-				firstToken = &fakeuaa.FakeAccessToken{
+				header, err := sess.TokenFunc(true)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(header).To(Equal("type1 value1"))
+				Expect(config.UpdateConfigWithTokenCallCount()).To(Equal(1))
+				env, updatedToken := config.UpdateConfigWithTokenArgsForCall(0)
+				Expect(env).To(Equal("url"))
+				Expect(updatedToken).To(Equal(token))
+			})
+
+			It("returns an error if obtaining token fails", func() {
+				token := &fakeuaa.FakeRefreshableAccessToken{}
+				uaa.RefreshTokenGrantReturns(token, errors.New("fake-err"))
+
+				_, err := sess.TokenFunc(true)
+				Expect(err).To(HaveOccurred())
+				Expect(config.UpdateConfigWithTokenCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("when saving the config fails", func() {
+			It("returns an error", func() {
+				config.UpdateConfigWithTokenReturns(errors.New("fake-err"))
+
+				_, err := sess.TokenFunc(true)
+				Expect(err).To(MatchError("fake-err"))
+				Expect(config.UpdateConfigWithTokenCallCount()).To(Equal(1))
+			})
+		})
+		Context("when retrying is not set", func() {
+			It("returns an auth header with a new token", func() {
+				token := &fakeuaa.FakeAccessToken{
 					TypeStub:  func() string { return "type1" },
 					ValueStub: func() string { return "value1" },
 				}
-				initToken.RefreshReturns(firstToken, nil)
+				uaa.RefreshTokenGrantReturns(token, nil)
+
+				header, err := sess.TokenFunc(false)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(header).To(Equal("type1 value1"))
+				Expect(config.UpdateConfigWithTokenCallCount()).To(Equal(1))
+				env, updatedToken := config.UpdateConfigWithTokenArgsForCall(0)
+				Expect(env).To(Equal("url"))
+				Expect(updatedToken).To(Equal(token))
+			})
+
+			It("returns an error if obtaining first token fails", func() {
+				token := &fakeuaa.FakeAccessToken{}
+				uaa.RefreshTokenGrantReturns(token, errors.New("fake-err"))
 
 				_, err := sess.TokenFunc(false)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).To(HaveOccurred())
+				Expect(config.UpdateConfigWithTokenCallCount()).To(Equal(0))
 			})
+		})
 
-			Context("when retrying is not set", func() {
-				It("returns an auth header of a first token", func() {
-					header, err := sess.TokenFunc(false)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(header).To(Equal("type1 value1"))
-				})
+		Context("when not refreshable", func() {
+			It("returns an error", func() {
+				token := &fakeuaa.FakeAccessToken{}
 
-				It("does not try to refresh any token", func() {
-					Expect(initToken.RefreshCallCount()).To(Equal(1))
-					Expect(firstToken.RefreshCallCount()).To(Equal(0))
+				uaa.RefreshTokenGrantReturns(token, errors.New("fake-err"))
+				sess = NewAccessTokenSession(uaa, token, config, "url")
 
-					_, err := sess.TokenFunc(false)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(initToken.RefreshCallCount()).To(Equal(1))
-					Expect(firstToken.RefreshCallCount()).To(Equal(0))
-				})
-			})
-
-			Context("when retrying is set", func() {
-				It("returns an auth header with a new token", func() {
-					secondToken := &fakeuaa.FakeAccessToken{
-						TypeStub:  func() string { return "type2" },
-						ValueStub: func() string { return "value2" },
-					}
-					firstToken.RefreshReturns(secondToken, nil)
-
-					header, err := sess.TokenFunc(true)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(header).To(Equal("type2 value2"))
-				})
-
-				It("returns an error if obtaining first token fails", func() {
-					secondToken := &fakeuaa.FakeAccessToken{}
-					firstToken.RefreshReturns(secondToken, errors.New("fake-err"))
-
-					_, err := sess.TokenFunc(true)
-					Expect(err).To(HaveOccurred())
-				})
+				_, err := sess.TokenFunc(true)
+				Expect(err).To(MatchError("not a refresh token"))
+				Expect(config.UpdateConfigWithTokenCallCount()).To(Equal(0))
 			})
 		})
 	})

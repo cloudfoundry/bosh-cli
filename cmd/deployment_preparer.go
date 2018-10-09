@@ -101,7 +101,7 @@ type DeploymentPreparer struct {
 	targetProvider                          biinstall.TargetProvider
 }
 
-func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, recreatePersistentDisks bool) (err error) {
+func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, recreatePersistentDisks bool, skipDrain bool) (err error) {
 	c.ui.BeginLinef("Deployment state: '%s'\n", c.deploymentStateService.Path())
 
 	if !c.deploymentStateService.Exists() {
@@ -205,6 +205,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, 
 				installationManifest,
 				deploymentManifest,
 				manifestSHA,
+				skipDrain,
 				stage,
 				cloud,
 				usesRegistry)
@@ -234,6 +235,7 @@ func (c *DeploymentPreparer) deploy(
 	installationManifest biinstallmanifest.Manifest,
 	deploymentManifest bideplmanifest.Manifest,
 	manifestSHA string,
+	skipDrain bool,
 	stage biui.Stage,
 	cloud bicloud.Cloud,
 	usesRegistry bool,
@@ -274,6 +276,7 @@ func (c *DeploymentPreparer) deploy(
 			registrySettings,
 			vmManager,
 			blobstore,
+			skipDrain,
 			deployStage,
 		)
 		if err != nil {

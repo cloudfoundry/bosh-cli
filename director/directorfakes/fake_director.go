@@ -612,6 +612,30 @@ type FakeDirector struct {
 	orphanDiskReturnsOnCall map[int]struct {
 		result1 error
 	}
+	FindOrphanNetworkStub        func(string) (director.OrphanNetwork, error)
+	findOrphanNetworkMutex       sync.RWMutex
+	findOrphanNetworkArgsForCall []struct {
+		arg1 string
+	}
+	findOrphanNetworkReturns struct {
+		result1 director.OrphanNetwork
+		result2 error
+	}
+	findOrphanNetworkReturnsOnCall map[int]struct {
+		result1 director.OrphanNetwork
+		result2 error
+	}
+	OrphanNetworksStub        func() ([]director.OrphanNetwork, error)
+	orphanNetworksMutex       sync.RWMutex
+	orphanNetworksArgsForCall []struct{}
+	orphanNetworksReturns     struct {
+		result1 []director.OrphanNetwork
+		result2 error
+	}
+	orphanNetworksReturnsOnCall map[int]struct {
+		result1 []director.OrphanNetwork
+		result2 error
+	}
 	EnableResurrectionStub        func(bool) error
 	enableResurrectionMutex       sync.RWMutex
 	enableResurrectionArgsForCall []struct {
@@ -3032,6 +3056,100 @@ func (fake *FakeDirector) OrphanDiskReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDirector) FindOrphanNetwork(arg1 string) (director.OrphanNetwork, error) {
+	fake.findOrphanNetworkMutex.Lock()
+	ret, specificReturn := fake.findOrphanNetworkReturnsOnCall[len(fake.findOrphanNetworkArgsForCall)]
+	fake.findOrphanNetworkArgsForCall = append(fake.findOrphanNetworkArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("FindOrphanNetwork", []interface{}{arg1})
+	fake.findOrphanNetworkMutex.Unlock()
+	if fake.FindOrphanNetworkStub != nil {
+		return fake.FindOrphanNetworkStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.findOrphanNetworkReturns.result1, fake.findOrphanNetworkReturns.result2
+}
+
+func (fake *FakeDirector) FindOrphanNetworkCallCount() int {
+	fake.findOrphanNetworkMutex.RLock()
+	defer fake.findOrphanNetworkMutex.RUnlock()
+	return len(fake.findOrphanNetworkArgsForCall)
+}
+
+func (fake *FakeDirector) FindOrphanNetworkArgsForCall(i int) string {
+	fake.findOrphanNetworkMutex.RLock()
+	defer fake.findOrphanNetworkMutex.RUnlock()
+	return fake.findOrphanNetworkArgsForCall[i].arg1
+}
+
+func (fake *FakeDirector) FindOrphanNetworkReturns(result1 director.OrphanNetwork, result2 error) {
+	fake.FindOrphanNetworkStub = nil
+	fake.findOrphanNetworkReturns = struct {
+		result1 director.OrphanNetwork
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) FindOrphanNetworkReturnsOnCall(i int, result1 director.OrphanNetwork, result2 error) {
+	fake.FindOrphanNetworkStub = nil
+	if fake.findOrphanNetworkReturnsOnCall == nil {
+		fake.findOrphanNetworkReturnsOnCall = make(map[int]struct {
+			result1 director.OrphanNetwork
+			result2 error
+		})
+	}
+	fake.findOrphanNetworkReturnsOnCall[i] = struct {
+		result1 director.OrphanNetwork
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) OrphanNetworks() ([]director.OrphanNetwork, error) {
+	fake.orphanNetworksMutex.Lock()
+	ret, specificReturn := fake.orphanNetworksReturnsOnCall[len(fake.orphanNetworksArgsForCall)]
+	fake.orphanNetworksArgsForCall = append(fake.orphanNetworksArgsForCall, struct{}{})
+	fake.recordInvocation("OrphanNetworks", []interface{}{})
+	fake.orphanNetworksMutex.Unlock()
+	if fake.OrphanNetworksStub != nil {
+		return fake.OrphanNetworksStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.orphanNetworksReturns.result1, fake.orphanNetworksReturns.result2
+}
+
+func (fake *FakeDirector) OrphanNetworksCallCount() int {
+	fake.orphanNetworksMutex.RLock()
+	defer fake.orphanNetworksMutex.RUnlock()
+	return len(fake.orphanNetworksArgsForCall)
+}
+
+func (fake *FakeDirector) OrphanNetworksReturns(result1 []director.OrphanNetwork, result2 error) {
+	fake.OrphanNetworksStub = nil
+	fake.orphanNetworksReturns = struct {
+		result1 []director.OrphanNetwork
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) OrphanNetworksReturnsOnCall(i int, result1 []director.OrphanNetwork, result2 error) {
+	fake.OrphanNetworksStub = nil
+	if fake.orphanNetworksReturnsOnCall == nil {
+		fake.orphanNetworksReturnsOnCall = make(map[int]struct {
+			result1 []director.OrphanNetwork
+			result2 error
+		})
+	}
+	fake.orphanNetworksReturnsOnCall[i] = struct {
+		result1 []director.OrphanNetwork
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDirector) EnableResurrection(arg1 bool) error {
 	fake.enableResurrectionMutex.Lock()
 	ret, specificReturn := fake.enableResurrectionReturnsOnCall[len(fake.enableResurrectionArgsForCall)]
@@ -3317,6 +3435,10 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.orphanDisksMutex.RUnlock()
 	fake.orphanDiskMutex.RLock()
 	defer fake.orphanDiskMutex.RUnlock()
+	fake.findOrphanNetworkMutex.RLock()
+	defer fake.findOrphanNetworkMutex.RUnlock()
+	fake.orphanNetworksMutex.RLock()
+	defer fake.orphanNetworksMutex.RUnlock()
 	fake.enableResurrectionMutex.RLock()
 	defer fake.enableResurrectionMutex.RUnlock()
 	fake.cleanUpMutex.RLock()

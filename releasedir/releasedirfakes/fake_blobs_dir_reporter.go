@@ -157,7 +157,11 @@ func (fake *FakeBlobsDirReporter) Invocations() map[string][][]interface{} {
 	defer fake.blobUploadStartedMutex.RUnlock()
 	fake.blobUploadFinishedMutex.RLock()
 	defer fake.blobUploadFinishedMutex.RUnlock()
-	return fake.invocations
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeBlobsDirReporter) recordInvocation(key string, args []interface{}) {
