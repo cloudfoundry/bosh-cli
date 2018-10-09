@@ -98,9 +98,7 @@ jobs:
            - test-acceptance
            - integration-postgres
         - get: version-semver
-          params: {bump: patch}
         - get: homebrew-tap
-      - {put: version-semver, params: {file: version-semver/number}}
       - aggregate:
         - task: build-linux
           file: bosh-cli/ci/tasks/build-linux.yml
@@ -199,6 +197,9 @@ jobs:
       - put: homebrew-tap
         params:
           repository: update-brew-formula-output/homebrew-tap
+      - put: version-semver
+        params:
+          bump: patch
 
   - name: build-alpha
     public: true
