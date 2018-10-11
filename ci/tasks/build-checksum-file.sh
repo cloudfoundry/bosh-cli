@@ -3,7 +3,7 @@ set -eux
 
 base=$PWD
 
-echo "Artifacts" > binary-checksums
+echo "Assets" > binary-checksums
 echo -e "\`\`\`" >> binary-checksums
 echo "                                                          sha256  file"  >> binary-checksums
 
