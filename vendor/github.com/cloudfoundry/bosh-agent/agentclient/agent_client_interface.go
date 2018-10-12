@@ -12,7 +12,8 @@ type AgentClient interface {
 	Start() error
 	GetState() (AgentState, error)
 	AddPersistentDisk(string, interface{}) error
-	MountDisk(string, interface{}) error
+	RemovePersistentDisk(string) error
+	MountDisk(string) error
 	UnmountDisk(string) error
 	ListDisk() ([]string, error)
 	MigrateDisk() error

@@ -125,8 +125,8 @@ func (c *AgentClient) ListDisk() ([]string, error) {
 	return response.Value, nil
 }
 
-func (c *AgentClient) MountDisk(diskCID string, diskHint interface{}) error {
-	_, err := c.SendAsyncTaskMessage("mount_disk", []interface{}{diskCID, diskHint})
+func (c *AgentClient) MountDisk(diskCID string) error {
+	_, err := c.SendAsyncTaskMessage("mount_disk", []interface{}{diskCID})
 	return err
 }
 
@@ -266,7 +266,12 @@ func (c *AgentClient) SendAsyncTaskMessage(method string, arguments []interface{
 	return value, err
 }
 
-func (c *AgentClient) AddPersistentDisk(diskCID string, diskHints interface{}) (error) {
+func (c *AgentClient) AddPersistentDisk(diskCID string, diskHints interface{}) error {
 	_, err := c.SendAsyncTaskMessage("add_persistent_disk", []interface{}{diskCID, diskHints})
+	return err
+}
+
+func (c *AgentClient) RemovePersistentDisk(diskCID string) error {
+	_, err := c.SendAsyncTaskMessage("remove_persistent_disk", []interface{}{diskCID})
 	return err
 }

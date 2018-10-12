@@ -222,7 +222,7 @@ func (vm *vm) AttachDisk(disk bidisk.Disk) error {
 		return bosherr.WrapError(err, "Adding persistent disk")
 	}
 
-	err = vm.agentClient.MountDisk(disk.CID(), diskHints)
+	err = vm.agentClient.MountDisk(disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Mounting disk")
 	}

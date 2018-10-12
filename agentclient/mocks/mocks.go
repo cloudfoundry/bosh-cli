@@ -121,16 +121,28 @@ func (mr *MockAgentClientMockRecorder) AddPersistentDisk(arg0, arg1 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPersistentDisk", reflect.TypeOf((*MockAgentClient)(nil).AddPersistentDisk), arg0, arg1)
 }
 
+// RemovePersistentDisk mocks base method
+func (m *MockAgentClient) RemovePersistentDisk(arg0 string) error {
+	ret := m.ctrl.Call(m, "RemovePersistentDisk", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemovePersistentDisk indicates an expected call of RemovePersistentDisk
+func (mr *MockAgentClientMockRecorder) RemovePersistentDisk(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemovePersistentDisk", reflect.TypeOf((*MockAgentClient)(nil).RemovePersistentDisk), arg0)
+}
+
 // MountDisk mocks base method
-func (m *MockAgentClient) MountDisk(arg0 string, arg1 interface{}) error {
-	ret := m.ctrl.Call(m, "MountDisk", arg0, arg1)
+func (m *MockAgentClient) MountDisk(arg0 string) error {
+	ret := m.ctrl.Call(m, "MountDisk", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // MountDisk indicates an expected call of MountDisk
-func (mr *MockAgentClientMockRecorder) MountDisk(arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MountDisk", reflect.TypeOf((*MockAgentClient)(nil).MountDisk), arg0, arg1)
+func (mr *MockAgentClientMockRecorder) MountDisk(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MountDisk", reflect.TypeOf((*MockAgentClient)(nil).MountDisk), arg0)
 }
 
 // UnmountDisk mocks base method

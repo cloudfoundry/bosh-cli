@@ -85,11 +85,21 @@ type FakeAgentClient struct {
 	addPersistentDiskReturnsOnCall map[int]struct {
 		result1 error
 	}
-	MountDiskStub        func(string, interface{}) error
+	RemovePersistentDiskStub        func(string) error
+	removePersistentDiskMutex       sync.RWMutex
+	removePersistentDiskArgsForCall []struct {
+		arg1 string
+	}
+	removePersistentDiskReturns struct {
+		result1 error
+	}
+	removePersistentDiskReturnsOnCall map[int]struct {
+		result1 error
+	}
+	MountDiskStub        func(string) error
 	mountDiskMutex       sync.RWMutex
 	mountDiskArgsForCall []struct {
 		arg1 string
-		arg2 interface{}
 	}
 	mountDiskReturns struct {
 		result1 error
@@ -498,17 +508,64 @@ func (fake *FakeAgentClient) AddPersistentDiskReturnsOnCall(i int, result1 error
 	}{result1}
 }
 
-func (fake *FakeAgentClient) MountDisk(arg1 string, arg2 interface{}) error {
+func (fake *FakeAgentClient) RemovePersistentDisk(arg1 string) error {
+	fake.removePersistentDiskMutex.Lock()
+	ret, specificReturn := fake.removePersistentDiskReturnsOnCall[len(fake.removePersistentDiskArgsForCall)]
+	fake.removePersistentDiskArgsForCall = append(fake.removePersistentDiskArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("RemovePersistentDisk", []interface{}{arg1})
+	fake.removePersistentDiskMutex.Unlock()
+	if fake.RemovePersistentDiskStub != nil {
+		return fake.RemovePersistentDiskStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.removePersistentDiskReturns.result1
+}
+
+func (fake *FakeAgentClient) RemovePersistentDiskCallCount() int {
+	fake.removePersistentDiskMutex.RLock()
+	defer fake.removePersistentDiskMutex.RUnlock()
+	return len(fake.removePersistentDiskArgsForCall)
+}
+
+func (fake *FakeAgentClient) RemovePersistentDiskArgsForCall(i int) string {
+	fake.removePersistentDiskMutex.RLock()
+	defer fake.removePersistentDiskMutex.RUnlock()
+	return fake.removePersistentDiskArgsForCall[i].arg1
+}
+
+func (fake *FakeAgentClient) RemovePersistentDiskReturns(result1 error) {
+	fake.RemovePersistentDiskStub = nil
+	fake.removePersistentDiskReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeAgentClient) RemovePersistentDiskReturnsOnCall(i int, result1 error) {
+	fake.RemovePersistentDiskStub = nil
+	if fake.removePersistentDiskReturnsOnCall == nil {
+		fake.removePersistentDiskReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.removePersistentDiskReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeAgentClient) MountDisk(arg1 string) error {
 	fake.mountDiskMutex.Lock()
 	ret, specificReturn := fake.mountDiskReturnsOnCall[len(fake.mountDiskArgsForCall)]
 	fake.mountDiskArgsForCall = append(fake.mountDiskArgsForCall, struct {
 		arg1 string
-		arg2 interface{}
-	}{arg1, arg2})
-	fake.recordInvocation("MountDisk", []interface{}{arg1, arg2})
+	}{arg1})
+	fake.recordInvocation("MountDisk", []interface{}{arg1})
 	fake.mountDiskMutex.Unlock()
 	if fake.MountDiskStub != nil {
-		return fake.MountDiskStub(arg1, arg2)
+		return fake.MountDiskStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
@@ -522,10 +579,10 @@ func (fake *FakeAgentClient) MountDiskCallCount() int {
 	return len(fake.mountDiskArgsForCall)
 }
 
-func (fake *FakeAgentClient) MountDiskArgsForCall(i int) (string, interface{}) {
+func (fake *FakeAgentClient) MountDiskArgsForCall(i int) string {
 	fake.mountDiskMutex.RLock()
 	defer fake.mountDiskMutex.RUnlock()
-	return fake.mountDiskArgsForCall[i].arg1, fake.mountDiskArgsForCall[i].arg2
+	return fake.mountDiskArgsForCall[i].arg1
 }
 
 func (fake *FakeAgentClient) MountDiskReturns(result1 error) {
@@ -907,6 +964,8 @@ func (fake *FakeAgentClient) Invocations() map[string][][]interface{} {
 	defer fake.getStateMutex.RUnlock()
 	fake.addPersistentDiskMutex.RLock()
 	defer fake.addPersistentDiskMutex.RUnlock()
+	fake.removePersistentDiskMutex.RLock()
+	defer fake.removePersistentDiskMutex.RUnlock()
 	fake.mountDiskMutex.RLock()
 	defer fake.mountDiskMutex.RUnlock()
 	fake.unmountDiskMutex.RLock()
