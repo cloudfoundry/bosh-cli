@@ -1,16 +1,16 @@
 package arguments
 
 import (
+	"go/build"
+	"log"
 	"path"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"unicode"
-
-	"github.com/maxbrunsfeld/counterfeiter/terminal"
 )
 
+//go:generate counterfeiter . ArgumentParser
 type ArgumentParser interface {
 	ParseArguments(...string) ParsedArguments
 }
@@ -20,10 +20,8 @@ func NewArgumentParser(
 	currentWorkingDir CurrentWorkingDir,
 	symlinkEvaler SymlinkEvaler,
 	fileStatReader FileStatReader,
-	ui terminal.UI,
 ) ArgumentParser {
 	return &argumentParser{
-		ui:                ui,
 		failHandler:       failHandler,
 		currentWorkingDir: currentWorkingDir,
 		symlinkEvaler:     symlinkEvaler,
@@ -44,18 +42,21 @@ func (argParser *argumentParser) parseInterfaceArgs(args ...string) ParsedArgume
 	var outputPathFlagValue string
 	var rootDestinationDir string
 	var sourcePackageDir string
-	var importPath string
+	var packagePath string
+
+	if outputPathFlag != nil {
+		outputPathFlagValue = *outputPathFlag
+	}
 
 	if len(args) > 1 {
 		interfaceName = args[1]
-		outputPathFlagValue = *outputPathFlag
 		sourcePackageDir = argParser.getSourceDir(args[0])
 		rootDestinationDir = sourcePackageDir
 	} else {
 		fullyQualifiedInterface := strings.Split(args[0], ".")
 		interfaceName = fullyQualifiedInterface[len(fullyQualifiedInterface)-1]
 		rootDestinationDir = argParser.currentWorkingDir()
-		importPath = strings.Join(fullyQualifiedInterface[:len(fullyQualifiedInterface)-1], ".")
+		packagePath = strings.Join(fullyQualifiedInterface[:len(fullyQualifiedInterface)-1], ".")
 	}
 
 	fakeImplName := getFakeName(interfaceName, *fakeNameFlag)
@@ -67,12 +68,19 @@ func (argParser *argumentParser) parseInterfaceArgs(args ...string) ParsedArgume
 	)
 
 	packageName := restrictToValidPackageName(filepath.Base(filepath.Dir(outputPath)))
+	if packagePath == "" {
+		packagePath = sourcePackageDir
+	}
+	if strings.HasPrefix(packagePath, build.Default.GOPATH) {
+		packagePath = strings.Replace(packagePath, build.Default.GOPATH+"/src/", "", -1)
+	}
 
+	log.Printf("Parsed Arguments:\nInterface Name: %s\nPackage Path: %s\nDestination Package Name: %s", interfaceName, packagePath, packageName)
 	return ParsedArguments{
 		GenerateInterfaceAndShimFromPackageDirectory: false,
-		SourcePackageDir:                             sourcePackageDir,
-		OutputPath:                                   outputPath,
-		ImportPath:                                   importPath,
+		SourcePackageDir: sourcePackageDir,
+		OutputPath:       outputPath,
+		PackagePath:      packagePath,
 
 		InterfaceName:          interfaceName,
 		DestinationPackageName: packageName,
@@ -83,9 +91,8 @@ func (argParser *argumentParser) parseInterfaceArgs(args ...string) ParsedArgume
 }
 
 func (argParser *argumentParser) parsePackageArgs(args ...string) ParsedArguments {
-	dir := argParser.getPackageDir(args[0])
-
-	packageName := path.Base(dir) + "shim"
+	packagePath := args[0]
+	packageName := path.Base(packagePath) + "shim"
 
 	var outputPath string
 	if *outputPathFlag != "" {
@@ -95,19 +102,19 @@ func (argParser *argumentParser) parsePackageArgs(args ...string) ParsedArgument
 		outputPath = path.Join(argParser.currentWorkingDir(), packageName)
 	}
 
+	log.Printf("Parsed Arguments:\nPackage Name: %s\nDestination Package Name: %s", packagePath, packageName)
 	return ParsedArguments{
 		GenerateInterfaceAndShimFromPackageDirectory: true,
-		SourcePackageDir:                             dir,
-		OutputPath:                                   outputPath,
-
+		SourcePackageDir:       packagePath,
+		OutputPath:             outputPath,
+		PackagePath:            packagePath,
 		DestinationPackageName: packageName,
-
-		PrintToStdOut: any(args, "-"),
+		FakeImplName:           strings.ToUpper(path.Base(packagePath))[:1] + path.Base(packagePath)[1:],
+		PrintToStdOut:          any(args, "-"),
 	}
 }
 
 type argumentParser struct {
-	ui                terminal.UI
 	failHandler       FailHandler
 	currentWorkingDir CurrentWorkingDir
 	symlinkEvaler     SymlinkEvaler
@@ -118,7 +125,7 @@ type ParsedArguments struct {
 	GenerateInterfaceAndShimFromPackageDirectory bool
 
 	SourcePackageDir string // abs path to the dir containing the interface to fake
-	ImportPath       string // import path to the package containing the interface to fake
+	PackagePath      string // package path to the package containing the interface to fake
 	OutputPath       string // path to write the fake file to
 
 	DestinationPackageName string // often the base-dir for OutputPath but must be a valid package name
@@ -149,15 +156,15 @@ func getFakeName(interfaceName, arg string) string {
 
 var camelRegexp = regexp.MustCompile("([a-z])([A-Z])")
 
-func (argParser *argumentParser) getOutputPath(rootDestinationDir, fakeName, arg string) string {
-	if arg == "" {
+func (argParser *argumentParser) getOutputPath(rootDestinationDir, fakeName, outputPathFlagValue string) string {
+	if outputPathFlagValue == "" {
 		snakeCaseName := strings.ToLower(camelRegexp.ReplaceAllString(fakeName, "${1}_${2}"))
 		return filepath.Join(rootDestinationDir, packageNameForPath(rootDestinationDir), snakeCaseName+".go")
 	} else {
-		if !filepath.IsAbs(arg) {
-			arg = filepath.Join(argParser.currentWorkingDir(), arg)
+		if !filepath.IsAbs(outputPathFlagValue) {
+			outputPathFlagValue = filepath.Join(argParser.currentWorkingDir(), outputPathFlagValue)
 		}
-		return arg
+		return outputPathFlagValue
 	}
 }
 
@@ -166,39 +173,25 @@ func packageNameForPath(pathToPackage string) string {
 	return packageName + "fakes"
 }
 
-func (argParser *argumentParser) getPackageDir(arg string) string {
-	if filepath.IsAbs(arg) {
-		return arg
+func (argParser *argumentParser) getSourceDir(path string) string {
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(argParser.currentWorkingDir(), path)
 	}
 
-	pathToCheck := path.Join(runtime.GOROOT(), "src", arg)
-
-	stat, err := argParser.fileStatReader(pathToCheck)
+	evaluatedPath, err := argParser.symlinkEvaler(path)
 	if err != nil {
-		argParser.failHandler("No such file or directory '%s'", arg)
-	}
-	if !stat.IsDir() {
-		argParser.failHandler("No such file or directory '%s'", arg) // TODO: for now?
+		argParser.failHandler("No such file/directory/package: '%s'", path)
 	}
 
-	return pathToCheck
-}
-
-func (argParser *argumentParser) getSourceDir(arg string) string {
-	if !filepath.IsAbs(arg) {
-		arg = filepath.Join(argParser.currentWorkingDir(), arg)
-	}
-
-	arg, _ = argParser.symlinkEvaler(arg)
-	stat, err := argParser.fileStatReader(arg)
+	stat, err := argParser.fileStatReader(evaluatedPath)
 	if err != nil {
-		argParser.failHandler("No such file or directory '%s'", arg)
+		argParser.failHandler("No such file/directory/package: '%s'", path)
 	}
 
 	if !stat.IsDir() {
-		return filepath.Dir(arg)
+		return filepath.Dir(path)
 	} else {
-		return arg
+		return path
 	}
 }
 

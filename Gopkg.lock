@@ -14,8 +14,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "6cb29e61d96723a38dcac44d4c15c36744d96d07"
-  version = "v0.29.0"
+  revision = "dfffe386c33fb24c34ee501e5723df5b97b98514"
+  version = "v0.30.0"
 
 [[projects]]
   branch = "master"
@@ -37,7 +37,7 @@
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
 
 [[projects]]
-  digest = "1:bf7005279a95d5c47739cf13f4654222c7f03ca13b4226bbd0a7b6ec699827c0"
+  digest = "1:656fe228de06f6dc2cfb78998ef0d4b3d06d03a454d8de63ed569e5b7f7f3b5d"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -76,8 +76,8 @@
     "service/sts",
   ]
   pruneopts = "NUT"
-  revision = "59124d90523f4c0491f997f9a36aef265fe3502c"
-  version = "v1.15.49"
+  revision = "bf8067ceb6e7f51e150c218972dccfeeed892b85"
+  version = "v1.15.54"
 
 [[projects]]
   digest = "1:7294028ae4f4ebe9f92dccabdc69f63eba37b71fbfcdcb35ed1c32eb823fc6d4"
@@ -115,7 +115,7 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "0cb8aed59af2b81074dcc450a996fbd32348ce3f"
+  revision = "0db34f6d81c40ceec0b0ff2f58a3b28d4f8cbcea"
 
 [[projects]]
   branch = "master"
@@ -222,12 +222,12 @@
   revision = "576b6af77ae4f3ccef356902fb3b9a9ae22e0b11"
 
 [[projects]]
-  branch = "master"
   digest = "1:b7ffca49e9cfd3dfb04a8e0a59347708c6f78f68476a32c5e0a0edca5d1b258c"
   name = "github.com/dustin/go-humanize"
   packages = ["."]
   pruneopts = "NUT"
   revision = "9f541cc9db5d55bce703bd99987c9d5cb8eea45e"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:ade392a843b2035effb4b4a2efa2c3bab3eb29b992e98bacf9c898b0ecb54e45"
@@ -347,20 +347,16 @@
   version = "v0.0.3"
 
 [[projects]]
-  digest = "1:9670d34e6bfeed9cb5c91c0729da54344cb8de92a2d185aaf33869ae16291665"
+  digest = "1:73c0d0e056192cfcc1012f268c5b31d42ffcc1867070bcfe5ba52b7052b2c78a"
   name = "github.com/maxbrunsfeld/counterfeiter"
   packages = [
     ".",
     "arguments",
-    "astutil",
     "generator",
-    "locator",
-    "model",
-    "terminal",
   ]
   pruneopts = "NUT"
-  revision = "c1f2005ff133f81907ce72f3d20e1169799317fe"
-  version = "v5"
+  revision = "d68f4b05e936a5d8067cc9202590d8f9df9708f6"
+  version = "v6.0.0"
 
 [[projects]]
   branch = "master"
@@ -470,7 +466,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0a0319f9ca4ef4105cd909596be58789777f985d3ed96bdd01893bb54f639dda"
+  digest = "1:a1a1abedfdfaeac675547fbf03a213f558c111575785d5d57616b697fdb1caf3"
   name = "golang.org/x/crypto"
   packages = [
     "curve25519",
@@ -483,7 +479,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "e3636079e1a4c1f337f212cc5cd2aca108f6c900"
+  revision = "a92615f3c49003920a58dedcf32cf55022cefb8d"
 
 [[projects]]
   branch = "master"
@@ -505,7 +501,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "146acd28ed5894421fb5aac80ca93bc1b1f46f87"
+  revision = "49bb7cea24b1df9410e1712aa6433dae904ff66a"
 
 [[projects]]
   branch = "master"
@@ -523,14 +519,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:68ca1f18d986adc1d25a28aa732806ee8f1c874cc5b606e4ba67ddd3eeb89e20"
+  digest = "1:71bcac4a94abe8132ef9c2bf008cca9579cda20194383b210b8d2e125777e982"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "4497e2df6f9e69048a54498c7affbbec3294ad47"
+  revision = "fa43e7bc11baaae89f3f902b2b4d832b68234844"
 
 [[projects]]
   digest = "1:8a12cbc891b7130d3f660f8a309e5c0b083f831e6ac38cdaa1f12e63c12d6bea"
@@ -569,15 +565,21 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:45751dc3302c90ea55913674261b2d74286b05cdd8e3ae9606e02e4e77f4353f"
+  digest = "1:369dffe7bc5d8d8977071dd1d77265f161ea87f45ab6c6a71dc2e078c70deb8e"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
+    "go/gcexportdata",
+    "go/internal/cgo",
+    "go/internal/gcimporter",
+    "go/packages",
+    "go/types/typeutil",
     "imports",
     "internal/fastwalk",
+    "internal/gopathwalk",
   ]
   pruneopts = "NUT"
-  revision = "f60d9635b16a5a57b06eaa119614ba4df421966a"
+  revision = "c0eb142035b5aa4db001a5cc0703b55a8fbf9540"
 
 [[projects]]
   branch = "master"
@@ -596,7 +598,7 @@
     "transport/http/internal/propagation",
   ]
   pruneopts = "NUT"
-  revision = "f5c49d98d21cc639f7ba8c7e4b127e88ee2af7ed"
+  revision = "72df7e5ac770e49326116145ee04771cf1913a73"
 
 [[projects]]
   digest = "1:e2da54c7866453ac5831c61c7ec5d887f39328cac088c806553303bff4048e6f"
