@@ -231,7 +231,13 @@ func (vm *vm) AttachDisk(disk bidisk.Disk) error {
 }
 
 func (vm *vm) DetachDisk(disk bidisk.Disk) error {
-	err := vm.cloud.DetachDisk(vm.cid, disk.CID())
+
+	err := vm.agentClient.RemovePersistentDisk(disk.CID())
+	if err != nil {
+		return bosherr.WrapError(err, "Removing persistent disk")
+	}
+
+	err = vm.cloud.DetachDisk(vm.cid, disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Detaching disk in the cloud")
 	}

@@ -425,6 +425,13 @@ var _ = Describe("VM", func() {
 			disk = fakebidisk.NewFakeDisk("fake-disk-cid")
 		})
 
+		It("removes the disk from the vm", func() {
+			err := vm.DetachDisk(disk)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.RemovePersistentDiskCallCount()).To(Equal(1))
+			Expect(fakeAgentClient.RemovePersistentDiskArgsForCall(0)).To(Equal(disk.CID()))
+		})
+
 		It("detaches disk from vm in the cloud", func() {
 			err := vm.DetachDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
