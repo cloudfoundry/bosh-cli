@@ -381,6 +381,29 @@ var _ = Describe("VM", func() {
 			})
 		})
 
+		Context("when AddPersistentDisk returns 'unknown message add_persistent_disk'", func() {
+			BeforeEach(func() {
+				fakeAgentClient.AddPersistentDiskReturns(errors.New("Agent responded with error: unknown message add_persistent_disk"))
+			})
+
+			It("recovers from unimplemented AddPersistentDisk in the agent", func() {
+				err := vm.AttachDisk(disk)
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Context("when AddPersistentDisk returns anything other than 'unknown message add_persistent_disk'", func() {
+			BeforeEach(func() {
+				fakeAgentClient.AddPersistentDiskReturns(errors.New("fake-agent-error"))
+			})
+
+			It("fails with the AddPersistentDisk error", func() {
+				err := vm.AttachDisk(disk)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-agent-error"))
+			})
+		})
+
 		Context("when attaching disk to cloud fails", func() {
 			BeforeEach(func() {
 				fakeCloud.AttachDiskErr = errors.New("fake-attach-error")
@@ -440,6 +463,29 @@ var _ = Describe("VM", func() {
 				DiskCID: "fake-disk-cid",
 			}))
 			Expect(fakeAgentClient.PingCallCount()).To(Equal(1))
+		})
+
+		Context("when RemovePersistentDisk returns 'unknown message remove_persistent_disk'", func() {
+			BeforeEach(func() {
+				fakeAgentClient.RemovePersistentDiskReturns(errors.New("Agent responded with error: unknown message remove_persistent_disk"))
+			})
+
+			It("recovers from unimplemented RemovePersistentDisk in the agent", func() {
+				err := vm.DetachDisk(disk)
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Context("when RemovePersistentDisk returns anything other than 'unknown message remove_persistent_disk'", func() {
+			BeforeEach(func() {
+				fakeAgentClient.RemovePersistentDiskReturns(errors.New("fake-agent-error"))
+			})
+
+			It("fails with the RemovePersistentDisk error", func() {
+				err := vm.DetachDisk(disk)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-agent-error"))
+			})
 		})
 
 		Context("when detaching disk to cloud fails", func() {

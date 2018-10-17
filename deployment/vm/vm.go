@@ -2,6 +2,7 @@ package vm
 
 import (
 	"math"
+	"strings"
 	"time"
 
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
@@ -218,7 +219,7 @@ func (vm *vm) AttachDisk(disk bidisk.Disk) error {
 	}
 
 	err = vm.agentClient.AddPersistentDisk(disk.CID(), diskHints)
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "Agent responded with error: unknown message add_persistent_disk") {
 		return bosherr.WrapError(err, "Adding persistent disk")
 	}
 
@@ -233,7 +234,7 @@ func (vm *vm) AttachDisk(disk bidisk.Disk) error {
 func (vm *vm) DetachDisk(disk bidisk.Disk) error {
 
 	err := vm.agentClient.RemovePersistentDisk(disk.CID())
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "Agent responded with error: unknown message remove_persistent_disk") {
 		return bosherr.WrapError(err, "Removing persistent disk")
 	}
 
