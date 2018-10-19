@@ -307,6 +307,15 @@ var _ = Describe("VM", func() {
 			}))
 		})
 
+		It("does not call agent AddPersistentDisk when diskHints are nil", func() {
+			fakeCloud.AttachDiskHints = nil
+
+			err := vm.AttachDisk(disk)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.AddPersistentDiskCallCount()).To(Equal(0))
+		})
+
 		It("adds the persistent disk to the agent", func() {
 			fakeCloud.AttachDiskHints = "/dev/sdb"
 
@@ -383,6 +392,7 @@ var _ = Describe("VM", func() {
 
 		Context("when AddPersistentDisk returns 'unknown message add_persistent_disk'", func() {
 			BeforeEach(func() {
+				fakeCloud.AttachDiskHints = "/dev/sdb"
 				fakeAgentClient.AddPersistentDiskReturns(errors.New("Agent responded with error: unknown message add_persistent_disk"))
 			})
 
@@ -394,6 +404,7 @@ var _ = Describe("VM", func() {
 
 		Context("when AddPersistentDisk returns anything other than 'unknown message add_persistent_disk'", func() {
 			BeforeEach(func() {
+				fakeCloud.AttachDiskHints = "/dev/sdb"
 				fakeAgentClient.AddPersistentDiskReturns(errors.New("fake-agent-error"))
 			})
 

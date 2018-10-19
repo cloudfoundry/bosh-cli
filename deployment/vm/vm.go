@@ -218,9 +218,11 @@ func (vm *vm) AttachDisk(disk bidisk.Disk) error {
 		return bosherr.WrapError(err, "Waiting for agent to be accessible after attaching disk")
 	}
 
-	err = vm.agentClient.AddPersistentDisk(disk.CID(), diskHints)
-	if err != nil && !strings.Contains(err.Error(), "Agent responded with error: unknown message add_persistent_disk") {
-		return bosherr.WrapError(err, "Adding persistent disk")
+	if diskHints != nil {
+		err = vm.agentClient.AddPersistentDisk(disk.CID(), diskHints)
+		if err != nil && !strings.Contains(err.Error(), "unknown message add_persistent_disk") {
+			return bosherr.WrapError(err, "Adding persistent disk")
+		}
 	}
 
 	err = vm.agentClient.MountDisk(disk.CID())

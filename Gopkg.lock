@@ -115,7 +115,7 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "9241d1406a65c02959fc2a01fe260d5b39a2ad7c"
+  revision = "add2e4cc2243430c60d868a0f4942a8056daf297"
 
 [[projects]]
   branch = "master"
