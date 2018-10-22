@@ -84,7 +84,7 @@ func DownloadFile(r boshdir.ManifestRelease) (entry OpEntry, err error) {
 	} else {
 		fmt.Println("Release already downloaded: " + r.Name + " " + r.Version)
 	}
-	path := fmt.Sprintf("/releases/%s/url", r.Name)
+	path := fmt.Sprintf("/releases/name=%s/url", r.Name)
 	localFile := fmt.Sprintf("file://%s", filepath)
 	entry = OpEntry{Type: "replace", Path: path, Value: localFile}
 
