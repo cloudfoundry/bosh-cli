@@ -132,6 +132,9 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *DeleteDeploymentOpts:
 		return NewDeleteDeploymentCmd(deps.UI, c.deployment()).Run(*opts)
 
+	case *TakeOutOpts:
+		return NewTakeOutCmd(deps.UI).Run(*opts)
+
 	case *ReleasesOpts:
 		return NewReleasesCmd(deps.UI, c.director()).Run()
 

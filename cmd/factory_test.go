@@ -98,6 +98,7 @@ var _ = Describe("Factory", func() {
 			"stop":                   []string{"slug"},
 			"sync-blobs":             []string{},
 			"take-snapshot":          []string{"group/id"},
+			"take-out":				  []string{filepath.Join("/", "file")},
 			"task":                   []string{"1234"},
 			"tasks":                  []string{},
 			"update-cloud-config":    []string{filepath.Join("/", "file")},
