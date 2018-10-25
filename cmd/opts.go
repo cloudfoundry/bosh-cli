@@ -329,6 +329,8 @@ type TakeOutOpts struct {
 }
 
 type TakeOutArgs struct {
+	Name string `positional-arg-name:"NAME" description:"file name of ops file"`
+
 	Manifest FileBytesArg `positional-arg-name:"PATH" description:"Path to a template that will be interpolated"`
 }
 // Config

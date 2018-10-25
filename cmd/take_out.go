@@ -36,6 +36,9 @@ func (c TakeOutCmd) Run(opts TakeOutOpts) error {
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Evaluating manifest")
 	}
+	if _, err := os.Stat(opts.Args.Name); os.IsExist(err) {
+		return bosherr.WrapErrorf(err, "Takeout op name exists")
+	}
 
 	manifest, err := boshdir.NewManifestFromBytes(bytes)
 	fmt.Println("Processing releases for offline use")
@@ -47,7 +50,7 @@ func (c TakeOutCmd) Run(opts TakeOutOpts) error {
 
 	y, _ := yaml.Marshal(releaseChanges)
 	fmt.Println("Writing take-out operation")
-	takeoutOp, err := os.Create("takeout.yml")
+	takeoutOp, err := os.Create(opts.Args.Name)
 	if err != nil{
 		return err
 	}
