@@ -20,6 +20,12 @@ type EvaluateOpts struct {
 	ExpectAllVarsUsed     bool
 	PostVarSubstitutionOp patch.Op
 	UnescapedMultiline    bool
+
+	// AppendAfterVariableSubstitution contains a map of values that will be appended after
+	// variables before attempting substitution. This is useful for adding additional
+	// CA certificates during rotation which the bosh director / credhub currently is not able
+	// to provide
+	AppendAfterVariableSubstitution map[string]string
 }
 
 func NewTemplate(bytes []byte) Template {
@@ -41,7 +47,7 @@ func (t Template) Evaluate(vars Variables, op patch.Op, opts EvaluateOpts) ([]by
 		}
 	}
 
-	obj, err = t.interpolateRoot(obj, newVarsTracker(vars, opts.ExpectAllKeys, opts.ExpectAllVarsUsed))
+	obj, err = t.interpolateRoot(obj, newVarsTracker(vars, opts.ExpectAllKeys, opts.ExpectAllVarsUsed), opts.AppendAfterVariableSubstitution)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -65,13 +71,13 @@ func (t Template) Evaluate(vars Variables, op patch.Op, opts EvaluateOpts) ([]by
 	return bytes, nil
 }
 
-func (t Template) interpolateRoot(obj interface{}, tracker varsTracker) (interface{}, error) {
+func (t Template) interpolateRoot(obj interface{}, tracker varsTracker, appendAfterVariableSubstitutionVals map[string]string) (interface{}, error) {
 	err := tracker.ExtractDefinitions(obj)
 	if err != nil {
 		return nil, err
 	}
 
-	obj, err = interpolator{}.Interpolate(obj, varsLookup{tracker})
+	obj, err = interpolator{}.Interpolate(obj, varsLookup{tracker}, appendAfterVariableSubstitutionVals)
 	if err != nil {
 		return nil, err
 	}
@@ -91,16 +97,16 @@ var (
 	interpolationAnchoredRegex = regexp.MustCompile("\\A" + interpolationRegex.String() + "\\z")
 )
 
-func (i interpolator) Interpolate(node interface{}, varsLookup varsLookup) (interface{}, error) {
+func (i interpolator) Interpolate(node interface{}, varsLookup varsLookup, appendAfterVariableSubstitutionVals map[string]string) (interface{}, error) {
 	switch typedNode := node.(type) {
 	case map[interface{}]interface{}:
 		for k, v := range typedNode {
-			evaluatedValue, err := i.Interpolate(v, varsLookup)
+			evaluatedValue, err := i.Interpolate(v, varsLookup, appendAfterVariableSubstitutionVals)
 			if err != nil {
 				return nil, err
 			}
 
-			evaluatedKey, err := i.Interpolate(k, varsLookup)
+			evaluatedKey, err := i.Interpolate(k, varsLookup, appendAfterVariableSubstitutionVals)
 			if err != nil {
 				return nil, err
 			}
@@ -112,7 +118,7 @@ func (i interpolator) Interpolate(node interface{}, varsLookup varsLookup) (inte
 	case []interface{}:
 		for idx, x := range typedNode {
 			var err error
-			typedNode[idx], err = i.Interpolate(x, varsLookup)
+			typedNode[idx], err = i.Interpolate(x, varsLookup, appendAfterVariableSubstitutionVals)
 			if err != nil {
 				return nil, err
 			}
@@ -120,6 +126,15 @@ func (i interpolator) Interpolate(node interface{}, varsLookup varsLookup) (inte
 
 	case string:
 		for _, name := range i.extractVarNames(typedNode) {
+			if appendAfterVariableSubstitutionVals != nil {
+				extraVal := appendAfterVariableSubstitutionVals[name]
+				if extraVal != "" {
+					// If we find one, then append this *after* the real value, then continue processing as normal
+					// This is useful for adding additional legacy CA certs.
+					typedNode = strings.Replace(typedNode, fmt.Sprintf("((%s))", name), fmt.Sprintf("((%s))\n%s", name, extraVal), -1)
+				}
+			}
+
 			foundVal, found, err := varsLookup.Get(name)
 			if err != nil {
 				return nil, bosherr.WrapErrorf(err, "Finding variable '%s'", name)
@@ -224,7 +239,7 @@ func (t varsTracker) Get(name string) (interface{}, bool, error) {
 
 	def := t.defs.Find(name)
 
-	def.Options, err = interpolator{}.Interpolate(def.Options, varsLookup{defVarTracker})
+	def.Options, err = interpolator{}.Interpolate(def.Options, varsLookup{defVarTracker}, nil)
 	if err != nil {
 		return nil, false, bosherr.WrapErrorf(err, "Interpolating variable '%s' definition options", name)
 	}

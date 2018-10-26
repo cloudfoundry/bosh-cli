@@ -12,24 +12,62 @@ type DeployCmd struct {
 	ui              boshui.UI
 	deployment      boshdir.Deployment
 	releaseUploader ReleaseUploader
+	ccs             CertificateConfigurationServer
 }
 
 type ReleaseUploader interface {
 	UploadReleases([]byte) ([]byte, error)
 }
 
+type CertificateConfigurationServer interface {
+	// PrepareForNewDeploy returns a map of values that should be appended before normal
+	// variable substition.
+	PrepareForNewDeploy() (map[string]string, error)
+
+	// PostSuccessfulDeploy returns whether another deployment run is needed.
+	PostSuccessfulDeploy() (bool, error)
+}
+
 func NewDeployCmd(
 	ui boshui.UI,
 	deployment boshdir.Deployment,
 	releaseUploader ReleaseUploader,
+	ccs CertificateConfigurationServer,
 ) DeployCmd {
-	return DeployCmd{ui, deployment, releaseUploader}
+	return DeployCmd{ui, deployment, releaseUploader, ccs}
 }
 
 func (c DeployCmd) Run(opts DeployOpts) error {
+	if !opts.ProgressiveCertRotation {
+		return c.doDeploy(opts, nil)
+	}
+
+	for {
+		additionalVals, err := c.ccs.PrepareForNewDeploy()
+		if err != nil {
+			return err
+		}
+
+		err = c.doDeploy(opts, additionalVals)
+		if err != nil {
+			return err
+		}
+
+		shouldRerun, err := c.ccs.PostSuccessfulDeploy()
+		if err != nil {
+			return err
+		}
+
+		if !shouldRerun {
+			return nil
+		}
+	}
+}
+
+func (c DeployCmd) doDeploy(opts DeployOpts, additionalVals map[string]string) error {
 	tpl := boshtpl.NewTemplate(opts.Args.Manifest.Bytes)
 
-	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp(), boshtpl.EvaluateOpts{})
+	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp(), boshtpl.EvaluateOpts{AppendAfterVariableSubstitution: additionalVals})
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Evaluating manifest")
 	}

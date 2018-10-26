@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/cppforlife/go-patch/patch"
@@ -12,6 +13,7 @@ import (
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
+	"github.com/cloudfoundry/bosh-cli/rotation"
 	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
 	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
@@ -306,7 +308,8 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *DeployOpts:
 		director, deployment := c.directorAndDeployment()
 		releaseManager := c.releaseManager(director)
-		return NewDeployCmd(deps.UI, deployment, releaseManager).Run(*opts)
+		rotator := c.credhubRotator(deps.UI, director, deployment)
+		return NewDeployCmd(deps.UI, deployment, releaseManager, rotator).Run(*opts)
 
 	case *StartOpts:
 		return NewStartCmd(deps.UI, c.deployment()).Run(*opts)
@@ -497,6 +500,20 @@ func (c Cmd) deployment() boshdir.Deployment {
 	c.panicIfErr(err)
 
 	return deployment
+}
+
+func (c Cmd) credhubRotator(ui boshui.UI, director boshdir.Director, deployment boshdir.Deployment) CertificateConfigurationServer {
+	dirInfo, err := director.Info()
+	c.panicIfErr(err)
+
+	return &rotation.CredhubRotator{
+		Prefix:                 fmt.Sprintf("/%s/%s", dirInfo.Name, deployment.Name()),
+		CredhubBaseURL:         os.Getenv("CREDHUB_SERVER"),
+		CredhubCACerts:         os.Getenv("CREDHUB_CA_CERT"),
+		CredhubUAAClient:       os.Getenv("CREDHUB_CLIENT"),
+		CredhubUAAClientSecret: os.Getenv("CREDHUB_SECRET"),
+		UI: ui,
+	}
 }
 
 func (c Cmd) directorAndDeployment() (boshdir.Director, boshdir.Deployment) {

@@ -455,6 +455,8 @@ type DeployOpts struct {
 
 	DryRun bool `long:"dry-run" description:"Renders job templates without altering deployment"`
 
+	ProgressiveCertRotation bool `long:"progressive-certificate-rotation" description:"Always be rotating"`
+
 	cmd
 }
 
