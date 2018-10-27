@@ -22,7 +22,7 @@ func NewSDK(c config.S3Cli) (*s3.S3, error) {
 
 	s3Config := aws.NewConfig().
 		WithLogLevel(aws.LogOff).
-		WithS3ForcePathStyle(true).
+		WithS3ForcePathStyle(!c.HostStyle).
 		WithDisableSSL(!c.UseSSL).
 		WithHTTPClient(httpClient)
 
