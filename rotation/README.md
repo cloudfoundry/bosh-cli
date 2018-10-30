@@ -25,6 +25,22 @@ We have built an experimental flag to rotate certificates in a deployment for yo
 
 3. This has only been tested with `cf-deployment` version `5.4.0`. There is at least one change in that particular version that is known to help this process succeed, so best not to try with older versions.
 
+## Build and install
+
+Currently this exists as a fork of bosh-cli v5.3.1. To build:
+
+```bash
+go get github.com/cloudfoundry/bosh-cli
+cd ${GOPATH:-$HOME/go}/src/github.com/cloudfoundry/bosh-cli
+git remote add govau https://github.com/govau/bosh-cli
+git fetch govau
+git checkout govau
+go install github.com/cloudfoundry/bosh-cli
+
+# copy binary to somewhere on your path
+cp ${GOPATH:-$HOME/go}/bin/bosh-cli /path/to/where/you/normally/put/bosh
+```
+
 ## Running
 
 This flag should be used during a deploy, e.g.:
