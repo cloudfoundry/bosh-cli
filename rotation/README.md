@@ -157,6 +157,66 @@ After each successful deployment, the `credential_rotation_action` value is upda
 
 After the third and final deployment, `credential_rotation_action` is set to `no-action-needed`, which means that if the command is re-run, no certificate rotation actions are taken.
 
+## How to check certificate lifetimes?
+
+This bash snippet will enumerate certificates from your `credhub` and print how many days remaining:
+
+```bash
+# requires: credhub, jq, openssl
+now="$(date "+%s")"
+names="$(credhub find --output-json | jq -r .credentials[].name)"
+for name in $names; do
+    cert="$(credhub get --output-json -n "${name}" | jq -r 'select(.type=="certificate")|.value.certificate')"
+    if [[ $cert ]]; then
+        notafter="$(openssl x509 -noout -enddate -in <(echo "${cert}") | cut -c 10-)"
+        certunix="$(date -d "${notafter}" "+%s")"
+        days="$(expr \( ${certunix} - ${now} \) / 86400)"
+        echo "${name} will expires in ${days} days"
+    fi
+done
+```
+
+Output:
+
+```
+/main/cf/credhub_tls will expires in 364 days
+/main/cf/gorouter_backend_tls will expires in 364 days
+
+...
+
+/dns_healthcheck_server_tls will expires in 274 days
+/dns_healthcheck_tls_ca will expires in 274 days
+```
+
+Note this won't show certificates that are used by `bosh` itself, in `creds.yml`, but this will:
+
+```bash
+# requires: yq, openssl
+creds_yml_path="/path/to/bosh/creds.yml"
+names="$(cat "$creds_yml_path" | yq keys | jq -r .[])"
+now="$(date "+%s")"
+for name in $names; do
+    hascert="$((cat "$creds_yml_path" | yq ".${name} | has(\"certificate\")" 2> /dev/null) || echo "false")"
+    if [ "$hascert" = "true" ]; then
+        cert="$(cat "$creds_yml_path" | yq -r .${name}.certificate)"
+        if [[ $cert ]]; then
+            notafter="$(openssl x509 -noout -enddate -in <(echo "${cert}") | cut -c 10-)"
+            certunix="$(date -d "${notafter}" "+%s")"
+            days="$(expr \( ${certunix} - ${now} \) / 86400)"
+            echo "${name} will expires in ${days} days"
+        fi
+    fi
+done
+```
+
+Output:
+
+```
+blobstore_ca will expires in 321 days
+...
+uaa_ssl will expires in 321 days
+```
+
 ## Details
 
 ### Step 1: Creating transitional CAs
