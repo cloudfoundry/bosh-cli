@@ -104,7 +104,7 @@
   revision = "2af8bbdea9e99e83b3ac400d8f6b6d1b8cbbf338"
 
 [[projects]]
-  branch = "registry-removal"
+  branch = "master"
   digest = "1:45714b02783f942e0b67adf7e836d88978d0dd9b1b3d560d8154d956305f4ca9"
   name = "github.com/cloudfoundry/bosh-agent"
   packages = [
@@ -115,7 +115,7 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "add2e4cc2243430c60d868a0f4942a8056daf297"
+  revision = "e4b98e8102ed77558331fa9de50073cc529658a9"
 
 [[projects]]
   branch = "master"
@@ -179,15 +179,15 @@
   revision = "15c556314b68953d0449541ded010b033767c805"
 
 [[projects]]
-  digest = "1:cba1209d3ae93b8724ac204e835fef0f8e1596440fca657c913c2ffdb8722503"
+  digest = "1:fc5a32adb1f7107c108c1b5462475e85f68e7f03037762f7634f7fc1b8d30074"
   name = "github.com/cloudfoundry/config-server"
   packages = [
     "types",
     "types/typesfakes",
   ]
   pruneopts = "NUT"
-  revision = "d29aa99b7c301778efea4714252b6ef549089d6b"
-  version = "v0.0.124"
+  revision = "5b33cbdec5929168ce338ec827e866ec333ed889"
+  version = "v0.1.12"
 
 [[projects]]
   branch = "master"

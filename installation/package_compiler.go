@@ -30,7 +30,7 @@ func NewPackageCompiler(
 ) PackageCompiler {
 	return &packageCompiler{
 		jobDependencyCompiler: jobDependencyCompiler,
-		fs: fs,
+		fs:                    fs,
 	}
 }
 
