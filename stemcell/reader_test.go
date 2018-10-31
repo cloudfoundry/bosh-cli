@@ -70,6 +70,56 @@ cloud_properties:
 		)
 		Expect(stemcell.Manifest().CloudProperties).To(Equal(expectedStemcell.Manifest().CloudProperties))
 		Expect(stemcell).To(Equal(expectedStemcell))
+
+	})
+
+	Context("when api_version is specified", func() {
+		BeforeEach(func() {
+			manifestContents := `
+---
+name: fake-stemcell-name
+version: '2690'
+operating_system: ubuntu-trusty
+sha1: sha
+bosh_protocol: 1
+stemcell_formats: ['aws-raw']
+api_version: 2
+cloud_properties:
+  infrastructure: aws
+  ami:
+    us-east-1: fake-ami-version
+    `
+			fs.WriteFileString("fake-extracted-path/stemcell.MF", manifestContents)
+		})
+
+		It("generates correct stemcell", func() {
+			stemcell, err := stemcellReader.Read("fake-stemcell-path", "fake-extracted-path")
+			Expect(err).ToNot(HaveOccurred())
+			expectedStemcell := NewExtractedStemcell(
+				Manifest{
+					Name:            "fake-stemcell-name",
+					Version:         "2690",
+					OS:              "ubuntu-trusty",
+					SHA1:            "sha",
+					BoshProtocol:    "1",
+					ApiVersion:      2,
+					StemcellFormats: []string{"aws-raw"},
+					CloudProperties: biproperty.Map{
+						"infrastructure": "aws",
+						"ami": biproperty.Map{
+							"us-east-1": "fake-ami-version",
+						},
+					},
+				},
+				"fake-extracted-path",
+				compressor,
+				fs,
+			)
+			Expect(stemcell.Manifest().CloudProperties).To(Equal(expectedStemcell.Manifest().CloudProperties))
+			Expect(stemcell).To(Equal(expectedStemcell))
+
+		})
+
 	})
 
 	Context("when extracting stemcell fails", func() {
@@ -107,4 +157,5 @@ cloud_properties:
 			Expect(err.Error()).To(ContainSubstring("Parsing stemcell manifest"))
 		})
 	})
+
 })

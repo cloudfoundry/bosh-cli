@@ -307,6 +307,27 @@ var _ = Describe("VM", func() {
 			}))
 		})
 
+		It("does not call agent AddPersistentDisk when diskHints are nil", func() {
+			fakeCloud.AttachDiskHints = nil
+
+			err := vm.AttachDisk(disk)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.AddPersistentDiskCallCount()).To(Equal(0))
+		})
+
+		It("adds the persistent disk to the agent", func() {
+			fakeCloud.AttachDiskHints = "/dev/sdb"
+
+			err := vm.AttachDisk(disk)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.AddPersistentDiskCallCount()).To(Equal(1))
+			diskCid, diskHints := fakeAgentClient.AddPersistentDiskArgsForCall(0)
+			Expect(diskCid).To(Equal("fake-disk-cid"))
+			Expect(diskHints).To(Equal("/dev/sdb"))
+		})
+
 		It("sends mount disk to the agent after pinging the agent", func() {
 			err := vm.AttachDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
@@ -369,6 +390,31 @@ var _ = Describe("VM", func() {
 			})
 		})
 
+		Context("when AddPersistentDisk returns 'unknown message add_persistent_disk'", func() {
+			BeforeEach(func() {
+				fakeCloud.AttachDiskHints = "/dev/sdb"
+				fakeAgentClient.AddPersistentDiskReturns(errors.New("Agent responded with error: unknown message add_persistent_disk"))
+			})
+
+			It("recovers from unimplemented AddPersistentDisk in the agent", func() {
+				err := vm.AttachDisk(disk)
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Context("when AddPersistentDisk returns anything other than 'unknown message add_persistent_disk'", func() {
+			BeforeEach(func() {
+				fakeCloud.AttachDiskHints = "/dev/sdb"
+				fakeAgentClient.AddPersistentDiskReturns(errors.New("fake-agent-error"))
+			})
+
+			It("fails with the AddPersistentDisk error", func() {
+				err := vm.AttachDisk(disk)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-agent-error"))
+			})
+		})
+
 		Context("when attaching disk to cloud fails", func() {
 			BeforeEach(func() {
 				fakeCloud.AttachDiskErr = errors.New("fake-attach-error")
@@ -413,6 +459,13 @@ var _ = Describe("VM", func() {
 			disk = fakebidisk.NewFakeDisk("fake-disk-cid")
 		})
 
+		It("removes the disk from the vm", func() {
+			err := vm.DetachDisk(disk)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fakeAgentClient.RemovePersistentDiskCallCount()).To(Equal(1))
+			Expect(fakeAgentClient.RemovePersistentDiskArgsForCall(0)).To(Equal(disk.CID()))
+		})
+
 		It("detaches disk from vm in the cloud", func() {
 			err := vm.DetachDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
@@ -421,6 +474,29 @@ var _ = Describe("VM", func() {
 				DiskCID: "fake-disk-cid",
 			}))
 			Expect(fakeAgentClient.PingCallCount()).To(Equal(1))
+		})
+
+		Context("when RemovePersistentDisk returns 'unknown message remove_persistent_disk'", func() {
+			BeforeEach(func() {
+				fakeAgentClient.RemovePersistentDiskReturns(errors.New("Agent responded with error: unknown message remove_persistent_disk"))
+			})
+
+			It("recovers from unimplemented RemovePersistentDisk in the agent", func() {
+				err := vm.DetachDisk(disk)
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Context("when RemovePersistentDisk returns anything other than 'unknown message remove_persistent_disk'", func() {
+			BeforeEach(func() {
+				fakeAgentClient.RemovePersistentDiskReturns(errors.New("fake-agent-error"))
+			})
+
+			It("fails with the RemovePersistentDisk error", func() {
+				err := vm.DetachDisk(disk)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-agent-error"))
+			})
 		})
 
 		Context("when detaching disk to cloud fails", func() {

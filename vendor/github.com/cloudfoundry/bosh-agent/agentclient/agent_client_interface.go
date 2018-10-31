@@ -2,7 +2,7 @@ package agentclient
 
 import "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 
-//go:generate counterfeiter -o fakes/fake_agent_client.go . AgentClient
+//go:generate counterfeiter -o fakes/fake_agent_client.go agent_client_interface.go AgentClient
 
 type AgentClient interface {
 	Ping() (string, error)
@@ -11,6 +11,8 @@ type AgentClient interface {
 	Apply(applyspec.ApplySpec) error
 	Start() error
 	GetState() (AgentState, error)
+	AddPersistentDisk(string, interface{}) error
+	RemovePersistentDisk(string) error
 	MountDisk(string) error
 	UnmountDisk(string) error
 	ListDisk() ([]string, error)

@@ -67,9 +67,9 @@ var _ = Describe("Deployment", func() {
 
 			deploymentFactory Factory
 
-			deployment Deployment
-
-			skipDrain bool
+			stemcellApiVersion = 2
+			deployment         Deployment
+			skipDrain          bool
 		)
 
 		var expectNormalFlow = func() {
@@ -409,7 +409,7 @@ var _ = Describe("Deployment", func() {
 		Context("when a current stemcell exists", func() {
 			BeforeEach(func() {
 				deploymentStateService.Save(biconfig.DeploymentState{})
-				stemcellRecord, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid")
+				stemcellRecord, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid", stemcellApiVersion)
 				Expect(err).ToNot(HaveOccurred())
 				stemcellRepo.UpdateCurrent(stemcellRecord.ID)
 			})

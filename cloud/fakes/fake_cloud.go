@@ -23,6 +23,7 @@ type FakeCloud struct {
 	CreateDiskErr   error
 
 	AttachDiskInput AttachDiskInput
+	AttachDiskHints interface{}
 	AttachDiskErr   error
 
 	DetachDiskInput DetachDiskInput
@@ -44,6 +45,9 @@ type FakeCloud struct {
 	SetDiskMetadataCid      string
 	SetDiskMetadataMetadata cloud.DiskMetadata
 	SetDiskMetadataError    error
+
+	InfoResult cloud.CpiInfo
+	InfoError  error
 }
 
 type CreateStemcellInput struct {
@@ -165,12 +169,12 @@ func (c *FakeCloud) CreateDisk(
 	return c.CreateDiskCID, c.CreateDiskErr
 }
 
-func (c *FakeCloud) AttachDisk(vmCID, diskCID string) error {
+func (c *FakeCloud) AttachDisk(vmCID, diskCID string) (interface{}, error) {
 	c.AttachDiskInput = AttachDiskInput{
 		VMCID:   vmCID,
 		DiskCID: diskCID,
 	}
-	return c.AttachDiskErr
+	return c.AttachDiskHints, c.AttachDiskErr
 }
 
 func (c *FakeCloud) DetachDisk(vmCID, diskCID string) error {
@@ -193,6 +197,10 @@ func (c *FakeCloud) DeleteDisk(diskCID string) error {
 		DiskCID: diskCID,
 	})
 	return c.DeleteDiskErr
+}
+
+func (c *FakeCloud) Info() (cpiInfo cloud.CpiInfo, err error) {
+	return c.InfoResult, c.InfoError
 }
 
 func (c *FakeCloud) String() string {

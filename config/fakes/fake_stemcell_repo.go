@@ -9,9 +9,10 @@ import (
 )
 
 type StemcellRepoSaveInput struct {
-	Name    string
-	Version string
-	CID     string
+	Name       string
+	Version    string
+	CID        string
+	ApiVersion int
 }
 
 type StemcellRepoSaveOutput struct {
@@ -89,11 +90,12 @@ func (fr *FakeStemcellRepo) All() ([]biconfig.StemcellRecord, error) {
 	return fr.AllStemcellRecords, fr.AllErr
 }
 
-func (fr *FakeStemcellRepo) Save(name, version, cid string) (biconfig.StemcellRecord, error) {
+func (fr *FakeStemcellRepo) Save(name, version, cid string, apiVersion int) (biconfig.StemcellRecord, error) {
 	input := StemcellRepoSaveInput{
-		Name:    name,
-		Version: version,
-		CID:     cid,
+		Name:       name,
+		Version:    version,
+		CID:        cid,
+		ApiVersion: apiVersion,
 	}
 	fr.SaveInputs = append(fr.SaveInputs, input)
 

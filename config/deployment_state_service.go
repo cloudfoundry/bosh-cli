@@ -18,10 +18,11 @@ type DeploymentState struct {
 }
 
 type StemcellRecord struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	CID     string `json:"cid"`
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Version    string `json:"version"`
+	ApiVersion int    `json:"api_version,omitempty"`
+	CID        string `json:"cid"`
 }
 
 type DiskRecord struct {

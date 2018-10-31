@@ -1,9 +1,10 @@
 package stemcellfakes
 
 type FakeCloudStemcell struct {
-	cid     string
-	name    string
-	version string
+	cid        string
+	name       string
+	version    string
+	apiVersion int
 
 	PromoteAsCurrentCalledTimes int
 	PromoteAsCurrentErr         error
@@ -12,11 +13,12 @@ type FakeCloudStemcell struct {
 	DeleteErr         error
 }
 
-func NewFakeCloudStemcell(cid, name, version string) *FakeCloudStemcell {
+func NewFakeCloudStemcell(cid, name, version string, apiVersion int) *FakeCloudStemcell {
 	return &FakeCloudStemcell{
-		cid:     cid,
-		name:    name,
-		version: version,
+		cid:        cid,
+		name:       name,
+		version:    version,
+		apiVersion: apiVersion,
 	}
 }
 
@@ -30,6 +32,10 @@ func (s *FakeCloudStemcell) Name() string {
 
 func (s *FakeCloudStemcell) Version() string {
 	return s.version
+}
+
+func (s *FakeCloudStemcell) ApiVersion() int {
+	return s.apiVersion
 }
 
 func (s *FakeCloudStemcell) PromoteAsCurrent() error {

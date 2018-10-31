@@ -32,7 +32,10 @@ import (
 )
 
 var _ = Describe("Manager", func() {
-	var mockCtrl *gomock.Controller
+	var (
+		mockCtrl   *gomock.Controller
+		apiVersion = 2
+	)
 
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
@@ -165,7 +168,7 @@ var _ = Describe("Manager", func() {
 				},
 			}
 
-			fakeCloudStemcell = fakebistemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version")
+			fakeCloudStemcell = fakebistemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version", apiVersion)
 			registry = biinstallmanifest.Registry{}
 
 			fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
@@ -239,24 +242,6 @@ var _ = Describe("Manager", func() {
 				{Name: "Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'"},
 				{Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready"},
 			}))
-		})
-
-		Context("when registry settings are empty", func() {
-			BeforeEach(func() {
-				registry = biinstallmanifest.Registry{}
-			})
-
-			It("does not start the registry", func() {
-				_, _, err := manager.Create(
-					"fake-job-name",
-					0,
-					deploymentManifest,
-					fakeCloudStemcell,
-					registry,
-					fakeStage,
-				)
-				Expect(err).ToNot(HaveOccurred())
-			})
 		})
 
 		It("waits for the vm", func() {

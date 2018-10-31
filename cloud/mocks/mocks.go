@@ -36,10 +36,11 @@ func (m *MockCloud) EXPECT() *MockCloudMockRecorder {
 }
 
 // AttachDisk mocks base method
-func (m *MockCloud) AttachDisk(arg0, arg1 string) error {
+func (m *MockCloud) AttachDisk(arg0, arg1 string) (interface{}, error) {
 	ret := m.ctrl.Call(m, "AttachDisk", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AttachDisk indicates an expected call of AttachDisk
@@ -147,6 +148,19 @@ func (mr *MockCloudMockRecorder) HasVM(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasVM", reflect.TypeOf((*MockCloud)(nil).HasVM), arg0)
 }
 
+// Info mocks base method
+func (m *MockCloud) Info() (cloud.CpiInfo, error) {
+	ret := m.ctrl.Call(m, "Info")
+	ret0, _ := ret[0].(cloud.CpiInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Info indicates an expected call of Info
+func (mr *MockCloudMockRecorder) Info() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Info", reflect.TypeOf((*MockCloud)(nil).Info))
+}
+
 // SetDiskMetadata mocks base method
 func (m *MockCloud) SetDiskMetadata(arg0 string, arg1 cloud.DiskMetadata) error {
 	ret := m.ctrl.Call(m, "SetDiskMetadata", arg0, arg1)
@@ -207,14 +221,14 @@ func (m *MockFactory) EXPECT() *MockFactoryMockRecorder {
 }
 
 // NewCloud mocks base method
-func (m *MockFactory) NewCloud(arg0 installation.Installation, arg1 string) (cloud.Cloud, error) {
-	ret := m.ctrl.Call(m, "NewCloud", arg0, arg1)
+func (m *MockFactory) NewCloud(arg0 installation.Installation, arg1 string, arg2 int) (cloud.Cloud, error) {
+	ret := m.ctrl.Call(m, "NewCloud", arg0, arg1, arg2)
 	ret0, _ := ret[0].(cloud.Cloud)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // NewCloud indicates an expected call of NewCloud
-func (mr *MockFactoryMockRecorder) NewCloud(arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewCloud", reflect.TypeOf((*MockFactory)(nil).NewCloud), arg0, arg1)
+func (mr *MockFactoryMockRecorder) NewCloud(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewCloud", reflect.TypeOf((*MockFactory)(nil).NewCloud), arg0, arg1, arg2)
 }

@@ -106,7 +106,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:889372d19131f327bf3b548cf6e2ada9e31c070efb9bfef3ecd79cc360cdfeac"
+  digest = "1:45714b02783f942e0b67adf7e836d88978d0dd9b1b3d560d8154d956305f4ca9"
   name = "github.com/cloudfoundry/bosh-agent"
   packages = [
     "agentclient",
@@ -116,7 +116,7 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "0b45c21d1a2680057ed7555275afb1be4c97ab42"
+  revision = "e4b98e8102ed77558331fa9de50073cc529658a9"
 
 [[projects]]
   branch = "master"
@@ -360,11 +360,12 @@
   revision = "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
 
 [[projects]]
-  digest = "1:dd5a236a6046c6dc18eae33c9ea5e0b1af4da768d158f3b29e13df6f840b40fd"
+  digest = "1:b1c5734a16beb6480afb34f7e6cfd1caeac40f8fdb4f7ca7c3a9b5449c4cae03"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
     "config",
+    "extensions/table",
     "ginkgo",
     "ginkgo/convert",
     "ginkgo/interrupthandler",
@@ -738,6 +739,7 @@
     "github.com/mattn/go-isatty",
     "github.com/maxbrunsfeld/counterfeiter",
     "github.com/onsi/ginkgo",
+    "github.com/onsi/ginkgo/extensions/table",
     "github.com/onsi/ginkgo/ginkgo",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/format",

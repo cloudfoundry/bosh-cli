@@ -190,7 +190,14 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, 
 	}
 
 	err = c.cpiInstaller.WithInstalledCpiRelease(installationManifest, target, stage, func(installation biinstall.Installation) error {
-		return installation.WithRunningRegistry(c.logger, stage, func() error {
+		stemcellApiVersion := c.stemcellApiVersion(extractedStemcell)
+
+		cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID, stemcellApiVersion)
+		if err != nil {
+			return bosherr.WrapError(err, "Creating CPI client from CPI installation")
+		}
+
+		deploy := func(usesRegistry bool) error {
 			return c.deploy(
 				installation,
 				deploymentState,
@@ -199,12 +206,26 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, 
 				deploymentManifest,
 				manifestSHA,
 				skipDrain,
-				stage)
-		})
+				stage,
+				cloud,
+				usesRegistry)
+		}
+
+		cpiInfo, err := cloud.Info()
+		if err != nil {
+			return bosherr.WrapError(err, "Error getting CPI info")
+		}
+
+		if stemcellApiVersion >= bicloud.StemcellNoRegistryAsOfVersion &&
+			cpiInfo.ApiVersion == bicloud.MaxCpiApiVersionSupported {
+			return deploy(false)
+		} else {
+			return installation.WithRunningRegistry(c.logger, stage, func() error {
+				return deploy(true)
+			})
+		}
 	})
-
 	return err
-
 }
 
 func (c *DeploymentPreparer) deploy(
@@ -216,12 +237,9 @@ func (c *DeploymentPreparer) deploy(
 	manifestSHA string,
 	skipDrain bool,
 	stage biui.Stage,
+	cloud bicloud.Cloud,
+	usesRegistry bool,
 ) (err error) {
-	cloud, err := c.cloudFactory.NewCloud(installation, deploymentState.DirectorID)
-	if err != nil {
-		return bosherr.WrapError(err, "Creating CPI client from CPI installation")
-	}
-
 	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
 
 	cloudStemcell, err := stemcellManager.Upload(extractedStemcell, stage)
@@ -246,11 +264,16 @@ func (c *DeploymentPreparer) deploy(
 			return bosherr.WrapError(err, "Clearing deployment record")
 		}
 
+		registrySettings := installationManifest.Registry
+		if !usesRegistry {
+			registrySettings = biinstallmanifest.Registry{}
+		}
+
 		_, err = c.deployer.Deploy(
 			cloud,
 			deploymentManifest,
 			cloudStemcell,
-			installationManifest.Registry,
+			registrySettings,
 			vmManager,
 			blobstore,
 			skipDrain,
@@ -279,4 +302,12 @@ func (c *DeploymentPreparer) deploy(
 	}
 
 	return nil
+}
+
+func (c *DeploymentPreparer) stemcellApiVersion(stemcell bistemcell.ExtractedStemcell) int {
+	stemcellApiVersion := stemcell.Manifest().ApiVersion
+	if stemcellApiVersion == 0 {
+		return 1
+	}
+	return stemcellApiVersion
 }

@@ -203,7 +203,18 @@ func (c *deploymentDeleter) findCurrentDeploymentAndDelete(skipDrain bool, stage
 func (c *deploymentDeleter) deploymentManager(installation biinstall.Installation, directorID, installationMbus, caCert string) (bidepl.Manager, error) {
 	c.logger.Debug(c.logTag, "Creating cloud client...")
 
-	cloud, err := c.cloudFactory.NewCloud(installation, directorID)
+	stemcellApiVersion := 1
+	deploymentStateService, err := c.deploymentStateService.Load()
+	if err == nil {
+		for _, s := range deploymentStateService.Stemcells {
+			if deploymentStateService.CurrentStemcellID == s.ID {
+				stemcellApiVersion = s.ApiVersion
+				break
+			}
+		}
+	}
+
+	cloud, err := c.cloudFactory.NewCloud(installation, directorID, stemcellApiVersion)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Creating CPI client from CPI installation")
 	}

@@ -14,9 +14,15 @@ resource_pools:
   env:
     bosh:
       password: pjF0EjcwDTvyQ # openssl passwd -crypt sshpassword
+      authorized_keys:
+      - ((ssh_tunnel.public_key))
   stemcell:
     url: {{ .StemcellURL }}
     sha1: {{ .StemcellSHA1 }}
+
+disk_pools:
+- name: persistent
+  disk_size: 1024
 
 networks:
 - name: fake-network-name
@@ -49,10 +55,10 @@ cloud_provider:
           options:
             blobstore_path: /var/vcap/micro_bosh/data/cache
 
-jobs:
+instance_groups:
 - name: dummy_job
   instances: 1
-  templates:
+  jobs:
   - {name: dummy_with_package, release: dummy}
   - {name: dummy_with_properties, release: dummy}
   - {name: dummy, release: dummy}
@@ -60,9 +66,13 @@ jobs:
   networks:
   - name: fake-network-name
     static_ips: [10.244.0.42]
-  persistent_disk: 1024
+  persistent_disk_pool: persistent
   properties:
     cpi: *warden_cpi
     dummy_with_properties:
       echo_value: "hi"
     ntp: []
+
+variables:
+- name: ssh_tunnel
+  type: ssh

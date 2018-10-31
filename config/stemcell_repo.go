@@ -10,7 +10,7 @@ type StemcellRepo interface // StemcellRepo persists stemcells metadata
 	UpdateCurrent(recordID string) error
 	FindCurrent() (StemcellRecord, bool, error)
 	ClearCurrent() error
-	Save(name, version, cid string) (StemcellRecord, error)
+	Save(name, version, cid string, apiVersion int) (StemcellRecord, error)
 	Find(name, version string) (StemcellRecord, bool, error)
 	All() ([]StemcellRecord, error)
 	Delete(StemcellRecord) error
@@ -28,7 +28,7 @@ func NewStemcellRepo(deploymentStateService DeploymentStateService, uuidGenerato
 	}
 }
 
-func (r stemcellRepo) Save(name, version, cid string) (StemcellRecord, error) {
+func (r stemcellRepo) Save(name, version, cid string, apiVersion int) (StemcellRecord, error) {
 	stemcellRecord := StemcellRecord{}
 
 	err := r.updateConfig(func(config *DeploymentState) error {
@@ -38,9 +38,10 @@ func (r stemcellRepo) Save(name, version, cid string) (StemcellRecord, error) {
 		}
 
 		newRecord := StemcellRecord{
-			Name:    name,
-			Version: version,
-			CID:     cid,
+			Name:       name,
+			Version:    version,
+			CID:        cid,
+			ApiVersion: apiVersion,
 		}
 		var err error
 		newRecord.ID, err = r.uuidGenerator.Generate()
@@ -50,7 +51,7 @@ func (r stemcellRepo) Save(name, version, cid string) (StemcellRecord, error) {
 
 		for _, oldRecord := range records {
 			if oldRecord.Name == newRecord.Name && oldRecord.Version == newRecord.Version {
-				return bosherr.Errorf("Failed to save stemcell record '%s' (duplicate name/version), existing record found '%s'", newRecord, oldRecord)
+				return bosherr.Errorf("Failed to save stemcell record '%+v' (duplicate name/version), existing record found '%+v'", newRecord, oldRecord)
 			}
 		}
 

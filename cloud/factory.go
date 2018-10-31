@@ -8,7 +8,7 @@ import (
 )
 
 type Factory interface {
-	NewCloud(installation biinstall.Installation, directorID string) (Cloud, error)
+	NewCloud(installation biinstall.Installation, directorID string, stemcellApiVersion int) (Cloud, error)
 }
 
 type factory struct {
@@ -29,7 +29,7 @@ func NewFactory(
 	}
 }
 
-func (f *factory) NewCloud(installation biinstall.Installation, directorID string) (Cloud, error) {
+func (f *factory) NewCloud(installation biinstall.Installation, directorID string, stemcellApiVersion int) (Cloud, error) {
 	cpiJob := installation.Job()
 	target := installation.Target()
 	cpi := CPI{
@@ -44,5 +44,5 @@ func (f *factory) NewCloud(installation biinstall.Installation, directorID strin
 	}
 
 	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, cpi, f.logger)
-	return NewCloud(cpiCmdRunner, directorID, f.logger), nil
+	return NewCloud(cpiCmdRunner, directorID, stemcellApiVersion, f.logger), nil
 }

@@ -32,6 +32,7 @@ var _ = Describe("Manager", func() {
 		tempExtractionDir   string
 
 		expectedExtractedStemcell ExtractedStemcell
+		stemcellApiVersion        = 2
 	)
 
 	BeforeEach(func() {
@@ -148,7 +149,7 @@ var _ = Describe("Manager", func() {
 
 			BeforeEach(func() {
 				var err error
-				foundStemcellRecord, err = stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-existing-cid")
+				foundStemcellRecord, err = stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-existing-cid", stemcellApiVersion)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -179,7 +180,7 @@ var _ = Describe("Manager", func() {
 	Describe("FindCurrent", func() {
 		Context("when stemcell already exists in stemcell repo", func() {
 			BeforeEach(func() {
-				stemcellRecord, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-existing-stemcell-cid")
+				stemcellRecord, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-existing-stemcell-cid", stemcellApiVersion)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = stemcellRepo.UpdateCurrent(stemcellRecord.ID)
@@ -224,18 +225,18 @@ var _ = Describe("Manager", func() {
 
 		BeforeEach(func() {
 			fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-1"
-			firstStemcellRecord, err := stemcellRepo.Save("fake-stemcell-name-1", "fake-stemcell-version-1", "fake-stemcell-cid-1")
+			firstStemcellRecord, err := stemcellRepo.Save("fake-stemcell-name-1", "fake-stemcell-version-1", "fake-stemcell-cid-1", stemcellApiVersion)
 			Expect(err).ToNot(HaveOccurred())
 			firstStemcell = NewCloudStemcell(firstStemcellRecord, stemcellRepo, fakeCloud)
 
 			fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-2"
-			_, err = stemcellRepo.Save("fake-stemcell-name-2", "fake-stemcell-version-2", "fake-stemcell-cid-2")
+			_, err = stemcellRepo.Save("fake-stemcell-name-2", "fake-stemcell-version-2", "fake-stemcell-cid-2", stemcellApiVersion)
 			Expect(err).ToNot(HaveOccurred())
 			err = stemcellRepo.UpdateCurrent("fake-stemcell-id-2")
 			Expect(err).ToNot(HaveOccurred())
 
 			fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-3"
-			secondStemcellRecord, err := stemcellRepo.Save("fake-stemcell-name-3", "fake-stemcell-version-3", "fake-stemcell-cid-3")
+			secondStemcellRecord, err := stemcellRepo.Save("fake-stemcell-name-3", "fake-stemcell-version-3", "fake-stemcell-cid-3", stemcellApiVersion)
 			Expect(err).ToNot(HaveOccurred())
 			secondStemcell = NewCloudStemcell(secondStemcellRecord, stemcellRepo, fakeCloud)
 		})
@@ -256,17 +257,17 @@ var _ = Describe("Manager", func() {
 		)
 		BeforeEach(func() {
 			fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-1"
-			_, err := stemcellRepo.Save("fake-stemcell-name-1", "fake-stemcell-version-1", "fake-stemcell-cid-1")
+			_, err := stemcellRepo.Save("fake-stemcell-name-1", "fake-stemcell-version-1", "fake-stemcell-cid-1", stemcellApiVersion)
 			Expect(err).ToNot(HaveOccurred())
 
 			fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-2"
-			secondStemcellRecord, err = stemcellRepo.Save("fake-stemcell-name-2", "fake-stemcell-version-2", "fake-stemcell-cid-2")
+			secondStemcellRecord, err = stemcellRepo.Save("fake-stemcell-name-2", "fake-stemcell-version-2", "fake-stemcell-cid-2", stemcellApiVersion)
 			Expect(err).ToNot(HaveOccurred())
 			err = stemcellRepo.UpdateCurrent(secondStemcellRecord.ID)
 			Expect(err).ToNot(HaveOccurred())
 
 			fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-3"
-			_, err = stemcellRepo.Save("fake-stemcell-name-3", "fake-stemcell-version-3", "fake-stemcell-cid-3")
+			_, err = stemcellRepo.Save("fake-stemcell-name-3", "fake-stemcell-version-3", "fake-stemcell-cid-3", stemcellApiVersion)
 			Expect(err).ToNot(HaveOccurred())
 		})
 

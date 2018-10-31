@@ -17,10 +17,11 @@ import (
 
 var _ = Describe("CloudStemcell", func() {
 	var (
-		stemcellRepo      biconfig.StemcellRepo
-		fakeUUIDGenerator *fakeuuid.FakeGenerator
-		fakeCloud         *fakebicloud.FakeCloud
-		cloudStemcell     CloudStemcell
+		stemcellRepo       biconfig.StemcellRepo
+		fakeUUIDGenerator  *fakeuuid.FakeGenerator
+		fakeCloud          *fakebicloud.FakeCloud
+		cloudStemcell      CloudStemcell
+		stemcellApiVersion = 2
 	)
 
 	BeforeEach(func() {
@@ -42,7 +43,7 @@ var _ = Describe("CloudStemcell", func() {
 		Context("when stemcell is in the repo", func() {
 			BeforeEach(func() {
 				fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id"
-				_, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid")
+				_, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid", stemcellApiVersion)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -54,10 +55,11 @@ var _ = Describe("CloudStemcell", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 				Expect(currentStemcell).To(Equal(biconfig.StemcellRecord{
-					ID:      "fake-stemcell-id",
-					CID:     "fake-stemcell-cid",
-					Name:    "fake-stemcell-name",
-					Version: "fake-stemcell-version",
+					ID:         "fake-stemcell-id",
+					CID:        "fake-stemcell-cid",
+					Name:       "fake-stemcell-name",
+					Version:    "fake-stemcell-version",
+					ApiVersion: stemcellApiVersion,
 				}))
 			})
 		})
@@ -83,7 +85,7 @@ var _ = Describe("CloudStemcell", func() {
 		})
 
 		It("deletes stemcell from repo", func() {
-			_, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid")
+			_, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid", stemcellApiVersion)
 			Expect(err).ToNot(HaveOccurred())
 
 			err = cloudStemcell.Delete()
@@ -94,7 +96,7 @@ var _ = Describe("CloudStemcell", func() {
 
 		Context("when deleted stemcell is the current stemcell", func() {
 			BeforeEach(func() {
-				stemcellRecord, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid")
+				stemcellRecord, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid", stemcellApiVersion)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = stemcellRepo.UpdateCurrent(stemcellRecord.ID)
@@ -130,7 +132,7 @@ var _ = Describe("CloudStemcell", func() {
 			})
 
 			BeforeEach(func() {
-				stemcellRecord, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid")
+				stemcellRecord, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid", stemcellApiVersion)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = stemcellRepo.UpdateCurrent(stemcellRecord.ID)

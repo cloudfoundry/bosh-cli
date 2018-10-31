@@ -89,9 +89,9 @@ var _ = Describe("DeploymentDeleter", func() {
 			expectCPIInstall *gomock.Call
 			expectNewCloud   *gomock.Call
 
-			skipDrain bool
-
-			mbusURL = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
+			mbusURL                     = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
+			stemcellApiVersionForDelete = 1
+			skipDrain                   bool
 		)
 
 		var certificate = `-----BEGIN CERTIFICATE-----
@@ -201,7 +201,7 @@ cloud_provider:
 			}).Return(fakeInstallation, nil).AnyTimes()
 			mockCpiInstaller.EXPECT().Cleanup(fakeInstallation).AnyTimes()
 
-			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID).Return(mockCloud, nil).AnyTimes()
+			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID, stemcellApiVersionForDelete).Return(mockCloud, nil).AnyTimes()
 		}
 
 		var newDeploymentDeleter = func() bicmd.DeploymentDeleter {
@@ -362,6 +362,8 @@ cloud_provider:
 
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
+
+			stemcellApiVersionForDelete = 1
 		})
 
 		JustBeforeEach(func() {
@@ -369,6 +371,7 @@ cloud_provider:
 		})
 
 		Context("when the CPI installs", func() {
+
 			JustBeforeEach(func() {
 				allowCPIToBeInstalled()
 			})
@@ -395,6 +398,29 @@ cloud_provider:
 					// create deployment manifest yaml file
 					setupDeploymentStateService.Save(biconfig.DeploymentState{
 						DirectorID: directorID,
+					})
+				})
+
+				Context("stemcell version is 2 and present in deployment state", func() {
+					BeforeEach(func() {
+						setupDeploymentStateService.Save(biconfig.DeploymentState{
+							DirectorID:        directorID,
+							CurrentStemcellID: "stemcell-id",
+							Stemcells: []biconfig.StemcellRecord{
+								{
+									ID:         "stemcell-id",
+									ApiVersion: 2,
+								},
+							},
+						})
+
+						stemcellApiVersionForDelete = 2
+					})
+
+					It("sets stemcell version for cloud", func() {
+						expectDeleteAndCleanup(true, true)
+						err := newDeploymentDeleter().DeleteDeployment(true, fakeStage)
+						Expect(err).ToNot(HaveOccurred())
 					})
 				})
 
@@ -517,7 +543,7 @@ cloud_provider:
 				}).Return(fakeInstallation, nil).AnyTimes()
 				mockCpiInstaller.EXPECT().Cleanup(fakeInstallation).AnyTimes()
 
-				expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID).Return(mockCloud, nil).AnyTimes()
+				expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID, stemcellApiVersionForDelete).Return(mockCloud, nil).AnyTimes()
 			})
 
 			Context("when the call to delete the deployment returns an error", func() {
