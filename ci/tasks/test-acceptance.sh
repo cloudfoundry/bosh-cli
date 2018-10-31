@@ -25,8 +25,6 @@ export BOSH_INIT_CPI_RELEASE_PATH=`ls $PWD/cpi-release/*.tgz`
 export BOSH_INIT_CPI_RELEASE_URL=""
 export BOSH_INIT_CPI_RELEASE_SHA1=""
 
-export BOSH_INIT_STEMCELL_PATH=`ls $PWD/stemcell/*.tgz`
-
 cd "$GOPATH/src/github.com/cloudfoundry/bosh-cli"
 
 start-garden 1> /dev/null
