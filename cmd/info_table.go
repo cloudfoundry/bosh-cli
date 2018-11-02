@@ -31,6 +31,12 @@ func (t InfoTable) Print() {
 		Transpose: true,
 	}
 
+	if len(t.Info.StemcellOS) > 0 {
+		table = table.AddColumn("Director Stemcell", []boshtbl.Value{
+			boshtbl.NewValueString(t.Info.StemcellOS + "/" + t.Info.StemcellVersion),
+		})
+	}
+
 	if len(t.Info.CPI) > 0 {
 		table = table.AddColumn("CPI", []boshtbl.Value{
 			boshtbl.NewValueString(t.Info.CPI),

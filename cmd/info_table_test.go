@@ -22,9 +22,11 @@ var _ = Describe("InfoTable", func() {
 	Describe("Print", func() {
 		It("shows full information about environment", func() {
 			info := boshdir.Info{
-				Name:    "director-name",
-				UUID:    "director-uuid",
-				Version: "director-version",
+				Name:            "director-name",
+				UUID:            "director-uuid",
+				StemcellOS:      "-",
+				StemcellVersion: "-",
+				Version:         "director-version",
 
 				User: "user",
 
@@ -42,6 +44,7 @@ var _ = Describe("InfoTable", func() {
 				boshtbl.NewHeader("Name"),
 				boshtbl.NewHeader("UUID"),
 				boshtbl.NewHeader("Version"),
+				boshtbl.NewHeader("Director Stemcell"),
 				boshtbl.NewHeader("CPI"),
 				boshtbl.NewHeader("Features"),
 				boshtbl.NewHeader("User"),
@@ -51,6 +54,7 @@ var _ = Describe("InfoTable", func() {
 				boshtbl.NewValueString("director-name"),
 				boshtbl.NewValueString("director-uuid"),
 				boshtbl.NewValueString("director-version"),
+				boshtbl.NewValueString("-/-"),
 				boshtbl.NewValueString("cpi"),
 				boshtbl.NewValueStrings([]string{"compiled_pkgs: disabled", "snapshots: enabled"}),
 				boshtbl.NewValueString("user"),
