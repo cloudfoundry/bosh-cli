@@ -4,7 +4,7 @@ set -ex
 cpi_release_version=40
 cpi_release_sha1=9f579b1615bc95494eaa8579728fe4764e3b1e16
 stemcell_file=registry-test-warden-stemcell.tgz
-stemcell_sha1=79833dcea376478a779cecd93b07394f2a363102
+stemcell_sha1=07a7dad0968b61e10daa613de23465de4af7a02f
 
 if [ ! -z ${BOSH_INIT_CPI_RELEASE_URL+x} ]; then
   cpi_release_url=$BOSH_INIT_CPI_RELEASE_URL
