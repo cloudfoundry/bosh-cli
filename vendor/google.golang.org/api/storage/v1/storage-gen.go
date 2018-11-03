@@ -16,15 +16,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	context "golang.org/x/net/context"
-	ctxhttp "golang.org/x/net/context/ctxhttp"
-	gensupport "google.golang.org/api/gensupport"
-	googleapi "google.golang.org/api/googleapi"
 	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	context "golang.org/x/net/context"
+	ctxhttp "golang.org/x/net/context/ctxhttp"
+	gensupport "google.golang.org/api/gensupport"
+	googleapi "google.golang.org/api/googleapi"
 )
 
 // Always reference these packages, just in case the auto-generated code
@@ -4013,9 +4014,9 @@ type BucketsPatchCall struct {
 	header_    http.Header
 }
 
-// Patch: Updates a bucket. Changes to the bucket will be readable
+// Patch: Patches a bucket. Changes to the bucket will be readable
 // immediately after writing, but configuration changes may take time to
-// propagate. This method supports patch semantics.
+// propagate.
 func (r *BucketsService) Patch(bucket string, bucket2 *Bucket) *BucketsPatchCall {
 	c := &BucketsPatchCall{s: r.s, urlParams_: make(gensupport.URLParams)}
 	c.bucket = bucket
@@ -4188,7 +4189,7 @@ func (c *BucketsPatchCall) Do(opts ...googleapi.CallOption) (*Bucket, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Updates a bucket. Changes to the bucket will be readable immediately after writing, but configuration changes may take time to propagate. This method supports patch semantics.",
+	//   "description": "Patches a bucket. Changes to the bucket will be readable immediately after writing, but configuration changes may take time to propagate.",
 	//   "httpMethod": "PATCH",
 	//   "id": "storage.buckets.patch",
 	//   "parameterOrder": [
