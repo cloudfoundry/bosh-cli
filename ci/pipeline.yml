@@ -55,6 +55,7 @@ jobs:
           trigger: true
         - get: bosh-warden-cpi-release
           trigger: true
+        - get: bosh-warden-stemcell-xenial
       - aggregate:
         - task: test-acceptance
           file: bosh-cli/ci/tasks/test-acceptance.yml
@@ -269,6 +270,14 @@ resources:
       branch: develop
       private_key: {{concourse_github_private_key}}
 
+  - name: bosh-warden-stemcell-xenial
+    type: s3
+    source:
+      regexp: warden/bosh-stemcell-(.*)-warden-boshlite-ubuntu-xenial-go_agent.tgz
+      bucket: {{aws_s3_stemcell_bucket}}
+      region_name: {{aws_s3_stemcell_bucket_region}}
+      access_key_id: {{aws_s3_stemcell_bucket_access_key}}
+      secret_access_key: {{aws_s3_stemcell_bucket_secret_key}}
 
   - name: bosh-warden-cpi-release
     type: bosh-io-release
