@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"crypto/sha1"
 	"fmt"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
@@ -55,6 +56,7 @@ func (c TakeOutCmd) Run(opts TakeOutOpts) error {
 		return err
 	}
 	defer takeoutOp.Close()
+	takeoutOp.WriteString("---\n")
 	takeoutOp.WriteString(string(y))
 	return nil
 }
@@ -62,6 +64,10 @@ func DownloadFile(r boshdir.ManifestRelease) (entry OpEntry, err error) {
 
 	// generate a local file name
 	filepath := BadChar.ReplaceAllString(path.Base(r.URL),"_")
+
+	expectedSha1 := r.SHA1
+	actualSha1 := ""
+	sha1 := sha1.New()
 
 	if _, err := os.Stat(filepath); os.IsNotExist(err) {
 		fmt.Println("Downloading release: " + r.Name + " " + r.Version)
@@ -80,17 +86,37 @@ func DownloadFile(r boshdir.ManifestRelease) (entry OpEntry, err error) {
 		defer out.Close()
 
 		// Write the body to file
-		_, err = io.Copy(out, resp.Body)
+		_, err = io.Copy(out, io.TeeReader(resp.Body, sha1))
+		actualSha1 = fmt.Sprintf("%x", sha1.Sum(nil))
 		if err != nil {
 			return entry, err
 		}
 	} else {
 		fmt.Println("Release already downloaded: " + r.Name + " " + r.Version)
-	}
-	path := fmt.Sprintf("/releases/name=%s/url", r.Name)
-	localFile := fmt.Sprintf("file://%s", filepath)
-	entry = OpEntry{Type: "replace", Path: path, Value: localFile}
+		readH, err := os.Open(filepath)
+		defer readH.Close()
+		if err != nil {
+			return entry, err
+		}
+		_, err = io.Copy(sha1, readH)
 
+		actualSha1 = fmt.Sprintf("%x", sha1.Sum(nil))
+	}
+
+	if len(r.SHA1) == 40 {
+		fmt.Println("Checking hash")
+
+		if actualSha1 != expectedSha1 {
+			fmt.Println("Bad download, invalid sha1 " + filepath)
+			panic("")
+		}
+	}
+
+	if len(r.Name) > 0 {
+		path := fmt.Sprintf("/releases/name=%s/url", r.Name)
+		localFile := fmt.Sprintf("file://%s", filepath)
+		entry = OpEntry{Type: "replace", Path: path, Value: localFile}
+	}
 	return entry, err
 }
 
