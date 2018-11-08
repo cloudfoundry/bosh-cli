@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/bosh-cli/ui"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 )
 
@@ -102,9 +103,10 @@ type ReleaseArchive interface {
 }
 
 type StemcellMetadata struct {
-	Name    string `yaml:"name"`
-	OS      string `yaml:"operating_system"`
-	Version string `yaml:"version"`
+	Name            string         `yaml:"name"`
+	OS              string         `yaml:"operating_system"`
+	Version         string         `yaml:"version"`
+	CloudProperties biproperty.Map `yaml:"cloud_properties"`
 	// other fields ignored
 }
 
