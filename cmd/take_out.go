@@ -74,12 +74,7 @@ func TakeOutRelease(r boshdir.ManifestRelease, ui boshui.UI) (entry OpEntry, err
 			return OpEntry{}, err
 		}
 	} else {
-		ui.PrintLinef("Released already downloaded (name/version): %s / %s -> %s", r.Name, r.Version, localFileName)
-		readH, err := os.Open(localFileName)
-		defer readH.Close()
-		if err != nil {
-			return entry, err
-		}
+		ui.PrintLinef("Released already downloaded: %s / %s -> %s", r.Name, r.Version, localFileName)
 	}
 	if len(r.Name) > 0 {
 		path := fmt.Sprintf("/releases/name=%s/url", r.Name)
@@ -89,7 +84,7 @@ func TakeOutRelease(r boshdir.ManifestRelease, ui boshui.UI) (entry OpEntry, err
 	return entry, err
 }
 func RetrieveRelease(r boshdir.ManifestRelease, ui boshui.UI, localFileName string) (err error) {
-	ui.PrintLinef("Downloading release (name/version): %s / %s -> %s", r.Name, r.Version, localFileName)
+	ui.PrintLinef("Downloading release: %s / %s -> %s", r.Name, r.Version, localFileName)
 
 	resp, err := http.Get(r.URL)
 	if err != nil {
