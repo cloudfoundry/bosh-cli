@@ -285,6 +285,14 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *InspectReleaseOpts:
 		return NewInspectReleaseCmd(deps.UI, c.director()).Run(*opts)
 
+	case *InspectLocalReleaseOpts:
+		relProv, _ := c.releaseProviders()
+
+		return NewInspectLocalReleaseCmd(
+			relProv.NewArchiveReader(),
+			deps.UI,
+		).Run(*opts)
+
 	case *VMsOpts:
 		return NewVMsCmd(deps.UI, c.director(), c.BoshOpts.Parallel).Run(*opts)
 

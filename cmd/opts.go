@@ -102,11 +102,12 @@ type BoshOpts struct {
 	RepackStemcell       RepackStemcellOpts         `command:"repack-stemcell"              description:"Repack stemcell"`
 
 	// Releases
-	Releases       ReleasesOpts       `command:"releases"        alias:"rs"   description:"List releases"`
-	UploadRelease  UploadReleaseOpts  `command:"upload-release"  alias:"ur"   description:"Upload release"`
-	ExportRelease  ExportReleaseOpts  `command:"export-release"               description:"Export the compiled release to a tarball"`
-	InspectRelease InspectReleaseOpts `command:"inspect-release"              description:"List release contents such as jobs"`
-	DeleteRelease  DeleteReleaseOpts  `command:"delete-release"  alias:"delr" description:"Delete release"`
+	Releases            ReleasesOpts            `command:"releases"        alias:"rs"   description:"List releases"`
+	UploadRelease       UploadReleaseOpts       `command:"upload-release"  alias:"ur"   description:"Upload release"`
+	ExportRelease       ExportReleaseOpts       `command:"export-release"               description:"Export the compiled release to a tarball"`
+	InspectRelease      InspectReleaseOpts      `command:"inspect-release"              description:"List release contents such as jobs"`
+	InspectLocalRelease InspectLocalReleaseOpts `command:"inspect-local-release"     description:"Display information from release metadata"`
+	DeleteRelease       DeleteReleaseOpts       `command:"delete-release"  alias:"delr" description:"Delete release"`
 
 	// Errands
 	Errands   ErrandsOpts   `command:"errands"    alias:"es" description:"List errands"`
@@ -622,6 +623,15 @@ type InspectReleaseOpts struct {
 
 type InspectReleaseArgs struct {
 	Slug boshdir.ReleaseSlug `positional-arg-name:"NAME/VERSION"`
+}
+
+type InspectLocalReleaseOpts struct {
+	Args InspectLocalReleaseArgs `positional-args:"true" required:"true"`
+	cmd
+}
+
+type InspectLocalReleaseArgs struct {
+	PathToRelease string `positional-arg-name:"PATH-TO-RELEASE" description:"Path to release"`
 }
 
 // Errands

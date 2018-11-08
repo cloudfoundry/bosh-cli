@@ -78,6 +78,7 @@ var _ = Describe("Factory", func() {
 			"generate-package":       []string{filepath.Join("/", "file")},
 			"init-release":           []string{},
 			"inspect-release":        []string{"name/version"},
+			"inspect-local-release":  []string{filepath.Join("/", "file")},
 			"inspect-local-stemcell": []string{filepath.Join("/", "file")},
 			"instances":              []string{},
 			"locks":                  []string{},
