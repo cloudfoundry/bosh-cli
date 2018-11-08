@@ -11,19 +11,19 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path"
 	"regexp"
 )
-var BadChar = regexp.MustCompile("[?=]")
+
+var BadChar = regexp.MustCompile("[?=\"]")
 
 type OpEntry struct {
-	Type string `json:"type" yaml:"type"`
-	Path string `json:"path" yaml:"path"`
+	Type  string `json:"type" yaml:"type"`
+	Path  string `json:"path" yaml:"path"`
 	Value string `json:"value" yaml:"value"`
 }
 
 type TakeOutCmd struct {
-	ui              boshui.UI
+	ui boshui.UI
 }
 
 func NewTakeOutCmd(ui boshui.UI) TakeOutCmd {
@@ -42,17 +42,20 @@ func (c TakeOutCmd) Run(opts TakeOutOpts) error {
 	}
 
 	manifest, err := boshdir.NewManifestFromBytes(bytes)
-	fmt.Println("Processing releases for offline use")
+	c.ui.PrintLinef("Processing releases for offline use")
 	var releaseChanges []OpEntry
 	for _, r := range manifest.Releases {
-		o, _ := DownloadFile(r)
+		o, err := TakeOutRelease(r, c.ui)
+		if err != nil {
+			return err
+		}
 		releaseChanges = append(releaseChanges, o)
 	}
 
 	y, _ := yaml.Marshal(releaseChanges)
-	fmt.Println("Writing take-out operation")
+	c.ui.PrintLinef("Writing take-out operation to file: " + opts.Args.Name)
 	takeoutOp, err := os.Create(opts.Args.Name)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	defer takeoutOp.Close()
@@ -60,63 +63,58 @@ func (c TakeOutCmd) Run(opts TakeOutOpts) error {
 	takeoutOp.WriteString(string(y))
 	return nil
 }
-func DownloadFile(r boshdir.ManifestRelease) (entry OpEntry, err error) {
+func TakeOutRelease(r boshdir.ManifestRelease, ui boshui.UI) (entry OpEntry, err error) {
 
-	// generate a local file name
-	filepath := BadChar.ReplaceAllString(path.Base(r.URL),"_")
+	// generate a local file name that's safe
+	localFileName := BadChar.ReplaceAllString(fmt.Sprintf("%s_v%s.tgz", r.Name, r.Version), "_")
 
-	expectedSha1 := r.SHA1
-	actualSha1 := ""
-	sha1 := sha1.New()
-
-	if _, err := os.Stat(filepath); os.IsNotExist(err) {
-		fmt.Println("Downloading release: " + r.Name + " " + r.Version)
-
-		resp, err := http.Get(r.URL)
+	if _, err := os.Stat(localFileName); os.IsNotExist(err) {
+		err = RetrieveRelease(r, ui, localFileName)
 		if err != nil {
-			return entry, err
-		}
-		defer resp.Body.Close()
-
-		// Create the file
-		out, err := os.Create(filepath)
-		if err != nil {
-			return entry, err
-		}
-		defer out.Close()
-
-		// Write the body to file
-		_, err = io.Copy(out, io.TeeReader(resp.Body, sha1))
-		actualSha1 = fmt.Sprintf("%x", sha1.Sum(nil))
-		if err != nil {
-			return entry, err
+			return OpEntry{}, err
 		}
 	} else {
-		fmt.Println("Release already downloaded: " + r.Name + " " + r.Version)
-		readH, err := os.Open(filepath)
+		ui.PrintLinef("Released already downloaded (name/version): %s / %s -> %s", r.Name, r.Version, localFileName)
+		readH, err := os.Open(localFileName)
 		defer readH.Close()
 		if err != nil {
 			return entry, err
 		}
-		_, err = io.Copy(sha1, readH)
-
-		actualSha1 = fmt.Sprintf("%x", sha1.Sum(nil))
 	}
-
-	if len(r.SHA1) == 40 {
-		fmt.Println("Checking hash")
-
-		if actualSha1 != expectedSha1 {
-			fmt.Println("Bad download, invalid sha1 " + filepath)
-			panic("")
-		}
-	}
-
 	if len(r.Name) > 0 {
 		path := fmt.Sprintf("/releases/name=%s/url", r.Name)
-		localFile := fmt.Sprintf("file://%s", filepath)
+		localFile := fmt.Sprintf("file://%s", localFileName)
 		entry = OpEntry{Type: "replace", Path: path, Value: localFile}
 	}
 	return entry, err
 }
+func RetrieveRelease(r boshdir.ManifestRelease, ui boshui.UI, localFileName string) (err error) {
+	ui.PrintLinef("Downloading release (name/version): %s / %s -> %s", r.Name, r.Version, localFileName)
 
+	resp, err := http.Get(r.URL)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	// Create the file
+	out, err := os.Create(localFileName)
+	if err != nil {
+		return
+	}
+	defer out.Close()
+
+	// Write the body to file
+	hash := sha1.New()
+	_, err = io.Copy(out, io.TeeReader(resp.Body, hash))
+	actualSha1 := fmt.Sprintf("%x", hash.Sum(nil))
+	if err != nil {
+		return
+	}
+	if len(r.SHA1) == 40 {
+		if actualSha1 != r.SHA1 {
+			return bosherr.Errorf("sha1 mismatch %s (a:%s, e:%s)", localFileName, actualSha1, r.SHA1)
+		}
+	}
+	return
+}
