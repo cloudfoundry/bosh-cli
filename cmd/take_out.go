@@ -74,7 +74,7 @@ func TakeOutRelease(r boshdir.ManifestRelease, ui boshui.UI) (entry OpEntry, err
 			return OpEntry{}, err
 		}
 	} else {
-		ui.PrintLinef("Released already downloaded: %s / %s -> %s", r.Name, r.Version, localFileName)
+		ui.PrintLinef("Release present: %s / %s -> %s", r.Name, r.Version, localFileName)
 	}
 	if len(r.Name) > 0 {
 		path := fmt.Sprintf("/releases/name=%s/url", r.Name)
