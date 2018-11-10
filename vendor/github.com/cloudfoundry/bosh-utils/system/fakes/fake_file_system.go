@@ -645,13 +645,14 @@ func (fs *FakeFileSystem) Rename(oldPath, newPath string) error {
 	fs.RenameOldPaths = append(fs.RenameOldPaths, oldPath)
 	fs.RenameNewPaths = append(fs.RenameNewPaths, newPath)
 
-	newStats := fs.getOrCreateFile(newPath)
-	newStats.Content = stats.Content
-	newStats.FileMode = stats.FileMode
-	newStats.FileType = stats.FileType
-	newStats.Username = stats.Username
-	newStats.Groupname = stats.Groupname
-	newStats.Flags = stats.Flags
+	for filePath, fileStats := range fs.fileRegistry.GetAll() {
+		if filePath == oldPath {
+			fs.fileRegistry.Register(newPath, fileStats)
+		} else if strings.HasPrefix(filePath, fmt.Sprintf("%s/", oldPath)) {
+			dstPath := gopath.Join(newPath, filePath[len(oldPath):])
+			fs.fileRegistry.Register(dstPath, fileStats)
+		}
+	}
 
 	// Ignore error from RemoveAll
 	fs.removeAll(oldPath)

@@ -8,11 +8,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"go/types"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 	"sync"
@@ -35,6 +37,17 @@ type goTooOldError struct {
 // the build system package structure.
 // See driver for more details.
 func goListDriver(cfg *Config, patterns ...string) (*driverResponse, error) {
+	var sizes types.Sizes
+	var sizeserr error
+	var sizeswg sync.WaitGroup
+	if cfg.Mode >= LoadTypes {
+		sizeswg.Add(1)
+		go func() {
+			sizes, sizeserr = getSizes(cfg)
+			sizeswg.Done()
+		}()
+	}
+
 	// Determine files requested in contains patterns
 	var containFiles []string
 	var packagesNamed []string
@@ -70,18 +83,6 @@ extractQueries:
 		}
 	}
 	patterns = restPatterns
-	// Look for the deprecated contains: syntax.
-	// TODO(matloob): delete this around mid-October 2018.
-	restPatterns = restPatterns[:0]
-	for _, pattern := range patterns {
-		if strings.HasPrefix(pattern, "contains:") {
-			containFile := strings.TrimPrefix(pattern, "contains:")
-			containFiles = append(containFiles, containFile)
-		} else {
-			restPatterns = append(restPatterns, pattern)
-		}
-	}
-	containFiles = absJoin(cfg.Dir, containFiles)
 
 	// TODO(matloob): Remove the definition of listfunc and just use golistPackages once go1.12 is released.
 	var listfunc driver
@@ -107,6 +108,13 @@ extractQueries:
 	} else {
 		response = &driverResponse{}
 	}
+
+	sizeswg.Wait()
+	if sizeserr != nil {
+		return nil, sizeserr
+	}
+	// types.SizesFor always returns nil or a *types.StdSizes
+	response.Sizes, _ = sizes.(*types.StdSizes)
 
 	if len(containFiles) == 0 && len(packagesNamed) == 0 {
 		return response, nil
@@ -327,6 +335,18 @@ func runNamedQueries(cfg *Config, driver driver, addPkg func(*Package), queries 
 	return results, nil
 }
 
+func getSizes(cfg *Config) (types.Sizes, error) {
+	stdout, err := invokeGo(cfg, "env", "GOARCH")
+	if err != nil {
+		return nil, err
+	}
+
+	goarch := strings.TrimSpace(stdout.String())
+	// Assume "gc" because SizesFor doesn't respond to other compilers.
+	// TODO(matloob): add support for gccgo as needed.
+	return types.SizesFor("gc", goarch), nil
+}
+
 // roots selects the appropriate paths to walk based on the passed-in configuration,
 // particularly the environment and the presence of a go.mod in cfg.Dir's parents.
 func roots(cfg *Config) ([]gopathwalk.Root, string, error) {
@@ -488,6 +508,7 @@ func golistDriverCurrent(cfg *Config, words ...string) (*driverResponse, error) 
 	if err != nil {
 		return nil, err
 	}
+	seen := make(map[string]*jsonPackage)
 	// Decode the JSON and convert it to Package form.
 	var response driverResponse
 	for dec := json.NewDecoder(buf); dec.More(); {
@@ -509,6 +530,15 @@ func golistDriverCurrent(cfg *Config, words ...string) (*driverResponse, error) 
 			}
 			return nil, fmt.Errorf("package missing import path: %+v", p)
 		}
+
+		if old, found := seen[p.ImportPath]; found {
+			if !reflect.DeepEqual(p, old) {
+				return nil, fmt.Errorf("go list repeated package %v with different values", p.ImportPath)
+			}
+			// skip the duplicate
+			continue
+		}
+		seen[p.ImportPath] = p
 
 		pkg := &Package{
 			Name:            p.Name,

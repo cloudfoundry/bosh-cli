@@ -295,10 +295,14 @@ func (fs *osFileSystem) CopyFile(srcPath, dstPath string) error {
 	if err != nil {
 		return bosherr.WrapError(err, "Opening source path")
 	}
-
 	defer srcFile.Close()
 
-	dstFile, err := fs.OpenFile(dstPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	srcFi, err := fs.Stat(srcPath)
+	if err != nil {
+		return bosherr.WrapError(err, "Stating source path")
+	}
+
+	dstFile, err := fs.OpenFile(dstPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, srcFi.Mode())
 	if err != nil {
 		return bosherr.WrapError(err, "Creating destination file")
 	}
