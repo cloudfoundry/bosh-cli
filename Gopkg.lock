@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:f759cc0befb2617d0ef11edaa395e4b79b893f263bcdc7b97721fa7b7fd0c339"
+  digest = "1:c7931499c1ea384e8ddb3d48cb60ecda4136eb84ca8db0b358c5781f5863b9d5"
   name = "cloud.google.com/go"
   packages = [
     "compute/metadata",
@@ -14,8 +14,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "1fd54cf41e6e0e178ffe3c52b0e2260281f603e3"
-  version = "v0.32.0"
+  revision = "74b12019e2aa53ec27882158f59192d7cd6d1998"
+  version = "v0.33.1"
 
 [[projects]]
   branch = "master"
@@ -37,7 +37,7 @@
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
 
 [[projects]]
-  digest = "1:2dc46c7c3932cc4099a8f6a787432d5a3235f703bfd0ac1809ac0dfa7f20de96"
+  digest = "1:181c92c5f471513986103098c0a4abe882fb124f72b5161697554ec2103ef13f"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -77,8 +77,8 @@
     "service/sts",
   ]
   pruneopts = "NUT"
-  revision = "cf00ea20983ce38df17ab0a0814463ab8838459f"
-  version = "v1.15.73"
+  revision = "5ebc7a404e942062fd3aa7ff50975498716eb990"
+  version = "v1.15.78"
 
 [[projects]]
   digest = "1:7294028ae4f4ebe9f92dccabdc69f63eba37b71fbfcdcb35ed1c32eb823fc6d4"
@@ -116,7 +116,7 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "e5514efd7b2388ef65980f1109dd7fecf752384c"
+  revision = "f4062d718e5a508fe555b775708247172578bb40"
 
 [[projects]]
   branch = "master"
@@ -262,12 +262,12 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:fe852c57b4fc4d11e6ef79bce1e930ee2f2f7d148b370afef8f8d012a80960ea"
+  digest = "1:fb9f5147a9d6fc69057d05b0739bcd79562c55db143c3bdacfe1c9c6129461f6"
   name = "github.com/googleapis/gax-go"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "317e0006254c44a0ac427cc52a0e083ff0b9622f"
-  version = "v2.0.0"
+  revision = "b001040cd31805261cbd978842099e326dfa857b"
+  version = "v2.0.2"
 
 [[projects]]
   digest = "1:f0d9d74edbd40fdeada436d5ac9cb5197407899af3fef85ff0137077ffe8ae19"
@@ -474,11 +474,11 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "e4dc69e5b2fd71dcaf8bd5d054eb936deb78d1fa"
+  revision = "3d3f9f413869b949e48070b5bc593aa22cc2b8f2"
 
 [[projects]]
   branch = "master"
-  digest = "1:062eb4710af3b39043dd8acd6e1beee10ca3ab7154963f820b754e91c946de86"
+  digest = "1:9d3b0453928a28eaeac53e5fd02670a7d50a7dc91f3eae90fe2078f46351c6c7"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -496,7 +496,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "03003ca0c849e57b6ea29a4bab8d3cb6e4d568fe"
+  revision = "adae6a3d119ae4890b46832a2e88a95adc62b8e7"
 
 [[projects]]
   branch = "master"
@@ -514,14 +514,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6eac76de26138eb5049ffa3f3a8d4cf394cf626812b7d9b31308301e24bc9840"
+  digest = "1:15c44ebe33e556cdaf47e52b1e913aa15ce7aab47e565569319e6f89767193ff"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "66b7b1311ac80bbafcd2daeef9a5e6e2cd1e2399"
+  revision = "93218def8b18e66adbdab3eca8ec334700329f1f"
 
 [[projects]]
   digest = "1:8a12cbc891b7130d3f660f8a309e5c0b083f831e6ac38cdaa1f12e63c12d6bea"
@@ -560,7 +560,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:aa6be116f1256ca207d733f3ad7e52ae80ad5d31485ab8538814a9ddae12a1a5"
+  digest = "1:d446571497e0811bfe45575fe4e8a6fd512192890ab4616180a9c92bbedff07e"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -575,11 +575,11 @@
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "92d8274bd7b8a4c65f24bafe401a029e58392704"
+  revision = "e77c06808af6317101c5a7124008b3f7e0103768"
 
 [[projects]]
   branch = "master"
-  digest = "1:9a3b1c771b6f3ce5c94df4a8eabc5f5082aedb6e3cf3e3eb96ac64e2e7a0d683"
+  digest = "1:f9137bb6cbdf32445b808ae241e687e8d2fdf5083fd3fd1de2ec091df096870d"
   name = "google.golang.org/api"
   packages = [
     "gensupport",
@@ -594,7 +594,7 @@
     "transport/http/internal/propagation",
   ]
   pruneopts = "NUT"
-  revision = "cfbc873f6b93790282bed8e31e7f7df417caee1b"
+  revision = "83a9d304b1e613fc253e1e2710778642fe81af53"
 
 [[projects]]
   digest = "1:b63b351b57e64ae8aec1af030dc5e74a2676fcda62102f006ae4411fac1b04c8"
