@@ -38,8 +38,8 @@ func (ui *indentingUI) PrintErrorBlock(block string) {
 	ui.parent.PrintErrorBlock(block)
 }
 
-func (ui *indentingUI) PrintTable(table Table) {
-	ui.parent.PrintTable(table)
+func (ui *indentingUI) PrintTable(table Table) error {
+	return ui.parent.PrintTable(table)
 }
 
 func (ui *indentingUI) AskForText(label string) (string, error) {

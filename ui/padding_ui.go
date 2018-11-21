@@ -52,9 +52,9 @@ func (ui *paddingUI) PrintErrorBlock(block string) {
 	ui.parent.PrintErrorBlock(block)
 }
 
-func (ui *paddingUI) PrintTable(table Table) {
+func (ui *paddingUI) PrintTable(table Table) error {
 	ui.padBefore(paddingUIModeAuto)
-	ui.parent.PrintTable(table)
+	return ui.parent.PrintTable(table)
 }
 
 func (ui *paddingUI) AskForText(label string) (string, error) {

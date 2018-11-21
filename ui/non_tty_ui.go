@@ -23,7 +23,7 @@ func (ui *NonTTYUI) EndLinef(pattern string, args ...interface{})   {}
 func (ui *NonTTYUI) PrintBlock(block []byte)      { ui.parent.PrintBlock(block) }
 func (ui *NonTTYUI) PrintErrorBlock(block string) { ui.parent.PrintErrorBlock(block) }
 
-func (ui *NonTTYUI) PrintTable(table Table) {
+func (ui *NonTTYUI) PrintTable(table Table) error {
 	// hide decorations
 	table.Title = ""
 	table.Notes = nil
@@ -36,7 +36,7 @@ func (ui *NonTTYUI) PrintTable(table Table) {
 	// cut's default delim
 	table.BorderStr = "\t"
 
-	ui.parent.PrintTable(table)
+	return ui.parent.PrintTable(table)
 }
 
 func (ui *NonTTYUI) AskForText(label string) (string, error) {
