@@ -98,7 +98,7 @@ var _ = Describe("Factory", func() {
 			"stop":                   []string{"slug"},
 			"sync-blobs":             []string{},
 			"take-snapshot":          []string{"group/id"},
-			"take-out":				  []string{filepath.Join("/", "file")},
+			"take-out":               []string{filepath.Join("/", "file2"), filepath.Join("/", "file")},
 			"task":                   []string{"1234"},
 			"tasks":                  []string{},
 			"update-cloud-config":    []string{filepath.Join("/", "file")},
@@ -381,6 +381,7 @@ var _ = Describe("Factory", func() {
 			boshOpts.UploadBlobs = UploadBlobsOpts{}
 			boshOpts.SSH = SSHOpts{}
 			boshOpts.SCP = SCPOpts{}
+			boshOpts.TakeOut = TakeOutOpts{}
 			boshOpts.Deploy = DeployOpts{}
 			boshOpts.UpdateRuntimeConfig = UpdateRuntimeConfigOpts{}
 			boshOpts.VMs = VMsOpts{}

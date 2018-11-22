@@ -1301,6 +1301,60 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
+	Describe("TakeOutOpts", func() {
+		var opts TakeOutOpts
+
+		It("has Args", func() {
+			Expect(getStructTagForName("Args", &opts)).To(Equal(`positional-args:"true" required:"true"`))
+		})
+
+		Describe("MirrorPrefix", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("MirrorPrefix", &opts)).To(Equal(
+					`long:"mirror-prefix" short:"m" description:"Mirror prefix" optional:"true" default:"file:"`,
+				))
+			})
+		})
+
+		It("has VarErrors", func() {
+			Expect(getStructTagForName("VarErrors", &opts)).To(Equal(
+				`long:"var-errs" description:"Expect all variables to be found, otherwise error"`,
+			))
+		})
+
+		It("has VarErrorsUnused", func() {
+			Expect(getStructTagForName("VarErrorsUnused", &opts)).To(Equal(
+				`long:"var-errs-unused" description:"Expect all variables to be used, otherwise error"`,
+			))
+		})
+
+	})
+
+	Describe("TakeOutArgs", func() {
+		var opts *TakeOutArgs
+
+		BeforeEach(func() {
+			opts = &TakeOutArgs{}
+		})
+
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(
+					`positional-arg-name:"NAME" description:"file name of ops file"`,
+				))
+			})
+		})
+
+		Describe("Manifest", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Manifest", opts)).To(Equal(
+					`positional-arg-name:"PATH" description:"Path to a template for take_out"`,
+				))
+			})
+		})
+
+	})
+
 	Describe("UpdateCloudConfigOpts", func() {
 		var opts *UpdateCloudConfigOpts
 

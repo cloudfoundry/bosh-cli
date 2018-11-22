@@ -89,7 +89,7 @@ type BoshOpts struct {
 	Manifest ManifestOpts `command:"manifest" alias:"man" description:"Show deployment manifest"`
 
 	Interpolate InterpolateOpts `command:"interpolate" alias:"int" description:"Interpolates variables into a manifest"`
-	TakeOut TakeOutOpts `command:"take-out" description:"prepares dependencies for offline use"`
+	TakeOut     TakeOutOpts     `command:"take-out" description:"prepares dependencies for offline use"`
 
 	// Events
 	Events EventsOpts `command:"events" description:"List events"`
@@ -316,23 +316,23 @@ type InterpolateArgs struct {
 }
 
 type TakeOutOpts struct {
-	Args TakeOutArgs `positional-args:"true" required:"true"`
+	Args         TakeOutArgs `positional-args:"true" required:"true"`
+	MirrorPrefix string      `long:"mirror-prefix" short:"m" description:"Mirror prefix" optional:"true" default:"file:"`
 
 	VarFlags
 	OpsFlags
 
-	Path            patch.Pointer `long:"path" value-name:"OP-PATH" description:"Extract value out of template (e.g.: /private_key)"`
-	VarErrors       bool          `long:"var-errs"                  description:"Expect all variables to be found, otherwise error"`
-	VarErrorsUnused bool          `long:"var-errs-unused"           description:"Expect all variables to be used, otherwise error"`
+	VarErrors       bool `long:"var-errs"                  description:"Expect all variables to be found, otherwise error"`
+	VarErrorsUnused bool `long:"var-errs-unused"           description:"Expect all variables to be used, otherwise error"`
 
 	cmd
 }
 
 type TakeOutArgs struct {
-	Name string `positional-arg-name:"NAME" description:"file name of ops file"`
-
-	Manifest FileBytesArg `positional-arg-name:"PATH" description:"Path to a template that will be interpolated"`
+	Name     string       `positional-arg-name:"NAME" description:"file name of ops file"`
+	Manifest FileBytesArg `positional-arg-name:"PATH" description:"Path to a template for take_out"`
 }
+
 // Config
 
 type ConfigOpts struct {
