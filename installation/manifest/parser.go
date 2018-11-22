@@ -84,11 +84,13 @@ func (p *parser) Parse(path string, vars boshtpl.Variables, op patch.Op, release
 	p.logger.Debug(p.logTag, "Parsed installation manifest: %#v", comboManifest)
 
 	if comboManifest.CloudProvider.SSHTunnel.PrivateKey != "" {
-		if strings.HasPrefix(comboManifest.CloudProvider.SSHTunnel.PrivateKey, "-----BEGIN RSA PRIVATE KEY-----") {
+		if p.lookForPrivateSshHeader(comboManifest.CloudProvider.SSHTunnel.PrivateKey) {
 			pkey, _ := pem.Decode([]byte(comboManifest.CloudProvider.SSHTunnel.PrivateKey))
 			if pkey == nil {
 				return Manifest{}, bosherr.Error("Invalid private key for ssh tunnel")
 			}
+		} else if strings.HasPrefix(comboManifest.CloudProvider.SSHTunnel.PrivateKey, "----") {
+			return Manifest{}, bosherr.Error("Unsupported private key format for ssh tunnel")
 		} else {
 			absolutePath, err := biutil.AbsolutifyPath(path, comboManifest.CloudProvider.SSHTunnel.PrivateKey, p.fs)
 			if err != nil {
@@ -139,4 +141,9 @@ func (p *parser) Parse(path string, vars boshtpl.Variables, op patch.Op, release
 	}
 
 	return installationManifest, nil
+}
+
+func (p *parser) lookForPrivateSshHeader(key string) bool {
+	return strings.HasPrefix(key, "-----BEGIN RSA PRIVATE KEY-----") ||
+		strings.HasPrefix(key, "-----BEGIN OPENSSH PRIVATE KEY-----")
 }

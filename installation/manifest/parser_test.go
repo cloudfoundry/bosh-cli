@@ -227,6 +227,161 @@ cloud_provider:
 				})
 			})
 
+			Context("with new format raw private key", func() {
+				Context("that is valid", func() {
+					BeforeEach(func() {
+						fakeFs.WriteFileString(comboManifestPath, `
+---
+name: fake-deployment-name
+cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
+  ssh_tunnel:
+    host: 54.34.56.8
+    port: 22
+    user: fake-ssh-user
+    private_key: |
+      -----BEGIN OPENSSH PRIVATE KEY-----
+      b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAdwAAAAdz
+      c2gtcnNhAAAAAwEAAQAAAGEA2z+2XlO/sIPQbPlNihxZlsbAciMNTx1jWizNUxvx
+      uHJt8XjLzyTuhoViXJnShkBOnHUQZdkByAOzOrldJeFgpZAvr67SoTKVaxutrupB
+      5+bb5ZtkN+G6Cpu36QPQXoKNAAABoOJ0x/nidMf5AAAAB3NzaC1yc2EAAABhANs/
+      tl5Tv7CD0Gz5TYocWZbGwHIjDU8dY1oszVMb8bhybfF4y88k7oaFYlyZ0oZATpx1
+      EGXZAcgDszq5XSXhYKWQL6+u0qEylWsbra7qQefm2+WbZDfhugqbt+kD0F6CjQAA
+      AAMBAAEAAABgUvMg8UEoRgUo5wHPV1BwiL37c3NVhrgsraJDsIzjABCzDefQ3Dcx
+      001FsJk18DsFj589XOz2EZxZsvfXRHMlnroFNAuUEvel1sBnV3Do2Cq9av8gyWYe
+      Nev51pMhpSDhAAAAMG6L0tOAjV9l462AESj5Ddkub85tfrbVh5jTcUXn5MIXpnCT
+      jJP81YzAnPwWlv1BAAAAADEA709+ml6n9MWR2+O2hFpnnsxkvSMitQQzBKr3AwzV
+      PxivOspqBKrSMkG57gVKkm5FAAAAMQDqigydhP7j1IGABdVrWXX/WFhABjAmNWrf
+      YYEecgjhjdM83QSkpwu7tYCHtZjny6kAAAAUaW1wb3J0ZWQtb3BlbnNzaC1rZXkB
+      AgMEBQYH
+      -----END OPENSSH PRIVATE KEY-----
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+`)
+						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+					})
+
+					It("sets the raw private key field", func() {
+						installationManifest, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
+						Expect(err).ToNot(HaveOccurred())
+
+						Expect(installationManifest).To(Equal(manifest.Manifest{
+							Name: "fake-deployment-name",
+							Template: manifest.ReleaseJobRef{
+								Name:    "fake-cpi-job-name",
+								Release: "fake-cpi-release-name",
+							},
+							Properties: biproperty.Map{
+								"registry": biproperty.Map{
+									"host":     "127.0.0.1",
+									"port":     6901,
+									"username": "registry",
+									"password": "fake-uuid",
+								},
+							},
+							Registry: manifest.Registry{
+								SSHTunnel: manifest.SSHTunnel{
+									Host: "54.34.56.8",
+									Port: 22,
+									User: "fake-ssh-user",
+									PrivateKey: `-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAdwAAAAdz
+c2gtcnNhAAAAAwEAAQAAAGEA2z+2XlO/sIPQbPlNihxZlsbAciMNTx1jWizNUxvx
+uHJt8XjLzyTuhoViXJnShkBOnHUQZdkByAOzOrldJeFgpZAvr67SoTKVaxutrupB
+5+bb5ZtkN+G6Cpu36QPQXoKNAAABoOJ0x/nidMf5AAAAB3NzaC1yc2EAAABhANs/
+tl5Tv7CD0Gz5TYocWZbGwHIjDU8dY1oszVMb8bhybfF4y88k7oaFYlyZ0oZATpx1
+EGXZAcgDszq5XSXhYKWQL6+u0qEylWsbra7qQefm2+WbZDfhugqbt+kD0F6CjQAA
+AAMBAAEAAABgUvMg8UEoRgUo5wHPV1BwiL37c3NVhrgsraJDsIzjABCzDefQ3Dcx
+001FsJk18DsFj589XOz2EZxZsvfXRHMlnroFNAuUEvel1sBnV3Do2Cq9av8gyWYe
+Nev51pMhpSDhAAAAMG6L0tOAjV9l462AESj5Ddkub85tfrbVh5jTcUXn5MIXpnCT
+jJP81YzAnPwWlv1BAAAAADEA709+ml6n9MWR2+O2hFpnnsxkvSMitQQzBKr3AwzV
+PxivOspqBKrSMkG57gVKkm5FAAAAMQDqigydhP7j1IGABdVrWXX/WFhABjAmNWrf
+YYEecgjhjdM83QSkpwu7tYCHtZjny6kAAAAUaW1wb3J0ZWQtb3BlbnNzaC1rZXkB
+AgMEBQYH
+-----END OPENSSH PRIVATE KEY-----
+`,
+								},
+								Host:     "127.0.0.1",
+								Port:     6901,
+								Username: "registry",
+								Password: "fake-uuid",
+							},
+							Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
+						}))
+
+					})
+				})
+				Context("that is invalid", func() {
+					BeforeEach(func() {
+						fakeFs.WriteFileString(comboManifestPath, `
+---
+name: fake-deployment-name
+cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
+  ssh_tunnel:
+    host: 54.34.56.8
+    port: 22
+    user: fake-ssh-user
+    private_key: |
+      -----BEGIN OPENSSH PRIVATE KEY-----
+      no valid private key
+      -----END OPENSSH PRIVATE KEY-----
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+`)
+						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+					})
+
+					It("returns an error", func() {
+						_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(Equal("Invalid private key for ssh tunnel"))
+					})
+				})
+			})
+
+			Context("with private key format", func() {
+				Context("that is unsupported", func() {
+					BeforeEach(func() {
+						fakeFs.WriteFileString(comboManifestPath, `
+---
+name: fake-deployment-name
+cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
+  ssh_tunnel:
+    host: 54.34.56.8
+    port: 22
+    user: fake-ssh-user
+    private_key: |
+      ---- BEGIN SSH2 ENCRYPTED PRIVATE KEY ----
+      Comment: "imported-openssh-key"
+      P2/56wAAAb4AAAA3aWYtbW9kbntzaWdue3JzYS1wa2NzMS1zaGExfSxlbmNyeXB0e3JzYS
+      1wa2NzMXYyLW9hZXB9fQAAAARub25lAAABbwAAAWsAAAARAQABAAAC/1LzIPFBKEYFKOcB
+      z1dQcIi9+3NzVYa4LK2iQ7CM4wAQsw3n0Nw3MdNNRbCZNfA7BY+fPVzs9hGcWbL310RzJZ
+      66BTQLlBL3pdbAZ1dw6NgqvWr/IMlmHjXr+daTIaUg4QAAAwDbP7ZeU7+wg9Bs+U2KHFmW
+      xsByIw1PHWNaLM1TG/G4cm3xeMvPJO6GhWJcmdKGQE6cdRBl2QHIA7M6uV0l4WClkC+vrt
+      KhMpVrG62u6kHn5tvlm2Q34boKm7fpA9Bego0AAAF/bovS04CNX2XjrYARKPkN2S5vzm1+
+      ttWHmNNxRefkwhemcJOMk/zVjMCc/BaW/UEAAAABgOqKDJ2E/uPUgYAF1WtZdf9YWEAGMC
+      Y1at9hgR5yCOGN0zzdBKSnC7u1gIe1mOfLqQAAAYDvT36aXqf0xZHb47aEWmeezGS9IyK1
+      BDMEqvcDDNU/GK86ymoEqtIyQbnuBUqSbkU=
+      ---- END SSH2 ENCRYPTED PRIVATE KEY ----
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+`)
+						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+					})
+
+					It("returns an error", func() {
+						_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(Equal("Unsupported private key format for ssh tunnel"))
+					})
+				})
+			})
+
 			Context("with private key path", func() {
 				Context("with absolute private_key path", func() {
 					BeforeEach(func() {
