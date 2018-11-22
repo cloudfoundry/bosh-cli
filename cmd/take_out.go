@@ -19,23 +19,6 @@ func NewTakeOutCmd(ui boshui.UI, d takeout.Utensils) TakeOutCmd {
 	return TakeOutCmd{ui: ui, to: d}
 }
 
-// idea: take_out could export to fully constructed template instead of just the modifications
-
-/*
-
-mkdir take_out-cf
-cd ..
-
-git clone --mirror cf-deploy
-git clone cf-deploy
-
-bosh take_out cf-6-offline.yml cf-deployment/manifest.yml
-
-7z -v300m take_out-cf.7z take_out-cf/
-
-
-*/
-
 func (c TakeOutCmd) Run(opts TakeOutOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.Manifest.Bytes)
 
