@@ -102,6 +102,26 @@ func (c FSConfig) AliasEnvironment(url, alias, caCert string) (Config, error) {
 	return config, nil
 }
 
+func (c FSConfig) UnaliasEnvironment(alias string) (Config, error) {
+	if len(alias) == 0 {
+		return nil, bosherr.Error("expected non-empty environment alias")
+	}
+
+	idx := -1
+	for i, tg := range c.schema.Environments {
+		if alias == tg.Alias {
+			idx = i
+			break
+		}
+	}
+	if idx == -1 {
+		return nil, bosherr.Errorf("alias %s not found", alias)
+	}
+	config := c.deepCopy()
+	config.schema.Environments = append(c.schema.Environments[:idx], c.schema.Environments[idx+1:]...)
+	return config, nil
+}
+
 func (c FSConfig) CACert(urlOrAlias string) string {
 	_, tg := c.findOrCreateEnvironment(urlOrAlias)
 

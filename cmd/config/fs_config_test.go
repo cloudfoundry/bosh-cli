@@ -114,6 +114,44 @@ var _ = Describe("FSConfig", func() {
 		})
 	})
 
+	Describe("DeleteAlias", func() {
+		var findEnv = func(alias string, envs []Environment) *Environment {
+			for i := range envs {
+				if envs[i].Alias == alias {
+					return &envs[i]
+				}
+			}
+			return nil
+		}
+
+		BeforeEach(func() {
+			var err error
+			config, err = config.AliasEnvironment("url", "alias", "")
+			Expect(err).ToNot(HaveOccurred())
+
+			config, err = config.AliasEnvironment("url2", "alias2", "")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns an error if the alias does not exist", func() {
+			_, err := config.UnaliasEnvironment("alias-does-not-exist")
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("deletes an environment with a particular alias", func() {
+			len := len(config.Environments())
+			var err error
+			config, err = config.UnaliasEnvironment("alias")
+			Expect(err).ToNot(HaveOccurred())
+
+			envs := config.Environments()
+			Expect(envs).To(HaveLen(len - 1))
+
+			Expect(findEnv("alias", envs)).To(BeNil())
+			Expect(findEnv("alias2", envs)).ToNot(BeNil())
+		})
+	})
+
 	Describe("AliasEnvironment/CACert", func() {
 		It("returns empty if file does not exist", func() {
 			Expect(config.CACert("url")).To(Equal(""))

@@ -44,6 +44,19 @@ type FakeConfig struct {
 		result1 config.Config
 		result2 error
 	}
+	UnaliasEnvironmentStub        func(alias string) (config.Config, error)
+	unaliasEnvironmentMutex       sync.RWMutex
+	unaliasEnvironmentArgsForCall []struct {
+		alias string
+	}
+	unaliasEnvironmentReturns struct {
+		result1 config.Config
+		result2 error
+	}
+	unaliasEnvironmentReturnsOnCall map[int]struct {
+		result1 config.Config
+		result2 error
+	}
 	CACertStub        func(url string) string
 	cACertMutex       sync.RWMutex
 	cACertArgsForCall []struct {
@@ -250,6 +263,57 @@ func (fake *FakeConfig) AliasEnvironmentReturnsOnCall(i int, result1 config.Conf
 		})
 	}
 	fake.aliasEnvironmentReturnsOnCall[i] = struct {
+		result1 config.Config
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeConfig) UnaliasEnvironment(alias string) (config.Config, error) {
+	fake.unaliasEnvironmentMutex.Lock()
+	ret, specificReturn := fake.unaliasEnvironmentReturnsOnCall[len(fake.unaliasEnvironmentArgsForCall)]
+	fake.unaliasEnvironmentArgsForCall = append(fake.unaliasEnvironmentArgsForCall, struct {
+		alias string
+	}{alias})
+	fake.recordInvocation("UnaliasEnvironment", []interface{}{alias})
+	fake.unaliasEnvironmentMutex.Unlock()
+	if fake.UnaliasEnvironmentStub != nil {
+		return fake.UnaliasEnvironmentStub(alias)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.unaliasEnvironmentReturns.result1, fake.unaliasEnvironmentReturns.result2
+}
+
+func (fake *FakeConfig) UnaliasEnvironmentCallCount() int {
+	fake.unaliasEnvironmentMutex.RLock()
+	defer fake.unaliasEnvironmentMutex.RUnlock()
+	return len(fake.unaliasEnvironmentArgsForCall)
+}
+
+func (fake *FakeConfig) UnaliasEnvironmentArgsForCall(i int) string {
+	fake.unaliasEnvironmentMutex.RLock()
+	defer fake.unaliasEnvironmentMutex.RUnlock()
+	return fake.unaliasEnvironmentArgsForCall[i].alias
+}
+
+func (fake *FakeConfig) UnaliasEnvironmentReturns(result1 config.Config, result2 error) {
+	fake.UnaliasEnvironmentStub = nil
+	fake.unaliasEnvironmentReturns = struct {
+		result1 config.Config
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeConfig) UnaliasEnvironmentReturnsOnCall(i int, result1 config.Config, result2 error) {
+	fake.UnaliasEnvironmentStub = nil
+	if fake.unaliasEnvironmentReturnsOnCall == nil {
+		fake.unaliasEnvironmentReturnsOnCall = make(map[int]struct {
+			result1 config.Config
+			result2 error
+		})
+	}
+	fake.unaliasEnvironmentReturnsOnCall[i] = struct {
 		result1 config.Config
 		result2 error
 	}{result1, result2}
@@ -546,6 +610,8 @@ func (fake *FakeConfig) Invocations() map[string][][]interface{} {
 	defer fake.resolveEnvironmentMutex.RUnlock()
 	fake.aliasEnvironmentMutex.RLock()
 	defer fake.aliasEnvironmentMutex.RUnlock()
+	fake.unaliasEnvironmentMutex.RLock()
+	defer fake.unaliasEnvironmentMutex.RUnlock()
 	fake.cACertMutex.RLock()
 	defer fake.cACertMutex.RUnlock()
 	fake.credentialsMutex.RLock()

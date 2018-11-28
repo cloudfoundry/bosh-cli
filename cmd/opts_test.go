@@ -1100,6 +1100,36 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
+	Describe("UnaliasEnvOpts", func() {
+		var opts *UnaliasEnvOpts
+
+		BeforeEach(func() {
+			opts = &UnaliasEnvOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+	})
+
+	Describe("UnaliasEnvArgs", func() {
+		var args *UnaliasEnvArgs
+
+		BeforeEach(func() {
+			args = &UnaliasEnvArgs{}
+		})
+
+		Describe("Alias", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Alias", args)).To(Equal(
+					`positional-arg-name:"ALIAS" description:"Environment alias"`,
+				))
+			})
+		})
+	})
+
 	Describe("TaskOpts", func() {
 		var opts *TaskOpts
 
