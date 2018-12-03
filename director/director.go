@@ -129,7 +129,7 @@ func (d DirectorImpl) CertificateExpiry() ([]CertificateExpiryInfo, error) {
 	var resps []CertificateExpiryInfo
 	err := d.client.clientRequest.Get("/director/certificate_expiry", &resps)
 	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Getting Director Certificates expiry information '%s'", err)
+		return nil, bosherr.WrapErrorf(err, "Getting Director Certificate details expiry information '%s'", err)
 	}
 
 	return resps, nil

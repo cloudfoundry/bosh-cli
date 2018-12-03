@@ -222,4 +222,41 @@ var _ = Describe("Director", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
+
+	Describe("Certificate Expiry info", func() {
+		It("Returns the director's certificates expiry info", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/director/certificate_expiry"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWithJSONEncoded(http.StatusOK, []map[string]interface{}{
+						{
+							"certificate_path": "foo",
+							"expiry":           "2019-11-21T21:43:58Z",
+							"days_left":        351,
+						},
+						{
+							"certificate_path": "bar",
+							"expiry":           "2018-12-04T21:43:58Z",
+							"days_left":        0,
+						},
+						{
+							"certificate_path": "baz",
+							"expiry":           "2018-11-21T21:43:58Z",
+							"days_left":        -5,
+						},
+					}),
+				),
+			)
+
+			certificateInfo, err := dir.CertificateExpiry()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(certificateInfo).To(ConsistOf(
+				[]director.CertificateExpiryInfo{
+					{"foo", "2019-11-21T21:43:58Z", 351},
+					{"bar", "2018-12-04T21:43:58Z", 0},
+					{"baz", "2018-11-21T21:43:58Z", -5},
+				}))
+		})
+	})
 })

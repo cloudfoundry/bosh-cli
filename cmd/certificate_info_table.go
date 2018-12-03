@@ -25,10 +25,8 @@ func (t CertificateInfoTable) Print() {
 		rows = append(rows, row)
 	}
 
-	bold := color.New(color.Bold).SprintfFunc()
-
 	table := boshtbl.Table{
-		Title: color.YellowString(bold("CERTIFICATE EXPIRY DATE INFORMATION")),
+		Title: color.New(color.Bold).Sprintf(color.YellowString(("CERTIFICATE EXPIRY DATE INFORMATION"))),
 		Header: []boshtbl.Header{
 			boshtbl.NewHeader("Certificate"),
 			boshtbl.NewHeader("Expiry Date (UTC)"),

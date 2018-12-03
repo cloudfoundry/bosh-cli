@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"errors"
+	"github.com/fatih/color"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -18,6 +19,7 @@ var _ = Describe("EnvironmentCmd", func() {
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
 		command  EnvironmentCmd
+		opts     EnvironmentOpts
 	)
 
 	BeforeEach(func() {
@@ -27,7 +29,11 @@ var _ = Describe("EnvironmentCmd", func() {
 	})
 
 	Describe("Run", func() {
-		act := func() error { return command.Run() }
+		BeforeEach(func() {
+
+		})
+
+		act := func() error { return command.Run(opts) }
 
 		It("outputs a table that should be transposed", func() {
 			info := boshdir.Info{}
@@ -145,6 +151,44 @@ var _ = Describe("EnvironmentCmd", func() {
 				Expect(ui.Table.Rows[0]).To(ContainElement(
 					boshtbl.NewValueStrings([]string{"feature-1: enabled"}),
 				))
+			})
+		})
+
+		Context("When details flag is passed", func() {
+			BeforeEach(func() {
+				opts = EnvironmentOpts{Details: true}
+			})
+
+			It("it renders the certificates information", func() {
+				output := []boshdir.CertificateExpiryInfo{
+					{"foo", "2019-11-21T21:43:58Z", 351},
+					{"bar", "2018-12-04T21:43:58Z", 0},
+					{"baz", "2018-11-21T21:43:58Z", -5},
+				}
+
+				var rows = [][]boshtbl.Value{}
+				for _, certInfo := range output {
+					row := []boshtbl.Value{
+						boshtbl.NewValueString(certInfo.Path),
+						boshtbl.NewValueString(certInfo.Expiry),
+						boshtbl.NewValueInt(certInfo.DaysLeft),
+					}
+					rows = append(rows, row)
+				}
+
+				director.CertificateExpiryReturns(output, nil)
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(ui.Table).To(Equal(boshtbl.Table{
+					Title: color.New(color.Bold).Sprintf(color.YellowString(("CERTIFICATE EXPIRY DATE INFORMATION"))),
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Certificate"),
+						boshtbl.NewHeader("Expiry Date (UTC)"),
+						boshtbl.NewHeader("Days Left"),
+					},
+					Rows:      rows,
+					Transpose: false,
+				}))
 			})
 		})
 	})

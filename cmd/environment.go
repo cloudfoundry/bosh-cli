@@ -22,7 +22,7 @@ func (c EnvironmentCmd) Run(opts EnvironmentOpts) error {
 
 	InfoTable{info, c.ui}.Print()
 
-	if opts.Certificates {
+	if opts.Details {
 		certificatesInfo, err := c.director.CertificateExpiry()
 		if err != nil {
 			c.ui.ErrorLinef("error: %s", err.Error())
