@@ -46,6 +46,13 @@ type VariableResult struct {
 	Name string `json:"name"`
 }
 
+type VariableCertResult struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	ExpiryDate string `json:"expiry_date"`
+	DaysLeft   int    `json:"days_left"`
+}
+
 func (d DeploymentImpl) Name() string { return d.name }
 
 func (d *DeploymentImpl) CloudConfig() (string, error) {
@@ -223,6 +230,17 @@ func (d DeploymentImpl) IsInProgress() (bool, error) {
 func (d DeploymentImpl) Variables() ([]VariableResult, error) {
 	path := fmt.Sprintf("/deployments/%s/variables", d.name)
 	response := []VariableResult{}
+
+	if err := d.client.clientRequest.Get(path, &response); err != nil {
+		return nil, bosherr.WrapErrorf(err, "Error fetching variables for deployment '%s'", d.name)
+	}
+
+	return response, nil
+}
+
+func (d DeploymentImpl) VariableCerts() ([]VariableCertResult, error) {
+	path := fmt.Sprintf("/deployments/%s/certificate_expiry", d.name)
+	response := []VariableCertResult{}
 
 	if err := d.client.clientRequest.Get(path, &response); err != nil {
 		return nil, bosherr.WrapErrorf(err, "Error fetching variables for deployment '%s'", d.name)

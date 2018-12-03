@@ -1081,6 +1081,7 @@ type MessageOpts struct {
 
 type VariablesOpts struct {
 	Deployment string
+	Type       string `long:"type"  description:"Filter for type of variable (currently only support 'certificate')"`
 	cmd
 }
 

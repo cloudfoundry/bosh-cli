@@ -438,7 +438,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		return nil
 
 	case *VariablesOpts:
-		return NewVariablesCmd(deps.UI, c.deployment()).Run()
+		return NewVariablesCmd(deps.UI, c.deployment()).Run(*opts)
 
 	default:
 		return fmt.Errorf("Unhandled command: %#v", c.Opts)

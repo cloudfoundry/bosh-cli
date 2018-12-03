@@ -155,6 +155,7 @@ type Deployment interface {
 	DeleteVM(string) error
 
 	Variables() ([]VariableResult, error)
+	VariableCerts() ([]VariableCertResult, error)
 
 	// Deployment, pool or instance specifics
 	Start(slug AllOrInstanceGroupOrInstanceSlug, opts StartOpts) error

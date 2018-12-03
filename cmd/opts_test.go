@@ -1519,6 +1519,22 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
+	Describe("Variables", func() {
+		var opts *VariablesOpts
+
+		BeforeEach(func() {
+			opts = &VariablesOpts{}
+		})
+
+		Describe("Type", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Type", opts)).To(Equal(
+					`long:"type" description:"Filter for type of variable (currently only support 'certificate')"`,
+				))
+			})
+		})
+	})
+
 	Describe("UploadStemcellOpts", func() {
 		var opts *UploadStemcellOpts
 
