@@ -212,6 +212,7 @@ type DeleteEnvArgs struct {
 // Environment
 
 type EnvironmentOpts struct {
+	Certificates bool `short:"c" long:"certificates" description:"Show director's certificates expiry dates"`
 	cmd
 }
 

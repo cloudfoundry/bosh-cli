@@ -80,6 +80,8 @@ type Director interface {
 	DownloadResourceUnchecked(blobstoreID string, out io.Writer) error
 
 	OrphanedVMs() ([]OrphanedVM, error)
+
+	CertificateExpiry() ([]CertificateExpiryInfo, error)
 }
 
 var _ Director = &DirectorImpl{}
@@ -350,4 +352,10 @@ type Event interface {
 	Instance() string
 	Context() map[string]interface{}
 	Error() string
+}
+
+type CertificateExpiryInfo struct {
+	Path     string `json:"certificate_path"`
+	Expiry   string `json:"expiry"`
+	DaysLeft int    `json:"days_left"`
 }
