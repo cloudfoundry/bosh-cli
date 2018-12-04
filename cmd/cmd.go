@@ -60,7 +60,7 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	switch opts := c.Opts.(type) {
 	case *EnvironmentOpts:
-		return NewEnvironmentCmd(deps.UI, c.director()).Run()
+		return NewEnvironmentCmd(deps.UI, c.director()).Run(*opts)
 
 	case *EnvironmentsOpts:
 		return NewEnvironmentsCmd(c.config(), deps.UI).Run()

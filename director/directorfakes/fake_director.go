@@ -681,6 +681,17 @@ type FakeDirector struct {
 		result1 []director.OrphanedVM
 		result2 error
 	}
+	CertificateExpiryStub        func() ([]director.CertificateExpiryInfo, error)
+	certificateExpiryMutex       sync.RWMutex
+	certificateExpiryArgsForCall []struct{}
+	certificateExpiryReturns     struct {
+		result1 []director.CertificateExpiryInfo
+		result2 error
+	}
+	certificateExpiryReturnsOnCall map[int]struct {
+		result1 []director.CertificateExpiryInfo
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -3338,6 +3349,49 @@ func (fake *FakeDirector) OrphanedVMsReturnsOnCall(i int, result1 []director.Orp
 	}{result1, result2}
 }
 
+func (fake *FakeDirector) CertificateExpiry() ([]director.CertificateExpiryInfo, error) {
+	fake.certificateExpiryMutex.Lock()
+	ret, specificReturn := fake.certificateExpiryReturnsOnCall[len(fake.certificateExpiryArgsForCall)]
+	fake.certificateExpiryArgsForCall = append(fake.certificateExpiryArgsForCall, struct{}{})
+	fake.recordInvocation("CertificateExpiry", []interface{}{})
+	fake.certificateExpiryMutex.Unlock()
+	if fake.CertificateExpiryStub != nil {
+		return fake.CertificateExpiryStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.certificateExpiryReturns.result1, fake.certificateExpiryReturns.result2
+}
+
+func (fake *FakeDirector) CertificateExpiryCallCount() int {
+	fake.certificateExpiryMutex.RLock()
+	defer fake.certificateExpiryMutex.RUnlock()
+	return len(fake.certificateExpiryArgsForCall)
+}
+
+func (fake *FakeDirector) CertificateExpiryReturns(result1 []director.CertificateExpiryInfo, result2 error) {
+	fake.CertificateExpiryStub = nil
+	fake.certificateExpiryReturns = struct {
+		result1 []director.CertificateExpiryInfo
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) CertificateExpiryReturnsOnCall(i int, result1 []director.CertificateExpiryInfo, result2 error) {
+	fake.CertificateExpiryStub = nil
+	if fake.certificateExpiryReturnsOnCall == nil {
+		fake.certificateExpiryReturnsOnCall = make(map[int]struct {
+			result1 []director.CertificateExpiryInfo
+			result2 error
+		})
+	}
+	fake.certificateExpiryReturnsOnCall[i] = struct {
+		result1 []director.CertificateExpiryInfo
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -3447,6 +3501,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.downloadResourceUncheckedMutex.RUnlock()
 	fake.orphanedVMsMutex.RLock()
 	defer fake.orphanedVMsMutex.RUnlock()
+	fake.certificateExpiryMutex.RLock()
+	defer fake.certificateExpiryMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

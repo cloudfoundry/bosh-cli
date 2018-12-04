@@ -14,13 +14,23 @@ func NewEnvironmentCmd(ui boshui.UI, director boshdir.Director) EnvironmentCmd {
 	return EnvironmentCmd{ui: ui, director: director}
 }
 
-func (c EnvironmentCmd) Run() error {
+func (c EnvironmentCmd) Run(opts EnvironmentOpts) error {
 	info, err := c.director.Info()
 	if err != nil {
 		return err
 	}
 
 	InfoTable{info, c.ui}.Print()
+
+	if opts.Details {
+		certificatesInfo, err := c.director.CertificateExpiry()
+		if err != nil {
+			c.ui.ErrorLinef("error: %s", err.Error())
+			return err
+		}
+
+		CertificateInfoTable{certificatesInfo, c.ui}.Print()
+	}
 
 	return nil
 }
