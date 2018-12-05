@@ -13,27 +13,14 @@ type CertificateInfoTable struct {
 }
 
 func (t CertificateInfoTable) Print() {
-
 	var rows [][]boshtbl.Value
 
 	for _, certificate := range t.Certificates {
-		status := ""
-
-		if certificate.DaysLeft > 30 {
-			status = color.GreenString("valid")
-		} else if certificate.DaysLeft >= 0 {
-			status = color.YellowString("expiring")
-		} else {
-			status = color.RedString("expired")
-		}
-
 		row := []boshtbl.Value{
 			boshtbl.NewValueString(certificate.Path),
 			boshtbl.NewValueString(certificate.Expiry),
-			boshtbl.NewValueInt(certificate.DaysLeft),
-			boshtbl.NewValueString(status),
+			boshtbl.NewValueFmt(boshtbl.NewValueInt(certificate.DaysLeft), certificate.DaysLeft <= 30),
 		}
-
 		rows = append(rows, row)
 	}
 
@@ -43,7 +30,6 @@ func (t CertificateInfoTable) Print() {
 			boshtbl.NewHeader("Certificate"),
 			boshtbl.NewHeader("Expiry Date (UTC)"),
 			boshtbl.NewHeader("Days Left"),
-			boshtbl.NewHeader("Status"),
 		},
 		Rows:      rows,
 		Transpose: false,

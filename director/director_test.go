@@ -258,5 +258,50 @@ var _ = Describe("Director", func() {
 					{Path: "baz", Expiry: "2018-11-21T21:43:58Z", DaysLeft: -5},
 				}))
 		})
+
+		It("returns 'not supported' if endpoint does not exist on director", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/director/certificate_expiry"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusNotFound, ``),
+				),
+			)
+
+			resp, err := dir.CertificateExpiry()
+
+			Expect(resp).To(BeNil())
+			Expect(err.Error()).To(ContainSubstring("Certificate expiry information not supported"))
+		})
+
+		It("promotes non-404 response errors", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/director/certificate_expiry"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusInternalServerError, ``),
+				),
+			)
+
+			resp, err := dir.CertificateExpiry()
+
+			Expect(resp).To(BeNil())
+			Expect(err.Error()).To(ContainSubstring("Getting certificate expiry endpoint error:"))
+		})
+
+		It("Returns an error when the response is invalid JSON", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/director/certificate_expiry"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, "{ 'foo"),
+				),
+			)
+
+			resp, err := dir.CertificateExpiry()
+
+			Expect(resp).To(BeNil())
+			Expect(err.Error()).To(ContainSubstring("Getting certificate expiry endpoint error:"))
+		})
 	})
 })

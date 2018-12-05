@@ -35,25 +35,14 @@ var _ = Describe("CertificateInfoTable", func() {
 				boshtbl.NewHeader("Certificate"),
 				boshtbl.NewHeader("Expiry Date (UTC)"),
 				boshtbl.NewHeader("Days Left"),
-				boshtbl.NewHeader("Status"),
 			}))
 			Expect(ui.Table.Rows).To(HaveLen(3))
 
 			for i, certificate := range certsInfo {
-				status := ""
-
-				if certificate.DaysLeft > 30 {
-					status = color.GreenString("valid")
-				} else if certificate.DaysLeft >= 0 {
-					status = color.YellowString("expiring")
-				} else {
-					status = color.RedString("expired")
-				}
 				Expect(ui.Table.Rows[i]).To(Equal([]boshtbl.Value{
 					boshtbl.NewValueString(certificate.Path),
 					boshtbl.NewValueString(certificate.Expiry),
-					boshtbl.NewValueInt(certificate.DaysLeft),
-					boshtbl.NewValueString(status),
+					boshtbl.NewValueFmt(boshtbl.NewValueInt(certificate.DaysLeft), certificate.DaysLeft <= 30),
 				}))
 			}
 		})
