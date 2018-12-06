@@ -52,10 +52,6 @@ func (c Cmd) Execute() (cmdErr error) {
 	c.configureUI()
 	c.configureFS()
 
-	if c.BoshOpts.Sha2 {
-		c.deps = c.deps.WithSha2CheckSumming()
-	}
-
 	deps := c.deps
 
 	switch opts := c.Opts.(type) {

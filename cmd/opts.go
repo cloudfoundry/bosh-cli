@@ -161,8 +161,9 @@ type BoshOpts struct {
 	VendorPackage   VendorPackageOpts   `command:"vendor-package"              description:"Vendor package"`
 
 	// Hidden
-	Sha1ifyRelease  Sha1ifyReleaseOpts  `command:"sha1ify-release"  hidden:"true" description:"Convert release tarball to use SHA1"`
-	Sha2ifyRelease  Sha2ifyReleaseOpts  `command:"sha2ify-release"  hidden:"true" description:"Convert release tarball to use SHA256"`
+	Sha1ifyRelease Sha1ifyReleaseOpts `command:"sha1ify-release"  hidden:"true" description:"Convert release tarball to use SHA1"`
+	Sha2ifyRelease Sha2ifyReleaseOpts `command:"sha2ify-release"  hidden:"true" description:"Convert release tarball to use SHA256"`
+
 	FinalizeRelease FinalizeReleaseOpts `command:"finalize-release"               description:"Create final release from dev release tarball"`
 
 	// Blob management

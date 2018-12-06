@@ -49,9 +49,9 @@ var _ = Describe("create-release command", func() {
 		Expect(err).ToNot(HaveOccurred())
 	}
 
-	removeSHA1s := func(contents string) string {
-		matchSHA1s := regexp.MustCompile("sha1: [a-z0-9]{40}\n")
-		return matchSHA1s.ReplaceAllString(contents, "sha1: replaced\n")
+	removeSHA256s := func(contents string) string {
+		matchSHA256s := regexp.MustCompile("sha1: sha256:[a-z0-9]{64}\n")
+		return matchSHA256s.ReplaceAllString(contents, "sha1: replaced\n")
 	}
 
 	expectSha256Checksums := func(filePath string) {
@@ -120,31 +120,31 @@ var _ = Describe("create-release command", func() {
 			contents, err := fs.ReadFileString(filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.1.yml"))
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(removeSHA1s(contents)).To(Equal(
+			Expect(removeSHA256s(contents)).To(Equal(
 				"name: " + relName + `
 version: 0+dev.1
 commit_hash: non-git
 uncommitted_changes: false
 jobs:
 - name: job1
-  version: 2587bae8b82982432573d964c4c23bae3403ddee
-  fingerprint: 2587bae8b82982432573d964c4c23bae3403ddee
+  version: f54520d6563c438bf0bc5bb674777db171b78d848a057a3faec0e9b572c3a76c
+  fingerprint: f54520d6563c438bf0bc5bb674777db171b78d848a057a3faec0e9b572c3a76c
   sha1: replaced
 packages:
 - name: pkg1
-  version: a869c327f5cf345e945f8c8798aca1c34993f66b
-  fingerprint: a869c327f5cf345e945f8c8798aca1c34993f66b
+  version: 08441a1962e8141645edb0f2ddb91330454f2f1a3954d7f27fa256eb5e7b4ed6
+  fingerprint: 08441a1962e8141645edb0f2ddb91330454f2f1a3954d7f27fa256eb5e7b4ed6
   sha1: replaced
   dependencies:
   - pkg2
 - name: pkg2
-  version: 100bedf6f31da1a4693c446f1ea93348ea7a7a9d
-  fingerprint: 100bedf6f31da1a4693c446f1ea93348ea7a7a9d
+  version: 34581dd0d93735e444a32450e3ae3951258c936479b45e08f1fa074740c7e392
+  fingerprint: 34581dd0d93735e444a32450e3ae3951258c936479b45e08f1fa074740c7e392
   sha1: replaced
   dependencies: []
 license:
-  version: f9d233609f68751f4e3f8fe5ab2ad69e4d534496
-  fingerprint: f9d233609f68751f4e3f8fe5ab2ad69e4d534496
+  version: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
+  fingerprint: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
   sha1: replaced
 `,
 			))
@@ -179,31 +179,31 @@ license:
 			contents, err := fs.ReadFileString(rel2File)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(removeSHA1s(contents)).To(Equal(
+			Expect(removeSHA256s(contents)).To(Equal(
 				"name: " + relName + `
 version: 0+dev.2
 commit_hash: non-git
 uncommitted_changes: false
 jobs:
 - name: job1
-  version: 2587bae8b82982432573d964c4c23bae3403ddee
-  fingerprint: 2587bae8b82982432573d964c4c23bae3403ddee
+  version: f54520d6563c438bf0bc5bb674777db171b78d848a057a3faec0e9b572c3a76c
+  fingerprint: f54520d6563c438bf0bc5bb674777db171b78d848a057a3faec0e9b572c3a76c
   sha1: replaced
 packages:
 - name: pkg1
-  version: 9555b8abbcb5180f02f6b7c6027f9d8f49c0e952
-  fingerprint: 9555b8abbcb5180f02f6b7c6027f9d8f49c0e952
+  version: 00ebebd8dd5a533a91f9de34b0cf708772fca87ada7e37e63bec00ece2e0634c
+  fingerprint: 00ebebd8dd5a533a91f9de34b0cf708772fca87ada7e37e63bec00ece2e0634c
   sha1: replaced
   dependencies:
   - pkg2
 - name: pkg2
-  version: 100bedf6f31da1a4693c446f1ea93348ea7a7a9d
-  fingerprint: 100bedf6f31da1a4693c446f1ea93348ea7a7a9d
+  version: 34581dd0d93735e444a32450e3ae3951258c936479b45e08f1fa074740c7e392
+  fingerprint: 34581dd0d93735e444a32450e3ae3951258c936479b45e08f1fa074740c7e392
   sha1: replaced
   dependencies: []
 license:
-  version: f9d233609f68751f4e3f8fe5ab2ad69e4d534496
-  fingerprint: f9d233609f68751f4e3f8fe5ab2ad69e4d534496
+  version: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
+  fingerprint: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
   sha1: replaced
 `,
 			))
