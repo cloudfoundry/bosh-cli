@@ -130,12 +130,13 @@ extractQueries:
 		response.Packages = append(response.Packages, p)
 	}
 
+	var containsCandidates []string
+
 	if len(containFiles) != 0 {
-		containsResults, err := runContainsQueries(cfg, listfunc, isFallback, addPkg, containFiles)
+		containsCandidates, err = runContainsQueries(cfg, listfunc, isFallback, addPkg, containFiles)
 		if err != nil {
 			return nil, err
 		}
-		response.Roots = append(response.Roots, containsResults...)
 	}
 
 	if len(packagesNamed) != 0 {
@@ -146,12 +147,33 @@ extractQueries:
 		response.Roots = append(response.Roots, namedResults...)
 	}
 
-	needPkgs, err := processGolistOverlay(cfg, response)
+	modifiedPkgs, needPkgs, err := processGolistOverlay(cfg, response)
 	if err != nil {
 		return nil, err
 	}
+	if len(containFiles) > 0 {
+		containsCandidates = append(containsCandidates, modifiedPkgs...)
+		containsCandidates = append(containsCandidates, needPkgs...)
+	}
+
 	if len(needPkgs) > 0 {
 		addNeededOverlayPackages(cfg, listfunc, addPkg, needPkgs)
+		if err != nil {
+			return nil, err
+		}
+	}
+	// Check candidate packages for containFiles.
+	if len(containFiles) > 0 {
+		for _, id := range containsCandidates {
+			pkg := seenPkgs[id]
+			for _, f := range containFiles {
+				for _, g := range pkg.GoFiles {
+					if sameFile(f, g) {
+						response.Roots = append(response.Roots, id)
+					}
+				}
+			}
+		}
 	}
 
 	return response, nil
@@ -580,7 +602,7 @@ func golistDriverCurrent(cfg *Config, words ...string) (*driverResponse, error) 
 			OtherFiles:      absJoin(p.Dir, otherFiles(p)...),
 		}
 
-		// Workaround for github.com/golang/go/issues/28749.
+		// Workaround for https://golang.org/issue/28749.
 		// TODO(adonovan): delete before go1.12 release.
 		out := pkg.CompiledGoFiles[:0]
 		for _, f := range pkg.CompiledGoFiles {
@@ -726,7 +748,7 @@ func invokeGo(cfg *Config, args ...string) (*bytes.Buffer, error) {
 
 	// As of writing, go list -export prints some non-fatal compilation
 	// errors to stderr, even with -e set. We would prefer that it put
-	// them in the Package.Error JSON (see http://golang.org/issue/26319).
+	// them in the Package.Error JSON (see https://golang.org/issue/26319).
 	// In the meantime, there's nowhere good to put them, but they can
 	// be useful for debugging. Print them if $GOPACKAGESPRINTGOLISTERRORS
 	// is set.

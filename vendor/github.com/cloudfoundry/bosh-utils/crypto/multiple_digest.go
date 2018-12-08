@@ -6,11 +6,10 @@ import (
 	"io"
 	"strings"
 
-	"os"
-	"unicode"
-
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"os"
+	"unicode"
 )
 
 type MultipleDigest struct {
