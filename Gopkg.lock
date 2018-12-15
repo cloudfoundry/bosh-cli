@@ -37,7 +37,7 @@
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
 
 [[projects]]
-  digest = "1:13a6dc7e03bd15b46c7b463b5d8c118b87a612ca48203bb8e30e63aa3ddc6cff"
+  digest = "1:d65d12a55f407420aa97ec66334a4c214ed20d91ef9cf12707a04486419e1904"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -78,8 +78,8 @@
     "service/sts",
   ]
   pruneopts = "NUT"
-  revision = "c4e0e593d5f18b478f17ff0e86b56d41a70ced2d"
-  version = "v1.16.2"
+  revision = "5f1ca23f3ded773a9ba214e6fac36acd9a965a53"
+  version = "v1.16.6"
 
 [[projects]]
   digest = "1:7294028ae4f4ebe9f92dccabdc69f63eba37b71fbfcdcb35ed1c32eb823fc6d4"
@@ -99,11 +99,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4fd1f40eda0f84905370fd2bcd92c7f169c2d2936ed9bcf75206e6884153593f"
+  digest = "1:30f55ee34f367e29620faaae69dcdf6b78a86348f3a1472cf63f2dbba0f9d4f7"
   name = "github.com/cheggaaa/pb"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "751f9183c336d1bb8ef77beb95243f367d1d90e1"
+  revision = "1cc5bbe20449079337944d56292c7383510c534c"
 
 [[projects]]
   branch = "master"
@@ -479,7 +479,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:cce754a7c97bb0ff5760755606afc6ef3c0e303f7b37d67a3bd8cd08ef48a50f"
+  digest = "1:69f9b4b96841123d3d3410cf545d4e32bc39216f8afccc511c739e1cd673ed71"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -497,7 +497,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "610586996380ceef02dd726cc09df7e00a3f8e56"
+  revision = "891ebc4b82d6e74f468c533b06f983c7be918a96"
 
 [[projects]]
   branch = "master"
@@ -515,14 +515,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d504c2e2a9d57c644347bac08e4e883399a158510e260d21b8ab6b8ea5ef63d5"
+  digest = "1:b3d8e7adca811c3cc256a4e14afaecacec48091ac9aca516705ca71d4462add1"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "70b957f3b65e069b4930ea94e2721eefa0f8f695"
+  revision = "4d1cda033e0619309c606fc686de3adcf599539e"
 
 [[projects]]
   digest = "1:8a12cbc891b7130d3f660f8a309e5c0b083f831e6ac38cdaa1f12e63c12d6bea"
@@ -561,7 +561,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:648849fc0c356c0bb0daa0f4ec7a01aeac29245c967bc4eb06620b2d133c35ec"
+  digest = "1:c94fc0a78dec1976e2eb1c6469d7d59b7736040ba4be0d88a9e2fd2894225181"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -576,7 +576,7 @@
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "4c874b978acba4ecd4a257d3bb8829dd5de17be8"
+  revision = "3c39ce7b61056afe4473b651789da5f89d4aeb20"
 
 [[projects]]
   branch = "master"
@@ -595,7 +595,7 @@
     "transport/http/internal/propagation",
   ]
   pruneopts = "NUT"
-  revision = "1a5ef82f9af45ef51c486291ef2b0a16d82fdb95"
+  revision = "874d9dc5b186e361475b082852f136f094555c30"
 
 [[projects]]
   digest = "1:b63b351b57e64ae8aec1af030dc5e74a2676fcda62102f006ae4411fac1b04c8"
