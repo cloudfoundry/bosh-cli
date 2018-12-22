@@ -8,6 +8,7 @@ type ArrayIndex struct {
 	Index     int
 	Modifiers []Modifier
 	Array     []interface{}
+	Path      Pointer
 }
 
 func (i ArrayIndex) Concrete() (int, error) {
@@ -25,7 +26,7 @@ func (i ArrayIndex) Concrete() (int, error) {
 	}
 
 	if result >= len(i.Array) || (-result)-1 >= len(i.Array) {
-		return 0, OpMissingIndexErr{result, i.Array}
+		return 0, OpMissingIndexErr{result, i.Array, i.Path}
 	}
 
 	if result < 0 {

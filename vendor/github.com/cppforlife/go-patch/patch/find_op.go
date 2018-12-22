@@ -19,15 +19,16 @@ func (op FindOp) Apply(doc interface{}) (interface{}, error) {
 
 	for i, token := range tokens[1:] {
 		isLast := i == len(tokens)-2
+		currPath := NewPointer(tokens[:i+2])
 
 		switch typedToken := token.(type) {
 		case IndexToken:
 			typedObj, ok := obj.([]interface{})
 			if !ok {
-				return nil, newOpArrayMismatchTypeErr(tokens[:i+2], obj)
+				return nil, NewOpArrayMismatchTypeErr(currPath, obj)
 			}
 
-			idx, err := ArrayIndex{Index: typedToken.Index, Modifiers: typedToken.Modifiers, Array: typedObj}.Concrete()
+			idx, err := ArrayIndex{Index: typedToken.Index, Modifiers: typedToken.Modifiers, Array: typedObj, Path: currPath}.Concrete()
 			if err != nil {
 				return nil, err
 			}
@@ -45,7 +46,7 @@ func (op FindOp) Apply(doc interface{}) (interface{}, error) {
 		case MatchingIndexToken:
 			typedObj, ok := obj.([]interface{})
 			if !ok {
-				return nil, newOpArrayMismatchTypeErr(tokens[:i+2], obj)
+				return nil, NewOpArrayMismatchTypeErr(currPath, obj)
 			}
 
 			var idxs []int
@@ -68,10 +69,10 @@ func (op FindOp) Apply(doc interface{}) (interface{}, error) {
 				}
 			} else {
 				if len(idxs) != 1 {
-					return nil, opMultipleMatchingIndexErr{NewPointer(tokens[:i+2]), idxs}
+					return nil, OpMultipleMatchingIndexErr{currPath, idxs}
 				}
 
-				idx, err := ArrayIndex{Index: idxs[0], Modifiers: typedToken.Modifiers, Array: typedObj}.Concrete()
+				idx, err := ArrayIndex{Index: idxs[0], Modifiers: typedToken.Modifiers, Array: typedObj, Path: currPath}.Concrete()
 				if err != nil {
 					return nil, err
 				}
@@ -86,14 +87,14 @@ func (op FindOp) Apply(doc interface{}) (interface{}, error) {
 		case KeyToken:
 			typedObj, ok := obj.(map[interface{}]interface{})
 			if !ok {
-				return nil, newOpMapMismatchTypeErr(tokens[:i+2], obj)
+				return nil, NewOpMapMismatchTypeErr(currPath, obj)
 			}
 
 			var found bool
 
 			obj, found = typedObj[typedToken.Key]
 			if !found && !typedToken.Optional {
-				return nil, opMissingMapKeyErr{typedToken.Key, NewPointer(tokens[:i+2]), typedObj}
+				return nil, OpMissingMapKeyErr{typedToken.Key, currPath, typedObj}
 			}
 
 			if isLast {
@@ -114,7 +115,7 @@ func (op FindOp) Apply(doc interface{}) (interface{}, error) {
 			}
 
 		default:
-			return nil, opUnexpectedTokenErr{token, NewPointer(tokens[:i+2])}
+			return nil, OpUnexpectedTokenErr{token, currPath}
 		}
 	}
 

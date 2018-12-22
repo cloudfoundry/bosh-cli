@@ -37,7 +37,7 @@
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
 
 [[projects]]
-  digest = "1:d65d12a55f407420aa97ec66334a4c214ed20d91ef9cf12707a04486419e1904"
+  digest = "1:645104577befff30bbc0d4d00d0d025c15735b70f4bced37ef709df5c798479b"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -78,8 +78,8 @@
     "service/sts",
   ]
   pruneopts = "NUT"
-  revision = "5f1ca23f3ded773a9ba214e6fac36acd9a965a53"
-  version = "v1.16.6"
+  revision = "3991042237b45cf58c9d5f34295942d5533c28c6"
+  version = "v1.16.11"
 
 [[projects]]
   digest = "1:7294028ae4f4ebe9f92dccabdc69f63eba37b71fbfcdcb35ed1c32eb823fc6d4"
@@ -117,7 +117,7 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "d448297b369662356368cc04d31442dac83fd14a"
+  revision = "edff115d11e36a2d4c86e80eeaceb34eb39905ea"
 
 [[projects]]
   branch = "master"
@@ -208,12 +208,12 @@
   revision = "3659db090cb23a57807b53e2f8580b2427dc2659"
 
 [[projects]]
-  branch = "master"
-  digest = "1:71570cb9af58f4981cd3b6ac9902b37e978e1f3c34f35a04a3a4837ea542500f"
+  digest = "1:bb50c52715ad389a1f8dbf6df68c4ef38f73769524f00d49fed3dc8b280f3a54"
   name = "github.com/cppforlife/go-patch"
   packages = ["patch"]
   pruneopts = "NUT"
-  revision = "250da0e0e68ce3367b4302f34218f6c064eb9559"
+  revision = "90228d47281247384683e5fded0f15afa3e5d29a"
+  version = "v0.2.0"
 
 [[projects]]
   branch = "master"
@@ -263,12 +263,15 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:fb9f5147a9d6fc69057d05b0739bcd79562c55db143c3bdacfe1c9c6129461f6"
+  digest = "1:fd4d1f4c2d75aee3833ee7d8ef11fcf42ddec3c63d1819548288c3d868d6eb14"
   name = "github.com/googleapis/gax-go"
-  packages = ["."]
+  packages = [
+    ".",
+    "v2",
+  ]
   pruneopts = "NUT"
-  revision = "b001040cd31805261cbd978842099e326dfa857b"
-  version = "v2.0.2"
+  revision = "c8a15bac9b9fe955bd9f900272f9a306465d28cf"
+  version = "v2.0.3"
 
 [[projects]]
   digest = "1:f0d9d74edbd40fdeada436d5ac9cb5197407899af3fef85ff0137077ffe8ae19"
@@ -333,12 +336,12 @@
   version = "v0.0.4"
 
 [[projects]]
-  digest = "1:bff482b22ebed387378546ba6a7850fdef87fd47f8ee58a7c62124a8e889a56b"
+  digest = "1:70ef8268170621826f8c111ac1674afe75136f526f449453b4a6631c6dba1946"
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "ce7b0b5c7b45a81508558cd1dba6bb1e4ddb51bb"
-  version = "v0.0.3"
+  revision = "3ee7d812e62a0804a7d0a324e0249ca2db3476d3"
+  version = "v0.0.4"
 
 [[projects]]
   digest = "1:0d33e8f4230cafee906332f45cc456ce2b66ac18a1edc40a9c87e3e68682d08b"
@@ -497,7 +500,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "891ebc4b82d6e74f468c533b06f983c7be918a96"
+  revision = "927f97764cc334a6575f4b7a1584a147864d5723"
 
 [[projects]]
   branch = "master"
@@ -515,14 +518,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b3d8e7adca811c3cc256a4e14afaecacec48091ac9aca516705ca71d4462add1"
+  digest = "1:b5da9f75e020ec1f263b98525d57b99107cedfc86904ae4103100077663b9242"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "4d1cda033e0619309c606fc686de3adcf599539e"
+  revision = "b4a75ba826a64a70990f11a225237acd6ef35c9f"
 
 [[projects]]
   digest = "1:8a12cbc891b7130d3f660f8a309e5c0b083f831e6ac38cdaa1f12e63c12d6bea"
@@ -561,13 +564,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c94fc0a78dec1976e2eb1c6469d7d59b7736040ba4be0d88a9e2fd2894225181"
+  digest = "1:b7ef5af07b9421973508acd2a12e1d82d948357b0a584962ed5f5dbf6bd90681"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
     "go/gcexportdata",
     "go/internal/cgo",
     "go/internal/gcimporter",
+    "go/internal/packagesdriver",
     "go/packages",
     "go/types/typeutil",
     "imports",
@@ -576,7 +580,7 @@
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "3c39ce7b61056afe4473b651789da5f89d4aeb20"
+  revision = "d00ac6d27372a4273825635281f2dc360d4be563"
 
 [[projects]]
   branch = "master"
@@ -595,10 +599,10 @@
     "transport/http/internal/propagation",
   ]
   pruneopts = "NUT"
-  revision = "874d9dc5b186e361475b082852f136f094555c30"
+  revision = "65a46cafb132eff435c7d1e0f439cc73c8eebb85"
 
 [[projects]]
-  digest = "1:b63b351b57e64ae8aec1af030dc5e74a2676fcda62102f006ae4411fac1b04c8"
+  digest = "1:d395d49d784dd3a11938a3e85091b6570664aa90ff2767a626565c6c130fa7e9"
   name = "google.golang.org/appengine"
   packages = [
     ".",
@@ -613,8 +617,8 @@
     "urlfetch",
   ]
   pruneopts = "NUT"
-  revision = "4a4468ece617fc8205e99368fa2200e9d1fad421"
-  version = "v1.3.0"
+  revision = "e9657d882bb81064595ca3b56cbe2546bbabf7b1"
+  version = "v1.4.0"
 
 [[projects]]
   branch = "master"
@@ -627,7 +631,7 @@
     "googleapis/rpc/status",
   ]
   pruneopts = "NUT"
-  revision = "bd91e49a0898e27abb88c339b432fa53d7497ac0"
+  revision = "bd9b4fb69e2ffd37621a6caa54dcbead29b546f2"
 
 [[projects]]
   digest = "1:638e6e596d67d0a0c8aeb76ebdcf73561b701ea43f21963b1db231d96ed7db68"
