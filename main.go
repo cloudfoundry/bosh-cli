@@ -93,6 +93,7 @@ func handlePanic() {
 
 	if panic != nil {
 		var msg string
+		var hideTrace bool
 
 		switch obj := panic.(type) {
 		case string:
@@ -101,13 +102,20 @@ func handlePanic() {
 			msg = obj.String()
 		case error:
 			msg = obj.Error()
+		case bosherr.UserError:
+			msg = obj.Err.Error()
+			hideTrace = true
 		default:
 			msg = fmt.Sprintf("%#v", obj)
 		}
 
 		// Always output to regardless of main logger's level
 		logger := boshlog.NewLogger(boshlog.LevelError)
-		logger.ErrorWithDetails("CLI", "Panic: %s", msg, debug.Stack())
+		if hideTrace {
+			logger.ErrorWithDetails("CLI", "Panic: %s", msg)
+		} else {
+			logger.ErrorWithDetails("CLI", "Panic: %s", msg, debug.Stack())
+		}
 
 		ui := boshui.NewConsoleUI(logger)
 		fail(nil, ui, logger)

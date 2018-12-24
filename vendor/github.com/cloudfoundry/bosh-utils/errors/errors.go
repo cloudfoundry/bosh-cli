@@ -15,6 +15,14 @@ type ComplexError struct {
 	Cause error
 }
 
+type UserError struct {
+	Err error
+}
+
+func NewUserError(message string) UserError {
+	return UserError{Error(message)}
+}
+
 func (e ComplexError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Err.Error(), e.Cause.Error())
 }

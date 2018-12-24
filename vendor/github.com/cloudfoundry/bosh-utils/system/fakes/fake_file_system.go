@@ -699,7 +699,7 @@ func (fs *FakeFileSystem) ReadAndFollowLink(symlinkPath string) (string, error) 
 
 	//Converts internal path formatting (which is UNIX/Linux based) to native OS file system path
 	//This emulates the real behavior of how the real file system returns symlink
-	if strings.HasPrefix(targetPath, "/"){
+	if strings.HasPrefix(targetPath, "/") {
 		absFilePath, err := filepath.Abs(targetPath)
 		return absFilePath, err
 	}

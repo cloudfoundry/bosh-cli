@@ -2,6 +2,7 @@ package ui
 
 import (
 	. "github.com/cloudfoundry/bosh-cli/ui/table"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type nonInteractiveUI struct {
@@ -41,15 +42,15 @@ func (ui *nonInteractiveUI) PrintTable(table Table) {
 }
 
 func (ui *nonInteractiveUI) AskForText(label string) (string, error) {
-	panic("Cannot ask for input in non-interactive UI")
+	panic(bosherr.NewUserError("Cannot ask for input in non-interactive UI"))
 }
 
 func (ui *nonInteractiveUI) AskForChoice(label string, options []string) (int, error) {
-	panic("Cannot ask for a choice in non-interactive UI")
+	panic(bosherr.NewUserError("Cannot ask for a choice in non-interactive UI"))
 }
 
 func (ui *nonInteractiveUI) AskForPassword(label string) (string, error) {
-	panic("Cannot ask for password in non-interactive UI")
+	panic(bosherr.NewUserError("Cannot ask for password in non-interactive UI"))
 }
 
 func (ui *nonInteractiveUI) AskForConfirmation() error {
