@@ -19,6 +19,7 @@ type Config struct {
 	CreatedAt string `json:"created_at"`
 	Team      string
 	Content   string
+	Current   bool `json:"current"`
 }
 
 type ConfigsFilter struct {

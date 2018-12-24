@@ -33,14 +33,30 @@ func (c ConfigsCmd) Run(opts ConfigsOpts) error {
 	headers = append(headers, boshtbl.NewHeader("Team"))
 	headers = append(headers, boshtbl.NewHeader("Created At"))
 
+	notes := []string{}
+	if atLeastOneConfigIsCurrent(configs) {
+		notes = append(notes, "(*) Currently active")
+	}
+
 	table := boshtbl.Table{
 		Content: "configs",
 		Header:  headers,
+		Notes:   notes,
+	}
+
+	if opts.Recent <= 1 {
+		table.Notes = append(table.Notes, "Only showing active configs. To see older versions use the --recent=10 option.")
 	}
 
 	for _, config := range configs {
 		var result []boshtbl.Value
-		result = append(result, boshtbl.NewValueString(config.ID))
+		idString := config.ID
+
+		if config.Current {
+			idString += "*"
+		}
+
+		result = append(result, boshtbl.NewValueString(idString))
 		result = append(result, boshtbl.NewValueString(config.Type))
 		result = append(result, boshtbl.NewValueString(config.Name))
 		result = append(result, boshtbl.NewValueString(config.Team))
@@ -50,4 +66,13 @@ func (c ConfigsCmd) Run(opts ConfigsOpts) error {
 
 	c.ui.PrintTable(table)
 	return nil
+}
+
+func atLeastOneConfigIsCurrent(configs []boshdir.Config) bool {
+	for _, config := range configs {
+		if config.Current {
+			return true
+		}
+	}
+	return false
 }
