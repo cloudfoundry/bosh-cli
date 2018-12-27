@@ -24,8 +24,8 @@ type S3Cli struct {
 	SignatureVersion     int    `json:"signature_version,string"`
 	ServerSideEncryption string `json:"server_side_encryption"`
 	SSEKMSKeyID          string `json:"sse_kms_key_id"`
+	MultipartUpload      bool   `json:"multipart_upload"`
 	UseV2SigningMethod   bool
-	MultipartUpload      bool
 	HostStyle            bool
 }
 
@@ -71,8 +71,9 @@ func NewFromReader(reader io.Reader) (S3Cli, error) {
 	}
 
 	c := S3Cli{
-		SSLVerifyPeer:  true,
-		UseSSL:         true,
+		SSLVerifyPeer:   true,
+		UseSSL:          true,
+		MultipartUpload: true,
 	}
 
 	err = json.Unmarshal(bytes, &c)
@@ -170,7 +171,6 @@ func (c *S3Cli) configureGoogle() {
 }
 
 func (c *S3Cli) configureDefault() {
-	c.MultipartUpload = true
 	c.configureDefaultSigningMethod()
 }
 

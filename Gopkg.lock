@@ -142,15 +142,15 @@
   version = "v0.0.6"
 
 [[projects]]
-  digest = "1:e66a2a46b591ad1daff97ac0d0d54622d4eca936946a924f6a234c6dae7e6b47"
+  digest = "1:2f2b86fde9eae8bef44fb06cecbf181ebef58182620f3cea06d3789bb314e858"
   name = "github.com/cloudfoundry/bosh-s3cli"
   packages = [
     "client",
     "config",
   ]
   pruneopts = "NUT"
-  revision = "185d5410dcba6230f7d5db8bc4b53473ce041ba0"
-  version = "v0.0.78"
+  revision = "34f1a36c31f5eb31c701a1f0886523b0a2438f2e"
+  version = "v0.0.79"
 
 [[projects]]
   branch = "master"

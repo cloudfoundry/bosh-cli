@@ -20,7 +20,7 @@ required = ["github.com/onsi/ginkgo/ginkgo", "github.com/maxbrunsfeld/counterfei
 
 [[constraint]]
   name = "github.com/cloudfoundry/bosh-s3cli"
-  version = "v0.0.64"
+  version = "v0.0.79"
 
 [[constraint]]
   name = "github.com/cloudfoundry/bosh-agent"
