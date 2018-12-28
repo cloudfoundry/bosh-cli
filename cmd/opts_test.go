@@ -1210,7 +1210,7 @@ var _ = Describe("Opts", func() {
 		Describe("Recent", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Recent", opts)).To(Equal(
-					`long:"recent" short:"r" description:"Number of tasks to show" optional:"true" optional-value:"30"`,
+					`long:"recent" short:"r" description:"Show 30 recent tasks. Use '=' to specify the number of tasks to show" optional:"true" optional-value:"30"`,
 				))
 			})
 		})
