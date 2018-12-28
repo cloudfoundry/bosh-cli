@@ -127,6 +127,10 @@ type CompiledPackage struct {
 	SHA1        string `json:"sha1"`
 }
 
+func (p Package) HasSource() bool {
+	return p.BlobstoreID != "" && p.SHA1 != ""
+}
+
 func (d DirectorImpl) Releases() ([]Release, error) {
 	var rels []Release
 
@@ -184,7 +188,7 @@ func (d DirectorImpl) HasRelease(name, version string, stemcell OSVersionSlug) (
 		return false, err
 	}
 
-	if !stemcell.IsProvided() || !found {
+	if !found {
 		return found, nil
 	}
 
@@ -205,6 +209,9 @@ func (d DirectorImpl) releaseHasCompiledPackage(releaseSlug ReleaseSlug, osVersi
 	}
 
 	for _, pkg := range pkgs {
+		if !osVersionSlug.IsProvided() {
+			return pkg.HasSource(), nil
+		}
 		for _, compiledPkg := range pkg.CompiledPackages {
 			if compiledPkg.Stemcell == osVersionSlug {
 				return true, nil
