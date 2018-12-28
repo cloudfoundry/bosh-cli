@@ -206,6 +206,39 @@ note2
 		})
 	})
 
+	Describe("PrintTableFiltered", func() {
+		It("prints table", func() {
+			table := Table{
+				Title:   "Title",
+				Content: "things",
+				Header:  []Header{NewHeader("Header1"), NewHeader("Header2")},
+
+				Rows: [][]Value{
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
+				},
+
+				Notes:         []string{"note1", "note2"},
+				BackgroundStr: ".",
+				BorderStr:     "|",
+			}
+			filteredHeader := []Header{}
+			ui.PrintTableFiltered(table, filteredHeader)
+			Expect("\n" + uiOutBuffer.String()).To(Equal(`
+Title
+
+Header1|Header2|
+r1c1...|r1c2|
+r2c1...|r2c2|
+
+note1
+note2
+
+2 things
+`))
+		})
+	})
+
 	Describe("IsInteractive", func() {
 		It("returns true", func() {
 			Expect(ui.IsInteractive()).To(BeTrue())

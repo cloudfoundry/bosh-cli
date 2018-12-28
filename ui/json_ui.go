@@ -61,6 +61,50 @@ func (ui *jsonUI) PrintErrorBlock(block string) {
 }
 
 func (ui *jsonUI) PrintTable(table Table) {
+	resp := ui.printTableHeader(&table)
+	ui.uiResp.Tables = append(ui.uiResp.Tables, resp)
+}
+
+func (ui *jsonUI) PrintTableFiltered(table Table, filterHeader []Header) {
+	resp := ui.printTableHeader(&table)
+	ui.uiResp.Tables = append(ui.uiResp.Tables, resp)
+}
+
+func (ui *jsonUI) AskForText(_ string) (string, error) {
+	panic("Cannot ask for input in JSON UI")
+}
+
+func (ui *jsonUI) AskForChoice(_ string, _ []string) (int, error) {
+	panic("Cannot ask for a choice in JSON UI")
+}
+
+func (ui *jsonUI) AskForPassword(_ string) (string, error) {
+	panic("Cannot ask for password in JSON UI")
+}
+
+func (ui *jsonUI) AskForConfirmation() error {
+	panic("Cannot ask for confirmation in JSON UI")
+}
+
+func (ui *jsonUI) IsInteractive() bool {
+	return ui.parent.IsInteractive()
+}
+
+func (ui *jsonUI) Flush() {
+	defer ui.parent.Flush()
+
+	if !reflect.DeepEqual(ui.uiResp, uiResp{}) {
+		bytes, err := json.MarshalIndent(ui.uiResp, "", "    ")
+		if err != nil {
+			ui.logger.Error(ui.logTag, "Failed to marshal UI response")
+			return
+		}
+
+		ui.parent.PrintBlock(bytes)
+	}
+}
+
+func (ui *jsonUI) printTableHeader(table *Table) tableResp {
 	table.FillFirstColumn = true
 
 	header := map[string]string{}
@@ -97,41 +141,7 @@ func (ui *jsonUI) PrintTable(table Table) {
 		Notes:   table.Notes,
 	}
 
-	ui.uiResp.Tables = append(ui.uiResp.Tables, resp)
-}
-
-func (ui *jsonUI) AskForText(_ string) (string, error) {
-	panic("Cannot ask for input in JSON UI")
-}
-
-func (ui *jsonUI) AskForChoice(_ string, _ []string) (int, error) {
-	panic("Cannot ask for a choice in JSON UI")
-}
-
-func (ui *jsonUI) AskForPassword(_ string) (string, error) {
-	panic("Cannot ask for password in JSON UI")
-}
-
-func (ui *jsonUI) AskForConfirmation() error {
-	panic("Cannot ask for confirmation in JSON UI")
-}
-
-func (ui *jsonUI) IsInteractive() bool {
-	return ui.parent.IsInteractive()
-}
-
-func (ui *jsonUI) Flush() {
-	defer ui.parent.Flush()
-
-	if !reflect.DeepEqual(ui.uiResp, uiResp{}) {
-		bytes, err := json.MarshalIndent(ui.uiResp, "", "    ")
-		if err != nil {
-			ui.logger.Error(ui.logTag, "Failed to marshal UI response")
-			return
-		}
-
-		ui.parent.PrintBlock(bytes)
-	}
+	return resp
 }
 
 func (ui *jsonUI) stringRows(header []Header, rows [][]Value) []map[string]string {

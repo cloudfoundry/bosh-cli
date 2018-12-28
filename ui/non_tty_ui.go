@@ -24,19 +24,13 @@ func (ui *NonTTYUI) PrintBlock(block []byte)      { ui.parent.PrintBlock(block) 
 func (ui *NonTTYUI) PrintErrorBlock(block string) { ui.parent.PrintErrorBlock(block) }
 
 func (ui *NonTTYUI) PrintTable(table Table) {
-	// hide decorations
-	table.Title = ""
-	table.Notes = nil
-	table.Content = ""
-	table.DataOnly = true
-
-	// necessary for grep
-	table.FillFirstColumn = true
-
-	// cut's default delim
-	table.BorderStr = "\t"
-
+	ui.printTableHeader(&table)
 	ui.parent.PrintTable(table)
+}
+
+func (ui *NonTTYUI) PrintTableFiltered(table Table, filterHeader []Header) {
+	ui.printTableHeader(&table)
+	ui.parent.PrintTableFiltered(table, filterHeader)
 }
 
 func (ui *NonTTYUI) AskForText(label string) (string, error) {
@@ -61,4 +55,18 @@ func (ui *NonTTYUI) IsInteractive() bool {
 
 func (ui *NonTTYUI) Flush() {
 	ui.parent.Flush()
+}
+
+func (ui *NonTTYUI) printTableHeader(table *Table) {
+	// hide decorations
+	table.Title = ""
+	table.Notes = nil
+	table.Content = ""
+	table.DataOnly = true
+
+	// necessary for grep
+	table.FillFirstColumn = true
+
+	// cut's default delim
+	table.BorderStr = "\t"
 }

@@ -42,6 +42,10 @@ func (ui *indentingUI) PrintTable(table Table) {
 	ui.parent.PrintTable(table)
 }
 
+func (ui *indentingUI) PrintTableFiltered(table Table, filterHeader []Header) {
+	ui.parent.PrintTableFiltered(table, filterHeader)
+}
+
 func (ui *indentingUI) AskForText(label string) (string, error) {
 	return ui.parent.AskForText(label)
 }

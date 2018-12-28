@@ -292,6 +292,51 @@ var _ = Describe("JSONUI", func() {
 		})
 	})
 
+	Describe("PrintTableFiltered", func() {
+		It("includes Headers in Tables", func() {
+			table := Table{
+				Content: "things",
+				Header: []Header{
+					NewHeader("Header1"),
+					NewHeader("Header2"),
+				},
+
+				Rows: [][]Value{
+					{ValueString{S: "r1c1"}, ValueString{S: "r1c2"}},
+					{ValueString{S: "r2c1"}, ValueString{S: "r2c2"}},
+				},
+
+				Notes: []string{"note1", "note2"},
+			}
+
+			table2 := Table{
+				Content: "things2",
+			}
+
+			filteredHeader := []Header{}
+
+			ui.PrintTableFiltered(table, filteredHeader)
+			ui.PrintTableFiltered(table2, filteredHeader)
+
+			Expect(finalOutput()).To(Equal(uiResp{
+				Tables: []tableResp{
+					{
+						Content: "things",
+						Header:  map[string]string{"header1": "Header1", "header2": "Header2"},
+						Rows: []map[string]string{{"header1": "r1c1", "header2": "r1c2"},
+							{"header1": "r2c1", "header2": "r2c2"}},
+						Notes: []string{"note1", "note2"},
+					},
+					{
+						Content: "things2",
+						Header:  map[string]string{},
+						Rows:    []map[string]string{},
+					},
+				},
+			}))
+		})
+	})
+
 	Describe("AskForText", func() {
 		It("panics", func() {
 			Expect(func() { ui.AskForText("") }).To(Panic())

@@ -98,6 +98,13 @@ func (ui *WriterUI) PrintTable(table Table) {
 	}
 }
 
+func (ui *WriterUI) PrintTableFiltered(table Table, filterHeader []Header) {
+	err := table.Print(ui.outWriter)
+	if err != nil {
+		ui.logger.Error(ui.logTag, "UI.PrintTable failed: %s", err)
+	}
+}
+
 func (ui *WriterUI) AskForText(label string) (string, error) {
 	var text string
 

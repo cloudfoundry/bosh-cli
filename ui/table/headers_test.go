@@ -48,4 +48,70 @@ var _ = Describe("Headers", func() {
 			})
 		})
 	})
+
+	Describe("SetColumnVisibilityFiltered", func() {
+		Context("when given a header that does not exist", func() {
+			It("should return an error", func() {
+				t := table.Table{
+					Header: []table.Header{table.NewHeader("header1")},
+				}
+
+				filteredHeader := []table.Header{
+					table.NewHeader("non-matching-header-1"),
+					table.NewHeader("non-matching-header-2"),
+				}
+
+				err := t.SetColumnVisibilityFiltered([]table.Header{table.NewHeader("non-matching-header")}, filteredHeader)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when filterHeader list has a matching table header name but not the column header", func() {
+			It("should raise error", func() {
+				t := table.Table{
+					Header: []table.Header{table.NewHeader("header1")},
+				}
+
+				filteredHeader := []table.Header{
+					table.NewHeader("header1"),
+					table.NewHeader("non-matching-header-2"),
+				}
+
+				err := t.SetColumnVisibilityFiltered([]table.Header{table.NewHeader("non-matching-header")}, filteredHeader)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when filterHeader list has a matching column header name", func() {
+			It("should not raise error", func() {
+				t := table.Table{
+					Header: []table.Header{table.NewHeader("header1")},
+				}
+
+				filteredHeader := []table.Header{
+					table.NewHeader("matching-filter-header"),
+					table.NewHeader("non-matching-header-2"),
+				}
+
+				err := t.SetColumnVisibilityFiltered([]table.Header{table.NewHeader("matching-filter-header")}, filteredHeader)
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
+		Context("when table header has a matching column header name", func() {
+			It("should not raise error", func() {
+				t := table.Table{
+					Header: []table.Header{table.NewHeader("matching-table-header")},
+				}
+
+				filteredHeader := []table.Header{
+					table.NewHeader("non-matching-header"),
+					table.NewHeader("non-matching-header-2"),
+				}
+
+				err := t.SetColumnVisibilityFiltered([]table.Header{table.NewHeader("matching-table-header")}, filteredHeader)
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+	})
 })

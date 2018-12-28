@@ -104,6 +104,24 @@ var _ = Describe("IndentingUI", func() {
 		})
 	})
 
+	Describe("PrintTableFiltered", func() {
+		BeforeEach(func() {
+			parentUI = parentFakeUI
+		})
+
+		It("delegates to the parent UI", func() {
+			table := Table{
+				Content: "things",
+				Header:  []Header{NewHeader("header1")},
+			}
+			filteredHeader := []Header{}
+
+			ui.PrintTableFiltered(table, filteredHeader)
+
+			Expect(parentFakeUI.Table).To(Equal(table))
+		})
+	})
+
 	Describe("IsInteractive", func() {
 		BeforeEach(func() {
 			parentUI = parentFakeUI

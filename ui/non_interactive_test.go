@@ -75,6 +75,20 @@ var _ = Describe("NonInteractiveUI", func() {
 		})
 	})
 
+	Describe("PrintTableFiltered", func() {
+		It("delegates to the parent UI", func() {
+			table := Table{
+				Content: "things",
+				Header:  []Header{NewHeader("header1")},
+			}
+			filteredHeader := []Header{}
+
+			ui.PrintTableFiltered(table, filteredHeader)
+
+			Expect(parentUI.Table).To(Equal(table))
+		})
+	})
+
 	Describe("AskForText", func() {
 		It("panics", func() {
 			Expect(func() { ui.AskForText("") }).To(Panic())

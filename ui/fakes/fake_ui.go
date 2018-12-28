@@ -93,6 +93,14 @@ func (ui *FakeUI) PrintTable(table Table) {
 	ui.Tables = append(ui.Tables, table)
 }
 
+func (ui *FakeUI) PrintTableFiltered(table Table, filterHeader []Header) {
+	ui.mutex.Lock()
+	defer ui.mutex.Unlock()
+
+	ui.Table = table
+	ui.Tables = append(ui.Tables, table)
+}
+
 func (ui *FakeUI) AskForText(label string) (string, error) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()

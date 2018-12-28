@@ -15,6 +15,7 @@ type UI interface {
 	PrintErrorBlock(string)
 
 	PrintTable(Table)
+	PrintTableFiltered(Table, []Header)
 
 	AskForText(label string) (string, error)
 	AskForChoice(label string, options []string) (int, error)

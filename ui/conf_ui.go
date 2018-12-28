@@ -91,6 +91,17 @@ func (ui *ConfUI) PrintTable(table Table) {
 	ui.parent.PrintTable(table)
 }
 
+func (ui *ConfUI) PrintTableFiltered(table Table, filterHeader []Header) {
+	if len(ui.showColumns) > 0 {
+		err := table.SetColumnVisibilityFiltered(ui.showColumns, filterHeader)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	ui.parent.PrintTableFiltered(table, filterHeader)
+}
+
 func (ui *ConfUI) AskForText(label string) (string, error) {
 	return ui.parent.AskForText(label)
 }

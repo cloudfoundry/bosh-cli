@@ -47,23 +47,15 @@ func (ui *ColorUI) PrintErrorBlock(block string) {
 }
 
 func (ui *ColorUI) PrintTable(table Table) {
-	table.HeaderFormatFunc = ui.boldFunc
-
-	for k, s := range table.Sections {
-		for i, r := range s.Rows {
-			for j, v := range r {
-				table.Sections[k].Rows[i][j] = ui.colorValueFmt(v)
-			}
-		}
-	}
-
-	for i, r := range table.Rows {
-		for j, v := range r {
-			table.Rows[i][j] = ui.colorValueFmt(v)
-		}
-	}
+	ui.printTableHeader(&table)
 
 	ui.parent.PrintTable(table)
+}
+
+func (ui *ColorUI) PrintTableFiltered(table Table, filterHeader []Header) {
+	ui.printTableHeader(&table)
+
+	ui.parent.PrintTableFiltered(table, filterHeader)
 }
 
 func (ui *ColorUI) AskForText(label string) (string, error) {
@@ -88,6 +80,24 @@ func (ui *ColorUI) IsInteractive() bool {
 
 func (ui *ColorUI) Flush() {
 	ui.parent.Flush()
+}
+
+func (ui *ColorUI) printTableHeader(table *Table) {
+	table.HeaderFormatFunc = ui.boldFunc
+
+	for k, s := range table.Sections {
+		for i, r := range s.Rows {
+			for j, v := range r {
+				table.Sections[k].Rows[i][j] = ui.colorValueFmt(v)
+			}
+		}
+	}
+
+	for i, r := range table.Rows {
+		for j, v := range r {
+			table.Rows[i][j] = ui.colorValueFmt(v)
+		}
+	}
 }
 
 func (ui *ColorUI) colorValueFmt(val Value) Value {

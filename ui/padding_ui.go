@@ -57,6 +57,11 @@ func (ui *paddingUI) PrintTable(table Table) {
 	ui.parent.PrintTable(table)
 }
 
+func (ui *paddingUI) PrintTableFiltered(table Table, filterHeader []Header) {
+	ui.padBefore(paddingUIModeAuto)
+	ui.parent.PrintTableFiltered(table, filterHeader)
+}
+
 func (ui *paddingUI) AskForText(label string) (string, error) {
 	ui.padBefore(paddingUIModeAskText)
 	return ui.parent.AskForText(label)

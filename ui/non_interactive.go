@@ -41,6 +41,10 @@ func (ui *nonInteractiveUI) PrintTable(table Table) {
 	ui.parent.PrintTable(table)
 }
 
+func (ui *nonInteractiveUI) PrintTableFiltered(table Table, filterHeader []Header) {
+	ui.parent.PrintTableFiltered(table, filterHeader)
+}
+
 func (ui *nonInteractiveUI) AskForText(label string) (string, error) {
 	panic(bosherr.NewUserError("Cannot ask for input in non-interactive UI"))
 }
