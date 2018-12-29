@@ -117,7 +117,7 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "edff115d11e36a2d4c86e80eeaceb34eb39905ea"
+  revision = "bc536e3ee481281a992942eb4f24ca173691f0bb"
 
 [[projects]]
   branch = "master"
@@ -143,15 +143,15 @@
   version = "v0.0.6"
 
 [[projects]]
-  digest = "1:e66a2a46b591ad1daff97ac0d0d54622d4eca936946a924f6a234c6dae7e6b47"
+  digest = "1:2f2b86fde9eae8bef44fb06cecbf181ebef58182620f3cea06d3789bb314e858"
   name = "github.com/cloudfoundry/bosh-s3cli"
   packages = [
     "client",
     "config",
   ]
   pruneopts = "NUT"
-  revision = "185d5410dcba6230f7d5db8bc4b53473ce041ba0"
-  version = "v0.0.78"
+  revision = "34f1a36c31f5eb31c701a1f0886523b0a2438f2e"
+  version = "v0.0.79"
 
 [[projects]]
   branch = "master"
@@ -518,14 +518,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b5da9f75e020ec1f263b98525d57b99107cedfc86904ae4103100077663b9242"
+  digest = "1:2075537ba5a9b2cc70c521cd4404bb5368b47f87fddc97fdf6fd2327fad21fe1"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "b4a75ba826a64a70990f11a225237acd6ef35c9f"
+  revision = "9a3f9b0469bbc6b8802087ae5c0af9f61502de01"
 
 [[projects]]
   digest = "1:8a12cbc891b7130d3f660f8a309e5c0b083f831e6ac38cdaa1f12e63c12d6bea"
@@ -599,7 +599,7 @@
     "transport/http/internal/propagation",
   ]
   pruneopts = "NUT"
-  revision = "65a46cafb132eff435c7d1e0f439cc73c8eebb85"
+  revision = "f26a60c56f148a32e87f3f4591c8ebf834b5561f"
 
 [[projects]]
   digest = "1:d395d49d784dd3a11938a3e85091b6570664aa90ff2767a626565c6c130fa7e9"
