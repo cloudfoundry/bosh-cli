@@ -12,6 +12,7 @@ groups:
   - bump-minor
   - bump-major
   - bump-deps
+  - test-helper-urls
 
 jobs:
   - name: bump-deps
@@ -254,6 +255,17 @@ jobs:
         - {put: alpha-release-bucket-darwin, params: {file: compiled-darwin/alpha-bosh-cli-*-darwin-amd64}}
         - {put: alpha-release-bucket-windows, params: {file: compiled-windows/alpha-bosh-cli-*-windows-amd64.exe}}
 
+  - name: test-helper-urls
+    public: true
+    plan:
+      - aggregate:
+        - get: alpha-release-bucket-linux
+          passed: [build-alpha]
+        - get: bosh-cli
+          passed: [build-alpha]
+      - task: test-helper-urls
+        file: bosh-cli/ci/tasks/test-heleper-urls.yml
+
   - name: bump-minor
     public: true
     plan:
@@ -267,6 +279,7 @@ jobs:
       - get: version-semver
         params: {bump: major}
       - {put: version-semver, params: {file: version-semver/number}}
+
 
 resources:
   - name: bosh-src
