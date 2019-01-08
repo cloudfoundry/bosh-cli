@@ -112,7 +112,7 @@ func handlePanic() {
 		// Always output to regardless of main logger's level
 		logger := boshlog.NewLogger(boshlog.LevelError)
 		if hideTrace {
-			logger.ErrorWithDetails("CLI", "Panic: %s", msg)
+			logger.Error("CLI", "Panic: %s", msg)
 		} else {
 			logger.ErrorWithDetails("CLI", "Panic: %s", msg, debug.Stack())
 		}
