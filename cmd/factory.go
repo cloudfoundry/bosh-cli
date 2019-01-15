@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	// Should only be imported here to avoid leaking use of goflags through project
-	goflags "github.com/jessevdk/go-flags"
+	goflags "github.com/cppforlife/go-flags"
 )
 
 type Factory struct {

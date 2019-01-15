@@ -207,6 +207,14 @@
   revision = "3659db090cb23a57807b53e2f8580b2427dc2659"
 
 [[projects]]
+  branch = "cli-patches"
+  digest = "1:793d2863687beeb95dfb2384137efaa71fa6ec7f39a0eeedf97901d828738ff7"
+  name = "github.com/cppforlife/go-flags"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "351f5f310b26e7f1a0602887c0a0432ddda2947d"
+
+[[projects]]
   branch = "master"
   digest = "1:71570cb9af58f4981cd3b6ac9902b37e978e1f3c34f35a04a3a4837ea542500f"
   name = "github.com/cppforlife/go-patch"
@@ -298,15 +306,6 @@
   pruneopts = "NUT"
   revision = "a30252cb686a21eb2d0b98132633053ec2f7f1e5"
   version = "v1.0.0"
-
-[[projects]]
-  branch = "cli-patches"
-  digest = "1:793d2863687beeb95dfb2384137efaa71fa6ec7f39a0eeedf97901d828738ff7"
-  name = "github.com/jessevdk/go-flags"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "351f5f310b26e7f1a0602887c0a0432ddda2947d"
-  source = "github.com/cppforlife/go-flags"
 
 [[projects]]
   digest = "1:ac6d01547ec4f7f673311b4663909269bfb8249952de3279799289467837c3cc"
@@ -729,13 +728,13 @@
     "github.com/cloudfoundry/config-server/types",
     "github.com/cloudfoundry/config-server/types/typesfakes",
     "github.com/cloudfoundry/socks5-proxy",
+    "github.com/cppforlife/go-flags",
     "github.com/cppforlife/go-patch/patch",
     "github.com/cppforlife/go-semi-semantic/version",
     "github.com/dustin/go-humanize",
     "github.com/fatih/color",
     "github.com/golang/mock/gomock",
     "github.com/hashicorp/go-multierror",
-    "github.com/jessevdk/go-flags",
     "github.com/mattn/go-isatty",
     "github.com/maxbrunsfeld/counterfeiter",
     "github.com/onsi/ginkgo",
