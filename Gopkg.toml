@@ -7,8 +7,7 @@ required = ["github.com/onsi/ginkgo/ginkgo", "github.com/maxbrunsfeld/counterfei
 
 [[constraint]]
   branch = "cli-patches"
-  name = "github.com/jessevdk/go-flags"
-  source = "github.com/cppforlife/go-flags"
+  name = "github.com/cppforlife/go-flags"
 
 [[constraint]]
   branch = "master"
