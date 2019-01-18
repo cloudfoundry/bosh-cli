@@ -1,0 +1,35 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source: {repository: bosh/cli}
+run:
+  path: /bin/bash
+  args:
+  - -c
+  - |
+    cp compiled-linux/bosh-cli-* docker-assets/bosh2
+    chmod +x docker-assets/bosh2
+
+    cat >docker-assets/Dockerfile <<-FILE
+    FROM ubuntu:trusty
+
+    RUN locale-gen en_US.UTF-8
+    RUN dpkg-reconfigure locales
+    ENV LANG en_US.UTF-8
+    ENV LC_ALL en_US.UTF-8
+
+    RUN apt-get update && \
+      apt-get install -y \
+      build-essential zlibc zlib1g-dev ruby ruby-dev openssl \
+      libxslt-dev libxml2-dev libssl-dev libreadline6 libreadline6-dev \
+      libyaml-dev libsqlite3-dev sqlite3 jq && \
+      apt-get clean
+
+    COPY bosh2 /usr/local/bin/bosh2
+    COPY bosh2 /usr/local/bin/bosh
+    FILE
+inputs:
+- name: compiled-linux
+outputs:
+- name: docker-assets
