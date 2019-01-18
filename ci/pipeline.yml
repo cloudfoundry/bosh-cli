@@ -171,11 +171,12 @@ jobs:
           state: success
           commit: bosh-cli
 
+      - {put: bosh-cli-promoted, params: {repository: bosh-cli, tag: version-semver/number, tag_prefix: v}}
+
       - aggregate:
         - {put: release-bucket-linux, params: {file: compiled-linux/bosh-cli-*-linux-amd64}}
         - {put: release-bucket-darwin, params: {file: compiled-darwin/bosh-cli-*-darwin-amd64}}
         - {put: release-bucket-windows, params: {file: compiled-windows/bosh-cli-*-windows-amd64.exe}}
-        - {put: bosh-cli-promoted, params: {repository: bosh-cli, tag: version-semver/number, tag_prefix: v}}
 
         - put: final-docker
           params:
@@ -264,7 +265,7 @@ jobs:
         - get: bosh-cli
           passed: [build-alpha]
       - task: test-helper-urls
-        file: bosh-cli/ci/tasks/test-heleper-urls.yml
+        file: bosh-cli/ci/tasks/test-helper-urls.yml
 
   - name: bump-minor
     public: true
