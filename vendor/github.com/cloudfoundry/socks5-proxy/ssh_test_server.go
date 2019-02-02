@@ -48,8 +48,10 @@ func StartTestSSHServer(httpServerURL, sshPrivateKey, userName string) string {
 
 			_, chans, reqs, err := ssh.NewServerConn(nConn, config)
 			if err != nil {
-				log.Fatal("failed to handshake: ", err)
+				log.Println("failed to handshake: ", err)
+				continue
 			}
+
 			go ssh.DiscardRequests(reqs)
 
 			for newChannel := range chans {

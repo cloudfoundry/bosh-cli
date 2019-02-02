@@ -35,6 +35,7 @@ func (m *MockAgentClientFactory) EXPECT() *MockAgentClientFactoryMockRecorder {
 
 // NewAgentClient mocks base method
 func (m *MockAgentClientFactory) NewAgentClient(directorID, mbusURL, caCert string) (agentclient.AgentClient, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewAgentClient", directorID, mbusURL, caCert)
 	ret0, _ := ret[0].(agentclient.AgentClient)
 	ret1, _ := ret[1].(error)
@@ -43,5 +44,6 @@ func (m *MockAgentClientFactory) NewAgentClient(directorID, mbusURL, caCert stri
 
 // NewAgentClient indicates an expected call of NewAgentClient
 func (mr *MockAgentClientFactoryMockRecorder) NewAgentClient(directorID, mbusURL, caCert interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewAgentClient", reflect.TypeOf((*MockAgentClientFactory)(nil).NewAgentClient), directorID, mbusURL, caCert)
 }

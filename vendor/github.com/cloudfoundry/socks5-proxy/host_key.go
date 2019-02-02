@@ -6,19 +6,16 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-type HostKey struct {
-	publicKeyChannel chan ssh.PublicKey
-	dialErrorChannel chan error
-}
+type HostKey struct{}
 
 func NewHostKey() HostKey {
-	return HostKey{
-		publicKeyChannel: make(chan ssh.PublicKey),
-		dialErrorChannel: make(chan error),
-	}
+	return HostKey{}
 }
 
 func (h HostKey) Get(username, privateKey, serverURL string) (ssh.PublicKey, error) {
+	publicKeyChannel := make(chan ssh.PublicKey, 1)
+	dialErrorChannel := make(chan error)
+
 	if username == "" {
 		username = "jumpbox"
 	}
@@ -28,23 +25,25 @@ func (h HostKey) Get(username, privateKey, serverURL string) (ssh.PublicKey, err
 		return nil, err
 	}
 
-	clientConfig := NewSSHClientConfig(username, h.keyScanCallback, ssh.PublicKeys(signer))
+	clientConfig := NewSSHClientConfig(username, keyScanCallback(publicKeyChannel), ssh.PublicKeys(signer))
 
 	go func() {
 		conn, err := ssh.Dial("tcp", serverURL, clientConfig)
 		if err != nil {
-			h.publicKeyChannel <- nil
-			h.dialErrorChannel <- err
+			publicKeyChannel <- nil
+			dialErrorChannel <- err
 			return
 		}
 		defer conn.Close()
-		h.dialErrorChannel <- nil
+		dialErrorChannel <- nil
 	}()
 
-	return <-h.publicKeyChannel, <-h.dialErrorChannel
+	return <-publicKeyChannel, <-dialErrorChannel
 }
 
-func (h HostKey) keyScanCallback(hostname string, remote net.Addr, key ssh.PublicKey) error {
-	h.publicKeyChannel <- key
-	return nil
+func keyScanCallback(publicKeyChannel chan ssh.PublicKey) ssh.HostKeyCallback {
+	return func(_ string, _ net.Addr, key ssh.PublicKey) error {
+		publicKeyChannel <- key
+		return nil
+	}
 }
