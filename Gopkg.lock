@@ -37,7 +37,7 @@
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
 
 [[projects]]
-  digest = "1:a55ae27b71f5324975b8fe53f9b65635b4b6b7ca21bce2a518a75ae755b0e7d1"
+  digest = "1:5294ad197bcf5146e94caae8421e454847a7e223f6ad552a28bf7545fc522d62"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -78,8 +78,8 @@
     "service/sts",
   ]
   pruneopts = "NUT"
-  revision = "81f3829f5a9d041041bdf56e55926691309d7699"
-  version = "v1.16.26"
+  revision = "b974aa42e62f8e576fc3e8d793b8e1b2b1f6bbe6"
+  version = "v1.16.28"
 
 [[projects]]
   digest = "1:7294028ae4f4ebe9f92dccabdc69f63eba37b71fbfcdcb35ed1c32eb823fc6d4"
@@ -178,7 +178,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "c2cf699102bd7878141b9810117cba777852f1be"
+  revision = "9a0affed2bf1b1cd41515ce2356335ca4c6e6f98"
 
 [[projects]]
   digest = "1:fc5a32adb1f7107c108c1b5462475e85f68e7f03037762f7634f7fc1b8d30074"
@@ -200,12 +200,12 @@
   revision = "54f73bdb8a8e85a6611d3d29ab9bbf98c2a060d7"
 
 [[projects]]
-  branch = "master"
   digest = "1:d43a203ecd5644f46eeaef9dad5a11a06598ed6feb17cb6e232a2589d8e96347"
   name = "github.com/cloudfoundry/socks5-proxy"
   packages = ["."]
   pruneopts = "NUT"
   revision = "7ade90b228c8472a45c189e77f78497b93bbaeaa"
+  version = "v0.1.0"
 
 [[projects]]
   digest = "1:bb50c52715ad389a1f8dbf6df68c4ef38f73769524f00d49fed3dc8b280f3a54"
@@ -497,7 +497,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "d26f9f9a57f3fab6a695bec0d84433c2c50f8bbf"
+  revision = "65e2d4e15006aab9813ff8769e768bbf4bb667a0"
 
 [[projects]]
   branch = "master"
@@ -515,14 +515,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c8b0ddc18c9e831e9d2d222f2555715ce6d447d1305b450f0c58622fb91cc078"
+  digest = "1:ffd29eb618685ec12a86853e79be6d0a5dc7eeb2de4f97820a944735d9b5a3a3"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "afcc84fd7533758f95a6e93ae710aa945a0b7e73"
+  revision = "41f3e6584952bb034a481797859f6ab34b6803bd"
 
 [[projects]]
   digest = "1:8a12cbc891b7130d3f660f8a309e5c0b083f831e6ac38cdaa1f12e63c12d6bea"
@@ -561,7 +561,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:86d002f2c67e364e097c5047f517ab38cdef342c3c20be53974c1bfd5b191d30"
+  digest = "1:f57e88c4326d5433c2f4eb28fcd1662be003cb0d11dd13710c8828e687303c76"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -578,7 +578,7 @@
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "51e363b66d25e28ae79d34610901114c8df309ee"
+  revision = "4892ae6946ab8a542e4fe1bf1376eb714b9e7aec"
 
 [[projects]]
   digest = "1:23d9fc277640dc6c36702437a57f0ee033b9f7c9f05a7a425abc7df28f6dd259"
