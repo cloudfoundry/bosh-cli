@@ -1,4 +1,4 @@
-// Copyright 2017, OpenCensus Authors
+// Copyright 2019, OpenCensus Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,10 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package opencensus contains Go support for OpenCensus.
-package opencensus // import "go.opencensus.io"
+package trace
 
-// Version is the current release version of OpenCensus in use.
-func Version() string {
-	return "0.20.0"
+type evictedQueue struct {
+	queue        []interface{}
+	capacity     int
+	droppedCount int
+}
+
+func newEvictedQueue(capacity int) *evictedQueue {
+	eq := &evictedQueue{
+		capacity: capacity,
+		queue:    make([]interface{}, 0),
+	}
+
+	return eq
+}
+
+func (eq *evictedQueue) add(value interface{}) {
+	if len(eq.queue) == eq.capacity {
+		eq.queue = eq.queue[1:]
+		eq.droppedCount++
+	}
+	eq.queue = append(eq.queue, value)
 }
