@@ -6,6 +6,7 @@ import (
 	"net/http"
 	gourl "net/url"
 
+	urlhelper "github.com/cloudfoundry/bosh-cli/common/util"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 )
@@ -302,7 +303,7 @@ func (c Client) UploadReleaseURL(url, sha1 string, rebase, fix bool) error {
 
 	_, err = c.taskClientRequest.PostResult(path, reqBody, setHeaders)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Uploading remote release '%s'", url)
+		return bosherr.WrapErrorf(err, "Uploading remote release '%s'", urlhelper.RedactBasicAuth(url))
 	}
 
 	return nil
