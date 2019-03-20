@@ -2,6 +2,7 @@ package pkg_test
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 
 	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
@@ -170,7 +171,8 @@ var _ = Describe("PackageCompiler", func() {
 					"BOSH_INSTALL_TARGET": installPath,
 					"BOSH_PACKAGE_NAME":   "pkg1-name",
 					"BOSH_PACKAGES_DIR":   packagesDir,
-					"PATH":                "/usr/local/bin:/usr/bin:/bin",
+					"PATH":                os.Getenv("PATH"),
+					"LD_LIBRARY_PATH":     os.Getenv("LD_LIBRARY_PATH"),
 				},
 				UseIsolatedEnv: true,
 				WorkingDir:     "/pkg-dir",
