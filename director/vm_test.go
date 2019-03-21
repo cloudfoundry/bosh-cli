@@ -44,10 +44,17 @@ var _ = Describe("Director", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("does url encoding for cid", func(){
+		It("does url encoding for cid", func() {
+			var verifyRawPath = func(path string) http.HandlerFunc {
+				return func(w http.ResponseWriter, req *http.Request) {
+					Expect(req.RequestURI).To(Equal(path))
+				}
+			}
+
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("DELETE", "/vms/cid%3Bcid"),
+					verifyRawPath("/vms/cid%3Bcid"),
+					ghttp.VerifyRequest("DELETE", "/vms/cid;cid"),
 					ghttp.VerifyBasicAuth("username", "password"),
 				),
 				"",
