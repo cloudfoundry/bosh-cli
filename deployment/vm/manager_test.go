@@ -3,6 +3,8 @@ package vm_test
 import (
 	"errors"
 
+	"time"
+
 	"code.cloudfoundry.org/clock"
 	fakebiagentclient "github.com/cloudfoundry/bosh-agent/agentclient/fakes"
 	"github.com/cloudfoundry/bosh-cli/cloud"
@@ -20,7 +22,6 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"time"
 )
 
 var _ = Describe("Manager", func() {
@@ -141,6 +142,7 @@ var _ = Describe("Manager", func() {
 					"instance_group": "fake-job",
 					"index":          "0",
 					"director":       "bosh-init",
+					"name":           "fake-job/0",
 					"created_at":     "2016-11-10T23:00:00Z",
 				},
 			)
@@ -168,6 +170,7 @@ var _ = Describe("Manager", func() {
 				"instance_group": "fake-job",
 				"index":          "0",
 				"director":       "bosh-init",
+				"name":           "fake-job/0",
 				"created_at":     "2016-11-10T23:00:00Z",
 			}))
 		})
@@ -185,6 +188,7 @@ var _ = Describe("Manager", func() {
 				Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
 					"deployment":     "fake-deployment",
 					"job":            "fake-job",
+					"name":           "fake-job/0",
 					"instance_group": "fake-job",
 					"index":          "0",
 					"director":       "bosh-init",
@@ -202,6 +206,7 @@ var _ = Describe("Manager", func() {
 						"instance_group": "manifest-instance-group",
 						"index":          "7",
 						"director":       "manifest-director",
+						"name":           "awesome-name",
 					}
 
 					_, err := manager.Create(stemcell, deploymentManifest)
@@ -210,6 +215,7 @@ var _ = Describe("Manager", func() {
 					Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
 						"deployment":     "manifest-deployment",
 						"job":            "manifest-job",
+						"name":           "awesome-name",
 						"instance_group": "manifest-instance-group",
 						"index":          "7",
 						"director":       "manifest-director",

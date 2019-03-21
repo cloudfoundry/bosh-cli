@@ -1,6 +1,9 @@
 package vm
 
 import (
+	"fmt"
+	"time"
+
 	"code.cloudfoundry.org/clock"
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
@@ -13,7 +16,6 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
-	"time"
 )
 
 type Manager interface {
@@ -114,6 +116,7 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		"instance_group": deploymentManifest.JobName(),
 		"index":          "0",
 		"director":       "bosh-init",
+		"name":           fmt.Sprintf("%s/%d", deploymentManifest.JobName(), 0),
 		"created_at":     m.timeService.Now().Format(time.RFC3339),
 	}
 

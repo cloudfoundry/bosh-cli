@@ -279,6 +279,8 @@ var _ = Describe("VM", func() {
 			metadata := bicloud.VMMetadata{
 				"director":       "bosh-init",
 				"deployment":     "some-deployment",
+				"name":           "some-instance-group/0",
+				"job":            "some-instance-group",
 				"instance_group": "some-instance-group",
 				"index":          "0",
 				"custom_tag1":    "custom_value1",

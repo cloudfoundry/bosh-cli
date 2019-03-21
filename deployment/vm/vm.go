@@ -322,6 +322,7 @@ func (vm *vm) createDiskMetadata() bicloud.DiskMetadata {
 	}
 
 	delete(diskMetadata, "job")
+	delete(diskMetadata, "name")
 	delete(diskMetadata, "index")
 	delete(diskMetadata, "created_at")
 	diskMetadata["instance_index"] = vm.metadata["index"]

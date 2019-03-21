@@ -572,6 +572,7 @@ var _ = Describe("Cloud", func() {
 				"director":   "bosh-init",
 				"deployment": "some-deployment",
 				"job":        "some-job",
+				"name":       "some-job/0",
 				"index":      "0",
 			}
 			err := cloud.SetVMMetadata(vmCID, metadata)
@@ -596,6 +597,7 @@ var _ = Describe("Cloud", func() {
 				"director":   "bosh-init",
 				"deployment": "some-deployment",
 				"job":        "some-job",
+				"name":       "some-job/0",
 				"index":      "0",
 			}
 
