@@ -8,17 +8,20 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
 var _ = Describe("UpdateResurrectionCmd", func() {
 	var (
+		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
 		command  UpdateResurrectionCmd
 	)
 
 	BeforeEach(func() {
+		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewUpdateResurrectionCmd(director)
+		command = NewUpdateResurrectionCmd(ui, director)
 	})
 
 	Describe("Run", func() {

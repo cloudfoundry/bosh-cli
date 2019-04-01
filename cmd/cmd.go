@@ -294,7 +294,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewInstancesCmd(deps.UI, c.director(), c.BoshOpts.Parallel).Run(*opts)
 
 	case *UpdateResurrectionOpts:
-		return NewUpdateResurrectionCmd(c.director()).Run(*opts)
+		return NewUpdateResurrectionCmd(deps.UI, c.director()).Run(*opts)
 
 	case *IgnoreOpts:
 		return NewIgnoreCmd(c.deployment()).Run(*opts)
