@@ -48,6 +48,44 @@ var _ = Describe("ReleaseSeries", func() {
 		})
 	})
 
+	Describe("Exists", func() {
+		It("returns true when release series exists", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[{"name": "name"}]`),
+				),
+			)
+			exist, err := series.Exists()
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exist).To(Equal(true))
+		})
+
+		It("returns false when release series does not exist", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[{"name": "other-name"}]`),
+				),
+			)
+			exist, err := series.Exists()
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(exist).To(Equal(false))
+		})
+
+		It("returns false and an error when failing to get the release series", func() {
+			AppendBadRequest(ghttp.VerifyRequest("GET", "/releases"), server)
+			exist, err := series.Exists()
+
+			Expect(err).To(HaveOccurred())
+			Expect(exist).To(Equal(false))
+		})
+	})
+
 	Describe("Delete", func() {
 		It("succeeds deleting", func() {
 			ConfigureTaskResult(

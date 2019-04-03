@@ -15,18 +15,30 @@ type ReleaseSeriesImpl struct {
 
 func (rs ReleaseSeriesImpl) Name() string { return rs.name }
 
+func (rs ReleaseSeriesImpl) Exists() (bool, error) {
+	exist := false
+	resps, err := rs.client.ReleaseSeries()
+	if err != nil {
+		return exist, err
+	}
+
+	for _, resp := range resps {
+		if resp.Name == rs.name {
+			exist = true
+			break
+		}
+	}
+
+	return exist, nil
+}
+
 func (rs ReleaseSeriesImpl) Delete(force bool) error {
 	err := rs.client.DeleteReleaseOrSeries(rs.name, "", force)
 	if err != nil {
-		resps, listErr := rs.client.ReleaseSeries()
-		if listErr != nil {
-			return err
-		}
+		exist, existErr := rs.Exists()
 
-		for _, resp := range resps {
-			if resp.Name == rs.name {
-				return err
-			}
+		if exist || existErr != nil {
+			return err
 		}
 	}
 

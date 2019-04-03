@@ -32,6 +32,10 @@ type ReleaseImpl struct {
 func (r ReleaseImpl) Name() string            { return r.name }
 func (r ReleaseImpl) Version() semver.Version { return r.version }
 
+func (r ReleaseImpl) Exists() (bool, error) {
+	return r.client.HasRelease(r.name, r.version.String())
+}
+
 func (r ReleaseImpl) VersionMark(suffix string) string {
 	if r.currentlyDeployed {
 		return suffix

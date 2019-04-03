@@ -225,6 +225,7 @@ type UpdateOpts struct {
 type ReleaseSeries interface {
 	Name() string
 	Delete(force bool) error
+	Exists() (bool, error)
 }
 
 //go:generate counterfeiter . Release
@@ -232,6 +233,7 @@ type ReleaseSeries interface {
 type Release interface {
 	Name() string
 	Version() semver.Version
+	Exists() (bool, error)
 	VersionMark(mark string) string
 	CommitHashWithMark(mark string) string
 

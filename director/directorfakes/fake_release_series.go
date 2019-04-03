@@ -28,6 +28,17 @@ type FakeReleaseSeries struct {
 	deleteReturnsOnCall map[int]struct {
 		result1 error
 	}
+	ExistsStub        func() (bool, error)
+	existsMutex       sync.RWMutex
+	existsArgsForCall []struct{}
+	existsReturns     struct {
+		result1 bool
+		result2 error
+	}
+	existsReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -120,6 +131,49 @@ func (fake *FakeReleaseSeries) DeleteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeReleaseSeries) Exists() (bool, error) {
+	fake.existsMutex.Lock()
+	ret, specificReturn := fake.existsReturnsOnCall[len(fake.existsArgsForCall)]
+	fake.existsArgsForCall = append(fake.existsArgsForCall, struct{}{})
+	fake.recordInvocation("Exists", []interface{}{})
+	fake.existsMutex.Unlock()
+	if fake.ExistsStub != nil {
+		return fake.ExistsStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.existsReturns.result1, fake.existsReturns.result2
+}
+
+func (fake *FakeReleaseSeries) ExistsCallCount() int {
+	fake.existsMutex.RLock()
+	defer fake.existsMutex.RUnlock()
+	return len(fake.existsArgsForCall)
+}
+
+func (fake *FakeReleaseSeries) ExistsReturns(result1 bool, result2 error) {
+	fake.ExistsStub = nil
+	fake.existsReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeReleaseSeries) ExistsReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.ExistsStub = nil
+	if fake.existsReturnsOnCall == nil {
+		fake.existsReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.existsReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeReleaseSeries) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -127,6 +181,8 @@ func (fake *FakeReleaseSeries) Invocations() map[string][][]interface{} {
 	defer fake.nameMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
+	fake.existsMutex.RLock()
+	defer fake.existsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
