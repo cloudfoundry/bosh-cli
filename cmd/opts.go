@@ -59,7 +59,7 @@ type BoshOpts struct {
 
 	// Misc
 	Locks   LocksOpts   `command:"locks"    description:"List current locks"`
-	CleanUp CleanUpOpts `command:"clean-up" description:"Clean up old and unused resources except orphaned disks"`
+	CleanUp CleanUpOpts `command:"clean-up" description:"Clean up old unused resources except orphaned disks"`
 	Curl    CurlOpts    `command:"curl"     description:"Make an HTTP request to the Director" hidden:"true"`
 
 	// Config
