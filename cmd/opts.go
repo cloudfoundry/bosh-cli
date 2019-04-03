@@ -59,7 +59,7 @@ type BoshOpts struct {
 
 	// Misc
 	Locks   LocksOpts   `command:"locks"    description:"List current locks"`
-	CleanUp CleanUpOpts `command:"clean-up" description:"Clean up releases, stemcells, disks, etc."`
+	CleanUp CleanUpOpts `command:"clean-up" description:"Clean up old and unused resources except orphaned disks"`
 	Curl    CurlOpts    `command:"curl"     description:"Make an HTTP request to the Director" hidden:"true"`
 
 	// Config
@@ -292,7 +292,7 @@ type LocksOpts struct {
 }
 
 type CleanUpOpts struct {
-	All bool `long:"all" description:"Remove all unused releases, stemcells, etc.; otherwise most recent resources will be kept"`
+	All bool `long:"all" description:"Clean up all unused resources including orphaned disks"`
 
 	cmd
 }
