@@ -496,6 +496,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("InspectLocalRelease", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("InspectLocalRelease", opts)).To(Equal(
+					`command:"inspect-local-release" description:"Display information from release metadata"`,
+				))
+			})
+		})
+
 		Describe("InspectLocalStemcell", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("InspectLocalStemcell", opts)).To(Equal(
@@ -1913,6 +1921,36 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Slug", opts)).To(Equal(
 					`positional-arg-name:"NAME/VERSION"`,
+				))
+			})
+		})
+	})
+
+	Describe("InspectLocalReleaseOpts", func() {
+		var opts *InspectLocalReleaseOpts
+
+		BeforeEach(func() {
+			opts = &InspectLocalReleaseOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+	})
+
+	Describe("InspectLocalReleaseArgs", func() {
+		var opts *InspectLocalReleaseArgs
+
+		BeforeEach(func() {
+			opts = &InspectLocalReleaseArgs{}
+		})
+
+		Describe("PathToRelease", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("PathToRelease", opts)).To(Equal(
+					`positional-arg-name:"PATH-TO-RELEASE" description:"Path to release"`,
 				))
 			})
 		})
