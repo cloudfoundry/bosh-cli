@@ -291,7 +291,7 @@ var _ = Describe("Opts", func() {
 		Describe("CleanUp", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("CleanUp", opts)).To(Equal(
-					`command:"clean-up" description:"Clean up releases, stemcells, disks, etc."`,
+					`command:"clean-up" description:"Clean up old unused resources except orphaned disks"`,
 				))
 			})
 		})
@@ -1248,7 +1248,7 @@ var _ = Describe("Opts", func() {
 		Describe("All", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("All", opts)).To(Equal(
-					`long:"all" description:"Remove all unused releases, stemcells, etc.; otherwise most recent resources will be kept"`,
+					`long:"all" description:"Clean up all unused resources including orphaned disks"`,
 				))
 			})
 		})
