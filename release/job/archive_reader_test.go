@@ -29,6 +29,7 @@ var _ = Describe("ArchiveReaderImpl", func() {
 			Name:        "name",
 			Fingerprint: "fp",
 			SHA1:        "archive-sha1",
+			Packages:    []string{"pkg1", "pkg2"},
 		}
 		compressor = fakecmd.NewFakeCompressor()
 		fs = fakesys.NewFakeFileSystem()
@@ -119,8 +120,9 @@ properties:
 
 			job, err := reader.Read(ref, "archive-path")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(job).To(Equal(NewJob(NewResourceWithBuiltArchive(
-				"name", "fp", "archive-path", "archive-sha1"))))
+			expectedJob := NewJob(NewResourceWithBuiltArchive("name", "fp", "archive-path", "archive-sha1"))
+			expectedJob.PackageNames = []string{"pkg1", "pkg2"}
+			Expect(job).To(Equal(expectedJob))
 		})
 	})
 })

@@ -137,6 +137,7 @@ var _ = Describe("Release", func() {
 			jobs := []*boshjob.Job{
 				boshjob.NewJob(NewExistingResource("job", "job-fp", "job-sha1")),
 			}
+			jobs[0].PackageNames = []string{"pkg1", "pkg2"}
 
 			pkgs := []*boshpkg.Package{
 				boshpkg.NewPackage(NewExistingResource("pkg", "pkg-fp", "pkg-sha1"), []string{"pkg1"}),
@@ -162,6 +163,7 @@ var _ = Describe("Release", func() {
 						Version:     "job-fp",
 						Fingerprint: "job-fp",
 						SHA1:        "job-sha1",
+						Packages:    []string{"pkg1", "pkg2"},
 					},
 				},
 				Packages: []boshman.PackageRef{

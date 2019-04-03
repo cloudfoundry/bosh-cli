@@ -96,6 +96,7 @@ func (r *release) Manifest() birelman.Manifest {
 			Version:     job.Fingerprint(),
 			Fingerprint: job.Fingerprint(),
 			SHA1:        job.ArchiveDigest(),
+			Packages:    job.PackageNames,
 		})
 	}
 

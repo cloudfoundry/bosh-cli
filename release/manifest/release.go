@@ -5,7 +5,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type Manifest struct {
@@ -22,10 +22,11 @@ type Manifest struct {
 }
 
 type JobRef struct {
-	Name        string `yaml:"name"`
-	Version     string `yaml:"version"` // todo deprecate
-	Fingerprint string `yaml:"fingerprint"`
-	SHA1        string `yaml:"sha1"`
+	Name        string   `yaml:"name"`
+	Version     string   `yaml:"version"` // todo deprecate
+	Fingerprint string   `yaml:"fingerprint"`
+	SHA1        string   `yaml:"sha1"`
+	Packages    []string `yaml:"packages"`
 }
 
 type PackageRef struct {

@@ -130,6 +130,9 @@ jobs:
   version: f54520d6563c438bf0bc5bb674777db171b78d848a057a3faec0e9b572c3a76c
   fingerprint: f54520d6563c438bf0bc5bb674777db171b78d848a057a3faec0e9b572c3a76c
   sha1: replaced
+  packages:
+  - pkg1
+  - pkg2
 packages:
 - name: pkg1
   version: 08441a1962e8141645edb0f2ddb91330454f2f1a3954d7f27fa256eb5e7b4ed6
@@ -146,8 +149,7 @@ license:
   version: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
   fingerprint: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
   sha1: replaced
-`,
-			))
+`))
 		}
 
 		{ // Add a bit of content
@@ -189,6 +191,9 @@ jobs:
   version: f54520d6563c438bf0bc5bb674777db171b78d848a057a3faec0e9b572c3a76c
   fingerprint: f54520d6563c438bf0bc5bb674777db171b78d848a057a3faec0e9b572c3a76c
   sha1: replaced
+  packages:
+  - pkg1
+  - pkg2
 packages:
 - name: pkg1
   version: 00ebebd8dd5a533a91f9de34b0cf708772fca87ada7e37e63bec00ece2e0634c
@@ -237,16 +242,26 @@ license:
 
 			execCmd([]string{"create-release", "--dir", tmpDir, "--tarball", tgzFile})
 			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
-			archiveReader := relProvider.NewExtractingArchiveReader()
+			extractingArchiveReader := relProvider.NewExtractingArchiveReader()
+
+			extractingRelease, err := extractingArchiveReader.Read(tgzFile)
+			Expect(err).ToNot(HaveOccurred())
+
+			defer extractingRelease.CleanUp()
+
+			pkg1 := extractingRelease.Packages()[0]
+			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-src"))).To(Equal("in-src"))
+			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-blobs"))).To(Equal("in-blobs"))
+
+			archiveReader := relProvider.NewArchiveReader()
 
 			release, err := archiveReader.Read(tgzFile)
 			Expect(err).ToNot(HaveOccurred())
 
 			defer release.CleanUp()
 
-			pkg1 := release.Packages()[0]
-			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-src"))).To(Equal("in-src"))
-			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-blobs"))).To(Equal("in-blobs"))
+			job1 := release.Jobs()[0]
+			Expect(job1.PackageNames).To(ConsistOf("pkg1", "pkg2"))
 		}
 
 		{ // Check that tarballs will not overwrite a directory

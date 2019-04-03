@@ -62,6 +62,7 @@ var _ = Describe("ArchiveWriter", func() {
 						Version:     "job-version",
 						Fingerprint: "job-fp",
 						SHA1:        "job-sha1",
+						Packages:    []string{"pkg1", "pkg2"},
 					},
 				},
 				Packages: []boshman.PackageRef{
@@ -100,6 +101,9 @@ jobs:
   version: job-version
   fingerprint: job-fp
   sha1: job-sha1
+  packages:
+  - pkg1
+  - pkg2
 packages:
 - name: pkg
   version: pkg-version
