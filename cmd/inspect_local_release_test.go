@@ -52,17 +52,25 @@ var _ = Describe("InspectLocalReleaseCmd", func() {
 				"pkg-2-name",
 				"pkg-2-fp",
 				"/pkg-2-resource-path",
-				"pkg-2-digest",
-			), []string{
-				"pkg-1-name",
-			})
+				"pkg-2-digest"),
+				[]string{"pkg-1-name"},
+			)
 			pkg2.AttachDependencies([]*boshpkg.Package{pkg1})
 
 			err := job.AttachPackages([]*boshpkg.Package{pkg1, pkg2})
 			Expect(err).ToNot(HaveOccurred())
 
+			compiledPkg := boshpkg.NewCompiledPackageWithoutArchive(
+				"compiled-pkg-name",
+				"compiled-pkg-fp",
+				"my-fancy-linux/1.33.7",
+				"compiled-pkg-digest",
+				[]string{"some-package"},
+			)
+
 			fakeRelease.JobsReturns([]*boshjob.Job{job})
 			fakeRelease.PackagesReturns([]*boshpkg.Package{pkg1, pkg2})
+			fakeRelease.CompiledPackagesReturns([]*boshpkg.CompiledPackage{compiledPkg})
 
 			releaseReader = &fakerel.FakeReader{}
 			releaseReader.ReadReturns(fakeRelease, nil)
@@ -140,6 +148,11 @@ var _ = Describe("InspectLocalReleaseCmd", func() {
 						boshtbl.NewValueString("pkg-2-name/pkg-2-fp"),
 						boshtbl.NewValueString("pkg-2-digest"),
 						boshtbl.NewValueStrings([]string{"pkg-1-name"}),
+					},
+					{
+						boshtbl.NewValueString("compiled-pkg-name/compiled-pkg-fp"),
+						boshtbl.NewValueString("compiled-pkg-digest"),
+						boshtbl.NewValueStrings(nil),
 					},
 				},
 			}))

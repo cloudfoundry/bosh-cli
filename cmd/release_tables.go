@@ -69,7 +69,15 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 		pkgsTable.Rows = append(pkgsTable.Rows, []boshtbl.Value{
 			boshtbl.NewValueString(fmt.Sprintf("%s/%s", pkg.Name(), pkg.Fingerprint())),
 			boshtbl.NewValueString(pkg.ArchiveDigest()),
-			boshtbl.NewValueStrings(t.sumPkgDependencyNames(pkg.Dependencies)),
+			boshtbl.NewValueStrings(t.sumPkgNames(pkg.Deps())),
+		})
+	}
+
+	for _, pkg := range t.Release.CompiledPackages() {
+		pkgsTable.Rows = append(pkgsTable.Rows, []boshtbl.Value{
+			boshtbl.NewValueString(fmt.Sprintf("%s/%s", pkg.Name(), pkg.Fingerprint())),
+			boshtbl.NewValueString(pkg.ArchiveDigest()),
+			boshtbl.NewValueStrings(t.sumPkgNames(pkg.Deps())),
 		})
 	}
 
@@ -79,14 +87,6 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 }
 
 func (t ReleaseTables) sumPkgNames(packages []boshrelpkg.Compilable) []string {
-	var names []string
-	for _, pkg := range packages {
-		names = append(names, pkg.Name())
-	}
-	return names
-}
-
-func (t ReleaseTables) sumPkgDependencyNames(packages []*boshrelpkg.Package) []string {
 	var names []string
 	for _, pkg := range packages {
 		names = append(names, pkg.Name())
