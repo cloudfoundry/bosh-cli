@@ -135,6 +135,8 @@ var _ = Describe("InspectLocalReleaseCmd", func() {
 					boshtbl.NewHeader("Package"),
 					boshtbl.NewHeader("Digest"),
 					boshtbl.NewHeader("Dependencies"),
+					boshtbl.NewHeader("OS"),
+					boshtbl.NewHeader("OS Version"),
 				},
 				SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 
@@ -143,16 +145,22 @@ var _ = Describe("InspectLocalReleaseCmd", func() {
 						boshtbl.NewValueString("pkg-1-name/pkg-1-fp"),
 						boshtbl.NewValueString("pkg-1-digest"),
 						boshtbl.NewValueStrings(emptyNames),
+						boshtbl.NewValueString(""),
+						boshtbl.NewValueString(""),
 					},
 					{
 						boshtbl.NewValueString("pkg-2-name/pkg-2-fp"),
 						boshtbl.NewValueString("pkg-2-digest"),
 						boshtbl.NewValueStrings([]string{"pkg-1-name"}),
+						boshtbl.NewValueString(""),
+						boshtbl.NewValueString(""),
 					},
 					{
 						boshtbl.NewValueString("compiled-pkg-name/compiled-pkg-fp"),
 						boshtbl.NewValueString("compiled-pkg-digest"),
 						boshtbl.NewValueStrings(nil),
+						boshtbl.NewValueString("my-fancy-linux"),
+						boshtbl.NewValueString("1.33.7"),
 					},
 				},
 			}))

@@ -45,76 +45,173 @@ var _ = Describe("ReleaseTables", func() {
 			err = job.AttachPackages([]*boshpkg.Package{pkg1, pkg2})
 			Expect(err).ToNot(HaveOccurred())
 
-			release = &fakerel.FakeRelease{
-				NameStub:    func() string { return "rel" },
-				VersionStub: func() string { return "ver" },
+			release = &fakerel.FakeRelease{}
 
-				CommitHashWithMarkStub: func(string) string { return "commit" },
+			release.NameReturns("rel")
+			release.VersionReturns("ver")
 
-				JobsStub:     func() []*boshjob.Job { return []*boshjob.Job{job} },
-				PackagesStub: func() []*boshpkg.Package { return []*boshpkg.Package{pkg1, pkg2} },
-			}
+			release.CommitHashWithMarkReturns("commit")
+
+			release.JobsReturns([]*boshjob.Job{job})
+			release.PackagesReturns([]*boshpkg.Package{pkg1, pkg2})
 		})
 
-		It("shows info about release with archive path", func() {
-			ReleaseTables{Release: release, ArchivePath: "/archive-path"}.Print(ui)
+		Context("when there are no compiled packages", func() {
+			It("shows info about release with archive path", func() {
+				ReleaseTables{Release: release, ArchivePath: "/archive-path"}.Print(ui)
 
-			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
-				Header: []boshtbl.Header{
-					boshtbl.NewHeader("Name"),
-					boshtbl.NewHeader("Version"),
-					boshtbl.NewHeader("Commit Hash"),
-					boshtbl.NewHeader("Archive"),
-				},
-				Rows: [][]boshtbl.Value{
-					{
-						boshtbl.NewValueString("rel"),
-						boshtbl.NewValueString("ver"),
-						boshtbl.NewValueString("commit"),
-						boshtbl.NewValueString("/archive-path"),
+				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Commit Hash"),
+						boshtbl.NewHeader("Archive"),
 					},
-				},
-				Transpose: true,
-			}))
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.NewValueString("rel"),
+							boshtbl.NewValueString("ver"),
+							boshtbl.NewValueString("commit"),
+							boshtbl.NewValueString("/archive-path"),
+						},
+					},
+					Transpose: true,
+				}))
 
-			Expect(ui.Tables[1]).To(Equal(boshtbl.Table{
-				Content: "jobs",
-				Header: []boshtbl.Header{
-					boshtbl.NewHeader("Job"),
-					boshtbl.NewHeader("Digest"),
-					boshtbl.NewHeader("Packages"),
-				},
-				SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
-				Rows: [][]boshtbl.Value{
-					{
-						boshtbl.NewValueString("job-name/job-fp"),
-						boshtbl.NewValueString("job-sha1"),
-						boshtbl.NewValueStrings([]string{"pkg1-name", "pkg2-name"}),
+				Expect(ui.Tables[1]).To(Equal(boshtbl.Table{
+					Content: "jobs",
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Job"),
+						boshtbl.NewHeader("Digest"),
+						boshtbl.NewHeader("Packages"),
 					},
-				},
-			}))
+					SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.NewValueString("job-name/job-fp"),
+							boshtbl.NewValueString("job-sha1"),
+							boshtbl.NewValueStrings([]string{"pkg1-name", "pkg2-name"}),
+						},
+					},
+				}))
 
-			Expect(ui.Tables[2]).To(Equal(boshtbl.Table{
-				Content: "packages",
-				Header: []boshtbl.Header{
-					boshtbl.NewHeader("Package"),
-					boshtbl.NewHeader("Digest"),
-					boshtbl.NewHeader("Dependencies"),
-				},
-				SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
-				Rows: [][]boshtbl.Value{
-					{
-						boshtbl.NewValueString("pkg1-name/pkg1-fp"),
-						boshtbl.NewValueString("pkg1-sha1"),
-						boshtbl.NewValueStrings(nil),
+				Expect(ui.Tables[2]).To(Equal(boshtbl.Table{
+					Content: "packages",
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Package"),
+						boshtbl.NewHeader("Digest"),
+						boshtbl.NewHeader("Dependencies"),
 					},
-					{
-						boshtbl.NewValueString("pkg2-name/pkg2-fp"),
-						boshtbl.NewValueString("pkg2-sha1"),
-						boshtbl.NewValueStrings([]string{"pkg1-name"}),
+					SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.NewValueString("pkg1-name/pkg1-fp"),
+							boshtbl.NewValueString("pkg1-sha1"),
+							boshtbl.NewValueStrings(nil),
+						},
+						{
+							boshtbl.NewValueString("pkg2-name/pkg2-fp"),
+							boshtbl.NewValueString("pkg2-sha1"),
+							boshtbl.NewValueStrings([]string{"pkg1-name"}),
+						},
 					},
-				},
-			}))
+				}))
+			})
+		})
+
+		Context("when there are compiled packages", func() {
+			BeforeEach(func() {
+				compiledpkg := boshpkg.NewCompiledPackageWithoutArchive(
+					"compiledpkg-name", "compiledpkg-fp", "super-cool-linux/42.0", "compiledpkg-sha1", []string{"pkg1-name"},
+				)
+
+				compiledpkg2 := boshpkg.NewCompiledPackageWithoutArchive(
+					"compiledpkg2-name", "compiledpkg2-fp", "super-cool-linux", "compiledpkg2-sha1", []string{"pkg1-name"},
+				)
+
+				release.CompiledPackagesReturns([]*boshpkg.CompiledPackage{compiledpkg, compiledpkg2})
+			})
+
+			It("shows info about release with archive path", func() {
+				ReleaseTables{Release: release, ArchivePath: "/archive-path"}.Print(ui)
+
+				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Commit Hash"),
+						boshtbl.NewHeader("Archive"),
+					},
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.NewValueString("rel"),
+							boshtbl.NewValueString("ver"),
+							boshtbl.NewValueString("commit"),
+							boshtbl.NewValueString("/archive-path"),
+						},
+					},
+					Transpose: true,
+				}))
+
+				Expect(ui.Tables[1]).To(Equal(boshtbl.Table{
+					Content: "jobs",
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Job"),
+						boshtbl.NewHeader("Digest"),
+						boshtbl.NewHeader("Packages"),
+					},
+					SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.NewValueString("job-name/job-fp"),
+							boshtbl.NewValueString("job-sha1"),
+							boshtbl.NewValueStrings([]string{"pkg1-name", "pkg2-name"}),
+						},
+					},
+				}))
+
+				Expect(ui.Tables[2]).To(Equal(boshtbl.Table{
+					Content: "packages",
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Package"),
+						boshtbl.NewHeader("Digest"),
+						boshtbl.NewHeader("Dependencies"),
+						boshtbl.NewHeader("OS"),
+						boshtbl.NewHeader("OS Version"),
+					},
+					SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.NewValueString("pkg1-name/pkg1-fp"),
+							boshtbl.NewValueString("pkg1-sha1"),
+							boshtbl.NewValueStrings(nil),
+							boshtbl.NewValueString(""),
+							boshtbl.NewValueString(""),
+						},
+						{
+							boshtbl.NewValueString("pkg2-name/pkg2-fp"),
+							boshtbl.NewValueString("pkg2-sha1"),
+							boshtbl.NewValueStrings([]string{"pkg1-name"}),
+							boshtbl.NewValueString(""),
+							boshtbl.NewValueString(""),
+						},
+						{
+							boshtbl.NewValueString("compiledpkg-name/compiledpkg-fp"),
+							boshtbl.NewValueString("compiledpkg-sha1"),
+							boshtbl.NewValueStrings(nil),
+							boshtbl.NewValueString("super-cool-linux"),
+							boshtbl.NewValueString("42.0"),
+						},
+						{
+							boshtbl.NewValueString("compiledpkg2-name/compiledpkg2-fp"),
+							boshtbl.NewValueString("compiledpkg2-sha1"),
+							boshtbl.NewValueStrings(nil),
+							boshtbl.NewValueString("super-cool-linux"),
+							boshtbl.NewValueString(""),
+						},
+					},
+				}))
+			})
 		})
 
 		It("shows info about release without archive path", func() {

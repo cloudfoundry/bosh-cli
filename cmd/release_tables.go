@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshrelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
@@ -55,6 +56,8 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 		})
 	}
 
+	compiledPackages := t.Release.CompiledPackages()
+
 	pkgsTable := boshtbl.Table{
 		Content: "packages",
 		Header: []boshtbl.Header{
@@ -65,19 +68,44 @@ func (t ReleaseTables) Print(ui boshui.UI) {
 		SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 	}
 
-	for _, pkg := range t.Release.Packages() {
-		pkgsTable.Rows = append(pkgsTable.Rows, []boshtbl.Value{
-			boshtbl.NewValueString(fmt.Sprintf("%s/%s", pkg.Name(), pkg.Fingerprint())),
-			boshtbl.NewValueString(pkg.ArchiveDigest()),
-			boshtbl.NewValueStrings(t.sumPkgNames(pkg.Deps())),
-		})
+	if len(compiledPackages) > 0 {
+		pkgsTable.Header = append(
+			pkgsTable.Header,
+			boshtbl.NewHeader("OS"),
+			boshtbl.NewHeader("OS Version"),
+		)
 	}
 
-	for _, pkg := range t.Release.CompiledPackages() {
+	for _, pkg := range t.Release.Packages() {
+		row := []boshtbl.Value{
+			boshtbl.NewValueString(fmt.Sprintf("%s/%s", pkg.Name(), pkg.Fingerprint())),
+			boshtbl.NewValueString(pkg.ArchiveDigest()),
+			boshtbl.NewValueStrings(t.sumPkgNames(pkg.Deps())),
+		}
+		if len(compiledPackages) > 0 {
+			row = append(
+				row,
+				boshtbl.NewValueString(""),
+				boshtbl.NewValueString(""),
+			)
+		}
+		pkgsTable.Rows = append(pkgsTable.Rows, row)
+	}
+
+	for _, pkg := range compiledPackages {
+		osParts := strings.Split(pkg.OSVersionSlug(), "/")
+		osName := osParts[0]
+		osVersion := ""
+		if len(osParts) > 1 {
+			osVersion = osParts[1]
+		}
+
 		pkgsTable.Rows = append(pkgsTable.Rows, []boshtbl.Value{
 			boshtbl.NewValueString(fmt.Sprintf("%s/%s", pkg.Name(), pkg.Fingerprint())),
 			boshtbl.NewValueString(pkg.ArchiveDigest()),
 			boshtbl.NewValueStrings(t.sumPkgNames(pkg.Deps())),
+			boshtbl.NewValueString(osName),
+			boshtbl.NewValueString(osVersion),
 		})
 	}
 
