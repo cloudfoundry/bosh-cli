@@ -27,6 +27,17 @@ type FakeRelease struct {
 	versionReturnsOnCall map[int]struct {
 		result1 semver.Version
 	}
+	ExistsStub        func() (bool, error)
+	existsMutex       sync.RWMutex
+	existsArgsForCall []struct{}
+	existsReturns     struct {
+		result1 bool
+		result2 error
+	}
+	existsReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
 	VersionMarkStub        func(mark string) string
 	versionMarkMutex       sync.RWMutex
 	versionMarkArgsForCall []struct {
@@ -164,6 +175,49 @@ func (fake *FakeRelease) VersionReturnsOnCall(i int, result1 semver.Version) {
 	fake.versionReturnsOnCall[i] = struct {
 		result1 semver.Version
 	}{result1}
+}
+
+func (fake *FakeRelease) Exists() (bool, error) {
+	fake.existsMutex.Lock()
+	ret, specificReturn := fake.existsReturnsOnCall[len(fake.existsArgsForCall)]
+	fake.existsArgsForCall = append(fake.existsArgsForCall, struct{}{})
+	fake.recordInvocation("Exists", []interface{}{})
+	fake.existsMutex.Unlock()
+	if fake.ExistsStub != nil {
+		return fake.ExistsStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.existsReturns.result1, fake.existsReturns.result2
+}
+
+func (fake *FakeRelease) ExistsCallCount() int {
+	fake.existsMutex.RLock()
+	defer fake.existsMutex.RUnlock()
+	return len(fake.existsArgsForCall)
+}
+
+func (fake *FakeRelease) ExistsReturns(result1 bool, result2 error) {
+	fake.ExistsStub = nil
+	fake.existsReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRelease) ExistsReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.ExistsStub = nil
+	if fake.existsReturnsOnCall == nil {
+		fake.existsReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.existsReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeRelease) VersionMark(mark string) string {
@@ -403,6 +457,8 @@ func (fake *FakeRelease) Invocations() map[string][][]interface{} {
 	defer fake.nameMutex.RUnlock()
 	fake.versionMutex.RLock()
 	defer fake.versionMutex.RUnlock()
+	fake.existsMutex.RLock()
+	defer fake.existsMutex.RUnlock()
 	fake.versionMarkMutex.RLock()
 	defer fake.versionMarkMutex.RUnlock()
 	fake.commitHashWithMarkMutex.RLock()
