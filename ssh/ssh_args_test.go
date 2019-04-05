@@ -1,6 +1,8 @@
 package ssh_test
 
 import (
+	"time"
+
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	proxy "github.com/cloudfoundry/socks5-proxy"
 	. "github.com/onsi/ginkgo"
@@ -58,7 +60,7 @@ var _ = Describe("SSHArgs", func() {
 				PrivKeyFile:         privKeyFile,
 				KnownHostsFile:      knownHostsFile,
 				CmdExistenceChecker: connectProxyCmdRunner,
-				Socks5Proxy:         proxy.NewSocks5Proxy(proxy.NewHostKey(), nil),
+				Socks5Proxy:         proxy.NewSocks5Proxy(proxy.NewHostKey(), nil, 1*time.Minute),
 			}
 			return args.OptsForHost(host)
 		}

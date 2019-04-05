@@ -115,7 +115,7 @@ func (s *ClientImpl) newClient(network, addr string, config *ssh.ClientConfig) (
 	dialFunc := net.Dial
 
 	if !s.opts.DisableSOCKS {
-		socksProxy := proxy.NewSocks5Proxy(proxy.NewHostKey(), nil)
+		socksProxy := proxy.NewSocks5Proxy(proxy.NewHostKey(), nil, 1*time.Minute)
 		dialFunc = boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial, socksProxy)
 	}
 

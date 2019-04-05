@@ -154,7 +154,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7dc5bdd4c0e919f588e7eecf8f00b779728d25dd444dea278cf9ff50f4ecf408"
+  digest = "1:d9da3be63a92ca405251d1c0ebf626d9e7fcf8af0b52d1d5c322977b9ae6ec46"
   name = "github.com/cloudfoundry/bosh-utils"
   packages = [
     "blobstore",
@@ -177,7 +177,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "f1d51d8b54a541c012a4e3a42d12a7f5a1f60bf1"
+  revision = "6725a40fb9cb893bc786727104d4b6994ec1ed32"
 
 [[projects]]
   digest = "1:fc5a32adb1f7107c108c1b5462475e85f68e7f03037762f7634f7fc1b8d30074"
@@ -199,12 +199,12 @@
   revision = "54f73bdb8a8e85a6611d3d29ab9bbf98c2a060d7"
 
 [[projects]]
-  branch = "master"
-  digest = "1:5f29a6db136978d1515aa9909eacc36beeed758fe7d191dfa19fb8a86e42a5ce"
+  digest = "1:6422faebc7a4f3c8f58ff0af81002db6bd2f09204d6005611415163091947ad1"
   name = "github.com/cloudfoundry/socks5-proxy"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "3659db090cb23a57807b53e2f8580b2427dc2659"
+  revision = "633b6fe4c3d8d72a4e7397a948027db02a8e2a96"
+  version = "v0.2.0"
 
 [[projects]]
   branch = "master"

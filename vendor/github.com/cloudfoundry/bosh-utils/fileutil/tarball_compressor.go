@@ -1,6 +1,8 @@
 package fileutil
 
 import (
+	"fmt"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
@@ -51,7 +53,15 @@ func (c tarballCompressor) DecompressFileToDir(tarballPath string, dir string, o
 		sameOwnerOption = "--same-owner"
 	}
 
-	_, _, _, err := c.cmdRunner.RunCommand("tar", sameOwnerOption, "-xzf", tarballPath, "-C", dir)
+	args := []string{sameOwnerOption, "-xzf", tarballPath, "-C", dir}
+	if options.StripComponents != 0 {
+		args = append(args, fmt.Sprintf("--strip-components=%d", options.StripComponents))
+	}
+
+	if options.PathInArchive != "" {
+		args = append(args, options.PathInArchive)
+	}
+	_, _, _, err := c.cmdRunner.RunCommand("tar", args...)
 	if err != nil {
 		return bosherr.WrapError(err, "Shelling out to tar")
 	}

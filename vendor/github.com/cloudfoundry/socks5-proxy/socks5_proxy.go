@@ -6,6 +6,7 @@ import (
 	"net"
 	"strconv"
 	"sync"
+	"time"
 
 	socks5 "github.com/cloudfoundry/go-socks5"
 
@@ -24,18 +25,20 @@ type hostKey interface {
 type DialFunc func(network, address string) (net.Conn, error)
 
 type Socks5Proxy struct {
-	hostKey hostKey
-	port    int
-	started bool
-	logger  *log.Logger
-	mtx     sync.Mutex
+	hostKey           hostKey
+	port              int
+	started           bool
+	keepAliveInterval time.Duration
+	logger            *log.Logger
+	mtx               sync.Mutex
 }
 
-func NewSocks5Proxy(hostKey hostKey, logger *log.Logger) *Socks5Proxy {
+func NewSocks5Proxy(hostKey hostKey, logger *log.Logger, keepAliveInterval time.Duration) *Socks5Proxy {
 	return &Socks5Proxy{
-		hostKey: hostKey,
-		started: false,
-		logger:  logger,
+		hostKey:           hostKey,
+		started:           false,
+		logger:            logger,
+		keepAliveInterval: keepAliveInterval,
 	}
 }
 
@@ -85,6 +88,30 @@ func (s *Socks5Proxy) Dialer(username, key, url string) (DialFunc, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ssh dial: %s", err)
 	}
+
+	errChan := make(chan error)
+
+	go func(cl *ssh.Client, errChan chan error) {
+		t := time.NewTicker(s.keepAliveInterval)
+		for {
+			select {
+			case <-t.C:
+				_, _, err := cl.SendRequest("bosh-cli-keep-alive@bosh.io", true, nil)
+				if err != nil {
+					errChan <- err
+				}
+			}
+		}
+	}(conn, errChan)
+
+	go func(errChan chan error) {
+		for {
+			select {
+			case err := <-errChan:
+				s.logger.Printf("error sending ssh keep-alive: %s", err)
+			}
+		}
+	}(errChan)
 
 	return conn.Dial, nil
 }

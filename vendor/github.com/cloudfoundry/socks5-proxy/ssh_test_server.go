@@ -5,13 +5,50 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sync"
+	"time"
 
 	"golang.org/x/crypto/ssh"
 )
 
+const jb = "jumpbox"
+
+type checker struct {
+	expired         bool
+	timeout         time.Duration
+	lastMessageTime time.Time
+	sync.RWMutex
+}
+
+func (c *checker) check(reqs <-chan *ssh.Request) {
+	for {
+		select {
+		case req, ok := <-reqs:
+			if !ok {
+				continue
+			}
+
+			if req.Type == "bosh-cli-keep-alive@bosh.io" {
+				c.lastMessageTime = time.Now()
+			}
+
+			if req.WantReply {
+				req.Reply(false, nil)
+			}
+
+		default:
+			if c.lastMessageTime.Add(c.timeout).Before(time.Now()) {
+				c.Lock()
+				c.expired = true
+				c.Unlock()
+			}
+		}
+	}
+}
+
 func StartTestSSHServer(httpServerURL, sshPrivateKey, userName string) string {
 	if userName == "" {
-		userName = "jumpbox"
+		userName = jb
 	}
 
 	signer, err := ssh.ParsePrivateKey([]byte(sshPrivateKey))
@@ -38,6 +75,10 @@ func StartTestSSHServer(httpServerURL, sshPrivateKey, userName string) string {
 	if err != nil {
 		log.Fatal("failed to listen for connection: ", err)
 	}
+	c := &checker{
+		lastMessageTime: time.Now(),
+		timeout:         500 * time.Millisecond,
+	}
 
 	go func() {
 		for {
@@ -48,15 +89,27 @@ func StartTestSSHServer(httpServerURL, sshPrivateKey, userName string) string {
 
 			_, chans, reqs, err := ssh.NewServerConn(nConn, config)
 			if err != nil {
-				log.Fatal("failed to handshake: ", err)
+				log.Println("failed to handshake: ", err)
+				continue
 			}
-			go ssh.DiscardRequests(reqs)
+
+			go c.check(reqs)
 
 			for newChannel := range chans {
 				if newChannel.ChannelType() != "direct-tcpip" {
 					newChannel.Reject(ssh.UnknownChannelType, "unknown channel type")
 					continue
 				}
+
+				c.RLock()
+				expired := c.expired
+				c.RUnlock()
+
+				if expired {
+					newChannel.Reject(ssh.ConnectionFailed, "no keepalive sent, you died")
+					continue
+				}
+
 				channel, _, err := newChannel.Accept()
 				if err != nil {
 					log.Fatalf("Could not accept channel: %v", err)

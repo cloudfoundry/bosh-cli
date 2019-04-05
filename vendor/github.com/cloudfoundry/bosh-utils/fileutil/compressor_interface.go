@@ -1,7 +1,9 @@
 package fileutil
 
 type CompressorOptions struct {
-	SameOwner bool
+	SameOwner       bool
+	PathInArchive   string
+	StripComponents int
 }
 
 type Compressor interface {
