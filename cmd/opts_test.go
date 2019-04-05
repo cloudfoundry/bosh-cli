@@ -280,6 +280,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("CancelTasks", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CancelTasks", opts)).To(Equal(
+					`command:"cancel-tasks" alias:"cts" description:"Cancel tasks at their next checkpoints"`,
+				))
+			})
+		})
+
 		Describe("Locks", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Locks", opts)).To(Equal(

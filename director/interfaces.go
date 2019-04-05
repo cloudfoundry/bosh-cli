@@ -23,6 +23,7 @@ type Director interface {
 	RecentTasks(int, TasksFilter) ([]Task, error)
 	FindTask(int) (Task, error)
 	FindTasksByContextId(string) ([]Task, error)
+	CancelTasks(TasksFilter) error
 
 	Events(EventsFilter) ([]Event, error)
 	Event(string) (Event, error)
@@ -259,6 +260,8 @@ type Stemcell interface {
 type TasksFilter struct {
 	All        bool
 	Deployment string
+	Types      []string
+	States     []string
 }
 
 type Task interface {

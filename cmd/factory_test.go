@@ -49,6 +49,7 @@ var _ = Describe("Factory", func() {
 			"blobs":                  []string{},
 			"interpolate":            []string{filepath.Join("/", "file")},
 			"cancel-task":            []string{"1234"},
+			"cancel-tasks":           []string{},
 			"clean-up":               []string{},
 			"cloud-check":            []string{},
 			"cloud-config":           []string{},
