@@ -1,7 +1,9 @@
 package director
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	gourl "net/url"
 	"time"
 
@@ -131,6 +133,10 @@ func (d DirectorImpl) FindTasksByContextId(contextId string) ([]Task, error) {
 	return tasks, nil
 }
 
+func (d DirectorImpl) CancelTasks(filter TasksFilter) error {
+	return d.client.cancelTasks(filter)
+}
+
 func (t TaskImpl) EventOutput(taskReporter TaskReporter) error {
 	return t.client.TaskOutput(t.id, "event", taskReporter)
 }
@@ -241,6 +247,36 @@ func (c Client) CancelTask(id int) error {
 	_, _, err := c.clientRequest.RawDelete(path)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Cancelling task '%d'", id)
+	}
+
+	return nil
+}
+
+func (c Client) cancelTasks(filter TasksFilter) error {
+	path := "/tasks/cancel"
+	body := make(map[string]interface{})
+	if filter.Deployment != "" {
+		body["deployment"] = filter.Deployment
+	}
+	if filter.States != nil {
+		body["states"] = filter.States
+	}
+	if filter.Types != nil {
+		body["types"] = filter.Types
+	}
+
+	reqBody, err := json.Marshal(body)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Marshaling request body")
+	}
+
+	setHeaders := func(req *http.Request) {
+		req.Header.Add("Content-Type", "application/json")
+	}
+
+	_, _, err = c.clientRequest.RawPost(path, reqBody, setHeaders)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Cancelling tasks")
 	}
 
 	return nil

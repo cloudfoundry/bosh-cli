@@ -53,9 +53,10 @@ type BoshOpts struct {
 	LogOut LogOutOpts `command:"log-out"           alias:"logout" description:"Log out"`
 
 	// Tasks
-	Task       TaskOpts       `command:"task"        alias:"t"  description:"Show task status and start tracking its output"`
-	Tasks      TasksOpts      `command:"tasks"       alias:"ts" description:"List running or recent tasks"`
-	CancelTask CancelTaskOpts `command:"cancel-task" alias:"ct" description:"Cancel task at its next checkpoint"`
+	Task        TaskOpts        `command:"task"         alias:"t"   description:"Show task status and start tracking its output"`
+	Tasks       TasksOpts       `command:"tasks"        alias:"ts"  description:"List running or recent tasks"`
+	CancelTask  CancelTaskOpts  `command:"cancel-task"  alias:"ct"  description:"Cancel task at its next checkpoint"`
+	CancelTasks CancelTasksOpts `command:"cancel-tasks" alias:"cts" description:"Cancel tasks at their next checkpoints"`
 
 	// Misc
 	Locks   LocksOpts   `command:"locks"    description:"List current locks"`
@@ -283,6 +284,14 @@ type TasksOpts struct {
 
 type CancelTaskOpts struct {
 	Args TaskArgs `positional-args:"true" required:"true"`
+	cmd
+}
+
+type CancelTasksOpts struct {
+	Types      []string `long:"type"  short:"t" description:"task types to cancel (cck_scan_and_fix, cck_apply, update_release, update_deployment, vms, etc) (default is all types)" optional:"true"`
+	States     []string `long:"state" short:"s" description:"task states to cancel (queued, processing) (default: queued)" optional:"true"`
+	Deployment string
+
 	cmd
 }
 

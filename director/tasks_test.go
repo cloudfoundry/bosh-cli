@@ -340,6 +340,71 @@ var _ = Describe("Director", func() {
 			Expect(tasks[0].ContextID()).To(Equal(contextId))
 		})
 	})
+
+	Describe("CancelTasks", func() {
+		It("returns no error if no filter is specified", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/tasks/cancel"),
+					ghttp.RespondWith(204, ``),
+				),
+			)
+
+			err := director.CancelTasks(TasksFilter{})
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns no error if deployment filter is specified", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/tasks/cancel"),
+					ghttp.VerifyBody([]byte(`{"deployment":"dep1"}`)),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/json"}}),
+					ghttp.RespondWith(204, ``),
+				),
+			)
+
+			err := director.CancelTasks(TasksFilter{Deployment: "dep1"})
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns no error if types filter is specified", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/tasks/cancel"),
+					ghttp.VerifyBody([]byte(`{"types":["processing","queued"]}`)),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/json"}}),
+					ghttp.RespondWith(204, ``),
+				),
+			)
+
+			err := director.CancelTasks(TasksFilter{Types: []string{"processing", "queued"}})
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns no error if states filter is specified", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/tasks/cancel"),
+					ghttp.VerifyBody([]byte(`{"states":["ssh","update_deployment","delete_deployment"]}`)),
+					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/json"}}),
+					ghttp.RespondWith(204, ``),
+				),
+			)
+
+			err := director.CancelTasks(TasksFilter{States: []string{"ssh", "update_deployment", "delete_deployment"}})
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns error if response is non-204", func() {
+			AppendBadRequest(ghttp.VerifyRequest("POST", "/tasks/cancel"), server)
+
+			err := director.CancelTasks(TasksFilter{})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(
+				"Cancelling tasks: Director responded with non-successful status code '400' response"))
+		})
+	})
 })
 
 var _ = Describe("Task", func() {

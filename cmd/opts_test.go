@@ -280,6 +280,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("CancelTasks", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CancelTasks", opts)).To(Equal(
+					`command:"cancel-tasks" alias:"cts" description:"Cancel tasks at their next checkpoints"`,
+				))
+			})
+		})
+
 		Describe("Locks", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Locks", opts)).To(Equal(
@@ -1242,6 +1250,30 @@ var _ = Describe("Opts", func() {
 		Describe("Args", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+	})
+
+	Describe("CancelTasksOpts", func() {
+		var opts *CancelTasksOpts
+
+		BeforeEach(func() {
+			opts = &CancelTasksOpts{}
+		})
+
+		Describe("Types", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Types", opts)).To(Equal(
+					`long:"type" short:"t" description:"task types to cancel (cck_scan_and_fix, cck_apply, update_release, update_deployment, vms, etc) (default is all types)" optional:"true"`,
+				))
+			})
+		})
+
+		Describe("States", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("States", opts)).To(Equal(
+					`long:"state" short:"s" description:"task states to cancel (queued, processing) (default: queued)" optional:"true"`,
+				))
 			})
 		})
 	})
