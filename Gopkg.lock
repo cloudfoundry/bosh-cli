@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:2b2dd370d2e40f72a622dfecefcf668cca701b4a31a2119355bc3166fb863280"
+  digest = "1:1b96d9c4d7364dc44ac04aee7bc5079fb650ef7ca6f6c4e8fa95f273a7eb586e"
   name = "cloud.google.com/go"
   packages = [
     "compute/metadata",
@@ -14,8 +14,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "458e1f376a2b44413160b5d301183b65debaa3f6"
-  version = "v0.37.2"
+  revision = "fcb9a2d5f791d07be64506ab54434de65989d370"
+  version = "v0.37.4"
 
 [[projects]]
   branch = "master"
@@ -117,7 +117,7 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "a1efd827bf90a2cc0deed599604029492a4d3b3a"
+  revision = "8e3b9a9702d8d9f6f895a6c7ac57a7ada9b06394"
 
 [[projects]]
   branch = "master"
@@ -446,7 +446,7 @@
   revision = "fa338ed9e9ecbb0e9c2e6c7a0160d9fc9b0efbd9"
 
 [[projects]]
-  digest = "1:1a2453aa570b9123a810d067311c35c95c8119312cde1b88ee8788032f91b35d"
+  digest = "1:045bc0ab96bb83bdffd2606f019003da03d1c139d3cb8aad13596863e4dd37d6"
   name = "go.opencensus.io"
   packages = [
     ".",
@@ -467,12 +467,12 @@
     "trace/tracestate",
   ]
   pruneopts = "NUT"
-  revision = "46618d076d80f4eab85adbcb3be9a370be1dc4e0"
-  version = "v0.20.0"
+  revision = "75c0cca22312e51bfd4fafdbe9197ae399e18b38"
+  version = "v0.20.2"
 
 [[projects]]
   branch = "master"
-  digest = "1:2f853a86c2a5f407020543d2db12d00b6408e0726ce6d55231d9a4b5b2f2a189"
+  digest = "1:7d2f4682bbf020a09e42b95e3ab8ff8eaf1301ccd3184c98fb8baffd3cf02427"
   name = "golang.org/x/crypto"
   packages = [
     "curve25519",
@@ -485,7 +485,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "38d8ce5564a5b71b2e3a00553993f1b9a7ae852f"
+  revision = "88737f569e3a9c7ab309cdc09a07fe7fc87233c3"
 
 [[projects]]
   branch = "master"
@@ -525,7 +525,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a26ebff2301ac8a4c8cedfec085e8190b035a7eec6b5614b7501f4714138a679"
+  digest = "1:b63e79c8898f3949b5cc69d483573b7a1c819660c39e5b9f542705a9a351a100"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -533,7 +533,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "4b34438f7a67ee5f45cc6132e2bad873a20324e9"
+  revision = "97732733099d6a942a73b889770774366de963ed"
 
 [[projects]]
   digest = "1:8a12cbc891b7130d3f660f8a309e5c0b083f831e6ac38cdaa1f12e63c12d6bea"
@@ -588,7 +588,7 @@
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "12dd9f86f35064e818f2474523ed0aacba64399f"
+  revision = "681f9ce8ac52c4ba431539a515ecb7f2ab72eca0"
 
 [[projects]]
   digest = "1:d5ccf47943a05088d0010af545665061f62f40854b2129959e6898daf87cafdc"
@@ -606,8 +606,8 @@
     "transport/http/internal/propagation",
   ]
   pruneopts = "NUT"
-  revision = "bce707a4d0ea3488942724b3bcc1c8338f38f991"
-  version = "v0.3.0"
+  revision = "0cbcb99a9ea0c8023c794b2693cbe1def82ed4d7"
+  version = "v0.3.2"
 
 [[projects]]
   digest = "1:a4824d8df1fd1f63c6b3690bf4801d6ff1722adcb3e13c0489196a7e248d868a"
@@ -642,7 +642,7 @@
   revision = "64821d5d210748c883cd2b809589555ae4654203"
 
 [[projects]]
-  digest = "1:f9fe1989f8278a0976fadf27490720c7708c056a11ab7a7ad3d282ff26f28e9a"
+  digest = "1:054a590df55ec2c3fb881f1441b01d124913e8f2251947ab44fa81d175262219"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -659,6 +659,7 @@
     "grpclog",
     "internal",
     "internal/backoff",
+    "internal/balancerload",
     "internal/binarylog",
     "internal/channelz",
     "internal/envconfig",
@@ -678,8 +679,8 @@
     "tap",
   ]
   pruneopts = "NUT"
-  revision = "3507fb8e1a5ad030303c106fef3a47c9fdad16ad"
-  version = "v1.19.1"
+  revision = "236199dd5f8031d698fb64091194aecd1c3895b2"
+  version = "v1.20.0"
 
 [[projects]]
   digest = "1:1b91ae0dc69a41d4c2ed23ea5cffb721ea63f5037ca4b81e6d6771fbb8f45129"
