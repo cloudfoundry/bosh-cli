@@ -168,7 +168,7 @@ func generateCertTemplate(cParams certParams) (x509.Certificate, error) {
 	}
 
 	now := time.Now()
-	notAfter := now.Add(365 * 24 * time.Hour)
+	notAfter := now.Add(3650 * 24 * time.Hour)
 	var organizations []string
 	if cParams.Organization == "" {
 		organizations = []string{"Cloud Foundry"}
