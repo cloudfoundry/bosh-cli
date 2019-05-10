@@ -1569,7 +1569,7 @@ var _ = Describe("Opts", func() {
 		Describe("Type", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Type", opts)).To(Equal(
-					`long:"type" description:"Filter for type of variable (currently only support 'certificate')"`,
+					`long:"type" description:"Filter for type of variable"`,
 				))
 			})
 		})

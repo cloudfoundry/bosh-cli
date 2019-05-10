@@ -44,6 +44,7 @@ type LogsResult struct {
 type VariableResult struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 type VariableCertResult struct {
@@ -227,8 +228,19 @@ func (d DeploymentImpl) IsInProgress() (bool, error) {
 	return false, nil
 }
 
-func (d DeploymentImpl) Variables() ([]VariableResult, error) {
-	path := fmt.Sprintf("/deployments/%s/variables", d.name)
+func (d DeploymentImpl) Variables(variableType string) ([]VariableResult, error) {
+	url, err := gourl.Parse(fmt.Sprintf("/deployments/%s/variables", d.name))
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Parsing variables path")
+	}
+
+	if variableType != "" {
+		q := url.Query()
+		q.Set("type", variableType)
+		url.RawQuery = q.Encode()
+	}
+
+	path := url.RequestURI()
 	response := []VariableResult{}
 
 	if err := d.client.clientRequest.Get(path, &response); err != nil {

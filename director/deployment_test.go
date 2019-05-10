@@ -902,10 +902,87 @@ var _ = Describe("Deployment", func() {
 	})
 
 	Describe("Variables", func() {
-		It("returns the list of placeholder variables", func() {
+		It("returns the list of all variables", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/deployments/dep/variables"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[
+						{"id": "1", "name": "foo-1", "type": "type-1"},
+						{"id": "2", "name": "foo-2", "type": "type-2"}
+					]`),
+				),
+			)
+
+			result, err := deployment.Variables("")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(result)).To(Equal(2))
+
+			Expect(result[0].ID).To(Equal("1"))
+			Expect(result[0].Name).To(Equal("foo-1"))
+			Expect(result[0].Type).To(Equal("type-1"))
+
+			Expect(result[1].ID).To(Equal("2"))
+			Expect(result[1].Name).To(Equal("foo-2"))
+			Expect(result[1].Type).To(Equal("type-2"))
+		})
+
+		It("returns an empty list if there are no variables", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/deployments/dep/variables"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[]`),
+				),
+			)
+
+			result, err := deployment.Variables("")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(result)).To(Equal(0))
+		})
+
+		It("errors if fetching variables fails", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/deployments/dep/variables"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusInternalServerError, ""),
+				))
+
+			_, err := deployment.Variables("")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("Error fetching variables for deployment 'dep'"))
+		})
+
+		It("propagates the type filter to the director", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/deployments/dep/variables", "type=foo"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[
+						{"id": "1", "name": "foo-1", "type": "foo"},
+						{"id": "2", "name": "foo-2", "type": "foo"}
+					]`),
+				),
+			)
+
+			result, err := deployment.Variables("foo")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(result)).To(Equal(2))
+
+			Expect(result[0].ID).To(Equal("1"))
+			Expect(result[0].Name).To(Equal("foo-1"))
+			Expect(result[0].Type).To(Equal("foo"))
+
+			Expect(result[1].ID).To(Equal("2"))
+			Expect(result[1].Name).To(Equal("foo-2"))
+			Expect(result[1].Type).To(Equal("foo"))
+		})
+
+		It("gracefully handles older directors' responses", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/deployments/dep/variables", "type=foo"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `[
 						{"id": "1", "name": "foo-1"},
@@ -914,99 +991,17 @@ var _ = Describe("Deployment", func() {
 				),
 			)
 
-			result, err := deployment.Variables()
+			result, err := deployment.Variables("foo")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(result)).To(Equal(2))
 
 			Expect(result[0].ID).To(Equal("1"))
 			Expect(result[0].Name).To(Equal("foo-1"))
+			Expect(result[0].Type).To(Equal(""))
 
 			Expect(result[1].ID).To(Equal("2"))
 			Expect(result[1].Name).To(Equal("foo-2"))
-		})
-
-		It("returns an empty list if there are no placeholder variables", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/variables"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusOK, `[]`),
-				),
-			)
-
-			result, err := deployment.Variables()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(len(result)).To(Equal(0))
-		})
-
-		It("errors if fetching placeholder variables fails", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/variables"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusInternalServerError, ""),
-				))
-
-			_, err := deployment.Variables()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).Should(ContainSubstring("Error fetching variables for deployment 'dep'"))
-		})
-	})
-
-	Describe("VariableCerts", func() {
-		It("returns the list of placeholder variables of type certificate", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/certificate_expiry"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusOK, `[
-						{"id": "1", "name": "foo-1", "expiry_date": "2019-11-30T15:51:28Z", "days_left": 364},
-						{"id": "2", "name": "foo-2", "expiry_date": "2018-11-30T15:51:28Z", "days_left": 24}
-					]`),
-				),
-			)
-
-			result, err := deployment.VariableCerts()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(len(result)).To(Equal(2))
-
-			Expect(result[0].ID).To(Equal("1"))
-			Expect(result[0].Name).To(Equal("foo-1"))
-			Expect(result[0].ExpiryDate).To(Equal("2019-11-30T15:51:28Z"))
-			Expect(result[0].DaysLeft).To(Equal(364))
-
-			Expect(result[1].ID).To(Equal("2"))
-			Expect(result[1].Name).To(Equal("foo-2"))
-			Expect(result[1].ExpiryDate).To(Equal("2018-11-30T15:51:28Z"))
-			Expect(result[1].DaysLeft).To(Equal(24))
-
-		})
-
-		It("returns an empty list if there are no placeholder variables of type certificate", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/certificate_expiry"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusOK, `[]`),
-				),
-			)
-
-			result, err := deployment.VariableCerts()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(len(result)).To(Equal(0))
-		})
-
-		It("errors if fetching placeholder variables fails", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/certificate_expiry"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusInternalServerError, ""),
-				))
-
-			_, err := deployment.VariableCerts()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).Should(ContainSubstring("Error fetching variables for deployment 'dep'"))
+			Expect(result[1].Type).To(Equal(""))
 		})
 	})
 

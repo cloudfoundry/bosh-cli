@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type VariablesCmd struct {
@@ -19,15 +17,7 @@ func NewVariablesCmd(ui boshui.UI, deployment boshdir.Deployment) VariablesCmd {
 
 func (c VariablesCmd) Run(opts VariablesOpts) error {
 
-	if opts.Type != "" {
-		if opts.Type == "certificate" {
-			return c.getCertificate()
-		} else {
-			return bosherr.Error(fmt.Sprintf("type: '%s' not supported", opts.Type))
-		}
-	}
-
-	variables, err := c.deployment.Variables()
+	variables, err := c.deployment.Variables(opts.Type)
 	if err != nil {
 		return err
 	}
@@ -38,6 +28,7 @@ func (c VariablesCmd) Run(opts VariablesOpts) error {
 		Header: []boshtbl.Header{
 			boshtbl.NewHeader("ID"),
 			boshtbl.NewHeader("Name"),
+			boshtbl.NewHeader("Type"),
 		},
 
 		SortBy: []boshtbl.ColumnSort{
@@ -49,6 +40,7 @@ func (c VariablesCmd) Run(opts VariablesOpts) error {
 		table.Rows = append(table.Rows, []boshtbl.Value{
 			boshtbl.NewValueString(variable.ID),
 			boshtbl.NewValueString(variable.Name),
+			boshtbl.NewValueString(variable.Type),
 		})
 	}
 
