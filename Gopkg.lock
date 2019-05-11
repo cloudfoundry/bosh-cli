@@ -37,7 +37,7 @@
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
 
 [[projects]]
-  digest = "1:9f962e2c1f36b3e8000d7553e53a245bcdfff9d1cf1edc43bc54dadbfd1458a8"
+  digest = "1:958960f736368f4c2304be08878034ba00474667f011740a7268596fc9e1bf7d"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -78,8 +78,8 @@
     "service/sts",
   ]
   pruneopts = "NUT"
-  revision = "86dc5d0ebe9f30ac9e939da21c240a98519343f2"
-  version = "v1.19.24"
+  revision = "d2d56572a432fff4d2dca7b4e52b3ee956d5c4bc"
+  version = "v1.19.28"
 
 [[projects]]
   digest = "1:7294028ae4f4ebe9f92dccabdc69f63eba37b71fbfcdcb35ed1c32eb823fc6d4"
@@ -117,7 +117,7 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "dd4b686c8ed5909cf80ea3f5c9fdb6d6f6f1e9c2"
+  revision = "127b921e231304a034217816049efcaf05695d78"
 
 [[projects]]
   branch = "master"
@@ -178,7 +178,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "757f0ce2bf30bab7848e17679ca54f74e574facb"
+  revision = "2830420c6f519790052ae87badfc23cae33c6fba"
 
 [[projects]]
   digest = "1:fc5a32adb1f7107c108c1b5462475e85f68e7f03037762f7634f7fc1b8d30074"
@@ -244,8 +244,8 @@
   name = "github.com/golang/mock"
   packages = ["gomock"]
   pruneopts = "NUT"
-  revision = "937870445b8bddd7f05ea90e81c58ebe83681534"
-  version = "v1.3.0"
+  revision = "9fa652df1129bef0e734c9cf9bf6dbae9ef3b9fa"
+  version = "1.3.1"
 
 [[projects]]
   digest = "1:a98a0b00720dc3149bf3d0c8d5726188899e5bab2f5072b9a7ef82958fbc98b2"
@@ -472,7 +472,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7ba755bbcaaf821fd0c73c96069883c4467d6e261e3ecc81adddb8e0bfc67527"
+  digest = "1:0052c13cacf396bfad47a2920d0db186b4d130f70313812d8b7ef1bdb0531c68"
   name = "golang.org/x/crypto"
   packages = [
     "curve25519",
@@ -485,7 +485,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "a29dc8fdc73485234dbef99ebedb95d2eced08de"
+  revision = "cbcb750295291b33242907a04be40e80801d0cfc"
 
 [[projects]]
   branch = "master"
@@ -507,7 +507,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "f4e77d36d62c17c2336347bb2670ddbd02d092b7"
+  revision = "a4d6f7feada510cc50e69a37b484cb0fdc6b7876"
 
 [[projects]]
   branch = "master"
@@ -525,7 +525,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:715fafed6d4663b9a3b08c195bdfb9bd61ef430bd308698ee567e17fb0239d83"
+  digest = "1:7b4569929d12b61aed3868b928c73453212394eb8e68a83d8a129d0d27081c1b"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -533,7 +533,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "a43fa875dd822b81eb6d2ad538bc1f4caba169bd"
+  revision = "a5b02f93d862f065920dd6a40dddc66b60d0dec4"
 
 [[projects]]
   digest = "1:28deae5fe892797ff37a317b5bcda96d11d1c90dadd89f1337651df3bc4c586e"
@@ -590,10 +590,10 @@
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "3b6f9c0030f769fa3ded8a7f0d9420c71ac20caf"
+  revision = "99f201b6807eb28f750a1966316bb0d4417b6020"
 
 [[projects]]
-  digest = "1:dfa2aacf699cad13a5bb5b9f81209aa4e6420c38caa59ba5574b6496419e484b"
+  digest = "1:5b47538750b21fb112d6f5d36316bd6d43b620295150c0f5d00d1bc0cd62a818"
   name = "google.golang.org/api"
   packages = [
     "gensupport",
@@ -608,8 +608,8 @@
     "transport/http/internal/propagation",
   ]
   pruneopts = "NUT"
-  revision = "067bed655e9cbc26f4dbac8f8897b30756d90990"
-  version = "v0.4.0"
+  revision = "721295fe20d585ce7e948146f82188429d14da33"
+  version = "v0.5.0"
 
 [[projects]]
   digest = "1:a4824d8df1fd1f63c6b3690bf4801d6ff1722adcb3e13c0489196a7e248d868a"
@@ -632,16 +632,17 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:566585c182b77691c6a20bb8d318f479c8ca27c3d5c277d1198fc49303814155"
+  digest = "1:bb8ebadee59e158c696a1ddff153403a36d08039198008c82d5a63f6a53331f8"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
     "googleapis/iam/v1",
     "googleapis/rpc/code",
     "googleapis/rpc/status",
+    "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "54afdca5d873f7b529e2ce3def1a99df16feda90"
+  revision = "b515fa19cec88c32f305a962f34ae60068947aea"
 
 [[projects]]
   digest = "1:ffb498178a6bbe5a877e715cc85a40d5a712883d85f5bf05acf26dbd6c8f71e2"
