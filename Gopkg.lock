@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:cad7ae157e5f5ee788bb94375c3cf18e8b34abe5a3a207d6a000a78d7b206a47"
+  digest = "1:137194cebcc9b67701c67df1bd5cbe85b9c5a0280dc226d68c65e166c78a429a"
   name = "cloud.google.com/go"
   packages = [
     "compute/metadata",
@@ -14,8 +14,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "8c41231e01b2085512d98153bcffb847ff9b4b9f"
-  version = "v0.38.0"
+  revision = "775730d6e48254a2430366162cf6298e5368833c"
+  version = "v0.39.0"
 
 [[projects]]
   branch = "master"
@@ -37,7 +37,7 @@
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
 
 [[projects]]
-  digest = "1:958960f736368f4c2304be08878034ba00474667f011740a7268596fc9e1bf7d"
+  digest = "1:9c540089e078f0b69fd819042d9c0f26e30a6ac939836533554f1bfbbf5348f4"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -78,8 +78,8 @@
     "service/sts",
   ]
   pruneopts = "NUT"
-  revision = "d2d56572a432fff4d2dca7b4e52b3ee956d5c4bc"
-  version = "v1.19.28"
+  revision = "0db84dcbcc56669065730700b054eb6d1438a0f7"
+  version = "v1.19.33"
 
 [[projects]]
   digest = "1:7294028ae4f4ebe9f92dccabdc69f63eba37b71fbfcdcb35ed1c32eb823fc6d4"
@@ -117,7 +117,7 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "127b921e231304a034217816049efcaf05695d78"
+  revision = "c5c0485215af461ad80557befad5b06fb23ddd6f"
 
 [[projects]]
   branch = "master"
@@ -178,7 +178,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "2830420c6f519790052ae87badfc23cae33c6fba"
+  revision = "c672288466c75653102dede15f8497efa8ba1abf"
 
 [[projects]]
   digest = "1:fc5a32adb1f7107c108c1b5462475e85f68e7f03037762f7634f7fc1b8d30074"
@@ -485,11 +485,11 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "cbcb750295291b33242907a04be40e80801d0cfc"
+  revision = "22d7a77e9e5f409e934ed268692e56707cd169e5"
 
 [[projects]]
   branch = "master"
-  digest = "1:1382892e52a32d57e8a5c51d85ac0adc30cf66eb3ce69c76d4a7efbcf63edb5b"
+  digest = "1:6994b42aec623fcb4c65276b94f5a12beb8adb9a3108c64b5d3a38a587a16e0f"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -507,11 +507,11 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "a4d6f7feada510cc50e69a37b484cb0fdc6b7876"
+  revision = "3ec19112720433827bbce8be9342797f5a6aaaf9"
 
 [[projects]]
   branch = "master"
-  digest = "1:3121d742fbe48670a16d98b6da4693501fc33cd76d69ed6f35850c564f255c65"
+  digest = "1:5b74d223770fed93d5155a7c586e4f7dee8f3fdff688d2df9770d9d5c11abfd0"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -521,11 +521,11 @@
     "jwt",
   ]
   pruneopts = "NUT"
-  revision = "9f3314589c9a9136388751d9adae6b0ed400978a"
+  revision = "950ef44c6e079baf075030377d90bf0c7e4b7b7a"
 
 [[projects]]
   branch = "master"
-  digest = "1:7b4569929d12b61aed3868b928c73453212394eb8e68a83d8a129d0d27081c1b"
+  digest = "1:c3d875d9c6a740f41dcfa19b8e8a43432348ab461d6a8a8fff8e82f763ee5200"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -533,7 +533,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "a5b02f93d862f065920dd6a40dddc66b60d0dec4"
+  revision = "61b9204099cb1bebc803c9ffb9b2d3acd9d457d9"
 
 [[projects]]
   digest = "1:28deae5fe892797ff37a317b5bcda96d11d1c90dadd89f1337651df3bc4c586e"
@@ -590,7 +590,7 @@
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "99f201b6807eb28f750a1966316bb0d4417b6020"
+  revision = "d88f79806bbd013f54a668506864ce559edf6f0a"
 
 [[projects]]
   digest = "1:5b47538750b21fb112d6f5d36316bd6d43b620295150c0f5d00d1bc0cd62a818"
@@ -627,12 +627,12 @@
     "urlfetch",
   ]
   pruneopts = "NUT"
-  revision = "54a98f90d1c46b7731eb8fb305d2a321c30ef610"
-  version = "v1.5.0"
+  revision = "4c25cacc810c02874000e4f7071286a8e96b2515"
+  version = "v1.6.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:bb8ebadee59e158c696a1ddff153403a36d08039198008c82d5a63f6a53331f8"
+  digest = "1:1d7e4e8b75502678019b764e524684c25aeeb855ef93f0d5b52fd66e834a5d17"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
@@ -642,7 +642,7 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "b515fa19cec88c32f305a962f34ae60068947aea"
+  revision = "bb713bdc0e5239f2b68e560efbe1c701a6fe78f9"
 
 [[projects]]
   digest = "1:ffb498178a6bbe5a877e715cc85a40d5a712883d85f5bf05acf26dbd6c8f71e2"
