@@ -908,23 +908,21 @@ var _ = Describe("Deployment", func() {
 					ghttp.VerifyRequest("GET", "/deployments/dep/variables"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `[
-						{"id": "1", "name": "foo-1", "type": "type-1"},
-						{"id": "2", "name": "foo-2", "type": "type-2"}
+						{"id": "1", "name": "foo-1"},
+						{"id": "2", "name": "foo-2"}
 					]`),
 				),
 			)
 
-			result, err := deployment.Variables("")
+			result, err := deployment.Variables()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(result)).To(Equal(2))
 
 			Expect(result[0].ID).To(Equal("1"))
 			Expect(result[0].Name).To(Equal("foo-1"))
-			Expect(result[0].Type).To(Equal("type-1"))
 
 			Expect(result[1].ID).To(Equal("2"))
 			Expect(result[1].Name).To(Equal("foo-2"))
-			Expect(result[1].Type).To(Equal("type-2"))
 		})
 
 		It("returns an empty list if there are no variables", func() {
@@ -936,7 +934,7 @@ var _ = Describe("Deployment", func() {
 				),
 			)
 
-			result, err := deployment.Variables("")
+			result, err := deployment.Variables()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(len(result)).To(Equal(0))
 		})
@@ -949,59 +947,9 @@ var _ = Describe("Deployment", func() {
 					ghttp.RespondWith(http.StatusInternalServerError, ""),
 				))
 
-			_, err := deployment.Variables("")
+			_, err := deployment.Variables()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).Should(ContainSubstring("Error fetching variables for deployment 'dep'"))
-		})
-
-		It("propagates the type filter to the director", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/variables", "type=foo"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusOK, `[
-						{"id": "1", "name": "foo-1", "type": "foo"},
-						{"id": "2", "name": "foo-2", "type": "foo"}
-					]`),
-				),
-			)
-
-			result, err := deployment.Variables("foo")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(len(result)).To(Equal(2))
-
-			Expect(result[0].ID).To(Equal("1"))
-			Expect(result[0].Name).To(Equal("foo-1"))
-			Expect(result[0].Type).To(Equal("foo"))
-
-			Expect(result[1].ID).To(Equal("2"))
-			Expect(result[1].Name).To(Equal("foo-2"))
-			Expect(result[1].Type).To(Equal("foo"))
-		})
-
-		It("gracefully handles older directors' responses", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/variables", "type=foo"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusOK, `[
-						{"id": "1", "name": "foo-1"},
-						{"id": "2", "name": "foo-2"}
-					]`),
-				),
-			)
-
-			result, err := deployment.Variables("foo")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(len(result)).To(Equal(2))
-
-			Expect(result[0].ID).To(Equal("1"))
-			Expect(result[0].Name).To(Equal("foo-1"))
-			Expect(result[0].Type).To(Equal(""))
-
-			Expect(result[1].ID).To(Equal("2"))
-			Expect(result[1].Name).To(Equal("foo-2"))
-			Expect(result[1].Type).To(Equal(""))
 		})
 	})
 

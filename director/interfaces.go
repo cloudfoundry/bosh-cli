@@ -157,8 +157,7 @@ type Deployment interface {
 	DeleteSnapshots() error
 	DeleteVM(string) error
 
-	Variables(string) ([]VariableResult, error)
-	VariableCerts() ([]VariableCertResult, error)
+	Variables() ([]VariableResult, error)
 
 	// Deployment, pool or instance specifics
 	Start(slug AllOrInstanceGroupOrInstanceSlug, opts StartOpts) error
