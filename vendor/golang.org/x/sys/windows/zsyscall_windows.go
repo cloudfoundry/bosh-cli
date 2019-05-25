@@ -188,6 +188,9 @@ var (
 	procResetEvent                         = modkernel32.NewProc("ResetEvent")
 	procPulseEvent                         = modkernel32.NewProc("PulseEvent")
 	procSleepEx                            = modkernel32.NewProc("SleepEx")
+	procCreateJobObjectW                   = modkernel32.NewProc("CreateJobObjectW")
+	procAssignProcessToJobObject           = modkernel32.NewProc("AssignProcessToJobObject")
+	procTerminateJobObject                 = modkernel32.NewProc("TerminateJobObject")
 	procDefineDosDeviceW                   = modkernel32.NewProc("DefineDosDeviceW")
 	procDeleteVolumeMountPointW            = modkernel32.NewProc("DeleteVolumeMountPointW")
 	procFindFirstVolumeW                   = modkernel32.NewProc("FindFirstVolumeW")
@@ -259,9 +262,7 @@ var (
 	procEqualSid                           = modadvapi32.NewProc("EqualSid")
 	procCheckTokenMembership               = modadvapi32.NewProc("CheckTokenMembership")
 	procOpenProcessToken                   = modadvapi32.NewProc("OpenProcessToken")
-	procGetCurrentThreadToken              = modadvapi32.NewProc("GetCurrentThreadToken")
 	procOpenThreadToken                    = modadvapi32.NewProc("OpenThreadToken")
-	procGetCurrentProcessToken             = modadvapi32.NewProc("GetCurrentProcessToken")
 	procImpersonateSelf                    = modadvapi32.NewProc("ImpersonateSelf")
 	procRevertToSelf                       = modadvapi32.NewProc("RevertToSelf")
 	procSetThreadToken                     = modadvapi32.NewProc("SetThreadToken")
@@ -2013,6 +2014,43 @@ func SleepEx(milliseconds uint32, alertable bool) (ret uint32) {
 	return
 }
 
+func CreateJobObject(jobAttr *SecurityAttributes, name *uint16) (handle Handle, err error) {
+	r0, _, e1 := syscall.Syscall(procCreateJobObjectW.Addr(), 2, uintptr(unsafe.Pointer(jobAttr)), uintptr(unsafe.Pointer(name)), 0)
+	handle = Handle(r0)
+	if handle == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func AssignProcessToJobObject(job Handle, process Handle) (err error) {
+	r1, _, e1 := syscall.Syscall(procAssignProcessToJobObject.Addr(), 2, uintptr(job), uintptr(process), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func TerminateJobObject(job Handle, exitCode uint32) (err error) {
+	r1, _, e1 := syscall.Syscall(procTerminateJobObject.Addr(), 2, uintptr(job), uintptr(exitCode), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
 func DefineDosDevice(flags uint32, deviceName *uint16, targetPath *uint16) (err error) {
 	r1, _, e1 := syscall.Syscall(procDefineDosDeviceW.Addr(), 3, uintptr(flags), uintptr(unsafe.Pointer(deviceName)), uintptr(unsafe.Pointer(targetPath)))
 	if r1 == 0 {
@@ -2824,12 +2862,6 @@ func OpenProcessToken(process Handle, access uint32, token *Token) (err error) {
 	return
 }
 
-func GetCurrentThreadToken() (token Token) {
-	r0, _, _ := syscall.Syscall(procGetCurrentThreadToken.Addr(), 0, 0, 0, 0)
-	token = Token(r0)
-	return
-}
-
 func OpenThreadToken(thread Handle, access uint32, openAsSelf bool, token *Token) (err error) {
 	var _p0 uint32
 	if openAsSelf {
@@ -2845,12 +2877,6 @@ func OpenThreadToken(thread Handle, access uint32, openAsSelf bool, token *Token
 			err = syscall.EINVAL
 		}
 	}
-	return
-}
-
-func GetCurrentProcessToken() (token Token) {
-	r0, _, _ := syscall.Syscall(procGetCurrentProcessToken.Addr(), 0, 0, 0, 0)
-	token = Token(r0)
 	return
 }
 
