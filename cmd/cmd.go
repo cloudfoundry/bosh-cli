@@ -447,6 +447,9 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *VariablesOpts:
 		return NewVariablesCmd(deps.UI, c.deployment()).Run(*opts)
 
+	case *CompletionOpts:
+		return NewCompletionCmd().Run(*opts)
+
 	default:
 		return fmt.Errorf("Unhandled command: %#v", c.Opts)
 	}

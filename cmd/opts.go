@@ -176,6 +176,8 @@ type BoshOpts struct {
 	UploadBlobs UploadBlobsOpts `command:"upload-blobs" description:"Upload blobs"`
 
 	Variables VariablesOpts `command:"variables" alias:"vars" description:"List variables"`
+
+	Completion CompletionOpts `command:"completion" description:"Print shell completion text"`
 }
 
 type HelpOpts struct {
@@ -1102,6 +1104,11 @@ type MessageOpts struct {
 
 type VariablesOpts struct {
 	Deployment string
+	cmd
+}
+
+type CompletionOpts struct {
+	Export bool `long:"export" description:"Print the completion script meant to be sourced by the shell"`
 	cmd
 }
 

@@ -10,6 +10,12 @@
 
 - [https://bosh.io/docs/cli-v2-install/](https://bosh.io/docs/cli-v2-install/)
 
+## Adding tab completion to bash
+
+```sh
+$ eval "$(bosh completion --export)"
+```
+
 ## Client Library
 
 This project includes [`director`](director/interfaces.go) and [`uaa`](uaa/interfaces.go) packages meant to be used in your project for programmatic access to the Director API.
