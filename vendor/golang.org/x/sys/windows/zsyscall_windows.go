@@ -42,6 +42,7 @@ var (
 	modmswsock  = NewLazySystemDLL("mswsock.dll")
 	modcrypt32  = NewLazySystemDLL("crypt32.dll")
 	moduser32   = NewLazySystemDLL("user32.dll")
+	modole32    = NewLazySystemDLL("ole32.dll")
 	modws2_32   = NewLazySystemDLL("ws2_32.dll")
 	moddnsapi   = NewLazySystemDLL("dnsapi.dll")
 	modiphlpapi = NewLazySystemDLL("iphlpapi.dll")
@@ -133,6 +134,7 @@ var (
 	procSetEnvironmentVariableW            = modkernel32.NewProc("SetEnvironmentVariableW")
 	procCreateEnvironmentBlock             = moduserenv.NewProc("CreateEnvironmentBlock")
 	procDestroyEnvironmentBlock            = moduserenv.NewProc("DestroyEnvironmentBlock")
+	procGetTickCount64                     = modkernel32.NewProc("GetTickCount64")
 	procSetFileTime                        = modkernel32.NewProc("SetFileTime")
 	procGetFileAttributesW                 = modkernel32.NewProc("GetFileAttributesW")
 	procSetFileAttributesW                 = modkernel32.NewProc("SetFileAttributesW")
@@ -180,6 +182,8 @@ var (
 	procCreateToolhelp32Snapshot           = modkernel32.NewProc("CreateToolhelp32Snapshot")
 	procProcess32FirstW                    = modkernel32.NewProc("Process32FirstW")
 	procProcess32NextW                     = modkernel32.NewProc("Process32NextW")
+	procThread32First                      = modkernel32.NewProc("Thread32First")
+	procThread32Next                       = modkernel32.NewProc("Thread32Next")
 	procDeviceIoControl                    = modkernel32.NewProc("DeviceIoControl")
 	procCreateSymbolicLinkW                = modkernel32.NewProc("CreateSymbolicLinkW")
 	procCreateHardLinkW                    = modkernel32.NewProc("CreateHardLinkW")
@@ -220,6 +224,9 @@ var (
 	procSetVolumeLabelW                    = modkernel32.NewProc("SetVolumeLabelW")
 	procSetVolumeMountPointW               = modkernel32.NewProc("SetVolumeMountPointW")
 	procMessageBoxW                        = moduser32.NewProc("MessageBoxW")
+	procCLSIDFromString                    = modole32.NewProc("CLSIDFromString")
+	procStringFromGUID2                    = modole32.NewProc("StringFromGUID2")
+	procCoCreateGuid                       = modole32.NewProc("CoCreateGuid")
 	procWSAStartup                         = modws2_32.NewProc("WSAStartup")
 	procWSACleanup                         = modws2_32.NewProc("WSACleanup")
 	procWSAIoctl                           = modws2_32.NewProc("WSAIoctl")
@@ -1373,6 +1380,12 @@ func DestroyEnvironmentBlock(block *uint16) (err error) {
 	return
 }
 
+func getTickCount64() (ms uint64) {
+	r0, _, _ := syscall.Syscall(procGetTickCount64.Addr(), 0, 0, 0, 0)
+	ms = uint64(r0)
+	return
+}
+
 func SetFileTime(handle Handle, ctime *Filetime, atime *Filetime, wtime *Filetime) (err error) {
 	r1, _, e1 := syscall.Syscall6(procSetFileTime.Addr(), 4, uintptr(handle), uintptr(unsafe.Pointer(ctime)), uintptr(unsafe.Pointer(atime)), uintptr(unsafe.Pointer(wtime)), 0, 0)
 	if r1 == 0 {
@@ -1918,6 +1931,30 @@ func Process32Next(snapshot Handle, procEntry *ProcessEntry32) (err error) {
 	return
 }
 
+func Thread32First(snapshot Handle, threadEntry *ThreadEntry32) (err error) {
+	r1, _, e1 := syscall.Syscall(procThread32First.Addr(), 2, uintptr(snapshot), uintptr(unsafe.Pointer(threadEntry)), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func Thread32Next(snapshot Handle, threadEntry *ThreadEntry32) (err error) {
+	r1, _, e1 := syscall.Syscall(procThread32Next.Addr(), 2, uintptr(snapshot), uintptr(unsafe.Pointer(threadEntry)), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
 func DeviceIoControl(handle Handle, ioControlCode uint32, inBuffer *byte, inBufferSize uint32, outBuffer *byte, outBufferSize uint32, bytesReturned *uint32, overlapped *Overlapped) (err error) {
 	r1, _, e1 := syscall.Syscall9(procDeviceIoControl.Addr(), 8, uintptr(handle), uintptr(ioControlCode), uintptr(unsafe.Pointer(inBuffer)), uintptr(inBufferSize), uintptr(unsafe.Pointer(outBuffer)), uintptr(outBufferSize), uintptr(unsafe.Pointer(bytesReturned)), uintptr(unsafe.Pointer(overlapped)), 0)
 	if r1 == 0 {
@@ -2395,6 +2432,32 @@ func MessageBox(hwnd Handle, text *uint16, caption *uint16, boxtype uint32) (ret
 		} else {
 			err = syscall.EINVAL
 		}
+	}
+	return
+}
+
+func clsidFromString(lpsz *uint16, pclsid *GUID) (err error) {
+	r1, _, e1 := syscall.Syscall(procCLSIDFromString.Addr(), 2, uintptr(unsafe.Pointer(lpsz)), uintptr(unsafe.Pointer(pclsid)), 0)
+	if r1 != 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func stringFromGUID2(rguid *GUID, lpsz *uint16, cchMax int) (chars int) {
+	r0, _, _ := syscall.Syscall(procStringFromGUID2.Addr(), 3, uintptr(unsafe.Pointer(rguid)), uintptr(unsafe.Pointer(lpsz)), uintptr(cchMax))
+	chars = int(r0)
+	return
+}
+
+func coCreateGuid(pguid *GUID) (ret error) {
+	r0, _, _ := syscall.Syscall(procCoCreateGuid.Addr(), 1, uintptr(unsafe.Pointer(pguid)), 0, 0)
+	if r0 != 0 {
+		ret = syscall.Errno(r0)
 	}
 	return
 }
