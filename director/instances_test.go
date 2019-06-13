@@ -96,8 +96,9 @@ var _ = Describe("Instances", func() {
 				ProcessState: "running",
 				Bootstrap:    true,
 
-				IPs: []string{"ip"},
-				DNS: []string{"dns"},
+				IPs:        []string{"ip"},
+				Deployment: "dep",
+				DNS:        []string{"dns"},
 
 				AZ:           "az",
 				VMID:         "vm-cid",

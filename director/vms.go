@@ -19,8 +19,9 @@ type VMInfo struct {
 	Active       *bool  `json:"active"`
 	Bootstrap    bool
 
-	IPs []string `json:"ips"`
-	DNS []string `json:"dns"`
+	IPs        []string `json:"ips"`
+	Deployment string   `json:"deployment_name"`
+	DNS        []string `json:"dns"`
 
 	AZ              string      `json:"az"`
 	State           string      `json:"state"`
@@ -148,6 +149,8 @@ func (c Client) deploymentResourceInfos(deploymentName string, resourceType stri
 			return nil, bosherr.WrapErrorf(
 				err, "Unmarshaling %s info response: '%s'", strings.TrimSuffix(resourceType, "s"), string(piece))
 		}
+
+		resp.Deployment = deploymentName
 
 		if len(resp.DiskIDs) == 0 && resp.DiskID != "" {
 			resp.DiskIDs = []string{resp.DiskID}

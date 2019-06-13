@@ -18,6 +18,7 @@ type InstanceTableValues struct {
 	VMType       boshtbl.Value
 	Active       boshtbl.Value
 	IPs          boshtbl.Value
+	Deployment   boshtbl.Value
 
 	// Details
 	VMCID           boshtbl.Value
@@ -58,6 +59,7 @@ var InstanceTableHeader = InstanceTableValues{
 	VMType:       boshtbl.NewValueString("VM Type"),
 	Active:       boshtbl.NewValueString("Active"),
 	IPs:          boshtbl.NewValueString("IPs"),
+	Deployment:   boshtbl.NewValueString("Deployment"),
 
 	// Details
 	State:           boshtbl.NewValueString("State"),
@@ -91,7 +93,7 @@ var InstanceTableHeader = InstanceTableValues{
 }
 
 type InstanceTable struct {
-	Processes, VMDetails, Details, DNS, Vitals, CloudProperties bool
+	Processes, VMDetails, DeploymentDetails, Details, DNS, Vitals, CloudProperties bool
 }
 
 func (t InstanceTable) Headers() []boshtbl.Header {
@@ -125,10 +127,11 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 			Error: !i.IsRunning(),
 		},
 
-		AZ:     boshtbl.NewValueString(i.AZ),
-		VMType: boshtbl.NewValueString(i.VMType),
-		Active: boshtbl.NewValueString(activeStatus),
-		IPs:    boshtbl.NewValueStrings(i.IPs),
+		AZ:         boshtbl.NewValueString(i.AZ),
+		VMType:     boshtbl.NewValueString(i.VMType),
+		Active:     boshtbl.NewValueString(activeStatus),
+		IPs:        boshtbl.NewValueStrings(i.IPs),
+		Deployment: boshtbl.NewValueString(i.Deployment),
 
 		// Details
 		State:           boshtbl.NewValueString(i.State),
@@ -208,6 +211,10 @@ func (t InstanceTable) AsValues(v InstanceTableValues) []boshtbl.Value {
 	}
 
 	result = append(result, []boshtbl.Value{v.ProcessState, v.AZ, v.IPs}...)
+
+	if t.DeploymentDetails {
+		result = append(result, v.Deployment)
+	}
 
 	if t.Details {
 		result = append(result, []boshtbl.Value{v.State, v.VMCID, v.VMType, v.DiskCIDs, v.AgentID, v.Index, v.Bootstrap, v.Ignore}...)

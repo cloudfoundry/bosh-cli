@@ -99,8 +99,9 @@ var _ = Describe("VMs", func() {
 				ProcessState: "running",
 				Bootstrap:    true,
 
-				IPs: []string{"ip"},
-				DNS: []string{"dns"},
+				IPs:        []string{"ip"},
+				Deployment: "dep",
+				DNS:        []string{"dns"},
 
 				AZ:              "az",
 				Ignore:          true,
@@ -205,8 +206,9 @@ var _ = Describe("VMs", func() {
 				ProcessState: "running",
 				Bootstrap:    true,
 
-				IPs: []string{"ip"},
-				DNS: []string{"dns"},
+				IPs:        []string{"ip"},
+				Deployment: "dep",
+				DNS:        []string{"dns"},
 
 				AZ:              "az",
 				VMID:            "vm-cid",
@@ -311,8 +313,9 @@ var _ = Describe("VMs", func() {
 				ProcessState: "running",
 				Bootstrap:    true,
 
-				IPs: []string{"ip"},
-				DNS: []string{"dns"},
+				IPs:        []string{"ip"},
+				Deployment: "dep",
+				DNS:        []string{"dns"},
 
 				AZ:              "az",
 				VMID:            "vm-cid",
