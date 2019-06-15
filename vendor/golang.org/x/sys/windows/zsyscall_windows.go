@@ -60,6 +60,7 @@ var (
 	procDeleteService                      = modadvapi32.NewProc("DeleteService")
 	procStartServiceW                      = modadvapi32.NewProc("StartServiceW")
 	procQueryServiceStatus                 = modadvapi32.NewProc("QueryServiceStatus")
+	procQueryServiceLockStatusW            = modadvapi32.NewProc("QueryServiceLockStatusW")
 	procControlService                     = modadvapi32.NewProc("ControlService")
 	procStartServiceCtrlDispatcherW        = modadvapi32.NewProc("StartServiceCtrlDispatcherW")
 	procSetServiceStatus                   = modadvapi32.NewProc("SetServiceStatus")
@@ -113,6 +114,7 @@ var (
 	procCreateProcessW                     = modkernel32.NewProc("CreateProcessW")
 	procOpenProcess                        = modkernel32.NewProc("OpenProcess")
 	procShellExecuteW                      = modshell32.NewProc("ShellExecuteW")
+	procSHGetKnownFolderPath               = modshell32.NewProc("SHGetKnownFolderPath")
 	procTerminateProcess                   = modkernel32.NewProc("TerminateProcess")
 	procGetExitCodeProcess                 = modkernel32.NewProc("GetExitCodeProcess")
 	procGetStartupInfoW                    = modkernel32.NewProc("GetStartupInfoW")
@@ -204,6 +206,8 @@ var (
 	procGetPriorityClass                   = modkernel32.NewProc("GetPriorityClass")
 	procSetInformationJobObject            = modkernel32.NewProc("SetInformationJobObject")
 	procGenerateConsoleCtrlEvent           = modkernel32.NewProc("GenerateConsoleCtrlEvent")
+	procGetProcessId                       = modkernel32.NewProc("GetProcessId")
+	procOpenThread                         = modkernel32.NewProc("OpenThread")
 	procDefineDosDeviceW                   = modkernel32.NewProc("DefineDosDeviceW")
 	procDeleteVolumeMountPointW            = modkernel32.NewProc("DeleteVolumeMountPointW")
 	procFindFirstVolumeW                   = modkernel32.NewProc("FindFirstVolumeW")
@@ -227,6 +231,7 @@ var (
 	procCLSIDFromString                    = modole32.NewProc("CLSIDFromString")
 	procStringFromGUID2                    = modole32.NewProc("StringFromGUID2")
 	procCoCreateGuid                       = modole32.NewProc("CoCreateGuid")
+	procCoTaskMemFree                      = modole32.NewProc("CoTaskMemFree")
 	procWSAStartup                         = modws2_32.NewProc("WSAStartup")
 	procWSACleanup                         = modws2_32.NewProc("WSACleanup")
 	procWSAIoctl                           = modws2_32.NewProc("WSAIoctl")
@@ -415,6 +420,18 @@ func StartService(service Handle, numArgs uint32, argVectors **uint16) (err erro
 
 func QueryServiceStatus(service Handle, status *SERVICE_STATUS) (err error) {
 	r1, _, e1 := syscall.Syscall(procQueryServiceStatus.Addr(), 2, uintptr(service), uintptr(unsafe.Pointer(status)), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func QueryServiceLockStatus(mgr Handle, lockStatus *QUERY_SERVICE_LOCK_STATUS, bufSize uint32, bytesNeeded *uint32) (err error) {
+	r1, _, e1 := syscall.Syscall6(procQueryServiceLockStatusW.Addr(), 4, uintptr(mgr), uintptr(unsafe.Pointer(lockStatus)), uintptr(bufSize), uintptr(unsafe.Pointer(bytesNeeded)), 0, 0)
 	if r1 == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)
@@ -1071,14 +1088,14 @@ func CreateProcess(appName *uint16, commandLine *uint16, procSecurity *SecurityA
 	return
 }
 
-func OpenProcess(da uint32, inheritHandle bool, pid uint32) (handle Handle, err error) {
+func OpenProcess(desiredAccess uint32, inheritHandle bool, processId uint32) (handle Handle, err error) {
 	var _p0 uint32
 	if inheritHandle {
 		_p0 = 1
 	} else {
 		_p0 = 0
 	}
-	r0, _, e1 := syscall.Syscall(procOpenProcess.Addr(), 3, uintptr(da), uintptr(_p0), uintptr(pid))
+	r0, _, e1 := syscall.Syscall(procOpenProcess.Addr(), 3, uintptr(desiredAccess), uintptr(_p0), uintptr(processId))
 	handle = Handle(r0)
 	if handle == 0 {
 		if e1 != 0 {
@@ -1098,6 +1115,14 @@ func ShellExecute(hwnd Handle, verb *uint16, file *uint16, args *uint16, cwd *ui
 		} else {
 			err = syscall.EINVAL
 		}
+	}
+	return
+}
+
+func shGetKnownFolderPath(id *KNOWNFOLDERID, flags uint32, token Token, path **uint16) (ret error) {
+	r0, _, _ := syscall.Syscall6(procSHGetKnownFolderPath.Addr(), 4, uintptr(unsafe.Pointer(id)), uintptr(flags), uintptr(token), uintptr(unsafe.Pointer(path)), 0, 0)
+	if r0 != 0 {
+		ret = syscall.Errno(r0)
 	}
 	return
 }
@@ -1828,7 +1853,7 @@ func RegQueryValueEx(key Handle, name *uint16, reserved *uint32, valtype *uint32
 	return
 }
 
-func getCurrentProcessId() (pid uint32) {
+func GetCurrentProcessId() (pid uint32) {
 	r0, _, _ := syscall.Syscall(procGetCurrentProcessId.Addr(), 0, 0, 0, 0)
 	pid = uint32(r0)
 	return
@@ -2196,6 +2221,38 @@ func GenerateConsoleCtrlEvent(ctrlEvent uint32, processGroupID uint32) (err erro
 	return
 }
 
+func GetProcessId(process Handle) (id uint32, err error) {
+	r0, _, e1 := syscall.Syscall(procGetProcessId.Addr(), 1, uintptr(process), 0, 0)
+	id = uint32(r0)
+	if id == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func OpenThread(desiredAccess uint32, inheritHandle bool, threadId uint32) (handle Handle, err error) {
+	var _p0 uint32
+	if inheritHandle {
+		_p0 = 1
+	} else {
+		_p0 = 0
+	}
+	r0, _, e1 := syscall.Syscall(procOpenThread.Addr(), 3, uintptr(desiredAccess), uintptr(_p0), uintptr(threadId))
+	handle = Handle(r0)
+	if handle == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
 func DefineDosDevice(flags uint32, deviceName *uint16, targetPath *uint16) (err error) {
 	r1, _, e1 := syscall.Syscall(procDefineDosDeviceW.Addr(), 3, uintptr(flags), uintptr(unsafe.Pointer(deviceName)), uintptr(unsafe.Pointer(targetPath)))
 	if r1 == 0 {
@@ -2436,21 +2493,17 @@ func MessageBox(hwnd Handle, text *uint16, caption *uint16, boxtype uint32) (ret
 	return
 }
 
-func clsidFromString(lpsz *uint16, pclsid *GUID) (err error) {
-	r1, _, e1 := syscall.Syscall(procCLSIDFromString.Addr(), 2, uintptr(unsafe.Pointer(lpsz)), uintptr(unsafe.Pointer(pclsid)), 0)
-	if r1 != 0 {
-		if e1 != 0 {
-			err = errnoErr(e1)
-		} else {
-			err = syscall.EINVAL
-		}
+func clsidFromString(lpsz *uint16, pclsid *GUID) (ret error) {
+	r0, _, _ := syscall.Syscall(procCLSIDFromString.Addr(), 2, uintptr(unsafe.Pointer(lpsz)), uintptr(unsafe.Pointer(pclsid)), 0)
+	if r0 != 0 {
+		ret = syscall.Errno(r0)
 	}
 	return
 }
 
-func stringFromGUID2(rguid *GUID, lpsz *uint16, cchMax int) (chars int) {
+func stringFromGUID2(rguid *GUID, lpsz *uint16, cchMax int32) (chars int32) {
 	r0, _, _ := syscall.Syscall(procStringFromGUID2.Addr(), 3, uintptr(unsafe.Pointer(rguid)), uintptr(unsafe.Pointer(lpsz)), uintptr(cchMax))
-	chars = int(r0)
+	chars = int32(r0)
 	return
 }
 
@@ -2459,6 +2512,11 @@ func coCreateGuid(pguid *GUID) (ret error) {
 	if r0 != 0 {
 		ret = syscall.Errno(r0)
 	}
+	return
+}
+
+func coTaskMemFree(address unsafe.Pointer) {
+	syscall.Syscall(procCoTaskMemFree.Addr(), 1, uintptr(address), 0, 0)
 	return
 }
 
