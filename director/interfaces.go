@@ -136,7 +136,7 @@ type Deployment interface {
 	Diff([]byte, bool) (DeploymentDiff, error)
 
 	Releases() ([]Release, error)
-	ExportRelease(ReleaseSlug, OSVersionSlug, []string) (ExportReleaseResult, error)
+	ExportRelease(ReleaseSlug, OSVersionSlug, []string, bool) (ExportReleaseResult, error)
 
 	Teams() ([]string, error)
 

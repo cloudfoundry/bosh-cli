@@ -8,188 +8,75 @@ import (
 )
 
 type FakeCompilable struct {
-	NameStub        func() string
-	nameMutex       sync.RWMutex
-	nameArgsForCall []struct{}
-	nameReturns     struct {
-		result1 string
-	}
-	nameReturnsOnCall map[int]struct {
-		result1 string
-	}
-	FingerprintStub        func() string
-	fingerprintMutex       sync.RWMutex
-	fingerprintArgsForCall []struct{}
-	fingerprintReturns     struct {
-		result1 string
-	}
-	fingerprintReturnsOnCall map[int]struct {
-		result1 string
-	}
-	ArchivePathStub        func() string
-	archivePathMutex       sync.RWMutex
-	archivePathArgsForCall []struct{}
-	archivePathReturns     struct {
-		result1 string
-	}
-	archivePathReturnsOnCall map[int]struct {
-		result1 string
-	}
 	ArchiveDigestStub        func() string
 	archiveDigestMutex       sync.RWMutex
-	archiveDigestArgsForCall []struct{}
-	archiveDigestReturns     struct {
+	archiveDigestArgsForCall []struct {
+	}
+	archiveDigestReturns struct {
 		result1 string
 	}
 	archiveDigestReturnsOnCall map[int]struct {
 		result1 string
 	}
-	IsCompiledStub        func() bool
-	isCompiledMutex       sync.RWMutex
-	isCompiledArgsForCall []struct{}
-	isCompiledReturns     struct {
-		result1 bool
+	ArchivePathStub        func() string
+	archivePathMutex       sync.RWMutex
+	archivePathArgsForCall []struct {
 	}
-	isCompiledReturnsOnCall map[int]struct {
-		result1 bool
+	archivePathReturns struct {
+		result1 string
+	}
+	archivePathReturnsOnCall map[int]struct {
+		result1 string
 	}
 	DepsStub        func() []pkg.Compilable
 	depsMutex       sync.RWMutex
-	depsArgsForCall []struct{}
-	depsReturns     struct {
+	depsArgsForCall []struct {
+	}
+	depsReturns struct {
 		result1 []pkg.Compilable
 	}
 	depsReturnsOnCall map[int]struct {
 		result1 []pkg.Compilable
 	}
+	FingerprintStub        func() string
+	fingerprintMutex       sync.RWMutex
+	fingerprintArgsForCall []struct {
+	}
+	fingerprintReturns struct {
+		result1 string
+	}
+	fingerprintReturnsOnCall map[int]struct {
+		result1 string
+	}
+	IsCompiledStub        func() bool
+	isCompiledMutex       sync.RWMutex
+	isCompiledArgsForCall []struct {
+	}
+	isCompiledReturns struct {
+		result1 bool
+	}
+	isCompiledReturnsOnCall map[int]struct {
+		result1 bool
+	}
+	NameStub        func() string
+	nameMutex       sync.RWMutex
+	nameArgsForCall []struct {
+	}
+	nameReturns struct {
+		result1 string
+	}
+	nameReturnsOnCall map[int]struct {
+		result1 string
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
-}
-
-func (fake *FakeCompilable) Name() string {
-	fake.nameMutex.Lock()
-	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
-	fake.nameArgsForCall = append(fake.nameArgsForCall, struct{}{})
-	fake.recordInvocation("Name", []interface{}{})
-	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.nameReturns.result1
-}
-
-func (fake *FakeCompilable) NameCallCount() int {
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
-	return len(fake.nameArgsForCall)
-}
-
-func (fake *FakeCompilable) NameReturns(result1 string) {
-	fake.NameStub = nil
-	fake.nameReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeCompilable) NameReturnsOnCall(i int, result1 string) {
-	fake.NameStub = nil
-	if fake.nameReturnsOnCall == nil {
-		fake.nameReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.nameReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeCompilable) Fingerprint() string {
-	fake.fingerprintMutex.Lock()
-	ret, specificReturn := fake.fingerprintReturnsOnCall[len(fake.fingerprintArgsForCall)]
-	fake.fingerprintArgsForCall = append(fake.fingerprintArgsForCall, struct{}{})
-	fake.recordInvocation("Fingerprint", []interface{}{})
-	fake.fingerprintMutex.Unlock()
-	if fake.FingerprintStub != nil {
-		return fake.FingerprintStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.fingerprintReturns.result1
-}
-
-func (fake *FakeCompilable) FingerprintCallCount() int {
-	fake.fingerprintMutex.RLock()
-	defer fake.fingerprintMutex.RUnlock()
-	return len(fake.fingerprintArgsForCall)
-}
-
-func (fake *FakeCompilable) FingerprintReturns(result1 string) {
-	fake.FingerprintStub = nil
-	fake.fingerprintReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeCompilable) FingerprintReturnsOnCall(i int, result1 string) {
-	fake.FingerprintStub = nil
-	if fake.fingerprintReturnsOnCall == nil {
-		fake.fingerprintReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.fingerprintReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeCompilable) ArchivePath() string {
-	fake.archivePathMutex.Lock()
-	ret, specificReturn := fake.archivePathReturnsOnCall[len(fake.archivePathArgsForCall)]
-	fake.archivePathArgsForCall = append(fake.archivePathArgsForCall, struct{}{})
-	fake.recordInvocation("ArchivePath", []interface{}{})
-	fake.archivePathMutex.Unlock()
-	if fake.ArchivePathStub != nil {
-		return fake.ArchivePathStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.archivePathReturns.result1
-}
-
-func (fake *FakeCompilable) ArchivePathCallCount() int {
-	fake.archivePathMutex.RLock()
-	defer fake.archivePathMutex.RUnlock()
-	return len(fake.archivePathArgsForCall)
-}
-
-func (fake *FakeCompilable) ArchivePathReturns(result1 string) {
-	fake.ArchivePathStub = nil
-	fake.archivePathReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeCompilable) ArchivePathReturnsOnCall(i int, result1 string) {
-	fake.ArchivePathStub = nil
-	if fake.archivePathReturnsOnCall == nil {
-		fake.archivePathReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.archivePathReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
 }
 
 func (fake *FakeCompilable) ArchiveDigest() string {
 	fake.archiveDigestMutex.Lock()
 	ret, specificReturn := fake.archiveDigestReturnsOnCall[len(fake.archiveDigestArgsForCall)]
-	fake.archiveDigestArgsForCall = append(fake.archiveDigestArgsForCall, struct{}{})
+	fake.archiveDigestArgsForCall = append(fake.archiveDigestArgsForCall, struct {
+	}{})
 	fake.recordInvocation("ArchiveDigest", []interface{}{})
 	fake.archiveDigestMutex.Unlock()
 	if fake.ArchiveDigestStub != nil {
@@ -198,7 +85,8 @@ func (fake *FakeCompilable) ArchiveDigest() string {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.archiveDigestReturns.result1
+	fakeReturns := fake.archiveDigestReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeCompilable) ArchiveDigestCallCount() int {
@@ -207,7 +95,15 @@ func (fake *FakeCompilable) ArchiveDigestCallCount() int {
 	return len(fake.archiveDigestArgsForCall)
 }
 
+func (fake *FakeCompilable) ArchiveDigestCalls(stub func() string) {
+	fake.archiveDigestMutex.Lock()
+	defer fake.archiveDigestMutex.Unlock()
+	fake.ArchiveDigestStub = stub
+}
+
 func (fake *FakeCompilable) ArchiveDigestReturns(result1 string) {
+	fake.archiveDigestMutex.Lock()
+	defer fake.archiveDigestMutex.Unlock()
 	fake.ArchiveDigestStub = nil
 	fake.archiveDigestReturns = struct {
 		result1 string
@@ -215,6 +111,8 @@ func (fake *FakeCompilable) ArchiveDigestReturns(result1 string) {
 }
 
 func (fake *FakeCompilable) ArchiveDigestReturnsOnCall(i int, result1 string) {
+	fake.archiveDigestMutex.Lock()
+	defer fake.archiveDigestMutex.Unlock()
 	fake.ArchiveDigestStub = nil
 	if fake.archiveDigestReturnsOnCall == nil {
 		fake.archiveDigestReturnsOnCall = make(map[int]struct {
@@ -226,50 +124,63 @@ func (fake *FakeCompilable) ArchiveDigestReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeCompilable) IsCompiled() bool {
-	fake.isCompiledMutex.Lock()
-	ret, specificReturn := fake.isCompiledReturnsOnCall[len(fake.isCompiledArgsForCall)]
-	fake.isCompiledArgsForCall = append(fake.isCompiledArgsForCall, struct{}{})
-	fake.recordInvocation("IsCompiled", []interface{}{})
-	fake.isCompiledMutex.Unlock()
-	if fake.IsCompiledStub != nil {
-		return fake.IsCompiledStub()
+func (fake *FakeCompilable) ArchivePath() string {
+	fake.archivePathMutex.Lock()
+	ret, specificReturn := fake.archivePathReturnsOnCall[len(fake.archivePathArgsForCall)]
+	fake.archivePathArgsForCall = append(fake.archivePathArgsForCall, struct {
+	}{})
+	fake.recordInvocation("ArchivePath", []interface{}{})
+	fake.archivePathMutex.Unlock()
+	if fake.ArchivePathStub != nil {
+		return fake.ArchivePathStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.isCompiledReturns.result1
+	fakeReturns := fake.archivePathReturns
+	return fakeReturns.result1
 }
 
-func (fake *FakeCompilable) IsCompiledCallCount() int {
-	fake.isCompiledMutex.RLock()
-	defer fake.isCompiledMutex.RUnlock()
-	return len(fake.isCompiledArgsForCall)
+func (fake *FakeCompilable) ArchivePathCallCount() int {
+	fake.archivePathMutex.RLock()
+	defer fake.archivePathMutex.RUnlock()
+	return len(fake.archivePathArgsForCall)
 }
 
-func (fake *FakeCompilable) IsCompiledReturns(result1 bool) {
-	fake.IsCompiledStub = nil
-	fake.isCompiledReturns = struct {
-		result1 bool
+func (fake *FakeCompilable) ArchivePathCalls(stub func() string) {
+	fake.archivePathMutex.Lock()
+	defer fake.archivePathMutex.Unlock()
+	fake.ArchivePathStub = stub
+}
+
+func (fake *FakeCompilable) ArchivePathReturns(result1 string) {
+	fake.archivePathMutex.Lock()
+	defer fake.archivePathMutex.Unlock()
+	fake.ArchivePathStub = nil
+	fake.archivePathReturns = struct {
+		result1 string
 	}{result1}
 }
 
-func (fake *FakeCompilable) IsCompiledReturnsOnCall(i int, result1 bool) {
-	fake.IsCompiledStub = nil
-	if fake.isCompiledReturnsOnCall == nil {
-		fake.isCompiledReturnsOnCall = make(map[int]struct {
-			result1 bool
+func (fake *FakeCompilable) ArchivePathReturnsOnCall(i int, result1 string) {
+	fake.archivePathMutex.Lock()
+	defer fake.archivePathMutex.Unlock()
+	fake.ArchivePathStub = nil
+	if fake.archivePathReturnsOnCall == nil {
+		fake.archivePathReturnsOnCall = make(map[int]struct {
+			result1 string
 		})
 	}
-	fake.isCompiledReturnsOnCall[i] = struct {
-		result1 bool
+	fake.archivePathReturnsOnCall[i] = struct {
+		result1 string
 	}{result1}
 }
 
 func (fake *FakeCompilable) Deps() []pkg.Compilable {
 	fake.depsMutex.Lock()
 	ret, specificReturn := fake.depsReturnsOnCall[len(fake.depsArgsForCall)]
-	fake.depsArgsForCall = append(fake.depsArgsForCall, struct{}{})
+	fake.depsArgsForCall = append(fake.depsArgsForCall, struct {
+	}{})
 	fake.recordInvocation("Deps", []interface{}{})
 	fake.depsMutex.Unlock()
 	if fake.DepsStub != nil {
@@ -278,7 +189,8 @@ func (fake *FakeCompilable) Deps() []pkg.Compilable {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.depsReturns.result1
+	fakeReturns := fake.depsReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeCompilable) DepsCallCount() int {
@@ -287,7 +199,15 @@ func (fake *FakeCompilable) DepsCallCount() int {
 	return len(fake.depsArgsForCall)
 }
 
+func (fake *FakeCompilable) DepsCalls(stub func() []pkg.Compilable) {
+	fake.depsMutex.Lock()
+	defer fake.depsMutex.Unlock()
+	fake.DepsStub = stub
+}
+
 func (fake *FakeCompilable) DepsReturns(result1 []pkg.Compilable) {
+	fake.depsMutex.Lock()
+	defer fake.depsMutex.Unlock()
 	fake.DepsStub = nil
 	fake.depsReturns = struct {
 		result1 []pkg.Compilable
@@ -295,6 +215,8 @@ func (fake *FakeCompilable) DepsReturns(result1 []pkg.Compilable) {
 }
 
 func (fake *FakeCompilable) DepsReturnsOnCall(i int, result1 []pkg.Compilable) {
+	fake.depsMutex.Lock()
+	defer fake.depsMutex.Unlock()
 	fake.DepsStub = nil
 	if fake.depsReturnsOnCall == nil {
 		fake.depsReturnsOnCall = make(map[int]struct {
@@ -306,21 +228,177 @@ func (fake *FakeCompilable) DepsReturnsOnCall(i int, result1 []pkg.Compilable) {
 	}{result1}
 }
 
+func (fake *FakeCompilable) Fingerprint() string {
+	fake.fingerprintMutex.Lock()
+	ret, specificReturn := fake.fingerprintReturnsOnCall[len(fake.fingerprintArgsForCall)]
+	fake.fingerprintArgsForCall = append(fake.fingerprintArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Fingerprint", []interface{}{})
+	fake.fingerprintMutex.Unlock()
+	if fake.FingerprintStub != nil {
+		return fake.FingerprintStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.fingerprintReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeCompilable) FingerprintCallCount() int {
+	fake.fingerprintMutex.RLock()
+	defer fake.fingerprintMutex.RUnlock()
+	return len(fake.fingerprintArgsForCall)
+}
+
+func (fake *FakeCompilable) FingerprintCalls(stub func() string) {
+	fake.fingerprintMutex.Lock()
+	defer fake.fingerprintMutex.Unlock()
+	fake.FingerprintStub = stub
+}
+
+func (fake *FakeCompilable) FingerprintReturns(result1 string) {
+	fake.fingerprintMutex.Lock()
+	defer fake.fingerprintMutex.Unlock()
+	fake.FingerprintStub = nil
+	fake.fingerprintReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeCompilable) FingerprintReturnsOnCall(i int, result1 string) {
+	fake.fingerprintMutex.Lock()
+	defer fake.fingerprintMutex.Unlock()
+	fake.FingerprintStub = nil
+	if fake.fingerprintReturnsOnCall == nil {
+		fake.fingerprintReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.fingerprintReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeCompilable) IsCompiled() bool {
+	fake.isCompiledMutex.Lock()
+	ret, specificReturn := fake.isCompiledReturnsOnCall[len(fake.isCompiledArgsForCall)]
+	fake.isCompiledArgsForCall = append(fake.isCompiledArgsForCall, struct {
+	}{})
+	fake.recordInvocation("IsCompiled", []interface{}{})
+	fake.isCompiledMutex.Unlock()
+	if fake.IsCompiledStub != nil {
+		return fake.IsCompiledStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.isCompiledReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeCompilable) IsCompiledCallCount() int {
+	fake.isCompiledMutex.RLock()
+	defer fake.isCompiledMutex.RUnlock()
+	return len(fake.isCompiledArgsForCall)
+}
+
+func (fake *FakeCompilable) IsCompiledCalls(stub func() bool) {
+	fake.isCompiledMutex.Lock()
+	defer fake.isCompiledMutex.Unlock()
+	fake.IsCompiledStub = stub
+}
+
+func (fake *FakeCompilable) IsCompiledReturns(result1 bool) {
+	fake.isCompiledMutex.Lock()
+	defer fake.isCompiledMutex.Unlock()
+	fake.IsCompiledStub = nil
+	fake.isCompiledReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeCompilable) IsCompiledReturnsOnCall(i int, result1 bool) {
+	fake.isCompiledMutex.Lock()
+	defer fake.isCompiledMutex.Unlock()
+	fake.IsCompiledStub = nil
+	if fake.isCompiledReturnsOnCall == nil {
+		fake.isCompiledReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.isCompiledReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeCompilable) Name() string {
+	fake.nameMutex.Lock()
+	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
+	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Name", []interface{}{})
+	fake.nameMutex.Unlock()
+	if fake.NameStub != nil {
+		return fake.NameStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.nameReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeCompilable) NameCallCount() int {
+	fake.nameMutex.RLock()
+	defer fake.nameMutex.RUnlock()
+	return len(fake.nameArgsForCall)
+}
+
+func (fake *FakeCompilable) NameCalls(stub func() string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = stub
+}
+
+func (fake *FakeCompilable) NameReturns(result1 string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = nil
+	fake.nameReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeCompilable) NameReturnsOnCall(i int, result1 string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = nil
+	if fake.nameReturnsOnCall == nil {
+		fake.nameReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.nameReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeCompilable) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
-	fake.fingerprintMutex.RLock()
-	defer fake.fingerprintMutex.RUnlock()
-	fake.archivePathMutex.RLock()
-	defer fake.archivePathMutex.RUnlock()
 	fake.archiveDigestMutex.RLock()
 	defer fake.archiveDigestMutex.RUnlock()
-	fake.isCompiledMutex.RLock()
-	defer fake.isCompiledMutex.RUnlock()
+	fake.archivePathMutex.RLock()
+	defer fake.archivePathMutex.RUnlock()
 	fake.depsMutex.RLock()
 	defer fake.depsMutex.RUnlock()
+	fake.fingerprintMutex.RLock()
+	defer fake.fingerprintMutex.RUnlock()
+	fake.isCompiledMutex.RLock()
+	defer fake.isCompiledMutex.RUnlock()
+	fake.nameMutex.RLock()
+	defer fake.nameMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

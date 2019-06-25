@@ -10,8 +10,9 @@ import (
 type FakeLoginStrategy struct {
 	TryStub        func() error
 	tryMutex       sync.RWMutex
-	tryArgsForCall []struct{}
-	tryReturns     struct {
+	tryArgsForCall []struct {
+	}
+	tryReturns struct {
 		result1 error
 	}
 	tryReturnsOnCall map[int]struct {
@@ -24,7 +25,8 @@ type FakeLoginStrategy struct {
 func (fake *FakeLoginStrategy) Try() error {
 	fake.tryMutex.Lock()
 	ret, specificReturn := fake.tryReturnsOnCall[len(fake.tryArgsForCall)]
-	fake.tryArgsForCall = append(fake.tryArgsForCall, struct{}{})
+	fake.tryArgsForCall = append(fake.tryArgsForCall, struct {
+	}{})
 	fake.recordInvocation("Try", []interface{}{})
 	fake.tryMutex.Unlock()
 	if fake.TryStub != nil {
@@ -33,7 +35,8 @@ func (fake *FakeLoginStrategy) Try() error {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.tryReturns.result1
+	fakeReturns := fake.tryReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeLoginStrategy) TryCallCount() int {
@@ -42,7 +45,15 @@ func (fake *FakeLoginStrategy) TryCallCount() int {
 	return len(fake.tryArgsForCall)
 }
 
+func (fake *FakeLoginStrategy) TryCalls(stub func() error) {
+	fake.tryMutex.Lock()
+	defer fake.tryMutex.Unlock()
+	fake.TryStub = stub
+}
+
 func (fake *FakeLoginStrategy) TryReturns(result1 error) {
+	fake.tryMutex.Lock()
+	defer fake.tryMutex.Unlock()
 	fake.TryStub = nil
 	fake.tryReturns = struct {
 		result1 error
@@ -50,6 +61,8 @@ func (fake *FakeLoginStrategy) TryReturns(result1 error) {
 }
 
 func (fake *FakeLoginStrategy) TryReturnsOnCall(i int, result1 error) {
+	fake.tryMutex.Lock()
+	defer fake.tryMutex.Unlock()
 	fake.TryStub = nil
 	if fake.tryReturnsOnCall == nil {
 		fake.tryReturnsOnCall = make(map[int]struct {

@@ -8,136 +8,60 @@ import (
 )
 
 type FakeReporter struct {
-	IndexEntryStartedAddingStub        func(type_, desc string)
-	indexEntryStartedAddingMutex       sync.RWMutex
-	indexEntryStartedAddingArgsForCall []struct {
-		type_ string
-		desc  string
-	}
-	IndexEntryFinishedAddingStub        func(type_, desc string, err error)
-	indexEntryFinishedAddingMutex       sync.RWMutex
-	indexEntryFinishedAddingArgsForCall []struct {
-		type_ string
-		desc  string
-		err   error
-	}
-	IndexEntryDownloadStartedStub        func(type_, desc string)
-	indexEntryDownloadStartedMutex       sync.RWMutex
-	indexEntryDownloadStartedArgsForCall []struct {
-		type_ string
-		desc  string
-	}
-	IndexEntryDownloadFinishedStub        func(type_, desc string, err error)
+	IndexEntryDownloadFinishedStub        func(string, string, error)
 	indexEntryDownloadFinishedMutex       sync.RWMutex
 	indexEntryDownloadFinishedArgsForCall []struct {
-		type_ string
-		desc  string
-		err   error
+		arg1 string
+		arg2 string
+		arg3 error
 	}
-	IndexEntryUploadStartedStub        func(type_, desc string)
-	indexEntryUploadStartedMutex       sync.RWMutex
-	indexEntryUploadStartedArgsForCall []struct {
-		type_ string
-		desc  string
+	IndexEntryDownloadStartedStub        func(string, string)
+	indexEntryDownloadStartedMutex       sync.RWMutex
+	indexEntryDownloadStartedArgsForCall []struct {
+		arg1 string
+		arg2 string
 	}
-	IndexEntryUploadFinishedStub        func(type_, desc string, err error)
+	IndexEntryFinishedAddingStub        func(string, string, error)
+	indexEntryFinishedAddingMutex       sync.RWMutex
+	indexEntryFinishedAddingArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 error
+	}
+	IndexEntryStartedAddingStub        func(string, string)
+	indexEntryStartedAddingMutex       sync.RWMutex
+	indexEntryStartedAddingArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	IndexEntryUploadFinishedStub        func(string, string, error)
 	indexEntryUploadFinishedMutex       sync.RWMutex
 	indexEntryUploadFinishedArgsForCall []struct {
-		type_ string
-		desc  string
-		err   error
+		arg1 string
+		arg2 string
+		arg3 error
+	}
+	IndexEntryUploadStartedStub        func(string, string)
+	indexEntryUploadStartedMutex       sync.RWMutex
+	indexEntryUploadStartedArgsForCall []struct {
+		arg1 string
+		arg2 string
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeReporter) IndexEntryStartedAdding(type_ string, desc string) {
-	fake.indexEntryStartedAddingMutex.Lock()
-	fake.indexEntryStartedAddingArgsForCall = append(fake.indexEntryStartedAddingArgsForCall, struct {
-		type_ string
-		desc  string
-	}{type_, desc})
-	fake.recordInvocation("IndexEntryStartedAdding", []interface{}{type_, desc})
-	fake.indexEntryStartedAddingMutex.Unlock()
-	if fake.IndexEntryStartedAddingStub != nil {
-		fake.IndexEntryStartedAddingStub(type_, desc)
-	}
-}
-
-func (fake *FakeReporter) IndexEntryStartedAddingCallCount() int {
-	fake.indexEntryStartedAddingMutex.RLock()
-	defer fake.indexEntryStartedAddingMutex.RUnlock()
-	return len(fake.indexEntryStartedAddingArgsForCall)
-}
-
-func (fake *FakeReporter) IndexEntryStartedAddingArgsForCall(i int) (string, string) {
-	fake.indexEntryStartedAddingMutex.RLock()
-	defer fake.indexEntryStartedAddingMutex.RUnlock()
-	return fake.indexEntryStartedAddingArgsForCall[i].type_, fake.indexEntryStartedAddingArgsForCall[i].desc
-}
-
-func (fake *FakeReporter) IndexEntryFinishedAdding(type_ string, desc string, err error) {
-	fake.indexEntryFinishedAddingMutex.Lock()
-	fake.indexEntryFinishedAddingArgsForCall = append(fake.indexEntryFinishedAddingArgsForCall, struct {
-		type_ string
-		desc  string
-		err   error
-	}{type_, desc, err})
-	fake.recordInvocation("IndexEntryFinishedAdding", []interface{}{type_, desc, err})
-	fake.indexEntryFinishedAddingMutex.Unlock()
-	if fake.IndexEntryFinishedAddingStub != nil {
-		fake.IndexEntryFinishedAddingStub(type_, desc, err)
-	}
-}
-
-func (fake *FakeReporter) IndexEntryFinishedAddingCallCount() int {
-	fake.indexEntryFinishedAddingMutex.RLock()
-	defer fake.indexEntryFinishedAddingMutex.RUnlock()
-	return len(fake.indexEntryFinishedAddingArgsForCall)
-}
-
-func (fake *FakeReporter) IndexEntryFinishedAddingArgsForCall(i int) (string, string, error) {
-	fake.indexEntryFinishedAddingMutex.RLock()
-	defer fake.indexEntryFinishedAddingMutex.RUnlock()
-	return fake.indexEntryFinishedAddingArgsForCall[i].type_, fake.indexEntryFinishedAddingArgsForCall[i].desc, fake.indexEntryFinishedAddingArgsForCall[i].err
-}
-
-func (fake *FakeReporter) IndexEntryDownloadStarted(type_ string, desc string) {
-	fake.indexEntryDownloadStartedMutex.Lock()
-	fake.indexEntryDownloadStartedArgsForCall = append(fake.indexEntryDownloadStartedArgsForCall, struct {
-		type_ string
-		desc  string
-	}{type_, desc})
-	fake.recordInvocation("IndexEntryDownloadStarted", []interface{}{type_, desc})
-	fake.indexEntryDownloadStartedMutex.Unlock()
-	if fake.IndexEntryDownloadStartedStub != nil {
-		fake.IndexEntryDownloadStartedStub(type_, desc)
-	}
-}
-
-func (fake *FakeReporter) IndexEntryDownloadStartedCallCount() int {
-	fake.indexEntryDownloadStartedMutex.RLock()
-	defer fake.indexEntryDownloadStartedMutex.RUnlock()
-	return len(fake.indexEntryDownloadStartedArgsForCall)
-}
-
-func (fake *FakeReporter) IndexEntryDownloadStartedArgsForCall(i int) (string, string) {
-	fake.indexEntryDownloadStartedMutex.RLock()
-	defer fake.indexEntryDownloadStartedMutex.RUnlock()
-	return fake.indexEntryDownloadStartedArgsForCall[i].type_, fake.indexEntryDownloadStartedArgsForCall[i].desc
-}
-
-func (fake *FakeReporter) IndexEntryDownloadFinished(type_ string, desc string, err error) {
+func (fake *FakeReporter) IndexEntryDownloadFinished(arg1 string, arg2 string, arg3 error) {
 	fake.indexEntryDownloadFinishedMutex.Lock()
 	fake.indexEntryDownloadFinishedArgsForCall = append(fake.indexEntryDownloadFinishedArgsForCall, struct {
-		type_ string
-		desc  string
-		err   error
-	}{type_, desc, err})
-	fake.recordInvocation("IndexEntryDownloadFinished", []interface{}{type_, desc, err})
+		arg1 string
+		arg2 string
+		arg3 error
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("IndexEntryDownloadFinished", []interface{}{arg1, arg2, arg3})
 	fake.indexEntryDownloadFinishedMutex.Unlock()
 	if fake.IndexEntryDownloadFinishedStub != nil {
-		fake.IndexEntryDownloadFinishedStub(type_, desc, err)
+		fake.IndexEntryDownloadFinishedStub(arg1, arg2, arg3)
 	}
 }
 
@@ -147,48 +71,127 @@ func (fake *FakeReporter) IndexEntryDownloadFinishedCallCount() int {
 	return len(fake.indexEntryDownloadFinishedArgsForCall)
 }
 
+func (fake *FakeReporter) IndexEntryDownloadFinishedCalls(stub func(string, string, error)) {
+	fake.indexEntryDownloadFinishedMutex.Lock()
+	defer fake.indexEntryDownloadFinishedMutex.Unlock()
+	fake.IndexEntryDownloadFinishedStub = stub
+}
+
 func (fake *FakeReporter) IndexEntryDownloadFinishedArgsForCall(i int) (string, string, error) {
 	fake.indexEntryDownloadFinishedMutex.RLock()
 	defer fake.indexEntryDownloadFinishedMutex.RUnlock()
-	return fake.indexEntryDownloadFinishedArgsForCall[i].type_, fake.indexEntryDownloadFinishedArgsForCall[i].desc, fake.indexEntryDownloadFinishedArgsForCall[i].err
+	argsForCall := fake.indexEntryDownloadFinishedArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeReporter) IndexEntryUploadStarted(type_ string, desc string) {
-	fake.indexEntryUploadStartedMutex.Lock()
-	fake.indexEntryUploadStartedArgsForCall = append(fake.indexEntryUploadStartedArgsForCall, struct {
-		type_ string
-		desc  string
-	}{type_, desc})
-	fake.recordInvocation("IndexEntryUploadStarted", []interface{}{type_, desc})
-	fake.indexEntryUploadStartedMutex.Unlock()
-	if fake.IndexEntryUploadStartedStub != nil {
-		fake.IndexEntryUploadStartedStub(type_, desc)
+func (fake *FakeReporter) IndexEntryDownloadStarted(arg1 string, arg2 string) {
+	fake.indexEntryDownloadStartedMutex.Lock()
+	fake.indexEntryDownloadStartedArgsForCall = append(fake.indexEntryDownloadStartedArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	fake.recordInvocation("IndexEntryDownloadStarted", []interface{}{arg1, arg2})
+	fake.indexEntryDownloadStartedMutex.Unlock()
+	if fake.IndexEntryDownloadStartedStub != nil {
+		fake.IndexEntryDownloadStartedStub(arg1, arg2)
 	}
 }
 
-func (fake *FakeReporter) IndexEntryUploadStartedCallCount() int {
-	fake.indexEntryUploadStartedMutex.RLock()
-	defer fake.indexEntryUploadStartedMutex.RUnlock()
-	return len(fake.indexEntryUploadStartedArgsForCall)
+func (fake *FakeReporter) IndexEntryDownloadStartedCallCount() int {
+	fake.indexEntryDownloadStartedMutex.RLock()
+	defer fake.indexEntryDownloadStartedMutex.RUnlock()
+	return len(fake.indexEntryDownloadStartedArgsForCall)
 }
 
-func (fake *FakeReporter) IndexEntryUploadStartedArgsForCall(i int) (string, string) {
-	fake.indexEntryUploadStartedMutex.RLock()
-	defer fake.indexEntryUploadStartedMutex.RUnlock()
-	return fake.indexEntryUploadStartedArgsForCall[i].type_, fake.indexEntryUploadStartedArgsForCall[i].desc
+func (fake *FakeReporter) IndexEntryDownloadStartedCalls(stub func(string, string)) {
+	fake.indexEntryDownloadStartedMutex.Lock()
+	defer fake.indexEntryDownloadStartedMutex.Unlock()
+	fake.IndexEntryDownloadStartedStub = stub
 }
 
-func (fake *FakeReporter) IndexEntryUploadFinished(type_ string, desc string, err error) {
+func (fake *FakeReporter) IndexEntryDownloadStartedArgsForCall(i int) (string, string) {
+	fake.indexEntryDownloadStartedMutex.RLock()
+	defer fake.indexEntryDownloadStartedMutex.RUnlock()
+	argsForCall := fake.indexEntryDownloadStartedArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeReporter) IndexEntryFinishedAdding(arg1 string, arg2 string, arg3 error) {
+	fake.indexEntryFinishedAddingMutex.Lock()
+	fake.indexEntryFinishedAddingArgsForCall = append(fake.indexEntryFinishedAddingArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 error
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("IndexEntryFinishedAdding", []interface{}{arg1, arg2, arg3})
+	fake.indexEntryFinishedAddingMutex.Unlock()
+	if fake.IndexEntryFinishedAddingStub != nil {
+		fake.IndexEntryFinishedAddingStub(arg1, arg2, arg3)
+	}
+}
+
+func (fake *FakeReporter) IndexEntryFinishedAddingCallCount() int {
+	fake.indexEntryFinishedAddingMutex.RLock()
+	defer fake.indexEntryFinishedAddingMutex.RUnlock()
+	return len(fake.indexEntryFinishedAddingArgsForCall)
+}
+
+func (fake *FakeReporter) IndexEntryFinishedAddingCalls(stub func(string, string, error)) {
+	fake.indexEntryFinishedAddingMutex.Lock()
+	defer fake.indexEntryFinishedAddingMutex.Unlock()
+	fake.IndexEntryFinishedAddingStub = stub
+}
+
+func (fake *FakeReporter) IndexEntryFinishedAddingArgsForCall(i int) (string, string, error) {
+	fake.indexEntryFinishedAddingMutex.RLock()
+	defer fake.indexEntryFinishedAddingMutex.RUnlock()
+	argsForCall := fake.indexEntryFinishedAddingArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeReporter) IndexEntryStartedAdding(arg1 string, arg2 string) {
+	fake.indexEntryStartedAddingMutex.Lock()
+	fake.indexEntryStartedAddingArgsForCall = append(fake.indexEntryStartedAddingArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	fake.recordInvocation("IndexEntryStartedAdding", []interface{}{arg1, arg2})
+	fake.indexEntryStartedAddingMutex.Unlock()
+	if fake.IndexEntryStartedAddingStub != nil {
+		fake.IndexEntryStartedAddingStub(arg1, arg2)
+	}
+}
+
+func (fake *FakeReporter) IndexEntryStartedAddingCallCount() int {
+	fake.indexEntryStartedAddingMutex.RLock()
+	defer fake.indexEntryStartedAddingMutex.RUnlock()
+	return len(fake.indexEntryStartedAddingArgsForCall)
+}
+
+func (fake *FakeReporter) IndexEntryStartedAddingCalls(stub func(string, string)) {
+	fake.indexEntryStartedAddingMutex.Lock()
+	defer fake.indexEntryStartedAddingMutex.Unlock()
+	fake.IndexEntryStartedAddingStub = stub
+}
+
+func (fake *FakeReporter) IndexEntryStartedAddingArgsForCall(i int) (string, string) {
+	fake.indexEntryStartedAddingMutex.RLock()
+	defer fake.indexEntryStartedAddingMutex.RUnlock()
+	argsForCall := fake.indexEntryStartedAddingArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeReporter) IndexEntryUploadFinished(arg1 string, arg2 string, arg3 error) {
 	fake.indexEntryUploadFinishedMutex.Lock()
 	fake.indexEntryUploadFinishedArgsForCall = append(fake.indexEntryUploadFinishedArgsForCall, struct {
-		type_ string
-		desc  string
-		err   error
-	}{type_, desc, err})
-	fake.recordInvocation("IndexEntryUploadFinished", []interface{}{type_, desc, err})
+		arg1 string
+		arg2 string
+		arg3 error
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("IndexEntryUploadFinished", []interface{}{arg1, arg2, arg3})
 	fake.indexEntryUploadFinishedMutex.Unlock()
 	if fake.IndexEntryUploadFinishedStub != nil {
-		fake.IndexEntryUploadFinishedStub(type_, desc, err)
+		fake.IndexEntryUploadFinishedStub(arg1, arg2, arg3)
 	}
 }
 
@@ -198,27 +201,66 @@ func (fake *FakeReporter) IndexEntryUploadFinishedCallCount() int {
 	return len(fake.indexEntryUploadFinishedArgsForCall)
 }
 
+func (fake *FakeReporter) IndexEntryUploadFinishedCalls(stub func(string, string, error)) {
+	fake.indexEntryUploadFinishedMutex.Lock()
+	defer fake.indexEntryUploadFinishedMutex.Unlock()
+	fake.IndexEntryUploadFinishedStub = stub
+}
+
 func (fake *FakeReporter) IndexEntryUploadFinishedArgsForCall(i int) (string, string, error) {
 	fake.indexEntryUploadFinishedMutex.RLock()
 	defer fake.indexEntryUploadFinishedMutex.RUnlock()
-	return fake.indexEntryUploadFinishedArgsForCall[i].type_, fake.indexEntryUploadFinishedArgsForCall[i].desc, fake.indexEntryUploadFinishedArgsForCall[i].err
+	argsForCall := fake.indexEntryUploadFinishedArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeReporter) IndexEntryUploadStarted(arg1 string, arg2 string) {
+	fake.indexEntryUploadStartedMutex.Lock()
+	fake.indexEntryUploadStartedArgsForCall = append(fake.indexEntryUploadStartedArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	fake.recordInvocation("IndexEntryUploadStarted", []interface{}{arg1, arg2})
+	fake.indexEntryUploadStartedMutex.Unlock()
+	if fake.IndexEntryUploadStartedStub != nil {
+		fake.IndexEntryUploadStartedStub(arg1, arg2)
+	}
+}
+
+func (fake *FakeReporter) IndexEntryUploadStartedCallCount() int {
+	fake.indexEntryUploadStartedMutex.RLock()
+	defer fake.indexEntryUploadStartedMutex.RUnlock()
+	return len(fake.indexEntryUploadStartedArgsForCall)
+}
+
+func (fake *FakeReporter) IndexEntryUploadStartedCalls(stub func(string, string)) {
+	fake.indexEntryUploadStartedMutex.Lock()
+	defer fake.indexEntryUploadStartedMutex.Unlock()
+	fake.IndexEntryUploadStartedStub = stub
+}
+
+func (fake *FakeReporter) IndexEntryUploadStartedArgsForCall(i int) (string, string) {
+	fake.indexEntryUploadStartedMutex.RLock()
+	defer fake.indexEntryUploadStartedMutex.RUnlock()
+	argsForCall := fake.indexEntryUploadStartedArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeReporter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.indexEntryStartedAddingMutex.RLock()
-	defer fake.indexEntryStartedAddingMutex.RUnlock()
-	fake.indexEntryFinishedAddingMutex.RLock()
-	defer fake.indexEntryFinishedAddingMutex.RUnlock()
-	fake.indexEntryDownloadStartedMutex.RLock()
-	defer fake.indexEntryDownloadStartedMutex.RUnlock()
 	fake.indexEntryDownloadFinishedMutex.RLock()
 	defer fake.indexEntryDownloadFinishedMutex.RUnlock()
-	fake.indexEntryUploadStartedMutex.RLock()
-	defer fake.indexEntryUploadStartedMutex.RUnlock()
+	fake.indexEntryDownloadStartedMutex.RLock()
+	defer fake.indexEntryDownloadStartedMutex.RUnlock()
+	fake.indexEntryFinishedAddingMutex.RLock()
+	defer fake.indexEntryFinishedAddingMutex.RUnlock()
+	fake.indexEntryStartedAddingMutex.RLock()
+	defer fake.indexEntryStartedAddingMutex.RUnlock()
 	fake.indexEntryUploadFinishedMutex.RLock()
 	defer fake.indexEntryUploadFinishedMutex.RUnlock()
+	fake.indexEntryUploadStartedMutex.RLock()
+	defer fake.indexEntryUploadStartedMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

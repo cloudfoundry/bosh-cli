@@ -8,35 +8,10 @@ import (
 )
 
 type FakeExtractor struct {
-	ExtractStub        func(blobID, blobSHA1, targetDir string) error
-	extractMutex       sync.RWMutex
-	extractArgsForCall []struct {
-		blobID    string
-		blobSHA1  string
-		targetDir string
-	}
-	extractReturns struct {
-		result1 error
-	}
-	extractReturnsOnCall map[int]struct {
-		result1 error
-	}
-	CleanupStub        func(blobID string, extractedBlobPath string) error
-	cleanupMutex       sync.RWMutex
-	cleanupArgsForCall []struct {
-		blobID            string
-		extractedBlobPath string
-	}
-	cleanupReturns struct {
-		result1 error
-	}
-	cleanupReturnsOnCall map[int]struct {
-		result1 error
-	}
-	ChmodExecutablesStub        func(binPath string) error
+	ChmodExecutablesStub        func(string) error
 	chmodExecutablesMutex       sync.RWMutex
 	chmodExecutablesArgsForCall []struct {
-		binPath string
+		arg1 string
 	}
 	chmodExecutablesReturns struct {
 		result1 error
@@ -44,124 +19,51 @@ type FakeExtractor struct {
 	chmodExecutablesReturnsOnCall map[int]struct {
 		result1 error
 	}
+	CleanupStub        func(string, string) error
+	cleanupMutex       sync.RWMutex
+	cleanupArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	cleanupReturns struct {
+		result1 error
+	}
+	cleanupReturnsOnCall map[int]struct {
+		result1 error
+	}
+	ExtractStub        func(string, string, string) error
+	extractMutex       sync.RWMutex
+	extractArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 string
+	}
+	extractReturns struct {
+		result1 error
+	}
+	extractReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeExtractor) Extract(blobID string, blobSHA1 string, targetDir string) error {
-	fake.extractMutex.Lock()
-	ret, specificReturn := fake.extractReturnsOnCall[len(fake.extractArgsForCall)]
-	fake.extractArgsForCall = append(fake.extractArgsForCall, struct {
-		blobID    string
-		blobSHA1  string
-		targetDir string
-	}{blobID, blobSHA1, targetDir})
-	fake.recordInvocation("Extract", []interface{}{blobID, blobSHA1, targetDir})
-	fake.extractMutex.Unlock()
-	if fake.ExtractStub != nil {
-		return fake.ExtractStub(blobID, blobSHA1, targetDir)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.extractReturns.result1
-}
-
-func (fake *FakeExtractor) ExtractCallCount() int {
-	fake.extractMutex.RLock()
-	defer fake.extractMutex.RUnlock()
-	return len(fake.extractArgsForCall)
-}
-
-func (fake *FakeExtractor) ExtractArgsForCall(i int) (string, string, string) {
-	fake.extractMutex.RLock()
-	defer fake.extractMutex.RUnlock()
-	return fake.extractArgsForCall[i].blobID, fake.extractArgsForCall[i].blobSHA1, fake.extractArgsForCall[i].targetDir
-}
-
-func (fake *FakeExtractor) ExtractReturns(result1 error) {
-	fake.ExtractStub = nil
-	fake.extractReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeExtractor) ExtractReturnsOnCall(i int, result1 error) {
-	fake.ExtractStub = nil
-	if fake.extractReturnsOnCall == nil {
-		fake.extractReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.extractReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeExtractor) Cleanup(blobID string, extractedBlobPath string) error {
-	fake.cleanupMutex.Lock()
-	ret, specificReturn := fake.cleanupReturnsOnCall[len(fake.cleanupArgsForCall)]
-	fake.cleanupArgsForCall = append(fake.cleanupArgsForCall, struct {
-		blobID            string
-		extractedBlobPath string
-	}{blobID, extractedBlobPath})
-	fake.recordInvocation("Cleanup", []interface{}{blobID, extractedBlobPath})
-	fake.cleanupMutex.Unlock()
-	if fake.CleanupStub != nil {
-		return fake.CleanupStub(blobID, extractedBlobPath)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.cleanupReturns.result1
-}
-
-func (fake *FakeExtractor) CleanupCallCount() int {
-	fake.cleanupMutex.RLock()
-	defer fake.cleanupMutex.RUnlock()
-	return len(fake.cleanupArgsForCall)
-}
-
-func (fake *FakeExtractor) CleanupArgsForCall(i int) (string, string) {
-	fake.cleanupMutex.RLock()
-	defer fake.cleanupMutex.RUnlock()
-	return fake.cleanupArgsForCall[i].blobID, fake.cleanupArgsForCall[i].extractedBlobPath
-}
-
-func (fake *FakeExtractor) CleanupReturns(result1 error) {
-	fake.CleanupStub = nil
-	fake.cleanupReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeExtractor) CleanupReturnsOnCall(i int, result1 error) {
-	fake.CleanupStub = nil
-	if fake.cleanupReturnsOnCall == nil {
-		fake.cleanupReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.cleanupReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeExtractor) ChmodExecutables(binPath string) error {
+func (fake *FakeExtractor) ChmodExecutables(arg1 string) error {
 	fake.chmodExecutablesMutex.Lock()
 	ret, specificReturn := fake.chmodExecutablesReturnsOnCall[len(fake.chmodExecutablesArgsForCall)]
 	fake.chmodExecutablesArgsForCall = append(fake.chmodExecutablesArgsForCall, struct {
-		binPath string
-	}{binPath})
-	fake.recordInvocation("ChmodExecutables", []interface{}{binPath})
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("ChmodExecutables", []interface{}{arg1})
 	fake.chmodExecutablesMutex.Unlock()
 	if fake.ChmodExecutablesStub != nil {
-		return fake.ChmodExecutablesStub(binPath)
+		return fake.ChmodExecutablesStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.chmodExecutablesReturns.result1
+	fakeReturns := fake.chmodExecutablesReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeExtractor) ChmodExecutablesCallCount() int {
@@ -170,13 +72,22 @@ func (fake *FakeExtractor) ChmodExecutablesCallCount() int {
 	return len(fake.chmodExecutablesArgsForCall)
 }
 
+func (fake *FakeExtractor) ChmodExecutablesCalls(stub func(string) error) {
+	fake.chmodExecutablesMutex.Lock()
+	defer fake.chmodExecutablesMutex.Unlock()
+	fake.ChmodExecutablesStub = stub
+}
+
 func (fake *FakeExtractor) ChmodExecutablesArgsForCall(i int) string {
 	fake.chmodExecutablesMutex.RLock()
 	defer fake.chmodExecutablesMutex.RUnlock()
-	return fake.chmodExecutablesArgsForCall[i].binPath
+	argsForCall := fake.chmodExecutablesArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeExtractor) ChmodExecutablesReturns(result1 error) {
+	fake.chmodExecutablesMutex.Lock()
+	defer fake.chmodExecutablesMutex.Unlock()
 	fake.ChmodExecutablesStub = nil
 	fake.chmodExecutablesReturns = struct {
 		result1 error
@@ -184,6 +95,8 @@ func (fake *FakeExtractor) ChmodExecutablesReturns(result1 error) {
 }
 
 func (fake *FakeExtractor) ChmodExecutablesReturnsOnCall(i int, result1 error) {
+	fake.chmodExecutablesMutex.Lock()
+	defer fake.chmodExecutablesMutex.Unlock()
 	fake.ChmodExecutablesStub = nil
 	if fake.chmodExecutablesReturnsOnCall == nil {
 		fake.chmodExecutablesReturnsOnCall = make(map[int]struct {
@@ -195,15 +108,138 @@ func (fake *FakeExtractor) ChmodExecutablesReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeExtractor) Cleanup(arg1 string, arg2 string) error {
+	fake.cleanupMutex.Lock()
+	ret, specificReturn := fake.cleanupReturnsOnCall[len(fake.cleanupArgsForCall)]
+	fake.cleanupArgsForCall = append(fake.cleanupArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	fake.recordInvocation("Cleanup", []interface{}{arg1, arg2})
+	fake.cleanupMutex.Unlock()
+	if fake.CleanupStub != nil {
+		return fake.CleanupStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.cleanupReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeExtractor) CleanupCallCount() int {
+	fake.cleanupMutex.RLock()
+	defer fake.cleanupMutex.RUnlock()
+	return len(fake.cleanupArgsForCall)
+}
+
+func (fake *FakeExtractor) CleanupCalls(stub func(string, string) error) {
+	fake.cleanupMutex.Lock()
+	defer fake.cleanupMutex.Unlock()
+	fake.CleanupStub = stub
+}
+
+func (fake *FakeExtractor) CleanupArgsForCall(i int) (string, string) {
+	fake.cleanupMutex.RLock()
+	defer fake.cleanupMutex.RUnlock()
+	argsForCall := fake.cleanupArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeExtractor) CleanupReturns(result1 error) {
+	fake.cleanupMutex.Lock()
+	defer fake.cleanupMutex.Unlock()
+	fake.CleanupStub = nil
+	fake.cleanupReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeExtractor) CleanupReturnsOnCall(i int, result1 error) {
+	fake.cleanupMutex.Lock()
+	defer fake.cleanupMutex.Unlock()
+	fake.CleanupStub = nil
+	if fake.cleanupReturnsOnCall == nil {
+		fake.cleanupReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.cleanupReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeExtractor) Extract(arg1 string, arg2 string, arg3 string) error {
+	fake.extractMutex.Lock()
+	ret, specificReturn := fake.extractReturnsOnCall[len(fake.extractArgsForCall)]
+	fake.extractArgsForCall = append(fake.extractArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("Extract", []interface{}{arg1, arg2, arg3})
+	fake.extractMutex.Unlock()
+	if fake.ExtractStub != nil {
+		return fake.ExtractStub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.extractReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeExtractor) ExtractCallCount() int {
+	fake.extractMutex.RLock()
+	defer fake.extractMutex.RUnlock()
+	return len(fake.extractArgsForCall)
+}
+
+func (fake *FakeExtractor) ExtractCalls(stub func(string, string, string) error) {
+	fake.extractMutex.Lock()
+	defer fake.extractMutex.Unlock()
+	fake.ExtractStub = stub
+}
+
+func (fake *FakeExtractor) ExtractArgsForCall(i int) (string, string, string) {
+	fake.extractMutex.RLock()
+	defer fake.extractMutex.RUnlock()
+	argsForCall := fake.extractArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeExtractor) ExtractReturns(result1 error) {
+	fake.extractMutex.Lock()
+	defer fake.extractMutex.Unlock()
+	fake.ExtractStub = nil
+	fake.extractReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeExtractor) ExtractReturnsOnCall(i int, result1 error) {
+	fake.extractMutex.Lock()
+	defer fake.extractMutex.Unlock()
+	fake.ExtractStub = nil
+	if fake.extractReturnsOnCall == nil {
+		fake.extractReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.extractReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeExtractor) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.extractMutex.RLock()
-	defer fake.extractMutex.RUnlock()
-	fake.cleanupMutex.RLock()
-	defer fake.cleanupMutex.RUnlock()
 	fake.chmodExecutablesMutex.RLock()
 	defer fake.chmodExecutablesMutex.RUnlock()
+	fake.cleanupMutex.RLock()
+	defer fake.cleanupMutex.RUnlock()
+	fake.extractMutex.RLock()
+	defer fake.extractMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
