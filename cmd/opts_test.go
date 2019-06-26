@@ -1505,7 +1505,7 @@ var _ = Describe("Opts", func() {
 		Describe("Canaries", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Canaries", opts)).To(Equal(
-					`long:"canaries" description:"Override manifest values for canaries"`,
+					`long:"canaries" description:"Deprecated: Override manifest values for canaries"`,
 				))
 			})
 		})
@@ -1513,7 +1513,7 @@ var _ = Describe("Opts", func() {
 		Describe("MaxInFlight", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("MaxInFlight", opts)).To(Equal(
-					`long:"max-in-flight" description:"Override manifest values for max_in_flight"`,
+					`long:"max-in-flight" description:"Deprecated: Override manifest values for max_in_flight"`,
 				))
 			})
 		})
