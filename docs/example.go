@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -99,7 +98,6 @@ func buildDirector(uaa boshuaa.UAA) (boshdir.Director, error) {
 
 	// Allow Director to fetch UAA tokens when necessary.
 	factoryConfig.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
-	config := cmdconf.FSConfig{}
 
-	return factory.New(factoryConfig, config, boshdir.NewNoopTaskReporter(), boshdir.NewNoopFileReporter())
+	return factory.New(factoryConfig, boshdir.NewNoopTaskReporter(), boshdir.NewNoopFileReporter())
 }

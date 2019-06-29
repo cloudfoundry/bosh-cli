@@ -9,7 +9,6 @@ import (
 
 	"github.com/cloudfoundry/bosh-utils/httpclient"
 
-	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
@@ -26,14 +25,14 @@ func NewFactory(logger boshlog.Logger) Factory {
 	}
 }
 
-func (f Factory) New(factoryConfig FactoryConfig, config cmdconf.Config, taskReporter TaskReporter, fileReporter FileReporter) (Director, error) {
+func (f Factory) New(factoryConfig FactoryConfig, taskReporter TaskReporter, fileReporter FileReporter) (Director, error) {
 	err := factoryConfig.Validate()
 	if err != nil {
 		return DirectorImpl{}, bosherr.WrapErrorf(
 			err, "Validating Director connection config")
 	}
 
-	client, err := f.httpClient(factoryConfig, config, taskReporter, fileReporter)
+	client, err := f.httpClient(factoryConfig, taskReporter, fileReporter)
 	if err != nil {
 		return DirectorImpl{}, err
 	}
@@ -41,7 +40,7 @@ func (f Factory) New(factoryConfig FactoryConfig, config cmdconf.Config, taskRep
 	return DirectorImpl{client: client}, nil
 }
 
-func (f Factory) httpClient(factoryConfig FactoryConfig, config cmdconf.Config, taskReporter TaskReporter, fileReporter FileReporter) (Client, error) {
+func (f Factory) httpClient(factoryConfig FactoryConfig, taskReporter TaskReporter, fileReporter FileReporter) (Client, error) {
 	certPool, err := factoryConfig.CACertPool()
 	if err != nil {
 		return Client{}, err
