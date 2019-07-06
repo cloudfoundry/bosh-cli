@@ -14,8 +14,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "457ea5c15ccf3b87db582c450e80101989da35f7"
-  version = "v0.40.0"
+  revision = "cf81fad90a1a1de334c4fc27e23eb9a4224b627a"
+  version = "v0.41.0"
 
 [[projects]]
   branch = "master"
@@ -37,7 +37,7 @@
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
 
 [[projects]]
-  digest = "1:26faa23129202c7a0575f8e5bd00e8141f54e790ae480a5f819963275c682eee"
+  digest = "1:0d31a17da5d5315f2d2242bc1229597d56a9beba3f056ce2c8b87b56b6d8baf2"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -79,16 +79,16 @@
     "service/sts",
   ]
   pruneopts = "NUT"
-  revision = "e8609b5f90982d7e69f00c611dd4e8a6c05e2f98"
-  version = "v1.20.12"
+  revision = "471204b4ff86c9c417adb58cec55079c06d16213"
+  version = "v1.20.15"
 
 [[projects]]
-  digest = "1:7294028ae4f4ebe9f92dccabdc69f63eba37b71fbfcdcb35ed1c32eb823fc6d4"
+  digest = "1:c2c6f380e0a78474e81fae9a8bdd2353f35c0ea2166126271f9944cc4e3b2343"
   name = "github.com/bmatcuk/doublestar"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "85a78806aa1b4707d1dbace9be592cf1ece91ab3"
-  version = "v1.1.1"
+  revision = "6d051236a614a33f1b10a94f70fd1af002283c5b"
+  version = "v1.1.2"
 
 [[projects]]
   branch = "master"
@@ -100,11 +100,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:21562b59c496f4cbd7a40beaa257ac6761002dd3e36259f532216082abace8b1"
+  digest = "1:4dfaa72910b71c63c85fa5ced3a8fb59a6255c8e8ccdc00b79b49b8818ff58a3"
   name = "github.com/cheggaaa/pb"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "f907f6f5dd81f77c2bbc1cde92e4c5a04720cb11"
+  revision = "40231cf7fa00b7c9098939b6a9e6f54f4b3ce020"
 
 [[projects]]
   branch = "master"
@@ -118,7 +118,7 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "45efd924c040dec117fd972f9683baf5320bed5c"
+  revision = "1ffd240e23b606a6a72950a6447cdb53704cb873"
 
 [[projects]]
   branch = "master"
@@ -179,7 +179,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "b33eae10a72e8288a634dd84fd9d88fc5b33662e"
+  revision = "7a8ec79c544f6a62e7df97354295650dbcdda7ef"
 
 [[projects]]
   digest = "1:fc5a32adb1f7107c108c1b5462475e85f68e7f03037762f7634f7fc1b8d30074"
@@ -486,7 +486,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "cc06ce4a13d484c0101a9e92913248488a75786d"
+  revision = "4def268fd1a49955bfb3dda92fe3db4f924f2285"
 
 [[projects]]
   branch = "master"
@@ -575,7 +575,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:3498d9ffb33636ae6782189176e94742af94490d49c2eaf9e3d3e1ab529132f8"
+  digest = "1:7026eea9c10a8cfaa11a68d8e15259f09a1706dce5b9d736aa032991b5a2749d"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -592,7 +592,7 @@
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "fb37f6ba82613749b0b522aa509da78361849fc3"
+  revision = "72ffa07ba3db8d09f5215feec0f89464f3028f8e"
 
 [[projects]]
   digest = "1:6341e9ed4f7c5f52746142c7671d8b337412837de7e8595a9f185dd47abba31c"
@@ -634,7 +634,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1d7e4e8b75502678019b764e524684c25aeeb855ef93f0d5b52fd66e834a5d17"
+  digest = "1:beacbe474eb0d6ce778f0dd42150a1b48f5648339c9a28149dcf3a218272cb99"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
@@ -644,10 +644,10 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "eb59cef1c072c61ea4f7623910448d5e9c6a4455"
+  revision = "710ae3a149df3775bfc2e9efb7f4fb97b186b233"
 
 [[projects]]
-  digest = "1:1ec4bc6f7cbf98268fafafea40cdeb5ff5d4914cc9b9ef615fbbfc1ac43c0622"
+  digest = "1:2faab8e13984b728cde9ced456912a0fc5cd43da5b9a4b45b749dc3ae63f27b2"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -679,13 +679,14 @@
     "resolver",
     "resolver/dns",
     "resolver/passthrough",
+    "serviceconfig",
     "stats",
     "status",
     "tap",
   ]
   pruneopts = "NUT"
-  revision = "501c41df7f472c740d0674ff27122f3f48c80ce7"
-  version = "v1.21.1"
+  revision = "1d89a3c832915b2314551c1d2a506874d62e53f7"
+  version = "v1.22.0"
 
 [[projects]]
   digest = "1:1b91ae0dc69a41d4c2ed23ea5cffb721ea63f5037ca4b81e6d6771fbb8f45129"
