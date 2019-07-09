@@ -102,7 +102,7 @@ jobs:
         privileged: true
         input_mapping:
           bosh-cli: compiled-linux
-        file: bosh-src/ci/tasks/test-integration-gocli.yml
+        file: bosh-src/ci/tasks/test-integration.yml
         tags: ["bosh-integration"]
         params:
           DB: postgresql
