@@ -11,7 +11,7 @@
     "internal/optional",
     "internal/trace",
     "internal/version",
-    "storage",
+    "storage"
   ]
   pruneopts = "NUT"
   revision = "775730d6e48254a2430366162cf6298e5368833c"
@@ -23,7 +23,7 @@
   name = "code.cloudfoundry.org/clock"
   packages = [
     ".",
-    "fakeclock",
+    "fakeclock"
   ]
   pruneopts = "NUT"
   revision = "02e53af36e6c978af692887ed449b74026d76fec"
@@ -75,7 +75,7 @@
     "service/s3",
     "service/s3/s3iface",
     "service/s3/s3manager",
-    "service/sts",
+    "service/sts"
   ]
   pruneopts = "NUT"
   revision = "0db84dcbcc56669065730700b054eb6d1438a0f7"
@@ -99,11 +99,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:21562b59c496f4cbd7a40beaa257ac6761002dd3e36259f532216082abace8b1"
+  digest = "1:4dfaa72910b71c63c85fa5ced3a8fb59a6255c8e8ccdc00b79b49b8818ff58a3"
   name = "github.com/cheggaaa/pb"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "f907f6f5dd81f77c2bbc1cde92e4c5a04720cb11"
+  revision = "40231cf7fa00b7c9098939b6a9e6f54f4b3ce020"
 
 [[projects]]
   branch = "master"
@@ -114,7 +114,7 @@
     "agentclient/applyspec",
     "agentclient/fakes",
     "agentclient/http",
-    "agentclient/http/mocks",
+    "agentclient/http/mocks"
   ]
   pruneopts = "NUT"
   revision = "c5c0485215af461ad80557befad5b06fb23ddd6f"
@@ -126,7 +126,7 @@
   packages = [
     "client",
     "client/fakes",
-    "config",
+    "config"
   ]
   pruneopts = "NUT"
   revision = "fbc59895ef9f643cc78b6787d346835efbb932a1"
@@ -136,7 +136,7 @@
   name = "github.com/cloudfoundry/bosh-gcscli"
   packages = [
     "client",
-    "config",
+    "config"
   ]
   pruneopts = "NUT"
   revision = "2aef468b5b8561560918014b4fbce7549de2283d"
@@ -147,7 +147,7 @@
   name = "github.com/cloudfoundry/bosh-s3cli"
   packages = [
     "client",
-    "config",
+    "config"
   ]
   pruneopts = "NUT"
   revision = "49a4c41327fdfa3c4993925cb6464707ecfabfab"
@@ -175,7 +175,7 @@
     "system/fakes",
     "uuid",
     "uuid/fakes",
-    "work",
+    "work"
   ]
   pruneopts = "NUT"
   revision = "c672288466c75653102dede15f8497efa8ba1abf"
@@ -185,7 +185,7 @@
   name = "github.com/cloudfoundry/config-server"
   packages = [
     "types",
-    "types/typesfakes",
+    "types/typesfakes"
   ]
   pruneopts = "NUT"
   revision = "28853bf0f7b2f1c2cc6879e50cbd57d10eb4f1e6"
@@ -256,7 +256,7 @@
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
-    "ptypes/timestamp",
+    "ptypes/timestamp"
   ]
   pruneopts = "NUT"
   revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
@@ -302,7 +302,7 @@
     "ratelimiter",
     "util",
     "watch",
-    "winfile",
+    "winfile"
   ]
   pruneopts = "NUT"
   revision = "a30252cb686a21eb2d0b98132633053ec2f7f1e5"
@@ -354,7 +354,7 @@
   packages = [
     ".",
     "arguments",
-    "generator",
+    "generator"
   ]
   pruneopts = "NUT"
   revision = "2d74a219416bffff638e30a3775c76715f1968a7"
@@ -397,7 +397,7 @@
     "reporters/stenographer",
     "reporters/stenographer/support/go-colorable",
     "reporters/stenographer/support/go-isatty",
-    "types",
+    "types"
   ]
   pruneopts = "NUT"
   revision = "eea6ad008b96acdaa524f5b409513bf062b500ad"
@@ -421,7 +421,7 @@
     "matchers/support/goraph/edge",
     "matchers/support/goraph/node",
     "matchers/support/goraph/util",
-    "types",
+    "types"
   ]
   pruneopts = "NUT"
   revision = "90e289841c1ed79b7a598a7cd9959750cb5e89e2"
@@ -440,7 +440,7 @@
   name = "github.com/vito/go-interact"
   packages = [
     "interact",
-    "interact/terminal",
+    "interact/terminal"
   ]
   pruneopts = "NUT"
   revision = "fa338ed9e9ecbb0e9c2e6c7a0160d9fc9b0efbd9"
@@ -464,7 +464,7 @@
     "trace",
     "trace/internal",
     "trace/propagation",
-    "trace/tracestate",
+    "trace/tracestate"
   ]
   pruneopts = "NUT"
   revision = "df6e2001952312404b06f5f6f03fcb4aec1648e5"
@@ -482,7 +482,7 @@
     "internal/subtle",
     "poly1305",
     "ssh",
-    "ssh/terminal",
+    "ssh/terminal"
   ]
   pruneopts = "NUT"
   revision = "22d7a77e9e5f409e934ed268692e56707cd169e5"
@@ -504,7 +504,7 @@
     "internal/socks",
     "internal/timeseries",
     "proxy",
-    "trace",
+    "trace"
   ]
   pruneopts = "NUT"
   revision = "3ec19112720433827bbce8be9342797f5a6aaaf9"
@@ -518,7 +518,7 @@
     "google",
     "internal",
     "jws",
-    "jwt",
+    "jwt"
   ]
   pruneopts = "NUT"
   revision = "950ef44c6e079baf075030377d90bf0c7e4b7b7a"
@@ -530,7 +530,7 @@
   packages = [
     "cpu",
     "unix",
-    "windows",
+    "windows"
   ]
   pruneopts = "NUT"
   revision = "61b9204099cb1bebc803c9ffb9b2d3acd9d457d9"
@@ -566,7 +566,7 @@
     "unicode/bidi",
     "unicode/cldr",
     "unicode/norm",
-    "unicode/rangetable",
+    "unicode/rangetable"
   ]
   pruneopts = "NUT"
   revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
@@ -587,7 +587,7 @@
     "internal/fastwalk",
     "internal/gopathwalk",
     "internal/module",
-    "internal/semver",
+    "internal/semver"
   ]
   pruneopts = "NUT"
   revision = "d88f79806bbd013f54a668506864ce559edf6f0a"
@@ -605,7 +605,7 @@
     "option",
     "storage/v1",
     "transport/http",
-    "transport/http/internal/propagation",
+    "transport/http/internal/propagation"
   ]
   pruneopts = "NUT"
   revision = "721295fe20d585ce7e948146f82188429d14da33"
@@ -624,7 +624,7 @@
     "internal/modules",
     "internal/remote_api",
     "internal/urlfetch",
-    "urlfetch",
+    "urlfetch"
   ]
   pruneopts = "NUT"
   revision = "4c25cacc810c02874000e4f7071286a8e96b2515"
@@ -639,7 +639,7 @@
     "googleapis/iam/v1",
     "googleapis/rpc/code",
     "googleapis/rpc/status",
-    "googleapis/type/expr",
+    "googleapis/type/expr"
   ]
   pruneopts = "NUT"
   revision = "bb713bdc0e5239f2b68e560efbe1c701a6fe78f9"
@@ -679,7 +679,7 @@
     "resolver/passthrough",
     "stats",
     "status",
-    "tap",
+    "tap"
   ]
   pruneopts = "NUT"
   revision = "25c4f928eaa6d96443009bd842389fb4fa48664e"
@@ -771,7 +771,7 @@
     "github.com/onsi/gomega/types",
     "github.com/vito/go-interact/interact",
     "golang.org/x/crypto/ssh",
-    "gopkg.in/yaml.v2",
+    "gopkg.in/yaml.v2"
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
