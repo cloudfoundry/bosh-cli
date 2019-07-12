@@ -11,27 +11,7 @@ required = ["github.com/onsi/ginkgo/ginkgo", "github.com/maxbrunsfeld/counterfei
   source = "github.com/cppforlife/go-flags"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/cloudfoundry/bosh-utils"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/cloudfoundry/bosh-davcli"
-
-[[constraint]]
-  name = "github.com/cloudfoundry/bosh-s3cli"
-  version = "v0.0.64"
-
-[[constraint]]
-  name = "github.com/cloudfoundry/bosh-agent"
-  branch = "master"
-
-[[constraint]]
-  name = "github.com/vito/go-interact"
-  revision = "fa338ed9e9ecbb0e9c2e6c7a0160d9fc9b0efbd9"
-
-[[constraint]]
-  name = "github.com/cheggaaa/pb"
   branch = "master"
 
 # dep ensure issue in https://github.com/golang/dep/issues/1799
