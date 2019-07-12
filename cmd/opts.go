@@ -473,8 +473,8 @@ type DeployOpts struct {
 	Fix                     bool                `long:"fix"                                     description:"Recreate an instance with an unresponsive agent instead of erroring"`
 	SkipDrain               []boshdir.SkipDrain `long:"skip-drain" value-name:"INSTANCE-GROUP"  description:"Skip running drain and pre-stop scripts for specific instance groups" optional:"true" optional-value:"*"`
 
-	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
-	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
+	Canaries    string `long:"canaries" description:"Deprecated: Override manifest values for canaries"`
+	MaxInFlight string `long:"max-in-flight" description:"Deprecated: Override manifest values for max_in_flight"`
 
 	DryRun bool `long:"dry-run" description:"Renders job templates without altering deployment"`
 
