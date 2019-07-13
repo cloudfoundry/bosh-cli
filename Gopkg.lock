@@ -37,7 +37,7 @@
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
 
 [[projects]]
-  digest = "1:f1082685b7f827cddc2cef2a8d60b3bbc535cc2dc010a88dd7313871dd1950a9"
+  digest = "1:71c99d11f4fbe4e54fc71a6742455b0105c6e89ceecfbc3af1d5bf9a1604f3f4"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -79,8 +79,8 @@
     "service/sts",
   ]
   pruneopts = "NUT"
-  revision = "29db91562071cdb55ce57e0c3fb3f2abf184749b"
-  version = "v1.20.19"
+  revision = "420cda5d6383f94f7d9c231aa44bad3325181950"
+  version = "v1.20.20"
 
 [[projects]]
   digest = "1:f3e10b6fd5c6580050a709f0f42242e9c3e1c703216aa05e2ddd503e04de6ae3"
@@ -117,8 +117,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "cfdc9407d0b82df79c6399ef69de79e08effb017"
-  version = "v2.231.0"
+  revision = "7bf059e5ffeb61c08b6a6ec41f48d38facee91d8"
+  version = "v2.234.0"
 
 [[projects]]
   digest = "1:b1529a7ae804b8c0ca3c6e08b3cda230d254028e2df0962ed90e02dcffedfcc3"
@@ -527,7 +527,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d0392583ed4492f16d98367950d3e49f2e1663d2e3a5bcf464b2f3f487c5f27e"
+  digest = "1:bf898cc8813a5e2a93ead21ccce151d5715df2803882f99e3e0d3619f8330db9"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -535,7 +535,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "6ec70d6a5542cba804c6d16ebe8392601a0b7b60"
+  revision = "fae7ac547cb717d141c433a2a173315e216b64c4"
 
 [[projects]]
   digest = "1:28deae5fe892797ff37a317b5bcda96d11d1c90dadd89f1337651df3bc4c586e"
@@ -593,7 +593,7 @@
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "9a621aea19f8341c01da59e0d42dd97700f677d0"
+  revision = "8b927904ee0dec805c89aaf9172f4459296ed6e8"
 
 [[projects]]
   digest = "1:6341e9ed4f7c5f52746142c7671d8b337412837de7e8595a9f185dd47abba31c"
