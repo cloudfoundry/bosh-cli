@@ -5,75 +5,32 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/director"
-	"github.com/cppforlife/go-semi-semantic/version"
+	semver "github.com/cppforlife/go-semi-semantic/version"
 )
 
 type FakeStemcell struct {
-	CIDStub        func() string
-	cIDMutex       sync.RWMutex
-	cIDArgsForCall []struct {
-	}
-	cIDReturns struct {
-		result1 string
-	}
-	cIDReturnsOnCall map[int]struct {
-		result1 string
-	}
-	CPIStub        func() string
-	cPIMutex       sync.RWMutex
-	cPIArgsForCall []struct {
-	}
-	cPIReturns struct {
-		result1 string
-	}
-	cPIReturnsOnCall map[int]struct {
-		result1 string
-	}
-	DeleteStub        func(bool) error
-	deleteMutex       sync.RWMutex
-	deleteArgsForCall []struct {
-		arg1 bool
-	}
-	deleteReturns struct {
-		result1 error
-	}
-	deleteReturnsOnCall map[int]struct {
-		result1 error
-	}
 	NameStub        func() string
 	nameMutex       sync.RWMutex
-	nameArgsForCall []struct {
-	}
-	nameReturns struct {
+	nameArgsForCall []struct{}
+	nameReturns     struct {
 		result1 string
 	}
 	nameReturnsOnCall map[int]struct {
 		result1 string
 	}
-	OSNameStub        func() string
-	oSNameMutex       sync.RWMutex
-	oSNameArgsForCall []struct {
-	}
-	oSNameReturns struct {
-		result1 string
-	}
-	oSNameReturnsOnCall map[int]struct {
-		result1 string
-	}
-	VersionStub        func() version.Version
+	VersionStub        func() semver.Version
 	versionMutex       sync.RWMutex
-	versionArgsForCall []struct {
-	}
-	versionReturns struct {
-		result1 version.Version
+	versionArgsForCall []struct{}
+	versionReturns     struct {
+		result1 semver.Version
 	}
 	versionReturnsOnCall map[int]struct {
-		result1 version.Version
+		result1 semver.Version
 	}
-	VersionMarkStub        func(string) string
+	VersionMarkStub        func(mark string) string
 	versionMarkMutex       sync.RWMutex
 	versionMarkArgsForCall []struct {
-		arg1 string
+		mark string
 	}
 	versionMarkReturns struct {
 		result1 string
@@ -81,179 +38,52 @@ type FakeStemcell struct {
 	versionMarkReturnsOnCall map[int]struct {
 		result1 string
 	}
+	OSNameStub        func() string
+	oSNameMutex       sync.RWMutex
+	oSNameArgsForCall []struct{}
+	oSNameReturns     struct {
+		result1 string
+	}
+	oSNameReturnsOnCall map[int]struct {
+		result1 string
+	}
+	CPIStub        func() string
+	cPIMutex       sync.RWMutex
+	cPIArgsForCall []struct{}
+	cPIReturns     struct {
+		result1 string
+	}
+	cPIReturnsOnCall map[int]struct {
+		result1 string
+	}
+	CIDStub        func() string
+	cIDMutex       sync.RWMutex
+	cIDArgsForCall []struct{}
+	cIDReturns     struct {
+		result1 string
+	}
+	cIDReturnsOnCall map[int]struct {
+		result1 string
+	}
+	DeleteStub        func(force bool) error
+	deleteMutex       sync.RWMutex
+	deleteArgsForCall []struct {
+		force bool
+	}
+	deleteReturns struct {
+		result1 error
+	}
+	deleteReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
-}
-
-func (fake *FakeStemcell) CID() string {
-	fake.cIDMutex.Lock()
-	ret, specificReturn := fake.cIDReturnsOnCall[len(fake.cIDArgsForCall)]
-	fake.cIDArgsForCall = append(fake.cIDArgsForCall, struct {
-	}{})
-	fake.recordInvocation("CID", []interface{}{})
-	fake.cIDMutex.Unlock()
-	if fake.CIDStub != nil {
-		return fake.CIDStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	fakeReturns := fake.cIDReturns
-	return fakeReturns.result1
-}
-
-func (fake *FakeStemcell) CIDCallCount() int {
-	fake.cIDMutex.RLock()
-	defer fake.cIDMutex.RUnlock()
-	return len(fake.cIDArgsForCall)
-}
-
-func (fake *FakeStemcell) CIDCalls(stub func() string) {
-	fake.cIDMutex.Lock()
-	defer fake.cIDMutex.Unlock()
-	fake.CIDStub = stub
-}
-
-func (fake *FakeStemcell) CIDReturns(result1 string) {
-	fake.cIDMutex.Lock()
-	defer fake.cIDMutex.Unlock()
-	fake.CIDStub = nil
-	fake.cIDReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeStemcell) CIDReturnsOnCall(i int, result1 string) {
-	fake.cIDMutex.Lock()
-	defer fake.cIDMutex.Unlock()
-	fake.CIDStub = nil
-	if fake.cIDReturnsOnCall == nil {
-		fake.cIDReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.cIDReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeStemcell) CPI() string {
-	fake.cPIMutex.Lock()
-	ret, specificReturn := fake.cPIReturnsOnCall[len(fake.cPIArgsForCall)]
-	fake.cPIArgsForCall = append(fake.cPIArgsForCall, struct {
-	}{})
-	fake.recordInvocation("CPI", []interface{}{})
-	fake.cPIMutex.Unlock()
-	if fake.CPIStub != nil {
-		return fake.CPIStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	fakeReturns := fake.cPIReturns
-	return fakeReturns.result1
-}
-
-func (fake *FakeStemcell) CPICallCount() int {
-	fake.cPIMutex.RLock()
-	defer fake.cPIMutex.RUnlock()
-	return len(fake.cPIArgsForCall)
-}
-
-func (fake *FakeStemcell) CPICalls(stub func() string) {
-	fake.cPIMutex.Lock()
-	defer fake.cPIMutex.Unlock()
-	fake.CPIStub = stub
-}
-
-func (fake *FakeStemcell) CPIReturns(result1 string) {
-	fake.cPIMutex.Lock()
-	defer fake.cPIMutex.Unlock()
-	fake.CPIStub = nil
-	fake.cPIReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeStemcell) CPIReturnsOnCall(i int, result1 string) {
-	fake.cPIMutex.Lock()
-	defer fake.cPIMutex.Unlock()
-	fake.CPIStub = nil
-	if fake.cPIReturnsOnCall == nil {
-		fake.cPIReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.cPIReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeStemcell) Delete(arg1 bool) error {
-	fake.deleteMutex.Lock()
-	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
-	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
-		arg1 bool
-	}{arg1})
-	fake.recordInvocation("Delete", []interface{}{arg1})
-	fake.deleteMutex.Unlock()
-	if fake.DeleteStub != nil {
-		return fake.DeleteStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	fakeReturns := fake.deleteReturns
-	return fakeReturns.result1
-}
-
-func (fake *FakeStemcell) DeleteCallCount() int {
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
-	return len(fake.deleteArgsForCall)
-}
-
-func (fake *FakeStemcell) DeleteCalls(stub func(bool) error) {
-	fake.deleteMutex.Lock()
-	defer fake.deleteMutex.Unlock()
-	fake.DeleteStub = stub
-}
-
-func (fake *FakeStemcell) DeleteArgsForCall(i int) bool {
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
-	argsForCall := fake.deleteArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeStemcell) DeleteReturns(result1 error) {
-	fake.deleteMutex.Lock()
-	defer fake.deleteMutex.Unlock()
-	fake.DeleteStub = nil
-	fake.deleteReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeStemcell) DeleteReturnsOnCall(i int, result1 error) {
-	fake.deleteMutex.Lock()
-	defer fake.deleteMutex.Unlock()
-	fake.DeleteStub = nil
-	if fake.deleteReturnsOnCall == nil {
-		fake.deleteReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.deleteReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
 }
 
 func (fake *FakeStemcell) Name() string {
 	fake.nameMutex.Lock()
 	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
-	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
-	}{})
+	fake.nameArgsForCall = append(fake.nameArgsForCall, struct{}{})
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
 	if fake.NameStub != nil {
@@ -262,8 +92,7 @@ func (fake *FakeStemcell) Name() string {
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.nameReturns
-	return fakeReturns.result1
+	return fake.nameReturns.result1
 }
 
 func (fake *FakeStemcell) NameCallCount() int {
@@ -272,15 +101,7 @@ func (fake *FakeStemcell) NameCallCount() int {
 	return len(fake.nameArgsForCall)
 }
 
-func (fake *FakeStemcell) NameCalls(stub func() string) {
-	fake.nameMutex.Lock()
-	defer fake.nameMutex.Unlock()
-	fake.NameStub = stub
-}
-
 func (fake *FakeStemcell) NameReturns(result1 string) {
-	fake.nameMutex.Lock()
-	defer fake.nameMutex.Unlock()
 	fake.NameStub = nil
 	fake.nameReturns = struct {
 		result1 string
@@ -288,8 +109,6 @@ func (fake *FakeStemcell) NameReturns(result1 string) {
 }
 
 func (fake *FakeStemcell) NameReturnsOnCall(i int, result1 string) {
-	fake.nameMutex.Lock()
-	defer fake.nameMutex.Unlock()
 	fake.NameStub = nil
 	if fake.nameReturnsOnCall == nil {
 		fake.nameReturnsOnCall = make(map[int]struct {
@@ -301,63 +120,10 @@ func (fake *FakeStemcell) NameReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeStemcell) OSName() string {
-	fake.oSNameMutex.Lock()
-	ret, specificReturn := fake.oSNameReturnsOnCall[len(fake.oSNameArgsForCall)]
-	fake.oSNameArgsForCall = append(fake.oSNameArgsForCall, struct {
-	}{})
-	fake.recordInvocation("OSName", []interface{}{})
-	fake.oSNameMutex.Unlock()
-	if fake.OSNameStub != nil {
-		return fake.OSNameStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	fakeReturns := fake.oSNameReturns
-	return fakeReturns.result1
-}
-
-func (fake *FakeStemcell) OSNameCallCount() int {
-	fake.oSNameMutex.RLock()
-	defer fake.oSNameMutex.RUnlock()
-	return len(fake.oSNameArgsForCall)
-}
-
-func (fake *FakeStemcell) OSNameCalls(stub func() string) {
-	fake.oSNameMutex.Lock()
-	defer fake.oSNameMutex.Unlock()
-	fake.OSNameStub = stub
-}
-
-func (fake *FakeStemcell) OSNameReturns(result1 string) {
-	fake.oSNameMutex.Lock()
-	defer fake.oSNameMutex.Unlock()
-	fake.OSNameStub = nil
-	fake.oSNameReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeStemcell) OSNameReturnsOnCall(i int, result1 string) {
-	fake.oSNameMutex.Lock()
-	defer fake.oSNameMutex.Unlock()
-	fake.OSNameStub = nil
-	if fake.oSNameReturnsOnCall == nil {
-		fake.oSNameReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.oSNameReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeStemcell) Version() version.Version {
+func (fake *FakeStemcell) Version() semver.Version {
 	fake.versionMutex.Lock()
 	ret, specificReturn := fake.versionReturnsOnCall[len(fake.versionArgsForCall)]
-	fake.versionArgsForCall = append(fake.versionArgsForCall, struct {
-	}{})
+	fake.versionArgsForCall = append(fake.versionArgsForCall, struct{}{})
 	fake.recordInvocation("Version", []interface{}{})
 	fake.versionMutex.Unlock()
 	if fake.VersionStub != nil {
@@ -366,8 +132,7 @@ func (fake *FakeStemcell) Version() version.Version {
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.versionReturns
-	return fakeReturns.result1
+	return fake.versionReturns.result1
 }
 
 func (fake *FakeStemcell) VersionCallCount() int {
@@ -376,51 +141,40 @@ func (fake *FakeStemcell) VersionCallCount() int {
 	return len(fake.versionArgsForCall)
 }
 
-func (fake *FakeStemcell) VersionCalls(stub func() version.Version) {
-	fake.versionMutex.Lock()
-	defer fake.versionMutex.Unlock()
-	fake.VersionStub = stub
-}
-
-func (fake *FakeStemcell) VersionReturns(result1 version.Version) {
-	fake.versionMutex.Lock()
-	defer fake.versionMutex.Unlock()
+func (fake *FakeStemcell) VersionReturns(result1 semver.Version) {
 	fake.VersionStub = nil
 	fake.versionReturns = struct {
-		result1 version.Version
+		result1 semver.Version
 	}{result1}
 }
 
-func (fake *FakeStemcell) VersionReturnsOnCall(i int, result1 version.Version) {
-	fake.versionMutex.Lock()
-	defer fake.versionMutex.Unlock()
+func (fake *FakeStemcell) VersionReturnsOnCall(i int, result1 semver.Version) {
 	fake.VersionStub = nil
 	if fake.versionReturnsOnCall == nil {
 		fake.versionReturnsOnCall = make(map[int]struct {
-			result1 version.Version
+			result1 semver.Version
 		})
 	}
 	fake.versionReturnsOnCall[i] = struct {
-		result1 version.Version
+		result1 semver.Version
 	}{result1}
 }
 
-func (fake *FakeStemcell) VersionMark(arg1 string) string {
+func (fake *FakeStemcell) VersionMark(mark string) string {
 	fake.versionMarkMutex.Lock()
 	ret, specificReturn := fake.versionMarkReturnsOnCall[len(fake.versionMarkArgsForCall)]
 	fake.versionMarkArgsForCall = append(fake.versionMarkArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	fake.recordInvocation("VersionMark", []interface{}{arg1})
+		mark string
+	}{mark})
+	fake.recordInvocation("VersionMark", []interface{}{mark})
 	fake.versionMarkMutex.Unlock()
 	if fake.VersionMarkStub != nil {
-		return fake.VersionMarkStub(arg1)
+		return fake.VersionMarkStub(mark)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.versionMarkReturns
-	return fakeReturns.result1
+	return fake.versionMarkReturns.result1
 }
 
 func (fake *FakeStemcell) VersionMarkCallCount() int {
@@ -429,22 +183,13 @@ func (fake *FakeStemcell) VersionMarkCallCount() int {
 	return len(fake.versionMarkArgsForCall)
 }
 
-func (fake *FakeStemcell) VersionMarkCalls(stub func(string) string) {
-	fake.versionMarkMutex.Lock()
-	defer fake.versionMarkMutex.Unlock()
-	fake.VersionMarkStub = stub
-}
-
 func (fake *FakeStemcell) VersionMarkArgsForCall(i int) string {
 	fake.versionMarkMutex.RLock()
 	defer fake.versionMarkMutex.RUnlock()
-	argsForCall := fake.versionMarkArgsForCall[i]
-	return argsForCall.arg1
+	return fake.versionMarkArgsForCall[i].mark
 }
 
 func (fake *FakeStemcell) VersionMarkReturns(result1 string) {
-	fake.versionMarkMutex.Lock()
-	defer fake.versionMarkMutex.Unlock()
 	fake.VersionMarkStub = nil
 	fake.versionMarkReturns = struct {
 		result1 string
@@ -452,8 +197,6 @@ func (fake *FakeStemcell) VersionMarkReturns(result1 string) {
 }
 
 func (fake *FakeStemcell) VersionMarkReturnsOnCall(i int, result1 string) {
-	fake.versionMarkMutex.Lock()
-	defer fake.versionMarkMutex.Unlock()
 	fake.VersionMarkStub = nil
 	if fake.versionMarkReturnsOnCall == nil {
 		fake.versionMarkReturnsOnCall = make(map[int]struct {
@@ -465,23 +208,191 @@ func (fake *FakeStemcell) VersionMarkReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
+func (fake *FakeStemcell) OSName() string {
+	fake.oSNameMutex.Lock()
+	ret, specificReturn := fake.oSNameReturnsOnCall[len(fake.oSNameArgsForCall)]
+	fake.oSNameArgsForCall = append(fake.oSNameArgsForCall, struct{}{})
+	fake.recordInvocation("OSName", []interface{}{})
+	fake.oSNameMutex.Unlock()
+	if fake.OSNameStub != nil {
+		return fake.OSNameStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.oSNameReturns.result1
+}
+
+func (fake *FakeStemcell) OSNameCallCount() int {
+	fake.oSNameMutex.RLock()
+	defer fake.oSNameMutex.RUnlock()
+	return len(fake.oSNameArgsForCall)
+}
+
+func (fake *FakeStemcell) OSNameReturns(result1 string) {
+	fake.OSNameStub = nil
+	fake.oSNameReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeStemcell) OSNameReturnsOnCall(i int, result1 string) {
+	fake.OSNameStub = nil
+	if fake.oSNameReturnsOnCall == nil {
+		fake.oSNameReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.oSNameReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeStemcell) CPI() string {
+	fake.cPIMutex.Lock()
+	ret, specificReturn := fake.cPIReturnsOnCall[len(fake.cPIArgsForCall)]
+	fake.cPIArgsForCall = append(fake.cPIArgsForCall, struct{}{})
+	fake.recordInvocation("CPI", []interface{}{})
+	fake.cPIMutex.Unlock()
+	if fake.CPIStub != nil {
+		return fake.CPIStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.cPIReturns.result1
+}
+
+func (fake *FakeStemcell) CPICallCount() int {
+	fake.cPIMutex.RLock()
+	defer fake.cPIMutex.RUnlock()
+	return len(fake.cPIArgsForCall)
+}
+
+func (fake *FakeStemcell) CPIReturns(result1 string) {
+	fake.CPIStub = nil
+	fake.cPIReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeStemcell) CPIReturnsOnCall(i int, result1 string) {
+	fake.CPIStub = nil
+	if fake.cPIReturnsOnCall == nil {
+		fake.cPIReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.cPIReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeStemcell) CID() string {
+	fake.cIDMutex.Lock()
+	ret, specificReturn := fake.cIDReturnsOnCall[len(fake.cIDArgsForCall)]
+	fake.cIDArgsForCall = append(fake.cIDArgsForCall, struct{}{})
+	fake.recordInvocation("CID", []interface{}{})
+	fake.cIDMutex.Unlock()
+	if fake.CIDStub != nil {
+		return fake.CIDStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.cIDReturns.result1
+}
+
+func (fake *FakeStemcell) CIDCallCount() int {
+	fake.cIDMutex.RLock()
+	defer fake.cIDMutex.RUnlock()
+	return len(fake.cIDArgsForCall)
+}
+
+func (fake *FakeStemcell) CIDReturns(result1 string) {
+	fake.CIDStub = nil
+	fake.cIDReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeStemcell) CIDReturnsOnCall(i int, result1 string) {
+	fake.CIDStub = nil
+	if fake.cIDReturnsOnCall == nil {
+		fake.cIDReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.cIDReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeStemcell) Delete(force bool) error {
+	fake.deleteMutex.Lock()
+	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
+	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
+		force bool
+	}{force})
+	fake.recordInvocation("Delete", []interface{}{force})
+	fake.deleteMutex.Unlock()
+	if fake.DeleteStub != nil {
+		return fake.DeleteStub(force)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.deleteReturns.result1
+}
+
+func (fake *FakeStemcell) DeleteCallCount() int {
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
+	return len(fake.deleteArgsForCall)
+}
+
+func (fake *FakeStemcell) DeleteArgsForCall(i int) bool {
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
+	return fake.deleteArgsForCall[i].force
+}
+
+func (fake *FakeStemcell) DeleteReturns(result1 error) {
+	fake.DeleteStub = nil
+	fake.deleteReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeStemcell) DeleteReturnsOnCall(i int, result1 error) {
+	fake.DeleteStub = nil
+	if fake.deleteReturnsOnCall == nil {
+		fake.deleteReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.deleteReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeStemcell) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.cIDMutex.RLock()
-	defer fake.cIDMutex.RUnlock()
-	fake.cPIMutex.RLock()
-	defer fake.cPIMutex.RUnlock()
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
 	fake.nameMutex.RLock()
 	defer fake.nameMutex.RUnlock()
-	fake.oSNameMutex.RLock()
-	defer fake.oSNameMutex.RUnlock()
 	fake.versionMutex.RLock()
 	defer fake.versionMutex.RUnlock()
 	fake.versionMarkMutex.RLock()
 	defer fake.versionMarkMutex.RUnlock()
+	fake.oSNameMutex.RLock()
+	defer fake.oSNameMutex.RUnlock()
+	fake.cPIMutex.RLock()
+	defer fake.cPIMutex.RUnlock()
+	fake.cIDMutex.RLock()
+	defer fake.cIDMutex.RUnlock()
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

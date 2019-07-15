@@ -91,7 +91,10 @@ func (r ArchiveReader) newRelease(manifest boshman.Manifest, extractPath string)
 		errs = append(errs, bosherr.WrapError(err, "Constructing packages from manifest"))
 	}
 
-	compiledPkgs := r.newCompiledPackages(manifest.CompiledPkgs, extractPath)
+	compiledPkgs, err := r.newCompiledPackages(manifest.CompiledPkgs, extractPath)
+	if err != nil {
+		errs = append(errs, bosherr.WrapError(err, "Constructing compiled packages from manifest"))
+	}
 
 	jobs, err := r.newJobs(r.newCombinedPackages(packages, compiledPkgs), manifest.Jobs, extractPath)
 	if err != nil {
@@ -182,8 +185,9 @@ func (r ArchiveReader) newPackages(refs []boshman.PackageRef, extractPath string
 	return packages, nil
 }
 
-func (r ArchiveReader) newCompiledPackages(refs []boshman.CompiledPackageRef, extractPath string) []*boshpkg.CompiledPackage {
+func (r ArchiveReader) newCompiledPackages(refs []boshman.CompiledPackageRef, extractPath string) ([]*boshpkg.CompiledPackage, error) {
 	var compiledPkgs []*boshpkg.CompiledPackage
+	var errs []error
 
 	for _, ref := range refs {
 		archivePath := filepath.Join(extractPath, "compiled_packages", ref.Name+".tgz")
@@ -194,7 +198,18 @@ func (r ArchiveReader) newCompiledPackages(refs []boshman.CompiledPackageRef, ex
 		compiledPkgs = append(compiledPkgs, compiledPkg)
 	}
 
-	return compiledPkgs
+	for _, compiledPkg := range compiledPkgs {
+		err := compiledPkg.AttachDependencies(compiledPkgs)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if len(errs) > 0 {
+		return nil, bosherr.NewMultiError(errs...)
+	}
+
+	return compiledPkgs, nil
 }
 
 func (r ArchiveReader) newCombinedPackages(pkgs []*boshpkg.Package, compiledPkgs []*boshpkg.CompiledPackage) []boshpkg.Compilable {

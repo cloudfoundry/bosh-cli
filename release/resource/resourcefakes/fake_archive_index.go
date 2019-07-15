@@ -8,29 +8,11 @@ import (
 )
 
 type FakeArchiveIndex struct {
-	AddStub        func(string, string, string, string) (string, string, error)
-	addMutex       sync.RWMutex
-	addArgsForCall []struct {
-		arg1 string
-		arg2 string
-		arg3 string
-		arg4 string
-	}
-	addReturns struct {
-		result1 string
-		result2 string
-		result3 error
-	}
-	addReturnsOnCall map[int]struct {
-		result1 string
-		result2 string
-		result3 error
-	}
-	FindStub        func(string, string) (string, string, error)
+	FindStub        func(name, fingerprint string) (string, string, error)
 	findMutex       sync.RWMutex
 	findArgsForCall []struct {
-		arg1 string
-		arg2 string
+		name        string
+		fingerprint string
 	}
 	findReturns struct {
 		result1 string
@@ -42,96 +24,44 @@ type FakeArchiveIndex struct {
 		result2 string
 		result3 error
 	}
+	AddStub        func(name, fingerprint, path, sha1 string) (string, string, error)
+	addMutex       sync.RWMutex
+	addArgsForCall []struct {
+		name        string
+		fingerprint string
+		path        string
+		sha1        string
+	}
+	addReturns struct {
+		result1 string
+		result2 string
+		result3 error
+	}
+	addReturnsOnCall map[int]struct {
+		result1 string
+		result2 string
+		result3 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeArchiveIndex) Add(arg1 string, arg2 string, arg3 string, arg4 string) (string, string, error) {
-	fake.addMutex.Lock()
-	ret, specificReturn := fake.addReturnsOnCall[len(fake.addArgsForCall)]
-	fake.addArgsForCall = append(fake.addArgsForCall, struct {
-		arg1 string
-		arg2 string
-		arg3 string
-		arg4 string
-	}{arg1, arg2, arg3, arg4})
-	fake.recordInvocation("Add", []interface{}{arg1, arg2, arg3, arg4})
-	fake.addMutex.Unlock()
-	if fake.AddStub != nil {
-		return fake.AddStub(arg1, arg2, arg3, arg4)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2, ret.result3
-	}
-	fakeReturns := fake.addReturns
-	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
-}
-
-func (fake *FakeArchiveIndex) AddCallCount() int {
-	fake.addMutex.RLock()
-	defer fake.addMutex.RUnlock()
-	return len(fake.addArgsForCall)
-}
-
-func (fake *FakeArchiveIndex) AddCalls(stub func(string, string, string, string) (string, string, error)) {
-	fake.addMutex.Lock()
-	defer fake.addMutex.Unlock()
-	fake.AddStub = stub
-}
-
-func (fake *FakeArchiveIndex) AddArgsForCall(i int) (string, string, string, string) {
-	fake.addMutex.RLock()
-	defer fake.addMutex.RUnlock()
-	argsForCall := fake.addArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
-}
-
-func (fake *FakeArchiveIndex) AddReturns(result1 string, result2 string, result3 error) {
-	fake.addMutex.Lock()
-	defer fake.addMutex.Unlock()
-	fake.AddStub = nil
-	fake.addReturns = struct {
-		result1 string
-		result2 string
-		result3 error
-	}{result1, result2, result3}
-}
-
-func (fake *FakeArchiveIndex) AddReturnsOnCall(i int, result1 string, result2 string, result3 error) {
-	fake.addMutex.Lock()
-	defer fake.addMutex.Unlock()
-	fake.AddStub = nil
-	if fake.addReturnsOnCall == nil {
-		fake.addReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 string
-			result3 error
-		})
-	}
-	fake.addReturnsOnCall[i] = struct {
-		result1 string
-		result2 string
-		result3 error
-	}{result1, result2, result3}
-}
-
-func (fake *FakeArchiveIndex) Find(arg1 string, arg2 string) (string, string, error) {
+func (fake *FakeArchiveIndex) Find(name string, fingerprint string) (string, string, error) {
 	fake.findMutex.Lock()
 	ret, specificReturn := fake.findReturnsOnCall[len(fake.findArgsForCall)]
 	fake.findArgsForCall = append(fake.findArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
-	fake.recordInvocation("Find", []interface{}{arg1, arg2})
+		name        string
+		fingerprint string
+	}{name, fingerprint})
+	fake.recordInvocation("Find", []interface{}{name, fingerprint})
 	fake.findMutex.Unlock()
 	if fake.FindStub != nil {
-		return fake.FindStub(arg1, arg2)
+		return fake.FindStub(name, fingerprint)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.findReturns
-	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
+	return fake.findReturns.result1, fake.findReturns.result2, fake.findReturns.result3
 }
 
 func (fake *FakeArchiveIndex) FindCallCount() int {
@@ -140,22 +70,13 @@ func (fake *FakeArchiveIndex) FindCallCount() int {
 	return len(fake.findArgsForCall)
 }
 
-func (fake *FakeArchiveIndex) FindCalls(stub func(string, string) (string, string, error)) {
-	fake.findMutex.Lock()
-	defer fake.findMutex.Unlock()
-	fake.FindStub = stub
-}
-
 func (fake *FakeArchiveIndex) FindArgsForCall(i int) (string, string) {
 	fake.findMutex.RLock()
 	defer fake.findMutex.RUnlock()
-	argsForCall := fake.findArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return fake.findArgsForCall[i].name, fake.findArgsForCall[i].fingerprint
 }
 
 func (fake *FakeArchiveIndex) FindReturns(result1 string, result2 string, result3 error) {
-	fake.findMutex.Lock()
-	defer fake.findMutex.Unlock()
 	fake.FindStub = nil
 	fake.findReturns = struct {
 		result1 string
@@ -165,8 +86,6 @@ func (fake *FakeArchiveIndex) FindReturns(result1 string, result2 string, result
 }
 
 func (fake *FakeArchiveIndex) FindReturnsOnCall(i int, result1 string, result2 string, result3 error) {
-	fake.findMutex.Lock()
-	defer fake.findMutex.Unlock()
 	fake.FindStub = nil
 	if fake.findReturnsOnCall == nil {
 		fake.findReturnsOnCall = make(map[int]struct {
@@ -182,13 +101,70 @@ func (fake *FakeArchiveIndex) FindReturnsOnCall(i int, result1 string, result2 s
 	}{result1, result2, result3}
 }
 
+func (fake *FakeArchiveIndex) Add(name string, fingerprint string, path string, sha1 string) (string, string, error) {
+	fake.addMutex.Lock()
+	ret, specificReturn := fake.addReturnsOnCall[len(fake.addArgsForCall)]
+	fake.addArgsForCall = append(fake.addArgsForCall, struct {
+		name        string
+		fingerprint string
+		path        string
+		sha1        string
+	}{name, fingerprint, path, sha1})
+	fake.recordInvocation("Add", []interface{}{name, fingerprint, path, sha1})
+	fake.addMutex.Unlock()
+	if fake.AddStub != nil {
+		return fake.AddStub(name, fingerprint, path, sha1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	return fake.addReturns.result1, fake.addReturns.result2, fake.addReturns.result3
+}
+
+func (fake *FakeArchiveIndex) AddCallCount() int {
+	fake.addMutex.RLock()
+	defer fake.addMutex.RUnlock()
+	return len(fake.addArgsForCall)
+}
+
+func (fake *FakeArchiveIndex) AddArgsForCall(i int) (string, string, string, string) {
+	fake.addMutex.RLock()
+	defer fake.addMutex.RUnlock()
+	return fake.addArgsForCall[i].name, fake.addArgsForCall[i].fingerprint, fake.addArgsForCall[i].path, fake.addArgsForCall[i].sha1
+}
+
+func (fake *FakeArchiveIndex) AddReturns(result1 string, result2 string, result3 error) {
+	fake.AddStub = nil
+	fake.addReturns = struct {
+		result1 string
+		result2 string
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeArchiveIndex) AddReturnsOnCall(i int, result1 string, result2 string, result3 error) {
+	fake.AddStub = nil
+	if fake.addReturnsOnCall == nil {
+		fake.addReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 string
+			result3 error
+		})
+	}
+	fake.addReturnsOnCall[i] = struct {
+		result1 string
+		result2 string
+		result3 error
+	}{result1, result2, result3}
+}
+
 func (fake *FakeArchiveIndex) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.addMutex.RLock()
-	defer fake.addMutex.RUnlock()
 	fake.findMutex.RLock()
 	defer fake.findMutex.RUnlock()
+	fake.addMutex.RLock()
+	defer fake.addMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

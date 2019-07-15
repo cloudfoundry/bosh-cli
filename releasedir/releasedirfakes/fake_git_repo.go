@@ -10,9 +10,8 @@ import (
 type FakeGitRepo struct {
 	InitStub        func() error
 	initMutex       sync.RWMutex
-	initArgsForCall []struct {
-	}
-	initReturns struct {
+	initArgsForCall []struct{}
+	initReturns     struct {
 		result1 error
 	}
 	initReturnsOnCall map[int]struct {
@@ -20,9 +19,8 @@ type FakeGitRepo struct {
 	}
 	LastCommitSHAStub        func() (string, error)
 	lastCommitSHAMutex       sync.RWMutex
-	lastCommitSHAArgsForCall []struct {
-	}
-	lastCommitSHAReturns struct {
+	lastCommitSHAArgsForCall []struct{}
+	lastCommitSHAReturns     struct {
 		result1 string
 		result2 error
 	}
@@ -30,10 +28,10 @@ type FakeGitRepo struct {
 		result1 string
 		result2 error
 	}
-	MustNotBeDirtyStub        func(bool) (bool, error)
+	MustNotBeDirtyStub        func(force bool) (dirty bool, err error)
 	mustNotBeDirtyMutex       sync.RWMutex
 	mustNotBeDirtyArgsForCall []struct {
-		arg1 bool
+		force bool
 	}
 	mustNotBeDirtyReturns struct {
 		result1 bool
@@ -50,8 +48,7 @@ type FakeGitRepo struct {
 func (fake *FakeGitRepo) Init() error {
 	fake.initMutex.Lock()
 	ret, specificReturn := fake.initReturnsOnCall[len(fake.initArgsForCall)]
-	fake.initArgsForCall = append(fake.initArgsForCall, struct {
-	}{})
+	fake.initArgsForCall = append(fake.initArgsForCall, struct{}{})
 	fake.recordInvocation("Init", []interface{}{})
 	fake.initMutex.Unlock()
 	if fake.InitStub != nil {
@@ -60,8 +57,7 @@ func (fake *FakeGitRepo) Init() error {
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.initReturns
-	return fakeReturns.result1
+	return fake.initReturns.result1
 }
 
 func (fake *FakeGitRepo) InitCallCount() int {
@@ -70,15 +66,7 @@ func (fake *FakeGitRepo) InitCallCount() int {
 	return len(fake.initArgsForCall)
 }
 
-func (fake *FakeGitRepo) InitCalls(stub func() error) {
-	fake.initMutex.Lock()
-	defer fake.initMutex.Unlock()
-	fake.InitStub = stub
-}
-
 func (fake *FakeGitRepo) InitReturns(result1 error) {
-	fake.initMutex.Lock()
-	defer fake.initMutex.Unlock()
 	fake.InitStub = nil
 	fake.initReturns = struct {
 		result1 error
@@ -86,8 +74,6 @@ func (fake *FakeGitRepo) InitReturns(result1 error) {
 }
 
 func (fake *FakeGitRepo) InitReturnsOnCall(i int, result1 error) {
-	fake.initMutex.Lock()
-	defer fake.initMutex.Unlock()
 	fake.InitStub = nil
 	if fake.initReturnsOnCall == nil {
 		fake.initReturnsOnCall = make(map[int]struct {
@@ -102,8 +88,7 @@ func (fake *FakeGitRepo) InitReturnsOnCall(i int, result1 error) {
 func (fake *FakeGitRepo) LastCommitSHA() (string, error) {
 	fake.lastCommitSHAMutex.Lock()
 	ret, specificReturn := fake.lastCommitSHAReturnsOnCall[len(fake.lastCommitSHAArgsForCall)]
-	fake.lastCommitSHAArgsForCall = append(fake.lastCommitSHAArgsForCall, struct {
-	}{})
+	fake.lastCommitSHAArgsForCall = append(fake.lastCommitSHAArgsForCall, struct{}{})
 	fake.recordInvocation("LastCommitSHA", []interface{}{})
 	fake.lastCommitSHAMutex.Unlock()
 	if fake.LastCommitSHAStub != nil {
@@ -112,8 +97,7 @@ func (fake *FakeGitRepo) LastCommitSHA() (string, error) {
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.lastCommitSHAReturns
-	return fakeReturns.result1, fakeReturns.result2
+	return fake.lastCommitSHAReturns.result1, fake.lastCommitSHAReturns.result2
 }
 
 func (fake *FakeGitRepo) LastCommitSHACallCount() int {
@@ -122,15 +106,7 @@ func (fake *FakeGitRepo) LastCommitSHACallCount() int {
 	return len(fake.lastCommitSHAArgsForCall)
 }
 
-func (fake *FakeGitRepo) LastCommitSHACalls(stub func() (string, error)) {
-	fake.lastCommitSHAMutex.Lock()
-	defer fake.lastCommitSHAMutex.Unlock()
-	fake.LastCommitSHAStub = stub
-}
-
 func (fake *FakeGitRepo) LastCommitSHAReturns(result1 string, result2 error) {
-	fake.lastCommitSHAMutex.Lock()
-	defer fake.lastCommitSHAMutex.Unlock()
 	fake.LastCommitSHAStub = nil
 	fake.lastCommitSHAReturns = struct {
 		result1 string
@@ -139,8 +115,6 @@ func (fake *FakeGitRepo) LastCommitSHAReturns(result1 string, result2 error) {
 }
 
 func (fake *FakeGitRepo) LastCommitSHAReturnsOnCall(i int, result1 string, result2 error) {
-	fake.lastCommitSHAMutex.Lock()
-	defer fake.lastCommitSHAMutex.Unlock()
 	fake.LastCommitSHAStub = nil
 	if fake.lastCommitSHAReturnsOnCall == nil {
 		fake.lastCommitSHAReturnsOnCall = make(map[int]struct {
@@ -154,22 +128,21 @@ func (fake *FakeGitRepo) LastCommitSHAReturnsOnCall(i int, result1 string, resul
 	}{result1, result2}
 }
 
-func (fake *FakeGitRepo) MustNotBeDirty(arg1 bool) (bool, error) {
+func (fake *FakeGitRepo) MustNotBeDirty(force bool) (dirty bool, err error) {
 	fake.mustNotBeDirtyMutex.Lock()
 	ret, specificReturn := fake.mustNotBeDirtyReturnsOnCall[len(fake.mustNotBeDirtyArgsForCall)]
 	fake.mustNotBeDirtyArgsForCall = append(fake.mustNotBeDirtyArgsForCall, struct {
-		arg1 bool
-	}{arg1})
-	fake.recordInvocation("MustNotBeDirty", []interface{}{arg1})
+		force bool
+	}{force})
+	fake.recordInvocation("MustNotBeDirty", []interface{}{force})
 	fake.mustNotBeDirtyMutex.Unlock()
 	if fake.MustNotBeDirtyStub != nil {
-		return fake.MustNotBeDirtyStub(arg1)
+		return fake.MustNotBeDirtyStub(force)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.mustNotBeDirtyReturns
-	return fakeReturns.result1, fakeReturns.result2
+	return fake.mustNotBeDirtyReturns.result1, fake.mustNotBeDirtyReturns.result2
 }
 
 func (fake *FakeGitRepo) MustNotBeDirtyCallCount() int {
@@ -178,22 +151,13 @@ func (fake *FakeGitRepo) MustNotBeDirtyCallCount() int {
 	return len(fake.mustNotBeDirtyArgsForCall)
 }
 
-func (fake *FakeGitRepo) MustNotBeDirtyCalls(stub func(bool) (bool, error)) {
-	fake.mustNotBeDirtyMutex.Lock()
-	defer fake.mustNotBeDirtyMutex.Unlock()
-	fake.MustNotBeDirtyStub = stub
-}
-
 func (fake *FakeGitRepo) MustNotBeDirtyArgsForCall(i int) bool {
 	fake.mustNotBeDirtyMutex.RLock()
 	defer fake.mustNotBeDirtyMutex.RUnlock()
-	argsForCall := fake.mustNotBeDirtyArgsForCall[i]
-	return argsForCall.arg1
+	return fake.mustNotBeDirtyArgsForCall[i].force
 }
 
 func (fake *FakeGitRepo) MustNotBeDirtyReturns(result1 bool, result2 error) {
-	fake.mustNotBeDirtyMutex.Lock()
-	defer fake.mustNotBeDirtyMutex.Unlock()
 	fake.MustNotBeDirtyStub = nil
 	fake.mustNotBeDirtyReturns = struct {
 		result1 bool
@@ -202,8 +166,6 @@ func (fake *FakeGitRepo) MustNotBeDirtyReturns(result1 bool, result2 error) {
 }
 
 func (fake *FakeGitRepo) MustNotBeDirtyReturnsOnCall(i int, result1 bool, result2 error) {
-	fake.mustNotBeDirtyMutex.Lock()
-	defer fake.mustNotBeDirtyMutex.Unlock()
 	fake.MustNotBeDirtyStub = nil
 	if fake.mustNotBeDirtyReturnsOnCall == nil {
 		fake.mustNotBeDirtyReturnsOnCall = make(map[int]struct {

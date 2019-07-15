@@ -5,277 +5,63 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/cmd"
-	"github.com/cloudfoundry/bosh-cli/cmd/config"
+	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
 )
 
 type FakeSessionContext struct {
+	EnvironmentStub        func() string
+	environmentMutex       sync.RWMutex
+	environmentArgsForCall []struct{}
+	environmentReturns     struct {
+		result1 string
+	}
+	environmentReturnsOnCall map[int]struct {
+		result1 string
+	}
 	CACertStub        func() string
 	cACertMutex       sync.RWMutex
-	cACertArgsForCall []struct {
-	}
-	cACertReturns struct {
+	cACertArgsForCall []struct{}
+	cACertReturns     struct {
 		result1 string
 	}
 	cACertReturnsOnCall map[int]struct {
 		result1 string
 	}
-	ConfigStub        func() config.Config
+	ConfigStub        func() cmdconf.Config
 	configMutex       sync.RWMutex
-	configArgsForCall []struct {
-	}
-	configReturns struct {
-		result1 config.Config
+	configArgsForCall []struct{}
+	configReturns     struct {
+		result1 cmdconf.Config
 	}
 	configReturnsOnCall map[int]struct {
-		result1 config.Config
+		result1 cmdconf.Config
 	}
-	CredentialsStub        func() config.Creds
+	CredentialsStub        func() cmdconf.Creds
 	credentialsMutex       sync.RWMutex
-	credentialsArgsForCall []struct {
-	}
-	credentialsReturns struct {
-		result1 config.Creds
+	credentialsArgsForCall []struct{}
+	credentialsReturns     struct {
+		result1 cmdconf.Creds
 	}
 	credentialsReturnsOnCall map[int]struct {
-		result1 config.Creds
+		result1 cmdconf.Creds
 	}
 	DeploymentStub        func() string
 	deploymentMutex       sync.RWMutex
-	deploymentArgsForCall []struct {
-	}
-	deploymentReturns struct {
+	deploymentArgsForCall []struct{}
+	deploymentReturns     struct {
 		result1 string
 	}
 	deploymentReturnsOnCall map[int]struct {
-		result1 string
-	}
-	EnvironmentStub        func() string
-	environmentMutex       sync.RWMutex
-	environmentArgsForCall []struct {
-	}
-	environmentReturns struct {
-		result1 string
-	}
-	environmentReturnsOnCall map[int]struct {
 		result1 string
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeSessionContext) CACert() string {
-	fake.cACertMutex.Lock()
-	ret, specificReturn := fake.cACertReturnsOnCall[len(fake.cACertArgsForCall)]
-	fake.cACertArgsForCall = append(fake.cACertArgsForCall, struct {
-	}{})
-	fake.recordInvocation("CACert", []interface{}{})
-	fake.cACertMutex.Unlock()
-	if fake.CACertStub != nil {
-		return fake.CACertStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	fakeReturns := fake.cACertReturns
-	return fakeReturns.result1
-}
-
-func (fake *FakeSessionContext) CACertCallCount() int {
-	fake.cACertMutex.RLock()
-	defer fake.cACertMutex.RUnlock()
-	return len(fake.cACertArgsForCall)
-}
-
-func (fake *FakeSessionContext) CACertCalls(stub func() string) {
-	fake.cACertMutex.Lock()
-	defer fake.cACertMutex.Unlock()
-	fake.CACertStub = stub
-}
-
-func (fake *FakeSessionContext) CACertReturns(result1 string) {
-	fake.cACertMutex.Lock()
-	defer fake.cACertMutex.Unlock()
-	fake.CACertStub = nil
-	fake.cACertReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeSessionContext) CACertReturnsOnCall(i int, result1 string) {
-	fake.cACertMutex.Lock()
-	defer fake.cACertMutex.Unlock()
-	fake.CACertStub = nil
-	if fake.cACertReturnsOnCall == nil {
-		fake.cACertReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.cACertReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeSessionContext) Config() config.Config {
-	fake.configMutex.Lock()
-	ret, specificReturn := fake.configReturnsOnCall[len(fake.configArgsForCall)]
-	fake.configArgsForCall = append(fake.configArgsForCall, struct {
-	}{})
-	fake.recordInvocation("Config", []interface{}{})
-	fake.configMutex.Unlock()
-	if fake.ConfigStub != nil {
-		return fake.ConfigStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	fakeReturns := fake.configReturns
-	return fakeReturns.result1
-}
-
-func (fake *FakeSessionContext) ConfigCallCount() int {
-	fake.configMutex.RLock()
-	defer fake.configMutex.RUnlock()
-	return len(fake.configArgsForCall)
-}
-
-func (fake *FakeSessionContext) ConfigCalls(stub func() config.Config) {
-	fake.configMutex.Lock()
-	defer fake.configMutex.Unlock()
-	fake.ConfigStub = stub
-}
-
-func (fake *FakeSessionContext) ConfigReturns(result1 config.Config) {
-	fake.configMutex.Lock()
-	defer fake.configMutex.Unlock()
-	fake.ConfigStub = nil
-	fake.configReturns = struct {
-		result1 config.Config
-	}{result1}
-}
-
-func (fake *FakeSessionContext) ConfigReturnsOnCall(i int, result1 config.Config) {
-	fake.configMutex.Lock()
-	defer fake.configMutex.Unlock()
-	fake.ConfigStub = nil
-	if fake.configReturnsOnCall == nil {
-		fake.configReturnsOnCall = make(map[int]struct {
-			result1 config.Config
-		})
-	}
-	fake.configReturnsOnCall[i] = struct {
-		result1 config.Config
-	}{result1}
-}
-
-func (fake *FakeSessionContext) Credentials() config.Creds {
-	fake.credentialsMutex.Lock()
-	ret, specificReturn := fake.credentialsReturnsOnCall[len(fake.credentialsArgsForCall)]
-	fake.credentialsArgsForCall = append(fake.credentialsArgsForCall, struct {
-	}{})
-	fake.recordInvocation("Credentials", []interface{}{})
-	fake.credentialsMutex.Unlock()
-	if fake.CredentialsStub != nil {
-		return fake.CredentialsStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	fakeReturns := fake.credentialsReturns
-	return fakeReturns.result1
-}
-
-func (fake *FakeSessionContext) CredentialsCallCount() int {
-	fake.credentialsMutex.RLock()
-	defer fake.credentialsMutex.RUnlock()
-	return len(fake.credentialsArgsForCall)
-}
-
-func (fake *FakeSessionContext) CredentialsCalls(stub func() config.Creds) {
-	fake.credentialsMutex.Lock()
-	defer fake.credentialsMutex.Unlock()
-	fake.CredentialsStub = stub
-}
-
-func (fake *FakeSessionContext) CredentialsReturns(result1 config.Creds) {
-	fake.credentialsMutex.Lock()
-	defer fake.credentialsMutex.Unlock()
-	fake.CredentialsStub = nil
-	fake.credentialsReturns = struct {
-		result1 config.Creds
-	}{result1}
-}
-
-func (fake *FakeSessionContext) CredentialsReturnsOnCall(i int, result1 config.Creds) {
-	fake.credentialsMutex.Lock()
-	defer fake.credentialsMutex.Unlock()
-	fake.CredentialsStub = nil
-	if fake.credentialsReturnsOnCall == nil {
-		fake.credentialsReturnsOnCall = make(map[int]struct {
-			result1 config.Creds
-		})
-	}
-	fake.credentialsReturnsOnCall[i] = struct {
-		result1 config.Creds
-	}{result1}
-}
-
-func (fake *FakeSessionContext) Deployment() string {
-	fake.deploymentMutex.Lock()
-	ret, specificReturn := fake.deploymentReturnsOnCall[len(fake.deploymentArgsForCall)]
-	fake.deploymentArgsForCall = append(fake.deploymentArgsForCall, struct {
-	}{})
-	fake.recordInvocation("Deployment", []interface{}{})
-	fake.deploymentMutex.Unlock()
-	if fake.DeploymentStub != nil {
-		return fake.DeploymentStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	fakeReturns := fake.deploymentReturns
-	return fakeReturns.result1
-}
-
-func (fake *FakeSessionContext) DeploymentCallCount() int {
-	fake.deploymentMutex.RLock()
-	defer fake.deploymentMutex.RUnlock()
-	return len(fake.deploymentArgsForCall)
-}
-
-func (fake *FakeSessionContext) DeploymentCalls(stub func() string) {
-	fake.deploymentMutex.Lock()
-	defer fake.deploymentMutex.Unlock()
-	fake.DeploymentStub = stub
-}
-
-func (fake *FakeSessionContext) DeploymentReturns(result1 string) {
-	fake.deploymentMutex.Lock()
-	defer fake.deploymentMutex.Unlock()
-	fake.DeploymentStub = nil
-	fake.deploymentReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeSessionContext) DeploymentReturnsOnCall(i int, result1 string) {
-	fake.deploymentMutex.Lock()
-	defer fake.deploymentMutex.Unlock()
-	fake.DeploymentStub = nil
-	if fake.deploymentReturnsOnCall == nil {
-		fake.deploymentReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.deploymentReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
 func (fake *FakeSessionContext) Environment() string {
 	fake.environmentMutex.Lock()
 	ret, specificReturn := fake.environmentReturnsOnCall[len(fake.environmentArgsForCall)]
-	fake.environmentArgsForCall = append(fake.environmentArgsForCall, struct {
-	}{})
+	fake.environmentArgsForCall = append(fake.environmentArgsForCall, struct{}{})
 	fake.recordInvocation("Environment", []interface{}{})
 	fake.environmentMutex.Unlock()
 	if fake.EnvironmentStub != nil {
@@ -284,8 +70,7 @@ func (fake *FakeSessionContext) Environment() string {
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.environmentReturns
-	return fakeReturns.result1
+	return fake.environmentReturns.result1
 }
 
 func (fake *FakeSessionContext) EnvironmentCallCount() int {
@@ -294,15 +79,7 @@ func (fake *FakeSessionContext) EnvironmentCallCount() int {
 	return len(fake.environmentArgsForCall)
 }
 
-func (fake *FakeSessionContext) EnvironmentCalls(stub func() string) {
-	fake.environmentMutex.Lock()
-	defer fake.environmentMutex.Unlock()
-	fake.EnvironmentStub = stub
-}
-
 func (fake *FakeSessionContext) EnvironmentReturns(result1 string) {
-	fake.environmentMutex.Lock()
-	defer fake.environmentMutex.Unlock()
 	fake.EnvironmentStub = nil
 	fake.environmentReturns = struct {
 		result1 string
@@ -310,8 +87,6 @@ func (fake *FakeSessionContext) EnvironmentReturns(result1 string) {
 }
 
 func (fake *FakeSessionContext) EnvironmentReturnsOnCall(i int, result1 string) {
-	fake.environmentMutex.Lock()
-	defer fake.environmentMutex.Unlock()
 	fake.EnvironmentStub = nil
 	if fake.environmentReturnsOnCall == nil {
 		fake.environmentReturnsOnCall = make(map[int]struct {
@@ -323,9 +98,171 @@ func (fake *FakeSessionContext) EnvironmentReturnsOnCall(i int, result1 string) 
 	}{result1}
 }
 
+func (fake *FakeSessionContext) CACert() string {
+	fake.cACertMutex.Lock()
+	ret, specificReturn := fake.cACertReturnsOnCall[len(fake.cACertArgsForCall)]
+	fake.cACertArgsForCall = append(fake.cACertArgsForCall, struct{}{})
+	fake.recordInvocation("CACert", []interface{}{})
+	fake.cACertMutex.Unlock()
+	if fake.CACertStub != nil {
+		return fake.CACertStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.cACertReturns.result1
+}
+
+func (fake *FakeSessionContext) CACertCallCount() int {
+	fake.cACertMutex.RLock()
+	defer fake.cACertMutex.RUnlock()
+	return len(fake.cACertArgsForCall)
+}
+
+func (fake *FakeSessionContext) CACertReturns(result1 string) {
+	fake.CACertStub = nil
+	fake.cACertReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeSessionContext) CACertReturnsOnCall(i int, result1 string) {
+	fake.CACertStub = nil
+	if fake.cACertReturnsOnCall == nil {
+		fake.cACertReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.cACertReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeSessionContext) Config() cmdconf.Config {
+	fake.configMutex.Lock()
+	ret, specificReturn := fake.configReturnsOnCall[len(fake.configArgsForCall)]
+	fake.configArgsForCall = append(fake.configArgsForCall, struct{}{})
+	fake.recordInvocation("Config", []interface{}{})
+	fake.configMutex.Unlock()
+	if fake.ConfigStub != nil {
+		return fake.ConfigStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.configReturns.result1
+}
+
+func (fake *FakeSessionContext) ConfigCallCount() int {
+	fake.configMutex.RLock()
+	defer fake.configMutex.RUnlock()
+	return len(fake.configArgsForCall)
+}
+
+func (fake *FakeSessionContext) ConfigReturns(result1 cmdconf.Config) {
+	fake.ConfigStub = nil
+	fake.configReturns = struct {
+		result1 cmdconf.Config
+	}{result1}
+}
+
+func (fake *FakeSessionContext) ConfigReturnsOnCall(i int, result1 cmdconf.Config) {
+	fake.ConfigStub = nil
+	if fake.configReturnsOnCall == nil {
+		fake.configReturnsOnCall = make(map[int]struct {
+			result1 cmdconf.Config
+		})
+	}
+	fake.configReturnsOnCall[i] = struct {
+		result1 cmdconf.Config
+	}{result1}
+}
+
+func (fake *FakeSessionContext) Credentials() cmdconf.Creds {
+	fake.credentialsMutex.Lock()
+	ret, specificReturn := fake.credentialsReturnsOnCall[len(fake.credentialsArgsForCall)]
+	fake.credentialsArgsForCall = append(fake.credentialsArgsForCall, struct{}{})
+	fake.recordInvocation("Credentials", []interface{}{})
+	fake.credentialsMutex.Unlock()
+	if fake.CredentialsStub != nil {
+		return fake.CredentialsStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.credentialsReturns.result1
+}
+
+func (fake *FakeSessionContext) CredentialsCallCount() int {
+	fake.credentialsMutex.RLock()
+	defer fake.credentialsMutex.RUnlock()
+	return len(fake.credentialsArgsForCall)
+}
+
+func (fake *FakeSessionContext) CredentialsReturns(result1 cmdconf.Creds) {
+	fake.CredentialsStub = nil
+	fake.credentialsReturns = struct {
+		result1 cmdconf.Creds
+	}{result1}
+}
+
+func (fake *FakeSessionContext) CredentialsReturnsOnCall(i int, result1 cmdconf.Creds) {
+	fake.CredentialsStub = nil
+	if fake.credentialsReturnsOnCall == nil {
+		fake.credentialsReturnsOnCall = make(map[int]struct {
+			result1 cmdconf.Creds
+		})
+	}
+	fake.credentialsReturnsOnCall[i] = struct {
+		result1 cmdconf.Creds
+	}{result1}
+}
+
+func (fake *FakeSessionContext) Deployment() string {
+	fake.deploymentMutex.Lock()
+	ret, specificReturn := fake.deploymentReturnsOnCall[len(fake.deploymentArgsForCall)]
+	fake.deploymentArgsForCall = append(fake.deploymentArgsForCall, struct{}{})
+	fake.recordInvocation("Deployment", []interface{}{})
+	fake.deploymentMutex.Unlock()
+	if fake.DeploymentStub != nil {
+		return fake.DeploymentStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.deploymentReturns.result1
+}
+
+func (fake *FakeSessionContext) DeploymentCallCount() int {
+	fake.deploymentMutex.RLock()
+	defer fake.deploymentMutex.RUnlock()
+	return len(fake.deploymentArgsForCall)
+}
+
+func (fake *FakeSessionContext) DeploymentReturns(result1 string) {
+	fake.DeploymentStub = nil
+	fake.deploymentReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeSessionContext) DeploymentReturnsOnCall(i int, result1 string) {
+	fake.DeploymentStub = nil
+	if fake.deploymentReturnsOnCall == nil {
+		fake.deploymentReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.deploymentReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeSessionContext) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.environmentMutex.RLock()
+	defer fake.environmentMutex.RUnlock()
 	fake.cACertMutex.RLock()
 	defer fake.cACertMutex.RUnlock()
 	fake.configMutex.RLock()
@@ -334,8 +271,6 @@ func (fake *FakeSessionContext) Invocations() map[string][][]interface{} {
 	defer fake.credentialsMutex.RUnlock()
 	fake.deploymentMutex.RLock()
 	defer fake.deploymentMutex.RUnlock()
-	fake.environmentMutex.RLock()
-	defer fake.environmentMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

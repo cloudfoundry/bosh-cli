@@ -39,8 +39,7 @@ func (fake *FakeReader) Read(arg1 string) (release.Release, error) {
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.readReturns
-	return fakeReturns.result1, fakeReturns.result2
+	return fake.readReturns.result1, fake.readReturns.result2
 }
 
 func (fake *FakeReader) ReadCallCount() int {
@@ -49,22 +48,13 @@ func (fake *FakeReader) ReadCallCount() int {
 	return len(fake.readArgsForCall)
 }
 
-func (fake *FakeReader) ReadCalls(stub func(string) (release.Release, error)) {
-	fake.readMutex.Lock()
-	defer fake.readMutex.Unlock()
-	fake.ReadStub = stub
-}
-
 func (fake *FakeReader) ReadArgsForCall(i int) string {
 	fake.readMutex.RLock()
 	defer fake.readMutex.RUnlock()
-	argsForCall := fake.readArgsForCall[i]
-	return argsForCall.arg1
+	return fake.readArgsForCall[i].arg1
 }
 
 func (fake *FakeReader) ReadReturns(result1 release.Release, result2 error) {
-	fake.readMutex.Lock()
-	defer fake.readMutex.Unlock()
 	fake.ReadStub = nil
 	fake.readReturns = struct {
 		result1 release.Release
@@ -73,8 +63,6 @@ func (fake *FakeReader) ReadReturns(result1 release.Release, result2 error) {
 }
 
 func (fake *FakeReader) ReadReturnsOnCall(i int, result1 release.Release, result2 error) {
-	fake.readMutex.Lock()
-	defer fake.readMutex.Unlock()
 	fake.ReadStub = nil
 	if fake.readReturnsOnCall == nil {
 		fake.readReturnsOnCall = make(map[int]struct {

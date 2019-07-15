@@ -8,10 +8,19 @@ import (
 )
 
 type FakeReleaseSeries struct {
-	DeleteStub        func(bool) error
+	NameStub        func() string
+	nameMutex       sync.RWMutex
+	nameArgsForCall []struct{}
+	nameReturns     struct {
+		result1 string
+	}
+	nameReturnsOnCall map[int]struct {
+		result1 string
+	}
+	DeleteStub        func(force bool) error
 	deleteMutex       sync.RWMutex
 	deleteArgsForCall []struct {
-		arg1 bool
+		force bool
 	}
 	deleteReturns struct {
 		result1 error
@@ -21,9 +30,8 @@ type FakeReleaseSeries struct {
 	}
 	ExistsStub        func() (bool, error)
 	existsMutex       sync.RWMutex
-	existsArgsForCall []struct {
-	}
-	existsReturns struct {
+	existsArgsForCall []struct{}
+	existsReturns     struct {
 		result1 bool
 		result2 error
 	}
@@ -31,36 +39,65 @@ type FakeReleaseSeries struct {
 		result1 bool
 		result2 error
 	}
-	NameStub        func() string
-	nameMutex       sync.RWMutex
-	nameArgsForCall []struct {
-	}
-	nameReturns struct {
-		result1 string
-	}
-	nameReturnsOnCall map[int]struct {
-		result1 string
-	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeReleaseSeries) Delete(arg1 bool) error {
-	fake.deleteMutex.Lock()
-	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
-	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
-		arg1 bool
-	}{arg1})
-	fake.recordInvocation("Delete", []interface{}{arg1})
-	fake.deleteMutex.Unlock()
-	if fake.DeleteStub != nil {
-		return fake.DeleteStub(arg1)
+func (fake *FakeReleaseSeries) Name() string {
+	fake.nameMutex.Lock()
+	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
+	fake.nameArgsForCall = append(fake.nameArgsForCall, struct{}{})
+	fake.recordInvocation("Name", []interface{}{})
+	fake.nameMutex.Unlock()
+	if fake.NameStub != nil {
+		return fake.NameStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.deleteReturns
-	return fakeReturns.result1
+	return fake.nameReturns.result1
+}
+
+func (fake *FakeReleaseSeries) NameCallCount() int {
+	fake.nameMutex.RLock()
+	defer fake.nameMutex.RUnlock()
+	return len(fake.nameArgsForCall)
+}
+
+func (fake *FakeReleaseSeries) NameReturns(result1 string) {
+	fake.NameStub = nil
+	fake.nameReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeReleaseSeries) NameReturnsOnCall(i int, result1 string) {
+	fake.NameStub = nil
+	if fake.nameReturnsOnCall == nil {
+		fake.nameReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.nameReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeReleaseSeries) Delete(force bool) error {
+	fake.deleteMutex.Lock()
+	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
+	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
+		force bool
+	}{force})
+	fake.recordInvocation("Delete", []interface{}{force})
+	fake.deleteMutex.Unlock()
+	if fake.DeleteStub != nil {
+		return fake.DeleteStub(force)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.deleteReturns.result1
 }
 
 func (fake *FakeReleaseSeries) DeleteCallCount() int {
@@ -69,22 +106,13 @@ func (fake *FakeReleaseSeries) DeleteCallCount() int {
 	return len(fake.deleteArgsForCall)
 }
 
-func (fake *FakeReleaseSeries) DeleteCalls(stub func(bool) error) {
-	fake.deleteMutex.Lock()
-	defer fake.deleteMutex.Unlock()
-	fake.DeleteStub = stub
-}
-
 func (fake *FakeReleaseSeries) DeleteArgsForCall(i int) bool {
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
-	argsForCall := fake.deleteArgsForCall[i]
-	return argsForCall.arg1
+	return fake.deleteArgsForCall[i].force
 }
 
 func (fake *FakeReleaseSeries) DeleteReturns(result1 error) {
-	fake.deleteMutex.Lock()
-	defer fake.deleteMutex.Unlock()
 	fake.DeleteStub = nil
 	fake.deleteReturns = struct {
 		result1 error
@@ -92,8 +120,6 @@ func (fake *FakeReleaseSeries) DeleteReturns(result1 error) {
 }
 
 func (fake *FakeReleaseSeries) DeleteReturnsOnCall(i int, result1 error) {
-	fake.deleteMutex.Lock()
-	defer fake.deleteMutex.Unlock()
 	fake.DeleteStub = nil
 	if fake.deleteReturnsOnCall == nil {
 		fake.deleteReturnsOnCall = make(map[int]struct {
@@ -108,8 +134,7 @@ func (fake *FakeReleaseSeries) DeleteReturnsOnCall(i int, result1 error) {
 func (fake *FakeReleaseSeries) Exists() (bool, error) {
 	fake.existsMutex.Lock()
 	ret, specificReturn := fake.existsReturnsOnCall[len(fake.existsArgsForCall)]
-	fake.existsArgsForCall = append(fake.existsArgsForCall, struct {
-	}{})
+	fake.existsArgsForCall = append(fake.existsArgsForCall, struct{}{})
 	fake.recordInvocation("Exists", []interface{}{})
 	fake.existsMutex.Unlock()
 	if fake.ExistsStub != nil {
@@ -118,8 +143,7 @@ func (fake *FakeReleaseSeries) Exists() (bool, error) {
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.existsReturns
-	return fakeReturns.result1, fakeReturns.result2
+	return fake.existsReturns.result1, fake.existsReturns.result2
 }
 
 func (fake *FakeReleaseSeries) ExistsCallCount() int {
@@ -128,15 +152,7 @@ func (fake *FakeReleaseSeries) ExistsCallCount() int {
 	return len(fake.existsArgsForCall)
 }
 
-func (fake *FakeReleaseSeries) ExistsCalls(stub func() (bool, error)) {
-	fake.existsMutex.Lock()
-	defer fake.existsMutex.Unlock()
-	fake.ExistsStub = stub
-}
-
 func (fake *FakeReleaseSeries) ExistsReturns(result1 bool, result2 error) {
-	fake.existsMutex.Lock()
-	defer fake.existsMutex.Unlock()
 	fake.ExistsStub = nil
 	fake.existsReturns = struct {
 		result1 bool
@@ -145,8 +161,6 @@ func (fake *FakeReleaseSeries) ExistsReturns(result1 bool, result2 error) {
 }
 
 func (fake *FakeReleaseSeries) ExistsReturnsOnCall(i int, result1 bool, result2 error) {
-	fake.existsMutex.Lock()
-	defer fake.existsMutex.Unlock()
 	fake.ExistsStub = nil
 	if fake.existsReturnsOnCall == nil {
 		fake.existsReturnsOnCall = make(map[int]struct {
@@ -160,67 +174,15 @@ func (fake *FakeReleaseSeries) ExistsReturnsOnCall(i int, result1 bool, result2 
 	}{result1, result2}
 }
 
-func (fake *FakeReleaseSeries) Name() string {
-	fake.nameMutex.Lock()
-	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
-	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
-	}{})
-	fake.recordInvocation("Name", []interface{}{})
-	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	fakeReturns := fake.nameReturns
-	return fakeReturns.result1
-}
-
-func (fake *FakeReleaseSeries) NameCallCount() int {
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
-	return len(fake.nameArgsForCall)
-}
-
-func (fake *FakeReleaseSeries) NameCalls(stub func() string) {
-	fake.nameMutex.Lock()
-	defer fake.nameMutex.Unlock()
-	fake.NameStub = stub
-}
-
-func (fake *FakeReleaseSeries) NameReturns(result1 string) {
-	fake.nameMutex.Lock()
-	defer fake.nameMutex.Unlock()
-	fake.NameStub = nil
-	fake.nameReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeReleaseSeries) NameReturnsOnCall(i int, result1 string) {
-	fake.nameMutex.Lock()
-	defer fake.nameMutex.Unlock()
-	fake.NameStub = nil
-	if fake.nameReturnsOnCall == nil {
-		fake.nameReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.nameReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
 func (fake *FakeReleaseSeries) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.nameMutex.RLock()
+	defer fake.nameMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
 	fake.existsMutex.RLock()
 	defer fake.existsMutex.RUnlock()
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

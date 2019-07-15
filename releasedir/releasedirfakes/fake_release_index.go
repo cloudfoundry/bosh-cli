@@ -4,28 +4,30 @@ package releasedirfakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/release"
-	"github.com/cloudfoundry/bosh-cli/release/manifest"
+	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	boshrelman "github.com/cloudfoundry/bosh-cli/release/manifest"
 	"github.com/cloudfoundry/bosh-cli/releasedir"
-	"github.com/cppforlife/go-semi-semantic/version"
+	semver "github.com/cppforlife/go-semi-semantic/version"
 )
 
 type FakeReleaseIndex struct {
-	AddStub        func(manifest.Manifest) error
-	addMutex       sync.RWMutex
-	addArgsForCall []struct {
-		arg1 manifest.Manifest
+	LastVersionStub        func(name string) (*semver.Version, error)
+	lastVersionMutex       sync.RWMutex
+	lastVersionArgsForCall []struct {
+		name string
 	}
-	addReturns struct {
-		result1 error
+	lastVersionReturns struct {
+		result1 *semver.Version
+		result2 error
 	}
-	addReturnsOnCall map[int]struct {
-		result1 error
+	lastVersionReturnsOnCall map[int]struct {
+		result1 *semver.Version
+		result2 error
 	}
-	ContainsStub        func(release.Release) (bool, error)
+	ContainsStub        func(boshrel.Release) (bool, error)
 	containsMutex       sync.RWMutex
 	containsArgsForCall []struct {
-		arg1 release.Release
+		arg1 boshrel.Release
 	}
 	containsReturns struct {
 		result1 bool
@@ -35,24 +37,22 @@ type FakeReleaseIndex struct {
 		result1 bool
 		result2 error
 	}
-	LastVersionStub        func(string) (*version.Version, error)
-	lastVersionMutex       sync.RWMutex
-	lastVersionArgsForCall []struct {
-		arg1 string
+	AddStub        func(boshrelman.Manifest) error
+	addMutex       sync.RWMutex
+	addArgsForCall []struct {
+		arg1 boshrelman.Manifest
 	}
-	lastVersionReturns struct {
-		result1 *version.Version
-		result2 error
+	addReturns struct {
+		result1 error
 	}
-	lastVersionReturnsOnCall map[int]struct {
-		result1 *version.Version
-		result2 error
+	addReturnsOnCall map[int]struct {
+		result1 error
 	}
-	ManifestPathStub        func(string, string) string
+	ManifestPathStub        func(name, version string) string
 	manifestPathMutex       sync.RWMutex
 	manifestPathArgsForCall []struct {
-		arg1 string
-		arg2 string
+		name    string
+		version string
 	}
 	manifestPathReturns struct {
 		result1 string
@@ -64,71 +64,62 @@ type FakeReleaseIndex struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeReleaseIndex) Add(arg1 manifest.Manifest) error {
-	fake.addMutex.Lock()
-	ret, specificReturn := fake.addReturnsOnCall[len(fake.addArgsForCall)]
-	fake.addArgsForCall = append(fake.addArgsForCall, struct {
-		arg1 manifest.Manifest
-	}{arg1})
-	fake.recordInvocation("Add", []interface{}{arg1})
-	fake.addMutex.Unlock()
-	if fake.AddStub != nil {
-		return fake.AddStub(arg1)
+func (fake *FakeReleaseIndex) LastVersion(name string) (*semver.Version, error) {
+	fake.lastVersionMutex.Lock()
+	ret, specificReturn := fake.lastVersionReturnsOnCall[len(fake.lastVersionArgsForCall)]
+	fake.lastVersionArgsForCall = append(fake.lastVersionArgsForCall, struct {
+		name string
+	}{name})
+	fake.recordInvocation("LastVersion", []interface{}{name})
+	fake.lastVersionMutex.Unlock()
+	if fake.LastVersionStub != nil {
+		return fake.LastVersionStub(name)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.addReturns
-	return fakeReturns.result1
+	return fake.lastVersionReturns.result1, fake.lastVersionReturns.result2
 }
 
-func (fake *FakeReleaseIndex) AddCallCount() int {
-	fake.addMutex.RLock()
-	defer fake.addMutex.RUnlock()
-	return len(fake.addArgsForCall)
+func (fake *FakeReleaseIndex) LastVersionCallCount() int {
+	fake.lastVersionMutex.RLock()
+	defer fake.lastVersionMutex.RUnlock()
+	return len(fake.lastVersionArgsForCall)
 }
 
-func (fake *FakeReleaseIndex) AddCalls(stub func(manifest.Manifest) error) {
-	fake.addMutex.Lock()
-	defer fake.addMutex.Unlock()
-	fake.AddStub = stub
+func (fake *FakeReleaseIndex) LastVersionArgsForCall(i int) string {
+	fake.lastVersionMutex.RLock()
+	defer fake.lastVersionMutex.RUnlock()
+	return fake.lastVersionArgsForCall[i].name
 }
 
-func (fake *FakeReleaseIndex) AddArgsForCall(i int) manifest.Manifest {
-	fake.addMutex.RLock()
-	defer fake.addMutex.RUnlock()
-	argsForCall := fake.addArgsForCall[i]
-	return argsForCall.arg1
+func (fake *FakeReleaseIndex) LastVersionReturns(result1 *semver.Version, result2 error) {
+	fake.LastVersionStub = nil
+	fake.lastVersionReturns = struct {
+		result1 *semver.Version
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeReleaseIndex) AddReturns(result1 error) {
-	fake.addMutex.Lock()
-	defer fake.addMutex.Unlock()
-	fake.AddStub = nil
-	fake.addReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeReleaseIndex) AddReturnsOnCall(i int, result1 error) {
-	fake.addMutex.Lock()
-	defer fake.addMutex.Unlock()
-	fake.AddStub = nil
-	if fake.addReturnsOnCall == nil {
-		fake.addReturnsOnCall = make(map[int]struct {
-			result1 error
+func (fake *FakeReleaseIndex) LastVersionReturnsOnCall(i int, result1 *semver.Version, result2 error) {
+	fake.LastVersionStub = nil
+	if fake.lastVersionReturnsOnCall == nil {
+		fake.lastVersionReturnsOnCall = make(map[int]struct {
+			result1 *semver.Version
+			result2 error
 		})
 	}
-	fake.addReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
+	fake.lastVersionReturnsOnCall[i] = struct {
+		result1 *semver.Version
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeReleaseIndex) Contains(arg1 release.Release) (bool, error) {
+func (fake *FakeReleaseIndex) Contains(arg1 boshrel.Release) (bool, error) {
 	fake.containsMutex.Lock()
 	ret, specificReturn := fake.containsReturnsOnCall[len(fake.containsArgsForCall)]
 	fake.containsArgsForCall = append(fake.containsArgsForCall, struct {
-		arg1 release.Release
+		arg1 boshrel.Release
 	}{arg1})
 	fake.recordInvocation("Contains", []interface{}{arg1})
 	fake.containsMutex.Unlock()
@@ -138,8 +129,7 @@ func (fake *FakeReleaseIndex) Contains(arg1 release.Release) (bool, error) {
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.containsReturns
-	return fakeReturns.result1, fakeReturns.result2
+	return fake.containsReturns.result1, fake.containsReturns.result2
 }
 
 func (fake *FakeReleaseIndex) ContainsCallCount() int {
@@ -148,22 +138,13 @@ func (fake *FakeReleaseIndex) ContainsCallCount() int {
 	return len(fake.containsArgsForCall)
 }
 
-func (fake *FakeReleaseIndex) ContainsCalls(stub func(release.Release) (bool, error)) {
-	fake.containsMutex.Lock()
-	defer fake.containsMutex.Unlock()
-	fake.ContainsStub = stub
-}
-
-func (fake *FakeReleaseIndex) ContainsArgsForCall(i int) release.Release {
+func (fake *FakeReleaseIndex) ContainsArgsForCall(i int) boshrel.Release {
 	fake.containsMutex.RLock()
 	defer fake.containsMutex.RUnlock()
-	argsForCall := fake.containsArgsForCall[i]
-	return argsForCall.arg1
+	return fake.containsArgsForCall[i].arg1
 }
 
 func (fake *FakeReleaseIndex) ContainsReturns(result1 bool, result2 error) {
-	fake.containsMutex.Lock()
-	defer fake.containsMutex.Unlock()
 	fake.ContainsStub = nil
 	fake.containsReturns = struct {
 		result1 bool
@@ -172,8 +153,6 @@ func (fake *FakeReleaseIndex) ContainsReturns(result1 bool, result2 error) {
 }
 
 func (fake *FakeReleaseIndex) ContainsReturnsOnCall(i int, result1 bool, result2 error) {
-	fake.containsMutex.Lock()
-	defer fake.containsMutex.Unlock()
 	fake.ContainsStub = nil
 	if fake.containsReturnsOnCall == nil {
 		fake.containsReturnsOnCall = make(map[int]struct {
@@ -187,86 +166,70 @@ func (fake *FakeReleaseIndex) ContainsReturnsOnCall(i int, result1 bool, result2
 	}{result1, result2}
 }
 
-func (fake *FakeReleaseIndex) LastVersion(arg1 string) (*version.Version, error) {
-	fake.lastVersionMutex.Lock()
-	ret, specificReturn := fake.lastVersionReturnsOnCall[len(fake.lastVersionArgsForCall)]
-	fake.lastVersionArgsForCall = append(fake.lastVersionArgsForCall, struct {
-		arg1 string
+func (fake *FakeReleaseIndex) Add(arg1 boshrelman.Manifest) error {
+	fake.addMutex.Lock()
+	ret, specificReturn := fake.addReturnsOnCall[len(fake.addArgsForCall)]
+	fake.addArgsForCall = append(fake.addArgsForCall, struct {
+		arg1 boshrelman.Manifest
 	}{arg1})
-	fake.recordInvocation("LastVersion", []interface{}{arg1})
-	fake.lastVersionMutex.Unlock()
-	if fake.LastVersionStub != nil {
-		return fake.LastVersionStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	fakeReturns := fake.lastVersionReturns
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeReleaseIndex) LastVersionCallCount() int {
-	fake.lastVersionMutex.RLock()
-	defer fake.lastVersionMutex.RUnlock()
-	return len(fake.lastVersionArgsForCall)
-}
-
-func (fake *FakeReleaseIndex) LastVersionCalls(stub func(string) (*version.Version, error)) {
-	fake.lastVersionMutex.Lock()
-	defer fake.lastVersionMutex.Unlock()
-	fake.LastVersionStub = stub
-}
-
-func (fake *FakeReleaseIndex) LastVersionArgsForCall(i int) string {
-	fake.lastVersionMutex.RLock()
-	defer fake.lastVersionMutex.RUnlock()
-	argsForCall := fake.lastVersionArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeReleaseIndex) LastVersionReturns(result1 *version.Version, result2 error) {
-	fake.lastVersionMutex.Lock()
-	defer fake.lastVersionMutex.Unlock()
-	fake.LastVersionStub = nil
-	fake.lastVersionReturns = struct {
-		result1 *version.Version
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeReleaseIndex) LastVersionReturnsOnCall(i int, result1 *version.Version, result2 error) {
-	fake.lastVersionMutex.Lock()
-	defer fake.lastVersionMutex.Unlock()
-	fake.LastVersionStub = nil
-	if fake.lastVersionReturnsOnCall == nil {
-		fake.lastVersionReturnsOnCall = make(map[int]struct {
-			result1 *version.Version
-			result2 error
-		})
-	}
-	fake.lastVersionReturnsOnCall[i] = struct {
-		result1 *version.Version
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeReleaseIndex) ManifestPath(arg1 string, arg2 string) string {
-	fake.manifestPathMutex.Lock()
-	ret, specificReturn := fake.manifestPathReturnsOnCall[len(fake.manifestPathArgsForCall)]
-	fake.manifestPathArgsForCall = append(fake.manifestPathArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
-	fake.recordInvocation("ManifestPath", []interface{}{arg1, arg2})
-	fake.manifestPathMutex.Unlock()
-	if fake.ManifestPathStub != nil {
-		return fake.ManifestPathStub(arg1, arg2)
+	fake.recordInvocation("Add", []interface{}{arg1})
+	fake.addMutex.Unlock()
+	if fake.AddStub != nil {
+		return fake.AddStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.manifestPathReturns
-	return fakeReturns.result1
+	return fake.addReturns.result1
+}
+
+func (fake *FakeReleaseIndex) AddCallCount() int {
+	fake.addMutex.RLock()
+	defer fake.addMutex.RUnlock()
+	return len(fake.addArgsForCall)
+}
+
+func (fake *FakeReleaseIndex) AddArgsForCall(i int) boshrelman.Manifest {
+	fake.addMutex.RLock()
+	defer fake.addMutex.RUnlock()
+	return fake.addArgsForCall[i].arg1
+}
+
+func (fake *FakeReleaseIndex) AddReturns(result1 error) {
+	fake.AddStub = nil
+	fake.addReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeReleaseIndex) AddReturnsOnCall(i int, result1 error) {
+	fake.AddStub = nil
+	if fake.addReturnsOnCall == nil {
+		fake.addReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.addReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeReleaseIndex) ManifestPath(name string, version string) string {
+	fake.manifestPathMutex.Lock()
+	ret, specificReturn := fake.manifestPathReturnsOnCall[len(fake.manifestPathArgsForCall)]
+	fake.manifestPathArgsForCall = append(fake.manifestPathArgsForCall, struct {
+		name    string
+		version string
+	}{name, version})
+	fake.recordInvocation("ManifestPath", []interface{}{name, version})
+	fake.manifestPathMutex.Unlock()
+	if fake.ManifestPathStub != nil {
+		return fake.ManifestPathStub(name, version)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.manifestPathReturns.result1
 }
 
 func (fake *FakeReleaseIndex) ManifestPathCallCount() int {
@@ -275,22 +238,13 @@ func (fake *FakeReleaseIndex) ManifestPathCallCount() int {
 	return len(fake.manifestPathArgsForCall)
 }
 
-func (fake *FakeReleaseIndex) ManifestPathCalls(stub func(string, string) string) {
-	fake.manifestPathMutex.Lock()
-	defer fake.manifestPathMutex.Unlock()
-	fake.ManifestPathStub = stub
-}
-
 func (fake *FakeReleaseIndex) ManifestPathArgsForCall(i int) (string, string) {
 	fake.manifestPathMutex.RLock()
 	defer fake.manifestPathMutex.RUnlock()
-	argsForCall := fake.manifestPathArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return fake.manifestPathArgsForCall[i].name, fake.manifestPathArgsForCall[i].version
 }
 
 func (fake *FakeReleaseIndex) ManifestPathReturns(result1 string) {
-	fake.manifestPathMutex.Lock()
-	defer fake.manifestPathMutex.Unlock()
 	fake.ManifestPathStub = nil
 	fake.manifestPathReturns = struct {
 		result1 string
@@ -298,8 +252,6 @@ func (fake *FakeReleaseIndex) ManifestPathReturns(result1 string) {
 }
 
 func (fake *FakeReleaseIndex) ManifestPathReturnsOnCall(i int, result1 string) {
-	fake.manifestPathMutex.Lock()
-	defer fake.manifestPathMutex.Unlock()
 	fake.ManifestPathStub = nil
 	if fake.manifestPathReturnsOnCall == nil {
 		fake.manifestPathReturnsOnCall = make(map[int]struct {
@@ -314,12 +266,12 @@ func (fake *FakeReleaseIndex) ManifestPathReturnsOnCall(i int, result1 string) {
 func (fake *FakeReleaseIndex) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.addMutex.RLock()
-	defer fake.addMutex.RUnlock()
-	fake.containsMutex.RLock()
-	defer fake.containsMutex.RUnlock()
 	fake.lastVersionMutex.RLock()
 	defer fake.lastVersionMutex.RUnlock()
+	fake.containsMutex.RLock()
+	defer fake.containsMutex.RUnlock()
+	fake.addMutex.RLock()
+	defer fake.addMutex.RUnlock()
 	fake.manifestPathMutex.RLock()
 	defer fake.manifestPathMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

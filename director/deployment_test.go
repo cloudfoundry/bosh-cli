@@ -600,14 +600,12 @@ var _ = Describe("Deployment", func() {
 			relSlug ReleaseSlug
 			osSlug  OSVersionSlug
 			jobs    []string
-			strip   bool
 		)
 
 		BeforeEach(func() {
 			relSlug = NewReleaseSlug("rel", "1")
 			osSlug = NewOSVersionSlug("os", "2")
 			jobs = []string{"fake-job"}
-			strip = true
 		})
 
 		It("returns exported release result", func() {
@@ -618,8 +616,7 @@ var _ = Describe("Deployment", func() {
 "release_version":"1",
 "sha2":true,
 "stemcell_os":"os",
-"stemcell_version":"2",
-"strip":true
+"stemcell_version":"2"
 }`
 
 			ConfigureTaskResult(
@@ -635,7 +632,7 @@ var _ = Describe("Deployment", func() {
 				server,
 			)
 
-			result, err := deployment.ExportRelease(relSlug, osSlug, jobs, strip)
+			result, err := deployment.ExportRelease(relSlug, osSlug, jobs)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(Equal(ExportReleaseResult{
 				BlobstoreID: "release-blob-id",
@@ -646,7 +643,7 @@ var _ = Describe("Deployment", func() {
 		It("returns error if task response is non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("POST", "/releases/export"), server)
 
-			_, err := deployment.ExportRelease(relSlug, osSlug, jobs, strip)
+			_, err := deployment.ExportRelease(relSlug, osSlug, jobs)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Exporting release"))
 		})
@@ -654,7 +651,7 @@ var _ = Describe("Deployment", func() {
 		It("returns error if response cannot be unmarshalled", func() {
 			ConfigureTaskResult(ghttp.VerifyRequest("POST", "/releases/export"), ``, server)
 
-			_, err := deployment.ExportRelease(relSlug, osSlug, jobs, strip)
+			_, err := deployment.ExportRelease(relSlug, osSlug, jobs)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Unmarshaling export release result"))
 		})

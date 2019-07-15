@@ -10,18 +10,6 @@ import (
 )
 
 type FakeFileReporter struct {
-	TrackDownloadStub        func(int64, io.Writer) io.Writer
-	trackDownloadMutex       sync.RWMutex
-	trackDownloadArgsForCall []struct {
-		arg1 int64
-		arg2 io.Writer
-	}
-	trackDownloadReturns struct {
-		result1 io.Writer
-	}
-	trackDownloadReturnsOnCall map[int]struct {
-		result1 io.Writer
-	}
 	TrackUploadStub        func(int64, io.ReadCloser) ui.ReadSeekCloser
 	trackUploadMutex       sync.RWMutex
 	trackUploadArgsForCall []struct {
@@ -34,69 +22,20 @@ type FakeFileReporter struct {
 	trackUploadReturnsOnCall map[int]struct {
 		result1 ui.ReadSeekCloser
 	}
-	invocations      map[string][][]interface{}
-	invocationsMutex sync.RWMutex
-}
-
-func (fake *FakeFileReporter) TrackDownload(arg1 int64, arg2 io.Writer) io.Writer {
-	fake.trackDownloadMutex.Lock()
-	ret, specificReturn := fake.trackDownloadReturnsOnCall[len(fake.trackDownloadArgsForCall)]
-	fake.trackDownloadArgsForCall = append(fake.trackDownloadArgsForCall, struct {
+	TrackDownloadStub        func(int64, io.Writer) io.Writer
+	trackDownloadMutex       sync.RWMutex
+	trackDownloadArgsForCall []struct {
 		arg1 int64
 		arg2 io.Writer
-	}{arg1, arg2})
-	fake.recordInvocation("TrackDownload", []interface{}{arg1, arg2})
-	fake.trackDownloadMutex.Unlock()
-	if fake.TrackDownloadStub != nil {
-		return fake.TrackDownloadStub(arg1, arg2)
 	}
-	if specificReturn {
-		return ret.result1
-	}
-	fakeReturns := fake.trackDownloadReturns
-	return fakeReturns.result1
-}
-
-func (fake *FakeFileReporter) TrackDownloadCallCount() int {
-	fake.trackDownloadMutex.RLock()
-	defer fake.trackDownloadMutex.RUnlock()
-	return len(fake.trackDownloadArgsForCall)
-}
-
-func (fake *FakeFileReporter) TrackDownloadCalls(stub func(int64, io.Writer) io.Writer) {
-	fake.trackDownloadMutex.Lock()
-	defer fake.trackDownloadMutex.Unlock()
-	fake.TrackDownloadStub = stub
-}
-
-func (fake *FakeFileReporter) TrackDownloadArgsForCall(i int) (int64, io.Writer) {
-	fake.trackDownloadMutex.RLock()
-	defer fake.trackDownloadMutex.RUnlock()
-	argsForCall := fake.trackDownloadArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeFileReporter) TrackDownloadReturns(result1 io.Writer) {
-	fake.trackDownloadMutex.Lock()
-	defer fake.trackDownloadMutex.Unlock()
-	fake.TrackDownloadStub = nil
-	fake.trackDownloadReturns = struct {
+	trackDownloadReturns struct {
 		result1 io.Writer
-	}{result1}
-}
-
-func (fake *FakeFileReporter) TrackDownloadReturnsOnCall(i int, result1 io.Writer) {
-	fake.trackDownloadMutex.Lock()
-	defer fake.trackDownloadMutex.Unlock()
-	fake.TrackDownloadStub = nil
-	if fake.trackDownloadReturnsOnCall == nil {
-		fake.trackDownloadReturnsOnCall = make(map[int]struct {
-			result1 io.Writer
-		})
 	}
-	fake.trackDownloadReturnsOnCall[i] = struct {
+	trackDownloadReturnsOnCall map[int]struct {
 		result1 io.Writer
-	}{result1}
+	}
+	invocations      map[string][][]interface{}
+	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeFileReporter) TrackUpload(arg1 int64, arg2 io.ReadCloser) ui.ReadSeekCloser {
@@ -114,8 +53,7 @@ func (fake *FakeFileReporter) TrackUpload(arg1 int64, arg2 io.ReadCloser) ui.Rea
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.trackUploadReturns
-	return fakeReturns.result1
+	return fake.trackUploadReturns.result1
 }
 
 func (fake *FakeFileReporter) TrackUploadCallCount() int {
@@ -124,22 +62,13 @@ func (fake *FakeFileReporter) TrackUploadCallCount() int {
 	return len(fake.trackUploadArgsForCall)
 }
 
-func (fake *FakeFileReporter) TrackUploadCalls(stub func(int64, io.ReadCloser) ui.ReadSeekCloser) {
-	fake.trackUploadMutex.Lock()
-	defer fake.trackUploadMutex.Unlock()
-	fake.TrackUploadStub = stub
-}
-
 func (fake *FakeFileReporter) TrackUploadArgsForCall(i int) (int64, io.ReadCloser) {
 	fake.trackUploadMutex.RLock()
 	defer fake.trackUploadMutex.RUnlock()
-	argsForCall := fake.trackUploadArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return fake.trackUploadArgsForCall[i].arg1, fake.trackUploadArgsForCall[i].arg2
 }
 
 func (fake *FakeFileReporter) TrackUploadReturns(result1 ui.ReadSeekCloser) {
-	fake.trackUploadMutex.Lock()
-	defer fake.trackUploadMutex.Unlock()
 	fake.TrackUploadStub = nil
 	fake.trackUploadReturns = struct {
 		result1 ui.ReadSeekCloser
@@ -147,8 +76,6 @@ func (fake *FakeFileReporter) TrackUploadReturns(result1 ui.ReadSeekCloser) {
 }
 
 func (fake *FakeFileReporter) TrackUploadReturnsOnCall(i int, result1 ui.ReadSeekCloser) {
-	fake.trackUploadMutex.Lock()
-	defer fake.trackUploadMutex.Unlock()
 	fake.TrackUploadStub = nil
 	if fake.trackUploadReturnsOnCall == nil {
 		fake.trackUploadReturnsOnCall = make(map[int]struct {
@@ -160,13 +87,62 @@ func (fake *FakeFileReporter) TrackUploadReturnsOnCall(i int, result1 ui.ReadSee
 	}{result1}
 }
 
+func (fake *FakeFileReporter) TrackDownload(arg1 int64, arg2 io.Writer) io.Writer {
+	fake.trackDownloadMutex.Lock()
+	ret, specificReturn := fake.trackDownloadReturnsOnCall[len(fake.trackDownloadArgsForCall)]
+	fake.trackDownloadArgsForCall = append(fake.trackDownloadArgsForCall, struct {
+		arg1 int64
+		arg2 io.Writer
+	}{arg1, arg2})
+	fake.recordInvocation("TrackDownload", []interface{}{arg1, arg2})
+	fake.trackDownloadMutex.Unlock()
+	if fake.TrackDownloadStub != nil {
+		return fake.TrackDownloadStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.trackDownloadReturns.result1
+}
+
+func (fake *FakeFileReporter) TrackDownloadCallCount() int {
+	fake.trackDownloadMutex.RLock()
+	defer fake.trackDownloadMutex.RUnlock()
+	return len(fake.trackDownloadArgsForCall)
+}
+
+func (fake *FakeFileReporter) TrackDownloadArgsForCall(i int) (int64, io.Writer) {
+	fake.trackDownloadMutex.RLock()
+	defer fake.trackDownloadMutex.RUnlock()
+	return fake.trackDownloadArgsForCall[i].arg1, fake.trackDownloadArgsForCall[i].arg2
+}
+
+func (fake *FakeFileReporter) TrackDownloadReturns(result1 io.Writer) {
+	fake.TrackDownloadStub = nil
+	fake.trackDownloadReturns = struct {
+		result1 io.Writer
+	}{result1}
+}
+
+func (fake *FakeFileReporter) TrackDownloadReturnsOnCall(i int, result1 io.Writer) {
+	fake.TrackDownloadStub = nil
+	if fake.trackDownloadReturnsOnCall == nil {
+		fake.trackDownloadReturnsOnCall = make(map[int]struct {
+			result1 io.Writer
+		})
+	}
+	fake.trackDownloadReturnsOnCall[i] = struct {
+		result1 io.Writer
+	}{result1}
+}
+
 func (fake *FakeFileReporter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.trackDownloadMutex.RLock()
-	defer fake.trackDownloadMutex.RUnlock()
 	fake.trackUploadMutex.RLock()
 	defer fake.trackUploadMutex.RUnlock()
+	fake.trackDownloadMutex.RLock()
+	defer fake.trackDownloadMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

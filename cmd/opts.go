@@ -629,8 +629,7 @@ type ExportReleaseOpts struct {
 
 	Directory DirOrCWDArg `long:"dir" description:"Destination directory" default:"."`
 
-	Jobs  []string `long:"job" description:"Name of job to export"`
-	Strip bool     `long:"strip" description:"Strip compile-time packages from the release"`
+	Jobs []string `long:"job" description:"Name of job to export"`
 	cmd
 }
 

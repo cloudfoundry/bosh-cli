@@ -39,8 +39,7 @@ func (fake *FakeDirReader) Read(arg1 string) (*license.License, error) {
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.readReturns
-	return fakeReturns.result1, fakeReturns.result2
+	return fake.readReturns.result1, fake.readReturns.result2
 }
 
 func (fake *FakeDirReader) ReadCallCount() int {
@@ -49,22 +48,13 @@ func (fake *FakeDirReader) ReadCallCount() int {
 	return len(fake.readArgsForCall)
 }
 
-func (fake *FakeDirReader) ReadCalls(stub func(string) (*license.License, error)) {
-	fake.readMutex.Lock()
-	defer fake.readMutex.Unlock()
-	fake.ReadStub = stub
-}
-
 func (fake *FakeDirReader) ReadArgsForCall(i int) string {
 	fake.readMutex.RLock()
 	defer fake.readMutex.RUnlock()
-	argsForCall := fake.readArgsForCall[i]
-	return argsForCall.arg1
+	return fake.readArgsForCall[i].arg1
 }
 
 func (fake *FakeDirReader) ReadReturns(result1 *license.License, result2 error) {
-	fake.readMutex.Lock()
-	defer fake.readMutex.Unlock()
 	fake.ReadStub = nil
 	fake.readReturns = struct {
 		result1 *license.License
@@ -73,8 +63,6 @@ func (fake *FakeDirReader) ReadReturns(result1 *license.License, result2 error) 
 }
 
 func (fake *FakeDirReader) ReadReturnsOnCall(i int, result1 *license.License, result2 error) {
-	fake.readMutex.Lock()
-	defer fake.readMutex.Unlock()
 	fake.ReadStub = nil
 	if fake.readReturnsOnCall == nil {
 		fake.readReturnsOnCall = make(map[int]struct {

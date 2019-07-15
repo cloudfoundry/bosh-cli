@@ -1886,14 +1886,6 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("Strip", func() {
-			It("contains desired value", func() {
-				Expect(getStructTagForName("Strip", opts)).To(Equal(
-					`long:"strip" description:"Strip compile-time packages from the release"`,
-				))
-			})
-		})
-
 	})
 
 	Describe("ExportReleaseArgs", func() {

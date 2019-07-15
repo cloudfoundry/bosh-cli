@@ -46,8 +46,7 @@ func (fake *FakeWriter) Write(arg1 release.Release, arg2 []string) (string, erro
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.writeReturns
-	return fakeReturns.result1, fakeReturns.result2
+	return fake.writeReturns.result1, fake.writeReturns.result2
 }
 
 func (fake *FakeWriter) WriteCallCount() int {
@@ -56,22 +55,13 @@ func (fake *FakeWriter) WriteCallCount() int {
 	return len(fake.writeArgsForCall)
 }
 
-func (fake *FakeWriter) WriteCalls(stub func(release.Release, []string) (string, error)) {
-	fake.writeMutex.Lock()
-	defer fake.writeMutex.Unlock()
-	fake.WriteStub = stub
-}
-
 func (fake *FakeWriter) WriteArgsForCall(i int) (release.Release, []string) {
 	fake.writeMutex.RLock()
 	defer fake.writeMutex.RUnlock()
-	argsForCall := fake.writeArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return fake.writeArgsForCall[i].arg1, fake.writeArgsForCall[i].arg2
 }
 
 func (fake *FakeWriter) WriteReturns(result1 string, result2 error) {
-	fake.writeMutex.Lock()
-	defer fake.writeMutex.Unlock()
 	fake.WriteStub = nil
 	fake.writeReturns = struct {
 		result1 string
@@ -80,8 +70,6 @@ func (fake *FakeWriter) WriteReturns(result1 string, result2 error) {
 }
 
 func (fake *FakeWriter) WriteReturnsOnCall(i int, result1 string, result2 error) {
-	fake.writeMutex.Lock()
-	defer fake.writeMutex.Unlock()
 	fake.WriteStub = nil
 	if fake.writeReturnsOnCall == nil {
 		fake.writeReturnsOnCall = make(map[int]struct {

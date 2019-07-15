@@ -48,8 +48,7 @@ func (fake *FakeGenerator) GenerateJob(arg1 string) error {
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.generateJobReturns
-	return fakeReturns.result1
+	return fake.generateJobReturns.result1
 }
 
 func (fake *FakeGenerator) GenerateJobCallCount() int {
@@ -58,22 +57,13 @@ func (fake *FakeGenerator) GenerateJobCallCount() int {
 	return len(fake.generateJobArgsForCall)
 }
 
-func (fake *FakeGenerator) GenerateJobCalls(stub func(string) error) {
-	fake.generateJobMutex.Lock()
-	defer fake.generateJobMutex.Unlock()
-	fake.GenerateJobStub = stub
-}
-
 func (fake *FakeGenerator) GenerateJobArgsForCall(i int) string {
 	fake.generateJobMutex.RLock()
 	defer fake.generateJobMutex.RUnlock()
-	argsForCall := fake.generateJobArgsForCall[i]
-	return argsForCall.arg1
+	return fake.generateJobArgsForCall[i].arg1
 }
 
 func (fake *FakeGenerator) GenerateJobReturns(result1 error) {
-	fake.generateJobMutex.Lock()
-	defer fake.generateJobMutex.Unlock()
 	fake.GenerateJobStub = nil
 	fake.generateJobReturns = struct {
 		result1 error
@@ -81,8 +71,6 @@ func (fake *FakeGenerator) GenerateJobReturns(result1 error) {
 }
 
 func (fake *FakeGenerator) GenerateJobReturnsOnCall(i int, result1 error) {
-	fake.generateJobMutex.Lock()
-	defer fake.generateJobMutex.Unlock()
 	fake.GenerateJobStub = nil
 	if fake.generateJobReturnsOnCall == nil {
 		fake.generateJobReturnsOnCall = make(map[int]struct {
@@ -108,8 +96,7 @@ func (fake *FakeGenerator) GeneratePackage(arg1 string) error {
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.generatePackageReturns
-	return fakeReturns.result1
+	return fake.generatePackageReturns.result1
 }
 
 func (fake *FakeGenerator) GeneratePackageCallCount() int {
@@ -118,22 +105,13 @@ func (fake *FakeGenerator) GeneratePackageCallCount() int {
 	return len(fake.generatePackageArgsForCall)
 }
 
-func (fake *FakeGenerator) GeneratePackageCalls(stub func(string) error) {
-	fake.generatePackageMutex.Lock()
-	defer fake.generatePackageMutex.Unlock()
-	fake.GeneratePackageStub = stub
-}
-
 func (fake *FakeGenerator) GeneratePackageArgsForCall(i int) string {
 	fake.generatePackageMutex.RLock()
 	defer fake.generatePackageMutex.RUnlock()
-	argsForCall := fake.generatePackageArgsForCall[i]
-	return argsForCall.arg1
+	return fake.generatePackageArgsForCall[i].arg1
 }
 
 func (fake *FakeGenerator) GeneratePackageReturns(result1 error) {
-	fake.generatePackageMutex.Lock()
-	defer fake.generatePackageMutex.Unlock()
 	fake.GeneratePackageStub = nil
 	fake.generatePackageReturns = struct {
 		result1 error
@@ -141,8 +119,6 @@ func (fake *FakeGenerator) GeneratePackageReturns(result1 error) {
 }
 
 func (fake *FakeGenerator) GeneratePackageReturnsOnCall(i int, result1 error) {
-	fake.generatePackageMutex.Lock()
-	defer fake.generatePackageMutex.Unlock()
 	fake.GeneratePackageStub = nil
 	if fake.generatePackageReturnsOnCall == nil {
 		fake.generatePackageReturnsOnCall = make(map[int]struct {

@@ -40,8 +40,7 @@ func (fake *FakeAdjustedClient) Do(arg1 *http.Request) (*http.Response, error) {
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.doReturns
-	return fakeReturns.result1, fakeReturns.result2
+	return fake.doReturns.result1, fake.doReturns.result2
 }
 
 func (fake *FakeAdjustedClient) DoCallCount() int {
@@ -50,22 +49,13 @@ func (fake *FakeAdjustedClient) DoCallCount() int {
 	return len(fake.doArgsForCall)
 }
 
-func (fake *FakeAdjustedClient) DoCalls(stub func(*http.Request) (*http.Response, error)) {
-	fake.doMutex.Lock()
-	defer fake.doMutex.Unlock()
-	fake.DoStub = stub
-}
-
 func (fake *FakeAdjustedClient) DoArgsForCall(i int) *http.Request {
 	fake.doMutex.RLock()
 	defer fake.doMutex.RUnlock()
-	argsForCall := fake.doArgsForCall[i]
-	return argsForCall.arg1
+	return fake.doArgsForCall[i].arg1
 }
 
 func (fake *FakeAdjustedClient) DoReturns(result1 *http.Response, result2 error) {
-	fake.doMutex.Lock()
-	defer fake.doMutex.Unlock()
 	fake.DoStub = nil
 	fake.doReturns = struct {
 		result1 *http.Response
@@ -74,8 +64,6 @@ func (fake *FakeAdjustedClient) DoReturns(result1 *http.Response, result2 error)
 }
 
 func (fake *FakeAdjustedClient) DoReturnsOnCall(i int, result1 *http.Response, result2 error) {
-	fake.doMutex.Lock()
-	defer fake.doMutex.Unlock()
 	fake.DoStub = nil
 	if fake.doReturnsOnCall == nil {
 		fake.doReturnsOnCall = make(map[int]struct {
