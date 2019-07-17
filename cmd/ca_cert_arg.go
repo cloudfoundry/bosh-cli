@@ -4,22 +4,26 @@ import (
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type CACertArg struct {
-	FS boshsys.FileSystem
-
 	Content string
+	FS      boshsys.FileSystem
 }
 
 func (a *CACertArg) UnmarshalFlag(data string) error {
+	if a.FS == nil {
+		a.FS = boshsys.NewOsFileSystemWithStrictTempRoot(boshlog.NewLogger(boshlog.LevelNone))
+	}
+
 	if len(data) == 0 {
 		return bosherr.Errorf("Expected CA cert to be non-empty")
 	}
 
 	if strings.Contains(data, "BEGIN") {
-		(*a).Content = data
+		a.Content = data
 		return nil
 	}
 
@@ -33,7 +37,7 @@ func (a *CACertArg) UnmarshalFlag(data string) error {
 		return err
 	}
 
-	(*a).Content = content
+	a.Content = content
 
 	return nil
 }
