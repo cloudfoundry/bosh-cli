@@ -51,7 +51,8 @@ func (fake *FakeFingerprinter) Calculate(arg1 []resource.File, arg2 []string) (s
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.calculateReturns.result1, fake.calculateReturns.result2
+	fakeReturns := fake.calculateReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeFingerprinter) CalculateCallCount() int {
@@ -60,13 +61,22 @@ func (fake *FakeFingerprinter) CalculateCallCount() int {
 	return len(fake.calculateArgsForCall)
 }
 
+func (fake *FakeFingerprinter) CalculateCalls(stub func([]resource.File, []string) (string, error)) {
+	fake.calculateMutex.Lock()
+	defer fake.calculateMutex.Unlock()
+	fake.CalculateStub = stub
+}
+
 func (fake *FakeFingerprinter) CalculateArgsForCall(i int) ([]resource.File, []string) {
 	fake.calculateMutex.RLock()
 	defer fake.calculateMutex.RUnlock()
-	return fake.calculateArgsForCall[i].arg1, fake.calculateArgsForCall[i].arg2
+	argsForCall := fake.calculateArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeFingerprinter) CalculateReturns(result1 string, result2 error) {
+	fake.calculateMutex.Lock()
+	defer fake.calculateMutex.Unlock()
 	fake.CalculateStub = nil
 	fake.calculateReturns = struct {
 		result1 string
@@ -75,6 +85,8 @@ func (fake *FakeFingerprinter) CalculateReturns(result1 string, result2 error) {
 }
 
 func (fake *FakeFingerprinter) CalculateReturnsOnCall(i int, result1 string, result2 error) {
+	fake.calculateMutex.Lock()
+	defer fake.calculateMutex.Unlock()
 	fake.CalculateStub = nil
 	if fake.calculateReturnsOnCall == nil {
 		fake.calculateReturnsOnCall = make(map[int]struct {

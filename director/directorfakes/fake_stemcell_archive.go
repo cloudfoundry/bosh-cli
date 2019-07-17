@@ -8,21 +8,11 @@ import (
 )
 
 type FakeStemcellArchive struct {
-	InfoStub        func() (director.StemcellMetadata, error)
-	infoMutex       sync.RWMutex
-	infoArgsForCall []struct{}
-	infoReturns     struct {
-		result1 director.StemcellMetadata
-		result2 error
-	}
-	infoReturnsOnCall map[int]struct {
-		result1 director.StemcellMetadata
-		result2 error
-	}
 	FileStub        func() (director.UploadFile, error)
 	fileMutex       sync.RWMutex
-	fileArgsForCall []struct{}
-	fileReturns     struct {
+	fileArgsForCall []struct {
+	}
+	fileReturns struct {
 		result1 director.UploadFile
 		result2 error
 	}
@@ -30,57 +20,27 @@ type FakeStemcellArchive struct {
 		result1 director.UploadFile
 		result2 error
 	}
+	InfoStub        func() (director.StemcellMetadata, error)
+	infoMutex       sync.RWMutex
+	infoArgsForCall []struct {
+	}
+	infoReturns struct {
+		result1 director.StemcellMetadata
+		result2 error
+	}
+	infoReturnsOnCall map[int]struct {
+		result1 director.StemcellMetadata
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
-}
-
-func (fake *FakeStemcellArchive) Info() (director.StemcellMetadata, error) {
-	fake.infoMutex.Lock()
-	ret, specificReturn := fake.infoReturnsOnCall[len(fake.infoArgsForCall)]
-	fake.infoArgsForCall = append(fake.infoArgsForCall, struct{}{})
-	fake.recordInvocation("Info", []interface{}{})
-	fake.infoMutex.Unlock()
-	if fake.InfoStub != nil {
-		return fake.InfoStub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.infoReturns.result1, fake.infoReturns.result2
-}
-
-func (fake *FakeStemcellArchive) InfoCallCount() int {
-	fake.infoMutex.RLock()
-	defer fake.infoMutex.RUnlock()
-	return len(fake.infoArgsForCall)
-}
-
-func (fake *FakeStemcellArchive) InfoReturns(result1 director.StemcellMetadata, result2 error) {
-	fake.InfoStub = nil
-	fake.infoReturns = struct {
-		result1 director.StemcellMetadata
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStemcellArchive) InfoReturnsOnCall(i int, result1 director.StemcellMetadata, result2 error) {
-	fake.InfoStub = nil
-	if fake.infoReturnsOnCall == nil {
-		fake.infoReturnsOnCall = make(map[int]struct {
-			result1 director.StemcellMetadata
-			result2 error
-		})
-	}
-	fake.infoReturnsOnCall[i] = struct {
-		result1 director.StemcellMetadata
-		result2 error
-	}{result1, result2}
 }
 
 func (fake *FakeStemcellArchive) File() (director.UploadFile, error) {
 	fake.fileMutex.Lock()
 	ret, specificReturn := fake.fileReturnsOnCall[len(fake.fileArgsForCall)]
-	fake.fileArgsForCall = append(fake.fileArgsForCall, struct{}{})
+	fake.fileArgsForCall = append(fake.fileArgsForCall, struct {
+	}{})
 	fake.recordInvocation("File", []interface{}{})
 	fake.fileMutex.Unlock()
 	if fake.FileStub != nil {
@@ -89,7 +49,8 @@ func (fake *FakeStemcellArchive) File() (director.UploadFile, error) {
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.fileReturns.result1, fake.fileReturns.result2
+	fakeReturns := fake.fileReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeStemcellArchive) FileCallCount() int {
@@ -98,7 +59,15 @@ func (fake *FakeStemcellArchive) FileCallCount() int {
 	return len(fake.fileArgsForCall)
 }
 
+func (fake *FakeStemcellArchive) FileCalls(stub func() (director.UploadFile, error)) {
+	fake.fileMutex.Lock()
+	defer fake.fileMutex.Unlock()
+	fake.FileStub = stub
+}
+
 func (fake *FakeStemcellArchive) FileReturns(result1 director.UploadFile, result2 error) {
+	fake.fileMutex.Lock()
+	defer fake.fileMutex.Unlock()
 	fake.FileStub = nil
 	fake.fileReturns = struct {
 		result1 director.UploadFile
@@ -107,6 +76,8 @@ func (fake *FakeStemcellArchive) FileReturns(result1 director.UploadFile, result
 }
 
 func (fake *FakeStemcellArchive) FileReturnsOnCall(i int, result1 director.UploadFile, result2 error) {
+	fake.fileMutex.Lock()
+	defer fake.fileMutex.Unlock()
 	fake.FileStub = nil
 	if fake.fileReturnsOnCall == nil {
 		fake.fileReturnsOnCall = make(map[int]struct {
@@ -120,13 +91,68 @@ func (fake *FakeStemcellArchive) FileReturnsOnCall(i int, result1 director.Uploa
 	}{result1, result2}
 }
 
+func (fake *FakeStemcellArchive) Info() (director.StemcellMetadata, error) {
+	fake.infoMutex.Lock()
+	ret, specificReturn := fake.infoReturnsOnCall[len(fake.infoArgsForCall)]
+	fake.infoArgsForCall = append(fake.infoArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Info", []interface{}{})
+	fake.infoMutex.Unlock()
+	if fake.InfoStub != nil {
+		return fake.InfoStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.infoReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStemcellArchive) InfoCallCount() int {
+	fake.infoMutex.RLock()
+	defer fake.infoMutex.RUnlock()
+	return len(fake.infoArgsForCall)
+}
+
+func (fake *FakeStemcellArchive) InfoCalls(stub func() (director.StemcellMetadata, error)) {
+	fake.infoMutex.Lock()
+	defer fake.infoMutex.Unlock()
+	fake.InfoStub = stub
+}
+
+func (fake *FakeStemcellArchive) InfoReturns(result1 director.StemcellMetadata, result2 error) {
+	fake.infoMutex.Lock()
+	defer fake.infoMutex.Unlock()
+	fake.InfoStub = nil
+	fake.infoReturns = struct {
+		result1 director.StemcellMetadata
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStemcellArchive) InfoReturnsOnCall(i int, result1 director.StemcellMetadata, result2 error) {
+	fake.infoMutex.Lock()
+	defer fake.infoMutex.Unlock()
+	fake.InfoStub = nil
+	if fake.infoReturnsOnCall == nil {
+		fake.infoReturnsOnCall = make(map[int]struct {
+			result1 director.StemcellMetadata
+			result2 error
+		})
+	}
+	fake.infoReturnsOnCall[i] = struct {
+		result1 director.StemcellMetadata
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeStemcellArchive) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.infoMutex.RLock()
-	defer fake.infoMutex.RUnlock()
 	fake.fileMutex.RLock()
 	defer fake.fileMutex.RUnlock()
+	fake.infoMutex.RLock()
+	defer fake.infoMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -9,28 +9,41 @@ import (
 )
 
 type FakeOrphanDisk struct {
+	AZNameStub        func() string
+	aZNameMutex       sync.RWMutex
+	aZNameArgsForCall []struct {
+	}
+	aZNameReturns struct {
+		result1 string
+	}
+	aZNameReturnsOnCall map[int]struct {
+		result1 string
+	}
 	CIDStub        func() string
 	cIDMutex       sync.RWMutex
-	cIDArgsForCall []struct{}
-	cIDReturns     struct {
+	cIDArgsForCall []struct {
+	}
+	cIDReturns struct {
 		result1 string
 	}
 	cIDReturnsOnCall map[int]struct {
 		result1 string
 	}
-	SizeStub        func() uint64
-	sizeMutex       sync.RWMutex
-	sizeArgsForCall []struct{}
-	sizeReturns     struct {
-		result1 uint64
+	DeleteStub        func() error
+	deleteMutex       sync.RWMutex
+	deleteArgsForCall []struct {
 	}
-	sizeReturnsOnCall map[int]struct {
-		result1 uint64
+	deleteReturns struct {
+		result1 error
+	}
+	deleteReturnsOnCall map[int]struct {
+		result1 error
 	}
 	DeploymentStub        func() director.Deployment
 	deploymentMutex       sync.RWMutex
-	deploymentArgsForCall []struct{}
-	deploymentReturns     struct {
+	deploymentArgsForCall []struct {
+	}
+	deploymentReturns struct {
 		result1 director.Deployment
 	}
 	deploymentReturnsOnCall map[int]struct {
@@ -38,48 +51,95 @@ type FakeOrphanDisk struct {
 	}
 	InstanceNameStub        func() string
 	instanceNameMutex       sync.RWMutex
-	instanceNameArgsForCall []struct{}
-	instanceNameReturns     struct {
+	instanceNameArgsForCall []struct {
+	}
+	instanceNameReturns struct {
 		result1 string
 	}
 	instanceNameReturnsOnCall map[int]struct {
 		result1 string
 	}
-	AZNameStub        func() string
-	aZNameMutex       sync.RWMutex
-	aZNameArgsForCall []struct{}
-	aZNameReturns     struct {
-		result1 string
-	}
-	aZNameReturnsOnCall map[int]struct {
-		result1 string
-	}
 	OrphanedAtStub        func() time.Time
 	orphanedAtMutex       sync.RWMutex
-	orphanedAtArgsForCall []struct{}
-	orphanedAtReturns     struct {
+	orphanedAtArgsForCall []struct {
+	}
+	orphanedAtReturns struct {
 		result1 time.Time
 	}
 	orphanedAtReturnsOnCall map[int]struct {
 		result1 time.Time
 	}
-	DeleteStub        func() error
-	deleteMutex       sync.RWMutex
-	deleteArgsForCall []struct{}
-	deleteReturns     struct {
-		result1 error
+	SizeStub        func() uint64
+	sizeMutex       sync.RWMutex
+	sizeArgsForCall []struct {
 	}
-	deleteReturnsOnCall map[int]struct {
-		result1 error
+	sizeReturns struct {
+		result1 uint64
+	}
+	sizeReturnsOnCall map[int]struct {
+		result1 uint64
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
+func (fake *FakeOrphanDisk) AZName() string {
+	fake.aZNameMutex.Lock()
+	ret, specificReturn := fake.aZNameReturnsOnCall[len(fake.aZNameArgsForCall)]
+	fake.aZNameArgsForCall = append(fake.aZNameArgsForCall, struct {
+	}{})
+	fake.recordInvocation("AZName", []interface{}{})
+	fake.aZNameMutex.Unlock()
+	if fake.AZNameStub != nil {
+		return fake.AZNameStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.aZNameReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeOrphanDisk) AZNameCallCount() int {
+	fake.aZNameMutex.RLock()
+	defer fake.aZNameMutex.RUnlock()
+	return len(fake.aZNameArgsForCall)
+}
+
+func (fake *FakeOrphanDisk) AZNameCalls(stub func() string) {
+	fake.aZNameMutex.Lock()
+	defer fake.aZNameMutex.Unlock()
+	fake.AZNameStub = stub
+}
+
+func (fake *FakeOrphanDisk) AZNameReturns(result1 string) {
+	fake.aZNameMutex.Lock()
+	defer fake.aZNameMutex.Unlock()
+	fake.AZNameStub = nil
+	fake.aZNameReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeOrphanDisk) AZNameReturnsOnCall(i int, result1 string) {
+	fake.aZNameMutex.Lock()
+	defer fake.aZNameMutex.Unlock()
+	fake.AZNameStub = nil
+	if fake.aZNameReturnsOnCall == nil {
+		fake.aZNameReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.aZNameReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeOrphanDisk) CID() string {
 	fake.cIDMutex.Lock()
 	ret, specificReturn := fake.cIDReturnsOnCall[len(fake.cIDArgsForCall)]
-	fake.cIDArgsForCall = append(fake.cIDArgsForCall, struct{}{})
+	fake.cIDArgsForCall = append(fake.cIDArgsForCall, struct {
+	}{})
 	fake.recordInvocation("CID", []interface{}{})
 	fake.cIDMutex.Unlock()
 	if fake.CIDStub != nil {
@@ -88,7 +148,8 @@ func (fake *FakeOrphanDisk) CID() string {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.cIDReturns.result1
+	fakeReturns := fake.cIDReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeOrphanDisk) CIDCallCount() int {
@@ -97,7 +158,15 @@ func (fake *FakeOrphanDisk) CIDCallCount() int {
 	return len(fake.cIDArgsForCall)
 }
 
+func (fake *FakeOrphanDisk) CIDCalls(stub func() string) {
+	fake.cIDMutex.Lock()
+	defer fake.cIDMutex.Unlock()
+	fake.CIDStub = stub
+}
+
 func (fake *FakeOrphanDisk) CIDReturns(result1 string) {
+	fake.cIDMutex.Lock()
+	defer fake.cIDMutex.Unlock()
 	fake.CIDStub = nil
 	fake.cIDReturns = struct {
 		result1 string
@@ -105,6 +174,8 @@ func (fake *FakeOrphanDisk) CIDReturns(result1 string) {
 }
 
 func (fake *FakeOrphanDisk) CIDReturnsOnCall(i int, result1 string) {
+	fake.cIDMutex.Lock()
+	defer fake.cIDMutex.Unlock()
 	fake.CIDStub = nil
 	if fake.cIDReturnsOnCall == nil {
 		fake.cIDReturnsOnCall = make(map[int]struct {
@@ -116,50 +187,63 @@ func (fake *FakeOrphanDisk) CIDReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeOrphanDisk) Size() uint64 {
-	fake.sizeMutex.Lock()
-	ret, specificReturn := fake.sizeReturnsOnCall[len(fake.sizeArgsForCall)]
-	fake.sizeArgsForCall = append(fake.sizeArgsForCall, struct{}{})
-	fake.recordInvocation("Size", []interface{}{})
-	fake.sizeMutex.Unlock()
-	if fake.SizeStub != nil {
-		return fake.SizeStub()
+func (fake *FakeOrphanDisk) Delete() error {
+	fake.deleteMutex.Lock()
+	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
+	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Delete", []interface{}{})
+	fake.deleteMutex.Unlock()
+	if fake.DeleteStub != nil {
+		return fake.DeleteStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.sizeReturns.result1
+	fakeReturns := fake.deleteReturns
+	return fakeReturns.result1
 }
 
-func (fake *FakeOrphanDisk) SizeCallCount() int {
-	fake.sizeMutex.RLock()
-	defer fake.sizeMutex.RUnlock()
-	return len(fake.sizeArgsForCall)
+func (fake *FakeOrphanDisk) DeleteCallCount() int {
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
+	return len(fake.deleteArgsForCall)
 }
 
-func (fake *FakeOrphanDisk) SizeReturns(result1 uint64) {
-	fake.SizeStub = nil
-	fake.sizeReturns = struct {
-		result1 uint64
+func (fake *FakeOrphanDisk) DeleteCalls(stub func() error) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
+	fake.DeleteStub = stub
+}
+
+func (fake *FakeOrphanDisk) DeleteReturns(result1 error) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
+	fake.DeleteStub = nil
+	fake.deleteReturns = struct {
+		result1 error
 	}{result1}
 }
 
-func (fake *FakeOrphanDisk) SizeReturnsOnCall(i int, result1 uint64) {
-	fake.SizeStub = nil
-	if fake.sizeReturnsOnCall == nil {
-		fake.sizeReturnsOnCall = make(map[int]struct {
-			result1 uint64
+func (fake *FakeOrphanDisk) DeleteReturnsOnCall(i int, result1 error) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
+	fake.DeleteStub = nil
+	if fake.deleteReturnsOnCall == nil {
+		fake.deleteReturnsOnCall = make(map[int]struct {
+			result1 error
 		})
 	}
-	fake.sizeReturnsOnCall[i] = struct {
-		result1 uint64
+	fake.deleteReturnsOnCall[i] = struct {
+		result1 error
 	}{result1}
 }
 
 func (fake *FakeOrphanDisk) Deployment() director.Deployment {
 	fake.deploymentMutex.Lock()
 	ret, specificReturn := fake.deploymentReturnsOnCall[len(fake.deploymentArgsForCall)]
-	fake.deploymentArgsForCall = append(fake.deploymentArgsForCall, struct{}{})
+	fake.deploymentArgsForCall = append(fake.deploymentArgsForCall, struct {
+	}{})
 	fake.recordInvocation("Deployment", []interface{}{})
 	fake.deploymentMutex.Unlock()
 	if fake.DeploymentStub != nil {
@@ -168,7 +252,8 @@ func (fake *FakeOrphanDisk) Deployment() director.Deployment {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.deploymentReturns.result1
+	fakeReturns := fake.deploymentReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeOrphanDisk) DeploymentCallCount() int {
@@ -177,7 +262,15 @@ func (fake *FakeOrphanDisk) DeploymentCallCount() int {
 	return len(fake.deploymentArgsForCall)
 }
 
+func (fake *FakeOrphanDisk) DeploymentCalls(stub func() director.Deployment) {
+	fake.deploymentMutex.Lock()
+	defer fake.deploymentMutex.Unlock()
+	fake.DeploymentStub = stub
+}
+
 func (fake *FakeOrphanDisk) DeploymentReturns(result1 director.Deployment) {
+	fake.deploymentMutex.Lock()
+	defer fake.deploymentMutex.Unlock()
 	fake.DeploymentStub = nil
 	fake.deploymentReturns = struct {
 		result1 director.Deployment
@@ -185,6 +278,8 @@ func (fake *FakeOrphanDisk) DeploymentReturns(result1 director.Deployment) {
 }
 
 func (fake *FakeOrphanDisk) DeploymentReturnsOnCall(i int, result1 director.Deployment) {
+	fake.deploymentMutex.Lock()
+	defer fake.deploymentMutex.Unlock()
 	fake.DeploymentStub = nil
 	if fake.deploymentReturnsOnCall == nil {
 		fake.deploymentReturnsOnCall = make(map[int]struct {
@@ -199,7 +294,8 @@ func (fake *FakeOrphanDisk) DeploymentReturnsOnCall(i int, result1 director.Depl
 func (fake *FakeOrphanDisk) InstanceName() string {
 	fake.instanceNameMutex.Lock()
 	ret, specificReturn := fake.instanceNameReturnsOnCall[len(fake.instanceNameArgsForCall)]
-	fake.instanceNameArgsForCall = append(fake.instanceNameArgsForCall, struct{}{})
+	fake.instanceNameArgsForCall = append(fake.instanceNameArgsForCall, struct {
+	}{})
 	fake.recordInvocation("InstanceName", []interface{}{})
 	fake.instanceNameMutex.Unlock()
 	if fake.InstanceNameStub != nil {
@@ -208,7 +304,8 @@ func (fake *FakeOrphanDisk) InstanceName() string {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.instanceNameReturns.result1
+	fakeReturns := fake.instanceNameReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeOrphanDisk) InstanceNameCallCount() int {
@@ -217,7 +314,15 @@ func (fake *FakeOrphanDisk) InstanceNameCallCount() int {
 	return len(fake.instanceNameArgsForCall)
 }
 
+func (fake *FakeOrphanDisk) InstanceNameCalls(stub func() string) {
+	fake.instanceNameMutex.Lock()
+	defer fake.instanceNameMutex.Unlock()
+	fake.InstanceNameStub = stub
+}
+
 func (fake *FakeOrphanDisk) InstanceNameReturns(result1 string) {
+	fake.instanceNameMutex.Lock()
+	defer fake.instanceNameMutex.Unlock()
 	fake.InstanceNameStub = nil
 	fake.instanceNameReturns = struct {
 		result1 string
@@ -225,6 +330,8 @@ func (fake *FakeOrphanDisk) InstanceNameReturns(result1 string) {
 }
 
 func (fake *FakeOrphanDisk) InstanceNameReturnsOnCall(i int, result1 string) {
+	fake.instanceNameMutex.Lock()
+	defer fake.instanceNameMutex.Unlock()
 	fake.InstanceNameStub = nil
 	if fake.instanceNameReturnsOnCall == nil {
 		fake.instanceNameReturnsOnCall = make(map[int]struct {
@@ -236,50 +343,11 @@ func (fake *FakeOrphanDisk) InstanceNameReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeOrphanDisk) AZName() string {
-	fake.aZNameMutex.Lock()
-	ret, specificReturn := fake.aZNameReturnsOnCall[len(fake.aZNameArgsForCall)]
-	fake.aZNameArgsForCall = append(fake.aZNameArgsForCall, struct{}{})
-	fake.recordInvocation("AZName", []interface{}{})
-	fake.aZNameMutex.Unlock()
-	if fake.AZNameStub != nil {
-		return fake.AZNameStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.aZNameReturns.result1
-}
-
-func (fake *FakeOrphanDisk) AZNameCallCount() int {
-	fake.aZNameMutex.RLock()
-	defer fake.aZNameMutex.RUnlock()
-	return len(fake.aZNameArgsForCall)
-}
-
-func (fake *FakeOrphanDisk) AZNameReturns(result1 string) {
-	fake.AZNameStub = nil
-	fake.aZNameReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeOrphanDisk) AZNameReturnsOnCall(i int, result1 string) {
-	fake.AZNameStub = nil
-	if fake.aZNameReturnsOnCall == nil {
-		fake.aZNameReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.aZNameReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
 func (fake *FakeOrphanDisk) OrphanedAt() time.Time {
 	fake.orphanedAtMutex.Lock()
 	ret, specificReturn := fake.orphanedAtReturnsOnCall[len(fake.orphanedAtArgsForCall)]
-	fake.orphanedAtArgsForCall = append(fake.orphanedAtArgsForCall, struct{}{})
+	fake.orphanedAtArgsForCall = append(fake.orphanedAtArgsForCall, struct {
+	}{})
 	fake.recordInvocation("OrphanedAt", []interface{}{})
 	fake.orphanedAtMutex.Unlock()
 	if fake.OrphanedAtStub != nil {
@@ -288,7 +356,8 @@ func (fake *FakeOrphanDisk) OrphanedAt() time.Time {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.orphanedAtReturns.result1
+	fakeReturns := fake.orphanedAtReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeOrphanDisk) OrphanedAtCallCount() int {
@@ -297,7 +366,15 @@ func (fake *FakeOrphanDisk) OrphanedAtCallCount() int {
 	return len(fake.orphanedAtArgsForCall)
 }
 
+func (fake *FakeOrphanDisk) OrphanedAtCalls(stub func() time.Time) {
+	fake.orphanedAtMutex.Lock()
+	defer fake.orphanedAtMutex.Unlock()
+	fake.OrphanedAtStub = stub
+}
+
 func (fake *FakeOrphanDisk) OrphanedAtReturns(result1 time.Time) {
+	fake.orphanedAtMutex.Lock()
+	defer fake.orphanedAtMutex.Unlock()
 	fake.OrphanedAtStub = nil
 	fake.orphanedAtReturns = struct {
 		result1 time.Time
@@ -305,6 +382,8 @@ func (fake *FakeOrphanDisk) OrphanedAtReturns(result1 time.Time) {
 }
 
 func (fake *FakeOrphanDisk) OrphanedAtReturnsOnCall(i int, result1 time.Time) {
+	fake.orphanedAtMutex.Lock()
+	defer fake.orphanedAtMutex.Unlock()
 	fake.OrphanedAtStub = nil
 	if fake.orphanedAtReturnsOnCall == nil {
 		fake.orphanedAtReturnsOnCall = make(map[int]struct {
@@ -316,63 +395,75 @@ func (fake *FakeOrphanDisk) OrphanedAtReturnsOnCall(i int, result1 time.Time) {
 	}{result1}
 }
 
-func (fake *FakeOrphanDisk) Delete() error {
-	fake.deleteMutex.Lock()
-	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
-	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct{}{})
-	fake.recordInvocation("Delete", []interface{}{})
-	fake.deleteMutex.Unlock()
-	if fake.DeleteStub != nil {
-		return fake.DeleteStub()
+func (fake *FakeOrphanDisk) Size() uint64 {
+	fake.sizeMutex.Lock()
+	ret, specificReturn := fake.sizeReturnsOnCall[len(fake.sizeArgsForCall)]
+	fake.sizeArgsForCall = append(fake.sizeArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Size", []interface{}{})
+	fake.sizeMutex.Unlock()
+	if fake.SizeStub != nil {
+		return fake.SizeStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.deleteReturns.result1
+	fakeReturns := fake.sizeReturns
+	return fakeReturns.result1
 }
 
-func (fake *FakeOrphanDisk) DeleteCallCount() int {
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
-	return len(fake.deleteArgsForCall)
+func (fake *FakeOrphanDisk) SizeCallCount() int {
+	fake.sizeMutex.RLock()
+	defer fake.sizeMutex.RUnlock()
+	return len(fake.sizeArgsForCall)
 }
 
-func (fake *FakeOrphanDisk) DeleteReturns(result1 error) {
-	fake.DeleteStub = nil
-	fake.deleteReturns = struct {
-		result1 error
+func (fake *FakeOrphanDisk) SizeCalls(stub func() uint64) {
+	fake.sizeMutex.Lock()
+	defer fake.sizeMutex.Unlock()
+	fake.SizeStub = stub
+}
+
+func (fake *FakeOrphanDisk) SizeReturns(result1 uint64) {
+	fake.sizeMutex.Lock()
+	defer fake.sizeMutex.Unlock()
+	fake.SizeStub = nil
+	fake.sizeReturns = struct {
+		result1 uint64
 	}{result1}
 }
 
-func (fake *FakeOrphanDisk) DeleteReturnsOnCall(i int, result1 error) {
-	fake.DeleteStub = nil
-	if fake.deleteReturnsOnCall == nil {
-		fake.deleteReturnsOnCall = make(map[int]struct {
-			result1 error
+func (fake *FakeOrphanDisk) SizeReturnsOnCall(i int, result1 uint64) {
+	fake.sizeMutex.Lock()
+	defer fake.sizeMutex.Unlock()
+	fake.SizeStub = nil
+	if fake.sizeReturnsOnCall == nil {
+		fake.sizeReturnsOnCall = make(map[int]struct {
+			result1 uint64
 		})
 	}
-	fake.deleteReturnsOnCall[i] = struct {
-		result1 error
+	fake.sizeReturnsOnCall[i] = struct {
+		result1 uint64
 	}{result1}
 }
 
 func (fake *FakeOrphanDisk) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.aZNameMutex.RLock()
+	defer fake.aZNameMutex.RUnlock()
 	fake.cIDMutex.RLock()
 	defer fake.cIDMutex.RUnlock()
-	fake.sizeMutex.RLock()
-	defer fake.sizeMutex.RUnlock()
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
 	fake.deploymentMutex.RLock()
 	defer fake.deploymentMutex.RUnlock()
 	fake.instanceNameMutex.RLock()
 	defer fake.instanceNameMutex.RUnlock()
-	fake.aZNameMutex.RLock()
-	defer fake.aZNameMutex.RUnlock()
 	fake.orphanedAtMutex.RLock()
 	defer fake.orphanedAtMutex.RUnlock()
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
+	fake.sizeMutex.RLock()
+	defer fake.sizeMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

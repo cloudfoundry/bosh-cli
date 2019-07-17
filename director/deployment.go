@@ -160,8 +160,8 @@ func (d DeploymentImpl) changeJobState(state string, slug AllOrInstanceGroupOrIn
 		state, d.name, slug.Name(), slug.IndexOrID(), skipDrain, force, fix, dryRun, canaries, maxInFlight)
 }
 
-func (d DeploymentImpl) ExportRelease(release ReleaseSlug, os OSVersionSlug, jobs []string) (ExportReleaseResult, error) {
-	resp, err := d.client.ExportRelease(d.name, release, os, jobs)
+func (d DeploymentImpl) ExportRelease(release ReleaseSlug, os OSVersionSlug, jobs []string, strip bool) (ExportReleaseResult, error) {
+	resp, err := d.client.ExportRelease(d.name, release, os, jobs, strip)
 	if err != nil {
 		return ExportReleaseResult{}, err
 	}
@@ -414,7 +414,7 @@ func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, ski
 	return nil
 }
 
-func (c Client) ExportRelease(deploymentName string, release ReleaseSlug, os OSVersionSlug, jobs []string) (ExportReleaseResp, error) {
+func (c Client) ExportRelease(deploymentName string, release ReleaseSlug, os OSVersionSlug, jobs []string, strip bool) (ExportReleaseResp, error) {
 	var resp ExportReleaseResp
 
 	if len(deploymentName) == 0 {
@@ -452,6 +452,7 @@ func (c Client) ExportRelease(deploymentName string, release ReleaseSlug, os OSV
 		"stemcell_version": os.Version(),
 		"sha2":             true,
 		"jobs":             jobFilters,
+		"strip":            strip,
 	}
 
 	reqBody, err := json.Marshal(body)

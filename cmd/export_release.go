@@ -21,8 +21,9 @@ func (c ExportReleaseCmd) Run(opts ExportReleaseOpts) error {
 	rel := opts.Args.ReleaseSlug
 	os := opts.Args.OSVersionSlug
 	jobs := opts.Jobs
+	strip := opts.Strip
 
-	result, err := c.deployment.ExportRelease(rel, os, jobs)
+	result, err := c.deployment.ExportRelease(rel, os, jobs, strip)
 	if err != nil {
 		return err
 	}

@@ -8,10 +8,25 @@ import (
 )
 
 type FakeConfig struct {
+	BlobstoreStub        func() (string, map[string]interface{}, error)
+	blobstoreMutex       sync.RWMutex
+	blobstoreArgsForCall []struct {
+	}
+	blobstoreReturns struct {
+		result1 string
+		result2 map[string]interface{}
+		result3 error
+	}
+	blobstoreReturnsOnCall map[int]struct {
+		result1 string
+		result2 map[string]interface{}
+		result3 error
+	}
 	NameStub        func() (string, error)
 	nameMutex       sync.RWMutex
-	nameArgsForCall []struct{}
-	nameReturns     struct {
+	nameArgsForCall []struct {
+	}
+	nameReturns struct {
 		result1 string
 		result2 error
 	}
@@ -30,27 +45,73 @@ type FakeConfig struct {
 	saveNameReturnsOnCall map[int]struct {
 		result1 error
 	}
-	BlobstoreStub        func() (string, map[string]interface{}, error)
-	blobstoreMutex       sync.RWMutex
-	blobstoreArgsForCall []struct{}
-	blobstoreReturns     struct {
-		result1 string
-		result2 map[string]interface{}
-		result3 error
-	}
-	blobstoreReturnsOnCall map[int]struct {
-		result1 string
-		result2 map[string]interface{}
-		result3 error
-	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeConfig) Blobstore() (string, map[string]interface{}, error) {
+	fake.blobstoreMutex.Lock()
+	ret, specificReturn := fake.blobstoreReturnsOnCall[len(fake.blobstoreArgsForCall)]
+	fake.blobstoreArgsForCall = append(fake.blobstoreArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Blobstore", []interface{}{})
+	fake.blobstoreMutex.Unlock()
+	if fake.BlobstoreStub != nil {
+		return fake.BlobstoreStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	fakeReturns := fake.blobstoreReturns
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
+}
+
+func (fake *FakeConfig) BlobstoreCallCount() int {
+	fake.blobstoreMutex.RLock()
+	defer fake.blobstoreMutex.RUnlock()
+	return len(fake.blobstoreArgsForCall)
+}
+
+func (fake *FakeConfig) BlobstoreCalls(stub func() (string, map[string]interface{}, error)) {
+	fake.blobstoreMutex.Lock()
+	defer fake.blobstoreMutex.Unlock()
+	fake.BlobstoreStub = stub
+}
+
+func (fake *FakeConfig) BlobstoreReturns(result1 string, result2 map[string]interface{}, result3 error) {
+	fake.blobstoreMutex.Lock()
+	defer fake.blobstoreMutex.Unlock()
+	fake.BlobstoreStub = nil
+	fake.blobstoreReturns = struct {
+		result1 string
+		result2 map[string]interface{}
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeConfig) BlobstoreReturnsOnCall(i int, result1 string, result2 map[string]interface{}, result3 error) {
+	fake.blobstoreMutex.Lock()
+	defer fake.blobstoreMutex.Unlock()
+	fake.BlobstoreStub = nil
+	if fake.blobstoreReturnsOnCall == nil {
+		fake.blobstoreReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 map[string]interface{}
+			result3 error
+		})
+	}
+	fake.blobstoreReturnsOnCall[i] = struct {
+		result1 string
+		result2 map[string]interface{}
+		result3 error
+	}{result1, result2, result3}
 }
 
 func (fake *FakeConfig) Name() (string, error) {
 	fake.nameMutex.Lock()
 	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
-	fake.nameArgsForCall = append(fake.nameArgsForCall, struct{}{})
+	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
+	}{})
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
 	if fake.NameStub != nil {
@@ -59,7 +120,8 @@ func (fake *FakeConfig) Name() (string, error) {
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.nameReturns.result1, fake.nameReturns.result2
+	fakeReturns := fake.nameReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeConfig) NameCallCount() int {
@@ -68,7 +130,15 @@ func (fake *FakeConfig) NameCallCount() int {
 	return len(fake.nameArgsForCall)
 }
 
+func (fake *FakeConfig) NameCalls(stub func() (string, error)) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = stub
+}
+
 func (fake *FakeConfig) NameReturns(result1 string, result2 error) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
 	fake.NameStub = nil
 	fake.nameReturns = struct {
 		result1 string
@@ -77,6 +147,8 @@ func (fake *FakeConfig) NameReturns(result1 string, result2 error) {
 }
 
 func (fake *FakeConfig) NameReturnsOnCall(i int, result1 string, result2 error) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
 	fake.NameStub = nil
 	if fake.nameReturnsOnCall == nil {
 		fake.nameReturnsOnCall = make(map[int]struct {
@@ -104,7 +176,8 @@ func (fake *FakeConfig) SaveName(arg1 string) error {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.saveNameReturns.result1
+	fakeReturns := fake.saveNameReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeConfig) SaveNameCallCount() int {
@@ -113,13 +186,22 @@ func (fake *FakeConfig) SaveNameCallCount() int {
 	return len(fake.saveNameArgsForCall)
 }
 
+func (fake *FakeConfig) SaveNameCalls(stub func(string) error) {
+	fake.saveNameMutex.Lock()
+	defer fake.saveNameMutex.Unlock()
+	fake.SaveNameStub = stub
+}
+
 func (fake *FakeConfig) SaveNameArgsForCall(i int) string {
 	fake.saveNameMutex.RLock()
 	defer fake.saveNameMutex.RUnlock()
-	return fake.saveNameArgsForCall[i].arg1
+	argsForCall := fake.saveNameArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeConfig) SaveNameReturns(result1 error) {
+	fake.saveNameMutex.Lock()
+	defer fake.saveNameMutex.Unlock()
 	fake.SaveNameStub = nil
 	fake.saveNameReturns = struct {
 		result1 error
@@ -127,6 +209,8 @@ func (fake *FakeConfig) SaveNameReturns(result1 error) {
 }
 
 func (fake *FakeConfig) SaveNameReturnsOnCall(i int, result1 error) {
+	fake.saveNameMutex.Lock()
+	defer fake.saveNameMutex.Unlock()
 	fake.SaveNameStub = nil
 	if fake.saveNameReturnsOnCall == nil {
 		fake.saveNameReturnsOnCall = make(map[int]struct {
@@ -138,61 +222,15 @@ func (fake *FakeConfig) SaveNameReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeConfig) Blobstore() (string, map[string]interface{}, error) {
-	fake.blobstoreMutex.Lock()
-	ret, specificReturn := fake.blobstoreReturnsOnCall[len(fake.blobstoreArgsForCall)]
-	fake.blobstoreArgsForCall = append(fake.blobstoreArgsForCall, struct{}{})
-	fake.recordInvocation("Blobstore", []interface{}{})
-	fake.blobstoreMutex.Unlock()
-	if fake.BlobstoreStub != nil {
-		return fake.BlobstoreStub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2, ret.result3
-	}
-	return fake.blobstoreReturns.result1, fake.blobstoreReturns.result2, fake.blobstoreReturns.result3
-}
-
-func (fake *FakeConfig) BlobstoreCallCount() int {
-	fake.blobstoreMutex.RLock()
-	defer fake.blobstoreMutex.RUnlock()
-	return len(fake.blobstoreArgsForCall)
-}
-
-func (fake *FakeConfig) BlobstoreReturns(result1 string, result2 map[string]interface{}, result3 error) {
-	fake.BlobstoreStub = nil
-	fake.blobstoreReturns = struct {
-		result1 string
-		result2 map[string]interface{}
-		result3 error
-	}{result1, result2, result3}
-}
-
-func (fake *FakeConfig) BlobstoreReturnsOnCall(i int, result1 string, result2 map[string]interface{}, result3 error) {
-	fake.BlobstoreStub = nil
-	if fake.blobstoreReturnsOnCall == nil {
-		fake.blobstoreReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 map[string]interface{}
-			result3 error
-		})
-	}
-	fake.blobstoreReturnsOnCall[i] = struct {
-		result1 string
-		result2 map[string]interface{}
-		result3 error
-	}{result1, result2, result3}
-}
-
 func (fake *FakeConfig) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.blobstoreMutex.RLock()
+	defer fake.blobstoreMutex.RUnlock()
 	fake.nameMutex.RLock()
 	defer fake.nameMutex.RUnlock()
 	fake.saveNameMutex.RLock()
 	defer fake.saveNameMutex.RUnlock()
-	fake.blobstoreMutex.RLock()
-	defer fake.blobstoreMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -8,28 +8,28 @@ import (
 )
 
 type FakeReleaseIndexReporter struct {
-	ReleaseIndexAddedStub        func(name, desc string, err error)
+	ReleaseIndexAddedStub        func(string, string, error)
 	releaseIndexAddedMutex       sync.RWMutex
 	releaseIndexAddedArgsForCall []struct {
-		name string
-		desc string
-		err  error
+		arg1 string
+		arg2 string
+		arg3 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeReleaseIndexReporter) ReleaseIndexAdded(name string, desc string, err error) {
+func (fake *FakeReleaseIndexReporter) ReleaseIndexAdded(arg1 string, arg2 string, arg3 error) {
 	fake.releaseIndexAddedMutex.Lock()
 	fake.releaseIndexAddedArgsForCall = append(fake.releaseIndexAddedArgsForCall, struct {
-		name string
-		desc string
-		err  error
-	}{name, desc, err})
-	fake.recordInvocation("ReleaseIndexAdded", []interface{}{name, desc, err})
+		arg1 string
+		arg2 string
+		arg3 error
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("ReleaseIndexAdded", []interface{}{arg1, arg2, arg3})
 	fake.releaseIndexAddedMutex.Unlock()
 	if fake.ReleaseIndexAddedStub != nil {
-		fake.ReleaseIndexAddedStub(name, desc, err)
+		fake.ReleaseIndexAddedStub(arg1, arg2, arg3)
 	}
 }
 
@@ -39,10 +39,17 @@ func (fake *FakeReleaseIndexReporter) ReleaseIndexAddedCallCount() int {
 	return len(fake.releaseIndexAddedArgsForCall)
 }
 
+func (fake *FakeReleaseIndexReporter) ReleaseIndexAddedCalls(stub func(string, string, error)) {
+	fake.releaseIndexAddedMutex.Lock()
+	defer fake.releaseIndexAddedMutex.Unlock()
+	fake.ReleaseIndexAddedStub = stub
+}
+
 func (fake *FakeReleaseIndexReporter) ReleaseIndexAddedArgsForCall(i int) (string, string, error) {
 	fake.releaseIndexAddedMutex.RLock()
 	defer fake.releaseIndexAddedMutex.RUnlock()
-	return fake.releaseIndexAddedArgsForCall[i].name, fake.releaseIndexAddedArgsForCall[i].desc, fake.releaseIndexAddedArgsForCall[i].err
+	argsForCall := fake.releaseIndexAddedArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeReleaseIndexReporter) Invocations() map[string][][]interface{} {

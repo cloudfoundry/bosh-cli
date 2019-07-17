@@ -6,51 +6,35 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/crypto"
 	"github.com/cloudfoundry/bosh-cli/release/resource"
-	crypto2 "github.com/cloudfoundry/bosh-utils/crypto"
+	cryptoa "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 type FakeResource struct {
-	NameStub        func() string
-	nameMutex       sync.RWMutex
-	nameArgsForCall []struct{}
-	nameReturns     struct {
-		result1 string
-	}
-	nameReturnsOnCall map[int]struct {
-		result1 string
-	}
-	FingerprintStub        func() string
-	fingerprintMutex       sync.RWMutex
-	fingerprintArgsForCall []struct{}
-	fingerprintReturns     struct {
-		result1 string
-	}
-	fingerprintReturnsOnCall map[int]struct {
-		result1 string
-	}
-	ArchivePathStub        func() string
-	archivePathMutex       sync.RWMutex
-	archivePathArgsForCall []struct{}
-	archivePathReturns     struct {
-		result1 string
-	}
-	archivePathReturnsOnCall map[int]struct {
-		result1 string
-	}
 	ArchiveDigestStub        func() string
 	archiveDigestMutex       sync.RWMutex
-	archiveDigestArgsForCall []struct{}
-	archiveDigestReturns     struct {
+	archiveDigestArgsForCall []struct {
+	}
+	archiveDigestReturns struct {
 		result1 string
 	}
 	archiveDigestReturnsOnCall map[int]struct {
 		result1 string
 	}
-	BuildStub        func(dev, final resource.ArchiveIndex) error
+	ArchivePathStub        func() string
+	archivePathMutex       sync.RWMutex
+	archivePathArgsForCall []struct {
+	}
+	archivePathReturns struct {
+		result1 string
+	}
+	archivePathReturnsOnCall map[int]struct {
+		result1 string
+	}
+	BuildStub        func(resource.ArchiveIndex, resource.ArchiveIndex) error
 	buildMutex       sync.RWMutex
 	buildArgsForCall []struct {
-		dev   resource.ArchiveIndex
-		final resource.ArchiveIndex
+		arg1 resource.ArchiveIndex
+		arg2 resource.ArchiveIndex
 	}
 	buildReturns struct {
 		result1 error
@@ -58,10 +42,10 @@ type FakeResource struct {
 	buildReturnsOnCall map[int]struct {
 		result1 error
 	}
-	FinalizeStub        func(final resource.ArchiveIndex) error
+	FinalizeStub        func(resource.ArchiveIndex) error
 	finalizeMutex       sync.RWMutex
 	finalizeArgsForCall []struct {
-		final resource.ArchiveIndex
+		arg1 resource.ArchiveIndex
 	}
 	finalizeReturns struct {
 		result1 error
@@ -69,11 +53,31 @@ type FakeResource struct {
 	finalizeReturnsOnCall map[int]struct {
 		result1 error
 	}
-	RehashWithCalculatorStub        func(calculator crypto.DigestCalculator, archiveFilePathReader crypto2.ArchiveDigestFilePathReader) (resource.Resource, error)
+	FingerprintStub        func() string
+	fingerprintMutex       sync.RWMutex
+	fingerprintArgsForCall []struct {
+	}
+	fingerprintReturns struct {
+		result1 string
+	}
+	fingerprintReturnsOnCall map[int]struct {
+		result1 string
+	}
+	NameStub        func() string
+	nameMutex       sync.RWMutex
+	nameArgsForCall []struct {
+	}
+	nameReturns struct {
+		result1 string
+	}
+	nameReturnsOnCall map[int]struct {
+		result1 string
+	}
+	RehashWithCalculatorStub        func(crypto.DigestCalculator, cryptoa.ArchiveDigestFilePathReader) (resource.Resource, error)
 	rehashWithCalculatorMutex       sync.RWMutex
 	rehashWithCalculatorArgsForCall []struct {
-		calculator            crypto.DigestCalculator
-		archiveFilePathReader crypto2.ArchiveDigestFilePathReader
+		arg1 crypto.DigestCalculator
+		arg2 cryptoa.ArchiveDigestFilePathReader
 	}
 	rehashWithCalculatorReturns struct {
 		result1 resource.Resource
@@ -87,130 +91,11 @@ type FakeResource struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeResource) Name() string {
-	fake.nameMutex.Lock()
-	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
-	fake.nameArgsForCall = append(fake.nameArgsForCall, struct{}{})
-	fake.recordInvocation("Name", []interface{}{})
-	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.nameReturns.result1
-}
-
-func (fake *FakeResource) NameCallCount() int {
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
-	return len(fake.nameArgsForCall)
-}
-
-func (fake *FakeResource) NameReturns(result1 string) {
-	fake.NameStub = nil
-	fake.nameReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeResource) NameReturnsOnCall(i int, result1 string) {
-	fake.NameStub = nil
-	if fake.nameReturnsOnCall == nil {
-		fake.nameReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.nameReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeResource) Fingerprint() string {
-	fake.fingerprintMutex.Lock()
-	ret, specificReturn := fake.fingerprintReturnsOnCall[len(fake.fingerprintArgsForCall)]
-	fake.fingerprintArgsForCall = append(fake.fingerprintArgsForCall, struct{}{})
-	fake.recordInvocation("Fingerprint", []interface{}{})
-	fake.fingerprintMutex.Unlock()
-	if fake.FingerprintStub != nil {
-		return fake.FingerprintStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.fingerprintReturns.result1
-}
-
-func (fake *FakeResource) FingerprintCallCount() int {
-	fake.fingerprintMutex.RLock()
-	defer fake.fingerprintMutex.RUnlock()
-	return len(fake.fingerprintArgsForCall)
-}
-
-func (fake *FakeResource) FingerprintReturns(result1 string) {
-	fake.FingerprintStub = nil
-	fake.fingerprintReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeResource) FingerprintReturnsOnCall(i int, result1 string) {
-	fake.FingerprintStub = nil
-	if fake.fingerprintReturnsOnCall == nil {
-		fake.fingerprintReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.fingerprintReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeResource) ArchivePath() string {
-	fake.archivePathMutex.Lock()
-	ret, specificReturn := fake.archivePathReturnsOnCall[len(fake.archivePathArgsForCall)]
-	fake.archivePathArgsForCall = append(fake.archivePathArgsForCall, struct{}{})
-	fake.recordInvocation("ArchivePath", []interface{}{})
-	fake.archivePathMutex.Unlock()
-	if fake.ArchivePathStub != nil {
-		return fake.ArchivePathStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.archivePathReturns.result1
-}
-
-func (fake *FakeResource) ArchivePathCallCount() int {
-	fake.archivePathMutex.RLock()
-	defer fake.archivePathMutex.RUnlock()
-	return len(fake.archivePathArgsForCall)
-}
-
-func (fake *FakeResource) ArchivePathReturns(result1 string) {
-	fake.ArchivePathStub = nil
-	fake.archivePathReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeResource) ArchivePathReturnsOnCall(i int, result1 string) {
-	fake.ArchivePathStub = nil
-	if fake.archivePathReturnsOnCall == nil {
-		fake.archivePathReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.archivePathReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
 func (fake *FakeResource) ArchiveDigest() string {
 	fake.archiveDigestMutex.Lock()
 	ret, specificReturn := fake.archiveDigestReturnsOnCall[len(fake.archiveDigestArgsForCall)]
-	fake.archiveDigestArgsForCall = append(fake.archiveDigestArgsForCall, struct{}{})
+	fake.archiveDigestArgsForCall = append(fake.archiveDigestArgsForCall, struct {
+	}{})
 	fake.recordInvocation("ArchiveDigest", []interface{}{})
 	fake.archiveDigestMutex.Unlock()
 	if fake.ArchiveDigestStub != nil {
@@ -219,7 +104,8 @@ func (fake *FakeResource) ArchiveDigest() string {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.archiveDigestReturns.result1
+	fakeReturns := fake.archiveDigestReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeResource) ArchiveDigestCallCount() int {
@@ -228,7 +114,15 @@ func (fake *FakeResource) ArchiveDigestCallCount() int {
 	return len(fake.archiveDigestArgsForCall)
 }
 
+func (fake *FakeResource) ArchiveDigestCalls(stub func() string) {
+	fake.archiveDigestMutex.Lock()
+	defer fake.archiveDigestMutex.Unlock()
+	fake.ArchiveDigestStub = stub
+}
+
 func (fake *FakeResource) ArchiveDigestReturns(result1 string) {
+	fake.archiveDigestMutex.Lock()
+	defer fake.archiveDigestMutex.Unlock()
 	fake.ArchiveDigestStub = nil
 	fake.archiveDigestReturns = struct {
 		result1 string
@@ -236,6 +130,8 @@ func (fake *FakeResource) ArchiveDigestReturns(result1 string) {
 }
 
 func (fake *FakeResource) ArchiveDigestReturnsOnCall(i int, result1 string) {
+	fake.archiveDigestMutex.Lock()
+	defer fake.archiveDigestMutex.Unlock()
 	fake.ArchiveDigestStub = nil
 	if fake.archiveDigestReturnsOnCall == nil {
 		fake.archiveDigestReturnsOnCall = make(map[int]struct {
@@ -247,22 +143,75 @@ func (fake *FakeResource) ArchiveDigestReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeResource) Build(dev resource.ArchiveIndex, final resource.ArchiveIndex) error {
-	fake.buildMutex.Lock()
-	ret, specificReturn := fake.buildReturnsOnCall[len(fake.buildArgsForCall)]
-	fake.buildArgsForCall = append(fake.buildArgsForCall, struct {
-		dev   resource.ArchiveIndex
-		final resource.ArchiveIndex
-	}{dev, final})
-	fake.recordInvocation("Build", []interface{}{dev, final})
-	fake.buildMutex.Unlock()
-	if fake.BuildStub != nil {
-		return fake.BuildStub(dev, final)
+func (fake *FakeResource) ArchivePath() string {
+	fake.archivePathMutex.Lock()
+	ret, specificReturn := fake.archivePathReturnsOnCall[len(fake.archivePathArgsForCall)]
+	fake.archivePathArgsForCall = append(fake.archivePathArgsForCall, struct {
+	}{})
+	fake.recordInvocation("ArchivePath", []interface{}{})
+	fake.archivePathMutex.Unlock()
+	if fake.ArchivePathStub != nil {
+		return fake.ArchivePathStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.buildReturns.result1
+	fakeReturns := fake.archivePathReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeResource) ArchivePathCallCount() int {
+	fake.archivePathMutex.RLock()
+	defer fake.archivePathMutex.RUnlock()
+	return len(fake.archivePathArgsForCall)
+}
+
+func (fake *FakeResource) ArchivePathCalls(stub func() string) {
+	fake.archivePathMutex.Lock()
+	defer fake.archivePathMutex.Unlock()
+	fake.ArchivePathStub = stub
+}
+
+func (fake *FakeResource) ArchivePathReturns(result1 string) {
+	fake.archivePathMutex.Lock()
+	defer fake.archivePathMutex.Unlock()
+	fake.ArchivePathStub = nil
+	fake.archivePathReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeResource) ArchivePathReturnsOnCall(i int, result1 string) {
+	fake.archivePathMutex.Lock()
+	defer fake.archivePathMutex.Unlock()
+	fake.ArchivePathStub = nil
+	if fake.archivePathReturnsOnCall == nil {
+		fake.archivePathReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.archivePathReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeResource) Build(arg1 resource.ArchiveIndex, arg2 resource.ArchiveIndex) error {
+	fake.buildMutex.Lock()
+	ret, specificReturn := fake.buildReturnsOnCall[len(fake.buildArgsForCall)]
+	fake.buildArgsForCall = append(fake.buildArgsForCall, struct {
+		arg1 resource.ArchiveIndex
+		arg2 resource.ArchiveIndex
+	}{arg1, arg2})
+	fake.recordInvocation("Build", []interface{}{arg1, arg2})
+	fake.buildMutex.Unlock()
+	if fake.BuildStub != nil {
+		return fake.BuildStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.buildReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeResource) BuildCallCount() int {
@@ -271,13 +220,22 @@ func (fake *FakeResource) BuildCallCount() int {
 	return len(fake.buildArgsForCall)
 }
 
+func (fake *FakeResource) BuildCalls(stub func(resource.ArchiveIndex, resource.ArchiveIndex) error) {
+	fake.buildMutex.Lock()
+	defer fake.buildMutex.Unlock()
+	fake.BuildStub = stub
+}
+
 func (fake *FakeResource) BuildArgsForCall(i int) (resource.ArchiveIndex, resource.ArchiveIndex) {
 	fake.buildMutex.RLock()
 	defer fake.buildMutex.RUnlock()
-	return fake.buildArgsForCall[i].dev, fake.buildArgsForCall[i].final
+	argsForCall := fake.buildArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeResource) BuildReturns(result1 error) {
+	fake.buildMutex.Lock()
+	defer fake.buildMutex.Unlock()
 	fake.BuildStub = nil
 	fake.buildReturns = struct {
 		result1 error
@@ -285,6 +243,8 @@ func (fake *FakeResource) BuildReturns(result1 error) {
 }
 
 func (fake *FakeResource) BuildReturnsOnCall(i int, result1 error) {
+	fake.buildMutex.Lock()
+	defer fake.buildMutex.Unlock()
 	fake.BuildStub = nil
 	if fake.buildReturnsOnCall == nil {
 		fake.buildReturnsOnCall = make(map[int]struct {
@@ -296,21 +256,22 @@ func (fake *FakeResource) BuildReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeResource) Finalize(final resource.ArchiveIndex) error {
+func (fake *FakeResource) Finalize(arg1 resource.ArchiveIndex) error {
 	fake.finalizeMutex.Lock()
 	ret, specificReturn := fake.finalizeReturnsOnCall[len(fake.finalizeArgsForCall)]
 	fake.finalizeArgsForCall = append(fake.finalizeArgsForCall, struct {
-		final resource.ArchiveIndex
-	}{final})
-	fake.recordInvocation("Finalize", []interface{}{final})
+		arg1 resource.ArchiveIndex
+	}{arg1})
+	fake.recordInvocation("Finalize", []interface{}{arg1})
 	fake.finalizeMutex.Unlock()
 	if fake.FinalizeStub != nil {
-		return fake.FinalizeStub(final)
+		return fake.FinalizeStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.finalizeReturns.result1
+	fakeReturns := fake.finalizeReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeResource) FinalizeCallCount() int {
@@ -319,13 +280,22 @@ func (fake *FakeResource) FinalizeCallCount() int {
 	return len(fake.finalizeArgsForCall)
 }
 
+func (fake *FakeResource) FinalizeCalls(stub func(resource.ArchiveIndex) error) {
+	fake.finalizeMutex.Lock()
+	defer fake.finalizeMutex.Unlock()
+	fake.FinalizeStub = stub
+}
+
 func (fake *FakeResource) FinalizeArgsForCall(i int) resource.ArchiveIndex {
 	fake.finalizeMutex.RLock()
 	defer fake.finalizeMutex.RUnlock()
-	return fake.finalizeArgsForCall[i].final
+	argsForCall := fake.finalizeArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeResource) FinalizeReturns(result1 error) {
+	fake.finalizeMutex.Lock()
+	defer fake.finalizeMutex.Unlock()
 	fake.FinalizeStub = nil
 	fake.finalizeReturns = struct {
 		result1 error
@@ -333,6 +303,8 @@ func (fake *FakeResource) FinalizeReturns(result1 error) {
 }
 
 func (fake *FakeResource) FinalizeReturnsOnCall(i int, result1 error) {
+	fake.finalizeMutex.Lock()
+	defer fake.finalizeMutex.Unlock()
 	fake.FinalizeStub = nil
 	if fake.finalizeReturnsOnCall == nil {
 		fake.finalizeReturnsOnCall = make(map[int]struct {
@@ -344,22 +316,127 @@ func (fake *FakeResource) FinalizeReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeResource) RehashWithCalculator(calculator crypto.DigestCalculator, archiveFilePathReader crypto2.ArchiveDigestFilePathReader) (resource.Resource, error) {
+func (fake *FakeResource) Fingerprint() string {
+	fake.fingerprintMutex.Lock()
+	ret, specificReturn := fake.fingerprintReturnsOnCall[len(fake.fingerprintArgsForCall)]
+	fake.fingerprintArgsForCall = append(fake.fingerprintArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Fingerprint", []interface{}{})
+	fake.fingerprintMutex.Unlock()
+	if fake.FingerprintStub != nil {
+		return fake.FingerprintStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.fingerprintReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeResource) FingerprintCallCount() int {
+	fake.fingerprintMutex.RLock()
+	defer fake.fingerprintMutex.RUnlock()
+	return len(fake.fingerprintArgsForCall)
+}
+
+func (fake *FakeResource) FingerprintCalls(stub func() string) {
+	fake.fingerprintMutex.Lock()
+	defer fake.fingerprintMutex.Unlock()
+	fake.FingerprintStub = stub
+}
+
+func (fake *FakeResource) FingerprintReturns(result1 string) {
+	fake.fingerprintMutex.Lock()
+	defer fake.fingerprintMutex.Unlock()
+	fake.FingerprintStub = nil
+	fake.fingerprintReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeResource) FingerprintReturnsOnCall(i int, result1 string) {
+	fake.fingerprintMutex.Lock()
+	defer fake.fingerprintMutex.Unlock()
+	fake.FingerprintStub = nil
+	if fake.fingerprintReturnsOnCall == nil {
+		fake.fingerprintReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.fingerprintReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeResource) Name() string {
+	fake.nameMutex.Lock()
+	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
+	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Name", []interface{}{})
+	fake.nameMutex.Unlock()
+	if fake.NameStub != nil {
+		return fake.NameStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.nameReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeResource) NameCallCount() int {
+	fake.nameMutex.RLock()
+	defer fake.nameMutex.RUnlock()
+	return len(fake.nameArgsForCall)
+}
+
+func (fake *FakeResource) NameCalls(stub func() string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = stub
+}
+
+func (fake *FakeResource) NameReturns(result1 string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = nil
+	fake.nameReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeResource) NameReturnsOnCall(i int, result1 string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = nil
+	if fake.nameReturnsOnCall == nil {
+		fake.nameReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.nameReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeResource) RehashWithCalculator(arg1 crypto.DigestCalculator, arg2 cryptoa.ArchiveDigestFilePathReader) (resource.Resource, error) {
 	fake.rehashWithCalculatorMutex.Lock()
 	ret, specificReturn := fake.rehashWithCalculatorReturnsOnCall[len(fake.rehashWithCalculatorArgsForCall)]
 	fake.rehashWithCalculatorArgsForCall = append(fake.rehashWithCalculatorArgsForCall, struct {
-		calculator            crypto.DigestCalculator
-		archiveFilePathReader crypto2.ArchiveDigestFilePathReader
-	}{calculator, archiveFilePathReader})
-	fake.recordInvocation("RehashWithCalculator", []interface{}{calculator, archiveFilePathReader})
+		arg1 crypto.DigestCalculator
+		arg2 cryptoa.ArchiveDigestFilePathReader
+	}{arg1, arg2})
+	fake.recordInvocation("RehashWithCalculator", []interface{}{arg1, arg2})
 	fake.rehashWithCalculatorMutex.Unlock()
 	if fake.RehashWithCalculatorStub != nil {
-		return fake.RehashWithCalculatorStub(calculator, archiveFilePathReader)
+		return fake.RehashWithCalculatorStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.rehashWithCalculatorReturns.result1, fake.rehashWithCalculatorReturns.result2
+	fakeReturns := fake.rehashWithCalculatorReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeResource) RehashWithCalculatorCallCount() int {
@@ -368,13 +445,22 @@ func (fake *FakeResource) RehashWithCalculatorCallCount() int {
 	return len(fake.rehashWithCalculatorArgsForCall)
 }
 
-func (fake *FakeResource) RehashWithCalculatorArgsForCall(i int) (crypto.DigestCalculator, crypto2.ArchiveDigestFilePathReader) {
+func (fake *FakeResource) RehashWithCalculatorCalls(stub func(crypto.DigestCalculator, cryptoa.ArchiveDigestFilePathReader) (resource.Resource, error)) {
+	fake.rehashWithCalculatorMutex.Lock()
+	defer fake.rehashWithCalculatorMutex.Unlock()
+	fake.RehashWithCalculatorStub = stub
+}
+
+func (fake *FakeResource) RehashWithCalculatorArgsForCall(i int) (crypto.DigestCalculator, cryptoa.ArchiveDigestFilePathReader) {
 	fake.rehashWithCalculatorMutex.RLock()
 	defer fake.rehashWithCalculatorMutex.RUnlock()
-	return fake.rehashWithCalculatorArgsForCall[i].calculator, fake.rehashWithCalculatorArgsForCall[i].archiveFilePathReader
+	argsForCall := fake.rehashWithCalculatorArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeResource) RehashWithCalculatorReturns(result1 resource.Resource, result2 error) {
+	fake.rehashWithCalculatorMutex.Lock()
+	defer fake.rehashWithCalculatorMutex.Unlock()
 	fake.RehashWithCalculatorStub = nil
 	fake.rehashWithCalculatorReturns = struct {
 		result1 resource.Resource
@@ -383,6 +469,8 @@ func (fake *FakeResource) RehashWithCalculatorReturns(result1 resource.Resource,
 }
 
 func (fake *FakeResource) RehashWithCalculatorReturnsOnCall(i int, result1 resource.Resource, result2 error) {
+	fake.rehashWithCalculatorMutex.Lock()
+	defer fake.rehashWithCalculatorMutex.Unlock()
 	fake.RehashWithCalculatorStub = nil
 	if fake.rehashWithCalculatorReturnsOnCall == nil {
 		fake.rehashWithCalculatorReturnsOnCall = make(map[int]struct {
@@ -399,18 +487,18 @@ func (fake *FakeResource) RehashWithCalculatorReturnsOnCall(i int, result1 resou
 func (fake *FakeResource) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
-	fake.fingerprintMutex.RLock()
-	defer fake.fingerprintMutex.RUnlock()
-	fake.archivePathMutex.RLock()
-	defer fake.archivePathMutex.RUnlock()
 	fake.archiveDigestMutex.RLock()
 	defer fake.archiveDigestMutex.RUnlock()
+	fake.archivePathMutex.RLock()
+	defer fake.archivePathMutex.RUnlock()
 	fake.buildMutex.RLock()
 	defer fake.buildMutex.RUnlock()
 	fake.finalizeMutex.RLock()
 	defer fake.finalizeMutex.RUnlock()
+	fake.fingerprintMutex.RLock()
+	defer fake.fingerprintMutex.RUnlock()
+	fake.nameMutex.RLock()
+	defer fake.nameMutex.RUnlock()
 	fake.rehashWithCalculatorMutex.RLock()
 	defer fake.rehashWithCalculatorMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

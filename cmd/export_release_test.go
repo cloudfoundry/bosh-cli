@@ -57,10 +57,11 @@ var _ = Describe("ExportReleaseCmd", func() {
 
 			Expect(deployment.ExportReleaseCallCount()).To(Equal(1))
 
-			rel, os, jobs := deployment.ExportReleaseArgsForCall(0)
+			rel, os, jobs, strip := deployment.ExportReleaseArgsForCall(0)
 			Expect(rel).To(Equal(boshdir.NewReleaseSlug("rel", "rel-ver")))
 			Expect(os).To(Equal(boshdir.NewOSVersionSlug("os", "os-ver")))
 			Expect(jobs).To(Equal([]string{"fake-job"}))
+			Expect(strip).To(Equal(false))
 
 			Expect(downloader.DownloadCallCount()).To(Equal(1))
 
