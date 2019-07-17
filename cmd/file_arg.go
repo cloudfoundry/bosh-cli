@@ -2,6 +2,7 @@ package cmd
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
@@ -11,6 +12,10 @@ type FileArg struct {
 }
 
 func (a *FileArg) UnmarshalFlag(data string) error {
+	if a.FS == nil {
+		a.FS = boshsys.NewOsFileSystemWithStrictTempRoot(boshlog.NewLogger(boshlog.LevelNone))
+	}
+
 	expandedPath, err := a.FS.ExpandPath(data)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Checking file path")

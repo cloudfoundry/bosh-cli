@@ -1,13 +1,14 @@
 package cmd_test
 
 import (
-	"errors"
+	"fmt"
+	"io/ioutil"
 	"os"
-	"path/filepath"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
@@ -15,16 +16,25 @@ import (
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
+// This placeholder is used for replacing arguments in the table test with the
+// temporary file created in the BeforeEach
+const filePlaceholder = "replace-me"
+
 var _ = Describe("Factory", func() {
 	var (
-		fs           *fakesys.FakeFileSystem
-		factory      Factory
-		fakeFilePath string
+		fs      boshsys.FileSystem
+		factory Factory
+		tmpFile string
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		fs = fakesys.NewFakeFileSystem()
+		fs = boshsys.NewOsFileSystemWithStrictTempRoot(boshlog.NewLogger(boshlog.LevelNone))
+
+		f, err := ioutil.TempFile("", "file")
+		Expect(err).NotTo(HaveOccurred())
+
+		tmpFile = f.Name()
 
 		ui := boshui.NewConfUI(logger)
 		defer ui.Flush()
@@ -33,98 +43,89 @@ var _ = Describe("Factory", func() {
 		deps.FS = fs
 
 		factory = NewFactory(deps)
-		fakeFilePath = filepath.Join("/", "file")
 	})
 
-	Describe("unknown commands, args and flags", func() {
-		BeforeEach(func() {
-			err := fs.WriteFileString(filepath.Join("/", "file"), "")
-			Expect(err).ToNot(HaveOccurred())
-		})
+	Context("extra args and flags", func() {
+		DescribeTable("extra args and flags", func(cmd string, args []string) {
+			for i, arg := range args {
+				if arg == filePlaceholder {
+					args[i] = tmpFile
+				}
+			}
+			cmdWithArgs := append([]string{cmd}, args...)
+			cmdWithArgs = append(cmdWithArgs, "extra", "args")
 
-		cmds := map[string][]string{
-			"help":                   []string{},
-			"add-blob":               []string{filepath.Join("/", "file"), "directory"},
-			"attach-disk":            []string{"instance/abad1dea", "disk-cid-123"},
-			"blobs":                  []string{},
-			"interpolate":            []string{filepath.Join("/", "file")},
-			"cancel-task":            []string{"1234"},
-			"clean-up":               []string{},
-			"cloud-check":            []string{},
-			"cloud-config":           []string{},
-			"create-env":             []string{filepath.Join("/", "file")},
-			"sha2ify-release":        []string{filepath.Join("/", "file"), filepath.Join("/", "file2")},
-			"create-release":         []string{filepath.Join("/", "file")},
-			"delete-deployment":      []string{},
-			"delete-disk":            []string{"cid"},
-			"delete-env":             []string{filepath.Join("/", "file")},
-			"delete-release":         []string{"release-version"},
-			"delete-snapshot":        []string{"cid"},
-			"delete-snapshots":       []string{},
-			"delete-stemcell":        []string{"name/version"},
-			"delete-vm":              []string{"cid"},
-			"deploy":                 []string{filepath.Join("/", "file")},
-			"deployment":             []string{},
-			"deployments":            []string{},
-			"disks":                  []string{},
-			"alias-env":              []string{"alias"},
-			"environment":            []string{},
-			"environments":           []string{},
-			"errands":                []string{},
-			"events":                 []string{},
-			"export-release":         []string{"release/version", "os/version"},
-			"finalize-release":       []string{filepath.Join("/", "file")},
-			"generate-job":           []string{filepath.Join("/", "file")},
-			"generate-package":       []string{filepath.Join("/", "file")},
-			"init-release":           []string{},
-			"inspect-release":        []string{"name/version"},
-			"inspect-local-release":  []string{filepath.Join("/", "file")},
-			"inspect-local-stemcell": []string{filepath.Join("/", "file")},
-			"instances":              []string{},
-			"locks":                  []string{},
-			"log-in":                 []string{},
-			"log-out":                []string{},
-			"logs":                   []string{"slug"},
-			"manifest":               []string{},
-			"recreate":               []string{"slug"},
-			"releases":               []string{},
-			"remove-blob":            []string{filepath.Join("/", "file")},
-			"reset-release":          []string{},
-			"restart":                []string{"slug"},
-			"run-errand":             []string{"name"},
-			"runtime-config":         []string{},
-			"snapshots":              []string{"group/id"},
-			"start":                  []string{"slug"},
-			"stemcells":              []string{},
-			"stop":                   []string{"slug"},
-			"sync-blobs":             []string{},
-			"take-snapshot":          []string{"group/id"},
-			"task":                   []string{"1234"},
-			"tasks":                  []string{},
-			"update-cloud-config":    []string{filepath.Join("/", "file")},
-			"update-resurrection":    []string{"off"},
-			"update-runtime-config":  []string{filepath.Join("/", "file")},
-			"upload-blobs":           []string{},
-			"upload-release":         []string{filepath.Join("/", "file")},
-			"upload-stemcell":        []string{filepath.Join("/", "file")},
-			"vms":                    []string{},
-			"curl":                   []string{"/"},
-		}
-
-		for cmd, requiredArgs := range cmds {
-			cmd, requiredArgs := cmd, requiredArgs // copy
-
-			Describe(cmd, func() {
-				It("fails with extra arguments", func() {
-					cmdWithArgs := append([]string{cmd}, requiredArgs...)
-					cmdWithArgs = append(cmdWithArgs, "extra", "args")
-
-					_, err := factory.New(cmdWithArgs)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("does not support extra arguments: extra, args"))
-				})
-			})
-		}
+			_, err := factory.New(cmdWithArgs)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("does not support extra arguments: extra, args"))
+		},
+			Entry("help", "help", []string{}),
+			Entry("add-blob", "add-blob", []string{filePlaceholder, "directory"}),
+			Entry("attach-disk", "attach-disk", []string{"instance/abad1dea", "disk-cid-123"}),
+			Entry("blobs", "blobs", []string{}),
+			Entry("interpolate", "interpolate", []string{filePlaceholder}),
+			Entry("cancel-task", "cancel-task", []string{"1234"}),
+			Entry("clean-up", "clean-up", []string{}),
+			Entry("cloud-check", "cloud-check", []string{}),
+			Entry("cloud-config", "cloud-config", []string{}),
+			Entry("create-env", "create-env", []string{filePlaceholder}),
+			Entry("sha2ify-release", "sha2ify-release", []string{filePlaceholder, filePlaceholder}),
+			Entry("create-release", "create-release", []string{filePlaceholder}),
+			Entry("delete-deployment", "delete-deployment", []string{}),
+			Entry("delete-disk", "delete-disk", []string{"cid"}),
+			Entry("delete-env", "delete-env", []string{filePlaceholder}),
+			Entry("delete-release", "delete-release", []string{"release-version"}),
+			Entry("delete-snapshot", "delete-snapshot", []string{"cid"}),
+			Entry("delete-snapshots", "delete-snapshots", []string{}),
+			Entry("delete-stemcell", "delete-stemcell", []string{"name/version"}),
+			Entry("delete-vm", "delete-vm", []string{"cid"}),
+			Entry("deploy", "deploy", []string{filePlaceholder}),
+			Entry("deployment", "deployment", []string{}),
+			Entry("deployments", "deployments", []string{}),
+			Entry("disks", "disks", []string{}),
+			Entry("alias-env", "alias-env", []string{"alias"}),
+			Entry("environment", "environment", []string{}),
+			Entry("environments", "environments", []string{}),
+			Entry("errands", "errands", []string{}),
+			Entry("events", "events", []string{}),
+			Entry("export-release", "export-release", []string{"release/version", "os/version"}),
+			Entry("finalize-release", "finalize-release", []string{filePlaceholder}),
+			Entry("generate-job", "generate-job", []string{filePlaceholder}),
+			Entry("generate-package", "generate-package", []string{filePlaceholder}),
+			Entry("init-release", "init-release", []string{}),
+			Entry("inspect-release", "inspect-release", []string{"name/version"}),
+			Entry("inspect-local-release", "inspect-local-release", []string{filePlaceholder}),
+			Entry("inspect-local-stemcell", "inspect-local-stemcell", []string{filePlaceholder}),
+			Entry("instances", "instances", []string{}),
+			Entry("locks", "locks", []string{}),
+			Entry("log-in", "log-in", []string{}),
+			Entry("log-out", "log-out", []string{}),
+			Entry("logs", "logs", []string{"slug"}),
+			Entry("manifest", "manifest", []string{}),
+			Entry("recreate", "recreate", []string{"slug"}),
+			Entry("releases", "releases", []string{}),
+			Entry("remove-blob", "remove-blob", []string{filePlaceholder}),
+			Entry("reset-release", "reset-release", []string{}),
+			Entry("restart", "restart", []string{"slug"}),
+			Entry("run-errand", "run-errand", []string{"name"}),
+			Entry("runtime-config", "runtime-config", []string{}),
+			Entry("snapshots", "snapshots", []string{"group/id"}),
+			Entry("start", "start", []string{"slug"}),
+			Entry("stemcells", "stemcells", []string{}),
+			Entry("stop", "stop", []string{"slug"}),
+			Entry("sync-blobs", "sync-blobs", []string{}),
+			Entry("take-snapshot", "take-snapshot", []string{"group/id"}),
+			Entry("task", "task", []string{"1234"}),
+			Entry("tasks", "tasks", []string{}),
+			Entry("update-cloud-config", "update-cloud-config", []string{filePlaceholder}),
+			Entry("update-resurrection", "update-resurrection", []string{"off"}),
+			Entry("update-runtime-config", "update-runtime-config", []string{filePlaceholder}),
+			Entry("upload-blobs", "upload-blobs", []string{}),
+			Entry("upload-release", "upload-release", []string{filePlaceholder}),
+			Entry("upload-stemcell", "upload-stemcell", []string{filePlaceholder}),
+			Entry("vms", "vms", []string{}),
+			Entry("curl", "curl", []string{"/"}),
+		)
 
 		Describe("ssh", func() {
 			It("uses all remaining arguments as a command", func() {
@@ -196,13 +197,8 @@ var _ = Describe("Factory", func() {
 	})
 
 	Describe("deploy command", func() {
-		BeforeEach(func() {
-			err := fs.WriteFileString(fakeFilePath, "")
-			Expect(err).ToNot(HaveOccurred())
-		})
-
 		It("parses multiple skip-drain flags", func() {
-			cmd, err := factory.New([]string{"deploy", "--skip-drain=job1", "--skip-drain=job2", fakeFilePath})
+			cmd, err := factory.New([]string{"deploy", "--skip-drain=job1", "--skip-drain=job2", tmpFile})
 			Expect(err).ToNot(HaveOccurred())
 
 			slug1, _ := boshdir.NewInstanceGroupOrInstanceSlugFromString("job1")
@@ -216,13 +212,19 @@ var _ = Describe("Factory", func() {
 		})
 
 		It("errors when excluding = from --skip-drain", func() {
-			_, err := factory.New([]string{"deploy", "--skip-drain", "job1", fakeFilePath})
+			f, err := ioutil.TempFile("", "job1")
+			Expect(err).NotTo(HaveOccurred())
+
+			nonExistantPath := f.Name()
+			Expect(os.RemoveAll(nonExistantPath)).To(Succeed())
+
+			_, err = factory.New([]string{"deploy", "--skip-drain", nonExistantPath, tmpFile})
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Not found: open job1: no such file or directory"))
+			Expect(err.Error()).To(ContainSubstring("no such file or directory"))
 		})
 
 		It("defaults --skip-drain option value to all", func() {
-			cmd, err := factory.New([]string{"deploy", "--skip-drain", fakeFilePath})
+			cmd, err := factory.New([]string{"deploy", "--skip-drain", tmpFile})
 			Expect(err).ToNot(HaveOccurred())
 
 			opts := cmd.Opts.(*DeployOpts)
@@ -233,12 +235,14 @@ var _ = Describe("Factory", func() {
 	})
 
 	Describe("create-env command (command that uses FileBytesArg)", func() {
-		It("returns *nice error from FileBytesArg* error if it cannot read manifest", func() {
-			fs.ReadFileError = errors.New("fake-err")
+		BeforeEach(func() {
+			Expect(os.RemoveAll(tmpFile)).To(Succeed())
+		})
 
-			_, err := factory.New([]string{"create-env", "manifest.yml"})
+		It("returns *nice error from FileBytesArg* error if it cannot read manifest", func() {
+			_, err := factory.New([]string{"create-env", tmpFile})
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("open manifest.yml: no such file or directory"))
+			Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("open %s: no such file or directory", tmpFile)))
 		})
 	})
 

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"reflect"
 	"strings"
 
 	// Should only be imported here to avoid leaking use of goflags through project
@@ -96,16 +95,6 @@ func (f Factory) New(args []string) (Cmd, error) {
 	boshOpts.SSH.GatewayFlags.UUIDGen = f.deps.UUIDGen
 	boshOpts.SCP.GatewayFlags.UUIDGen = f.deps.UUIDGen
 	boshOpts.Logs.GatewayFlags.UUIDGen = f.deps.UUIDGen
-
-	goflags.FactoryFunc = func(val interface{}) {
-		stype := reflect.Indirect(reflect.ValueOf(val))
-		if stype.Kind() == reflect.Struct {
-			field := stype.FieldByName("FS")
-			if field.IsValid() {
-				field.Set(reflect.ValueOf(f.deps.FS))
-			}
-		}
-	}
 
 	helpText := bytes.NewBufferString("")
 	parser.WriteHelp(helpText)
