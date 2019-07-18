@@ -2,6 +2,7 @@ package cmd
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	cfgtypes "github.com/cloudfoundry/config-server/types"
 	"gopkg.in/yaml.v2"
@@ -84,6 +85,10 @@ func (s VarsFSStore) set(key string, val interface{}) error {
 }
 
 func (s VarsFSStore) load() (boshtpl.StaticVariables, error) {
+	if s.FS == nil {
+		s.FS = boshsys.NewOsFileSystemWithStrictTempRoot(boshlog.NewLogger(boshlog.LevelNone))
+	}
+
 	vars := boshtpl.StaticVariables{}
 
 	if s.FS.FileExists(s.path) {
@@ -105,6 +110,10 @@ func (s VarsFSStore) load() (boshtpl.StaticVariables, error) {
 }
 
 func (s VarsFSStore) save(vars boshtpl.StaticVariables) error {
+	if s.FS == nil {
+		s.FS = boshsys.NewOsFileSystemWithStrictTempRoot(boshlog.NewLogger(boshlog.LevelNone))
+	}
+
 	bytes, err := yaml.Marshal(vars)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Serializing variables")
@@ -119,6 +128,10 @@ func (s VarsFSStore) save(vars boshtpl.StaticVariables) error {
 }
 
 func (s *VarsFSStore) UnmarshalFlag(data string) error {
+	if s.FS == nil {
+		s.FS = boshsys.NewOsFileSystemWithStrictTempRoot(boshlog.NewLogger(boshlog.LevelNone))
+	}
+
 	if len(data) == 0 {
 		return bosherr.Errorf("Expected file path to be non-empty")
 	}

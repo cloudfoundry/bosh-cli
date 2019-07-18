@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
@@ -14,6 +15,10 @@ type VarFileArg struct {
 }
 
 func (a *VarFileArg) UnmarshalFlag(data string) error {
+	if a.FS == nil {
+		a.FS = boshsys.NewOsFileSystemWithStrictTempRoot(boshlog.NewLogger(boshlog.LevelNone))
+	}
+
 	pieces := strings.SplitN(data, "=", 2)
 	if len(pieces) != 2 {
 		return bosherr.Errorf("Expected var '%s' to be in format 'name=path'", data)
