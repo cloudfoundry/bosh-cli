@@ -100,7 +100,11 @@ func (c UploadReleaseCmd) uploadFile(opts UploadReleaseOpts) error {
 	if len(path) > 0 {
 		release, err = releaseReader.Read(path)
 		if err != nil {
-			return err
+			uploadNecessary, err := c.needToUpload(opts)
+			if err != nil || uploadNecessary {
+				return err
+			}
+			return nil
 		}
 	} else {
 		release, err = releaseDir.FindRelease(opts.Name, semver.Version(opts.Version))
