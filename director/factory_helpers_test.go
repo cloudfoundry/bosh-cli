@@ -9,8 +9,6 @@ import (
 	"github.com/onsi/gomega/ghttp"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-
-	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
 )
 
 func BuildServer() (Director, *ghttp.Server) {
@@ -32,13 +30,11 @@ func BuildServer() (Director, *ghttp.Server) {
 	factoryConfig.ClientSecret = "password"
 	factoryConfig.CACert = validCACert
 
-	config := &fakecmdconf.FakeConfig{}
-
 	logger := boshlog.NewLogger(boshlog.LevelNone)
 	taskReporter := NewNoopTaskReporter()
 	fileReporter := NewNoopFileReporter()
 
-	director, err := NewFactory(logger).New(factoryConfig, config, taskReporter, fileReporter)
+	director, err := NewFactory(logger).New(factoryConfig, taskReporter, fileReporter)
 	Expect(err).ToNot(HaveOccurred())
 
 	return director, server

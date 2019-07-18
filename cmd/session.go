@@ -121,7 +121,7 @@ func (c *SessionImpl) Director() (boshdir.Director, error) {
 	taskReporter := boshuit.NewReporter(c.ui, true)
 	fileReporter := boshui.NewFileReporter(c.ui)
 
-	director, err := boshdir.NewFactory(c.logger).New(dirConfig, c.context.Config(), taskReporter, fileReporter)
+	director, err := boshdir.NewFactory(c.logger).New(dirConfig, taskReporter, fileReporter)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (c *SessionImpl) AnonymousDirector() (boshdir.Director, error) {
 
 	dirConfig.CACert = c.context.CACert()
 
-	return boshdir.NewFactory(c.logger).New(dirConfig, c.context.Config(), nil, nil)
+	return boshdir.NewFactory(c.logger).New(dirConfig, nil, nil)
 }
 
 func (c *SessionImpl) Deployment() (boshdir.Deployment, error) {

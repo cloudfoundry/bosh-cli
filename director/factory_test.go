@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
 	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 	"github.com/cloudfoundry/bosh-utils/system/fakes"
 	"github.com/onsi/gomega/ghttp"
@@ -17,17 +16,9 @@ import (
 )
 
 var _ = Describe("Factory", func() {
-	var (
-		config *configfakes.FakeConfig
-	)
-
-	BeforeEach(func() {
-		config = &configfakes.FakeConfig{}
-	})
-
 	Describe("New", func() {
 		It("returns error if config is invalid", func() {
-			_, err := NewFactory(boshlog.NewLogger(boshlog.LevelNone)).New(FactoryConfig{}, config, nil, nil)
+			_, err := NewFactory(boshlog.NewLogger(boshlog.LevelNone)).New(FactoryConfig{}, nil, nil)
 			Expect(err).To(HaveOccurred())
 		})
 
@@ -40,7 +31,7 @@ var _ = Describe("Factory", func() {
 
 			logger := boshlog.NewLogger(boshlog.LevelNone)
 
-			director, err := NewFactory(logger).New(factoryConfig, config, nil, nil)
+			director, err := NewFactory(logger).New(factoryConfig, nil, nil)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, err = director.Info()
@@ -105,7 +96,7 @@ var _ = Describe("Factory", func() {
 
 				logger := boshlog.NewLogger(boshlog.LevelNone)
 
-				director, err := NewFactory(logger).New(factoryConfig, config, nil, nil)
+				director, err := NewFactory(logger).New(factoryConfig, nil, nil)
 				Expect(err).ToNot(HaveOccurred())
 
 				server.AppendHandlers(
@@ -138,7 +129,7 @@ var _ = Describe("Factory", func() {
 
 				taskReporter := NewNoopTaskReporter()
 				fileReporter := NewNoopFileReporter()
-				director, err := NewFactory(logger).New(factoryConfig, config, taskReporter, fileReporter)
+				director, err := NewFactory(logger).New(factoryConfig, taskReporter, fileReporter)
 				Expect(err).ToNot(HaveOccurred())
 
 				server.AppendHandlers(
@@ -183,7 +174,7 @@ var _ = Describe("Factory", func() {
 				factoryConfig.ClientSecret = "password"
 				factoryConfig.CACert = validCACert
 
-				director, err := NewFactory(logger).New(factoryConfig, config, nil, nil)
+				director, err := NewFactory(logger).New(factoryConfig, nil, nil)
 				Expect(err).ToNot(HaveOccurred())
 
 				server.AppendHandlers(
@@ -221,7 +212,7 @@ var _ = Describe("Factory", func() {
 
 				logger := boshlog.NewLogger(boshlog.LevelNone)
 
-				director, err := NewFactory(logger).New(factoryConfig, config, nil, nil)
+				director, err := NewFactory(logger).New(factoryConfig, nil, nil)
 				Expect(err).ToNot(HaveOccurred())
 
 				server.AppendHandlers(
@@ -255,7 +246,7 @@ var _ = Describe("Factory", func() {
 
 				logger := boshlog.NewLogger(boshlog.LevelNone)
 
-				director, err := NewFactory(logger).New(factoryConfig, config, nil, nil)
+				director, err := NewFactory(logger).New(factoryConfig, nil, nil)
 				Expect(err).ToNot(HaveOccurred())
 
 				server.AppendHandlers(
@@ -284,7 +275,7 @@ var _ = Describe("Factory", func() {
 
 				logger := boshlog.NewLogger(boshlog.LevelNone)
 
-				director, err := NewFactory(logger).New(factoryConfig, config, nil, nil)
+				director, err := NewFactory(logger).New(factoryConfig, nil, nil)
 				Expect(err).ToNot(HaveOccurred())
 
 				server.AppendHandlers(
@@ -315,7 +306,7 @@ var _ = Describe("Factory", func() {
 
 				logger := boshlog.NewLogger(boshlog.LevelNone)
 
-				director, err := NewFactory(logger).New(factoryConfig, config, nil, nil)
+				director, err := NewFactory(logger).New(factoryConfig, nil, nil)
 				Expect(err).ToNot(HaveOccurred())
 
 				server.AppendHandlers(
