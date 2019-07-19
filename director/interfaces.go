@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/cloudfoundry/bosh-cli/ui"
+	bio "github.com/cloudfoundry/bosh-cli/io"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 )
@@ -123,7 +123,7 @@ type StemcellArchive interface {
 //go:generate counterfeiter . FileReporter
 
 type FileReporter interface {
-	TrackUpload(int64, io.ReadCloser) ui.ReadSeekCloser
+	TrackUpload(int64, io.ReadCloser) bio.ReadSeekCloser
 	TrackDownload(int64, io.Writer) io.Writer
 }
 

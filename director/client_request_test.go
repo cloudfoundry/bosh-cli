@@ -17,7 +17,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
-	"github.com/cloudfoundry/bosh-cli/ui"
+	bio "github.com/cloudfoundry/bosh-cli/io"
 )
 
 var _ = Describe("ClientRequest", func() {
@@ -390,7 +390,7 @@ var _ = Describe("ClientRequest", func() {
 
 			It("tracks uploading", func() {
 				fileReporter := &fakedir.FakeFileReporter{
-					TrackUploadStub: func(size int64, reader io.ReadCloser) ui.ReadSeekCloser {
+					TrackUploadStub: func(size int64, reader io.ReadCloser) bio.ReadSeekCloser {
 						Expect(size).To(Equal(int64(8)))
 						Expect(ioutil.ReadAll(reader)).To(Equal([]byte("req-body")))
 						return NoopReadSeekCloser{Reader: ioutil.NopCloser(bytes.NewBufferString("req-body"))}
