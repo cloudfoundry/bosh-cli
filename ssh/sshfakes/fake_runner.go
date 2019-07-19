@@ -4,16 +4,16 @@ package sshfakes
 import (
 	"sync"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-cli/ssh"
 )
 
 type FakeRunner struct {
-	RunStub        func(ssh.ConnectionOpts, boshdir.SSHResult, []string) error
+	RunStub        func(ssh.ConnectionOpts, director.SSHResult, []string) error
 	runMutex       sync.RWMutex
 	runArgsForCall []struct {
 		arg1 ssh.ConnectionOpts
-		arg2 boshdir.SSHResult
+		arg2 director.SSHResult
 		arg3 []string
 	}
 	runReturns struct {
@@ -26,7 +26,7 @@ type FakeRunner struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeRunner) Run(arg1 ssh.ConnectionOpts, arg2 boshdir.SSHResult, arg3 []string) error {
+func (fake *FakeRunner) Run(arg1 ssh.ConnectionOpts, arg2 director.SSHResult, arg3 []string) error {
 	var arg3Copy []string
 	if arg3 != nil {
 		arg3Copy = make([]string, len(arg3))
@@ -36,7 +36,7 @@ func (fake *FakeRunner) Run(arg1 ssh.ConnectionOpts, arg2 boshdir.SSHResult, arg
 	ret, specificReturn := fake.runReturnsOnCall[len(fake.runArgsForCall)]
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
 		arg1 ssh.ConnectionOpts
-		arg2 boshdir.SSHResult
+		arg2 director.SSHResult
 		arg3 []string
 	}{arg1, arg2, arg3Copy})
 	fake.recordInvocation("Run", []interface{}{arg1, arg2, arg3Copy})
@@ -47,7 +47,8 @@ func (fake *FakeRunner) Run(arg1 ssh.ConnectionOpts, arg2 boshdir.SSHResult, arg
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.runReturns.result1
+	fakeReturns := fake.runReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeRunner) RunCallCount() int {
@@ -56,13 +57,22 @@ func (fake *FakeRunner) RunCallCount() int {
 	return len(fake.runArgsForCall)
 }
 
-func (fake *FakeRunner) RunArgsForCall(i int) (ssh.ConnectionOpts, boshdir.SSHResult, []string) {
+func (fake *FakeRunner) RunCalls(stub func(ssh.ConnectionOpts, director.SSHResult, []string) error) {
+	fake.runMutex.Lock()
+	defer fake.runMutex.Unlock()
+	fake.RunStub = stub
+}
+
+func (fake *FakeRunner) RunArgsForCall(i int) (ssh.ConnectionOpts, director.SSHResult, []string) {
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
-	return fake.runArgsForCall[i].arg1, fake.runArgsForCall[i].arg2, fake.runArgsForCall[i].arg3
+	argsForCall := fake.runArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeRunner) RunReturns(result1 error) {
+	fake.runMutex.Lock()
+	defer fake.runMutex.Unlock()
 	fake.RunStub = nil
 	fake.runReturns = struct {
 		result1 error
@@ -70,6 +80,8 @@ func (fake *FakeRunner) RunReturns(result1 error) {
 }
 
 func (fake *FakeRunner) RunReturnsOnCall(i int, result1 error) {
+	fake.runMutex.Lock()
+	defer fake.runMutex.Unlock()
 	fake.RunStub = nil
 	if fake.runReturnsOnCall == nil {
 		fake.runReturnsOnCall = make(map[int]struct {

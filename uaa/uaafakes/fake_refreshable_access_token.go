@@ -8,28 +8,11 @@ import (
 )
 
 type FakeRefreshableAccessToken struct {
-	TypeStub        func() string
-	typeMutex       sync.RWMutex
-	typeArgsForCall []struct{}
-	typeReturns     struct {
-		result1 string
-	}
-	typeReturnsOnCall map[int]struct {
-		result1 string
-	}
-	ValueStub        func() string
-	valueMutex       sync.RWMutex
-	valueArgsForCall []struct{}
-	valueReturns     struct {
-		result1 string
-	}
-	valueReturnsOnCall map[int]struct {
-		result1 string
-	}
 	IsValidStub        func() bool
 	isValidMutex       sync.RWMutex
-	isValidArgsForCall []struct{}
-	isValidReturns     struct {
+	isValidArgsForCall []struct {
+	}
+	isValidReturns struct {
 		result1 bool
 	}
 	isValidReturnsOnCall map[int]struct {
@@ -37,101 +20,43 @@ type FakeRefreshableAccessToken struct {
 	}
 	RefreshValueStub        func() string
 	refreshValueMutex       sync.RWMutex
-	refreshValueArgsForCall []struct{}
-	refreshValueReturns     struct {
+	refreshValueArgsForCall []struct {
+	}
+	refreshValueReturns struct {
 		result1 string
 	}
 	refreshValueReturnsOnCall map[int]struct {
+		result1 string
+	}
+	TypeStub        func() string
+	typeMutex       sync.RWMutex
+	typeArgsForCall []struct {
+	}
+	typeReturns struct {
+		result1 string
+	}
+	typeReturnsOnCall map[int]struct {
+		result1 string
+	}
+	ValueStub        func() string
+	valueMutex       sync.RWMutex
+	valueArgsForCall []struct {
+	}
+	valueReturns struct {
+		result1 string
+	}
+	valueReturnsOnCall map[int]struct {
 		result1 string
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeRefreshableAccessToken) Type() string {
-	fake.typeMutex.Lock()
-	ret, specificReturn := fake.typeReturnsOnCall[len(fake.typeArgsForCall)]
-	fake.typeArgsForCall = append(fake.typeArgsForCall, struct{}{})
-	fake.recordInvocation("Type", []interface{}{})
-	fake.typeMutex.Unlock()
-	if fake.TypeStub != nil {
-		return fake.TypeStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.typeReturns.result1
-}
-
-func (fake *FakeRefreshableAccessToken) TypeCallCount() int {
-	fake.typeMutex.RLock()
-	defer fake.typeMutex.RUnlock()
-	return len(fake.typeArgsForCall)
-}
-
-func (fake *FakeRefreshableAccessToken) TypeReturns(result1 string) {
-	fake.TypeStub = nil
-	fake.typeReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeRefreshableAccessToken) TypeReturnsOnCall(i int, result1 string) {
-	fake.TypeStub = nil
-	if fake.typeReturnsOnCall == nil {
-		fake.typeReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.typeReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeRefreshableAccessToken) Value() string {
-	fake.valueMutex.Lock()
-	ret, specificReturn := fake.valueReturnsOnCall[len(fake.valueArgsForCall)]
-	fake.valueArgsForCall = append(fake.valueArgsForCall, struct{}{})
-	fake.recordInvocation("Value", []interface{}{})
-	fake.valueMutex.Unlock()
-	if fake.ValueStub != nil {
-		return fake.ValueStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.valueReturns.result1
-}
-
-func (fake *FakeRefreshableAccessToken) ValueCallCount() int {
-	fake.valueMutex.RLock()
-	defer fake.valueMutex.RUnlock()
-	return len(fake.valueArgsForCall)
-}
-
-func (fake *FakeRefreshableAccessToken) ValueReturns(result1 string) {
-	fake.ValueStub = nil
-	fake.valueReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeRefreshableAccessToken) ValueReturnsOnCall(i int, result1 string) {
-	fake.ValueStub = nil
-	if fake.valueReturnsOnCall == nil {
-		fake.valueReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.valueReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
 func (fake *FakeRefreshableAccessToken) IsValid() bool {
 	fake.isValidMutex.Lock()
 	ret, specificReturn := fake.isValidReturnsOnCall[len(fake.isValidArgsForCall)]
-	fake.isValidArgsForCall = append(fake.isValidArgsForCall, struct{}{})
+	fake.isValidArgsForCall = append(fake.isValidArgsForCall, struct {
+	}{})
 	fake.recordInvocation("IsValid", []interface{}{})
 	fake.isValidMutex.Unlock()
 	if fake.IsValidStub != nil {
@@ -140,7 +65,8 @@ func (fake *FakeRefreshableAccessToken) IsValid() bool {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.isValidReturns.result1
+	fakeReturns := fake.isValidReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeRefreshableAccessToken) IsValidCallCount() int {
@@ -149,7 +75,15 @@ func (fake *FakeRefreshableAccessToken) IsValidCallCount() int {
 	return len(fake.isValidArgsForCall)
 }
 
+func (fake *FakeRefreshableAccessToken) IsValidCalls(stub func() bool) {
+	fake.isValidMutex.Lock()
+	defer fake.isValidMutex.Unlock()
+	fake.IsValidStub = stub
+}
+
 func (fake *FakeRefreshableAccessToken) IsValidReturns(result1 bool) {
+	fake.isValidMutex.Lock()
+	defer fake.isValidMutex.Unlock()
 	fake.IsValidStub = nil
 	fake.isValidReturns = struct {
 		result1 bool
@@ -157,6 +91,8 @@ func (fake *FakeRefreshableAccessToken) IsValidReturns(result1 bool) {
 }
 
 func (fake *FakeRefreshableAccessToken) IsValidReturnsOnCall(i int, result1 bool) {
+	fake.isValidMutex.Lock()
+	defer fake.isValidMutex.Unlock()
 	fake.IsValidStub = nil
 	if fake.isValidReturnsOnCall == nil {
 		fake.isValidReturnsOnCall = make(map[int]struct {
@@ -171,7 +107,8 @@ func (fake *FakeRefreshableAccessToken) IsValidReturnsOnCall(i int, result1 bool
 func (fake *FakeRefreshableAccessToken) RefreshValue() string {
 	fake.refreshValueMutex.Lock()
 	ret, specificReturn := fake.refreshValueReturnsOnCall[len(fake.refreshValueArgsForCall)]
-	fake.refreshValueArgsForCall = append(fake.refreshValueArgsForCall, struct{}{})
+	fake.refreshValueArgsForCall = append(fake.refreshValueArgsForCall, struct {
+	}{})
 	fake.recordInvocation("RefreshValue", []interface{}{})
 	fake.refreshValueMutex.Unlock()
 	if fake.RefreshValueStub != nil {
@@ -180,7 +117,8 @@ func (fake *FakeRefreshableAccessToken) RefreshValue() string {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.refreshValueReturns.result1
+	fakeReturns := fake.refreshValueReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeRefreshableAccessToken) RefreshValueCallCount() int {
@@ -189,7 +127,15 @@ func (fake *FakeRefreshableAccessToken) RefreshValueCallCount() int {
 	return len(fake.refreshValueArgsForCall)
 }
 
+func (fake *FakeRefreshableAccessToken) RefreshValueCalls(stub func() string) {
+	fake.refreshValueMutex.Lock()
+	defer fake.refreshValueMutex.Unlock()
+	fake.RefreshValueStub = stub
+}
+
 func (fake *FakeRefreshableAccessToken) RefreshValueReturns(result1 string) {
+	fake.refreshValueMutex.Lock()
+	defer fake.refreshValueMutex.Unlock()
 	fake.RefreshValueStub = nil
 	fake.refreshValueReturns = struct {
 		result1 string
@@ -197,6 +143,8 @@ func (fake *FakeRefreshableAccessToken) RefreshValueReturns(result1 string) {
 }
 
 func (fake *FakeRefreshableAccessToken) RefreshValueReturnsOnCall(i int, result1 string) {
+	fake.refreshValueMutex.Lock()
+	defer fake.refreshValueMutex.Unlock()
 	fake.RefreshValueStub = nil
 	if fake.refreshValueReturnsOnCall == nil {
 		fake.refreshValueReturnsOnCall = make(map[int]struct {
@@ -208,17 +156,121 @@ func (fake *FakeRefreshableAccessToken) RefreshValueReturnsOnCall(i int, result1
 	}{result1}
 }
 
+func (fake *FakeRefreshableAccessToken) Type() string {
+	fake.typeMutex.Lock()
+	ret, specificReturn := fake.typeReturnsOnCall[len(fake.typeArgsForCall)]
+	fake.typeArgsForCall = append(fake.typeArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Type", []interface{}{})
+	fake.typeMutex.Unlock()
+	if fake.TypeStub != nil {
+		return fake.TypeStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.typeReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeRefreshableAccessToken) TypeCallCount() int {
+	fake.typeMutex.RLock()
+	defer fake.typeMutex.RUnlock()
+	return len(fake.typeArgsForCall)
+}
+
+func (fake *FakeRefreshableAccessToken) TypeCalls(stub func() string) {
+	fake.typeMutex.Lock()
+	defer fake.typeMutex.Unlock()
+	fake.TypeStub = stub
+}
+
+func (fake *FakeRefreshableAccessToken) TypeReturns(result1 string) {
+	fake.typeMutex.Lock()
+	defer fake.typeMutex.Unlock()
+	fake.TypeStub = nil
+	fake.typeReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeRefreshableAccessToken) TypeReturnsOnCall(i int, result1 string) {
+	fake.typeMutex.Lock()
+	defer fake.typeMutex.Unlock()
+	fake.TypeStub = nil
+	if fake.typeReturnsOnCall == nil {
+		fake.typeReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.typeReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeRefreshableAccessToken) Value() string {
+	fake.valueMutex.Lock()
+	ret, specificReturn := fake.valueReturnsOnCall[len(fake.valueArgsForCall)]
+	fake.valueArgsForCall = append(fake.valueArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Value", []interface{}{})
+	fake.valueMutex.Unlock()
+	if fake.ValueStub != nil {
+		return fake.ValueStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.valueReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeRefreshableAccessToken) ValueCallCount() int {
+	fake.valueMutex.RLock()
+	defer fake.valueMutex.RUnlock()
+	return len(fake.valueArgsForCall)
+}
+
+func (fake *FakeRefreshableAccessToken) ValueCalls(stub func() string) {
+	fake.valueMutex.Lock()
+	defer fake.valueMutex.Unlock()
+	fake.ValueStub = stub
+}
+
+func (fake *FakeRefreshableAccessToken) ValueReturns(result1 string) {
+	fake.valueMutex.Lock()
+	defer fake.valueMutex.Unlock()
+	fake.ValueStub = nil
+	fake.valueReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeRefreshableAccessToken) ValueReturnsOnCall(i int, result1 string) {
+	fake.valueMutex.Lock()
+	defer fake.valueMutex.Unlock()
+	fake.ValueStub = nil
+	if fake.valueReturnsOnCall == nil {
+		fake.valueReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.valueReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeRefreshableAccessToken) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.typeMutex.RLock()
-	defer fake.typeMutex.RUnlock()
-	fake.valueMutex.RLock()
-	defer fake.valueMutex.RUnlock()
 	fake.isValidMutex.RLock()
 	defer fake.isValidMutex.RUnlock()
 	fake.refreshValueMutex.RLock()
 	defer fake.refreshValueMutex.RUnlock()
+	fake.typeMutex.RLock()
+	defer fake.typeMutex.RUnlock()
+	fake.valueMutex.RLock()
+	defer fake.valueMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

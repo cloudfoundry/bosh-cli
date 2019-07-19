@@ -8,27 +8,12 @@ import (
 )
 
 type FakeIndexBlobs struct {
-	GetStub        func(name, blobID, sha1 string) (string, error)
-	getMutex       sync.RWMutex
-	getArgsForCall []struct {
-		name   string
-		blobID string
-		sha1   string
-	}
-	getReturns struct {
-		result1 string
-		result2 error
-	}
-	getReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
-	}
-	AddStub        func(name, path, sha1 string) (string, string, error)
+	AddStub        func(string, string, string) (string, string, error)
 	addMutex       sync.RWMutex
 	addArgsForCall []struct {
-		name string
-		path string
-		sha1 string
+		arg1 string
+		arg2 string
+		arg3 string
 	}
 	addReturns struct {
 		result1 string
@@ -40,80 +25,43 @@ type FakeIndexBlobs struct {
 		result2 string
 		result3 error
 	}
+	GetStub        func(string, string, string) (string, error)
+	getMutex       sync.RWMutex
+	getArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 string
+	}
+	getReturns struct {
+		result1 string
+		result2 error
+	}
+	getReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeIndexBlobs) Get(name string, blobID string, sha1 string) (string, error) {
-	fake.getMutex.Lock()
-	ret, specificReturn := fake.getReturnsOnCall[len(fake.getArgsForCall)]
-	fake.getArgsForCall = append(fake.getArgsForCall, struct {
-		name   string
-		blobID string
-		sha1   string
-	}{name, blobID, sha1})
-	fake.recordInvocation("Get", []interface{}{name, blobID, sha1})
-	fake.getMutex.Unlock()
-	if fake.GetStub != nil {
-		return fake.GetStub(name, blobID, sha1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.getReturns.result1, fake.getReturns.result2
-}
-
-func (fake *FakeIndexBlobs) GetCallCount() int {
-	fake.getMutex.RLock()
-	defer fake.getMutex.RUnlock()
-	return len(fake.getArgsForCall)
-}
-
-func (fake *FakeIndexBlobs) GetArgsForCall(i int) (string, string, string) {
-	fake.getMutex.RLock()
-	defer fake.getMutex.RUnlock()
-	return fake.getArgsForCall[i].name, fake.getArgsForCall[i].blobID, fake.getArgsForCall[i].sha1
-}
-
-func (fake *FakeIndexBlobs) GetReturns(result1 string, result2 error) {
-	fake.GetStub = nil
-	fake.getReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeIndexBlobs) GetReturnsOnCall(i int, result1 string, result2 error) {
-	fake.GetStub = nil
-	if fake.getReturnsOnCall == nil {
-		fake.getReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
-		})
-	}
-	fake.getReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeIndexBlobs) Add(name string, path string, sha1 string) (string, string, error) {
+func (fake *FakeIndexBlobs) Add(arg1 string, arg2 string, arg3 string) (string, string, error) {
 	fake.addMutex.Lock()
 	ret, specificReturn := fake.addReturnsOnCall[len(fake.addArgsForCall)]
 	fake.addArgsForCall = append(fake.addArgsForCall, struct {
-		name string
-		path string
-		sha1 string
-	}{name, path, sha1})
-	fake.recordInvocation("Add", []interface{}{name, path, sha1})
+		arg1 string
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("Add", []interface{}{arg1, arg2, arg3})
 	fake.addMutex.Unlock()
 	if fake.AddStub != nil {
-		return fake.AddStub(name, path, sha1)
+		return fake.AddStub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	return fake.addReturns.result1, fake.addReturns.result2, fake.addReturns.result3
+	fakeReturns := fake.addReturns
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
 func (fake *FakeIndexBlobs) AddCallCount() int {
@@ -122,13 +70,22 @@ func (fake *FakeIndexBlobs) AddCallCount() int {
 	return len(fake.addArgsForCall)
 }
 
+func (fake *FakeIndexBlobs) AddCalls(stub func(string, string, string) (string, string, error)) {
+	fake.addMutex.Lock()
+	defer fake.addMutex.Unlock()
+	fake.AddStub = stub
+}
+
 func (fake *FakeIndexBlobs) AddArgsForCall(i int) (string, string, string) {
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
-	return fake.addArgsForCall[i].name, fake.addArgsForCall[i].path, fake.addArgsForCall[i].sha1
+	argsForCall := fake.addArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeIndexBlobs) AddReturns(result1 string, result2 string, result3 error) {
+	fake.addMutex.Lock()
+	defer fake.addMutex.Unlock()
 	fake.AddStub = nil
 	fake.addReturns = struct {
 		result1 string
@@ -138,6 +95,8 @@ func (fake *FakeIndexBlobs) AddReturns(result1 string, result2 string, result3 e
 }
 
 func (fake *FakeIndexBlobs) AddReturnsOnCall(i int, result1 string, result2 string, result3 error) {
+	fake.addMutex.Lock()
+	defer fake.addMutex.Unlock()
 	fake.AddStub = nil
 	if fake.addReturnsOnCall == nil {
 		fake.addReturnsOnCall = make(map[int]struct {
@@ -153,13 +112,78 @@ func (fake *FakeIndexBlobs) AddReturnsOnCall(i int, result1 string, result2 stri
 	}{result1, result2, result3}
 }
 
+func (fake *FakeIndexBlobs) Get(arg1 string, arg2 string, arg3 string) (string, error) {
+	fake.getMutex.Lock()
+	ret, specificReturn := fake.getReturnsOnCall[len(fake.getArgsForCall)]
+	fake.getArgsForCall = append(fake.getArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("Get", []interface{}{arg1, arg2, arg3})
+	fake.getMutex.Unlock()
+	if fake.GetStub != nil {
+		return fake.GetStub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.getReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeIndexBlobs) GetCallCount() int {
+	fake.getMutex.RLock()
+	defer fake.getMutex.RUnlock()
+	return len(fake.getArgsForCall)
+}
+
+func (fake *FakeIndexBlobs) GetCalls(stub func(string, string, string) (string, error)) {
+	fake.getMutex.Lock()
+	defer fake.getMutex.Unlock()
+	fake.GetStub = stub
+}
+
+func (fake *FakeIndexBlobs) GetArgsForCall(i int) (string, string, string) {
+	fake.getMutex.RLock()
+	defer fake.getMutex.RUnlock()
+	argsForCall := fake.getArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeIndexBlobs) GetReturns(result1 string, result2 error) {
+	fake.getMutex.Lock()
+	defer fake.getMutex.Unlock()
+	fake.GetStub = nil
+	fake.getReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeIndexBlobs) GetReturnsOnCall(i int, result1 string, result2 error) {
+	fake.getMutex.Lock()
+	defer fake.getMutex.Unlock()
+	fake.GetStub = nil
+	if fake.getReturnsOnCall == nil {
+		fake.getReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeIndexBlobs) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.getMutex.RLock()
-	defer fake.getMutex.RUnlock()
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
+	fake.getMutex.RLock()
+	defer fake.getMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

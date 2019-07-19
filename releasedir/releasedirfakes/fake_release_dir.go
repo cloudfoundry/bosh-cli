@@ -4,32 +4,65 @@ package releasedirfakes
 import (
 	"sync"
 
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	"github.com/cloudfoundry/bosh-cli/release"
+	"github.com/cloudfoundry/bosh-cli/release/pkg"
 	"github.com/cloudfoundry/bosh-cli/releasedir"
-	semver "github.com/cppforlife/go-semi-semantic/version"
+	"github.com/cppforlife/go-semi-semantic/version"
 )
 
 type FakeReleaseDir struct {
-	InitStub        func(bool) error
-	initMutex       sync.RWMutex
-	initArgsForCall []struct {
-		arg1 bool
+	BuildReleaseStub        func(string, version.Version, bool) (release.Release, error)
+	buildReleaseMutex       sync.RWMutex
+	buildReleaseArgsForCall []struct {
+		arg1 string
+		arg2 version.Version
+		arg3 bool
 	}
-	initReturns struct {
+	buildReleaseReturns struct {
+		result1 release.Release
+		result2 error
+	}
+	buildReleaseReturnsOnCall map[int]struct {
+		result1 release.Release
+		result2 error
+	}
+	DefaultNameStub        func() (string, error)
+	defaultNameMutex       sync.RWMutex
+	defaultNameArgsForCall []struct {
+	}
+	defaultNameReturns struct {
+		result1 string
+		result2 error
+	}
+	defaultNameReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
+	FinalizeReleaseStub        func(release.Release, bool) error
+	finalizeReleaseMutex       sync.RWMutex
+	finalizeReleaseArgsForCall []struct {
+		arg1 release.Release
+		arg2 bool
+	}
+	finalizeReleaseReturns struct {
 		result1 error
 	}
-	initReturnsOnCall map[int]struct {
+	finalizeReleaseReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ResetStub        func() error
-	resetMutex       sync.RWMutex
-	resetArgsForCall []struct{}
-	resetReturns     struct {
-		result1 error
+	FindReleaseStub        func(string, version.Version) (release.Release, error)
+	findReleaseMutex       sync.RWMutex
+	findReleaseArgsForCall []struct {
+		arg1 string
+		arg2 version.Version
 	}
-	resetReturnsOnCall map[int]struct {
-		result1 error
+	findReleaseReturns struct {
+		result1 release.Release
+		result2 error
+	}
+	findReleaseReturnsOnCall map[int]struct {
+		result1 release.Release
+		result2 error
 	}
 	GenerateJobStub        func(string) error
 	generateJobMutex       sync.RWMutex
@@ -53,77 +86,58 @@ type FakeReleaseDir struct {
 	generatePackageReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DefaultNameStub        func() (string, error)
-	defaultNameMutex       sync.RWMutex
-	defaultNameArgsForCall []struct{}
-	defaultNameReturns     struct {
-		result1 string
-		result2 error
+	InitStub        func(bool) error
+	initMutex       sync.RWMutex
+	initArgsForCall []struct {
+		arg1 bool
 	}
-	defaultNameReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
+	initReturns struct {
+		result1 error
 	}
-	NextDevVersionStub        func(name string, timestamp bool) (semver.Version, error)
+	initReturnsOnCall map[int]struct {
+		result1 error
+	}
+	NextDevVersionStub        func(string, bool) (version.Version, error)
 	nextDevVersionMutex       sync.RWMutex
 	nextDevVersionArgsForCall []struct {
-		name      string
-		timestamp bool
+		arg1 string
+		arg2 bool
 	}
 	nextDevVersionReturns struct {
-		result1 semver.Version
+		result1 version.Version
 		result2 error
 	}
 	nextDevVersionReturnsOnCall map[int]struct {
-		result1 semver.Version
+		result1 version.Version
 		result2 error
 	}
-	NextFinalVersionStub        func(name string) (semver.Version, error)
+	NextFinalVersionStub        func(string) (version.Version, error)
 	nextFinalVersionMutex       sync.RWMutex
 	nextFinalVersionArgsForCall []struct {
-		name string
+		arg1 string
 	}
 	nextFinalVersionReturns struct {
-		result1 semver.Version
+		result1 version.Version
 		result2 error
 	}
 	nextFinalVersionReturnsOnCall map[int]struct {
-		result1 semver.Version
+		result1 version.Version
 		result2 error
 	}
-	FindReleaseStub        func(name string, version semver.Version) (boshrel.Release, error)
-	findReleaseMutex       sync.RWMutex
-	findReleaseArgsForCall []struct {
-		name    string
-		version semver.Version
+	ResetStub        func() error
+	resetMutex       sync.RWMutex
+	resetArgsForCall []struct {
 	}
-	findReleaseReturns struct {
-		result1 boshrel.Release
-		result2 error
+	resetReturns struct {
+		result1 error
 	}
-	findReleaseReturnsOnCall map[int]struct {
-		result1 boshrel.Release
-		result2 error
+	resetReturnsOnCall map[int]struct {
+		result1 error
 	}
-	BuildReleaseStub        func(name string, version semver.Version, force bool) (boshrel.Release, error)
-	buildReleaseMutex       sync.RWMutex
-	buildReleaseArgsForCall []struct {
-		name    string
-		version semver.Version
-		force   bool
-	}
-	buildReleaseReturns struct {
-		result1 boshrel.Release
-		result2 error
-	}
-	buildReleaseReturnsOnCall map[int]struct {
-		result1 boshrel.Release
-		result2 error
-	}
-	VendorPackageStub        func(*boshpkg.Package) error
+	VendorPackageStub        func(*pkg.Package) error
 	vendorPackageMutex       sync.RWMutex
 	vendorPackageArgsForCall []struct {
-		arg1 *boshpkg.Package
+		arg1 *pkg.Package
 	}
 	vendorPackageReturns struct {
 		result1 error
@@ -131,108 +145,253 @@ type FakeReleaseDir struct {
 	vendorPackageReturnsOnCall map[int]struct {
 		result1 error
 	}
-	FinalizeReleaseStub        func(release boshrel.Release, force bool) error
-	finalizeReleaseMutex       sync.RWMutex
-	finalizeReleaseArgsForCall []struct {
-		release boshrel.Release
-		force   bool
-	}
-	finalizeReleaseReturns struct {
-		result1 error
-	}
-	finalizeReleaseReturnsOnCall map[int]struct {
-		result1 error
-	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeReleaseDir) Init(arg1 bool) error {
-	fake.initMutex.Lock()
-	ret, specificReturn := fake.initReturnsOnCall[len(fake.initArgsForCall)]
-	fake.initArgsForCall = append(fake.initArgsForCall, struct {
-		arg1 bool
-	}{arg1})
-	fake.recordInvocation("Init", []interface{}{arg1})
-	fake.initMutex.Unlock()
-	if fake.InitStub != nil {
-		return fake.InitStub(arg1)
+func (fake *FakeReleaseDir) BuildRelease(arg1 string, arg2 version.Version, arg3 bool) (release.Release, error) {
+	fake.buildReleaseMutex.Lock()
+	ret, specificReturn := fake.buildReleaseReturnsOnCall[len(fake.buildReleaseArgsForCall)]
+	fake.buildReleaseArgsForCall = append(fake.buildReleaseArgsForCall, struct {
+		arg1 string
+		arg2 version.Version
+		arg3 bool
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("BuildRelease", []interface{}{arg1, arg2, arg3})
+	fake.buildReleaseMutex.Unlock()
+	if fake.BuildReleaseStub != nil {
+		return fake.BuildReleaseStub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.buildReleaseReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeReleaseDir) BuildReleaseCallCount() int {
+	fake.buildReleaseMutex.RLock()
+	defer fake.buildReleaseMutex.RUnlock()
+	return len(fake.buildReleaseArgsForCall)
+}
+
+func (fake *FakeReleaseDir) BuildReleaseCalls(stub func(string, version.Version, bool) (release.Release, error)) {
+	fake.buildReleaseMutex.Lock()
+	defer fake.buildReleaseMutex.Unlock()
+	fake.BuildReleaseStub = stub
+}
+
+func (fake *FakeReleaseDir) BuildReleaseArgsForCall(i int) (string, version.Version, bool) {
+	fake.buildReleaseMutex.RLock()
+	defer fake.buildReleaseMutex.RUnlock()
+	argsForCall := fake.buildReleaseArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeReleaseDir) BuildReleaseReturns(result1 release.Release, result2 error) {
+	fake.buildReleaseMutex.Lock()
+	defer fake.buildReleaseMutex.Unlock()
+	fake.BuildReleaseStub = nil
+	fake.buildReleaseReturns = struct {
+		result1 release.Release
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeReleaseDir) BuildReleaseReturnsOnCall(i int, result1 release.Release, result2 error) {
+	fake.buildReleaseMutex.Lock()
+	defer fake.buildReleaseMutex.Unlock()
+	fake.BuildReleaseStub = nil
+	if fake.buildReleaseReturnsOnCall == nil {
+		fake.buildReleaseReturnsOnCall = make(map[int]struct {
+			result1 release.Release
+			result2 error
+		})
+	}
+	fake.buildReleaseReturnsOnCall[i] = struct {
+		result1 release.Release
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeReleaseDir) DefaultName() (string, error) {
+	fake.defaultNameMutex.Lock()
+	ret, specificReturn := fake.defaultNameReturnsOnCall[len(fake.defaultNameArgsForCall)]
+	fake.defaultNameArgsForCall = append(fake.defaultNameArgsForCall, struct {
+	}{})
+	fake.recordInvocation("DefaultName", []interface{}{})
+	fake.defaultNameMutex.Unlock()
+	if fake.DefaultNameStub != nil {
+		return fake.DefaultNameStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.defaultNameReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeReleaseDir) DefaultNameCallCount() int {
+	fake.defaultNameMutex.RLock()
+	defer fake.defaultNameMutex.RUnlock()
+	return len(fake.defaultNameArgsForCall)
+}
+
+func (fake *FakeReleaseDir) DefaultNameCalls(stub func() (string, error)) {
+	fake.defaultNameMutex.Lock()
+	defer fake.defaultNameMutex.Unlock()
+	fake.DefaultNameStub = stub
+}
+
+func (fake *FakeReleaseDir) DefaultNameReturns(result1 string, result2 error) {
+	fake.defaultNameMutex.Lock()
+	defer fake.defaultNameMutex.Unlock()
+	fake.DefaultNameStub = nil
+	fake.defaultNameReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeReleaseDir) DefaultNameReturnsOnCall(i int, result1 string, result2 error) {
+	fake.defaultNameMutex.Lock()
+	defer fake.defaultNameMutex.Unlock()
+	fake.DefaultNameStub = nil
+	if fake.defaultNameReturnsOnCall == nil {
+		fake.defaultNameReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.defaultNameReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeReleaseDir) FinalizeRelease(arg1 release.Release, arg2 bool) error {
+	fake.finalizeReleaseMutex.Lock()
+	ret, specificReturn := fake.finalizeReleaseReturnsOnCall[len(fake.finalizeReleaseArgsForCall)]
+	fake.finalizeReleaseArgsForCall = append(fake.finalizeReleaseArgsForCall, struct {
+		arg1 release.Release
+		arg2 bool
+	}{arg1, arg2})
+	fake.recordInvocation("FinalizeRelease", []interface{}{arg1, arg2})
+	fake.finalizeReleaseMutex.Unlock()
+	if fake.FinalizeReleaseStub != nil {
+		return fake.FinalizeReleaseStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.initReturns.result1
+	fakeReturns := fake.finalizeReleaseReturns
+	return fakeReturns.result1
 }
 
-func (fake *FakeReleaseDir) InitCallCount() int {
-	fake.initMutex.RLock()
-	defer fake.initMutex.RUnlock()
-	return len(fake.initArgsForCall)
+func (fake *FakeReleaseDir) FinalizeReleaseCallCount() int {
+	fake.finalizeReleaseMutex.RLock()
+	defer fake.finalizeReleaseMutex.RUnlock()
+	return len(fake.finalizeReleaseArgsForCall)
 }
 
-func (fake *FakeReleaseDir) InitArgsForCall(i int) bool {
-	fake.initMutex.RLock()
-	defer fake.initMutex.RUnlock()
-	return fake.initArgsForCall[i].arg1
+func (fake *FakeReleaseDir) FinalizeReleaseCalls(stub func(release.Release, bool) error) {
+	fake.finalizeReleaseMutex.Lock()
+	defer fake.finalizeReleaseMutex.Unlock()
+	fake.FinalizeReleaseStub = stub
 }
 
-func (fake *FakeReleaseDir) InitReturns(result1 error) {
-	fake.InitStub = nil
-	fake.initReturns = struct {
+func (fake *FakeReleaseDir) FinalizeReleaseArgsForCall(i int) (release.Release, bool) {
+	fake.finalizeReleaseMutex.RLock()
+	defer fake.finalizeReleaseMutex.RUnlock()
+	argsForCall := fake.finalizeReleaseArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeReleaseDir) FinalizeReleaseReturns(result1 error) {
+	fake.finalizeReleaseMutex.Lock()
+	defer fake.finalizeReleaseMutex.Unlock()
+	fake.FinalizeReleaseStub = nil
+	fake.finalizeReleaseReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeReleaseDir) InitReturnsOnCall(i int, result1 error) {
-	fake.InitStub = nil
-	if fake.initReturnsOnCall == nil {
-		fake.initReturnsOnCall = make(map[int]struct {
+func (fake *FakeReleaseDir) FinalizeReleaseReturnsOnCall(i int, result1 error) {
+	fake.finalizeReleaseMutex.Lock()
+	defer fake.finalizeReleaseMutex.Unlock()
+	fake.FinalizeReleaseStub = nil
+	if fake.finalizeReleaseReturnsOnCall == nil {
+		fake.finalizeReleaseReturnsOnCall = make(map[int]struct {
 			result1 error
 		})
 	}
-	fake.initReturnsOnCall[i] = struct {
+	fake.finalizeReleaseReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeReleaseDir) Reset() error {
-	fake.resetMutex.Lock()
-	ret, specificReturn := fake.resetReturnsOnCall[len(fake.resetArgsForCall)]
-	fake.resetArgsForCall = append(fake.resetArgsForCall, struct{}{})
-	fake.recordInvocation("Reset", []interface{}{})
-	fake.resetMutex.Unlock()
-	if fake.ResetStub != nil {
-		return fake.ResetStub()
+func (fake *FakeReleaseDir) FindRelease(arg1 string, arg2 version.Version) (release.Release, error) {
+	fake.findReleaseMutex.Lock()
+	ret, specificReturn := fake.findReleaseReturnsOnCall[len(fake.findReleaseArgsForCall)]
+	fake.findReleaseArgsForCall = append(fake.findReleaseArgsForCall, struct {
+		arg1 string
+		arg2 version.Version
+	}{arg1, arg2})
+	fake.recordInvocation("FindRelease", []interface{}{arg1, arg2})
+	fake.findReleaseMutex.Unlock()
+	if fake.FindReleaseStub != nil {
+		return fake.FindReleaseStub(arg1, arg2)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fake.resetReturns.result1
+	fakeReturns := fake.findReleaseReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeReleaseDir) ResetCallCount() int {
-	fake.resetMutex.RLock()
-	defer fake.resetMutex.RUnlock()
-	return len(fake.resetArgsForCall)
+func (fake *FakeReleaseDir) FindReleaseCallCount() int {
+	fake.findReleaseMutex.RLock()
+	defer fake.findReleaseMutex.RUnlock()
+	return len(fake.findReleaseArgsForCall)
 }
 
-func (fake *FakeReleaseDir) ResetReturns(result1 error) {
-	fake.ResetStub = nil
-	fake.resetReturns = struct {
-		result1 error
-	}{result1}
+func (fake *FakeReleaseDir) FindReleaseCalls(stub func(string, version.Version) (release.Release, error)) {
+	fake.findReleaseMutex.Lock()
+	defer fake.findReleaseMutex.Unlock()
+	fake.FindReleaseStub = stub
 }
 
-func (fake *FakeReleaseDir) ResetReturnsOnCall(i int, result1 error) {
-	fake.ResetStub = nil
-	if fake.resetReturnsOnCall == nil {
-		fake.resetReturnsOnCall = make(map[int]struct {
-			result1 error
+func (fake *FakeReleaseDir) FindReleaseArgsForCall(i int) (string, version.Version) {
+	fake.findReleaseMutex.RLock()
+	defer fake.findReleaseMutex.RUnlock()
+	argsForCall := fake.findReleaseArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeReleaseDir) FindReleaseReturns(result1 release.Release, result2 error) {
+	fake.findReleaseMutex.Lock()
+	defer fake.findReleaseMutex.Unlock()
+	fake.FindReleaseStub = nil
+	fake.findReleaseReturns = struct {
+		result1 release.Release
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeReleaseDir) FindReleaseReturnsOnCall(i int, result1 release.Release, result2 error) {
+	fake.findReleaseMutex.Lock()
+	defer fake.findReleaseMutex.Unlock()
+	fake.FindReleaseStub = nil
+	if fake.findReleaseReturnsOnCall == nil {
+		fake.findReleaseReturnsOnCall = make(map[int]struct {
+			result1 release.Release
+			result2 error
 		})
 	}
-	fake.resetReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
+	fake.findReleaseReturnsOnCall[i] = struct {
+		result1 release.Release
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeReleaseDir) GenerateJob(arg1 string) error {
@@ -249,7 +408,8 @@ func (fake *FakeReleaseDir) GenerateJob(arg1 string) error {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.generateJobReturns.result1
+	fakeReturns := fake.generateJobReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeReleaseDir) GenerateJobCallCount() int {
@@ -258,13 +418,22 @@ func (fake *FakeReleaseDir) GenerateJobCallCount() int {
 	return len(fake.generateJobArgsForCall)
 }
 
+func (fake *FakeReleaseDir) GenerateJobCalls(stub func(string) error) {
+	fake.generateJobMutex.Lock()
+	defer fake.generateJobMutex.Unlock()
+	fake.GenerateJobStub = stub
+}
+
 func (fake *FakeReleaseDir) GenerateJobArgsForCall(i int) string {
 	fake.generateJobMutex.RLock()
 	defer fake.generateJobMutex.RUnlock()
-	return fake.generateJobArgsForCall[i].arg1
+	argsForCall := fake.generateJobArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeReleaseDir) GenerateJobReturns(result1 error) {
+	fake.generateJobMutex.Lock()
+	defer fake.generateJobMutex.Unlock()
 	fake.GenerateJobStub = nil
 	fake.generateJobReturns = struct {
 		result1 error
@@ -272,6 +441,8 @@ func (fake *FakeReleaseDir) GenerateJobReturns(result1 error) {
 }
 
 func (fake *FakeReleaseDir) GenerateJobReturnsOnCall(i int, result1 error) {
+	fake.generateJobMutex.Lock()
+	defer fake.generateJobMutex.Unlock()
 	fake.GenerateJobStub = nil
 	if fake.generateJobReturnsOnCall == nil {
 		fake.generateJobReturnsOnCall = make(map[int]struct {
@@ -297,7 +468,8 @@ func (fake *FakeReleaseDir) GeneratePackage(arg1 string) error {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.generatePackageReturns.result1
+	fakeReturns := fake.generatePackageReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeReleaseDir) GeneratePackageCallCount() int {
@@ -306,13 +478,22 @@ func (fake *FakeReleaseDir) GeneratePackageCallCount() int {
 	return len(fake.generatePackageArgsForCall)
 }
 
+func (fake *FakeReleaseDir) GeneratePackageCalls(stub func(string) error) {
+	fake.generatePackageMutex.Lock()
+	defer fake.generatePackageMutex.Unlock()
+	fake.GeneratePackageStub = stub
+}
+
 func (fake *FakeReleaseDir) GeneratePackageArgsForCall(i int) string {
 	fake.generatePackageMutex.RLock()
 	defer fake.generatePackageMutex.RUnlock()
-	return fake.generatePackageArgsForCall[i].arg1
+	argsForCall := fake.generatePackageArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeReleaseDir) GeneratePackageReturns(result1 error) {
+	fake.generatePackageMutex.Lock()
+	defer fake.generatePackageMutex.Unlock()
 	fake.GeneratePackageStub = nil
 	fake.generatePackageReturns = struct {
 		result1 error
@@ -320,6 +501,8 @@ func (fake *FakeReleaseDir) GeneratePackageReturns(result1 error) {
 }
 
 func (fake *FakeReleaseDir) GeneratePackageReturnsOnCall(i int, result1 error) {
+	fake.generatePackageMutex.Lock()
+	defer fake.generatePackageMutex.Unlock()
 	fake.GeneratePackageStub = nil
 	if fake.generatePackageReturnsOnCall == nil {
 		fake.generatePackageReturnsOnCall = make(map[int]struct {
@@ -331,65 +514,83 @@ func (fake *FakeReleaseDir) GeneratePackageReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeReleaseDir) DefaultName() (string, error) {
-	fake.defaultNameMutex.Lock()
-	ret, specificReturn := fake.defaultNameReturnsOnCall[len(fake.defaultNameArgsForCall)]
-	fake.defaultNameArgsForCall = append(fake.defaultNameArgsForCall, struct{}{})
-	fake.recordInvocation("DefaultName", []interface{}{})
-	fake.defaultNameMutex.Unlock()
-	if fake.DefaultNameStub != nil {
-		return fake.DefaultNameStub()
+func (fake *FakeReleaseDir) Init(arg1 bool) error {
+	fake.initMutex.Lock()
+	ret, specificReturn := fake.initReturnsOnCall[len(fake.initArgsForCall)]
+	fake.initArgsForCall = append(fake.initArgsForCall, struct {
+		arg1 bool
+	}{arg1})
+	fake.recordInvocation("Init", []interface{}{arg1})
+	fake.initMutex.Unlock()
+	if fake.InitStub != nil {
+		return fake.InitStub(arg1)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1
 	}
-	return fake.defaultNameReturns.result1, fake.defaultNameReturns.result2
+	fakeReturns := fake.initReturns
+	return fakeReturns.result1
 }
 
-func (fake *FakeReleaseDir) DefaultNameCallCount() int {
-	fake.defaultNameMutex.RLock()
-	defer fake.defaultNameMutex.RUnlock()
-	return len(fake.defaultNameArgsForCall)
+func (fake *FakeReleaseDir) InitCallCount() int {
+	fake.initMutex.RLock()
+	defer fake.initMutex.RUnlock()
+	return len(fake.initArgsForCall)
 }
 
-func (fake *FakeReleaseDir) DefaultNameReturns(result1 string, result2 error) {
-	fake.DefaultNameStub = nil
-	fake.defaultNameReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
+func (fake *FakeReleaseDir) InitCalls(stub func(bool) error) {
+	fake.initMutex.Lock()
+	defer fake.initMutex.Unlock()
+	fake.InitStub = stub
 }
 
-func (fake *FakeReleaseDir) DefaultNameReturnsOnCall(i int, result1 string, result2 error) {
-	fake.DefaultNameStub = nil
-	if fake.defaultNameReturnsOnCall == nil {
-		fake.defaultNameReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
+func (fake *FakeReleaseDir) InitArgsForCall(i int) bool {
+	fake.initMutex.RLock()
+	defer fake.initMutex.RUnlock()
+	argsForCall := fake.initArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeReleaseDir) InitReturns(result1 error) {
+	fake.initMutex.Lock()
+	defer fake.initMutex.Unlock()
+	fake.InitStub = nil
+	fake.initReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeReleaseDir) InitReturnsOnCall(i int, result1 error) {
+	fake.initMutex.Lock()
+	defer fake.initMutex.Unlock()
+	fake.InitStub = nil
+	if fake.initReturnsOnCall == nil {
+		fake.initReturnsOnCall = make(map[int]struct {
+			result1 error
 		})
 	}
-	fake.defaultNameReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
+	fake.initReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeReleaseDir) NextDevVersion(name string, timestamp bool) (semver.Version, error) {
+func (fake *FakeReleaseDir) NextDevVersion(arg1 string, arg2 bool) (version.Version, error) {
 	fake.nextDevVersionMutex.Lock()
 	ret, specificReturn := fake.nextDevVersionReturnsOnCall[len(fake.nextDevVersionArgsForCall)]
 	fake.nextDevVersionArgsForCall = append(fake.nextDevVersionArgsForCall, struct {
-		name      string
-		timestamp bool
-	}{name, timestamp})
-	fake.recordInvocation("NextDevVersion", []interface{}{name, timestamp})
+		arg1 string
+		arg2 bool
+	}{arg1, arg2})
+	fake.recordInvocation("NextDevVersion", []interface{}{arg1, arg2})
 	fake.nextDevVersionMutex.Unlock()
 	if fake.NextDevVersionStub != nil {
-		return fake.NextDevVersionStub(name, timestamp)
+		return fake.NextDevVersionStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.nextDevVersionReturns.result1, fake.nextDevVersionReturns.result2
+	fakeReturns := fake.nextDevVersionReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeReleaseDir) NextDevVersionCallCount() int {
@@ -398,49 +599,61 @@ func (fake *FakeReleaseDir) NextDevVersionCallCount() int {
 	return len(fake.nextDevVersionArgsForCall)
 }
 
+func (fake *FakeReleaseDir) NextDevVersionCalls(stub func(string, bool) (version.Version, error)) {
+	fake.nextDevVersionMutex.Lock()
+	defer fake.nextDevVersionMutex.Unlock()
+	fake.NextDevVersionStub = stub
+}
+
 func (fake *FakeReleaseDir) NextDevVersionArgsForCall(i int) (string, bool) {
 	fake.nextDevVersionMutex.RLock()
 	defer fake.nextDevVersionMutex.RUnlock()
-	return fake.nextDevVersionArgsForCall[i].name, fake.nextDevVersionArgsForCall[i].timestamp
+	argsForCall := fake.nextDevVersionArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeReleaseDir) NextDevVersionReturns(result1 semver.Version, result2 error) {
+func (fake *FakeReleaseDir) NextDevVersionReturns(result1 version.Version, result2 error) {
+	fake.nextDevVersionMutex.Lock()
+	defer fake.nextDevVersionMutex.Unlock()
 	fake.NextDevVersionStub = nil
 	fake.nextDevVersionReturns = struct {
-		result1 semver.Version
+		result1 version.Version
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeReleaseDir) NextDevVersionReturnsOnCall(i int, result1 semver.Version, result2 error) {
+func (fake *FakeReleaseDir) NextDevVersionReturnsOnCall(i int, result1 version.Version, result2 error) {
+	fake.nextDevVersionMutex.Lock()
+	defer fake.nextDevVersionMutex.Unlock()
 	fake.NextDevVersionStub = nil
 	if fake.nextDevVersionReturnsOnCall == nil {
 		fake.nextDevVersionReturnsOnCall = make(map[int]struct {
-			result1 semver.Version
+			result1 version.Version
 			result2 error
 		})
 	}
 	fake.nextDevVersionReturnsOnCall[i] = struct {
-		result1 semver.Version
+		result1 version.Version
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeReleaseDir) NextFinalVersion(name string) (semver.Version, error) {
+func (fake *FakeReleaseDir) NextFinalVersion(arg1 string) (version.Version, error) {
 	fake.nextFinalVersionMutex.Lock()
 	ret, specificReturn := fake.nextFinalVersionReturnsOnCall[len(fake.nextFinalVersionArgsForCall)]
 	fake.nextFinalVersionArgsForCall = append(fake.nextFinalVersionArgsForCall, struct {
-		name string
-	}{name})
-	fake.recordInvocation("NextFinalVersion", []interface{}{name})
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("NextFinalVersion", []interface{}{arg1})
 	fake.nextFinalVersionMutex.Unlock()
 	if fake.NextFinalVersionStub != nil {
-		return fake.NextFinalVersionStub(name)
+		return fake.NextFinalVersionStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.nextFinalVersionReturns.result1, fake.nextFinalVersionReturns.result2
+	fakeReturns := fake.nextFinalVersionReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeReleaseDir) NextFinalVersionCallCount() int {
@@ -449,144 +662,102 @@ func (fake *FakeReleaseDir) NextFinalVersionCallCount() int {
 	return len(fake.nextFinalVersionArgsForCall)
 }
 
+func (fake *FakeReleaseDir) NextFinalVersionCalls(stub func(string) (version.Version, error)) {
+	fake.nextFinalVersionMutex.Lock()
+	defer fake.nextFinalVersionMutex.Unlock()
+	fake.NextFinalVersionStub = stub
+}
+
 func (fake *FakeReleaseDir) NextFinalVersionArgsForCall(i int) string {
 	fake.nextFinalVersionMutex.RLock()
 	defer fake.nextFinalVersionMutex.RUnlock()
-	return fake.nextFinalVersionArgsForCall[i].name
+	argsForCall := fake.nextFinalVersionArgsForCall[i]
+	return argsForCall.arg1
 }
 
-func (fake *FakeReleaseDir) NextFinalVersionReturns(result1 semver.Version, result2 error) {
+func (fake *FakeReleaseDir) NextFinalVersionReturns(result1 version.Version, result2 error) {
+	fake.nextFinalVersionMutex.Lock()
+	defer fake.nextFinalVersionMutex.Unlock()
 	fake.NextFinalVersionStub = nil
 	fake.nextFinalVersionReturns = struct {
-		result1 semver.Version
+		result1 version.Version
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeReleaseDir) NextFinalVersionReturnsOnCall(i int, result1 semver.Version, result2 error) {
+func (fake *FakeReleaseDir) NextFinalVersionReturnsOnCall(i int, result1 version.Version, result2 error) {
+	fake.nextFinalVersionMutex.Lock()
+	defer fake.nextFinalVersionMutex.Unlock()
 	fake.NextFinalVersionStub = nil
 	if fake.nextFinalVersionReturnsOnCall == nil {
 		fake.nextFinalVersionReturnsOnCall = make(map[int]struct {
-			result1 semver.Version
+			result1 version.Version
 			result2 error
 		})
 	}
 	fake.nextFinalVersionReturnsOnCall[i] = struct {
-		result1 semver.Version
+		result1 version.Version
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeReleaseDir) FindRelease(name string, version semver.Version) (boshrel.Release, error) {
-	fake.findReleaseMutex.Lock()
-	ret, specificReturn := fake.findReleaseReturnsOnCall[len(fake.findReleaseArgsForCall)]
-	fake.findReleaseArgsForCall = append(fake.findReleaseArgsForCall, struct {
-		name    string
-		version semver.Version
-	}{name, version})
-	fake.recordInvocation("FindRelease", []interface{}{name, version})
-	fake.findReleaseMutex.Unlock()
-	if fake.FindReleaseStub != nil {
-		return fake.FindReleaseStub(name, version)
+func (fake *FakeReleaseDir) Reset() error {
+	fake.resetMutex.Lock()
+	ret, specificReturn := fake.resetReturnsOnCall[len(fake.resetArgsForCall)]
+	fake.resetArgsForCall = append(fake.resetArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Reset", []interface{}{})
+	fake.resetMutex.Unlock()
+	if fake.ResetStub != nil {
+		return fake.ResetStub()
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1
 	}
-	return fake.findReleaseReturns.result1, fake.findReleaseReturns.result2
+	fakeReturns := fake.resetReturns
+	return fakeReturns.result1
 }
 
-func (fake *FakeReleaseDir) FindReleaseCallCount() int {
-	fake.findReleaseMutex.RLock()
-	defer fake.findReleaseMutex.RUnlock()
-	return len(fake.findReleaseArgsForCall)
+func (fake *FakeReleaseDir) ResetCallCount() int {
+	fake.resetMutex.RLock()
+	defer fake.resetMutex.RUnlock()
+	return len(fake.resetArgsForCall)
 }
 
-func (fake *FakeReleaseDir) FindReleaseArgsForCall(i int) (string, semver.Version) {
-	fake.findReleaseMutex.RLock()
-	defer fake.findReleaseMutex.RUnlock()
-	return fake.findReleaseArgsForCall[i].name, fake.findReleaseArgsForCall[i].version
+func (fake *FakeReleaseDir) ResetCalls(stub func() error) {
+	fake.resetMutex.Lock()
+	defer fake.resetMutex.Unlock()
+	fake.ResetStub = stub
 }
 
-func (fake *FakeReleaseDir) FindReleaseReturns(result1 boshrel.Release, result2 error) {
-	fake.FindReleaseStub = nil
-	fake.findReleaseReturns = struct {
-		result1 boshrel.Release
-		result2 error
-	}{result1, result2}
+func (fake *FakeReleaseDir) ResetReturns(result1 error) {
+	fake.resetMutex.Lock()
+	defer fake.resetMutex.Unlock()
+	fake.ResetStub = nil
+	fake.resetReturns = struct {
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeReleaseDir) FindReleaseReturnsOnCall(i int, result1 boshrel.Release, result2 error) {
-	fake.FindReleaseStub = nil
-	if fake.findReleaseReturnsOnCall == nil {
-		fake.findReleaseReturnsOnCall = make(map[int]struct {
-			result1 boshrel.Release
-			result2 error
+func (fake *FakeReleaseDir) ResetReturnsOnCall(i int, result1 error) {
+	fake.resetMutex.Lock()
+	defer fake.resetMutex.Unlock()
+	fake.ResetStub = nil
+	if fake.resetReturnsOnCall == nil {
+		fake.resetReturnsOnCall = make(map[int]struct {
+			result1 error
 		})
 	}
-	fake.findReleaseReturnsOnCall[i] = struct {
-		result1 boshrel.Release
-		result2 error
-	}{result1, result2}
+	fake.resetReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeReleaseDir) BuildRelease(name string, version semver.Version, force bool) (boshrel.Release, error) {
-	fake.buildReleaseMutex.Lock()
-	ret, specificReturn := fake.buildReleaseReturnsOnCall[len(fake.buildReleaseArgsForCall)]
-	fake.buildReleaseArgsForCall = append(fake.buildReleaseArgsForCall, struct {
-		name    string
-		version semver.Version
-		force   bool
-	}{name, version, force})
-	fake.recordInvocation("BuildRelease", []interface{}{name, version, force})
-	fake.buildReleaseMutex.Unlock()
-	if fake.BuildReleaseStub != nil {
-		return fake.BuildReleaseStub(name, version, force)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.buildReleaseReturns.result1, fake.buildReleaseReturns.result2
-}
-
-func (fake *FakeReleaseDir) BuildReleaseCallCount() int {
-	fake.buildReleaseMutex.RLock()
-	defer fake.buildReleaseMutex.RUnlock()
-	return len(fake.buildReleaseArgsForCall)
-}
-
-func (fake *FakeReleaseDir) BuildReleaseArgsForCall(i int) (string, semver.Version, bool) {
-	fake.buildReleaseMutex.RLock()
-	defer fake.buildReleaseMutex.RUnlock()
-	return fake.buildReleaseArgsForCall[i].name, fake.buildReleaseArgsForCall[i].version, fake.buildReleaseArgsForCall[i].force
-}
-
-func (fake *FakeReleaseDir) BuildReleaseReturns(result1 boshrel.Release, result2 error) {
-	fake.BuildReleaseStub = nil
-	fake.buildReleaseReturns = struct {
-		result1 boshrel.Release
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeReleaseDir) BuildReleaseReturnsOnCall(i int, result1 boshrel.Release, result2 error) {
-	fake.BuildReleaseStub = nil
-	if fake.buildReleaseReturnsOnCall == nil {
-		fake.buildReleaseReturnsOnCall = make(map[int]struct {
-			result1 boshrel.Release
-			result2 error
-		})
-	}
-	fake.buildReleaseReturnsOnCall[i] = struct {
-		result1 boshrel.Release
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeReleaseDir) VendorPackage(arg1 *boshpkg.Package) error {
+func (fake *FakeReleaseDir) VendorPackage(arg1 *pkg.Package) error {
 	fake.vendorPackageMutex.Lock()
 	ret, specificReturn := fake.vendorPackageReturnsOnCall[len(fake.vendorPackageArgsForCall)]
 	fake.vendorPackageArgsForCall = append(fake.vendorPackageArgsForCall, struct {
-		arg1 *boshpkg.Package
+		arg1 *pkg.Package
 	}{arg1})
 	fake.recordInvocation("VendorPackage", []interface{}{arg1})
 	fake.vendorPackageMutex.Unlock()
@@ -596,7 +767,8 @@ func (fake *FakeReleaseDir) VendorPackage(arg1 *boshpkg.Package) error {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.vendorPackageReturns.result1
+	fakeReturns := fake.vendorPackageReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeReleaseDir) VendorPackageCallCount() int {
@@ -605,13 +777,22 @@ func (fake *FakeReleaseDir) VendorPackageCallCount() int {
 	return len(fake.vendorPackageArgsForCall)
 }
 
-func (fake *FakeReleaseDir) VendorPackageArgsForCall(i int) *boshpkg.Package {
+func (fake *FakeReleaseDir) VendorPackageCalls(stub func(*pkg.Package) error) {
+	fake.vendorPackageMutex.Lock()
+	defer fake.vendorPackageMutex.Unlock()
+	fake.VendorPackageStub = stub
+}
+
+func (fake *FakeReleaseDir) VendorPackageArgsForCall(i int) *pkg.Package {
 	fake.vendorPackageMutex.RLock()
 	defer fake.vendorPackageMutex.RUnlock()
-	return fake.vendorPackageArgsForCall[i].arg1
+	argsForCall := fake.vendorPackageArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeReleaseDir) VendorPackageReturns(result1 error) {
+	fake.vendorPackageMutex.Lock()
+	defer fake.vendorPackageMutex.Unlock()
 	fake.VendorPackageStub = nil
 	fake.vendorPackageReturns = struct {
 		result1 error
@@ -619,6 +800,8 @@ func (fake *FakeReleaseDir) VendorPackageReturns(result1 error) {
 }
 
 func (fake *FakeReleaseDir) VendorPackageReturnsOnCall(i int, result1 error) {
+	fake.vendorPackageMutex.Lock()
+	defer fake.vendorPackageMutex.Unlock()
 	fake.VendorPackageStub = nil
 	if fake.vendorPackageReturnsOnCall == nil {
 		fake.vendorPackageReturnsOnCall = make(map[int]struct {
@@ -630,80 +813,31 @@ func (fake *FakeReleaseDir) VendorPackageReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeReleaseDir) FinalizeRelease(release boshrel.Release, force bool) error {
-	fake.finalizeReleaseMutex.Lock()
-	ret, specificReturn := fake.finalizeReleaseReturnsOnCall[len(fake.finalizeReleaseArgsForCall)]
-	fake.finalizeReleaseArgsForCall = append(fake.finalizeReleaseArgsForCall, struct {
-		release boshrel.Release
-		force   bool
-	}{release, force})
-	fake.recordInvocation("FinalizeRelease", []interface{}{release, force})
-	fake.finalizeReleaseMutex.Unlock()
-	if fake.FinalizeReleaseStub != nil {
-		return fake.FinalizeReleaseStub(release, force)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.finalizeReleaseReturns.result1
-}
-
-func (fake *FakeReleaseDir) FinalizeReleaseCallCount() int {
-	fake.finalizeReleaseMutex.RLock()
-	defer fake.finalizeReleaseMutex.RUnlock()
-	return len(fake.finalizeReleaseArgsForCall)
-}
-
-func (fake *FakeReleaseDir) FinalizeReleaseArgsForCall(i int) (boshrel.Release, bool) {
-	fake.finalizeReleaseMutex.RLock()
-	defer fake.finalizeReleaseMutex.RUnlock()
-	return fake.finalizeReleaseArgsForCall[i].release, fake.finalizeReleaseArgsForCall[i].force
-}
-
-func (fake *FakeReleaseDir) FinalizeReleaseReturns(result1 error) {
-	fake.FinalizeReleaseStub = nil
-	fake.finalizeReleaseReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeReleaseDir) FinalizeReleaseReturnsOnCall(i int, result1 error) {
-	fake.FinalizeReleaseStub = nil
-	if fake.finalizeReleaseReturnsOnCall == nil {
-		fake.finalizeReleaseReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.finalizeReleaseReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeReleaseDir) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.initMutex.RLock()
-	defer fake.initMutex.RUnlock()
-	fake.resetMutex.RLock()
-	defer fake.resetMutex.RUnlock()
+	fake.buildReleaseMutex.RLock()
+	defer fake.buildReleaseMutex.RUnlock()
+	fake.defaultNameMutex.RLock()
+	defer fake.defaultNameMutex.RUnlock()
+	fake.finalizeReleaseMutex.RLock()
+	defer fake.finalizeReleaseMutex.RUnlock()
+	fake.findReleaseMutex.RLock()
+	defer fake.findReleaseMutex.RUnlock()
 	fake.generateJobMutex.RLock()
 	defer fake.generateJobMutex.RUnlock()
 	fake.generatePackageMutex.RLock()
 	defer fake.generatePackageMutex.RUnlock()
-	fake.defaultNameMutex.RLock()
-	defer fake.defaultNameMutex.RUnlock()
+	fake.initMutex.RLock()
+	defer fake.initMutex.RUnlock()
 	fake.nextDevVersionMutex.RLock()
 	defer fake.nextDevVersionMutex.RUnlock()
 	fake.nextFinalVersionMutex.RLock()
 	defer fake.nextFinalVersionMutex.RUnlock()
-	fake.findReleaseMutex.RLock()
-	defer fake.findReleaseMutex.RUnlock()
-	fake.buildReleaseMutex.RLock()
-	defer fake.buildReleaseMutex.RUnlock()
+	fake.resetMutex.RLock()
+	defer fake.resetMutex.RUnlock()
 	fake.vendorPackageMutex.RLock()
 	defer fake.vendorPackageMutex.RUnlock()
-	fake.finalizeReleaseMutex.RLock()
-	defer fake.finalizeReleaseMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

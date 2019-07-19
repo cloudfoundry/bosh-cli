@@ -9,11 +9,11 @@ import (
 )
 
 type FakeAdjustment struct {
-	AdjustStub        func(req *http.Request, retried bool) error
+	AdjustStub        func(*http.Request, bool) error
 	adjustMutex       sync.RWMutex
 	adjustArgsForCall []struct {
-		req     *http.Request
-		retried bool
+		arg1 *http.Request
+		arg2 bool
 	}
 	adjustReturns struct {
 		result1 error
@@ -36,22 +36,23 @@ type FakeAdjustment struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeAdjustment) Adjust(req *http.Request, retried bool) error {
+func (fake *FakeAdjustment) Adjust(arg1 *http.Request, arg2 bool) error {
 	fake.adjustMutex.Lock()
 	ret, specificReturn := fake.adjustReturnsOnCall[len(fake.adjustArgsForCall)]
 	fake.adjustArgsForCall = append(fake.adjustArgsForCall, struct {
-		req     *http.Request
-		retried bool
-	}{req, retried})
-	fake.recordInvocation("Adjust", []interface{}{req, retried})
+		arg1 *http.Request
+		arg2 bool
+	}{arg1, arg2})
+	fake.recordInvocation("Adjust", []interface{}{arg1, arg2})
 	fake.adjustMutex.Unlock()
 	if fake.AdjustStub != nil {
-		return fake.AdjustStub(req, retried)
+		return fake.AdjustStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.adjustReturns.result1
+	fakeReturns := fake.adjustReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeAdjustment) AdjustCallCount() int {
@@ -60,13 +61,22 @@ func (fake *FakeAdjustment) AdjustCallCount() int {
 	return len(fake.adjustArgsForCall)
 }
 
+func (fake *FakeAdjustment) AdjustCalls(stub func(*http.Request, bool) error) {
+	fake.adjustMutex.Lock()
+	defer fake.adjustMutex.Unlock()
+	fake.AdjustStub = stub
+}
+
 func (fake *FakeAdjustment) AdjustArgsForCall(i int) (*http.Request, bool) {
 	fake.adjustMutex.RLock()
 	defer fake.adjustMutex.RUnlock()
-	return fake.adjustArgsForCall[i].req, fake.adjustArgsForCall[i].retried
+	argsForCall := fake.adjustArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeAdjustment) AdjustReturns(result1 error) {
+	fake.adjustMutex.Lock()
+	defer fake.adjustMutex.Unlock()
 	fake.AdjustStub = nil
 	fake.adjustReturns = struct {
 		result1 error
@@ -74,6 +84,8 @@ func (fake *FakeAdjustment) AdjustReturns(result1 error) {
 }
 
 func (fake *FakeAdjustment) AdjustReturnsOnCall(i int, result1 error) {
+	fake.adjustMutex.Lock()
+	defer fake.adjustMutex.Unlock()
 	fake.AdjustStub = nil
 	if fake.adjustReturnsOnCall == nil {
 		fake.adjustReturnsOnCall = make(map[int]struct {
@@ -99,7 +111,8 @@ func (fake *FakeAdjustment) NeedsReadjustment(arg1 *http.Response) bool {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.needsReadjustmentReturns.result1
+	fakeReturns := fake.needsReadjustmentReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeAdjustment) NeedsReadjustmentCallCount() int {
@@ -108,13 +121,22 @@ func (fake *FakeAdjustment) NeedsReadjustmentCallCount() int {
 	return len(fake.needsReadjustmentArgsForCall)
 }
 
+func (fake *FakeAdjustment) NeedsReadjustmentCalls(stub func(*http.Response) bool) {
+	fake.needsReadjustmentMutex.Lock()
+	defer fake.needsReadjustmentMutex.Unlock()
+	fake.NeedsReadjustmentStub = stub
+}
+
 func (fake *FakeAdjustment) NeedsReadjustmentArgsForCall(i int) *http.Response {
 	fake.needsReadjustmentMutex.RLock()
 	defer fake.needsReadjustmentMutex.RUnlock()
-	return fake.needsReadjustmentArgsForCall[i].arg1
+	argsForCall := fake.needsReadjustmentArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeAdjustment) NeedsReadjustmentReturns(result1 bool) {
+	fake.needsReadjustmentMutex.Lock()
+	defer fake.needsReadjustmentMutex.Unlock()
 	fake.NeedsReadjustmentStub = nil
 	fake.needsReadjustmentReturns = struct {
 		result1 bool
@@ -122,6 +144,8 @@ func (fake *FakeAdjustment) NeedsReadjustmentReturns(result1 bool) {
 }
 
 func (fake *FakeAdjustment) NeedsReadjustmentReturnsOnCall(i int, result1 bool) {
+	fake.needsReadjustmentMutex.Lock()
+	defer fake.needsReadjustmentMutex.Unlock()
 	fake.NeedsReadjustmentStub = nil
 	if fake.needsReadjustmentReturnsOnCall == nil {
 		fake.needsReadjustmentReturnsOnCall = make(map[int]struct {

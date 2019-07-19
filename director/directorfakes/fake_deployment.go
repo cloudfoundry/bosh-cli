@@ -8,36 +8,85 @@ import (
 )
 
 type FakeDeployment struct {
-	NameStub        func() string
-	nameMutex       sync.RWMutex
-	nameArgsForCall []struct{}
-	nameReturns     struct {
-		result1 string
+	AttachDiskStub        func(director.InstanceSlug, string, string) error
+	attachDiskMutex       sync.RWMutex
+	attachDiskArgsForCall []struct {
+		arg1 director.InstanceSlug
+		arg2 string
+		arg3 string
 	}
-	nameReturnsOnCall map[int]struct {
-		result1 string
+	attachDiskReturns struct {
+		result1 error
 	}
-	ManifestStub        func() (string, error)
-	manifestMutex       sync.RWMutex
-	manifestArgsForCall []struct{}
-	manifestReturns     struct {
-		result1 string
-		result2 error
+	attachDiskReturnsOnCall map[int]struct {
+		result1 error
 	}
-	manifestReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
+	CleanUpSSHStub        func(director.AllOrInstanceGroupOrInstanceSlug, director.SSHOpts) error
+	cleanUpSSHMutex       sync.RWMutex
+	cleanUpSSHArgsForCall []struct {
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
+		arg2 director.SSHOpts
+	}
+	cleanUpSSHReturns struct {
+		result1 error
+	}
+	cleanUpSSHReturnsOnCall map[int]struct {
+		result1 error
 	}
 	CloudConfigStub        func() (string, error)
 	cloudConfigMutex       sync.RWMutex
-	cloudConfigArgsForCall []struct{}
-	cloudConfigReturns     struct {
+	cloudConfigArgsForCall []struct {
+	}
+	cloudConfigReturns struct {
 		result1 string
 		result2 error
 	}
 	cloudConfigReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
+	}
+	DeleteStub        func(bool) error
+	deleteMutex       sync.RWMutex
+	deleteArgsForCall []struct {
+		arg1 bool
+	}
+	deleteReturns struct {
+		result1 error
+	}
+	deleteReturnsOnCall map[int]struct {
+		result1 error
+	}
+	DeleteSnapshotStub        func(string) error
+	deleteSnapshotMutex       sync.RWMutex
+	deleteSnapshotArgsForCall []struct {
+		arg1 string
+	}
+	deleteSnapshotReturns struct {
+		result1 error
+	}
+	deleteSnapshotReturnsOnCall map[int]struct {
+		result1 error
+	}
+	DeleteSnapshotsStub        func() error
+	deleteSnapshotsMutex       sync.RWMutex
+	deleteSnapshotsArgsForCall []struct {
+	}
+	deleteSnapshotsReturns struct {
+		result1 error
+	}
+	deleteSnapshotsReturnsOnCall map[int]struct {
+		result1 error
+	}
+	DeleteVMStub        func(string) error
+	deleteVMMutex       sync.RWMutex
+	deleteVMArgsForCall []struct {
+		arg1 string
+	}
+	deleteVMReturns struct {
+		result1 error
+	}
+	deleteVMReturnsOnCall map[int]struct {
+		result1 error
 	}
 	DiffStub        func([]byte, bool) (director.DeploymentDiff, error)
 	diffMutex       sync.RWMutex
@@ -53,15 +102,28 @@ type FakeDeployment struct {
 		result1 director.DeploymentDiff
 		result2 error
 	}
-	ReleasesStub        func() ([]director.Release, error)
-	releasesMutex       sync.RWMutex
-	releasesArgsForCall []struct{}
-	releasesReturns     struct {
-		result1 []director.Release
+	EnableResurrectionStub        func(director.InstanceSlug, bool) error
+	enableResurrectionMutex       sync.RWMutex
+	enableResurrectionArgsForCall []struct {
+		arg1 director.InstanceSlug
+		arg2 bool
+	}
+	enableResurrectionReturns struct {
+		result1 error
+	}
+	enableResurrectionReturnsOnCall map[int]struct {
+		result1 error
+	}
+	ErrandsStub        func() ([]director.Errand, error)
+	errandsMutex       sync.RWMutex
+	errandsArgsForCall []struct {
+	}
+	errandsReturns struct {
+		result1 []director.Errand
 		result2 error
 	}
-	releasesReturnsOnCall map[int]struct {
-		result1 []director.Release
+	errandsReturnsOnCall map[int]struct {
+		result1 []director.Errand
 		result2 error
 	}
 	ExportReleaseStub        func(director.ReleaseSlug, director.OSVersionSlug, []string) (director.ExportReleaseResult, error)
@@ -79,54 +141,38 @@ type FakeDeployment struct {
 		result1 director.ExportReleaseResult
 		result2 error
 	}
-	TeamsStub        func() ([]string, error)
-	teamsMutex       sync.RWMutex
-	teamsArgsForCall []struct{}
-	teamsReturns     struct {
-		result1 []string
+	FetchLogsStub        func(director.AllOrInstanceGroupOrInstanceSlug, []string, bool) (director.LogsResult, error)
+	fetchLogsMutex       sync.RWMutex
+	fetchLogsArgsForCall []struct {
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
+		arg2 []string
+		arg3 bool
+	}
+	fetchLogsReturns struct {
+		result1 director.LogsResult
 		result2 error
 	}
-	teamsReturnsOnCall map[int]struct {
-		result1 []string
+	fetchLogsReturnsOnCall map[int]struct {
+		result1 director.LogsResult
 		result2 error
 	}
-	StemcellsStub        func() ([]director.Stemcell, error)
-	stemcellsMutex       sync.RWMutex
-	stemcellsArgsForCall []struct{}
-	stemcellsReturns     struct {
-		result1 []director.Stemcell
-		result2 error
+	IgnoreStub        func(director.InstanceSlug, bool) error
+	ignoreMutex       sync.RWMutex
+	ignoreArgsForCall []struct {
+		arg1 director.InstanceSlug
+		arg2 bool
 	}
-	stemcellsReturnsOnCall map[int]struct {
-		result1 []director.Stemcell
-		result2 error
+	ignoreReturns struct {
+		result1 error
 	}
-	VMInfosStub        func() ([]director.VMInfo, error)
-	vMInfosMutex       sync.RWMutex
-	vMInfosArgsForCall []struct{}
-	vMInfosReturns     struct {
-		result1 []director.VMInfo
-		result2 error
-	}
-	vMInfosReturnsOnCall map[int]struct {
-		result1 []director.VMInfo
-		result2 error
-	}
-	InstancesStub        func() ([]director.Instance, error)
-	instancesMutex       sync.RWMutex
-	instancesArgsForCall []struct{}
-	instancesReturns     struct {
-		result1 []director.Instance
-		result2 error
-	}
-	instancesReturnsOnCall map[int]struct {
-		result1 []director.Instance
-		result2 error
+	ignoreReturnsOnCall map[int]struct {
+		result1 error
 	}
 	InstanceInfosStub        func() ([]director.VMInfo, error)
 	instanceInfosMutex       sync.RWMutex
-	instanceInfosArgsForCall []struct{}
-	instanceInfosReturns     struct {
+	instanceInfosArgsForCall []struct {
+	}
+	instanceInfosReturns struct {
 		result1 []director.VMInfo
 		result2 error
 	}
@@ -134,16 +180,86 @@ type FakeDeployment struct {
 		result1 []director.VMInfo
 		result2 error
 	}
-	ErrandsStub        func() ([]director.Errand, error)
-	errandsMutex       sync.RWMutex
-	errandsArgsForCall []struct{}
-	errandsReturns     struct {
-		result1 []director.Errand
+	InstancesStub        func() ([]director.Instance, error)
+	instancesMutex       sync.RWMutex
+	instancesArgsForCall []struct {
+	}
+	instancesReturns struct {
+		result1 []director.Instance
 		result2 error
 	}
-	errandsReturnsOnCall map[int]struct {
-		result1 []director.Errand
+	instancesReturnsOnCall map[int]struct {
+		result1 []director.Instance
 		result2 error
+	}
+	ManifestStub        func() (string, error)
+	manifestMutex       sync.RWMutex
+	manifestArgsForCall []struct {
+	}
+	manifestReturns struct {
+		result1 string
+		result2 error
+	}
+	manifestReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
+	NameStub        func() string
+	nameMutex       sync.RWMutex
+	nameArgsForCall []struct {
+	}
+	nameReturns struct {
+		result1 string
+	}
+	nameReturnsOnCall map[int]struct {
+		result1 string
+	}
+	RecreateStub        func(director.AllOrInstanceGroupOrInstanceSlug, director.RecreateOpts) error
+	recreateMutex       sync.RWMutex
+	recreateArgsForCall []struct {
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
+		arg2 director.RecreateOpts
+	}
+	recreateReturns struct {
+		result1 error
+	}
+	recreateReturnsOnCall map[int]struct {
+		result1 error
+	}
+	ReleasesStub        func() ([]director.Release, error)
+	releasesMutex       sync.RWMutex
+	releasesArgsForCall []struct {
+	}
+	releasesReturns struct {
+		result1 []director.Release
+		result2 error
+	}
+	releasesReturnsOnCall map[int]struct {
+		result1 []director.Release
+		result2 error
+	}
+	ResolveProblemsStub        func([]director.ProblemAnswer) error
+	resolveProblemsMutex       sync.RWMutex
+	resolveProblemsArgsForCall []struct {
+		arg1 []director.ProblemAnswer
+	}
+	resolveProblemsReturns struct {
+		result1 error
+	}
+	resolveProblemsReturnsOnCall map[int]struct {
+		result1 error
+	}
+	RestartStub        func(director.AllOrInstanceGroupOrInstanceSlug, director.RestartOpts) error
+	restartMutex       sync.RWMutex
+	restartArgsForCall []struct {
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
+		arg2 director.RestartOpts
+	}
+	restartReturns struct {
+		result1 error
+	}
+	restartReturnsOnCall map[int]struct {
+		result1 error
 	}
 	RunErrandStub        func(string, bool, bool, []director.InstanceGroupOrInstanceSlug) ([]director.ErrandResult, error)
 	runErrandMutex       sync.RWMutex
@@ -163,135 +279,15 @@ type FakeDeployment struct {
 	}
 	ScanForProblemsStub        func() ([]director.Problem, error)
 	scanForProblemsMutex       sync.RWMutex
-	scanForProblemsArgsForCall []struct{}
-	scanForProblemsReturns     struct {
+	scanForProblemsArgsForCall []struct {
+	}
+	scanForProblemsReturns struct {
 		result1 []director.Problem
 		result2 error
 	}
 	scanForProblemsReturnsOnCall map[int]struct {
 		result1 []director.Problem
 		result2 error
-	}
-	ResolveProblemsStub        func([]director.ProblemAnswer) error
-	resolveProblemsMutex       sync.RWMutex
-	resolveProblemsArgsForCall []struct {
-		arg1 []director.ProblemAnswer
-	}
-	resolveProblemsReturns struct {
-		result1 error
-	}
-	resolveProblemsReturnsOnCall map[int]struct {
-		result1 error
-	}
-	SnapshotsStub        func() ([]director.Snapshot, error)
-	snapshotsMutex       sync.RWMutex
-	snapshotsArgsForCall []struct{}
-	snapshotsReturns     struct {
-		result1 []director.Snapshot
-		result2 error
-	}
-	snapshotsReturnsOnCall map[int]struct {
-		result1 []director.Snapshot
-		result2 error
-	}
-	TakeSnapshotsStub        func() error
-	takeSnapshotsMutex       sync.RWMutex
-	takeSnapshotsArgsForCall []struct{}
-	takeSnapshotsReturns     struct {
-		result1 error
-	}
-	takeSnapshotsReturnsOnCall map[int]struct {
-		result1 error
-	}
-	DeleteSnapshotStub        func(string) error
-	deleteSnapshotMutex       sync.RWMutex
-	deleteSnapshotArgsForCall []struct {
-		arg1 string
-	}
-	deleteSnapshotReturns struct {
-		result1 error
-	}
-	deleteSnapshotReturnsOnCall map[int]struct {
-		result1 error
-	}
-	DeleteSnapshotsStub        func() error
-	deleteSnapshotsMutex       sync.RWMutex
-	deleteSnapshotsArgsForCall []struct{}
-	deleteSnapshotsReturns     struct {
-		result1 error
-	}
-	deleteSnapshotsReturnsOnCall map[int]struct {
-		result1 error
-	}
-	DeleteVMStub        func(string) error
-	deleteVMMutex       sync.RWMutex
-	deleteVMArgsForCall []struct {
-		arg1 string
-	}
-	deleteVMReturns struct {
-		result1 error
-	}
-	deleteVMReturnsOnCall map[int]struct {
-		result1 error
-	}
-	VariablesStub        func() ([]director.VariableResult, error)
-	variablesMutex       sync.RWMutex
-	variablesArgsForCall []struct{}
-	variablesReturns     struct {
-		result1 []director.VariableResult
-		result2 error
-	}
-	variablesReturnsOnCall map[int]struct {
-		result1 []director.VariableResult
-		result2 error
-	}
-	StartStub        func(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.StartOpts) error
-	startMutex       sync.RWMutex
-	startArgsForCall []struct {
-		slug director.AllOrInstanceGroupOrInstanceSlug
-		opts director.StartOpts
-	}
-	startReturns struct {
-		result1 error
-	}
-	startReturnsOnCall map[int]struct {
-		result1 error
-	}
-	StopStub        func(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.StopOpts) error
-	stopMutex       sync.RWMutex
-	stopArgsForCall []struct {
-		slug director.AllOrInstanceGroupOrInstanceSlug
-		opts director.StopOpts
-	}
-	stopReturns struct {
-		result1 error
-	}
-	stopReturnsOnCall map[int]struct {
-		result1 error
-	}
-	RestartStub        func(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.RestartOpts) error
-	restartMutex       sync.RWMutex
-	restartArgsForCall []struct {
-		slug director.AllOrInstanceGroupOrInstanceSlug
-		opts director.RestartOpts
-	}
-	restartReturns struct {
-		result1 error
-	}
-	restartReturnsOnCall map[int]struct {
-		result1 error
-	}
-	RecreateStub        func(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.RecreateOpts) error
-	recreateMutex       sync.RWMutex
-	recreateArgsForCall []struct {
-		slug director.AllOrInstanceGroupOrInstanceSlug
-		opts director.RecreateOpts
-	}
-	recreateReturns struct {
-		result1 error
-	}
-	recreateReturnsOnCall map[int]struct {
-		result1 error
 	}
 	SetUpSSHStub        func(director.AllOrInstanceGroupOrInstanceSlug, director.SSHOpts) (director.SSHResult, error)
 	setUpSSHMutex       sync.RWMutex
@@ -307,32 +303,53 @@ type FakeDeployment struct {
 		result1 director.SSHResult
 		result2 error
 	}
-	CleanUpSSHStub        func(director.AllOrInstanceGroupOrInstanceSlug, director.SSHOpts) error
-	cleanUpSSHMutex       sync.RWMutex
-	cleanUpSSHArgsForCall []struct {
-		arg1 director.AllOrInstanceGroupOrInstanceSlug
-		arg2 director.SSHOpts
+	SnapshotsStub        func() ([]director.Snapshot, error)
+	snapshotsMutex       sync.RWMutex
+	snapshotsArgsForCall []struct {
 	}
-	cleanUpSSHReturns struct {
-		result1 error
-	}
-	cleanUpSSHReturnsOnCall map[int]struct {
-		result1 error
-	}
-	FetchLogsStub        func(director.AllOrInstanceGroupOrInstanceSlug, []string, bool) (director.LogsResult, error)
-	fetchLogsMutex       sync.RWMutex
-	fetchLogsArgsForCall []struct {
-		arg1 director.AllOrInstanceGroupOrInstanceSlug
-		arg2 []string
-		arg3 bool
-	}
-	fetchLogsReturns struct {
-		result1 director.LogsResult
+	snapshotsReturns struct {
+		result1 []director.Snapshot
 		result2 error
 	}
-	fetchLogsReturnsOnCall map[int]struct {
-		result1 director.LogsResult
+	snapshotsReturnsOnCall map[int]struct {
+		result1 []director.Snapshot
 		result2 error
+	}
+	StartStub        func(director.AllOrInstanceGroupOrInstanceSlug, director.StartOpts) error
+	startMutex       sync.RWMutex
+	startArgsForCall []struct {
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
+		arg2 director.StartOpts
+	}
+	startReturns struct {
+		result1 error
+	}
+	startReturnsOnCall map[int]struct {
+		result1 error
+	}
+	StemcellsStub        func() ([]director.Stemcell, error)
+	stemcellsMutex       sync.RWMutex
+	stemcellsArgsForCall []struct {
+	}
+	stemcellsReturns struct {
+		result1 []director.Stemcell
+		result2 error
+	}
+	stemcellsReturnsOnCall map[int]struct {
+		result1 []director.Stemcell
+		result2 error
+	}
+	StopStub        func(director.AllOrInstanceGroupOrInstanceSlug, director.StopOpts) error
+	stopMutex       sync.RWMutex
+	stopArgsForCall []struct {
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
+		arg2 director.StopOpts
+	}
+	stopReturns struct {
+		result1 error
+	}
+	stopReturnsOnCall map[int]struct {
+		result1 error
 	}
 	TakeSnapshotStub        func(director.InstanceSlug) error
 	takeSnapshotMutex       sync.RWMutex
@@ -345,35 +362,33 @@ type FakeDeployment struct {
 	takeSnapshotReturnsOnCall map[int]struct {
 		result1 error
 	}
-	IgnoreStub        func(director.InstanceSlug, bool) error
-	ignoreMutex       sync.RWMutex
-	ignoreArgsForCall []struct {
-		arg1 director.InstanceSlug
-		arg2 bool
+	TakeSnapshotsStub        func() error
+	takeSnapshotsMutex       sync.RWMutex
+	takeSnapshotsArgsForCall []struct {
 	}
-	ignoreReturns struct {
+	takeSnapshotsReturns struct {
 		result1 error
 	}
-	ignoreReturnsOnCall map[int]struct {
+	takeSnapshotsReturnsOnCall map[int]struct {
 		result1 error
 	}
-	EnableResurrectionStub        func(director.InstanceSlug, bool) error
-	enableResurrectionMutex       sync.RWMutex
-	enableResurrectionArgsForCall []struct {
-		arg1 director.InstanceSlug
-		arg2 bool
+	TeamsStub        func() ([]string, error)
+	teamsMutex       sync.RWMutex
+	teamsArgsForCall []struct {
 	}
-	enableResurrectionReturns struct {
-		result1 error
+	teamsReturns struct {
+		result1 []string
+		result2 error
 	}
-	enableResurrectionReturnsOnCall map[int]struct {
-		result1 error
+	teamsReturnsOnCall map[int]struct {
+		result1 []string
+		result2 error
 	}
-	UpdateStub        func(manifest []byte, opts director.UpdateOpts) error
+	UpdateStub        func([]byte, director.UpdateOpts) error
 	updateMutex       sync.RWMutex
 	updateArgsForCall []struct {
-		manifest []byte
-		opts     director.UpdateOpts
+		arg1 []byte
+		arg2 director.UpdateOpts
 	}
 	updateReturns struct {
 		result1 error
@@ -381,121 +396,162 @@ type FakeDeployment struct {
 	updateReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DeleteStub        func(force bool) error
-	deleteMutex       sync.RWMutex
-	deleteArgsForCall []struct {
-		force bool
+	VMInfosStub        func() ([]director.VMInfo, error)
+	vMInfosMutex       sync.RWMutex
+	vMInfosArgsForCall []struct {
 	}
-	deleteReturns struct {
-		result1 error
+	vMInfosReturns struct {
+		result1 []director.VMInfo
+		result2 error
 	}
-	deleteReturnsOnCall map[int]struct {
-		result1 error
+	vMInfosReturnsOnCall map[int]struct {
+		result1 []director.VMInfo
+		result2 error
 	}
-	AttachDiskStub        func(slug director.InstanceSlug, diskCID string, diskProperties string) error
-	attachDiskMutex       sync.RWMutex
-	attachDiskArgsForCall []struct {
-		slug           director.InstanceSlug
-		diskCID        string
-		diskProperties string
+	VariablesStub        func() ([]director.VariableResult, error)
+	variablesMutex       sync.RWMutex
+	variablesArgsForCall []struct {
 	}
-	attachDiskReturns struct {
-		result1 error
+	variablesReturns struct {
+		result1 []director.VariableResult
+		result2 error
 	}
-	attachDiskReturnsOnCall map[int]struct {
-		result1 error
+	variablesReturnsOnCall map[int]struct {
+		result1 []director.VariableResult
+		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeDeployment) Name() string {
-	fake.nameMutex.Lock()
-	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
-	fake.nameArgsForCall = append(fake.nameArgsForCall, struct{}{})
-	fake.recordInvocation("Name", []interface{}{})
-	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
+func (fake *FakeDeployment) AttachDisk(arg1 director.InstanceSlug, arg2 string, arg3 string) error {
+	fake.attachDiskMutex.Lock()
+	ret, specificReturn := fake.attachDiskReturnsOnCall[len(fake.attachDiskArgsForCall)]
+	fake.attachDiskArgsForCall = append(fake.attachDiskArgsForCall, struct {
+		arg1 director.InstanceSlug
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("AttachDisk", []interface{}{arg1, arg2, arg3})
+	fake.attachDiskMutex.Unlock()
+	if fake.AttachDiskStub != nil {
+		return fake.AttachDiskStub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.nameReturns.result1
+	fakeReturns := fake.attachDiskReturns
+	return fakeReturns.result1
 }
 
-func (fake *FakeDeployment) NameCallCount() int {
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
-	return len(fake.nameArgsForCall)
+func (fake *FakeDeployment) AttachDiskCallCount() int {
+	fake.attachDiskMutex.RLock()
+	defer fake.attachDiskMutex.RUnlock()
+	return len(fake.attachDiskArgsForCall)
 }
 
-func (fake *FakeDeployment) NameReturns(result1 string) {
-	fake.NameStub = nil
-	fake.nameReturns = struct {
-		result1 string
+func (fake *FakeDeployment) AttachDiskCalls(stub func(director.InstanceSlug, string, string) error) {
+	fake.attachDiskMutex.Lock()
+	defer fake.attachDiskMutex.Unlock()
+	fake.AttachDiskStub = stub
+}
+
+func (fake *FakeDeployment) AttachDiskArgsForCall(i int) (director.InstanceSlug, string, string) {
+	fake.attachDiskMutex.RLock()
+	defer fake.attachDiskMutex.RUnlock()
+	argsForCall := fake.attachDiskArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeDeployment) AttachDiskReturns(result1 error) {
+	fake.attachDiskMutex.Lock()
+	defer fake.attachDiskMutex.Unlock()
+	fake.AttachDiskStub = nil
+	fake.attachDiskReturns = struct {
+		result1 error
 	}{result1}
 }
 
-func (fake *FakeDeployment) NameReturnsOnCall(i int, result1 string) {
-	fake.NameStub = nil
-	if fake.nameReturnsOnCall == nil {
-		fake.nameReturnsOnCall = make(map[int]struct {
-			result1 string
+func (fake *FakeDeployment) AttachDiskReturnsOnCall(i int, result1 error) {
+	fake.attachDiskMutex.Lock()
+	defer fake.attachDiskMutex.Unlock()
+	fake.AttachDiskStub = nil
+	if fake.attachDiskReturnsOnCall == nil {
+		fake.attachDiskReturnsOnCall = make(map[int]struct {
+			result1 error
 		})
 	}
-	fake.nameReturnsOnCall[i] = struct {
-		result1 string
+	fake.attachDiskReturnsOnCall[i] = struct {
+		result1 error
 	}{result1}
 }
 
-func (fake *FakeDeployment) Manifest() (string, error) {
-	fake.manifestMutex.Lock()
-	ret, specificReturn := fake.manifestReturnsOnCall[len(fake.manifestArgsForCall)]
-	fake.manifestArgsForCall = append(fake.manifestArgsForCall, struct{}{})
-	fake.recordInvocation("Manifest", []interface{}{})
-	fake.manifestMutex.Unlock()
-	if fake.ManifestStub != nil {
-		return fake.ManifestStub()
+func (fake *FakeDeployment) CleanUpSSH(arg1 director.AllOrInstanceGroupOrInstanceSlug, arg2 director.SSHOpts) error {
+	fake.cleanUpSSHMutex.Lock()
+	ret, specificReturn := fake.cleanUpSSHReturnsOnCall[len(fake.cleanUpSSHArgsForCall)]
+	fake.cleanUpSSHArgsForCall = append(fake.cleanUpSSHArgsForCall, struct {
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
+		arg2 director.SSHOpts
+	}{arg1, arg2})
+	fake.recordInvocation("CleanUpSSH", []interface{}{arg1, arg2})
+	fake.cleanUpSSHMutex.Unlock()
+	if fake.CleanUpSSHStub != nil {
+		return fake.CleanUpSSHStub(arg1, arg2)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1
 	}
-	return fake.manifestReturns.result1, fake.manifestReturns.result2
+	fakeReturns := fake.cleanUpSSHReturns
+	return fakeReturns.result1
 }
 
-func (fake *FakeDeployment) ManifestCallCount() int {
-	fake.manifestMutex.RLock()
-	defer fake.manifestMutex.RUnlock()
-	return len(fake.manifestArgsForCall)
+func (fake *FakeDeployment) CleanUpSSHCallCount() int {
+	fake.cleanUpSSHMutex.RLock()
+	defer fake.cleanUpSSHMutex.RUnlock()
+	return len(fake.cleanUpSSHArgsForCall)
 }
 
-func (fake *FakeDeployment) ManifestReturns(result1 string, result2 error) {
-	fake.ManifestStub = nil
-	fake.manifestReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
+func (fake *FakeDeployment) CleanUpSSHCalls(stub func(director.AllOrInstanceGroupOrInstanceSlug, director.SSHOpts) error) {
+	fake.cleanUpSSHMutex.Lock()
+	defer fake.cleanUpSSHMutex.Unlock()
+	fake.CleanUpSSHStub = stub
 }
 
-func (fake *FakeDeployment) ManifestReturnsOnCall(i int, result1 string, result2 error) {
-	fake.ManifestStub = nil
-	if fake.manifestReturnsOnCall == nil {
-		fake.manifestReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
+func (fake *FakeDeployment) CleanUpSSHArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.SSHOpts) {
+	fake.cleanUpSSHMutex.RLock()
+	defer fake.cleanUpSSHMutex.RUnlock()
+	argsForCall := fake.cleanUpSSHArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeDeployment) CleanUpSSHReturns(result1 error) {
+	fake.cleanUpSSHMutex.Lock()
+	defer fake.cleanUpSSHMutex.Unlock()
+	fake.CleanUpSSHStub = nil
+	fake.cleanUpSSHReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) CleanUpSSHReturnsOnCall(i int, result1 error) {
+	fake.cleanUpSSHMutex.Lock()
+	defer fake.cleanUpSSHMutex.Unlock()
+	fake.CleanUpSSHStub = nil
+	if fake.cleanUpSSHReturnsOnCall == nil {
+		fake.cleanUpSSHReturnsOnCall = make(map[int]struct {
+			result1 error
 		})
 	}
-	fake.manifestReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
+	fake.cleanUpSSHReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeDeployment) CloudConfig() (string, error) {
 	fake.cloudConfigMutex.Lock()
 	ret, specificReturn := fake.cloudConfigReturnsOnCall[len(fake.cloudConfigArgsForCall)]
-	fake.cloudConfigArgsForCall = append(fake.cloudConfigArgsForCall, struct{}{})
+	fake.cloudConfigArgsForCall = append(fake.cloudConfigArgsForCall, struct {
+	}{})
 	fake.recordInvocation("CloudConfig", []interface{}{})
 	fake.cloudConfigMutex.Unlock()
 	if fake.CloudConfigStub != nil {
@@ -504,7 +560,8 @@ func (fake *FakeDeployment) CloudConfig() (string, error) {
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.cloudConfigReturns.result1, fake.cloudConfigReturns.result2
+	fakeReturns := fake.cloudConfigReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeDeployment) CloudConfigCallCount() int {
@@ -513,7 +570,15 @@ func (fake *FakeDeployment) CloudConfigCallCount() int {
 	return len(fake.cloudConfigArgsForCall)
 }
 
+func (fake *FakeDeployment) CloudConfigCalls(stub func() (string, error)) {
+	fake.cloudConfigMutex.Lock()
+	defer fake.cloudConfigMutex.Unlock()
+	fake.CloudConfigStub = stub
+}
+
 func (fake *FakeDeployment) CloudConfigReturns(result1 string, result2 error) {
+	fake.cloudConfigMutex.Lock()
+	defer fake.cloudConfigMutex.Unlock()
 	fake.CloudConfigStub = nil
 	fake.cloudConfigReturns = struct {
 		result1 string
@@ -522,6 +587,8 @@ func (fake *FakeDeployment) CloudConfigReturns(result1 string, result2 error) {
 }
 
 func (fake *FakeDeployment) CloudConfigReturnsOnCall(i int, result1 string, result2 error) {
+	fake.cloudConfigMutex.Lock()
+	defer fake.cloudConfigMutex.Unlock()
 	fake.CloudConfigStub = nil
 	if fake.cloudConfigReturnsOnCall == nil {
 		fake.cloudConfigReturnsOnCall = make(map[int]struct {
@@ -535,656 +602,62 @@ func (fake *FakeDeployment) CloudConfigReturnsOnCall(i int, result1 string, resu
 	}{result1, result2}
 }
 
-func (fake *FakeDeployment) Diff(arg1 []byte, arg2 bool) (director.DeploymentDiff, error) {
-	var arg1Copy []byte
-	if arg1 != nil {
-		arg1Copy = make([]byte, len(arg1))
-		copy(arg1Copy, arg1)
-	}
-	fake.diffMutex.Lock()
-	ret, specificReturn := fake.diffReturnsOnCall[len(fake.diffArgsForCall)]
-	fake.diffArgsForCall = append(fake.diffArgsForCall, struct {
-		arg1 []byte
-		arg2 bool
-	}{arg1Copy, arg2})
-	fake.recordInvocation("Diff", []interface{}{arg1Copy, arg2})
-	fake.diffMutex.Unlock()
-	if fake.DiffStub != nil {
-		return fake.DiffStub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.diffReturns.result1, fake.diffReturns.result2
-}
-
-func (fake *FakeDeployment) DiffCallCount() int {
-	fake.diffMutex.RLock()
-	defer fake.diffMutex.RUnlock()
-	return len(fake.diffArgsForCall)
-}
-
-func (fake *FakeDeployment) DiffArgsForCall(i int) ([]byte, bool) {
-	fake.diffMutex.RLock()
-	defer fake.diffMutex.RUnlock()
-	return fake.diffArgsForCall[i].arg1, fake.diffArgsForCall[i].arg2
-}
-
-func (fake *FakeDeployment) DiffReturns(result1 director.DeploymentDiff, result2 error) {
-	fake.DiffStub = nil
-	fake.diffReturns = struct {
-		result1 director.DeploymentDiff
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) DiffReturnsOnCall(i int, result1 director.DeploymentDiff, result2 error) {
-	fake.DiffStub = nil
-	if fake.diffReturnsOnCall == nil {
-		fake.diffReturnsOnCall = make(map[int]struct {
-			result1 director.DeploymentDiff
-			result2 error
-		})
-	}
-	fake.diffReturnsOnCall[i] = struct {
-		result1 director.DeploymentDiff
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) Releases() ([]director.Release, error) {
-	fake.releasesMutex.Lock()
-	ret, specificReturn := fake.releasesReturnsOnCall[len(fake.releasesArgsForCall)]
-	fake.releasesArgsForCall = append(fake.releasesArgsForCall, struct{}{})
-	fake.recordInvocation("Releases", []interface{}{})
-	fake.releasesMutex.Unlock()
-	if fake.ReleasesStub != nil {
-		return fake.ReleasesStub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.releasesReturns.result1, fake.releasesReturns.result2
-}
-
-func (fake *FakeDeployment) ReleasesCallCount() int {
-	fake.releasesMutex.RLock()
-	defer fake.releasesMutex.RUnlock()
-	return len(fake.releasesArgsForCall)
-}
-
-func (fake *FakeDeployment) ReleasesReturns(result1 []director.Release, result2 error) {
-	fake.ReleasesStub = nil
-	fake.releasesReturns = struct {
-		result1 []director.Release
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) ReleasesReturnsOnCall(i int, result1 []director.Release, result2 error) {
-	fake.ReleasesStub = nil
-	if fake.releasesReturnsOnCall == nil {
-		fake.releasesReturnsOnCall = make(map[int]struct {
-			result1 []director.Release
-			result2 error
-		})
-	}
-	fake.releasesReturnsOnCall[i] = struct {
-		result1 []director.Release
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) ExportRelease(arg1 director.ReleaseSlug, arg2 director.OSVersionSlug, arg3 []string) (director.ExportReleaseResult, error) {
-	var arg3Copy []string
-	if arg3 != nil {
-		arg3Copy = make([]string, len(arg3))
-		copy(arg3Copy, arg3)
-	}
-	fake.exportReleaseMutex.Lock()
-	ret, specificReturn := fake.exportReleaseReturnsOnCall[len(fake.exportReleaseArgsForCall)]
-	fake.exportReleaseArgsForCall = append(fake.exportReleaseArgsForCall, struct {
-		arg1 director.ReleaseSlug
-		arg2 director.OSVersionSlug
-		arg3 []string
-	}{arg1, arg2, arg3Copy})
-	fake.recordInvocation("ExportRelease", []interface{}{arg1, arg2, arg3Copy})
-	fake.exportReleaseMutex.Unlock()
-	if fake.ExportReleaseStub != nil {
-		return fake.ExportReleaseStub(arg1, arg2, arg3)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.exportReleaseReturns.result1, fake.exportReleaseReturns.result2
-}
-
-func (fake *FakeDeployment) ExportReleaseCallCount() int {
-	fake.exportReleaseMutex.RLock()
-	defer fake.exportReleaseMutex.RUnlock()
-	return len(fake.exportReleaseArgsForCall)
-}
-
-func (fake *FakeDeployment) ExportReleaseArgsForCall(i int) (director.ReleaseSlug, director.OSVersionSlug, []string) {
-	fake.exportReleaseMutex.RLock()
-	defer fake.exportReleaseMutex.RUnlock()
-	return fake.exportReleaseArgsForCall[i].arg1, fake.exportReleaseArgsForCall[i].arg2, fake.exportReleaseArgsForCall[i].arg3
-}
-
-func (fake *FakeDeployment) ExportReleaseReturns(result1 director.ExportReleaseResult, result2 error) {
-	fake.ExportReleaseStub = nil
-	fake.exportReleaseReturns = struct {
-		result1 director.ExportReleaseResult
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) ExportReleaseReturnsOnCall(i int, result1 director.ExportReleaseResult, result2 error) {
-	fake.ExportReleaseStub = nil
-	if fake.exportReleaseReturnsOnCall == nil {
-		fake.exportReleaseReturnsOnCall = make(map[int]struct {
-			result1 director.ExportReleaseResult
-			result2 error
-		})
-	}
-	fake.exportReleaseReturnsOnCall[i] = struct {
-		result1 director.ExportReleaseResult
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) Teams() ([]string, error) {
-	fake.teamsMutex.Lock()
-	ret, specificReturn := fake.teamsReturnsOnCall[len(fake.teamsArgsForCall)]
-	fake.teamsArgsForCall = append(fake.teamsArgsForCall, struct{}{})
-	fake.recordInvocation("Teams", []interface{}{})
-	fake.teamsMutex.Unlock()
-	if fake.TeamsStub != nil {
-		return fake.TeamsStub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.teamsReturns.result1, fake.teamsReturns.result2
-}
-
-func (fake *FakeDeployment) TeamsCallCount() int {
-	fake.teamsMutex.RLock()
-	defer fake.teamsMutex.RUnlock()
-	return len(fake.teamsArgsForCall)
-}
-
-func (fake *FakeDeployment) TeamsReturns(result1 []string, result2 error) {
-	fake.TeamsStub = nil
-	fake.teamsReturns = struct {
-		result1 []string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) TeamsReturnsOnCall(i int, result1 []string, result2 error) {
-	fake.TeamsStub = nil
-	if fake.teamsReturnsOnCall == nil {
-		fake.teamsReturnsOnCall = make(map[int]struct {
-			result1 []string
-			result2 error
-		})
-	}
-	fake.teamsReturnsOnCall[i] = struct {
-		result1 []string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) Stemcells() ([]director.Stemcell, error) {
-	fake.stemcellsMutex.Lock()
-	ret, specificReturn := fake.stemcellsReturnsOnCall[len(fake.stemcellsArgsForCall)]
-	fake.stemcellsArgsForCall = append(fake.stemcellsArgsForCall, struct{}{})
-	fake.recordInvocation("Stemcells", []interface{}{})
-	fake.stemcellsMutex.Unlock()
-	if fake.StemcellsStub != nil {
-		return fake.StemcellsStub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.stemcellsReturns.result1, fake.stemcellsReturns.result2
-}
-
-func (fake *FakeDeployment) StemcellsCallCount() int {
-	fake.stemcellsMutex.RLock()
-	defer fake.stemcellsMutex.RUnlock()
-	return len(fake.stemcellsArgsForCall)
-}
-
-func (fake *FakeDeployment) StemcellsReturns(result1 []director.Stemcell, result2 error) {
-	fake.StemcellsStub = nil
-	fake.stemcellsReturns = struct {
-		result1 []director.Stemcell
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) StemcellsReturnsOnCall(i int, result1 []director.Stemcell, result2 error) {
-	fake.StemcellsStub = nil
-	if fake.stemcellsReturnsOnCall == nil {
-		fake.stemcellsReturnsOnCall = make(map[int]struct {
-			result1 []director.Stemcell
-			result2 error
-		})
-	}
-	fake.stemcellsReturnsOnCall[i] = struct {
-		result1 []director.Stemcell
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) VMInfos() ([]director.VMInfo, error) {
-	fake.vMInfosMutex.Lock()
-	ret, specificReturn := fake.vMInfosReturnsOnCall[len(fake.vMInfosArgsForCall)]
-	fake.vMInfosArgsForCall = append(fake.vMInfosArgsForCall, struct{}{})
-	fake.recordInvocation("VMInfos", []interface{}{})
-	fake.vMInfosMutex.Unlock()
-	if fake.VMInfosStub != nil {
-		return fake.VMInfosStub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.vMInfosReturns.result1, fake.vMInfosReturns.result2
-}
-
-func (fake *FakeDeployment) VMInfosCallCount() int {
-	fake.vMInfosMutex.RLock()
-	defer fake.vMInfosMutex.RUnlock()
-	return len(fake.vMInfosArgsForCall)
-}
-
-func (fake *FakeDeployment) VMInfosReturns(result1 []director.VMInfo, result2 error) {
-	fake.VMInfosStub = nil
-	fake.vMInfosReturns = struct {
-		result1 []director.VMInfo
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) VMInfosReturnsOnCall(i int, result1 []director.VMInfo, result2 error) {
-	fake.VMInfosStub = nil
-	if fake.vMInfosReturnsOnCall == nil {
-		fake.vMInfosReturnsOnCall = make(map[int]struct {
-			result1 []director.VMInfo
-			result2 error
-		})
-	}
-	fake.vMInfosReturnsOnCall[i] = struct {
-		result1 []director.VMInfo
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) Instances() ([]director.Instance, error) {
-	fake.instancesMutex.Lock()
-	ret, specificReturn := fake.instancesReturnsOnCall[len(fake.instancesArgsForCall)]
-	fake.instancesArgsForCall = append(fake.instancesArgsForCall, struct{}{})
-	fake.recordInvocation("Instances", []interface{}{})
-	fake.instancesMutex.Unlock()
-	if fake.InstancesStub != nil {
-		return fake.InstancesStub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.instancesReturns.result1, fake.instancesReturns.result2
-}
-
-func (fake *FakeDeployment) InstancesCallCount() int {
-	fake.instancesMutex.RLock()
-	defer fake.instancesMutex.RUnlock()
-	return len(fake.instancesArgsForCall)
-}
-
-func (fake *FakeDeployment) InstancesReturns(result1 []director.Instance, result2 error) {
-	fake.InstancesStub = nil
-	fake.instancesReturns = struct {
-		result1 []director.Instance
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) InstancesReturnsOnCall(i int, result1 []director.Instance, result2 error) {
-	fake.InstancesStub = nil
-	if fake.instancesReturnsOnCall == nil {
-		fake.instancesReturnsOnCall = make(map[int]struct {
-			result1 []director.Instance
-			result2 error
-		})
-	}
-	fake.instancesReturnsOnCall[i] = struct {
-		result1 []director.Instance
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) InstanceInfos() ([]director.VMInfo, error) {
-	fake.instanceInfosMutex.Lock()
-	ret, specificReturn := fake.instanceInfosReturnsOnCall[len(fake.instanceInfosArgsForCall)]
-	fake.instanceInfosArgsForCall = append(fake.instanceInfosArgsForCall, struct{}{})
-	fake.recordInvocation("InstanceInfos", []interface{}{})
-	fake.instanceInfosMutex.Unlock()
-	if fake.InstanceInfosStub != nil {
-		return fake.InstanceInfosStub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.instanceInfosReturns.result1, fake.instanceInfosReturns.result2
-}
-
-func (fake *FakeDeployment) InstanceInfosCallCount() int {
-	fake.instanceInfosMutex.RLock()
-	defer fake.instanceInfosMutex.RUnlock()
-	return len(fake.instanceInfosArgsForCall)
-}
-
-func (fake *FakeDeployment) InstanceInfosReturns(result1 []director.VMInfo, result2 error) {
-	fake.InstanceInfosStub = nil
-	fake.instanceInfosReturns = struct {
-		result1 []director.VMInfo
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) InstanceInfosReturnsOnCall(i int, result1 []director.VMInfo, result2 error) {
-	fake.InstanceInfosStub = nil
-	if fake.instanceInfosReturnsOnCall == nil {
-		fake.instanceInfosReturnsOnCall = make(map[int]struct {
-			result1 []director.VMInfo
-			result2 error
-		})
-	}
-	fake.instanceInfosReturnsOnCall[i] = struct {
-		result1 []director.VMInfo
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) Errands() ([]director.Errand, error) {
-	fake.errandsMutex.Lock()
-	ret, specificReturn := fake.errandsReturnsOnCall[len(fake.errandsArgsForCall)]
-	fake.errandsArgsForCall = append(fake.errandsArgsForCall, struct{}{})
-	fake.recordInvocation("Errands", []interface{}{})
-	fake.errandsMutex.Unlock()
-	if fake.ErrandsStub != nil {
-		return fake.ErrandsStub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.errandsReturns.result1, fake.errandsReturns.result2
-}
-
-func (fake *FakeDeployment) ErrandsCallCount() int {
-	fake.errandsMutex.RLock()
-	defer fake.errandsMutex.RUnlock()
-	return len(fake.errandsArgsForCall)
-}
-
-func (fake *FakeDeployment) ErrandsReturns(result1 []director.Errand, result2 error) {
-	fake.ErrandsStub = nil
-	fake.errandsReturns = struct {
-		result1 []director.Errand
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) ErrandsReturnsOnCall(i int, result1 []director.Errand, result2 error) {
-	fake.ErrandsStub = nil
-	if fake.errandsReturnsOnCall == nil {
-		fake.errandsReturnsOnCall = make(map[int]struct {
-			result1 []director.Errand
-			result2 error
-		})
-	}
-	fake.errandsReturnsOnCall[i] = struct {
-		result1 []director.Errand
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) RunErrand(arg1 string, arg2 bool, arg3 bool, arg4 []director.InstanceGroupOrInstanceSlug) ([]director.ErrandResult, error) {
-	var arg4Copy []director.InstanceGroupOrInstanceSlug
-	if arg4 != nil {
-		arg4Copy = make([]director.InstanceGroupOrInstanceSlug, len(arg4))
-		copy(arg4Copy, arg4)
-	}
-	fake.runErrandMutex.Lock()
-	ret, specificReturn := fake.runErrandReturnsOnCall[len(fake.runErrandArgsForCall)]
-	fake.runErrandArgsForCall = append(fake.runErrandArgsForCall, struct {
-		arg1 string
-		arg2 bool
-		arg3 bool
-		arg4 []director.InstanceGroupOrInstanceSlug
-	}{arg1, arg2, arg3, arg4Copy})
-	fake.recordInvocation("RunErrand", []interface{}{arg1, arg2, arg3, arg4Copy})
-	fake.runErrandMutex.Unlock()
-	if fake.RunErrandStub != nil {
-		return fake.RunErrandStub(arg1, arg2, arg3, arg4)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.runErrandReturns.result1, fake.runErrandReturns.result2
-}
-
-func (fake *FakeDeployment) RunErrandCallCount() int {
-	fake.runErrandMutex.RLock()
-	defer fake.runErrandMutex.RUnlock()
-	return len(fake.runErrandArgsForCall)
-}
-
-func (fake *FakeDeployment) RunErrandArgsForCall(i int) (string, bool, bool, []director.InstanceGroupOrInstanceSlug) {
-	fake.runErrandMutex.RLock()
-	defer fake.runErrandMutex.RUnlock()
-	return fake.runErrandArgsForCall[i].arg1, fake.runErrandArgsForCall[i].arg2, fake.runErrandArgsForCall[i].arg3, fake.runErrandArgsForCall[i].arg4
-}
-
-func (fake *FakeDeployment) RunErrandReturns(result1 []director.ErrandResult, result2 error) {
-	fake.RunErrandStub = nil
-	fake.runErrandReturns = struct {
-		result1 []director.ErrandResult
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) RunErrandReturnsOnCall(i int, result1 []director.ErrandResult, result2 error) {
-	fake.RunErrandStub = nil
-	if fake.runErrandReturnsOnCall == nil {
-		fake.runErrandReturnsOnCall = make(map[int]struct {
-			result1 []director.ErrandResult
-			result2 error
-		})
-	}
-	fake.runErrandReturnsOnCall[i] = struct {
-		result1 []director.ErrandResult
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) ScanForProblems() ([]director.Problem, error) {
-	fake.scanForProblemsMutex.Lock()
-	ret, specificReturn := fake.scanForProblemsReturnsOnCall[len(fake.scanForProblemsArgsForCall)]
-	fake.scanForProblemsArgsForCall = append(fake.scanForProblemsArgsForCall, struct{}{})
-	fake.recordInvocation("ScanForProblems", []interface{}{})
-	fake.scanForProblemsMutex.Unlock()
-	if fake.ScanForProblemsStub != nil {
-		return fake.ScanForProblemsStub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.scanForProblemsReturns.result1, fake.scanForProblemsReturns.result2
-}
-
-func (fake *FakeDeployment) ScanForProblemsCallCount() int {
-	fake.scanForProblemsMutex.RLock()
-	defer fake.scanForProblemsMutex.RUnlock()
-	return len(fake.scanForProblemsArgsForCall)
-}
-
-func (fake *FakeDeployment) ScanForProblemsReturns(result1 []director.Problem, result2 error) {
-	fake.ScanForProblemsStub = nil
-	fake.scanForProblemsReturns = struct {
-		result1 []director.Problem
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) ScanForProblemsReturnsOnCall(i int, result1 []director.Problem, result2 error) {
-	fake.ScanForProblemsStub = nil
-	if fake.scanForProblemsReturnsOnCall == nil {
-		fake.scanForProblemsReturnsOnCall = make(map[int]struct {
-			result1 []director.Problem
-			result2 error
-		})
-	}
-	fake.scanForProblemsReturnsOnCall[i] = struct {
-		result1 []director.Problem
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) ResolveProblems(arg1 []director.ProblemAnswer) error {
-	var arg1Copy []director.ProblemAnswer
-	if arg1 != nil {
-		arg1Copy = make([]director.ProblemAnswer, len(arg1))
-		copy(arg1Copy, arg1)
-	}
-	fake.resolveProblemsMutex.Lock()
-	ret, specificReturn := fake.resolveProblemsReturnsOnCall[len(fake.resolveProblemsArgsForCall)]
-	fake.resolveProblemsArgsForCall = append(fake.resolveProblemsArgsForCall, struct {
-		arg1 []director.ProblemAnswer
-	}{arg1Copy})
-	fake.recordInvocation("ResolveProblems", []interface{}{arg1Copy})
-	fake.resolveProblemsMutex.Unlock()
-	if fake.ResolveProblemsStub != nil {
-		return fake.ResolveProblemsStub(arg1)
+func (fake *FakeDeployment) Delete(arg1 bool) error {
+	fake.deleteMutex.Lock()
+	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
+	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
+		arg1 bool
+	}{arg1})
+	fake.recordInvocation("Delete", []interface{}{arg1})
+	fake.deleteMutex.Unlock()
+	if fake.DeleteStub != nil {
+		return fake.DeleteStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.resolveProblemsReturns.result1
+	fakeReturns := fake.deleteReturns
+	return fakeReturns.result1
 }
 
-func (fake *FakeDeployment) ResolveProblemsCallCount() int {
-	fake.resolveProblemsMutex.RLock()
-	defer fake.resolveProblemsMutex.RUnlock()
-	return len(fake.resolveProblemsArgsForCall)
+func (fake *FakeDeployment) DeleteCallCount() int {
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
+	return len(fake.deleteArgsForCall)
 }
 
-func (fake *FakeDeployment) ResolveProblemsArgsForCall(i int) []director.ProblemAnswer {
-	fake.resolveProblemsMutex.RLock()
-	defer fake.resolveProblemsMutex.RUnlock()
-	return fake.resolveProblemsArgsForCall[i].arg1
+func (fake *FakeDeployment) DeleteCalls(stub func(bool) error) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
+	fake.DeleteStub = stub
 }
 
-func (fake *FakeDeployment) ResolveProblemsReturns(result1 error) {
-	fake.ResolveProblemsStub = nil
-	fake.resolveProblemsReturns = struct {
+func (fake *FakeDeployment) DeleteArgsForCall(i int) bool {
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
+	argsForCall := fake.deleteArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeDeployment) DeleteReturns(result1 error) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
+	fake.DeleteStub = nil
+	fake.deleteReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeDeployment) ResolveProblemsReturnsOnCall(i int, result1 error) {
-	fake.ResolveProblemsStub = nil
-	if fake.resolveProblemsReturnsOnCall == nil {
-		fake.resolveProblemsReturnsOnCall = make(map[int]struct {
+func (fake *FakeDeployment) DeleteReturnsOnCall(i int, result1 error) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
+	fake.DeleteStub = nil
+	if fake.deleteReturnsOnCall == nil {
+		fake.deleteReturnsOnCall = make(map[int]struct {
 			result1 error
 		})
 	}
-	fake.resolveProblemsReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeDeployment) Snapshots() ([]director.Snapshot, error) {
-	fake.snapshotsMutex.Lock()
-	ret, specificReturn := fake.snapshotsReturnsOnCall[len(fake.snapshotsArgsForCall)]
-	fake.snapshotsArgsForCall = append(fake.snapshotsArgsForCall, struct{}{})
-	fake.recordInvocation("Snapshots", []interface{}{})
-	fake.snapshotsMutex.Unlock()
-	if fake.SnapshotsStub != nil {
-		return fake.SnapshotsStub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.snapshotsReturns.result1, fake.snapshotsReturns.result2
-}
-
-func (fake *FakeDeployment) SnapshotsCallCount() int {
-	fake.snapshotsMutex.RLock()
-	defer fake.snapshotsMutex.RUnlock()
-	return len(fake.snapshotsArgsForCall)
-}
-
-func (fake *FakeDeployment) SnapshotsReturns(result1 []director.Snapshot, result2 error) {
-	fake.SnapshotsStub = nil
-	fake.snapshotsReturns = struct {
-		result1 []director.Snapshot
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) SnapshotsReturnsOnCall(i int, result1 []director.Snapshot, result2 error) {
-	fake.SnapshotsStub = nil
-	if fake.snapshotsReturnsOnCall == nil {
-		fake.snapshotsReturnsOnCall = make(map[int]struct {
-			result1 []director.Snapshot
-			result2 error
-		})
-	}
-	fake.snapshotsReturnsOnCall[i] = struct {
-		result1 []director.Snapshot
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeDeployment) TakeSnapshots() error {
-	fake.takeSnapshotsMutex.Lock()
-	ret, specificReturn := fake.takeSnapshotsReturnsOnCall[len(fake.takeSnapshotsArgsForCall)]
-	fake.takeSnapshotsArgsForCall = append(fake.takeSnapshotsArgsForCall, struct{}{})
-	fake.recordInvocation("TakeSnapshots", []interface{}{})
-	fake.takeSnapshotsMutex.Unlock()
-	if fake.TakeSnapshotsStub != nil {
-		return fake.TakeSnapshotsStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.takeSnapshotsReturns.result1
-}
-
-func (fake *FakeDeployment) TakeSnapshotsCallCount() int {
-	fake.takeSnapshotsMutex.RLock()
-	defer fake.takeSnapshotsMutex.RUnlock()
-	return len(fake.takeSnapshotsArgsForCall)
-}
-
-func (fake *FakeDeployment) TakeSnapshotsReturns(result1 error) {
-	fake.TakeSnapshotsStub = nil
-	fake.takeSnapshotsReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeDeployment) TakeSnapshotsReturnsOnCall(i int, result1 error) {
-	fake.TakeSnapshotsStub = nil
-	if fake.takeSnapshotsReturnsOnCall == nil {
-		fake.takeSnapshotsReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.takeSnapshotsReturnsOnCall[i] = struct {
+	fake.deleteReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -1203,7 +676,8 @@ func (fake *FakeDeployment) DeleteSnapshot(arg1 string) error {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.deleteSnapshotReturns.result1
+	fakeReturns := fake.deleteSnapshotReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeDeployment) DeleteSnapshotCallCount() int {
@@ -1212,13 +686,22 @@ func (fake *FakeDeployment) DeleteSnapshotCallCount() int {
 	return len(fake.deleteSnapshotArgsForCall)
 }
 
+func (fake *FakeDeployment) DeleteSnapshotCalls(stub func(string) error) {
+	fake.deleteSnapshotMutex.Lock()
+	defer fake.deleteSnapshotMutex.Unlock()
+	fake.DeleteSnapshotStub = stub
+}
+
 func (fake *FakeDeployment) DeleteSnapshotArgsForCall(i int) string {
 	fake.deleteSnapshotMutex.RLock()
 	defer fake.deleteSnapshotMutex.RUnlock()
-	return fake.deleteSnapshotArgsForCall[i].arg1
+	argsForCall := fake.deleteSnapshotArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeDeployment) DeleteSnapshotReturns(result1 error) {
+	fake.deleteSnapshotMutex.Lock()
+	defer fake.deleteSnapshotMutex.Unlock()
 	fake.DeleteSnapshotStub = nil
 	fake.deleteSnapshotReturns = struct {
 		result1 error
@@ -1226,6 +709,8 @@ func (fake *FakeDeployment) DeleteSnapshotReturns(result1 error) {
 }
 
 func (fake *FakeDeployment) DeleteSnapshotReturnsOnCall(i int, result1 error) {
+	fake.deleteSnapshotMutex.Lock()
+	defer fake.deleteSnapshotMutex.Unlock()
 	fake.DeleteSnapshotStub = nil
 	if fake.deleteSnapshotReturnsOnCall == nil {
 		fake.deleteSnapshotReturnsOnCall = make(map[int]struct {
@@ -1240,7 +725,8 @@ func (fake *FakeDeployment) DeleteSnapshotReturnsOnCall(i int, result1 error) {
 func (fake *FakeDeployment) DeleteSnapshots() error {
 	fake.deleteSnapshotsMutex.Lock()
 	ret, specificReturn := fake.deleteSnapshotsReturnsOnCall[len(fake.deleteSnapshotsArgsForCall)]
-	fake.deleteSnapshotsArgsForCall = append(fake.deleteSnapshotsArgsForCall, struct{}{})
+	fake.deleteSnapshotsArgsForCall = append(fake.deleteSnapshotsArgsForCall, struct {
+	}{})
 	fake.recordInvocation("DeleteSnapshots", []interface{}{})
 	fake.deleteSnapshotsMutex.Unlock()
 	if fake.DeleteSnapshotsStub != nil {
@@ -1249,7 +735,8 @@ func (fake *FakeDeployment) DeleteSnapshots() error {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.deleteSnapshotsReturns.result1
+	fakeReturns := fake.deleteSnapshotsReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeDeployment) DeleteSnapshotsCallCount() int {
@@ -1258,7 +745,15 @@ func (fake *FakeDeployment) DeleteSnapshotsCallCount() int {
 	return len(fake.deleteSnapshotsArgsForCall)
 }
 
+func (fake *FakeDeployment) DeleteSnapshotsCalls(stub func() error) {
+	fake.deleteSnapshotsMutex.Lock()
+	defer fake.deleteSnapshotsMutex.Unlock()
+	fake.DeleteSnapshotsStub = stub
+}
+
 func (fake *FakeDeployment) DeleteSnapshotsReturns(result1 error) {
+	fake.deleteSnapshotsMutex.Lock()
+	defer fake.deleteSnapshotsMutex.Unlock()
 	fake.DeleteSnapshotsStub = nil
 	fake.deleteSnapshotsReturns = struct {
 		result1 error
@@ -1266,6 +761,8 @@ func (fake *FakeDeployment) DeleteSnapshotsReturns(result1 error) {
 }
 
 func (fake *FakeDeployment) DeleteSnapshotsReturnsOnCall(i int, result1 error) {
+	fake.deleteSnapshotsMutex.Lock()
+	defer fake.deleteSnapshotsMutex.Unlock()
 	fake.DeleteSnapshotsStub = nil
 	if fake.deleteSnapshotsReturnsOnCall == nil {
 		fake.deleteSnapshotsReturnsOnCall = make(map[int]struct {
@@ -1291,7 +788,8 @@ func (fake *FakeDeployment) DeleteVM(arg1 string) error {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.deleteVMReturns.result1
+	fakeReturns := fake.deleteVMReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeDeployment) DeleteVMCallCount() int {
@@ -1300,13 +798,22 @@ func (fake *FakeDeployment) DeleteVMCallCount() int {
 	return len(fake.deleteVMArgsForCall)
 }
 
+func (fake *FakeDeployment) DeleteVMCalls(stub func(string) error) {
+	fake.deleteVMMutex.Lock()
+	defer fake.deleteVMMutex.Unlock()
+	fake.DeleteVMStub = stub
+}
+
 func (fake *FakeDeployment) DeleteVMArgsForCall(i int) string {
 	fake.deleteVMMutex.RLock()
 	defer fake.deleteVMMutex.RUnlock()
-	return fake.deleteVMArgsForCall[i].arg1
+	argsForCall := fake.deleteVMArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeDeployment) DeleteVMReturns(result1 error) {
+	fake.deleteVMMutex.Lock()
+	defer fake.deleteVMMutex.Unlock()
 	fake.DeleteVMStub = nil
 	fake.deleteVMReturns = struct {
 		result1 error
@@ -1314,6 +821,8 @@ func (fake *FakeDeployment) DeleteVMReturns(result1 error) {
 }
 
 func (fake *FakeDeployment) DeleteVMReturnsOnCall(i int, result1 error) {
+	fake.deleteVMMutex.Lock()
+	defer fake.deleteVMMutex.Unlock()
 	fake.DeleteVMStub = nil
 	if fake.deleteVMReturnsOnCall == nil {
 		fake.deleteVMReturnsOnCall = make(map[int]struct {
@@ -1325,344 +834,259 @@ func (fake *FakeDeployment) DeleteVMReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Variables() ([]director.VariableResult, error) {
-	fake.variablesMutex.Lock()
-	ret, specificReturn := fake.variablesReturnsOnCall[len(fake.variablesArgsForCall)]
-	fake.variablesArgsForCall = append(fake.variablesArgsForCall, struct{}{})
-	fake.recordInvocation("Variables", []interface{}{})
-	fake.variablesMutex.Unlock()
-	if fake.VariablesStub != nil {
-		return fake.VariablesStub()
+func (fake *FakeDeployment) Diff(arg1 []byte, arg2 bool) (director.DeploymentDiff, error) {
+	var arg1Copy []byte
+	if arg1 != nil {
+		arg1Copy = make([]byte, len(arg1))
+		copy(arg1Copy, arg1)
+	}
+	fake.diffMutex.Lock()
+	ret, specificReturn := fake.diffReturnsOnCall[len(fake.diffArgsForCall)]
+	fake.diffArgsForCall = append(fake.diffArgsForCall, struct {
+		arg1 []byte
+		arg2 bool
+	}{arg1Copy, arg2})
+	fake.recordInvocation("Diff", []interface{}{arg1Copy, arg2})
+	fake.diffMutex.Unlock()
+	if fake.DiffStub != nil {
+		return fake.DiffStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.variablesReturns.result1, fake.variablesReturns.result2
+	fakeReturns := fake.diffReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeDeployment) VariablesCallCount() int {
-	fake.variablesMutex.RLock()
-	defer fake.variablesMutex.RUnlock()
-	return len(fake.variablesArgsForCall)
+func (fake *FakeDeployment) DiffCallCount() int {
+	fake.diffMutex.RLock()
+	defer fake.diffMutex.RUnlock()
+	return len(fake.diffArgsForCall)
 }
 
-func (fake *FakeDeployment) VariablesReturns(result1 []director.VariableResult, result2 error) {
-	fake.VariablesStub = nil
-	fake.variablesReturns = struct {
-		result1 []director.VariableResult
+func (fake *FakeDeployment) DiffCalls(stub func([]byte, bool) (director.DeploymentDiff, error)) {
+	fake.diffMutex.Lock()
+	defer fake.diffMutex.Unlock()
+	fake.DiffStub = stub
+}
+
+func (fake *FakeDeployment) DiffArgsForCall(i int) ([]byte, bool) {
+	fake.diffMutex.RLock()
+	defer fake.diffMutex.RUnlock()
+	argsForCall := fake.diffArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeDeployment) DiffReturns(result1 director.DeploymentDiff, result2 error) {
+	fake.diffMutex.Lock()
+	defer fake.diffMutex.Unlock()
+	fake.DiffStub = nil
+	fake.diffReturns = struct {
+		result1 director.DeploymentDiff
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeDeployment) VariablesReturnsOnCall(i int, result1 []director.VariableResult, result2 error) {
-	fake.VariablesStub = nil
-	if fake.variablesReturnsOnCall == nil {
-		fake.variablesReturnsOnCall = make(map[int]struct {
-			result1 []director.VariableResult
+func (fake *FakeDeployment) DiffReturnsOnCall(i int, result1 director.DeploymentDiff, result2 error) {
+	fake.diffMutex.Lock()
+	defer fake.diffMutex.Unlock()
+	fake.DiffStub = nil
+	if fake.diffReturnsOnCall == nil {
+		fake.diffReturnsOnCall = make(map[int]struct {
+			result1 director.DeploymentDiff
 			result2 error
 		})
 	}
-	fake.variablesReturnsOnCall[i] = struct {
-		result1 []director.VariableResult
+	fake.diffReturnsOnCall[i] = struct {
+		result1 director.DeploymentDiff
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeDeployment) Start(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.StartOpts) error {
-	fake.startMutex.Lock()
-	ret, specificReturn := fake.startReturnsOnCall[len(fake.startArgsForCall)]
-	fake.startArgsForCall = append(fake.startArgsForCall, struct {
-		slug director.AllOrInstanceGroupOrInstanceSlug
-		opts director.StartOpts
-	}{slug, opts})
-	fake.recordInvocation("Start", []interface{}{slug, opts})
-	fake.startMutex.Unlock()
-	if fake.StartStub != nil {
-		return fake.StartStub(slug, opts)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.startReturns.result1
-}
-
-func (fake *FakeDeployment) StartCallCount() int {
-	fake.startMutex.RLock()
-	defer fake.startMutex.RUnlock()
-	return len(fake.startArgsForCall)
-}
-
-func (fake *FakeDeployment) StartArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.StartOpts) {
-	fake.startMutex.RLock()
-	defer fake.startMutex.RUnlock()
-	return fake.startArgsForCall[i].slug, fake.startArgsForCall[i].opts
-}
-
-func (fake *FakeDeployment) StartReturns(result1 error) {
-	fake.StartStub = nil
-	fake.startReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeDeployment) StartReturnsOnCall(i int, result1 error) {
-	fake.StartStub = nil
-	if fake.startReturnsOnCall == nil {
-		fake.startReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.startReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeDeployment) Stop(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.StopOpts) error {
-	fake.stopMutex.Lock()
-	ret, specificReturn := fake.stopReturnsOnCall[len(fake.stopArgsForCall)]
-	fake.stopArgsForCall = append(fake.stopArgsForCall, struct {
-		slug director.AllOrInstanceGroupOrInstanceSlug
-		opts director.StopOpts
-	}{slug, opts})
-	fake.recordInvocation("Stop", []interface{}{slug, opts})
-	fake.stopMutex.Unlock()
-	if fake.StopStub != nil {
-		return fake.StopStub(slug, opts)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.stopReturns.result1
-}
-
-func (fake *FakeDeployment) StopCallCount() int {
-	fake.stopMutex.RLock()
-	defer fake.stopMutex.RUnlock()
-	return len(fake.stopArgsForCall)
-}
-
-func (fake *FakeDeployment) StopArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.StopOpts) {
-	fake.stopMutex.RLock()
-	defer fake.stopMutex.RUnlock()
-	return fake.stopArgsForCall[i].slug, fake.stopArgsForCall[i].opts
-}
-
-func (fake *FakeDeployment) StopReturns(result1 error) {
-	fake.StopStub = nil
-	fake.stopReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeDeployment) StopReturnsOnCall(i int, result1 error) {
-	fake.StopStub = nil
-	if fake.stopReturnsOnCall == nil {
-		fake.stopReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.stopReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeDeployment) Restart(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.RestartOpts) error {
-	fake.restartMutex.Lock()
-	ret, specificReturn := fake.restartReturnsOnCall[len(fake.restartArgsForCall)]
-	fake.restartArgsForCall = append(fake.restartArgsForCall, struct {
-		slug director.AllOrInstanceGroupOrInstanceSlug
-		opts director.RestartOpts
-	}{slug, opts})
-	fake.recordInvocation("Restart", []interface{}{slug, opts})
-	fake.restartMutex.Unlock()
-	if fake.RestartStub != nil {
-		return fake.RestartStub(slug, opts)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.restartReturns.result1
-}
-
-func (fake *FakeDeployment) RestartCallCount() int {
-	fake.restartMutex.RLock()
-	defer fake.restartMutex.RUnlock()
-	return len(fake.restartArgsForCall)
-}
-
-func (fake *FakeDeployment) RestartArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.RestartOpts) {
-	fake.restartMutex.RLock()
-	defer fake.restartMutex.RUnlock()
-	return fake.restartArgsForCall[i].slug, fake.restartArgsForCall[i].opts
-}
-
-func (fake *FakeDeployment) RestartReturns(result1 error) {
-	fake.RestartStub = nil
-	fake.restartReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeDeployment) RestartReturnsOnCall(i int, result1 error) {
-	fake.RestartStub = nil
-	if fake.restartReturnsOnCall == nil {
-		fake.restartReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.restartReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeDeployment) Recreate(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.RecreateOpts) error {
-	fake.recreateMutex.Lock()
-	ret, specificReturn := fake.recreateReturnsOnCall[len(fake.recreateArgsForCall)]
-	fake.recreateArgsForCall = append(fake.recreateArgsForCall, struct {
-		slug director.AllOrInstanceGroupOrInstanceSlug
-		opts director.RecreateOpts
-	}{slug, opts})
-	fake.recordInvocation("Recreate", []interface{}{slug, opts})
-	fake.recreateMutex.Unlock()
-	if fake.RecreateStub != nil {
-		return fake.RecreateStub(slug, opts)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.recreateReturns.result1
-}
-
-func (fake *FakeDeployment) RecreateCallCount() int {
-	fake.recreateMutex.RLock()
-	defer fake.recreateMutex.RUnlock()
-	return len(fake.recreateArgsForCall)
-}
-
-func (fake *FakeDeployment) RecreateArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.RecreateOpts) {
-	fake.recreateMutex.RLock()
-	defer fake.recreateMutex.RUnlock()
-	return fake.recreateArgsForCall[i].slug, fake.recreateArgsForCall[i].opts
-}
-
-func (fake *FakeDeployment) RecreateReturns(result1 error) {
-	fake.RecreateStub = nil
-	fake.recreateReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeDeployment) RecreateReturnsOnCall(i int, result1 error) {
-	fake.RecreateStub = nil
-	if fake.recreateReturnsOnCall == nil {
-		fake.recreateReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.recreateReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeDeployment) SetUpSSH(arg1 director.AllOrInstanceGroupOrInstanceSlug, arg2 director.SSHOpts) (director.SSHResult, error) {
-	fake.setUpSSHMutex.Lock()
-	ret, specificReturn := fake.setUpSSHReturnsOnCall[len(fake.setUpSSHArgsForCall)]
-	fake.setUpSSHArgsForCall = append(fake.setUpSSHArgsForCall, struct {
-		arg1 director.AllOrInstanceGroupOrInstanceSlug
-		arg2 director.SSHOpts
+func (fake *FakeDeployment) EnableResurrection(arg1 director.InstanceSlug, arg2 bool) error {
+	fake.enableResurrectionMutex.Lock()
+	ret, specificReturn := fake.enableResurrectionReturnsOnCall[len(fake.enableResurrectionArgsForCall)]
+	fake.enableResurrectionArgsForCall = append(fake.enableResurrectionArgsForCall, struct {
+		arg1 director.InstanceSlug
+		arg2 bool
 	}{arg1, arg2})
-	fake.recordInvocation("SetUpSSH", []interface{}{arg1, arg2})
-	fake.setUpSSHMutex.Unlock()
-	if fake.SetUpSSHStub != nil {
-		return fake.SetUpSSHStub(arg1, arg2)
+	fake.recordInvocation("EnableResurrection", []interface{}{arg1, arg2})
+	fake.enableResurrectionMutex.Unlock()
+	if fake.EnableResurrectionStub != nil {
+		return fake.EnableResurrectionStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.enableResurrectionReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeDeployment) EnableResurrectionCallCount() int {
+	fake.enableResurrectionMutex.RLock()
+	defer fake.enableResurrectionMutex.RUnlock()
+	return len(fake.enableResurrectionArgsForCall)
+}
+
+func (fake *FakeDeployment) EnableResurrectionCalls(stub func(director.InstanceSlug, bool) error) {
+	fake.enableResurrectionMutex.Lock()
+	defer fake.enableResurrectionMutex.Unlock()
+	fake.EnableResurrectionStub = stub
+}
+
+func (fake *FakeDeployment) EnableResurrectionArgsForCall(i int) (director.InstanceSlug, bool) {
+	fake.enableResurrectionMutex.RLock()
+	defer fake.enableResurrectionMutex.RUnlock()
+	argsForCall := fake.enableResurrectionArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeDeployment) EnableResurrectionReturns(result1 error) {
+	fake.enableResurrectionMutex.Lock()
+	defer fake.enableResurrectionMutex.Unlock()
+	fake.EnableResurrectionStub = nil
+	fake.enableResurrectionReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) EnableResurrectionReturnsOnCall(i int, result1 error) {
+	fake.enableResurrectionMutex.Lock()
+	defer fake.enableResurrectionMutex.Unlock()
+	fake.EnableResurrectionStub = nil
+	if fake.enableResurrectionReturnsOnCall == nil {
+		fake.enableResurrectionReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.enableResurrectionReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) Errands() ([]director.Errand, error) {
+	fake.errandsMutex.Lock()
+	ret, specificReturn := fake.errandsReturnsOnCall[len(fake.errandsArgsForCall)]
+	fake.errandsArgsForCall = append(fake.errandsArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Errands", []interface{}{})
+	fake.errandsMutex.Unlock()
+	if fake.ErrandsStub != nil {
+		return fake.ErrandsStub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.setUpSSHReturns.result1, fake.setUpSSHReturns.result2
+	fakeReturns := fake.errandsReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeDeployment) SetUpSSHCallCount() int {
-	fake.setUpSSHMutex.RLock()
-	defer fake.setUpSSHMutex.RUnlock()
-	return len(fake.setUpSSHArgsForCall)
+func (fake *FakeDeployment) ErrandsCallCount() int {
+	fake.errandsMutex.RLock()
+	defer fake.errandsMutex.RUnlock()
+	return len(fake.errandsArgsForCall)
 }
 
-func (fake *FakeDeployment) SetUpSSHArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.SSHOpts) {
-	fake.setUpSSHMutex.RLock()
-	defer fake.setUpSSHMutex.RUnlock()
-	return fake.setUpSSHArgsForCall[i].arg1, fake.setUpSSHArgsForCall[i].arg2
+func (fake *FakeDeployment) ErrandsCalls(stub func() ([]director.Errand, error)) {
+	fake.errandsMutex.Lock()
+	defer fake.errandsMutex.Unlock()
+	fake.ErrandsStub = stub
 }
 
-func (fake *FakeDeployment) SetUpSSHReturns(result1 director.SSHResult, result2 error) {
-	fake.SetUpSSHStub = nil
-	fake.setUpSSHReturns = struct {
-		result1 director.SSHResult
+func (fake *FakeDeployment) ErrandsReturns(result1 []director.Errand, result2 error) {
+	fake.errandsMutex.Lock()
+	defer fake.errandsMutex.Unlock()
+	fake.ErrandsStub = nil
+	fake.errandsReturns = struct {
+		result1 []director.Errand
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeDeployment) SetUpSSHReturnsOnCall(i int, result1 director.SSHResult, result2 error) {
-	fake.SetUpSSHStub = nil
-	if fake.setUpSSHReturnsOnCall == nil {
-		fake.setUpSSHReturnsOnCall = make(map[int]struct {
-			result1 director.SSHResult
+func (fake *FakeDeployment) ErrandsReturnsOnCall(i int, result1 []director.Errand, result2 error) {
+	fake.errandsMutex.Lock()
+	defer fake.errandsMutex.Unlock()
+	fake.ErrandsStub = nil
+	if fake.errandsReturnsOnCall == nil {
+		fake.errandsReturnsOnCall = make(map[int]struct {
+			result1 []director.Errand
 			result2 error
 		})
 	}
-	fake.setUpSSHReturnsOnCall[i] = struct {
-		result1 director.SSHResult
+	fake.errandsReturnsOnCall[i] = struct {
+		result1 []director.Errand
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeDeployment) CleanUpSSH(arg1 director.AllOrInstanceGroupOrInstanceSlug, arg2 director.SSHOpts) error {
-	fake.cleanUpSSHMutex.Lock()
-	ret, specificReturn := fake.cleanUpSSHReturnsOnCall[len(fake.cleanUpSSHArgsForCall)]
-	fake.cleanUpSSHArgsForCall = append(fake.cleanUpSSHArgsForCall, struct {
-		arg1 director.AllOrInstanceGroupOrInstanceSlug
-		arg2 director.SSHOpts
-	}{arg1, arg2})
-	fake.recordInvocation("CleanUpSSH", []interface{}{arg1, arg2})
-	fake.cleanUpSSHMutex.Unlock()
-	if fake.CleanUpSSHStub != nil {
-		return fake.CleanUpSSHStub(arg1, arg2)
+func (fake *FakeDeployment) ExportRelease(arg1 director.ReleaseSlug, arg2 director.OSVersionSlug, arg3 []string) (director.ExportReleaseResult, error) {
+	var arg3Copy []string
+	if arg3 != nil {
+		arg3Copy = make([]string, len(arg3))
+		copy(arg3Copy, arg3)
+	}
+	fake.exportReleaseMutex.Lock()
+	ret, specificReturn := fake.exportReleaseReturnsOnCall[len(fake.exportReleaseArgsForCall)]
+	fake.exportReleaseArgsForCall = append(fake.exportReleaseArgsForCall, struct {
+		arg1 director.ReleaseSlug
+		arg2 director.OSVersionSlug
+		arg3 []string
+	}{arg1, arg2, arg3Copy})
+	fake.recordInvocation("ExportRelease", []interface{}{arg1, arg2, arg3Copy})
+	fake.exportReleaseMutex.Unlock()
+	if fake.ExportReleaseStub != nil {
+		return fake.ExportReleaseStub(arg1, arg2, arg3)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fake.cleanUpSSHReturns.result1
+	fakeReturns := fake.exportReleaseReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeDeployment) CleanUpSSHCallCount() int {
-	fake.cleanUpSSHMutex.RLock()
-	defer fake.cleanUpSSHMutex.RUnlock()
-	return len(fake.cleanUpSSHArgsForCall)
+func (fake *FakeDeployment) ExportReleaseCallCount() int {
+	fake.exportReleaseMutex.RLock()
+	defer fake.exportReleaseMutex.RUnlock()
+	return len(fake.exportReleaseArgsForCall)
 }
 
-func (fake *FakeDeployment) CleanUpSSHArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.SSHOpts) {
-	fake.cleanUpSSHMutex.RLock()
-	defer fake.cleanUpSSHMutex.RUnlock()
-	return fake.cleanUpSSHArgsForCall[i].arg1, fake.cleanUpSSHArgsForCall[i].arg2
+func (fake *FakeDeployment) ExportReleaseCalls(stub func(director.ReleaseSlug, director.OSVersionSlug, []string) (director.ExportReleaseResult, error)) {
+	fake.exportReleaseMutex.Lock()
+	defer fake.exportReleaseMutex.Unlock()
+	fake.ExportReleaseStub = stub
 }
 
-func (fake *FakeDeployment) CleanUpSSHReturns(result1 error) {
-	fake.CleanUpSSHStub = nil
-	fake.cleanUpSSHReturns = struct {
-		result1 error
-	}{result1}
+func (fake *FakeDeployment) ExportReleaseArgsForCall(i int) (director.ReleaseSlug, director.OSVersionSlug, []string) {
+	fake.exportReleaseMutex.RLock()
+	defer fake.exportReleaseMutex.RUnlock()
+	argsForCall := fake.exportReleaseArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeDeployment) CleanUpSSHReturnsOnCall(i int, result1 error) {
-	fake.CleanUpSSHStub = nil
-	if fake.cleanUpSSHReturnsOnCall == nil {
-		fake.cleanUpSSHReturnsOnCall = make(map[int]struct {
-			result1 error
+func (fake *FakeDeployment) ExportReleaseReturns(result1 director.ExportReleaseResult, result2 error) {
+	fake.exportReleaseMutex.Lock()
+	defer fake.exportReleaseMutex.Unlock()
+	fake.ExportReleaseStub = nil
+	fake.exportReleaseReturns = struct {
+		result1 director.ExportReleaseResult
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) ExportReleaseReturnsOnCall(i int, result1 director.ExportReleaseResult, result2 error) {
+	fake.exportReleaseMutex.Lock()
+	defer fake.exportReleaseMutex.Unlock()
+	fake.ExportReleaseStub = nil
+	if fake.exportReleaseReturnsOnCall == nil {
+		fake.exportReleaseReturnsOnCall = make(map[int]struct {
+			result1 director.ExportReleaseResult
+			result2 error
 		})
 	}
-	fake.cleanUpSSHReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
+	fake.exportReleaseReturnsOnCall[i] = struct {
+		result1 director.ExportReleaseResult
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeDeployment) FetchLogs(arg1 director.AllOrInstanceGroupOrInstanceSlug, arg2 []string, arg3 bool) (director.LogsResult, error) {
@@ -1686,7 +1110,8 @@ func (fake *FakeDeployment) FetchLogs(arg1 director.AllOrInstanceGroupOrInstance
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.fetchLogsReturns.result1, fake.fetchLogsReturns.result2
+	fakeReturns := fake.fetchLogsReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeDeployment) FetchLogsCallCount() int {
@@ -1695,13 +1120,22 @@ func (fake *FakeDeployment) FetchLogsCallCount() int {
 	return len(fake.fetchLogsArgsForCall)
 }
 
+func (fake *FakeDeployment) FetchLogsCalls(stub func(director.AllOrInstanceGroupOrInstanceSlug, []string, bool) (director.LogsResult, error)) {
+	fake.fetchLogsMutex.Lock()
+	defer fake.fetchLogsMutex.Unlock()
+	fake.FetchLogsStub = stub
+}
+
 func (fake *FakeDeployment) FetchLogsArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, []string, bool) {
 	fake.fetchLogsMutex.RLock()
 	defer fake.fetchLogsMutex.RUnlock()
-	return fake.fetchLogsArgsForCall[i].arg1, fake.fetchLogsArgsForCall[i].arg2, fake.fetchLogsArgsForCall[i].arg3
+	argsForCall := fake.fetchLogsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeDeployment) FetchLogsReturns(result1 director.LogsResult, result2 error) {
+	fake.fetchLogsMutex.Lock()
+	defer fake.fetchLogsMutex.Unlock()
 	fake.FetchLogsStub = nil
 	fake.fetchLogsReturns = struct {
 		result1 director.LogsResult
@@ -1710,6 +1144,8 @@ func (fake *FakeDeployment) FetchLogsReturns(result1 director.LogsResult, result
 }
 
 func (fake *FakeDeployment) FetchLogsReturnsOnCall(i int, result1 director.LogsResult, result2 error) {
+	fake.fetchLogsMutex.Lock()
+	defer fake.fetchLogsMutex.Unlock()
 	fake.FetchLogsStub = nil
 	if fake.fetchLogsReturnsOnCall == nil {
 		fake.fetchLogsReturnsOnCall = make(map[int]struct {
@@ -1721,54 +1157,6 @@ func (fake *FakeDeployment) FetchLogsReturnsOnCall(i int, result1 director.LogsR
 		result1 director.LogsResult
 		result2 error
 	}{result1, result2}
-}
-
-func (fake *FakeDeployment) TakeSnapshot(arg1 director.InstanceSlug) error {
-	fake.takeSnapshotMutex.Lock()
-	ret, specificReturn := fake.takeSnapshotReturnsOnCall[len(fake.takeSnapshotArgsForCall)]
-	fake.takeSnapshotArgsForCall = append(fake.takeSnapshotArgsForCall, struct {
-		arg1 director.InstanceSlug
-	}{arg1})
-	fake.recordInvocation("TakeSnapshot", []interface{}{arg1})
-	fake.takeSnapshotMutex.Unlock()
-	if fake.TakeSnapshotStub != nil {
-		return fake.TakeSnapshotStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.takeSnapshotReturns.result1
-}
-
-func (fake *FakeDeployment) TakeSnapshotCallCount() int {
-	fake.takeSnapshotMutex.RLock()
-	defer fake.takeSnapshotMutex.RUnlock()
-	return len(fake.takeSnapshotArgsForCall)
-}
-
-func (fake *FakeDeployment) TakeSnapshotArgsForCall(i int) director.InstanceSlug {
-	fake.takeSnapshotMutex.RLock()
-	defer fake.takeSnapshotMutex.RUnlock()
-	return fake.takeSnapshotArgsForCall[i].arg1
-}
-
-func (fake *FakeDeployment) TakeSnapshotReturns(result1 error) {
-	fake.TakeSnapshotStub = nil
-	fake.takeSnapshotReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeDeployment) TakeSnapshotReturnsOnCall(i int, result1 error) {
-	fake.TakeSnapshotStub = nil
-	if fake.takeSnapshotReturnsOnCall == nil {
-		fake.takeSnapshotReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.takeSnapshotReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
 }
 
 func (fake *FakeDeployment) Ignore(arg1 director.InstanceSlug, arg2 bool) error {
@@ -1786,7 +1174,8 @@ func (fake *FakeDeployment) Ignore(arg1 director.InstanceSlug, arg2 bool) error 
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.ignoreReturns.result1
+	fakeReturns := fake.ignoreReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeDeployment) IgnoreCallCount() int {
@@ -1795,13 +1184,22 @@ func (fake *FakeDeployment) IgnoreCallCount() int {
 	return len(fake.ignoreArgsForCall)
 }
 
+func (fake *FakeDeployment) IgnoreCalls(stub func(director.InstanceSlug, bool) error) {
+	fake.ignoreMutex.Lock()
+	defer fake.ignoreMutex.Unlock()
+	fake.IgnoreStub = stub
+}
+
 func (fake *FakeDeployment) IgnoreArgsForCall(i int) (director.InstanceSlug, bool) {
 	fake.ignoreMutex.RLock()
 	defer fake.ignoreMutex.RUnlock()
-	return fake.ignoreArgsForCall[i].arg1, fake.ignoreArgsForCall[i].arg2
+	argsForCall := fake.ignoreArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeDeployment) IgnoreReturns(result1 error) {
+	fake.ignoreMutex.Lock()
+	defer fake.ignoreMutex.Unlock()
 	fake.IgnoreStub = nil
 	fake.ignoreReturns = struct {
 		result1 error
@@ -1809,6 +1207,8 @@ func (fake *FakeDeployment) IgnoreReturns(result1 error) {
 }
 
 func (fake *FakeDeployment) IgnoreReturnsOnCall(i int, result1 error) {
+	fake.ignoreMutex.Lock()
+	defer fake.ignoreMutex.Unlock()
 	fake.IgnoreStub = nil
 	if fake.ignoreReturnsOnCall == nil {
 		fake.ignoreReturnsOnCall = make(map[int]struct {
@@ -1820,76 +1220,1076 @@ func (fake *FakeDeployment) IgnoreReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) EnableResurrection(arg1 director.InstanceSlug, arg2 bool) error {
-	fake.enableResurrectionMutex.Lock()
-	ret, specificReturn := fake.enableResurrectionReturnsOnCall[len(fake.enableResurrectionArgsForCall)]
-	fake.enableResurrectionArgsForCall = append(fake.enableResurrectionArgsForCall, struct {
-		arg1 director.InstanceSlug
-		arg2 bool
-	}{arg1, arg2})
-	fake.recordInvocation("EnableResurrection", []interface{}{arg1, arg2})
-	fake.enableResurrectionMutex.Unlock()
-	if fake.EnableResurrectionStub != nil {
-		return fake.EnableResurrectionStub(arg1, arg2)
+func (fake *FakeDeployment) InstanceInfos() ([]director.VMInfo, error) {
+	fake.instanceInfosMutex.Lock()
+	ret, specificReturn := fake.instanceInfosReturnsOnCall[len(fake.instanceInfosArgsForCall)]
+	fake.instanceInfosArgsForCall = append(fake.instanceInfosArgsForCall, struct {
+	}{})
+	fake.recordInvocation("InstanceInfos", []interface{}{})
+	fake.instanceInfosMutex.Unlock()
+	if fake.InstanceInfosStub != nil {
+		return fake.InstanceInfosStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.instanceInfosReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDeployment) InstanceInfosCallCount() int {
+	fake.instanceInfosMutex.RLock()
+	defer fake.instanceInfosMutex.RUnlock()
+	return len(fake.instanceInfosArgsForCall)
+}
+
+func (fake *FakeDeployment) InstanceInfosCalls(stub func() ([]director.VMInfo, error)) {
+	fake.instanceInfosMutex.Lock()
+	defer fake.instanceInfosMutex.Unlock()
+	fake.InstanceInfosStub = stub
+}
+
+func (fake *FakeDeployment) InstanceInfosReturns(result1 []director.VMInfo, result2 error) {
+	fake.instanceInfosMutex.Lock()
+	defer fake.instanceInfosMutex.Unlock()
+	fake.InstanceInfosStub = nil
+	fake.instanceInfosReturns = struct {
+		result1 []director.VMInfo
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) InstanceInfosReturnsOnCall(i int, result1 []director.VMInfo, result2 error) {
+	fake.instanceInfosMutex.Lock()
+	defer fake.instanceInfosMutex.Unlock()
+	fake.InstanceInfosStub = nil
+	if fake.instanceInfosReturnsOnCall == nil {
+		fake.instanceInfosReturnsOnCall = make(map[int]struct {
+			result1 []director.VMInfo
+			result2 error
+		})
+	}
+	fake.instanceInfosReturnsOnCall[i] = struct {
+		result1 []director.VMInfo
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) Instances() ([]director.Instance, error) {
+	fake.instancesMutex.Lock()
+	ret, specificReturn := fake.instancesReturnsOnCall[len(fake.instancesArgsForCall)]
+	fake.instancesArgsForCall = append(fake.instancesArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Instances", []interface{}{})
+	fake.instancesMutex.Unlock()
+	if fake.InstancesStub != nil {
+		return fake.InstancesStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.instancesReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDeployment) InstancesCallCount() int {
+	fake.instancesMutex.RLock()
+	defer fake.instancesMutex.RUnlock()
+	return len(fake.instancesArgsForCall)
+}
+
+func (fake *FakeDeployment) InstancesCalls(stub func() ([]director.Instance, error)) {
+	fake.instancesMutex.Lock()
+	defer fake.instancesMutex.Unlock()
+	fake.InstancesStub = stub
+}
+
+func (fake *FakeDeployment) InstancesReturns(result1 []director.Instance, result2 error) {
+	fake.instancesMutex.Lock()
+	defer fake.instancesMutex.Unlock()
+	fake.InstancesStub = nil
+	fake.instancesReturns = struct {
+		result1 []director.Instance
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) InstancesReturnsOnCall(i int, result1 []director.Instance, result2 error) {
+	fake.instancesMutex.Lock()
+	defer fake.instancesMutex.Unlock()
+	fake.InstancesStub = nil
+	if fake.instancesReturnsOnCall == nil {
+		fake.instancesReturnsOnCall = make(map[int]struct {
+			result1 []director.Instance
+			result2 error
+		})
+	}
+	fake.instancesReturnsOnCall[i] = struct {
+		result1 []director.Instance
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) Manifest() (string, error) {
+	fake.manifestMutex.Lock()
+	ret, specificReturn := fake.manifestReturnsOnCall[len(fake.manifestArgsForCall)]
+	fake.manifestArgsForCall = append(fake.manifestArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Manifest", []interface{}{})
+	fake.manifestMutex.Unlock()
+	if fake.ManifestStub != nil {
+		return fake.ManifestStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.manifestReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDeployment) ManifestCallCount() int {
+	fake.manifestMutex.RLock()
+	defer fake.manifestMutex.RUnlock()
+	return len(fake.manifestArgsForCall)
+}
+
+func (fake *FakeDeployment) ManifestCalls(stub func() (string, error)) {
+	fake.manifestMutex.Lock()
+	defer fake.manifestMutex.Unlock()
+	fake.ManifestStub = stub
+}
+
+func (fake *FakeDeployment) ManifestReturns(result1 string, result2 error) {
+	fake.manifestMutex.Lock()
+	defer fake.manifestMutex.Unlock()
+	fake.ManifestStub = nil
+	fake.manifestReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) ManifestReturnsOnCall(i int, result1 string, result2 error) {
+	fake.manifestMutex.Lock()
+	defer fake.manifestMutex.Unlock()
+	fake.ManifestStub = nil
+	if fake.manifestReturnsOnCall == nil {
+		fake.manifestReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.manifestReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) Name() string {
+	fake.nameMutex.Lock()
+	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
+	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Name", []interface{}{})
+	fake.nameMutex.Unlock()
+	if fake.NameStub != nil {
+		return fake.NameStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.enableResurrectionReturns.result1
+	fakeReturns := fake.nameReturns
+	return fakeReturns.result1
 }
 
-func (fake *FakeDeployment) EnableResurrectionCallCount() int {
-	fake.enableResurrectionMutex.RLock()
-	defer fake.enableResurrectionMutex.RUnlock()
-	return len(fake.enableResurrectionArgsForCall)
+func (fake *FakeDeployment) NameCallCount() int {
+	fake.nameMutex.RLock()
+	defer fake.nameMutex.RUnlock()
+	return len(fake.nameArgsForCall)
 }
 
-func (fake *FakeDeployment) EnableResurrectionArgsForCall(i int) (director.InstanceSlug, bool) {
-	fake.enableResurrectionMutex.RLock()
-	defer fake.enableResurrectionMutex.RUnlock()
-	return fake.enableResurrectionArgsForCall[i].arg1, fake.enableResurrectionArgsForCall[i].arg2
+func (fake *FakeDeployment) NameCalls(stub func() string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = stub
 }
 
-func (fake *FakeDeployment) EnableResurrectionReturns(result1 error) {
-	fake.EnableResurrectionStub = nil
-	fake.enableResurrectionReturns = struct {
+func (fake *FakeDeployment) NameReturns(result1 string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = nil
+	fake.nameReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeDeployment) NameReturnsOnCall(i int, result1 string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = nil
+	if fake.nameReturnsOnCall == nil {
+		fake.nameReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.nameReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeDeployment) Recreate(arg1 director.AllOrInstanceGroupOrInstanceSlug, arg2 director.RecreateOpts) error {
+	fake.recreateMutex.Lock()
+	ret, specificReturn := fake.recreateReturnsOnCall[len(fake.recreateArgsForCall)]
+	fake.recreateArgsForCall = append(fake.recreateArgsForCall, struct {
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
+		arg2 director.RecreateOpts
+	}{arg1, arg2})
+	fake.recordInvocation("Recreate", []interface{}{arg1, arg2})
+	fake.recreateMutex.Unlock()
+	if fake.RecreateStub != nil {
+		return fake.RecreateStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.recreateReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeDeployment) RecreateCallCount() int {
+	fake.recreateMutex.RLock()
+	defer fake.recreateMutex.RUnlock()
+	return len(fake.recreateArgsForCall)
+}
+
+func (fake *FakeDeployment) RecreateCalls(stub func(director.AllOrInstanceGroupOrInstanceSlug, director.RecreateOpts) error) {
+	fake.recreateMutex.Lock()
+	defer fake.recreateMutex.Unlock()
+	fake.RecreateStub = stub
+}
+
+func (fake *FakeDeployment) RecreateArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.RecreateOpts) {
+	fake.recreateMutex.RLock()
+	defer fake.recreateMutex.RUnlock()
+	argsForCall := fake.recreateArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeDeployment) RecreateReturns(result1 error) {
+	fake.recreateMutex.Lock()
+	defer fake.recreateMutex.Unlock()
+	fake.RecreateStub = nil
+	fake.recreateReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeDeployment) EnableResurrectionReturnsOnCall(i int, result1 error) {
-	fake.EnableResurrectionStub = nil
-	if fake.enableResurrectionReturnsOnCall == nil {
-		fake.enableResurrectionReturnsOnCall = make(map[int]struct {
+func (fake *FakeDeployment) RecreateReturnsOnCall(i int, result1 error) {
+	fake.recreateMutex.Lock()
+	defer fake.recreateMutex.Unlock()
+	fake.RecreateStub = nil
+	if fake.recreateReturnsOnCall == nil {
+		fake.recreateReturnsOnCall = make(map[int]struct {
 			result1 error
 		})
 	}
-	fake.enableResurrectionReturnsOnCall[i] = struct {
+	fake.recreateReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeDeployment) Update(manifest []byte, opts director.UpdateOpts) error {
-	var manifestCopy []byte
-	if manifest != nil {
-		manifestCopy = make([]byte, len(manifest))
-		copy(manifestCopy, manifest)
+func (fake *FakeDeployment) Releases() ([]director.Release, error) {
+	fake.releasesMutex.Lock()
+	ret, specificReturn := fake.releasesReturnsOnCall[len(fake.releasesArgsForCall)]
+	fake.releasesArgsForCall = append(fake.releasesArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Releases", []interface{}{})
+	fake.releasesMutex.Unlock()
+	if fake.ReleasesStub != nil {
+		return fake.ReleasesStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.releasesReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDeployment) ReleasesCallCount() int {
+	fake.releasesMutex.RLock()
+	defer fake.releasesMutex.RUnlock()
+	return len(fake.releasesArgsForCall)
+}
+
+func (fake *FakeDeployment) ReleasesCalls(stub func() ([]director.Release, error)) {
+	fake.releasesMutex.Lock()
+	defer fake.releasesMutex.Unlock()
+	fake.ReleasesStub = stub
+}
+
+func (fake *FakeDeployment) ReleasesReturns(result1 []director.Release, result2 error) {
+	fake.releasesMutex.Lock()
+	defer fake.releasesMutex.Unlock()
+	fake.ReleasesStub = nil
+	fake.releasesReturns = struct {
+		result1 []director.Release
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) ReleasesReturnsOnCall(i int, result1 []director.Release, result2 error) {
+	fake.releasesMutex.Lock()
+	defer fake.releasesMutex.Unlock()
+	fake.ReleasesStub = nil
+	if fake.releasesReturnsOnCall == nil {
+		fake.releasesReturnsOnCall = make(map[int]struct {
+			result1 []director.Release
+			result2 error
+		})
+	}
+	fake.releasesReturnsOnCall[i] = struct {
+		result1 []director.Release
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) ResolveProblems(arg1 []director.ProblemAnswer) error {
+	var arg1Copy []director.ProblemAnswer
+	if arg1 != nil {
+		arg1Copy = make([]director.ProblemAnswer, len(arg1))
+		copy(arg1Copy, arg1)
+	}
+	fake.resolveProblemsMutex.Lock()
+	ret, specificReturn := fake.resolveProblemsReturnsOnCall[len(fake.resolveProblemsArgsForCall)]
+	fake.resolveProblemsArgsForCall = append(fake.resolveProblemsArgsForCall, struct {
+		arg1 []director.ProblemAnswer
+	}{arg1Copy})
+	fake.recordInvocation("ResolveProblems", []interface{}{arg1Copy})
+	fake.resolveProblemsMutex.Unlock()
+	if fake.ResolveProblemsStub != nil {
+		return fake.ResolveProblemsStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.resolveProblemsReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeDeployment) ResolveProblemsCallCount() int {
+	fake.resolveProblemsMutex.RLock()
+	defer fake.resolveProblemsMutex.RUnlock()
+	return len(fake.resolveProblemsArgsForCall)
+}
+
+func (fake *FakeDeployment) ResolveProblemsCalls(stub func([]director.ProblemAnswer) error) {
+	fake.resolveProblemsMutex.Lock()
+	defer fake.resolveProblemsMutex.Unlock()
+	fake.ResolveProblemsStub = stub
+}
+
+func (fake *FakeDeployment) ResolveProblemsArgsForCall(i int) []director.ProblemAnswer {
+	fake.resolveProblemsMutex.RLock()
+	defer fake.resolveProblemsMutex.RUnlock()
+	argsForCall := fake.resolveProblemsArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeDeployment) ResolveProblemsReturns(result1 error) {
+	fake.resolveProblemsMutex.Lock()
+	defer fake.resolveProblemsMutex.Unlock()
+	fake.ResolveProblemsStub = nil
+	fake.resolveProblemsReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) ResolveProblemsReturnsOnCall(i int, result1 error) {
+	fake.resolveProblemsMutex.Lock()
+	defer fake.resolveProblemsMutex.Unlock()
+	fake.ResolveProblemsStub = nil
+	if fake.resolveProblemsReturnsOnCall == nil {
+		fake.resolveProblemsReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.resolveProblemsReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) Restart(arg1 director.AllOrInstanceGroupOrInstanceSlug, arg2 director.RestartOpts) error {
+	fake.restartMutex.Lock()
+	ret, specificReturn := fake.restartReturnsOnCall[len(fake.restartArgsForCall)]
+	fake.restartArgsForCall = append(fake.restartArgsForCall, struct {
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
+		arg2 director.RestartOpts
+	}{arg1, arg2})
+	fake.recordInvocation("Restart", []interface{}{arg1, arg2})
+	fake.restartMutex.Unlock()
+	if fake.RestartStub != nil {
+		return fake.RestartStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.restartReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeDeployment) RestartCallCount() int {
+	fake.restartMutex.RLock()
+	defer fake.restartMutex.RUnlock()
+	return len(fake.restartArgsForCall)
+}
+
+func (fake *FakeDeployment) RestartCalls(stub func(director.AllOrInstanceGroupOrInstanceSlug, director.RestartOpts) error) {
+	fake.restartMutex.Lock()
+	defer fake.restartMutex.Unlock()
+	fake.RestartStub = stub
+}
+
+func (fake *FakeDeployment) RestartArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.RestartOpts) {
+	fake.restartMutex.RLock()
+	defer fake.restartMutex.RUnlock()
+	argsForCall := fake.restartArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeDeployment) RestartReturns(result1 error) {
+	fake.restartMutex.Lock()
+	defer fake.restartMutex.Unlock()
+	fake.RestartStub = nil
+	fake.restartReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) RestartReturnsOnCall(i int, result1 error) {
+	fake.restartMutex.Lock()
+	defer fake.restartMutex.Unlock()
+	fake.RestartStub = nil
+	if fake.restartReturnsOnCall == nil {
+		fake.restartReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.restartReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) RunErrand(arg1 string, arg2 bool, arg3 bool, arg4 []director.InstanceGroupOrInstanceSlug) ([]director.ErrandResult, error) {
+	var arg4Copy []director.InstanceGroupOrInstanceSlug
+	if arg4 != nil {
+		arg4Copy = make([]director.InstanceGroupOrInstanceSlug, len(arg4))
+		copy(arg4Copy, arg4)
+	}
+	fake.runErrandMutex.Lock()
+	ret, specificReturn := fake.runErrandReturnsOnCall[len(fake.runErrandArgsForCall)]
+	fake.runErrandArgsForCall = append(fake.runErrandArgsForCall, struct {
+		arg1 string
+		arg2 bool
+		arg3 bool
+		arg4 []director.InstanceGroupOrInstanceSlug
+	}{arg1, arg2, arg3, arg4Copy})
+	fake.recordInvocation("RunErrand", []interface{}{arg1, arg2, arg3, arg4Copy})
+	fake.runErrandMutex.Unlock()
+	if fake.RunErrandStub != nil {
+		return fake.RunErrandStub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.runErrandReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDeployment) RunErrandCallCount() int {
+	fake.runErrandMutex.RLock()
+	defer fake.runErrandMutex.RUnlock()
+	return len(fake.runErrandArgsForCall)
+}
+
+func (fake *FakeDeployment) RunErrandCalls(stub func(string, bool, bool, []director.InstanceGroupOrInstanceSlug) ([]director.ErrandResult, error)) {
+	fake.runErrandMutex.Lock()
+	defer fake.runErrandMutex.Unlock()
+	fake.RunErrandStub = stub
+}
+
+func (fake *FakeDeployment) RunErrandArgsForCall(i int) (string, bool, bool, []director.InstanceGroupOrInstanceSlug) {
+	fake.runErrandMutex.RLock()
+	defer fake.runErrandMutex.RUnlock()
+	argsForCall := fake.runErrandArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeDeployment) RunErrandReturns(result1 []director.ErrandResult, result2 error) {
+	fake.runErrandMutex.Lock()
+	defer fake.runErrandMutex.Unlock()
+	fake.RunErrandStub = nil
+	fake.runErrandReturns = struct {
+		result1 []director.ErrandResult
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) RunErrandReturnsOnCall(i int, result1 []director.ErrandResult, result2 error) {
+	fake.runErrandMutex.Lock()
+	defer fake.runErrandMutex.Unlock()
+	fake.RunErrandStub = nil
+	if fake.runErrandReturnsOnCall == nil {
+		fake.runErrandReturnsOnCall = make(map[int]struct {
+			result1 []director.ErrandResult
+			result2 error
+		})
+	}
+	fake.runErrandReturnsOnCall[i] = struct {
+		result1 []director.ErrandResult
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) ScanForProblems() ([]director.Problem, error) {
+	fake.scanForProblemsMutex.Lock()
+	ret, specificReturn := fake.scanForProblemsReturnsOnCall[len(fake.scanForProblemsArgsForCall)]
+	fake.scanForProblemsArgsForCall = append(fake.scanForProblemsArgsForCall, struct {
+	}{})
+	fake.recordInvocation("ScanForProblems", []interface{}{})
+	fake.scanForProblemsMutex.Unlock()
+	if fake.ScanForProblemsStub != nil {
+		return fake.ScanForProblemsStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.scanForProblemsReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDeployment) ScanForProblemsCallCount() int {
+	fake.scanForProblemsMutex.RLock()
+	defer fake.scanForProblemsMutex.RUnlock()
+	return len(fake.scanForProblemsArgsForCall)
+}
+
+func (fake *FakeDeployment) ScanForProblemsCalls(stub func() ([]director.Problem, error)) {
+	fake.scanForProblemsMutex.Lock()
+	defer fake.scanForProblemsMutex.Unlock()
+	fake.ScanForProblemsStub = stub
+}
+
+func (fake *FakeDeployment) ScanForProblemsReturns(result1 []director.Problem, result2 error) {
+	fake.scanForProblemsMutex.Lock()
+	defer fake.scanForProblemsMutex.Unlock()
+	fake.ScanForProblemsStub = nil
+	fake.scanForProblemsReturns = struct {
+		result1 []director.Problem
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) ScanForProblemsReturnsOnCall(i int, result1 []director.Problem, result2 error) {
+	fake.scanForProblemsMutex.Lock()
+	defer fake.scanForProblemsMutex.Unlock()
+	fake.ScanForProblemsStub = nil
+	if fake.scanForProblemsReturnsOnCall == nil {
+		fake.scanForProblemsReturnsOnCall = make(map[int]struct {
+			result1 []director.Problem
+			result2 error
+		})
+	}
+	fake.scanForProblemsReturnsOnCall[i] = struct {
+		result1 []director.Problem
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) SetUpSSH(arg1 director.AllOrInstanceGroupOrInstanceSlug, arg2 director.SSHOpts) (director.SSHResult, error) {
+	fake.setUpSSHMutex.Lock()
+	ret, specificReturn := fake.setUpSSHReturnsOnCall[len(fake.setUpSSHArgsForCall)]
+	fake.setUpSSHArgsForCall = append(fake.setUpSSHArgsForCall, struct {
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
+		arg2 director.SSHOpts
+	}{arg1, arg2})
+	fake.recordInvocation("SetUpSSH", []interface{}{arg1, arg2})
+	fake.setUpSSHMutex.Unlock()
+	if fake.SetUpSSHStub != nil {
+		return fake.SetUpSSHStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.setUpSSHReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDeployment) SetUpSSHCallCount() int {
+	fake.setUpSSHMutex.RLock()
+	defer fake.setUpSSHMutex.RUnlock()
+	return len(fake.setUpSSHArgsForCall)
+}
+
+func (fake *FakeDeployment) SetUpSSHCalls(stub func(director.AllOrInstanceGroupOrInstanceSlug, director.SSHOpts) (director.SSHResult, error)) {
+	fake.setUpSSHMutex.Lock()
+	defer fake.setUpSSHMutex.Unlock()
+	fake.SetUpSSHStub = stub
+}
+
+func (fake *FakeDeployment) SetUpSSHArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.SSHOpts) {
+	fake.setUpSSHMutex.RLock()
+	defer fake.setUpSSHMutex.RUnlock()
+	argsForCall := fake.setUpSSHArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeDeployment) SetUpSSHReturns(result1 director.SSHResult, result2 error) {
+	fake.setUpSSHMutex.Lock()
+	defer fake.setUpSSHMutex.Unlock()
+	fake.SetUpSSHStub = nil
+	fake.setUpSSHReturns = struct {
+		result1 director.SSHResult
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) SetUpSSHReturnsOnCall(i int, result1 director.SSHResult, result2 error) {
+	fake.setUpSSHMutex.Lock()
+	defer fake.setUpSSHMutex.Unlock()
+	fake.SetUpSSHStub = nil
+	if fake.setUpSSHReturnsOnCall == nil {
+		fake.setUpSSHReturnsOnCall = make(map[int]struct {
+			result1 director.SSHResult
+			result2 error
+		})
+	}
+	fake.setUpSSHReturnsOnCall[i] = struct {
+		result1 director.SSHResult
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) Snapshots() ([]director.Snapshot, error) {
+	fake.snapshotsMutex.Lock()
+	ret, specificReturn := fake.snapshotsReturnsOnCall[len(fake.snapshotsArgsForCall)]
+	fake.snapshotsArgsForCall = append(fake.snapshotsArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Snapshots", []interface{}{})
+	fake.snapshotsMutex.Unlock()
+	if fake.SnapshotsStub != nil {
+		return fake.SnapshotsStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.snapshotsReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDeployment) SnapshotsCallCount() int {
+	fake.snapshotsMutex.RLock()
+	defer fake.snapshotsMutex.RUnlock()
+	return len(fake.snapshotsArgsForCall)
+}
+
+func (fake *FakeDeployment) SnapshotsCalls(stub func() ([]director.Snapshot, error)) {
+	fake.snapshotsMutex.Lock()
+	defer fake.snapshotsMutex.Unlock()
+	fake.SnapshotsStub = stub
+}
+
+func (fake *FakeDeployment) SnapshotsReturns(result1 []director.Snapshot, result2 error) {
+	fake.snapshotsMutex.Lock()
+	defer fake.snapshotsMutex.Unlock()
+	fake.SnapshotsStub = nil
+	fake.snapshotsReturns = struct {
+		result1 []director.Snapshot
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) SnapshotsReturnsOnCall(i int, result1 []director.Snapshot, result2 error) {
+	fake.snapshotsMutex.Lock()
+	defer fake.snapshotsMutex.Unlock()
+	fake.SnapshotsStub = nil
+	if fake.snapshotsReturnsOnCall == nil {
+		fake.snapshotsReturnsOnCall = make(map[int]struct {
+			result1 []director.Snapshot
+			result2 error
+		})
+	}
+	fake.snapshotsReturnsOnCall[i] = struct {
+		result1 []director.Snapshot
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) Start(arg1 director.AllOrInstanceGroupOrInstanceSlug, arg2 director.StartOpts) error {
+	fake.startMutex.Lock()
+	ret, specificReturn := fake.startReturnsOnCall[len(fake.startArgsForCall)]
+	fake.startArgsForCall = append(fake.startArgsForCall, struct {
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
+		arg2 director.StartOpts
+	}{arg1, arg2})
+	fake.recordInvocation("Start", []interface{}{arg1, arg2})
+	fake.startMutex.Unlock()
+	if fake.StartStub != nil {
+		return fake.StartStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.startReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeDeployment) StartCallCount() int {
+	fake.startMutex.RLock()
+	defer fake.startMutex.RUnlock()
+	return len(fake.startArgsForCall)
+}
+
+func (fake *FakeDeployment) StartCalls(stub func(director.AllOrInstanceGroupOrInstanceSlug, director.StartOpts) error) {
+	fake.startMutex.Lock()
+	defer fake.startMutex.Unlock()
+	fake.StartStub = stub
+}
+
+func (fake *FakeDeployment) StartArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.StartOpts) {
+	fake.startMutex.RLock()
+	defer fake.startMutex.RUnlock()
+	argsForCall := fake.startArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeDeployment) StartReturns(result1 error) {
+	fake.startMutex.Lock()
+	defer fake.startMutex.Unlock()
+	fake.StartStub = nil
+	fake.startReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) StartReturnsOnCall(i int, result1 error) {
+	fake.startMutex.Lock()
+	defer fake.startMutex.Unlock()
+	fake.StartStub = nil
+	if fake.startReturnsOnCall == nil {
+		fake.startReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.startReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) Stemcells() ([]director.Stemcell, error) {
+	fake.stemcellsMutex.Lock()
+	ret, specificReturn := fake.stemcellsReturnsOnCall[len(fake.stemcellsArgsForCall)]
+	fake.stemcellsArgsForCall = append(fake.stemcellsArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Stemcells", []interface{}{})
+	fake.stemcellsMutex.Unlock()
+	if fake.StemcellsStub != nil {
+		return fake.StemcellsStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.stemcellsReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDeployment) StemcellsCallCount() int {
+	fake.stemcellsMutex.RLock()
+	defer fake.stemcellsMutex.RUnlock()
+	return len(fake.stemcellsArgsForCall)
+}
+
+func (fake *FakeDeployment) StemcellsCalls(stub func() ([]director.Stemcell, error)) {
+	fake.stemcellsMutex.Lock()
+	defer fake.stemcellsMutex.Unlock()
+	fake.StemcellsStub = stub
+}
+
+func (fake *FakeDeployment) StemcellsReturns(result1 []director.Stemcell, result2 error) {
+	fake.stemcellsMutex.Lock()
+	defer fake.stemcellsMutex.Unlock()
+	fake.StemcellsStub = nil
+	fake.stemcellsReturns = struct {
+		result1 []director.Stemcell
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) StemcellsReturnsOnCall(i int, result1 []director.Stemcell, result2 error) {
+	fake.stemcellsMutex.Lock()
+	defer fake.stemcellsMutex.Unlock()
+	fake.StemcellsStub = nil
+	if fake.stemcellsReturnsOnCall == nil {
+		fake.stemcellsReturnsOnCall = make(map[int]struct {
+			result1 []director.Stemcell
+			result2 error
+		})
+	}
+	fake.stemcellsReturnsOnCall[i] = struct {
+		result1 []director.Stemcell
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) Stop(arg1 director.AllOrInstanceGroupOrInstanceSlug, arg2 director.StopOpts) error {
+	fake.stopMutex.Lock()
+	ret, specificReturn := fake.stopReturnsOnCall[len(fake.stopArgsForCall)]
+	fake.stopArgsForCall = append(fake.stopArgsForCall, struct {
+		arg1 director.AllOrInstanceGroupOrInstanceSlug
+		arg2 director.StopOpts
+	}{arg1, arg2})
+	fake.recordInvocation("Stop", []interface{}{arg1, arg2})
+	fake.stopMutex.Unlock()
+	if fake.StopStub != nil {
+		return fake.StopStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.stopReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeDeployment) StopCallCount() int {
+	fake.stopMutex.RLock()
+	defer fake.stopMutex.RUnlock()
+	return len(fake.stopArgsForCall)
+}
+
+func (fake *FakeDeployment) StopCalls(stub func(director.AllOrInstanceGroupOrInstanceSlug, director.StopOpts) error) {
+	fake.stopMutex.Lock()
+	defer fake.stopMutex.Unlock()
+	fake.StopStub = stub
+}
+
+func (fake *FakeDeployment) StopArgsForCall(i int) (director.AllOrInstanceGroupOrInstanceSlug, director.StopOpts) {
+	fake.stopMutex.RLock()
+	defer fake.stopMutex.RUnlock()
+	argsForCall := fake.stopArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeDeployment) StopReturns(result1 error) {
+	fake.stopMutex.Lock()
+	defer fake.stopMutex.Unlock()
+	fake.StopStub = nil
+	fake.stopReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) StopReturnsOnCall(i int, result1 error) {
+	fake.stopMutex.Lock()
+	defer fake.stopMutex.Unlock()
+	fake.StopStub = nil
+	if fake.stopReturnsOnCall == nil {
+		fake.stopReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.stopReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) TakeSnapshot(arg1 director.InstanceSlug) error {
+	fake.takeSnapshotMutex.Lock()
+	ret, specificReturn := fake.takeSnapshotReturnsOnCall[len(fake.takeSnapshotArgsForCall)]
+	fake.takeSnapshotArgsForCall = append(fake.takeSnapshotArgsForCall, struct {
+		arg1 director.InstanceSlug
+	}{arg1})
+	fake.recordInvocation("TakeSnapshot", []interface{}{arg1})
+	fake.takeSnapshotMutex.Unlock()
+	if fake.TakeSnapshotStub != nil {
+		return fake.TakeSnapshotStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.takeSnapshotReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeDeployment) TakeSnapshotCallCount() int {
+	fake.takeSnapshotMutex.RLock()
+	defer fake.takeSnapshotMutex.RUnlock()
+	return len(fake.takeSnapshotArgsForCall)
+}
+
+func (fake *FakeDeployment) TakeSnapshotCalls(stub func(director.InstanceSlug) error) {
+	fake.takeSnapshotMutex.Lock()
+	defer fake.takeSnapshotMutex.Unlock()
+	fake.TakeSnapshotStub = stub
+}
+
+func (fake *FakeDeployment) TakeSnapshotArgsForCall(i int) director.InstanceSlug {
+	fake.takeSnapshotMutex.RLock()
+	defer fake.takeSnapshotMutex.RUnlock()
+	argsForCall := fake.takeSnapshotArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeDeployment) TakeSnapshotReturns(result1 error) {
+	fake.takeSnapshotMutex.Lock()
+	defer fake.takeSnapshotMutex.Unlock()
+	fake.TakeSnapshotStub = nil
+	fake.takeSnapshotReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) TakeSnapshotReturnsOnCall(i int, result1 error) {
+	fake.takeSnapshotMutex.Lock()
+	defer fake.takeSnapshotMutex.Unlock()
+	fake.TakeSnapshotStub = nil
+	if fake.takeSnapshotReturnsOnCall == nil {
+		fake.takeSnapshotReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.takeSnapshotReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) TakeSnapshots() error {
+	fake.takeSnapshotsMutex.Lock()
+	ret, specificReturn := fake.takeSnapshotsReturnsOnCall[len(fake.takeSnapshotsArgsForCall)]
+	fake.takeSnapshotsArgsForCall = append(fake.takeSnapshotsArgsForCall, struct {
+	}{})
+	fake.recordInvocation("TakeSnapshots", []interface{}{})
+	fake.takeSnapshotsMutex.Unlock()
+	if fake.TakeSnapshotsStub != nil {
+		return fake.TakeSnapshotsStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.takeSnapshotsReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeDeployment) TakeSnapshotsCallCount() int {
+	fake.takeSnapshotsMutex.RLock()
+	defer fake.takeSnapshotsMutex.RUnlock()
+	return len(fake.takeSnapshotsArgsForCall)
+}
+
+func (fake *FakeDeployment) TakeSnapshotsCalls(stub func() error) {
+	fake.takeSnapshotsMutex.Lock()
+	defer fake.takeSnapshotsMutex.Unlock()
+	fake.TakeSnapshotsStub = stub
+}
+
+func (fake *FakeDeployment) TakeSnapshotsReturns(result1 error) {
+	fake.takeSnapshotsMutex.Lock()
+	defer fake.takeSnapshotsMutex.Unlock()
+	fake.TakeSnapshotsStub = nil
+	fake.takeSnapshotsReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) TakeSnapshotsReturnsOnCall(i int, result1 error) {
+	fake.takeSnapshotsMutex.Lock()
+	defer fake.takeSnapshotsMutex.Unlock()
+	fake.TakeSnapshotsStub = nil
+	if fake.takeSnapshotsReturnsOnCall == nil {
+		fake.takeSnapshotsReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.takeSnapshotsReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) Teams() ([]string, error) {
+	fake.teamsMutex.Lock()
+	ret, specificReturn := fake.teamsReturnsOnCall[len(fake.teamsArgsForCall)]
+	fake.teamsArgsForCall = append(fake.teamsArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Teams", []interface{}{})
+	fake.teamsMutex.Unlock()
+	if fake.TeamsStub != nil {
+		return fake.TeamsStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.teamsReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDeployment) TeamsCallCount() int {
+	fake.teamsMutex.RLock()
+	defer fake.teamsMutex.RUnlock()
+	return len(fake.teamsArgsForCall)
+}
+
+func (fake *FakeDeployment) TeamsCalls(stub func() ([]string, error)) {
+	fake.teamsMutex.Lock()
+	defer fake.teamsMutex.Unlock()
+	fake.TeamsStub = stub
+}
+
+func (fake *FakeDeployment) TeamsReturns(result1 []string, result2 error) {
+	fake.teamsMutex.Lock()
+	defer fake.teamsMutex.Unlock()
+	fake.TeamsStub = nil
+	fake.teamsReturns = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) TeamsReturnsOnCall(i int, result1 []string, result2 error) {
+	fake.teamsMutex.Lock()
+	defer fake.teamsMutex.Unlock()
+	fake.TeamsStub = nil
+	if fake.teamsReturnsOnCall == nil {
+		fake.teamsReturnsOnCall = make(map[int]struct {
+			result1 []string
+			result2 error
+		})
+	}
+	fake.teamsReturnsOnCall[i] = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) Update(arg1 []byte, arg2 director.UpdateOpts) error {
+	var arg1Copy []byte
+	if arg1 != nil {
+		arg1Copy = make([]byte, len(arg1))
+		copy(arg1Copy, arg1)
 	}
 	fake.updateMutex.Lock()
 	ret, specificReturn := fake.updateReturnsOnCall[len(fake.updateArgsForCall)]
 	fake.updateArgsForCall = append(fake.updateArgsForCall, struct {
-		manifest []byte
-		opts     director.UpdateOpts
-	}{manifestCopy, opts})
-	fake.recordInvocation("Update", []interface{}{manifestCopy, opts})
+		arg1 []byte
+		arg2 director.UpdateOpts
+	}{arg1Copy, arg2})
+	fake.recordInvocation("Update", []interface{}{arg1Copy, arg2})
 	fake.updateMutex.Unlock()
 	if fake.UpdateStub != nil {
-		return fake.UpdateStub(manifest, opts)
+		return fake.UpdateStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.updateReturns.result1
+	fakeReturns := fake.updateReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeDeployment) UpdateCallCount() int {
@@ -1898,13 +2298,22 @@ func (fake *FakeDeployment) UpdateCallCount() int {
 	return len(fake.updateArgsForCall)
 }
 
+func (fake *FakeDeployment) UpdateCalls(stub func([]byte, director.UpdateOpts) error) {
+	fake.updateMutex.Lock()
+	defer fake.updateMutex.Unlock()
+	fake.UpdateStub = stub
+}
+
 func (fake *FakeDeployment) UpdateArgsForCall(i int) ([]byte, director.UpdateOpts) {
 	fake.updateMutex.RLock()
 	defer fake.updateMutex.RUnlock()
-	return fake.updateArgsForCall[i].manifest, fake.updateArgsForCall[i].opts
+	argsForCall := fake.updateArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeDeployment) UpdateReturns(result1 error) {
+	fake.updateMutex.Lock()
+	defer fake.updateMutex.Unlock()
 	fake.UpdateStub = nil
 	fake.updateReturns = struct {
 		result1 error
@@ -1912,6 +2321,8 @@ func (fake *FakeDeployment) UpdateReturns(result1 error) {
 }
 
 func (fake *FakeDeployment) UpdateReturnsOnCall(i int, result1 error) {
+	fake.updateMutex.Lock()
+	defer fake.updateMutex.Unlock()
 	fake.UpdateStub = nil
 	if fake.updateReturnsOnCall == nil {
 		fake.updateReturnsOnCall = make(map[int]struct {
@@ -1923,175 +2334,187 @@ func (fake *FakeDeployment) UpdateReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Delete(force bool) error {
-	fake.deleteMutex.Lock()
-	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
-	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
-		force bool
-	}{force})
-	fake.recordInvocation("Delete", []interface{}{force})
-	fake.deleteMutex.Unlock()
-	if fake.DeleteStub != nil {
-		return fake.DeleteStub(force)
+func (fake *FakeDeployment) VMInfos() ([]director.VMInfo, error) {
+	fake.vMInfosMutex.Lock()
+	ret, specificReturn := fake.vMInfosReturnsOnCall[len(fake.vMInfosArgsForCall)]
+	fake.vMInfosArgsForCall = append(fake.vMInfosArgsForCall, struct {
+	}{})
+	fake.recordInvocation("VMInfos", []interface{}{})
+	fake.vMInfosMutex.Unlock()
+	if fake.VMInfosStub != nil {
+		return fake.VMInfosStub()
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fake.deleteReturns.result1
+	fakeReturns := fake.vMInfosReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeDeployment) DeleteCallCount() int {
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
-	return len(fake.deleteArgsForCall)
+func (fake *FakeDeployment) VMInfosCallCount() int {
+	fake.vMInfosMutex.RLock()
+	defer fake.vMInfosMutex.RUnlock()
+	return len(fake.vMInfosArgsForCall)
 }
 
-func (fake *FakeDeployment) DeleteArgsForCall(i int) bool {
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
-	return fake.deleteArgsForCall[i].force
+func (fake *FakeDeployment) VMInfosCalls(stub func() ([]director.VMInfo, error)) {
+	fake.vMInfosMutex.Lock()
+	defer fake.vMInfosMutex.Unlock()
+	fake.VMInfosStub = stub
 }
 
-func (fake *FakeDeployment) DeleteReturns(result1 error) {
-	fake.DeleteStub = nil
-	fake.deleteReturns = struct {
-		result1 error
-	}{result1}
+func (fake *FakeDeployment) VMInfosReturns(result1 []director.VMInfo, result2 error) {
+	fake.vMInfosMutex.Lock()
+	defer fake.vMInfosMutex.Unlock()
+	fake.VMInfosStub = nil
+	fake.vMInfosReturns = struct {
+		result1 []director.VMInfo
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeDeployment) DeleteReturnsOnCall(i int, result1 error) {
-	fake.DeleteStub = nil
-	if fake.deleteReturnsOnCall == nil {
-		fake.deleteReturnsOnCall = make(map[int]struct {
-			result1 error
+func (fake *FakeDeployment) VMInfosReturnsOnCall(i int, result1 []director.VMInfo, result2 error) {
+	fake.vMInfosMutex.Lock()
+	defer fake.vMInfosMutex.Unlock()
+	fake.VMInfosStub = nil
+	if fake.vMInfosReturnsOnCall == nil {
+		fake.vMInfosReturnsOnCall = make(map[int]struct {
+			result1 []director.VMInfo
+			result2 error
 		})
 	}
-	fake.deleteReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
+	fake.vMInfosReturnsOnCall[i] = struct {
+		result1 []director.VMInfo
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeDeployment) AttachDisk(slug director.InstanceSlug, diskCID string, diskProperties string) error {
-	fake.attachDiskMutex.Lock()
-	ret, specificReturn := fake.attachDiskReturnsOnCall[len(fake.attachDiskArgsForCall)]
-	fake.attachDiskArgsForCall = append(fake.attachDiskArgsForCall, struct {
-		slug           director.InstanceSlug
-		diskCID        string
-		diskProperties string
-	}{slug, diskCID, diskProperties})
-	fake.recordInvocation("AttachDisk", []interface{}{slug, diskCID, diskProperties})
-	fake.attachDiskMutex.Unlock()
-	if fake.AttachDiskStub != nil {
-		return fake.AttachDiskStub(slug, diskCID, diskProperties)
+func (fake *FakeDeployment) Variables() ([]director.VariableResult, error) {
+	fake.variablesMutex.Lock()
+	ret, specificReturn := fake.variablesReturnsOnCall[len(fake.variablesArgsForCall)]
+	fake.variablesArgsForCall = append(fake.variablesArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Variables", []interface{}{})
+	fake.variablesMutex.Unlock()
+	if fake.VariablesStub != nil {
+		return fake.VariablesStub()
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fake.attachDiskReturns.result1
+	fakeReturns := fake.variablesReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeDeployment) AttachDiskCallCount() int {
-	fake.attachDiskMutex.RLock()
-	defer fake.attachDiskMutex.RUnlock()
-	return len(fake.attachDiskArgsForCall)
+func (fake *FakeDeployment) VariablesCallCount() int {
+	fake.variablesMutex.RLock()
+	defer fake.variablesMutex.RUnlock()
+	return len(fake.variablesArgsForCall)
 }
 
-func (fake *FakeDeployment) AttachDiskArgsForCall(i int) (director.InstanceSlug, string, string) {
-	fake.attachDiskMutex.RLock()
-	defer fake.attachDiskMutex.RUnlock()
-	return fake.attachDiskArgsForCall[i].slug, fake.attachDiskArgsForCall[i].diskCID, fake.attachDiskArgsForCall[i].diskProperties
+func (fake *FakeDeployment) VariablesCalls(stub func() ([]director.VariableResult, error)) {
+	fake.variablesMutex.Lock()
+	defer fake.variablesMutex.Unlock()
+	fake.VariablesStub = stub
 }
 
-func (fake *FakeDeployment) AttachDiskReturns(result1 error) {
-	fake.AttachDiskStub = nil
-	fake.attachDiskReturns = struct {
-		result1 error
-	}{result1}
+func (fake *FakeDeployment) VariablesReturns(result1 []director.VariableResult, result2 error) {
+	fake.variablesMutex.Lock()
+	defer fake.variablesMutex.Unlock()
+	fake.VariablesStub = nil
+	fake.variablesReturns = struct {
+		result1 []director.VariableResult
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeDeployment) AttachDiskReturnsOnCall(i int, result1 error) {
-	fake.AttachDiskStub = nil
-	if fake.attachDiskReturnsOnCall == nil {
-		fake.attachDiskReturnsOnCall = make(map[int]struct {
-			result1 error
+func (fake *FakeDeployment) VariablesReturnsOnCall(i int, result1 []director.VariableResult, result2 error) {
+	fake.variablesMutex.Lock()
+	defer fake.variablesMutex.Unlock()
+	fake.VariablesStub = nil
+	if fake.variablesReturnsOnCall == nil {
+		fake.variablesReturnsOnCall = make(map[int]struct {
+			result1 []director.VariableResult
+			result2 error
 		})
 	}
-	fake.attachDiskReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
+	fake.variablesReturnsOnCall[i] = struct {
+		result1 []director.VariableResult
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
-	fake.manifestMutex.RLock()
-	defer fake.manifestMutex.RUnlock()
+	fake.attachDiskMutex.RLock()
+	defer fake.attachDiskMutex.RUnlock()
+	fake.cleanUpSSHMutex.RLock()
+	defer fake.cleanUpSSHMutex.RUnlock()
 	fake.cloudConfigMutex.RLock()
 	defer fake.cloudConfigMutex.RUnlock()
-	fake.diffMutex.RLock()
-	defer fake.diffMutex.RUnlock()
-	fake.releasesMutex.RLock()
-	defer fake.releasesMutex.RUnlock()
-	fake.exportReleaseMutex.RLock()
-	defer fake.exportReleaseMutex.RUnlock()
-	fake.teamsMutex.RLock()
-	defer fake.teamsMutex.RUnlock()
-	fake.stemcellsMutex.RLock()
-	defer fake.stemcellsMutex.RUnlock()
-	fake.vMInfosMutex.RLock()
-	defer fake.vMInfosMutex.RUnlock()
-	fake.instancesMutex.RLock()
-	defer fake.instancesMutex.RUnlock()
-	fake.instanceInfosMutex.RLock()
-	defer fake.instanceInfosMutex.RUnlock()
-	fake.errandsMutex.RLock()
-	defer fake.errandsMutex.RUnlock()
-	fake.runErrandMutex.RLock()
-	defer fake.runErrandMutex.RUnlock()
-	fake.scanForProblemsMutex.RLock()
-	defer fake.scanForProblemsMutex.RUnlock()
-	fake.resolveProblemsMutex.RLock()
-	defer fake.resolveProblemsMutex.RUnlock()
-	fake.snapshotsMutex.RLock()
-	defer fake.snapshotsMutex.RUnlock()
-	fake.takeSnapshotsMutex.RLock()
-	defer fake.takeSnapshotsMutex.RUnlock()
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
 	fake.deleteSnapshotMutex.RLock()
 	defer fake.deleteSnapshotMutex.RUnlock()
 	fake.deleteSnapshotsMutex.RLock()
 	defer fake.deleteSnapshotsMutex.RUnlock()
 	fake.deleteVMMutex.RLock()
 	defer fake.deleteVMMutex.RUnlock()
-	fake.variablesMutex.RLock()
-	defer fake.variablesMutex.RUnlock()
-	fake.startMutex.RLock()
-	defer fake.startMutex.RUnlock()
-	fake.stopMutex.RLock()
-	defer fake.stopMutex.RUnlock()
-	fake.restartMutex.RLock()
-	defer fake.restartMutex.RUnlock()
-	fake.recreateMutex.RLock()
-	defer fake.recreateMutex.RUnlock()
-	fake.setUpSSHMutex.RLock()
-	defer fake.setUpSSHMutex.RUnlock()
-	fake.cleanUpSSHMutex.RLock()
-	defer fake.cleanUpSSHMutex.RUnlock()
-	fake.fetchLogsMutex.RLock()
-	defer fake.fetchLogsMutex.RUnlock()
-	fake.takeSnapshotMutex.RLock()
-	defer fake.takeSnapshotMutex.RUnlock()
-	fake.ignoreMutex.RLock()
-	defer fake.ignoreMutex.RUnlock()
+	fake.diffMutex.RLock()
+	defer fake.diffMutex.RUnlock()
 	fake.enableResurrectionMutex.RLock()
 	defer fake.enableResurrectionMutex.RUnlock()
+	fake.errandsMutex.RLock()
+	defer fake.errandsMutex.RUnlock()
+	fake.exportReleaseMutex.RLock()
+	defer fake.exportReleaseMutex.RUnlock()
+	fake.fetchLogsMutex.RLock()
+	defer fake.fetchLogsMutex.RUnlock()
+	fake.ignoreMutex.RLock()
+	defer fake.ignoreMutex.RUnlock()
+	fake.instanceInfosMutex.RLock()
+	defer fake.instanceInfosMutex.RUnlock()
+	fake.instancesMutex.RLock()
+	defer fake.instancesMutex.RUnlock()
+	fake.manifestMutex.RLock()
+	defer fake.manifestMutex.RUnlock()
+	fake.nameMutex.RLock()
+	defer fake.nameMutex.RUnlock()
+	fake.recreateMutex.RLock()
+	defer fake.recreateMutex.RUnlock()
+	fake.releasesMutex.RLock()
+	defer fake.releasesMutex.RUnlock()
+	fake.resolveProblemsMutex.RLock()
+	defer fake.resolveProblemsMutex.RUnlock()
+	fake.restartMutex.RLock()
+	defer fake.restartMutex.RUnlock()
+	fake.runErrandMutex.RLock()
+	defer fake.runErrandMutex.RUnlock()
+	fake.scanForProblemsMutex.RLock()
+	defer fake.scanForProblemsMutex.RUnlock()
+	fake.setUpSSHMutex.RLock()
+	defer fake.setUpSSHMutex.RUnlock()
+	fake.snapshotsMutex.RLock()
+	defer fake.snapshotsMutex.RUnlock()
+	fake.startMutex.RLock()
+	defer fake.startMutex.RUnlock()
+	fake.stemcellsMutex.RLock()
+	defer fake.stemcellsMutex.RUnlock()
+	fake.stopMutex.RLock()
+	defer fake.stopMutex.RUnlock()
+	fake.takeSnapshotMutex.RLock()
+	defer fake.takeSnapshotMutex.RUnlock()
+	fake.takeSnapshotsMutex.RLock()
+	defer fake.takeSnapshotsMutex.RUnlock()
+	fake.teamsMutex.RLock()
+	defer fake.teamsMutex.RUnlock()
 	fake.updateMutex.RLock()
 	defer fake.updateMutex.RUnlock()
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
-	fake.attachDiskMutex.RLock()
-	defer fake.attachDiskMutex.RUnlock()
+	fake.vMInfosMutex.RLock()
+	defer fake.vMInfosMutex.RUnlock()
+	fake.variablesMutex.RLock()
+	defer fake.variablesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
