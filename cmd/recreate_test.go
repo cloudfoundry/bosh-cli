@@ -114,20 +114,6 @@ var _ = Describe("RecreateCmd", func() {
 			Expect(recreateOpts.Fix).To(BeTrue())
 		})
 
-		It("recreate forcefully", func() {
-			opts.Force = true
-
-			err := act()
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(deployment.RecreateCallCount()).To(Equal(1))
-
-			slug, recreateOpts := deployment.RecreateArgsForCall(0)
-			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
-			Expect(recreateOpts.SkipDrain).To(BeFalse())
-			Expect(recreateOpts.Force).To(BeTrue())
-		})
-
 		It("does not recreate if confirmation is rejected", func() {
 			ui.AskedConfirmationErr = errors.New("stop")
 

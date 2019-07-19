@@ -90,20 +90,6 @@ var _ = Describe("RestartCmd", func() {
 			Expect(restartOpts.MaxInFlight).To(Equal("5"))
 		})
 
-		It("restarts forcefully", func() {
-			opts.Force = true
-
-			err := act()
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(deployment.RestartCallCount()).To(Equal(1))
-
-			slug, restartOpts := deployment.RestartArgsForCall(0)
-			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
-			Expect(restartOpts.SkipDrain).To(BeFalse())
-			Expect(restartOpts.Force).To(BeTrue())
-		})
-
 		It("does not restart if confirmation is rejected", func() {
 			ui.AskedConfirmationErr = errors.New("stop")
 

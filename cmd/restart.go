@@ -22,7 +22,6 @@ func (c RestartCmd) Run(opts RestartOpts) error {
 
 	restartOpts := boshdir.RestartOpts{
 		SkipDrain:   opts.SkipDrain,
-		Force:       opts.Force,
 		Canaries:    opts.Canaries,
 		MaxInFlight: opts.MaxInFlight,
 	}

@@ -50,7 +50,6 @@ var _ = Describe("StopCmd", func() {
 			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(stopOpts.Hard).To(BeFalse())
 			Expect(stopOpts.SkipDrain).To(BeFalse())
-			Expect(stopOpts.Force).To(BeFalse())
 		})
 
 		It("stops allowing to detach vms", func() {
@@ -65,7 +64,6 @@ var _ = Describe("StopCmd", func() {
 			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(stopOpts.Hard).To(BeTrue())
 			Expect(stopOpts.SkipDrain).To(BeFalse())
-			Expect(stopOpts.Force).To(BeFalse())
 		})
 
 		It("stops allowing to skip drain scripts", func() {
@@ -80,22 +78,6 @@ var _ = Describe("StopCmd", func() {
 			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
 			Expect(stopOpts.Hard).To(BeFalse())
 			Expect(stopOpts.SkipDrain).To(BeTrue())
-			Expect(stopOpts.Force).To(BeFalse())
-		})
-
-		It("stops forcefully", func() {
-			opts.Force = true
-
-			err := act()
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(deployment.StopCallCount()).To(Equal(1))
-
-			slug, stopOpts := deployment.StopArgsForCall(0)
-			Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
-			Expect(stopOpts.Hard).To(BeFalse())
-			Expect(stopOpts.SkipDrain).To(BeFalse())
-			Expect(stopOpts.Force).To(BeTrue())
 		})
 
 		It("does not stop if confirmation is rejected", func() {

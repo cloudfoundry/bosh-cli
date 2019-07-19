@@ -22,7 +22,6 @@ func (c StopCmd) Run(opts StopOpts) error {
 
 	stopOpts := boshdir.StopOpts{
 		SkipDrain:   opts.SkipDrain,
-		Force:       opts.Force,
 		Canaries:    opts.Canaries,
 		MaxInFlight: opts.MaxInFlight,
 		Hard:        opts.Hard,

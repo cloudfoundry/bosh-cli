@@ -835,8 +835,6 @@ type LogsOpts struct {
 type StartOpts struct {
 	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
 
-	Force bool `long:"force" description:"No-op for backwards compatibility"`
-
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
 
@@ -850,7 +848,6 @@ type StopOpts struct {
 	Hard bool `long:"hard" description:"Delete VM (but keep persistent disk)"`
 
 	SkipDrain bool `long:"skip-drain" description:"Skip running drain and pre-stop scripts"`
-	Force     bool `long:"force"      description:"No-op for backwards compatibility"`
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
@@ -862,7 +859,6 @@ type RestartOpts struct {
 	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
 
 	SkipDrain bool `long:"skip-drain" description:"Skip running drain and pre-stop scripts"`
-	Force     bool `long:"force"      description:"No-op for backwards compatibility"`
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
@@ -874,7 +870,6 @@ type RecreateOpts struct {
 	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
 
 	SkipDrain bool `long:"skip-drain" description:"Skip running drain and pre-stop scripts"`
-	Force     bool `long:"force"      description:"No-op for backwards compatibility"`
 	Fix       bool `long:"fix"        description:"Recreate an instance with an unresponsive agent instead of erroring"`
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`

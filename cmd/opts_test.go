@@ -2483,14 +2483,6 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("Force", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Force", opts)).To(Equal(
-					`long:"force" description:"No-op for backwards compatibility"`,
-				))
-			})
-		})
-
 		Describe("Canaries", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Canaries", opts)).To(Equal(
@@ -2545,14 +2537,6 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("Force", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Force", opts)).To(Equal(
-					`long:"force" description:"No-op for backwards compatibility"`,
-				))
-			})
-		})
-
 		Describe("Canaries", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Canaries", opts)).To(Equal(
@@ -2591,14 +2575,6 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("Force", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Force", opts)).To(Equal(
-					`long:"force" description:"No-op for backwards compatibility"`,
-				))
-			})
-		})
-
 		Describe("Canaries", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Canaries", opts)).To(Equal(
@@ -2633,14 +2609,6 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
 					`long:"skip-drain" description:"Skip running drain and pre-stop scripts"`,
-				))
-			})
-		})
-
-		Describe("Force", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("Force", opts)).To(Equal(
-					`long:"force" description:"No-op for backwards compatibility"`,
 				))
 			})
 		})
