@@ -3,10 +3,10 @@
 package system
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
-	"errors"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
@@ -19,10 +19,6 @@ func (fs *osFileSystem) homeDir(username string) (string, error) {
 		return "", bosherr.Errorf("Failed to get user '%s' home directory", username)
 	}
 	return homeDir, nil
-}
-
-func (fs *osFileSystem) currentHomeDir() (string, error) {
-	return fs.HomeDir("")
 }
 
 func (fs *osFileSystem) chown(path, owner string) error {

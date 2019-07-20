@@ -46,7 +46,7 @@ func (fs *osFileSystem) ExpandPath(path string) (string, error) {
 	fs.logger.Debug(fs.logTag, "Expanding path for '%s'", path)
 
 	if strings.HasPrefix(path, "~") {
-		home, err := fs.currentHomeDir()
+		home, err := os.UserHomeDir()
 		if err != nil {
 			return "", bosherr.WrapError(err, "Getting current user home dir")
 		}

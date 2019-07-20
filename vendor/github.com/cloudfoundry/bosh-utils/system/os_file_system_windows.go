@@ -7,19 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"syscall"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
-
-func (fs *osFileSystem) currentHomeDir() (string, error) {
-	t, err := syscall.OpenCurrentProcessToken()
-	if err != nil {
-		return "", err
-	}
-	defer t.Close()
-	return t.GetUserProfileDirectory()
-}
 
 func (fs *osFileSystem) homeDir(username string) (string, error) {
 	u, err := user.Current()

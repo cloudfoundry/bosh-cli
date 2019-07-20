@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:137194cebcc9b67701c67df1bd5cbe85b9c5a0280dc226d68c65e166c78a429a"
+  digest = "1:ba1793a2d292da2e0ec4eb12b0cf9590b3e36784bfa6559b8397d54728a4897b"
   name = "cloud.google.com/go"
   packages = [
     "compute/metadata",
@@ -14,8 +14,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "cf81fad90a1a1de334c4fc27e23eb9a4224b627a"
-  version = "v0.41.0"
+  revision = "cdaaf98f9226c39dc162b8e55083b2fbc67b4674"
+  version = "v0.43.0"
 
 [[projects]]
   digest = "1:41531922c7f47d5157308b4dd1abc6142c4c583845ce424ed9664db867fa48cf"
@@ -37,7 +37,7 @@
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
 
 [[projects]]
-  digest = "1:dc2bffa9464daecf26c274244268d656d35345b3dec4ce94f4872ced46e3203c"
+  digest = "1:7c84463aa7822dba29a9342d78215adfee8c9ac4255de92fd22e8df89fb60a85"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -77,10 +77,11 @@
     "service/s3/s3iface",
     "service/s3/s3manager",
     "service/sts",
+    "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "d56b50aa9d71793a9ebf86116b12789048a7f032"
-  version = "v1.20.21"
+  revision = "8ae9ae0c8959def54f4a180ed76812ccc5f888db"
+  version = "v1.21.1"
 
 [[projects]]
   digest = "1:f3e10b6fd5c6580050a709f0f42242e9c3e1c703216aa05e2ddd503e04de6ae3"
@@ -156,7 +157,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d9da3be63a92ca405251d1c0ebf626d9e7fcf8af0b52d1d5c322977b9ae6ec46"
+  digest = "1:544a376ec267a275e82ab29c2037cb208228b26d24c96c0b46765551ca9adb71"
   name = "github.com/cloudfoundry/bosh-utils"
   packages = [
     "blobstore",
@@ -179,7 +180,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "7d4439633a6f44eae3495580716ca50b31cfdda2"
+  revision = "ec93be2c11fb9a09adce8684bb56e08923be8a80"
 
 [[projects]]
   digest = "1:fc5a32adb1f7107c108c1b5462475e85f68e7f03037762f7634f7fc1b8d30074"
@@ -575,7 +576,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2fc17e91d2a0f618e5e39cd8f9cc5d59a1abcb0949459a3e8655b5562972d843"
+  digest = "1:03cb7931c1d82eb61d91e3a29d672c7e1a5b97dbb64fc7ece8b4ec1016dba4ac"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -592,7 +593,7 @@
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "128ec6dfca091cc7d4fe6d18d97911f37c95a590"
+  revision = "e377ae9d63860e3b8f606b92a1a7c7df5b14ca67"
 
 [[projects]]
   digest = "1:6341e9ed4f7c5f52746142c7671d8b337412837de7e8595a9f185dd47abba31c"
