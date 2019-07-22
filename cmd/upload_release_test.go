@@ -327,16 +327,6 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(fix).To(BeTrue())
 			})
 
-			It("does not return error and ignores missing file if release is already uploaded", func() {
-				releaseReader.ReadReturns(nil, errors.New(""))
-				director.HasReleaseReturns(true, nil)
-
-				err := act()
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(director.UploadReleaseFileCallCount()).To(Equal(0))
-			})
-
 			It("returns error if opening file fails", func() {
 				releaseReader.ReadReturns(release, nil)
 

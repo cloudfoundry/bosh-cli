@@ -98,18 +98,8 @@ func (c UploadReleaseCmd) uploadFile(opts UploadReleaseOpts) error {
 	path := opts.Args.URL.FilePath()
 
 	if len(path) > 0 {
-
 		release, err = releaseReader.Read(path)
 		if err != nil {
-			uploadNecessary, checkErr := c.needToUpload(opts)
-			if checkErr != nil {
-				return err
-			}
-
-			if !uploadNecessary {
-				return nil
-			}
-
 			return err
 		}
 	} else {
