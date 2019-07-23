@@ -57,14 +57,6 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 		return err
 	}
 
-	if len(opts.MaxInFlight) > 0 {
-		c.ui.ErrorLinef("The --max-in-flight option has been deprecated. Please specify max_in_flight in the update section of the manifest. See https://bosh.io/docs/manifest-v2/#update for more details.")
-	}
-
-	if len(opts.Canaries) > 0 {
-		c.ui.ErrorLinef("The --canaries option has been deprecated. Please specify canaries in the update section of the manifest. See https://bosh.io/docs/manifest-v2/#update for more details.")
-	}
-
 	updateOpts := boshdir.UpdateOpts{
 		RecreatePersistentDisks: opts.RecreatePersistentDisks,
 		Recreate:                opts.Recreate,
