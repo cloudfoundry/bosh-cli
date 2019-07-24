@@ -3,12 +3,12 @@ package integration_test
 import (
 	"crypto/x509"
 	"encoding/pem"
-
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"gopkg.in/yaml.v2"
+	"time"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
@@ -242,6 +242,129 @@ variables:
 			_, err = cert.Verify(x509.VerifyOptions{DNSName: "not-test.com", Roots: roots})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("certificate is valid"))
+		}
+	})
+
+	It("generates a certificate with a configurable duration", func() {
+		err := fs.WriteFileString(tmpFilePath, `
+ca:
+  certificate: ((ca.certificate))
+
+variables:
+- name: ca
+  type: certificate
+  options:
+    duration: 1095
+    is_ca: true
+    common_name: ca
+    organization: "org-AB"
+`)
+		Expect(err).ToNot(HaveOccurred())
+
+		cmd, err := cmdFactory.New([]string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
+		Expect(err).ToNot(HaveOccurred())
+
+		err = cmd.Execute()
+		Expect(err).ToNot(HaveOccurred())
+		Expect(ui.Blocks).To(HaveLen(1))
+
+		type expectedCert struct {
+			Certificate string
+		}
+
+		type expectedStore struct {
+			CA expectedCert
+		}
+
+		var store, output expectedStore
+
+		{
+			contents, err := fs.ReadFileString(otherTmpFilePath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(contents).ToNot(BeEmpty())
+
+			err = yaml.Unmarshal([]byte(contents), &store)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = yaml.Unmarshal([]byte(ui.Blocks[0]), &output)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(output.CA.Certificate).To(Equal(store.CA.Certificate))
+		}
+
+		{
+			threeYearsFromNow := time.Now().Add(time.Hour * 24 * 365 * 3)
+			roots := x509.NewCertPool()
+
+			ok := roots.AppendCertsFromPEM([]byte(store.CA.Certificate))
+			Expect(ok).To(BeTrue())
+
+			caBlock, _ := pem.Decode([]byte(store.CA.Certificate))
+			ca, err := x509.ParseCertificate(caBlock.Bytes)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(ca.NotAfter).Should(BeTemporally("~", threeYearsFromNow, 5*time.Second))
+		}
+	})
+
+	It("generates a certificate with 1 year duration when duration is not specified", func() {
+		err := fs.WriteFileString(tmpFilePath, `
+ca:
+  certificate: ((ca.certificate))
+
+variables:
+- name: ca
+  type: certificate
+  options:
+    is_ca: true
+    common_name: ca
+    organization: "org-AB"
+`)
+		Expect(err).ToNot(HaveOccurred())
+
+		cmd, err := cmdFactory.New([]string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
+		Expect(err).ToNot(HaveOccurred())
+
+		err = cmd.Execute()
+		Expect(err).ToNot(HaveOccurred())
+		Expect(ui.Blocks).To(HaveLen(1))
+
+		type expectedCert struct {
+			Certificate string
+		}
+
+		type expectedStore struct {
+			CA expectedCert
+		}
+
+		var store, output expectedStore
+
+		{
+			contents, err := fs.ReadFileString(otherTmpFilePath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(contents).ToNot(BeEmpty())
+
+			err = yaml.Unmarshal([]byte(contents), &store)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = yaml.Unmarshal([]byte(ui.Blocks[0]), &output)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(output.CA.Certificate).To(Equal(store.CA.Certificate))
+		}
+
+		{
+			oneYearFromNow := time.Now().Add(time.Hour * 24 * 365)
+			roots := x509.NewCertPool()
+
+			ok := roots.AppendCertsFromPEM([]byte(store.CA.Certificate))
+			Expect(ok).To(BeTrue())
+
+			caBlock, _ := pem.Decode([]byte(store.CA.Certificate))
+			ca, err := x509.ParseCertificate(caBlock.Bytes)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(ca.NotAfter).Should(BeTemporally("~", oneYearFromNow, 5*time.Second))
 		}
 	})
 
