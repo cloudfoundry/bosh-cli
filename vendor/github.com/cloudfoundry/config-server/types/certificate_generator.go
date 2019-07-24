@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"crypto/sha1"
+
 	"github.com/cloudfoundry/bosh-utils/errors"
 )
 
@@ -32,6 +33,7 @@ type certParams struct {
 	IsCA             bool     `yaml:"is_ca"`
 	CAName           string   `yaml:"ca"`
 	ExtKeyUsage      []string `yaml:"extended_key_usage"`
+	Duration         int16    `yaml:"duration"`
 }
 
 var supportedCertParameters = []string{
@@ -41,6 +43,7 @@ var supportedCertParameters = []string{
 	"is_ca",
 	"ca",
 	"extended_key_usage",
+	"duration",
 }
 
 func NewCertificateGenerator(loader CertsLoader) CertificateGenerator {
@@ -169,6 +172,11 @@ func generateCertTemplate(cParams certParams) (x509.Certificate, error) {
 
 	now := time.Now()
 	notAfter := now.Add(365 * 24 * time.Hour)
+
+	if cParams.Duration > 0 {
+		notAfter = now.Add(time.Duration(cParams.Duration*24) * time.Hour)
+	}
+
 	var organizations []string
 	if cParams.Organization == "" {
 		organizations = []string{"Cloud Foundry"}

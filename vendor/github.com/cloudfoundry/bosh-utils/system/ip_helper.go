@@ -1,61 +1,45 @@
 package system
 
 import (
+	"encoding/binary"
 	"fmt"
 	"net"
-	"strconv"
-	"strings"
-
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
-func CalculateNetworkAndBroadcast(ipAddress, netmask string) (network, broadcast string, err error) {
+func CalculateNetworkAndBroadcast(ipAddress, netmask string) (string, string, int, error) {
 	ip := net.ParseIP(ipAddress)
 	if ip == nil {
-		return "", "", fmt.Errorf("Invalid IP '%s'", ipAddress)
+		return "", "", 0, fmt.Errorf("Invalid IP '%s'", ipAddress)
 	}
 
-	if ip.To4() != nil {
-		return calculateV4NetworkAndBroadcast(ipAddress, netmask)
+	mask := net.ParseIP(netmask)
+	if mask == nil {
+		return "", "", 0, fmt.Errorf("Invalid netmask '%s'", netmask)
 	}
 
-	return "", "", nil
+	ip = ip.To4()
+	mask = mask.To4()
+
+	if ip != nil && mask != nil {
+		return calculateV4NetworkAndBroadcast(ip, mask)
+	}
+
+	return "", "", 0, nil
 }
 
-func calculateV4NetworkAndBroadcast(ipAddress, netmask string) (network, broadcast string, err error) {
-	ipComponents := strings.Split(ipAddress, ".")
-	maskComponents := strings.Split(netmask, ".")
+func calculateV4NetworkAndBroadcast(ipAddress, netmask net.IP) (string, string, int, error) {
+	mask := net.IPMask(netmask)
+	broadcast := make(net.IP, net.IPv4len)
 
-	if len(ipComponents) != 4 || len(maskComponents) != 4 {
-		return "", "", fmt.Errorf("Invalid netmask '%s'", netmask)
+	binary.BigEndian.PutUint32(broadcast,
+		binary.BigEndian.Uint32(ipAddress.To4())|^binary.BigEndian.Uint32(netmask.To4()))
+
+	network := ipAddress.Mask(mask)
+	if network == nil {
+		return "", "", 0, fmt.Errorf("could not apply mask %v to IP address %v", mask, ipAddress)
 	}
 
-	networkComponents := []string{}
-	broadcastComponents := []string{}
+	maskSize, _ := mask.Size()
 
-	for i := 0; i < 4; i++ {
-		var ipComponent int
-		var maskComponent int
-
-		ipComponent, err = strconv.Atoi(ipComponents[i])
-		if err != nil {
-			return "", "", bosherr.WrapError(err, "Parsing number from ip address")
-		}
-
-		maskComponent, err = strconv.Atoi(maskComponents[i])
-		if err != nil {
-			return "", "", bosherr.WrapError(err, "Parsing number from netmask")
-		}
-
-		networkComponent := strconv.Itoa(ipComponent & maskComponent)
-		broadcastComponent := strconv.Itoa((ipComponent | (^maskComponent)) & 255)
-
-		networkComponents = append(networkComponents, networkComponent)
-		broadcastComponents = append(broadcastComponents, broadcastComponent)
-	}
-
-	network = strings.Join(networkComponents, ".")
-	broadcast = strings.Join(broadcastComponents, ".")
-
-	return network, broadcast, nil
+	return network.To4().String(), broadcast.To4().String(), maskSize, nil
 }
