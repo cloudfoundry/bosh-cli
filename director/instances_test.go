@@ -7,8 +7,9 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	. "github.com/cloudfoundry/bosh-cli/director"
 	"net/http"
+
+	. "github.com/cloudfoundry/bosh-cli/director"
 )
 
 var _ = Describe("Instances", func() {
@@ -137,9 +138,9 @@ var _ = Describe("Instances", func() {
 			ConfigureTaskResult(
 				ghttp.VerifyRequest("GET", "/deployments/dep/instances", "format=full"),
 				`
+{"job_state":"failing"}
 {"job_state":"running"}
 {"job_state":"running","processes":[{"state": "running"}]}
-{"job_state":"running","processes":[{"state": "running"},{"state": "failing"}]}
 {"job_state":"failing","processes":[{"state": "running"},{"state": "running"}]}
 `,
 				server,
@@ -147,10 +148,18 @@ var _ = Describe("Instances", func() {
 
 			infos, err := deployment.InstanceInfos()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(infos[0].IsRunning()).To(BeTrue())
-			Expect(infos[1].IsRunning()).To(BeTrue())
-			Expect(infos[2].IsRunning()).To(BeFalse())
+
+			Expect(infos[0].IsRunning()).To(BeFalse())
+			Expect(infos[0].InstanceState()).To(Equal("failing"))
+
+			Expect(infos[1].IsRunning()).To(BeFalse())
+			Expect(infos[1].InstanceState()).To(Equal("-"))
+
+			Expect(infos[2].IsRunning()).To(BeTrue())
+			Expect(infos[2].InstanceState()).To(Equal("running"))
+
 			Expect(infos[3].IsRunning()).To(BeFalse())
+			Expect(infos[3].InstanceState()).To(Equal("failing"))
 		})
 
 		It("returns error if response is non-200", func() {

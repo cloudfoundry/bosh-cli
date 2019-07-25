@@ -9,6 +9,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
+const runningState = "running"
+
 type VMInfo struct {
 	AgentID string `json:"agent_id"`
 
@@ -91,8 +93,16 @@ type VMInfoVitalsUptime struct {
 	Seconds *uint64 `json:"secs"` // e.g. 48307
 }
 
+func (i VMInfo) InstanceState() string {
+	if i.ProcessState != runningState || len(i.Processes) > 0 {
+		return i.ProcessState
+	}
+
+	return "-"
+}
+
 func (i VMInfo) IsRunning() bool {
-	if i.ProcessState != "running" {
+	if i.InstanceState() != runningState {
 		return false
 	}
 
@@ -106,7 +116,7 @@ func (i VMInfo) IsRunning() bool {
 }
 
 func (p VMInfoProcess) IsRunning() bool {
-	return p.State == "running"
+	return p.State == runningState
 }
 
 func (d DeploymentImpl) VMInfos() ([]VMInfo, error) {

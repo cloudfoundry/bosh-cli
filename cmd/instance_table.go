@@ -123,7 +123,7 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 		Process: boshtbl.ValueString{},
 
 		ProcessState: boshtbl.ValueFmt{
-			V:     boshtbl.NewValueString(i.ProcessState),
+			V:     boshtbl.NewValueString(i.InstanceState()),
 			Error: !i.IsRunning(),
 		},
 
