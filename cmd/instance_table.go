@@ -123,7 +123,7 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 		Process: boshtbl.ValueString{},
 
 		ProcessState: boshtbl.ValueFmt{
-			V:     boshtbl.NewValueString(i.ProcessState),
+			V:     boshtbl.NewValueString(ProcessStateForDisplay(i.ProcessState, len(i.Processes))),
 			Error: !i.IsRunning(),
 		},
 
@@ -238,4 +238,16 @@ func (t InstanceTable) AsValues(v InstanceTableValues) []boshtbl.Value {
 	}
 
 	return result
+}
+
+func ProcessStateForDisplay(agentState string, numProcesses int) string {
+	if agentState == "stopped" {
+		return agentState
+	}
+
+	if numProcesses > 0 {
+		return "running"
+	}
+
+	return "-"
 }
