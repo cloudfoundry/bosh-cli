@@ -372,7 +372,7 @@ var _ = Describe("VMs", func() {
 			Expect(infos[0].InstanceState()).To(Equal("failing"))
 
 			Expect(infos[1].IsRunning()).To(BeFalse())
-			Expect(infos[1].InstanceState()).To(Equal("-"))
+			Expect(infos[1].InstanceState()).To(Equal(""))
 
 			Expect(infos[2].IsRunning()).To(BeTrue())
 			Expect(infos[2].InstanceState()).To(Equal("running"))

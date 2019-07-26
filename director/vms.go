@@ -98,7 +98,7 @@ func (i VMInfo) InstanceState() string {
 		return i.ProcessState
 	}
 
-	return "-"
+	return ""
 }
 
 func (i VMInfo) IsRunning() bool {
