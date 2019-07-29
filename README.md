@@ -1,4 +1,4 @@
-# bosh CLI
+# BOSH CLI
 
 * Documentation: [bosh.io/docs](https://bosh.io/docs)
 * Slack: #bosh on <https://slack.cloudfoundry.org>
