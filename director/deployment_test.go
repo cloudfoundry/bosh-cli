@@ -363,7 +363,7 @@ var _ = Describe("Deployment", func() {
 		})
 	})
 
-	Describe("job states", func() {
+	Describe("converge job states", func() {
 		var (
 			slug         AllOrInstanceGroupOrInstanceSlug
 			force        bool
@@ -378,7 +378,7 @@ var _ = Describe("Deployment", func() {
 			slug = AllOrInstanceGroupOrInstanceSlug{}
 			force = false
 
-			startOpts = StartOpts{}
+			startOpts = StartOpts{Converge: true}
 			stopOpts = StopOpts{
 				SkipDrain: false,
 				Force:     force,
@@ -593,6 +593,37 @@ var _ = Describe("Deployment", func() {
 				})
 			})
 		}
+	})
+
+	Describe("no-converges job states", func(){
+		It("changes state for specific instance", func() {
+			slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
+
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/start"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.VerifyBody([]byte{}),
+				),
+				``,
+				server,
+			)
+			startOpts := StartOpts{}
+			err := deployment.Start(slug, startOpts)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns an error if changing state response is non-200", func() {
+			AppendBadRequest(ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/start"), server)
+			slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
+			startOpts := StartOpts{}
+			err := deployment.Start(slug, startOpts)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Non-converging action failed"))
+		})
 	})
 
 	Describe("ExportRelease", func() {

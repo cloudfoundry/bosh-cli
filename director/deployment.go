@@ -137,6 +137,9 @@ func (d DeploymentImpl) Ignore(slug InstanceSlug, enabled bool) error {
 }
 
 func (d DeploymentImpl) Start(slug AllOrInstanceGroupOrInstanceSlug, opts StartOpts) error {
+	if !opts.Converge {
+		return d.nonConvergingJobAction("start", slug)
+	}
 	return d.changeJobState("started", slug, false, false, false, false, opts.Canaries, opts.MaxInFlight)
 }
 
@@ -153,6 +156,10 @@ func (d DeploymentImpl) Restart(slug AllOrInstanceGroupOrInstanceSlug, opts Rest
 
 func (d DeploymentImpl) Recreate(slug AllOrInstanceGroupOrInstanceSlug, opts RecreateOpts) error {
 	return d.changeJobState("recreate", slug, opts.SkipDrain, opts.Force, opts.Fix, opts.DryRun, opts.Canaries, opts.MaxInFlight)
+}
+
+func (d DeploymentImpl) nonConvergingJobAction(action string, slug AllOrInstanceGroupOrInstanceSlug) error {
+	return d.client.NonConvergingJobAction(action, d.name, slug.Name(), slug.IndexOrID())
 }
 
 func (d DeploymentImpl) changeJobState(state string, slug AllOrInstanceGroupOrInstanceSlug, skipDrain bool, force bool, fix bool, dryRun bool, canaries string, maxInFlight string) error {
@@ -344,6 +351,19 @@ func (c Client) EnableResurrection(deploymentName, job, indexOrID string, enable
 	if err != nil {
 		msg := "Changing VM resurrection state for '%s/%s' in deployment '%s'"
 		return bosherr.WrapErrorf(err, msg, job, indexOrID, deploymentName)
+	}
+
+	return nil
+}
+
+func (c Client) NonConvergingJobAction(action string, deployment string, instanceGroup string, id string) error {
+	setHeaders := func(req *http.Request) {
+		req.Header.Add("Content-Type", "text/yaml")
+	}
+	path := fmt.Sprintf("/deployments/%s/instance_groups/%s/%s/actions/%s", deployment, instanceGroup, id, action)
+	_, err := c.taskClientRequest.PostResult(path, []byte{}, setHeaders)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Non-converging action failed")
 	}
 
 	return nil

@@ -837,6 +837,8 @@ type StartOpts struct {
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
+	Converge    bool `long:"converge" description:"Converge the deployment state before running action (default)"`
+	NoConverge  bool `long:"no-converge" description:"Act only on specified instance"`
 
 	cmd
 }

@@ -33,7 +33,7 @@ var _ = Describe("StartCmd", func() {
 		BeforeEach(func() {
 			opts = StartOpts{
 				Args: AllOrInstanceGroupOrInstanceSlugArgs{
-					Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", ""),
+					Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "0"),
 				},
 			}
 		})
@@ -45,8 +45,9 @@ var _ = Describe("StartCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(deployment.StartCallCount()).To(Equal(1))
-			Expect(deployment.StartArgsForCall(0)).To(Equal(
-				boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "")))
+			slug, _ := deployment.StartArgsForCall(0)
+			Expect(slug).To(Equal(
+				boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "0")))
 		})
 
 		It("does not start if confirmation is rejected", func() {
@@ -89,6 +90,86 @@ var _ = Describe("StartCmd", func() {
 
 			_, opts := deployment.StartArgsForCall(0)
 			Expect(opts.MaxInFlight).To(Equal("5"))
+		})
+		Context("coverge and no-converge flags", func() {
+			It("can set converge", func() {
+				opts.Converge = true
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deployment.StartCallCount()).To(Equal(1))
+
+				_, opts := deployment.StartArgsForCall(0)
+				Expect(opts.Converge).To(BeTrue())
+			})
+
+			It("converge by default", func() {
+				opts.Converge = false
+				opts.NoConverge = false
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deployment.StartCallCount()).To(Equal(1))
+
+				_, opts := deployment.StartArgsForCall(0)
+				Expect(opts.Converge).To(BeTrue())
+			})
+
+			It("can set no-converge", func() {
+				opts.NoConverge = true
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deployment.StartCallCount()).To(Equal(1))
+
+				_, opts := deployment.StartArgsForCall(0)
+				Expect(opts.Converge).To(BeFalse())
+			})
+
+			It("rejects combining converge and no-converge", func() {
+				opts.Converge = true
+				opts.NoConverge = true
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Can't set converge and no-converge"))
+				Expect(deployment.StartCallCount()).To(Equal(0))
+			})
+
+			It("doesn't allow canaries flag when no-converge is specified", func(){
+				opts.NoConverge = true
+				opts.Canaries = "1"
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Can't set canaries and no-converge"))
+				Expect(deployment.StartCallCount()).To(Equal(0))
+			})
+
+			It("doesn't allow max-in-flight flag when no-converge is specified", func(){
+				opts.NoConverge = true
+				opts.MaxInFlight = "1"
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Can't set max-in-flight and no-converge"))
+				Expect(deployment.StartCallCount()).To(Equal(0))
+			})
+
+			Context("with invalid slugs for no-converge on a deployment", func(){
+
+				BeforeEach(func() {
+					opts = StartOpts{
+						Args: AllOrInstanceGroupOrInstanceSlugArgs{
+							Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("", ""),
+						},
+					}
+				})
+			It("errors", func(){
+				opts.NoConverge = true
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("An instance id or index must be specified with no-converge"))
+				Expect(deployment.StartCallCount()).To(Equal(0))
+			})
+			})
 		})
 	})
 })

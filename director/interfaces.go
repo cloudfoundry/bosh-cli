@@ -183,6 +183,7 @@ type Deployment interface {
 type StartOpts struct {
 	Canaries    string
 	MaxInFlight string
+	Converge    bool
 }
 
 type StopOpts struct {
