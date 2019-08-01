@@ -64,7 +64,7 @@ var _ = Describe("Director", func() {
 
 			Expect(tasks[0].ID()).To(Equal(165))
 			Expect(tasks[0].StartedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
-			Expect(tasks[0].LastActivityAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
+			Expect(tasks[0].FinishedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
 			Expect(tasks[0].State()).To(Equal("state1"))
 			Expect(tasks[0].User()).To(Equal("user1"))
 			Expect(tasks[0].DeploymentName()).To(Equal("deployment1"))
@@ -73,7 +73,7 @@ var _ = Describe("Director", func() {
 
 			Expect(tasks[1].ID()).To(Equal(166))
 			Expect(tasks[1].StartedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
-			Expect(tasks[1].LastActivityAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
+			Expect(tasks[1].FinishedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
 			Expect(tasks[1].State()).To(Equal("state2"))
 			Expect(tasks[1].User()).To(Equal("user2"))
 			Expect(tasks[1].DeploymentName()).To(Equal("deployment2"))
@@ -168,7 +168,7 @@ var _ = Describe("Director", func() {
 
 			Expect(tasks[0].ID()).To(Equal(165))
 			Expect(tasks[0].StartedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
-			Expect(tasks[0].LastActivityAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
+			Expect(tasks[0].FinishedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
 			Expect(tasks[0].State()).To(Equal("state1"))
 			Expect(tasks[0].User()).To(Equal("user1"))
 			Expect(tasks[0].DeploymentName()).To(Equal("deployment1"))
@@ -177,7 +177,7 @@ var _ = Describe("Director", func() {
 
 			Expect(tasks[1].ID()).To(Equal(166))
 			Expect(tasks[1].StartedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
-			Expect(tasks[1].LastActivityAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
+			Expect(tasks[1].FinishedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
 			Expect(tasks[1].State()).To(Equal("state2"))
 			Expect(tasks[1].User()).To(Equal("user2"))
 			Expect(tasks[1].DeploymentName()).To(Equal("deployment2"))
@@ -260,7 +260,7 @@ var _ = Describe("Director", func() {
 
 			Expect(task.ID()).To(Equal(123))
 			Expect(task.StartedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 19, 0, time.UTC)))
-			Expect(task.LastActivityAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
+			Expect(task.FinishedAt()).To(Equal(time.Date(2015, time.August, 23, 8, 23, 20, 0, time.UTC)))
 			Expect(task.State()).To(Equal("state1"))
 			Expect(task.IsError()).To(BeFalse())
 			Expect(task.User()).To(Equal("user1"))

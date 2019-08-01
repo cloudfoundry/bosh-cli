@@ -27,13 +27,13 @@ type FakeTask struct {
 	startedAtReturnsOnCall map[int]struct {
 		result1 time.Time
 	}
-	LastActivityAtStub        func() time.Time
-	lastActivityAtMutex       sync.RWMutex
-	lastActivityAtArgsForCall []struct{}
-	lastActivityAtReturns     struct {
+	FinishedAtStub        func() time.Time
+	finishedAtMutex       sync.RWMutex
+	finishedAtArgsForCall []struct{}
+	finishedAtReturns     struct {
 		result1 time.Time
 	}
-	lastActivityAtReturnsOnCall map[int]struct {
+	finishedAtReturnsOnCall map[int]struct {
 		result1 time.Time
 	}
 	StateStub        func() string
@@ -236,42 +236,42 @@ func (fake *FakeTask) StartedAtReturnsOnCall(i int, result1 time.Time) {
 	}{result1}
 }
 
-func (fake *FakeTask) LastActivityAt() time.Time {
-	fake.lastActivityAtMutex.Lock()
-	ret, specificReturn := fake.lastActivityAtReturnsOnCall[len(fake.lastActivityAtArgsForCall)]
-	fake.lastActivityAtArgsForCall = append(fake.lastActivityAtArgsForCall, struct{}{})
-	fake.recordInvocation("LastActivityAt", []interface{}{})
-	fake.lastActivityAtMutex.Unlock()
-	if fake.LastActivityAtStub != nil {
-		return fake.LastActivityAtStub()
+func (fake *FakeTask) FinishedAt() time.Time {
+	fake.finishedAtMutex.Lock()
+	ret, specificReturn := fake.finishedAtReturnsOnCall[len(fake.finishedAtArgsForCall)]
+	fake.finishedAtArgsForCall = append(fake.finishedAtArgsForCall, struct{}{})
+	fake.recordInvocation("FinishedAt", []interface{}{})
+	fake.finishedAtMutex.Unlock()
+	if fake.FinishedAtStub != nil {
+		return fake.FinishedAtStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.lastActivityAtReturns.result1
+	return fake.finishedAtReturns.result1
 }
 
-func (fake *FakeTask) LastActivityAtCallCount() int {
-	fake.lastActivityAtMutex.RLock()
-	defer fake.lastActivityAtMutex.RUnlock()
-	return len(fake.lastActivityAtArgsForCall)
+func (fake *FakeTask) FinishedAtCallCount() int {
+	fake.finishedAtMutex.RLock()
+	defer fake.finishedAtMutex.RUnlock()
+	return len(fake.finishedAtArgsForCall)
 }
 
-func (fake *FakeTask) LastActivityAtReturns(result1 time.Time) {
-	fake.LastActivityAtStub = nil
-	fake.lastActivityAtReturns = struct {
+func (fake *FakeTask) FinishedAtReturns(result1 time.Time) {
+	fake.FinishedAtStub = nil
+	fake.finishedAtReturns = struct {
 		result1 time.Time
 	}{result1}
 }
 
-func (fake *FakeTask) LastActivityAtReturnsOnCall(i int, result1 time.Time) {
-	fake.LastActivityAtStub = nil
-	if fake.lastActivityAtReturnsOnCall == nil {
-		fake.lastActivityAtReturnsOnCall = make(map[int]struct {
+func (fake *FakeTask) FinishedAtReturnsOnCall(i int, result1 time.Time) {
+	fake.FinishedAtStub = nil
+	if fake.finishedAtReturnsOnCall == nil {
+		fake.finishedAtReturnsOnCall = make(map[int]struct {
 			result1 time.Time
 		})
 	}
-	fake.lastActivityAtReturnsOnCall[i] = struct {
+	fake.finishedAtReturnsOnCall[i] = struct {
 		result1 time.Time
 	}{result1}
 }
@@ -795,8 +795,8 @@ func (fake *FakeTask) Invocations() map[string][][]interface{} {
 	defer fake.iDMutex.RUnlock()
 	fake.startedAtMutex.RLock()
 	defer fake.startedAtMutex.RUnlock()
-	fake.lastActivityAtMutex.RLock()
-	defer fake.lastActivityAtMutex.RUnlock()
+	fake.finishedAtMutex.RLock()
+	defer fake.finishedAtMutex.RUnlock()
 	fake.stateMutex.RLock()
 	defer fake.stateMutex.RUnlock()
 	fake.isErrorMutex.RLock()

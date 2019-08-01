@@ -46,11 +46,11 @@ var _ = Describe("TasksCmd", func() {
 						StartedAtStub: func() time.Time {
 							return time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 						},
-						LastActivityAtStub: func() time.Time {
+						FinishedAtStub: func() time.Time {
 							return time.Date(2009, time.December, 10, 23, 0, 0, 0, time.UTC)
 						},
 
-						StateStub:          func() string { return "state" },
+						StateStub:          func() string { return "processing" },
 						UserStub:           func() string { return "user" },
 						DeploymentNameStub: func() string { return "deployment" },
 
@@ -62,7 +62,7 @@ var _ = Describe("TasksCmd", func() {
 						StartedAtStub: func() time.Time {
 							return time.Date(2012, time.November, 10, 23, 0, 0, 0, time.UTC)
 						},
-						LastActivityAtStub: func() time.Time {
+						FinishedAtStub: func() time.Time {
 							return time.Date(2012, time.December, 10, 23, 0, 0, 0, time.UTC)
 						},
 
@@ -88,7 +88,7 @@ var _ = Describe("TasksCmd", func() {
 						boshtbl.NewHeader("ID"),
 						boshtbl.NewHeader("State"),
 						boshtbl.NewHeader("Started At"),
-						boshtbl.NewHeader("Last Activity At"),
+						boshtbl.NewHeader("Finished At"),
 						boshtbl.NewHeader("User"),
 						boshtbl.NewHeader("Deployment"),
 						boshtbl.NewHeader("Description"),
@@ -100,9 +100,9 @@ var _ = Describe("TasksCmd", func() {
 					Rows: [][]boshtbl.Value{
 						{
 							boshtbl.NewValueInt(4),
-							boshtbl.ValueFmt{V: boshtbl.NewValueString("state"), Error: false},
+							boshtbl.ValueFmt{V: boshtbl.NewValueString("processing"), Error: false},
 							boshtbl.NewValueTime(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)),
-							boshtbl.NewValueTime(time.Date(2009, time.December, 10, 23, 0, 0, 0, time.UTC)),
+							boshtbl.NewValueString("-"),
 							boshtbl.NewValueString("user"),
 							boshtbl.NewValueString("deployment"),
 							boshtbl.NewValueString("description"),
@@ -112,7 +112,7 @@ var _ = Describe("TasksCmd", func() {
 							boshtbl.NewValueInt(5),
 							boshtbl.ValueFmt{V: boshtbl.NewValueString("error"), Error: true},
 							boshtbl.NewValueTime(time.Date(2012, time.November, 10, 23, 0, 0, 0, time.UTC)),
-							boshtbl.NewValueTime(time.Date(2012, time.December, 10, 23, 0, 0, 0, time.UTC)),
+							boshtbl.NewValueString("-"),
 							boshtbl.NewValueString("user2"),
 							boshtbl.NewValueString("deployment2"),
 							boshtbl.NewValueString("description2"),
@@ -166,7 +166,7 @@ var _ = Describe("TasksCmd", func() {
 						StartedAtStub: func() time.Time {
 							return time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 						},
-						LastActivityAtStub: func() time.Time {
+						FinishedAtStub: func() time.Time {
 							return time.Date(2009, time.December, 10, 23, 0, 0, 0, time.UTC)
 						},
 
@@ -182,7 +182,7 @@ var _ = Describe("TasksCmd", func() {
 						StartedAtStub: func() time.Time {
 							return time.Date(2012, time.November, 10, 23, 0, 0, 0, time.UTC)
 						},
-						LastActivityAtStub: func() time.Time {
+						FinishedAtStub: func() time.Time {
 							return time.Date(2012, time.December, 10, 23, 0, 0, 0, time.UTC)
 						},
 
@@ -208,7 +208,7 @@ var _ = Describe("TasksCmd", func() {
 						boshtbl.NewHeader("ID"),
 						boshtbl.NewHeader("State"),
 						boshtbl.NewHeader("Started At"),
-						boshtbl.NewHeader("Last Activity At"),
+						boshtbl.NewHeader("Finished At"),
 						boshtbl.NewHeader("User"),
 						boshtbl.NewHeader("Deployment"),
 						boshtbl.NewHeader("Description"),

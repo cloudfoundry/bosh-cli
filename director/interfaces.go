@@ -272,7 +272,7 @@ type TasksFilter struct {
 type Task interface {
 	ID() int
 	StartedAt() time.Time
-	LastActivityAt() time.Time
+	FinishedAt() time.Time
 
 	State() string
 	IsError() bool
