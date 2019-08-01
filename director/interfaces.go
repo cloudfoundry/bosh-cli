@@ -192,6 +192,7 @@ type StopOpts struct {
 	Force       bool
 	SkipDrain   bool
 	Hard        bool
+	Converge    bool
 }
 
 type RestartOpts struct {

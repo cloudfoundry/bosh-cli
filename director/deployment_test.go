@@ -382,11 +382,13 @@ var _ = Describe("Deployment", func() {
 			stopOpts = StopOpts{
 				SkipDrain: false,
 				Force:     force,
+				Converge:  true,
 			}
 			detachedOpts = StopOpts{
 				Hard:      true,
 				SkipDrain: false,
 				Force:     force,
+				Converge:  true,
 			}
 			restartOpts = RestartOpts{}
 			recreateOpts = RecreateOpts{}
@@ -595,34 +597,90 @@ var _ = Describe("Deployment", func() {
 		}
 	})
 
-	Describe("no-converges job states", func(){
-		It("changes state for specific instance", func() {
-			slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
+	Describe("no-converge job actions", func() {
+		Describe("start", func() {
+			It("changes state for specific instance", func() {
+				slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
 
-			ConfigureTaskResult(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/start"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.VerifyHeader(http.Header{
-						"Content-Type": []string{"text/yaml"},
-					}),
-					ghttp.VerifyBody([]byte{}),
-				),
-				``,
-				server,
-			)
-			startOpts := StartOpts{}
-			err := deployment.Start(slug, startOpts)
-			Expect(err).ToNot(HaveOccurred())
+				ConfigureTaskResult(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/start"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.VerifyHeader(http.Header{
+							"Content-Type": []string{"text/yaml"},
+						}),
+						ghttp.VerifyBody([]byte{}),
+					),
+					``,
+					server,
+				)
+				startOpts := StartOpts{}
+				err := deployment.Start(slug, startOpts)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("returns an error if changing state response is non-200", func() {
+				AppendBadRequest(ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/start"), server)
+				slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
+				startOpts := StartOpts{}
+				err := deployment.Start(slug, startOpts)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Non-converging action failed"))
+			})
 		})
 
-		It("returns an error if changing state response is non-200", func() {
-			AppendBadRequest(ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/start"), server)
-			slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
-			startOpts := StartOpts{}
-			err := deployment.Start(slug, startOpts)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Non-converging action failed"))
+		Describe("stop", func() {
+			It("changes state for specific instance", func() {
+				slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
+
+				ConfigureTaskResult(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/stop"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.VerifyHeader(http.Header{
+							"Content-Type": []string{"text/yaml"},
+						}),
+						ghttp.VerifyBody([]byte{}),
+					),
+					``,
+					server,
+				)
+				stopOpts := StopOpts{}
+				err := deployment.Stop(slug, stopOpts)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("accepts skip drain and hard", func() {
+				slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
+
+				ConfigureTaskResult(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/stop", "hard=true&skip_drain=true"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.VerifyHeader(http.Header{
+							"Content-Type": []string{"text/yaml"},
+						}),
+						ghttp.VerifyBody([]byte{}),
+					),
+					``,
+					server,
+				)
+				stopOpts := StopOpts{
+					SkipDrain: true,
+					Hard:      true,
+				}
+				err := deployment.Stop(slug, stopOpts)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("returns an error if changing state response is non-200", func() {
+				AppendBadRequest(ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/stop"), server)
+				slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
+				stopOpts := StopOpts{}
+				err := deployment.Stop(slug, stopOpts)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Non-converging action failed"))
+			})
 		})
 	})
 
