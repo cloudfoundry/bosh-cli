@@ -138,14 +138,14 @@ func (d DeploymentImpl) Ignore(slug InstanceSlug, enabled bool) error {
 
 func (d DeploymentImpl) Start(slug AllOrInstanceGroupOrInstanceSlug, opts StartOpts) error {
 	if !opts.Converge {
-		return d.nonConvergingJobAction("start", slug, false, false)
+		return d.nonConvergingJobAction("start", slug, false, false, false)
 	}
 	return d.changeJobState("started", slug, false, false, false, false, opts.Canaries, opts.MaxInFlight)
 }
 
 func (d DeploymentImpl) Stop(slug AllOrInstanceGroupOrInstanceSlug, opts StopOpts) error {
 	if !opts.Converge {
-		return d.nonConvergingJobAction("stop", slug, opts.SkipDrain, opts.Hard)
+		return d.nonConvergingJobAction("stop", slug, opts.SkipDrain, opts.Hard, false)
 	}
 
 	state := "stopped"
@@ -157,18 +157,22 @@ func (d DeploymentImpl) Stop(slug AllOrInstanceGroupOrInstanceSlug, opts StopOpt
 
 func (d DeploymentImpl) Restart(slug AllOrInstanceGroupOrInstanceSlug, opts RestartOpts) error {
 	if !opts.Converge {
-		return d.nonConvergingJobAction("restart", slug, opts.SkipDrain, false)
+		return d.nonConvergingJobAction("restart", slug, opts.SkipDrain, false, false)
 	}
 
 	return d.changeJobState("restart", slug, opts.SkipDrain, opts.Force, false, false, opts.Canaries, opts.MaxInFlight)
 }
 
 func (d DeploymentImpl) Recreate(slug AllOrInstanceGroupOrInstanceSlug, opts RecreateOpts) error {
+	if !opts.Converge {
+		return d.nonConvergingJobAction("recreate", slug, opts.SkipDrain, false, opts.Fix)
+	}
+
 	return d.changeJobState("recreate", slug, opts.SkipDrain, opts.Force, opts.Fix, opts.DryRun, opts.Canaries, opts.MaxInFlight)
 }
 
-func (d DeploymentImpl) nonConvergingJobAction(action string, slug AllOrInstanceGroupOrInstanceSlug, skipDrain bool, hard bool) error {
-	return d.client.NonConvergingJobAction(action, d.name, slug.Name(), slug.IndexOrID(), skipDrain, hard)
+func (d DeploymentImpl) nonConvergingJobAction(action string, slug AllOrInstanceGroupOrInstanceSlug, skipDrain bool, hard bool, ignoreUnresponsiveAgent bool) error {
+	return d.client.NonConvergingJobAction(action, d.name, slug.Name(), slug.IndexOrID(), skipDrain, hard, ignoreUnresponsiveAgent)
 }
 
 func (d DeploymentImpl) changeJobState(state string, slug AllOrInstanceGroupOrInstanceSlug, skipDrain bool, force bool, fix bool, dryRun bool, canaries string, maxInFlight string) error {
@@ -365,7 +369,7 @@ func (c Client) EnableResurrection(deploymentName, job, indexOrID string, enable
 	return nil
 }
 
-func (c Client) NonConvergingJobAction(action string, deployment string, instanceGroup string, id string, skipDrain bool, hard bool) error {
+func (c Client) NonConvergingJobAction(action string, deployment string, instanceGroup string, id string, skipDrain bool, hard bool, ignoreUnresponsiveAgent bool) error {
 	setHeaders := func(req *http.Request) {
 		req.Header.Add("Content-Type", "text/yaml")
 	}
@@ -375,6 +379,9 @@ func (c Client) NonConvergingJobAction(action string, deployment string, instanc
 	}
 	if hard {
 		query.Add("hard", "true")
+	}
+	if ignoreUnresponsiveAgent {
+		query.Add("ignore_unresponsive_agent", "true")
 	}
 
 	path := fmt.Sprintf("/deployments/%s/instance_groups/%s/%s/actions/%s?%s", deployment, instanceGroup, id, action, query.Encode())

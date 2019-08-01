@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 )
@@ -20,13 +21,49 @@ func (c RecreateCmd) Run(opts RecreateOpts) error {
 		return err
 	}
 
-	recreateOpts := boshdir.RecreateOpts{
-		SkipDrain:   opts.SkipDrain,
-		Fix:         opts.Fix,
-		DryRun:      opts.DryRun,
-		Canaries:    opts.Canaries,
-		MaxInFlight: opts.MaxInFlight,
+	recreateOpts, err := newRecreateOpts(opts)
+	if err != nil {
+		return err
+	}
+	return c.deployment.Recreate(opts.Args.Slug, recreateOpts)
+}
+
+func newRecreateOpts(opts RecreateOpts) (boshdir.RecreateOpts, error) {
+	if !opts.NoConverge { // converge is default, no-converge is opt-in
+		recreateOpts := boshdir.RecreateOpts{
+			SkipDrain:   opts.SkipDrain,
+			Fix:         opts.Fix,
+			DryRun:      opts.DryRun,
+			Canaries:    opts.Canaries,
+			MaxInFlight: opts.MaxInFlight,
+			Converge:    true,
+		}
+		return recreateOpts, nil
 	}
 
-	return c.deployment.Recreate(opts.Args.Slug, recreateOpts)
+	if opts.Converge {
+		return boshdir.RecreateOpts{}, errors.New("Can't set converge and no-converge")
+	}
+
+	if opts.Canaries != "" {
+		return boshdir.RecreateOpts{}, errors.New("Can't set canaries and no-converge")
+	}
+
+	if opts.MaxInFlight != "" {
+		return boshdir.RecreateOpts{}, errors.New("Can't set max-in-flight and no-converge")
+	}
+
+	if opts.DryRun {
+		return boshdir.RecreateOpts{}, errors.New("Can't set dry-run and no-converge")
+	}
+
+	if _, ok := opts.Args.Slug.InstanceSlug(); !ok {
+		return boshdir.RecreateOpts{}, errors.New("An instance id or index must be specified with no-converge")
+	}
+
+	return boshdir.RecreateOpts{
+		Converge:  false,
+		SkipDrain: opts.SkipDrain,
+		Fix:       opts.Fix,
+	}, nil
 }

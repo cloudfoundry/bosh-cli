@@ -393,7 +393,9 @@ var _ = Describe("Deployment", func() {
 			restartOpts = RestartOpts{
 				Converge: true,
 			}
-			recreateOpts = RecreateOpts{}
+			recreateOpts = RecreateOpts{
+				Converge: true,
+			}
 		})
 
 		states := map[string]func(Deployment) error{
@@ -733,6 +735,60 @@ var _ = Describe("Deployment", func() {
 				slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
 				restartOpts := RestartOpts{}
 				err := deployment.Restart(slug, restartOpts)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Non-converging action failed"))
+			})
+		})
+
+		Describe("recreate", func() {
+			It("changes state for specific instance", func() {
+				slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
+
+				ConfigureTaskResult(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/recreate"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.VerifyHeader(http.Header{
+							"Content-Type": []string{"text/yaml"},
+						}),
+						ghttp.VerifyBody([]byte{}),
+					),
+					``,
+					server,
+				)
+				recreateOpts := RecreateOpts{}
+				err := deployment.Recreate(slug, recreateOpts)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("accepts skip drain and fix", func() {
+				slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
+
+				ConfigureTaskResult(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/recreate", "skip_drain=true&ignore_unresponsive_agent=true"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.VerifyHeader(http.Header{
+							"Content-Type": []string{"text/yaml"},
+						}),
+						ghttp.VerifyBody([]byte{}),
+					),
+					``,
+					server,
+				)
+				recreateOpts := RecreateOpts{
+					SkipDrain: true,
+					Fix:       true,
+				}
+				err := deployment.Recreate(slug, recreateOpts)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("returns an error if changing state response is non-200", func() {
+				AppendBadRequest(ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/recreate"), server)
+				slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
+				recreateOpts := RecreateOpts{}
+				err := deployment.Recreate(slug, recreateOpts)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Non-converging action failed"))
 			})

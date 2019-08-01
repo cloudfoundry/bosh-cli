@@ -210,6 +210,7 @@ type RecreateOpts struct {
 	Fix         bool
 	SkipDrain   bool
 	DryRun      bool
+	Converge    bool
 }
 
 type UpdateOpts struct {

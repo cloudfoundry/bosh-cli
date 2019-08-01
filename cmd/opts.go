@@ -885,6 +885,9 @@ type RecreateOpts struct {
 
 	DryRun bool `long:"dry-run" description:"Renders job templates without altering deployment"`
 
+	Converge   bool `long:"converge" description:"Converge the deployment state before running action (default)"`
+	NoConverge bool `long:"no-converge" description:"Act only on specified instance"`
+
 	cmd
 }
 
