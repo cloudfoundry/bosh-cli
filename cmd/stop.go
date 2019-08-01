@@ -54,7 +54,7 @@ func newStopOpts(opts StopOpts) (boshdir.StopOpts, error) {
 	}
 
 	if _, ok := opts.Args.Slug.InstanceSlug(); !ok {
-		return boshdir.StopOpts{}, errors.New("An instance id or index must be specified with no-converge")
+		return boshdir.StopOpts{}, errors.New("You are trying to run stop with --no-converge on an entire instance group. This operation is not allowed. Trying using the --converge flag or running it against a specific instance.")
 	}
 
 	return boshdir.StopOpts{

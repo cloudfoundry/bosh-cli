@@ -58,7 +58,7 @@ func newRecreateOpts(opts RecreateOpts) (boshdir.RecreateOpts, error) {
 	}
 
 	if _, ok := opts.Args.Slug.InstanceSlug(); !ok {
-		return boshdir.RecreateOpts{}, errors.New("An instance id or index must be specified with no-converge")
+		return boshdir.RecreateOpts{}, errors.New("You are trying to run recreate with --no-converge on an entire instance group. This operation is not allowed. Trying using the --converge flag or running it against a specific instance.")
 	}
 
 	return boshdir.RecreateOpts{

@@ -52,7 +52,7 @@ func newRestartOpts(opts RestartOpts) (boshdir.RestartOpts, error) {
 	}
 
 	if _, ok := opts.Args.Slug.InstanceSlug(); !ok {
-		return boshdir.RestartOpts{}, errors.New("An instance id or index must be specified with no-converge")
+		return boshdir.RestartOpts{}, errors.New("You are trying to run restart with --no-converge on an entire instance group. This operation is not allowed. Trying using the --converge flag or running it against a specific instance.")
 	}
 
 	return boshdir.RestartOpts{

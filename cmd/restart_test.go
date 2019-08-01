@@ -183,7 +183,7 @@ var _ = Describe("RestartCmd", func() {
 					opts.NoConverge = true
 					err := act()
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("An instance id or index must be specified with no-converge"))
+					Expect(err.Error()).To(ContainSubstring("You are trying to run restart with --no-converge on an entire instance group. This operation is not allowed. Trying using the --converge flag or running it against a specific instance."))
 					Expect(deployment.RestartCallCount()).To(Equal(0))
 				})
 			})
