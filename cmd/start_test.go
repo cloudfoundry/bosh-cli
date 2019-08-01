@@ -135,7 +135,7 @@ var _ = Describe("StartCmd", func() {
 				Expect(deployment.StartCallCount()).To(Equal(0))
 			})
 
-			It("doesn't allow canaries flag when no-converge is specified", func(){
+			It("doesn't allow canaries flag when no-converge is specified", func() {
 				opts.NoConverge = true
 				opts.Canaries = "1"
 				err := act()
@@ -144,7 +144,7 @@ var _ = Describe("StartCmd", func() {
 				Expect(deployment.StartCallCount()).To(Equal(0))
 			})
 
-			It("doesn't allow max-in-flight flag when no-converge is specified", func(){
+			It("doesn't allow max-in-flight flag when no-converge is specified", func() {
 				opts.NoConverge = true
 				opts.MaxInFlight = "1"
 				err := act()
@@ -153,7 +153,7 @@ var _ = Describe("StartCmd", func() {
 				Expect(deployment.StartCallCount()).To(Equal(0))
 			})
 
-			Context("with invalid slugs for no-converge on a deployment", func(){
+			Context("with invalid slugs for no-converge on a deployment", func() {
 
 				BeforeEach(func() {
 					opts = StartOpts{
@@ -162,13 +162,13 @@ var _ = Describe("StartCmd", func() {
 						},
 					}
 				})
-			It("errors", func(){
-				opts.NoConverge = true
-				err := act()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("An instance id or index must be specified with no-converge"))
-				Expect(deployment.StartCallCount()).To(Equal(0))
-			})
+				It("errors", func() {
+					opts.NoConverge = true
+					err := act()
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("An instance id or index must be specified with no-converge"))
+					Expect(deployment.StartCallCount()).To(Equal(0))
+				})
 			})
 		})
 	})
