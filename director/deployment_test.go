@@ -390,7 +390,9 @@ var _ = Describe("Deployment", func() {
 				Force:     force,
 				Converge:  true,
 			}
-			restartOpts = RestartOpts{}
+			restartOpts = RestartOpts{
+				Converge: true,
+			}
 			recreateOpts = RecreateOpts{}
 		})
 
@@ -678,6 +680,59 @@ var _ = Describe("Deployment", func() {
 				slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
 				stopOpts := StopOpts{}
 				err := deployment.Stop(slug, stopOpts)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Non-converging action failed"))
+			})
+		})
+
+		Describe("restart", func() {
+			It("changes state for specific instance", func() {
+				slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
+
+				ConfigureTaskResult(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/restart"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.VerifyHeader(http.Header{
+							"Content-Type": []string{"text/yaml"},
+						}),
+						ghttp.VerifyBody([]byte{}),
+					),
+					``,
+					server,
+				)
+				restartOpts := RestartOpts{}
+				err := deployment.Restart(slug, restartOpts)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("accepts skip drain", func() {
+				slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
+
+				ConfigureTaskResult(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/restart", "skip_drain=true"),
+						ghttp.VerifyBasicAuth("username", "password"),
+						ghttp.VerifyHeader(http.Header{
+							"Content-Type": []string{"text/yaml"},
+						}),
+						ghttp.VerifyBody([]byte{}),
+					),
+					``,
+					server,
+				)
+				restartOpts := RestartOpts{
+					SkipDrain: true,
+				}
+				err := deployment.Restart(slug, restartOpts)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("returns an error if changing state response is non-200", func() {
+				AppendBadRequest(ghttp.VerifyRequest("POST", "/deployments/dep/instance_groups/my-ig/id/actions/restart"), server)
+				slug := NewAllOrInstanceGroupOrInstanceSlug("my-ig", "id")
+				restartOpts := RestartOpts{}
+				err := deployment.Restart(slug, restartOpts)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Non-converging action failed"))
 			})

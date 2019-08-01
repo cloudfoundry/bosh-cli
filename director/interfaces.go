@@ -200,6 +200,7 @@ type RestartOpts struct {
 	MaxInFlight string
 	Force       bool
 	SkipDrain   bool
+	Converge    bool
 }
 
 type RecreateOpts struct {

@@ -156,6 +156,10 @@ func (d DeploymentImpl) Stop(slug AllOrInstanceGroupOrInstanceSlug, opts StopOpt
 }
 
 func (d DeploymentImpl) Restart(slug AllOrInstanceGroupOrInstanceSlug, opts RestartOpts) error {
+	if !opts.Converge {
+		return d.nonConvergingJobAction("restart", slug, opts.SkipDrain, false)
+	}
+
 	return d.changeJobState("restart", slug, opts.SkipDrain, opts.Force, false, false, opts.Canaries, opts.MaxInFlight)
 }
 
