@@ -26,7 +26,7 @@ func (c TasksCmd) Run(opts TasksOpts) error {
 		if err != nil {
 			return err
 		}
-		return c.printTable(tasks, true)
+		return c.printTable(tasks)
 	}
 
 	filter.All = true
@@ -34,10 +34,10 @@ func (c TasksCmd) Run(opts TasksOpts) error {
 	if err != nil {
 		return err
 	}
-	return c.printTable(tasks, false)
+	return c.printTable(tasks)
 }
 
-func (c TasksCmd) printTable(tasks []boshdir.Task, recent bool) error {
+func (c TasksCmd) printTable(tasks []boshdir.Task) error {
 	table := boshtbl.Table{
 		Content: "tasks",
 		Header: []boshtbl.Header{
@@ -53,14 +53,7 @@ func (c TasksCmd) printTable(tasks []boshdir.Task, recent bool) error {
 		SortBy: []boshtbl.ColumnSort{{Column: 0}},
 	}
 
-	var finishedAt boshtbl.Value
-
 	for _, t := range tasks {
-		finishedAt = boshtbl.NewValueString("-")
-		if recent {
-			finishedAt = boshtbl.NewValueTime(t.FinishedAt())
-		}
-
 		table.Rows = append(table.Rows, []boshtbl.Value{
 			boshtbl.NewValueInt(t.ID()),
 			boshtbl.ValueFmt{
@@ -68,7 +61,7 @@ func (c TasksCmd) printTable(tasks []boshdir.Task, recent bool) error {
 				Error: t.IsError(),
 			},
 			boshtbl.NewValueTime(t.StartedAt()),
-			finishedAt,
+			sanitizeFinishedAtDisplayValue(t),
 			boshtbl.NewValueString(t.User()),
 			boshtbl.NewValueString(t.DeploymentName()),
 			boshtbl.NewValueString(t.Description()),
@@ -79,4 +72,11 @@ func (c TasksCmd) printTable(tasks []boshdir.Task, recent bool) error {
 	c.ui.PrintTable(table)
 
 	return nil
+}
+
+func sanitizeFinishedAtDisplayValue(task boshdir.Task) boshtbl.Value {
+	if task.FinishedAt().UnixNano() == 0 {
+		return boshtbl.NewValueString("-")
+	}
+	return boshtbl.NewValueTime(task.FinishedAt())
 }

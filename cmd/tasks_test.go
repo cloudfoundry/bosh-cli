@@ -47,7 +47,7 @@ var _ = Describe("TasksCmd", func() {
 							return time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 						},
 						FinishedAtStub: func() time.Time {
-							return time.Date(2009, time.December, 10, 23, 0, 0, 0, time.UTC)
+							return time.Unix(0, 0)
 						},
 
 						StateStub:          func() string { return "processing" },
@@ -112,7 +112,7 @@ var _ = Describe("TasksCmd", func() {
 							boshtbl.NewValueInt(5),
 							boshtbl.ValueFmt{V: boshtbl.NewValueString("error"), Error: true},
 							boshtbl.NewValueTime(time.Date(2012, time.November, 10, 23, 0, 0, 0, time.UTC)),
-							boshtbl.NewValueString("-"),
+							boshtbl.NewValueTime(time.Date(2012, time.December, 10, 23, 0, 0, 0, time.UTC)),
 							boshtbl.NewValueString("user2"),
 							boshtbl.NewValueString("deployment2"),
 							boshtbl.NewValueString("description2"),
