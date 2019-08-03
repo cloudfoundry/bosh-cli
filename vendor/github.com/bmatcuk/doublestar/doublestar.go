@@ -209,14 +209,20 @@ func Glob(pattern string) (matches []string, err error) {
 		return nil, nil
 	}
 
-	// On Windows systems, this will return the drive name ('C:'), on others,
-	// it will return an empty string.
+	// On Windows systems, this will return the drive name ('C:') for filesystem
+	// paths, or \\<server>\<share> for UNC paths. On other systems, it will
+	// return an empty string. Since absolute paths on non-Windows systems start
+	// with a slash, patternComponent[0] == volumeName will return true for both
+	// absolute Windows paths and absolute non-Windows paths, but we need a
+	// separate check for UNC paths.
 	volumeName := filepath.VolumeName(pattern)
-
-	// If the first pattern component is equal to the volume name, then the
-	// pattern is an absolute path.
-	if patternComponents[0] == volumeName {
-		return doGlob(fmt.Sprintf("%s%s", volumeName, string(os.PathSeparator)), patternComponents[1:], matches)
+	isWindowsUNC := strings.HasPrefix(pattern, `\\`)
+	if isWindowsUNC || patternComponents[0] == volumeName {
+		startComponentIndex := 1
+		if isWindowsUNC {
+			startComponentIndex = 4
+		}
+		return doGlob(fmt.Sprintf("%s%s", volumeName, string(os.PathSeparator)), patternComponents[startComponentIndex:], matches)
 	}
 
 	// otherwise, it's a relative pattern

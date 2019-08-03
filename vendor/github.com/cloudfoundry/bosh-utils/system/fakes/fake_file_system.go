@@ -954,6 +954,22 @@ func (fs *FakeFileSystem) RecursiveGlob(pattern string) (matches []string, err e
 	return fs.Glob(pattern)
 }
 
+func (fs *FakeFileSystem) Ls(root string) ([]string, error) {
+	matches := []string{}
+	err := fs.Walk(root, func(path string, _ os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		matches = append(matches, path)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return matches, nil
+}
+
 func (fs *FakeFileSystem) Walk(root string, walkFunc filepath.WalkFunc) error {
 	if fs.WalkErr != nil {
 		return walkFunc("", nil, fs.WalkErr)
