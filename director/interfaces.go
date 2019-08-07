@@ -42,8 +42,7 @@ type Director interface {
 	MatchPackages(manifest interface{}, compiled bool) ([]string, error)
 
 	Stemcells() ([]Stemcell, error)
-	HasStemcell(name, version string) (bool, error)
-	StemcellNeedsUpload(StemcellInfo) (bool, bool, error)
+	StemcellNeedsUpload(StemcellInfo) (bool, error)
 	FindStemcell(StemcellSlug) (Stemcell, error)
 	UploadStemcellURL(url, sha1 string, fix bool) error
 	UploadStemcellFile(file UploadFile, fix bool) error

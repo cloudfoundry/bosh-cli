@@ -121,64 +121,6 @@ var _ = Describe("Director", func() {
 		})
 	})
 
-	Describe("HasStemcell", func() {
-		act := func() (bool, error) { return director.HasStemcell("name", "ver") }
-
-		It("returns true if name and version matches", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/stemcells"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusOK, `[{"name":"name","version": "ver"}]`),
-				),
-			)
-
-			found, err := act()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(found).To(BeTrue())
-		})
-
-		It("returns false if name and version does not match", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/stemcells"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusOK, `[
-  {"name": "name", "version": "other-ver"},
-  {"name": "other-name", "version": "ver"}
-]`),
-				),
-			)
-
-			found, err := act()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(found).To(BeFalse())
-		})
-
-		It("returns error if response is non-200", func() {
-			AppendBadRequest(ghttp.VerifyRequest("GET", "/stemcells"), server)
-
-			_, err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(
-				"Finding stemcells: Director responded with non-successful status code"))
-		})
-
-		It("returns error if response cannot be unmarshalled", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/stemcells"),
-					ghttp.RespondWith(http.StatusOK, ""),
-				),
-			)
-
-			_, err := act()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(
-				"Finding stemcells: Unmarshaling Director response"))
-		})
-	})
-
 	Describe("MatchesStemcell", func() {
 		It("returns true for stemcells that need upload", func() {
 			server.AppendHandlers(
@@ -193,8 +135,7 @@ var _ = Describe("Director", func() {
 			submission := StemcellInfo{
 				Name: "name", Version: "ver",
 			}
-			needed, supported, err := director.StemcellNeedsUpload(submission)
-			Expect(supported).To(BeTrue())
+			needed, err := director.StemcellNeedsUpload(submission)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(needed).To(BeTrue())
 		})
@@ -212,29 +153,12 @@ var _ = Describe("Director", func() {
 			submission := StemcellInfo{
 				Name: "name", Version: "ver",
 			}
-			needed, supported, err := director.StemcellNeedsUpload(submission)
-			Expect(supported).To(BeTrue())
+			needed, err := director.StemcellNeedsUpload(submission)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(needed).To(BeFalse())
 		})
 
-		It("returns 'not supported' if director returns 404", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/stemcell_uploads"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusNotFound, ``),
-				),
-			)
-
-			submission := StemcellInfo{
-				Name: "name", Version: "ver",
-			}
-			_, supported, _ := director.StemcellNeedsUpload(submission)
-			Expect(supported).To(Equal(false))
-		})
-
-		It("promotes any other error", func() {
+		It("returns error if post fails", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/stemcell_uploads"),
@@ -246,9 +170,8 @@ var _ = Describe("Director", func() {
 			submission := StemcellInfo{
 				Name: "name", Version: "ver",
 			}
-			_, supported, err := director.StemcellNeedsUpload(submission)
+			_, err := director.StemcellNeedsUpload(submission)
 			Expect(err).To(HaveOccurred())
-			Expect(supported).To(BeTrue())
 		})
 	})
 

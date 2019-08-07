@@ -72,12 +72,9 @@ func (c UploadStemcellCmd) needToUpload(name, version string, fix bool) (bool, e
 		return true, nil
 	}
 
-	needed, supported, err := c.director.StemcellNeedsUpload(
+	needed, err := c.director.StemcellNeedsUpload(
 		boshdir.StemcellInfo{Name: name, Version: version},
 	)
-	if !supported {
-		return c.legacyNeedToUpload(name, version)
-	}
 	if err != nil {
 		return false, err
 	}
@@ -87,18 +84,5 @@ func (c UploadStemcellCmd) needToUpload(name, version string, fix bool) (bool, e
 		return false, nil
 	}
 
-	return true, nil
-}
-
-func (c UploadStemcellCmd) legacyNeedToUpload(name, version string) (bool, error) {
-	found, err := c.director.HasStemcell(name, version)
-	if err != nil {
-		return true, err
-	}
-
-	if found {
-		c.ui.PrintLinef("Stemcell '%s/%s' already exists.", name, version)
-		return false, nil
-	}
 	return true, nil
 }
