@@ -82,6 +82,8 @@ var _ = Describe("InstanceTable", func() {
 			It("returns empty if vm_created_at is empty", func() {
 				info.VMCreatedAt = time.Time{}
 				Expect(tbl.ForVMInfo(info).VMCreatedAt.String()).To(Equal(""))
+				info.VMCreatedAt = time.Unix(0, 0).UTC()
+				Expect(tbl.ForVMInfo(info).VMCreatedAt.String()).To(Equal(""))
 			})
 
 			It("returns time if created_at is non-empty", func() {

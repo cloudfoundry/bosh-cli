@@ -91,11 +91,19 @@ func (t ValueBytes) Compare(other Value) int {
 func NewValueTime(t time.Time) ValueTime { return ValueTime{T: t} }
 
 func (t ValueTime) String() string {
-	if t.T.IsZero() {
+	if t.IsZero() {
 		return ""
 	}
 	return t.T.Format(boshuifmt.TimeFullFmt)
 }
+
+func (t ValueTime) IsZero() bool {
+	// time.IzZero() returns true based on the time package definition of zero (Jan 1, year 1) which is not unix epoch 0
+	// time.Time{}.IsZero() => true
+	// time.Unix(0,0).UTC().IsZero() => false
+	return t.T.IsZero() || t.T.Unix() == 0
+}
+
 func (t ValueTime) Value() Value { return t }
 
 func (t ValueTime) Compare(other Value) int {
