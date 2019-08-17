@@ -14,8 +14,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "2b2aeece7979f19ee2809459e0411b337d02661a"
-  version = "v0.44.0"
+  revision = "ceeb313ad77b789a7fa5287b36a1d127b69b7093"
+  version = "v0.44.3"
 
 [[projects]]
   digest = "1:41531922c7f47d5157308b4dd1abc6142c4c583845ce424ed9664db867fa48cf"
@@ -37,7 +37,7 @@
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
 
 [[projects]]
-  digest = "1:76ccc4a9acff4b6985d4237a0e4e45a7138bfd218a3e821365c8b89ef260f16a"
+  digest = "1:ea51a6dce7080e349b2c1af1fc9349608cf46b8b54b6029604535af5593179db"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -80,8 +80,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "1f4898f67806740d2a91c9dfe9a8be8a61523eb4"
-  version = "v1.22.3"
+  revision = "fbdf1bd30caaf828d14bd5fed15130417858a723"
+  version = "v1.23.3"
 
 [[projects]]
   digest = "1:2352f40df77dec05ec853c63c0226a31343490412528e0345a86e46cece28b15"
@@ -118,8 +118,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "6e800ff80ff2410b413b9f51e27c9825e7f2a759"
-  version = "v2.244.0"
+  revision = "6ea57c3c41f2cc37077d879623f50ca79cd2282f"
+  version = "v2.246.0"
 
 [[projects]]
   digest = "1:b1529a7ae804b8c0ca3c6e08b3cda230d254028e2df0962ed90e02dcffedfcc3"
@@ -157,7 +157,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d2098a45d61709f849bd7a1d0c49403968c128c54af7de3505917ecafe27e903"
+  digest = "1:ab39b12b574aca3a317cf9682a8a6d01a780d381f085139d84e5a3698b5ea8b5"
   name = "github.com/cloudfoundry/bosh-utils"
   packages = [
     "blobstore",
@@ -180,7 +180,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "d286f594c8d9281f5542b6da0457564b5f75e4ed"
+  revision = "4d0b7c5acdfddc1ca85d0dd058f2054b8e683cd4"
 
 [[projects]]
   digest = "1:644b69a0973773f66f9fc57535c9b4380cd659c815355f44d2d1e04ad8cf00cf"
@@ -338,8 +338,8 @@
   name = "github.com/mattn/go-isatty"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "1311e847b0cb909da63b5fecfb5370aa66236465"
-  version = "v0.0.8"
+  revision = "e1f7b56ace729e4a73a29a6b4fac6cd5fcda7ab3"
+  version = "v0.0.9"
 
 [[projects]]
   digest = "1:70ef8268170621826f8c111ac1674afe75136f526f449453b4a6631c6dba1946"
@@ -491,7 +491,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:266fecde6a6d72ee9903604523bbda5a76aafa2810c78dbd521f885fafe050e9"
+  digest = "1:ab01db68a7f4001c296cb80fb92ba9f6a34bf24465cd785c4e16eafc3a5ac836"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -509,7 +509,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "ca1201d0de80cfde86cb01aea620983605dfe99b"
+  revision = "74dc4d7220e7acc4e100824340f3e66577424772"
 
 [[projects]]
   branch = "master"
@@ -527,7 +527,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:fac91f8c6996469de63f537b598f42d79a915488211fdf18111d9955f4d6d68f"
+  digest = "1:0288cbca859e66ab17946cdba35d3f9f11a4723e2004bfcc5710a08b6e7cd499"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -535,7 +535,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "51ab0e2deafac1f46c46ad59cf0921be2f180c3d"
+  revision = "fde4db37ae7ad8191b03d30d27f258b5291ae4e3"
 
 [[projects]]
   digest = "1:28deae5fe892797ff37a317b5bcda96d11d1c90dadd89f1337651df3bc4c586e"
@@ -576,7 +576,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:396e96dc205fbf29bb19476a102a9ab3be4ed685cae2825149884bf1fd3a4b91"
+  digest = "1:faa94b1d1ba8d7d53b8906231deb62d16a5d793429e0ff1a972f516e64571111"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -593,7 +593,7 @@
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "6d4652c779c4add9e1a69db058dabafddba21c37"
+  revision = "6889da9d54793ea182dd07be58824cf86bf0746b"
 
 [[projects]]
   digest = "1:a0a62ee8620e02178fbe816c61575817fa260797ed2202dca11d2f87a836e5f6"
@@ -645,10 +645,10 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "fa694d86fc64c7654a660f8908de4e879866748d"
+  revision = "55e96fffbd486c27fc0d5b4468c497d0de3f2727"
 
 [[projects]]
-  digest = "1:b5fb6a9fb9d276fe26f303d502e79a7e93afcaae43d05dc95b4993f5b59c6c6a"
+  digest = "1:2b6504cfc5fa4bcd1d7df2719fed5ddc24a9f7b69027f2f97f3e784dfdf8aa03"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -686,8 +686,8 @@
     "tap",
   ]
   pruneopts = "NUT"
-  revision = "045159ad57f3781d409358e3ade910a018c16b30"
-  version = "v1.22.1"
+  revision = "6eaf6f47437a6b4e2153a190160ef39a92c7eceb"
+  version = "v1.23.0"
 
 [[projects]]
   digest = "1:1b91ae0dc69a41d4c2ed23ea5cffb721ea63f5037ca4b81e6d6771fbb8f45129"

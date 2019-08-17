@@ -960,7 +960,9 @@ func (fs *FakeFileSystem) Ls(root string) ([]string, error) {
 		if err != nil {
 			return err
 		}
-		matches = append(matches, path)
+		if root != path {
+			matches = append(matches, path)
+		}
 		return nil
 	})
 	if err != nil {
@@ -980,11 +982,10 @@ func (fs *FakeFileSystem) Walk(root string, walkFunc filepath.WalkFunc) error {
 		paths = append(paths, path)
 	}
 	sort.Strings(paths)
-
-	root = gopath.Join(root) + "/"
+	pathPrefix := gopath.Join(root) + "/"
 	for _, path := range paths {
 		fileStats := fs.fileRegistry.Get(path)
-		if strings.HasPrefix(path, root) {
+		if gopath.Join(path) == gopath.Join(root) || strings.HasPrefix(path, pathPrefix) {
 			fakeFile := NewFakeFile(path, fs)
 			fakeFile.Stats = fileStats
 			fileInfo, _ := fakeFile.Stat()
