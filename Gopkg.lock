@@ -37,7 +37,7 @@
   revision = "99757edba73523adac0d2460f4c3555f938663b5"
 
 [[projects]]
-  digest = "1:55eef77c80809bc6717d508e148b588d556ea84bbf1fe16d07b6db6d99524eef"
+  digest = "1:fc9d2def857efe7bbd261a392c3369e93ab75cf3b4c0a6fe8c1818d6862ffb4a"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -80,8 +80,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "5c462231880841c424d16b29eab94b393421bdb8"
-  version = "v1.23.8"
+  revision = "2eb9a651f22769d792f974e8a8efe16afea3370f"
+  version = "v1.23.9"
 
 [[projects]]
   digest = "1:2352f40df77dec05ec853c63c0226a31343490412528e0345a86e46cece28b15"
@@ -118,20 +118,21 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "aecdc5d6df7226434e0921b15eee4137bf196a7c"
-  version = "v2.248.0"
+  revision = "be06cfd34ec5cccad682f25fa6361aded37e0496"
+  version = "v2.249.0"
 
 [[projects]]
-  digest = "1:b1529a7ae804b8c0ca3c6e08b3cda230d254028e2df0962ed90e02dcffedfcc3"
+  digest = "1:b8c0be1a293eedbc168e8732e2b87e0615140d7f2e6bc78c28e7a1b99404b66e"
   name = "github.com/cloudfoundry/bosh-davcli"
   packages = [
     "client",
     "client/fakes",
     "config",
+    "signer",
   ]
   pruneopts = "NUT"
-  revision = "fbc59895ef9f643cc78b6787d346835efbb932a1"
-  version = "v0.0.34"
+  revision = "0cbf0ab5c95bde8bcb4e62d73df9242c6a41e26d"
+  version = "v0.0.36"
 
 [[projects]]
   digest = "1:3feff605c887976a9ce3dfd3457459b3b2918855c76bfb3959eee1b6c66c28c8"
@@ -145,15 +146,15 @@
   version = "v0.0.6"
 
 [[projects]]
-  digest = "1:0d21a44c9c178db92d09121d2ce3d71e8d62cb837651cea993d99f76454b2613"
+  digest = "1:6ee7fbbc3ac3e7615e8ff191819437cba4e669d1a2a8f26435bc6df84ba692a0"
   name = "github.com/cloudfoundry/bosh-s3cli"
   packages = [
     "client",
     "config",
   ]
   pruneopts = "NUT"
-  revision = "4f3281dd172ce0c2d77084459528f02c140d39e3"
-  version = "v0.0.82"
+  revision = "aec7947d2770d6384ef2602e546574e200ce6dfd"
+  version = "v0.0.83"
 
 [[projects]]
   branch = "master"
@@ -180,18 +181,18 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "701ecef9262dd61cda41a511781e9b49a426241b"
+  revision = "2bd955afd08082908df379255d1a10d6147c87ea"
 
 [[projects]]
-  digest = "1:644b69a0973773f66f9fc57535c9b4380cd659c815355f44d2d1e04ad8cf00cf"
+  digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
   name = "github.com/cloudfoundry/config-server"
   packages = [
     "types",
     "types/typesfakes",
   ]
   pruneopts = "NUT"
-  revision = "30c9fb2332a0329b9461f0f0bfae02c21a46b523"
-  version = "v0.1.18"
+  revision = "c9ac3617cb97ade27d27a2527f9695e2e0f7a4f2"
+  version = "v0.1.19"
 
 [[projects]]
   branch = "master"
@@ -527,7 +528,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0288cbca859e66ab17946cdba35d3f9f11a4723e2004bfcc5710a08b6e7cd499"
+  digest = "1:8b530fcddf80abde6daba49f7380b74b2e659483a06158c952f1f5897360294f"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -535,7 +536,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "fde4db37ae7ad8191b03d30d27f258b5291ae4e3"
+  revision = "c7b8b68b14567162c6602a7c5659ee0f26417c18"
 
 [[projects]]
   digest = "1:28deae5fe892797ff37a317b5bcda96d11d1c90dadd89f1337651df3bc4c586e"
@@ -576,7 +577,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6dc625899eddfebb23c8f2d38f8007ac52d473cd01193cac3810cd14e83324c9"
+  digest = "1:5929f6d40b149acf2a65717d276ff4a2735e5b1ce13d2c68878b4a834625228e"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -593,7 +594,7 @@
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "c4a336ef6a2feb97e86b0c7ebdd500717074f42b"
+  revision = "062dbaebb618132bda6dd6e3192a7b857ea212d0"
 
 [[projects]]
   digest = "1:c372988d87a16f713db3fc2964e9c25b970ba88e6737f0a1b9bd8ad4ada609c2"

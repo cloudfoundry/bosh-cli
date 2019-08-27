@@ -6,6 +6,7 @@ type Config struct {
 	Endpoint      string
 	RetryAttempts uint
 	TLS           TLS
+	Secret        string
 }
 
 type TLS struct {

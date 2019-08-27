@@ -33,7 +33,7 @@ type certParams struct {
 	IsCA             bool     `yaml:"is_ca"`
 	CAName           string   `yaml:"ca"`
 	ExtKeyUsage      []string `yaml:"extended_key_usage"`
-	Duration         int16    `yaml:"duration"`
+	Duration         int64    `yaml:"duration"`
 }
 
 var supportedCertParameters = []string{

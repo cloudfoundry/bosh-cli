@@ -3,6 +3,7 @@ package client
 import (
 	"crypto/sha1"
 	"fmt"
+	URLsigner "github.com/cloudfoundry/bosh-davcli/signer"
 	"io"
 	"net/http"
 	"net/url"
@@ -21,6 +22,7 @@ type Client interface {
 	Put(path string, content io.ReadCloser, contentLength int64) (err error)
 	Exists(path string) (err error)
 	Delete(path string) (err error)
+	Sign(objectID, action string, duration time.Duration) (string, error)
 }
 
 func NewClient(config davconf.Config, httpClient httpclient.Client, logger boshlog.Logger) (c Client) {
@@ -131,6 +133,19 @@ func (c client) Delete(path string) error {
 	}
 
 	return nil
+}
+
+func (c client) Sign(objectID, action string, duration time.Duration) (string, error) {
+	signer := URLsigner.NewSigner(c.config.Secret)
+	signTime := time.Now()
+
+	signedURL, err := signer.GenerateSignedURL(c.config.Endpoint, objectID, action, signTime, duration)
+
+	if err != nil {
+		return "", bosherr.WrapErrorf(err, "pre-signing the url")
+	}
+
+	return signedURL, err
 }
 
 func (c client) createReq(method, blobID string, body io.Reader) (*http.Request, error) {
