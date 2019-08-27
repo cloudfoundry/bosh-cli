@@ -5,7 +5,6 @@ groups:
   - test-unit
   - test-integration
   - test-acceptance-xenial
-  - test-acceptance-trusty
   - integration-postgres
   - build
   - build-alpha
@@ -63,21 +62,6 @@ jobs:
           file: bosh-cli/ci/tasks/test-acceptance.yml
           privileged: true
 
-  - name: test-acceptance-trusty
-    public: true
-    plan:
-      - in_parallel:
-        - get: bosh-cli
-          passed: [test-unit,test-integration]
-          trigger: true
-        - get: bosh-warden-cpi-release
-          trigger: true
-        - get: bosh-warden-stemcell-trusty
-      - in_parallel:
-        - task: test-acceptance
-          file: bosh-cli/ci/tasks/test-acceptance.yml
-          privileged: true
-
   - name: integration-postgres
     public: true
     serial: true
@@ -113,7 +97,6 @@ jobs:
       - in_parallel:
         - get: bosh-cli
           passed:
-           - test-acceptance-trusty
            - test-acceptance-xenial
            - integration-postgres
         - get: version-semver
@@ -193,7 +176,6 @@ jobs:
       - in_parallel:
         - get: bosh-cli
           passed:
-           - test-acceptance-trusty
            - test-acceptance-xenial
            - integration-postgres
           trigger: true
@@ -272,15 +254,6 @@ resources:
     type: s3
     source:
       regexp: warden/bosh-stemcell-(.*)-warden-boshlite-ubuntu-xenial-go_agent.tgz
-      bucket: {{aws_s3_stemcell_bucket}}
-      region_name: {{aws_s3_stemcell_bucket_region}}
-      access_key_id: {{aws_s3_stemcell_bucket_access_key}}
-      secret_access_key: {{aws_s3_stemcell_bucket_secret_key}}
-
-  - name: bosh-warden-stemcell-trusty
-    type: s3
-    source:
-      regexp: warden/bosh-stemcell-(.*)-warden-boshlite-ubuntu-trusty-go_agent.tgz
       bucket: {{aws_s3_stemcell_bucket}}
       region_name: {{aws_s3_stemcell_bucket_region}}
       access_key_id: {{aws_s3_stemcell_bucket_access_key}}
