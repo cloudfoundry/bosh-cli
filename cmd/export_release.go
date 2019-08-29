@@ -3,9 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-
+	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type ExportReleaseCmd struct {

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 )

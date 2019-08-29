@@ -23,6 +23,7 @@ import (
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
 	mock_cloud "github.com/cloudfoundry/bosh-cli/cloud/mocks"
 	bicmd "github.com/cloudfoundry/bosh-cli/cmd"
+	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	mock_config "github.com/cloudfoundry/bosh-cli/config/mocks"
 	bicpirel "github.com/cloudfoundry/bosh-cli/cpi/release"
@@ -137,7 +138,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			cloudStemcell bistemcell.CloudStemcell
 
-			defaultCreateEnvOpts bicmd.CreateEnvOpts
+			defaultCreateEnvOpts CreateEnvOpts
 
 			expectedSkipDrain bool
 
@@ -300,9 +301,9 @@ var _ = Describe("CreateEnvCmd", func() {
 				return cpiRelease, nil
 			}
 
-			defaultCreateEnvOpts = bicmd.CreateEnvOpts{
-				Args: bicmd.CreateEnvArgs{
-					Manifest: bicmd.FileBytesWithPathArg{Path: deploymentManifestPath},
+			defaultCreateEnvOpts = CreateEnvOpts{
+				Args: CreateEnvArgs{
+					Manifest: FileBytesWithPathArg{Path: deploymentManifestPath},
 				},
 			}
 		})
@@ -470,10 +471,10 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			Context("when state file is specified", func() {
 				It("prints specified state file path", func() {
-					createEnvOptsWithStatePath := bicmd.CreateEnvOpts{
+					createEnvOptsWithStatePath := CreateEnvOpts{
 						StatePath: filepath.Join("/", "specified", "path", "to", "cool-state.json"),
-						Args: bicmd.CreateEnvArgs{
-							Manifest: bicmd.FileBytesWithPathArg{Path: deploymentManifestPath},
+						Args: CreateEnvArgs{
+							Manifest: FileBytesWithPathArg{Path: deploymentManifestPath},
 						},
 					}
 

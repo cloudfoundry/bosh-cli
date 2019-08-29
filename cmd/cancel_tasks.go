@@ -1,6 +1,7 @@
 package cmd
 
 import boshdir "github.com/cloudfoundry/bosh-cli/director"
+import . "github.com/cloudfoundry/bosh-cli/cmd/opts"
 
 type CancelTasksCmd struct {
 	director boshdir.Director

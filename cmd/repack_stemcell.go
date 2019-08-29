@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	"github.com/cloudfoundry/bosh-cli/stemcell"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"

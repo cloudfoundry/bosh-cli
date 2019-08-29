@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
+	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	"github.com/cloudfoundry/bosh-cli/stemcell"
 	"github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"

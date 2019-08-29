@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
+	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 
 	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
