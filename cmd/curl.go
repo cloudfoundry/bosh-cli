@@ -3,8 +3,8 @@ package cmd
 import (
 	"net/http"
 	"net/http/httputil"
-	"strings"
 
+	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -64,30 +64,6 @@ func (c CurlCmd) Run(opts CurlOpts) error {
 	if respErr != nil {
 		return bosherr.WrapErrorf(respErr, "Executing HTTP request")
 	}
-
-	return nil
-}
-
-type CurlHeader struct {
-	Name  string
-	Value string
-}
-
-func (a *CurlHeader) UnmarshalFlag(data string) error {
-	pieces := strings.SplitN(data, ": ", 2)
-	if len(pieces) != 2 {
-		return bosherr.Errorf("Expected header '%s' to be in format 'name: value'", data)
-	}
-
-	if len(pieces[0]) == 0 {
-		return bosherr.Errorf("Expected header '%s' to specify non-empty name", data)
-	}
-
-	if len(pieces[1]) == 0 {
-		return bosherr.Errorf("Expected header '%s' to specify non-empty value", data)
-	}
-
-	*a = CurlHeader{Name: pieces[0], Value: pieces[1]}
 
 	return nil
 }

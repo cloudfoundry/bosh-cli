@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
+	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 

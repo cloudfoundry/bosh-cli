@@ -26,6 +26,7 @@ import (
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
 	mock_cloud "github.com/cloudfoundry/bosh-cli/cloud/mocks"
 	. "github.com/cloudfoundry/bosh-cli/cmd"
+	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	bicpirel "github.com/cloudfoundry/bosh-cli/cpi/release"
 	fakebicrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"

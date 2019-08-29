@@ -5,14 +5,15 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/cmd"
+	"github.com/cloudfoundry/bosh-cli/cmd/opts"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 )
 
 type FakeReleaseCreatingCmd struct {
-	RunStub        func(cmd.CreateReleaseOpts) (boshrel.Release, error)
+	RunStub        func(opts.CreateReleaseOpts) (boshrel.Release, error)
 	runMutex       sync.RWMutex
 	runArgsForCall []struct {
-		arg1 cmd.CreateReleaseOpts
+		arg1 opts.CreateReleaseOpts
 	}
 	runReturns struct {
 		result1 boshrel.Release
@@ -26,11 +27,11 @@ type FakeReleaseCreatingCmd struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeReleaseCreatingCmd) Run(arg1 cmd.CreateReleaseOpts) (boshrel.Release, error) {
+func (fake *FakeReleaseCreatingCmd) Run(arg1 opts.CreateReleaseOpts) (boshrel.Release, error) {
 	fake.runMutex.Lock()
 	ret, specificReturn := fake.runReturnsOnCall[len(fake.runArgsForCall)]
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
-		arg1 cmd.CreateReleaseOpts
+		arg1 opts.CreateReleaseOpts
 	}{arg1})
 	fake.recordInvocation("Run", []interface{}{arg1})
 	fake.runMutex.Unlock()
@@ -49,7 +50,7 @@ func (fake *FakeReleaseCreatingCmd) RunCallCount() int {
 	return len(fake.runArgsForCall)
 }
 
-func (fake *FakeReleaseCreatingCmd) RunArgsForCall(i int) cmd.CreateReleaseOpts {
+func (fake *FakeReleaseCreatingCmd) RunArgsForCall(i int) opts.CreateReleaseOpts {
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
 	return fake.runArgsForCall[i].arg1

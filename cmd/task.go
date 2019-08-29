@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 
+	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshuit "github.com/cloudfoundry/bosh-cli/ui/task"
 )

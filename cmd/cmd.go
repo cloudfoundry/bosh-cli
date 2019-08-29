@@ -17,6 +17,7 @@ import (
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	boshuit "github.com/cloudfoundry/bosh-cli/ui/task"
 
+	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
