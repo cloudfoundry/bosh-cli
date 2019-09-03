@@ -403,9 +403,7 @@ var _ = Describe("NewResourceWithBuiltArchive", func() {
 		file, err := fakeFs.TempFile("path")
 		Expect(err).ToNot(HaveOccurred())
 
-		fakeFs.RegisterOpenFile(file.Name(), &fakesfs.FakeFile{
-			Contents: []byte("hello world"),
-		})
+		fakeFs.WriteFileString(file.Name(), "hello world")
 
 		filePathName = file.Name()
 		filePathNameSha1 = "2aae6c35c94fcfb415dbe95f408b9ce91ee846ed"

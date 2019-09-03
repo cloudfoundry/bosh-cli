@@ -77,9 +77,7 @@ var _ = Describe("Blobstore", func() {
 
 	Describe("Add", func() {
 		BeforeEach(func() {
-			fs.RegisterOpenFile("fake-source-path", &fakesys.FakeFile{
-				Contents: []byte("fake-contents"),
-			})
+			fs.WriteFileString("fake-source-path", "fake-contents")
 		})
 
 		It("adds file to blobstore and returns its blob ID", func() {

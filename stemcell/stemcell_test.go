@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"fmt"
+
 	boshcmdfakes "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -329,8 +330,6 @@ var _ = Describe("Stemcell", func() {
 			destinationPath = "destination/tarball.tgz"
 
 			fakefs.MkdirAll("destination", os.ModeDir)
-			file := fakesys.NewFakeFile(destinationPath, fakefs)
-			fakefs.RegisterOpenFile(destinationPath, file)
 
 			stemcell = NewExtractedStemcell(
 				manifest,

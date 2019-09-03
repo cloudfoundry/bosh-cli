@@ -432,14 +432,6 @@ bad-sha-blob.tgz:
 
 				fs.SetGlob(filepath.Join("/", "dir", "blobs", "**", "*"), []string{symlink})
 
-				fs.RegisterOpenFile(symlink, &fakesys.FakeFile{
-					Stats: &fakesys.FakeFileStats{
-						FileType:      fakesys.FakeFileTypeFile,
-						FileMode:      os.FileMode(os.ModeSymlink),
-						SymlinkTarget: missingFilePath,
-					},
-				})
-
 				err := act(1)
 				Expect(err).To(MatchError("Bailing because symlinks found in blobs directory. If switching from CLI v1, please use the `reset-release` command."))
 			})

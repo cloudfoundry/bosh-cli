@@ -26,7 +26,6 @@ import (
 )
 
 var _ = Describe("RedigestRelease", func() {
-
 	var (
 		releaseReader                *fakerel.FakeReader
 		ui                           *fakeui.FakeUI
@@ -36,8 +35,15 @@ var _ = Describe("RedigestRelease", func() {
 		args                         RedigestReleaseArgs
 		fakeDigestCalculator         *fakes.FakeDigestCalculator
 		releaseWriterTempDestination string
+		fakeSha128Release            *fakerel.FakeRelease
 		fs                           *fakes2.FakeFileSystem
 	)
+
+	job1ResourcePath := "/job-resource-1-path"
+	pkg1ResourcePath := "/pkg-resource-1-path"
+	compiledPackage1ResourcePath := "/compiled-pkg-resource-path"
+	licenseResourcePath := "/license-resource-path"
+	fileContentSha1 := "2aae6c35c94fcfb415dbe95f408b9ce91ee846ed"
 
 	BeforeEach(func() {
 		releaseReader = &fakerel.FakeReader{}
@@ -48,31 +54,15 @@ var _ = Describe("RedigestRelease", func() {
 
 		fakeDigestCalculator = fakes.NewFakeDigestCalculator()
 		command = NewRedigestReleaseCmd(releaseReader, releaseWriter, fakeDigestCalculator, fmv, fs, ui)
-	})
-	var fakeSha128Release *fakerel.FakeRelease
-
-	job1ResourcePath := "/job-resource-1-path"
-	pkg1ResourcePath := "/pkg-resource-1-path"
-	compiledPackage1ResourcePath := "/compiled-pkg-resource-path"
-	licenseResourcePath := "/license-resource-path"
-	fileContentSha1 := "2aae6c35c94fcfb415dbe95f408b9ce91ee846ed"
-
-	createFakeFileWithKnownSha1 := func() *fakes2.FakeFile {
-		return &fakes2.FakeFile{
-			Contents: []byte("hello world"),
-		}
-	}
-
-	BeforeEach(func() {
 		args = RedigestReleaseArgs{
 			Path:        "/some/release_128.tgz",
 			Destination: FileArg{ExpandedPath: "/some/release_256.tgz"},
 		}
 
-		fs.RegisterOpenFile(job1ResourcePath, createFakeFileWithKnownSha1())
-		fs.RegisterOpenFile(pkg1ResourcePath, createFakeFileWithKnownSha1())
-		fs.RegisterOpenFile(compiledPackage1ResourcePath, createFakeFileWithKnownSha1())
-		fs.RegisterOpenFile(licenseResourcePath, createFakeFileWithKnownSha1())
+		fs.WriteFileString(job1ResourcePath, "hello world")
+		fs.WriteFileString(pkg1ResourcePath, "hello world")
+		fs.WriteFileString(compiledPackage1ResourcePath, "hello world")
+		fs.WriteFileString(licenseResourcePath, "hello world")
 
 		fakeSha128Release = &fakerel.FakeRelease{}
 		jobSha128 := boshjob.NewJob(NewResourceWithBuiltArchive("job-resource-1", "job-sha128-fp", job1ResourcePath, fileContentSha1))
@@ -272,9 +262,7 @@ var _ = Describe("RedigestRelease", func() {
 	Context("Given an invalid sha128 release tar", func() {
 		Context("Given a job that does not verify", func() {
 			BeforeEach(func() {
-				fs.RegisterOpenFile(job1ResourcePath, &fakes2.FakeFile{
-					Contents: []byte("content that does not match expected sha1"),
-				})
+				fs.WriteFileString(job1ResourcePath, "content that does not match expected sha1")
 			})
 
 			It("should return an error", func() {
@@ -287,9 +275,7 @@ var _ = Describe("RedigestRelease", func() {
 
 		Context("Given a package that does not verify", func() {
 			BeforeEach(func() {
-				fs.RegisterOpenFile(pkg1ResourcePath, &fakes2.FakeFile{
-					Contents: []byte("content that does not match expected sha1"),
-				})
+				fs.WriteFileString(pkg1ResourcePath, "content that does not match expected sha1")
 			})
 
 			It("should return an error", func() {
@@ -302,9 +288,7 @@ var _ = Describe("RedigestRelease", func() {
 
 		Context("Given a compiled package that does not verify", func() {
 			BeforeEach(func() {
-				fs.RegisterOpenFile(compiledPackage1ResourcePath, &fakes2.FakeFile{
-					Contents: []byte("content that does not match expected sha1"),
-				})
+				fs.WriteFileString(compiledPackage1ResourcePath, "content that does not match expected sha1")
 			})
 
 			It("should return an error", func() {
@@ -317,9 +301,7 @@ var _ = Describe("RedigestRelease", func() {
 
 		Context("Given a license that does not verify", func() {
 			BeforeEach(func() {
-				fs.RegisterOpenFile(licenseResourcePath, &fakes2.FakeFile{
-					Contents: []byte("content that does not match expected sha1"),
-				})
+				fs.WriteFileString(licenseResourcePath, "content that does not match expected sha1")
 			})
 
 			It("should return an error", func() {

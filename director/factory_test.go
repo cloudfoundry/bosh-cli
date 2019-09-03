@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
-	"github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	"github.com/onsi/gomega/ghttp"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -118,6 +118,8 @@ var _ = Describe("Factory", func() {
 			})
 
 			It("succeeds making initial post request and clears out headers when redirecting to a get resource", func() {
+				fs := fakesys.NewFakeFileSystem()
+
 				factoryConfig, err := NewConfigFromURL(server.URL())
 				Expect(err).ToNot(HaveOccurred())
 
@@ -161,7 +163,7 @@ var _ = Describe("Factory", func() {
 					),
 				)
 
-				err = director.UploadStemcellFile(&fakes.FakeFile{}, false)
+				err = director.UploadStemcellFile(fakesys.NewFakeFile("/some-path", fs), false)
 				Expect(err).ToNot(HaveOccurred())
 			})
 

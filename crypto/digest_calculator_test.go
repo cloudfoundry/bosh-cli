@@ -27,10 +27,7 @@ var _ = Describe("Sha1Calculator", func() {
 	Describe("Calculate", func() {
 		Context("when path is a file", func() {
 			BeforeEach(func() {
-				fs.RegisterOpenFile(filepath.Join("/", "fake-archived-templates-path"), &fakesys.FakeFile{
-					Contents: []byte("fake-archive-contents"),
-					Stats:    &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
-				})
+				fs.WriteFileString(filepath.Join("/", "fake-archived-templates-path"), "fake-archive-contents")
 			})
 
 			It("returns sha1 of the file", func() {
