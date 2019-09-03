@@ -135,11 +135,13 @@ func (c client) Delete(path string) error {
 	return nil
 }
 
-func (c client) Sign(objectID, action string, duration time.Duration) (string, error) {
+func (c client) Sign(blobID, action string, duration time.Duration) (string, error) {
 	signer := URLsigner.NewSigner(c.config.Secret)
 	signTime := time.Now()
 
-	signedURL, err := signer.GenerateSignedURL(c.config.Endpoint, objectID, action, signTime, duration)
+	prefixedBlob := fmt.Sprintf("%s/%s", getBlobPrefix(blobID), blobID)
+
+	signedURL, err := signer.GenerateSignedURL(c.config.Endpoint, prefixedBlob, action, signTime, duration)
 
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "pre-signing the url")
@@ -154,9 +156,7 @@ func (c client) createReq(method, blobID string, body io.Reader) (*http.Request,
 		return nil, err
 	}
 
-	digester := sha1.New()
-	digester.Write([]byte(blobID))
-	blobPrefix := fmt.Sprintf("%02x", digester.Sum(nil)[0])
+	blobPrefix := getBlobPrefix(blobID)
 
 	newPath := path.Join(blobURL.Path, blobPrefix, blobID)
 	if !strings.HasPrefix(newPath, "/") {
@@ -184,4 +184,10 @@ func (c client) readAndTruncateBody(resp *http.Response) string {
 		}
 	}
 	return body
+}
+
+func getBlobPrefix(blobID string) string {
+	digester := sha1.New()
+	digester.Write([]byte(blobID))
+	return fmt.Sprintf("%02x", digester.Sum(nil)[0])
 }

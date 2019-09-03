@@ -224,6 +224,7 @@ func (f *FakeFile) Close() error {
 	if f.Stats != nil {
 		f.Stats.Open = false
 	}
+	f.fs.openFileRegistry.Remove(f.path)
 	return f.CloseErr
 }
 
@@ -1059,6 +1060,10 @@ func (ffr *FakeFileRegistry) Register(path string, file *FakeFile) {
 
 func (ffr *FakeFileRegistry) Get(path string) *FakeFile {
 	return ffr.files[ffr.UnifiedPath(path)]
+}
+
+func (ffr *FakeFileRegistry) Remove(path string) {
+	delete(ffr.files, ffr.UnifiedPath(path))
 }
 
 func (ffr *FakeFileRegistry) UnifiedPath(path string) string {

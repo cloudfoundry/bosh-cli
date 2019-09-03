@@ -831,7 +831,8 @@ func golistargs(cfg *Config, words []string) []string {
 		fmt.Sprintf("-compiled=%t", cfg.Mode&(NeedCompiledGoFiles|NeedSyntax|NeedTypesInfo|NeedTypesSizes) != 0),
 		fmt.Sprintf("-test=%t", cfg.Tests),
 		fmt.Sprintf("-export=%t", usesExportData(cfg)),
-		fmt.Sprintf("-deps=%t", cfg.Mode&NeedDeps != 0),
+		fmt.Sprintf("-deps=%t", cfg.Mode&NeedDeps != 0 ||
+			cfg.Mode&NeedTypesInfo != 0), // Dependencies are required to do typechecking on sources, which is required for the TypesInfo.
 		// go list doesn't let you pass -test and -find together,
 		// probably because you'd just get the TestMain.
 		fmt.Sprintf("-find=%t", !cfg.Tests && cfg.Mode&findFlags == 0),
@@ -886,7 +887,9 @@ func invokeGo(cfg *Config, args ...string) (*bytes.Buffer, error) {
 
 		// Is there an error running the C compiler in cgo? This will be reported in the "Error" field
 		// and should be suppressed by go list -e.
-		if len(stderr.String()) > 0 && strings.HasPrefix(stderr.String(), "# runtime/cgo\n") && strings.Count(stderr.String(), "\n") == 2 {
+		//
+		// This condition is not perfect yet because the error message can include other error messages than runtime/cgo.
+		if len(stderr.String()) > 0 && strings.HasPrefix(stderr.String(), "# runtime/cgo\n") {
 			return stdout, nil
 		}
 
