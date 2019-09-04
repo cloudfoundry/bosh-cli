@@ -61,7 +61,7 @@ type BoshOpts struct {
 	// Misc
 	Locks   LocksOpts   `command:"locks"    description:"List current locks"`
 	CleanUp CleanUpOpts `command:"clean-up" description:"Clean up old unused resources except orphaned disks"`
-	Curl    CurlOpts    `command:"curl"     description:"Make an HTTP request to the Director" hidden:"true"`
+	Curl    CurlOpts    `command:"curl"     description:"Make an HTTP request to the Director"`
 
 	// Config
 	Config       ConfigOpts       `command:"config" alias:"c" description:"Show current config for either ID or both type and name"`
@@ -162,9 +162,8 @@ type BoshOpts struct {
 	CreateRelease   CreateReleaseOpts   `command:"create-release"   alias:"cr" description:"Create release"`
 	VendorPackage   VendorPackageOpts   `command:"vendor-package"              description:"Vendor package"`
 
-	// Hidden
-	Sha1ifyRelease Sha1ifyReleaseOpts `command:"sha1ify-release"  hidden:"true" description:"Convert release tarball to use SHA1"`
-	Sha2ifyRelease Sha2ifyReleaseOpts `command:"sha2ify-release"  hidden:"true" description:"Convert release tarball to use SHA256"`
+	Sha1ifyRelease Sha1ifyReleaseOpts `command:"sha1ify-release"  description:"Convert release tarball to use SHA1"`
+	Sha2ifyRelease Sha2ifyReleaseOpts `command:"sha2ify-release"  description:"Convert release tarball to use SHA256"`
 
 	FinalizeRelease FinalizeReleaseOpts `command:"finalize-release"               description:"Create final release from dev release tarball"`
 
@@ -1086,7 +1085,7 @@ type UploadBlobsOpts struct {
 }
 
 type CurlOpts struct {
-	Args CurlArgs `positional-args:"true"`
+	Args CurlArgs `positional-args:"true" required:"true"`
 
 	Method  string       `long:"method" short:"X" description:"HTTP method" default:"GET"`
 	Headers []CurlHeader `long:"header" short:"H" description:"HTTP header in 'name: value' format"`

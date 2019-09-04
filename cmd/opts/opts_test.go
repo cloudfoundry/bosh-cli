@@ -747,7 +747,7 @@ var _ = Describe("Opts", func() {
 		Describe("Sha2ifyRelease", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Sha2ifyRelease", opts)).To(Equal(
-					`command:"sha2ify-release" hidden:"true" description:"Convert release tarball to use SHA256"`,
+					`command:"sha2ify-release" description:"Convert release tarball to use SHA256"`,
 				))
 			})
 		})
@@ -811,7 +811,7 @@ var _ = Describe("Opts", func() {
 		Describe("Curl", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Curl", opts)).To(Equal(
-					`command:"curl" description:"Make an HTTP request to the Director" hidden:"true"`,
+					`command:"curl" description:"Make an HTTP request to the Director"`,
 				))
 			})
 		})
@@ -3222,7 +3222,7 @@ var _ = Describe("Opts", func() {
 
 		Describe("Args", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
 		})
 
