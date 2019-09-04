@@ -453,11 +453,5 @@ var _ = Describe("Factory", func() {
 			_, err := factory.New(opts)
 			Expect(err).To(HaveOccurred())
 		})
-
-		It("errors when BOSH_USER is set", func() {
-			os.Setenv("BOSH_USER", "bar")
-			_, err := factory.New([]string{})
-			Expect(err).To(HaveOccurred())
-		})
 	})
 })

@@ -20,9 +20,6 @@ type BoshOpts struct {
 	Sha2           bool      `long:"sha2"                  description:"Use SHA256 checksums" env:"BOSH_SHA2"`
 	Parallel       int       `long:"parallel" description:"The max number of parallel operations" default:"5"`
 
-	// Hidden
-	UsernameOpt string `long:"user" hidden:"true" env:"BOSH_USER"`
-
 	// Specify client credentials
 	ClientOpt       string `long:"client"        description:"Override username or UAA client"        env:"BOSH_CLIENT"`
 	ClientSecretOpt string `long:"client-secret" description:"Override password or UAA client secret" env:"BOSH_CLIENT_SECRET"`
