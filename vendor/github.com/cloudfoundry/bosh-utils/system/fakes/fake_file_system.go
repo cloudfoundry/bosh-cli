@@ -216,8 +216,12 @@ func (f *FakeFile) WriteAt(b []byte, offset int64) (int, error) {
 	return len(b), nil
 }
 
-func (f *FakeFile) Seek(int64, int) (int64, error) {
-	return 0, nil
+func (f *FakeFile) Seek(offset int64, whence int) (int64, error) {
+	if whence != io.SeekStart {
+		return -1, errors.New(`Invalid argument for "whence": only SeekStart is supported`)
+	}
+	f.readIndex = offset
+	return f.readIndex, nil
 }
 
 func (f *FakeFile) Close() error {
