@@ -4,7 +4,6 @@ name: sample-release
 releases:
 - name: bosh-warden-cpi
   url: {{ .CPIReleaseURL }}
-  sha1: {{ .CPIReleaseSHA1 }}
 - name: sample-release
   url: file://{{ .DummyCompiledReleasePath }}
 
@@ -14,11 +13,12 @@ resource_pools:
   env:
     bosh:
       password: pjF0EjcwDTvyQ # openssl passwd -crypt sshpassword
+      mbus:
+        cert: ((mbus))
       authorized_keys:
       - ((ssh_tunnel.public_key))
   stemcell:
     url: {{ .StemcellURL }}
-    sha1: {{ .StemcellSHA1 }}
 
 disk_pools:
 - name: persistent
@@ -38,17 +38,18 @@ cloud_provider:
   template:
     name: warden_cpi
     release: bosh-warden-cpi
+  mbus: https://admin:admin@10.244.0.42:6868
+  cert:
+    ca: ((mbus.ca))
   ssh_tunnel:
     host: 10.244.0.42
     port: 22
     user: vcap
     private_key: ((ssh_tunnel.private_key))
-  mbus: https://admin:admin@10.244.0.42:6868
   properties:
     warden_cpi: &warden_cpi
       actions:
         expand_stemcell_tarball: false
-      enable_registry: false
       warden:
         connect_network: tcp
         connect_address: 0.0.0.0:7777
@@ -78,5 +79,15 @@ instance_groups:
     ntp: []
 
 variables:
+- name: default_ca
+  type: certificate
+  options:
+    is_ca: true
+- name: mbus
+  type: certificate
+  options:
+    common_name: bosh.integration.test
+    alternative_names: [10.244.0.42]
+    ca: default_ca
 - name: ssh_tunnel
   type: ssh

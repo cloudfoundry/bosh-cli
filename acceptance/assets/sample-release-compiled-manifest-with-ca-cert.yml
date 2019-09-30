@@ -4,7 +4,6 @@ name: sample-release
 releases:
 - name: bosh-warden-cpi
   url: {{ .CPIReleaseURL }}
-  sha1: {{ .CPIReleaseSHA1 }}
 - name: sample-release
   url: file://{{ .DummyCompiledReleasePath }}
 
@@ -20,7 +19,6 @@ resource_pools:
       - ((ssh_tunnel.public_key))
   stemcell:
     url: {{ .StemcellURL }}
-    sha1: {{ .StemcellSHA1 }}
 
 disk_pools:
 - name: persistent

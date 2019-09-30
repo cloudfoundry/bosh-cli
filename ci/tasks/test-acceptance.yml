@@ -12,6 +12,8 @@ inputs:
   path: gopath/src/github.com/cloudfoundry/bosh-cli
 - name: bosh-warden-cpi-release
   path: cpi-release
+- name: bosh-warden-stemcell-xenial
+  path: stemcell
 
 run:
   path: gopath/src/github.com/cloudfoundry/bosh-cli/ci/tasks/test-acceptance.sh
