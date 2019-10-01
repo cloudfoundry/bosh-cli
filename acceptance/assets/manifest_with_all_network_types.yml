@@ -4,10 +4,8 @@ name: test-release
 releases:
 - name: bosh-warden-cpi
   url: {{ .CPIReleaseURL }}
-- name: dummy
-  url: file://{{ .DummyReleasePath }}
-- name: dummyToo
-  url: file://{{ .DummyTooReleasePath }}
+- name: sample-release
+  url: file://{{ .DummyCompiledReleasePath }}
 
 resource_pools:
 - name: fake-resource-pool-name
@@ -69,13 +67,11 @@ cloud_provider:
             blobstore_path: /var/vcap/micro_bosh/data/cache
 
 instance_groups:
-- name: dummy_job
+- name: dummy_instance_group
   instances: 1
   jobs:
-  - {name: dummy_with_package, release: dummy}
-  - {name: dummy_with_properties, release: dummy}
-  - {name: dummy, release: dummy}
-  - {name: dummyToo, release: dummyToo}
+  - name: sample-job
+    release: sample-release
   resource_pool: fake-resource-pool-name
   networks:
   - name: fake-network-name

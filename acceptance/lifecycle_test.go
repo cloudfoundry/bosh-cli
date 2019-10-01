@@ -67,13 +67,7 @@ var _ = Describe("bosh", func() {
 	type manifestContext struct {
 		CPIReleaseURL            string
 		StemcellURL              string
-		DummyReleasePath         string
-		DummyTooReleasePath      string
 		DummyCompiledReleasePath string
-		MbusCACert               []string
-		AgentMbusCACert          []string
-		AgentMbusPrivateKey      []string
-		AgentMbusCertificate     []string
 	}
 
 	var prepareDeploymentManifest = func(context manifestContext, sourceManifestPath string) []byte {
@@ -86,18 +80,6 @@ var _ = Describe("bosh", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		return buffer.Bytes()
-	}
-
-	// updateDeploymentManifest copies a source manifest from assets to <workspace>/manifest
-	var updateDeploymentManifest = func(sourceManifestPath string) {
-		context := manifestContext{
-			DummyReleasePath:    testEnv.Path("dummy-release.tgz"),
-			DummyTooReleasePath: testEnv.Path("dummy-too-release.tgz"),
-		}
-
-		buffer := prepareDeploymentManifest(context, sourceManifestPath)
-		err := testEnv.WriteContent("test-manifest.yml", buffer)
-		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var updateCompiledReleaseDeploymentManifest = func(sourceManifestPath string) {
@@ -260,12 +242,6 @@ var _ = Describe("bosh", func() {
 		err = testEnv.Copy("cpi-release.tgz", config.CPIReleasePath)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = testEnv.Copy("dummy-release.tgz", config.DummyReleasePath)
-		Expect(err).NotTo(HaveOccurred())
-
-		err = testEnv.Copy("dummy-too-release.tgz", config.DummyTooReleasePath)
-		Expect(err).NotTo(HaveOccurred())
-
 		err = testEnv.Copy("sample-release-compiled.tgz", config.DummyCompiledReleasePath)
 		Expect(err).NotTo(HaveOccurred())
 	})
@@ -277,7 +253,7 @@ var _ = Describe("bosh", func() {
 		})
 
 		It("is able to deploy given many variances with compiled releases", func() {
-			updateCompiledReleaseDeploymentManifest("./assets/sample-release-compiled-manifest.yml")
+			updateCompiledReleaseDeploymentManifest("./assets/manifest.yml")
 
 			By("deploying compiled releases successfully with expected output")
 			stdout := deploy("test-manifest.yml", extraDeployArgs...)
@@ -306,7 +282,7 @@ var _ = Describe("bosh", func() {
 
 			deployingSteps, _ := findStage(outputLines, "deploying", doneIndex+1)
 			numDeployingSteps := len(deployingSteps)
-			Expect(deployingSteps[0]).To(MatchRegexp("^  Creating VM for instance 'dummy_compiled_job/0' from stemcell '.*'" + stageFinishedPattern))
+			Expect(deployingSteps[0]).To(MatchRegexp("^  Creating VM for instance 'dummy_instance_group/0' from stemcell '.*'" + stageFinishedPattern))
 			Expect(deployingSteps[1]).To(MatchRegexp("^  Waiting for the agent on VM '.*' to be ready" + stageFinishedPattern))
 			Expect(deployingSteps[2]).To(MatchRegexp("^  Creating disk" + stageFinishedPattern))
 			Expect(deployingSteps[3]).To(MatchRegexp("^  Attaching disk '.*' to VM '.*'" + stageFinishedPattern))
@@ -316,9 +292,9 @@ var _ = Describe("bosh", func() {
 				Expect(line).To(MatchRegexp("^  Compiling package '.*/.*'" + stageCompiledPackageSkippedPattern))
 			}
 
-			Expect(deployingSteps[numDeployingSteps-3]).To(MatchRegexp("^  Updating instance 'dummy_compiled_job/0'" + stageFinishedPattern))
-			Expect(deployingSteps[numDeployingSteps-2]).To(MatchRegexp("^  Waiting for instance 'dummy_compiled_job/0' to be running" + stageFinishedPattern))
-			Expect(deployingSteps[numDeployingSteps-1]).To(MatchRegexp("^  Running the post-start scripts 'dummy_compiled_job/0'" + stageFinishedPattern))
+			Expect(deployingSteps[numDeployingSteps-3]).To(MatchRegexp("^  Updating instance 'dummy_instance_group/0'" + stageFinishedPattern))
+			Expect(deployingSteps[numDeployingSteps-2]).To(MatchRegexp("^  Waiting for instance 'dummy_instance_group/0' to be running" + stageFinishedPattern))
+			Expect(deployingSteps[numDeployingSteps-1]).To(MatchRegexp("^  Running the post-start scripts 'dummy_instance_group/0'" + stageFinishedPattern))
 
 			Expect(outputLines[numOutputLines-4]).To(MatchRegexp("^Cleaning up rendered CPI jobs" + stageFinishedPattern))
 
@@ -336,7 +312,7 @@ var _ = Describe("bosh", func() {
 			Expect(stdout).ToNot(ContainSubstring("Started deploying"))
 
 			By("deleting the old VM if updating with a property change")
-			updateDeploymentManifest("./assets/modified_manifest.yml")
+			updateCompiledReleaseDeploymentManifest("./assets/modified_manifest.yml")
 
 			stdout = deploy("test-manifest.yml", extraDeployArgs...)
 
@@ -348,13 +324,13 @@ var _ = Describe("bosh", func() {
 
 			By("deleting the agent when deploying without a working agent")
 			shutdownAgent()
-			updateDeploymentManifest("./assets/manifest.yml")
+			updateCompiledReleaseDeploymentManifest("./assets/manifest.yml")
 
 			stdout = deploy("test-manifest.yml", extraDeployArgs...)
 
 			Expect(stdout).To(MatchRegexp("Waiting for the agent on VM '.*'\\.\\.\\. Failed " + stageTimePattern))
 			Expect(stdout).To(ContainSubstring("Deleting VM"))
-			Expect(stdout).To(ContainSubstring("Creating VM for instance 'dummy_job/0' from stemcell"))
+			Expect(stdout).To(ContainSubstring("Creating VM for instance 'dummy_instance_group/0' from stemcell"))
 			Expect(stdout).To(ContainSubstring("Finished deploying"))
 
 			By("deleting all VMs, disks, and stemcells")
@@ -368,9 +344,9 @@ var _ = Describe("bosh", func() {
 		})
 	})
 
-	Context("when deploying with a mbus CA cert", func() {
+	Context("when deploying with a bogus mbus CA cert", func() {
 		BeforeEach(func() {
-			updateCompiledReleaseDeploymentManifest("./assets/sample-release-compiled-manifest-with-ca-cert.yml")
+			updateCompiledReleaseDeploymentManifest("./assets/manifest.yml")
 		})
 
 		AfterEach(func() {
@@ -378,43 +354,30 @@ var _ = Describe("bosh", func() {
 			deleteDeployment("test-manifest.yml", extraDeployArgs...)
 		})
 
-		Context("with a valid CA", func() {
-			It("verifies the CA cert", func() {
-				By("deploying with the right CA cert")
-				stdout := deploy("test-manifest.yml", extraDeployArgs...)
-				outputLines := strings.Split(stdout, "\n")
+		It("fails pinging the agent", func() {
+			By("deploying with a bogus CA cert")
+			fmt.Fprintf(GinkgoWriter, "\n--- DEPLOY ---\n")
 
-				Expect(outputLines).NotTo(ContainElement(MatchRegexp("x509: certificate has expired or is not yet valid")))
-				Expect(outputLines).To(ContainElement("Succeeded"))
-			})
-		})
+			stdoutBuffer := &bytes.Buffer{}
+			multiWriter := io.MultiWriter(stdoutBuffer, GinkgoWriter)
 
-		Context("with a bogus CA", func() {
-			It("fails pinging the agent", func() {
-				By("deploying with a bogus CA cert")
-				fmt.Fprintf(GinkgoWriter, "\n--- DEPLOY ---\n")
+			_, _, exitCode, err := cmdRunner.RunStreamingCommand(
+				multiWriter,
+				cmdEnv,
+				append(
+					[]string{
+						testEnv.Path("bosh"),
+						"create-env", "--tty", testEnv.Path("test-manifest.yml"),
+						"-o", "./assets/use-bogus-mbus-ca.yml",
+					},
+					extraDeployArgs...,
+				)...,
+			)
+			Expect(err).To(HaveOccurred())
+			Expect(exitCode).To(Equal(1))
+			outputLines := strings.Split(stdoutBuffer.String(), "\n")
 
-				stdoutBuffer := &bytes.Buffer{}
-				multiWriter := io.MultiWriter(stdoutBuffer, GinkgoWriter)
-
-				_, _, exitCode, err := cmdRunner.RunStreamingCommand(
-					multiWriter,
-					cmdEnv,
-					append(
-						[]string{
-							testEnv.Path("bosh"),
-							"create-env", "--tty", testEnv.Path("test-manifest.yml"),
-							"-o", "./assets/use-bogus-mbus-ca.yml",
-						},
-						extraDeployArgs...,
-					)...,
-				)
-				Expect(err).To(HaveOccurred())
-				Expect(exitCode).To(Equal(1))
-				outputLines := strings.Split(stdoutBuffer.String(), "\n")
-
-				Expect(outputLines).To(ContainElement(MatchRegexp("x509: certificate signed by unknown authority")))
-			})
+			Expect(outputLines).To(ContainElement(MatchRegexp("x509: certificate signed by unknown authority")))
 		})
 	})
 
@@ -425,17 +388,19 @@ var _ = Describe("bosh", func() {
 		})
 
 		It("is successful", func() {
-			updateDeploymentManifest("./assets/manifest_with_all_network_types.yml")
+			updateCompiledReleaseDeploymentManifest("./assets/manifest_with_all_network_types.yml")
 
 			stdout := deploy("test-manifest.yml", extraDeployArgs...)
 			Expect(stdout).To(ContainSubstring("Finished deploying"))
 		})
 	})
 
-	It("exits early if there's no deployment state to delete", func() {
-		updateDeploymentManifest("./assets/manifest.yml")
-		stdout := deleteDeployment("test-manifest.yml", extraDeployArgs...)
+	Context("When there is no deployment state to delete", func() {
+		It("exits early", func() {
+			updateCompiledReleaseDeploymentManifest("./assets/manifest.yml")
+			stdout := deleteDeployment("test-manifest.yml", extraDeployArgs...)
 
-		Expect(stdout).To(ContainSubstring("No deployment state file found"))
+			Expect(stdout).To(ContainSubstring("No deployment state file found"))
+		})
 	})
 })

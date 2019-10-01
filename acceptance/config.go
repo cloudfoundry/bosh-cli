@@ -11,8 +11,6 @@ import (
 type Config struct {
 	StemcellPath             string `json:"stemcell_path"`
 	CPIReleasePath           string `json:"cpi_release_path"`
-	DummyReleasePath         string `json:"dummy_release_path"`
-	DummyTooReleasePath      string `json:"dummy_too_release_path"`
 	DummyCompiledReleasePath string `json:"dummy_compiled_release_path"`
 }
 
@@ -43,10 +41,6 @@ func (c *Config) Validate() error {
 
 	if c.CPIReleasePath == "" {
 		return errors.New("Must provide 'cpi_release_path' in config")
-	}
-
-	if c.DummyTooReleasePath == "" {
-		return errors.New("Must provide 'dummy_too_release_path' in config")
 	}
 
 	if c.DummyCompiledReleasePath == "" {

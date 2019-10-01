@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -ex
 
-dummy_release_path=${BOSH_INIT_DUMMY_RELEASE_PATH:-./assets/dummy-release.tgz}
-dummy_too_release_path=${BOSH_INIT_DUMMY_TOO_RELEASE_PATH:-./assets/dummy-too-release.tgz}
 dummy_compiled_release_path=${BOSH_INIT_DUMMY_COMPILED_RELEASE_PATH:-./assets/sample-release-compiled.tgz}
 
 config_file=`mktemp -t bosh-init-config-XXXXXXXX`
@@ -10,8 +8,6 @@ cat > $config_file <<EOF
 {
   "stemcell_path": "${BOSH_INIT_STEMCELL_PATH}",
   "cpi_release_path": "${BOSH_INIT_CPI_RELEASE_PATH}",
-  "dummy_release_path": "${dummy_release_path}",
-  "dummy_too_release_path": "${dummy_too_release_path}",
   "dummy_compiled_release_path": "${dummy_compiled_release_path}"
 }
 EOF
