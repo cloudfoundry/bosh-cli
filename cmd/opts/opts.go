@@ -164,6 +164,8 @@ type BoshOpts struct {
 
 	FinalizeRelease FinalizeReleaseOpts `command:"finalize-release"               description:"Create final release from dev release tarball"`
 
+	MergeReleases MergeReleasesOpts `command:"merge-releases" hidden:"true" description:"Merge compiled releases generated against Windows and Linux into a single release asset"`
+
 	// Blob management
 	Blobs       BlobsOpts       `command:"blobs"        description:"List blobs"`
 	AddBlob     AddBlobOpts     `command:"add-blob"     description:"Add blob"`
@@ -1037,6 +1039,18 @@ type FinalizeReleaseOpts struct {
 
 type FinalizeReleaseArgs struct {
 	Path string `positional-arg-name:"PATH"`
+}
+
+type MergeReleasesOpts struct {
+	Args MergeReleasesArgs `positional-args:"true" required:"true"`
+
+	cmd
+}
+
+type MergeReleasesArgs struct {
+	ReleasePath1 string `positional-arg-name:"RELEASE_PATH1"`
+	ReleasePath2 string `positional-arg-name:"RELEASE_PATH2"`
+	TargetPath   string `positional-arg-name:"TARGET_PATH"`
 }
 
 // Blobs

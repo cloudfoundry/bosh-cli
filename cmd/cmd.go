@@ -448,6 +448,10 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *VariablesOpts:
 		return NewVariablesCmd(deps.UI, c.deployment()).Run(*opts)
 
+	case *MergeReleasesOpts:
+		relProv, _ := c.releaseProviders()
+		return NewMergeReleasesCmd(relProv.NewArchiveReader(), relProv.NewArchiveWriter(), c.deps.FS).Run(*opts)
+
 	default:
 		return fmt.Errorf("Unhandled command: %#v", c.Opts)
 	}

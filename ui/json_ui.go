@@ -7,8 +7,9 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
-	. "github.com/cloudfoundry/bosh-cli/ui/table"
 	"strconv"
+
+	. "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 type jsonUI struct {
