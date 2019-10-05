@@ -46,7 +46,7 @@
   version = "v0.3.1"
 
 [[projects]]
-  digest = "1:4df2c67ae0275ed260a97441ca9ac0b90a68f88b09ef7d955ee367e95850a071"
+  digest = "1:cc4da1a4c8b7daef975f7bf8d6e47ff7cf467c976ca7f81fbd4c1a397f4d99e9"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -90,8 +90,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "8ed263425377bfd1b72b611e1769d39bad41b3ea"
-  version = "v1.25.1"
+  revision = "472ba41213bd699ff50a642b60afd89181d7bb9b"
+  version = "v1.25.6"
 
 [[projects]]
   digest = "1:2352f40df77dec05ec853c63c0226a31343490412528e0345a86e46cece28b15"
@@ -128,8 +128,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "83f1c9f893428a599104e7635dd244ac71aca1af"
-  version = "v2.258.0"
+  revision = "569c401e2b3fe69d7290eba812e24e6499f31689"
+  version = "v2.259.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -191,7 +191,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "64e3370c6fb002b121eae175741968fa754c6e91"
+  revision = "4335459ccbb76e68abfc04866659f1879f0aee91"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -258,7 +258,7 @@
   name = "github.com/golang/groupcache"
   packages = ["lru"]
   pruneopts = "NUT"
-  revision = "869f871628b6baa9cfbc11732cdf6546b17c1298"
+  revision = "404acd9df4cc9859d64fb9eed42e5c026187287a"
 
 [[projects]]
   digest = "1:be408f349cae090a7c17a279633d6e62b00068e64af66a582cae0983de8890ea"
@@ -342,8 +342,7 @@
   revision = "c2b33e84"
 
 [[projects]]
-  branch = "master"
-  digest = "1:62f0c127ab95c674d55b12077b34602012c3bb495e673665a31b78151154c78e"
+  digest = "1:2aee2c81817d3334cf3e85e99ffe9515315b4cb35e90b45ae2164c3b68fd7dcf"
   name = "github.com/jstemmer/go-junit-report"
   packages = [
     ".",
@@ -351,7 +350,8 @@
     "parser",
   ]
   pruneopts = "NUT"
-  revision = "af01ea7f8024089b458d804d5cdf190f962a9a0c"
+  revision = "cc1f095d5cc5eca2844f5c5ea7bb37f6b9bf6cac"
+  version = "v0.9.1"
 
 [[projects]]
   digest = "1:08c231ec84231a7e23d67e4b58f975e1423695a32467a362ee55a803f9de8061"
@@ -398,7 +398,7 @@
   revision = "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
 
 [[projects]]
-  digest = "1:fe1e78101bb29febcb5dfe55f2a8c2aeaa8adf711e780b8312311d6315ca411d"
+  digest = "1:53c18f94a5e63e5fa479a56312c712fd393407bbaa967819a34730b730961763"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -429,8 +429,8 @@
     "types",
   ]
   pruneopts = "NUT"
-  revision = "974566c482abc93ffd3df6f4626e79076c7ed290"
-  version = "v1.10.1"
+  revision = "72b6ab036f78c4bf1a9748c3941dd7c3de54917a"
+  version = "v1.10.2"
 
 [[projects]]
   digest = "1:b5ec08263b3a1acfebdd8ffe97dbd938b9d03a23df7c61ba6924ad51c753d824"
@@ -515,7 +515,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "a832865fa7ada6126f4c6124ac49f71be71bff2a"
+  revision = "34f69633bfdcf9db92f698f8487115767eebef81"
 
 [[projects]]
   branch = "master"
@@ -526,7 +526,7 @@
     "cmd/apidiff",
   ]
   pruneopts = "NUT"
-  revision = "447a159532efe56c676c00de1b84d9b5ce5b700b"
+  revision = "a1355ae1e2c30eb123356c2a35c2f420652999f9"
 
 [[projects]]
   branch = "master"
@@ -537,11 +537,11 @@
     "golint",
   ]
   pruneopts = "NUT"
-  revision = "414d861bb4acf565ff8cb05f9906a2283b7dc75a"
+  revision = "16217165b5de779cb6a5e4fc81fa9c1166fda457"
 
 [[projects]]
   branch = "master"
-  digest = "1:03f8c117d6f6d79f04c714817a8bba9b10c10982c3d17e816aa6a3439a7f4ad6"
+  digest = "1:b800e3aa384fe353e4b518152d374909b65d4dba4f8a6d4f5cfefde7e4d98b93"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -559,7 +559,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "c00fd9afed17cfdca9b3e1e3b8de7ef2b3f0347b"
+  revision = "d98b1b4438230571bd7fbc5aaa89843e92937bd3"
 
 [[projects]]
   branch = "master"
@@ -577,7 +577,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:acfdf57c5ba14223c7d17427c97350e9d219de0a999792e38aba41e2a1cade71"
+  digest = "1:f8fbedee676945041236554a7ec3bcccde714b84f9b4ccb6c93f2c1ac4065c95"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -585,7 +585,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "c990c680b611ac1aeb7d8f2af94a825f98d69720"
+  revision = "c178f38b412c7b426e4e97be2e75d11ff7b8d4d4"
 
 [[projects]]
   digest = "1:28deae5fe892797ff37a317b5bcda96d11d1c90dadd89f1337651df3bc4c586e"
@@ -626,7 +626,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8dde6641db51b44d850193359f2cd8c44cce1c150eeb8251c52fa75a62745b9c"
+  digest = "1:6d5f2966e6ffa03ef1b8a4a238b83c68fb8850a99bfdcc346d6402580d5f961f"
   name = "golang.org/x/tools"
   packages = [
     "cmd/goimports",
@@ -649,7 +649,7 @@
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "030b2cf1153e8cae0dc666053fad6691cde7fbd9"
+  revision = "c9f9432ec4b21a28c4d47f172513698febb68e9c"
 
 [[projects]]
   digest = "1:e576eea0a0c0639a9a8cc903e55b78c1d4a01de95eeb60b695952fc18ece2d53"
@@ -691,7 +691,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b97e48ac022354cb4cb70744be43bbea542098d2edcb34c93301c6a0e4a84558"
+  digest = "1:c4da3b40d687fa4427f946d1556a6518b92745763ff64e6d08511cce4aedaa69"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
@@ -701,7 +701,7 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "20e1ac93f88cf06d2b1defb90b9e9e126c7dfff6"
+  revision = "c459b9ce5143dd819763d9329ff92a8e35e61bd9"
 
 [[projects]]
   digest = "1:3402d0f99f4bdc28b92dfbf22cbab88e1790b83209e812157c68803d4fc089d0"
@@ -763,12 +763,12 @@
   revision = "dd632973f1e7218eb1089048e0798ec9ae7dceb8"
 
 [[projects]]
-  digest = "1:18108594151654e9e696b27b181b953f9a90b16bf14d253dd1b397b025a1487f"
+  digest = "1:accc3bfe4e404aa53ac3621470e7cf9fce1efe48f0fabcfe6d12a72579d9d91f"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
-  version = "v2.2.2"
+  revision = "f221b8435cfb71e54062f6c6e99e9ade30b124d5"
+  version = "v2.2.4"
 
 [[projects]]
   digest = "1:41dcca9245f5ee3e71365b39b1eed7f4c8d8d50a4c5397cd3ac21a3c7a8866ef"
