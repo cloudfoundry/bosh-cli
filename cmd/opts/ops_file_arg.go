@@ -1,6 +1,8 @@
 package opts
 
 import (
+	"fmt"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -33,6 +35,11 @@ func (a *OpsFileArg) UnmarshalFlag(filePath string) error {
 	err = yaml.Unmarshal(bytes, &opDefs)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Deserializing ops file '%s'", filePath)
+	}
+
+	for i := range opDefs {
+		errorStr := fmt.Sprintf("operation [%d] in %s failed", i, filePath)
+		opDefs[i].Error = &errorStr
 	}
 
 	ops, err := patch.NewOpsFromDefinitions(opDefs)

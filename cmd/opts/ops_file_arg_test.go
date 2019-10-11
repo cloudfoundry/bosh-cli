@@ -34,8 +34,18 @@ var _ = Describe("OpsFileArg", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(arg.Ops).To(Equal(patch.Ops{
-				patch.RemoveOp{Path: patch.MustNewPointerFromString("/a")},
-				patch.RemoveOp{Path: patch.MustNewPointerFromString("/b")},
+				patch.DescriptiveOp{
+					Op: patch.RemoveOp{
+						Path: patch.MustNewPointerFromString("/a"),
+					},
+					ErrorMsg: "operation [0] in /some/path failed",
+				},
+				patch.DescriptiveOp{
+					Op: patch.RemoveOp{
+						Path: patch.MustNewPointerFromString("/b"),
+					},
+					ErrorMsg: "operation [1] in /some/path failed",
+				},
 			}))
 		})
 
@@ -44,9 +54,10 @@ var _ = Describe("OpsFileArg", func() {
 
 			err := (&arg).UnmarshalFlag("/some/path")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal(`Building ops: Unknown operation [0] with type 'unknown' within
+			Expect(err.Error()).To(ContainSubstring(`Building ops: Unknown operation [0] with type 'unknown' within
 {
-  "Type": "unknown"
+  "Type": "unknown",
+  "Error": "operation [0] in /some/path failed"
 }`))
 		})
 
