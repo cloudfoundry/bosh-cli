@@ -22,14 +22,21 @@ import (
 
 // GCSRegionalLocations are the valid locations for a regional bucket.
 var GCSRegionalLocations = map[string]struct{}{
-	"US-CENTRAL1":     struct{}{},
-	"US-EAST1":        struct{}{},
-	"US-WEST1":        struct{}{},
-	"US-EAST4":        struct{}{},
-	"EUROPE-WEST1":    struct{}{},
-	"ASIA-EAST1":      struct{}{},
-	"ASIA-NORTHEAST1": struct{}{},
-	"ASIA-SOUTHEAST1": struct{}{},
+	"NORTHAMERICA-NORTHEAST1": struct{}{},
+	"US-CENTRAL1":             struct{}{},
+	"US-EAST1":                struct{}{},
+	"US-EAST4":                struct{}{},
+	"US-WEST1":                struct{}{},
+	"SOUTHAMERICA-EAST1":      struct{}{},
+	"EUROPE-WEST1":            struct{}{},
+	"EUROPE-WEST2":            struct{}{},
+	"EUROPE-WEST3":            struct{}{},
+	"EUROPE-WEST4":            struct{}{},
+	"ASIA-EAST1":              struct{}{},
+	"ASIA-NORTHEAST1":         struct{}{},
+	"ASIA-SOUTH1":             struct{}{},
+	"ASIA-SOUTHEAST1":         struct{}{},
+	"AUSTRALIA-SOUTHEAST1":    struct{}{},
 }
 
 // GCSMultiRegionalLocations are the valid locations for

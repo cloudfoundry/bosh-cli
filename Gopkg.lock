@@ -46,7 +46,7 @@
   version = "v0.3.1"
 
 [[projects]]
-  digest = "1:e4c761583d8b3c06385286ff224d8dd800d030af28e0e6175e371bc6a1cb2341"
+  digest = "1:fa8767ea8194cafe6b55df80c3d6937dbf9e75779a82d3daf9b24fdd2fda82f1"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -90,8 +90,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "8b44c74850c51562a4360837e9e4d6e7c47b7d81"
-  version = "v1.25.11"
+  revision = "4b77f7c2f7303e8c757947ae8aff6a33dce7b8d1"
+  version = "v1.25.16"
 
 [[projects]]
   digest = "1:2352f40df77dec05ec853c63c0226a31343490412528e0345a86e46cece28b15"
@@ -128,8 +128,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "4059eaea159fc4e8130fa961ea5f2ce262ed2f91"
-  version = "v2.262.0"
+  revision = "8708952b213ff04e58678b34d6384b82f24b14f6"
+  version = "v2.265.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -145,15 +145,15 @@
   version = "v0.0.43"
 
 [[projects]]
-  digest = "1:3feff605c887976a9ce3dfd3457459b3b2918855c76bfb3959eee1b6c66c28c8"
+  digest = "1:fb062e6edaa4c19f8ae42baef353f3bcfb38ef1f33026d14c58173a2cb4af995"
   name = "github.com/cloudfoundry/bosh-gcscli"
   packages = [
     "client",
     "config",
   ]
   pruneopts = "NUT"
-  revision = "2aef468b5b8561560918014b4fbce7549de2283d"
-  version = "v0.0.6"
+  revision = "b7cee12ed3744ad842bfdf21bac7e66a0f918303"
+  version = "v0.0.12"
 
 [[projects]]
   digest = "1:6ee7fbbc3ac3e7615e8ff191819437cba4e669d1a2a8f26435bc6df84ba692a0"
@@ -168,7 +168,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b66380e8b501d4248bcd95f14eca5ae1e2287c015fb39fabd7a8e2ea4e3ab243"
+  digest = "1:9c43c0612f0e94acc8d38f1e0b27108c8a8b9c74efb0d5e5e8ebef1472ebbf37"
   name = "github.com/cloudfoundry/bosh-utils"
   packages = [
     "blobstore",
@@ -191,7 +191,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "94a8490a77f099ff495aa5823ed963a21cca7ac5"
+  revision = "edd614a7817f201b7bd70277a68de1c21ddbfe64"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -519,14 +519,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0c1e6a740ca859f0a3ee0fbaef669529d1baae0d4d04dbef629bd0b5bb1b9002"
+  digest = "1:7b726e4be970ebfbdfd32a7b079cf4d53049e95b1b33ccd222af0d2dbef38617"
   name = "golang.org/x/exp"
   packages = [
     "apidiff",
     "cmd/apidiff",
   ]
   pruneopts = "NUT"
-  revision = "a1355ae1e2c30eb123356c2a35c2f420652999f9"
+  revision = "69215a2ee97e88b0d79235b7aae60dc2bfa3d034"
 
 [[projects]]
   branch = "master"
@@ -541,7 +541,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e26a8f504907cba2744e1462725081ba4e0831c84a942680882e26a25b7824ce"
+  digest = "1:7512f6af89283f48b9145355a2e622a62c3a5903f450ec2455909959672b41be"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -559,7 +559,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "491137f692577e390404f177a0515c9f86f79754"
+  revision = "da9a3fd4c5820e74b24a6cb7fb438dc9b0dd377c"
 
 [[projects]]
   branch = "master"
@@ -577,7 +577,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4d32838276fa25182ac769cb955976d1176a185f5fe8487bfaff0fb5b8368615"
+  digest = "1:2ea958f4f8e9efa7baf35d2e31616b4acfa2ab5d1a11c905671610ab7e1a01d3"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -585,7 +585,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "b09406accb4736d857a32bf9444cd7edae2ffa79"
+  revision = "727590c5006e77ca5247972f47e877f4929fc985"
 
 [[projects]]
   digest = "1:28deae5fe892797ff37a317b5bcda96d11d1c90dadd89f1337651df3bc4c586e"
@@ -626,7 +626,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6d5f2966e6ffa03ef1b8a4a238b83c68fb8850a99bfdcc346d6402580d5f961f"
+  digest = "1:b8bafbbcbf85db7d93336fd414c13064d65b496b6040d294d10a1659af167421"
   name = "golang.org/x/tools"
   packages = [
     "cmd/goimports",
@@ -647,9 +647,10 @@
     "internal/imports",
     "internal/module",
     "internal/semver",
+    "internal/span",
   ]
   pruneopts = "NUT"
-  revision = "4c025a95b26e43a32c527d23a8a7ed074723e03b"
+  revision = "ed542cd5b28ad1b474f8ff7ca112cad2c3ac2dc8"
 
 [[projects]]
   digest = "1:461a694af1828def3194ee4b19619221f340539877661e7a90bb533208848e0d"

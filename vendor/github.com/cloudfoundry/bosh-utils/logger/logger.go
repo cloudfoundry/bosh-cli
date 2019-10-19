@@ -40,6 +40,16 @@ func Levelify(levelString string) (LogLevel, error) {
 	return level, nil
 }
 
+func AsString(level LogLevel) string {
+	for k, v := range levels {
+		if level == v {
+			return k
+		}
+	}
+
+	return "DEBUG"
+}
+
 type Logger interface {
 	Debug(tag, msg string, args ...interface{})
 	DebugWithDetails(tag, msg string, args ...interface{})

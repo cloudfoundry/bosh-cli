@@ -20,7 +20,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"golang.org/x/oauth2/google"
 	"io"
+	"time"
 
 	"log"
 
@@ -198,4 +200,19 @@ func (client *GCSBlobstore) exists(gcs *storage.Client, dest string) (bool, erro
 
 func (client *GCSBlobstore) readOnly() bool {
 	return client.authenticatedGCS == nil
+}
+
+func (client *GCSBlobstore) Sign(id string, action string, expiry time.Duration) (string, error) {
+	token, err := google.JWTConfigFromJSON([]byte(client.config.ServiceAccountFile), storage.ScopeFullControl)
+	if err != nil {
+		return "", err
+	}
+	options := storage.SignedURLOptions{
+		Method:         action,
+		Expires:        time.Now().Add(expiry),
+		PrivateKey:     token.PrivateKey,
+		GoogleAccessID: token.Email,
+		Scheme:         storage.SigningSchemeV4,
+	}
+	return storage.SignedURL(client.config.BucketName, id, &options)
 }
