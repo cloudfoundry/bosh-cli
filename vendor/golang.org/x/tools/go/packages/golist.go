@@ -110,6 +110,7 @@ func goListDriver(cfg *Config, patterns ...string) (*driverResponse, error) {
 			sizeswg.Done()
 		}()
 	}
+	defer sizeswg.Wait()
 
 	// start fetching rootDirs
 	var info goInfo
@@ -127,6 +128,10 @@ func goListDriver(cfg *Config, patterns ...string) (*driverResponse, error) {
 		<-envReady
 		return &info
 	}
+
+	// Ensure that we don't leak goroutines: Load is synchronous, so callers will
+	// not expect it to access the fields of cfg after the call returns.
+	defer getGoInfo()
 
 	// always pass getGoInfo to golistDriver
 	golistDriver := func(cfg *Config, patterns ...string) (*driverResponse, error) {
@@ -734,9 +739,9 @@ func golistDriver(cfg *Config, rootsDirs func() *goInfo, words ...string) (*driv
 	// go list uses the following identifiers in ImportPath and Imports:
 	//
 	// 	"p"			-- importable package or main (command)
-	//      "q.test"		-- q's test executable
+	// 	"q.test"		-- q's test executable
 	// 	"p [q.test]"		-- variant of p as built for q's test executable
-	//	"q_test [q.test]"	-- q's external test package
+	// 	"q_test [q.test]"	-- q's external test package
 	//
 	// The packages p that are built differently for a test q.test
 	// are q itself, plus any helpers used by the external test q_test,
@@ -1061,7 +1066,14 @@ func invokeGo(cfg *Config, args ...string) (*bytes.Buffer, error) {
 				// TODO(matloob): command-line-arguments isn't correct here.
 				"command-line-arguments", strings.Trim(stderr.String(), "\n"))
 			return bytes.NewBufferString(output), nil
+		}
 
+		// Another variation of the previous error
+		if len(stderr.String()) > 0 && strings.Contains(stderr.String(), "outside module root") {
+			output := fmt.Sprintf(`{"ImportPath": %q,"Incomplete": true,"Error": {"Pos": "","Err": %q}}`,
+				// TODO(matloob): command-line-arguments isn't correct here.
+				"command-line-arguments", strings.Trim(stderr.String(), "\n"))
+			return bytes.NewBufferString(output), nil
 		}
 
 		// Workaround for an instance of golang.org/issue/26755: go list -e  will return a non-zero exit
