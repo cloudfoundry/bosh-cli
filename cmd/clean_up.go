@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
@@ -21,5 +23,15 @@ func (c CleanUpCmd) Run(opts CleanUpOpts) error {
 		return err
 	}
 
-	return c.director.CleanUp(opts.All)
+	resp, err := c.director.CleanUp(opts.All, opts.DryRun)
+	if err != nil {
+		return err
+	}
+	return printCleanUpTable(resp)
+}
+
+func printCleanUpTable(resp boshdir.CleanUp) error {
+	fmt.Println("PRINTING TABLE!!!")
+	return nil
+
 }

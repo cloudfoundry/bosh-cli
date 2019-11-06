@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	gourl "net/url"
 )
 
 type DirectorImpl struct {
@@ -64,8 +66,8 @@ func (d DirectorImpl) EnableResurrection(enabled bool) error {
 	return d.client.EnableResurrectionAll(enabled)
 }
 
-func (d DirectorImpl) CleanUp(all bool) error {
-	return d.client.CleanUp(all)
+func (d DirectorImpl) CleanUp(all bool, dryRun bool) (CleanUp, error) {
+	return d.client.CleanUp(all, dryRun)
 }
 
 func (d DirectorImpl) DownloadResourceUnchecked(blobstoreID string, out io.Writer) error {
@@ -92,7 +94,43 @@ func (c Client) EnableResurrectionAll(enabled bool) error {
 	return nil
 }
 
-func (c Client) CleanUp(all bool) error {
+func (c Client) CleanUp(all bool, dryRun bool) (CleanUp, error) {
+	if dryRun {
+    return c.dryCleanUp(all)
+	} else {
+	  return CleanUp{}, c.cleanUp(all)
+	}
+}
+
+func (c Client) DownloadResourceUnchecked(blobstoreID string, out io.Writer) error {
+	path := fmt.Sprintf("/resources/%s", blobstoreID)
+
+	_, _, err := c.clientRequest.RawGet(path, out, nil)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Downloading resource '%s'", blobstoreID)
+	}
+
+	return nil
+}
+
+func (c Client) dryCleanUp(all bool) (CleanUp, error) {
+		query := gourl.Values{}
+		query.Add("remove_all", strconv.FormatBool(all))
+
+		path := fmt.Sprintf("/cleanup/dryrun?%s", query.Encode())
+
+		var resp CleanUp
+
+		err := c.clientRequest.Get(path, &resp)
+
+		if err != nil {
+			return CleanUp{}, bosherr.WrapErrorf(err, "Cleaning up resources")
+		}
+
+		return resp, nil
+}
+
+func (c Client) cleanUp(all bool) (error) {
 	body := map[string]interface{}{
 		"config": map[string]bool{"remove_all": all},
 	}
@@ -106,23 +144,13 @@ func (c Client) CleanUp(all bool) error {
 		req.Header.Add("Content-Type", "application/json")
 	}
 
-	_, err = c.taskClientRequest.PostResult("/cleanup", reqBody, setHeaders)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Cleaning up resources")
-	}
+	path := "/cleanup"
+		_, err = c.taskClientRequest.PostResult(path, reqBody, setHeaders)
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Cleaning up resources")
+		}
 
-	return nil
-}
-
-func (c Client) DownloadResourceUnchecked(blobstoreID string, out io.Writer) error {
-	path := fmt.Sprintf("/resources/%s", blobstoreID)
-
-	_, _, err := c.clientRequest.RawGet(path, out, nil)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Downloading resource '%s'", blobstoreID)
-	}
-
-	return nil
+		return nil
 }
 
 func (d DirectorImpl) CertificateExpiry() ([]CertificateExpiryInfo, error) {
