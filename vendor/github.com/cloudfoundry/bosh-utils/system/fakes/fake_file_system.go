@@ -23,6 +23,7 @@ import (
 type FakeFileType string
 
 type removeAllFn func(path string) error
+type renameFn func(oldPath, newPath string) error
 
 type globFn func(pattern string) ([]string, error)
 
@@ -73,6 +74,7 @@ type FakeFileSystem struct {
 
 	CopyDirError error
 
+	RenameStub     renameFn
 	RenameError    error
 	RenameOldPaths []string
 	RenameNewPaths []string
@@ -644,6 +646,13 @@ func (fs *FakeFileSystem) FileExists(path string) bool {
 func (fs *FakeFileSystem) Rename(oldPath, newPath string) error {
 	fs.filesLock.Lock()
 	defer fs.filesLock.Unlock()
+
+	if fs.RenameStub != nil {
+		err := fs.RenameStub(oldPath, newPath)
+		if err != nil {
+			return err
+		}
+	}
 
 	if fs.RenameError != nil {
 		return fs.RenameError
