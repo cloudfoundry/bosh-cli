@@ -140,7 +140,7 @@ var _ = Describe("Director", func() {
 				server,
 			)
 
-			err := dir.CleanUp(true)
+			_, err := dir.CleanUp(true, false)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -158,14 +158,43 @@ var _ = Describe("Director", func() {
 				server,
 			)
 
-			err := dir.CleanUp(false)
+			_, err := dir.CleanUp(false, false)
 			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("does a dryRun of cleandup", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/cleanup/dryrun"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWithJSONEncoded(http.StatusOK, map[string]interface{}{
+						"releases":          []string{"releases-1/[\"1\"]", "releases-2/[\"1\", \"2\"]"},
+						"stemcells":         []string{"my-custome-stemcell/123"},
+						"compiled_packages": []string{"release-custom-stemcell/1"},
+						"orphaned_disks":    []string{},
+						"orphaned_vms":      []string{},
+						"exported_releases": []string{"release_blob_id"},
+						"dns_blobs":         []string{},
+					}),
+				),
+			)
+			resp, err := dir.CleanUp(false, true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(resp).To(Equal(director.CleanUp{
+				Releases:         []string{"releases-1/[\"1\"]", "releases-2/[\"1\", \"2\"]"},
+				Stemcells:        []string{"my-custome-stemcell/123"},
+				CompiledPackages: []string{"release-custom-stemcell/1"},
+				OrphanedDisks:    []string{},
+				OrphanedVMs:      []string{},
+				ExportedReleases: []string{"release_blob_id"},
+				DNSBlobs:         []string{},
+			}))
 		})
 
 		It("returns error if response is non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("POST", "/cleanup"), server)
 
-			err := dir.CleanUp(true)
+			_, err := dir.CleanUp(true, false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Cleaning up resources"))
 		})

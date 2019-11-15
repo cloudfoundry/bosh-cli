@@ -10,6 +10,8 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	realdirector "github.com/cloudfoundry/bosh-cli/director"
+	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
 )
 
 var _ = Describe("CleanUpCmd", func() {
@@ -65,11 +67,35 @@ var _ = Describe("CleanUpCmd", func() {
 		})
 
 		It("returns error if cleaning up fails", func() {
-			director.CleanUpReturns(errors.New("fake-err"))
+			director.CleanUpReturns(realdirector.CleanUp{}, errors.New("fake-err"))
 
 			err := act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+	})
+
+	Describe("Print", func() {
+		It("shows information about artifacts to be deleted", func() {
+			cleanUp := realdirector.CleanUp{
+				Releases: []string{"release1", "release2"},
+			}
+
+			command.PrintCleanUpTable(cleanUp)
+			Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
+				boshtbl.NewHeader("Releases"),
+				boshtbl.NewHeader("Stemcells"),
+				boshtbl.NewHeader("Compiled Packages"),
+				boshtbl.NewHeader("Orphaned Disks"),
+				boshtbl.NewHeader("Orphaned VMs"),
+				boshtbl.NewHeader("Exported Releases"),
+				boshtbl.NewHeader("DNS Blobs"),
+			}))
+			Expect(ui.Table.Rows).To(HaveLen(1))
+
+			Expect(ui.Table.Rows[0][0]).To(Equal(
+				boshtbl.NewValueStrings(cleanUp.Releases),
+			))
 		})
 	})
 })

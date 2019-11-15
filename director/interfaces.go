@@ -76,7 +76,7 @@ type Director interface {
 	OrphanNetworks() ([]OrphanNetwork, error)
 
 	EnableResurrection(bool) error
-	CleanUp(bool) error
+	CleanUp(all bool, dryRun bool) (CleanUp, error)
 	DownloadResourceUnchecked(blobstoreID string, out io.Writer) error
 
 	OrphanedVMs() ([]OrphanedVM, error)
@@ -366,4 +366,14 @@ type CertificateExpiryInfo struct {
 	Path     string `json:"certificate_path"`
 	Expiry   string `json:"expiry"`
 	DaysLeft int    `json:"days_left"`
+}
+
+type CleanUp struct {
+	Releases         []string `json:"releases"`
+	Stemcells        []string `json:"stemcells"`
+	CompiledPackages []string `json:"compiled_packages"`
+	OrphanedDisks    []string `json:"orphaned_disks"`
+	OrphanedVMs      []string `json:"orphaned_vms"`
+	ExportedReleases []string `json:"exported_releases"`
+	DNSBlobs         []string `json:"dns_blobs"`
 }

@@ -32,16 +32,19 @@ type FakeDirector struct {
 		result1 []director.CertificateExpiryInfo
 		result2 error
 	}
-	CleanUpStub        func(bool) error
+	CleanUpStub        func(bool, bool) (director.CleanUp, error)
 	cleanUpMutex       sync.RWMutex
 	cleanUpArgsForCall []struct {
 		arg1 bool
+		arg2 bool
 	}
 	cleanUpReturns struct {
-		result1 error
+		result1 director.CleanUp
+		result2 error
 	}
 	cleanUpReturnsOnCall map[int]struct {
-		result1 error
+		result1 director.CleanUp
+		result2 error
 	}
 	CurrentTasksStub        func(director.TasksFilter) ([]director.Task, error)
 	currentTasksMutex       sync.RWMutex
@@ -819,22 +822,23 @@ func (fake *FakeDirector) CertificateExpiryReturnsOnCall(i int, result1 []direct
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) CleanUp(arg1 bool) error {
+func (fake *FakeDirector) CleanUp(arg1 bool, arg2 bool) (director.CleanUp, error) {
 	fake.cleanUpMutex.Lock()
 	ret, specificReturn := fake.cleanUpReturnsOnCall[len(fake.cleanUpArgsForCall)]
 	fake.cleanUpArgsForCall = append(fake.cleanUpArgsForCall, struct {
 		arg1 bool
-	}{arg1})
-	fake.recordInvocation("CleanUp", []interface{}{arg1})
+		arg2 bool
+	}{arg1, arg2})
+	fake.recordInvocation("CleanUp", []interface{}{arg1, arg2})
 	fake.cleanUpMutex.Unlock()
 	if fake.CleanUpStub != nil {
-		return fake.CleanUpStub(arg1)
+		return fake.CleanUpStub(arg1, arg2)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
 	fakeReturns := fake.cleanUpReturns
-	return fakeReturns.result1
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeDirector) CleanUpCallCount() int {
@@ -843,40 +847,43 @@ func (fake *FakeDirector) CleanUpCallCount() int {
 	return len(fake.cleanUpArgsForCall)
 }
 
-func (fake *FakeDirector) CleanUpCalls(stub func(bool) error) {
+func (fake *FakeDirector) CleanUpCalls(stub func(bool, bool) (director.CleanUp, error)) {
 	fake.cleanUpMutex.Lock()
 	defer fake.cleanUpMutex.Unlock()
 	fake.CleanUpStub = stub
 }
 
-func (fake *FakeDirector) CleanUpArgsForCall(i int) bool {
+func (fake *FakeDirector) CleanUpArgsForCall(i int) (bool, bool) {
 	fake.cleanUpMutex.RLock()
 	defer fake.cleanUpMutex.RUnlock()
 	argsForCall := fake.cleanUpArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeDirector) CleanUpReturns(result1 error) {
+func (fake *FakeDirector) CleanUpReturns(result1 director.CleanUp, result2 error) {
 	fake.cleanUpMutex.Lock()
 	defer fake.cleanUpMutex.Unlock()
 	fake.CleanUpStub = nil
 	fake.cleanUpReturns = struct {
-		result1 error
-	}{result1}
+		result1 director.CleanUp
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeDirector) CleanUpReturnsOnCall(i int, result1 error) {
+func (fake *FakeDirector) CleanUpReturnsOnCall(i int, result1 director.CleanUp, result2 error) {
 	fake.cleanUpMutex.Lock()
 	defer fake.cleanUpMutex.Unlock()
 	fake.CleanUpStub = nil
 	if fake.cleanUpReturnsOnCall == nil {
 		fake.cleanUpReturnsOnCall = make(map[int]struct {
-			result1 error
+			result1 director.CleanUp
+			result2 error
 		})
 	}
 	fake.cleanUpReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
+		result1 director.CleanUp
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeDirector) CurrentTasks(arg1 director.TasksFilter) ([]director.Task, error) {
