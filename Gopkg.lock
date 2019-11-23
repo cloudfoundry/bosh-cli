@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:f198cb5a732186521875fdad19f2727c23fc6a911b14453f75ab56bc77a3b7e5"
+  digest = "1:5eee1cd3d9f989a8f7440e7b53b8f3f700c134d89e7141c656095936e8528433"
   name = "cloud.google.com/go"
   packages = [
     ".",
@@ -15,8 +15,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "5d03b9fdabc3f75630183d940a54b0047106bf8a"
-  version = "v0.48.0"
+  revision = "d1ee711ee996fa74abaffbdb572963f368f215a9"
+  version = "v0.49.0"
 
 [[projects]]
   digest = "1:41531922c7f47d5157308b4dd1abc6142c4c583845ce424ed9664db867fa48cf"
@@ -46,7 +46,7 @@
   version = "v0.3.1"
 
 [[projects]]
-  digest = "1:4b55c1497308e2ad470a9c37815958612a78d36f9ff72a3df4f74349eb0d209f"
+  digest = "1:cc3561340eba992d59f5e8b142f4414f5dc06916f53ed33c7cf10ac5736ba4e7"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -90,8 +90,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "7ac2b6f1d3c9c64a4cbb06212e33b5965d83e3e2"
-  version = "v1.25.36"
+  revision = "31767fe4cf2e7e969e2245ab694e21f85015e24b"
+  version = "v1.25.41"
 
 [[projects]]
   digest = "1:2352f40df77dec05ec853c63c0226a31343490412528e0345a86e46cece28b15"
@@ -128,8 +128,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "3c286ae8d1642abdd9b4ab8f10c56c7784cd5f9e"
-  version = "v2.278.0"
+  revision = "d6dc31a52926d14cd0ef65e707c17491c186a097"
+  version = "v2.280.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -163,8 +163,8 @@
     "config",
   ]
   pruneopts = "NUT"
-  revision = "28c52c4433194c9d700b66735f0ee1d5c1e763c8"
-  version = "v0.0.86"
+  revision = "8ccd3f06bc9f12b91d0f546f181672a9208e1c8c"
+  version = "v0.0.92"
 
 [[projects]]
   branch = "master"
@@ -191,7 +191,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "2dd39ab386e846a29e719b8e87021c31e5f104b5"
+  revision = "1cef897cc40ea0353357faa3536fae2430da99ec"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -523,7 +523,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "e1110fd1c708ef015366ea01799a23c459593c47"
+  revision = "ac88ee75c92c889b97e05591e9a39b6480c538b3"
 
 [[projects]]
   branch = "master"
@@ -567,7 +567,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "2180aed2234323691e9fd264fb1d32d20ff04b27"
+  revision = "fc4aabc6c91483155dade6fbb627cc953a723260"
 
 [[projects]]
   branch = "master"
@@ -581,11 +581,11 @@
     "jwt",
   ]
   pruneopts = "NUT"
-  revision = "0f29369cfe4552d0e4bcddc57cc75f4d7e672a33"
+  revision = "5d9234df094ce600ff541158d1491aa10d078a47"
 
 [[projects]]
   branch = "master"
-  digest = "1:acdd8997451ff7a2195f8b3760459b090294951687a8847130089e069bdd9da3"
+  digest = "1:e3cdbcd9acdbe29fca998d69d85ef8fa66923bcf4ddbf9b68c7d9c547b07c8ca"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -593,7 +593,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "52ab431487773bc9dd1b0766228b1cf3944126bf"
+  revision = "bd437916bb0eb726b873ee8e9b2dcf212d32e2fd"
 
 [[projects]]
   digest = "1:28deae5fe892797ff37a317b5bcda96d11d1c90dadd89f1337651df3bc4c586e"
@@ -634,7 +634,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0006a30cb88945067dcbacd9e13aacf479c7e94ddc2911d302c3771d346c2b8e"
+  digest = "1:8cc68df1b71f04177371d4f60e9d77512199fb6a226a40f4b7e0c364f7a2ede2"
   name = "golang.org/x/tools"
   packages = [
     "cmd/goimports",
@@ -658,7 +658,7 @@
     "internal/span",
   ]
   pruneopts = "NUT"
-  revision = "3a792d9c32b2634e09d90a8e377b8f77fca8f02a"
+  revision = "2a6ccf25d769ccc6c0b364ff440915b10af1e3cf"
 
 [[projects]]
   digest = "1:211b99c1632f644bca17bea73a6953cbf06c2d2ae4de450b04598c350e7db48f"
@@ -774,12 +774,12 @@
   revision = "dd632973f1e7218eb1089048e0798ec9ae7dceb8"
 
 [[projects]]
-  digest = "1:5ad10df0893403ae9fdbd17c6f14814394a635339dd79595600bae52432befcf"
+  digest = "1:1532269ea4c7a7fcb29639a46318dd00c0f99c2f308a2a2860acf5b5354b8acc"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "f90ceb4f409096b60e2e9076b38b304b8246e5fa"
-  version = "v2.2.5"
+  revision = "1f64d6156d11335c3f22d9330b0ad14fc1e789ce"
+  version = "v2.2.7"
 
 [[projects]]
   digest = "1:41dcca9245f5ee3e71365b39b1eed7f4c8d8d50a4c5397cd3ac21a3c7a8866ef"
