@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	"github.com/cloudfoundry/bosh-cli/takeout"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
@@ -29,11 +28,14 @@ func (c TakeOutCmd) Run(opts TakeOutOpts) error {
 	if _, err := os.Stat(opts.Args.Name); os.IsExist(err) {
 		return bosherr.WrapErrorf(err, "Takeout op name exists")
 	}
+	deployment, err := c.to.ParseDeployment(bytes)
 
-	manifest, err := boshdir.NewManifestFromBytes(bytes)
+	if err != nil {
+		return bosherr.WrapError(err, "Problem parsing deployment")
+	}
 	c.ui.PrintLinef("Processing releases for offline use")
 	var releaseChanges []takeout.OpEntry
-	for _, r := range manifest.Releases {
+	for _, r := range deployment.Releases {
 		if r.URL == "" {
 			c.ui.PrintLinef("Release does not have a URL for take_out; Name: %s / %s", r.Name, r.Version)
 			return bosherr.WrapErrorf(nil, "Provide an opsfile that has a URL or removes this release") // TODO
@@ -45,6 +47,12 @@ func (c TakeOutCmd) Run(opts TakeOutOpts) error {
 			releaseChanges = append(releaseChanges, o)
 		}
 	}
+	for _, s := range deployment.Stemcells {
+		err := c.to.RetrieveStemcell(s, c.ui, opts.StemcellType)
+		if err != nil {
+
+		}
+	}
 
 	y, _ := yaml.Marshal(releaseChanges)
 	c.ui.PrintLinef("Writing take_out operation to file: " + opts.Args.Name)
@@ -52,8 +60,17 @@ func (c TakeOutCmd) Run(opts TakeOutOpts) error {
 	if err != nil {
 		return err
 	}
-	defer takeoutOp.Close()
-	takeoutOp.WriteString("---\n")
-	takeoutOp.WriteString(string(y))
+	if takeoutOp != nil {
+		defer func() {
+			if ferr := takeoutOp.Close(); ferr != nil {
+				err = ferr
+			}
+		}()
+	}
+	_, err = takeoutOp.WriteString("---\n")
+	_, err = takeoutOp.WriteString(string(y))
+	if err != nil {
+		return err
+	}
 	return nil
 }

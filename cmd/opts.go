@@ -318,6 +318,7 @@ type InterpolateArgs struct {
 type TakeOutOpts struct {
 	Args         TakeOutArgs `positional-args:"true" required:"true"`
 	MirrorPrefix string      `long:"mirror-prefix" short:"m" description:"Mirror prefix" optional:"true" default:"file:"`
+	StemcellType string      `long:"stemcell-type" short:"t" description:"Stemcell type" optional:"true" default:"vsphere-esxi"`
 
 	VarFlags
 	OpsFlags

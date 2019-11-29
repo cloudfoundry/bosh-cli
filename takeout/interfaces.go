@@ -6,12 +6,28 @@ import (
 )
 
 type Utensils interface {
+	DeploymentReader
 	ReleaseDownloader
 	OpFileGenerator
+	StemcellDownloader
+}
+type Manifest struct {
+	Name string
+
+	Releases  []boshdir.ManifestRelease
+	Stemcells []boshdir.ManifestReleaseStemcell
+}
+
+type DeploymentReader interface {
+	ParseDeployment(bytes []byte) (Manifest, error)
 }
 
 type ReleaseDownloader interface {
 	RetrieveRelease(r boshdir.ManifestRelease, ui boshui.UI, localFileName string) (err error)
+}
+
+type StemcellDownloader interface {
+	RetrieveStemcell(s boshdir.ManifestReleaseStemcell, ui boshui.UI, stemCellType string) (err error)
 }
 
 type OpFileGenerator interface {
