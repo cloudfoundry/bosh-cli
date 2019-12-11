@@ -42,6 +42,14 @@ type VMInfo struct {
 	Vitals VMInfoVitals
 
 	ResurrectionPaused bool `json:"resurrection_paused"`
+
+	Stemcell VmInfoStemcell
+}
+
+type VmInfoStemcell struct {
+	Name       string
+	Version    string
+	ApiVersion int `json:"api_version"`
 }
 
 type VMInfoProcess struct {

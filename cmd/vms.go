@@ -33,6 +33,7 @@ func (c VMsCmd) Run(opts VMsOpts) error {
 		VMDetails:         true,
 		DeploymentDetails: false,
 		Details:           false,
+		Stemcell:          true,
 		DNS:               opts.DNS,
 		Vitals:            opts.Vitals,
 		CloudProperties:   opts.CloudProperties,

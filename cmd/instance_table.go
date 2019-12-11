@@ -30,6 +30,8 @@ type InstanceTableValues struct {
 	VMCreatedAt     boshtbl.Value
 	CloudProperties boshtbl.Value
 
+	Stemcell boshtbl.Value
+
 	// DNS
 	DNS boshtbl.Value
 
@@ -72,6 +74,8 @@ var InstanceTableHeader = InstanceTableValues{
 	VMCreatedAt:     boshtbl.NewValueString("VM Created At"),
 	CloudProperties: boshtbl.NewValueString("Cloud Properties"),
 
+	Stemcell: boshtbl.NewValueString("Stemcell"),
+
 	// DNS
 	DNS: boshtbl.NewValueString("DNS A Records"),
 
@@ -93,7 +97,7 @@ var InstanceTableHeader = InstanceTableValues{
 }
 
 type InstanceTable struct {
-	Processes, VMDetails, DeploymentDetails, Details, DNS, Vitals, CloudProperties bool
+	Processes, VMDetails, DeploymentDetails, Details, Stemcell, DNS, Vitals, CloudProperties bool
 }
 
 func (t InstanceTable) Headers() []boshtbl.Header {
@@ -116,6 +120,11 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 	activeStatus := "-"
 	if i.Active != nil {
 		activeStatus = fmt.Sprintf("%t", *i.Active)
+	}
+
+	stemcell := "-"
+	if i.Stemcell.Name != "" {
+		stemcell = fmt.Sprintf("%s/%s", i.Stemcell.Name, i.Stemcell.Version)
 	}
 
 	vals := InstanceTableValues{
@@ -143,6 +152,8 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 		Ignore:          boshtbl.NewValueBool(i.Ignore),
 		VMCreatedAt:     boshtbl.NewValueTime(i.VMCreatedAt.UTC()),
 		CloudProperties: boshtbl.NewValueInterface(i.CloudProperties),
+
+		Stemcell: boshtbl.NewValueString(stemcell),
 
 		// DNS
 		DNS: boshtbl.NewValueStrings(i.DNS),
@@ -220,6 +231,10 @@ func (t InstanceTable) AsValues(v InstanceTableValues) []boshtbl.Value {
 		result = append(result, []boshtbl.Value{v.State, v.VMCID, v.VMType, v.DiskCIDs, v.AgentID, v.Index, v.Bootstrap, v.Ignore}...)
 	} else if t.VMDetails {
 		result = append(result, []boshtbl.Value{v.VMCID, v.VMType, v.Active}...)
+	}
+
+	if t.Stemcell {
+		result = append(result, v.Stemcell)
 	}
 
 	if t.CloudProperties {
