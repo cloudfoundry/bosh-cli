@@ -26,7 +26,7 @@ type S3Cli struct {
 	SSEKMSKeyID          string `json:"sse_kms_key_id"`
 	MultipartUpload      bool   `json:"multipart_upload"`
 	UseV2SigningMethod   bool
-	HostStyle            bool
+	HostStyle            bool   `json:"host_style"`
 }
 
 // EmptyRegion is required to allow us to use the AWS SDK against S3 compatible blobstores which do not have
