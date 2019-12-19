@@ -369,11 +369,22 @@ type CertificateExpiryInfo struct {
 }
 
 type CleanUp struct {
-	Releases         []string `json:"releases"`
-	Stemcells        []string `json:"stemcells"`
-	CompiledPackages []string `json:"compiled_packages"`
-	OrphanedDisks    []string `json:"orphaned_disks"`
-	OrphanedVMs      []string `json:"orphaned_vms"`
-	ExportedReleases []string `json:"exported_releases"`
-	DNSBlobs         []string `json:"dns_blobs"`
+	Releases         []CleanableRelease
+	Stemcells        []Stemcell
+	CompiledPackages []CleanableCompiledPackage
+	OrphanedDisks    []OrphanDiskResp
+	OrphanedVMs      []OrphanedVM
+	ExportedReleases []string
+	DNSBlobs         []string
+}
+
+type CleanableRelease struct {
+	Name     string   `json:"name"`
+	Versions []string `json:"versions"`
+}
+
+type CleanableCompiledPackage struct {
+	Name            string `json:"package_name"`
+	StemcellOs      string `json:"stemcell_os"`
+	StemcellVersion string `json:"stemcell_version"`
 }

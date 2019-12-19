@@ -74,9 +74,13 @@ func (d DirectorImpl) Stemcells() ([]Stemcell, error) {
 		return nil, err
 	}
 
+	return transformStemcells(resps, d.client)
+}
+
+func transformStemcells(stemcellResponses []StemcellResp, client Client) ([]Stemcell, error) {
 	var stems []Stemcell
 
-	for _, resp := range resps {
+	for _, resp := range stemcellResponses {
 		parsedVersion, err := semver.NewVersionFromString(resp.Version)
 		if err != nil {
 			return nil, bosherr.WrapErrorf(
@@ -84,7 +88,7 @@ func (d DirectorImpl) Stemcells() ([]Stemcell, error) {
 		}
 
 		stem := StemcellImpl{
-			client: d.client,
+			client: client,
 
 			name:              resp.Name,
 			version:           parsedVersion,
@@ -98,7 +102,6 @@ func (d DirectorImpl) Stemcells() ([]Stemcell, error) {
 
 		stems = append(stems, stem)
 	}
-
 	return stems, nil
 }
 

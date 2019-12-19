@@ -299,7 +299,7 @@ type LocksOpts struct {
 
 type CleanUpOpts struct {
 	All    bool `long:"all" description:"Clean up all unused resources including orphaned disks"`
-	DryRun bool `long:"dryrun" description:"Print out the resources that will be deleted"`
+	DryRun bool `long:"dry-run" description:"Print out the resources that will be deleted but does not delete anything"`
 
 	cmd
 }

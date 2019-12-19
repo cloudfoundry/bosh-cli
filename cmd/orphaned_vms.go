@@ -21,6 +21,12 @@ func (c OrphanedVMsCmd) Run() error {
 		return err
 	}
 
+	printOrphanedVmTable(c.ui, orphanedVMs)
+
+	return nil
+}
+
+func printOrphanedVmTable(ui ui.UI, orphanedVMs []director.OrphanedVM) {
 	tbl := table.Table{
 		Content: "orphaned_vms",
 		Header: []table.Header{
@@ -45,7 +51,5 @@ func (c OrphanedVMsCmd) Run() error {
 		})
 	}
 
-	c.ui.PrintTable(tbl)
-
-	return nil
+	ui.PrintTable(tbl)
 }

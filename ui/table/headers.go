@@ -16,6 +16,13 @@ func NewHeader(title string) Header {
 	}
 }
 
+func NewHeadersFromStrings(titles []string) (headers []Header) {
+	for _, t := range titles {
+		headers = append(headers, NewHeader(t))
+	}
+	return
+}
+
 func (t *Table) SetColumnVisibility(headers []Header) error {
 	for tableHeaderIdx, _ := range t.Header {
 		t.Header[tableHeaderIdx].Hidden = true
