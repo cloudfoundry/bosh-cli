@@ -11,19 +11,6 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
-type CleanableReleaseImpl struct {
-	name     string   `json:"name"`
-	versions []string `json:"versions"`
-}
-
-func (r CleanableReleaseImpl) Versions() []string {
-	return r.versions
-}
-
-func (r CleanableReleaseImpl) Name() string {
-	return r.name
-}
-
 type CleanUpResponse struct {
 	Releases         []CleanableRelease         `json:"releases"`
 	Stemcells        []StemcellResp             `json:"stemcells"`
