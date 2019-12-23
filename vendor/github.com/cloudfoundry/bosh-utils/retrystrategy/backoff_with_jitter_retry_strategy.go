@@ -9,8 +9,8 @@ import (
 
 type backoffWithJitterRetryStrategy struct {
 	maxAttempts int
-	min time.Duration
-	max time.Duration
+	min         time.Duration
+	max         time.Duration
 	retryable   Retryable
 	logger      boshlog.Logger
 	logTag      string
