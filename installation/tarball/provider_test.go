@@ -236,6 +236,18 @@ var _ = Describe("Provider", func() {
 						Expect(fs.FileExists(tempDownloadFilePath2)).To(BeFalse())
 						Expect(fs.FileExists(tempDownloadFilePath3)).To(BeFalse())
 					})
+
+					Context("when the URL contains basic auth credentials", func() {
+						BeforeEach(func() {
+							source = newFakeSource("https://user:password@releases.io", "expectedsha1", "fake-description")
+						})
+
+						It("returns the error and redacts the url", func() {
+							_, err := provider.Get(source, fakeStage)
+							Expect(err).To(HaveOccurred())
+							Expect(err.Error()).To(ContainSubstring("Failed to download from 'https://<redacted>:<redacted>@releases.io'"))
+						})
+					})
 				})
 			})
 		})

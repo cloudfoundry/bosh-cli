@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	urlhelper "github.com/cloudfoundry/bosh-cli/common/util"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -79,7 +80,7 @@ func (p *provider) Get(source Source, stage biui.Stage) (string, error) {
 
 			err := retryStrategy.Try()
 			if err != nil {
-				return bosherr.WrapErrorf(err, "Failed to download from '%s'", source.GetURL())
+				return bosherr.WrapErrorf(err, "Failed to download from '%s'", urlhelper.RedactBasicAuth(source.GetURL()))
 			}
 
 			p.logger.Debug(p.logTag, "Using the downloaded tarball: '%s'", cachedPath)
