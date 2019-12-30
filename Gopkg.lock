@@ -54,7 +54,7 @@
   version = "v0.3.1"
 
 [[projects]]
-  digest = "1:621a17dea3a93ffbf51d5cedefda599f2f7bccf739d2929b896d4862244d9194"
+  digest = "1:bc1ac928f9bdbb750d84d25f36d6a5d2881ae0b2fd7c1fcbed253dbecdcfb321"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -100,8 +100,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "f454f7e9949b40071254bd1e86a87d2b3e3f9d5d"
-  version = "v1.26.7"
+  revision = "fcbfc357f185c1d55e2c37626357ec92abd52286"
+  version = "v1.26.8"
 
 [[projects]]
   digest = "1:db1f64ceacde0c4302dc0de285cc9800949d5e1eaa8982bbd435f3d1f6896f57"
@@ -201,7 +201,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "9dcf5b2684dc3f8aba32b264a8f83a4ac2c95294"
+  revision = "5f094101dfe7d3b9601bc48f62a35066bc8ab2c3"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -268,7 +268,7 @@
   name = "github.com/golang/groupcache"
   packages = ["lru"]
   pruneopts = "NUT"
-  revision = "611e8accdfc92c4187d399e95ce826046d4c8d73"
+  revision = "215e87163ea771ffa998a96c611387313bb5a403"
 
 [[projects]]
   digest = "1:be408f349cae090a7c17a279633d6e62b00068e64af66a582cae0983de8890ea"
@@ -533,7 +533,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "becbf705a91575484002d598f87d74f0002801e7"
+  revision = "53104e6ec876ad4e22ad27cce588b01392043c1b"
 
 [[projects]]
   branch = "master"
@@ -544,7 +544,7 @@
     "cmd/apidiff",
   ]
   pruneopts = "NUT"
-  revision = "2f50522955873285d9bf17ec91e55aec8ae82edc"
+  revision = "da58074b429933d2abeae71d6ef619366febf38e"
 
 [[projects]]
   branch = "master"
@@ -595,7 +595,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:62505ee96fc6e1e3fb6a3e28c5647e05b5fc9927b8a4bbdcbdeedf6c9bd3b092"
+  digest = "1:ab23df8e236b365e1e97e2bc25726e3260c928334faecb35465309ef9864ea51"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -603,7 +603,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "0732a990476f7f2f5f7200b39ba4ab730c0f09f8"
+  revision = "04cbcbbfeed8aa0b2b010b2ddab558e9f717fd3e"
 
 [[projects]]
   digest = "1:28deae5fe892797ff37a317b5bcda96d11d1c90dadd89f1337651df3bc4c586e"
@@ -667,7 +667,7 @@
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "f13409bbebaf4952699e53713a73474ea30e8672"
+  revision = "7b8e75db28f4b09dc0b853eadee5b034956bcb9e"
 
 [[projects]]
   branch = "master"
@@ -730,7 +730,7 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "5c49e3ecc1c1580952a66cb92d77bd066ecd5744"
+  revision = "3caeed10a8bf5b67c6007d5b0a7016f367cedbad"
 
 [[projects]]
   digest = "1:5060173b5a1d668358eb8881453eb96d3cf1ed1b35f0f4af52c56f741c121865"
