@@ -27,7 +27,7 @@ func (c CleanUpCmd) Run(opts CleanUpOpts) error {
 		}
 	}
 
-	resp, err := c.director.CleanUp(opts.All, opts.DryRun)
+	resp, err := c.director.CleanUp(opts.All, opts.DryRun, opts.KeepOrphanedDisks)
 	if err != nil {
 		return err
 	}

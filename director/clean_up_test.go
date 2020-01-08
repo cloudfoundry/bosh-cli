@@ -29,7 +29,7 @@ var _ = Describe("Director", func() {
 			It("shows what it would clean-up", func() {
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/cleanup/dryrun"),
+						ghttp.VerifyRequest("GET", "/cleanup/dryrun", "remove_all=false&keep_orphaned_disks=false"),
 						ghttp.VerifyBasicAuth("username", "password"),
 						ghttp.RespondWithJSONEncoded(http.StatusOK, map[string]interface{}{
 							"releases": []map[string]interface{}{
@@ -87,7 +87,7 @@ var _ = Describe("Director", func() {
 						}),
 					),
 				)
-				resp, err := dir.CleanUp(false, true)
+				resp, err := dir.CleanUp(false, true, false)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(resp.Releases).To(ConsistOf(

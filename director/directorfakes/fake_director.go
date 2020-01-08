@@ -32,11 +32,12 @@ type FakeDirector struct {
 		result1 []director.CertificateExpiryInfo
 		result2 error
 	}
-	CleanUpStub        func(bool, bool) (director.CleanUp, error)
+	CleanUpStub        func(bool, bool, bool) (director.CleanUp, error)
 	cleanUpMutex       sync.RWMutex
 	cleanUpArgsForCall []struct {
 		arg1 bool
 		arg2 bool
+		arg3 bool
 	}
 	cleanUpReturns struct {
 		result1 director.CleanUp
@@ -822,17 +823,18 @@ func (fake *FakeDirector) CertificateExpiryReturnsOnCall(i int, result1 []direct
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) CleanUp(arg1 bool, arg2 bool) (director.CleanUp, error) {
+func (fake *FakeDirector) CleanUp(arg1 bool, arg2 bool, arg3 bool) (director.CleanUp, error) {
 	fake.cleanUpMutex.Lock()
 	ret, specificReturn := fake.cleanUpReturnsOnCall[len(fake.cleanUpArgsForCall)]
 	fake.cleanUpArgsForCall = append(fake.cleanUpArgsForCall, struct {
 		arg1 bool
 		arg2 bool
-	}{arg1, arg2})
-	fake.recordInvocation("CleanUp", []interface{}{arg1, arg2})
+		arg3 bool
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("CleanUp", []interface{}{arg1, arg2, arg3})
 	fake.cleanUpMutex.Unlock()
 	if fake.CleanUpStub != nil {
-		return fake.CleanUpStub(arg1, arg2)
+		return fake.CleanUpStub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -847,17 +849,17 @@ func (fake *FakeDirector) CleanUpCallCount() int {
 	return len(fake.cleanUpArgsForCall)
 }
 
-func (fake *FakeDirector) CleanUpCalls(stub func(bool, bool) (director.CleanUp, error)) {
+func (fake *FakeDirector) CleanUpCalls(stub func(bool, bool, bool) (director.CleanUp, error)) {
 	fake.cleanUpMutex.Lock()
 	defer fake.cleanUpMutex.Unlock()
 	fake.CleanUpStub = stub
 }
 
-func (fake *FakeDirector) CleanUpArgsForCall(i int) (bool, bool) {
+func (fake *FakeDirector) CleanUpArgsForCall(i int) (bool, bool, bool) {
 	fake.cleanUpMutex.RLock()
 	defer fake.cleanUpMutex.RUnlock()
 	argsForCall := fake.cleanUpArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeDirector) CleanUpReturns(result1 director.CleanUp, result2 error) {

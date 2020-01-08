@@ -134,13 +134,13 @@ var _ = Describe("Director", func() {
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"application/json"},
 					}),
-					ghttp.VerifyBody([]byte(`{"config":{"remove_all":true}}`)),
+					ghttp.VerifyBody([]byte(`{"config":{"keep_orphaned_disks":false,"remove_all":true}}`)),
 				),
 				"",
 				server,
 			)
 
-			_, err := dir.CleanUp(true, false)
+			_, err := dir.CleanUp(true, false, false)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -152,20 +152,38 @@ var _ = Describe("Director", func() {
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"application/json"},
 					}),
-					ghttp.VerifyBody([]byte(`{"config":{"remove_all":false}}`)),
+					ghttp.VerifyBody([]byte(`{"config":{"keep_orphaned_disks":false,"remove_all":false}}`)),
 				),
 				"",
 				server,
 			)
 
-			_, err := dir.CleanUp(false, false)
+			_, err := dir.CleanUp(false, false, false)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("cleans up all resources except for orphaned disks and returns without an error", func() {
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/cleanup"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"application/json"},
+					}),
+					ghttp.VerifyBody([]byte(`{"config":{"keep_orphaned_disks":true,"remove_all":true}}`)),
+				),
+				"",
+				server,
+			)
+
+			_, err := dir.CleanUp(true, false, true)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns error if response is non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("POST", "/cleanup"), server)
 
-			_, err := dir.CleanUp(true, false)
+			_, err := dir.CleanUp(true, false, false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Cleaning up resources"))
 		})

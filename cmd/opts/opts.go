@@ -298,8 +298,9 @@ type LocksOpts struct {
 }
 
 type CleanUpOpts struct {
-	All    bool `long:"all" description:"Clean up all unused resources including orphaned disks"`
-	DryRun bool `long:"dry-run" description:"Print out the resources that will be deleted but does not delete anything"`
+	All               bool `long:"all" description:"Clean up all unused resources including all orphaned disks"`
+	DryRun            bool `long:"dry-run" description:"Print out the resources that will be deleted but does not delete anything"`
+	KeepOrphanedDisks bool `long:"keep-orphaned-disks" description:"Keep orphaned disks even with '--all'"`
 
 	cmd
 }

@@ -1280,7 +1280,13 @@ var _ = Describe("Opts", func() {
 		Describe("All", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("All", opts)).To(Equal(
-					`long:"all" description:"Clean up all unused resources including orphaned disks"`,
+					`long:"all" description:"Clean up all unused resources including all orphaned disks"`,
+				))
+				Expect(getStructTagForName("DryRun", opts)).To(Equal(
+					`long:"dry-run" description:"Print out the resources that will be deleted but does not delete anything"`,
+				))
+				Expect(getStructTagForName("KeepOrphanedDisks", opts)).To(Equal(
+					`long:"keep-orphaned-disks" description:"Keep orphaned disks even with '--all'"`,
 				))
 			})
 		})

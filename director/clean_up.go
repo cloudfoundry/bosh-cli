@@ -21,21 +21,22 @@ type CleanUpResponse struct {
 	DNSBlobs         []string                   `json:"dns_blobs"`
 }
 
-func (d DirectorImpl) CleanUp(all bool, dryRun bool) (CleanUp, error) {
-	return d.client.CleanUp(all, dryRun)
+func (d DirectorImpl) CleanUp(all bool, dryRun bool, keepOrphanedDisks bool) (CleanUp, error) {
+	return d.client.CleanUp(all, dryRun, keepOrphanedDisks)
 }
 
-func (c Client) CleanUp(all bool, dryRun bool) (CleanUp, error) {
+func (c Client) CleanUp(all bool, dryRun bool, keepOrphanedDisks bool) (CleanUp, error) {
 	if dryRun {
-		return c.dryCleanUp(all)
+		return c.dryCleanUp(all, keepOrphanedDisks)
 	} else {
-		return CleanUp{}, c.cleanUp(all)
+		return CleanUp{}, c.cleanUp(all, keepOrphanedDisks)
 	}
 }
 
-func (c Client) dryCleanUp(all bool) (CleanUp, error) {
+func (c Client) dryCleanUp(all bool, keepOrphanedDisks bool) (CleanUp, error) {
 	query := gourl.Values{}
 	query.Add("remove_all", strconv.FormatBool(all))
+	query.Add("keep_orphaned_disks", strconv.FormatBool(keepOrphanedDisks))
 
 	path := fmt.Sprintf("/cleanup/dryrun?%s", query.Encode())
 
@@ -70,9 +71,9 @@ func (c Client) dryCleanUp(all bool) (CleanUp, error) {
 	return cleanUp, nil
 }
 
-func (c Client) cleanUp(all bool) error {
+func (c Client) cleanUp(all bool, keepOrphanedDisks bool) error {
 	body := map[string]interface{}{
-		"config": map[string]bool{"remove_all": all},
+		"config": map[string]bool{"remove_all": all, "keep_orphaned_disks": keepOrphanedDisks},
 	}
 
 	reqBody, err := json.Marshal(body)

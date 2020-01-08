@@ -76,7 +76,7 @@ type Director interface {
 	OrphanNetworks() ([]OrphanNetwork, error)
 
 	EnableResurrection(bool) error
-	CleanUp(all bool, dryRun bool) (CleanUp, error)
+	CleanUp(all bool, dryRun bool, keepOrphanedDisks bool) (CleanUp, error)
 	DownloadResourceUnchecked(blobstoreID string, out io.Writer) error
 
 	OrphanedVMs() ([]OrphanedVM, error)
