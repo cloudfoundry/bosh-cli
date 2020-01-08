@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -179,7 +180,18 @@ func (l varsLookup) Get(name string) (interface{}, bool, error) {
 
 		val, found, err = processPatchPointer(pointer, val)
 		if err != nil {
-			return val, found, err
+			tokens := []patch.Token{}
+			for _, token := range pointer.Tokens() {
+				switch v := token.(type) {
+				case patch.IndexToken:
+					tokens = append(tokens, patch.KeyToken{Key: strconv.Itoa(v.Index)})
+				default:
+					tokens = append(tokens, token)
+				}
+			}
+			pointer = patch.NewPointer(tokens)
+
+			return processPatchPointer(pointer, val)
 		}
 	}
 
@@ -195,7 +207,7 @@ func processPatchPointer(pointer patch.Pointer, val interface{}) (interface{}, b
 	if err != nil {
 		return val, false, err
 	}
-	return newVal, false, nil
+	return newVal, true, nil
 }
 
 type varsTracker struct {
