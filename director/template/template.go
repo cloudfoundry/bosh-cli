@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -172,23 +173,41 @@ func (l varsLookup) Get(name string) (interface{}, bool, error) {
 	}
 
 	if len(splitName) > 1 {
-		tokens := []patch.Token{patch.RootToken{}}
-
-		for _, token := range splitName[1:] {
-			tokens = append(tokens, patch.KeyToken{Key: token})
-		}
-
-		findOp := patch.FindOp{
-			Path: patch.NewPointer(tokens),
-		}
-
-		val, err = findOp.Apply(val)
+		pointer, err := patch.NewPointerFromString("/" + strings.Join(splitName[1:], "/"))
 		if err != nil {
 			return nil, false, err
+		}
+
+		val, found, err = processPatchPointer(pointer, val)
+		if err != nil {
+			tokens := []patch.Token{}
+			for _, token := range pointer.Tokens() {
+				switch v := token.(type) {
+				case patch.IndexToken:
+					tokens = append(tokens, patch.KeyToken{Key: strconv.Itoa(v.Index)})
+				default:
+					tokens = append(tokens, token)
+				}
+			}
+			pointer = patch.NewPointer(tokens)
+
+			return processPatchPointer(pointer, val)
 		}
 	}
 
 	return val, true, err
+}
+
+func processPatchPointer(pointer patch.Pointer, val interface{}) (interface{}, bool, error) {
+	findOp := patch.FindOp{
+		Path: pointer,
+	}
+
+	newVal, err := findOp.Apply(val)
+	if err != nil {
+		return val, false, err
+	}
+	return newVal, true, nil
 }
 
 type varsTracker struct {

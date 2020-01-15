@@ -21,6 +21,33 @@ var _ = Describe("Template", func() {
 		Expect(result).To(Equal([]byte("foo\n")))
 	})
 
+	It("can interpolate a specific indexed value of an variable that is an array", func() {
+		template := NewTemplate([]byte("((key)): ((value.1))"))
+		vars := StaticVariables{
+			"key":   "foo",
+			"value": []interface{}{"bar", "baz"},
+		}
+
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("foo: baz\n")))
+	})
+
+	It("can interpolate a specific indexed value of an variable that is an hash", func() {
+		template := NewTemplate([]byte("((key)): ((value.1))"))
+		vars := StaticVariables{
+			"key":   "foo",
+			"value": map[interface{}]interface{}{
+				"0": "bar",
+				"1": "baz",
+			},
+		}
+
+		result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal([]byte("foo: baz\n")))
+	})
+
 	It("can interpolate values with leading slash into a struct with byte slice", func() {
 		template := NewTemplate([]byte("((/key/foo))"))
 		vars := StaticVariables{"/key/foo": "foo"}
