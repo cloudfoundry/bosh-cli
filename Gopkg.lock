@@ -54,7 +54,7 @@
   version = "v0.3.1"
 
 [[projects]]
-  digest = "1:cf9ed2ce1ebd5ecc4ac51388b8d749e1a2c6659e9ac45a475c098b8917b5d7bb"
+  digest = "1:3f698185c69ff45dcc1f919c35f8de5c4bf7b098b129c670572f86cae27d7e0f"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -101,8 +101,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "0b1278033d8e0b68eb64faec9ca9512ccd8695e0"
-  version = "v1.28.0"
+  revision = "5abff723756e51686a6a4377e7c5b1d74a9e18a3"
+  version = "v1.28.5"
 
 [[projects]]
   digest = "1:db1f64ceacde0c4302dc0de285cc9800949d5e1eaa8982bbd435f3d1f6896f57"
@@ -139,8 +139,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "50a0cb423638f532edd680dad85b95e95b0bd5b0"
-  version = "v2.293.0"
+  revision = "e6e9cfaaff071e90cfcf6c6071abb47ca9cd492b"
+  version = "v2.294.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -202,7 +202,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "8c5bf9093331ed683af7e8b1e1051e66ea67e87e"
+  revision = "59196cba50b011136272461f4e1761785139124e"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -389,12 +389,12 @@
   version = "v0.0.11"
 
 [[projects]]
-  digest = "1:7f6df5a7a75f146a44149a017cafa7233f6fbd463bb25fada57a5450654e48ba"
+  digest = "1:f48d9e339b6bb8cfd5cd2c67836bb6b57273ba324d38d162618064bfa488792b"
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "18c3d09a134a52720932bbaa92c798a0ab111004"
-  version = "v0.0.7"
+  revision = "a4df4ddbff020e131056d91f580a1cdcd806e3ae"
+  version = "v0.0.8"
 
 [[projects]]
   digest = "1:0d33e8f4230cafee906332f45cc456ce2b66ac18a1edc40a9c87e3e68682d08b"
@@ -521,7 +521,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b2a36018f24d85288582c753704b3184a103e8b247db8a6f5c19e8c35300c32d"
+  digest = "1:25ec77817d2a454a914981358de3d55f2140214018f61a72e28598c7af93eba0"
   name = "golang.org/x/crypto"
   packages = [
     "chacha20",
@@ -534,7 +534,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "61a87790db17894570dfb32dbaa0a4af9ce60cb4"
+  revision = "530e935923ad688be97c15eeb8e5ee42ebf2b54a"
 
 [[projects]]
   branch = "master"
@@ -560,7 +560,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:3822f5445c1f4c530c254fa31e4ab000aab96ee759228a429b95d4857021ba56"
+  digest = "1:35129a9a98f14c37043d6279acc91af2b3f2b4fcdf5e6dcf934f2b6c0b68be40"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -578,7 +578,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "c0dbc17a35534bf2e581d7a942408dc936316da4"
+  revision = "6afb5195e5aab057fda82e27171243402346b0ad"
 
 [[projects]]
   branch = "master"
@@ -596,7 +596,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:79742237f49a9764ee1ad7c88b949d95f87ceae293746bbc3a113d0f48c99d56"
+  digest = "1:c67db93c8d819b59bc169f6261075b444c93baaf3f8e3829f70ca56fc9061be5"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -604,7 +604,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "548cf772de5052aa878ccb47cdeb7d262b75c8ec"
+  revision = "59e60aa80a0c64fa4b088976ee16ad7f04252c25"
 
 [[projects]]
   digest = "1:28deae5fe892797ff37a317b5bcda96d11d1c90dadd89f1337651df3bc4c586e"
@@ -645,7 +645,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:157579b8cd7f8808f2a4d110a71e46e7cba15c7c33a3213e6998af573d542c54"
+  digest = "1:e5588a2b28a37c50f80d0613827421ec5ca6cb16e6b8939c9f56524bd67b365d"
   name = "golang.org/x/tools"
   packages = [
     "cmd/goimports",
@@ -665,10 +665,11 @@
     "internal/gopathwalk",
     "internal/imports",
     "internal/module",
+    "internal/packagesinternal",
     "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "a7a6caa82ab2c7a235db8f1e47d3a8f2e7a6c054"
+  revision = "0cba7a3a9ee9d9a5917ed56b9668e7ad35eaa571"
 
 [[projects]]
   branch = "master"
@@ -731,7 +732,7 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "bd8f9a0ef82f9870cb10caef4f23c348069600cb"
+  revision = "32f20d992d240fbca6ef7dec6c05d1f024314e02"
 
 [[projects]]
   digest = "1:5060173b5a1d668358eb8881453eb96d3cf1ed1b35f0f4af52c56f741c121865"
