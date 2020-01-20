@@ -895,13 +895,21 @@ type AllOrInstanceGroupOrInstanceSlugArgs struct {
 
 // SSH instance
 
+type SshSlugArgs struct {
+	Slug boshdir.AllOrInstanceGroupOrInstanceSlug `positional-arg-name:"INSTANCE-GROUP[/INSTANCE-ID] | IP"`
+}
+
 type SSHOpts struct {
-	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
+	Args SshSlugArgs `positional-args:"true"`
 
 	Command []string         `long:"command" short:"c" description:"Command"`
 	RawOpts TrimmedSpaceArgs `long:"opts"              description:"Options to pass through to SSH"`
 
 	Results bool `long:"results" short:"r" description:"Collect results into a table instead of streaming"`
+
+	PrivateKey FileBytesWithPathArg `long:"private-key" short:"i" description:"SSH using authorized key"`
+
+	Username string `long:"username" short:"l" description:"Login name for authorized key" default:"vcap"`
 
 	GatewayFlags
 
@@ -912,6 +920,10 @@ type SCPOpts struct {
 	Args SCPArgs `positional-args:"true" required:"true"`
 
 	Recursive bool `long:"recursive" short:"r" description:"Recursively copy entire directories. Note that symbolic links encountered are followed in the tree traversal"`
+
+	PrivateKey FileBytesWithPathArg `long:"private-key" short:"i" description:"SSH using authorized key"`
+
+	Username string `long:"username" short:"l" description:"Login name for authorized key" default:"vcap"`
 
 	GatewayFlags
 

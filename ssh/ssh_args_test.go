@@ -74,7 +74,6 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 			}))
 		})
@@ -89,7 +88,6 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 			}))
 		})
@@ -103,7 +101,6 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 				"raw1", "raw2",
 			}))
@@ -119,7 +116,6 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 				"-o", "ProxyCommand=ssh -tt -W %h:%p -l gw-user gw-host -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
 			}))
@@ -137,7 +133,6 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 				"-o", "ProxyCommand=ssh -tt -W %h:%p -l gw-user gw-host -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PasswordAuthentication=no -o IdentitiesOnly=yes -o IdentityFile=/tmp/gw-priv-key",
 			}))
@@ -156,7 +151,6 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 				"-o", "ProxyCommand=ssh -tt -W %h:%p -l user-gw-user user-gw-host -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
 			}))
@@ -176,7 +170,6 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 			}))
 		})
@@ -196,7 +189,6 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 				"-o", "ProxyCommand=nc -x some-proxy %h %p",
 			}))
@@ -219,7 +211,6 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 				"-o", "ProxyCommand=connect-proxy -S some-proxy %h %p",
 			}))
@@ -240,7 +231,6 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 				"-o", MatchRegexp("ProxyCommand=nc -x 127.0.0.1:\\d+ %h %p"),
 			))
@@ -257,7 +247,6 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 				"-o", "ProxyCommand=ssh -tt -W [%h]:%p -l gw-user gw-host -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
 			}))
@@ -273,7 +262,6 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 				"-o", "ProxyCommand=ssh -tt -W %h:%p -l gw-user ::1 -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
 			}))
@@ -290,7 +278,6 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 				"-o", "ProxyCommand=ssh -tt -W [%h]:%p -l gw-user ::1 -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
 			}))
@@ -306,7 +293,6 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "PasswordAuthentication=no",
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
-				"-o", "StrictHostKeyChecking=yes",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 				"-o", "ProxyCommand=nc -x some-proxy %h %p",
 			}))
