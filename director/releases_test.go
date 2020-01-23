@@ -145,12 +145,22 @@ var _ = Describe("Director", func() {
 			return director.HasRelease("name", "ver", stemcell)
 		}
 
-		It("returns true if name and version matches", func() {
+		It("returns true if name and version matches and source bits exist", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/releases"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases/name", "version=ver"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `{
+					  "packages": [{
+						  "sha1": "foo",
+							"blobstore_id": "123"
+					  }]
+					}`),
 				),
 			)
 
@@ -201,7 +211,35 @@ var _ = Describe("Director", func() {
 			Expect(found).To(BeTrue())
 		})
 
-		It("returns false if name, version matches but stemcell does not", func() {
+		It("returns false if there is no source (identified by missing sha1 and blobstoreid), name and version match but stemcell does not", func() {
+			stemcell = NewOSVersionSlug("stemcell-os", "stemcell-ver")
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases/name", "version=ver"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `{
+					  "packages": [{
+					    "compiled_packages": [
+								{ "stemcell": "stemcell-os/stemcell-ver1" },
+								{ "stemcell": "stemcell-os1/stemcell-ver" }
+					    ]
+					  }]
+					}`),
+				),
+			)
+
+			found, err := director.HasRelease("name", "ver", OSVersionSlug{})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeFalse())
+		})
+
+		It("returns false when stemcell is specified if name and version match and a compiled package for that stemcell exists", func() {
 			stemcell = NewOSVersionSlug("stemcell-os", "stemcell-ver")
 
 			server.AppendHandlers(
