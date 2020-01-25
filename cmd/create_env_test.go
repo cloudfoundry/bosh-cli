@@ -73,6 +73,11 @@ var _ = Describe("CreateEnvCmd", func() {
 	})
 
 	Describe("Run", func() {
+		const (
+			directorID = "generated-director-uuid"
+			mbusURL    = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
+		)
+
 		var (
 			command       *bicmd.CreateEnvCmd
 			fs            *fakesys.FakeFileSystem
@@ -113,7 +118,6 @@ var _ = Describe("CreateEnvCmd", func() {
 			setupDeploymentStateService       biconfig.DeploymentStateService
 			fakeDeploymentValidator           *fakebideplval.FakeValidator
 
-			directorID          = "generated-director-uuid"
 			fakeUUIDGenerator   *fakeuuid.FakeGenerator
 			configUUIDGenerator *fakeuuid.FakeGenerator
 
@@ -123,13 +127,11 @@ var _ = Describe("CreateEnvCmd", func() {
 			deploymentStatePath    string
 			cpiReleaseTarballPath  string
 			stemcellTarballPath    string
-			stemcellApiVersion     = 2
-			cpiApiVersion          = 2
+			stemcellApiVersion     int
+			cpiApiVersion          int
 			extractedStemcell      bistemcell.ExtractedStemcell
 
 			expectDeploy *gomock.Call
-
-			mbusURL = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
 
 			releaseSetManifest     birelsetmanifest.Manifest
 			template               bidepltpl.DeploymentTemplate
@@ -306,6 +308,8 @@ var _ = Describe("CreateEnvCmd", func() {
 					Manifest: FileBytesWithPathArg{Path: deploymentManifestPath},
 				},
 			}
+			stemcellApiVersion = 2
+			cpiApiVersion = 2
 		})
 
 		JustBeforeEach(func() {
@@ -692,7 +696,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls[3]).To(Equal(&fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[2]).To(Equal(&fakebiui.PerformCall{
 				Name:  "deploying",
 				Stage: &fakebiui.FakeStage{}, // mock deployer doesn't add sub-stages
 			}))
