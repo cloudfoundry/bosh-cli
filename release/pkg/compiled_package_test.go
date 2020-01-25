@@ -68,6 +68,7 @@ var _ = Describe("NewCompiledPackageWithArchive", func() {
 	)
 
 	BeforeEach(func() {
+		fakeFileContentSha1 = ""
 		compiledPkg = NewCompiledPackageWithArchive(
 			"name", "fp", "os-slug", "path", "sha1", []string{"pkg1", "pkg2"})
 	})
@@ -111,6 +112,7 @@ var _ = Describe("NewCompiledPackageWithArchive", func() {
 			fakeDigestCalculator = fakes.NewFakeDigestCalculator()
 			fakeArchiveReader = &cryptofakes.FakeArchiveDigestFilePathReader{}
 			fakeFile = &fakes2.FakeFile{Contents: []byte("hello world")}
+			fakeFileContentSha1 = "2aae6c35c94fcfb415dbe95f408b9ce91ee846ed"
 		})
 
 		Context("When compiled package can be rehashed", func() {
@@ -118,8 +120,6 @@ var _ = Describe("NewCompiledPackageWithArchive", func() {
 				fakeDigestCalculator.SetCalculateBehavior(map[string]fakes.CalculateInput{
 					"path": {DigestStr: "sha256:compiledpkgsha256"},
 				})
-
-				fakeFileContentSha1 = "2aae6c35c94fcfb415dbe95f408b9ce91ee846ed"
 
 				fakeArchiveReader.OpenFileReturns(fakeFile, nil)
 
