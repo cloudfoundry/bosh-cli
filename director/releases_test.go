@@ -145,6 +145,10 @@ var _ = Describe("Director", func() {
 			return director.HasRelease("name", "ver", stemcell)
 		}
 
+		BeforeEach(func() {
+			stemcell = OSVersionSlug{}
+		})
+
 		It("returns true if name and version matches", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(

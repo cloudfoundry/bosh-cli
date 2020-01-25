@@ -27,13 +27,10 @@ var _ = Describe("EnvironmentCmd", func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
 		command = NewEnvironmentCmd(ui, director)
+		opts = EnvironmentOpts{}
 	})
 
 	Describe("Run", func() {
-		BeforeEach(func() {
-
-		})
-
 		act := func() error { return command.Run(opts) }
 
 		It("outputs a table that should be transposed", func() {

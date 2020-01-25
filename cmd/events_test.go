@@ -66,6 +66,9 @@ var _ = Describe("EventsCmd", func() {
 		var (
 			opts EventsOpts
 		)
+		BeforeEach(func() {
+			opts = EventsOpts{}
+		})
 
 		It("lists events", func() {
 			director.EventsReturns(events, nil)
