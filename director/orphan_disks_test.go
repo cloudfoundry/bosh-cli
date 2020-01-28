@@ -140,6 +140,27 @@ var _ = Describe("OrphanDisk", func() {
 			Expect(disk.Delete()).ToNot(HaveOccurred())
 		})
 
+		It("does url encoding for cid", func() {
+			var verifyRawPath = func(path string) http.HandlerFunc {
+				return func(w http.ResponseWriter, req *http.Request) {
+					Expect(req.RequestURI).To(Equal(path))
+				}
+			}
+
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					verifyRawPath("/disks/cid%3Bcid"),
+					ghttp.VerifyRequest("DELETE", "/disks/cid;cid"),
+					ghttp.VerifyBasicAuth("username", "password"),
+				),
+				"",
+				server,
+			)
+			disk, err := director.FindOrphanDisk("cid;cid")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(disk.Delete()).ToNot(HaveOccurred())
+		})
+
 		It("succeeds even if error occurrs if disk no longer exists", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
@@ -228,6 +249,25 @@ var _ = Describe("OrphanDisk", func() {
 			)
 
 			Expect(director.OrphanDisk("cid")).ToNot(HaveOccurred())
+		})
+
+		It("does url encoding for cid", func() {
+			var verifyRawPath = func(path string) http.HandlerFunc {
+				return func(w http.ResponseWriter, req *http.Request) {
+					Expect(req.RequestURI).To(Equal(path))
+				}
+			}
+
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					verifyRawPath("/disks/cid%3Bcid?orphan=true"),
+					ghttp.VerifyRequest("DELETE", "/disks/cid;cid", "orphan=true"),
+					ghttp.VerifyBasicAuth("username", "password"),
+				),
+				"",
+				server,
+			)
+			Expect(director.OrphanDisk("cid;cid")).ToNot(HaveOccurred())
 		})
 
 		It("returns error if response is non-200", func() {

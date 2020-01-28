@@ -2,6 +2,7 @@ package director
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -157,7 +158,7 @@ func (c Client) DeleteSnapshot(deploymentName, cid string) error {
 		return bosherr.Error("Expected non-empty snapshot CID")
 	}
 
-	path := fmt.Sprintf("/deployments/%s/snapshots/%s", deploymentName, cid)
+	path := fmt.Sprintf("/deployments/%s/snapshots/%s", deploymentName, url.PathEscape(cid))
 
 	_, err := c.taskClientRequest.DeleteResult(path)
 	if err != nil {

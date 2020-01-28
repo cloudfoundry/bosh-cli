@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	gourl "net/url"
 	"strings"
 
@@ -220,7 +221,7 @@ func (d DeploymentImpl) AttachDisk(slug InstanceSlug, diskCID string, diskProper
 		values.Add("disk_properties", diskProperties)
 	}
 
-	path := fmt.Sprintf("/disks/%s/attachments?%s", diskCID, values.Encode())
+	path := fmt.Sprintf("/disks/%s/attachments?%s", url.PathEscape(diskCID), values.Encode())
 	_, err := d.client.taskClientRequest.PutResult(path, []byte{}, func(*http.Request) {})
 	return err
 }

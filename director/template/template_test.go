@@ -36,7 +36,7 @@ var _ = Describe("Template", func() {
 	It("can interpolate a specific indexed value of an variable that is an hash", func() {
 		template := NewTemplate([]byte("((key)): ((value.1))"))
 		vars := StaticVariables{
-			"key":   "foo",
+			"key": "foo",
 			"value": map[interface{}]interface{}{
 				"0": "bar",
 				"1": "baz",

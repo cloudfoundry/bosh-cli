@@ -164,6 +164,27 @@ var _ = Describe("Director", func() {
 			Expect(deployment.DeleteSnapshot("cid")).ToNot(HaveOccurred())
 		})
 
+		It("encodes url correctly", func() {
+			var verifyRawPath = func(path string) http.HandlerFunc {
+				return func(w http.ResponseWriter, req *http.Request) {
+					Expect(req.RequestURI).To(Equal(path))
+				}
+			}
+
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					verifyRawPath("/deployments/dep/snapshots/cid%3Bcid"),
+					ghttp.VerifyRequest("DELETE", "/deployments/dep/snapshots/cid;cid"),
+					ghttp.VerifyBasicAuth("username", "password"),
+				),
+				"",
+				server,
+			)
+
+			err := deployment.DeleteSnapshot("cid;cid")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
 		It("returns delete error if listing snapshots fails", func() {
 			AppendBadRequest(ghttp.VerifyRequest("DELETE", "/deployments/dep/snapshots/cid"), server)
 

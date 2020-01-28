@@ -1069,6 +1069,27 @@ var _ = Describe("Deployment", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		It("encodes url correctly", func() {
+			var verifyRawPath = func(path string) http.HandlerFunc {
+				return func(w http.ResponseWriter, req *http.Request) {
+					Expect(req.RequestURI).To(Equal(path))
+				}
+			}
+
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					verifyRawPath("/disks/cid%3Bcid/attachments?deployment=dep&instance_id=17f01a35-bf9c-4949-bcf2-c07a95e4df33&job=dea"),
+					ghttp.VerifyRequest("PUT", "/disks/cid;cid/attachments", "deployment=dep&job=dea&instance_id=17f01a35-bf9c-4949-bcf2-c07a95e4df33"),
+					ghttp.VerifyBasicAuth("username", "password"),
+				),
+				"",
+				server,
+			)
+
+			err := deployment.AttachDisk(NewInstanceSlug("dea", "17f01a35-bf9c-4949-bcf2-c07a95e4df33"), "cid;cid", "")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
 		It("calls attachdisk director api with disk_properties if not empty", func() {
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(

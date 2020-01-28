@@ -2,6 +2,7 @@ package director
 
 import (
 	"fmt"
+	"net/url"
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -118,7 +119,7 @@ func (c Client) DeleteOrphanDisk(cid string) error {
 		return bosherr.Error("Expected non-empty orphaned disk CID")
 	}
 
-	path := fmt.Sprintf("/disks/%s", cid)
+	path := fmt.Sprintf("/disks/%s", url.PathEscape(cid))
 
 	_, err := c.taskClientRequest.DeleteResult(path)
 	if err != nil {
@@ -133,7 +134,7 @@ func (c Client) OrphanDisk(cid string) error {
 		return bosherr.Error("Expected non-empty disk CID")
 	}
 
-	path := fmt.Sprintf("/disks/%s?orphan=true", cid)
+	path := fmt.Sprintf("/disks/%s?orphan=true", url.PathEscape(cid))
 
 	_, err := c.taskClientRequest.DeleteResult(path)
 	if err != nil {
