@@ -115,19 +115,15 @@ func (s *ClientImpl) Stop() error {
 }
 
 func (s *ClientImpl) newClient(network, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
-	var (
-		conn net.Conn
-		err  error
-	)
+	dialer := net.Dialer{}
+	dialContextFunc := dialer.DialContext
 
 	if !s.opts.DisableSOCKS {
 		socksProxy := proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(ioutil.Discard, "", log.LstdFlags), 1*time.Minute)
-		dialContextFunc := boshhttp.SOCKS5DialContextFuncFromEnvironment(&net.Dialer{}, socksProxy)
-		conn, err = dialContextFunc(context.Background(), network, addr)
-	} else {
-		conn, err = net.Dial(network, addr)
+		dialContextFunc = boshhttp.SOCKS5DialContextFuncFromEnvironment(&net.Dialer{}, socksProxy)
 	}
 
+	conn, err := dialContextFunc(context.Background(), network, addr)
 	if err != nil {
 		return nil, err
 	}
