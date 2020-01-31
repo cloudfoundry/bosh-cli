@@ -179,7 +179,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4b27ee8e03a0b7cf6e4c47163028d1faf1f9d67f3557999b561819b9ac6d0e6d"
+  digest = "1:93f4762d9de079d2320c27e331fb438a9e0fd53afa45f60bab09a43dbccc26ba"
   name = "github.com/cloudfoundry/bosh-utils"
   packages = [
     "blobstore",
@@ -202,7 +202,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "9dc0142733489df6092c8f38b530654fb3bf2901"
+  revision = "c77401f104e15ff7adf957b3990ed897144336f0"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
