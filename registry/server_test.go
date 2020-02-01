@@ -18,6 +18,7 @@ var _ = Describe("Server", func() {
 	var (
 		server                   Server
 		registryURL              string
+		registryPort             int
 		incorrectAuthRegistryURL string
 		client                   helperClient
 	)
@@ -30,7 +31,7 @@ var _ = Describe("Server", func() {
 
 		attempts := 0
 		for attempts < 3 {
-			server, err = serverFactory.Start("fake-user", "fake-password", "localhost", 6901)
+			server, err = serverFactory.Start("fake-user", "fake-password", "localhost", registryPort)
 			if err == nil {
 				return server, nil
 			}
@@ -43,8 +44,10 @@ var _ = Describe("Server", func() {
 	}
 
 	BeforeEach(func() {
-		registryHost := "localhost:6901"
+		registryPort = 6901 + GinkgoParallelNode()
+		registryHost := fmt.Sprintf("localhost:%d", registryPort)
 		registryURL = fmt.Sprintf("http://fake-user:fake-password@%s", registryHost)
+
 		incorrectAuthRegistryURL = fmt.Sprintf("http://incorrect-user:incorrect-password@%s", registryHost)
 
 		var err error
