@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:30ac431ddf8227c3e378f04524c20a4570bb28ce90c0d5aec2f71793f7101540"
+  digest = "1:be706ef1b0c882716e7c041a899089aacd570f7d16b166c475b1e08448f31867"
   name = "cloud.google.com/go"
   packages = [
     ".",
@@ -15,8 +15,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "6daa679260d92196ffca2362d652c924fdcb7a22"
-  version = "v0.52.0"
+  revision = "d96ccb2ba7586bb79a416471882d347754a78ce5"
+  version = "v0.53.0"
 
 [[projects]]
   digest = "1:41531922c7f47d5157308b4dd1abc6142c4c583845ce424ed9664db867fa48cf"
@@ -54,7 +54,7 @@
   version = "v0.3.1"
 
 [[projects]]
-  digest = "1:11254e297f87d600be1446f4955c372e0b318219b2c7bdfa21f7bbe311be43cd"
+  digest = "1:ad0f5ba81b403492a3b9ef0b0702540a1032584757efb5c1fa18de46f5dd96e8"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -76,6 +76,7 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/context",
     "internal/ini",
     "internal/s3err",
     "internal/sdkio",
@@ -84,6 +85,7 @@
     "internal/sdkuri",
     "internal/shareddefaults",
     "internal/strings",
+    "internal/sync/singleflight",
     "private/protocol",
     "private/protocol/eventstream",
     "private/protocol/eventstream/eventstreamapi",
@@ -101,8 +103,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "6ddc79ea5d2dd6bdb065c4d840c5759e548920d9"
-  version = "v1.28.13"
+  revision = "45f40fbbeba8a5dee288025ce32ee24bc643ba0a"
+  version = "v1.29.3"
 
 [[projects]]
   digest = "1:db1f64ceacde0c4302dc0de285cc9800949d5e1eaa8982bbd435f3d1f6896f57"
@@ -139,8 +141,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "89c8dfd6c70f29d382e192b1b2a1b30433351490"
-  version = "v2.301.0"
+  revision = "f7b2a3ee5fea66ec0021b00da188640d7fc83f6d"
+  version = "v2.302.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -156,15 +158,15 @@
   version = "v0.0.44"
 
 [[projects]]
-  digest = "1:fe0eb56bd74777ad6120c07fd0a609839cdca9e7729d7b1da5a6b650cab5be8d"
+  digest = "1:ef1ca0c26c4083e4defd1abf2f7064f8c2c4c1938dec24af433fe0ca0ed36d40"
   name = "github.com/cloudfoundry/bosh-gcscli"
   packages = [
     "client",
     "config",
   ]
   pruneopts = "NUT"
-  revision = "35a0da19fcef5c6d8476d01f3355a7d7a0f9624c"
-  version = "v0.0.16"
+  revision = "8230367b36beadb0a19850738d1e2256a364a672"
+  version = "v0.0.18"
 
 [[projects]]
   digest = "1:a29a7a625408b8adda9703dd9a15e95e174642115d07863fb46f5c92c9a28f29"
@@ -202,7 +204,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "cbe98f846f7e0d811862657c47badf911a06952e"
+  revision = "881640b2d0a6eab68596440baf5aafdccd785c54"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -536,7 +538,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "ecb85df213405b7d32e4d73cb5bbaace2ec88881"
+  revision = "1d94cc7ab1c630336ab82ccb9c9cda72a875c382"
 
 [[projects]]
   branch = "master"
@@ -547,7 +549,7 @@
     "cmd/apidiff",
   ]
   pruneopts = "NUT"
-  revision = "f17229e696bd4e065144fd6ae1313e41515abbdc"
+  revision = "85f925bdd4d0aca4c3519b67f6473d0e17ccccfc"
 
 [[projects]]
   branch = "master"
@@ -559,6 +561,17 @@
   ]
   pruneopts = "NUT"
   revision = "910be7a94367618fd0fd25eaabbee4fdc0ac7092"
+
+[[projects]]
+  digest = "1:467bb8fb8fa786448b8d486cd0bb7c1a5577dcd7310441aa02a20110cd9f727d"
+  name = "golang.org/x/mod"
+  packages = [
+    "module",
+    "semver",
+  ]
+  pruneopts = "NUT"
+  revision = "ed3ec21bb8e252814c380df79a80f366440ddb2d"
+  version = "v0.2.0"
 
 [[projects]]
   branch = "master"
@@ -598,7 +611,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:db930a38f2ce644d060bc2e85c29c75f8d7987ebd12019d95b361de7cf0277b4"
+  digest = "1:faf563ed638ad22f775c6935c2dfab57037244f1ab3681dc241b7ddfdae00e86"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -606,7 +619,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "d101bd2416d505c0448a6ce8a282482678040a89"
+  revision = "12a6c2dcc1e4cb348b57847c73987099e261714b"
 
 [[projects]]
   digest = "1:28deae5fe892797ff37a317b5bcda96d11d1c90dadd89f1337651df3bc4c586e"
@@ -647,7 +660,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a25d213304f93f67890233e90dd219ba5ba98f8cf1dcdda93ae04cb5727517b7"
+  digest = "1:db51702fa0a52d653bdfd07671a94789abb263feb51952168aee584f6b7411a6"
   name = "golang.org/x/tools"
   packages = [
     "cmd/goimports",
@@ -666,12 +679,10 @@
     "internal/fastwalk",
     "internal/gopathwalk",
     "internal/imports",
-    "internal/module",
     "internal/packagesinternal",
-    "internal/semver",
   ]
   pruneopts = "NUT"
-  revision = "61798d64f0258df3b7b6e3667997eaebec9c0d99"
+  revision = "5916a50871fbb77650a14d484c89ca39f9487118"
 
 [[projects]]
   branch = "master"
@@ -734,7 +745,7 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "4f3edf09f4f643aee978706652368efb6e407faa"
+  revision = "66ed5ce911ce4978d229e861f15b63d8bf359acb"
 
 [[projects]]
   digest = "1:ad113f760f5a2a924fd1ea324539df77f3e0166bbaf7f886985fbb447737323b"

@@ -43,7 +43,7 @@ type GCSBlobstore struct {
 }
 
 // validateRemoteConfig determines if the configuration of the client matches
-// against the remote configuration and the StorageClass is valid for the location.
+// against the remote configuration
 //
 // If operating in read-only mode, no mutations can be performed
 // so the remote bucket location is always compatible.
@@ -53,11 +53,8 @@ func (client *GCSBlobstore) validateRemoteConfig() error {
 	}
 
 	bucket := client.authenticatedGCS.Bucket(client.config.BucketName)
-	attrs, err := bucket.Attrs(context.Background())
-	if err != nil {
-		return err
-	}
-	return client.config.FitCompatibleLocation(attrs.Location)
+	_, err := bucket.Attrs(context.Background())
+	return err
 }
 
 // getObjectHandle returns a handle to an object named src
