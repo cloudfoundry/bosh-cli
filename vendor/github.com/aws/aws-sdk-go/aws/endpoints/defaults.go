@@ -2447,6 +2447,12 @@ var awsPartition = partition{
 				"us-east-1": endpoint{},
 			},
 		},
+		"managedblockchain": service{
+
+			Endpoints: endpoints{
+				"us-east-1": endpoint{},
+			},
+		},
 		"marketplacecommerceanalytics": service{
 
 			Endpoints: endpoints{
@@ -4410,6 +4416,13 @@ var awscnPartition = partition{
 			Defaults: endpoint{
 				Protocols: []string{"http", "https"},
 			},
+			Endpoints: endpoints{
+				"cn-north-1":     endpoint{},
+				"cn-northwest-1": endpoint{},
+			},
+		},
+		"backup": service{
+
 			Endpoints: endpoints{
 				"cn-north-1":     endpoint{},
 				"cn-northwest-1": endpoint{},
