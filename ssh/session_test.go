@@ -71,12 +71,13 @@ var _ = Describe("SessionImpl", func() {
 				{Host: "127.0.0.1", HostPublicKey: "pub-key1"},
 				{Host: "127.0.0.2", HostPublicKey: "pub-key2"},
 				{Host: "::1", HostPublicKey: "pub-key3"},
+				{Host: "fda8:f3eb:fb5c:04b1:0000:0000:0000:0002", HostPublicKey: "pub-key4"},
 			}
 
 			_, err := act().Start()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fs.ReadFileString("/tmp/known-hosts")).To(Equal(
-				"127.0.0.1 pub-key1\n127.0.0.2 pub-key2\n::1 pub-key3\n"))
+				"127.0.0.1 pub-key1\n127.0.0.2 pub-key2\n::1 pub-key3\nfda8:f3eb:fb5c:04b1:0000:0000:0000:0002 pub-key4\nfda8:f3eb:fb5c:4b1::2 pub-key4\n"))
 		})
 
 		It("returns error if cannot create known hosts temp file and deletes private key", func() {

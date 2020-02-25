@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"fmt"
+	"net"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -100,6 +101,12 @@ func (r SessionImpl) makeKnownHostsFile() (boshsys.File, error) {
 	for _, host := range r.result.Hosts {
 		if len(host.HostPublicKey) > 0 {
 			content += fmt.Sprintf("%s %s\n", host.Host, host.HostPublicKey)
+
+			// for ipv6 this will strip leading/trailing 0s which is expected by openssh
+			formattedHost := net.ParseIP(host.Host).String()
+			if formattedHost != host.Host {
+				content += fmt.Sprintf("%s %s\n", formattedHost, host.HostPublicKey)
+			}
 		}
 	}
 
