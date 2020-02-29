@@ -54,7 +54,7 @@
   version = "v0.3.1"
 
 [[projects]]
-  digest = "1:c6dde112d9cbb4ecaaba6da4bef7a80c1681f870440e9b9f6f9596c3097ff9cb"
+  digest = "1:a9429282f17cfdf3f11f81dc104bbb91001e703fc9ef6fdd7f2a5cfacaf15ce9"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -103,8 +103,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "ad2cb9593548e15aec0bd9175b8fd45ddc8f4ee7"
-  version = "v1.29.8"
+  revision = "b99c3c7ad11c0e093384dbe7c33310f134e3257c"
+  version = "v1.29.14"
 
 [[projects]]
   digest = "1:db1f64ceacde0c4302dc0de285cc9800949d5e1eaa8982bbd435f3d1f6896f57"
@@ -141,8 +141,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "9dcbbd4a1ef51f3285ac75f4c87dbb77a4b4209f"
-  version = "v2.303.0"
+  revision = "35e2de17c277427ca7a5e1ea2f618a8bfa4a01ef"
+  version = "v2.304.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -204,7 +204,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "0af5ba7d2c4657d8be2a151f0c742841d96c4b75"
+  revision = "2c99d7618fe74f4667ae3aa34028949913164679"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -278,11 +278,11 @@
   name = "github.com/golang/mock"
   packages = ["gomock"]
   pruneopts = "NUT"
-  revision = "3dcdcb6994c4de42a73bd2e4790178be3ed4554b"
-  version = "v1.4.0"
+  revision = "b48cb6623c04dae64c28537143aca42d16561daf"
+  version = "v1.4.1"
 
 [[projects]]
-  digest = "1:f9c80589a1c9a22cb011964b8fe012bad6eb6eb2193bcde94a10b89362d88a98"
+  digest = "1:7986e4fc99dc693bf34aa24ecfefd90ec3ba5f4af40bfbbeb9283571efa4ae92"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -298,8 +298,8 @@
     "ptypes/timestamp",
   ]
   pruneopts = "NUT"
-  revision = "d23c5127dc24889085f8ccea5c9d560a57a879d8"
-  version = "v1.3.3"
+  revision = "5d5b4c10bd43f85e63bd9e4a3fa9b1ea2ef88af2"
+  version = "v1.3.4"
 
 [[projects]]
   digest = "1:4b76f3e067eed897a45242383a2aa4d0a2fdbf73a8d00c03167dba80c43630b1"
@@ -375,12 +375,12 @@
   version = "v0.9.1"
 
 [[projects]]
-  digest = "1:bced2617aac935b7931d43bdd5fd5ef3eacbb52291c61e423afe8037f6dd95f9"
+  digest = "1:cea51d24307a9a281edaa93801cfcf2883b7c8ed26a1db004f08229a1f1f98e2"
   name = "github.com/mattn/go-colorable"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "98ec13f34aabf44cc914c65a1cfb7b9bc815aef1"
-  version = "v0.1.4"
+  revision = "68e95eba382c972aafde02ead2cd2426a8a92480"
+  version = "v0.1.6"
 
 [[projects]]
   digest = "1:4c2c63bfd4c2ae0c5a9d7f75cab1f4fac4e8c2ce58f52a73322cefc9bdb4c5bd"
@@ -549,7 +549,7 @@
     "cmd/apidiff",
   ]
   pruneopts = "NUT"
-  revision = "7c80518d1cc79ffde9e571fe4fd281f321d36200"
+  revision = "fcea875c7e8555ad2a19200050d559f50f22ad27"
 
 [[projects]]
   branch = "master"
@@ -575,7 +575,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:cc5ad125897e78d824389a1339b0a8a0860cb5b195c59ef6aeec652922777cc4"
+  digest = "1:1fd00dad03873fb0a5651bfe29f02e6f5b6f2322681479bd30d56c760d9f7009"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -593,7 +593,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "078779b8f2d83d3faf06633707560018f91a9e82"
+  revision = "0de0cce0169b09b364e001f108dc0399ea8630b3"
 
 [[projects]]
   branch = "master"
@@ -611,7 +611,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7864e7e170bbb40aab1897695942d4b504adb4850122550c4d8cc57b6e4e8615"
+  digest = "1:eb431589171bc54fda9c0f24cef20c0328dcb870b853644e346b1556ec78f26c"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -619,7 +619,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "cb0a6d8edb6c3528b01a0be84a5fe513dbf880a6"
+  revision = "d5e6a3e2c0ae16fc7480523ebcb7fd4dd3215489"
 
 [[projects]]
   digest = "1:28deae5fe892797ff37a317b5bcda96d11d1c90dadd89f1337651df3bc4c586e"
@@ -660,7 +660,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a470e2d80b7b02fd99f9c3a76a442f63674054ced521eec719d27c1d829a04b4"
+  digest = "1:e1a1d3cfefd17d525593af94380e82cd2adfc0a5c10241cdce29445c0fd41553"
   name = "golang.org/x/tools"
   packages = [
     "cmd/goimports",
@@ -679,12 +679,13 @@
     "go/types/typeutil",
     "imports",
     "internal/fastwalk",
+    "internal/gocommand",
     "internal/gopathwalk",
     "internal/imports",
     "internal/packagesinternal",
   ]
   pruneopts = "NUT"
-  revision = "e1da425f72fd3793b579f4e74d908ba96eb16c8a"
+  revision = "71482053b885ea3938876d1306ad8a1e4037f367"
 
 [[projects]]
   branch = "master"
@@ -698,7 +699,7 @@
   revision = "9bdfabe68543c54f90421aeb9a60ef8061b5b544"
 
 [[projects]]
-  digest = "1:8ca2f658c7dedd9f4097bab516becf4106defc29bffa11fa4129634adcaa5ec8"
+  digest = "1:2cdf48ba0b1ba6ce76dacb584549a68c685e99d7e44261e47bf75d5fba2995c8"
   name = "google.golang.org/api"
   packages = [
     "googleapi",
@@ -708,13 +709,15 @@
     "internal/third_party/uritemplates",
     "iterator",
     "option",
+    "option/internaloption",
     "storage/v1",
+    "transport/cert",
     "transport/http",
     "transport/http/internal/propagation",
   ]
   pruneopts = "NUT"
-  revision = "6f5c88b9e8c709c0f1fff128c30b041c71d14da4"
-  version = "v0.17.0"
+  revision = "96719b1b1f69ca4d05cf4091cfd67b9e44a412c4"
+  version = "v0.19.0"
 
 [[projects]]
   digest = "1:c381a96ea5276e8c5e98b2fa4fab83be71a959ff37dc51117555dc5059390c18"
@@ -737,7 +740,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:5a7bdfd51baef69881121709cf4dc049b1be1c0a27402feb26a1d365530725b5"
+  digest = "1:13f52b8f75966195d1d9718dd827a8fa1a4031bae5acf985e0ceca4b9dd5f395"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
@@ -747,7 +750,7 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "dad8c97a84f542cf0c67e3ab67b1c09e795fb4af"
+  revision = "8c2c7df3a383ef6eb341a587aee53b6d5607eb55"
 
 [[projects]]
   digest = "1:ad113f760f5a2a924fd1ea324539df77f3e0166bbaf7f886985fbb447737323b"
@@ -820,7 +823,7 @@
   version = "v2.2.8"
 
 [[projects]]
-  digest = "1:0aa30a4509d9185e72093f7a0f95bd521fb41e71607f2bef3bdda3979f18c139"
+  digest = "1:beea4b8ff80599bfd12573919fb76c440a105c40aa2681ff75bd2ed9d215a751"
   name = "honnef.co/go/tools"
   packages = [
     "arg",
@@ -854,8 +857,8 @@
     "version",
   ]
   pruneopts = "NUT"
-  revision = "d3ed47d218fc714d1718749c1a3b3b021e8d703a"
-  version = "2020.1.2"
+  revision = "508b5eb18ee2f667ce06235ed383647038e2afc5"
+  version = "2020.1.3"
 
 [solve-meta]
   analyzer-name = "dep"
