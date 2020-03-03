@@ -19,6 +19,6 @@ Clone and set up the repository:
 
 From here on out we assume you're working in `$GOPATH/src/github.com/cloudfoundry/bosh-cli`
 
-To build the bosh-init cli:
+To build the bosh CLI:
 
-- `bin/build` # The `bosh-init` binary will be located in `out/`
+- `bin/build` # The `bosh` binary will be located in `out/`
