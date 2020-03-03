@@ -20,7 +20,12 @@ func (d DirectorImpl) LatestRuntimeConfig(name string) (RuntimeConfig, error) {
 	}
 
 	if len(resps) == 0 {
-		return RuntimeConfig{}, bosherr.Error("No runtime config")
+		if name == "" {
+			return RuntimeConfig{}, bosherr.Error("No default runtime config")
+		} else {
+			return RuntimeConfig{}, bosherr.Errorf("No runtime config with name '%s'", name)
+		}
+
 	}
 
 	return resps[0], nil

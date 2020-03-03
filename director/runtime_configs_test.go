@@ -59,7 +59,21 @@ var _ = Describe("Director", func() {
 			Expect(cc).To(Equal(RuntimeConfig{Properties: "first"}))
 		})
 
-		It("returns error if there is no runtime config", func() {
+		It("returns error for when name cannot be found", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/runtime_configs", "name=foo-name&limit=1"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[]`),
+				),
+			)
+
+			_, err := director.LatestRuntimeConfig("foo-name")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("No runtime config with name 'foo-name'"))
+		})
+
+		It("returns error if there is no default runtime config", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/runtime_configs", "name=&limit=1"),
@@ -70,7 +84,7 @@ var _ = Describe("Director", func() {
 
 			_, err := director.LatestRuntimeConfig("")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("No runtime config"))
+			Expect(err.Error()).To(ContainSubstring("No default runtime config"))
 		})
 
 		It("returns error if info response in non-200", func() {
