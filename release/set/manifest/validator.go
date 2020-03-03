@@ -41,9 +41,9 @@ func (v *validator) Validate(manifest Manifest) error {
 			errs = append(errs, bosherr.Errorf("releases[%d].url must be provided", releaseIdx))
 		}
 
-		matched, err := regexp.MatchString("^(file|http|https)://", release.URL)
+		matched, err := regexp.MatchString("^(file|http|https|git\\+https)://", release.URL)
 		if err != nil || !matched {
-			errs = append(errs, bosherr.Errorf("releases[%d].url must be a valid URL (file:// or http(s)://)", releaseIdx))
+			errs = append(errs, bosherr.Errorf("releases[%d].url (%s) must be a valid URL (file:// or http:// or http(s):// or git+https://)", releaseIdx, release.URL))
 		}
 
 		if strings.HasPrefix(release.URL, "http") && v.isBlank(release.SHA1) {

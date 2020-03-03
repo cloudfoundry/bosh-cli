@@ -2,6 +2,7 @@ package tarball
 
 import (
 	"fmt"
+	"github.com/cloudfoundry/bosh-cli/cmd/opts"
 	"io"
 	"net/url"
 	"strings"
@@ -63,7 +64,7 @@ func (p *provider) Get(source Source, stage biui.Stage) (string, error) {
 		return "", bosherr.WrapError(err, "URL could not be parsed")
 	}
 
-	if u.Scheme != "https" && u.Scheme != "http" && u.Scheme != "file" && u.Scheme != "" {
+	if u.Scheme != "git+https" && u.Scheme != "git+http" && u.Scheme != "https" && u.Scheme != "http" && u.Scheme != "file" && u.Scheme != "" {
 		return "", bosherr.Errorf("Unsupported scheme in URL '%s'", source.GetURL())
 	}
 
@@ -92,6 +93,22 @@ func (p *provider) Get(source Source, stage biui.Stage) (string, error) {
 		}
 
 		return p.cache.Path(source), nil
+	}
+
+	if strings.HasPrefix(source.GetURL(), "git+http") {
+		repoPath, err := p.fs.TempDir("bosh-upload-release-git-clone")
+		if err != nil {
+			return "", bosherr.WrapErrorf(err, "Creating tmp dir for git cloning")
+		}
+
+		//defer p.fs.RemoveAll(repoPath)
+
+		cmdRunner := boshsys.NewExecCmdRunner(p.logger)
+		_, _, _, err = cmdRunner.RunCommand("git", "clone", opts.URLArg(source.GetURL()).GitRepo(), "--depth", "1", repoPath)
+		if err != nil {
+			return "", bosherr.WrapErrorf(err, "Cloning git repo")
+		}
+		return repoPath, nil
 	}
 
 	filePath := strings.TrimPrefix(source.GetURL(), "file://")

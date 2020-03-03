@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	gopath "path"
 	"path/filepath"
@@ -8,7 +9,12 @@ import (
 )
 
 func AbsolutifyPath(pathToManifest string, pathToFile string, fs boshsys.FileSystem) (string, error) {
+	fmt.Println("pathToFile ", pathToFile)
 	if strings.HasPrefix(pathToFile, "http") {
+		return pathToFile, nil
+	}
+
+	if strings.HasPrefix(pathToFile, "git+http") || strings.HasPrefix(pathToFile, "git+https") {
 		return pathToFile, nil
 	}
 
