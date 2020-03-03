@@ -84,10 +84,10 @@ func (c LogsCmd) buildTailCmd(opts LogsOpts) []string {
 	var logsDir string
 
 	if opts.Agent {
-		logsDir = "/var/vcap/bosh/log"
-	} else {
-		logsDir = "/var/vcap/sys/log"
+		tail = append(tail, "/var/vcap/bosh/log/current")
 	}
+
+	logsDir = "/var/vcap/sys/log"
 
 	if len(opts.Jobs) > 0 {
 		for _, job := range opts.Jobs {
@@ -97,7 +97,7 @@ func (c LogsCmd) buildTailCmd(opts LogsOpts) []string {
 		for _, filter := range opts.Filters {
 			tail = append(tail, fmt.Sprintf("%s/%s", logsDir, filter))
 		}
-	} else {
+	} else if !opts.Agent {
 		// includes only directory and its subdirectories
 		tail = append(tail, fmt.Sprintf("%s/**/*.log", logsDir))
 		tail = append(tail, fmt.Sprintf("$(if [ -f %s/*.log ]; then echo %s/*.log ; fi)", logsDir, logsDir))
