@@ -28,19 +28,32 @@ type Client interface {
 
 func CreateDefaultClient(certPool *x509.CertPool) *http.Client {
 	insecureSkipVerify := false
-	return factory{}.New(insecureSkipVerify, certPool)
+	external := false
+	return factory{}.New(insecureSkipVerify, external, certPool)
+}
+
+func CreateExternalDefaultClient(certPool *x509.CertPool) *http.Client {
+	insecureSkipVerify := false
+	external := true
+	return factory{}.New(insecureSkipVerify, external, certPool)
 }
 
 func CreateDefaultClientInsecureSkipVerify() *http.Client {
 	insecureSkipVerify := true
-	return factory{}.New(insecureSkipVerify, nil)
+	external := false
+	return factory{}.New(insecureSkipVerify, external, nil)
 }
 
 type factory struct{}
 
-func (f factory) New(insecureSkipVerify bool, certPool *x509.CertPool) *http.Client {
+func (f factory) New(insecureSkipVerify, externalClient bool, certPool *x509.CertPool) *http.Client {
+	serviceDefaults := tlsconfig.WithInternalServiceDefaults()
+	if externalClient {
+		serviceDefaults = tlsconfig.WithExternalServiceDefaults()
+	}
+
 	tlsConfig, err := tlsconfig.Build(
-		tlsconfig.WithInternalServiceDefaults(),
+		serviceDefaults,
 		WithInsecureSkipVerify(insecureSkipVerify),
 		WithClientSessionCache(0),
 	).Client(tlsconfig.WithAuthority(certPool))
