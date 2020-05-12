@@ -12,6 +12,7 @@ inputs:
   path: gopath/src/github.com/cloudfoundry/bosh-cli
 - name: version-semver
 - name: compiled-darwin
+- name: compiled-linux
 - name: homebrew-tap
 
 outputs:

@@ -4,16 +4,23 @@ set -e -x -u
 
 version=$(cat version-semver/number)
 
-cli_sha256=$(shasum -a 256 compiled-darwin/bosh-cli-*-darwin-amd64 | cut -d ' ' -f 1)
+darwin_cli_sha256=$(shasum -a 256 compiled-darwin/bosh-cli-*-darwin-amd64 | cut -d ' ' -f 1)
+linux_cli_sha256=$(shasum -a 256 compiled-linux/bosh-cli-*-linux-amd64 | cut -d ' ' -f 1)
 
 pushd homebrew-tap
   cat <<EOF > bosh-cli.rb
 class BoshCli < Formula
-  desc "New BOSH CLI (beta)"
+  desc "BOSH CLI"
   homepage "https://bosh.io/docs/cli-v2.html"
   version "${version}"
-  url "https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-#{version}-darwin-amd64"
-  sha256 "${cli_sha256}"
+
+  if OS.mac?
+    url "https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-#{version}-darwin-amd64"
+    sha256 "${darwin_cli_sha256}"
+  elsif OS.linux?
+    url "https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-#{version}-linux-amd64"
+    sha256 "${linux_cli_sha256}"
+  end
 
   depends_on :arch => :x86_64
 
@@ -21,7 +28,11 @@ class BoshCli < Formula
 
   def install
     binary_name = build.with?("bosh2") ? "bosh2" : "bosh"
-    bin.install "bosh-cli-#{version}-darwin-amd64" => binary_name
+    if OS.mac?
+      bin.install "bosh-cli-#{version}-darwin-amd64" => binary_name
+    elsif OS.linux?
+      bin.install "bosh-cli-#{version}-linux-amd64" => binary_name
+    end
     (bash_completion/"bosh-cli").write <<-completion
       _#{binary_name}() {
           # All arguments except the first one
