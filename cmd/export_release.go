@@ -75,6 +75,7 @@ func (c ExportReleaseCmd) ensureJobsValidForRelease(jobs []string, rel boshdir.R
 }
 
 func contains(s []string, searchterm string) bool {
+	sort.Strings(s)
 	i := sort.SearchStrings(s, searchterm)
 	return i < len(s) && s[i] == searchterm
 }

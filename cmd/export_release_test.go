@@ -42,6 +42,8 @@ var _ = Describe("ExportReleaseCmd", func() {
 				},
 				JobsStub: func() ([]boshdir.Job, error) {
 					return []boshdir.Job{
+						{Name: "lets-not-assume"},
+						{Name: "this-is-sorted"},
 						{Name: stubJobName},
 						{Name: "other-fake-job"},
 					}, nil
