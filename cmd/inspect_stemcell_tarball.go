@@ -34,6 +34,11 @@ func (c InspectStemcellTarballCmd) Run(opts InspectStemcellTarballOpts) error {
 		infrastructure = "unknown"
 	}
 
+	hypervisor := metadata.CloudProperties["hypervisor"]
+	if hypervisor == nil {
+		hypervisor = "-"
+	}
+
 	metadataTable := boshtbl.Table{
 		Content: "stemcell-metadata",
 		Header: []boshtbl.Header{
@@ -41,6 +46,7 @@ func (c InspectStemcellTarballCmd) Run(opts InspectStemcellTarballOpts) error {
 			boshtbl.NewHeader("OS"),
 			boshtbl.NewHeader("Version"),
 			boshtbl.NewHeader("Infrastructure"),
+			boshtbl.NewHeader("Hypervisor"),
 		},
 		SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
 		Rows: [][]boshtbl.Value{
@@ -49,6 +55,7 @@ func (c InspectStemcellTarballCmd) Run(opts InspectStemcellTarballOpts) error {
 				boshtbl.NewValueString(metadata.OS),
 				boshtbl.NewValueString(metadata.Version),
 				boshtbl.NewValueString(infrastructure.(string)),
+				boshtbl.NewValueString(hypervisor.(string)),
 			},
 		},
 	}
