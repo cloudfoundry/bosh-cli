@@ -35,6 +35,7 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 				Version: "example.version",
 				CloudProperties: biproperty.Map{
 					"infrastructure": "example-infrastructure",
+					"hypervisor":     "example-hypervisor",
 				},
 			}
 
@@ -68,6 +69,7 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 						boshtbl.NewHeader("OS"),
 						boshtbl.NewHeader("Version"),
 						boshtbl.NewHeader("Infrastructure"),
+						boshtbl.NewHeader("Hypervisor"),
 					},
 
 					SortBy: []boshtbl.ColumnSort{
@@ -80,6 +82,7 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 							boshtbl.NewValueString("example-os"),
 							boshtbl.NewValueString("example.version"),
 							boshtbl.NewValueString("example-infrastructure"),
+							boshtbl.NewValueString("example-hypervisor"),
 						},
 					},
 				}))
@@ -106,6 +109,7 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 						boshtbl.NewHeader("OS"),
 						boshtbl.NewHeader("Version"),
 						boshtbl.NewHeader("Infrastructure"),
+						boshtbl.NewHeader("Hypervisor"),
 					},
 
 					SortBy: []boshtbl.ColumnSort{
@@ -118,6 +122,47 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 							boshtbl.NewValueString("example-os"),
 							boshtbl.NewValueString("example.version"),
 							boshtbl.NewValueString("unknown"),
+							boshtbl.NewValueString("example-hypervisor"),
+						},
+					},
+				}))
+			})
+		})
+
+		Context("when hypervisor is unknown", func() {
+
+			BeforeEach(func() {
+				stemcellMetadata.CloudProperties["hypervisor"] = nil
+			})
+
+			It("returns a table with name, os, version, and infrastructure", func() {
+				archive.InfoReturns(stemcellMetadata, nil)
+
+				err := command.Run(opts)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(ui.Table).To(Equal(boshtbl.Table{
+					Content: "stemcell-metadata",
+
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("OS"),
+						boshtbl.NewHeader("Version"),
+						boshtbl.NewHeader("Infrastructure"),
+						boshtbl.NewHeader("Hypervisor"),
+					},
+
+					SortBy: []boshtbl.ColumnSort{
+						{Column: 0, Asc: true},
+					},
+
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.NewValueString("example-name"),
+							boshtbl.NewValueString("example-os"),
+							boshtbl.NewValueString("example.version"),
+							boshtbl.NewValueString("example-infrastructure"),
+							boshtbl.NewValueString("-"),
 						},
 					},
 				}))
