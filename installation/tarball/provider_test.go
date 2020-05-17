@@ -224,7 +224,7 @@ var _ = Describe("Provider", func() {
 					It("retries downloading up to 3 times", func() {
 						_, err := provider.Get(source, fakeStage)
 						Expect(err).To(HaveOccurred())
-						Expect(err).To(MatchError(ContainSubstring("Get %s: EOF", server.URL())))
+						Expect(err).To(MatchError(ContainSubstring("Get \"%s\": EOF", server.URL())))
 
 						Expect(server.ReceivedRequests()).To(HaveLen(3))
 					})
