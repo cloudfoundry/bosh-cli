@@ -1495,7 +1495,7 @@ var _ = Describe("Opts", func() {
 		Describe("SkipDrain", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
-					`long:"skip-drain" value-name:"INSTANCE-GROUP" description:"Skip running drain and pre-stop scripts for specific instance groups" optional:"true" optional-value:"*"`,
+					`long:"skip-drain" value-name:"[INSTANCE-GROUP[/INSTANCE-ID]]" description:"Skip running drain and pre-stop scripts for specific instance groups" optional:"true" optional-value:"*"`,
 				))
 			})
 		})
