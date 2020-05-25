@@ -29,6 +29,12 @@ type Instance interface {
 		skipDrain bool,
 		stage biui.Stage,
 	) error
+	Stop(
+		pingTimeout time.Duration,
+		pingDelay time.Duration,
+		skipDrain bool,
+		stage biui.Stage,
+	) error
 }
 
 type instance struct {
@@ -215,7 +221,7 @@ func (i *instance) Delete(
 	}
 
 	if vmExists {
-		if err = i.shutdown(pingTimeout, pingDelay, skipDrain, stage); err != nil {
+		if err = i.shutdown(pingTimeout, pingDelay, skipDrain, false, stage); err != nil {
 			return err
 		}
 	}
@@ -232,10 +238,32 @@ func (i *instance) Delete(
 	})
 }
 
+func (i *instance) Stop(
+	pingTimeout time.Duration,
+	pingDelay time.Duration,
+	skipDrain bool,
+	stage biui.Stage,
+) error {
+	vmExists, err := i.vm.Exists()
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Checking existence of vm for instance '%s/%d'", i.jobName, i.id)
+	}
+
+	if vmExists {
+		if err = i.shutdown(pingTimeout, pingDelay, skipDrain, true, stage); err != nil {
+			return err
+		}
+	} else {
+		i.logger.Warn(i.logTag, "VM with CID '%s' does not exist. Skipping stop", i.vm.CID)
+	}
+	return nil
+}
+
 func (i *instance) shutdown(
 	pingTimeout time.Duration,
 	pingDelay time.Duration,
 	skipDrain bool,
+	skipDiskUnmount bool,
 	stage biui.Stage,
 ) error {
 	stepName := fmt.Sprintf("Waiting for the agent on VM '%s'", i.vm.CID())
@@ -259,9 +287,13 @@ func (i *instance) shutdown(
 	if err := i.stopJobs(stage); err != nil {
 		return err
 	}
-	if err := i.unmountDisks(stage); err != nil {
-		return err
+
+	if !skipDiskUnmount {
+		if err := i.unmountDisks(stage); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 

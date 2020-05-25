@@ -631,4 +631,105 @@ var _ = Describe("Instance", func() {
 
 		})
 	})
+
+	Describe("Stop", func() {
+		It("checks if the agent on the vm is responsive", func() {
+			err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebivm.WaitUntilReadyInput{
+				Timeout: pingTimeout,
+				Delay:   pingDelay,
+			}))
+		})
+
+		It("logs start and stop events", func() {
+			err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+				{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+				{Name: "Draining jobs on instance 'fake-job-name/0'"},
+				{Name: "Stopping jobs on instance 'fake-job-name/0'"},
+			}))
+		})
+
+		Context("when agent is responsive", func() {
+			It("logs waiting for the agent event", func() {
+				err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeStage.PerformCalls[0]).To(Equal(&fakebiui.PerformCall{
+					Name: "Waiting for the agent on VM 'fake-vm-cid'",
+				}))
+			})
+
+			It("drains", func() {
+				err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeVM.DrainCalled).To(Equal(1))
+			})
+
+			It("can skip draining", func() {
+				skipDrain = true
+				err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeVM.DrainCalled).To(Equal(0))
+			})
+
+			It("stops all jobs", func() {
+				err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeVM.StopCalled).To(Equal(1))
+			})
+
+			It("does not unmount vm disks", func() {
+				firstDisk := fakebidisk.NewFakeDisk("fake-disk-1")
+				secondDisk := fakebidisk.NewFakeDisk("fake-disk-2")
+				fakeVM.ListDisksDisks = []bidisk.Disk{firstDisk, secondDisk}
+
+				err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeVM.UnmountDiskInputs).To(Equal([]fakebivm.UnmountDiskInput{}))
+			})
+		})
+
+		Context("when agent fails to respond", func() {
+			BeforeEach(func() {
+				fakeVM.WaitUntilReadyErr = bosherr.Error("fake-wait-error")
+			})
+
+			It("logs failed event", func() {
+				err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Waiting for the agent on VM 'fake-vm-cid'"))
+				Expect(fakeStage.PerformCalls[0].Error).To(HaveOccurred())
+				Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("Agent unreachable: fake-wait-error"))
+			})
+		})
+
+		Context("when VM does not exist (deleted manually)", func() {
+			BeforeEach(func() {
+				fakeVM.ExistsFound = false
+				fakeVM.DeleteErr = bicloud.NewCPIError("delete_vm", bicloud.CmdError{
+					Type:    bicloud.VMNotFoundError,
+					Message: "fake-vm-not-found-message",
+				})
+			})
+
+			It("logs stop as skipped", func() {
+				err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, message, _ := logger.WarnArgsForCall(0)
+				Expect(message).To(Equal("VM with CID '%s' does not exist. Skipping stop"))
+			})
+		})
+	})
+
 })
