@@ -21,6 +21,19 @@ type FakeReleaseUploader struct {
 		result1 []byte
 		result2 error
 	}
+	UploadReleasesWithFixStub        func([]byte) ([]byte, error)
+	uploadReleasesWithFixMutex       sync.RWMutex
+	uploadReleasesWithFixArgsForCall []struct {
+		arg1 []byte
+	}
+	uploadReleasesWithFixReturns struct {
+		result1 []byte
+		result2 error
+	}
+	uploadReleasesWithFixReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -44,7 +57,8 @@ func (fake *FakeReleaseUploader) UploadReleases(arg1 []byte) ([]byte, error) {
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.uploadReleasesReturns.result1, fake.uploadReleasesReturns.result2
+	fakeReturns := fake.uploadReleasesReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeReleaseUploader) UploadReleasesCallCount() int {
@@ -53,13 +67,22 @@ func (fake *FakeReleaseUploader) UploadReleasesCallCount() int {
 	return len(fake.uploadReleasesArgsForCall)
 }
 
+func (fake *FakeReleaseUploader) UploadReleasesCalls(stub func([]byte) ([]byte, error)) {
+	fake.uploadReleasesMutex.Lock()
+	defer fake.uploadReleasesMutex.Unlock()
+	fake.UploadReleasesStub = stub
+}
+
 func (fake *FakeReleaseUploader) UploadReleasesArgsForCall(i int) []byte {
 	fake.uploadReleasesMutex.RLock()
 	defer fake.uploadReleasesMutex.RUnlock()
-	return fake.uploadReleasesArgsForCall[i].arg1
+	argsForCall := fake.uploadReleasesArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeReleaseUploader) UploadReleasesReturns(result1 []byte, result2 error) {
+	fake.uploadReleasesMutex.Lock()
+	defer fake.uploadReleasesMutex.Unlock()
 	fake.UploadReleasesStub = nil
 	fake.uploadReleasesReturns = struct {
 		result1 []byte
@@ -68,6 +91,8 @@ func (fake *FakeReleaseUploader) UploadReleasesReturns(result1 []byte, result2 e
 }
 
 func (fake *FakeReleaseUploader) UploadReleasesReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.uploadReleasesMutex.Lock()
+	defer fake.uploadReleasesMutex.Unlock()
 	fake.UploadReleasesStub = nil
 	if fake.uploadReleasesReturnsOnCall == nil {
 		fake.uploadReleasesReturnsOnCall = make(map[int]struct {
@@ -81,12 +106,86 @@ func (fake *FakeReleaseUploader) UploadReleasesReturnsOnCall(i int, result1 []by
 	}{result1, result2}
 }
 
+func (fake *FakeReleaseUploader) UploadReleasesWithFix(arg1 []byte) ([]byte, error) {
+	var arg1Copy []byte
+	if arg1 != nil {
+		arg1Copy = make([]byte, len(arg1))
+		copy(arg1Copy, arg1)
+	}
+	fake.uploadReleasesWithFixMutex.Lock()
+	ret, specificReturn := fake.uploadReleasesWithFixReturnsOnCall[len(fake.uploadReleasesWithFixArgsForCall)]
+	fake.uploadReleasesWithFixArgsForCall = append(fake.uploadReleasesWithFixArgsForCall, struct {
+		arg1 []byte
+	}{arg1Copy})
+	fake.recordInvocation("UploadReleasesWithFix", []interface{}{arg1Copy})
+	fake.uploadReleasesWithFixMutex.Unlock()
+	if fake.UploadReleasesWithFixStub != nil {
+		return fake.UploadReleasesWithFixStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.uploadReleasesWithFixReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeReleaseUploader) UploadReleasesWithFixCallCount() int {
+	fake.uploadReleasesWithFixMutex.RLock()
+	defer fake.uploadReleasesWithFixMutex.RUnlock()
+	return len(fake.uploadReleasesWithFixArgsForCall)
+}
+
+func (fake *FakeReleaseUploader) UploadReleasesWithFixCalls(stub func([]byte) ([]byte, error)) {
+	fake.uploadReleasesWithFixMutex.Lock()
+	defer fake.uploadReleasesWithFixMutex.Unlock()
+	fake.UploadReleasesWithFixStub = stub
+}
+
+func (fake *FakeReleaseUploader) UploadReleasesWithFixArgsForCall(i int) []byte {
+	fake.uploadReleasesWithFixMutex.RLock()
+	defer fake.uploadReleasesWithFixMutex.RUnlock()
+	argsForCall := fake.uploadReleasesWithFixArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeReleaseUploader) UploadReleasesWithFixReturns(result1 []byte, result2 error) {
+	fake.uploadReleasesWithFixMutex.Lock()
+	defer fake.uploadReleasesWithFixMutex.Unlock()
+	fake.UploadReleasesWithFixStub = nil
+	fake.uploadReleasesWithFixReturns = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeReleaseUploader) UploadReleasesWithFixReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.uploadReleasesWithFixMutex.Lock()
+	defer fake.uploadReleasesWithFixMutex.Unlock()
+	fake.UploadReleasesWithFixStub = nil
+	if fake.uploadReleasesWithFixReturnsOnCall == nil {
+		fake.uploadReleasesWithFixReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 error
+		})
+	}
+	fake.uploadReleasesWithFixReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeReleaseUploader) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.uploadReleasesMutex.RLock()
 	defer fake.uploadReleasesMutex.RUnlock()
-	return fake.invocations
+	fake.uploadReleasesWithFixMutex.RLock()
+	defer fake.uploadReleasesWithFixMutex.RUnlock()
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeReleaseUploader) recordInvocation(key string, args []interface{}) {

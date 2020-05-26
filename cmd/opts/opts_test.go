@@ -1523,6 +1523,14 @@ var _ = Describe("Opts", func() {
 				))
 			})
 		})
+
+		Describe("FixReleases", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("FixReleases", opts)).To(Equal(
+					`long:"fix-releases" description:"Reuploads the releases from the deployment manifest releases section and replaces corrupt and missing jobs and packages"`,
+				))
+			})
+		})
 	})
 
 	Describe("DeployArgs", func() {

@@ -17,6 +17,7 @@ type DeployCmd struct {
 
 type ReleaseUploader interface {
 	UploadReleases([]byte) ([]byte, error)
+	UploadReleasesWithFix([]byte) ([]byte, error)
 }
 
 func NewDeployCmd(
@@ -40,7 +41,11 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 		return err
 	}
 
-	bytes, err = c.releaseUploader.UploadReleases(bytes)
+	if opts.FixReleases {
+		bytes, err = c.releaseUploader.UploadReleasesWithFix(bytes)
+	} else {
+		bytes, err = c.releaseUploader.UploadReleases(bytes)
+	}
 	if err != nil {
 		return err
 	}

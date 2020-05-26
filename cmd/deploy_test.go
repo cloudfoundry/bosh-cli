@@ -166,6 +166,31 @@ var _ = Describe("DeployCmd", func() {
 			Expect(bytes).To(Equal([]byte("after-upload-manifest")))
 		})
 
+		It("uploads releases provided in the manifest with fix after manifest has been interpolated", func() {
+			opts.Args.Manifest = FileBytesArg{
+				Bytes: []byte("name: dep\nbefore-upload-manifest-with-fix: ((key))"),
+			}
+
+			opts.VarKVs = []boshtpl.VarKV{
+				{Name: "key", Value: "key-val"},
+			}
+
+			opts.FixReleases = true
+
+			releaseUploader.UploadReleasesWithFixReturns([]byte("after-upload-manifest-with-fix"), nil)
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			bytes := releaseUploader.UploadReleasesWithFixArgsForCall(0)
+			Expect(bytes).To(Equal([]byte("before-upload-manifest-with-fix: key-val\nname: dep\n")))
+
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			bytes, _ = deployment.UpdateArgsForCall(0)
+			Expect(bytes).To(Equal([]byte("after-upload-manifest-with-fix")))
+		})
+
 		It("returns error and does not deploy if uploading releases fails", func() {
 			opts.Args.Manifest = FileBytesArg{
 				Bytes: []byte(`
