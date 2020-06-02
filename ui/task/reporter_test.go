@@ -141,21 +141,18 @@ Task 123 state
 {"time":7414830567,"stage":"Preparing configuration","tags":[],"total":1,"task":"Binding configuration","index":1,"state":"started","progress":0}
 {"time":7414830568,"stage":"Preparing configuration","tags":[],"total":1,"task":"Binding configuration","index":1,"state":"finished","progress":100}
 {"time":7414830568,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"started","progress":0}
-{"time":7414830569,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":8}
-{"time":7414830574,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":16}
-{"time":7414830574,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":25}
-{"time":7414830574,"stage":"Doing something else","tags":["job"],"total":1,"task":"job/1 (canary)","index":1,"state":"in_progress","progress":0}
-{"time":7414830574,"stage":"Doing something else","tags":["job"],"total":1,"task":"job/1 (canary)","index":1,"state":"in_progress","progress":10}
-{"time":7414830574,"stage":"Doing something else","tags":["job"],"total":1,"task":"job/1 (canary)","index":1,"state":"in_progress","progress":100}
-{"time":7414830574,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":33}
-{"time":7414830574,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":41}
-{"time":7414830574,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":50}
-{"time":7414830574,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":58}
-{"time":7414830574,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":66}
-{"time":7414830600,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":75}
-{"time":7414830600,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":83}
-{"time":7414830605,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":91}
-{"time":7414830635,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":99}
+{"time":7414830569,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":5,"data":{"status":"executing pre-stop"}}
+{"time":7414830574,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":10,"data":{"status":"executing drain"}}
+{"time":7414830574,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":30,"data":{"status":"stopping jobs"}}
+{"time":7414830574,"stage":"Doing something else","tags":["job"],"total":1,"task":"job/1 (canary)","index":1,"state":"in_progress","progress":0,"data":{"status":"executing pre-stop"}}
+{"time":7414830574,"stage":"Doing something else","tags":["job"],"total":1,"task":"job/1 (canary)","index":1,"state":"in_progress","progress":10,"data":{"status":"executing drain"}}
+{"time":7414830574,"stage":"Doing something else","tags":["job"],"total":1,"task":"job/1 (canary)","index":1,"state":"in_progress","progress":30,"data":{"status":"stopping jobs"}}
+{"time":7414830574,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":40,"data":{"status":"executing post-stop"}}
+{"time":7414830574,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":50,"data":{"status":"installing packages"}}
+{"time":7414830600,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":60,"data":{"status":"configuring jobs"}}
+{"time":7414830600,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":70,"data":{"status":"executing pre-start"}}
+{"time":7414830605,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":90,"data":{"status":"starting jobs"}}
+{"time":7414830635,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"in_progress","progress":100,"data":{"status":"executing post-start"}}
 {"time":7414830635,"stage":"Updating job","tags":["job"],"total":1,"task":"job/0 (canary)","index":1,"state":"failed","progress":100,"data":{"error":"'job/0' is not running after update"}}
 {"time":7414830635,"error":{"code":400007,"message":"'job/0' is not running after update"}}
 `
@@ -163,6 +160,7 @@ Task 123 state
 			reporter.TaskStarted(2663)
 			reporter.TaskOutputChunk(2663, []byte(deployExample))
 			reporter.TaskFinished(2663, "error")
+
 			Expect(outBuf.String()).To(Equal(`Task 2663
 
 Task 2663 | 19:09:27 | Preparing deployment: Binding releases (00:00:00)
@@ -176,7 +174,21 @@ Task 2663 | 19:09:27 | Preparing deployment: Binding instance networks (00:00:00
 Task 2663 | 19:09:27 | Preparing package compilation: Finding packages to compile (00:00:00)
 Task 2663 | 19:09:27 | Preparing DNS: Binding DNS (00:00:00)
 Task 2663 | 19:09:27 | Preparing configuration: Binding configuration (00:00:01)
-Task 2663 | 19:09:28 | Updating job job: job/0 (canary) (00:01:07)
+Task 2663 | 19:09:28 | Updating job job: job/0 (canary)
+Task 2663 | 19:09:29 | L executing pre-stop: job/0 (canary)
+Task 2663 | 19:09:34 | L executing drain: job/0 (canary)
+Task 2663 | 19:09:34 | L stopping jobs: job/0 (canary)
+Task 2663 | 19:09:34 | Doing something else job: job/1 (canary)
+Task 2663 | 19:09:34 | L executing pre-stop: job/1 (canary)
+Task 2663 | 19:09:34 | L executing drain: job/1 (canary)
+Task 2663 | 19:09:34 | L stopping jobs: job/1 (canary)
+Task 2663 | 19:09:34 | Updating job job: job/0 (canary)
+Task 2663 | 19:09:34 | L executing post-stop: job/0 (canary)
+Task 2663 | 19:09:34 | L installing packages: job/0 (canary)
+Task 2663 | 19:10:00 | L configuring jobs: job/0 (canary)
+Task 2663 | 19:10:00 | L executing pre-start: job/0 (canary)
+Task 2663 | 19:10:05 | L starting jobs: job/0 (canary)
+Task 2663 | 19:10:35 | L executing post-start: job/0 (canary) (00:01:07)
                      L Error: 'job/0' is not running after update
 Task 2663 | 19:10:35 | Error: 'job/0' is not running after update
 

@@ -137,9 +137,9 @@ var _ = Describe("Event", func() {
 	})
 
 	Describe("IsWorthKeeping", func() {
-		It("returns true if event is not a progress event", func() {
+		It("returns true, we also care about progress events now", func() {
 			Expect(boshuit.Event{State: boshuit.EventStateStarted}.IsWorthKeeping()).To(BeTrue())
-			Expect(boshuit.Event{State: boshuit.EventStateInProgress}.IsWorthKeeping()).To(BeFalse())
+			Expect(boshuit.Event{State: boshuit.EventStateInProgress}.IsWorthKeeping()).To(BeTrue())
 		})
 	})
 })
