@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
@@ -34,6 +35,10 @@ func (c ExportReleaseCmd) Run(opts ExportReleaseOpts) error {
 	}
 
 	prefix := fmt.Sprintf("%s-%s-%s-%s", rel.Name(), rel.Version(), os.OS(), os.Version())
+	if len(jobs) != 0 {
+		sort.Strings(jobs)
+		prefix = fmt.Sprintf("%s-%s", strings.Join(jobs, "-"), prefix)
+	}
 
 	err = c.downloader.Download(
 		result.BlobstoreID,

@@ -94,7 +94,7 @@ var _ = Describe("ExportReleaseCmd", func() {
 			blobID, sha1, prefix, dstDirPath := downloader.DownloadArgsForCall(0)
 			Expect(blobID).To(Equal("blob-id"))
 			Expect(sha1).To(Equal("sha1"))
-			Expect(prefix).To(Equal("rel-rel-ver-os-os-ver"))
+			Expect(prefix).To(Equal("fake-job-rel-rel-ver-os-os-ver"))
 			Expect(dstDirPath).To(Equal("/fake-dir"))
 		})
 
