@@ -2,7 +2,6 @@ package cmd_test
 
 import (
 	"errors"
-
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -24,6 +23,7 @@ var _ = Describe("SSHCmd", func() {
 		nonIntSSHRunner  *fakessh.FakeRunner
 		resultsSSHRunner *fakessh.FakeRunner
 		ui               *fakeui.FakeUI
+		hostBuilder      *fakessh.FakeHostBuilder
 		command          SSHCmd
 	)
 
@@ -33,9 +33,9 @@ var _ = Describe("SSHCmd", func() {
 		intSSHRunner = &fakessh.FakeRunner{}
 		nonIntSSHRunner = &fakessh.FakeRunner{}
 		resultsSSHRunner = &fakessh.FakeRunner{}
+		hostBuilder = &fakessh.FakeHostBuilder{}
 		ui = &fakeui.FakeUI{}
-		command = NewSSHCmd(
-			deployment, uuidGen, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, ui)
+		command = NewSSHCmd(uuidGen, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, ui, hostBuilder)
 	})
 
 	Describe("Run", func() {
@@ -44,11 +44,12 @@ var _ = Describe("SSHCmd", func() {
 
 		var (
 			opts SSHOpts
+			act  func() error
 		)
 
 		BeforeEach(func() {
 			opts = SSHOpts{
-				Args: AllOrInstanceGroupOrInstanceSlugArgs{
+				Args: SshSlugArgs{
 					Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("job-name", ""),
 				},
 
@@ -58,12 +59,16 @@ var _ = Describe("SSHCmd", func() {
 			}
 
 			uuidGen.GeneratedUUID = UUID
+
+			act = func() error {
+				return command.Run(opts, func() (boshdir.Deployment, error) {
+					return deployment, nil
+				})
+			}
 		})
 
-		act := func() error { return command.Run(opts) }
-
 		itRunsNonInteractiveSSHWhenCommandIsGiven := func(runner **fakessh.FakeRunner) {
-			Context("when commmand is provided", func() {
+			Context("when command is provided", func() {
 				BeforeEach(func() {
 					opts.Command = []string{"cmd", "arg1"}
 				})
@@ -125,7 +130,7 @@ var _ = Describe("SSHCmd", func() {
 					Expect((*runner).RunCallCount()).To(Equal(1))
 
 					runConnOpts, runResult, runCommand := (*runner).RunArgsForCall(0)
-					Expect(runConnOpts.RawOpts).To(Equal([]string{"raw1", "raw2"}))
+					Expect(runConnOpts.RawOpts).To(Equal([]string{"raw1", "raw2", "-o", "StrictHostKeyChecking=yes"}))
 					Expect(runConnOpts.PrivateKey).To(ContainSubstring("-----BEGIN RSA PRIVATE KEY-----"))
 					Expect(runConnOpts.GatewayDisable).To(Equal(true))
 					Expect(runConnOpts.GatewayUsername).To(Equal("gw-username"))
@@ -203,7 +208,7 @@ var _ = Describe("SSHCmd", func() {
 					Expect(intSSHRunner.RunCallCount()).To(Equal(1))
 
 					runConnOpts, runResult, runCommand := intSSHRunner.RunArgsForCall(0)
-					Expect(runConnOpts.RawOpts).To(Equal([]string{"raw1", "raw2"}))
+					Expect(runConnOpts.RawOpts).To(Equal([]string{"raw1", "raw2", "-o", "StrictHostKeyChecking=yes"}))
 					Expect(runConnOpts.PrivateKey).To(ContainSubstring("-----BEGIN RSA PRIVATE KEY-----"))
 					Expect(runConnOpts.GatewayDisable).To(Equal(true))
 					Expect(runConnOpts.GatewayUsername).To(Equal("gw-username"))
@@ -262,6 +267,68 @@ var _ = Describe("SSHCmd", func() {
 					Expect(nonIntSSHRunner.RunCallCount()).To(Equal(0))
 					Expect(resultsSSHRunner.RunCallCount()).To(Equal(0))
 				})
+			})
+		})
+
+		Context("when private key is provided", func() {
+			var expectedHost = boshdir.Host{
+				Job:       "",
+				IndexOrID: "",
+				Username:  "vcap",
+				Host:      "1.2.3.4",
+			}
+			BeforeEach(func() {
+				ui.Interactive = false
+				opts.Command = []string{"do", "it"}
+
+				opts.PrivateKey.Bytes = []byte("topsecret")
+				opts.Username = "vcap"
+				opts.Args.Slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("1.2.3.4")
+
+				hostBuilder.BuildHostReturns(expectedHost, nil)
+			})
+
+			It("agent is not used to setup ssh", func() {
+				Expect(act()).ToNot(HaveOccurred())
+				Expect(deployment.SetUpSSHCallCount()).To(Equal(0))
+				Expect(deployment.CleanUpSSHCallCount()).To(Equal(0))
+			})
+
+			It("builds host from args", func() {
+				Expect(act()).ToNot(HaveOccurred())
+
+				Expect(hostBuilder.BuildHostCallCount()).To(Equal(1))
+				slug, username, _ := hostBuilder.BuildHostArgsForCall(0)
+
+				Expect(slug).To(Equal(opts.Args.Slug))
+				Expect(username).To(Equal(opts.Username))
+
+				Expect(nonIntSSHRunner.RunCallCount()).To(Equal(1))
+				conn, result, _ := nonIntSSHRunner.RunArgsForCall(0)
+
+				expectedResult := boshdir.SSHResult{
+					Hosts: []boshdir.Host{
+						expectedHost,
+					},
+					GatewayUsername: "",
+					GatewayHost:     "",
+				}
+				Expect(result).To(Equal(expectedResult))
+
+				expectedConn := boshssh.ConnectionOpts{
+					PrivateKey: "topsecret",
+
+					GatewayDisable: false,
+
+					GatewayUsername:       "",
+					GatewayHost:           "",
+					GatewayPrivateKeyPath: "",
+
+					SOCKS5Proxy: "",
+					RawOpts:     []string{"-o", "StrictHostKeyChecking=no"},
+				}
+				Expect(conn).To(Equal(expectedConn))
+
 			})
 		})
 	})

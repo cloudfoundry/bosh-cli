@@ -38,6 +38,10 @@ type cmdConveniencePanic struct {
 	Err error
 }
 
+func (c Cmd) getDeployment() (boshdir.Deployment, error) {
+	return c.session().Deployment()
+}
+
 func (c Cmd) Execute() (cmdErr error) {
 	// Catch convenience panics from panicIfErr
 	defer func() {
@@ -349,12 +353,14 @@ func (c Cmd) Execute() (cmdErr error) {
 		intSSHRunner := sshProvider.NewSSHRunner(true)
 		nonIntSSHRunner := sshProvider.NewSSHRunner(false)
 		resultsSSHRunner := sshProvider.NewResultsSSHRunner(false)
-		return NewSSHCmd(c.deployment(), deps.UUIDGen, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, deps.UI).Run(*opts)
+		sshHostBuilder := boshssh.NewHostBuilder()
+		return NewSSHCmd(deps.UUIDGen, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, deps.UI, sshHostBuilder).Run(*opts, c.getDeployment)
 
 	case *SCPOpts:
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
 		scpRunner := sshProvider.NewSCPRunner()
-		return NewSCPCmd(c.deployment(), deps.UUIDGen, scpRunner, deps.UI).Run(*opts)
+		sshHostBuilder := boshssh.NewHostBuilder()
+		return NewSCPCmd(deps.UUIDGen, scpRunner, deps.UI, sshHostBuilder).Run(*opts, c.getDeployment)
 
 	case *ExportReleaseOpts:
 		director, deployment := c.directorAndDeployment()

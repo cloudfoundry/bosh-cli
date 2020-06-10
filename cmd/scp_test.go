@@ -21,11 +21,12 @@ var _ = Describe("SCPCmd", func() {
 	const ExpUsername = "bosh_8c5ff117957245c"
 
 	var (
-		deployment *fakedir.FakeDeployment
-		uuidGen    *fakeuuid.FakeGenerator
-		scpRunner  *fakessh.FakeSCPRunner
-		ui         *fakeui.FakeUI
-		command    SCPCmd
+		deployment  *fakedir.FakeDeployment
+		uuidGen     *fakeuuid.FakeGenerator
+		scpRunner   *fakessh.FakeSCPRunner
+		ui          *fakeui.FakeUI
+		hostBuilder *fakessh.FakeHostBuilder
+		command     SCPCmd
 	)
 
 	BeforeEach(func() {
@@ -33,12 +34,14 @@ var _ = Describe("SCPCmd", func() {
 		uuidGen = &fakeuuid.FakeGenerator{}
 		scpRunner = &fakessh.FakeSCPRunner{}
 		ui = &fakeui.FakeUI{}
-		command = NewSCPCmd(deployment, uuidGen, scpRunner, ui)
+		hostBuilder = &fakessh.FakeHostBuilder{}
+		command = NewSCPCmd(uuidGen, scpRunner, ui, hostBuilder)
 	})
 
 	Describe("Run", func() {
 		var (
 			opts SCPOpts
+			act  func() error
 		)
 
 		BeforeEach(func() {
@@ -48,9 +51,13 @@ var _ = Describe("SCPCmd", func() {
 				},
 			}
 			uuidGen.GeneratedUUID = UUID
-		})
 
-		act := func() error { return command.Run(opts) }
+			act = func() error {
+				return command.Run(opts, func() (boshdir.Deployment, error) {
+					return deployment, nil
+				})
+			}
+		})
 
 		Context("when valid SCP args are provided", func() {
 			BeforeEach(func() {
@@ -131,6 +138,69 @@ var _ = Describe("SCPCmd", func() {
 				err := act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+		})
+
+		Context("when private key is provided", func() {
+			var expectedHost = boshdir.Host{
+				Job:       "",
+				IndexOrID: "",
+				Username:  "vcap",
+				Host:      "1.2.3.4",
+			}
+			BeforeEach(func() {
+				ui.Interactive = false
+				opts.Args.Paths = []string{"1.2.3.4:file", "/something"}
+
+				opts.PrivateKey.Bytes = []byte("topsecret")
+				opts.Username = "vcap"
+
+				hostBuilder.BuildHostReturns(expectedHost, nil)
+			})
+
+			It("agent is not used to setup ssh", func() {
+				Expect(act()).ToNot(HaveOccurred())
+
+				Expect(deployment.SetUpSSHCallCount()).To(Equal(0))
+				Expect(deployment.CleanUpSSHCallCount()).To(Equal(0))
+			})
+
+			It("builds host from args", func() {
+				Expect(act()).ToNot(HaveOccurred())
+
+				Expect(hostBuilder.BuildHostCallCount()).To(Equal(1))
+				slug, username, _ := hostBuilder.BuildHostArgsForCall(0)
+
+				expectedSlug, _ := boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("1.2.3.4")
+				Expect(slug).To(Equal(expectedSlug))
+				Expect(username).To(Equal(opts.Username))
+
+				Expect(scpRunner.RunCallCount()).To(Equal(1))
+				conn, result, _ := scpRunner.RunArgsForCall(0)
+
+				expectedResult := boshdir.SSHResult{
+					Hosts: []boshdir.Host{
+						expectedHost,
+					},
+					GatewayUsername: "",
+					GatewayHost:     "",
+				}
+				Expect(result).To(Equal(expectedResult))
+
+				expectedConn := boshssh.ConnectionOpts{
+					PrivateKey: "topsecret",
+
+					GatewayDisable: false,
+
+					GatewayUsername:       "",
+					GatewayHost:           "",
+					GatewayPrivateKeyPath: "",
+
+					SOCKS5Proxy: "",
+					RawOpts:     []string{"-o", "StrictHostKeyChecking=no"},
+				}
+				Expect(conn).To(Equal(expectedConn))
+
 			})
 		})
 

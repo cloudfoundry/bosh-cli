@@ -84,7 +84,6 @@ func (a SSHArgs) OptsForHost(host boshdir.Host) []string {
 		"-o", "PasswordAuthentication=no",
 		"-o", "IdentitiesOnly=yes",
 		"-o", "IdentityFile=" + a.PrivKeyFile.Name(),
-		"-o", "StrictHostKeyChecking=yes",
 		"-o", "UserKnownHostsFile=" + a.KnownHostsFile.Name(),
 	}...)
 

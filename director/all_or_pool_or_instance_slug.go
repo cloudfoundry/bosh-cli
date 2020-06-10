@@ -2,6 +2,7 @@ package director
 
 import (
 	"fmt"
+	"net"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -10,6 +11,7 @@ import (
 type AllOrInstanceGroupOrInstanceSlug struct {
 	name      string // optional
 	indexOrID string // optional
+	ip        string // optional
 }
 
 func NewAllOrInstanceGroupOrInstanceSlug(name, indexOrID string) AllOrInstanceGroupOrInstanceSlug {
@@ -22,6 +24,7 @@ func NewAllOrInstanceGroupOrInstanceSlugFromString(str string) (AllOrInstanceGro
 
 func (s AllOrInstanceGroupOrInstanceSlug) Name() string      { return s.name }
 func (s AllOrInstanceGroupOrInstanceSlug) IndexOrID() string { return s.indexOrID }
+func (s AllOrInstanceGroupOrInstanceSlug) IP() string        { return s.ip }
 
 func (s AllOrInstanceGroupOrInstanceSlug) InstanceSlug() (InstanceSlug, bool) {
 	if len(s.name) > 0 && len(s.indexOrID) > 0 {
@@ -51,6 +54,11 @@ func (s *AllOrInstanceGroupOrInstanceSlug) UnmarshalFlag(data string) error {
 func parseAllOrInstanceGroupOrInstanceSlug(str string) (AllOrInstanceGroupOrInstanceSlug, error) {
 	if len(str) == 0 {
 		return AllOrInstanceGroupOrInstanceSlug{}, nil
+	}
+
+	ip := net.ParseIP(str)
+	if ip != nil {
+		return AllOrInstanceGroupOrInstanceSlug{ip: str}, nil
 	}
 
 	pieces := strings.Split(str, "/")
