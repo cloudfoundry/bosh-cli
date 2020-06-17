@@ -40,7 +40,8 @@ type Event struct {
 }
 
 type EventData struct {
-	Error string // e.g. "'api2/2' is not running after update"
+	Error  string // e.g. "'api2/2' is not running after update"
+	Status string // e.g. "installing packages"
 }
 
 type EventError struct {
@@ -84,5 +85,5 @@ func (e Event) DurationSinceStartAsStr() string {
 }
 
 func (e Event) IsWorthKeeping() bool {
-	return e.State != EventStateInProgress
+	return true
 }

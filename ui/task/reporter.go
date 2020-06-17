@@ -123,6 +123,8 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 		}
 	}
 
+	prefix := fmt.Sprintf("\nTask %d | %s | ", id, event.TimeAsHoursStr())
+
 	if r.lastGlobalEvent != nil && r.lastGlobalEvent.IsSame(event) {
 		switch {
 		case event.State == EventStateStarted:
@@ -130,6 +132,10 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 
 		case event.State == EventStateFinished:
 			r.printBlock(fmt.Sprintf(" (%s)", event.DurationSinceStartAsStr()))
+
+		case event.State == EventStateInProgress:
+			r.printBlock(prefix)
+			r.printBlock(fmt.Sprintf("L %s: %s", event.Data.Status, event.Task))
 
 		case event.State == EventStateFailed:
 			r.printBlock(fmt.Sprintf(" (%s)", event.DurationSinceStartAsStr()))
@@ -144,7 +150,6 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 			}
 		}
 
-		prefix := fmt.Sprintf("\nTask %d | %s | ", id, event.TimeAsHoursStr())
 		desc := event.Stage
 
 		if len(event.Tags) > 0 {
@@ -163,6 +168,12 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 		case event.State == EventStateStarted:
 			r.printBlock(prefix)
 			r.printBlock(fmt.Sprintf("%s: %s", desc, event.Task))
+
+		case event.State == EventStateInProgress:
+			r.printBlock(prefix)
+			r.printBlock(fmt.Sprintf("%s: %s", desc, event.Task))
+			r.printBlock(prefix)
+			r.printBlock(fmt.Sprintf("L %s: %s", event.Data.Status, event.Task))
 
 		case event.State == EventStateFinished:
 			r.printBlock(prefix)
