@@ -54,7 +54,7 @@
   version = "v0.3.1"
 
 [[projects]]
-  digest = "1:9da5408cc6f5c75ddf0a3c366320250c8cff4a4634ba04104a546d0ffab5ac67"
+  digest = "1:9224d8f8ff7d828ad8c56732a907058cb570f4706084697f3810987359045b1a"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -104,8 +104,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "17be15546ab428da324517d247b64c97187a1481"
-  version = "v1.32.1"
+  revision = "1f57dbf66e23e62fa8b40039709c45afdd53e6d8"
+  version = "v1.32.6"
 
 [[projects]]
   digest = "1:30482ccb11e2c861f5437c740dfd70013152f6bae68f7789db4812d2bc9d7c52"
@@ -142,8 +142,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "9b5b670c0352ac8d560e8baf20a0b3b8fbf81695"
-  version = "v2.321.0"
+  revision = "5ad025074ad1bfb15b05bf026d25120f0acabcf9"
+  version = "v2.322.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -205,7 +205,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "7f673ba6be2a505f686f094901e540ac39233d07"
+  revision = "d1b4b59227c68db4f0589b16f79eadd1b0d71476"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -504,7 +504,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:e2dceb4919804b12b8faa56c44f4597fb9e37c2a5a3a2ca992319c86507342ab"
+  digest = "1:c4b4080c789c163c4a9f612e3f09f84ac37b96a53383f2fb21f2b3c4d1c3cfac"
   name = "go.opencensus.io"
   packages = [
     ".",
@@ -525,8 +525,8 @@
     "trace/tracestate",
   ]
   pruneopts = "NUT"
-  revision = "d835ff86be02193d324330acdb7d65546b05f814"
-  version = "v0.22.3"
+  revision = "5fa069b99bc903d713add0295c7e0a55d34ae573"
+  version = "v0.22.4"
 
 [[projects]]
   branch = "master"
@@ -607,7 +607,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b45841d2849b172d05bceab74758324a01cd87f68f29bce11b1f3eb45bbf1803"
+  digest = "1:a3687d8959fe0bea5842cd110e5b8ef88ba0f24950ea9f2877add9975c263020"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -616,10 +616,10 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "226ff32320da7b90d0b5bc2365f4e359c466fb78"
+  revision = "981b61492c3565ea113dc1621ca30ef897df5586"
 
 [[projects]]
-  digest = "1:28deae5fe892797ff37a317b5bcda96d11d1c90dadd89f1337651df3bc4c586e"
+  digest = "1:4e215023f245ee44676ce94f5031f41a7ba2089adf2d9c0175f36eeb6dd62f46"
   name = "golang.org/x/text"
   packages = [
     "collate",
@@ -652,12 +652,12 @@
     "unicode/rangetable",
   ]
   pruneopts = "NUT"
-  revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
-  version = "v0.3.2"
+  revision = "23ae387dee1f90d29a23c0e87ee0b46038fbed0e"
+  version = "v0.3.3"
 
 [[projects]]
   branch = "master"
-  digest = "1:b6a2a28a2e963cf57022584cdf6bc2de8de89a3ccf72aa434fcd426fc76e780c"
+  digest = "1:b9cc88e33652aa6609d67a894f95c3bd84f95cb7f7907f8a71398d208e778478"
   name = "golang.org/x/tools"
   packages = [
     "cmd/goimports",
@@ -688,7 +688,7 @@
     "internal/typesinternal",
   ]
   pruneopts = "NUT"
-  revision = "54c614fe050cac95ace393a63f164149942ecbde"
+  revision = "0f592d2728bb767204b019bf926fbcd791267115"
 
 [[projects]]
   branch = "master"
@@ -702,7 +702,7 @@
   revision = "9bdfabe68543c54f90421aeb9a60ef8061b5b544"
 
 [[projects]]
-  digest = "1:607b239a99dde0a42c37ab5fa11532809b9f45c7075bad529462f4cad7a650fe"
+  digest = "1:4b863bc40ebe06a85481c1ef5e29579c448e6b50046983b82fa61bc62ba15926"
   name = "google.golang.org/api"
   packages = [
     "googleapi",
@@ -719,8 +719,8 @@
     "transport/http/internal/propagation",
   ]
   pruneopts = "NUT"
-  revision = "6ca1abe345464ef58dab8fe1f9b4525b50b37336"
-  version = "v0.26.0"
+  revision = "0324d5e90dc7753607860272666845fad9ceb97e"
+  version = "v0.28.0"
 
 [[projects]]
   digest = "1:7962fa8a69cee98816eb75ac9b23536934712a5eb5db5f76913a052c5e8571b6"
@@ -753,7 +753,7 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "7676ae05be1122540d5cebd33d3d5eb63459ecfc"
+  revision = "bd6e0464013189fd9f89e0b2f1483b1372ab6743"
 
 [[projects]]
   digest = "1:b645296172b36b957017999510493722a0a919dba205e01421bd3b31051294f5"
