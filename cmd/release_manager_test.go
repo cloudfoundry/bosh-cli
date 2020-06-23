@@ -5,6 +5,7 @@ import (
 
 	semver "github.com/cppforlife/go-semi-semantic/version"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
@@ -40,7 +41,7 @@ var _ = Describe("ReleaseManager", func() {
 	})
 
 	Describe("UploadReleases", func() {
-		It("uploads remote releases skipping releases without url", func() {
+		DescribeTable("uploads remote releases skipping releases without url", func(fix bool, subject func(bytes []byte) ([]byte, error)) {
 			bytes := []byte(`
 releases:
 - name: capi
@@ -65,7 +66,7 @@ releases:
   version: create
 `)
 
-			_, err := releaseManager.UploadReleases(bytes)
+			_, err := subject(bytes)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(4))
@@ -98,39 +99,56 @@ releases:
 				Args:    UploadReleaseArgs{URL: URLArg("https://capi-url")},
 				SHA1:    "capi-sha1",
 				Version: VersionArg(semver.MustNewVersionFromString("1+capi")),
+				Fix:     fix,
 			}))
 			Expect(consulRelease).To(Equal(UploadReleaseOpts{
 				Name:    "consul",
 				Args:    UploadReleaseArgs{URL: URLArg("https://consul-url")},
 				SHA1:    "consul-sha1",
 				Version: VersionArg(semver.MustNewVersionFromString("1+consul")),
+				Fix:     fix,
 			}))
 			Expect(compiledRelease).To(Equal(UploadReleaseOpts{
 				Name:    "compiled-release",
 				Args:    UploadReleaseArgs{URL: URLArg("https://compiled-release-url")},
 				SHA1:    "compiled-release-sha1",
 				Version: VersionArg(semver.MustNewVersionFromString("1+compiled-release")),
+				Fix:     fix,
 
 				Stemcell: boshdir.NewOSVersionSlug("ubuntu-trusty", "3421"),
 			}))
 			Expect(localRelease).To(Equal(UploadReleaseOpts{
 				Release: localRelease.Release, // only Release should be set
 			}))
-		})
+		},
+			Entry("when without fix option", false, func(bytes []byte) ([]byte, error) {
+				return releaseManager.UploadReleases(bytes)
+			}),
+			Entry("when with fix option", true, func(bytes []byte) ([]byte, error) {
+				return releaseManager.UploadReleasesWithFix(bytes)
+			}),
+		)
 
-		It("skips uploading releases if url is not provided, even if the version is invalid", func() {
+		DescribeTable("skips uploading releases if url is not provided, even if the version is invalid", func(subject func(bytes []byte) ([]byte, error)) {
 			bytes := []byte(`
 releases:
 - name: capi
   version: ((/blah_interpolate_me_with_config_server))
 `)
 
-			_, err := releaseManager.UploadReleases(bytes)
+			_, err := subject(bytes)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(0))
-		})
+		},
+			Entry("when without fix option", func(bytes []byte) ([]byte, error) {
+				return releaseManager.UploadReleases(bytes)
+			}),
+			Entry("when with fix option", func(bytes []byte) ([]byte, error) {
+				return releaseManager.UploadReleasesWithFix(bytes)
+			}),
+		)
 
-		It("creates releases if version is 'create' skipping others", func() {
+		DescribeTable("creates releases if version is 'create' skipping others", func(subject func(bytes []byte) ([]byte, error)) {
 			bytes := []byte(`
 releases:
 - name: capi
@@ -143,7 +161,7 @@ releases:
   version: create
 `)
 
-			bytes, err := releaseManager.UploadReleases(bytes)
+			bytes, err := subject(bytes)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(createReleaseCmd.RunCallCount()).To(Equal(2))
@@ -185,9 +203,16 @@ releases:
 - name: consul
   version: consul-created-ver
 `)))
-		})
+		},
+			Entry("when without fix option", func(bytes []byte) ([]byte, error) {
+				return releaseManager.UploadReleases(bytes)
+			}),
+			Entry("when with fix option", func(bytes []byte) ([]byte, error) {
+				return releaseManager.UploadReleasesWithFix(bytes)
+			}),
+		)
 
-		It("returns error and does not upload if creating release fails", func() {
+		DescribeTable("returns error and does not upload if creating release fails", func(subject func(bytes []byte) ([]byte, error)) {
 			bytes := []byte(`
 releases:
 - name: capi
@@ -196,14 +221,21 @@ releases:
 `)
 			createReleaseCmd.RunReturns(nil, errors.New("fake-err"))
 
-			_, err := releaseManager.UploadReleases(bytes)
+			_, err := subject(bytes)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 
 			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(0))
-		})
+		},
+			Entry("when without fix option", func(bytes []byte) ([]byte, error) {
+				return releaseManager.UploadReleases(bytes)
+			}),
+			Entry("when with fix option", func(bytes []byte) ([]byte, error) {
+				return releaseManager.UploadReleasesWithFix(bytes)
+			}),
+		)
 
-		It("returns error if uploading release fails", func() {
+		DescribeTable("returns error if uploading release fails", func(subject func(bytes []byte) ([]byte, error)) {
 			bytes := []byte(`
 releases:
 - name: capi
@@ -213,12 +245,18 @@ releases:
 `)
 			uploadReleaseCmd.RunReturns(errors.New("fake-err"))
 
-			_, err := releaseManager.UploadReleases(bytes)
+			_, err := subject(bytes)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
-		})
+		},
+			Entry("when without fix", func(bytes []byte) ([]byte, error) {
+				return releaseManager.UploadReleases(bytes)
+			}),
+			Entry("when fix", func(bytes []byte) ([]byte, error) {
+				return releaseManager.UploadReleasesWithFix(bytes)
+			}))
 
-		It("returns an error and does not upload if release version cannot be parsed", func() {
+		DescribeTable("returns an error and does not upload if release version cannot be parsed", func(subject func(bytes []byte) ([]byte, error)) {
 			bytes := []byte(`
 releases:
 - name: capi
@@ -227,22 +265,36 @@ releases:
   version: 1+capi+capi
 `)
 
-			_, err := releaseManager.UploadReleases(bytes)
+			_, err := subject(bytes)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Expected version '1+capi+capi' to match version format"))
 
 			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(0))
-		})
+		},
+			Entry("when without fix option", func(bytes []byte) ([]byte, error) {
+				return releaseManager.UploadReleases(bytes)
+			}),
+			Entry("when with fix option", func(bytes []byte) ([]byte, error) {
+				return releaseManager.UploadReleasesWithFix(bytes)
+			}),
+		)
 
-		It("returns an error if bytes cannot be parsed to find releases", func() {
+		DescribeTable("returns an error if bytes cannot be parsed to find releases", func(subject func(bytes []byte) ([]byte, error)) {
 			bytes := []byte(`-`)
 
-			_, err := releaseManager.UploadReleases(bytes)
+			_, err := subject(bytes)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Parsing manifest"))
 
 			Expect(createReleaseCmd.RunCallCount()).To(Equal(0))
 			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(0))
-		})
+		},
+			Entry("when without fix option", func(bytes []byte) ([]byte, error) {
+				return releaseManager.UploadReleases(bytes)
+			}),
+			Entry("when with fix option", func(bytes []byte) ([]byte, error) {
+				return releaseManager.UploadReleasesWithFix(bytes)
+			}),
+		)
 	})
 })

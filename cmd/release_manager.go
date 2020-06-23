@@ -16,6 +16,7 @@ type ReleaseManager struct {
 	createReleaseCmd ReleaseCreatingCmd
 	uploadReleaseCmd ReleaseUploadingCmd
 	parallelThreads  int
+	uploadWithFix    bool
 }
 
 type ReleaseUploadingCmd interface {
@@ -31,7 +32,12 @@ func NewReleaseManager(
 	uploadReleaseCmd ReleaseUploadingCmd,
 	parallelThreads int,
 ) ReleaseManager {
-	return ReleaseManager{createReleaseCmd, uploadReleaseCmd, parallelThreads}
+	return ReleaseManager{createReleaseCmd, uploadReleaseCmd, parallelThreads, false}
+}
+
+func (m ReleaseManager) UploadReleasesWithFix(bytes []byte) ([]byte, error) {
+	m.uploadWithFix = true
+	return m.UploadReleases(bytes)
 }
 
 func (m ReleaseManager) UploadReleases(bytes []byte) ([]byte, error) {
@@ -106,6 +112,7 @@ func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (pat
 
 		Args: UploadReleaseArgs{URL: URLArg(rel.URL)},
 		SHA1: rel.SHA1,
+		Fix:  m.uploadWithFix,
 	}
 
 	if len(rel.Stemcell.OS) > 0 {
