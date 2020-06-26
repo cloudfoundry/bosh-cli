@@ -116,6 +116,32 @@ var _ = Describe("UpdateRuntimeConfigCmd", func() {
 			Expect(bytes).To(Equal([]byte("after-upload-config")))
 		})
 
+		It("uploads releases provided in the manifest with fix after manifest has been interpolated", func() {
+			opts.Args.RuntimeConfig = FileBytesArg{
+				Bytes: []byte("before-upload-config: ((key))"),
+			}
+
+			opts.VarKVs = []boshtpl.VarKV{
+				{Name: "key", Value: "key-val"},
+			}
+
+			opts.FixReleases = true
+
+			releaseUploader.UploadReleasesWithFixReturns([]byte("after-upload-config-with-fix"), nil)
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			bytes := releaseUploader.UploadReleasesWithFixArgsForCall(0)
+			Expect(bytes).To(Equal([]byte("before-upload-config: key-val\n")))
+
+			Expect(director.UpdateRuntimeConfigCallCount()).To(Equal(1))
+
+			name, bytes := director.UpdateRuntimeConfigArgsForCall(0)
+			Expect(name).To(Equal("angry-smurf"))
+			Expect(bytes).To(Equal([]byte("after-upload-config-with-fix")))
+		})
+
 		It("returns error and does not deploy if uploading releases fails", func() {
 			opts.Args.RuntimeConfig = FileBytesArg{
 				Bytes: []byte(`

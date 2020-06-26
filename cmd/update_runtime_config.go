@@ -35,7 +35,12 @@ func (c UpdateRuntimeConfigCmd) Run(opts UpdateRuntimeConfigOpts) error {
 	diff := NewDiff(configDiff.Diff)
 	diff.Print(c.ui)
 
-	bytes, err = c.releaseUploader.UploadReleases(bytes)
+	if opts.FixReleases {
+		bytes, err = c.releaseUploader.UploadReleasesWithFix(bytes)
+	} else {
+		bytes, err = c.releaseUploader.UploadReleases(bytes)
+	}
+
 	if err != nil {
 		return err
 	}
