@@ -35,6 +35,12 @@ type Instance interface {
 		skipDrain bool,
 		stage biui.Stage,
 	) error
+	Start(
+		deploymentManifest bideplmanifest.Manifest,
+		pingTimeout time.Duration,
+		pingDelay time.Duration,
+		stage biui.Stage,
+	) error
 }
 
 type instance struct {
@@ -197,14 +203,7 @@ func (i *instance) UpdateJobs(
 		return err
 	}
 
-	stepName = fmt.Sprintf("Running the post-start scripts '%s/%d'", i.jobName, i.id)
-	err = stage.Perform(stepName, func() error {
-		err = i.vm.RunScript("post-start", map[string]interface{}{})
-		if err != nil {
-			return bosherr.WrapError(err, "Running the post-start script")
-		}
-		return nil
-	})
+	err = i.runScriptInStep(stage, "post-start", i.jobName, i.id)
 
 	return err
 }
@@ -259,6 +258,54 @@ func (i *instance) Stop(
 	return nil
 }
 
+func (i *instance) Start(
+	deploymentManifest bideplmanifest.Manifest,
+	pingTimeout time.Duration,
+	pingDelay time.Duration,
+	stage biui.Stage,
+) error {
+	vmExists, err := i.vm.Exists()
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Checking existence of vm for instance '%s/%d'", i.jobName, i.id)
+	}
+
+	if vmExists {
+		if waitingForAgentErr := i.waitForAgent(pingDelay, pingTimeout, stage); waitingForAgentErr != nil {
+			i.logger.Warn(i.logTag, "Gave up waiting for agent: %s", waitingForAgentErr.Error())
+			return nil
+		}
+
+		if err := i.runScriptInStep(stage, "pre-start", i.jobName, i.id); err != nil {
+			return err
+		}
+
+		stepName := fmt.Sprintf("Starting the agent '%s/%d'", i.jobName, i.id)
+		err = stage.Perform(stepName, func() error {
+			err = i.vm.Start()
+			if err != nil {
+				return bosherr.WrapError(err, "Starting the agent")
+			}
+			return nil
+		})
+
+		if err != nil {
+			return err
+		}
+
+		err = i.waitUntilJobsAreRunning(deploymentManifest.Update.UpdateWatchTime, stage)
+		if err != nil {
+			return err
+		}
+
+		if err := i.runScriptInStep(stage, "post-start", i.jobName, i.id); err != nil {
+			return err
+		}
+	} else {
+		i.logger.Warn(i.logTag, "VM with CID '%s' does not exist. Skipping start", i.vm.CID)
+	}
+	return nil
+}
+
 func (i *instance) shutdown(
 	pingTimeout time.Duration,
 	pingDelay time.Duration,
@@ -266,28 +313,12 @@ func (i *instance) shutdown(
 	skipDiskUnmount bool,
 	stage biui.Stage,
 ) error {
-	stepName := fmt.Sprintf("Waiting for the agent on VM '%s'", i.vm.CID())
-	waitingForAgentErr := stage.Perform(stepName, func() error {
-		if err := i.vm.WaitUntilReady(pingTimeout, pingDelay); err != nil {
-			return bosherr.WrapError(err, "Agent unreachable")
-		}
-		return nil
-	})
-	if waitingForAgentErr != nil {
+	if waitingForAgentErr := i.waitForAgent(pingDelay, pingTimeout, stage); waitingForAgentErr != nil {
 		i.logger.Warn(i.logTag, "Gave up waiting for agent: %s", waitingForAgentErr.Error())
 		return nil
 	}
 
-	stepName = fmt.Sprintf("Running the pre-stop scripts '%s/%d'", i.jobName, i.id)
-	err := stage.Perform(stepName, func() error {
-		err := i.vm.RunScript("pre-stop", map[string]interface{}{})
-		if err != nil {
-			return bosherr.WrapError(err, "Running the pre-stop script")
-		}
-		return nil
-	})
-
-	if err != nil {
+	if err := i.runScriptInStep(stage, "pre-stop", i.jobName, i.id); err != nil {
 		return err
 	}
 
@@ -301,16 +332,7 @@ func (i *instance) shutdown(
 		return err
 	}
 
-	stepName = fmt.Sprintf("Running the post-stop scripts '%s/%d'", i.jobName, i.id)
-	err = stage.Perform(stepName, func() error {
-		err := i.vm.RunScript("post-stop", map[string]interface{}{})
-		if err != nil {
-			return bosherr.WrapError(err, "Running the post-stop script")
-		}
-		return nil
-	})
-
-	if err != nil {
+	if err := i.runScriptInStep(stage, "post-stop", i.jobName, i.id); err != nil {
 		return err
 	}
 
@@ -321,6 +343,28 @@ func (i *instance) shutdown(
 	}
 
 	return nil
+}
+
+func (i *instance) runScriptInStep(stage biui.Stage, script string, jobName string, jobId int) error {
+	stepName := fmt.Sprintf("Running the %s scripts '%s/%d'", script, i.jobName, i.id)
+	return stage.Perform(stepName, func() error {
+		err := i.vm.RunScript(script, map[string]interface{}{})
+		if err != nil {
+			msg := fmt.Sprintf("Running the %s script", script)
+			return bosherr.WrapError(err, msg)
+		}
+		return nil
+	})
+}
+
+func (i *instance) waitForAgent(pingDelay time.Duration, pingTimeout time.Duration, stage biui.Stage) error {
+	stepName := fmt.Sprintf("Waiting for the agent on VM '%s'", i.vm.CID())
+	return stage.Perform(stepName, func() error {
+		if err := i.vm.WaitUntilReady(pingTimeout, pingDelay); err != nil {
+			return bosherr.WrapError(err, "Agent unreachable")
+		}
+		return nil
+	})
 }
 
 func (i *instance) waitUntilJobsAreRunning(updateWatchTime bideplmanifest.WatchTime, stage biui.Stage) error {
