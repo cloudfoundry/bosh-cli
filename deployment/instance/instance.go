@@ -278,6 +278,19 @@ func (i *instance) shutdown(
 		return nil
 	}
 
+	stepName = fmt.Sprintf("Running the pre-stop scripts '%s/%d'", i.jobName, i.id)
+	err := stage.Perform(stepName, func() error {
+		err := i.vm.RunScript("pre-stop", map[string]interface{}{})
+		if err != nil {
+			return bosherr.WrapError(err, "Running the pre-stop script")
+		}
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
 	if !skipDrain {
 		if err := i.drainJobs(stage); err != nil {
 			return err
@@ -285,6 +298,19 @@ func (i *instance) shutdown(
 	}
 
 	if err := i.stopJobs(stage); err != nil {
+		return err
+	}
+
+	stepName = fmt.Sprintf("Running the post-stop scripts '%s/%d'", i.jobName, i.id)
+	err = stage.Perform(stepName, func() error {
+		err := i.vm.RunScript("post-stop", map[string]interface{}{})
+		if err != nil {
+			return bosherr.WrapError(err, "Running the post-stop script")
+		}
+		return nil
+	})
+
+	if err != nil {
 		return err
 	}
 
