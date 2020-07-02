@@ -114,8 +114,10 @@ var _ = Describe("Instance", func() {
 
 			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+				{Name: "Running the pre-stop scripts 'fake-job-name/0'"},
 				{Name: "Draining jobs on instance 'fake-job-name/0'"},
 				{Name: "Stopping jobs on instance 'fake-job-name/0'"},
+				{Name: "Running the post-stop scripts 'fake-job-name/0'"},
 				{Name: "Deleting VM 'fake-vm-cid'"},
 			}))
 		})
@@ -165,7 +167,7 @@ var _ = Describe("Instance", func() {
 					{Disk: secondDisk},
 				}))
 
-				Expect(fakeStage.PerformCalls[3:5]).To(Equal([]*fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls[5:7]).To(Equal([]*fakebiui.PerformCall{
 					{Name: "Unmounting disk 'fake-disk-1'"},
 					{Name: "Unmounting disk 'fake-disk-2'"},
 				}))
@@ -187,6 +189,7 @@ var _ = Describe("Instance", func() {
 
 					Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 						{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+						{Name: "Running the pre-stop scripts 'fake-job-name/0'"},
 						{Name: "Draining jobs on instance 'fake-job-name/0'"},
 						{
 							Name:  "Stopping jobs on instance 'fake-job-name/0'",
@@ -207,9 +210,9 @@ var _ = Describe("Instance", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-unmount-error"))
 
-					Expect(fakeStage.PerformCalls[3].Name).To(Equal("Unmounting disk 'fake-disk'"))
-					Expect(fakeStage.PerformCalls[3].Error).To(HaveOccurred())
-					Expect(fakeStage.PerformCalls[3].Error.Error()).To(Equal("Unmounting disk 'fake-disk' from VM 'fake-vm-cid': fake-unmount-error"))
+					Expect(fakeStage.PerformCalls[5].Name).To(Equal("Unmounting disk 'fake-disk'"))
+					Expect(fakeStage.PerformCalls[5].Error).To(HaveOccurred())
+					Expect(fakeStage.PerformCalls[5].Error.Error()).To(Equal("Unmounting disk 'fake-disk' from VM 'fake-vm-cid': fake-unmount-error"))
 				})
 			})
 		})
@@ -244,8 +247,10 @@ var _ = Describe("Instance", func() {
 
 				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 					{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+					{Name: "Running the pre-stop scripts 'fake-job-name/0'"},
 					{Name: "Draining jobs on instance 'fake-job-name/0'"},
 					{Name: "Stopping jobs on instance 'fake-job-name/0'"},
+					{Name: "Running the post-stop scripts 'fake-job-name/0'"},
 					{
 						Name:  "Deleting VM 'fake-vm-cid'",
 						Error: deleteError,
@@ -649,8 +654,10 @@ var _ = Describe("Instance", func() {
 
 			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+				{Name: "Running the pre-stop scripts 'fake-job-name/0'"},
 				{Name: "Draining jobs on instance 'fake-job-name/0'"},
 				{Name: "Stopping jobs on instance 'fake-job-name/0'"},
+				{Name: "Running the post-stop scripts 'fake-job-name/0'"},
 			}))
 		})
 
