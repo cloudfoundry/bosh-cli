@@ -15,8 +15,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "d03aef711e2270f24ed9c98d3c81128638ec9eab"
-  version = "v0.59.0"
+  revision = "cffdb7472a730c336a483d834f221716af2f6bb5"
+  version = "v0.60.0"
 
 [[projects]]
   digest = "1:41531922c7f47d5157308b4dd1abc6142c4c583845ce424ed9664db867fa48cf"
@@ -46,7 +46,7 @@
   revision = "2ac56b3541156ef8351c52058f3ac6f1457e4edf"
 
 [[projects]]
-  digest = "1:9741c8799729964de324fbc1cfc76e9469d0189c84b58ad796890f298540c534"
+  digest = "1:16e408e7602c83441e1725b115bf024a480bfb3661a83161ad384952acad6321"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -96,8 +96,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "5e6af281f5c2df160023daea793593fda20bdd7f"
-  version = "v1.32.11"
+  revision = "f3abecfcb048f8645ac8a98dfb9d190ed9d58a8d"
+  version = "v1.33.1"
 
 [[projects]]
   digest = "1:30482ccb11e2c861f5437c740dfd70013152f6bae68f7789db4812d2bc9d7c52"
@@ -134,8 +134,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "04b8a9cf1047bacb3e9a5ef1731c65035cadafc4"
-  version = "v2.323.0"
+  revision = "daa8eaec284263fd6c12983bc97e1277e506fa45"
+  version = "v2.324.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -197,7 +197,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "c482f04ffbe8f8ae7cd8c4e99958d6da5e1d2af5"
+  revision = "14e12bc28506def600eef6bae7f2faafdc7c7292"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -417,7 +417,7 @@
   version = "v1.4.4"
 
 [[projects]]
-  digest = "1:2c3fcbe823fda10c61a36292cf30d4cb0b14ddff376ea4bd591e6a182979912f"
+  digest = "1:e254001317dbb0540c86f70fa2d388a4f8177e14ffd06a6c19e1519ff3e53881"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -449,8 +449,8 @@
     "types",
   ]
   pruneopts = "NUT"
-  revision = "4943fe132fbcccacbd3d896c73e7ff993558259b"
-  version = "v1.13.0"
+  revision = "9c254cb251dc962dc20ca91d0279c870095cfcf9"
+  version = "v1.14.0"
 
 [[projects]]
   digest = "1:8d0fe95432805159fd26380192db6173ca74cde6ac507cc0cf8a49978606d3a6"
@@ -672,7 +672,7 @@
     "internal/typesinternal",
   ]
   pruneopts = "NUT"
-  revision = "aa94e735be7f31b6b12c5acf9c5838e5605455b4"
+  revision = "0cc1aa72b347c94167795784138aa2603df670ba"
 
 [[projects]]
   branch = "master"
@@ -737,7 +737,7 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "ee7919e894b5b5992a06d6e11a361f08b63b49ef"
+  revision = "07506425bd67e1db3dd3ed11bc30bdd553c377f1"
 
 [[projects]]
   digest = "1:b0755b8d3a1da2ea5d21d3d68fde6c9486da3c0edc7a1309f931ca36e6bc8c12"
