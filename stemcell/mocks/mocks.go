@@ -36,6 +36,7 @@ func (m *MockCloudStemcell) EXPECT() *MockCloudStemcellMockRecorder {
 
 // CID mocks base method
 func (m *MockCloudStemcell) CID() string {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CID")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -43,11 +44,13 @@ func (m *MockCloudStemcell) CID() string {
 
 // CID indicates an expected call of CID
 func (mr *MockCloudStemcellMockRecorder) CID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CID", reflect.TypeOf((*MockCloudStemcell)(nil).CID))
 }
 
 // Delete mocks base method
 func (m *MockCloudStemcell) Delete() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -55,11 +58,13 @@ func (m *MockCloudStemcell) Delete() error {
 
 // Delete indicates an expected call of Delete
 func (mr *MockCloudStemcellMockRecorder) Delete() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockCloudStemcell)(nil).Delete))
 }
 
 // Name mocks base method
 func (m *MockCloudStemcell) Name() string {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Name")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -67,11 +72,13 @@ func (m *MockCloudStemcell) Name() string {
 
 // Name indicates an expected call of Name
 func (mr *MockCloudStemcellMockRecorder) Name() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Name", reflect.TypeOf((*MockCloudStemcell)(nil).Name))
 }
 
 // PromoteAsCurrent mocks base method
 func (m *MockCloudStemcell) PromoteAsCurrent() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PromoteAsCurrent")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -79,11 +86,13 @@ func (m *MockCloudStemcell) PromoteAsCurrent() error {
 
 // PromoteAsCurrent indicates an expected call of PromoteAsCurrent
 func (mr *MockCloudStemcellMockRecorder) PromoteAsCurrent() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PromoteAsCurrent", reflect.TypeOf((*MockCloudStemcell)(nil).PromoteAsCurrent))
 }
 
 // Version mocks base method
 func (m *MockCloudStemcell) Version() string {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Version")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -91,6 +100,7 @@ func (m *MockCloudStemcell) Version() string {
 
 // Version indicates an expected call of Version
 func (mr *MockCloudStemcellMockRecorder) Version() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Version", reflect.TypeOf((*MockCloudStemcell)(nil).Version))
 }
 
@@ -119,6 +129,7 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 
 // DeleteUnused mocks base method
 func (m *MockManager) DeleteUnused(arg0 ui.Stage) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteUnused", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -126,11 +137,13 @@ func (m *MockManager) DeleteUnused(arg0 ui.Stage) error {
 
 // DeleteUnused indicates an expected call of DeleteUnused
 func (mr *MockManagerMockRecorder) DeleteUnused(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnused", reflect.TypeOf((*MockManager)(nil).DeleteUnused), arg0)
 }
 
 // FindCurrent mocks base method
 func (m *MockManager) FindCurrent() ([]stemcell.CloudStemcell, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindCurrent")
 	ret0, _ := ret[0].([]stemcell.CloudStemcell)
 	ret1, _ := ret[1].(error)
@@ -139,11 +152,13 @@ func (m *MockManager) FindCurrent() ([]stemcell.CloudStemcell, error) {
 
 // FindCurrent indicates an expected call of FindCurrent
 func (mr *MockManagerMockRecorder) FindCurrent() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindCurrent", reflect.TypeOf((*MockManager)(nil).FindCurrent))
 }
 
 // FindUnused mocks base method
 func (m *MockManager) FindUnused() ([]stemcell.CloudStemcell, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindUnused")
 	ret0, _ := ret[0].([]stemcell.CloudStemcell)
 	ret1, _ := ret[1].(error)
@@ -152,11 +167,13 @@ func (m *MockManager) FindUnused() ([]stemcell.CloudStemcell, error) {
 
 // FindUnused indicates an expected call of FindUnused
 func (mr *MockManagerMockRecorder) FindUnused() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUnused", reflect.TypeOf((*MockManager)(nil).FindUnused))
 }
 
 // Upload mocks base method
 func (m *MockManager) Upload(arg0 stemcell.ExtractedStemcell, arg1 ui.Stage) (stemcell.CloudStemcell, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Upload", arg0, arg1)
 	ret0, _ := ret[0].(stemcell.CloudStemcell)
 	ret1, _ := ret[1].(error)
@@ -165,5 +182,6 @@ func (m *MockManager) Upload(arg0 stemcell.ExtractedStemcell, arg1 ui.Stage) (st
 
 // Upload indicates an expected call of Upload
 func (mr *MockManagerMockRecorder) Upload(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upload", reflect.TypeOf((*MockManager)(nil).Upload), arg0, arg1)
 }

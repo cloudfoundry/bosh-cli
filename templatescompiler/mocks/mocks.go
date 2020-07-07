@@ -37,6 +37,7 @@ func (m *MockJobRenderer) EXPECT() *MockJobRendererMockRecorder {
 
 // Render mocks base method
 func (m *MockJobRenderer) Render(arg0 job.Job, arg1 *property.Map, arg2, arg3 property.Map, arg4, arg5 string) (templatescompiler.RenderedJob, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Render", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(templatescompiler.RenderedJob)
 	ret1, _ := ret[1].(error)
@@ -45,6 +46,7 @@ func (m *MockJobRenderer) Render(arg0 job.Job, arg1 *property.Map, arg2, arg3 pr
 
 // Render indicates an expected call of Render
 func (mr *MockJobRendererMockRecorder) Render(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Render", reflect.TypeOf((*MockJobRenderer)(nil).Render), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
@@ -73,6 +75,7 @@ func (m *MockJobListRenderer) EXPECT() *MockJobListRendererMockRecorder {
 
 // Render mocks base method
 func (m *MockJobListRenderer) Render(arg0 []job.Job, arg1 map[string]*property.Map, arg2, arg3 property.Map, arg4, arg5 string) (templatescompiler.RenderedJobList, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Render", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(templatescompiler.RenderedJobList)
 	ret1, _ := ret[1].(error)
@@ -81,6 +84,7 @@ func (m *MockJobListRenderer) Render(arg0 []job.Job, arg1 map[string]*property.M
 
 // Render indicates an expected call of Render
 func (mr *MockJobListRendererMockRecorder) Render(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Render", reflect.TypeOf((*MockJobListRenderer)(nil).Render), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
@@ -109,6 +113,7 @@ func (m *MockRenderedJob) EXPECT() *MockRenderedJobMockRecorder {
 
 // Delete mocks base method
 func (m *MockRenderedJob) Delete() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -116,21 +121,25 @@ func (m *MockRenderedJob) Delete() error {
 
 // Delete indicates an expected call of Delete
 func (mr *MockRenderedJobMockRecorder) Delete() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRenderedJob)(nil).Delete))
 }
 
 // DeleteSilently mocks base method
 func (m *MockRenderedJob) DeleteSilently() {
+	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "DeleteSilently")
 }
 
 // DeleteSilently indicates an expected call of DeleteSilently
 func (mr *MockRenderedJobMockRecorder) DeleteSilently() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSilently", reflect.TypeOf((*MockRenderedJob)(nil).DeleteSilently))
 }
 
 // Job mocks base method
 func (m *MockRenderedJob) Job() job.Job {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Job")
 	ret0, _ := ret[0].(job.Job)
 	return ret0
@@ -138,11 +147,13 @@ func (m *MockRenderedJob) Job() job.Job {
 
 // Job indicates an expected call of Job
 func (mr *MockRenderedJobMockRecorder) Job() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Job", reflect.TypeOf((*MockRenderedJob)(nil).Job))
 }
 
 // Path mocks base method
 func (m *MockRenderedJob) Path() string {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Path")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -150,6 +161,7 @@ func (m *MockRenderedJob) Path() string {
 
 // Path indicates an expected call of Path
 func (mr *MockRenderedJobMockRecorder) Path() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Path", reflect.TypeOf((*MockRenderedJob)(nil).Path))
 }
 
@@ -178,16 +190,19 @@ func (m *MockRenderedJobList) EXPECT() *MockRenderedJobListMockRecorder {
 
 // Add mocks base method
 func (m *MockRenderedJobList) Add(arg0 templatescompiler.RenderedJob) {
+	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Add", arg0)
 }
 
 // Add indicates an expected call of Add
 func (mr *MockRenderedJobListMockRecorder) Add(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockRenderedJobList)(nil).Add), arg0)
 }
 
 // All mocks base method
 func (m *MockRenderedJobList) All() []templatescompiler.RenderedJob {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "All")
 	ret0, _ := ret[0].([]templatescompiler.RenderedJob)
 	return ret0
@@ -195,11 +210,13 @@ func (m *MockRenderedJobList) All() []templatescompiler.RenderedJob {
 
 // All indicates an expected call of All
 func (mr *MockRenderedJobListMockRecorder) All() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "All", reflect.TypeOf((*MockRenderedJobList)(nil).All))
 }
 
 // Delete mocks base method
 func (m *MockRenderedJobList) Delete() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -207,16 +224,19 @@ func (m *MockRenderedJobList) Delete() error {
 
 // Delete indicates an expected call of Delete
 func (mr *MockRenderedJobListMockRecorder) Delete() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRenderedJobList)(nil).Delete))
 }
 
 // DeleteSilently mocks base method
 func (m *MockRenderedJobList) DeleteSilently() {
+	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "DeleteSilently")
 }
 
 // DeleteSilently indicates an expected call of DeleteSilently
 func (mr *MockRenderedJobListMockRecorder) DeleteSilently() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSilently", reflect.TypeOf((*MockRenderedJobList)(nil).DeleteSilently))
 }
 
@@ -245,6 +265,7 @@ func (m *MockRenderedJobListArchive) EXPECT() *MockRenderedJobListArchiveMockRec
 
 // Delete mocks base method
 func (m *MockRenderedJobListArchive) Delete() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -252,21 +273,25 @@ func (m *MockRenderedJobListArchive) Delete() error {
 
 // Delete indicates an expected call of Delete
 func (mr *MockRenderedJobListArchiveMockRecorder) Delete() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRenderedJobListArchive)(nil).Delete))
 }
 
 // DeleteSilently mocks base method
 func (m *MockRenderedJobListArchive) DeleteSilently() {
+	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "DeleteSilently")
 }
 
 // DeleteSilently indicates an expected call of DeleteSilently
 func (mr *MockRenderedJobListArchiveMockRecorder) DeleteSilently() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSilently", reflect.TypeOf((*MockRenderedJobListArchive)(nil).DeleteSilently))
 }
 
 // List mocks base method
 func (m *MockRenderedJobListArchive) List() templatescompiler.RenderedJobList {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List")
 	ret0, _ := ret[0].(templatescompiler.RenderedJobList)
 	return ret0
@@ -274,11 +299,13 @@ func (m *MockRenderedJobListArchive) List() templatescompiler.RenderedJobList {
 
 // List indicates an expected call of List
 func (mr *MockRenderedJobListArchiveMockRecorder) List() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockRenderedJobListArchive)(nil).List))
 }
 
 // Path mocks base method
 func (m *MockRenderedJobListArchive) Path() string {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Path")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -286,11 +313,13 @@ func (m *MockRenderedJobListArchive) Path() string {
 
 // Path indicates an expected call of Path
 func (mr *MockRenderedJobListArchiveMockRecorder) Path() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Path", reflect.TypeOf((*MockRenderedJobListArchive)(nil).Path))
 }
 
 // SHA1 mocks base method
 func (m *MockRenderedJobListArchive) SHA1() string {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SHA1")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -298,6 +327,7 @@ func (m *MockRenderedJobListArchive) SHA1() string {
 
 // SHA1 indicates an expected call of SHA1
 func (mr *MockRenderedJobListArchiveMockRecorder) SHA1() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SHA1", reflect.TypeOf((*MockRenderedJobListArchive)(nil).SHA1))
 }
 
@@ -326,6 +356,7 @@ func (m *MockRenderedJobListCompressor) EXPECT() *MockRenderedJobListCompressorM
 
 // Compress mocks base method
 func (m *MockRenderedJobListCompressor) Compress(arg0 templatescompiler.RenderedJobList) (templatescompiler.RenderedJobListArchive, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Compress", arg0)
 	ret0, _ := ret[0].(templatescompiler.RenderedJobListArchive)
 	ret1, _ := ret[1].(error)
@@ -334,5 +365,6 @@ func (m *MockRenderedJobListCompressor) Compress(arg0 templatescompiler.Rendered
 
 // Compress indicates an expected call of Compress
 func (mr *MockRenderedJobListCompressorMockRecorder) Compress(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Compress", reflect.TypeOf((*MockRenderedJobListCompressor)(nil).Compress), arg0)
 }

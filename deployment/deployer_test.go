@@ -198,10 +198,12 @@ var _ = Describe("Deployer", func() {
 
 			Expect(fakeExistingVM.DeleteCalled).To(Equal(1))
 
-			Expect(fakeStage.PerformCalls[:4]).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[:6]).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Waiting for the agent on VM 'existing-vm-cid'"},
+				{Name: "Running the pre-stop scripts 'unknown/0'"},
 				{Name: "Draining jobs on instance 'unknown/0'"},
 				{Name: "Stopping jobs on instance 'unknown/0'"},
+				{Name: "Running the post-stop scripts 'unknown/0'"},
 				{Name: "Deleting VM 'existing-vm-cid'"},
 			}))
 		})
@@ -214,9 +216,11 @@ var _ = Describe("Deployer", func() {
 
 				Expect(fakeExistingVM.DeleteCalled).To(Equal(1))
 
-				Expect(fakeStage.PerformCalls[:3]).To(Equal([]*fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls[:5]).To(Equal([]*fakebiui.PerformCall{
 					{Name: "Waiting for the agent on VM 'existing-vm-cid'"},
+					{Name: "Running the pre-stop scripts 'unknown/0'"},
 					{Name: "Stopping jobs on instance 'unknown/0'"},
+					{Name: "Running the post-stop scripts 'unknown/0'"},
 					{Name: "Deleting VM 'existing-vm-cid'"},
 				}))
 			})

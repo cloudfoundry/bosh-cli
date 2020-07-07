@@ -535,8 +535,10 @@ cloud_provider:
 
 				// shutdown old vm
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
+				mockAgentClient.EXPECT().RunScript("pre-stop", map[string]interface{}{}),
 				mockAgentClient.EXPECT().Drain("shutdown"),
 				mockAgentClient.EXPECT().Stop(),
+				mockAgentClient.EXPECT().RunScript("post-stop", map[string]interface{}{}),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
 				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
@@ -640,8 +642,10 @@ cloud_provider:
 
 				// shutdown old vm
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
+				mockAgentClient.EXPECT().RunScript("pre-stop", map[string]interface{}{}),
 				mockAgentClient.EXPECT().Drain("shutdown"),
 				mockAgentClient.EXPECT().Stop(),
+				mockAgentClient.EXPECT().RunScript("post-stop", map[string]interface{}{}),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
 				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
@@ -676,8 +680,10 @@ cloud_provider:
 
 				// shutdown old vm
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
+				mockAgentClient.EXPECT().RunScript("pre-stop", map[string]interface{}{}),
 				mockAgentClient.EXPECT().Drain("shutdown"),
 				mockAgentClient.EXPECT().Stop(),
+				mockAgentClient.EXPECT().RunScript("post-stop", map[string]interface{}{}),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
 				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
@@ -719,8 +725,10 @@ cloud_provider:
 
 				// shutdown old vm
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
+				mockAgentClient.EXPECT().RunScript("pre-stop", map[string]interface{}{}),
 				mockAgentClient.EXPECT().Drain("shutdown"),
 				mockAgentClient.EXPECT().Stop(),
+				mockAgentClient.EXPECT().RunScript("post-stop", map[string]interface{}{}),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
 				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
 				mockCloud.EXPECT().DeleteVM(oldVMCID),

@@ -216,6 +216,22 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("StopEnv", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("StopEnv", opts)).To(Equal(
+					`command:"stop-env" description:"Stop BOSH environment"`,
+				))
+			})
+		})
+
+		Describe("StartEnv", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("StartEnv", opts)).To(Equal(
+					`command:"start-env" description:"Start BOSH environment"`,
+				))
+			})
+		})
+
 		Describe("Environment", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Environment", opts)).To(Equal(
@@ -894,6 +910,69 @@ var _ = Describe("Opts", func() {
 
 		BeforeEach(func() {
 			args = &DeleteEnvArgs{}
+		})
+
+		Describe("Manifest", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Manifest", args)).To(Equal(
+					`positional-arg-name:"PATH" description:"Path to a manifest file"`,
+				))
+			})
+		})
+	})
+
+	Describe("StopEnvOpts", func() {
+		var opts *StopEnvOpts
+
+		BeforeEach(func() {
+			opts = &StopEnvOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+
+		It("has --state", func() {
+			Expect(getStructTagForName("StatePath", opts)).To(Equal(
+				`long:"state" value-name:"PATH" description:"State file path"`,
+			))
+		})
+
+		It("has --skip-drain", func() {
+			Expect(getStructTagForName("SkipDrain", opts)).To(Equal(
+				`long:"skip-drain" description:"Skip running drain and pre-stop scripts"`,
+			))
+		})
+	})
+
+	Describe("StartEnvOpts", func() {
+		var opts *StartEnvOpts
+
+		BeforeEach(func() {
+			opts = &StartEnvOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+
+		It("has --state", func() {
+			Expect(getStructTagForName("StatePath", opts)).To(Equal(
+				`long:"state" value-name:"PATH" description:"State file path"`,
+			))
+		})
+
+	})
+
+	Describe("SartStopEnvArgs", func() {
+		var args *StartStopEnvArgs
+
+		BeforeEach(func() {
+			args = &StartStopEnvArgs{}
 		})
 
 		Describe("Manifest", func() {

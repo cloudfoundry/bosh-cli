@@ -35,6 +35,7 @@ func (m *MockServer) EXPECT() *MockServerMockRecorder {
 
 // Stop mocks base method
 func (m *MockServer) Stop() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Stop")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -42,6 +43,7 @@ func (m *MockServer) Stop() error {
 
 // Stop indicates an expected call of Stop
 func (mr *MockServerMockRecorder) Stop() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stop", reflect.TypeOf((*MockServer)(nil).Stop))
 }
 
@@ -70,6 +72,7 @@ func (m *MockServerManager) EXPECT() *MockServerManagerMockRecorder {
 
 // Start mocks base method
 func (m *MockServerManager) Start(arg0, arg1, arg2 string, arg3 int) (registry.Server, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Start", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(registry.Server)
 	ret1, _ := ret[1].(error)
@@ -78,5 +81,6 @@ func (m *MockServerManager) Start(arg0, arg1, arg2 string, arg3 int) (registry.S
 
 // Start indicates an expected call of Start
 func (mr *MockServerManagerMockRecorder) Start(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockServerManager)(nil).Start), arg0, arg1, arg2, arg3)
 }

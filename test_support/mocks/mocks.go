@@ -34,10 +34,12 @@ func (m *MockSpy) EXPECT() *MockSpyMockRecorder {
 
 // Record mocks base method
 func (m *MockSpy) Record() {
+	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Record")
 }
 
 // Record indicates an expected call of Record
 func (mr *MockSpyMockRecorder) Record() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Record", reflect.TypeOf((*MockSpy)(nil).Record))
 }

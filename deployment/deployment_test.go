@@ -12,8 +12,10 @@ import (
 	mock_blobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
 	mock_cloud "github.com/cloudfoundry/bosh-cli/cloud/mocks"
 	mock_instance_state "github.com/cloudfoundry/bosh-cli/deployment/instance/state/mocks"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	"github.com/golang/mock/gomock"
 
+	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
@@ -32,10 +34,116 @@ import (
 )
 
 var _ = Describe("Deployment", func() {
-	var mockCtrl *gomock.Controller
+
+	var (
+		mockCtrl *gomock.Controller
+		logger   boshlog.Logger
+		fs       boshsys.FileSystem
+
+		fakeUUIDGenerator      *fakeuuid.FakeGenerator
+		fakeRepoUUIDGenerator  *fakeuuid.FakeGenerator
+		deploymentStateService biconfig.DeploymentStateService
+		vmRepo                 biconfig.VMRepo
+		diskRepo               biconfig.DiskRepo
+		stemcellRepo           biconfig.StemcellRepo
+
+		mockCloud       *mock_cloud.MockCloud
+		mockAgentClient *mock_agentclient.MockAgentClient
+
+		mockStateBuilderFactory *mock_instance_state.MockBuilderFactory
+		mockStateBuilder        *mock_instance_state.MockBuilder
+		mockState               *mock_instance_state.MockState
+
+		mockBlobstore *mock_blobstore.MockBlobstore
+
+		fakeStage *fakebiui.FakeStage
+
+		deploymentFactory Factory
+
+		stemcellApiVersion = 2
+		deployment         Deployment
+		skipDrain          bool
+	)
+
+	var allowApplySpecToBeCreated = func() {
+		jobName := "fake-job-name"
+		jobIndex := 0
+
+		applySpec := bias.ApplySpec{
+			Deployment: "test-release",
+			Index:      jobIndex,
+			Packages:   map[string]bias.Blob{},
+			Networks: map[string]interface{}{
+				"network-1": map[string]interface{}{
+					"cloud_properties": map[string]interface{}{},
+					"type":             "dynamic",
+					"ip":               "",
+				},
+			},
+			Job: bias.Job{
+				Name:      jobName,
+				Templates: []bias.Blob{},
+			},
+			RenderedTemplatesArchive: bias.RenderedTemplatesArchiveSpec{},
+			ConfigurationHash:        "",
+		}
+
+		mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
+		mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
+	}
 
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
+		logger = boshlog.NewLogger(boshlog.LevelNone)
+		fs = fakesys.NewFakeFileSystem()
+
+		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
+		deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/deployment.json")
+
+		fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
+		vmRepo = biconfig.NewVMRepo(deploymentStateService)
+		diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeRepoUUIDGenerator)
+		stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeRepoUUIDGenerator)
+
+		mockCloud = mock_cloud.NewMockCloud(mockCtrl)
+		mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
+
+		fakeStage = fakebiui.NewFakeStage()
+
+		pingTimeout := 10 * time.Second
+		pingDelay := 500 * time.Millisecond
+		deploymentFactory = NewFactory(pingTimeout, pingDelay)
+
+		skipDrain = false
+	})
+
+	JustBeforeEach(func() {
+		// all these local factories & managers are just used to construct a Deployment based on the deployment state
+		diskManagerFactory := bidisk.NewManagerFactory(diskRepo, logger)
+		diskDeployer := bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger, false)
+
+		vmManagerFactory := bivm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeUUIDGenerator, fs, logger)
+		sshTunnelFactory := bisshtunnel.NewFactory(logger)
+
+		mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
+		mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
+		mockState = mock_instance_state.NewMockState(mockCtrl)
+
+		instanceFactory := biinstance.NewFactory(mockStateBuilderFactory)
+		instanceManagerFactory := biinstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
+		stemcellManagerFactory := bistemcell.NewManagerFactory(stemcellRepo)
+
+		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+
+		deploymentManagerFactory := NewManagerFactory(vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory, deploymentFactory)
+		deploymentManager := deploymentManagerFactory.NewManager(mockCloud, mockAgentClient, mockBlobstore)
+
+		allowApplySpecToBeCreated()
+
+		var err error
+		deployment, _, err = deploymentManager.FindCurrent()
+		Expect(err).ToNot(HaveOccurred())
+		//Note: deployment will be nil if the config has no vms, disks, or stemcells
 	})
 
 	AfterEach(func() {
@@ -43,41 +151,15 @@ var _ = Describe("Deployment", func() {
 	})
 
 	Describe("Delete", func() {
-		var (
-			logger boshlog.Logger
-			fs     boshsys.FileSystem
-
-			fakeUUIDGenerator      *fakeuuid.FakeGenerator
-			fakeRepoUUIDGenerator  *fakeuuid.FakeGenerator
-			deploymentStateService biconfig.DeploymentStateService
-			vmRepo                 biconfig.VMRepo
-			diskRepo               biconfig.DiskRepo
-			stemcellRepo           biconfig.StemcellRepo
-
-			mockCloud       *mock_cloud.MockCloud
-			mockAgentClient *mock_agentclient.MockAgentClient
-
-			mockStateBuilderFactory *mock_instance_state.MockBuilderFactory
-			mockStateBuilder        *mock_instance_state.MockBuilder
-			mockState               *mock_instance_state.MockState
-
-			mockBlobstore *mock_blobstore.MockBlobstore
-
-			fakeStage *fakebiui.FakeStage
-
-			deploymentFactory Factory
-
-			stemcellApiVersion = 2
-			deployment         Deployment
-			skipDrain          bool
-		)
 
 		var expectNormalFlow = func() {
 			gomock.InOrder(
 				mockCloud.EXPECT().HasVM("fake-vm-cid").Return(true, nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),                   // ping to make sure agent is responsive
-				mockAgentClient.EXPECT().Drain("shutdown"),                                 // drain all jobs
-				mockAgentClient.EXPECT().Stop(),                                            // stop all jobs
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil), // ping to make sure agent is responsive
+				mockAgentClient.EXPECT().RunScript("pre-stop", map[string]interface{}{}),
+				mockAgentClient.EXPECT().Drain("shutdown"), // drain all jobs
+				mockAgentClient.EXPECT().Stop(),            // stop all jobs
+				mockAgentClient.EXPECT().RunScript("post-stop", map[string]interface{}{}),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{"fake-disk-cid"}, nil), // get mounted disks to be unmounted
 				mockAgentClient.EXPECT().UnmountDisk("fake-disk-cid"),
 				mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
@@ -89,8 +171,10 @@ var _ = Describe("Deployment", func() {
 		var expectDrainlessFlow = func() {
 			gomock.InOrder(
 				mockCloud.EXPECT().HasVM("fake-vm-cid").Return(true, nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),                   // ping to make sure agent is responsive
-				mockAgentClient.EXPECT().Stop(),                                            // stop all jobs
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil), // ping to make sure agent is responsive
+				mockAgentClient.EXPECT().RunScript("pre-stop", map[string]interface{}{}),
+				mockAgentClient.EXPECT().Stop(), // stop all jobs
+				mockAgentClient.EXPECT().RunScript("post-stop", map[string]interface{}{}),
 				mockAgentClient.EXPECT().ListDisk().Return([]string{"fake-disk-cid"}, nil), // get mounted disks to be unmounted
 				mockAgentClient.EXPECT().UnmountDisk("fake-disk-cid"),
 				mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
@@ -98,85 +182,6 @@ var _ = Describe("Deployment", func() {
 				mockCloud.EXPECT().DeleteStemcell("fake-stemcell-cid"),
 			)
 		}
-		var allowApplySpecToBeCreated = func() {
-			jobName := "fake-job-name"
-			jobIndex := 0
-
-			applySpec := bias.ApplySpec{
-				Deployment: "test-release",
-				Index:      jobIndex,
-				Packages:   map[string]bias.Blob{},
-				Networks: map[string]interface{}{
-					"network-1": map[string]interface{}{
-						"cloud_properties": map[string]interface{}{},
-						"type":             "dynamic",
-						"ip":               "",
-					},
-				},
-				Job: bias.Job{
-					Name:      jobName,
-					Templates: []bias.Blob{},
-				},
-				RenderedTemplatesArchive: bias.RenderedTemplatesArchiveSpec{},
-				ConfigurationHash:        "",
-			}
-
-			mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
-			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
-		}
-
-		BeforeEach(func() {
-			logger = boshlog.NewLogger(boshlog.LevelNone)
-			fs = fakesys.NewFakeFileSystem()
-
-			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/deployment.json")
-
-			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
-			vmRepo = biconfig.NewVMRepo(deploymentStateService)
-			diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeRepoUUIDGenerator)
-			stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeRepoUUIDGenerator)
-
-			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
-			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
-
-			fakeStage = fakebiui.NewFakeStage()
-
-			pingTimeout := 10 * time.Second
-			pingDelay := 500 * time.Millisecond
-			deploymentFactory = NewFactory(pingTimeout, pingDelay)
-
-			skipDrain = false
-		})
-
-		JustBeforeEach(func() {
-			// all these local factories & managers are just used to construct a Deployment based on the deployment state
-			diskManagerFactory := bidisk.NewManagerFactory(diskRepo, logger)
-			diskDeployer := bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger, false)
-
-			vmManagerFactory := bivm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeUUIDGenerator, fs, logger)
-			sshTunnelFactory := bisshtunnel.NewFactory(logger)
-
-			mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
-			mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
-			mockState = mock_instance_state.NewMockState(mockCtrl)
-
-			instanceFactory := biinstance.NewFactory(mockStateBuilderFactory)
-			instanceManagerFactory := biinstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
-			stemcellManagerFactory := bistemcell.NewManagerFactory(stemcellRepo)
-
-			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
-
-			deploymentManagerFactory := NewManagerFactory(vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory, deploymentFactory)
-			deploymentManager := deploymentManagerFactory.NewManager(mockCloud, mockAgentClient, mockBlobstore)
-
-			allowApplySpecToBeCreated()
-
-			var err error
-			deployment, _, err = deploymentManager.FindCurrent()
-			Expect(err).ToNot(HaveOccurred())
-			//Note: deployment will be nil if the config has no vms, disks, or stemcells
-		})
 
 		Context("when the deployment has been deployed", func() {
 			BeforeEach(func() {
@@ -226,8 +231,10 @@ var _ = Describe("Deployment", func() {
 
 				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 					{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+					{Name: "Running the pre-stop scripts 'unknown/0'"},
 					{Name: "Draining jobs on instance 'unknown/0'"},
 					{Name: "Stopping jobs on instance 'unknown/0'"},
+					{Name: "Running the post-stop scripts 'unknown/0'"},
 					{Name: "Unmounting disk 'fake-disk-cid'"},
 					{Name: "Deleting VM 'fake-vm-cid'"},
 					{Name: "Deleting disk 'fake-disk-cid'"},
@@ -335,9 +342,11 @@ var _ = Describe("Deployment", func() {
 
 			It("stops the agent and deletes the VM", func() {
 				gomock.InOrder(
-					mockAgentClient.EXPECT().Ping().Return("any-state", nil),                   // ping to make sure agent is responsive
-					mockAgentClient.EXPECT().Drain("shutdown"),                                 // drain all jobs
-					mockAgentClient.EXPECT().Stop(),                                            // stop all jobs
+					mockAgentClient.EXPECT().Ping().Return("any-state", nil), // ping to make sure agent is responsive
+					mockAgentClient.EXPECT().RunScript("pre-stop", map[string]interface{}{}),
+					mockAgentClient.EXPECT().Drain("shutdown"), // drain all jobs
+					mockAgentClient.EXPECT().Stop(),            // stop all jobs
+					mockAgentClient.EXPECT().RunScript("post-stop", map[string]interface{}{}),
 					mockAgentClient.EXPECT().ListDisk().Return([]string{"fake-disk-cid"}, nil), // get mounted disks to be unmounted
 					mockAgentClient.EXPECT().UnmountDisk("fake-disk-cid"),
 					mockCloud.EXPECT().DeleteVM("fake-vm-cid"),
@@ -438,6 +447,276 @@ var _ = Describe("Deployment", func() {
 					err := deployment.Delete(skipDrain, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 				})
+			})
+		})
+	})
+
+	Describe("Stop", func() {
+
+		var expectNormalFlow = func() {
+			gomock.InOrder(
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
+				mockAgentClient.EXPECT().RunScript("pre-stop", map[string]interface{}{}),
+				mockAgentClient.EXPECT().Drain("shutdown"),
+				mockAgentClient.EXPECT().Stop(),
+				mockAgentClient.EXPECT().RunScript("post-stop", map[string]interface{}{}),
+			)
+		}
+
+		var expectDrainlessFlow = func() {
+			gomock.InOrder(
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
+				mockAgentClient.EXPECT().RunScript("pre-stop", map[string]interface{}{}),
+				mockAgentClient.EXPECT().Stop(),
+				mockAgentClient.EXPECT().RunScript("post-stop", map[string]interface{}{}),
+			)
+		}
+
+		Context("when the deployment has been deployed", func() {
+			BeforeEach(func() {
+				// create deployment manifest yaml file
+				deploymentStateService.Save(biconfig.DeploymentState{
+					DirectorID:        "fake-director-id",
+					InstallationID:    "fake-installation-id",
+					CurrentVMCID:      "fake-vm-cid",
+					CurrentStemcellID: "fake-stemcell-guid",
+					CurrentDiskID:     "fake-disk-guid",
+					Disks: []biconfig.DiskRecord{
+						{
+							ID:   "fake-disk-guid",
+							CID:  "fake-disk-cid",
+							Size: 100,
+						},
+					},
+					Stemcells: []biconfig.StemcellRecord{
+						{
+							ID:  "fake-stemcell-guid",
+							CID: "fake-stemcell-cid",
+						},
+					},
+				})
+			})
+
+			It("stops agent and executes the pre-stop and post-stop scripts", func() {
+				expectNormalFlow()
+
+				err := deployment.Stop(skipDrain, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("skips draining if specified", func() {
+				skipDrain = true
+				expectDrainlessFlow()
+
+				err := deployment.Stop(skipDrain, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("logs validation stages", func() {
+				expectNormalFlow()
+
+				err := deployment.Stop(skipDrain, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+					{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+					{Name: "Running the pre-stop scripts 'unknown/0'"},
+					{Name: "Draining jobs on instance 'unknown/0'"},
+					{Name: "Stopping jobs on instance 'unknown/0'"},
+					{Name: "Running the post-stop scripts 'unknown/0'"},
+				}))
+			})
+
+			Context("when agent is unresponsive", func() {
+				BeforeEach(func() {
+					// reduce timout & delay to reduce test duration
+					pingTimeout := 1 * time.Second
+					pingDelay := 100 * time.Millisecond
+					deploymentFactory = NewFactory(pingTimeout, pingDelay)
+				})
+
+				It("times out pinging agent and does nothing", func() {
+					gomock.InOrder(
+						mockAgentClient.EXPECT().Ping().Return("", bosherr.Error("unresponsive agent")).AnyTimes(),
+					)
+
+					err := deployment.Stop(skipDrain, fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+				})
+			})
+
+			Context("and delete previously suceeded", func() {
+				JustBeforeEach(func() {
+					expectNormalFlow()
+
+					err := deployment.Stop(skipDrain, fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+
+					// reset event log recording
+					fakeStage = fakebiui.NewFakeStage()
+				})
+
+				It("does not delete anything", func() {
+					err := deployment.Stop(skipDrain, fakeStage)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fakeStage.PerformCalls).To(BeEmpty())
+				})
+			})
+		})
+
+		Context("when nothing has been deployed", func() {
+			BeforeEach(func() {
+				deploymentStateService.Save(biconfig.DeploymentState{})
+			})
+
+			JustBeforeEach(func() {
+				// A previous JustBeforeEach uses FindCurrent to define deployment,
+				// which would return a nil if the config is empty.
+				// So we have to make a fake empty deployment to test it.
+				deployment = deploymentFactory.NewDeployment([]biinstance.Instance{}, []bidisk.Disk{}, []bistemcell.CloudStemcell{})
+			})
+
+			It("does not stop anything", func() {
+				err := deployment.Stop(skipDrain, fakeStage)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeStage.PerformCalls).To(BeEmpty())
+			})
+		})
+	})
+
+	Describe("Start", func() {
+		var agentRunningState = biagentclient.AgentState{JobState: "running"}
+		var expectNormalFlow = func() {
+			gomock.InOrder(
+				mockAgentClient.EXPECT().Ping().Return("any-state", nil), // ping to make sure agent is responsive
+				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
+				mockAgentClient.EXPECT().Start(), // stop all jobs
+				mockAgentClient.EXPECT().GetState().AnyTimes().Return(agentRunningState, nil),
+				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
+			)
+		}
+
+		var update = bideplmanifest.Update{
+			UpdateWatchTime: bideplmanifest.WatchTime{
+				Start: 0,
+				End:   5478,
+			},
+		}
+
+		Context("when the deployment has been deployed", func() {
+			BeforeEach(func() {
+				// create deployment manifest yaml file
+				deploymentStateService.Save(biconfig.DeploymentState{
+					DirectorID:        "fake-director-id",
+					InstallationID:    "fake-installation-id",
+					CurrentVMCID:      "fake-vm-cid",
+					CurrentStemcellID: "fake-stemcell-guid",
+					CurrentDiskID:     "fake-disk-guid",
+					Disks: []biconfig.DiskRecord{
+						{
+							ID:   "fake-disk-guid",
+							CID:  "fake-disk-cid",
+							Size: 100,
+						},
+					},
+					Stemcells: []biconfig.StemcellRecord{
+						{
+							ID:  "fake-stemcell-guid",
+							CID: "fake-stemcell-cid",
+						},
+					},
+				})
+			})
+
+			It("starts agent and executes the pre-start and post-start scripts", func() {
+				expectNormalFlow()
+
+				err := deployment.Start(fakeStage, update)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("logs validation stages", func() {
+				expectNormalFlow()
+
+				err := deployment.Start(fakeStage, update)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+					{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
+					{Name: "Running the pre-start scripts 'unknown/0'"},
+					{Name: "Starting the agent 'unknown/0'"},
+					{Name: "Waiting for instance 'unknown/0' to be running"},
+					{Name: "Running the post-start scripts 'unknown/0'"},
+				}))
+			})
+
+			Context("when agent is unresponsive", func() {
+				BeforeEach(func() {
+					// reduce timout & delay to reduce test duration
+					pingTimeout := 1 * time.Second
+					pingDelay := 100 * time.Millisecond
+					deploymentFactory = NewFactory(pingTimeout, pingDelay)
+				})
+
+				It("times out pinging agent and does nothing", func() {
+					gomock.InOrder(
+						mockAgentClient.EXPECT().Ping().Return("", bosherr.Error("unresponsive agent")).AnyTimes(), // ping to make sure agent is responsive
+					)
+
+					err := deployment.Start(fakeStage, update)
+					Expect(err).ToNot(HaveOccurred())
+				})
+			})
+
+			Context("and start previously suceeded", func() {
+				var expectNormalFlow = func() {
+					gomock.InOrder(
+						mockAgentClient.EXPECT().Ping().Return("any-state", nil).AnyTimes(),
+						mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}).AnyTimes(),
+						mockAgentClient.EXPECT().Start().AnyTimes(),
+						mockAgentClient.EXPECT().GetState().AnyTimes().Return(agentRunningState, nil),
+						mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}).AnyTimes(),
+					)
+				}
+
+				JustBeforeEach(func() {
+					expectNormalFlow()
+
+					err := deployment.Start(fakeStage, update)
+					Expect(err).ToNot(HaveOccurred())
+
+					// reset event log recording
+					fakeStage = fakebiui.NewFakeStage()
+				})
+
+				It("does execute the normal flow", func() {
+					expectNormalFlow()
+
+					err := deployment.Start(fakeStage, update)
+					Expect(err).ToNot(HaveOccurred())
+				})
+			})
+		})
+
+		Context("when nothing has been deployed", func() {
+			BeforeEach(func() {
+				deploymentStateService.Save(biconfig.DeploymentState{})
+			})
+
+			JustBeforeEach(func() {
+				// A previous JustBeforeEach uses FindCurrent to define deployment,
+				// which would return a nil if the config is empty.
+				// So we have to make a fake empty deployment to test it.
+				deployment = deploymentFactory.NewDeployment([]biinstance.Instance{}, []bidisk.Disk{}, []bistemcell.CloudStemcell{})
+			})
+
+			It("does not start anything", func() {
+				err := deployment.Start(fakeStage, update)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeStage.PerformCalls).To(BeEmpty())
 			})
 		})
 	})

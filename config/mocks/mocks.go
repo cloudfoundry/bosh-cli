@@ -34,6 +34,7 @@ func (m *MockLegacyDeploymentStateMigrator) EXPECT() *MockLegacyDeploymentStateM
 
 // MigrateIfExists mocks base method
 func (m *MockLegacyDeploymentStateMigrator) MigrateIfExists(arg0 string) (bool, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MigrateIfExists", arg0)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
@@ -42,5 +43,6 @@ func (m *MockLegacyDeploymentStateMigrator) MigrateIfExists(arg0 string) (bool, 
 
 // MigrateIfExists indicates an expected call of MigrateIfExists
 func (mr *MockLegacyDeploymentStateMigratorMockRecorder) MigrateIfExists(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MigrateIfExists", reflect.TypeOf((*MockLegacyDeploymentStateMigrator)(nil).MigrateIfExists), arg0)
 }

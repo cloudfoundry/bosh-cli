@@ -8,7 +8,7 @@ rootPackage=github.com/cloudfoundry/bosh-cli
 srcFiles=(
   config/LegacyDeploymentStateMigrator
   cloud/Cloud,Factory
-  cmd/DeploymentDeleter
+  cmd/DeploymentDeleter,DeploymentStateManager
   installation/Installation,Installer,InstallerFactory,Uninstaller,JobResolver,PackageCompiler,JobRenderer
   installation/tarball/Provider
   deployment/Deployment,Factory,Deployer,Manager,ManagerFactory

@@ -37,6 +37,7 @@ func (m *MockManagerFactory) EXPECT() *MockManagerFactoryMockRecorder {
 
 // NewManager mocks base method
 func (m *MockManagerFactory) NewManager(arg0 cloud.Cloud, arg1 agentclient.AgentClient) vm.Manager {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewManager", arg0, arg1)
 	ret0, _ := ret[0].(vm.Manager)
 	return ret0
@@ -44,5 +45,6 @@ func (m *MockManagerFactory) NewManager(arg0 cloud.Cloud, arg1 agentclient.Agent
 
 // NewManager indicates an expected call of NewManager
 func (mr *MockManagerFactoryMockRecorder) NewManager(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewManager", reflect.TypeOf((*MockManagerFactory)(nil).NewManager), arg0, arg1)
 }

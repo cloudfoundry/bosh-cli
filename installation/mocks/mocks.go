@@ -39,6 +39,7 @@ func (m *MockInstallation) EXPECT() *MockInstallationMockRecorder {
 
 // Job mocks base method
 func (m *MockInstallation) Job() installation.InstalledJob {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Job")
 	ret0, _ := ret[0].(installation.InstalledJob)
 	return ret0
@@ -46,11 +47,13 @@ func (m *MockInstallation) Job() installation.InstalledJob {
 
 // Job indicates an expected call of Job
 func (mr *MockInstallationMockRecorder) Job() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Job", reflect.TypeOf((*MockInstallation)(nil).Job))
 }
 
 // StartRegistry mocks base method
 func (m *MockInstallation) StartRegistry() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StartRegistry")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -58,11 +61,13 @@ func (m *MockInstallation) StartRegistry() error {
 
 // StartRegistry indicates an expected call of StartRegistry
 func (mr *MockInstallationMockRecorder) StartRegistry() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartRegistry", reflect.TypeOf((*MockInstallation)(nil).StartRegistry))
 }
 
 // StopRegistry mocks base method
 func (m *MockInstallation) StopRegistry() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StopRegistry")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -70,11 +75,13 @@ func (m *MockInstallation) StopRegistry() error {
 
 // StopRegistry indicates an expected call of StopRegistry
 func (mr *MockInstallationMockRecorder) StopRegistry() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StopRegistry", reflect.TypeOf((*MockInstallation)(nil).StopRegistry))
 }
 
 // Target mocks base method
 func (m *MockInstallation) Target() installation.Target {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Target")
 	ret0, _ := ret[0].(installation.Target)
 	return ret0
@@ -82,11 +89,13 @@ func (m *MockInstallation) Target() installation.Target {
 
 // Target indicates an expected call of Target
 func (mr *MockInstallationMockRecorder) Target() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Target", reflect.TypeOf((*MockInstallation)(nil).Target))
 }
 
 // WithRunningRegistry mocks base method
 func (m *MockInstallation) WithRunningRegistry(arg0 logger.Logger, arg1 ui.Stage, arg2 func() error) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithRunningRegistry", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -94,6 +103,7 @@ func (m *MockInstallation) WithRunningRegistry(arg0 logger.Logger, arg1 ui.Stage
 
 // WithRunningRegistry indicates an expected call of WithRunningRegistry
 func (mr *MockInstallationMockRecorder) WithRunningRegistry(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithRunningRegistry", reflect.TypeOf((*MockInstallation)(nil).WithRunningRegistry), arg0, arg1, arg2)
 }
 
@@ -122,6 +132,7 @@ func (m *MockInstaller) EXPECT() *MockInstallerMockRecorder {
 
 // Cleanup mocks base method
 func (m *MockInstaller) Cleanup(arg0 installation.Installation) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Cleanup", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -129,11 +140,13 @@ func (m *MockInstaller) Cleanup(arg0 installation.Installation) error {
 
 // Cleanup indicates an expected call of Cleanup
 func (mr *MockInstallerMockRecorder) Cleanup(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Cleanup", reflect.TypeOf((*MockInstaller)(nil).Cleanup), arg0)
 }
 
 // Install mocks base method
 func (m *MockInstaller) Install(arg0 manifest.Manifest, arg1 ui.Stage) (installation.Installation, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Install", arg0, arg1)
 	ret0, _ := ret[0].(installation.Installation)
 	ret1, _ := ret[1].(error)
@@ -142,6 +155,7 @@ func (m *MockInstaller) Install(arg0 manifest.Manifest, arg1 ui.Stage) (installa
 
 // Install indicates an expected call of Install
 func (mr *MockInstallerMockRecorder) Install(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Install", reflect.TypeOf((*MockInstaller)(nil).Install), arg0, arg1)
 }
 
@@ -170,6 +184,7 @@ func (m *MockInstallerFactory) EXPECT() *MockInstallerFactoryMockRecorder {
 
 // NewInstaller mocks base method
 func (m *MockInstallerFactory) NewInstaller(arg0 installation.Target) installation.Installer {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewInstaller", arg0)
 	ret0, _ := ret[0].(installation.Installer)
 	return ret0
@@ -177,6 +192,7 @@ func (m *MockInstallerFactory) NewInstaller(arg0 installation.Target) installati
 
 // NewInstaller indicates an expected call of NewInstaller
 func (mr *MockInstallerFactoryMockRecorder) NewInstaller(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewInstaller", reflect.TypeOf((*MockInstallerFactory)(nil).NewInstaller), arg0)
 }
 
@@ -205,6 +221,7 @@ func (m *MockUninstaller) EXPECT() *MockUninstallerMockRecorder {
 
 // Uninstall mocks base method
 func (m *MockUninstaller) Uninstall(arg0 installation.Target) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Uninstall", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -212,6 +229,7 @@ func (m *MockUninstaller) Uninstall(arg0 installation.Target) error {
 
 // Uninstall indicates an expected call of Uninstall
 func (mr *MockUninstallerMockRecorder) Uninstall(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Uninstall", reflect.TypeOf((*MockUninstaller)(nil).Uninstall), arg0)
 }
 
@@ -240,6 +258,7 @@ func (m *MockJobResolver) EXPECT() *MockJobResolverMockRecorder {
 
 // From mocks base method
 func (m *MockJobResolver) From(arg0 manifest.Manifest) ([]job.Job, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "From", arg0)
 	ret0, _ := ret[0].([]job.Job)
 	ret1, _ := ret[1].(error)
@@ -248,6 +267,7 @@ func (m *MockJobResolver) From(arg0 manifest.Manifest) ([]job.Job, error) {
 
 // From indicates an expected call of From
 func (mr *MockJobResolverMockRecorder) From(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "From", reflect.TypeOf((*MockJobResolver)(nil).From), arg0)
 }
 
@@ -276,6 +296,7 @@ func (m *MockPackageCompiler) EXPECT() *MockPackageCompilerMockRecorder {
 
 // For mocks base method
 func (m *MockPackageCompiler) For(arg0 []job.Job, arg1 ui.Stage) ([]installation.CompiledPackageRef, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "For", arg0, arg1)
 	ret0, _ := ret[0].([]installation.CompiledPackageRef)
 	ret1, _ := ret[1].(error)
@@ -284,6 +305,7 @@ func (m *MockPackageCompiler) For(arg0 []job.Job, arg1 ui.Stage) ([]installation
 
 // For indicates an expected call of For
 func (mr *MockPackageCompilerMockRecorder) For(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "For", reflect.TypeOf((*MockPackageCompiler)(nil).For), arg0, arg1)
 }
 
@@ -312,6 +334,7 @@ func (m *MockJobRenderer) EXPECT() *MockJobRendererMockRecorder {
 
 // RenderAndUploadFrom mocks base method
 func (m *MockJobRenderer) RenderAndUploadFrom(arg0 manifest.Manifest, arg1 []job.Job, arg2 ui.Stage) ([]installation.RenderedJobRef, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RenderAndUploadFrom", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]installation.RenderedJobRef)
 	ret1, _ := ret[1].(error)
@@ -320,5 +343,6 @@ func (m *MockJobRenderer) RenderAndUploadFrom(arg0 manifest.Manifest, arg1 []job
 
 // RenderAndUploadFrom indicates an expected call of RenderAndUploadFrom
 func (mr *MockJobRendererMockRecorder) RenderAndUploadFrom(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RenderAndUploadFrom", reflect.TypeOf((*MockJobRenderer)(nil).RenderAndUploadFrom), arg0, arg1, arg2)
 }

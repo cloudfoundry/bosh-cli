@@ -261,3 +261,30 @@ func (f *envFactory) Deleter() DeploymentDeleter {
 		f.targetProvider,
 	)
 }
+
+func (f *envFactory) StateManager() DeploymentStateManager {
+	return NewDeploymentStateManager(
+		f.deps.UI,
+		"DeploymentStateManager",
+		f.deps.Logger,
+		f.deploymentStateService,
+		f.agentClientFactory,
+		bidepl.NewManagerFactory(
+			f.vmManagerFactory,
+			f.instanceManagerFactory,
+			f.diskManagerFactory,
+			f.stemcellManagerFactory,
+			f.deploymentFactory,
+		),
+		f.manifestPath,
+		f.manifestVars,
+		f.manifestOp,
+		f.installationManifestParser,
+		NewDeploymentManifestParser(
+			bideplmanifest.NewParser(f.deps.FS, f.deps.Logger),
+			bideplmanifest.NewValidator(f.deps.Logger),
+			f.releaseManager,
+			bidepltpl.NewDeploymentTemplateFactory(f.deps.FS),
+		),
+	)
+}

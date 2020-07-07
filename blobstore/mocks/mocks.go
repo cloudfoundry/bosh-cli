@@ -36,6 +36,7 @@ func (m *MockFactory) EXPECT() *MockFactoryMockRecorder {
 
 // Create mocks base method
 func (m *MockFactory) Create(arg0 string, arg1 *http.Client) (blobstore.Blobstore, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
 	ret0, _ := ret[0].(blobstore.Blobstore)
 	ret1, _ := ret[1].(error)
@@ -44,6 +45,7 @@ func (m *MockFactory) Create(arg0 string, arg1 *http.Client) (blobstore.Blobstor
 
 // Create indicates an expected call of Create
 func (mr *MockFactoryMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockFactory)(nil).Create), arg0, arg1)
 }
 
@@ -72,6 +74,7 @@ func (m *MockBlobstore) EXPECT() *MockBlobstoreMockRecorder {
 
 // Add mocks base method
 func (m *MockBlobstore) Add(arg0 string) (string, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Add", arg0)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
@@ -80,11 +83,13 @@ func (m *MockBlobstore) Add(arg0 string) (string, error) {
 
 // Add indicates an expected call of Add
 func (mr *MockBlobstoreMockRecorder) Add(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockBlobstore)(nil).Add), arg0)
 }
 
 // Get mocks base method
 func (m *MockBlobstore) Get(arg0 string) (blobstore.LocalBlob, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0)
 	ret0, _ := ret[0].(blobstore.LocalBlob)
 	ret1, _ := ret[1].(error)
@@ -93,5 +98,6 @@ func (m *MockBlobstore) Get(arg0 string) (blobstore.LocalBlob, error) {
 
 // Get indicates an expected call of Get
 func (mr *MockBlobstoreMockRecorder) Get(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBlobstore)(nil).Get), arg0)
 }

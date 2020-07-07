@@ -37,6 +37,7 @@ func (m *MockDependencyCompiler) EXPECT() *MockDependencyCompilerMockRecorder {
 
 // Compile mocks base method
 func (m *MockDependencyCompiler) Compile(arg0 []job.Job, arg1 ui.Stage) ([]job0.CompiledPackageRef, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Compile", arg0, arg1)
 	ret0, _ := ret[0].([]job0.CompiledPackageRef)
 	ret1, _ := ret[1].(error)
@@ -45,5 +46,6 @@ func (m *MockDependencyCompiler) Compile(arg0 []job.Job, arg1 ui.Stage) ([]job0.
 
 // Compile indicates an expected call of Compile
 func (mr *MockDependencyCompilerMockRecorder) Compile(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Compile", reflect.TypeOf((*MockDependencyCompiler)(nil).Compile), arg0, arg1)
 }

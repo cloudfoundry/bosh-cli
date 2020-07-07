@@ -38,6 +38,7 @@ func (m *MockDisk) EXPECT() *MockDiskMockRecorder {
 
 // CID mocks base method
 func (m *MockDisk) CID() string {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CID")
 	ret0, _ := ret[0].(string)
 	return ret0
@@ -45,11 +46,13 @@ func (m *MockDisk) CID() string {
 
 // CID indicates an expected call of CID
 func (mr *MockDiskMockRecorder) CID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CID", reflect.TypeOf((*MockDisk)(nil).CID))
 }
 
 // Delete mocks base method
 func (m *MockDisk) Delete() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -57,11 +60,13 @@ func (m *MockDisk) Delete() error {
 
 // Delete indicates an expected call of Delete
 func (mr *MockDiskMockRecorder) Delete() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockDisk)(nil).Delete))
 }
 
 // NeedsMigration mocks base method
 func (m *MockDisk) NeedsMigration(arg0 int, arg1 property.Map) bool {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NeedsMigration", arg0, arg1)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -69,6 +74,7 @@ func (m *MockDisk) NeedsMigration(arg0 int, arg1 property.Map) bool {
 
 // NeedsMigration indicates an expected call of NeedsMigration
 func (mr *MockDiskMockRecorder) NeedsMigration(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NeedsMigration", reflect.TypeOf((*MockDisk)(nil).NeedsMigration), arg0, arg1)
 }
 
@@ -97,6 +103,7 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 
 // Create mocks base method
 func (m *MockManager) Create(arg0 manifest.DiskPool, arg1 string) (disk.Disk, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
 	ret0, _ := ret[0].(disk.Disk)
 	ret1, _ := ret[1].(error)
@@ -105,11 +112,13 @@ func (m *MockManager) Create(arg0 manifest.DiskPool, arg1 string) (disk.Disk, er
 
 // Create indicates an expected call of Create
 func (mr *MockManagerMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockManager)(nil).Create), arg0, arg1)
 }
 
 // DeleteUnused mocks base method
 func (m *MockManager) DeleteUnused(arg0 ui.Stage) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteUnused", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -117,11 +126,13 @@ func (m *MockManager) DeleteUnused(arg0 ui.Stage) error {
 
 // DeleteUnused indicates an expected call of DeleteUnused
 func (mr *MockManagerMockRecorder) DeleteUnused(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnused", reflect.TypeOf((*MockManager)(nil).DeleteUnused), arg0)
 }
 
 // FindCurrent mocks base method
 func (m *MockManager) FindCurrent() ([]disk.Disk, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindCurrent")
 	ret0, _ := ret[0].([]disk.Disk)
 	ret1, _ := ret[1].(error)
@@ -130,11 +141,13 @@ func (m *MockManager) FindCurrent() ([]disk.Disk, error) {
 
 // FindCurrent indicates an expected call of FindCurrent
 func (mr *MockManagerMockRecorder) FindCurrent() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindCurrent", reflect.TypeOf((*MockManager)(nil).FindCurrent))
 }
 
 // FindUnused mocks base method
 func (m *MockManager) FindUnused() ([]disk.Disk, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindUnused")
 	ret0, _ := ret[0].([]disk.Disk)
 	ret1, _ := ret[1].(error)
@@ -143,5 +156,6 @@ func (m *MockManager) FindUnused() ([]disk.Disk, error) {
 
 // FindUnused indicates an expected call of FindUnused
 func (mr *MockManagerMockRecorder) FindUnused() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUnused", reflect.TypeOf((*MockManager)(nil).FindUnused))
 }
