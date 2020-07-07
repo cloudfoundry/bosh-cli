@@ -7,12 +7,15 @@ import (
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
 	bidisk "github.com/cloudfoundry/bosh-cli/deployment/disk"
 	biinstance "github.com/cloudfoundry/bosh-cli/deployment/instance"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 )
 
 type Deployment interface {
 	Delete(bool, biui.Stage) error
+	Stop(bool, biui.Stage) error
+	Start(biui.Stage, bideplmanifest.Update) error
 }
 
 type deployment struct {
@@ -72,6 +75,36 @@ func (d *deployment) Delete(skipDrain bool, deleteStage biui.Stage) error {
 		}
 
 		d.stemcells = d.stemcells[:lastIdx]
+	}
+
+	return nil
+}
+
+func (d *deployment) Stop(skipDrain bool, stopEnvStage biui.Stage) error {
+	for len(d.instances) > 0 {
+		lastIdx := len(d.instances) - 1
+		instance := d.instances[lastIdx]
+
+		if err := instance.Stop(d.pingTimeout, d.pingDelay, skipDrain, stopEnvStage); err != nil {
+			return err
+		}
+
+		d.instances = d.instances[:lastIdx]
+	}
+
+	return nil
+}
+
+func (d *deployment) Start(startEnvStage biui.Stage, updateSection bideplmanifest.Update) error {
+	for len(d.instances) > 0 {
+		lastIdx := len(d.instances) - 1
+		instance := d.instances[lastIdx]
+
+		if err := instance.Start(updateSection, d.pingTimeout, d.pingDelay, startEnvStage); err != nil {
+			return err
+		}
+
+		d.instances = d.instances[:lastIdx]
 	}
 
 	return nil

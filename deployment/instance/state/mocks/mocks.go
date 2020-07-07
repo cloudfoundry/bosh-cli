@@ -40,6 +40,7 @@ func (m *MockBuilderFactory) EXPECT() *MockBuilderFactoryMockRecorder {
 
 // NewBuilder mocks base method
 func (m *MockBuilderFactory) NewBuilder(arg0 blobstore.Blobstore, arg1 agentclient.AgentClient) state.Builder {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewBuilder", arg0, arg1)
 	ret0, _ := ret[0].(state.Builder)
 	return ret0
@@ -47,6 +48,7 @@ func (m *MockBuilderFactory) NewBuilder(arg0 blobstore.Blobstore, arg1 agentclie
 
 // NewBuilder indicates an expected call of NewBuilder
 func (mr *MockBuilderFactoryMockRecorder) NewBuilder(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewBuilder", reflect.TypeOf((*MockBuilderFactory)(nil).NewBuilder), arg0, arg1)
 }
 
@@ -75,6 +77,7 @@ func (m *MockBuilder) EXPECT() *MockBuilderMockRecorder {
 
 // Build mocks base method
 func (m *MockBuilder) Build(arg0 string, arg1 int, arg2 manifest.Manifest, arg3 ui.Stage, arg4 agentclient.AgentState) (state.State, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Build", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(state.State)
 	ret1, _ := ret[1].(error)
@@ -83,11 +86,13 @@ func (m *MockBuilder) Build(arg0 string, arg1 int, arg2 manifest.Manifest, arg3 
 
 // Build indicates an expected call of Build
 func (mr *MockBuilderMockRecorder) Build(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Build", reflect.TypeOf((*MockBuilder)(nil).Build), arg0, arg1, arg2, arg3, arg4)
 }
 
 // BuildInitialState mocks base method
 func (m *MockBuilder) BuildInitialState(arg0 string, arg1 int, arg2 manifest.Manifest) (state.State, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BuildInitialState", arg0, arg1, arg2)
 	ret0, _ := ret[0].(state.State)
 	ret1, _ := ret[1].(error)
@@ -96,6 +101,7 @@ func (m *MockBuilder) BuildInitialState(arg0 string, arg1 int, arg2 manifest.Man
 
 // BuildInitialState indicates an expected call of BuildInitialState
 func (mr *MockBuilderMockRecorder) BuildInitialState(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildInitialState", reflect.TypeOf((*MockBuilder)(nil).BuildInitialState), arg0, arg1, arg2)
 }
 
@@ -124,6 +130,7 @@ func (m *MockState) EXPECT() *MockStateMockRecorder {
 
 // CompiledPackages mocks base method
 func (m *MockState) CompiledPackages() []state.PackageRef {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CompiledPackages")
 	ret0, _ := ret[0].([]state.PackageRef)
 	return ret0
@@ -131,11 +138,13 @@ func (m *MockState) CompiledPackages() []state.PackageRef {
 
 // CompiledPackages indicates an expected call of CompiledPackages
 func (mr *MockStateMockRecorder) CompiledPackages() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CompiledPackages", reflect.TypeOf((*MockState)(nil).CompiledPackages))
 }
 
 // NetworkInterfaces mocks base method
 func (m *MockState) NetworkInterfaces() []state.NetworkRef {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NetworkInterfaces")
 	ret0, _ := ret[0].([]state.NetworkRef)
 	return ret0
@@ -143,11 +152,13 @@ func (m *MockState) NetworkInterfaces() []state.NetworkRef {
 
 // NetworkInterfaces indicates an expected call of NetworkInterfaces
 func (mr *MockStateMockRecorder) NetworkInterfaces() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NetworkInterfaces", reflect.TypeOf((*MockState)(nil).NetworkInterfaces))
 }
 
 // RenderedJobListArchive mocks base method
 func (m *MockState) RenderedJobListArchive() state.BlobRef {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RenderedJobListArchive")
 	ret0, _ := ret[0].(state.BlobRef)
 	return ret0
@@ -155,11 +166,13 @@ func (m *MockState) RenderedJobListArchive() state.BlobRef {
 
 // RenderedJobListArchive indicates an expected call of RenderedJobListArchive
 func (mr *MockStateMockRecorder) RenderedJobListArchive() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RenderedJobListArchive", reflect.TypeOf((*MockState)(nil).RenderedJobListArchive))
 }
 
 // RenderedJobs mocks base method
 func (m *MockState) RenderedJobs() []state.JobRef {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RenderedJobs")
 	ret0, _ := ret[0].([]state.JobRef)
 	return ret0
@@ -167,11 +180,13 @@ func (m *MockState) RenderedJobs() []state.JobRef {
 
 // RenderedJobs indicates an expected call of RenderedJobs
 func (mr *MockStateMockRecorder) RenderedJobs() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RenderedJobs", reflect.TypeOf((*MockState)(nil).RenderedJobs))
 }
 
 // ToApplySpec mocks base method
 func (m *MockState) ToApplySpec() applyspec.ApplySpec {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ToApplySpec")
 	ret0, _ := ret[0].(applyspec.ApplySpec)
 	return ret0
@@ -179,5 +194,6 @@ func (m *MockState) ToApplySpec() applyspec.ApplySpec {
 
 // ToApplySpec indicates an expected call of ToApplySpec
 func (mr *MockStateMockRecorder) ToApplySpec() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToApplySpec", reflect.TypeOf((*MockState)(nil).ToApplySpec))
 }

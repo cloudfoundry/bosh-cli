@@ -35,16 +35,19 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 
 // Add mocks base method
 func (m *MockManager) Add(arg0 release.Release) {
+	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Add", arg0)
 }
 
 // Add indicates an expected call of Add
 func (mr *MockManagerMockRecorder) Add(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockManager)(nil).Add), arg0)
 }
 
 // DeleteAll mocks base method
 func (m *MockManager) DeleteAll() error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteAll")
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -52,11 +55,13 @@ func (m *MockManager) DeleteAll() error {
 
 // DeleteAll indicates an expected call of DeleteAll
 func (mr *MockManagerMockRecorder) DeleteAll() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockManager)(nil).DeleteAll))
 }
 
 // Find mocks base method
 func (m *MockManager) Find(arg0 string) (release.Release, bool) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Find", arg0)
 	ret0, _ := ret[0].(release.Release)
 	ret1, _ := ret[1].(bool)
@@ -65,11 +70,13 @@ func (m *MockManager) Find(arg0 string) (release.Release, bool) {
 
 // Find indicates an expected call of Find
 func (mr *MockManagerMockRecorder) Find(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockManager)(nil).Find), arg0)
 }
 
 // List mocks base method
 func (m *MockManager) List() []release.Release {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List")
 	ret0, _ := ret[0].([]release.Release)
 	return ret0
@@ -77,6 +84,7 @@ func (m *MockManager) List() []release.Release {
 
 // List indicates an expected call of List
 func (mr *MockManagerMockRecorder) List() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockManager)(nil).List))
 }
 
@@ -105,6 +113,7 @@ func (m *MockExtractor) EXPECT() *MockExtractorMockRecorder {
 
 // Extract mocks base method
 func (m *MockExtractor) Extract(arg0 string) (release.Release, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Extract", arg0)
 	ret0, _ := ret[0].(release.Release)
 	ret1, _ := ret[1].(error)
@@ -113,5 +122,6 @@ func (m *MockExtractor) Extract(arg0 string) (release.Release, error) {
 
 // Extract indicates an expected call of Extract
 func (mr *MockExtractorMockRecorder) Extract(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Extract", reflect.TypeOf((*MockExtractor)(nil).Extract), arg0)
 }

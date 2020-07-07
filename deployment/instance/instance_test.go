@@ -719,43 +719,25 @@ var _ = Describe("Instance", func() {
 				Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("Agent unreachable: fake-wait-error"))
 			})
 		})
-
-		Context("when VM does not exist (deleted manually)", func() {
-			BeforeEach(func() {
-				fakeVM.ExistsFound = false
-			})
-
-			It("logs stop as skipped", func() {
-				err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
-				Expect(err).NotTo(HaveOccurred())
-
-				_, message, _ := logger.WarnArgsForCall(0)
-				Expect(message).To(Equal("VM with CID '%s' does not exist. Skipping stop"))
-			})
-		})
 	})
 
 	Describe("Start", func() {
 
 		var (
-			deploymentManifest bideplmanifest.Manifest
+			update bideplmanifest.Update
 		)
 
 		BeforeEach(func() {
-			// manifest is only being used for the Update.UpdateWatchTime, otherwise it's just being passed through to the StateBuilder
-			deploymentManifest = bideplmanifest.Manifest{
-				Name: "fake-deployment-name",
-				Update: bideplmanifest.Update{
-					UpdateWatchTime: bideplmanifest.WatchTime{
-						Start: 0,
-						End:   5478,
-					},
+			update = bideplmanifest.Update{
+				UpdateWatchTime: bideplmanifest.WatchTime{
+					Start: 0,
+					End:   5478,
 				},
 			}
 		})
 
 		It("checks if the agent on the vm is responsive", func() {
-			err := instance.Start(deploymentManifest, pingTimeout, pingDelay, fakeStage)
+			err := instance.Start(update, pingTimeout, pingDelay, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebivm.WaitUntilReadyInput{
@@ -765,7 +747,7 @@ var _ = Describe("Instance", func() {
 		})
 
 		It("logs start and stop events", func() {
-			err := instance.Start(deploymentManifest, pingTimeout, pingDelay, fakeStage)
+			err := instance.Start(update, pingTimeout, pingDelay, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
@@ -779,7 +761,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when agent is responsive", func() {
 			It("logs waiting for the agent event", func() {
-				err := instance.Start(deploymentManifest, pingTimeout, pingDelay, fakeStage)
+				err := instance.Start(update, pingTimeout, pingDelay, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeStage.PerformCalls[0]).To(Equal(&fakebiui.PerformCall{
@@ -788,7 +770,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("waits until agent reports state as running", func() {
-				err := instance.Start(deploymentManifest, pingTimeout, pingDelay, fakeStage)
+				err := instance.Start(update, pingTimeout, pingDelay, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebivm.WaitInput{
@@ -804,26 +786,12 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs failed event", func() {
-				err := instance.Start(deploymentManifest, pingTimeout, pingDelay, fakeStage)
+				err := instance.Start(update, pingTimeout, pingDelay, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Waiting for the agent on VM 'fake-vm-cid'"))
 				Expect(fakeStage.PerformCalls[0].Error).To(HaveOccurred())
 				Expect(fakeStage.PerformCalls[0].Error.Error()).To(Equal("Agent unreachable: fake-wait-error"))
-			})
-		})
-
-		Context("when VM does not exist (deleted manually)", func() {
-			BeforeEach(func() {
-				fakeVM.ExistsFound = false
-			})
-
-			It("logs start as skipped", func() {
-				err := instance.Start(deploymentManifest, pingTimeout, pingDelay, fakeStage)
-				Expect(err).NotTo(HaveOccurred())
-
-				_, message, _ := logger.WarnArgsForCall(0)
-				Expect(message).To(Equal("VM with CID '%s' does not exist. Skipping start"))
 			})
 		})
 	})

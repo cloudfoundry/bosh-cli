@@ -36,7 +36,7 @@ type Instance interface {
 		stage biui.Stage,
 	) error
 	Start(
-		deploymentManifest bideplmanifest.Manifest,
+		update bideplmanifest.Update,
 		pingTimeout time.Duration,
 		pingDelay time.Duration,
 		stage biui.Stage,
@@ -243,65 +243,46 @@ func (i *instance) Stop(
 	skipDrain bool,
 	stage biui.Stage,
 ) error {
-	vmExists, err := i.vm.Exists()
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Checking existence of vm for instance '%s/%d'", i.jobName, i.id)
-	}
 
-	if vmExists {
-		if err = i.shutdown(pingTimeout, pingDelay, skipDrain, true, stage); err != nil {
-			return err
-		}
-	} else {
-		i.logger.Warn(i.logTag, "VM with CID '%s' does not exist. Skipping stop", i.vm.CID)
-	}
-	return nil
+	return i.shutdown(pingTimeout, pingDelay, skipDrain, true, stage) //; err != nil {
 }
 
 func (i *instance) Start(
-	deploymentManifest bideplmanifest.Manifest,
+	update bideplmanifest.Update,
 	pingTimeout time.Duration,
 	pingDelay time.Duration,
 	stage biui.Stage,
 ) error {
-	vmExists, err := i.vm.Exists()
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Checking existence of vm for instance '%s/%d'", i.jobName, i.id)
+
+	if waitingForAgentErr := i.waitForAgent(pingDelay, pingTimeout, stage); waitingForAgentErr != nil {
+		i.logger.Warn(i.logTag, "Gave up waiting for agent: %s", waitingForAgentErr.Error())
+		return nil
 	}
 
-	if vmExists {
-		if waitingForAgentErr := i.waitForAgent(pingDelay, pingTimeout, stage); waitingForAgentErr != nil {
-			i.logger.Warn(i.logTag, "Gave up waiting for agent: %s", waitingForAgentErr.Error())
-			return nil
-		}
+	if err := i.runScriptInStep(stage, "pre-start", i.jobName, i.id); err != nil {
+		return err
+	}
 
-		if err := i.runScriptInStep(stage, "pre-start", i.jobName, i.id); err != nil {
-			return err
-		}
-
-		stepName := fmt.Sprintf("Starting the agent '%s/%d'", i.jobName, i.id)
-		err = stage.Perform(stepName, func() error {
-			err = i.vm.Start()
-			if err != nil {
-				return bosherr.WrapError(err, "Starting the agent")
-			}
-			return nil
-		})
-
+	stepName := fmt.Sprintf("Starting the agent '%s/%d'", i.jobName, i.id)
+	err := stage.Perform(stepName, func() error {
+		err := i.vm.Start()
 		if err != nil {
-			return err
+			return bosherr.WrapError(err, "Starting the agent")
 		}
+		return nil
+	})
 
-		err = i.waitUntilJobsAreRunning(deploymentManifest.Update.UpdateWatchTime, stage)
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
+	}
 
-		if err := i.runScriptInStep(stage, "post-start", i.jobName, i.id); err != nil {
-			return err
-		}
-	} else {
-		i.logger.Warn(i.logTag, "VM with CID '%s' does not exist. Skipping start", i.vm.CID)
+	err = i.waitUntilJobsAreRunning(update.UpdateWatchTime, stage)
+	if err != nil {
+		return err
+	}
+
+	if err := i.runScriptInStep(stage, "post-start", i.jobName, i.id); err != nil {
+		return err
 	}
 	return nil
 }

@@ -42,8 +42,10 @@ type BoshOpts struct {
 	Environments EnvironmentsOpts `command:"environments" alias:"envs" description:"List environments"`
 	CreateEnv    CreateEnvOpts    `command:"create-env"                description:"Create or update BOSH environment"`
 	DeleteEnv    DeleteEnvOpts    `command:"delete-env"                description:"Delete BOSH environment"`
+	StopEnv      StopEnvOpts      `command:"stop-env"                  description:"Stop BOSH environment"`
+	StartEnv     StartEnvOpts     `command:"start-env"                 description:"Start BOSH environment"`
 	AliasEnv     AliasEnvOpts     `command:"alias-env"                 description:"Alias environment to save URL and CA certificate"`
-	UnaliasEnv   UnaliasEnvOpts   `command:"unalias-env"              description:"Remove an aliased environment"`
+	UnaliasEnv   UnaliasEnvOpts   `command:"unalias-env"               description:"Remove an aliased environment"`
 
 	// Authentication
 	LogIn  LogInOpts  `command:"log-in"  alias:"l" alias:"login"  description:"Log in"`
@@ -204,7 +206,28 @@ type DeleteEnvOpts struct {
 	cmd
 }
 
+type StopEnvOpts struct {
+	Args StartStopEnvArgs `positional-args:"true" required:"true"`
+	VarFlags
+	OpsFlags
+	SkipDrain bool   `long:"skip-drain" description:"Skip running drain and pre-stop scripts"`
+	StatePath string `long:"state" value-name:"PATH" description:"State file path"`
+	cmd
+}
+
+type StartEnvOpts struct {
+	Args StartStopEnvArgs `positional-args:"true" required:"true"`
+	VarFlags
+	OpsFlags
+	StatePath string `long:"state" value-name:"PATH" description:"State file path"`
+	cmd
+}
+
 type DeleteEnvArgs struct {
+	Manifest FileBytesWithPathArg `positional-arg-name:"PATH" description:"Path to a manifest file"`
+}
+
+type StartStopEnvArgs struct {
 	Manifest FileBytesWithPathArg `positional-arg-name:"PATH" description:"Path to a manifest file"`
 }
 

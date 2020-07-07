@@ -36,6 +36,7 @@ func (m *MockCompiler) EXPECT() *MockCompilerMockRecorder {
 
 // Compile mocks base method
 func (m *MockCompiler) Compile(arg0 pkg.Compilable) (pkg0.CompiledPackageRecord, bool, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Compile", arg0)
 	ret0, _ := ret[0].(pkg0.CompiledPackageRecord)
 	ret1, _ := ret[1].(bool)
@@ -45,6 +46,7 @@ func (m *MockCompiler) Compile(arg0 pkg.Compilable) (pkg0.CompiledPackageRecord,
 
 // Compile indicates an expected call of Compile
 func (mr *MockCompilerMockRecorder) Compile(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Compile", reflect.TypeOf((*MockCompiler)(nil).Compile), arg0)
 }
 
@@ -73,6 +75,7 @@ func (m *MockCompiledPackageRepo) EXPECT() *MockCompiledPackageRepoMockRecorder 
 
 // Find mocks base method
 func (m *MockCompiledPackageRepo) Find(arg0 pkg.Compilable) (pkg0.CompiledPackageRecord, bool, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Find", arg0)
 	ret0, _ := ret[0].(pkg0.CompiledPackageRecord)
 	ret1, _ := ret[1].(bool)
@@ -82,11 +85,13 @@ func (m *MockCompiledPackageRepo) Find(arg0 pkg.Compilable) (pkg0.CompiledPackag
 
 // Find indicates an expected call of Find
 func (mr *MockCompiledPackageRepoMockRecorder) Find(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockCompiledPackageRepo)(nil).Find), arg0)
 }
 
 // Save mocks base method
 func (m *MockCompiledPackageRepo) Save(arg0 pkg.Compilable, arg1 pkg0.CompiledPackageRecord) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -94,5 +99,6 @@ func (m *MockCompiledPackageRepo) Save(arg0 pkg.Compilable, arg1 pkg0.CompiledPa
 
 // Save indicates an expected call of Save
 func (mr *MockCompiledPackageRepoMockRecorder) Save(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockCompiledPackageRepo)(nil).Save), arg0, arg1)
 }

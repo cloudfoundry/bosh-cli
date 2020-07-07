@@ -14,6 +14,7 @@ import (
 
 type DeploymentManifestParser interface {
 	GetDeploymentManifest(path string, vars boshtpl.Variables, op patch.Op, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, string, error)
+	GetDeploymentManifestUpdate(path string, vars boshtpl.Variables, op patch.Op, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Update, error)
 }
 
 type deploymentManifestParser struct {
@@ -36,7 +37,19 @@ func NewDeploymentManifestParser(
 	}
 }
 
+func (y deploymentManifestParser) GetDeploymentManifestUpdate(path string, vars boshtpl.Variables, op patch.Op, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Update, error) {
+	deploymentManifest, _, err := y.getManifest(path, vars, op, releaseSetManifest, stage, true)
+	if err != nil {
+		return bideplmanifest.Update{}, err
+	}
+	return deploymentManifest.Update, nil
+}
+
 func (y deploymentManifestParser) GetDeploymentManifest(path string, vars boshtpl.Variables, op patch.Op, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage) (bideplmanifest.Manifest, string, error) {
+	return y.getManifest(path, vars, op, releaseSetManifest, stage, false)
+}
+
+func (y deploymentManifestParser) getManifest(path string, vars boshtpl.Variables, op patch.Op, releaseSetManifest birelsetmanifest.Manifest, stage biui.Stage, skipReleaseJobsValidation bool) (bideplmanifest.Manifest, string, error) {
 	var deploymentManifest bideplmanifest.Manifest
 	var manifestSHA string
 
@@ -65,9 +78,11 @@ func (y deploymentManifestParser) GetDeploymentManifest(path string, vars boshtp
 			return bosherr.WrapError(err, "Validating deployment manifest")
 		}
 
-		err = y.deploymentValidator.ValidateReleaseJobs(deploymentManifest, y.releaseManager)
-		if err != nil {
-			return bosherr.WrapError(err, "Validating deployment jobs refer to jobs in release")
+		if skipReleaseJobsValidation == false {
+			err = y.deploymentValidator.ValidateReleaseJobs(deploymentManifest, y.releaseManager)
+			if err != nil {
+				return bosherr.WrapError(err, "Validating deployment jobs refer to jobs in release")
+			}
 		}
 
 		return nil

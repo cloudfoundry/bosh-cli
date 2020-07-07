@@ -36,6 +36,7 @@ func (m *MockProvider) EXPECT() *MockProviderMockRecorder {
 
 // Get mocks base method
 func (m *MockProvider) Get(arg0 tarball.Source, arg1 ui.Stage) (string, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
@@ -44,5 +45,6 @@ func (m *MockProvider) Get(arg0 tarball.Source, arg1 ui.Stage) (string, error) {
 
 // Get indicates an expected call of Get
 func (mr *MockProviderMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockProvider)(nil).Get), arg0, arg1)
 }
