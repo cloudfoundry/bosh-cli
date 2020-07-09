@@ -6818,11 +6818,18 @@ var awscnPartition = partition{
 		"snowball": service{
 
 			Endpoints: endpoints{
-				"cn-north-1": endpoint{},
+				"cn-north-1":     endpoint{},
+				"cn-northwest-1": endpoint{},
 				"fips-cn-north-1": endpoint{
 					Hostname: "snowball-fips.cn-north-1.amazonaws.com.cn",
 					CredentialScope: credentialScope{
 						Region: "cn-north-1",
+					},
+				},
+				"fips-cn-northwest-1": endpoint{
+					Hostname: "snowball-fips.cn-northwest-1.amazonaws.com.cn",
+					CredentialScope: credentialScope{
+						Region: "cn-northwest-1",
 					},
 				},
 			},
@@ -7315,6 +7322,12 @@ var awsusgovPartition = partition{
 		"comprehendmedical": service{
 
 			Endpoints: endpoints{
+				"fips-us-gov-west-1": endpoint{
+					Hostname: "comprehendmedical-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: credentialScope{
+						Region: "us-gov-west-1",
+					},
+				},
 				"us-gov-west-1": endpoint{},
 			},
 		},
