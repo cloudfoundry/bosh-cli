@@ -29,24 +29,34 @@ type Client interface {
 func CreateDefaultClient(certPool *x509.CertPool) *http.Client {
 	insecureSkipVerify := false
 	external := false
-	return factory{}.New(insecureSkipVerify, external, certPool)
+	disableKeepAlives := true
+	return factory{}.New(insecureSkipVerify, external, disableKeepAlives, certPool)
 }
 
 func CreateExternalDefaultClient(certPool *x509.CertPool) *http.Client {
 	insecureSkipVerify := false
 	external := true
-	return factory{}.New(insecureSkipVerify, external, certPool)
+	disableKeepAlives := true
+	return factory{}.New(insecureSkipVerify, external, disableKeepAlives, certPool)
+}
+
+func CreateKeepAliveDefaultClient(certPool *x509.CertPool) *http.Client {
+	insecureSkipVerify := false
+	external := true
+	disableKeepAlives := false
+	return factory{}.New(insecureSkipVerify, external, disableKeepAlives, certPool)
 }
 
 func CreateDefaultClientInsecureSkipVerify() *http.Client {
 	insecureSkipVerify := true
 	external := false
-	return factory{}.New(insecureSkipVerify, external, nil)
+	disableKeepAlives := true
+	return factory{}.New(insecureSkipVerify, external, disableKeepAlives, nil)
 }
 
 type factory struct{}
 
-func (f factory) New(insecureSkipVerify, externalClient bool, certPool *x509.CertPool) *http.Client {
+func (f factory) New(insecureSkipVerify, externalClient bool, disableKeepAlives bool, certPool *x509.CertPool) *http.Client {
 	serviceDefaults := tlsconfig.WithInternalServiceDefaults()
 	if externalClient {
 		serviceDefaults = tlsconfig.WithExternalServiceDefaults()
@@ -67,6 +77,7 @@ func (f factory) New(insecureSkipVerify, externalClient bool, certPool *x509.Cer
 			Proxy:               http.ProxyFromEnvironment,
 			DialContext:         defaultDialerContextFunc,
 			TLSHandshakeTimeout: 30 * time.Second,
+			DisableKeepAlives:   disableKeepAlives,
 		},
 	}
 

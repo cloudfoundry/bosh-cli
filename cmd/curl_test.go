@@ -120,6 +120,7 @@ var _ = Describe("CurlCmd", func() {
 				Expect(ui.Blocks).To(Equal([]string{
 					strings.Join([]string{
 						"HTTP/1.1 200 OK\r\n",
+						"Connection: close\r\n",
 						"Content-Length: 9\r\n",
 						"Content-Type: text/plain; charset=utf-8\r\n",
 						"Date: date\r\n",
@@ -223,6 +224,7 @@ var _ = Describe("CurlCmd", func() {
 				Expect(ui.Blocks).To(Equal([]string{
 					strings.Join([]string{
 						"HTTP/1.1 200 OK\r\n",
+						"Connection: close\r\n",
 						"Content-Length: 9\r\n",
 						"Content-Type: text/plain; charset=utf-8\r\n",
 						"Date: date\r\n",
@@ -326,6 +328,7 @@ var _ = Describe("CurlCmd", func() {
 				Expect(ui.Blocks).To(Equal([]string{
 					strings.Join([]string{
 						"HTTP/1.1 200 OK\r\n",
+						"Connection: close\r\n",
 						"Content-Length: 9\r\n",
 						"Content-Type: text/plain; charset=utf-8\r\n",
 						"Date: date\r\n",
@@ -417,6 +420,7 @@ var _ = Describe("CurlCmd", func() {
 				Expect(ui.Blocks).To(Equal([]string{
 					strings.Join([]string{
 						"HTTP/1.1 200 OK\r\n",
+						"Connection: close\r\n",
 						"Content-Length: 9\r\n",
 						"Content-Type: text/plain; charset=utf-8\r\n",
 						"Date: date\r\n",
