@@ -29,7 +29,7 @@ var _ = Describe("CurlCmd", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		command = NewCurlCmd(ui, boshdir.NewClientRequest(
 			server.URL(),
-			boshhttp.NewHTTPClient(boshhttp.CreateDefaultClient(nil), logger),
+			boshhttp.NewHTTPClient(boshhttp.CreateKeepAliveDefaultClient(nil), logger),
 			boshdir.NewNoopFileReporter(),
 			logger,
 		))
