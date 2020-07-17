@@ -1437,6 +1437,12 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("NoRedact", opts)).To(Equal(`long:"no-redact" description:"Show non-redacted manifest diff"`))
 			})
 		})
+
+		Describe("FixReleases", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("FixReleases", opts)).To(Equal(`long:"fix-releases" description:"Reupload releases in config and replace corrupt or missing jobs/packages"`))
+			})
+		})
 	})
 
 	Describe("UpdateRuntimeConfigArgs", func() {
