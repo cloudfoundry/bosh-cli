@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:d3361f9a350890151893b0ac319958606994413a9e6ebbee491671c5e16fc956"
+  digest = "1:09515fc19a47b49a62c355f86307e22a569a058738b91dfa2ef32ebb401ef675"
   name = "cloud.google.com/go"
   packages = [
     ".",
@@ -15,8 +15,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "cffdb7472a730c336a483d834f221716af2f6bb5"
-  version = "v0.60.0"
+  revision = "c07045b74f22a4ea094da4eb65e7b6413629df7e"
+  version = "v0.61.0"
 
 [[projects]]
   digest = "1:41531922c7f47d5157308b4dd1abc6142c4c583845ce424ed9664db867fa48cf"
@@ -46,7 +46,7 @@
   revision = "2ac56b3541156ef8351c52058f3ac6f1457e4edf"
 
 [[projects]]
-  digest = "1:f910314991a27cbb2db9d8e23ac89f95fba83f4e735a61fb6ecdf1fd7dae0e23"
+  digest = "1:f69e5a4230c04e701c39c49e8d205edad3206adc215e1a4f6699b2ebc87baaa5"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -96,8 +96,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "de0aa785c5d4efb004061153d592f8e1641f91c4"
-  version = "v1.33.5"
+  revision = "46dac1fc0ad8a1b3a2079f8c2af343b5044b9938"
+  version = "v1.33.7"
 
 [[projects]]
   digest = "1:30482ccb11e2c861f5437c740dfd70013152f6bae68f7789db4812d2bc9d7c52"
@@ -134,8 +134,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "58fd39e84fe3dddf8cf80e91060c852d5754c85e"
-  version = "v2.325.0"
+  revision = "1383200c4375fdbd88f2f9b03be1056f8223a149"
+  version = "v2.326.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -197,7 +197,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "08dc6eeb160bd603e8e3bf7531dc0f442e2a4521"
+  revision = "536f54a5c9545e3fea562cfe5eaa9b9307f5e241"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -672,7 +672,7 @@
     "internal/typesinternal",
   ]
   pruneopts = "NUT"
-  revision = "f1c4188a97a1cbc0a5408db2e5b0d7b0dca73271"
+  revision = "6ddee64345a6aa3330ff5260ce9366cd8b2462e8"
 
 [[projects]]
   branch = "master"
@@ -737,7 +737,7 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "8698661620497c6fd6244a2fb2ff2518e6a6e892"
+  revision = "11fb19a81f2c9ecb89b2d7d24b67e24f694422f8"
 
 [[projects]]
   digest = "1:b0755b8d3a1da2ea5d21d3d68fde6c9486da3c0edc7a1309f931ca36e6bc8c12"
