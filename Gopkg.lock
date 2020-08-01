@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:09515fc19a47b49a62c355f86307e22a569a058738b91dfa2ef32ebb401ef675"
+  digest = "1:03ce3c6853940b73f392fe6b15aa1e6f0771987ec65fa7c4fde42c4527f0b31f"
   name = "cloud.google.com/go"
   packages = [
     ".",
@@ -15,8 +15,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "c07045b74f22a4ea094da4eb65e7b6413629df7e"
-  version = "v0.61.0"
+  revision = "12af083615cb0c363f5a43f7d25f615049e754df"
+  version = "v0.62.0"
 
 [[projects]]
   digest = "1:41531922c7f47d5157308b4dd1abc6142c4c583845ce424ed9664db867fa48cf"
@@ -46,7 +46,7 @@
   revision = "2ac56b3541156ef8351c52058f3ac6f1457e4edf"
 
 [[projects]]
-  digest = "1:1aee1b3b035fbbed4425ad89431d00854869f612d5a60ae84a1961564aef36d3"
+  digest = "1:bd9d59b793a70f7f4be42cc98174c989d12581410ead5fa269cc1b856c5e7e50"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -96,8 +96,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "573996578969776bda1c2981c935600319c073a6"
-  version = "v1.33.12"
+  revision = "57f554cc8268106fbbd7724af3bffb554c52db06"
+  version = "v1.33.17"
 
 [[projects]]
   digest = "1:30482ccb11e2c861f5437c740dfd70013152f6bae68f7789db4812d2bc9d7c52"
@@ -134,8 +134,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "b4c9a26749b12c7a906215d332607d07f335d18e"
-  version = "v2.327.0"
+  revision = "ff97c73f67a1bfd0342a6d508d10625c54b3e523"
+  version = "v2.328.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -197,7 +197,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "536f54a5c9545e3fea562cfe5eaa9b9307f5e241"
+  revision = "1bb7272649721b71d0b391cc57a18c37d2ec9df6"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -279,8 +279,8 @@
   name = "github.com/golang/mock"
   packages = ["gomock"]
   pruneopts = "NUT"
-  revision = "3a35fb6e3e18b9dbfee291262260dee7372d2a92"
-  version = "v1.4.3"
+  revision = "f7b1909c82a8958747e5c87c6a5c3b2eaed8a33d"
+  version = "v1.4.4"
 
 [[projects]]
   digest = "1:9a3596311f2b29e77f2422086712f5a166fe2be56688fb133d39eefd7adabb4b"
@@ -537,7 +537,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "948cd5f35899cbf089c620b3caeac9b60fa08704"
+  revision = "123391ffb6de907695e1066dc40c1ff09322aeb6"
 
 [[projects]]
   branch = "master"
@@ -599,7 +599,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ca8beeb7142d6e4dc2c6232ef431632b5d9499c6851c5a2030a910c3f554c24c"
+  digest = "1:ff2f287c5e5a16b8ef6e6278c8ecb8d26cc903274c23025023424074fe0b7e90"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -608,7 +608,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "0e2f3a69832c9e0de74996506b9f1373a5873c56"
+  revision = "3e129f6d46b10b0e1da36b3deffcb55e09631b64"
 
 [[projects]]
   digest = "1:4e215023f245ee44676ce94f5031f41a7ba2089adf2d9c0175f36eeb6dd62f46"
@@ -672,7 +672,7 @@
     "internal/typesinternal",
   ]
   pruneopts = "NUT"
-  revision = "b5fc9d354d99c98f615cc62f71ea3e0d336c51fc"
+  revision = "b5fad4ed8dd65a3d7aae567b1f4e751b8ca72837"
 
 [[projects]]
   branch = "master"
@@ -737,10 +737,10 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "43cab4749ae7254af90e92cb2cd767dfc641f6dd"
+  revision = "8145dea6a4850c5ac7dbc56a5e2e91f1ea84174e"
 
 [[projects]]
-  digest = "1:b0755b8d3a1da2ea5d21d3d68fde6c9486da3c0edc7a1309f931ca36e6bc8c12"
+  digest = "1:c6a687c7c34585707344fe8e2736b7c32e366777ce03945e23019965dc812629"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -764,6 +764,7 @@
     "internal/binarylog",
     "internal/buffer",
     "internal/channelz",
+    "internal/credentials",
     "internal/envconfig",
     "internal/grpclog",
     "internal/grpcrand",
@@ -785,8 +786,8 @@
     "tap",
   ]
   pruneopts = "NUT"
-  revision = "1f47ba4663831f2a9c28a62a7de3ff8bc45078f0"
-  version = "v1.30.0"
+  revision = "bde0263672f027525e2950992a4c7db7af572b59"
+  version = "v1.31.0"
 
 [[projects]]
   digest = "1:a13c8223dba9f3f6788b8942e80cb81d42a0b7cc8f9d741de7b78238a2588177"
