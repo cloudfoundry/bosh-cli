@@ -310,6 +310,15 @@ type RawSockaddrL2TPIP6 struct {
 	Conn_id  uint32
 }
 
+type RawSockaddrIUCV struct {
+	Family  uint16
+	Port    uint16
+	Addr    uint32
+	Nodeid  [8]int8
+	User_id [8]int8
+	Name    [8]int8
+}
+
 type _Socklen uint32
 
 type Linger struct {
@@ -422,6 +431,7 @@ const (
 	SizeofSockaddrTIPC      = 0x10
 	SizeofSockaddrL2TPIP    = 0x10
 	SizeofSockaddrL2TPIP6   = 0x20
+	SizeofSockaddrIUCV      = 0x20
 	SizeofLinger            = 0x8
 	SizeofIPMreq            = 0x8
 	SizeofIPMreqn           = 0xc
@@ -1006,6 +1016,13 @@ const (
 	PERF_SAMPLE_STREAM_ID    = 0x200
 	PERF_SAMPLE_RAW          = 0x400
 	PERF_SAMPLE_BRANCH_STACK = 0x800
+	PERF_SAMPLE_REGS_USER    = 0x1000
+	PERF_SAMPLE_STACK_USER   = 0x2000
+	PERF_SAMPLE_WEIGHT       = 0x4000
+	PERF_SAMPLE_DATA_SRC     = 0x8000
+	PERF_SAMPLE_IDENTIFIER   = 0x10000
+	PERF_SAMPLE_TRANSACTION  = 0x20000
+	PERF_SAMPLE_REGS_INTR    = 0x40000
 
 	PERF_SAMPLE_BRANCH_USER       = 0x1
 	PERF_SAMPLE_BRANCH_KERNEL     = 0x2
@@ -1733,6 +1750,21 @@ const (
 	NFTA_NG_OFFSET                    = 0x4
 	NFT_NG_INCREMENTAL                = 0x0
 	NFT_NG_RANDOM                     = 0x1
+)
+
+const (
+	NFTA_TARGET_UNSPEC = 0x0
+	NFTA_TARGET_NAME   = 0x1
+	NFTA_TARGET_REV    = 0x2
+	NFTA_TARGET_INFO   = 0x3
+	NFTA_MATCH_UNSPEC  = 0x0
+	NFTA_MATCH_NAME    = 0x1
+	NFTA_MATCH_REV     = 0x2
+	NFTA_MATCH_INFO    = 0x3
+	NFTA_COMPAT_UNSPEC = 0x0
+	NFTA_COMPAT_NAME   = 0x1
+	NFTA_COMPAT_REV    = 0x2
+	NFTA_COMPAT_TYPE   = 0x3
 )
 
 type RTCTime struct {
