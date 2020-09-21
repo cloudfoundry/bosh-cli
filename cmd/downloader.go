@@ -54,6 +54,7 @@ func (d UIDownloader) Download(blobstoreID, sha1, prefix, dstDirPath string) err
 		return err
 	}
 
+	defer tmpFile.Close()
 	defer d.fs.RemoveAll(tmpFile.Name())
 
 	d.ui.PrintLinef("Downloading resource '%s' to '%s'...", blobstoreID, dstFilePath)
