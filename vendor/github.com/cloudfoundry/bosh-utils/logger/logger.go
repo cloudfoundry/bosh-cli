@@ -18,7 +18,9 @@ const (
 	LevelInfo
 	LevelWarn
 	LevelError
-	LevelNone LogLevel = 99
+	LevelNone         LogLevel = 99
+	legacyTimeFormat           = "2006/01/02 15:04:05"
+	rfc3339TimeFormat          = "2006-01-02T15:04:05.000000000Z"
 )
 
 var levels = map[string]LogLevel{
@@ -50,6 +52,8 @@ func AsString(level LogLevel) string {
 	return "DEBUG"
 }
 
+//to update cd logger && go run github.com/maxbrunsfeld/counterfeiter -generate
+//counterfeiter:generate . Logger
 type Logger interface {
 	Debug(tag, msg string, args ...interface{})
 	DebugWithDetails(tag, msg string, args ...interface{})
@@ -59,21 +63,25 @@ type Logger interface {
 	ErrorWithDetails(tag, msg string, args ...interface{})
 	HandlePanic(tag string)
 	ToggleForcedDebug()
+	UseRFC3339Timestamps()
 	Flush() error
 	FlushTimeout(time.Duration) error
 }
 
 type logger struct {
-	level       LogLevel
-	logger      *log.Logger
-	forcedDebug bool
-	loggerMu    sync.Mutex
+	level           LogLevel
+	logger          *log.Logger
+	forcedDebug     bool
+	loggerMu        sync.Mutex
+	timestampFormat string
 }
 
 func New(level LogLevel, out *log.Logger) Logger {
+	out.SetFlags(0)
 	return &logger{
-		level:  level,
-		logger: out,
+		level:           level,
+		logger:          out,
+		timestampFormat: legacyTimeFormat,
 	}
 }
 
@@ -86,6 +94,10 @@ func NewWriterLogger(level LogLevel, writer io.Writer) Logger {
 		level,
 		log.New(writer, "", log.LstdFlags),
 	)
+}
+
+func (l *logger) UseRFC3339Timestamps() {
+	l.timestampFormat = rfc3339TimeFormat
 }
 
 func (l *logger) Flush() error                       { return nil }
@@ -173,7 +185,8 @@ func (l *logger) ToggleForcedDebug() {
 func (l *logger) printf(tag, msg string, args ...interface{}) {
 	s := fmt.Sprintf(msg, args...)
 	l.loggerMu.Lock()
-	l.logger.SetPrefix("[" + tag + "] ")
+	timestamp := time.Now().Format(l.timestampFormat)
+	l.logger.SetPrefix("[" + tag + "] " + timestamp + " ")
 	l.logger.Output(2, s)
 	l.loggerMu.Unlock()
 }

@@ -89,8 +89,9 @@ func NewAsyncWriterLogger(level LogLevel, ioWriter io.Writer) Logger {
 	return &asyncLogger{
 		writer: wout,
 		log: &logger{
-			level:  level,
-			logger: log.New(wout, "", log.LstdFlags),
+			level:           level,
+			logger:          log.New(wout, "", 0),
+			timestampFormat: legacyTimeFormat,
 		},
 	}
 }
@@ -128,4 +129,8 @@ func (l *asyncLogger) HandlePanic(tag string) {
 
 func (l *asyncLogger) ToggleForcedDebug() {
 	l.log.ToggleForcedDebug()
+}
+
+func (l *asyncLogger) UseRFC3339Timestamps() {
+	l.log.UseRFC3339Timestamps()
 }
