@@ -46,7 +46,7 @@
   revision = "2ac56b3541156ef8351c52058f3ac6f1457e4edf"
 
 [[projects]]
-  digest = "1:3d7eeda75c5d85eb4981d10cc320203d18c1424a5e0a37ab49ffa7931326dee7"
+  digest = "1:e9781eb46984cb479a6197be6f61181bf9759bf212999e32d84526d58923291e"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -97,16 +97,16 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "96b5c5daa6d45883c6c66ebbbcc67715f0f28a96"
-  version = "v1.35.14"
+  revision = "10cf46ecff2daa01a8064715e1f275adcc4864ba"
+  version = "v1.35.19"
 
 [[projects]]
-  digest = "1:bab9bb2c800328fcd24192210229808c748a6af39c1f95900061501003fabb5b"
+  digest = "1:628d0f7f5f0f6295ce5210a265a1f9bf58cf903f6798ff9af3b423c9d416f5b7"
   name = "github.com/bmatcuk/doublestar"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "5cf9061c537e876f6647559ac1a0624115c86b3a"
-  version = "v1.3.2"
+  revision = "eb4d9ac565e08f034b7f2631c445f08dd3975b97"
+  version = "v1.3.3"
 
 [[projects]]
   branch = "master"
@@ -135,8 +135,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "6badcf1ba529fd6e752c7f3349747f4e421810a2"
-  version = "v2.338.0"
+  revision = "75bd60b53b02b13e9b20bfe7601d2726f8dfe7e6"
+  version = "v2.339.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -198,7 +198,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "2c354ff44754be22c0fba649ae1bc9ea5e35ce7c"
+  revision = "93329b1c361428a37cca70fc118016f32c79a0ff"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -256,8 +256,8 @@
   name = "github.com/fatih/color"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "daf2830f2741ebb735b21709a520c5f37d642d85"
-  version = "v1.9.0"
+  revision = "bc2269661d49c6c9d0e514eef49710556883f3fa"
+  version = "v1.10.0"
 
 [[projects]]
   digest = "1:0914bf7efc3e3052163e92b859a89f3b407ad353d7c3b7f59a1bbb4fd05bb25d"
@@ -563,7 +563,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:28f20285c8b88a3396479c8580a213d33633b5b9c9575b412897622d1a6e2250"
+  digest = "1:66100586115419b51b83aed9df1b15524a581b990dea398139ae9e992f4a7684"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -581,7 +581,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "be3efd7ff1275f85d6b01ced0bee28cdb728f4b9"
+  revision = "ff519b6c91021e6316e1df005bc19f266994ddda"
 
 [[projects]]
   branch = "master"
@@ -599,7 +599,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:13ec6e341d98d4ecd2ef34705c939c5a28c0ff04ceaf009aad7238d6066e769f"
+  digest = "1:89ebeb32ab16478a0cfa6f826c97e446f9038a4321fb1d8a5f265915686d3b9b"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -608,10 +608,10 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "fb209a7c41cd8505b3b047ae14763a4d3d06fa19"
+  revision = "201ba4db2418b54b698efb4d8082dcb504617cdb"
 
 [[projects]]
-  digest = "1:4e215023f245ee44676ce94f5031f41a7ba2089adf2d9c0175f36eeb6dd62f46"
+  digest = "1:b8df5da6a9ef5cfef65d10ed33dbb877cbff969a0cee4934e5603eb405b2eb8f"
   name = "golang.org/x/text"
   packages = [
     "collate",
@@ -644,8 +644,8 @@
     "unicode/rangetable",
   ]
   pruneopts = "NUT"
-  revision = "23ae387dee1f90d29a23c0e87ee0b46038fbed0e"
-  version = "v0.3.3"
+  revision = "22f1617af38ed4cd65b3b96e02bab267e560155c"
+  version = "v0.3.4"
 
 [[projects]]
   branch = "master"
@@ -672,7 +672,7 @@
     "internal/typesinternal",
   ]
   pruneopts = "NUT"
-  revision = "c8cfbd0f21e6146422c1927945569c9c855a56bc"
+  revision = "582c62ec74d06936c88d4b760c63cbc2925e69c7"
 
 [[projects]]
   branch = "master"
@@ -686,7 +686,7 @@
   revision = "5ec99f83aff198f5fbd629d6c8d8eb38a04218ca"
 
 [[projects]]
-  digest = "1:7ca6ea4f0e8f3eecfe5703499ea6a7619384196cf9ff2042ccc4714e159639f5"
+  digest = "1:486d9d6d5a9e35b05fcfb0662c505e13e8c3c2b4ed68e223877ec2d47637c75e"
   name = "google.golang.org/api"
   packages = [
     "googleapi",
@@ -705,8 +705,8 @@
     "transport/internal/dca",
   ]
   pruneopts = "NUT"
-  revision = "a17682945f61786df395cb3ee721485601d21244"
-  version = "v0.33.0"
+  revision = "e10ce72b1284e32b9a23504649328761da5dcfdb"
+  version = "v0.34.0"
 
 [[projects]]
   digest = "1:7962fa8a69cee98816eb75ac9b23536934712a5eb5db5f76913a052c5e8571b6"
@@ -739,7 +739,7 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "0ff5f38871d5307ac12d54bcbb8e2e7d6d4a8bb9"
+  revision = "24207fddd1c3948fcd60d2073016c974d694328f"
 
 [[projects]]
   digest = "1:b48dee7800c8bfabca8663f14affbc537a075986e1fd7dcd402d71601518fa31"
