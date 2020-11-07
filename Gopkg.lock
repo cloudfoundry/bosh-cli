@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:d13ac7f1772ec8a71ce9d893a98fb626f5c83741f4b4fc5ca55a2c326dd3825d"
+  digest = "1:c11e8213d70cb11715360a52ecf73c6002dbc2c34b0cf43f0b01e8434bc2f957"
   name = "cloud.google.com/go"
   packages = [
     ".",
@@ -15,8 +15,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "1575c3c31f1455670e5f399bc577832d0bb83cbc"
-  version = "v0.70.0"
+  revision = "e3e62374ae4646946ae20e58521e35e72b3f1804"
+  version = "v0.71.0"
 
 [[projects]]
   digest = "1:41531922c7f47d5157308b4dd1abc6142c4c583845ce424ed9664db867fa48cf"
@@ -46,7 +46,7 @@
   revision = "2ac56b3541156ef8351c52058f3ac6f1457e4edf"
 
 [[projects]]
-  digest = "1:e9781eb46984cb479a6197be6f61181bf9759bf212999e32d84526d58923291e"
+  digest = "1:258154f961d8c3eb3d560499831490c9966ccc683814dbdd05be1eb491c89949"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -97,8 +97,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "10cf46ecff2daa01a8064715e1f275adcc4864ba"
-  version = "v1.35.19"
+  revision = "08b7f03ff17d84cee5aa9d90433e5c7f07e2e153"
+  version = "v1.35.23"
 
 [[projects]]
   digest = "1:628d0f7f5f0f6295ce5210a265a1f9bf58cf903f6798ff9af3b423c9d416f5b7"
@@ -135,8 +135,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "75bd60b53b02b13e9b20bfe7601d2726f8dfe7e6"
-  version = "v2.339.0"
+  revision = "4f4441d6f79e0f0cd526c4ae5e9233cb3372980b"
+  version = "v2.340.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -198,7 +198,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "93329b1c361428a37cca70fc118016f32c79a0ff"
+  revision = "c96f4f0a552e1f6dbb05b2a32b9eb47d3a24e385"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -599,7 +599,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:89ebeb32ab16478a0cfa6f826c97e446f9038a4321fb1d8a5f265915686d3b9b"
+  digest = "1:2a86a0d900f08b44a66b6c3e8cb4d8dfe8a534d2fed0e6807e4641e2f8b64cd8"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -608,7 +608,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "201ba4db2418b54b698efb4d8082dcb504617cdb"
+  revision = "4d91cf3a1aaf3c60795ad95ff47583eed427d778"
 
 [[projects]]
   digest = "1:b8df5da6a9ef5cfef65d10ed33dbb877cbff969a0cee4934e5603eb405b2eb8f"
@@ -649,7 +649,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c36c94271e8d7a9c9de2d84a9f1417573440bcdf7f5a2256763dadd0cf0b929c"
+  digest = "1:0f8ce9438b887a7af1f5072b051c580ff15852aedb92b335df75e654f55ca170"
   name = "golang.org/x/tools"
   packages = [
     "cmd/goimports",
@@ -672,7 +672,7 @@
     "internal/typesinternal",
   ]
   pruneopts = "NUT"
-  revision = "582c62ec74d06936c88d4b760c63cbc2925e69c7"
+  revision = "78b158585360beccadc3faac6e35759f491831f3"
 
 [[projects]]
   branch = "master"
@@ -686,7 +686,7 @@
   revision = "5ec99f83aff198f5fbd629d6c8d8eb38a04218ca"
 
 [[projects]]
-  digest = "1:486d9d6d5a9e35b05fcfb0662c505e13e8c3c2b4ed68e223877ec2d47637c75e"
+  digest = "1:04d4438175d1d7018f0604ce88da74a23a222232433b3b1e97b206b370e164cf"
   name = "google.golang.org/api"
   packages = [
     "googleapi",
@@ -705,8 +705,8 @@
     "transport/internal/dca",
   ]
   pruneopts = "NUT"
-  revision = "e10ce72b1284e32b9a23504649328761da5dcfdb"
-  version = "v0.34.0"
+  revision = "84df58a8914832693858b396c6099dee1756bf13"
+  version = "v0.35.0"
 
 [[projects]]
   digest = "1:7962fa8a69cee98816eb75ac9b23536934712a5eb5db5f76913a052c5e8571b6"
@@ -739,10 +739,10 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "24207fddd1c3948fcd60d2073016c974d694328f"
+  revision = "f9bfe239b0ba6485a453f250d0502096ce832df2"
 
 [[projects]]
-  digest = "1:b48dee7800c8bfabca8663f14affbc537a075986e1fd7dcd402d71601518fa31"
+  digest = "1:c1bd0f7bba5fd81b5cdf2efd84076e47a786ec74902180ccb7ebc004b5632166"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -787,8 +787,8 @@
     "tap",
   ]
   pruneopts = "NUT"
-  revision = "a767afcb69f50a47471acd75d5a1ad062561554d"
-  version = "v1.33.1"
+  revision = "56d63285d528c0d33f9bf8c355139d91edc047de"
+  version = "v1.33.2"
 
 [[projects]]
   digest = "1:a13c8223dba9f3f6788b8942e80cb81d42a0b7cc8f9d741de7b78238a2588177"
