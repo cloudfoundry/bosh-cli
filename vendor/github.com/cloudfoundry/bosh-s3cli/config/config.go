@@ -195,6 +195,12 @@ func (c *S3Cli) S3Endpoint() string {
 	if c.Host == "" {
 		return ""
 	}
+	if c.Port == 80 && c.UseSSL == false {
+		return c.Host
+	}
+	if c.Port == 443 && c.UseSSL == true {
+		return c.Host
+	}
 	if c.Port != 0 {
 		return fmt.Sprintf("%s:%d", c.Host, c.Port)
 	}
