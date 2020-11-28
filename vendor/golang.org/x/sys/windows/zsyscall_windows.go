@@ -95,6 +95,7 @@ var (
 	procImpersonateSelf                                      = modadvapi32.NewProc("ImpersonateSelf")
 	procInitializeSecurityDescriptor                         = modadvapi32.NewProc("InitializeSecurityDescriptor")
 	procInitiateSystemShutdownExW                            = modadvapi32.NewProc("InitiateSystemShutdownExW")
+	procIsTokenRestricted                                    = modadvapi32.NewProc("IsTokenRestricted")
 	procIsValidSecurityDescriptor                            = modadvapi32.NewProc("IsValidSecurityDescriptor")
 	procIsValidSid                                           = modadvapi32.NewProc("IsValidSid")
 	procIsWellKnownSid                                       = modadvapi32.NewProc("IsWellKnownSid")
@@ -279,6 +280,8 @@ var (
 	procSetConsoleCursorPosition                             = modkernel32.NewProc("SetConsoleCursorPosition")
 	procSetConsoleMode                                       = modkernel32.NewProc("SetConsoleMode")
 	procSetCurrentDirectoryW                                 = modkernel32.NewProc("SetCurrentDirectoryW")
+	procSetDefaultDllDirectories                             = modkernel32.NewProc("SetDefaultDllDirectories")
+	procSetDllDirectoryW                                     = modkernel32.NewProc("SetDllDirectoryW")
 	procSetEndOfFile                                         = modkernel32.NewProc("SetEndOfFile")
 	procSetEnvironmentVariableW                              = modkernel32.NewProc("SetEnvironmentVariableW")
 	procSetErrorMode                                         = modkernel32.NewProc("SetErrorMode")
@@ -751,6 +754,15 @@ func InitiateSystemShutdownEx(machineName *uint16, message *uint16, timeout uint
 	}
 	r1, _, e1 := syscall.Syscall6(procInitiateSystemShutdownExW.Addr(), 6, uintptr(unsafe.Pointer(machineName)), uintptr(unsafe.Pointer(message)), uintptr(timeout), uintptr(_p0), uintptr(_p1), uintptr(reason))
 	if r1 == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
+func isTokenRestricted(tokenHandle Token) (ret bool, err error) {
+	r0, _, e1 := syscall.Syscall(procIsTokenRestricted.Addr(), 1, uintptr(tokenHandle), 0, 0)
+	ret = r0 != 0
+	if !ret {
 		err = errnoErr(e1)
 	}
 	return
@@ -2360,6 +2372,31 @@ func SetConsoleMode(console Handle, mode uint32) (err error) {
 
 func SetCurrentDirectory(path *uint16) (err error) {
 	r1, _, e1 := syscall.Syscall(procSetCurrentDirectoryW.Addr(), 1, uintptr(unsafe.Pointer(path)), 0, 0)
+	if r1 == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
+func SetDefaultDllDirectories(directoryFlags uint32) (err error) {
+	r1, _, e1 := syscall.Syscall(procSetDefaultDllDirectories.Addr(), 1, uintptr(directoryFlags), 0, 0)
+	if r1 == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
+func SetDllDirectory(path string) (err error) {
+	var _p0 *uint16
+	_p0, err = syscall.UTF16PtrFromString(path)
+	if err != nil {
+		return
+	}
+	return _SetDllDirectory(_p0)
+}
+
+func _SetDllDirectory(path *uint16) (err error) {
+	r1, _, e1 := syscall.Syscall(procSetDllDirectoryW.Addr(), 1, uintptr(unsafe.Pointer(path)), 0, 0)
 	if r1 == 0 {
 		err = errnoErr(e1)
 	}
