@@ -140,7 +140,7 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 		case event.State == EventStateFailed:
 			r.printBlock(fmt.Sprintf(" (%s)", event.DurationSinceStartAsStr()))
 			r.ui.PrintErrorBlock(fmt.Sprintf(
-				"\n     %s             L Error: %s", strings.Repeat(" ", len(string(id))), event.Data.Error))
+				"\n     %s            L Error: %s", strings.Repeat(" ", len(fmt.Sprint(id))), event.Data.Error))
 		}
 	} else {
 		if r.lastGlobalEvent != nil && !r.lastGlobalEvent.IsSameTaskID(event) && event.IsWorthKeeping() {
@@ -185,7 +185,7 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 			r.printBlock(fmt.Sprintf("%s: %s (%s)",
 				desc, event.Task, event.DurationSinceStartAsStr()))
 			r.ui.PrintErrorBlock(fmt.Sprintf(
-				"\n     %s             L Error: %s", strings.Repeat(" ", len(string(id))), event.Data.Error))
+				"\n     %s            L Error: %s", strings.Repeat(" ", len(fmt.Sprint(id))), event.Data.Error))
 
 		case event.Error != nil:
 			r.printBlock(prefix)
