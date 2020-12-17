@@ -46,7 +46,7 @@
   revision = "2ac56b3541156ef8351c52058f3ac6f1457e4edf"
 
 [[projects]]
-  digest = "1:575104e0f0a2219c39aab732a4747ae493ff93e49c589d0c2f304968f9fb27b2"
+  digest = "1:431a38fe1d27ffafa1d4a99311123aa64e3ed934364bec53672209d5db685e42"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -97,8 +97,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "9a8fdb97a9adb0c207b7e4f8a553906632b77355"
-  version = "v1.36.7"
+  revision = "8f9fa09f119c2a2f1882adfb652b1395d9b28330"
+  version = "v1.36.11"
 
 [[projects]]
   digest = "1:42800cc5868028ee21ff8252e541b2461244686ba0248cc1e3fcaee5082ded41"
@@ -135,8 +135,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "bd334160d1fd8c4c22ab125421437aa4348910b9"
-  version = "v2.345.0"
+  revision = "13d86ab97cb03ae591bb5fedb245ca51ca4299b3"
+  version = "v2.346.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -198,7 +198,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "004b43f0ac7895adbcf1cdc2eb87ae55eed79a91"
+  revision = "2d810666951c1367bf1b23bc3354743707afe09d"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -522,7 +522,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:883724d0a889c2d5d1f16a34c6784f321f95faa5fa214f84dbeaa2d8dcb4db27"
+  digest = "1:87a35f38e262c81fcf443b21ba7222eb286427e5bc84705fdc459a19e153e76e"
   name = "golang.org/x/crypto"
   packages = [
     "blowfish",
@@ -537,7 +537,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "5f87f3452ae96c4850ab9af7783f2517b643061b"
+  revision = "9d1352758620574fd6fc23c31c59c4333b4b3fff"
 
 [[projects]]
   branch = "master"
@@ -581,7 +581,7 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "ac852fbbde11df194bfd5004603c7c8e117901f2"
+  revision = "986b41b23924a168277bf3df55a4fd462154f916"
 
 [[projects]]
   branch = "master"
@@ -599,7 +599,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ca4eb3eae349682f0041a01481bec7998b8f575f1678a2768519ddf6255bca46"
+  digest = "1:ee9d24e4046d6356ca614b48c5badb3581422c7eb1ad88a136d841344bbbc1df"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -609,7 +609,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "8ad439b19e0fb2ded35375e495090c1334011eb9"
+  revision = "f9fddec55a1e5ebe479d5259f4982995b3194ebc"
 
 [[projects]]
   branch = "master"
@@ -681,7 +681,7 @@
     "internal/typesinternal",
   ]
   pruneopts = "NUT"
-  revision = "d93e913c1a5829629e8005c31b45b96a7b143a16"
+  revision = "11a5667e27eeb5c7205b7f41cbe8450d7bcdbfd4"
 
 [[projects]]
   branch = "master"
@@ -748,7 +748,7 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "40ec1c210f7ac9e14996fbbe456fabffc3925013"
+  revision = "8c77b98c765d0c8f0e0cec54ef5dd2316cf2d21c"
 
 [[projects]]
   digest = "1:296980386359557739d2ba51c3d14746e35e166ff7b3c7cf63caf295ff509462"
