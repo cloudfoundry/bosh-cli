@@ -46,7 +46,7 @@
   revision = "2ac56b3541156ef8351c52058f3ac6f1457e4edf"
 
 [[projects]]
-  digest = "1:431a38fe1d27ffafa1d4a99311123aa64e3ed934364bec53672209d5db685e42"
+  digest = "1:e73311c3fa2e0c9c5432ab26775a81c3fd1afbddabbcf6dc3ceba1e99e226792"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -97,8 +97,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "8f9fa09f119c2a2f1882adfb652b1395d9b28330"
-  version = "v1.36.11"
+  revision = "5bf824bb44d0882723ac522a736aec913d9f05df"
+  version = "v1.36.12"
 
 [[projects]]
   digest = "1:42800cc5868028ee21ff8252e541b2461244686ba0248cc1e3fcaee5082ded41"
@@ -599,7 +599,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ee9d24e4046d6356ca614b48c5badb3581422c7eb1ad88a136d841344bbbc1df"
+  digest = "1:7496f583fba0e08e304b820a75b934bd8afba6e447ef6d1bd37d9d92d207d470"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -609,7 +609,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "f9fddec55a1e5ebe479d5259f4982995b3194ebc"
+  revision = "7d0127a7474212d658b2b43a776ebb0ac9f10b80"
 
 [[projects]]
   branch = "master"
@@ -681,7 +681,7 @@
     "internal/typesinternal",
   ]
   pruneopts = "NUT"
-  revision = "11a5667e27eeb5c7205b7f41cbe8450d7bcdbfd4"
+  revision = "ae774e9781d20c38931ca8334d1c4eeb4ccb4ae0"
 
 [[projects]]
   branch = "master"
