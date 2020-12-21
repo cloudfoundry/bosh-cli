@@ -180,7 +180,7 @@ variables:
   type: certificate
   options:
     ca: ca
-    alternative_names: ((common_name))
+    alternative_names: [((common_name))]
     common_name: ((common_name))
 `)
 		Expect(err).ToNot(HaveOccurred())
