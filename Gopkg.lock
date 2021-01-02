@@ -46,7 +46,7 @@
   revision = "2ac56b3541156ef8351c52058f3ac6f1457e4edf"
 
 [[projects]]
-  digest = "1:d5728d4a1aeb95446d1e3f1a73dc531f93b49a5c32958ee53c46c191b5b0c140"
+  digest = "1:ced86ccb1ed389234b2d665423234de6e5dbf586497ed479f6c78c5d94b64d64"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -97,8 +97,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "7f1d5a77f869316935cb42a73eedb42ea47ff8eb"
-  version = "v1.36.15"
+  revision = "a3494c9c691cab3f237b868ef0b1ab34a3ee8bf0"
+  version = "v1.36.19"
 
 [[projects]]
   digest = "1:42800cc5868028ee21ff8252e541b2461244686ba0248cc1e3fcaee5082ded41"
@@ -135,8 +135,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "e0290211528470cd7ce68a3e09bf0ebd9e3d97c6"
-  version = "v2.347.0"
+  revision = "91c5efa23698e71e647720c06ef9897330869a27"
+  version = "v2.348.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -198,7 +198,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "b8b153d2e7a24149e7b5cbfef2eff1eacbfa3d1f"
+  revision = "333c696f5345b5e15eb568700ab9c6adac475938"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -599,7 +599,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d9fab2fb2707b44866340abbad38ad30f72160ddc65a0486e8b072b6fd24db4b"
+  digest = "1:cf2bebcddfabbf9cd8651c33bf838a3acc0e9fd18d36613447bcdd4825527c8a"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -609,7 +609,7 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "0d417f6369309be088e227ead8736fb722d759d3"
+  revision = "2d18734c6014bdfc4d7fd7cfc8e0608c9684967b"
 
 [[projects]]
   branch = "master"
@@ -681,7 +681,7 @@
     "internal/typesinternal",
   ]
   pruneopts = "NUT"
-  revision = "2b0845dc783e36ae26d683f4915a5840ef01ab0f"
+  revision = "2dba1e4ea05c87619b17c862f8ae1cb05ac5694a"
 
 [[projects]]
   branch = "master"
