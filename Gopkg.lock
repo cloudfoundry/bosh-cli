@@ -46,7 +46,7 @@
   revision = "2ac56b3541156ef8351c52058f3ac6f1457e4edf"
 
 [[projects]]
-  digest = "1:a2b879f6b261d79a5f6945a6df0f438c488db6215e3bf5f55dc089cb10903114"
+  digest = "1:4ee69f225cc60355a7aee09e0836df461f1877aaa6fcbaaddc74549488ac0b13"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -102,8 +102,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "d8a5a9febe5602f134648c18e9f83546284cda35"
-  version = "v1.37.6"
+  revision = "07b696e7c4c34e207aeb029312194c78f6a35456"
+  version = "v1.37.10"
 
 [[projects]]
   digest = "1:42800cc5868028ee21ff8252e541b2461244686ba0248cc1e3fcaee5082ded41"
@@ -122,12 +122,12 @@
   revision = "454dded8b957bf46afc5122eaf5bf31847485a54"
 
 [[projects]]
-  digest = "1:745f826d7ba65c5258f7a4b877dcaca56a303042960c6ba705921f9ceaf3b36e"
+  digest = "1:cf837ca986afb38d2af6d58f1cb157a15aa7f91feeceaf9a54ee1a370a033e43"
   name = "github.com/cheggaaa/pb"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "5784bcc95a1741c2ca2b46b19f1f3d398557300c"
-  version = "v3.0.5"
+  revision = "2553c8948602333403fb3de98c6829365a497a50"
+  version = "v3.0.6"
 
 [[projects]]
   digest = "1:72d9e0148fe773c256fa389c1ac712f9bcfb05491fa2ac42df17a5205db78996"
@@ -140,8 +140,8 @@
     "agentclient/http/mocks",
   ]
   pruneopts = "NUT"
-  revision = "084f6147c315f20b2b6b941b368cd0d71fa6c774"
-  version = "v2.363.0"
+  revision = "ed9422857aaf47461b55de579f17f23e76fa19c4"
+  version = "v2.367.0"
 
 [[projects]]
   digest = "1:cdc7f46faba2071f358ede930289d551b3e8bf1a732cd44fa3fe694479bd0fb4"
@@ -203,7 +203,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "ab14c90ad9f233aa5037343549046cda9eafba58"
+  revision = "910bbc6b59f7a1d2234612362f81d40a09f0e585"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -408,7 +408,7 @@
   revision = "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
 
 [[projects]]
-  digest = "1:1f3230329bc193cc4ce7c622998afc3d311fa11f78b9efd54fbdecf6e8bef637"
+  digest = "1:85d886fe78a7da9d756d4648297c3b2ea770c9e5c728eb28d0191a63c2275bda"
   name = "github.com/nxadm/tail"
   packages = [
     ".",
@@ -418,8 +418,8 @@
     "winfile",
   ]
   pruneopts = "NUT"
-  revision = "ed4934787418681691173f6f7aa0499582e7611a"
-  version = "v1.4.6"
+  revision = "abad231d8d07ef91e09cd4c4c457cac35ed3bbb9"
+  version = "v1.4.8"
 
 [[projects]]
   digest = "1:57570c4fd3519afb4eec9c878fdfa0a789bd2785df47f4192009fdabe06f9b3b"
@@ -599,7 +599,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9f9301c94ff0f6fd7f6eb9c44f711f980408a41232d37728c37e20fb21c8b178"
+  digest = "1:1bcf9376652146448473e6a02af7c34b76af5e39b8418147a82bd71be6e89027"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -610,7 +610,7 @@
     "jwt",
   ]
   pruneopts = "NUT"
-  revision = "010130855d6ca777e79c9e50ae4f39373ea0ef74"
+  revision = "66670185b0cdf83286f736c2e4cdced4d9cb6170"
 
 [[projects]]
   branch = "master"
@@ -712,7 +712,7 @@
   revision = "5ec99f83aff198f5fbd629d6c8d8eb38a04218ca"
 
 [[projects]]
-  digest = "1:fcea77f3d2bc5b805cdc8717f5fe7e817a43c743fd5a4231ff6f0ca7998a4a84"
+  digest = "1:63da0c5f331dac399c48d523b69ffc1dd73b96c1c6f4e21f3da6b0091da52d37"
   name = "google.golang.org/api"
   packages = [
     "googleapi",
@@ -731,8 +731,8 @@
     "transport/internal/dca",
   ]
   pruneopts = "NUT"
-  revision = "04896428adbc06915443533f089b24c8755614a0"
-  version = "v0.39.0"
+  revision = "7fd7a5fcdd3f78a6c49556a5358164cb1405bd51"
+  version = "v0.40.0"
 
 [[projects]]
   digest = "1:7962fa8a69cee98816eb75ac9b23536934712a5eb5db5f76913a052c5e8571b6"
@@ -765,7 +765,7 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "deb82836646031fbd5270d6e494a578ac0b028e6"
+  revision = "e7f2df4ecc2d582d58055ae5ab48ef3ca683d3fd"
 
 [[projects]]
   digest = "1:b894b39718a2d377f0cbc7851e6f59de2ed6620aa8977f1cb3dd81e10bcbb1d2"
