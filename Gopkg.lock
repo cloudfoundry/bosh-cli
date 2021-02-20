@@ -15,8 +15,8 @@
     "storage",
   ]
   pruneopts = "NUT"
-  revision = "ca07547ef0053f9655d22cc0608ace365d6397b2"
-  version = "v0.76.0"
+  revision = "5c37101e8211f2e832bb1aefc43b23ec9dd54913"
+  version = "v0.77.0"
 
 [[projects]]
   digest = "1:41531922c7f47d5157308b4dd1abc6142c4c583845ce424ed9664db867fa48cf"
@@ -46,7 +46,7 @@
   revision = "2ac56b3541156ef8351c52058f3ac6f1457e4edf"
 
 [[projects]]
-  digest = "1:4ee69f225cc60355a7aee09e0836df461f1877aaa6fcbaaddc74549488ac0b13"
+  digest = "1:292a62c9769ddf47207d41d39135e0ba99481bd8be818d24bf08fa64a7ba30a2"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -102,8 +102,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "07b696e7c4c34e207aeb029312194c78f6a35456"
-  version = "v1.37.10"
+  revision = "800d50bd8b919e6c037095083f0e187993a3113c"
+  version = "v1.37.15"
 
 [[projects]]
   digest = "1:42800cc5868028ee21ff8252e541b2461244686ba0248cc1e3fcaee5082ded41"
@@ -203,7 +203,7 @@
     "work",
   ]
   pruneopts = "NUT"
-  revision = "910bbc6b59f7a1d2234612362f81d40a09f0e585"
+  revision = "d3ba248ff0425de3a6926cb521ccff69d541bbbf"
 
 [[projects]]
   digest = "1:109df5bb4005edf534277102557bb43563f2fdfe7d2a2c6171c5562a0e7f0536"
@@ -281,12 +281,12 @@
   revision = "8c9f03a8e57eb486e42badaed3fb287da51807ba"
 
 [[projects]]
-  digest = "1:7ae311278f7ccaa724de8f2cdec0a507ba3ee6dea8c77237e8157bcf64b0f28b"
+  digest = "1:a4e1932ad06fc04794b8af07eb167d549bbb402d5a962857f0351fca1fcc0d1c"
   name = "github.com/golang/mock"
   packages = ["gomock"]
   pruneopts = "NUT"
-  revision = "f7b1909c82a8958747e5c87c6a5c3b2eaed8a33d"
-  version = "v1.4.4"
+  revision = "a23c5e7c8f7bb73c8ae5d8711815bbd30f3cfac8"
+  version = "v1.5.0"
 
 [[projects]]
   digest = "1:617351cae5773f5f0094580e7312b57821c62ffdc18b11857051278edd0d0c33"
@@ -536,7 +536,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:87a35f38e262c81fcf443b21ba7222eb286427e5bc84705fdc459a19e153e76e"
+  digest = "1:c31973f766165165b783a9dc2a2b1ff811c10afd194d961ca71af2f06eaf5cbc"
   name = "golang.org/x/crypto"
   packages = [
     "blowfish",
@@ -551,7 +551,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NUT"
-  revision = "eec23a3978adcfd26c29f4153eaa3e3d9b2cc53a"
+  revision = "5ea612d1eb830b38bc4e914e37f55311eb58adce"
 
 [[projects]]
   branch = "master"
@@ -577,7 +577,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0022c61164e58439f715c2b751d4cf3e08b71ec7cdba3998c9bcb4915aa05b05"
+  digest = "1:d81530c1c2f58d25b8338abb42a366808f80ba35882f21ff53cf5f7210c5f460"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -595,11 +595,11 @@
     "trace",
   ]
   pruneopts = "NUT"
-  revision = "5f4716e94777e714bc2fb3e3a44599cb40817aac"
+  revision = "5f55cee0dc0dc168ce29222f077fe7fcd4be72c5"
 
 [[projects]]
   branch = "master"
-  digest = "1:1bcf9376652146448473e6a02af7c34b76af5e39b8418147a82bd71be6e89027"
+  digest = "1:32d10e727f9058ca4b38b4e7db575365abf9b59a7df1146d2299384a6fc729f2"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
@@ -610,11 +610,11 @@
     "jwt",
   ]
   pruneopts = "NUT"
-  revision = "66670185b0cdf83286f736c2e4cdced4d9cb6170"
+  revision = "9bb904979d93d76cf7000f77c4a1d7bc06c7a708"
 
 [[projects]]
   branch = "master"
-  digest = "1:c7709556636d06cef28661c91038d70293b2796263d4b5bbe2d07368ecaebdca"
+  digest = "1:c537ad4a4e8b0b7a63fe4f9b5e8c851888d8d4f5f1bfb3a509b3386a16520739"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -625,15 +625,15 @@
     "windows",
   ]
   pruneopts = "NUT"
-  revision = "22da62e12c0cd9c1da93581e1113ca4d82a5be14"
+  revision = "9a76102bfb4322425a1228caa377974426e82c84"
 
 [[projects]]
   branch = "master"
-  digest = "1:9545dfc718dfc04f2bf1bd83110eea358887b778dfddcdc33fb54ce7d50dc88c"
+  digest = "1:6cf96a393660f861b196dbd0dec7f30f6ab972a2e38627171790ec8bcdd54e6f"
   name = "golang.org/x/term"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "2321bbc49cbf8303ea9834c419750e793e31be73"
+  revision = "6a3ed077a48de71621ad530f9078fffa0bc0ce32"
 
 [[projects]]
   digest = "1:e8955cd29d668878de0082fda242a1fa9fd5db3cdb9e816ba610f8e705486f4a"
@@ -765,7 +765,7 @@
     "googleapis/type/expr",
   ]
   pruneopts = "NUT"
-  revision = "e7f2df4ecc2d582d58055ae5ab48ef3ca683d3fd"
+  revision = "d891e3cb3b5bb86b0543aa991ac26127e32bf70c"
 
 [[projects]]
   digest = "1:b894b39718a2d377f0cbc7851e6f59de2ed6620aa8977f1cb3dd81e10bcbb1d2"
