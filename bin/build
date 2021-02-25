@@ -4,4 +4,4 @@ set -e
 
 bin=$(dirname $0)
 
-$bin/go build -o $bin/../out/bosh github.com/cloudfoundry/bosh-cli
+go build -o $bin/../out/bosh github.com/cloudfoundry/bosh-cli
