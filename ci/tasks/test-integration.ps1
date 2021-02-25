@@ -8,10 +8,9 @@ $env:PATH = $env:GOPATH + "/bin;C:/go/bin;" + $env:PATH
 
 cd $env:GOPATH/src/github.com/cloudfoundry/bosh-cli
 
-poweshell.exe bin/install-go.ps1
+powershell.exe bin/install-go.ps1
 
-go.exe install github.com/cloudfoundry/bosh-cli/vendor/github.com/onsi/ginkgo/ginkgo
-ginkgo.exe -race -trace integration
+go.exe run github.com/onsi/ginkgo/ginkgo -race -trace integration
 
 if ($LastExitCode -ne 0) {
   Write-Error $_

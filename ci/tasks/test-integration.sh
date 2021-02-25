@@ -10,5 +10,4 @@ export GOPATH=$(pwd)/gopath
 
 cd gopath/src/github.com/cloudfoundry/bosh-cli
 bin/clean
-bin/install-ginkgo
 bin/test-integration
