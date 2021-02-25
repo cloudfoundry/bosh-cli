@@ -5,4 +5,4 @@ set -e
 bin=$(dirname $0)
 
 echo -e "\n Running integration tests..."
-$bin/env ginkgo -race -trace integration
+go run github.com/onsi/ginkgo/ginkgo -race -trace integration
