@@ -3,7 +3,7 @@ package ui
 import (
 	"io"
 
-	"github.com/cheggaaa/pb"
+	"github.com/cheggaaa/pb/v3"
 	bio "github.com/cloudfoundry/bosh-cli/io"
 )
 

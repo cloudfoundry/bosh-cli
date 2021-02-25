@@ -5,7 +5,7 @@ set -e
 bin=$(dirname $0)
 
 echo -e "\n Vetting packages for potential issues..."
-$bin/govet
+go vet `go list ./... | grep -v "github.com/cloudfoundry/bosh-cli/vendor" | xargs`
 
 # skipping check for unhandled errors until https://github.com/kisielk/errcheck/issues/75 is resolved
 #$bin/test-unhandled-errors
