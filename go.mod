@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/storage v1.14.0 // indirect
 	code.cloudfoundry.org/clock v1.0.0
 	code.cloudfoundry.org/workpool v0.0.0-20200131000409-2ac56b354115
-	github.com/aws/aws-sdk-go v1.37.21 // indirect
+	github.com/aws/aws-sdk-go v1.37.25 // indirect
 	github.com/cheggaaa/pb/v3 v3.0.6
 	github.com/cloudfoundry/bosh-agent v2.367.0+incompatible
 	github.com/cloudfoundry/bosh-davcli v0.0.44
@@ -33,7 +33,9 @@ require (
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
 	golang.org/x/oauth2 v0.0.0-20210220000619-9bb904979d93 // indirect
+	golang.org/x/sys v0.0.0-20210305230114-8fe3ee5dd75b // indirect
 	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d // indirect
+	google.golang.org/genproto v0.0.0-20210303154014-9728d6b83eeb // indirect
 	google.golang.org/grpc v1.36.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )
