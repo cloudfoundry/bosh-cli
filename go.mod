@@ -6,13 +6,13 @@ require (
 	cloud.google.com/go/storage v1.14.0 // indirect
 	code.cloudfoundry.org/clock v1.0.0
 	code.cloudfoundry.org/workpool v0.0.0-20200131000409-2ac56b354115
-	github.com/aws/aws-sdk-go v1.38.17 // indirect
+	github.com/aws/aws-sdk-go v1.38.18 // indirect
 	github.com/cheggaaa/pb/v3 v3.0.8
 	github.com/cloudfoundry/bosh-agent v2.367.0+incompatible
 	github.com/cloudfoundry/bosh-davcli v0.0.44
 	github.com/cloudfoundry/bosh-gcscli v0.0.18
 	github.com/cloudfoundry/bosh-s3cli v0.0.97
-	github.com/cloudfoundry/bosh-utils v0.0.0-20210405164104-56a124db2552
+	github.com/cloudfoundry/bosh-utils v0.0.0-20210410100138-8d515c41dac9
 	github.com/cloudfoundry/config-server v0.1.21
 	github.com/cloudfoundry/socks5-proxy v0.2.0
 	github.com/cppforlife/go-patch v0.2.0
@@ -30,7 +30,6 @@ require (
 	github.com/vito/go-interact v1.0.0
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1 // indirect
 	golang.org/x/term v0.0.0-20210406210042-72f3dc4e9b72 // indirect
 	google.golang.org/api v0.44.0 // indirect
 	google.golang.org/genproto v0.0.0-20210406143921-e86de6bf7a46 // indirect
