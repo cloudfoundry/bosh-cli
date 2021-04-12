@@ -14,7 +14,7 @@ require (
 	github.com/cloudfoundry/bosh-s3cli v0.0.97
 	github.com/cloudfoundry/bosh-utils v0.0.0-20210410100138-8d515c41dac9
 	github.com/cloudfoundry/config-server v0.1.21
-	github.com/cloudfoundry/socks5-proxy v0.2.0
+	github.com/cloudfoundry/socks5-proxy v0.2.1
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.0
