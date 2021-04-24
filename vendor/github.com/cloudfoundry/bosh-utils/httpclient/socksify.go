@@ -100,7 +100,11 @@ func SOCKS5DialContextFuncFromEnvironment(origDialer *net.Dialer, socks5Proxy Pr
 
 	perHost := goproxy.NewPerHost(proxy, origDialer)
 
-	noProxy := os.Getenv("no_proxy")
+	noProxy := os.Getenv("NO_PROXY")
+	if len(noProxy) == 0 {
+		noProxy = os.Getenv("no_proxy")
+	}
+
 	if len(noProxy) != 0 {
 		perHost.AddFromString(noProxy)
 	}
