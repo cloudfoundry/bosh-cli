@@ -120,7 +120,7 @@ jobs:
           state: success
           commit: bosh-cli
 
-      - {put: bosh-cli-promoted, params: {repository: bosh-cli, tag: version-semver/number, tag_prefix: v}}
+      - {put: bosh-cli, params: {repository: bosh-cli, tag: version-semver/number, tag_prefix: v}}
 
       - in_parallel:
         - {put: release-bucket-linux, params: {file: compiled-linux/bosh-cli-*-linux-amd64}}
@@ -247,7 +247,7 @@ resources:
     type: git
     source:
       uri: git@github.com:cloudfoundry/bosh-cli.git
-      branch: develop
+      branch: main
       private_key: {{concourse_github_private_key}}
 
   - name: bosh-warden-stemcell-xenial
@@ -265,15 +265,8 @@ resources:
     source:
       repository: cloudfoundry/bosh-cli
       access_token: {{github_token}}
-      branch: develop
+      branch: main
       context: ci/published
-
-  - name: bosh-cli-promoted
-    type: git
-    source:
-      uri: git@github.com:cloudfoundry/bosh-cli.git
-      branch: master
-      private_key: {{concourse_github_private_key}}
 
   - name: release-bucket-linux
     type: s3
