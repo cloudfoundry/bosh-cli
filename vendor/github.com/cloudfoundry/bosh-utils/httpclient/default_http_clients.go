@@ -49,7 +49,7 @@ func CreateKeepAliveDefaultClient(certPool *x509.CertPool) *http.Client {
 
 func CreateDefaultClientInsecureSkipVerify() *http.Client {
 	insecureSkipVerify := true
-	external := true
+	external := false
 	disableKeepAlives := true
 	return factory{}.New(insecureSkipVerify, external, disableKeepAlives, nil)
 }

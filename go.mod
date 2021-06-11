@@ -6,7 +6,6 @@ require (
 	cloud.google.com/go v0.84.0 // indirect
 	cloud.google.com/go/storage v1.15.0 // indirect
 	code.cloudfoundry.org/clock v1.0.0
-	code.cloudfoundry.org/tlsconfig v0.0.0-20210611184518-7cab1d27de74 // indirect
 	code.cloudfoundry.org/workpool v0.0.0-20200131000409-2ac56b354115
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.38.60 // indirect
@@ -15,7 +14,7 @@ require (
 	github.com/cloudfoundry/bosh-davcli v0.0.44
 	github.com/cloudfoundry/bosh-gcscli v0.0.18
 	github.com/cloudfoundry/bosh-s3cli v0.0.97
-	github.com/cloudfoundry/bosh-utils v0.0.260
+	github.com/cloudfoundry/bosh-utils v0.0.261
 	github.com/cloudfoundry/config-server v0.1.21
 	github.com/cloudfoundry/socks5-proxy v0.2.9
 	github.com/cppforlife/go-patch v0.2.0

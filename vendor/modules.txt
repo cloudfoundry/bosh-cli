@@ -15,7 +15,6 @@ cloud.google.com/go/storage
 code.cloudfoundry.org/clock
 code.cloudfoundry.org/clock/fakeclock
 # code.cloudfoundry.org/tlsconfig v0.0.0-20210611184518-7cab1d27de74
-## explicit
 code.cloudfoundry.org/tlsconfig
 # code.cloudfoundry.org/workpool v0.0.0-20200131000409-2ac56b354115
 ## explicit
@@ -105,7 +104,7 @@ github.com/cloudfoundry/bosh-gcscli/config
 ## explicit
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.260
+# github.com/cloudfoundry/bosh-utils v0.0.261
 ## explicit
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/fakes
