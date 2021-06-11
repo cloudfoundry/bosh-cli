@@ -104,7 +104,7 @@ github.com/cloudfoundry/bosh-gcscli/config
 ## explicit
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.258
+# github.com/cloudfoundry/bosh-utils v0.0.260
 ## explicit
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/fakes

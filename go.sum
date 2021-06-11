@@ -77,6 +77,8 @@ github.com/cloudfoundry/bosh-s3cli v0.0.97/go.mod h1:BsLIugUiw9jeJQ+celt9oKg7Mja
 github.com/cloudfoundry/bosh-utils v0.0.0-20180712232800-8407325b97e7/go.mod h1:JCrKwetZGjxbfq1U139TZuXDBfdGLtjOEAfxMWKV/QM=
 github.com/cloudfoundry/bosh-utils v0.0.258 h1:cVjLkWO/6uuCbb1MaLpqLimzGHOMVi2UbqipKlUL0PE=
 github.com/cloudfoundry/bosh-utils v0.0.258/go.mod h1:u9faaJNq8x9iJYhqonUqELnY4rxRQ3eqWUt8jUSvfV8=
+github.com/cloudfoundry/bosh-utils v0.0.260 h1:WZLRUAWghiUenABzYLGUhV90dJ5/M5v/sIlX6X/jA7w=
+github.com/cloudfoundry/bosh-utils v0.0.260/go.mod h1:DRaMVhDueUT81+GL5aVNRxoDXpRHyTUy65p5G7matFM=
 github.com/cloudfoundry/config-server v0.1.21 h1:PvRL3KasbDEweX36pucSRY8h8tsgw6zG/EjOJXrrVlA=
 github.com/cloudfoundry/config-server v0.1.21/go.mod h1:Y3b/MHqyp22CcG0X1qvEHG8lujoebxjD9IAslyS/Yk0=
 github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e h1:FQdRViaoDphGRfgrotl2QGsX1gbloe57dbGBS5CG6KY=

@@ -14,7 +14,7 @@ require (
 	github.com/cloudfoundry/bosh-davcli v0.0.44
 	github.com/cloudfoundry/bosh-gcscli v0.0.18
 	github.com/cloudfoundry/bosh-s3cli v0.0.97
-	github.com/cloudfoundry/bosh-utils v0.0.258
+	github.com/cloudfoundry/bosh-utils v0.0.260
 	github.com/cloudfoundry/config-server v0.1.21
 	github.com/cloudfoundry/socks5-proxy v0.2.9
 	github.com/cppforlife/go-patch v0.2.0
