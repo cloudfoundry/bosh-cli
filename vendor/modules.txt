@@ -130,7 +130,7 @@ github.com/cloudfoundry/config-server/types
 github.com/cloudfoundry/config-server/types/typesfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.9
+# github.com/cloudfoundry/socks5-proxy v0.2.10
 ## explicit
 github.com/cloudfoundry/socks5-proxy
 # github.com/cppforlife/go-patch v0.2.0
@@ -152,7 +152,7 @@ github.com/go-task/slim-sprig
 # github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 ## explicit
 github.com/golang/groupcache/lru
-# github.com/golang/mock v1.5.0
+# github.com/golang/mock v1.6.0
 ## explicit
 github.com/golang/mock/gomock
 # github.com/golang/protobuf v1.5.2
@@ -292,7 +292,6 @@ golang.org/x/lint/golint
 golang.org/x/mod/module
 golang.org/x/mod/semver
 # golang.org/x/net v0.0.0-20210610132358-84b48f89b13b
-## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/html
@@ -315,7 +314,6 @@ golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
 # golang.org/x/sys v0.0.0-20210611083646-a4fc73990273
-## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
 golang.org/x/sys/internal/unsafeheader

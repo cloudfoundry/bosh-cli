@@ -16,13 +16,13 @@ require (
 	github.com/cloudfoundry/bosh-s3cli v0.0.97
 	github.com/cloudfoundry/bosh-utils v0.0.261
 	github.com/cloudfoundry/config-server v0.1.21
-	github.com/cloudfoundry/socks5-proxy v0.2.9
+	github.com/cloudfoundry/socks5-proxy v0.2.10
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.0
 	github.com/fatih/color v1.12.0
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/mock v1.5.0
+	github.com/golang/mock v1.6.0
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jessevdk/go-flags v1.5.0
@@ -32,8 +32,6 @@ require (
 	github.com/onsi/gomega v1.13.0
 	github.com/vito/go-interact v1.0.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
-	golang.org/x/net v0.0.0-20210610132358-84b48f89b13b // indirect
-	golang.org/x/sys v0.0.0-20210611083646-a4fc73990273 // indirect
 	golang.org/x/term v0.0.0-20210503060354-a79de5458b56 // indirect
 	golang.org/x/tools v0.1.3 // indirect
 	google.golang.org/genproto v0.0.0-20210611144927-798beca9d670 // indirect
