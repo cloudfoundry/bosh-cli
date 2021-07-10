@@ -8,13 +8,13 @@ require (
 	code.cloudfoundry.org/clock v1.0.0
 	code.cloudfoundry.org/workpool v0.0.0-20200131000409-2ac56b354115
 	github.com/VividCortex/ewma v1.2.0 // indirect
-	github.com/aws/aws-sdk-go v1.39.0 // indirect
+	github.com/aws/aws-sdk-go v1.39.4 // indirect
 	github.com/cheggaaa/pb/v3 v3.0.8
 	github.com/cloudfoundry/bosh-agent v2.367.0+incompatible
 	github.com/cloudfoundry/bosh-davcli v0.0.44
 	github.com/cloudfoundry/bosh-gcscli v0.0.18
 	github.com/cloudfoundry/bosh-s3cli v0.0.97
-	github.com/cloudfoundry/bosh-utils v0.0.263
+	github.com/cloudfoundry/bosh-utils v0.0.264
 	github.com/cloudfoundry/config-server v0.1.26
 	github.com/cloudfoundry/socks5-proxy v0.2.12
 	github.com/cppforlife/go-patch v0.2.0
@@ -29,11 +29,10 @@ require (
 	github.com/mattn/go-isatty v0.0.13
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/onsi/ginkgo v1.16.4
-	github.com/onsi/gomega v1.13.0
+	github.com/onsi/gomega v1.14.0
 	github.com/vito/go-interact v1.0.0
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
-	google.golang.org/genproto v0.0.0-20210701191553-46259e63a0a9 // indirect
-	google.golang.org/grpc v1.39.0 // indirect
+	google.golang.org/genproto v0.0.0-20210708141623-e76da96a951f // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )
