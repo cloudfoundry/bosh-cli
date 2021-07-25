@@ -23,6 +23,11 @@ type FakeArchive struct {
 		result2 string
 		result3 error
 	}
+	CleanUpStub        func(string)
+	cleanUpMutex       sync.RWMutex
+	cleanUpArgsForCall []struct {
+		arg1 string
+	}
 	FingerprintStub        func() (string, error)
 	fingerprintMutex       sync.RWMutex
 	fingerprintArgsForCall []struct {
@@ -106,6 +111,38 @@ func (fake *FakeArchive) BuildReturnsOnCall(i int, result1 string, result2 strin
 	}{result1, result2, result3}
 }
 
+func (fake *FakeArchive) CleanUp(arg1 string) {
+	fake.cleanUpMutex.Lock()
+	fake.cleanUpArgsForCall = append(fake.cleanUpArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.CleanUpStub
+	fake.recordInvocation("CleanUp", []interface{}{arg1})
+	fake.cleanUpMutex.Unlock()
+	if stub != nil {
+		fake.CleanUpStub(arg1)
+	}
+}
+
+func (fake *FakeArchive) CleanUpCallCount() int {
+	fake.cleanUpMutex.RLock()
+	defer fake.cleanUpMutex.RUnlock()
+	return len(fake.cleanUpArgsForCall)
+}
+
+func (fake *FakeArchive) CleanUpCalls(stub func(string)) {
+	fake.cleanUpMutex.Lock()
+	defer fake.cleanUpMutex.Unlock()
+	fake.CleanUpStub = stub
+}
+
+func (fake *FakeArchive) CleanUpArgsForCall(i int) string {
+	fake.cleanUpMutex.RLock()
+	defer fake.cleanUpMutex.RUnlock()
+	argsForCall := fake.cleanUpArgsForCall[i]
+	return argsForCall.arg1
+}
+
 func (fake *FakeArchive) Fingerprint() (string, error) {
 	fake.fingerprintMutex.Lock()
 	ret, specificReturn := fake.fingerprintReturnsOnCall[len(fake.fingerprintArgsForCall)]
@@ -167,6 +204,8 @@ func (fake *FakeArchive) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.buildMutex.RLock()
 	defer fake.buildMutex.RUnlock()
+	fake.cleanUpMutex.RLock()
+	defer fake.cleanUpMutex.RUnlock()
 	fake.fingerprintMutex.RLock()
 	defer fake.fingerprintMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

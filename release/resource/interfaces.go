@@ -13,6 +13,7 @@ import (
 type Archive interface {
 	Fingerprint() (string, error)
 	Build(expectedFp string) (string, string, error)
+	CleanUp(path string)
 }
 
 type ArchiveFunc func(args ArchiveFactoryArgs) Archive

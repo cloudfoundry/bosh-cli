@@ -89,6 +89,7 @@ func (r *ResourceImpl) Build(devIndex, finalIndex ArchiveIndex) error {
 	if err != nil {
 		return err
 	}
+	defer r.archive.CleanUp(path)
 
 	newDevPath, newDevSHA1, err := devIndex.Add(r.name, r.fingerprint, path, sha1)
 	de, ok := err.(duplicateError)

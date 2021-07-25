@@ -127,6 +127,14 @@ var _ = Describe("NewResource", func() {
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
+		It("deletes the archive temp file", func() {
+			archive.BuildReturns("/built", "built-sha1", nil)
+
+			Expect(resource.Build(devIndex, finalIndex)).ToNot(HaveOccurred())
+
+			Expect(archive.CleanUpArgsForCall(0)).To(Equal("/built"))
+		})
+
 		Context("when adding an index fails", func() {
 			Context("when a duplicate error occurs", func() {
 				It("attempts to find and attach", func() {
