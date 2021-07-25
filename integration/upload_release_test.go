@@ -226,11 +226,6 @@ blobstore:
 		}
 
 		{ // Starting with empty tmp directory
-			matches, err := fs.RecursiveGlob(filepath.Join(boshTmpDir, "*"))
-			Expect(err).ToNot(HaveOccurred())
-			Expect(matches).ToNot(BeEmpty())
-
-			// create-release leaves dev artifacts, so clean up before upload
 			fs.RemoveAll(boshTmpDir)
 		}
 
