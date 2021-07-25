@@ -4,7 +4,10 @@ import (
 	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
 )
 
-//go:generate counterfeiter . Compilable
+// You only need **one** of these per package!
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . Compilable
 
 type Compilable interface {
 	Name() string
@@ -18,13 +21,13 @@ type Compilable interface {
 	Deps() []Compilable
 }
 
-//go:generate counterfeiter . ArchiveReader
+//counterfeiter:generate . ArchiveReader
 
 type ArchiveReader interface {
 	Read(boshman.PackageRef, string) (*Package, error)
 }
 
-//go:generate counterfeiter . DirReader
+//counterfeiter:generate . DirReader
 
 type DirReader interface {
 	Read(string) (*Package, error)

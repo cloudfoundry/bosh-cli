@@ -43,15 +43,16 @@ func (fake *FakeAdjustment) Adjust(arg1 *http.Request, arg2 bool) error {
 		arg1 *http.Request
 		arg2 bool
 	}{arg1, arg2})
+	stub := fake.AdjustStub
+	fakeReturns := fake.adjustReturns
 	fake.recordInvocation("Adjust", []interface{}{arg1, arg2})
 	fake.adjustMutex.Unlock()
-	if fake.AdjustStub != nil {
-		return fake.AdjustStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.adjustReturns
 	return fakeReturns.result1
 }
 
@@ -103,15 +104,16 @@ func (fake *FakeAdjustment) NeedsReadjustment(arg1 *http.Response) bool {
 	fake.needsReadjustmentArgsForCall = append(fake.needsReadjustmentArgsForCall, struct {
 		arg1 *http.Response
 	}{arg1})
+	stub := fake.NeedsReadjustmentStub
+	fakeReturns := fake.needsReadjustmentReturns
 	fake.recordInvocation("NeedsReadjustment", []interface{}{arg1})
 	fake.needsReadjustmentMutex.Unlock()
-	if fake.NeedsReadjustmentStub != nil {
-		return fake.NeedsReadjustmentStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.needsReadjustmentReturns
 	return fakeReturns.result1
 }
 

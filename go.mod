@@ -28,6 +28,7 @@ require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/mattn/go-isatty v0.0.13
 	github.com/mattn/go-runewidth v0.0.13 // indirect
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.14.0
 	github.com/vito/go-interact v1.0.0

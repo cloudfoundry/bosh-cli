@@ -35,9 +35,10 @@ func (fake *FakeTaskReporter) TaskFinished(arg1 int, arg2 string) {
 		arg1 int
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.TaskFinishedStub
 	fake.recordInvocation("TaskFinished", []interface{}{arg1, arg2})
 	fake.taskFinishedMutex.Unlock()
-	if fake.TaskFinishedStub != nil {
+	if stub != nil {
 		fake.TaskFinishedStub(arg1, arg2)
 	}
 }
@@ -72,9 +73,10 @@ func (fake *FakeTaskReporter) TaskOutputChunk(arg1 int, arg2 []byte) {
 		arg1 int
 		arg2 []byte
 	}{arg1, arg2Copy})
+	stub := fake.TaskOutputChunkStub
 	fake.recordInvocation("TaskOutputChunk", []interface{}{arg1, arg2Copy})
 	fake.taskOutputChunkMutex.Unlock()
-	if fake.TaskOutputChunkStub != nil {
+	if stub != nil {
 		fake.TaskOutputChunkStub(arg1, arg2)
 	}
 }
@@ -103,9 +105,10 @@ func (fake *FakeTaskReporter) TaskStarted(arg1 int) {
 	fake.taskStartedArgsForCall = append(fake.taskStartedArgsForCall, struct {
 		arg1 int
 	}{arg1})
+	stub := fake.TaskStartedStub
 	fake.recordInvocation("TaskStarted", []interface{}{arg1})
 	fake.taskStartedMutex.Unlock()
-	if fake.TaskStartedStub != nil {
+	if stub != nil {
 		fake.TaskStartedStub(arg1)
 	}
 }

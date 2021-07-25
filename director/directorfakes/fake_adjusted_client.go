@@ -32,15 +32,16 @@ func (fake *FakeAdjustedClient) Do(arg1 *http.Request) (*http.Response, error) {
 	fake.doArgsForCall = append(fake.doArgsForCall, struct {
 		arg1 *http.Request
 	}{arg1})
+	stub := fake.DoStub
+	fakeReturns := fake.doReturns
 	fake.recordInvocation("Do", []interface{}{arg1})
 	fake.doMutex.Unlock()
-	if fake.DoStub != nil {
-		return fake.DoStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.doReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

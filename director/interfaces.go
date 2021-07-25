@@ -10,7 +10,10 @@ import (
 	semver "github.com/cppforlife/go-semi-semantic/version"
 )
 
-//go:generate counterfeiter . Director
+// You only need **one** of these per package!
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . Director
 
 type Director interface {
 	IsAuthenticated() (bool, error)
@@ -97,7 +100,7 @@ type ReleaseMetadata struct {
 	// other fields ignored
 }
 
-//go:generate counterfeiter . ReleaseArchive
+//counterfeiter:generate . ReleaseArchive
 
 type ReleaseArchive interface {
 	Info() (ReleaseMetadata, error)
@@ -112,21 +115,21 @@ type StemcellMetadata struct {
 	// other fields ignored
 }
 
-//go:generate counterfeiter . StemcellArchive
+//counterfeiter:generate . StemcellArchive
 
 type StemcellArchive interface {
 	Info() (StemcellMetadata, error)
 	File() (UploadFile, error)
 }
 
-//go:generate counterfeiter . FileReporter
+//counterfeiter:generate . FileReporter
 
 type FileReporter interface {
 	TrackUpload(int64, io.ReadCloser) bio.ReadSeekCloser
 	TrackDownload(int64, io.Writer) io.Writer
 }
 
-//go:generate counterfeiter . Deployment
+//counterfeiter:generate . Deployment
 
 type Deployment interface {
 	Name() string
@@ -223,7 +226,7 @@ type UpdateOpts struct {
 	Diff                    DeploymentDiff
 }
 
-//go:generate counterfeiter . ReleaseSeries
+//counterfeiter:generate . ReleaseSeries
 
 type ReleaseSeries interface {
 	Name() string
@@ -231,7 +234,7 @@ type ReleaseSeries interface {
 	Exists() (bool, error)
 }
 
-//go:generate counterfeiter . Release
+//counterfeiter:generate . Release
 
 type Release interface {
 	Name() string
@@ -246,7 +249,7 @@ type Release interface {
 	Delete(force bool) error
 }
 
-//go:generate counterfeiter . Stemcell
+//counterfeiter:generate . Stemcell
 
 type Stemcell interface {
 	Name() string
@@ -290,7 +293,7 @@ type Task interface {
 	Cancel() error
 }
 
-//go:generate counterfeiter . TaskReporter
+//counterfeiter:generate . TaskReporter
 
 type TaskReporter interface {
 	TaskStarted(int)
@@ -298,7 +301,7 @@ type TaskReporter interface {
 	TaskOutputChunk(int, []byte)
 }
 
-//go:generate counterfeiter . OrphanDisk
+//counterfeiter:generate . OrphanDisk
 
 type OrphanDisk interface {
 	CID() string
@@ -313,7 +316,7 @@ type OrphanDisk interface {
 	Delete() error
 }
 
-//go:generate counterfeiter . OrphanNetwork
+//counterfeiter:generate . OrphanNetwork
 
 type OrphanNetwork interface {
 	Name() string
@@ -345,7 +348,7 @@ type EventsFilter struct {
 	ObjectName string
 }
 
-//go:generate counterfeiter . Event
+//counterfeiter:generate . Event
 
 type Event interface {
 	ID() string

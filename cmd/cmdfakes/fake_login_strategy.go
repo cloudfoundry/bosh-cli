@@ -27,15 +27,16 @@ func (fake *FakeLoginStrategy) Try() error {
 	ret, specificReturn := fake.tryReturnsOnCall[len(fake.tryArgsForCall)]
 	fake.tryArgsForCall = append(fake.tryArgsForCall, struct {
 	}{})
+	stub := fake.TryStub
+	fakeReturns := fake.tryReturns
 	fake.recordInvocation("Try", []interface{}{})
 	fake.tryMutex.Unlock()
-	if fake.TryStub != nil {
-		return fake.TryStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.tryReturns
 	return fakeReturns.result1
 }
 

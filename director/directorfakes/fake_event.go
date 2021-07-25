@@ -138,15 +138,16 @@ func (fake *FakeEvent) Action() string {
 	ret, specificReturn := fake.actionReturnsOnCall[len(fake.actionArgsForCall)]
 	fake.actionArgsForCall = append(fake.actionArgsForCall, struct {
 	}{})
+	stub := fake.ActionStub
+	fakeReturns := fake.actionReturns
 	fake.recordInvocation("Action", []interface{}{})
 	fake.actionMutex.Unlock()
-	if fake.ActionStub != nil {
-		return fake.ActionStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.actionReturns
 	return fakeReturns.result1
 }
 
@@ -190,15 +191,16 @@ func (fake *FakeEvent) Context() map[string]interface{} {
 	ret, specificReturn := fake.contextReturnsOnCall[len(fake.contextArgsForCall)]
 	fake.contextArgsForCall = append(fake.contextArgsForCall, struct {
 	}{})
+	stub := fake.ContextStub
+	fakeReturns := fake.contextReturns
 	fake.recordInvocation("Context", []interface{}{})
 	fake.contextMutex.Unlock()
-	if fake.ContextStub != nil {
-		return fake.ContextStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.contextReturns
 	return fakeReturns.result1
 }
 
@@ -242,15 +244,16 @@ func (fake *FakeEvent) DeploymentName() string {
 	ret, specificReturn := fake.deploymentNameReturnsOnCall[len(fake.deploymentNameArgsForCall)]
 	fake.deploymentNameArgsForCall = append(fake.deploymentNameArgsForCall, struct {
 	}{})
+	stub := fake.DeploymentNameStub
+	fakeReturns := fake.deploymentNameReturns
 	fake.recordInvocation("DeploymentName", []interface{}{})
 	fake.deploymentNameMutex.Unlock()
-	if fake.DeploymentNameStub != nil {
-		return fake.DeploymentNameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.deploymentNameReturns
 	return fakeReturns.result1
 }
 
@@ -294,15 +297,16 @@ func (fake *FakeEvent) Error() string {
 	ret, specificReturn := fake.errorReturnsOnCall[len(fake.errorArgsForCall)]
 	fake.errorArgsForCall = append(fake.errorArgsForCall, struct {
 	}{})
+	stub := fake.ErrorStub
+	fakeReturns := fake.errorReturns
 	fake.recordInvocation("Error", []interface{}{})
 	fake.errorMutex.Unlock()
-	if fake.ErrorStub != nil {
-		return fake.ErrorStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.errorReturns
 	return fakeReturns.result1
 }
 
@@ -346,15 +350,16 @@ func (fake *FakeEvent) ID() string {
 	ret, specificReturn := fake.iDReturnsOnCall[len(fake.iDArgsForCall)]
 	fake.iDArgsForCall = append(fake.iDArgsForCall, struct {
 	}{})
+	stub := fake.IDStub
+	fakeReturns := fake.iDReturns
 	fake.recordInvocation("ID", []interface{}{})
 	fake.iDMutex.Unlock()
-	if fake.IDStub != nil {
-		return fake.IDStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.iDReturns
 	return fakeReturns.result1
 }
 
@@ -398,15 +403,16 @@ func (fake *FakeEvent) Instance() string {
 	ret, specificReturn := fake.instanceReturnsOnCall[len(fake.instanceArgsForCall)]
 	fake.instanceArgsForCall = append(fake.instanceArgsForCall, struct {
 	}{})
+	stub := fake.InstanceStub
+	fakeReturns := fake.instanceReturns
 	fake.recordInvocation("Instance", []interface{}{})
 	fake.instanceMutex.Unlock()
-	if fake.InstanceStub != nil {
-		return fake.InstanceStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.instanceReturns
 	return fakeReturns.result1
 }
 
@@ -450,15 +456,16 @@ func (fake *FakeEvent) ObjectName() string {
 	ret, specificReturn := fake.objectNameReturnsOnCall[len(fake.objectNameArgsForCall)]
 	fake.objectNameArgsForCall = append(fake.objectNameArgsForCall, struct {
 	}{})
+	stub := fake.ObjectNameStub
+	fakeReturns := fake.objectNameReturns
 	fake.recordInvocation("ObjectName", []interface{}{})
 	fake.objectNameMutex.Unlock()
-	if fake.ObjectNameStub != nil {
-		return fake.ObjectNameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.objectNameReturns
 	return fakeReturns.result1
 }
 
@@ -502,15 +509,16 @@ func (fake *FakeEvent) ObjectType() string {
 	ret, specificReturn := fake.objectTypeReturnsOnCall[len(fake.objectTypeArgsForCall)]
 	fake.objectTypeArgsForCall = append(fake.objectTypeArgsForCall, struct {
 	}{})
+	stub := fake.ObjectTypeStub
+	fakeReturns := fake.objectTypeReturns
 	fake.recordInvocation("ObjectType", []interface{}{})
 	fake.objectTypeMutex.Unlock()
-	if fake.ObjectTypeStub != nil {
-		return fake.ObjectTypeStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.objectTypeReturns
 	return fakeReturns.result1
 }
 
@@ -554,15 +562,16 @@ func (fake *FakeEvent) ParentID() string {
 	ret, specificReturn := fake.parentIDReturnsOnCall[len(fake.parentIDArgsForCall)]
 	fake.parentIDArgsForCall = append(fake.parentIDArgsForCall, struct {
 	}{})
+	stub := fake.ParentIDStub
+	fakeReturns := fake.parentIDReturns
 	fake.recordInvocation("ParentID", []interface{}{})
 	fake.parentIDMutex.Unlock()
-	if fake.ParentIDStub != nil {
-		return fake.ParentIDStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.parentIDReturns
 	return fakeReturns.result1
 }
 
@@ -606,15 +615,16 @@ func (fake *FakeEvent) TaskID() string {
 	ret, specificReturn := fake.taskIDReturnsOnCall[len(fake.taskIDArgsForCall)]
 	fake.taskIDArgsForCall = append(fake.taskIDArgsForCall, struct {
 	}{})
+	stub := fake.TaskIDStub
+	fakeReturns := fake.taskIDReturns
 	fake.recordInvocation("TaskID", []interface{}{})
 	fake.taskIDMutex.Unlock()
-	if fake.TaskIDStub != nil {
-		return fake.TaskIDStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.taskIDReturns
 	return fakeReturns.result1
 }
 
@@ -658,15 +668,16 @@ func (fake *FakeEvent) Timestamp() time.Time {
 	ret, specificReturn := fake.timestampReturnsOnCall[len(fake.timestampArgsForCall)]
 	fake.timestampArgsForCall = append(fake.timestampArgsForCall, struct {
 	}{})
+	stub := fake.TimestampStub
+	fakeReturns := fake.timestampReturns
 	fake.recordInvocation("Timestamp", []interface{}{})
 	fake.timestampMutex.Unlock()
-	if fake.TimestampStub != nil {
-		return fake.TimestampStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.timestampReturns
 	return fakeReturns.result1
 }
 
@@ -710,15 +721,16 @@ func (fake *FakeEvent) User() string {
 	ret, specificReturn := fake.userReturnsOnCall[len(fake.userArgsForCall)]
 	fake.userArgsForCall = append(fake.userArgsForCall, struct {
 	}{})
+	stub := fake.UserStub
+	fakeReturns := fake.userReturns
 	fake.recordInvocation("User", []interface{}{})
 	fake.userMutex.Unlock()
-	if fake.UserStub != nil {
-		return fake.UserStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.userReturns
 	return fakeReturns.result1
 }
 

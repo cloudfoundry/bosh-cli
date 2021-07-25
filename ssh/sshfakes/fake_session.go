@@ -39,15 +39,16 @@ func (fake *FakeSession) Finish() error {
 	ret, specificReturn := fake.finishReturnsOnCall[len(fake.finishArgsForCall)]
 	fake.finishArgsForCall = append(fake.finishArgsForCall, struct {
 	}{})
+	stub := fake.FinishStub
+	fakeReturns := fake.finishReturns
 	fake.recordInvocation("Finish", []interface{}{})
 	fake.finishMutex.Unlock()
-	if fake.FinishStub != nil {
-		return fake.FinishStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.finishReturns
 	return fakeReturns.result1
 }
 
@@ -91,15 +92,16 @@ func (fake *FakeSession) Start() (ssh.SSHArgs, error) {
 	ret, specificReturn := fake.startReturnsOnCall[len(fake.startArgsForCall)]
 	fake.startArgsForCall = append(fake.startArgsForCall, struct {
 	}{})
+	stub := fake.StartStub
+	fakeReturns := fake.startReturns
 	fake.recordInvocation("Start", []interface{}{})
 	fake.startMutex.Unlock()
-	if fake.StartStub != nil {
-		return fake.StartStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.startReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

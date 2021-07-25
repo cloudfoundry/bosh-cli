@@ -43,15 +43,16 @@ func (fake *FakeFingerprinter) Calculate(arg1 []resource.File, arg2 []string) (s
 		arg1 []resource.File
 		arg2 []string
 	}{arg1Copy, arg2Copy})
+	stub := fake.CalculateStub
+	fakeReturns := fake.calculateReturns
 	fake.recordInvocation("Calculate", []interface{}{arg1Copy, arg2Copy})
 	fake.calculateMutex.Unlock()
-	if fake.CalculateStub != nil {
-		return fake.CalculateStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.calculateReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

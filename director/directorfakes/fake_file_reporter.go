@@ -45,15 +45,16 @@ func (fake *FakeFileReporter) TrackDownload(arg1 int64, arg2 io.Writer) io.Write
 		arg1 int64
 		arg2 io.Writer
 	}{arg1, arg2})
+	stub := fake.TrackDownloadStub
+	fakeReturns := fake.trackDownloadReturns
 	fake.recordInvocation("TrackDownload", []interface{}{arg1, arg2})
 	fake.trackDownloadMutex.Unlock()
-	if fake.TrackDownloadStub != nil {
-		return fake.TrackDownloadStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.trackDownloadReturns
 	return fakeReturns.result1
 }
 
@@ -106,15 +107,16 @@ func (fake *FakeFileReporter) TrackUpload(arg1 int64, arg2 io.ReadCloser) ioa.Re
 		arg1 int64
 		arg2 io.ReadCloser
 	}{arg1, arg2})
+	stub := fake.TrackUploadStub
+	fakeReturns := fake.trackUploadReturns
 	fake.recordInvocation("TrackUpload", []interface{}{arg1, arg2})
 	fake.trackUploadMutex.Unlock()
-	if fake.TrackUploadStub != nil {
-		return fake.TrackUploadStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.trackUploadReturns
 	return fakeReturns.result1
 }
 

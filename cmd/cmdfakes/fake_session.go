@@ -88,15 +88,16 @@ func (fake *FakeSession) AnonymousDirector() (director.Director, error) {
 	ret, specificReturn := fake.anonymousDirectorReturnsOnCall[len(fake.anonymousDirectorArgsForCall)]
 	fake.anonymousDirectorArgsForCall = append(fake.anonymousDirectorArgsForCall, struct {
 	}{})
+	stub := fake.AnonymousDirectorStub
+	fakeReturns := fake.anonymousDirectorReturns
 	fake.recordInvocation("AnonymousDirector", []interface{}{})
 	fake.anonymousDirectorMutex.Unlock()
-	if fake.AnonymousDirectorStub != nil {
-		return fake.AnonymousDirectorStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.anonymousDirectorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -143,15 +144,16 @@ func (fake *FakeSession) Credentials() config.Creds {
 	ret, specificReturn := fake.credentialsReturnsOnCall[len(fake.credentialsArgsForCall)]
 	fake.credentialsArgsForCall = append(fake.credentialsArgsForCall, struct {
 	}{})
+	stub := fake.CredentialsStub
+	fakeReturns := fake.credentialsReturns
 	fake.recordInvocation("Credentials", []interface{}{})
 	fake.credentialsMutex.Unlock()
-	if fake.CredentialsStub != nil {
-		return fake.CredentialsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.credentialsReturns
 	return fakeReturns.result1
 }
 
@@ -195,15 +197,16 @@ func (fake *FakeSession) Deployment() (director.Deployment, error) {
 	ret, specificReturn := fake.deploymentReturnsOnCall[len(fake.deploymentArgsForCall)]
 	fake.deploymentArgsForCall = append(fake.deploymentArgsForCall, struct {
 	}{})
+	stub := fake.DeploymentStub
+	fakeReturns := fake.deploymentReturns
 	fake.recordInvocation("Deployment", []interface{}{})
 	fake.deploymentMutex.Unlock()
-	if fake.DeploymentStub != nil {
-		return fake.DeploymentStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.deploymentReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -250,15 +253,16 @@ func (fake *FakeSession) Director() (director.Director, error) {
 	ret, specificReturn := fake.directorReturnsOnCall[len(fake.directorArgsForCall)]
 	fake.directorArgsForCall = append(fake.directorArgsForCall, struct {
 	}{})
+	stub := fake.DirectorStub
+	fakeReturns := fake.directorReturns
 	fake.recordInvocation("Director", []interface{}{})
 	fake.directorMutex.Unlock()
-	if fake.DirectorStub != nil {
-		return fake.DirectorStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.directorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -305,15 +309,16 @@ func (fake *FakeSession) Environment() string {
 	ret, specificReturn := fake.environmentReturnsOnCall[len(fake.environmentArgsForCall)]
 	fake.environmentArgsForCall = append(fake.environmentArgsForCall, struct {
 	}{})
+	stub := fake.EnvironmentStub
+	fakeReturns := fake.environmentReturns
 	fake.recordInvocation("Environment", []interface{}{})
 	fake.environmentMutex.Unlock()
-	if fake.EnvironmentStub != nil {
-		return fake.EnvironmentStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.environmentReturns
 	return fakeReturns.result1
 }
 
@@ -357,15 +362,16 @@ func (fake *FakeSession) UAA() (uaa.UAA, error) {
 	ret, specificReturn := fake.uAAReturnsOnCall[len(fake.uAAArgsForCall)]
 	fake.uAAArgsForCall = append(fake.uAAArgsForCall, struct {
 	}{})
+	stub := fake.UAAStub
+	fakeReturns := fake.uAAReturns
 	fake.recordInvocation("UAA", []interface{}{})
 	fake.uAAMutex.Unlock()
-	if fake.UAAStub != nil {
-		return fake.UAAStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.uAAReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

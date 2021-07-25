@@ -714,15 +714,16 @@ func (fake *FakeDirector) CancelTasks(arg1 director.TasksFilter) error {
 	fake.cancelTasksArgsForCall = append(fake.cancelTasksArgsForCall, struct {
 		arg1 director.TasksFilter
 	}{arg1})
+	stub := fake.CancelTasksStub
+	fakeReturns := fake.cancelTasksReturns
 	fake.recordInvocation("CancelTasks", []interface{}{arg1})
 	fake.cancelTasksMutex.Unlock()
-	if fake.CancelTasksStub != nil {
-		return fake.CancelTasksStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.cancelTasksReturns
 	return fakeReturns.result1
 }
 
@@ -773,15 +774,16 @@ func (fake *FakeDirector) CertificateExpiry() ([]director.CertificateExpiryInfo,
 	ret, specificReturn := fake.certificateExpiryReturnsOnCall[len(fake.certificateExpiryArgsForCall)]
 	fake.certificateExpiryArgsForCall = append(fake.certificateExpiryArgsForCall, struct {
 	}{})
+	stub := fake.CertificateExpiryStub
+	fakeReturns := fake.certificateExpiryReturns
 	fake.recordInvocation("CertificateExpiry", []interface{}{})
 	fake.certificateExpiryMutex.Unlock()
-	if fake.CertificateExpiryStub != nil {
-		return fake.CertificateExpiryStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.certificateExpiryReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -831,15 +833,16 @@ func (fake *FakeDirector) CleanUp(arg1 bool, arg2 bool, arg3 bool) (director.Cle
 		arg2 bool
 		arg3 bool
 	}{arg1, arg2, arg3})
+	stub := fake.CleanUpStub
+	fakeReturns := fake.cleanUpReturns
 	fake.recordInvocation("CleanUp", []interface{}{arg1, arg2, arg3})
 	fake.cleanUpMutex.Unlock()
-	if fake.CleanUpStub != nil {
-		return fake.CleanUpStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.cleanUpReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -894,15 +897,16 @@ func (fake *FakeDirector) CurrentTasks(arg1 director.TasksFilter) ([]director.Ta
 	fake.currentTasksArgsForCall = append(fake.currentTasksArgsForCall, struct {
 		arg1 director.TasksFilter
 	}{arg1})
+	stub := fake.CurrentTasksStub
+	fakeReturns := fake.currentTasksReturns
 	fake.recordInvocation("CurrentTasks", []interface{}{arg1})
 	fake.currentTasksMutex.Unlock()
-	if fake.CurrentTasksStub != nil {
-		return fake.CurrentTasksStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.currentTasksReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -958,15 +962,16 @@ func (fake *FakeDirector) DeleteConfig(arg1 string, arg2 string) (bool, error) {
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.DeleteConfigStub
+	fakeReturns := fake.deleteConfigReturns
 	fake.recordInvocation("DeleteConfig", []interface{}{arg1, arg2})
 	fake.deleteConfigMutex.Unlock()
-	if fake.DeleteConfigStub != nil {
-		return fake.DeleteConfigStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.deleteConfigReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1021,15 +1026,16 @@ func (fake *FakeDirector) DeleteConfigByID(arg1 string) (bool, error) {
 	fake.deleteConfigByIDArgsForCall = append(fake.deleteConfigByIDArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.DeleteConfigByIDStub
+	fakeReturns := fake.deleteConfigByIDReturns
 	fake.recordInvocation("DeleteConfigByID", []interface{}{arg1})
 	fake.deleteConfigByIDMutex.Unlock()
-	if fake.DeleteConfigByIDStub != nil {
-		return fake.DeleteConfigByIDStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.deleteConfigByIDReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1083,15 +1089,16 @@ func (fake *FakeDirector) Deployments() ([]director.Deployment, error) {
 	ret, specificReturn := fake.deploymentsReturnsOnCall[len(fake.deploymentsArgsForCall)]
 	fake.deploymentsArgsForCall = append(fake.deploymentsArgsForCall, struct {
 	}{})
+	stub := fake.DeploymentsStub
+	fakeReturns := fake.deploymentsReturns
 	fake.recordInvocation("Deployments", []interface{}{})
 	fake.deploymentsMutex.Unlock()
-	if fake.DeploymentsStub != nil {
-		return fake.DeploymentsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.deploymentsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1145,15 +1152,16 @@ func (fake *FakeDirector) DiffCPIConfig(arg1 []byte, arg2 bool) (director.Config
 		arg1 []byte
 		arg2 bool
 	}{arg1Copy, arg2})
+	stub := fake.DiffCPIConfigStub
+	fakeReturns := fake.diffCPIConfigReturns
 	fake.recordInvocation("DiffCPIConfig", []interface{}{arg1Copy, arg2})
 	fake.diffCPIConfigMutex.Unlock()
-	if fake.DiffCPIConfigStub != nil {
-		return fake.DiffCPIConfigStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.diffCPIConfigReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1213,15 +1221,16 @@ func (fake *FakeDirector) DiffCloudConfig(arg1 []byte) (director.ConfigDiff, err
 	fake.diffCloudConfigArgsForCall = append(fake.diffCloudConfigArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.DiffCloudConfigStub
+	fakeReturns := fake.diffCloudConfigReturns
 	fake.recordInvocation("DiffCloudConfig", []interface{}{arg1Copy})
 	fake.diffCloudConfigMutex.Unlock()
-	if fake.DiffCloudConfigStub != nil {
-		return fake.DiffCloudConfigStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.diffCloudConfigReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1283,15 +1292,16 @@ func (fake *FakeDirector) DiffConfig(arg1 string, arg2 string, arg3 []byte) (dir
 		arg2 string
 		arg3 []byte
 	}{arg1, arg2, arg3Copy})
+	stub := fake.DiffConfigStub
+	fakeReturns := fake.diffConfigReturns
 	fake.recordInvocation("DiffConfig", []interface{}{arg1, arg2, arg3Copy})
 	fake.diffConfigMutex.Unlock()
-	if fake.DiffConfigStub != nil {
-		return fake.DiffConfigStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.diffConfigReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1359,15 +1369,16 @@ func (fake *FakeDirector) DiffConfigByIDOrContent(arg1 string, arg2 []byte, arg3
 		arg3 string
 		arg4 []byte
 	}{arg1, arg2Copy, arg3, arg4Copy})
+	stub := fake.DiffConfigByIDOrContentStub
+	fakeReturns := fake.diffConfigByIDOrContentReturns
 	fake.recordInvocation("DiffConfigByIDOrContent", []interface{}{arg1, arg2Copy, arg3, arg4Copy})
 	fake.diffConfigByIDOrContentMutex.Unlock()
-	if fake.DiffConfigByIDOrContentStub != nil {
-		return fake.DiffConfigByIDOrContentStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.diffConfigByIDOrContentReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1429,15 +1440,16 @@ func (fake *FakeDirector) DiffRuntimeConfig(arg1 string, arg2 []byte, arg3 bool)
 		arg2 []byte
 		arg3 bool
 	}{arg1, arg2Copy, arg3})
+	stub := fake.DiffRuntimeConfigStub
+	fakeReturns := fake.diffRuntimeConfigReturns
 	fake.recordInvocation("DiffRuntimeConfig", []interface{}{arg1, arg2Copy, arg3})
 	fake.diffRuntimeConfigMutex.Unlock()
-	if fake.DiffRuntimeConfigStub != nil {
-		return fake.DiffRuntimeConfigStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.diffRuntimeConfigReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1493,15 +1505,16 @@ func (fake *FakeDirector) DownloadResourceUnchecked(arg1 string, arg2 io.Writer)
 		arg1 string
 		arg2 io.Writer
 	}{arg1, arg2})
+	stub := fake.DownloadResourceUncheckedStub
+	fakeReturns := fake.downloadResourceUncheckedReturns
 	fake.recordInvocation("DownloadResourceUnchecked", []interface{}{arg1, arg2})
 	fake.downloadResourceUncheckedMutex.Unlock()
-	if fake.DownloadResourceUncheckedStub != nil {
-		return fake.DownloadResourceUncheckedStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.downloadResourceUncheckedReturns
 	return fakeReturns.result1
 }
 
@@ -1553,15 +1566,16 @@ func (fake *FakeDirector) EnableResurrection(arg1 bool) error {
 	fake.enableResurrectionArgsForCall = append(fake.enableResurrectionArgsForCall, struct {
 		arg1 bool
 	}{arg1})
+	stub := fake.EnableResurrectionStub
+	fakeReturns := fake.enableResurrectionReturns
 	fake.recordInvocation("EnableResurrection", []interface{}{arg1})
 	fake.enableResurrectionMutex.Unlock()
-	if fake.EnableResurrectionStub != nil {
-		return fake.EnableResurrectionStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.enableResurrectionReturns
 	return fakeReturns.result1
 }
 
@@ -1613,15 +1627,16 @@ func (fake *FakeDirector) Event(arg1 string) (director.Event, error) {
 	fake.eventArgsForCall = append(fake.eventArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.EventStub
+	fakeReturns := fake.eventReturns
 	fake.recordInvocation("Event", []interface{}{arg1})
 	fake.eventMutex.Unlock()
-	if fake.EventStub != nil {
-		return fake.EventStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.eventReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1676,15 +1691,16 @@ func (fake *FakeDirector) Events(arg1 director.EventsFilter) ([]director.Event, 
 	fake.eventsArgsForCall = append(fake.eventsArgsForCall, struct {
 		arg1 director.EventsFilter
 	}{arg1})
+	stub := fake.EventsStub
+	fakeReturns := fake.eventsReturns
 	fake.recordInvocation("Events", []interface{}{arg1})
 	fake.eventsMutex.Unlock()
-	if fake.EventsStub != nil {
-		return fake.EventsStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.eventsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1739,15 +1755,16 @@ func (fake *FakeDirector) FindDeployment(arg1 string) (director.Deployment, erro
 	fake.findDeploymentArgsForCall = append(fake.findDeploymentArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.FindDeploymentStub
+	fakeReturns := fake.findDeploymentReturns
 	fake.recordInvocation("FindDeployment", []interface{}{arg1})
 	fake.findDeploymentMutex.Unlock()
-	if fake.FindDeploymentStub != nil {
-		return fake.FindDeploymentStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.findDeploymentReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1802,15 +1819,16 @@ func (fake *FakeDirector) FindOrphanDisk(arg1 string) (director.OrphanDisk, erro
 	fake.findOrphanDiskArgsForCall = append(fake.findOrphanDiskArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.FindOrphanDiskStub
+	fakeReturns := fake.findOrphanDiskReturns
 	fake.recordInvocation("FindOrphanDisk", []interface{}{arg1})
 	fake.findOrphanDiskMutex.Unlock()
-	if fake.FindOrphanDiskStub != nil {
-		return fake.FindOrphanDiskStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.findOrphanDiskReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1865,15 +1883,16 @@ func (fake *FakeDirector) FindOrphanNetwork(arg1 string) (director.OrphanNetwork
 	fake.findOrphanNetworkArgsForCall = append(fake.findOrphanNetworkArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.FindOrphanNetworkStub
+	fakeReturns := fake.findOrphanNetworkReturns
 	fake.recordInvocation("FindOrphanNetwork", []interface{}{arg1})
 	fake.findOrphanNetworkMutex.Unlock()
-	if fake.FindOrphanNetworkStub != nil {
-		return fake.FindOrphanNetworkStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.findOrphanNetworkReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1928,15 +1947,16 @@ func (fake *FakeDirector) FindRelease(arg1 director.ReleaseSlug) (director.Relea
 	fake.findReleaseArgsForCall = append(fake.findReleaseArgsForCall, struct {
 		arg1 director.ReleaseSlug
 	}{arg1})
+	stub := fake.FindReleaseStub
+	fakeReturns := fake.findReleaseReturns
 	fake.recordInvocation("FindRelease", []interface{}{arg1})
 	fake.findReleaseMutex.Unlock()
-	if fake.FindReleaseStub != nil {
-		return fake.FindReleaseStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.findReleaseReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1991,15 +2011,16 @@ func (fake *FakeDirector) FindReleaseSeries(arg1 director.ReleaseSeriesSlug) (di
 	fake.findReleaseSeriesArgsForCall = append(fake.findReleaseSeriesArgsForCall, struct {
 		arg1 director.ReleaseSeriesSlug
 	}{arg1})
+	stub := fake.FindReleaseSeriesStub
+	fakeReturns := fake.findReleaseSeriesReturns
 	fake.recordInvocation("FindReleaseSeries", []interface{}{arg1})
 	fake.findReleaseSeriesMutex.Unlock()
-	if fake.FindReleaseSeriesStub != nil {
-		return fake.FindReleaseSeriesStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.findReleaseSeriesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2054,15 +2075,16 @@ func (fake *FakeDirector) FindStemcell(arg1 director.StemcellSlug) (director.Ste
 	fake.findStemcellArgsForCall = append(fake.findStemcellArgsForCall, struct {
 		arg1 director.StemcellSlug
 	}{arg1})
+	stub := fake.FindStemcellStub
+	fakeReturns := fake.findStemcellReturns
 	fake.recordInvocation("FindStemcell", []interface{}{arg1})
 	fake.findStemcellMutex.Unlock()
-	if fake.FindStemcellStub != nil {
-		return fake.FindStemcellStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.findStemcellReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2117,15 +2139,16 @@ func (fake *FakeDirector) FindTask(arg1 int) (director.Task, error) {
 	fake.findTaskArgsForCall = append(fake.findTaskArgsForCall, struct {
 		arg1 int
 	}{arg1})
+	stub := fake.FindTaskStub
+	fakeReturns := fake.findTaskReturns
 	fake.recordInvocation("FindTask", []interface{}{arg1})
 	fake.findTaskMutex.Unlock()
-	if fake.FindTaskStub != nil {
-		return fake.FindTaskStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.findTaskReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2180,15 +2203,16 @@ func (fake *FakeDirector) FindTasksByContextId(arg1 string) ([]director.Task, er
 	fake.findTasksByContextIdArgsForCall = append(fake.findTasksByContextIdArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.FindTasksByContextIdStub
+	fakeReturns := fake.findTasksByContextIdReturns
 	fake.recordInvocation("FindTasksByContextId", []interface{}{arg1})
 	fake.findTasksByContextIdMutex.Unlock()
-	if fake.FindTasksByContextIdStub != nil {
-		return fake.FindTasksByContextIdStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.findTasksByContextIdReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2245,15 +2269,16 @@ func (fake *FakeDirector) HasRelease(arg1 string, arg2 string, arg3 director.OSV
 		arg2 string
 		arg3 director.OSVersionSlug
 	}{arg1, arg2, arg3})
+	stub := fake.HasReleaseStub
+	fakeReturns := fake.hasReleaseReturns
 	fake.recordInvocation("HasRelease", []interface{}{arg1, arg2, arg3})
 	fake.hasReleaseMutex.Unlock()
-	if fake.HasReleaseStub != nil {
-		return fake.HasReleaseStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.hasReleaseReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2307,15 +2332,16 @@ func (fake *FakeDirector) Info() (director.Info, error) {
 	ret, specificReturn := fake.infoReturnsOnCall[len(fake.infoArgsForCall)]
 	fake.infoArgsForCall = append(fake.infoArgsForCall, struct {
 	}{})
+	stub := fake.InfoStub
+	fakeReturns := fake.infoReturns
 	fake.recordInvocation("Info", []interface{}{})
 	fake.infoMutex.Unlock()
-	if fake.InfoStub != nil {
-		return fake.InfoStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.infoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2362,15 +2388,16 @@ func (fake *FakeDirector) IsAuthenticated() (bool, error) {
 	ret, specificReturn := fake.isAuthenticatedReturnsOnCall[len(fake.isAuthenticatedArgsForCall)]
 	fake.isAuthenticatedArgsForCall = append(fake.isAuthenticatedArgsForCall, struct {
 	}{})
+	stub := fake.IsAuthenticatedStub
+	fakeReturns := fake.isAuthenticatedReturns
 	fake.recordInvocation("IsAuthenticated", []interface{}{})
 	fake.isAuthenticatedMutex.Unlock()
-	if fake.IsAuthenticatedStub != nil {
-		return fake.IsAuthenticatedStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.isAuthenticatedReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2417,15 +2444,16 @@ func (fake *FakeDirector) LatestCPIConfig() (director.CPIConfig, error) {
 	ret, specificReturn := fake.latestCPIConfigReturnsOnCall[len(fake.latestCPIConfigArgsForCall)]
 	fake.latestCPIConfigArgsForCall = append(fake.latestCPIConfigArgsForCall, struct {
 	}{})
+	stub := fake.LatestCPIConfigStub
+	fakeReturns := fake.latestCPIConfigReturns
 	fake.recordInvocation("LatestCPIConfig", []interface{}{})
 	fake.latestCPIConfigMutex.Unlock()
-	if fake.LatestCPIConfigStub != nil {
-		return fake.LatestCPIConfigStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.latestCPIConfigReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2472,15 +2500,16 @@ func (fake *FakeDirector) LatestCloudConfig() (director.CloudConfig, error) {
 	ret, specificReturn := fake.latestCloudConfigReturnsOnCall[len(fake.latestCloudConfigArgsForCall)]
 	fake.latestCloudConfigArgsForCall = append(fake.latestCloudConfigArgsForCall, struct {
 	}{})
+	stub := fake.LatestCloudConfigStub
+	fakeReturns := fake.latestCloudConfigReturns
 	fake.recordInvocation("LatestCloudConfig", []interface{}{})
 	fake.latestCloudConfigMutex.Unlock()
-	if fake.LatestCloudConfigStub != nil {
-		return fake.LatestCloudConfigStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.latestCloudConfigReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2529,15 +2558,16 @@ func (fake *FakeDirector) LatestConfig(arg1 string, arg2 string) (director.Confi
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.LatestConfigStub
+	fakeReturns := fake.latestConfigReturns
 	fake.recordInvocation("LatestConfig", []interface{}{arg1, arg2})
 	fake.latestConfigMutex.Unlock()
-	if fake.LatestConfigStub != nil {
-		return fake.LatestConfigStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.latestConfigReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2592,15 +2622,16 @@ func (fake *FakeDirector) LatestConfigByID(arg1 string) (director.Config, error)
 	fake.latestConfigByIDArgsForCall = append(fake.latestConfigByIDArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.LatestConfigByIDStub
+	fakeReturns := fake.latestConfigByIDReturns
 	fake.recordInvocation("LatestConfigByID", []interface{}{arg1})
 	fake.latestConfigByIDMutex.Unlock()
-	if fake.LatestConfigByIDStub != nil {
-		return fake.LatestConfigByIDStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.latestConfigByIDReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2655,15 +2686,16 @@ func (fake *FakeDirector) LatestRuntimeConfig(arg1 string) (director.RuntimeConf
 	fake.latestRuntimeConfigArgsForCall = append(fake.latestRuntimeConfigArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.LatestRuntimeConfigStub
+	fakeReturns := fake.latestRuntimeConfigReturns
 	fake.recordInvocation("LatestRuntimeConfig", []interface{}{arg1})
 	fake.latestRuntimeConfigMutex.Unlock()
-	if fake.LatestRuntimeConfigStub != nil {
-		return fake.LatestRuntimeConfigStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.latestRuntimeConfigReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2719,15 +2751,16 @@ func (fake *FakeDirector) ListConfigs(arg1 int, arg2 director.ConfigsFilter) ([]
 		arg1 int
 		arg2 director.ConfigsFilter
 	}{arg1, arg2})
+	stub := fake.ListConfigsStub
+	fakeReturns := fake.listConfigsReturns
 	fake.recordInvocation("ListConfigs", []interface{}{arg1, arg2})
 	fake.listConfigsMutex.Unlock()
-	if fake.ListConfigsStub != nil {
-		return fake.ListConfigsStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.listConfigsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2782,15 +2815,16 @@ func (fake *FakeDirector) ListDeploymentConfigs(arg1 string) (director.Deploymen
 	fake.listDeploymentConfigsArgsForCall = append(fake.listDeploymentConfigsArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.ListDeploymentConfigsStub
+	fakeReturns := fake.listDeploymentConfigsReturns
 	fake.recordInvocation("ListDeploymentConfigs", []interface{}{arg1})
 	fake.listDeploymentConfigsMutex.Unlock()
-	if fake.ListDeploymentConfigsStub != nil {
-		return fake.ListDeploymentConfigsStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.listDeploymentConfigsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2844,15 +2878,16 @@ func (fake *FakeDirector) ListDeployments() ([]director.DeploymentResp, error) {
 	ret, specificReturn := fake.listDeploymentsReturnsOnCall[len(fake.listDeploymentsArgsForCall)]
 	fake.listDeploymentsArgsForCall = append(fake.listDeploymentsArgsForCall, struct {
 	}{})
+	stub := fake.ListDeploymentsStub
+	fakeReturns := fake.listDeploymentsReturns
 	fake.recordInvocation("ListDeployments", []interface{}{})
 	fake.listDeploymentsMutex.Unlock()
-	if fake.ListDeploymentsStub != nil {
-		return fake.ListDeploymentsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.listDeploymentsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2899,15 +2934,16 @@ func (fake *FakeDirector) Locks() ([]director.Lock, error) {
 	ret, specificReturn := fake.locksReturnsOnCall[len(fake.locksArgsForCall)]
 	fake.locksArgsForCall = append(fake.locksArgsForCall, struct {
 	}{})
+	stub := fake.LocksStub
+	fakeReturns := fake.locksReturns
 	fake.recordInvocation("Locks", []interface{}{})
 	fake.locksMutex.Unlock()
-	if fake.LocksStub != nil {
-		return fake.LocksStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.locksReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -2956,15 +2992,16 @@ func (fake *FakeDirector) MatchPackages(arg1 interface{}, arg2 bool) ([]string, 
 		arg1 interface{}
 		arg2 bool
 	}{arg1, arg2})
+	stub := fake.MatchPackagesStub
+	fakeReturns := fake.matchPackagesReturns
 	fake.recordInvocation("MatchPackages", []interface{}{arg1, arg2})
 	fake.matchPackagesMutex.Unlock()
-	if fake.MatchPackagesStub != nil {
-		return fake.MatchPackagesStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.matchPackagesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -3019,15 +3056,16 @@ func (fake *FakeDirector) OrphanDisk(arg1 string) error {
 	fake.orphanDiskArgsForCall = append(fake.orphanDiskArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.OrphanDiskStub
+	fakeReturns := fake.orphanDiskReturns
 	fake.recordInvocation("OrphanDisk", []interface{}{arg1})
 	fake.orphanDiskMutex.Unlock()
-	if fake.OrphanDiskStub != nil {
-		return fake.OrphanDiskStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.orphanDiskReturns
 	return fakeReturns.result1
 }
 
@@ -3078,15 +3116,16 @@ func (fake *FakeDirector) OrphanDisks() ([]director.OrphanDisk, error) {
 	ret, specificReturn := fake.orphanDisksReturnsOnCall[len(fake.orphanDisksArgsForCall)]
 	fake.orphanDisksArgsForCall = append(fake.orphanDisksArgsForCall, struct {
 	}{})
+	stub := fake.OrphanDisksStub
+	fakeReturns := fake.orphanDisksReturns
 	fake.recordInvocation("OrphanDisks", []interface{}{})
 	fake.orphanDisksMutex.Unlock()
-	if fake.OrphanDisksStub != nil {
-		return fake.OrphanDisksStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.orphanDisksReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -3133,15 +3172,16 @@ func (fake *FakeDirector) OrphanNetworks() ([]director.OrphanNetwork, error) {
 	ret, specificReturn := fake.orphanNetworksReturnsOnCall[len(fake.orphanNetworksArgsForCall)]
 	fake.orphanNetworksArgsForCall = append(fake.orphanNetworksArgsForCall, struct {
 	}{})
+	stub := fake.OrphanNetworksStub
+	fakeReturns := fake.orphanNetworksReturns
 	fake.recordInvocation("OrphanNetworks", []interface{}{})
 	fake.orphanNetworksMutex.Unlock()
-	if fake.OrphanNetworksStub != nil {
-		return fake.OrphanNetworksStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.orphanNetworksReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -3188,15 +3228,16 @@ func (fake *FakeDirector) OrphanedVMs() ([]director.OrphanedVM, error) {
 	ret, specificReturn := fake.orphanedVMsReturnsOnCall[len(fake.orphanedVMsArgsForCall)]
 	fake.orphanedVMsArgsForCall = append(fake.orphanedVMsArgsForCall, struct {
 	}{})
+	stub := fake.OrphanedVMsStub
+	fakeReturns := fake.orphanedVMsReturns
 	fake.recordInvocation("OrphanedVMs", []interface{}{})
 	fake.orphanedVMsMutex.Unlock()
-	if fake.OrphanedVMsStub != nil {
-		return fake.OrphanedVMsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.orphanedVMsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -3245,15 +3286,16 @@ func (fake *FakeDirector) RecentTasks(arg1 int, arg2 director.TasksFilter) ([]di
 		arg1 int
 		arg2 director.TasksFilter
 	}{arg1, arg2})
+	stub := fake.RecentTasksStub
+	fakeReturns := fake.recentTasksReturns
 	fake.recordInvocation("RecentTasks", []interface{}{arg1, arg2})
 	fake.recentTasksMutex.Unlock()
-	if fake.RecentTasksStub != nil {
-		return fake.RecentTasksStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.recentTasksReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -3307,15 +3349,16 @@ func (fake *FakeDirector) Releases() ([]director.Release, error) {
 	ret, specificReturn := fake.releasesReturnsOnCall[len(fake.releasesArgsForCall)]
 	fake.releasesArgsForCall = append(fake.releasesArgsForCall, struct {
 	}{})
+	stub := fake.ReleasesStub
+	fakeReturns := fake.releasesReturns
 	fake.recordInvocation("Releases", []interface{}{})
 	fake.releasesMutex.Unlock()
-	if fake.ReleasesStub != nil {
-		return fake.ReleasesStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.releasesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -3363,15 +3406,16 @@ func (fake *FakeDirector) StemcellNeedsUpload(arg1 director.StemcellInfo) (bool,
 	fake.stemcellNeedsUploadArgsForCall = append(fake.stemcellNeedsUploadArgsForCall, struct {
 		arg1 director.StemcellInfo
 	}{arg1})
+	stub := fake.StemcellNeedsUploadStub
+	fakeReturns := fake.stemcellNeedsUploadReturns
 	fake.recordInvocation("StemcellNeedsUpload", []interface{}{arg1})
 	fake.stemcellNeedsUploadMutex.Unlock()
-	if fake.StemcellNeedsUploadStub != nil {
-		return fake.StemcellNeedsUploadStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.stemcellNeedsUploadReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -3425,15 +3469,16 @@ func (fake *FakeDirector) Stemcells() ([]director.Stemcell, error) {
 	ret, specificReturn := fake.stemcellsReturnsOnCall[len(fake.stemcellsArgsForCall)]
 	fake.stemcellsArgsForCall = append(fake.stemcellsArgsForCall, struct {
 	}{})
+	stub := fake.StemcellsStub
+	fakeReturns := fake.stemcellsReturns
 	fake.recordInvocation("Stemcells", []interface{}{})
 	fake.stemcellsMutex.Unlock()
-	if fake.StemcellsStub != nil {
-		return fake.StemcellsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.stemcellsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -3486,15 +3531,16 @@ func (fake *FakeDirector) UpdateCPIConfig(arg1 []byte) error {
 	fake.updateCPIConfigArgsForCall = append(fake.updateCPIConfigArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.UpdateCPIConfigStub
+	fakeReturns := fake.updateCPIConfigReturns
 	fake.recordInvocation("UpdateCPIConfig", []interface{}{arg1Copy})
 	fake.updateCPIConfigMutex.Unlock()
-	if fake.UpdateCPIConfigStub != nil {
-		return fake.UpdateCPIConfigStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.updateCPIConfigReturns
 	return fakeReturns.result1
 }
 
@@ -3551,15 +3597,16 @@ func (fake *FakeDirector) UpdateCloudConfig(arg1 []byte) error {
 	fake.updateCloudConfigArgsForCall = append(fake.updateCloudConfigArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.UpdateCloudConfigStub
+	fakeReturns := fake.updateCloudConfigReturns
 	fake.recordInvocation("UpdateCloudConfig", []interface{}{arg1Copy})
 	fake.updateCloudConfigMutex.Unlock()
-	if fake.UpdateCloudConfigStub != nil {
-		return fake.UpdateCloudConfigStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.updateCloudConfigReturns
 	return fakeReturns.result1
 }
 
@@ -3619,15 +3666,16 @@ func (fake *FakeDirector) UpdateConfig(arg1 string, arg2 string, arg3 string, ar
 		arg3 string
 		arg4 []byte
 	}{arg1, arg2, arg3, arg4Copy})
+	stub := fake.UpdateConfigStub
+	fakeReturns := fake.updateConfigReturns
 	fake.recordInvocation("UpdateConfig", []interface{}{arg1, arg2, arg3, arg4Copy})
 	fake.updateConfigMutex.Unlock()
-	if fake.UpdateConfigStub != nil {
-		return fake.UpdateConfigStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.updateConfigReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -3688,15 +3736,16 @@ func (fake *FakeDirector) UpdateRuntimeConfig(arg1 string, arg2 []byte) error {
 		arg1 string
 		arg2 []byte
 	}{arg1, arg2Copy})
+	stub := fake.UpdateRuntimeConfigStub
+	fakeReturns := fake.updateRuntimeConfigReturns
 	fake.recordInvocation("UpdateRuntimeConfig", []interface{}{arg1, arg2Copy})
 	fake.updateRuntimeConfigMutex.Unlock()
-	if fake.UpdateRuntimeConfigStub != nil {
-		return fake.UpdateRuntimeConfigStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.updateRuntimeConfigReturns
 	return fakeReturns.result1
 }
 
@@ -3750,15 +3799,16 @@ func (fake *FakeDirector) UploadReleaseFile(arg1 director.UploadFile, arg2 bool,
 		arg2 bool
 		arg3 bool
 	}{arg1, arg2, arg3})
+	stub := fake.UploadReleaseFileStub
+	fakeReturns := fake.uploadReleaseFileReturns
 	fake.recordInvocation("UploadReleaseFile", []interface{}{arg1, arg2, arg3})
 	fake.uploadReleaseFileMutex.Unlock()
-	if fake.UploadReleaseFileStub != nil {
-		return fake.UploadReleaseFileStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.uploadReleaseFileReturns
 	return fakeReturns.result1
 }
 
@@ -3813,15 +3863,16 @@ func (fake *FakeDirector) UploadReleaseURL(arg1 string, arg2 string, arg3 bool, 
 		arg3 bool
 		arg4 bool
 	}{arg1, arg2, arg3, arg4})
+	stub := fake.UploadReleaseURLStub
+	fakeReturns := fake.uploadReleaseURLReturns
 	fake.recordInvocation("UploadReleaseURL", []interface{}{arg1, arg2, arg3, arg4})
 	fake.uploadReleaseURLMutex.Unlock()
-	if fake.UploadReleaseURLStub != nil {
-		return fake.UploadReleaseURLStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.uploadReleaseURLReturns
 	return fakeReturns.result1
 }
 
@@ -3874,15 +3925,16 @@ func (fake *FakeDirector) UploadStemcellFile(arg1 director.UploadFile, arg2 bool
 		arg1 director.UploadFile
 		arg2 bool
 	}{arg1, arg2})
+	stub := fake.UploadStemcellFileStub
+	fakeReturns := fake.uploadStemcellFileReturns
 	fake.recordInvocation("UploadStemcellFile", []interface{}{arg1, arg2})
 	fake.uploadStemcellFileMutex.Unlock()
-	if fake.UploadStemcellFileStub != nil {
-		return fake.UploadStemcellFileStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.uploadStemcellFileReturns
 	return fakeReturns.result1
 }
 
@@ -3936,15 +3988,16 @@ func (fake *FakeDirector) UploadStemcellURL(arg1 string, arg2 string, arg3 bool)
 		arg2 string
 		arg3 bool
 	}{arg1, arg2, arg3})
+	stub := fake.UploadStemcellURLStub
+	fakeReturns := fake.uploadStemcellURLReturns
 	fake.recordInvocation("UploadStemcellURL", []interface{}{arg1, arg2, arg3})
 	fake.uploadStemcellURLMutex.Unlock()
-	if fake.UploadStemcellURLStub != nil {
-		return fake.UploadStemcellURLStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.uploadStemcellURLReturns
 	return fakeReturns.result1
 }
 
@@ -3996,15 +4049,16 @@ func (fake *FakeDirector) WithContext(arg1 string) director.Director {
 	fake.withContextArgsForCall = append(fake.withContextArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.WithContextStub
+	fakeReturns := fake.withContextReturns
 	fake.recordInvocation("WithContext", []interface{}{arg1})
 	fake.withContextMutex.Unlock()
-	if fake.WithContextStub != nil {
-		return fake.WithContextStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.withContextReturns
 	return fakeReturns.result1
 }
 

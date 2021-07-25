@@ -6,13 +6,16 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 )
 
-//go:generate counterfeiter . Runner
+// You only need **one** of these per package!
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . Runner
 
 type Runner interface {
 	Run(ConnectionOpts, boshdir.SSHResult, []string) error
 }
 
-//go:generate counterfeiter . SCPRunner
+//counterfeiter:generate . SCPRunner
 
 type SCPRunner interface {
 	Run(ConnectionOpts, boshdir.SSHResult, SCPArgs) error
@@ -32,7 +35,7 @@ type ConnectionOpts struct {
 	RawOpts []string
 }
 
-//go:generate counterfeiter . Session
+//counterfeiter:generate . Session
 
 type Session interface {
 	Start() (SSHArgs, error)

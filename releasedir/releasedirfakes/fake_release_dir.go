@@ -157,15 +157,16 @@ func (fake *FakeReleaseDir) BuildRelease(arg1 string, arg2 version.Version, arg3
 		arg2 version.Version
 		arg3 bool
 	}{arg1, arg2, arg3})
+	stub := fake.BuildReleaseStub
+	fakeReturns := fake.buildReleaseReturns
 	fake.recordInvocation("BuildRelease", []interface{}{arg1, arg2, arg3})
 	fake.buildReleaseMutex.Unlock()
-	if fake.BuildReleaseStub != nil {
-		return fake.BuildReleaseStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.buildReleaseReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -219,15 +220,16 @@ func (fake *FakeReleaseDir) DefaultName() (string, error) {
 	ret, specificReturn := fake.defaultNameReturnsOnCall[len(fake.defaultNameArgsForCall)]
 	fake.defaultNameArgsForCall = append(fake.defaultNameArgsForCall, struct {
 	}{})
+	stub := fake.DefaultNameStub
+	fakeReturns := fake.defaultNameReturns
 	fake.recordInvocation("DefaultName", []interface{}{})
 	fake.defaultNameMutex.Unlock()
-	if fake.DefaultNameStub != nil {
-		return fake.DefaultNameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.defaultNameReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -276,15 +278,16 @@ func (fake *FakeReleaseDir) FinalizeRelease(arg1 release.Release, arg2 bool) err
 		arg1 release.Release
 		arg2 bool
 	}{arg1, arg2})
+	stub := fake.FinalizeReleaseStub
+	fakeReturns := fake.finalizeReleaseReturns
 	fake.recordInvocation("FinalizeRelease", []interface{}{arg1, arg2})
 	fake.finalizeReleaseMutex.Unlock()
-	if fake.FinalizeReleaseStub != nil {
-		return fake.FinalizeReleaseStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.finalizeReleaseReturns
 	return fakeReturns.result1
 }
 
@@ -337,15 +340,16 @@ func (fake *FakeReleaseDir) FindRelease(arg1 string, arg2 version.Version) (rele
 		arg1 string
 		arg2 version.Version
 	}{arg1, arg2})
+	stub := fake.FindReleaseStub
+	fakeReturns := fake.findReleaseReturns
 	fake.recordInvocation("FindRelease", []interface{}{arg1, arg2})
 	fake.findReleaseMutex.Unlock()
-	if fake.FindReleaseStub != nil {
-		return fake.FindReleaseStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.findReleaseReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -400,15 +404,16 @@ func (fake *FakeReleaseDir) GenerateJob(arg1 string) error {
 	fake.generateJobArgsForCall = append(fake.generateJobArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GenerateJobStub
+	fakeReturns := fake.generateJobReturns
 	fake.recordInvocation("GenerateJob", []interface{}{arg1})
 	fake.generateJobMutex.Unlock()
-	if fake.GenerateJobStub != nil {
-		return fake.GenerateJobStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.generateJobReturns
 	return fakeReturns.result1
 }
 
@@ -460,15 +465,16 @@ func (fake *FakeReleaseDir) GeneratePackage(arg1 string) error {
 	fake.generatePackageArgsForCall = append(fake.generatePackageArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GeneratePackageStub
+	fakeReturns := fake.generatePackageReturns
 	fake.recordInvocation("GeneratePackage", []interface{}{arg1})
 	fake.generatePackageMutex.Unlock()
-	if fake.GeneratePackageStub != nil {
-		return fake.GeneratePackageStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.generatePackageReturns
 	return fakeReturns.result1
 }
 
@@ -520,15 +526,16 @@ func (fake *FakeReleaseDir) Init(arg1 bool) error {
 	fake.initArgsForCall = append(fake.initArgsForCall, struct {
 		arg1 bool
 	}{arg1})
+	stub := fake.InitStub
+	fakeReturns := fake.initReturns
 	fake.recordInvocation("Init", []interface{}{arg1})
 	fake.initMutex.Unlock()
-	if fake.InitStub != nil {
-		return fake.InitStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.initReturns
 	return fakeReturns.result1
 }
 
@@ -581,15 +588,16 @@ func (fake *FakeReleaseDir) NextDevVersion(arg1 string, arg2 bool) (version.Vers
 		arg1 string
 		arg2 bool
 	}{arg1, arg2})
+	stub := fake.NextDevVersionStub
+	fakeReturns := fake.nextDevVersionReturns
 	fake.recordInvocation("NextDevVersion", []interface{}{arg1, arg2})
 	fake.nextDevVersionMutex.Unlock()
-	if fake.NextDevVersionStub != nil {
-		return fake.NextDevVersionStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.nextDevVersionReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -644,15 +652,16 @@ func (fake *FakeReleaseDir) NextFinalVersion(arg1 string) (version.Version, erro
 	fake.nextFinalVersionArgsForCall = append(fake.nextFinalVersionArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.NextFinalVersionStub
+	fakeReturns := fake.nextFinalVersionReturns
 	fake.recordInvocation("NextFinalVersion", []interface{}{arg1})
 	fake.nextFinalVersionMutex.Unlock()
-	if fake.NextFinalVersionStub != nil {
-		return fake.NextFinalVersionStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.nextFinalVersionReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -706,15 +715,16 @@ func (fake *FakeReleaseDir) Reset() error {
 	ret, specificReturn := fake.resetReturnsOnCall[len(fake.resetArgsForCall)]
 	fake.resetArgsForCall = append(fake.resetArgsForCall, struct {
 	}{})
+	stub := fake.ResetStub
+	fakeReturns := fake.resetReturns
 	fake.recordInvocation("Reset", []interface{}{})
 	fake.resetMutex.Unlock()
-	if fake.ResetStub != nil {
-		return fake.ResetStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.resetReturns
 	return fakeReturns.result1
 }
 
@@ -759,15 +769,16 @@ func (fake *FakeReleaseDir) VendorPackage(arg1 *pkg.Package) error {
 	fake.vendorPackageArgsForCall = append(fake.vendorPackageArgsForCall, struct {
 		arg1 *pkg.Package
 	}{arg1})
+	stub := fake.VendorPackageStub
+	fakeReturns := fake.vendorPackageReturns
 	fake.recordInvocation("VendorPackage", []interface{}{arg1})
 	fake.vendorPackageMutex.Unlock()
-	if fake.VendorPackageStub != nil {
-		return fake.VendorPackageStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.vendorPackageReturns
 	return fakeReturns.result1
 }
 

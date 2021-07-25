@@ -88,15 +88,16 @@ func (fake *FakeOrphanDisk) AZName() string {
 	ret, specificReturn := fake.aZNameReturnsOnCall[len(fake.aZNameArgsForCall)]
 	fake.aZNameArgsForCall = append(fake.aZNameArgsForCall, struct {
 	}{})
+	stub := fake.AZNameStub
+	fakeReturns := fake.aZNameReturns
 	fake.recordInvocation("AZName", []interface{}{})
 	fake.aZNameMutex.Unlock()
-	if fake.AZNameStub != nil {
-		return fake.AZNameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.aZNameReturns
 	return fakeReturns.result1
 }
 
@@ -140,15 +141,16 @@ func (fake *FakeOrphanDisk) CID() string {
 	ret, specificReturn := fake.cIDReturnsOnCall[len(fake.cIDArgsForCall)]
 	fake.cIDArgsForCall = append(fake.cIDArgsForCall, struct {
 	}{})
+	stub := fake.CIDStub
+	fakeReturns := fake.cIDReturns
 	fake.recordInvocation("CID", []interface{}{})
 	fake.cIDMutex.Unlock()
-	if fake.CIDStub != nil {
-		return fake.CIDStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.cIDReturns
 	return fakeReturns.result1
 }
 
@@ -192,15 +194,16 @@ func (fake *FakeOrphanDisk) Delete() error {
 	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
 	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
 	}{})
+	stub := fake.DeleteStub
+	fakeReturns := fake.deleteReturns
 	fake.recordInvocation("Delete", []interface{}{})
 	fake.deleteMutex.Unlock()
-	if fake.DeleteStub != nil {
-		return fake.DeleteStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.deleteReturns
 	return fakeReturns.result1
 }
 
@@ -244,15 +247,16 @@ func (fake *FakeOrphanDisk) Deployment() director.Deployment {
 	ret, specificReturn := fake.deploymentReturnsOnCall[len(fake.deploymentArgsForCall)]
 	fake.deploymentArgsForCall = append(fake.deploymentArgsForCall, struct {
 	}{})
+	stub := fake.DeploymentStub
+	fakeReturns := fake.deploymentReturns
 	fake.recordInvocation("Deployment", []interface{}{})
 	fake.deploymentMutex.Unlock()
-	if fake.DeploymentStub != nil {
-		return fake.DeploymentStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.deploymentReturns
 	return fakeReturns.result1
 }
 
@@ -296,15 +300,16 @@ func (fake *FakeOrphanDisk) InstanceName() string {
 	ret, specificReturn := fake.instanceNameReturnsOnCall[len(fake.instanceNameArgsForCall)]
 	fake.instanceNameArgsForCall = append(fake.instanceNameArgsForCall, struct {
 	}{})
+	stub := fake.InstanceNameStub
+	fakeReturns := fake.instanceNameReturns
 	fake.recordInvocation("InstanceName", []interface{}{})
 	fake.instanceNameMutex.Unlock()
-	if fake.InstanceNameStub != nil {
-		return fake.InstanceNameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.instanceNameReturns
 	return fakeReturns.result1
 }
 
@@ -348,15 +353,16 @@ func (fake *FakeOrphanDisk) OrphanedAt() time.Time {
 	ret, specificReturn := fake.orphanedAtReturnsOnCall[len(fake.orphanedAtArgsForCall)]
 	fake.orphanedAtArgsForCall = append(fake.orphanedAtArgsForCall, struct {
 	}{})
+	stub := fake.OrphanedAtStub
+	fakeReturns := fake.orphanedAtReturns
 	fake.recordInvocation("OrphanedAt", []interface{}{})
 	fake.orphanedAtMutex.Unlock()
-	if fake.OrphanedAtStub != nil {
-		return fake.OrphanedAtStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.orphanedAtReturns
 	return fakeReturns.result1
 }
 
@@ -400,15 +406,16 @@ func (fake *FakeOrphanDisk) Size() uint64 {
 	ret, specificReturn := fake.sizeReturnsOnCall[len(fake.sizeArgsForCall)]
 	fake.sizeArgsForCall = append(fake.sizeArgsForCall, struct {
 	}{})
+	stub := fake.SizeStub
+	fakeReturns := fake.sizeReturns
 	fake.recordInvocation("Size", []interface{}{})
 	fake.sizeMutex.Unlock()
-	if fake.SizeStub != nil {
-		return fake.SizeStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.sizeReturns
 	return fakeReturns.result1
 }
 

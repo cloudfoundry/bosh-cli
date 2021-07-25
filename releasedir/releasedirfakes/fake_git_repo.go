@@ -52,15 +52,16 @@ func (fake *FakeGitRepo) Init() error {
 	ret, specificReturn := fake.initReturnsOnCall[len(fake.initArgsForCall)]
 	fake.initArgsForCall = append(fake.initArgsForCall, struct {
 	}{})
+	stub := fake.InitStub
+	fakeReturns := fake.initReturns
 	fake.recordInvocation("Init", []interface{}{})
 	fake.initMutex.Unlock()
-	if fake.InitStub != nil {
-		return fake.InitStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.initReturns
 	return fakeReturns.result1
 }
 
@@ -104,15 +105,16 @@ func (fake *FakeGitRepo) LastCommitSHA() (string, error) {
 	ret, specificReturn := fake.lastCommitSHAReturnsOnCall[len(fake.lastCommitSHAArgsForCall)]
 	fake.lastCommitSHAArgsForCall = append(fake.lastCommitSHAArgsForCall, struct {
 	}{})
+	stub := fake.LastCommitSHAStub
+	fakeReturns := fake.lastCommitSHAReturns
 	fake.recordInvocation("LastCommitSHA", []interface{}{})
 	fake.lastCommitSHAMutex.Unlock()
-	if fake.LastCommitSHAStub != nil {
-		return fake.LastCommitSHAStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.lastCommitSHAReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -160,15 +162,16 @@ func (fake *FakeGitRepo) MustNotBeDirty(arg1 bool) (bool, error) {
 	fake.mustNotBeDirtyArgsForCall = append(fake.mustNotBeDirtyArgsForCall, struct {
 		arg1 bool
 	}{arg1})
+	stub := fake.MustNotBeDirtyStub
+	fakeReturns := fake.mustNotBeDirtyReturns
 	fake.recordInvocation("MustNotBeDirty", []interface{}{arg1})
 	fake.mustNotBeDirtyMutex.Unlock()
-	if fake.MustNotBeDirtyStub != nil {
-		return fake.MustNotBeDirtyStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.mustNotBeDirtyReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

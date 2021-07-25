@@ -55,15 +55,16 @@ func (fake *FakeArchiveIndex) Add(arg1 string, arg2 string, arg3 string, arg4 st
 		arg3 string
 		arg4 string
 	}{arg1, arg2, arg3, arg4})
+	stub := fake.AddStub
+	fakeReturns := fake.addReturns
 	fake.recordInvocation("Add", []interface{}{arg1, arg2, arg3, arg4})
 	fake.addMutex.Unlock()
-	if fake.AddStub != nil {
-		return fake.AddStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.addReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -122,15 +123,16 @@ func (fake *FakeArchiveIndex) Find(arg1 string, arg2 string) (string, string, er
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.FindStub
+	fakeReturns := fake.findReturns
 	fake.recordInvocation("Find", []interface{}{arg1, arg2})
 	fake.findMutex.Unlock()
-	if fake.FindStub != nil {
-		return fake.FindStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.findReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 

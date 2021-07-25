@@ -54,15 +54,16 @@ func (fake *FakeConfig) Blobstore() (string, map[string]interface{}, error) {
 	ret, specificReturn := fake.blobstoreReturnsOnCall[len(fake.blobstoreArgsForCall)]
 	fake.blobstoreArgsForCall = append(fake.blobstoreArgsForCall, struct {
 	}{})
+	stub := fake.BlobstoreStub
+	fakeReturns := fake.blobstoreReturns
 	fake.recordInvocation("Blobstore", []interface{}{})
 	fake.blobstoreMutex.Unlock()
-	if fake.BlobstoreStub != nil {
-		return fake.BlobstoreStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.blobstoreReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -112,15 +113,16 @@ func (fake *FakeConfig) Name() (string, error) {
 	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
 	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
 	}{})
+	stub := fake.NameStub
+	fakeReturns := fake.nameReturns
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.nameReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -168,15 +170,16 @@ func (fake *FakeConfig) SaveName(arg1 string) error {
 	fake.saveNameArgsForCall = append(fake.saveNameArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.SaveNameStub
+	fakeReturns := fake.saveNameReturns
 	fake.recordInvocation("SaveName", []interface{}{arg1})
 	fake.saveNameMutex.Unlock()
-	if fake.SaveNameStub != nil {
-		return fake.SaveNameStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.saveNameReturns
 	return fakeReturns.result1
 }
 

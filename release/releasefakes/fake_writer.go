@@ -38,15 +38,16 @@ func (fake *FakeWriter) Write(arg1 release.Release, arg2 []string) (string, erro
 		arg1 release.Release
 		arg2 []string
 	}{arg1, arg2Copy})
+	stub := fake.WriteStub
+	fakeReturns := fake.writeReturns
 	fake.recordInvocation("Write", []interface{}{arg1, arg2Copy})
 	fake.writeMutex.Unlock()
-	if fake.WriteStub != nil {
-		return fake.WriteStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.writeReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

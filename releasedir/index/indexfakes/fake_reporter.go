@@ -58,9 +58,10 @@ func (fake *FakeReporter) IndexEntryDownloadFinished(arg1 string, arg2 string, a
 		arg2 string
 		arg3 error
 	}{arg1, arg2, arg3})
+	stub := fake.IndexEntryDownloadFinishedStub
 	fake.recordInvocation("IndexEntryDownloadFinished", []interface{}{arg1, arg2, arg3})
 	fake.indexEntryDownloadFinishedMutex.Unlock()
-	if fake.IndexEntryDownloadFinishedStub != nil {
+	if stub != nil {
 		fake.IndexEntryDownloadFinishedStub(arg1, arg2, arg3)
 	}
 }
@@ -90,9 +91,10 @@ func (fake *FakeReporter) IndexEntryDownloadStarted(arg1 string, arg2 string) {
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.IndexEntryDownloadStartedStub
 	fake.recordInvocation("IndexEntryDownloadStarted", []interface{}{arg1, arg2})
 	fake.indexEntryDownloadStartedMutex.Unlock()
-	if fake.IndexEntryDownloadStartedStub != nil {
+	if stub != nil {
 		fake.IndexEntryDownloadStartedStub(arg1, arg2)
 	}
 }
@@ -123,9 +125,10 @@ func (fake *FakeReporter) IndexEntryFinishedAdding(arg1 string, arg2 string, arg
 		arg2 string
 		arg3 error
 	}{arg1, arg2, arg3})
+	stub := fake.IndexEntryFinishedAddingStub
 	fake.recordInvocation("IndexEntryFinishedAdding", []interface{}{arg1, arg2, arg3})
 	fake.indexEntryFinishedAddingMutex.Unlock()
-	if fake.IndexEntryFinishedAddingStub != nil {
+	if stub != nil {
 		fake.IndexEntryFinishedAddingStub(arg1, arg2, arg3)
 	}
 }
@@ -155,9 +158,10 @@ func (fake *FakeReporter) IndexEntryStartedAdding(arg1 string, arg2 string) {
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.IndexEntryStartedAddingStub
 	fake.recordInvocation("IndexEntryStartedAdding", []interface{}{arg1, arg2})
 	fake.indexEntryStartedAddingMutex.Unlock()
-	if fake.IndexEntryStartedAddingStub != nil {
+	if stub != nil {
 		fake.IndexEntryStartedAddingStub(arg1, arg2)
 	}
 }
@@ -188,9 +192,10 @@ func (fake *FakeReporter) IndexEntryUploadFinished(arg1 string, arg2 string, arg
 		arg2 string
 		arg3 error
 	}{arg1, arg2, arg3})
+	stub := fake.IndexEntryUploadFinishedStub
 	fake.recordInvocation("IndexEntryUploadFinished", []interface{}{arg1, arg2, arg3})
 	fake.indexEntryUploadFinishedMutex.Unlock()
-	if fake.IndexEntryUploadFinishedStub != nil {
+	if stub != nil {
 		fake.IndexEntryUploadFinishedStub(arg1, arg2, arg3)
 	}
 }
@@ -220,9 +225,10 @@ func (fake *FakeReporter) IndexEntryUploadStarted(arg1 string, arg2 string) {
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.IndexEntryUploadStartedStub
 	fake.recordInvocation("IndexEntryUploadStarted", []interface{}{arg1, arg2})
 	fake.indexEntryUploadStartedMutex.Unlock()
-	if fake.IndexEntryUploadStartedStub != nil {
+	if stub != nil {
 		fake.IndexEntryUploadStartedStub(arg1, arg2)
 	}
 }

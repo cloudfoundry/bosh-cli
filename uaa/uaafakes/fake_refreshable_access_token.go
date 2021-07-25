@@ -57,15 +57,16 @@ func (fake *FakeRefreshableAccessToken) IsValid() bool {
 	ret, specificReturn := fake.isValidReturnsOnCall[len(fake.isValidArgsForCall)]
 	fake.isValidArgsForCall = append(fake.isValidArgsForCall, struct {
 	}{})
+	stub := fake.IsValidStub
+	fakeReturns := fake.isValidReturns
 	fake.recordInvocation("IsValid", []interface{}{})
 	fake.isValidMutex.Unlock()
-	if fake.IsValidStub != nil {
-		return fake.IsValidStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.isValidReturns
 	return fakeReturns.result1
 }
 
@@ -109,15 +110,16 @@ func (fake *FakeRefreshableAccessToken) RefreshValue() string {
 	ret, specificReturn := fake.refreshValueReturnsOnCall[len(fake.refreshValueArgsForCall)]
 	fake.refreshValueArgsForCall = append(fake.refreshValueArgsForCall, struct {
 	}{})
+	stub := fake.RefreshValueStub
+	fakeReturns := fake.refreshValueReturns
 	fake.recordInvocation("RefreshValue", []interface{}{})
 	fake.refreshValueMutex.Unlock()
-	if fake.RefreshValueStub != nil {
-		return fake.RefreshValueStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.refreshValueReturns
 	return fakeReturns.result1
 }
 
@@ -161,15 +163,16 @@ func (fake *FakeRefreshableAccessToken) Type() string {
 	ret, specificReturn := fake.typeReturnsOnCall[len(fake.typeArgsForCall)]
 	fake.typeArgsForCall = append(fake.typeArgsForCall, struct {
 	}{})
+	stub := fake.TypeStub
+	fakeReturns := fake.typeReturns
 	fake.recordInvocation("Type", []interface{}{})
 	fake.typeMutex.Unlock()
-	if fake.TypeStub != nil {
-		return fake.TypeStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.typeReturns
 	return fakeReturns.result1
 }
 
@@ -213,15 +216,16 @@ func (fake *FakeRefreshableAccessToken) Value() string {
 	ret, specificReturn := fake.valueReturnsOnCall[len(fake.valueArgsForCall)]
 	fake.valueArgsForCall = append(fake.valueArgsForCall, struct {
 	}{})
+	stub := fake.ValueStub
+	fakeReturns := fake.valueReturns
 	fake.recordInvocation("Value", []interface{}{})
 	fake.valueMutex.Unlock()
-	if fake.ValueStub != nil {
-		return fake.ValueStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.valueReturns
 	return fakeReturns.result1
 }
 

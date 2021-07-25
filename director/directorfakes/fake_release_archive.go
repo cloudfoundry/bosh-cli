@@ -41,15 +41,16 @@ func (fake *FakeReleaseArchive) File() (director.UploadFile, error) {
 	ret, specificReturn := fake.fileReturnsOnCall[len(fake.fileArgsForCall)]
 	fake.fileArgsForCall = append(fake.fileArgsForCall, struct {
 	}{})
+	stub := fake.FileStub
+	fakeReturns := fake.fileReturns
 	fake.recordInvocation("File", []interface{}{})
 	fake.fileMutex.Unlock()
-	if fake.FileStub != nil {
-		return fake.FileStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.fileReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -96,15 +97,16 @@ func (fake *FakeReleaseArchive) Info() (director.ReleaseMetadata, error) {
 	ret, specificReturn := fake.infoReturnsOnCall[len(fake.infoArgsForCall)]
 	fake.infoArgsForCall = append(fake.infoArgsForCall, struct {
 	}{})
+	stub := fake.InfoStub
+	fakeReturns := fake.infoReturns
 	fake.recordInvocation("Info", []interface{}{})
 	fake.infoMutex.Unlock()
-	if fake.InfoStub != nil {
-		return fake.InfoStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.infoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

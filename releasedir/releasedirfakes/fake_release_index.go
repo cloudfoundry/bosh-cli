@@ -70,15 +70,16 @@ func (fake *FakeReleaseIndex) Add(arg1 manifest.Manifest) error {
 	fake.addArgsForCall = append(fake.addArgsForCall, struct {
 		arg1 manifest.Manifest
 	}{arg1})
+	stub := fake.AddStub
+	fakeReturns := fake.addReturns
 	fake.recordInvocation("Add", []interface{}{arg1})
 	fake.addMutex.Unlock()
-	if fake.AddStub != nil {
-		return fake.AddStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.addReturns
 	return fakeReturns.result1
 }
 
@@ -130,15 +131,16 @@ func (fake *FakeReleaseIndex) Contains(arg1 release.Release) (bool, error) {
 	fake.containsArgsForCall = append(fake.containsArgsForCall, struct {
 		arg1 release.Release
 	}{arg1})
+	stub := fake.ContainsStub
+	fakeReturns := fake.containsReturns
 	fake.recordInvocation("Contains", []interface{}{arg1})
 	fake.containsMutex.Unlock()
-	if fake.ContainsStub != nil {
-		return fake.ContainsStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.containsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -193,15 +195,16 @@ func (fake *FakeReleaseIndex) LastVersion(arg1 string) (*version.Version, error)
 	fake.lastVersionArgsForCall = append(fake.lastVersionArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.LastVersionStub
+	fakeReturns := fake.lastVersionReturns
 	fake.recordInvocation("LastVersion", []interface{}{arg1})
 	fake.lastVersionMutex.Unlock()
-	if fake.LastVersionStub != nil {
-		return fake.LastVersionStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.lastVersionReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -257,15 +260,16 @@ func (fake *FakeReleaseIndex) ManifestPath(arg1 string, arg2 string) string {
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.ManifestPathStub
+	fakeReturns := fake.manifestPathReturns
 	fake.recordInvocation("ManifestPath", []interface{}{arg1, arg2})
 	fake.manifestPathMutex.Unlock()
-	if fake.ManifestPathStub != nil {
-		return fake.ManifestPathStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.manifestPathReturns
 	return fakeReturns.result1
 }
 

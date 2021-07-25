@@ -39,15 +39,16 @@ func (fake *FakeRunner) Run(arg1 ssh.ConnectionOpts, arg2 director.SSHResult, ar
 		arg2 director.SSHResult
 		arg3 []string
 	}{arg1, arg2, arg3Copy})
+	stub := fake.RunStub
+	fakeReturns := fake.runReturns
 	fake.recordInvocation("Run", []interface{}{arg1, arg2, arg3Copy})
 	fake.runMutex.Unlock()
-	if fake.RunStub != nil {
-		return fake.RunStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.runReturns
 	return fakeReturns.result1
 }
 

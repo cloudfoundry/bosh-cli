@@ -11,7 +11,10 @@ import (
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
-//go:generate counterfeiter . ReleaseDir
+// You only need **one** of these per package!
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . ReleaseDir
 
 type ReleaseDir interface {
 	Init(bool) error
@@ -41,7 +44,7 @@ type ReleaseDir interface {
 	FinalizeRelease(release boshrel.Release, force bool) error
 }
 
-//go:generate counterfeiter . Config
+//counterfeiter:generate . Config
 
 type Config interface {
 	Name() (string, error)
@@ -50,14 +53,14 @@ type Config interface {
 	Blobstore() (string, map[string]interface{}, error)
 }
 
-//go:generate counterfeiter . Generator
+//counterfeiter:generate . Generator
 
 type Generator interface {
 	GenerateJob(string) error
 	GeneratePackage(string) error
 }
 
-//go:generate counterfeiter . GitRepo
+//counterfeiter:generate . GitRepo
 
 type GitRepo interface {
 	Init() error
@@ -65,7 +68,7 @@ type GitRepo interface {
 	MustNotBeDirty(force bool) (dirty bool, err error)
 }
 
-//go:generate counterfeiter . BlobsDir
+//counterfeiter:generate . BlobsDir
 
 type BlobsDir interface {
 	Init() error
@@ -78,7 +81,7 @@ type BlobsDir interface {
 	UntrackBlob(string) error
 }
 
-//go:generate counterfeiter . BlobsDirReporter
+//counterfeiter:generate . BlobsDirReporter
 
 type BlobsDirReporter interface {
 	BlobDownloadStarted(path string, size int64, blobID, sha1 string)
@@ -96,7 +99,7 @@ type Blob struct {
 	SHA1        string
 }
 
-//go:generate counterfeiter . ReleaseIndex
+//counterfeiter:generate . ReleaseIndex
 
 type ReleaseIndex interface {
 	LastVersion(name string) (*semver.Version, error)
@@ -107,13 +110,13 @@ type ReleaseIndex interface {
 	ManifestPath(name, version string) string
 }
 
-//go:generate counterfeiter . ReleaseIndexReporter
+//counterfeiter:generate . ReleaseIndexReporter
 
 type ReleaseIndexReporter interface {
 	ReleaseIndexAdded(name, desc string, err error)
 }
 
-//go:generate counterfeiter . DigestBlobstore
+//counterfeiter:generate . DigestBlobstore
 
 type DigestBlobstore interface {
 	Get(blobID string, digest boshcrypto.Digest) (fileName string, err error)

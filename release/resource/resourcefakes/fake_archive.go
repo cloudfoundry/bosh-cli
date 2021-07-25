@@ -45,15 +45,16 @@ func (fake *FakeArchive) Build(arg1 string) (string, string, error) {
 	fake.buildArgsForCall = append(fake.buildArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.BuildStub
+	fakeReturns := fake.buildReturns
 	fake.recordInvocation("Build", []interface{}{arg1})
 	fake.buildMutex.Unlock()
-	if fake.BuildStub != nil {
-		return fake.BuildStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.buildReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -110,15 +111,16 @@ func (fake *FakeArchive) Fingerprint() (string, error) {
 	ret, specificReturn := fake.fingerprintReturnsOnCall[len(fake.fingerprintArgsForCall)]
 	fake.fingerprintArgsForCall = append(fake.fingerprintArgsForCall, struct {
 	}{})
+	stub := fake.FingerprintStub
+	fakeReturns := fake.fingerprintReturns
 	fake.recordInvocation("Fingerprint", []interface{}{})
 	fake.fingerprintMutex.Unlock()
-	if fake.FingerprintStub != nil {
-		return fake.FingerprintStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.fingerprintReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

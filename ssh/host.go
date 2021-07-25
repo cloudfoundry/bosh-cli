@@ -6,7 +6,11 @@ import (
 	"strconv"
 )
 
-//go:generate counterfeiter . HostBuilder
+// You only need **one** of these per package!
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . HostBuilder
+
 type HostBuilder interface {
 	BuildHost(slug boshdir.AllOrInstanceGroupOrInstanceSlug, username string, deploymentFetcher DeploymentFetcher) (boshdir.Host, error)
 }

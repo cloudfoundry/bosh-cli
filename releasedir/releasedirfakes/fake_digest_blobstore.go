@@ -80,15 +80,16 @@ func (fake *FakeDigestBlobstore) CleanUp(arg1 string) error {
 	fake.cleanUpArgsForCall = append(fake.cleanUpArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.CleanUpStub
+	fakeReturns := fake.cleanUpReturns
 	fake.recordInvocation("CleanUp", []interface{}{arg1})
 	fake.cleanUpMutex.Unlock()
-	if fake.CleanUpStub != nil {
-		return fake.CleanUpStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.cleanUpReturns
 	return fakeReturns.result1
 }
 
@@ -140,15 +141,16 @@ func (fake *FakeDigestBlobstore) Create(arg1 string) (string, crypto.MultipleDig
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.CreateStub
+	fakeReturns := fake.createReturns
 	fake.recordInvocation("Create", []interface{}{arg1})
 	fake.createMutex.Unlock()
-	if fake.CreateStub != nil {
-		return fake.CreateStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.createReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -206,15 +208,16 @@ func (fake *FakeDigestBlobstore) Delete(arg1 string) error {
 	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.DeleteStub
+	fakeReturns := fake.deleteReturns
 	fake.recordInvocation("Delete", []interface{}{arg1})
 	fake.deleteMutex.Unlock()
-	if fake.DeleteStub != nil {
-		return fake.DeleteStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.deleteReturns
 	return fakeReturns.result1
 }
 
@@ -267,15 +270,16 @@ func (fake *FakeDigestBlobstore) Get(arg1 string, arg2 crypto.Digest) (string, e
 		arg1 string
 		arg2 crypto.Digest
 	}{arg1, arg2})
+	stub := fake.GetStub
+	fakeReturns := fake.getReturns
 	fake.recordInvocation("Get", []interface{}{arg1, arg2})
 	fake.getMutex.Unlock()
-	if fake.GetStub != nil {
-		return fake.GetStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -329,15 +333,16 @@ func (fake *FakeDigestBlobstore) Validate() error {
 	ret, specificReturn := fake.validateReturnsOnCall[len(fake.validateArgsForCall)]
 	fake.validateArgsForCall = append(fake.validateArgsForCall, struct {
 	}{})
+	stub := fake.ValidateStub
+	fakeReturns := fake.validateReturns
 	fake.recordInvocation("Validate", []interface{}{})
 	fake.validateMutex.Unlock()
-	if fake.ValidateStub != nil {
-		return fake.ValidateStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.validateReturns
 	return fakeReturns.result1
 }
 

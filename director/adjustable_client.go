@@ -8,14 +8,14 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
-//go:generate counterfeiter . Adjustment
+//counterfeiter:generate . Adjustment
 
 type Adjustment interface {
 	Adjust(req *http.Request, retried bool) error
 	NeedsReadjustment(*http.Response) bool
 }
 
-//go:generate counterfeiter . AdjustedClient
+//counterfeiter:generate . AdjustedClient
 
 type AdjustedClient interface {
 	Do(*http.Request) (*http.Response, error)

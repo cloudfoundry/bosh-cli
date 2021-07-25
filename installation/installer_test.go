@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-cli/installation/blobextract/fakeblobextract"
+	"github.com/cloudfoundry/bosh-cli/installation/blobextract/blobextractfakes"
 	mock_install "github.com/cloudfoundry/bosh-cli/installation/mocks"
 	mock_registry "github.com/cloudfoundry/bosh-cli/registry/mocks"
 	"github.com/golang/mock/gomock"
@@ -36,7 +36,7 @@ var _ = Describe("Installer", func() {
 		mockJobRenderer           *mock_install.MockJobRenderer
 		mockJobResolver           *mock_install.MockJobResolver
 		mockPackageCompiler       *mock_install.MockPackageCompiler
-		fakeExtractor             *fakeblobextract.FakeExtractor
+		fakeExtractor             *blobextractfakes.FakeExtractor
 		mockRegistryServerManager *mock_registry.MockServerManager
 
 		logger boshlog.Logger
@@ -52,7 +52,7 @@ var _ = Describe("Installer", func() {
 		mockJobRenderer = mock_install.NewMockJobRenderer(mockCtrl)
 		mockJobResolver = mock_install.NewMockJobResolver(mockCtrl)
 		mockPackageCompiler = mock_install.NewMockPackageCompiler(mockCtrl)
-		fakeExtractor = &fakeblobextract.FakeExtractor{}
+		fakeExtractor = &blobextractfakes.FakeExtractor{}
 		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 
 		target = NewTarget("fake-installation-path")
