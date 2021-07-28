@@ -23,6 +23,8 @@ func NewInspectLocalReleaseCmd(
 
 func (cmd InspectLocalReleaseCmd) Run(opts InspectLocalReleaseOpts) error {
 	release, err := cmd.reader.Read(opts.Args.PathToRelease)
+	defer release.CleanUp()
+
 	if err != nil {
 		return err
 	}
