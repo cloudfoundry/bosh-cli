@@ -17,6 +17,8 @@
 package config
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"io"
@@ -43,6 +45,9 @@ type GCSCli struct {
 	// GCS transparently encrypts data using server-side encryption keys.
 	// https://cloud.google.com/storage/docs/encryption
 	EncryptionKey []byte `json:"encryption_key"`
+
+	EncryptionKeyEncoded string
+	EncryptionKeySha256 string
 }
 
 // DefaultCredentialsSource specifies that credentials should be detected.
@@ -92,6 +97,14 @@ func NewFromReader(reader io.Reader) (GCSCli, error) {
 
 	if len(c.EncryptionKey) != 32 && c.EncryptionKey != nil {
 		return GCSCli{}, ErrWrongLengthEncryptionKey
+	}
+
+	if len(c.EncryptionKey) > 0 {
+		c.EncryptionKeyEncoded = base64.StdEncoding.EncodeToString(c.EncryptionKey)
+
+		encryptionKeySha := sha256.New()
+		encryptionKeySha.Write(c.EncryptionKey)
+		c.EncryptionKeySha256 = base64.StdEncoding.EncodeToString(encryptionKeySha.Sum(nil))
 	}
 
 	return c, nil
