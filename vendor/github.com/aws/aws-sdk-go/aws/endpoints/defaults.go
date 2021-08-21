@@ -3766,18 +3766,49 @@ var awsPartition = partition{
 				"eu-west-1":      endpoint{},
 				"eu-west-2":      endpoint{},
 				"eu-west-3":      endpoint{},
-				"me-south-1":     endpoint{},
-				"sa-east-1":      endpoint{},
-				"us-east-1":      endpoint{},
-				"us-east-2":      endpoint{},
-				"us-west-1":      endpoint{},
-				"us-west-2":      endpoint{},
+				"fips-ca-central-1": endpoint{
+					Hostname: "iot-fips.ca-central-1.amazonaws.com",
+					CredentialScope: credentialScope{
+						Service: "execute-api",
+					},
+				},
+				"fips-us-east-1": endpoint{
+					Hostname: "iot-fips.us-east-1.amazonaws.com",
+					CredentialScope: credentialScope{
+						Service: "execute-api",
+					},
+				},
+				"fips-us-east-2": endpoint{
+					Hostname: "iot-fips.us-east-2.amazonaws.com",
+					CredentialScope: credentialScope{
+						Service: "execute-api",
+					},
+				},
+				"fips-us-west-1": endpoint{
+					Hostname: "iot-fips.us-west-1.amazonaws.com",
+					CredentialScope: credentialScope{
+						Service: "execute-api",
+					},
+				},
+				"fips-us-west-2": endpoint{
+					Hostname: "iot-fips.us-west-2.amazonaws.com",
+					CredentialScope: credentialScope{
+						Service: "execute-api",
+					},
+				},
+				"me-south-1": endpoint{},
+				"sa-east-1":  endpoint{},
+				"us-east-1":  endpoint{},
+				"us-east-2":  endpoint{},
+				"us-west-1":  endpoint{},
+				"us-west-2":  endpoint{},
 			},
 		},
 		"iotanalytics": service{
 
 			Endpoints: endpoints{
 				"ap-northeast-1": endpoint{},
+				"ap-south-1":     endpoint{},
 				"ap-southeast-2": endpoint{},
 				"eu-central-1":   endpoint{},
 				"eu-west-1":      endpoint{},
@@ -9580,6 +9611,18 @@ var awsusgovPartition = partition{
 				},
 			},
 			Endpoints: endpoints{
+				"fips-us-gov-east-1": endpoint{
+					Hostname: "iot-fips.us-gov-east-1.amazonaws.com",
+					CredentialScope: credentialScope{
+						Service: "execute-api",
+					},
+				},
+				"fips-us-gov-west-1": endpoint{
+					Hostname: "iot-fips.us-gov-west-1.amazonaws.com",
+					CredentialScope: credentialScope{
+						Service: "execute-api",
+					},
+				},
 				"us-gov-east-1": endpoint{},
 				"us-gov-west-1": endpoint{},
 			},
@@ -10841,6 +10884,12 @@ var awsisoPartition = partition{
 						Region: "us-iso-east-1",
 					},
 				},
+			},
+		},
+		"route53resolver": service{
+
+			Endpoints: endpoints{
+				"us-iso-east-1": endpoint{},
 			},
 		},
 		"runtime.sagemaker": service{
