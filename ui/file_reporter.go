@@ -31,7 +31,7 @@ func (r FileReporter) TrackDownload(size int64, writer io.Writer) io.Writer {
 func (r FileReporter) buildBar(size int64) *pb.ProgressBar {
 	bar := pb.New(int(size))
 	bar.SetWriter(r)
-	bar.SetTemplateString(`{{bar . }} {{percent . }} {{speed . "%s/s" " "}} {{rtime . "%s" " "}}`)
+	bar.SetTemplateString(`{{bar . }} {{percent . }} {{speed . "%s/s" " "}} {{rtime . }}`)
 	bar.SetWidth(80)
 	bar.SetMaxWidth(80)
 	bar.Set(pb.Bytes, true)
