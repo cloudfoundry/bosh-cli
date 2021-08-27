@@ -240,7 +240,7 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh-agent.git
-      branch: master
+      branch: main
 
   - name: bosh-cli
     type: git
