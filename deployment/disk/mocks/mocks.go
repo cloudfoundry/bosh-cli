@@ -65,11 +65,11 @@ func (mr *MockDiskMockRecorder) Delete() *gomock.Call {
 }
 
 // NeedsMigration mocks base method
-func (m *MockDisk) NeedsMigration(arg0 int, arg1 property.Map) bool {
+func (m *MockDisk) NeedsMigration(arg0 int, arg1 property.Map) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NeedsMigration", arg0, arg1)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	return ret0, nil
 }
 
 // NeedsMigration indicates an expected call of NeedsMigration
