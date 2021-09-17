@@ -1,8 +1,7 @@
 package disk
 
 import (
-	"reflect"
-
+	"encoding/json"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -11,7 +10,7 @@ import (
 
 type Disk interface {
 	CID() string
-	NeedsMigration(newSize int, newCloudProperties biproperty.Map) bool
+	NeedsMigration(newSize int, newCloudProperties biproperty.Map) (bool, error)
 	Delete() error
 }
 
@@ -42,8 +41,21 @@ func (d *disk) CID() string {
 	return d.cid
 }
 
-func (d *disk) NeedsMigration(newSize int, newCloudProperties biproperty.Map) bool {
-	return d.size != newSize || !reflect.DeepEqual(d.cloudProperties, newCloudProperties)
+func (d *disk) NeedsMigration(newSize int, newCloudProperties biproperty.Map) (bool, error) {
+	if d.size != newSize {
+		return true, nil
+	}
+
+	diskPropertiesString, err := json.Marshal(d.cloudProperties)
+	if err != nil {
+		return false, err
+	}
+	newCloudPropertiesString, err := json.Marshal(newCloudProperties)
+	if err != nil {
+		return false, err
+	}
+
+	return string(diskPropertiesString) != string(newCloudPropertiesString), nil
 }
 
 func (d *disk) Delete() error {

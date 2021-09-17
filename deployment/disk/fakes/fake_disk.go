@@ -34,13 +34,13 @@ func (d *FakeDisk) CID() string {
 	return d.cid
 }
 
-func (d *FakeDisk) NeedsMigration(size int, cloudProperties biproperty.Map) bool {
+func (d *FakeDisk) NeedsMigration(size int, cloudProperties biproperty.Map) (bool, error) {
 	d.NeedsMigrationInputs = append(d.NeedsMigrationInputs, NeedsMigrationInput{
 		Size:            size,
 		CloudProperties: cloudProperties,
 	})
 
-	return d.needsMigrationOutput.needsMigration
+	return d.needsMigrationOutput.needsMigration, nil
 }
 
 func (d *FakeDisk) Delete() error {

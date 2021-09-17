@@ -83,7 +83,11 @@ func (d *diskDeployer) deployExistingDisk(disk bidisk.Disk, diskPool bideplmanif
 		return disks, err
 	}
 
-	if d.recreatePersistentDisk || disk.NeedsMigration(diskPool.DiskSize, diskPool.CloudProperties) {
+	diskNeedsMigration, err := disk.NeedsMigration(diskPool.DiskSize, diskPool.CloudProperties)
+	if err != nil {
+		return disks, err
+	}
+	if d.recreatePersistentDisk || diskNeedsMigration {
 		disk, err = d.migrateDisk(disk, diskPool, vm, stage)
 		if err != nil {
 			return disks, err
