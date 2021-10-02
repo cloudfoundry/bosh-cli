@@ -1,4 +1,4 @@
-# cloud.google.com/go v0.96.0
+# cloud.google.com/go v0.97.0
 ## explicit
 cloud.google.com/go
 cloud.google.com/go/compute/metadata
@@ -7,7 +7,7 @@ cloud.google.com/go/internal
 cloud.google.com/go/internal/optional
 cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
-# cloud.google.com/go/storage v1.16.1
+# cloud.google.com/go/storage v1.17.0
 ## explicit
 cloud.google.com/go/storage
 cloud.google.com/go/storage/internal/apiv2
@@ -23,7 +23,7 @@ code.cloudfoundry.org/workpool
 # github.com/VividCortex/ewma v1.2.0
 ## explicit
 github.com/VividCortex/ewma
-# github.com/aws/aws-sdk-go v1.40.51
+# github.com/aws/aws-sdk-go v1.40.54
 ## explicit
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -131,7 +131,7 @@ github.com/cloudfoundry/config-server/types
 github.com/cloudfoundry/config-server/types/typesfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.22
+# github.com/cloudfoundry/socks5-proxy v0.2.23
 ## explicit
 github.com/cloudfoundry/socks5-proxy
 # github.com/cppforlife/go-patch v0.2.0
@@ -185,7 +185,7 @@ github.com/jessevdk/go-flags
 github.com/jmespath/go-jmespath
 # github.com/jpillora/backoff v1.0.0
 github.com/jpillora/backoff
-# github.com/mattn/go-colorable v0.1.10
+# github.com/mattn/go-colorable v0.1.11
 ## explicit
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.14
@@ -297,8 +297,7 @@ golang.org/x/crypto/ssh/terminal
 golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20210928044308-7d9f5e0b762b
-## explicit
+# golang.org/x/net v0.0.0-20210929193557-e81a3d93ecf6
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/html
@@ -320,8 +319,7 @@ golang.org/x/oauth2/google/internal/externalaccount
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6
-## explicit
+# golang.org/x/sys v0.0.0-20211001092434-39dca1131b70
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
 golang.org/x/sys/internal/unsafeheader
@@ -406,7 +404,7 @@ google.golang.org/appengine/internal/socket
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/socket
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20210928142010-c7af6a1a74c9
+# google.golang.org/genproto v0.0.0-20211001223012-bfb93cce50d9
 ## explicit
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/iam/v1
