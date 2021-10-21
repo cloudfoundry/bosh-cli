@@ -47,7 +47,7 @@ type GCSCli struct {
 	EncryptionKey []byte `json:"encryption_key"`
 
 	EncryptionKeyEncoded string
-	EncryptionKeySha256 string
+	EncryptionKeySha256  string
 }
 
 // DefaultCredentialsSource specifies that credentials should be detected.

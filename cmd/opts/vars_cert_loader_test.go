@@ -64,7 +64,7 @@ var _ = Describe("VarsCertLoader", func() {
 
 			_, _, err := loader.LoadCerts("cert")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("Parsing certificate: asn1: syntax error: data truncated"))
+			Expect(err.Error()).To(Equal("Parsing certificate: x509: malformed certificate"))
 		})
 
 		It("returns error if pem encoded private key cannot be found", func() {
