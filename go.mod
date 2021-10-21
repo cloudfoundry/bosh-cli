@@ -47,6 +47,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
+	github.com/kr/pretty v0.2.1 // indirect
 	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
@@ -54,7 +55,7 @@ require (
 	github.com/pivotal-cf/paraphernalia v0.0.0-20180203224945-a64ae2051c20 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	golang.org/x/mod v0.5.0 // indirect
+	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/net v0.0.0-20211020060615-d418f374d309 // indirect
 	golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1 // indirect
 	golang.org/x/sys v0.0.0-20211020174200-9d6173849985 // indirect
