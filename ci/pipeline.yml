@@ -20,8 +20,13 @@ jobs:
       - get: weekly
         trigger: true
       - get: bosh-cli
+      - get: golang-release
       - task: bump-deps
-        file: bosh-cli/ci/tasks/bump-deps.yml
+        file: golang-release/ci/tasks/shared/bump-deps.yml
+        input_mapping:
+          input_repo: bosh-cli
+        output_mapping:
+          output_repo: bumped-bosh-cli
       - task: test-unit
         input_mapping:
           bosh-cli: bumped-bosh-cli
@@ -266,6 +271,11 @@ resources:
       access_token: {{github_token}}
       branch: main
       context: ci/published
+
+  - name: golang-release
+    type: git
+    source:
+      uri: https://github.com/bosh-packages/golang-release.git
 
   - name: release-bucket-linux
     type: s3
