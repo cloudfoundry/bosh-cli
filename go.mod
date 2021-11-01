@@ -34,7 +34,7 @@ require (
 	cloud.google.com/go/storage v1.18.2 // indirect
 	code.cloudfoundry.org/tlsconfig v0.0.0-20210615191307-5d92ef3894a7 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
-	github.com/aws/aws-sdk-go v1.41.14 // indirect
+	github.com/aws/aws-sdk-go v1.41.15 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
