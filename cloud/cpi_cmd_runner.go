@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strconv"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -99,6 +101,14 @@ func (r *cpiCmdRunner) Run(context CmdContext, method string, apiVersion int, ar
 	if err != nil {
 		return CmdOutput{}, bosherr.WrapErrorf(err, "Marshalling external CPI command input %#v", cmdInput)
 	}
+	useIsolatedEnv := true
+	value, present := os.LookupEnv("BOSH_CPI_USE_ISOLATED_ENV")
+	if present {
+		useIsolatedEnv, err = strconv.ParseBool(value)
+		if err != nil {
+			return CmdOutput{}, bosherr.WrapErrorf(err, "Parsing $BOSH_CPI_USE_ISOLATED_ENV error, could not parse value: %v", value)
+		}
+	}
 
 	cmdPath := r.cpi.ExecutablePath()
 	cmd := boshsys.Command{
@@ -108,7 +118,7 @@ func (r *cpiCmdRunner) Run(context CmdContext, method string, apiVersion int, ar
 			"BOSH_JOBS_DIR":     r.cpi.JobsDir,
 			"PATH":              "/usr/local/bin:/usr/bin:/bin:/sbin",
 		},
-		UseIsolatedEnv: true,
+		UseIsolatedEnv: useIsolatedEnv,
 		Stdin:          bytes.NewReader(inputBytes),
 	}
 	stdout, stderr, exitCode, err := r.cmdRunner.RunComplexCommand(cmd)
