@@ -9,10 +9,10 @@ require (
 	github.com/cloudfoundry/bosh-agent v2.367.0+incompatible
 	github.com/cloudfoundry/bosh-davcli v0.0.48
 	github.com/cloudfoundry/bosh-gcscli v0.0.21
-	github.com/cloudfoundry/bosh-s3cli v0.0.103
-	github.com/cloudfoundry/bosh-utils v0.0.290
-	github.com/cloudfoundry/config-server v0.1.31
-	github.com/cloudfoundry/socks5-proxy v0.2.32
+	github.com/cloudfoundry/bosh-s3cli v0.0.104
+	github.com/cloudfoundry/bosh-utils v0.0.291
+	github.com/cloudfoundry/config-server v0.1.32
+	github.com/cloudfoundry/socks5-proxy v0.2.33
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.0
@@ -32,9 +32,9 @@ require (
 require (
 	cloud.google.com/go v0.97.0 // indirect
 	cloud.google.com/go/storage v1.18.2 // indirect
-	code.cloudfoundry.org/tlsconfig v0.0.0-20210615191307-5d92ef3894a7 // indirect
+	code.cloudfoundry.org/tlsconfig v0.0.0-20211123175040-23cc9f05b6b3 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
-	github.com/aws/aws-sdk-go v1.42.9 // indirect
+	github.com/aws/aws-sdk-go v1.42.13 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -53,7 +53,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
-	github.com/mattn/go-colorable v0.1.11 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
@@ -61,9 +61,9 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/mod v0.5.0 // indirect
-	golang.org/x/net v0.0.0-20211118161319-6a13c67c3ce4 // indirect
+	golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
-	golang.org/x/sys v0.0.0-20211117180635-dee7805ff2e1 // indirect
+	golang.org/x/sys v0.0.0-20211124211545-fe61309f8881 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.7 // indirect

@@ -15,7 +15,7 @@ cloud.google.com/go/storage/internal/apiv2
 ## explicit
 code.cloudfoundry.org/clock
 code.cloudfoundry.org/clock/fakeclock
-# code.cloudfoundry.org/tlsconfig v0.0.0-20210615191307-5d92ef3894a7
+# code.cloudfoundry.org/tlsconfig v0.0.0-20211123175040-23cc9f05b6b3
 ## explicit; go 1.16
 code.cloudfoundry.org/tlsconfig
 # code.cloudfoundry.org/workpool v0.0.0-20200131000409-2ac56b354115
@@ -24,7 +24,7 @@ code.cloudfoundry.org/workpool
 # github.com/VividCortex/ewma v1.2.0
 ## explicit; go 1.12
 github.com/VividCortex/ewma
-# github.com/aws/aws-sdk-go v1.42.9
+# github.com/aws/aws-sdk-go v1.42.13
 ## explicit; go 1.11
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -111,11 +111,11 @@ github.com/cloudfoundry/bosh-davcli/signer
 ## explicit; go 1.17
 github.com/cloudfoundry/bosh-gcscli/client
 github.com/cloudfoundry/bosh-gcscli/config
-# github.com/cloudfoundry/bosh-s3cli v0.0.103
+# github.com/cloudfoundry/bosh-s3cli v0.0.104
 ## explicit; go 1.17
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.290
+# github.com/cloudfoundry/bosh-utils v0.0.291
 ## explicit; go 1.17
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/fakes
@@ -135,14 +135,14 @@ github.com/cloudfoundry/bosh-utils/system/fakes
 github.com/cloudfoundry/bosh-utils/uuid
 github.com/cloudfoundry/bosh-utils/uuid/fakes
 github.com/cloudfoundry/bosh-utils/work
-# github.com/cloudfoundry/config-server v0.1.31
+# github.com/cloudfoundry/config-server v0.1.32
 ## explicit; go 1.17
 github.com/cloudfoundry/config-server/types
 github.com/cloudfoundry/config-server/types/typesfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e
 ## explicit
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.32
+# github.com/cloudfoundry/socks5-proxy v0.2.33
 ## explicit; go 1.17
 github.com/cloudfoundry/socks5-proxy
 # github.com/cncf/udpa/go v0.0.0-20210930031921-04548b0d99d4
@@ -268,7 +268,7 @@ github.com/jmespath/go-jmespath
 # github.com/jpillora/backoff v1.0.0
 ## explicit; go 1.13
 github.com/jpillora/backoff
-# github.com/mattn/go-colorable v0.1.11
+# github.com/mattn/go-colorable v0.1.12
 ## explicit; go 1.13
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.14
@@ -385,7 +385,7 @@ golang.org/x/crypto/ssh/terminal
 golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20211118161319-6a13c67c3ce4
+# golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9
 ## explicit; go 1.17
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -409,7 +409,7 @@ golang.org/x/oauth2/google/internal/externalaccount
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20211117180635-dee7805ff2e1
+# golang.org/x/sys v0.0.0-20211124211545-fe61309f8881
 ## explicit; go 1.17
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
