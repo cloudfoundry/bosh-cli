@@ -33,7 +33,11 @@ func (a *VarKV) UnmarshalFlag(data string) error {
 		return bosherr.WrapErrorf(err, "Deserializing variables '%s'", data)
 	}
 
-	*a = VarKV{Name: pieces[0], Value: vars}
+	if _, ok := vars.(string); ok {
+		*a = VarKV{Name: pieces[0], Value: pieces[1]}
+	} else {
+		*a = VarKV{Name: pieces[0], Value: vars}
+	}
 
 	return nil
 }
