@@ -57,7 +57,7 @@ var _ = Describe("VarKV", func() {
 			})
 		})
 
-		Context("When key/value has newlines", func() {
+		Context("When value has newlines, and the string is not valid yaml", func() {
 			It("works", func() {
 				err := (&arg).UnmarshalFlag("name=one\ntwo\nthree")
 				Expect(err).ToNot(HaveOccurred())
