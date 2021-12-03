@@ -56,5 +56,13 @@ var _ = Describe("VarKV", func() {
 				Expect(val3).To(Equal(map[interface{}]interface{}{"key31": "str"}))
 			})
 		})
+
+		Context("When value has newlines, and the string is not valid yaml", func() {
+			It("works", func() {
+				err := (&arg).UnmarshalFlag("name=one\ntwo\nthree")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(arg).To(Equal(VarKV{Name: "name", Value: "one\ntwo\nthree"}))
+			})
+		})
 	})
 })
