@@ -162,7 +162,6 @@ var _ = Describe("Manager", func() {
 		It("sets the vm metadata", func() {
 			_, err := manager.Create(stemcell, deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
-
 			Expect(fakeCloud.SetVMMetadataCid).To(Equal("fake-vm-cid"))
 			Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
 				"deployment":     "fake-deployment",
@@ -182,8 +181,28 @@ var _ = Describe("Manager", func() {
 					"key1":   "value1",
 				}
 
+				expectedEnv = biproperty.Map{
+					"fake-env-key": "fake-env-value",
+					"bosh": biproperty.Map{
+						"tags": map[string]string{
+							"empty1": "",
+							"key1":   "value1",
+						},
+					},
+				}
+
 				_, err := manager.Create(stemcell, deploymentManifest)
 				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeCloud.CreateVMInput).To(Equal(
+					fakebicloud.CreateVMInput{
+						AgentID:            "fake-uuid-0",
+						StemcellCID:        "fake-stemcell-cid",
+						CloudProperties:    expectedCloudProperties,
+						NetworksInterfaces: expectedNetworkInterfaces,
+						Env:                expectedEnv,
+					},
+				))
 
 				Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
 					"deployment":     "fake-deployment",
