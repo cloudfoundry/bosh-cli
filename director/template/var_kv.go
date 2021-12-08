@@ -14,31 +14,32 @@ type VarKV struct {
 
 func (a *VarKV) UnmarshalFlag(data string) error {
 	pieces := strings.SplitN(data, "=", 2)
+	name, value := 0, 1
 	if len(pieces) != 2 {
 		return bosherr.Errorf("Expected var '%s' to be in format 'name=value'", data)
 	}
 
-	if len(pieces[0]) == 0 {
+	if len(pieces[name]) == 0 {
 		return bosherr.Errorf("Expected var '%s' to specify non-empty name", data)
 	}
 
-	if len(pieces[1]) == 0 {
+	if len(pieces[value]) == 0 {
 		return bosherr.Errorf("Expected var '%s' to specify non-empty value", data)
 	}
 
 	var vars interface{}
 
-	err := yaml.Unmarshal([]byte(pieces[1]), &vars)
+	err := yaml.Unmarshal([]byte(pieces[value]), &vars)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Deserializing variables '%s'", data)
 	}
 
 	//yaml.Unmarshal returns a string if the input is not valid yaml.
-	//in that case, we pass through the string itself as the Unmarshal process strips newlines.
 	if _, ok := vars.(string); ok {
-		*a = VarKV{Name: pieces[0], Value: pieces[1]}
+		//in that case, we pass through the initial flag value as the Unmarshal process strips newlines.
+		*a = VarKV{Name: pieces[name], Value: pieces[value]}
 	} else {
-		*a = VarKV{Name: pieces[0], Value: vars}
+		*a = VarKV{Name: pieces[name], Value: vars}
 	}
 
 	return nil
