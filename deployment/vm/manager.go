@@ -105,6 +105,15 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 		return nil, bosherr.WrapError(err, "Generating agent ID")
 	}
 
+	if len(deploymentManifest.Tags) > 0 {
+		if _, ok := resourcePool.Env["bosh"]; ok {
+			resourcePool.Env["bosh"].(biproperty.Map)["tags"] = deploymentManifest.Tags
+		} else {
+			resourcePool.Env["bosh"] = biproperty.Map{
+				"tags": deploymentManifest.Tags,
+			}
+		}
+	}
 	cid, err := m.createAndRecordVM(agentID, stemcell, resourcePool, networkInterfaces)
 	if err != nil {
 		return nil, err
