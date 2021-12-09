@@ -22,7 +22,19 @@ var _ = Describe("VarKV", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(arg).To(Equal(VarKV{Name: "name", Value: "val"}))
 		})
+		When("A user passes in a value that is wrapped in quotes", func() {
 
+			It("reverts to the old (incorrect) bevaviour and removes the wrapping double quotes if the value is a string", func() {
+				err := (&arg).UnmarshalFlag(`name="val"`)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(arg).To(Equal(VarKV{Name: "name", Value: "val"}))
+			})
+			It("reverts to the old (incorrect) bevaviour and removes the wrapping single quotes if the value is a string", func() {
+				err := (&arg).UnmarshalFlag(`name='val'`)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(arg).To(Equal(VarKV{Name: "name", Value: "val"}))
+			})
+		})
 		It("sets name and value when value contains a `=`", func() {
 			err := (&arg).UnmarshalFlag("public_key=ssh-rsa G4/+VHa1aw==")
 			Expect(err).ToNot(HaveOccurred())
