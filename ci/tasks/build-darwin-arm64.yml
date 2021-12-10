@@ -13,7 +13,7 @@ inputs:
 - name: version-semver
 
 outputs:
-- name: compiled-darwin-arm64
+- name: compiled-darwin
 
 params:
   GOOS:   darwin

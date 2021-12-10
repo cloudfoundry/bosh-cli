@@ -131,7 +131,7 @@ jobs:
       - in_parallel:
         - {put: release-bucket-linux, params: {file: compiled-linux/bosh-cli-*-linux-amd64}}
         - {put: release-bucket-darwin, params: {file: compiled-darwin/bosh-cli-*-darwin-amd64}}
-        - {put: release-bucket-darwin-arm64, params: {file: compiled-darwin-arm64/bosh-cli-*-darwin-amd64}}
+        - {put: release-bucket-darwin-arm64, params: {file: compiled-darwin/bosh-cli-*-darwin-amd64}}
         - {put: release-bucket-windows, params: {file: compiled-windows/bosh-cli-*-windows-amd64.exe}}
 
         - put: final-docker
@@ -165,7 +165,7 @@ jobs:
             globs:
               - compiled-linux/bosh-cli-*-linux-amd64
               - compiled-darwin/bosh-cli-*-darwin-amd64
-              - compiled-darwin-arm64/bosh-cli-*-darwin-arm64
+              - compiled-darwin/bosh-cli-*-darwin-arm64
               - compiled-windows/bosh-cli-*-windows-amd64.exe
             body: checksums/checksums
 
