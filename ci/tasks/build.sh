@@ -28,4 +28,8 @@ bin/build
 shasum_value=`sha1sum out/bosh | cut -f 1 -d' '`
 echo "sha1: ${shasum_value}"
 
-mv out/bosh $base/compiled-${GOOS}/${filename}
+if [[ $GOARCH = 'arm64' ]]; then
+  mv out/bosh $base/compiled-${GOOS}-${GOARCH}/${filename}
+else
+  mv out/bosh $base/compiled-${GOOS}/${filename}
+fi

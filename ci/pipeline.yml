@@ -165,7 +165,7 @@ jobs:
             globs:
               - compiled-linux/bosh-cli-*-linux-amd64
               - compiled-darwin/bosh-cli-*-darwin-amd64
-              - compiled-darwin/bosh-cli-*-darwin-arm64
+              - compiled-darwin-arm64/bosh-cli-*-darwin-arm64
               - compiled-windows/bosh-cli-*-windows-amd64.exe
             body: checksums/checksums
 
@@ -215,7 +215,7 @@ jobs:
       - in_parallel:
         - {put: alpha-release-bucket-linux, params: {file: compiled-linux/alpha-bosh-cli-*-linux-amd64}}
         - {put: alpha-release-bucket-darwin, params: {file: compiled-darwin/alpha-bosh-cli-*-darwin-amd64}}
-        - {put: alpha-release-bucket-darwin-arm64, params: {file: compiled-darwin/alpha-bosh-cli-*-darwin-arm64}}
+        - {put: alpha-release-bucket-darwin-arm64, params: {file: compiled-darwin-arm64/alpha-bosh-cli-*-darwin-arm64}}
         - {put: alpha-release-bucket-windows, params: {file: compiled-windows/alpha-bosh-cli-*-windows-amd64.exe}}
 
   - name: test-helper-urls
