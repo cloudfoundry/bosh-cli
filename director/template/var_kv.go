@@ -36,8 +36,10 @@ func (a *VarKV) UnmarshalFlag(data string) error {
 
 	//yaml.Unmarshal returns a string if the input is not valid yaml.
 	if _, ok := vars.(string); ok {
-		//in that case, we return the initial flag value as the Unmarshal process strips newlines.
-		*a = VarKV{Name: pieces[nameIndex], Value: pieces[valueIndex]}
+		//in that case, we return the initial flag value as the Unmarshal
+		//process strips newlines. Stripping the quotes is required to keep
+		//backwards compability (YAML unmarshal also removed wrapping quotes from the value).
+		*a = VarKV{Name: pieces[nameIndex], Value: strings.Trim(pieces[valueIndex], `"'`)}
 	} else {
 		//otherwise, return the parsed YAML object
 		*a = VarKV{Name: pieces[nameIndex], Value: vars}
