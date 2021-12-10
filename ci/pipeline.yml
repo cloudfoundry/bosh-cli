@@ -110,6 +110,8 @@ jobs:
           file: bosh-cli/ci/tasks/build-linux.yml
         - task: build-darwin
           file: bosh-cli/ci/tasks/build-darwin.yml
+        - task: build-darwin-arm64
+          file: bosh-cli/ci/tasks/build-darwin-arm64.yml
         - task: build-windows
           file: bosh-cli/ci/tasks/build-windows.yml
 
@@ -129,6 +131,7 @@ jobs:
       - in_parallel:
         - {put: release-bucket-linux, params: {file: compiled-linux/bosh-cli-*-linux-amd64}}
         - {put: release-bucket-darwin, params: {file: compiled-darwin/bosh-cli-*-darwin-amd64}}
+        - {put: release-bucket-darwin-arm64, params: {file: compiled-darwin-arm64/bosh-cli-*-darwin-amd64}}
         - {put: release-bucket-windows, params: {file: compiled-windows/bosh-cli-*-windows-amd64.exe}}
 
         - put: final-docker
@@ -162,6 +165,7 @@ jobs:
             globs:
               - compiled-linux/bosh-cli-*-linux-amd64
               - compiled-darwin/bosh-cli-*-darwin-amd64
+              - compiled-darwin-arm64/bosh-cli-*-darwin-arm64
               - compiled-windows/bosh-cli-*-windows-amd64.exe
             body: checksums/checksums
 
@@ -197,6 +201,11 @@ jobs:
           file: bosh-cli/ci/tasks/build-darwin.yml
           params:
             FILENAME_PREFIX: "alpha-"
+        - task: build-darwin-arm64
+          input_mapping: {version-semver: alpha-version-semver}
+          file: bosh-cli/ci/tasks/build-darwin-arm64.yml
+          params:
+            FILENAME_PREFIX: "alpha-"
         - task: build-windows
           input_mapping: {version-semver: alpha-version-semver}
           file: bosh-cli/ci/tasks/build-windows.yml
@@ -206,6 +215,7 @@ jobs:
       - in_parallel:
         - {put: alpha-release-bucket-linux, params: {file: compiled-linux/alpha-bosh-cli-*-linux-amd64}}
         - {put: alpha-release-bucket-darwin, params: {file: compiled-darwin/alpha-bosh-cli-*-darwin-amd64}}
+        - {put: alpha-release-bucket-darwin-arm64, params: {file: compiled-darwin/alpha-bosh-cli-*-darwin-arm64}}
         - {put: alpha-release-bucket-windows, params: {file: compiled-windows/alpha-bosh-cli-*-windows-amd64.exe}}
 
   - name: test-helper-urls
@@ -295,6 +305,15 @@ resources:
       access_key_id: {{aws_s3_release_bucket_access_key}}
       secret_access_key: {{aws_s3_release_bucket_secret_key}}
 
+  - name: release-bucket-darwin-arm64
+    type: s3
+    source:
+      regexp: bosh-cli-(.*)-darwin-arm64
+      bucket: {{aws_s3_release_bucket}}
+      region_name: {{aws_s3_release_bucket_region}}
+      access_key_id: {{aws_s3_release_bucket_access_key}}
+      secret_access_key: {{aws_s3_release_bucket_secret_key}}
+
   - name: release-bucket-windows
     type: s3
     source:
@@ -317,6 +336,15 @@ resources:
     type: s3
     source:
       regexp: alpha-bosh-cli-(.*)-darwin-amd64
+      bucket: {{aws_s3_alpha_release_bucket}}
+      region_name: {{aws_s3_release_bucket_region}}
+      access_key_id: {{aws_s3_release_bucket_access_key}}
+      secret_access_key: {{aws_s3_release_bucket_secret_key}}
+
+  - name: alpha-release-bucket-darwin-arm64
+    type: s3
+    source:
+      regexp: alpha-bosh-cli-(.*)-darwin-arm64
       bucket: {{aws_s3_alpha_release_bucket}}
       region_name: {{aws_s3_release_bucket_region}}
       access_key_id: {{aws_s3_release_bucket_access_key}}
