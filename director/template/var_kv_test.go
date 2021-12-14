@@ -28,22 +28,28 @@ var _ = Describe("VarKV", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(arg).To(Equal(VarKV{Name: "name", Value: "val"}))
 		})
-
 		It("reverts to the old (incorrect) bevaviour and removes the wrapping single quotes if the value is a string", func() {
 			err := (&arg).UnmarshalFlag(`name='val'`)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(arg).To(Equal(VarKV{Name: "name", Value: "val"}))
 		})
-
-		It("Trim only removes wrapping quotes", func() {
+		It("only removes wrapping quotes", func() {
 			err := (&arg).UnmarshalFlag(`name="'val""val'"`)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(arg).To(Equal(VarKV{Name: "name", Value: `val""val`}))
+
 			err = (&arg).UnmarshalFlag(`name="val''val"`)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(arg).To(Equal(VarKV{Name: "name", Value: `val''val`}))
-		})
 
+			err = (&arg).UnmarshalFlag(`name='"some-data'"`)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(arg).To(Equal(VarKV{Name: "name", Value: `'"some-data'"`}))
+
+			err = (&arg).UnmarshalFlag(`name="'some-data"'`)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(arg).To(Equal(VarKV{Name: "name", Value: `"'some-data"'`}))
+		})
 		It("sets name and value when value contains a `=`", func() {
 			err := (&arg).UnmarshalFlag("public_key=ssh-rsa G4/+VHa1aw==")
 			Expect(err).ToNot(HaveOccurred())
