@@ -37,12 +37,9 @@ func (a *VarKV) UnmarshalFlag(data string) error {
 	var vars interface{}
 
 	err := yaml.Unmarshal([]byte(pieces[valueIndex]), &vars)
-	// If for whatever reason YAML unmarshal fails, treat the second part of pieces as a string
-	if err != nil {
-		vars = pieces[valueIndex]
-	}
+	//If for whatever reason YAML unmarshal fails, treat the second part of pieces as a string
 	//yaml.Unmarshal returns a string if the input is not valid yaml.
-	if _, ok := vars.(string); ok {
+	if _, ok := vars.(string); ok || err != nil {
 		//in that case, we return the initial flag value as the Unmarshal
 		//process strips newlines. Stripping the quotes is required to keep
 		//backwards compability (YAML unmarshal also removed wrapping quotes from the value).
