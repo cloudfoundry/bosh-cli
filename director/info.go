@@ -17,10 +17,6 @@ import (
     "snapshots": {
       "status": false
     },
-    "compiled_package_cache": {
-      "extras": { "provider": null },
-      "status": false
-    },
     "dns": {
       "extras": { "domain_name": "bosh" },
       "status": false
