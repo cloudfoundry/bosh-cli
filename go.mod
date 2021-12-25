@@ -9,9 +9,9 @@ require (
 	github.com/cloudfoundry/bosh-agent v2.367.0+incompatible
 	github.com/cloudfoundry/bosh-davcli v0.0.48
 	github.com/cloudfoundry/bosh-gcscli v0.0.21
-	github.com/cloudfoundry/bosh-s3cli v0.0.107
-	github.com/cloudfoundry/bosh-utils v0.0.294
-	github.com/cloudfoundry/config-server v0.1.35
+	github.com/cloudfoundry/bosh-s3cli v0.0.108
+	github.com/cloudfoundry/bosh-utils v0.0.295
+	github.com/cloudfoundry/config-server v0.1.36
 	github.com/cloudfoundry/socks5-proxy v0.2.36
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
@@ -34,7 +34,7 @@ require (
 	cloud.google.com/go/storage v1.18.2 // indirect
 	code.cloudfoundry.org/tlsconfig v0.0.0-20211123175040-23cc9f05b6b3 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
-	github.com/aws/aws-sdk-go v1.42.23 // indirect
+	github.com/aws/aws-sdk-go v1.42.25 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -70,7 +70,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/api v0.63.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
+	google.golang.org/genproto v0.0.0-20211223182754-3ac035c7e7cb // indirect
 	google.golang.org/grpc v1.43.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
