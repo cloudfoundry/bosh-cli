@@ -23,32 +23,39 @@ var _ = Describe("VarKV", func() {
 			Expect(arg).To(Equal(VarKV{Name: "name", Value: "val"}))
 		})
 
-		It("reverts to the old (incorrect) bevaviour and removes the wrapping double quotes if the value is a string", func() {
+		It("reverts to the old (incorrect) behaviour and removes the wrapping double quotes if the value is a string", func() {
 			err := (&arg).UnmarshalFlag(`name="val"`)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(arg).To(Equal(VarKV{Name: "name", Value: "val"}))
 		})
-		It("reverts to the old (incorrect) bevaviour and removes the wrapping single quotes if the value is a string", func() {
+		It("reverts to the old (incorrect) behaviour and removes the wrapping single quotes if the value is a string", func() {
 			err := (&arg).UnmarshalFlag(`name='val'`)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(arg).To(Equal(VarKV{Name: "name", Value: "val"}))
 		})
-		It("only removes wrapping quotes", func() {
-			err := (&arg).UnmarshalFlag(`name="'val""val'"`)
+		It("fails if the string starts with unmatched quoting", func() {
+			err := (&arg).UnmarshalFlag(`name="my-password'`)
+			Expect(err).To(HaveOccurred())
+		})
+		It("only ever removes a single layer of wrapping quotes", func() {
+			err := (&arg).UnmarshalFlag(`name='""'`)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(arg).To(Equal(VarKV{Name: "name", Value: `val""val`}))
-
-			err = (&arg).UnmarshalFlag(`name="val''val"`)
+			Expect(arg).To(Equal(VarKV{Name: "name", Value: `""`}))
+		})
+		It("only removes wrapping quotes on an empty quoted value", func() {
+			err := (&arg).UnmarshalFlag(`name="''"`)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(arg).To(Equal(VarKV{Name: "name", Value: `val''val`}))
-
-			err = (&arg).UnmarshalFlag(`name='"some-data'"`)
+			Expect(arg).To(Equal(VarKV{Name: "name", Value: `''`}))
+		})
+		It("only removes wrapping quotes on a quoted value", func() {
+			err := (&arg).UnmarshalFlag(`name='"mocked-value"'`)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(arg).To(Equal(VarKV{Name: "name", Value: `'"some-data'"`}))
-
-			err = (&arg).UnmarshalFlag(`name="'some-data"'`)
+			Expect(arg).To(Equal(VarKV{Name: "name", Value: `"mocked-value"`}))
+		})
+		It("removes the quotes on a quoted blank string", func() {
+			err := (&arg).UnmarshalFlag(`name=''`)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(arg).To(Equal(VarKV{Name: "name", Value: `"'some-data"'`}))
+			Expect(arg).To(Equal(VarKV{Name: "name", Value: ``}))
 		})
 		It("sets name and value when value contains a `=`", func() {
 			err := (&arg).UnmarshalFlag("public_key=ssh-rsa G4/+VHa1aw==")

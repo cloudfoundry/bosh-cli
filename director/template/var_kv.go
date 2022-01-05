@@ -15,7 +15,6 @@ type VarKV struct {
 func trimWrappingQuotes(s string) string {
 	if (s[0] == '"' && s[len(s)-1] == '"') || (s[0] == '\'' && s[len(s)-1] == '\'') {
 		s = s[1 : len(s)-1]
-		s = trimWrappingQuotes(s)
 	}
 	return s
 }
@@ -37,11 +36,15 @@ func (a *VarKV) UnmarshalFlag(data string) error {
 	var vars interface{}
 
 	err := yaml.Unmarshal([]byte(pieces[valueIndex]), &vars)
-	//If for whatever reason YAML unmarshal fails, treat the second part of pieces as a string
+
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Deserializing variables '%s'", data)
+	}
+
 	//yaml.Unmarshal returns a string if the input is not valid yaml.
-	if _, ok := vars.(string); ok || err != nil {
-		//in that case, we return the initial flag value as the Unmarshal
-		//process strips newlines. Stripping the quotes is required to keep
+	//in that case, we pass through the string itself as the Unmarshal process strips newlines.
+	if _, ok := vars.(string); ok {
+		//Stripping the quotes is required to keep
 		//backwards compability (YAML unmarshal also removed wrapping quotes from the value).
 		*a = VarKV{Name: pieces[nameIndex], Value: trimWrappingQuotes(pieces[valueIndex])}
 	} else {
