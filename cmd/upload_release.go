@@ -55,7 +55,7 @@ func (c UploadReleaseCmd) Run(opts UploadReleaseOpts) error {
 	case opts.Args.URL.IsGit():
 		return c.uploadIfNecessary(opts, c.uploadGit)
 	default:
-		return c.uploadFile(opts)
+		return c.uploadIfNecessary(opts, c.uploadFile)
 	}
 }
 
