@@ -241,6 +241,10 @@ blobstore:
 					ghttp.RespondWith(http.StatusOK, `{"user_authentication":{"type":"basic","options":{}}}`),
 				),
 				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases"),
+					ghttp.RespondWith(http.StatusOK, "[]"),
+				),
+				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/packages/matches"),
 					ghttp.RespondWith(http.StatusOK, "[]"),
 				),
