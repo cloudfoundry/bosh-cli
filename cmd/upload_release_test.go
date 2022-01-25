@@ -276,6 +276,25 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(rebase).To(BeFalse())
 				Expect(fix).To(BeFalse())
 			})
+			It("does not upload release if name and version match existing release", func() {
+				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
+					Expect(path).To(Equal("./some-file.tgz"))
+					return release, nil
+				}
+				opts.Name = "existing-name"
+				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
+				director.HasReleaseReturns(true, nil)
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				name, version, stemcell := director.HasReleaseArgsForCall(0)
+				Expect(name).To(Equal("existing-name"))
+				Expect(version).To(Equal("existing-ver"))
+				Expect(stemcell).To(Equal(boshdir.OSVersionSlug{}))
+				Expect(director.UploadReleaseFileCallCount()).To(Equal(0))
+				Expect(ui.Said).To(Equal(
+					[]string{"Release 'existing-name/existing-ver' already exists."}))
+			})
 
 			It("clean up release", func() {
 				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
