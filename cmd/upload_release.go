@@ -49,7 +49,7 @@ func NewUploadReleaseCmd(
 func (c UploadReleaseCmd) Run(opts UploadReleaseOpts) error {
 	switch {
 	case opts.Release != nil:
-		return c.uploadIfNecessary(opts, c.uploadFile)
+		return c.uploadRelease(opts.Release, opts)
 	case opts.Args.URL.IsRemote():
 		return c.uploadIfNecessary(opts, c.uploadRemote)
 	case opts.Args.URL.IsGit():
