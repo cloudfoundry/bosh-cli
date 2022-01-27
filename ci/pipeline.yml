@@ -249,7 +249,6 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh.git
-      branch: master
 
   - name: bosh-agent
     type: git
