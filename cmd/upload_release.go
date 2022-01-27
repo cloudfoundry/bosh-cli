@@ -48,8 +48,6 @@ func NewUploadReleaseCmd(
 
 func (c UploadReleaseCmd) Run(opts UploadReleaseOpts) error {
 	switch {
-	case opts.Release != nil:
-		return c.uploadRelease(opts.Release, opts)
 	case opts.Args.URL.IsRemote():
 		return c.uploadIfNecessary(opts, c.uploadRemote)
 	case opts.Args.URL.IsGit():
@@ -161,7 +159,6 @@ func (c UploadReleaseCmd) needToUpload(opts UploadReleaseOpts) (bool, error) {
 	if err != nil {
 		return true, err
 	}
-
 	if found {
 		if opts.Stemcell.IsProvided() {
 			c.ui.PrintLinef("Release '%s/%s' for stemcell '%s' already exists.", opts.Name, version, opts.Stemcell)

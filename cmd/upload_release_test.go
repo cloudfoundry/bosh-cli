@@ -295,6 +295,43 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(ui.Said).To(Equal(
 					[]string{"Release 'existing-name/existing-ver' already exists."}))
 			})
+			It("does upload a release if name and version match but exported from does not", func() {
+				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
+					Expect(path).To(Equal("./some-file.tgz"))
+					return release, nil
+				}
+				opts.Name = "existing-name"
+				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
+				opts.Stemcell = boshdir.NewOSVersionSlug("ubuntu-xenial", "621.176")
+
+				director.ReleaseHasCompiledPackageReturnsOnCall(1, false, nil)
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+				name, version, stemcell := director.HasReleaseArgsForCall(0)
+				Expect(name).To(Equal("existing-name"))
+				Expect(version).To(Equal("existing-ver"))
+				Expect(stemcell).To(Equal(boshdir.NewOSVersionSlug("ubuntu-xenial", "621.176")))
+				Expect(director.UploadReleaseFileCallCount()).To(Equal(1))
+			})
+
+			It("does upload a release if url points to a folder and version is create", func() {
+				opts.Args.URL = "./some-folder"
+				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
+					Expect(path).To(Equal("./some-folder"))
+					return release, nil
+				}
+				opts.Name = "existing-name"
+				opts.Version = VersionArg(semver.MustNewVersionFromString("create"))
+				opts.Stemcell = boshdir.NewOSVersionSlug("ubuntu-xenial", "621.176")
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+				name, version, stemcell := director.HasReleaseArgsForCall(0)
+
+				Expect(name).To(Equal("existing-name"))
+				Expect(version).To(Equal("create"))
+				Expect(stemcell).To(Equal(boshdir.NewOSVersionSlug("ubuntu-xenial", "621.176")))
+				Expect(director.UploadReleaseFileCallCount()).To(Equal(1))
+			})
 
 			It("clean up release", func() {
 				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {

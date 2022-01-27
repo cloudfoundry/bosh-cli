@@ -188,17 +188,16 @@ func (d DirectorImpl) HasRelease(name, version string, stemcell OSVersionSlug) (
 	if err != nil {
 		return false, err
 	}
-
-	if !stemcell.IsProvided() || !found {
-		return found, nil
+	if stemcell.IsProvided() && found {
+		found, err := d.ReleaseHasCompiledPackage(NewReleaseSlug(name, version), stemcell)
+		return found, err
 	}
-
-	return d.releaseHasCompiledPackage(NewReleaseSlug(name, version), stemcell)
+	return found, err
 }
 
-// releaseHasCompiledPackage returns true if release contains
-// at least one compiled package that matches stemcell slug
-func (d DirectorImpl) releaseHasCompiledPackage(releaseSlug ReleaseSlug, osVersionSlug OSVersionSlug) (bool, error) {
+// releaseHasCompiledPackage returns false if release contains
+// at least one compiled package that does not match stemcell slug
+func (d DirectorImpl) ReleaseHasCompiledPackage(releaseSlug ReleaseSlug, osVersionSlug OSVersionSlug) (bool, error) {
 	release, err := d.FindRelease(releaseSlug)
 	if err != nil {
 		return false, err
@@ -211,13 +210,13 @@ func (d DirectorImpl) releaseHasCompiledPackage(releaseSlug ReleaseSlug, osVersi
 
 	for _, pkg := range pkgs {
 		for _, compiledPkg := range pkg.CompiledPackages {
-			if compiledPkg.Stemcell == osVersionSlug {
-				return true, nil
+			if compiledPkg.Stemcell != osVersionSlug {
+				return false, nil
 			}
 		}
 	}
 
-	return false, nil
+	return true, nil
 }
 
 func (d DirectorImpl) UploadReleaseURL(url, sha1 string, rebase, fix bool) error {
