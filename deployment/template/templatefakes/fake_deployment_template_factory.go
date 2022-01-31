@@ -8,10 +8,10 @@ import (
 )
 
 type FakeDeploymentTemplateFactory struct {
-	NewDeploymentTemplateFromPathStub        func(path string) (template.DeploymentTemplate, error)
+	NewDeploymentTemplateFromPathStub        func(string) (template.DeploymentTemplate, error)
 	newDeploymentTemplateFromPathMutex       sync.RWMutex
 	newDeploymentTemplateFromPathArgsForCall []struct {
-		path string
+		arg1 string
 	}
 	newDeploymentTemplateFromPathReturns struct {
 		result1 template.DeploymentTemplate
@@ -25,21 +25,23 @@ type FakeDeploymentTemplateFactory struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPath(path string) (template.DeploymentTemplate, error) {
+func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPath(arg1 string) (template.DeploymentTemplate, error) {
 	fake.newDeploymentTemplateFromPathMutex.Lock()
 	ret, specificReturn := fake.newDeploymentTemplateFromPathReturnsOnCall[len(fake.newDeploymentTemplateFromPathArgsForCall)]
 	fake.newDeploymentTemplateFromPathArgsForCall = append(fake.newDeploymentTemplateFromPathArgsForCall, struct {
-		path string
-	}{path})
-	fake.recordInvocation("NewDeploymentTemplateFromPath", []interface{}{path})
+		arg1 string
+	}{arg1})
+	stub := fake.NewDeploymentTemplateFromPathStub
+	fakeReturns := fake.newDeploymentTemplateFromPathReturns
+	fake.recordInvocation("NewDeploymentTemplateFromPath", []interface{}{arg1})
 	fake.newDeploymentTemplateFromPathMutex.Unlock()
-	if fake.NewDeploymentTemplateFromPathStub != nil {
-		return fake.NewDeploymentTemplateFromPathStub(path)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.newDeploymentTemplateFromPathReturns.result1, fake.newDeploymentTemplateFromPathReturns.result2
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPathCallCount() int {
@@ -48,13 +50,22 @@ func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPathCallCoun
 	return len(fake.newDeploymentTemplateFromPathArgsForCall)
 }
 
+func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPathCalls(stub func(string) (template.DeploymentTemplate, error)) {
+	fake.newDeploymentTemplateFromPathMutex.Lock()
+	defer fake.newDeploymentTemplateFromPathMutex.Unlock()
+	fake.NewDeploymentTemplateFromPathStub = stub
+}
+
 func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPathArgsForCall(i int) string {
 	fake.newDeploymentTemplateFromPathMutex.RLock()
 	defer fake.newDeploymentTemplateFromPathMutex.RUnlock()
-	return fake.newDeploymentTemplateFromPathArgsForCall[i].path
+	argsForCall := fake.newDeploymentTemplateFromPathArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPathReturns(result1 template.DeploymentTemplate, result2 error) {
+	fake.newDeploymentTemplateFromPathMutex.Lock()
+	defer fake.newDeploymentTemplateFromPathMutex.Unlock()
 	fake.NewDeploymentTemplateFromPathStub = nil
 	fake.newDeploymentTemplateFromPathReturns = struct {
 		result1 template.DeploymentTemplate
@@ -63,6 +74,8 @@ func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPathReturns(
 }
 
 func (fake *FakeDeploymentTemplateFactory) NewDeploymentTemplateFromPathReturnsOnCall(i int, result1 template.DeploymentTemplate, result2 error) {
+	fake.newDeploymentTemplateFromPathMutex.Lock()
+	defer fake.newDeploymentTemplateFromPathMutex.Unlock()
 	fake.NewDeploymentTemplateFromPathStub = nil
 	if fake.newDeploymentTemplateFromPathReturnsOnCall == nil {
 		fake.newDeploymentTemplateFromPathReturnsOnCall = make(map[int]struct {
@@ -81,7 +94,11 @@ func (fake *FakeDeploymentTemplateFactory) Invocations() map[string][][]interfac
 	defer fake.invocationsMutex.RUnlock()
 	fake.newDeploymentTemplateFromPathMutex.RLock()
 	defer fake.newDeploymentTemplateFromPathMutex.RUnlock()
-	return fake.invocations
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeDeploymentTemplateFactory) recordInvocation(key string, args []interface{}) {

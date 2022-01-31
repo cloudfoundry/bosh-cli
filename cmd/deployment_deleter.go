@@ -146,21 +146,19 @@ func (c *deploymentDeleter) DeleteDeployment(skipDrain bool, stage biui.Stage) (
 	}
 
 	err = c.cpiInstaller.WithInstalledCpiRelease(installationManifest, target, stage, func(localCpiInstallation biinstall.Installation) error {
-		return localCpiInstallation.WithRunningRegistry(c.logger, stage, func() error {
-			err = c.findAndDeleteDeployment(skipDrain, stage, localCpiInstallation, deploymentState.DirectorID, installationManifest.Mbus, installationManifest.Cert.CA)
+		err = c.findAndDeleteDeployment(skipDrain, stage, localCpiInstallation, deploymentState.DirectorID, installationManifest.Mbus, installationManifest.Cert.CA)
 
+		if err != nil {
+			return err
+		}
+
+		return stage.Perform("Uninstalling local artifacts for CPI and deployment", func() error {
+			err := c.cpiUninstaller.Uninstall(localCpiInstallation.Target())
 			if err != nil {
 				return err
 			}
 
-			return stage.Perform("Uninstalling local artifacts for CPI and deployment", func() error {
-				err := c.cpiUninstaller.Uninstall(localCpiInstallation.Target())
-				if err != nil {
-					return err
-				}
-
-				return c.deploymentStateService.Cleanup()
-			})
+			return c.deploymentStateService.Cleanup()
 		})
 	})
 

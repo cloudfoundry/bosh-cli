@@ -10,7 +10,6 @@ import (
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	bisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel"
 	bivm "github.com/cloudfoundry/bosh-cli/deployment/vm"
-	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -24,7 +23,6 @@ type Manager interface {
 		id int,
 		deploymentManifest bideplmanifest.Manifest,
 		cloudStemcell bistemcell.CloudStemcell,
-		registryConfig biinstallmanifest.Registry,
 		eventLoggerStage biui.Stage,
 	) (Instance, []bidisk.Disk, error)
 	DeleteAll(
@@ -98,7 +96,6 @@ func (m *manager) Create(
 	id int,
 	deploymentManifest bideplmanifest.Manifest,
 	cloudStemcell bistemcell.CloudStemcell,
-	registryConfig biinstallmanifest.Registry,
 	eventLoggerStage biui.Stage,
 ) (Instance, []bidisk.Disk, error) {
 	var vm bivm.VM
@@ -122,7 +119,7 @@ func (m *manager) Create(
 
 	instance := m.instanceFactory.NewInstance(jobName, id, vm, m.vmManager, m.sshTunnelFactory, m.blobstore, m.logger)
 
-	if err := instance.WaitUntilReady(registryConfig, eventLoggerStage); err != nil {
+	if err := instance.WaitUntilReady(eventLoggerStage); err != nil {
 		return instance, []bidisk.Disk{}, bosherr.WrapError(err, "Waiting until instance is ready")
 	}
 

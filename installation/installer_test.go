@@ -9,7 +9,6 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/installation/blobextract/blobextractfakes"
 	mock_install "github.com/cloudfoundry/bosh-cli/installation/mocks"
-	mock_registry "github.com/cloudfoundry/bosh-cli/registry/mocks"
 	"github.com/golang/mock/gomock"
 
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
@@ -32,12 +31,11 @@ var _ = Describe("Installer", func() {
 	})
 
 	var (
-		installationManifest      biinstallmanifest.Manifest
-		mockJobRenderer           *mock_install.MockJobRenderer
-		mockJobResolver           *mock_install.MockJobResolver
-		mockPackageCompiler       *mock_install.MockPackageCompiler
-		fakeExtractor             *blobextractfakes.FakeExtractor
-		mockRegistryServerManager *mock_registry.MockServerManager
+		installationManifest biinstallmanifest.Manifest
+		mockJobRenderer      *mock_install.MockJobRenderer
+		mockJobResolver      *mock_install.MockJobResolver
+		mockPackageCompiler  *mock_install.MockPackageCompiler
+		fakeExtractor        *blobextractfakes.FakeExtractor
 
 		logger boshlog.Logger
 
@@ -53,7 +51,6 @@ var _ = Describe("Installer", func() {
 		mockJobResolver = mock_install.NewMockJobResolver(mockCtrl)
 		mockPackageCompiler = mock_install.NewMockPackageCompiler(mockCtrl)
 		fakeExtractor = &blobextractfakes.FakeExtractor{}
-		mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
 
 		target = NewTarget("fake-installation-path")
 		installationManifest = biinstallmanifest.Manifest{
@@ -71,7 +68,6 @@ var _ = Describe("Installer", func() {
 			mockJobResolver,
 			mockPackageCompiler,
 			fakeExtractor,
-			mockRegistryServerManager,
 			logger,
 		)
 	})
@@ -145,7 +141,6 @@ var _ = Describe("Installer", func() {
 				target,
 				installedJob,
 				installationManifest,
-				mockRegistryServerManager,
 			)
 		})
 

@@ -26,7 +26,6 @@ import (
 	boshinst "github.com/cloudfoundry/bosh-cli/installation"
 	boshinstmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	bitarball "github.com/cloudfoundry/bosh-cli/installation/tarball"
-	biregistry "github.com/cloudfoundry/bosh-cli/registry"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 	bistatepkg "github.com/cloudfoundry/bosh-cli/state/pkg"
@@ -116,10 +115,9 @@ func NewEnvFactory(
 		deps.FS, deps.UUIDGen, deps.Logger, biconfig.DeploymentStatePath(manifestPath, statePath))
 
 	{
-		registryServer := biregistry.NewServerManager(deps.Logger)
 		installerFactory := boshinst.NewInstallerFactory(
 			deps.UI, deps.CmdRunner, deps.Compressor, releaseJobResolver,
-			deps.UUIDGen, registryServer, deps.Logger, deps.FS, deps.DigestCreationAlgorithms)
+			deps.UUIDGen, deps.Logger, deps.FS, deps.DigestCreationAlgorithms)
 
 		f.cpiInstaller = bicpirel.CpiInstaller{
 			ReleaseManager:   f.releaseManager,

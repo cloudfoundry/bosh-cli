@@ -9,7 +9,6 @@ import (
 	biinstance "github.com/cloudfoundry/bosh-cli/deployment/instance"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	bivm "github.com/cloudfoundry/bosh-cli/deployment/vm"
-	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -21,7 +20,6 @@ type Deployer interface {
 		bicloud.Cloud,
 		bideplmanifest.Manifest,
 		bistemcell.CloudStemcell,
-		biinstallmanifest.Registry,
 		bivm.Manager,
 		biblobstore.Blobstore,
 		bool,
@@ -56,7 +54,6 @@ func (d *deployer) Deploy(
 	cloud bicloud.Cloud,
 	deploymentManifest bideplmanifest.Manifest,
 	cloudStemcell bistemcell.CloudStemcell,
-	registryConfig biinstallmanifest.Registry,
 	vmManager bivm.Manager,
 	blobstore biblobstore.Blobstore,
 	skipDrain bool,
@@ -70,7 +67,7 @@ func (d *deployer) Deploy(
 		return nil, err
 	}
 
-	instances, disks, err := d.createAllInstances(deploymentManifest, instanceManager, cloudStemcell, registryConfig, deployStage)
+	instances, disks, err := d.createAllInstances(deploymentManifest, instanceManager, cloudStemcell, deployStage)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +80,6 @@ func (d *deployer) createAllInstances(
 	deploymentManifest bideplmanifest.Manifest,
 	instanceManager biinstance.Manager,
 	cloudStemcell bistemcell.CloudStemcell,
-	registryConfig biinstallmanifest.Registry,
 	deployStage biui.Stage,
 ) ([]biinstance.Instance, []bidisk.Disk, error) {
 	instances := []biinstance.Instance{}
@@ -98,7 +94,7 @@ func (d *deployer) createAllInstances(
 			return instances, disks, bosherr.Errorf("Job '%s' must have only one instance, found %d", jobSpec.Name, jobSpec.Instances)
 		}
 		for instanceID := 0; instanceID < jobSpec.Instances; instanceID++ {
-			instance, instanceDisks, err := instanceManager.Create(jobSpec.Name, instanceID, deploymentManifest, cloudStemcell, registryConfig, deployStage)
+			instance, instanceDisks, err := instanceManager.Create(jobSpec.Name, instanceID, deploymentManifest, cloudStemcell, deployStage)
 			if err != nil {
 				return instances, disks, bosherr.WrapErrorf(err, "Creating instance '%s/%d'", jobSpec.Name, instanceID)
 			}

@@ -42,7 +42,6 @@ import (
 	fakebiinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest/fakes"
 	mock_install "github.com/cloudfoundry/bosh-cli/installation/mocks"
 	bitarball "github.com/cloudfoundry/bosh-cli/installation/tarball"
-	mock_registry "github.com/cloudfoundry/bosh-cli/registry/mocks"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
 	birelmanifest "github.com/cloudfoundry/bosh-cli/release/manifest"
@@ -86,17 +85,16 @@ var _ = Describe("CreateEnvCmd", func() {
 			userInterface biui.UI
 			manifestSHA   string
 
-			mockDeployer              *mock_deployment.MockDeployer
-			mockInstaller             *mock_install.MockInstaller
-			mockInstallerFactory      *mock_install.MockInstallerFactory
-			releaseReader             *fakerel.FakeReader
-			releaseManager            biinstall.ReleaseManager
-			mockRegistryServerManager *mock_registry.MockServerManager
-			mockRegistryServer        *mock_registry.MockServer
-			mockAgentClient           *mock_agentclient.MockAgentClient
-			mockAgentClientFactory    *mock_httpagent.MockAgentClientFactory
-			mockCloudFactory          *mock_cloud.MockFactory
-			mockCloud                 *mock_cloud.MockCloud
+			mockDeployer         *mock_deployment.MockDeployer
+			mockInstaller        *mock_install.MockInstaller
+			mockInstallerFactory *mock_install.MockInstallerFactory
+			releaseReader        *fakerel.FakeReader
+			releaseManager       biinstall.ReleaseManager
+
+			mockAgentClient        *mock_agentclient.MockAgentClient
+			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
+			mockCloudFactory       *mock_cloud.MockFactory
+			mockCloud              *mock_cloud.MockCloud
 
 			cpiRelease *fakebirel.FakeRelease
 			logger     boshlog.Logger
@@ -150,8 +148,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			expectInstall              *gomock.Call
 			expectNewCloud             *gomock.Call
 
-			expectedRegistryConfig biinstallmanifest.Registry
-			expectedDeployError    error
+			expectedDeployError error
 		)
 
 		BeforeEach(func() {
@@ -177,9 +174,6 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			releaseReader = &fakerel.FakeReader{}
 			releaseManager = biinstall.NewReleaseManager(logger)
-
-			mockRegistryServerManager = mock_registry.NewMockServerManager(mockCtrl)
-			mockRegistryServer = mock_registry.NewMockServer(mockCtrl)
 
 			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
@@ -259,8 +253,6 @@ var _ = Describe("CreateEnvCmd", func() {
 				},
 				Mbus: mbusURL,
 			}
-
-			expectedRegistryConfig = installationManifest.Registry
 
 			// parsed BOSH deployment manifest
 			boshDeploymentManifest = bideplmanifest.Manifest{
@@ -433,7 +425,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockInstaller).AnyTimes()
 
-			installation := biinstall.NewInstallation(target, installedJob, installationManifest, mockRegistryServerManager)
+			installation := biinstall.NewInstallation(target, installedJob, installationManifest)
 
 			expectInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ interface{}, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
@@ -446,12 +438,11 @@ var _ = Describe("CreateEnvCmd", func() {
 				mockCloud,
 				boshDeploymentManifest,
 				cloudStemcell,
-				expectedRegistryConfig,
 				fakeVMManager,
 				mockBlobstore,
 				expectedSkipDrain,
 				gomock.Any(),
-			).Do(func(_, _, _, _, _, _, _ interface{}, stage biui.Stage) {
+			).Do(func(_, _, _, _, _, _ interface{}, stage biui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(nil, expectedDeployError).AnyTimes()
 
@@ -596,79 +587,6 @@ var _ = Describe("CreateEnvCmd", func() {
 				Name:  "installing CPI",
 				Stage: &fakebiui.FakeStage{}, // mock installer doesn't add sub-stages
 			}))
-		})
-
-		Context("when the registry is configured", func() {
-			BeforeEach(func() {
-				installationManifest.Registry = biinstallmanifest.Registry{
-					Username: "fake-username",
-					Password: "fake-password",
-					Host:     "fake-host",
-					Port:     123,
-				}
-				expectedRegistryConfig = biinstallmanifest.Registry{}
-			})
-
-			It("should not start or attempt to stop the registry", func() {
-				mockRegistryServerManager.EXPECT().Start(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
-				mockRegistryServer.EXPECT().Stop().Times(0)
-
-				err := command.Run(fakeStage, defaultCreateEnvOpts)
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			itStartsStopsRegistry := func() {
-				It("starts & stops the registry", func() {
-					mockRegistryServerManager.EXPECT().Start("fake-username", "fake-password", "fake-host", 123).Return(mockRegistryServer, nil)
-					mockRegistryServer.EXPECT().Stop()
-
-					err := command.Run(fakeStage, defaultCreateEnvOpts)
-					Expect(err).NotTo(HaveOccurred())
-				})
-
-				It("adds a new 'Starting registry' event logger stage", func() {
-					mockRegistryServerManager.EXPECT().Start("fake-username", "fake-password", "fake-host", 123).Return(mockRegistryServer, nil)
-					mockRegistryServer.EXPECT().Stop()
-
-					err := command.Run(fakeStage, defaultCreateEnvOpts)
-					Expect(err).NotTo(HaveOccurred())
-
-					Expect(fakeStage.PerformCalls[2]).To(Equal(&fakebiui.PerformCall{
-						Name: "Starting registry",
-					}))
-				})
-			}
-
-			Context("when stemcell version is 1", func() {
-				BeforeEach(func() {
-					stemcellApiVersion = 1
-
-					expectedRegistryConfig = biinstallmanifest.Registry{
-						Username: "fake-username",
-						Password: "fake-password",
-						Host:     "fake-host",
-						Port:     123,
-					}
-				})
-
-				itStartsStopsRegistry()
-			})
-
-			Context("when stemcell is 2 but cpi version is 1", func() {
-				BeforeEach(func() {
-					stemcellApiVersion = 2
-					cpiApiVersion = 1
-
-					expectedRegistryConfig = biinstallmanifest.Registry{
-						Username: "fake-username",
-						Password: "fake-password",
-						Host:     "fake-host",
-						Port:     123,
-					}
-				})
-
-				itStartsStopsRegistry()
-			})
 		})
 
 		It("deletes the extracted CPI release", func() {
@@ -1138,7 +1056,6 @@ var _ = Describe("CreateEnvCmd", func() {
 					mockCloud,
 					boshDeploymentManifest,
 					cloudStemcell,
-					installationManifest.Registry,
 					fakeVMManager,
 					mockBlobstore,
 					expectedSkipDrain,

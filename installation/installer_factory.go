@@ -5,7 +5,6 @@ import (
 	biindex "github.com/cloudfoundry/bosh-cli/index"
 	"github.com/cloudfoundry/bosh-cli/installation/blobextract"
 	biinstallpkg "github.com/cloudfoundry/bosh-cli/installation/pkg"
-	biregistry "github.com/cloudfoundry/bosh-cli/registry"
 	bistatejob "github.com/cloudfoundry/bosh-cli/state/job"
 	bistatepkg "github.com/cloudfoundry/bosh-cli/state/pkg"
 	bitemplate "github.com/cloudfoundry/bosh-cli/templatescompiler"
@@ -29,7 +28,6 @@ type installerFactory struct {
 	extractor              boshcmd.Compressor
 	releaseJobResolver     bideplrel.JobResolver
 	uuidGenerator          boshuuid.Generator
-	registryServerManager  biregistry.ServerManager
 	logger                 boshlog.Logger
 	logTag                 string
 	fs                     boshsys.FileSystem
@@ -42,7 +40,6 @@ func NewInstallerFactory(
 	extractor boshcmd.Compressor,
 	releaseJobResolver bideplrel.JobResolver,
 	uuidGenerator boshuuid.Generator,
-	registryServerManager biregistry.ServerManager,
 	logger boshlog.Logger,
 	fs boshsys.FileSystem,
 	digestCreateAlgorithms []boshcrypto.Algorithm,
@@ -53,7 +50,6 @@ func NewInstallerFactory(
 		extractor:              extractor,
 		releaseJobResolver:     releaseJobResolver,
 		uuidGenerator:          uuidGenerator,
-		registryServerManager:  registryServerManager,
 		logger:                 logger,
 		logTag:                 "installer",
 		fs:                     fs,
@@ -79,7 +75,6 @@ func (f *installerFactory) NewInstaller(target Target) Installer {
 		context.JobResolver(),
 		context.PackageCompiler(),
 		context.BlobExtractor(),
-		f.registryServerManager,
 		f.logger,
 	)
 }

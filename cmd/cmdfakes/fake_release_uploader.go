@@ -49,15 +49,16 @@ func (fake *FakeReleaseUploader) UploadReleases(arg1 []byte) ([]byte, error) {
 	fake.uploadReleasesArgsForCall = append(fake.uploadReleasesArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.UploadReleasesStub
+	fakeReturns := fake.uploadReleasesReturns
 	fake.recordInvocation("UploadReleases", []interface{}{arg1Copy})
 	fake.uploadReleasesMutex.Unlock()
-	if fake.UploadReleasesStub != nil {
-		return fake.UploadReleasesStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.uploadReleasesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -117,15 +118,16 @@ func (fake *FakeReleaseUploader) UploadReleasesWithFix(arg1 []byte) ([]byte, err
 	fake.uploadReleasesWithFixArgsForCall = append(fake.uploadReleasesWithFixArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.UploadReleasesWithFixStub
+	fakeReturns := fake.uploadReleasesWithFixReturns
 	fake.recordInvocation("UploadReleasesWithFix", []interface{}{arg1Copy})
 	fake.uploadReleasesWithFixMutex.Unlock()
-	if fake.UploadReleasesWithFixStub != nil {
-		return fake.UploadReleasesWithFixStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.uploadReleasesWithFixReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

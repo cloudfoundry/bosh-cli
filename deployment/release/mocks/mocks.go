@@ -5,35 +5,36 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	job "github.com/cloudfoundry/bosh-cli/release/job"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
-// MockJobResolver is a mock of JobResolver interface
+// MockJobResolver is a mock of JobResolver interface.
 type MockJobResolver struct {
 	ctrl     *gomock.Controller
 	recorder *MockJobResolverMockRecorder
 }
 
-// MockJobResolverMockRecorder is the mock recorder for MockJobResolver
+// MockJobResolverMockRecorder is the mock recorder for MockJobResolver.
 type MockJobResolverMockRecorder struct {
 	mock *MockJobResolver
 }
 
-// NewMockJobResolver creates a new mock instance
+// NewMockJobResolver creates a new mock instance.
 func NewMockJobResolver(ctrl *gomock.Controller) *MockJobResolver {
 	mock := &MockJobResolver{ctrl: ctrl}
 	mock.recorder = &MockJobResolverMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockJobResolver) EXPECT() *MockJobResolverMockRecorder {
 	return m.recorder
 }
 
-// Resolve mocks base method
+// Resolve mocks base method.
 func (m *MockJobResolver) Resolve(arg0, arg1 string) (job.Job, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Resolve", arg0, arg1)
@@ -42,7 +43,7 @@ func (m *MockJobResolver) Resolve(arg0, arg1 string) (job.Job, error) {
 	return ret0, ret1
 }
 
-// Resolve indicates an expected call of Resolve
+// Resolve indicates an expected call of Resolve.
 func (mr *MockJobResolverMockRecorder) Resolve(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resolve", reflect.TypeOf((*MockJobResolver)(nil).Resolve), arg0, arg1)

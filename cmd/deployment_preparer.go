@@ -197,7 +197,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, 
 			return bosherr.WrapError(err, "Creating CPI client from CPI installation")
 		}
 
-		deploy := func(usesRegistry bool) error {
+		deploy := func() error {
 			return c.deploy(
 				installation,
 				deploymentState,
@@ -208,7 +208,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, 
 				skipDrain,
 				stage,
 				cloud,
-				usesRegistry)
+			)
 		}
 
 		cpiInfo, err := cloud.Info()
@@ -218,11 +218,9 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, 
 
 		if stemcellApiVersion >= bicloud.StemcellNoRegistryAsOfVersion &&
 			cpiInfo.ApiVersion == bicloud.MaxCpiApiVersionSupported {
-			return deploy(false)
+			return deploy()
 		} else {
-			return installation.WithRunningRegistry(c.logger, stage, func() error {
-				return deploy(true)
-			})
+			return bosherr.Errorf("Registry is not supported anymore")
 		}
 	})
 	return err
@@ -238,7 +236,6 @@ func (c *DeploymentPreparer) deploy(
 	skipDrain bool,
 	stage biui.Stage,
 	cloud bicloud.Cloud,
-	usesRegistry bool,
 ) (err error) {
 	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
 
@@ -264,16 +261,10 @@ func (c *DeploymentPreparer) deploy(
 			return bosherr.WrapError(err, "Clearing deployment record")
 		}
 
-		registrySettings := installationManifest.Registry
-		if !usesRegistry {
-			registrySettings = biinstallmanifest.Registry{}
-		}
-
 		_, err = c.deployer.Deploy(
 			cloud,
 			deploymentManifest,
 			cloudStemcell,
-			registrySettings,
 			vmManager,
 			blobstore,
 			skipDrain,

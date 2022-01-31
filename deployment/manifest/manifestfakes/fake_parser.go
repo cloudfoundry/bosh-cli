@@ -5,15 +5,15 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/deployment/manifest"
-	bidepltpl "github.com/cloudfoundry/bosh-cli/deployment/template"
+	"github.com/cloudfoundry/bosh-cli/deployment/template"
 )
 
 type FakeParser struct {
-	ParseStub        func(interpolatedTemplate bidepltpl.InterpolatedTemplate, path string) (manifest.Manifest, error)
+	ParseStub        func(template.InterpolatedTemplate, string) (manifest.Manifest, error)
 	parseMutex       sync.RWMutex
 	parseArgsForCall []struct {
-		interpolatedTemplate bidepltpl.InterpolatedTemplate
-		path                 string
+		arg1 template.InterpolatedTemplate
+		arg2 string
 	}
 	parseReturns struct {
 		result1 manifest.Manifest
@@ -27,22 +27,24 @@ type FakeParser struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeParser) Parse(interpolatedTemplate bidepltpl.InterpolatedTemplate, path string) (manifest.Manifest, error) {
+func (fake *FakeParser) Parse(arg1 template.InterpolatedTemplate, arg2 string) (manifest.Manifest, error) {
 	fake.parseMutex.Lock()
 	ret, specificReturn := fake.parseReturnsOnCall[len(fake.parseArgsForCall)]
 	fake.parseArgsForCall = append(fake.parseArgsForCall, struct {
-		interpolatedTemplate bidepltpl.InterpolatedTemplate
-		path                 string
-	}{interpolatedTemplate, path})
-	fake.recordInvocation("Parse", []interface{}{interpolatedTemplate, path})
+		arg1 template.InterpolatedTemplate
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.ParseStub
+	fakeReturns := fake.parseReturns
+	fake.recordInvocation("Parse", []interface{}{arg1, arg2})
 	fake.parseMutex.Unlock()
-	if fake.ParseStub != nil {
-		return fake.ParseStub(interpolatedTemplate, path)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.parseReturns.result1, fake.parseReturns.result2
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeParser) ParseCallCount() int {
@@ -51,13 +53,22 @@ func (fake *FakeParser) ParseCallCount() int {
 	return len(fake.parseArgsForCall)
 }
 
-func (fake *FakeParser) ParseArgsForCall(i int) (bidepltpl.InterpolatedTemplate, string) {
+func (fake *FakeParser) ParseCalls(stub func(template.InterpolatedTemplate, string) (manifest.Manifest, error)) {
+	fake.parseMutex.Lock()
+	defer fake.parseMutex.Unlock()
+	fake.ParseStub = stub
+}
+
+func (fake *FakeParser) ParseArgsForCall(i int) (template.InterpolatedTemplate, string) {
 	fake.parseMutex.RLock()
 	defer fake.parseMutex.RUnlock()
-	return fake.parseArgsForCall[i].interpolatedTemplate, fake.parseArgsForCall[i].path
+	argsForCall := fake.parseArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeParser) ParseReturns(result1 manifest.Manifest, result2 error) {
+	fake.parseMutex.Lock()
+	defer fake.parseMutex.Unlock()
 	fake.ParseStub = nil
 	fake.parseReturns = struct {
 		result1 manifest.Manifest
@@ -66,6 +77,8 @@ func (fake *FakeParser) ParseReturns(result1 manifest.Manifest, result2 error) {
 }
 
 func (fake *FakeParser) ParseReturnsOnCall(i int, result1 manifest.Manifest, result2 error) {
+	fake.parseMutex.Lock()
+	defer fake.parseMutex.Unlock()
 	fake.ParseStub = nil
 	if fake.parseReturnsOnCall == nil {
 		fake.parseReturnsOnCall = make(map[int]struct {
@@ -84,7 +97,11 @@ func (fake *FakeParser) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.parseMutex.RLock()
 	defer fake.parseMutex.RUnlock()
-	return fake.invocations
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeParser) recordInvocation(key string, args []interface{}) {

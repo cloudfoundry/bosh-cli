@@ -5,41 +5,41 @@
 package mocks
 
 import (
+	reflect "reflect"
+	time "time"
+
 	disk "github.com/cloudfoundry/bosh-cli/deployment/disk"
 	instance "github.com/cloudfoundry/bosh-cli/deployment/instance"
 	manifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
-	manifest0 "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	stemcell "github.com/cloudfoundry/bosh-cli/stemcell"
 	ui "github.com/cloudfoundry/bosh-cli/ui"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
-	time "time"
 )
 
-// MockInstance is a mock of Instance interface
+// MockInstance is a mock of Instance interface.
 type MockInstance struct {
 	ctrl     *gomock.Controller
 	recorder *MockInstanceMockRecorder
 }
 
-// MockInstanceMockRecorder is the mock recorder for MockInstance
+// MockInstanceMockRecorder is the mock recorder for MockInstance.
 type MockInstanceMockRecorder struct {
 	mock *MockInstance
 }
 
-// NewMockInstance creates a new mock instance
+// NewMockInstance creates a new mock instance.
 func NewMockInstance(ctrl *gomock.Controller) *MockInstance {
 	mock := &MockInstance{ctrl: ctrl}
 	mock.recorder = &MockInstanceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockInstance) EXPECT() *MockInstanceMockRecorder {
 	return m.recorder
 }
 
-// Delete mocks base method
+// Delete mocks base method.
 func (m *MockInstance) Delete(arg0, arg1 time.Duration, arg2 bool, arg3 ui.Stage) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", arg0, arg1, arg2, arg3)
@@ -47,13 +47,13 @@ func (m *MockInstance) Delete(arg0, arg1 time.Duration, arg2 bool, arg3 ui.Stage
 	return ret0
 }
 
-// Delete indicates an expected call of Delete
+// Delete indicates an expected call of Delete.
 func (mr *MockInstanceMockRecorder) Delete(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockInstance)(nil).Delete), arg0, arg1, arg2, arg3)
 }
 
-// Disks mocks base method
+// Disks mocks base method.
 func (m *MockInstance) Disks() ([]disk.Disk, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Disks")
@@ -62,13 +62,13 @@ func (m *MockInstance) Disks() ([]disk.Disk, error) {
 	return ret0, ret1
 }
 
-// Disks indicates an expected call of Disks
+// Disks indicates an expected call of Disks.
 func (mr *MockInstanceMockRecorder) Disks() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Disks", reflect.TypeOf((*MockInstance)(nil).Disks))
 }
 
-// ID mocks base method
+// ID mocks base method.
 func (m *MockInstance) ID() int {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ID")
@@ -76,13 +76,13 @@ func (m *MockInstance) ID() int {
 	return ret0
 }
 
-// ID indicates an expected call of ID
+// ID indicates an expected call of ID.
 func (mr *MockInstanceMockRecorder) ID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockInstance)(nil).ID))
 }
 
-// JobName mocks base method
+// JobName mocks base method.
 func (m *MockInstance) JobName() string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "JobName")
@@ -90,13 +90,13 @@ func (m *MockInstance) JobName() string {
 	return ret0
 }
 
-// JobName indicates an expected call of JobName
+// JobName indicates an expected call of JobName.
 func (mr *MockInstanceMockRecorder) JobName() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JobName", reflect.TypeOf((*MockInstance)(nil).JobName))
 }
 
-// Start mocks base method
+// Start mocks base method.
 func (m *MockInstance) Start(arg0 manifest.Update, arg1, arg2 time.Duration, arg3 ui.Stage) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Start", arg0, arg1, arg2, arg3)
@@ -104,13 +104,13 @@ func (m *MockInstance) Start(arg0 manifest.Update, arg1, arg2 time.Duration, arg
 	return ret0
 }
 
-// Start indicates an expected call of Start
+// Start indicates an expected call of Start.
 func (mr *MockInstanceMockRecorder) Start(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockInstance)(nil).Start), arg0, arg1, arg2, arg3)
 }
 
-// Stop mocks base method
+// Stop mocks base method.
 func (m *MockInstance) Stop(arg0, arg1 time.Duration, arg2 bool, arg3 ui.Stage) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Stop", arg0, arg1, arg2, arg3)
@@ -118,13 +118,13 @@ func (m *MockInstance) Stop(arg0, arg1 time.Duration, arg2 bool, arg3 ui.Stage) 
 	return ret0
 }
 
-// Stop indicates an expected call of Stop
+// Stop indicates an expected call of Stop.
 func (mr *MockInstanceMockRecorder) Stop(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stop", reflect.TypeOf((*MockInstance)(nil).Stop), arg0, arg1, arg2, arg3)
 }
 
-// UpdateDisks mocks base method
+// UpdateDisks mocks base method.
 func (m *MockInstance) UpdateDisks(arg0 manifest.Manifest, arg1 ui.Stage) ([]disk.Disk, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateDisks", arg0, arg1)
@@ -133,13 +133,13 @@ func (m *MockInstance) UpdateDisks(arg0 manifest.Manifest, arg1 ui.Stage) ([]dis
 	return ret0, ret1
 }
 
-// UpdateDisks indicates an expected call of UpdateDisks
+// UpdateDisks indicates an expected call of UpdateDisks.
 func (mr *MockInstanceMockRecorder) UpdateDisks(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateDisks", reflect.TypeOf((*MockInstance)(nil).UpdateDisks), arg0, arg1)
 }
 
-// UpdateJobs mocks base method
+// UpdateJobs mocks base method.
 func (m *MockInstance) UpdateJobs(arg0 manifest.Manifest, arg1 ui.Stage) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateJobs", arg0, arg1)
@@ -147,66 +147,66 @@ func (m *MockInstance) UpdateJobs(arg0 manifest.Manifest, arg1 ui.Stage) error {
 	return ret0
 }
 
-// UpdateJobs indicates an expected call of UpdateJobs
+// UpdateJobs indicates an expected call of UpdateJobs.
 func (mr *MockInstanceMockRecorder) UpdateJobs(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateJobs", reflect.TypeOf((*MockInstance)(nil).UpdateJobs), arg0, arg1)
 }
 
-// WaitUntilReady mocks base method
-func (m *MockInstance) WaitUntilReady(arg0 manifest0.Registry, arg1 ui.Stage) error {
+// WaitUntilReady mocks base method.
+func (m *MockInstance) WaitUntilReady(arg0 ui.Stage) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WaitUntilReady", arg0, arg1)
+	ret := m.ctrl.Call(m, "WaitUntilReady", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// WaitUntilReady indicates an expected call of WaitUntilReady
-func (mr *MockInstanceMockRecorder) WaitUntilReady(arg0, arg1 interface{}) *gomock.Call {
+// WaitUntilReady indicates an expected call of WaitUntilReady.
+func (mr *MockInstanceMockRecorder) WaitUntilReady(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WaitUntilReady", reflect.TypeOf((*MockInstance)(nil).WaitUntilReady), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WaitUntilReady", reflect.TypeOf((*MockInstance)(nil).WaitUntilReady), arg0)
 }
 
-// MockManager is a mock of Manager interface
+// MockManager is a mock of Manager interface.
 type MockManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockManagerMockRecorder
 }
 
-// MockManagerMockRecorder is the mock recorder for MockManager
+// MockManagerMockRecorder is the mock recorder for MockManager.
 type MockManagerMockRecorder struct {
 	mock *MockManager
 }
 
-// NewMockManager creates a new mock instance
+// NewMockManager creates a new mock instance.
 func NewMockManager(ctrl *gomock.Controller) *MockManager {
 	mock := &MockManager{ctrl: ctrl}
 	mock.recorder = &MockManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method
-func (m *MockManager) Create(arg0 string, arg1 int, arg2 manifest.Manifest, arg3 stemcell.CloudStemcell, arg4 manifest0.Registry, arg5 ui.Stage) (instance.Instance, []disk.Disk, error) {
+// Create mocks base method.
+func (m *MockManager) Create(arg0 string, arg1 int, arg2 manifest.Manifest, arg3 stemcell.CloudStemcell, arg4 ui.Stage) (instance.Instance, []disk.Disk, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret := m.ctrl.Call(m, "Create", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(instance.Instance)
 	ret1, _ := ret[1].([]disk.Disk)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-// Create indicates an expected call of Create
-func (mr *MockManagerMockRecorder) Create(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+// Create indicates an expected call of Create.
+func (mr *MockManagerMockRecorder) Create(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockManager)(nil).Create), arg0, arg1, arg2, arg3, arg4, arg5)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockManager)(nil).Create), arg0, arg1, arg2, arg3, arg4)
 }
 
-// DeleteAll mocks base method
+// DeleteAll mocks base method.
 func (m *MockManager) DeleteAll(arg0, arg1 time.Duration, arg2 bool, arg3 ui.Stage) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteAll", arg0, arg1, arg2, arg3)
@@ -214,13 +214,13 @@ func (m *MockManager) DeleteAll(arg0, arg1 time.Duration, arg2 bool, arg3 ui.Sta
 	return ret0
 }
 
-// DeleteAll indicates an expected call of DeleteAll
+// DeleteAll indicates an expected call of DeleteAll.
 func (mr *MockManagerMockRecorder) DeleteAll(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockManager)(nil).DeleteAll), arg0, arg1, arg2, arg3)
 }
 
-// FindCurrent mocks base method
+// FindCurrent mocks base method.
 func (m *MockManager) FindCurrent() ([]instance.Instance, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindCurrent")
@@ -229,7 +229,7 @@ func (m *MockManager) FindCurrent() ([]instance.Instance, error) {
 	return ret0, ret1
 }
 
-// FindCurrent indicates an expected call of FindCurrent
+// FindCurrent indicates an expected call of FindCurrent.
 func (mr *MockManagerMockRecorder) FindCurrent() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindCurrent", reflect.TypeOf((*MockManager)(nil).FindCurrent))
