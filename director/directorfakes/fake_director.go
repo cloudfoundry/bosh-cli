@@ -554,6 +554,20 @@ type FakeDirector struct {
 		result1 []director.Task
 		result2 error
 	}
+	ReleaseHasCompiledPackageStub        func(director.ReleaseSlug, director.OSVersionSlug) (bool, error)
+	releaseHasCompiledPackageMutex       sync.RWMutex
+	releaseHasCompiledPackageArgsForCall []struct {
+		arg1 director.ReleaseSlug
+		arg2 director.OSVersionSlug
+	}
+	releaseHasCompiledPackageReturns struct {
+		result1 bool
+		result2 error
+	}
+	releaseHasCompiledPackageReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
 	ReleasesStub        func() ([]director.Release, error)
 	releasesMutex       sync.RWMutex
 	releasesArgsForCall []struct {
@@ -3344,6 +3358,71 @@ func (fake *FakeDirector) RecentTasksReturnsOnCall(i int, result1 []director.Tas
 	}{result1, result2}
 }
 
+func (fake *FakeDirector) ReleaseHasCompiledPackage(arg1 director.ReleaseSlug, arg2 director.OSVersionSlug) (bool, error) {
+	fake.releaseHasCompiledPackageMutex.Lock()
+	ret, specificReturn := fake.releaseHasCompiledPackageReturnsOnCall[len(fake.releaseHasCompiledPackageArgsForCall)]
+	fake.releaseHasCompiledPackageArgsForCall = append(fake.releaseHasCompiledPackageArgsForCall, struct {
+		arg1 director.ReleaseSlug
+		arg2 director.OSVersionSlug
+	}{arg1, arg2})
+	stub := fake.ReleaseHasCompiledPackageStub
+	fakeReturns := fake.releaseHasCompiledPackageReturns
+	fake.recordInvocation("ReleaseHasCompiledPackage", []interface{}{arg1, arg2})
+	fake.releaseHasCompiledPackageMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDirector) ReleaseHasCompiledPackageCallCount() int {
+	fake.releaseHasCompiledPackageMutex.RLock()
+	defer fake.releaseHasCompiledPackageMutex.RUnlock()
+	return len(fake.releaseHasCompiledPackageArgsForCall)
+}
+
+func (fake *FakeDirector) ReleaseHasCompiledPackageCalls(stub func(director.ReleaseSlug, director.OSVersionSlug) (bool, error)) {
+	fake.releaseHasCompiledPackageMutex.Lock()
+	defer fake.releaseHasCompiledPackageMutex.Unlock()
+	fake.ReleaseHasCompiledPackageStub = stub
+}
+
+func (fake *FakeDirector) ReleaseHasCompiledPackageArgsForCall(i int) (director.ReleaseSlug, director.OSVersionSlug) {
+	fake.releaseHasCompiledPackageMutex.RLock()
+	defer fake.releaseHasCompiledPackageMutex.RUnlock()
+	argsForCall := fake.releaseHasCompiledPackageArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeDirector) ReleaseHasCompiledPackageReturns(result1 bool, result2 error) {
+	fake.releaseHasCompiledPackageMutex.Lock()
+	defer fake.releaseHasCompiledPackageMutex.Unlock()
+	fake.ReleaseHasCompiledPackageStub = nil
+	fake.releaseHasCompiledPackageReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) ReleaseHasCompiledPackageReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.releaseHasCompiledPackageMutex.Lock()
+	defer fake.releaseHasCompiledPackageMutex.Unlock()
+	fake.ReleaseHasCompiledPackageStub = nil
+	if fake.releaseHasCompiledPackageReturnsOnCall == nil {
+		fake.releaseHasCompiledPackageReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.releaseHasCompiledPackageReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDirector) Releases() ([]director.Release, error) {
 	fake.releasesMutex.Lock()
 	ret, specificReturn := fake.releasesReturnsOnCall[len(fake.releasesArgsForCall)]
@@ -4191,6 +4270,8 @@ func (fake *FakeDirector) Invocations() map[string][][]interface{} {
 	defer fake.orphanedVMsMutex.RUnlock()
 	fake.recentTasksMutex.RLock()
 	defer fake.recentTasksMutex.RUnlock()
+	fake.releaseHasCompiledPackageMutex.RLock()
+	defer fake.releaseHasCompiledPackageMutex.RUnlock()
 	fake.releasesMutex.RLock()
 	defer fake.releasesMutex.RUnlock()
 	fake.stemcellNeedsUploadMutex.RLock()

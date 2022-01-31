@@ -114,7 +114,10 @@ func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (pat
 		SHA1: rel.SHA1,
 		Fix:  m.uploadWithFix,
 	}
-
+	if len(rel.ExportedFrom) > 0 {
+		// https://bosh.io/docs/locking-compiled-releases/#why-an-array It is an array but we only use the first item.
+		uploadOpts.Stemcell = boshdir.NewOSVersionSlug(rel.ExportedFrom[0].OS, rel.ExportedFrom[0].Version)
+	}
 	if len(rel.Stemcell.OS) > 0 {
 		uploadOpts.Stemcell = boshdir.NewOSVersionSlug(rel.Stemcell.OS, rel.Stemcell.Version)
 	}

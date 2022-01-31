@@ -38,6 +38,7 @@ type Director interface {
 
 	Releases() ([]Release, error)
 	HasRelease(name, version string, stemcell OSVersionSlug) (bool, error)
+	ReleaseHasCompiledPackage(releaseSlug ReleaseSlug, osVersionSlug OSVersionSlug) (bool, error)
 	FindRelease(ReleaseSlug) (Release, error)
 	FindReleaseSeries(ReleaseSeriesSlug) (ReleaseSeries, error)
 	UploadReleaseURL(url, sha1 string, rebase, fix bool) error
