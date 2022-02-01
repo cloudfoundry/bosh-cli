@@ -187,7 +187,6 @@ func (r ArchiveReader) newPackages(refs []boshman.PackageRef, extractPath string
 
 func (r ArchiveReader) newCompiledPackages(refs []boshman.CompiledPackageRef, extractPath string) ([]*boshpkg.CompiledPackage, error) {
 	var compiledPkgs []*boshpkg.CompiledPackage
-	var errs []error
 
 	for _, ref := range refs {
 		archivePath := filepath.Join(extractPath, "compiled_packages", ref.Name+".tgz")
@@ -197,18 +196,6 @@ func (r ArchiveReader) newCompiledPackages(refs []boshman.CompiledPackageRef, ex
 
 		compiledPkgs = append(compiledPkgs, compiledPkg)
 	}
-
-	for _, compiledPkg := range compiledPkgs {
-		err := compiledPkg.AttachDependencies(compiledPkgs)
-		if err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	if len(errs) > 0 {
-		return nil, bosherr.NewMultiError(errs...)
-	}
-
 	return compiledPkgs, nil
 }
 
