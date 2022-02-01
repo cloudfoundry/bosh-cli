@@ -135,8 +135,7 @@ func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (pat
 			return nil, bosherr.WrapErrorf(err, "Processing release '%s/%s'", rel.Name, rel.Version)
 		}
 
-		uploadOpts = cmdopts.UploadReleaseOpts{Release: release, Version: cmdopts.VersionArg{}, Name: rel.Name}
-		uploadOpts.Version.UnmarshalFlag(rel.Version)
+		uploadOpts = cmdopts.UploadReleaseOpts{Release: release}
 
 		replaceOp := patch.ReplaceOp{
 			// equivalent to /releases/name=?/version
