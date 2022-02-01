@@ -7,6 +7,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/crypto"
 	crypto2 "github.com/cloudfoundry/bosh-utils/crypto"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type CompiledPackage struct {
@@ -14,8 +15,8 @@ type CompiledPackage struct {
 	fingerprint   string
 	osVersionSlug string
 
-	Dependencies    []*CompiledPackage // todo delete; we don't care about _compiled_ package dependencies
-	dependencyNames []string           // todo delete; we don't care about _compiled_ package dependencies
+	Dependencies    []*CompiledPackage // todo privatize
+	dependencyNames []string
 
 	archivePath   string
 	archiveDigest string
@@ -62,6 +63,27 @@ func (p CompiledPackage) ArchivePath() string {
 }
 
 func (p CompiledPackage) ArchiveDigest() string { return p.archiveDigest }
+
+func (p *CompiledPackage) AttachDependencies(compiledPkgs []*CompiledPackage) error {
+	for _, pkgName := range p.dependencyNames {
+		var found bool
+
+		for _, compiledPkg := range compiledPkgs {
+			if compiledPkg.Name() == pkgName {
+				p.Dependencies = append(p.Dependencies, compiledPkg)
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			errMsg := "Expected to find compiled package '%s' since it's a dependency of compiled package '%s'"
+			return bosherr.Errorf(errMsg, pkgName, p.name)
+		}
+	}
+
+	return nil
+}
 
 func (p *CompiledPackage) DependencyNames() []string { return p.dependencyNames }
 
