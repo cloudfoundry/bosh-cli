@@ -157,6 +157,7 @@ var _ = Describe("RemotePackageCompiler", func() {
 
 				pkg = boshpkg.NewCompiledPackageWithArchive(
 					"fake-package-name", "fake-package-fingerprint", "", archivePath, "fake-source-package-sha1", []string{"fake-package-name-dep"})
+				pkg.AttachDependencies([]*boshpkg.CompiledPackage{pkgDependency})
 			})
 
 			It("should skip compilation but still add blobstore package", func() {

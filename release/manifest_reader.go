@@ -133,12 +133,24 @@ func (r ManifestReader) newPackages(refs []boshman.PackageRef) ([]*boshpkg.Packa
 
 func (r ManifestReader) newCompiledPackages(refs []boshman.CompiledPackageRef) ([]*boshpkg.CompiledPackage, error) {
 	var compiledPkgs []*boshpkg.CompiledPackage
+	var errs []error
 
 	for _, ref := range refs {
 		compiledPkg := boshpkg.NewCompiledPackageWithoutArchive(
 			ref.Name, ref.Fingerprint, ref.OSVersionSlug, ref.SHA1, ref.Dependencies)
 
 		compiledPkgs = append(compiledPkgs, compiledPkg)
+	}
+
+	for _, compiledPkg := range compiledPkgs {
+		err := compiledPkg.AttachDependencies(compiledPkgs)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if len(errs) > 0 {
+		return nil, bosherr.NewMultiError(errs...)
 	}
 
 	return compiledPkgs, nil

@@ -155,6 +155,7 @@ license:
 					"pkg1", "pkg1-fp", "pkg1-stemcell", "pkg1-sha", []string{"pkg2"})
 				compiledPkg2 := boshpkg.NewCompiledPackageWithoutArchive(
 					"pkg2", "pkg2-fp", "pkg2-stemcell", "pkg2-sha", nil)
+				compiledPkg1.AttachDependencies([]*boshpkg.CompiledPackage{compiledPkg2})
 
 				lic := boshlic.NewLicense(NewExistingResource("license", "lic-fp", "lic-sha"))
 
@@ -172,7 +173,7 @@ license:
 				Expect(release.License()).To(Equal(lic))
 			})
 
-			It("does not return an error if compiled pkg's compiled pkg dependencies cannot be satisfied because dependencies don't matter for compiled pkgs", func() {
+			It("returns error if compiled pkg's compiled pkg dependencies cannot be satisfied", func() {
 				fs.WriteFileString("/release.yml", `---
 name: release
 version: version
@@ -187,7 +188,9 @@ compiled_packages:
 `)
 
 				_, err := act()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(
+					"Expected to find compiled package 'pkg-with-other-name' since it's a dependency of compiled package 'pkg1'"))
 			})
 		})
 

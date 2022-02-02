@@ -272,6 +272,7 @@ license:
 					compiledPkg2 := boshpkg.NewCompiledPackageWithArchive(
 						"pkg2", "pkg2-fp", "pkg2-stemcell",
 						filepath.Join("/", "extracted", "release", "compiled_packages", "pkg2.tgz"), "pkg2-sha", nil)
+					compiledPkg1.AttachDependencies([]*boshpkg.CompiledPackage{compiledPkg2})
 
 					lic := boshlic.NewLicense(NewResourceWithBuiltArchive(
 						"license", "lic-fp", filepath.Join("/", "extracted", "release", "license.tgz"), "lic-sha"))
@@ -317,7 +318,7 @@ license:
 					Expect(job1.Packages).To(Equal([]boshpkg.Compilable{compiledPkg1}))
 
 					// compiled pkg dependencies are resolved
-					Expect(compiledPkg1.Dependencies).To(Equal([]*boshpkg.CompiledPackage{}))
+					Expect(compiledPkg1.Dependencies).To(Equal([]*boshpkg.CompiledPackage{compiledPkg2}))
 
 					Expect(fs.FileExists(filepath.Join("/", "extracted", "release"))).To(BeTrue())
 				})
@@ -333,7 +334,7 @@ license:
 					Expect(fs.FileExists("/extracted/release")).To(BeFalse())
 				})
 
-				It("does not return an error if compiled pkg's compiled pkg dependencies cannot be satisfied because dependencies don't matter for compiled pkgs", func() {
+				It("returns error if compiled pkg's compiled pkg dependencies cannot be satisfied", func() {
 					fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), `---
 name: release
 version: version
@@ -348,8 +349,11 @@ compiled_packages:
 `)
 
 					_, err := act()
-					Expect(err).ToNot(HaveOccurred())
-					Expect(fs.FileExists(filepath.Join("/", "extracted", "release"))).To(BeTrue())
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring(
+						"Expected to find compiled package 'pkg-with-other-name' since it's a dependency of compiled package 'pkg1'"))
+
+					Expect(fs.FileExists(filepath.Join("/", "extracted", "release"))).To(BeFalse())
 				})
 			})
 
