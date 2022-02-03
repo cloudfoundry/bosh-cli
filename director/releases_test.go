@@ -205,6 +205,31 @@ var _ = Describe("Director", func() {
 			Expect(found).To(BeTrue())
 		})
 
+		It("returns false for compiled release if name and version match, but director only has source packages", func() {
+			stemcell = NewOSVersionSlug("stemcell-os", "stemcell-ver")
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases/name", "version=ver"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `{
+					  "packages": [{
+					    "compiled_packages": []
+					  }]
+					}`),
+				),
+			)
+
+			found, err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeFalse())
+		})
+
 		It("returns false if name, version matches but stemcell does not", func() {
 			stemcell = NewOSVersionSlug("stemcell-os", "stemcell-ver")
 
