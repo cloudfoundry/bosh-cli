@@ -188,9 +188,14 @@ func (d DirectorImpl) HasRelease(name, version string, stemcell OSVersionSlug) (
 	if err != nil {
 		return false, err
 	}
-	if stemcell.IsProvided() && found {
-		found, err := d.ReleaseHasCompiledPackage(NewReleaseSlug(name, version), stemcell)
-		return found, err
+	if found {
+		if stemcell.IsProvided() {
+			found, err := d.ReleaseHasCompiledPackage(NewReleaseSlug(name, version), stemcell)
+			return found, err
+		} else {
+			found, err := d.ReleaseHasSource(NewReleaseSlug(name, version))
+			return found, err
+		}
 	}
 	return found, err
 }
@@ -216,6 +221,25 @@ func (d DirectorImpl) ReleaseHasCompiledPackage(releaseSlug ReleaseSlug, osVersi
 		}
 	}
 
+	return false, nil
+}
+
+func (d DirectorImpl) ReleaseHasSource(releaseSlug ReleaseSlug) (bool, error) {
+	release, err := d.FindRelease(releaseSlug)
+	if err != nil {
+		return false, err
+	}
+
+	pkgs, err := release.Packages()
+	if err != nil {
+		return false, err
+	}
+
+	for _, pkg := range pkgs {
+		if pkg.BlobstoreID != "" {
+			return true, nil
+		}
+	}
 	return false, nil
 }
 

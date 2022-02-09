@@ -149,18 +149,50 @@ var _ = Describe("Director", func() {
 			stemcell = OSVersionSlug{}
 		})
 
-		It("returns true if name and version matches", func() {
+		It("returns true if name and version matches and it has source", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/releases"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
 				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases/name", "version=ver"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `{
+					  "packages": [{
+						"blobstore_id": "123"
+					  }]
+					}`),
+				),
 			)
 
 			found, err := act()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
+		})
+
+		It("returns false if name and version matches but no source", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases/name", "version=ver"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `{
+					  "packages": [{
+						"blobstore_id": ""
+					  }]
+					}`),
+				),
+			)
+
+			found, err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeFalse())
 		})
 
 		It("returns false if name and version does not match", func() {
