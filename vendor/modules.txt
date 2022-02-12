@@ -28,7 +28,7 @@ code.cloudfoundry.org/workpool
 # github.com/VividCortex/ewma v1.2.0
 ## explicit; go 1.12
 github.com/VividCortex/ewma
-# github.com/aws/aws-sdk-go v1.42.47
+# github.com/aws/aws-sdk-go v1.42.52
 ## explicit; go 1.11
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -108,11 +108,11 @@ github.com/cloudfoundry/bosh-davcli/signer
 ## explicit; go 1.17
 github.com/cloudfoundry/bosh-gcscli/client
 github.com/cloudfoundry/bosh-gcscli/config
-# github.com/cloudfoundry/bosh-s3cli v0.0.113
+# github.com/cloudfoundry/bosh-s3cli v0.0.114
 ## explicit; go 1.17
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.299
+# github.com/cloudfoundry/bosh-utils v0.0.300
 ## explicit; go 1.17
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/fakes
@@ -132,14 +132,14 @@ github.com/cloudfoundry/bosh-utils/system/fakes
 github.com/cloudfoundry/bosh-utils/uuid
 github.com/cloudfoundry/bosh-utils/uuid/fakes
 github.com/cloudfoundry/bosh-utils/work
-# github.com/cloudfoundry/config-server v0.1.40
+# github.com/cloudfoundry/config-server v0.1.41
 ## explicit; go 1.17
 github.com/cloudfoundry/config-server/types
 github.com/cloudfoundry/config-server/types/typesfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e
 ## explicit
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.41
+# github.com/cloudfoundry/socks5-proxy v0.2.42
 ## explicit; go 1.17
 github.com/cloudfoundry/socks5-proxy
 # github.com/cppforlife/go-patch v0.2.0
@@ -300,14 +300,13 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838
+# golang.org/x/crypto v0.0.0-20220210151621-f4118a5b28e2
 ## explicit; go 1.17
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/curve25519/internal/field
 golang.org/x/crypto/ed25519
-golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/ssh
@@ -342,7 +341,7 @@ golang.org/x/oauth2/google/internal/externalaccount
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20220204135822-1c1b9b1eba6a
+# golang.org/x/sys v0.0.0-20220209214540-3681064d5158
 ## explicit; go 1.17
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
@@ -400,7 +399,7 @@ golang.org/x/tools/internal/typesinternal
 ## explicit; go 1.11
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.67.0
+# google.golang.org/api v0.68.0
 ## explicit; go 1.11
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
@@ -433,8 +432,8 @@ google.golang.org/appengine/internal/socket
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/socket
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20220204002441-d6cc3cc0770e
-## explicit; go 1.11
+# google.golang.org/genproto v0.0.0-20220211171837-173942840c17
+## explicit; go 1.15
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/iam/v1
 google.golang.org/genproto/googleapis/rpc/code
