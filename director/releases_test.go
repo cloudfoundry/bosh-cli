@@ -290,6 +290,41 @@ var _ = Describe("Director", func() {
 			Expect(found).To(BeFalse())
 		})
 
+		It("returns false if name, version matches but not all compiled packages have the matching stemcell", func() {
+			stemcell = NewOSVersionSlug("stemcell-os", "stemcell-ver")
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases/name", "version=ver"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `{
+					  "packages": [
+						{
+							"compiled_packages": [
+								{ "stemcell": "stemcell-os/stemcell-ver" },
+								{ "stemcell": "stemcell-os2/stemcell-ver2" }
+							]
+						},
+						{
+							"compiled_packages": [
+								{ "stemcell": "stemcell-os2/stemcell-ver2" }
+							]
+						}
+					  ]
+					}`),
+				),
+			)
+
+			found, err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeFalse())
+		})
+
 		It("returns error if response is non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("GET", "/releases"), server)
 
