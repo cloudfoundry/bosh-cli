@@ -172,7 +172,7 @@ var _ = Describe("Director", func() {
 			Expect(found).To(BeTrue())
 		})
 
-		It("returns false if name and version matches but no source", func() {
+		It("returns false if name and version matches but no source for some packages", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/releases"),
@@ -184,6 +184,8 @@ var _ = Describe("Director", func() {
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `{
 					  "packages": [{
+						"blobstore_id": "ID_EXISTS"
+					  },{
 						"blobstore_id": ""
 					  }]
 					}`),

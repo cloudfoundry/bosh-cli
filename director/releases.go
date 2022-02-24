@@ -240,11 +240,11 @@ func (d DirectorImpl) ReleaseHasSource(releaseSlug ReleaseSlug) (bool, error) {
 	}
 
 	for _, pkg := range pkgs {
-		if pkg.BlobstoreID != "" {
-			return true, nil
+		if pkg.BlobstoreID == "" {
+			return false, nil
 		}
 	}
-	return false, nil
+	return true, nil
 }
 
 func (d DirectorImpl) UploadReleaseURL(url, sha1 string, rebase, fix bool) error {
