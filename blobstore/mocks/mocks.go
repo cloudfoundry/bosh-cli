@@ -5,36 +5,37 @@
 package mocks
 
 import (
-	blobstore "github.com/cloudfoundry/bosh-cli/blobstore"
-	gomock "github.com/golang/mock/gomock"
 	http "net/http"
 	reflect "reflect"
+
+	blobstore "github.com/cloudfoundry/bosh-cli/blobstore"
+	gomock "github.com/golang/mock/gomock"
 )
 
-// MockFactory is a mock of Factory interface
+// MockFactory is a mock of Factory interface.
 type MockFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockFactoryMockRecorder
 }
 
-// MockFactoryMockRecorder is the mock recorder for MockFactory
+// MockFactoryMockRecorder is the mock recorder for MockFactory.
 type MockFactoryMockRecorder struct {
 	mock *MockFactory
 }
 
-// NewMockFactory creates a new mock instance
+// NewMockFactory creates a new mock instance.
 func NewMockFactory(ctrl *gomock.Controller) *MockFactory {
 	mock := &MockFactory{ctrl: ctrl}
 	mock.recorder = &MockFactoryMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFactory) EXPECT() *MockFactoryMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method
+// Create mocks base method.
 func (m *MockFactory) Create(arg0 string, arg1 *http.Client) (blobstore.Blobstore, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
@@ -43,36 +44,36 @@ func (m *MockFactory) Create(arg0 string, arg1 *http.Client) (blobstore.Blobstor
 	return ret0, ret1
 }
 
-// Create indicates an expected call of Create
+// Create indicates an expected call of Create.
 func (mr *MockFactoryMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockFactory)(nil).Create), arg0, arg1)
 }
 
-// MockBlobstore is a mock of Blobstore interface
+// MockBlobstore is a mock of Blobstore interface.
 type MockBlobstore struct {
 	ctrl     *gomock.Controller
 	recorder *MockBlobstoreMockRecorder
 }
 
-// MockBlobstoreMockRecorder is the mock recorder for MockBlobstore
+// MockBlobstoreMockRecorder is the mock recorder for MockBlobstore.
 type MockBlobstoreMockRecorder struct {
 	mock *MockBlobstore
 }
 
-// NewMockBlobstore creates a new mock instance
+// NewMockBlobstore creates a new mock instance.
 func NewMockBlobstore(ctrl *gomock.Controller) *MockBlobstore {
 	mock := &MockBlobstore{ctrl: ctrl}
 	mock.recorder = &MockBlobstoreMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBlobstore) EXPECT() *MockBlobstoreMockRecorder {
 	return m.recorder
 }
 
-// Add mocks base method
+// Add mocks base method.
 func (m *MockBlobstore) Add(arg0 string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Add", arg0)
@@ -81,13 +82,13 @@ func (m *MockBlobstore) Add(arg0 string) (string, error) {
 	return ret0, ret1
 }
 
-// Add indicates an expected call of Add
+// Add indicates an expected call of Add.
 func (mr *MockBlobstoreMockRecorder) Add(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockBlobstore)(nil).Add), arg0)
 }
 
-// Get mocks base method
+// Get mocks base method.
 func (m *MockBlobstore) Get(arg0 string) (blobstore.LocalBlob, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0)
@@ -96,7 +97,7 @@ func (m *MockBlobstore) Get(arg0 string) (blobstore.LocalBlob, error) {
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockBlobstoreMockRecorder) Get(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBlobstore)(nil).Get), arg0)

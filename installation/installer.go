@@ -6,7 +6,6 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/installation/blobextract"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
-	biregistry "github.com/cloudfoundry/bosh-cli/registry"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -27,14 +26,13 @@ type Installer interface {
 }
 
 type installer struct {
-	target                Target
-	jobRenderer           JobRenderer
-	jobResolver           JobResolver
-	packageCompiler       PackageCompiler
-	blobExtractor         blobextract.Extractor
-	registryServerManager biregistry.ServerManager
-	logger                boshlog.Logger
-	logTag                string
+	target          Target
+	jobRenderer     JobRenderer
+	jobResolver     JobResolver
+	packageCompiler PackageCompiler
+	blobExtractor   blobextract.Extractor
+	logger          boshlog.Logger
+	logTag          string
 }
 
 func NewInstaller(
@@ -43,18 +41,16 @@ func NewInstaller(
 	jobResolver JobResolver,
 	packageCompiler PackageCompiler,
 	blobExtractor blobextract.Extractor,
-	registryServerManager biregistry.ServerManager,
 	logger boshlog.Logger,
 ) Installer {
 	return &installer{
-		target:                target,
-		jobRenderer:           jobRenderer,
-		jobResolver:           jobResolver,
-		packageCompiler:       packageCompiler,
-		blobExtractor:         blobExtractor,
-		registryServerManager: registryServerManager,
-		logger:                logger,
-		logTag:                "installer",
+		target:          target,
+		jobRenderer:     jobRenderer,
+		jobResolver:     jobResolver,
+		packageCompiler: packageCompiler,
+		blobExtractor:   blobExtractor,
+		logger:          logger,
+		logTag:          "installer",
 	}
 }
 
@@ -94,7 +90,6 @@ func (i *installer) Install(manifest biinstallmanifest.Manifest, stage biui.Stag
 		i.target,
 		installedJob,
 		manifest,
-		i.registryServerManager,
 	), nil
 }
 

@@ -5,64 +5,58 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/stemcell"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	"github.com/cloudfoundry/bosh-utils/property"
 )
 
 type FakeExtractedStemcell struct {
-	ManifestStub        func() stemcell.Manifest
-	manifestMutex       sync.RWMutex
-	manifestArgsForCall []struct{}
-	manifestReturns     struct {
-		result1 stemcell.Manifest
-	}
-	manifestReturnsOnCall map[int]struct {
-		result1 stemcell.Manifest
-	}
 	CleanupStub        func() error
 	cleanupMutex       sync.RWMutex
-	cleanupArgsForCall []struct{}
-	cleanupReturns     struct {
+	cleanupArgsForCall []struct {
+	}
+	cleanupReturns struct {
 		result1 error
 	}
 	cleanupReturnsOnCall map[int]struct {
 		result1 error
 	}
-	OsAndVersionStub        func() string
-	osAndVersionMutex       sync.RWMutex
-	osAndVersionArgsForCall []struct{}
-	osAndVersionReturns     struct {
-		result1 string
+	EmptyImageStub        func() error
+	emptyImageMutex       sync.RWMutex
+	emptyImageArgsForCall []struct {
 	}
-	osAndVersionReturnsOnCall map[int]struct {
-		result1 string
+	emptyImageReturns struct {
+		result1 error
 	}
-	SetNameStub        func(string)
-	setNameMutex       sync.RWMutex
-	setNameArgsForCall []struct {
-		arg1 string
-	}
-	SetVersionStub        func(string)
-	setVersionMutex       sync.RWMutex
-	setVersionArgsForCall []struct {
-		arg1 string
-	}
-	SetFormatStub        func([]string)
-	setFormatMutex       sync.RWMutex
-	setFormatArgsForCall []struct {
-		arg1 []string
-	}
-	SetCloudPropertiesStub        func(biproperty.Map)
-	setCloudPropertiesMutex       sync.RWMutex
-	setCloudPropertiesArgsForCall []struct {
-		arg1 biproperty.Map
+	emptyImageReturnsOnCall map[int]struct {
+		result1 error
 	}
 	GetExtractedPathStub        func() string
 	getExtractedPathMutex       sync.RWMutex
-	getExtractedPathArgsForCall []struct{}
-	getExtractedPathReturns     struct {
+	getExtractedPathArgsForCall []struct {
+	}
+	getExtractedPathReturns struct {
 		result1 string
 	}
 	getExtractedPathReturnsOnCall map[int]struct {
+		result1 string
+	}
+	ManifestStub        func() stemcell.Manifest
+	manifestMutex       sync.RWMutex
+	manifestArgsForCall []struct {
+	}
+	manifestReturns struct {
+		result1 stemcell.Manifest
+	}
+	manifestReturnsOnCall map[int]struct {
+		result1 stemcell.Manifest
+	}
+	OsAndVersionStub        func() string
+	osAndVersionMutex       sync.RWMutex
+	osAndVersionArgsForCall []struct {
+	}
+	osAndVersionReturns struct {
+		result1 string
+	}
+	osAndVersionReturnsOnCall map[int]struct {
 		result1 string
 	}
 	PackStub        func(string) error
@@ -76,19 +70,31 @@ type FakeExtractedStemcell struct {
 	packReturnsOnCall map[int]struct {
 		result1 error
 	}
-	EmptyImageStub        func() error
-	emptyImageMutex       sync.RWMutex
-	emptyImageArgsForCall []struct{}
-	emptyImageReturns     struct {
-		result1 error
+	SetCloudPropertiesStub        func(property.Map)
+	setCloudPropertiesMutex       sync.RWMutex
+	setCloudPropertiesArgsForCall []struct {
+		arg1 property.Map
 	}
-	emptyImageReturnsOnCall map[int]struct {
-		result1 error
+	SetFormatStub        func([]string)
+	setFormatMutex       sync.RWMutex
+	setFormatArgsForCall []struct {
+		arg1 []string
+	}
+	SetNameStub        func(string)
+	setNameMutex       sync.RWMutex
+	setNameArgsForCall []struct {
+		arg1 string
+	}
+	SetVersionStub        func(string)
+	setVersionMutex       sync.RWMutex
+	setVersionArgsForCall []struct {
+		arg1 string
 	}
 	StringStub        func() string
 	stringMutex       sync.RWMutex
-	stringArgsForCall []struct{}
-	stringReturns     struct {
+	stringArgsForCall []struct {
+	}
+	stringReturns struct {
 		result1 string
 	}
 	stringReturnsOnCall map[int]struct {
@@ -98,59 +104,22 @@ type FakeExtractedStemcell struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeExtractedStemcell) Manifest() stemcell.Manifest {
-	fake.manifestMutex.Lock()
-	ret, specificReturn := fake.manifestReturnsOnCall[len(fake.manifestArgsForCall)]
-	fake.manifestArgsForCall = append(fake.manifestArgsForCall, struct{}{})
-	fake.recordInvocation("Manifest", []interface{}{})
-	fake.manifestMutex.Unlock()
-	if fake.ManifestStub != nil {
-		return fake.ManifestStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.manifestReturns.result1
-}
-
-func (fake *FakeExtractedStemcell) ManifestCallCount() int {
-	fake.manifestMutex.RLock()
-	defer fake.manifestMutex.RUnlock()
-	return len(fake.manifestArgsForCall)
-}
-
-func (fake *FakeExtractedStemcell) ManifestReturns(result1 stemcell.Manifest) {
-	fake.ManifestStub = nil
-	fake.manifestReturns = struct {
-		result1 stemcell.Manifest
-	}{result1}
-}
-
-func (fake *FakeExtractedStemcell) ManifestReturnsOnCall(i int, result1 stemcell.Manifest) {
-	fake.ManifestStub = nil
-	if fake.manifestReturnsOnCall == nil {
-		fake.manifestReturnsOnCall = make(map[int]struct {
-			result1 stemcell.Manifest
-		})
-	}
-	fake.manifestReturnsOnCall[i] = struct {
-		result1 stemcell.Manifest
-	}{result1}
-}
-
 func (fake *FakeExtractedStemcell) Cleanup() error {
 	fake.cleanupMutex.Lock()
 	ret, specificReturn := fake.cleanupReturnsOnCall[len(fake.cleanupArgsForCall)]
-	fake.cleanupArgsForCall = append(fake.cleanupArgsForCall, struct{}{})
+	fake.cleanupArgsForCall = append(fake.cleanupArgsForCall, struct {
+	}{})
+	stub := fake.CleanupStub
+	fakeReturns := fake.cleanupReturns
 	fake.recordInvocation("Cleanup", []interface{}{})
 	fake.cleanupMutex.Unlock()
-	if fake.CleanupStub != nil {
-		return fake.CleanupStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.cleanupReturns.result1
+	return fakeReturns.result1
 }
 
 func (fake *FakeExtractedStemcell) CleanupCallCount() int {
@@ -159,7 +128,15 @@ func (fake *FakeExtractedStemcell) CleanupCallCount() int {
 	return len(fake.cleanupArgsForCall)
 }
 
+func (fake *FakeExtractedStemcell) CleanupCalls(stub func() error) {
+	fake.cleanupMutex.Lock()
+	defer fake.cleanupMutex.Unlock()
+	fake.CleanupStub = stub
+}
+
 func (fake *FakeExtractedStemcell) CleanupReturns(result1 error) {
+	fake.cleanupMutex.Lock()
+	defer fake.cleanupMutex.Unlock()
 	fake.CleanupStub = nil
 	fake.cleanupReturns = struct {
 		result1 error
@@ -167,6 +144,8 @@ func (fake *FakeExtractedStemcell) CleanupReturns(result1 error) {
 }
 
 func (fake *FakeExtractedStemcell) CleanupReturnsOnCall(i int, result1 error) {
+	fake.cleanupMutex.Lock()
+	defer fake.cleanupMutex.Unlock()
 	fake.CleanupStub = nil
 	if fake.cleanupReturnsOnCall == nil {
 		fake.cleanupReturnsOnCall = make(map[int]struct {
@@ -178,19 +157,181 @@ func (fake *FakeExtractedStemcell) CleanupReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeExtractedStemcell) OsAndVersion() string {
-	fake.osAndVersionMutex.Lock()
-	ret, specificReturn := fake.osAndVersionReturnsOnCall[len(fake.osAndVersionArgsForCall)]
-	fake.osAndVersionArgsForCall = append(fake.osAndVersionArgsForCall, struct{}{})
-	fake.recordInvocation("OsAndVersion", []interface{}{})
-	fake.osAndVersionMutex.Unlock()
-	if fake.OsAndVersionStub != nil {
-		return fake.OsAndVersionStub()
+func (fake *FakeExtractedStemcell) EmptyImage() error {
+	fake.emptyImageMutex.Lock()
+	ret, specificReturn := fake.emptyImageReturnsOnCall[len(fake.emptyImageArgsForCall)]
+	fake.emptyImageArgsForCall = append(fake.emptyImageArgsForCall, struct {
+	}{})
+	stub := fake.EmptyImageStub
+	fakeReturns := fake.emptyImageReturns
+	fake.recordInvocation("EmptyImage", []interface{}{})
+	fake.emptyImageMutex.Unlock()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.osAndVersionReturns.result1
+	return fakeReturns.result1
+}
+
+func (fake *FakeExtractedStemcell) EmptyImageCallCount() int {
+	fake.emptyImageMutex.RLock()
+	defer fake.emptyImageMutex.RUnlock()
+	return len(fake.emptyImageArgsForCall)
+}
+
+func (fake *FakeExtractedStemcell) EmptyImageCalls(stub func() error) {
+	fake.emptyImageMutex.Lock()
+	defer fake.emptyImageMutex.Unlock()
+	fake.EmptyImageStub = stub
+}
+
+func (fake *FakeExtractedStemcell) EmptyImageReturns(result1 error) {
+	fake.emptyImageMutex.Lock()
+	defer fake.emptyImageMutex.Unlock()
+	fake.EmptyImageStub = nil
+	fake.emptyImageReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeExtractedStemcell) EmptyImageReturnsOnCall(i int, result1 error) {
+	fake.emptyImageMutex.Lock()
+	defer fake.emptyImageMutex.Unlock()
+	fake.EmptyImageStub = nil
+	if fake.emptyImageReturnsOnCall == nil {
+		fake.emptyImageReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.emptyImageReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeExtractedStemcell) GetExtractedPath() string {
+	fake.getExtractedPathMutex.Lock()
+	ret, specificReturn := fake.getExtractedPathReturnsOnCall[len(fake.getExtractedPathArgsForCall)]
+	fake.getExtractedPathArgsForCall = append(fake.getExtractedPathArgsForCall, struct {
+	}{})
+	stub := fake.GetExtractedPathStub
+	fakeReturns := fake.getExtractedPathReturns
+	fake.recordInvocation("GetExtractedPath", []interface{}{})
+	fake.getExtractedPathMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeExtractedStemcell) GetExtractedPathCallCount() int {
+	fake.getExtractedPathMutex.RLock()
+	defer fake.getExtractedPathMutex.RUnlock()
+	return len(fake.getExtractedPathArgsForCall)
+}
+
+func (fake *FakeExtractedStemcell) GetExtractedPathCalls(stub func() string) {
+	fake.getExtractedPathMutex.Lock()
+	defer fake.getExtractedPathMutex.Unlock()
+	fake.GetExtractedPathStub = stub
+}
+
+func (fake *FakeExtractedStemcell) GetExtractedPathReturns(result1 string) {
+	fake.getExtractedPathMutex.Lock()
+	defer fake.getExtractedPathMutex.Unlock()
+	fake.GetExtractedPathStub = nil
+	fake.getExtractedPathReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeExtractedStemcell) GetExtractedPathReturnsOnCall(i int, result1 string) {
+	fake.getExtractedPathMutex.Lock()
+	defer fake.getExtractedPathMutex.Unlock()
+	fake.GetExtractedPathStub = nil
+	if fake.getExtractedPathReturnsOnCall == nil {
+		fake.getExtractedPathReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.getExtractedPathReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeExtractedStemcell) Manifest() stemcell.Manifest {
+	fake.manifestMutex.Lock()
+	ret, specificReturn := fake.manifestReturnsOnCall[len(fake.manifestArgsForCall)]
+	fake.manifestArgsForCall = append(fake.manifestArgsForCall, struct {
+	}{})
+	stub := fake.ManifestStub
+	fakeReturns := fake.manifestReturns
+	fake.recordInvocation("Manifest", []interface{}{})
+	fake.manifestMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeExtractedStemcell) ManifestCallCount() int {
+	fake.manifestMutex.RLock()
+	defer fake.manifestMutex.RUnlock()
+	return len(fake.manifestArgsForCall)
+}
+
+func (fake *FakeExtractedStemcell) ManifestCalls(stub func() stemcell.Manifest) {
+	fake.manifestMutex.Lock()
+	defer fake.manifestMutex.Unlock()
+	fake.ManifestStub = stub
+}
+
+func (fake *FakeExtractedStemcell) ManifestReturns(result1 stemcell.Manifest) {
+	fake.manifestMutex.Lock()
+	defer fake.manifestMutex.Unlock()
+	fake.ManifestStub = nil
+	fake.manifestReturns = struct {
+		result1 stemcell.Manifest
+	}{result1}
+}
+
+func (fake *FakeExtractedStemcell) ManifestReturnsOnCall(i int, result1 stemcell.Manifest) {
+	fake.manifestMutex.Lock()
+	defer fake.manifestMutex.Unlock()
+	fake.ManifestStub = nil
+	if fake.manifestReturnsOnCall == nil {
+		fake.manifestReturnsOnCall = make(map[int]struct {
+			result1 stemcell.Manifest
+		})
+	}
+	fake.manifestReturnsOnCall[i] = struct {
+		result1 stemcell.Manifest
+	}{result1}
+}
+
+func (fake *FakeExtractedStemcell) OsAndVersion() string {
+	fake.osAndVersionMutex.Lock()
+	ret, specificReturn := fake.osAndVersionReturnsOnCall[len(fake.osAndVersionArgsForCall)]
+	fake.osAndVersionArgsForCall = append(fake.osAndVersionArgsForCall, struct {
+	}{})
+	stub := fake.OsAndVersionStub
+	fakeReturns := fake.osAndVersionReturns
+	fake.recordInvocation("OsAndVersion", []interface{}{})
+	fake.osAndVersionMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
 }
 
 func (fake *FakeExtractedStemcell) OsAndVersionCallCount() int {
@@ -199,7 +340,15 @@ func (fake *FakeExtractedStemcell) OsAndVersionCallCount() int {
 	return len(fake.osAndVersionArgsForCall)
 }
 
+func (fake *FakeExtractedStemcell) OsAndVersionCalls(stub func() string) {
+	fake.osAndVersionMutex.Lock()
+	defer fake.osAndVersionMutex.Unlock()
+	fake.OsAndVersionStub = stub
+}
+
 func (fake *FakeExtractedStemcell) OsAndVersionReturns(result1 string) {
+	fake.osAndVersionMutex.Lock()
+	defer fake.osAndVersionMutex.Unlock()
 	fake.OsAndVersionStub = nil
 	fake.osAndVersionReturns = struct {
 		result1 string
@@ -207,6 +356,8 @@ func (fake *FakeExtractedStemcell) OsAndVersionReturns(result1 string) {
 }
 
 func (fake *FakeExtractedStemcell) OsAndVersionReturnsOnCall(i int, result1 string) {
+	fake.osAndVersionMutex.Lock()
+	defer fake.osAndVersionMutex.Unlock()
 	fake.OsAndVersionStub = nil
 	if fake.osAndVersionReturnsOnCall == nil {
 		fake.osAndVersionReturnsOnCall = make(map[int]struct {
@@ -218,52 +369,97 @@ func (fake *FakeExtractedStemcell) OsAndVersionReturnsOnCall(i int, result1 stri
 	}{result1}
 }
 
-func (fake *FakeExtractedStemcell) SetName(arg1 string) {
-	fake.setNameMutex.Lock()
-	fake.setNameArgsForCall = append(fake.setNameArgsForCall, struct {
+func (fake *FakeExtractedStemcell) Pack(arg1 string) error {
+	fake.packMutex.Lock()
+	ret, specificReturn := fake.packReturnsOnCall[len(fake.packArgsForCall)]
+	fake.packArgsForCall = append(fake.packArgsForCall, struct {
 		arg1 string
 	}{arg1})
-	fake.recordInvocation("SetName", []interface{}{arg1})
-	fake.setNameMutex.Unlock()
-	if fake.SetNameStub != nil {
-		fake.SetNameStub(arg1)
+	stub := fake.PackStub
+	fakeReturns := fake.packReturns
+	fake.recordInvocation("Pack", []interface{}{arg1})
+	fake.packMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeExtractedStemcell) PackCallCount() int {
+	fake.packMutex.RLock()
+	defer fake.packMutex.RUnlock()
+	return len(fake.packArgsForCall)
+}
+
+func (fake *FakeExtractedStemcell) PackCalls(stub func(string) error) {
+	fake.packMutex.Lock()
+	defer fake.packMutex.Unlock()
+	fake.PackStub = stub
+}
+
+func (fake *FakeExtractedStemcell) PackArgsForCall(i int) string {
+	fake.packMutex.RLock()
+	defer fake.packMutex.RUnlock()
+	argsForCall := fake.packArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeExtractedStemcell) PackReturns(result1 error) {
+	fake.packMutex.Lock()
+	defer fake.packMutex.Unlock()
+	fake.PackStub = nil
+	fake.packReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeExtractedStemcell) PackReturnsOnCall(i int, result1 error) {
+	fake.packMutex.Lock()
+	defer fake.packMutex.Unlock()
+	fake.PackStub = nil
+	if fake.packReturnsOnCall == nil {
+		fake.packReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.packReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeExtractedStemcell) SetCloudProperties(arg1 property.Map) {
+	fake.setCloudPropertiesMutex.Lock()
+	fake.setCloudPropertiesArgsForCall = append(fake.setCloudPropertiesArgsForCall, struct {
+		arg1 property.Map
+	}{arg1})
+	stub := fake.SetCloudPropertiesStub
+	fake.recordInvocation("SetCloudProperties", []interface{}{arg1})
+	fake.setCloudPropertiesMutex.Unlock()
+	if stub != nil {
+		fake.SetCloudPropertiesStub(arg1)
 	}
 }
 
-func (fake *FakeExtractedStemcell) SetNameCallCount() int {
-	fake.setNameMutex.RLock()
-	defer fake.setNameMutex.RUnlock()
-	return len(fake.setNameArgsForCall)
+func (fake *FakeExtractedStemcell) SetCloudPropertiesCallCount() int {
+	fake.setCloudPropertiesMutex.RLock()
+	defer fake.setCloudPropertiesMutex.RUnlock()
+	return len(fake.setCloudPropertiesArgsForCall)
 }
 
-func (fake *FakeExtractedStemcell) SetNameArgsForCall(i int) string {
-	fake.setNameMutex.RLock()
-	defer fake.setNameMutex.RUnlock()
-	return fake.setNameArgsForCall[i].arg1
+func (fake *FakeExtractedStemcell) SetCloudPropertiesCalls(stub func(property.Map)) {
+	fake.setCloudPropertiesMutex.Lock()
+	defer fake.setCloudPropertiesMutex.Unlock()
+	fake.SetCloudPropertiesStub = stub
 }
 
-func (fake *FakeExtractedStemcell) SetVersion(arg1 string) {
-	fake.setVersionMutex.Lock()
-	fake.setVersionArgsForCall = append(fake.setVersionArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	fake.recordInvocation("SetVersion", []interface{}{arg1})
-	fake.setVersionMutex.Unlock()
-	if fake.SetVersionStub != nil {
-		fake.SetVersionStub(arg1)
-	}
-}
-
-func (fake *FakeExtractedStemcell) SetVersionCallCount() int {
-	fake.setVersionMutex.RLock()
-	defer fake.setVersionMutex.RUnlock()
-	return len(fake.setVersionArgsForCall)
-}
-
-func (fake *FakeExtractedStemcell) SetVersionArgsForCall(i int) string {
-	fake.setVersionMutex.RLock()
-	defer fake.setVersionMutex.RUnlock()
-	return fake.setVersionArgsForCall[i].arg1
+func (fake *FakeExtractedStemcell) SetCloudPropertiesArgsForCall(i int) property.Map {
+	fake.setCloudPropertiesMutex.RLock()
+	defer fake.setCloudPropertiesMutex.RUnlock()
+	argsForCall := fake.setCloudPropertiesArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeExtractedStemcell) SetFormat(arg1 []string) {
@@ -276,9 +472,10 @@ func (fake *FakeExtractedStemcell) SetFormat(arg1 []string) {
 	fake.setFormatArgsForCall = append(fake.setFormatArgsForCall, struct {
 		arg1 []string
 	}{arg1Copy})
+	stub := fake.SetFormatStub
 	fake.recordInvocation("SetFormat", []interface{}{arg1Copy})
 	fake.setFormatMutex.Unlock()
-	if fake.SetFormatStub != nil {
+	if stub != nil {
 		fake.SetFormatStub(arg1)
 	}
 }
@@ -289,177 +486,99 @@ func (fake *FakeExtractedStemcell) SetFormatCallCount() int {
 	return len(fake.setFormatArgsForCall)
 }
 
+func (fake *FakeExtractedStemcell) SetFormatCalls(stub func([]string)) {
+	fake.setFormatMutex.Lock()
+	defer fake.setFormatMutex.Unlock()
+	fake.SetFormatStub = stub
+}
+
 func (fake *FakeExtractedStemcell) SetFormatArgsForCall(i int) []string {
 	fake.setFormatMutex.RLock()
 	defer fake.setFormatMutex.RUnlock()
-	return fake.setFormatArgsForCall[i].arg1
+	argsForCall := fake.setFormatArgsForCall[i]
+	return argsForCall.arg1
 }
 
-func (fake *FakeExtractedStemcell) SetCloudProperties(arg1 biproperty.Map) {
-	fake.setCloudPropertiesMutex.Lock()
-	fake.setCloudPropertiesArgsForCall = append(fake.setCloudPropertiesArgsForCall, struct {
-		arg1 biproperty.Map
-	}{arg1})
-	fake.recordInvocation("SetCloudProperties", []interface{}{arg1})
-	fake.setCloudPropertiesMutex.Unlock()
-	if fake.SetCloudPropertiesStub != nil {
-		fake.SetCloudPropertiesStub(arg1)
-	}
-}
-
-func (fake *FakeExtractedStemcell) SetCloudPropertiesCallCount() int {
-	fake.setCloudPropertiesMutex.RLock()
-	defer fake.setCloudPropertiesMutex.RUnlock()
-	return len(fake.setCloudPropertiesArgsForCall)
-}
-
-func (fake *FakeExtractedStemcell) SetCloudPropertiesArgsForCall(i int) biproperty.Map {
-	fake.setCloudPropertiesMutex.RLock()
-	defer fake.setCloudPropertiesMutex.RUnlock()
-	return fake.setCloudPropertiesArgsForCall[i].arg1
-}
-
-func (fake *FakeExtractedStemcell) GetExtractedPath() string {
-	fake.getExtractedPathMutex.Lock()
-	ret, specificReturn := fake.getExtractedPathReturnsOnCall[len(fake.getExtractedPathArgsForCall)]
-	fake.getExtractedPathArgsForCall = append(fake.getExtractedPathArgsForCall, struct{}{})
-	fake.recordInvocation("GetExtractedPath", []interface{}{})
-	fake.getExtractedPathMutex.Unlock()
-	if fake.GetExtractedPathStub != nil {
-		return fake.GetExtractedPathStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.getExtractedPathReturns.result1
-}
-
-func (fake *FakeExtractedStemcell) GetExtractedPathCallCount() int {
-	fake.getExtractedPathMutex.RLock()
-	defer fake.getExtractedPathMutex.RUnlock()
-	return len(fake.getExtractedPathArgsForCall)
-}
-
-func (fake *FakeExtractedStemcell) GetExtractedPathReturns(result1 string) {
-	fake.GetExtractedPathStub = nil
-	fake.getExtractedPathReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeExtractedStemcell) GetExtractedPathReturnsOnCall(i int, result1 string) {
-	fake.GetExtractedPathStub = nil
-	if fake.getExtractedPathReturnsOnCall == nil {
-		fake.getExtractedPathReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.getExtractedPathReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeExtractedStemcell) Pack(arg1 string) error {
-	fake.packMutex.Lock()
-	ret, specificReturn := fake.packReturnsOnCall[len(fake.packArgsForCall)]
-	fake.packArgsForCall = append(fake.packArgsForCall, struct {
+func (fake *FakeExtractedStemcell) SetName(arg1 string) {
+	fake.setNameMutex.Lock()
+	fake.setNameArgsForCall = append(fake.setNameArgsForCall, struct {
 		arg1 string
 	}{arg1})
-	fake.recordInvocation("Pack", []interface{}{arg1})
-	fake.packMutex.Unlock()
-	if fake.PackStub != nil {
-		return fake.PackStub(arg1)
+	stub := fake.SetNameStub
+	fake.recordInvocation("SetName", []interface{}{arg1})
+	fake.setNameMutex.Unlock()
+	if stub != nil {
+		fake.SetNameStub(arg1)
 	}
-	if specificReturn {
-		return ret.result1
+}
+
+func (fake *FakeExtractedStemcell) SetNameCallCount() int {
+	fake.setNameMutex.RLock()
+	defer fake.setNameMutex.RUnlock()
+	return len(fake.setNameArgsForCall)
+}
+
+func (fake *FakeExtractedStemcell) SetNameCalls(stub func(string)) {
+	fake.setNameMutex.Lock()
+	defer fake.setNameMutex.Unlock()
+	fake.SetNameStub = stub
+}
+
+func (fake *FakeExtractedStemcell) SetNameArgsForCall(i int) string {
+	fake.setNameMutex.RLock()
+	defer fake.setNameMutex.RUnlock()
+	argsForCall := fake.setNameArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeExtractedStemcell) SetVersion(arg1 string) {
+	fake.setVersionMutex.Lock()
+	fake.setVersionArgsForCall = append(fake.setVersionArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.SetVersionStub
+	fake.recordInvocation("SetVersion", []interface{}{arg1})
+	fake.setVersionMutex.Unlock()
+	if stub != nil {
+		fake.SetVersionStub(arg1)
 	}
-	return fake.packReturns.result1
 }
 
-func (fake *FakeExtractedStemcell) PackCallCount() int {
-	fake.packMutex.RLock()
-	defer fake.packMutex.RUnlock()
-	return len(fake.packArgsForCall)
+func (fake *FakeExtractedStemcell) SetVersionCallCount() int {
+	fake.setVersionMutex.RLock()
+	defer fake.setVersionMutex.RUnlock()
+	return len(fake.setVersionArgsForCall)
 }
 
-func (fake *FakeExtractedStemcell) PackArgsForCall(i int) string {
-	fake.packMutex.RLock()
-	defer fake.packMutex.RUnlock()
-	return fake.packArgsForCall[i].arg1
+func (fake *FakeExtractedStemcell) SetVersionCalls(stub func(string)) {
+	fake.setVersionMutex.Lock()
+	defer fake.setVersionMutex.Unlock()
+	fake.SetVersionStub = stub
 }
 
-func (fake *FakeExtractedStemcell) PackReturns(result1 error) {
-	fake.PackStub = nil
-	fake.packReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeExtractedStemcell) PackReturnsOnCall(i int, result1 error) {
-	fake.PackStub = nil
-	if fake.packReturnsOnCall == nil {
-		fake.packReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.packReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeExtractedStemcell) EmptyImage() error {
-	fake.emptyImageMutex.Lock()
-	ret, specificReturn := fake.emptyImageReturnsOnCall[len(fake.emptyImageArgsForCall)]
-	fake.emptyImageArgsForCall = append(fake.emptyImageArgsForCall, struct{}{})
-	fake.recordInvocation("EmptyImage", []interface{}{})
-	fake.emptyImageMutex.Unlock()
-	if fake.EmptyImageStub != nil {
-		return fake.EmptyImageStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.emptyImageReturns.result1
-}
-
-func (fake *FakeExtractedStemcell) EmptyImageCallCount() int {
-	fake.emptyImageMutex.RLock()
-	defer fake.emptyImageMutex.RUnlock()
-	return len(fake.emptyImageArgsForCall)
-}
-
-func (fake *FakeExtractedStemcell) EmptyImageReturns(result1 error) {
-	fake.EmptyImageStub = nil
-	fake.emptyImageReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeExtractedStemcell) EmptyImageReturnsOnCall(i int, result1 error) {
-	fake.EmptyImageStub = nil
-	if fake.emptyImageReturnsOnCall == nil {
-		fake.emptyImageReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.emptyImageReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
+func (fake *FakeExtractedStemcell) SetVersionArgsForCall(i int) string {
+	fake.setVersionMutex.RLock()
+	defer fake.setVersionMutex.RUnlock()
+	argsForCall := fake.setVersionArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeExtractedStemcell) String() string {
 	fake.stringMutex.Lock()
 	ret, specificReturn := fake.stringReturnsOnCall[len(fake.stringArgsForCall)]
-	fake.stringArgsForCall = append(fake.stringArgsForCall, struct{}{})
+	fake.stringArgsForCall = append(fake.stringArgsForCall, struct {
+	}{})
+	stub := fake.StringStub
+	fakeReturns := fake.stringReturns
 	fake.recordInvocation("String", []interface{}{})
 	fake.stringMutex.Unlock()
-	if fake.StringStub != nil {
-		return fake.StringStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.stringReturns.result1
+	return fakeReturns.result1
 }
 
 func (fake *FakeExtractedStemcell) StringCallCount() int {
@@ -468,7 +587,15 @@ func (fake *FakeExtractedStemcell) StringCallCount() int {
 	return len(fake.stringArgsForCall)
 }
 
+func (fake *FakeExtractedStemcell) StringCalls(stub func() string) {
+	fake.stringMutex.Lock()
+	defer fake.stringMutex.Unlock()
+	fake.StringStub = stub
+}
+
 func (fake *FakeExtractedStemcell) StringReturns(result1 string) {
+	fake.stringMutex.Lock()
+	defer fake.stringMutex.Unlock()
 	fake.StringStub = nil
 	fake.stringReturns = struct {
 		result1 string
@@ -476,6 +603,8 @@ func (fake *FakeExtractedStemcell) StringReturns(result1 string) {
 }
 
 func (fake *FakeExtractedStemcell) StringReturnsOnCall(i int, result1 string) {
+	fake.stringMutex.Lock()
+	defer fake.stringMutex.Unlock()
 	fake.StringStub = nil
 	if fake.stringReturnsOnCall == nil {
 		fake.stringReturnsOnCall = make(map[int]struct {
@@ -490,29 +619,33 @@ func (fake *FakeExtractedStemcell) StringReturnsOnCall(i int, result1 string) {
 func (fake *FakeExtractedStemcell) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.manifestMutex.RLock()
-	defer fake.manifestMutex.RUnlock()
 	fake.cleanupMutex.RLock()
 	defer fake.cleanupMutex.RUnlock()
+	fake.emptyImageMutex.RLock()
+	defer fake.emptyImageMutex.RUnlock()
+	fake.getExtractedPathMutex.RLock()
+	defer fake.getExtractedPathMutex.RUnlock()
+	fake.manifestMutex.RLock()
+	defer fake.manifestMutex.RUnlock()
 	fake.osAndVersionMutex.RLock()
 	defer fake.osAndVersionMutex.RUnlock()
+	fake.packMutex.RLock()
+	defer fake.packMutex.RUnlock()
+	fake.setCloudPropertiesMutex.RLock()
+	defer fake.setCloudPropertiesMutex.RUnlock()
+	fake.setFormatMutex.RLock()
+	defer fake.setFormatMutex.RUnlock()
 	fake.setNameMutex.RLock()
 	defer fake.setNameMutex.RUnlock()
 	fake.setVersionMutex.RLock()
 	defer fake.setVersionMutex.RUnlock()
-	fake.setFormatMutex.RLock()
-	defer fake.setFormatMutex.RUnlock()
-	fake.setCloudPropertiesMutex.RLock()
-	defer fake.setCloudPropertiesMutex.RUnlock()
-	fake.getExtractedPathMutex.RLock()
-	defer fake.getExtractedPathMutex.RUnlock()
-	fake.packMutex.RLock()
-	defer fake.packMutex.RUnlock()
-	fake.emptyImageMutex.RLock()
-	defer fake.emptyImageMutex.RUnlock()
 	fake.stringMutex.RLock()
 	defer fake.stringMutex.RUnlock()
-	return fake.invocations
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeExtractedStemcell) recordInvocation(key string, args []interface{}) {

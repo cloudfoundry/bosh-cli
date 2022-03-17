@@ -1,7 +1,7 @@
 package config_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/config"
+	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
@@ -11,8 +11,8 @@ import (
 
 var _ = Describe("DeploymentRepo", func() {
 	var (
-		repo                   DeploymentRepo
-		deploymentStateService DeploymentStateService
+		repo                   biconfig.DeploymentRepo
+		deploymentStateService biconfig.DeploymentStateService
 		fs                     *fakesys.FakeFileSystem
 		fakeUUIDGenerator      *fakeuuid.FakeGenerator
 	)
@@ -21,8 +21,8 @@ var _ = Describe("DeploymentRepo", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-		deploymentStateService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
-		repo = NewDeploymentRepo(deploymentStateService)
+		deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
+		repo = biconfig.NewDeploymentRepo(deploymentStateService)
 	})
 
 	Describe("UpdateCurrent", func() {
@@ -33,7 +33,7 @@ var _ = Describe("DeploymentRepo", func() {
 			deploymentState, err := deploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedConfig := DeploymentState{
+			expectedConfig := biconfig.DeploymentState{
 				DirectorID:         "fake-uuid-0",
 				CurrentManifestSHA: "fake-manifest-sha1",
 			}

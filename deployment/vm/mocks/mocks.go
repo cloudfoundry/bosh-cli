@@ -5,37 +5,38 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	cloud "github.com/cloudfoundry/bosh-cli/cloud"
 	vm "github.com/cloudfoundry/bosh-cli/deployment/vm"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
-// MockManagerFactory is a mock of ManagerFactory interface
+// MockManagerFactory is a mock of ManagerFactory interface.
 type MockManagerFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockManagerFactoryMockRecorder
 }
 
-// MockManagerFactoryMockRecorder is the mock recorder for MockManagerFactory
+// MockManagerFactoryMockRecorder is the mock recorder for MockManagerFactory.
 type MockManagerFactoryMockRecorder struct {
 	mock *MockManagerFactory
 }
 
-// NewMockManagerFactory creates a new mock instance
+// NewMockManagerFactory creates a new mock instance.
 func NewMockManagerFactory(ctrl *gomock.Controller) *MockManagerFactory {
 	mock := &MockManagerFactory{ctrl: ctrl}
 	mock.recorder = &MockManagerFactoryMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockManagerFactory) EXPECT() *MockManagerFactoryMockRecorder {
 	return m.recorder
 }
 
-// NewManager mocks base method
+// NewManager mocks base method.
 func (m *MockManagerFactory) NewManager(arg0 cloud.Cloud, arg1 agentclient.AgentClient) vm.Manager {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewManager", arg0, arg1)
@@ -43,7 +44,7 @@ func (m *MockManagerFactory) NewManager(arg0 cloud.Cloud, arg1 agentclient.Agent
 	return ret0
 }
 
-// NewManager indicates an expected call of NewManager
+// NewManager indicates an expected call of NewManager.
 func (mr *MockManagerFactoryMockRecorder) NewManager(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewManager", reflect.TypeOf((*MockManagerFactory)(nil).NewManager), arg0, arg1)

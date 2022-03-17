@@ -5,36 +5,37 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	pkg "github.com/cloudfoundry/bosh-cli/release/pkg"
 	pkg0 "github.com/cloudfoundry/bosh-cli/state/pkg"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
-// MockCompiler is a mock of Compiler interface
+// MockCompiler is a mock of Compiler interface.
 type MockCompiler struct {
 	ctrl     *gomock.Controller
 	recorder *MockCompilerMockRecorder
 }
 
-// MockCompilerMockRecorder is the mock recorder for MockCompiler
+// MockCompilerMockRecorder is the mock recorder for MockCompiler.
 type MockCompilerMockRecorder struct {
 	mock *MockCompiler
 }
 
-// NewMockCompiler creates a new mock instance
+// NewMockCompiler creates a new mock instance.
 func NewMockCompiler(ctrl *gomock.Controller) *MockCompiler {
 	mock := &MockCompiler{ctrl: ctrl}
 	mock.recorder = &MockCompilerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockCompiler) EXPECT() *MockCompilerMockRecorder {
 	return m.recorder
 }
 
-// Compile mocks base method
+// Compile mocks base method.
 func (m *MockCompiler) Compile(arg0 pkg.Compilable) (pkg0.CompiledPackageRecord, bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Compile", arg0)
@@ -44,36 +45,36 @@ func (m *MockCompiler) Compile(arg0 pkg.Compilable) (pkg0.CompiledPackageRecord,
 	return ret0, ret1, ret2
 }
 
-// Compile indicates an expected call of Compile
+// Compile indicates an expected call of Compile.
 func (mr *MockCompilerMockRecorder) Compile(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Compile", reflect.TypeOf((*MockCompiler)(nil).Compile), arg0)
 }
 
-// MockCompiledPackageRepo is a mock of CompiledPackageRepo interface
+// MockCompiledPackageRepo is a mock of CompiledPackageRepo interface.
 type MockCompiledPackageRepo struct {
 	ctrl     *gomock.Controller
 	recorder *MockCompiledPackageRepoMockRecorder
 }
 
-// MockCompiledPackageRepoMockRecorder is the mock recorder for MockCompiledPackageRepo
+// MockCompiledPackageRepoMockRecorder is the mock recorder for MockCompiledPackageRepo.
 type MockCompiledPackageRepoMockRecorder struct {
 	mock *MockCompiledPackageRepo
 }
 
-// NewMockCompiledPackageRepo creates a new mock instance
+// NewMockCompiledPackageRepo creates a new mock instance.
 func NewMockCompiledPackageRepo(ctrl *gomock.Controller) *MockCompiledPackageRepo {
 	mock := &MockCompiledPackageRepo{ctrl: ctrl}
 	mock.recorder = &MockCompiledPackageRepoMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockCompiledPackageRepo) EXPECT() *MockCompiledPackageRepoMockRecorder {
 	return m.recorder
 }
 
-// Find mocks base method
+// Find mocks base method.
 func (m *MockCompiledPackageRepo) Find(arg0 pkg.Compilable) (pkg0.CompiledPackageRecord, bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Find", arg0)
@@ -83,13 +84,13 @@ func (m *MockCompiledPackageRepo) Find(arg0 pkg.Compilable) (pkg0.CompiledPackag
 	return ret0, ret1, ret2
 }
 
-// Find indicates an expected call of Find
+// Find indicates an expected call of Find.
 func (mr *MockCompiledPackageRepoMockRecorder) Find(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockCompiledPackageRepo)(nil).Find), arg0)
 }
 
-// Save mocks base method
+// Save mocks base method.
 func (m *MockCompiledPackageRepo) Save(arg0 pkg.Compilable, arg1 pkg0.CompiledPackageRecord) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", arg0, arg1)
@@ -97,7 +98,7 @@ func (m *MockCompiledPackageRepo) Save(arg0 pkg.Compilable, arg1 pkg0.CompiledPa
 	return ret0
 }
 
-// Save indicates an expected call of Save
+// Save indicates an expected call of Save.
 func (mr *MockCompiledPackageRepoMockRecorder) Save(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockCompiledPackageRepo)(nil).Save), arg0, arg1)

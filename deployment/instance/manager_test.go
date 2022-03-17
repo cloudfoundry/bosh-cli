@@ -17,8 +17,6 @@ import (
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	bidisk "github.com/cloudfoundry/bosh-cli/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
-	bisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel"
-	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 
@@ -103,7 +101,6 @@ var _ = Describe("Manager", func() {
 			diskPool           bideplmanifest.DiskPool
 			deploymentManifest bideplmanifest.Manifest
 			fakeCloudStemcell  *fakebistemcell.FakeCloudStemcell
-			registry           biinstallmanifest.Registry
 
 			expectedInstance Instance
 			expectedDisk     *fakebidisk.FakeDisk
@@ -169,7 +166,6 @@ var _ = Describe("Manager", func() {
 			}
 
 			fakeCloudStemcell = fakebistemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version", apiVersion)
-			registry = biinstallmanifest.Registry{}
 
 			fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
 			fakeVMManager.CreateVM = fakeVM
@@ -201,7 +197,6 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
-				registry,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -219,7 +214,6 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
-				registry,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -233,7 +227,6 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
-				registry,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -250,7 +243,6 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
-				registry,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -273,7 +265,6 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
-				registry,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -287,80 +278,6 @@ var _ = Describe("Manager", func() {
 			}))
 		})
 
-		Context("when registry or sshTunnelConfig are not empty", func() {
-			BeforeEach(func() {
-				registry = biinstallmanifest.Registry{
-					Username: "fake-registry-username",
-					Password: "fake-registry-password",
-					Host:     "fake-registry-host",
-					Port:     124,
-					SSHTunnel: biinstallmanifest.SSHTunnel{
-						User:       "fake-ssh-user",
-						Host:       "fake-ssh-host",
-						Port:       123,
-						Password:   "fake-ssh-password",
-						PrivateKey: "---BEGIN PRIVATE KEY--- im a real key ---END PRIVATE KEY---",
-					},
-				}
-			})
-
-			It("starts & stops the ssh tunnel", func() {
-				_, _, err := manager.Create(
-					"fake-job-name",
-					0,
-					deploymentManifest,
-					fakeCloudStemcell,
-					registry,
-					fakeStage,
-				)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeSSHTunnelFactory.NewSSHTunnelOptions).To(Equal(bisshtunnel.Options{
-					User:              "fake-ssh-user",
-					Host:              "fake-ssh-host",
-					Port:              123,
-					Password:          "fake-ssh-password",
-					PrivateKey:        "---BEGIN PRIVATE KEY--- im a real key ---END PRIVATE KEY---",
-					LocalForwardPort:  124,
-					RemoteForwardPort: 124,
-				}))
-				Expect(fakeSSHTunnel.Started).To(BeTrue())
-			})
-
-			Context("when starting the ssh tunnel fails", func() {
-				BeforeEach(func() {
-					fakeSSHTunnel.SetStartBehavior(errors.New("fake-ssh-tunnel-start-error"), nil)
-				})
-
-				It("returns an error", func() {
-					_, _, err := manager.Create(
-						"fake-job-name",
-						0,
-						deploymentManifest,
-						fakeCloudStemcell,
-						registry,
-						fakeStage,
-					)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("fake-ssh-tunnel-start-error"))
-				})
-			})
-		})
-
-		Context("when ssh tunnel conifg is empty", func() {
-			It("does not start the ssh tunnel", func() {
-				_, _, err := manager.Create(
-					"fake-job-name",
-					0,
-					deploymentManifest,
-					fakeCloudStemcell,
-					registry,
-					fakeStage,
-				)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeSSHTunnel.Started).To(BeFalse())
-			})
-		})
-
 		Context("when creating VM fails", func() {
 			BeforeEach(func() {
 				fakeVMManager.CreateErr = errors.New("fake-create-vm-error")
@@ -372,7 +289,6 @@ var _ = Describe("Manager", func() {
 					0,
 					deploymentManifest,
 					fakeCloudStemcell,
-					registry,
 					fakeStage,
 				)
 				Expect(err).To(HaveOccurred())
@@ -385,7 +301,6 @@ var _ = Describe("Manager", func() {
 					0,
 					deploymentManifest,
 					fakeCloudStemcell,
-					registry,
 					fakeStage,
 				)
 				Expect(err).To(HaveOccurred())

@@ -30,15 +30,17 @@ func (fake *FakeReleaseUploadingCmd) Run(arg1 opts.UploadReleaseOpts) error {
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
 		arg1 opts.UploadReleaseOpts
 	}{arg1})
+	stub := fake.RunStub
+	fakeReturns := fake.runReturns
 	fake.recordInvocation("Run", []interface{}{arg1})
 	fake.runMutex.Unlock()
-	if fake.RunStub != nil {
-		return fake.RunStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.runReturns.result1
+	return fakeReturns.result1
 }
 
 func (fake *FakeReleaseUploadingCmd) RunCallCount() int {
@@ -47,13 +49,22 @@ func (fake *FakeReleaseUploadingCmd) RunCallCount() int {
 	return len(fake.runArgsForCall)
 }
 
+func (fake *FakeReleaseUploadingCmd) RunCalls(stub func(opts.UploadReleaseOpts) error) {
+	fake.runMutex.Lock()
+	defer fake.runMutex.Unlock()
+	fake.RunStub = stub
+}
+
 func (fake *FakeReleaseUploadingCmd) RunArgsForCall(i int) opts.UploadReleaseOpts {
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
-	return fake.runArgsForCall[i].arg1
+	argsForCall := fake.runArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeReleaseUploadingCmd) RunReturns(result1 error) {
+	fake.runMutex.Lock()
+	defer fake.runMutex.Unlock()
 	fake.RunStub = nil
 	fake.runReturns = struct {
 		result1 error
@@ -61,6 +72,8 @@ func (fake *FakeReleaseUploadingCmd) RunReturns(result1 error) {
 }
 
 func (fake *FakeReleaseUploadingCmd) RunReturnsOnCall(i int, result1 error) {
+	fake.runMutex.Lock()
+	defer fake.runMutex.Unlock()
 	fake.RunStub = nil
 	if fake.runReturnsOnCall == nil {
 		fake.runReturnsOnCall = make(map[int]struct {
@@ -77,7 +90,11 @@ func (fake *FakeReleaseUploadingCmd) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
-	return fake.invocations
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeReleaseUploadingCmd) recordInvocation(key string, args []interface{}) {

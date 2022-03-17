@@ -8,13 +8,13 @@ import (
 )
 
 type FakeDownloader struct {
-	DownloadStub        func(blobstoreID, sha1, prefix, dstDirPath string) error
+	DownloadStub        func(string, string, string, string) error
 	downloadMutex       sync.RWMutex
 	downloadArgsForCall []struct {
-		blobstoreID string
-		sha1        string
-		prefix      string
-		dstDirPath  string
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 string
 	}
 	downloadReturns struct {
 		result1 error
@@ -26,24 +26,26 @@ type FakeDownloader struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeDownloader) Download(blobstoreID string, sha1 string, prefix string, dstDirPath string) error {
+func (fake *FakeDownloader) Download(arg1 string, arg2 string, arg3 string, arg4 string) error {
 	fake.downloadMutex.Lock()
 	ret, specificReturn := fake.downloadReturnsOnCall[len(fake.downloadArgsForCall)]
 	fake.downloadArgsForCall = append(fake.downloadArgsForCall, struct {
-		blobstoreID string
-		sha1        string
-		prefix      string
-		dstDirPath  string
-	}{blobstoreID, sha1, prefix, dstDirPath})
-	fake.recordInvocation("Download", []interface{}{blobstoreID, sha1, prefix, dstDirPath})
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 string
+	}{arg1, arg2, arg3, arg4})
+	stub := fake.DownloadStub
+	fakeReturns := fake.downloadReturns
+	fake.recordInvocation("Download", []interface{}{arg1, arg2, arg3, arg4})
 	fake.downloadMutex.Unlock()
-	if fake.DownloadStub != nil {
-		return fake.DownloadStub(blobstoreID, sha1, prefix, dstDirPath)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.downloadReturns.result1
+	return fakeReturns.result1
 }
 
 func (fake *FakeDownloader) DownloadCallCount() int {
@@ -52,13 +54,22 @@ func (fake *FakeDownloader) DownloadCallCount() int {
 	return len(fake.downloadArgsForCall)
 }
 
+func (fake *FakeDownloader) DownloadCalls(stub func(string, string, string, string) error) {
+	fake.downloadMutex.Lock()
+	defer fake.downloadMutex.Unlock()
+	fake.DownloadStub = stub
+}
+
 func (fake *FakeDownloader) DownloadArgsForCall(i int) (string, string, string, string) {
 	fake.downloadMutex.RLock()
 	defer fake.downloadMutex.RUnlock()
-	return fake.downloadArgsForCall[i].blobstoreID, fake.downloadArgsForCall[i].sha1, fake.downloadArgsForCall[i].prefix, fake.downloadArgsForCall[i].dstDirPath
+	argsForCall := fake.downloadArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
 func (fake *FakeDownloader) DownloadReturns(result1 error) {
+	fake.downloadMutex.Lock()
+	defer fake.downloadMutex.Unlock()
 	fake.DownloadStub = nil
 	fake.downloadReturns = struct {
 		result1 error
@@ -66,6 +77,8 @@ func (fake *FakeDownloader) DownloadReturns(result1 error) {
 }
 
 func (fake *FakeDownloader) DownloadReturnsOnCall(i int, result1 error) {
+	fake.downloadMutex.Lock()
+	defer fake.downloadMutex.Unlock()
 	fake.DownloadStub = nil
 	if fake.downloadReturnsOnCall == nil {
 		fake.downloadReturnsOnCall = make(map[int]struct {
@@ -82,7 +95,11 @@ func (fake *FakeDownloader) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.downloadMutex.RLock()
 	defer fake.downloadMutex.RUnlock()
-	return fake.invocations
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeDownloader) recordInvocation(key string, args []interface{}) {

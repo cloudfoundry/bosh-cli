@@ -5,47 +5,48 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	release "github.com/cloudfoundry/bosh-cli/release"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
-// MockManager is a mock of Manager interface
+// MockManager is a mock of Manager interface.
 type MockManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockManagerMockRecorder
 }
 
-// MockManagerMockRecorder is the mock recorder for MockManager
+// MockManagerMockRecorder is the mock recorder for MockManager.
 type MockManagerMockRecorder struct {
 	mock *MockManager
 }
 
-// NewMockManager creates a new mock instance
+// NewMockManager creates a new mock instance.
 func NewMockManager(ctrl *gomock.Controller) *MockManager {
 	mock := &MockManager{ctrl: ctrl}
 	mock.recorder = &MockManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
 }
 
-// Add mocks base method
+// Add mocks base method.
 func (m *MockManager) Add(arg0 release.Release) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Add", arg0)
 }
 
-// Add indicates an expected call of Add
+// Add indicates an expected call of Add.
 func (mr *MockManagerMockRecorder) Add(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockManager)(nil).Add), arg0)
 }
 
-// DeleteAll mocks base method
+// DeleteAll mocks base method.
 func (m *MockManager) DeleteAll() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteAll")
@@ -53,13 +54,13 @@ func (m *MockManager) DeleteAll() error {
 	return ret0
 }
 
-// DeleteAll indicates an expected call of DeleteAll
+// DeleteAll indicates an expected call of DeleteAll.
 func (mr *MockManagerMockRecorder) DeleteAll() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockManager)(nil).DeleteAll))
 }
 
-// Find mocks base method
+// Find mocks base method.
 func (m *MockManager) Find(arg0 string) (release.Release, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Find", arg0)
@@ -68,13 +69,13 @@ func (m *MockManager) Find(arg0 string) (release.Release, bool) {
 	return ret0, ret1
 }
 
-// Find indicates an expected call of Find
+// Find indicates an expected call of Find.
 func (mr *MockManagerMockRecorder) Find(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockManager)(nil).Find), arg0)
 }
 
-// List mocks base method
+// List mocks base method.
 func (m *MockManager) List() []release.Release {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List")
@@ -82,36 +83,36 @@ func (m *MockManager) List() []release.Release {
 	return ret0
 }
 
-// List indicates an expected call of List
+// List indicates an expected call of List.
 func (mr *MockManagerMockRecorder) List() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockManager)(nil).List))
 }
 
-// MockExtractor is a mock of Extractor interface
+// MockExtractor is a mock of Extractor interface.
 type MockExtractor struct {
 	ctrl     *gomock.Controller
 	recorder *MockExtractorMockRecorder
 }
 
-// MockExtractorMockRecorder is the mock recorder for MockExtractor
+// MockExtractorMockRecorder is the mock recorder for MockExtractor.
 type MockExtractorMockRecorder struct {
 	mock *MockExtractor
 }
 
-// NewMockExtractor creates a new mock instance
+// NewMockExtractor creates a new mock instance.
 func NewMockExtractor(ctrl *gomock.Controller) *MockExtractor {
 	mock := &MockExtractor{ctrl: ctrl}
 	mock.recorder = &MockExtractorMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockExtractor) EXPECT() *MockExtractorMockRecorder {
 	return m.recorder
 }
 
-// Extract mocks base method
+// Extract mocks base method.
 func (m *MockExtractor) Extract(arg0 string) (release.Release, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Extract", arg0)
@@ -120,7 +121,7 @@ func (m *MockExtractor) Extract(arg0 string) (release.Release, error) {
 	return ret0, ret1
 }
 
-// Extract indicates an expected call of Extract
+// Extract indicates an expected call of Extract.
 func (mr *MockExtractorMockRecorder) Extract(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Extract", reflect.TypeOf((*MockExtractor)(nil).Extract), arg0)

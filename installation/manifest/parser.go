@@ -127,14 +127,6 @@ func (p *parser) Parse(path string, vars boshtpl.Variables, op patch.Op, release
 	}
 	installationManifest.Properties = properties
 
-	if comboManifest.CloudProvider.HasSSHTunnel() {
-		password, err := p.uuidGenerator.Generate()
-		if err != nil {
-			return Manifest{}, bosherr.WrapError(err, "Generating registry password")
-		}
-		installationManifest.PopulateRegistry("registry", password, "127.0.0.1", 6901, comboManifest.CloudProvider.SSHTunnel)
-	}
-
 	err = p.validator.Validate(installationManifest, releaseSetManifest)
 	if err != nil {
 		return Manifest{}, bosherr.WrapError(err, "Validating installation manifest")

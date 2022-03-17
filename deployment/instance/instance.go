@@ -10,7 +10,6 @@ import (
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	bisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel"
 	bivm "github.com/cloudfoundry/bosh-cli/deployment/vm"
-	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -20,7 +19,7 @@ type Instance interface {
 	JobName() string
 	ID() int
 	Disks() ([]bidisk.Disk, error)
-	WaitUntilReady(biinstallmanifest.Registry, biui.Stage) error
+	WaitUntilReady(biui.Stage) error
 	UpdateDisks(bideplmanifest.Manifest, biui.Stage) ([]bidisk.Disk, error)
 	UpdateJobs(bideplmanifest.Manifest, biui.Stage) error
 	Delete(
@@ -92,38 +91,10 @@ func (i *instance) Disks() ([]bidisk.Disk, error) {
 }
 
 func (i *instance) WaitUntilReady(
-	registryConfig biinstallmanifest.Registry,
 	stage biui.Stage,
 ) error {
 	stepName := fmt.Sprintf("Waiting for the agent on VM '%s' to be ready", i.vm.CID())
 	err := stage.Perform(stepName, func() error {
-		if !registryConfig.IsEmpty() {
-			sshReadyErrCh := make(chan error)
-			sshErrCh := make(chan error)
-
-			sshTunnelOptions := bisshtunnel.Options{
-				Host:              registryConfig.SSHTunnel.Host,
-				Port:              registryConfig.SSHTunnel.Port,
-				User:              registryConfig.SSHTunnel.User,
-				Password:          registryConfig.SSHTunnel.Password,
-				PrivateKey:        registryConfig.SSHTunnel.PrivateKey,
-				LocalForwardPort:  registryConfig.Port,
-				RemoteForwardPort: registryConfig.Port,
-			}
-			sshTunnel := i.sshTunnelFactory.NewSSHTunnel(sshTunnelOptions)
-			go sshTunnel.Start(sshReadyErrCh, sshErrCh)
-
-			go func() {
-				for sshErr := range sshErrCh {
-					i.logger.Warn(i.logTag, "Received SSH tunnel error: %s", sshErr)
-				}
-			}()
-
-			err := <-sshReadyErrCh
-			if err != nil {
-				return bosherr.WrapError(err, "Starting SSH tunnel")
-			}
-		}
 
 		return i.vm.WaitUntilReady(10*time.Minute, 500*time.Millisecond)
 	})

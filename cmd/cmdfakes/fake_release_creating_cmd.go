@@ -6,42 +6,44 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/cmd"
 	"github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	"github.com/cloudfoundry/bosh-cli/release"
 )
 
 type FakeReleaseCreatingCmd struct {
-	RunStub        func(opts.CreateReleaseOpts) (boshrel.Release, error)
+	RunStub        func(opts.CreateReleaseOpts) (release.Release, error)
 	runMutex       sync.RWMutex
 	runArgsForCall []struct {
 		arg1 opts.CreateReleaseOpts
 	}
 	runReturns struct {
-		result1 boshrel.Release
+		result1 release.Release
 		result2 error
 	}
 	runReturnsOnCall map[int]struct {
-		result1 boshrel.Release
+		result1 release.Release
 		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeReleaseCreatingCmd) Run(arg1 opts.CreateReleaseOpts) (boshrel.Release, error) {
+func (fake *FakeReleaseCreatingCmd) Run(arg1 opts.CreateReleaseOpts) (release.Release, error) {
 	fake.runMutex.Lock()
 	ret, specificReturn := fake.runReturnsOnCall[len(fake.runArgsForCall)]
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
 		arg1 opts.CreateReleaseOpts
 	}{arg1})
+	stub := fake.RunStub
+	fakeReturns := fake.runReturns
 	fake.recordInvocation("Run", []interface{}{arg1})
 	fake.runMutex.Unlock()
-	if fake.RunStub != nil {
-		return fake.RunStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.runReturns.result1, fake.runReturns.result2
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeReleaseCreatingCmd) RunCallCount() int {
@@ -50,30 +52,41 @@ func (fake *FakeReleaseCreatingCmd) RunCallCount() int {
 	return len(fake.runArgsForCall)
 }
 
+func (fake *FakeReleaseCreatingCmd) RunCalls(stub func(opts.CreateReleaseOpts) (release.Release, error)) {
+	fake.runMutex.Lock()
+	defer fake.runMutex.Unlock()
+	fake.RunStub = stub
+}
+
 func (fake *FakeReleaseCreatingCmd) RunArgsForCall(i int) opts.CreateReleaseOpts {
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
-	return fake.runArgsForCall[i].arg1
+	argsForCall := fake.runArgsForCall[i]
+	return argsForCall.arg1
 }
 
-func (fake *FakeReleaseCreatingCmd) RunReturns(result1 boshrel.Release, result2 error) {
+func (fake *FakeReleaseCreatingCmd) RunReturns(result1 release.Release, result2 error) {
+	fake.runMutex.Lock()
+	defer fake.runMutex.Unlock()
 	fake.RunStub = nil
 	fake.runReturns = struct {
-		result1 boshrel.Release
+		result1 release.Release
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeReleaseCreatingCmd) RunReturnsOnCall(i int, result1 boshrel.Release, result2 error) {
+func (fake *FakeReleaseCreatingCmd) RunReturnsOnCall(i int, result1 release.Release, result2 error) {
+	fake.runMutex.Lock()
+	defer fake.runMutex.Unlock()
 	fake.RunStub = nil
 	if fake.runReturnsOnCall == nil {
 		fake.runReturnsOnCall = make(map[int]struct {
-			result1 boshrel.Release
+			result1 release.Release
 			result2 error
 		})
 	}
 	fake.runReturnsOnCall[i] = struct {
-		result1 boshrel.Release
+		result1 release.Release
 		result2 error
 	}{result1, result2}
 }
@@ -83,7 +96,11 @@ func (fake *FakeReleaseCreatingCmd) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
-	return fake.invocations
+	copiedInvocations := map[string][][]interface{}{}
+	for key, value := range fake.invocations {
+		copiedInvocations[key] = value
+	}
+	return copiedInvocations
 }
 
 func (fake *FakeReleaseCreatingCmd) recordInvocation(key string, args []interface{}) {
