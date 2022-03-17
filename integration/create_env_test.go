@@ -383,7 +383,7 @@ cloud_provider:
 			releaseSetValidator := birelsetmanifest.NewValidator(logger)
 			releaseSetParser := birelsetmanifest.NewParser(fs, logger, releaseSetValidator)
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
-			fakeUUIDGenerator.GeneratedUUID = "registry-password"
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
 			installationValidator := biinstallmanifest.NewValidator(logger)
 			installationParser := biinstallmanifest.NewParser(fs, fakeUUIDGenerator, logger, installationValidator)
 
