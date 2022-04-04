@@ -47,9 +47,6 @@ var _ = Describe("Factory", func() {
 		It("UAA succeeds making a request with client creds if TLS can be verified", func() {
 			server := ghttp.NewUnstartedServer()
 
-			cert, err := tls.X509KeyPair(validCert, validKey)
-			Expect(err).ToNot(HaveOccurred())
-
 			server.HTTPTestServer.TLS = &tls.Config{
 				Certificates: []tls.Certificate{cert},
 			}
@@ -84,9 +81,6 @@ var _ = Describe("Factory", func() {
 			It("properly follows that path", func() {
 				server := ghttp.NewUnstartedServer()
 
-				cert, err := tls.X509KeyPair(validCert, validKey)
-				Expect(err).ToNot(HaveOccurred())
-
 				server.HTTPTestServer.TLS = &tls.Config{
 					Certificates: []tls.Certificate{cert},
 				}
@@ -119,19 +113,16 @@ var _ = Describe("Factory", func() {
 			})
 		})
 
-		// terminateHttpConnection emulates an underlying transport error by
+		// terminateHTTPConnection emulates an underlying transport error by
 		// prematurely closing the connection. The goal of this slightly-hacky
 		// method is to test the retry behavior of the lower-level http client.
-		terminateHttpConnection := func(w http.ResponseWriter, req *http.Request) {
+		terminateHTTPConnection := func(w http.ResponseWriter, req *http.Request) {
 			conn, _, _ := w.(http.Hijacker).Hijack()
 			conn.Close()
 		}
 
 		It("retries request 3 times if server cannot be reached", func() {
 			server := ghttp.NewUnstartedServer()
-
-			cert, err := tls.X509KeyPair(validCert, validKey)
-			Expect(err).ToNot(HaveOccurred())
 
 			server.HTTPTestServer.TLS = &tls.Config{
 				Certificates: []tls.Certificate{cert},
@@ -155,14 +146,14 @@ var _ = Describe("Factory", func() {
 					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
 					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
-					terminateHttpConnection,
+					terminateHTTPConnection,
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/oauth/token"),
 					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
 					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
-					terminateHttpConnection,
+					terminateHTTPConnection,
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/oauth/token"),
@@ -181,9 +172,6 @@ var _ = Describe("Factory", func() {
 		It("does not retry on non-successful http status codes", func() {
 			server := ghttp.NewUnstartedServer()
 
-			cert, err := tls.X509KeyPair(validCert, validKey)
-			Expect(err).ToNot(HaveOccurred())
-
 			server.HTTPTestServer.TLS = &tls.Config{
 				Certificates: []tls.Certificate{cert},
 			}
@@ -206,7 +194,7 @@ var _ = Describe("Factory", func() {
 					ghttp.VerifyBody([]byte("grant_type=client_credentials")),
 					ghttp.VerifyBasicAuth("client", "fake-client-secret"),
 					ghttp.VerifyHeader(http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}}),
-					terminateHttpConnection,
+					terminateHTTPConnection,
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/oauth/token"),
