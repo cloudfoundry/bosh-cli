@@ -1,12 +1,28 @@
 package template_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"crypto/tls"
 	"testing"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
 	. "github.com/cloudfoundry/bosh-cli/director/template"
+	"github.com/cloudfoundry/bosh-cli/testutils"
 )
+
+var (
+	cert        tls.Certificate
+	cacertBytes []byte
+	validCACert string
+)
+var _ = SynchronizedBeforeSuite(func() []byte {
+	var err error
+	cert, cacertBytes, err = testutils.Certsetup()
+	validCACert = string(cacertBytes)
+	Expect(err).ToNot(HaveOccurred())
+	return []byte{}
+}, func(in []byte) {})
 
 func TestReg(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -21,7 +37,7 @@ type FakeVariables struct {
 }
 
 func (v *FakeVariables) Get(varDef VariableDefinition) (interface{}, bool, error) {
-	v.GetCallCount += 1
+	v.GetCallCount++
 	v.GetVarDef = varDef
 	if v.GetFunc != nil {
 		return v.GetFunc(varDef)

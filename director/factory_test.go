@@ -46,10 +46,6 @@ var _ = Describe("Factory", func() {
 
 			BeforeEach(func() {
 				server = ghttp.NewUnstartedServer()
-
-				cert, err := tls.X509KeyPair(validCert, validKey)
-				Expect(err).ToNot(HaveOccurred())
-
 				server.HTTPTestServer.TLS = &tls.Config{
 					Certificates: []tls.Certificate{cert},
 				}
@@ -80,7 +76,7 @@ var _ = Describe("Factory", func() {
 			VerifyHeaderDoesNotExist := func(key string) http.HandlerFunc {
 				cKey := http.CanonicalHeaderKey(key)
 				return func(w http.ResponseWriter, req *http.Request) {
-					for k, _ := range req.Header {
+					for k := range req.Header {
 						Expect(k).ToNot(Equal(cKey), "Header '%s' must not exist", cKey)
 					}
 				}

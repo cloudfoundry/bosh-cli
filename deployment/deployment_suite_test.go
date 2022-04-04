@@ -1,10 +1,23 @@
 package deployment_test
 
 import (
+	"crypto/tls"
+	"testing"
+
+	"github.com/cloudfoundry/bosh-cli/testutils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"testing"
 )
+
+var (
+	cert        tls.Certificate
+	cacertBytes []byte
+)
+var _ = BeforeSuite(func() {
+	var err error
+	cert, cacertBytes, err = testutils.Certsetup()
+	Expect(err).ToNot(HaveOccurred())
+})
 
 func TestDeployment(t *testing.T) {
 	RegisterFailHandler(Fail)
