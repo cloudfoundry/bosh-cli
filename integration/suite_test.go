@@ -1,10 +1,12 @@
 package integration_test
 
 import (
+	"crypto/tls"
 	"io/ioutil"
 	"os"
 	"testing"
 
+	"github.com/cloudfoundry/bosh-cli/testutils"
 	bitestutils "github.com/cloudfoundry/bosh-cli/testutils"
 
 	. "github.com/onsi/ginkgo"
@@ -14,6 +16,9 @@ import (
 var (
 	originalHome string
 	testHome     string
+	cert         tls.Certificate
+	cacertBytes  []byte
+	validCACert  string
 )
 
 func TestIntegration(t *testing.T) {
@@ -44,4 +49,8 @@ func TestIntegration(t *testing.T) {
 var _ = BeforeSuite(func() {
 	err := bitestutils.BuildExecutable()
 	Expect(err).NotTo(HaveOccurred())
+	cert, cacertBytes, err = testutils.Certsetup()
+	validCACert = string(cacertBytes)
+	Expect(err).ToNot(HaveOccurred())
+
 })
