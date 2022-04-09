@@ -11,7 +11,7 @@ cloud.google.com/go/compute/metadata
 # cloud.google.com/go/iam v0.3.0
 ## explicit; go 1.15
 cloud.google.com/go/iam
-# cloud.google.com/go/storage v1.21.0
+# cloud.google.com/go/storage v1.22.0
 ## explicit; go 1.15
 cloud.google.com/go/storage
 cloud.google.com/go/storage/internal
@@ -29,7 +29,7 @@ code.cloudfoundry.org/workpool
 # github.com/VividCortex/ewma v1.2.0
 ## explicit; go 1.12
 github.com/VividCortex/ewma
-# github.com/aws/aws-sdk-go v1.43.31
+# github.com/aws/aws-sdk-go v1.43.36
 ## explicit; go 1.11
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -113,8 +113,8 @@ github.com/cloudfoundry/bosh-gcscli/config
 ## explicit; go 1.18
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.307
-## explicit; go 1.17
+# github.com/cloudfoundry/bosh-utils v0.0.308
+## explicit; go 1.18
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/fakes
 github.com/cloudfoundry/bosh-utils/crypto
@@ -140,7 +140,7 @@ github.com/cloudfoundry/config-server/types/typesfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e
 ## explicit
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.49
+# github.com/cloudfoundry/socks5-proxy v0.2.50
 ## explicit; go 1.18
 github.com/cloudfoundry/socks5-proxy
 # github.com/cppforlife/go-patch v0.2.0
@@ -187,6 +187,9 @@ github.com/google/go-cmp/cmp/internal/value
 github.com/googleapis/gax-go/v2
 github.com/googleapis/gax-go/v2/apierror
 github.com/googleapis/gax-go/v2/apierror/internal/proto
+# github.com/googleapis/go-type-adapters v1.0.0
+## explicit; go 1.11
+github.com/googleapis/go-type-adapters/adapters
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
@@ -302,7 +305,7 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29
+# golang.org/x/crypto v0.0.0-20220408190544-5352b0902921
 ## explicit; go 1.17
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/chacha20
@@ -319,7 +322,7 @@ golang.org/x/crypto/ssh/terminal
 golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20220403103023-749bd193bc2b
+# golang.org/x/net v0.0.0-20220407224826-aac1ed45d8e3
 ## explicit; go 1.17
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -343,7 +346,7 @@ golang.org/x/oauth2/google/internal/externalaccount
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20220403205710-6acee93ad0eb
+# golang.org/x/sys v0.0.0-20220408201424-a24fb2fb8a0f
 ## explicit; go 1.17
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
@@ -434,7 +437,7 @@ google.golang.org/appengine/internal/socket
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/socket
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20220401170504-314d38edb7de
+# google.golang.org/genproto v0.0.0-20220407144326-9054f6ed7bac
 ## explicit; go 1.15
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/iam/v1
@@ -442,8 +445,13 @@ google.golang.org/genproto/googleapis/rpc/code
 google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/rpc/status
 google.golang.org/genproto/googleapis/storage/v2
+google.golang.org/genproto/googleapis/type/color
 google.golang.org/genproto/googleapis/type/date
+google.golang.org/genproto/googleapis/type/datetime
+google.golang.org/genproto/googleapis/type/decimal
 google.golang.org/genproto/googleapis/type/expr
+google.golang.org/genproto/googleapis/type/fraction
+google.golang.org/genproto/googleapis/type/month
 # google.golang.org/grpc v1.45.0
 ## explicit; go 1.14
 google.golang.org/grpc
@@ -539,6 +547,7 @@ google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/fieldmaskpb
 google.golang.org/protobuf/types/known/timestamppb
+google.golang.org/protobuf/types/known/wrapperspb
 # gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
 ## explicit
 gopkg.in/tomb.v1
