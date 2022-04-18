@@ -221,7 +221,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, 
 			return deploy()
 		} else {
 			return bosherr.Errorf(
-				"The `bosh` cli requires CPI v2.0 or greater, you are using %s",
+				"The `bosh` cli requires CPI v2.0 or greater, you are using %d",
 				cpiInfo.ApiVersion,
 			)
 		}
