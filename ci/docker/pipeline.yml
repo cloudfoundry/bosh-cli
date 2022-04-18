@@ -3,8 +3,11 @@ jobs:
     public: true
     serial: true
     plan:
-      - get: bosh-cli-src
-        trigger: true
+      - in_parallel:
+        - get: bosh-cli-src
+          trigger: true
+        - get: golang-release
+          trigger: true
       - task: write-metadata-file
         file: bosh-cli-src/ci/docker/write-metadata-file.yml
         params:
@@ -31,3 +34,7 @@ resources:
       username: ((docker.username))
       password: ((docker.password))
 
+  - name: golang-release
+    type: git
+    source:
+      uri: https://github.com/bosh-packages/golang-release.git
