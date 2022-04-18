@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
+set -eu -o pipefail
 
-set -e -x -u
+set -x
 
 version=$(cat version-semver/number)
 
-darwin_cli_sha256=$(shasum -a 256 compiled-darwin/bosh-cli-*-darwin-amd64 | cut -d ' ' -f 1)
-darwin_arm64_cli_sha256=$(shasum -a 256 compiled-darwin/bosh-cli-*-darwin-arm64 | cut -d ' ' -f 1)
-linux_cli_sha256=$(shasum -a 256 compiled-linux/bosh-cli-*-linux-amd64 | cut -d ' ' -f 1)
+darwin_amd64_cli_sha256=$(shasum -a 256 compiled-darwin-amd64/bosh-cli-*-darwin-amd64 | cut -d ' ' -f 1)
+darwin_arm64_cli_sha256=$(shasum -a 256 compiled-darwin-arm64/bosh-cli-*-darwin-arm64 | cut -d ' ' -f 1)
+linux_amd64_cli_sha256=$(shasum -a 256 compiled-linux-amd64/bosh-cli-*-linux-amd64 | cut -d ' ' -f 1)
 
 pushd homebrew-tap
   cat <<EOF > bosh-cli.rb
@@ -21,11 +22,11 @@ class BoshCli < Formula
       sha256 "${darwin_arm64_cli_sha256}"
     else
       url "https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-#{version}-darwin-amd64"
-      sha256 "${darwin_cli_sha256}"
+      sha256 "${darwin_amd64_cli_sha256}"
     end
   elsif OS.linux?
     url "https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-#{version}-linux-amd64"
-    sha256 "${linux_cli_sha256}"
+    sha256 "${linux_amd64_cli_sha256}"
   end
 
   option "with-bosh2", "Rename binary to 'bosh2'. Useful if the old Ruby CLI is needed."

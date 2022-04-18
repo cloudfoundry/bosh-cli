@@ -9,16 +9,16 @@ image_resource:
 
 inputs:
 - name: bosh-cli
-  path: gopath/src/github.com/cloudfoundry/bosh-cli
 - name: version-semver
 
 outputs:
-- name: compiled-darwin
+- name: compiled-windows-amd64
 
 params:
-  GOOS:   darwin
+  GOOS:   windows
   GOARCH: amd64
+  CGO_ENABLED: 0
   FILENAME_PREFIX: ''
 
 run:
-  path: gopath/src/github.com/cloudfoundry/bosh-cli/ci/tasks/build.sh
+  path: bosh-cli/ci/tasks/build.sh

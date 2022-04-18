@@ -3,7 +3,6 @@ platform: windows
 
 inputs:
 - name: bosh-cli
-  path: gopath/src/github.com/cloudfoundry/bosh-cli
 
 run:
   path: powershell
@@ -11,4 +10,4 @@ run:
   - "-ExecutionPolicy"
   - "Bypass"
   - "-File"
-  - gopath/src/github.com/cloudfoundry/bosh-cli/ci/tasks/test-unit.ps1
+  - bosh-cli/ci/tasks/test-unit.ps1

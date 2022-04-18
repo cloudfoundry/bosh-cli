@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-
-set -e
+set -eu -o pipefail
 
 failed=0
-chmod +x alpha-release-bucket-linux/alpha-bosh-cli-*-linux-amd64
+chmod +x alpha-release-bucket-linux-amd64/alpha-bosh-cli-*-linux-amd64
 
-anchors=$(alpha-release-bucket-linux/alpha-bosh-cli-*-linux-amd64 --help | awk 'match($0, /#([a-z\-]+)/){ print substr($0, RSTART, RLENGTH)}')
+anchors=$(alpha-release-bucket-linux-amd64/alpha-bosh-cli-*-linux-amd64 --help | awk 'match($0, /#([a-z\-]+)/){ print substr($0, RSTART, RLENGTH)}')
 file=$(mktemp)
 
 wget https://bosh.io/docs/cli-v2/ -O $file

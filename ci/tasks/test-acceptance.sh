@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
+set -eu -o pipefail
 
-set -e -x
+set -x
 
 ensure_not_replace_value() {
   local name=$1
@@ -21,8 +22,8 @@ set -x
 export PATH=/usr/local/ruby/bin:/usr/local/go/bin:$PATH
 export GOPATH=$PWD/gopath
 
-export BOSH_INIT_CPI_RELEASE_PATH=`ls $PWD/cpi-release/*.tgz`
-export BOSH_INIT_STEMCELL_PATH=`ls $PWD/stemcell/*.tgz`
+export BOSH_INIT_CPI_RELEASE_PATH=$(ls $PWD/cpi-release/*.tgz)
+export BOSH_INIT_STEMCELL_PATH=$(ls $PWD/stemcell/*.tgz)
 
 cd "$GOPATH/src/github.com/cloudfoundry/bosh-cli"
 

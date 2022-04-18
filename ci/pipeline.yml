@@ -84,13 +84,13 @@ jobs:
           trigger: true
         - get: integration-tests-parallel-runtime
 
-      - task: build-linux
-        file: bosh-cli/ci/tasks/build-linux.yml
+      - task: build-linux-amd64
+        file: bosh-cli/ci/tasks/build-linux-amd64.yml
 
       - task: tests
         privileged: true
         input_mapping:
-          bosh-cli: compiled-linux
+          bosh-cli: compiled-linux-amd64
         file: bosh-src/ci/tasks/test-integration.yml
         params:
           DB: postgresql
@@ -106,14 +106,14 @@ jobs:
         - get: version-semver
         - get: homebrew-tap
       - in_parallel:
-        - task: build-linux
-          file: bosh-cli/ci/tasks/build-linux.yml
-        - task: build-darwin
-          file: bosh-cli/ci/tasks/build-darwin.yml
+        - task: build-linux-amd64
+          file: bosh-cli/ci/tasks/build-linux-amd64.yml
+        - task: build-darwin-amd64
+          file: bosh-cli/ci/tasks/build-darwin-amd64.yml
         - task: build-darwin-arm64
           file: bosh-cli/ci/tasks/build-darwin-arm64.yml
-        - task: build-windows
-          file: bosh-cli/ci/tasks/build-windows.yml
+        - task: build-windows-amd64
+          file: bosh-cli/ci/tasks/build-windows-amd64.yml
 
       - task: build-checksum-file
         file: bosh-cli/ci/tasks/build-checksum-file.yml
@@ -129,10 +129,10 @@ jobs:
       - {put: bosh-cli, params: {repository: bosh-cli, tag: version-semver/number, tag_prefix: v}}
 
       - in_parallel:
-        - {put: release-bucket-linux, params: {file: compiled-linux/bosh-cli-*-linux-amd64}}
-        - {put: release-bucket-darwin, params: {file: compiled-darwin/bosh-cli-*-darwin-amd64}}
+        - {put: release-bucket-linux, params: {file: compiled-linux-amd64/bosh-cli-*-linux-amd64}}
+        - {put: release-bucket-darwin, params: {file: compiled-darwin-amd64/bosh-cli-*-darwin-amd64}}
         - {put: release-bucket-darwin-arm64, params: {file: compiled-darwin-arm64/bosh-cli-*-darwin-arm64}}
-        - {put: release-bucket-windows, params: {file: compiled-windows/bosh-cli-*-windows-amd64.exe}}
+        - {put: release-bucket-windows, params: {file: compiled-windows-amd64/bosh-cli-*-windows-amd64.exe}}
 
         - put: final-docker
           params:
@@ -163,10 +163,10 @@ jobs:
             name: release-version/version
             tag: release-version/version
             globs:
-              - compiled-linux/bosh-cli-*-linux-amd64
-              - compiled-darwin/bosh-cli-*-darwin-amd64
+              - compiled-linux-amd64/bosh-cli-*-linux-amd64
+              - compiled-darwin-amd64/bosh-cli-*-darwin-amd64
               - compiled-darwin-arm64/bosh-cli-*-darwin-arm64
-              - compiled-windows/bosh-cli-*-windows-amd64.exe
+              - compiled-windows-amd64/bosh-cli-*-windows-amd64.exe
             body: checksums/checksums
 
       - task: update-homebrew-formula
@@ -191,14 +191,14 @@ jobs:
           params: {bump: patch}
       - {put: alpha-version-semver, params: {file: alpha-version-semver/number}}
       - in_parallel:
-        - task: build-linux
+        - task: build-linux-amd64
           input_mapping: {version-semver: alpha-version-semver}
-          file: bosh-cli/ci/tasks/build-linux.yml
+          file: bosh-cli/ci/tasks/build-linux-amd64.yml
           params:
             FILENAME_PREFIX: "alpha-"
-        - task: build-darwin
+        - task: build-darwin-amd64
           input_mapping: {version-semver: alpha-version-semver}
-          file: bosh-cli/ci/tasks/build-darwin.yml
+          file: bosh-cli/ci/tasks/build-darwin-amd64.yml
           params:
             FILENAME_PREFIX: "alpha-"
         - task: build-darwin-arm64
@@ -206,23 +206,23 @@ jobs:
           file: bosh-cli/ci/tasks/build-darwin-arm64.yml
           params:
             FILENAME_PREFIX: "alpha-"
-        - task: build-windows
+        - task: build-windows-amd64
           input_mapping: {version-semver: alpha-version-semver}
-          file: bosh-cli/ci/tasks/build-windows.yml
+          file: bosh-cli/ci/tasks/build-windows-amd64.yml
           params:
             FILENAME_PREFIX: "alpha-"
 
       - in_parallel:
-        - {put: alpha-release-bucket-linux, params: {file: compiled-linux/alpha-bosh-cli-*-linux-amd64}}
-        - {put: alpha-release-bucket-darwin, params: {file: compiled-darwin/alpha-bosh-cli-*-darwin-amd64}}
+        - {put: alpha-release-bucket-linux-amd64, params: {file: compiled-linux-amd64/alpha-bosh-cli-*-linux-amd64}}
+        - {put: alpha-release-bucket-darwin-amd64, params: {file: compiled-darwin-amd64/alpha-bosh-cli-*-darwin-amd64}}
         - {put: alpha-release-bucket-darwin-arm64, params: {file: compiled-darwin-arm64/alpha-bosh-cli-*-darwin-arm64}}
-        - {put: alpha-release-bucket-windows, params: {file: compiled-windows/alpha-bosh-cli-*-windows-amd64.exe}}
+        - {put: alpha-release-bucket-windows-amd64, params: {file: compiled-windows-amd64/alpha-bosh-cli-*-windows-amd64.exe}}
 
   - name: test-helper-urls
     public: true
     plan:
       - in_parallel:
-        - get: alpha-release-bucket-linux
+        - get: alpha-release-bucket-linux-amd64
           passed: [build-alpha]
         - get: bosh-cli
           passed: [build-alpha]
@@ -322,7 +322,7 @@ resources:
       access_key_id: {{aws_s3_release_bucket_access_key}}
       secret_access_key: {{aws_s3_release_bucket_secret_key}}
 
-  - name: alpha-release-bucket-linux
+  - name: alpha-release-bucket-linux-amd64
     type: s3
     source:
       regexp: alpha-bosh-cli-(.*)-linux-amd64
@@ -331,7 +331,7 @@ resources:
       access_key_id: {{aws_s3_release_bucket_access_key}}
       secret_access_key: {{aws_s3_release_bucket_secret_key}}
 
-  - name: alpha-release-bucket-darwin
+  - name: alpha-release-bucket-darwin-amd64
     type: s3
     source:
       regexp: alpha-bosh-cli-(.*)-darwin-amd64
@@ -349,7 +349,7 @@ resources:
       access_key_id: {{aws_s3_release_bucket_access_key}}
       secret_access_key: {{aws_s3_release_bucket_secret_key}}
 
-  - name: alpha-release-bucket-windows
+  - name: alpha-release-bucket-windows-amd64
     type: s3
     source:
       regexp: alpha-bosh-cli-(.*)-windows-amd64.exe

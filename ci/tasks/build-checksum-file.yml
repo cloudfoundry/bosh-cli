@@ -9,14 +9,13 @@ image_resource:
 
 inputs:
 - name: bosh-cli
-  path: gopath/src/github.com/cloudfoundry/bosh-cli
-- name: compiled-linux
-- name: compiled-darwin
+- name: compiled-linux-amd64
+- name: compiled-darwin-amd64
 - name: compiled-darwin-arm64
-- name: compiled-windows
+- name: compiled-windows-amd64
 
 outputs:
 - name: checksums
 
 run:
-  path: gopath/src/github.com/cloudfoundry/bosh-cli/ci/tasks/build-checksum-file.sh
+  path: bosh-cli/ci/tasks/build-checksum-file.sh

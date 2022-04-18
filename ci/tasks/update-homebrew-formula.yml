@@ -9,14 +9,14 @@ image_resource:
 
 inputs:
 - name: bosh-cli
-  path: gopath/src/github.com/cloudfoundry/bosh-cli
 - name: version-semver
-- name: compiled-darwin
-- name: compiled-linux
+- name: compiled-darwin-amd64
+- name: compiled-darwin-arm64
+- name: compiled-linux-amd64
 - name: homebrew-tap
 
 outputs:
 - name: update-brew-formula-output
 
 run:
-  path: gopath/src/github.com/cloudfoundry/bosh-cli/ci/tasks/update-homebrew-formula.sh
+  path: bosh-cli/ci/tasks/update-homebrew-formula.sh

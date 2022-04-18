@@ -8,7 +8,7 @@ run:
   args:
   - -c
   - |
-    cp compiled-linux/bosh-cli-* docker-assets/bosh2
+    cp compiled-linux-amd64/bosh-cli-* docker-assets/bosh2
     chmod +x docker-assets/bosh2
 
     cat >docker-assets/Dockerfile <<-FILE
@@ -30,6 +30,6 @@ run:
     COPY bosh2 /usr/local/bin/bosh
     FILE
 inputs:
-- name: compiled-linux
+- name: compiled-linux-amd64
 outputs:
 - name: docker-assets
