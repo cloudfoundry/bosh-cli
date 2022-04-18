@@ -1,7 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -eu -o pipefail
 
-set -e
+ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-bin=$(dirname $0)
+cd "${ROOT_DIR}"
 
-go build -o $bin/../out/bosh github.com/cloudfoundry/bosh-cli
+default_version='[DEV BUILD]'
+VERSION_LABEL="${VERSION_LABEL:-${default_version}}"
+
+go build \
+  -o "${ROOT_DIR}/out/bosh" \
+  -ldflags="-X 'github.com/cloudfoundry/bosh-cli/cmd.VersionLabel=${VERSION_LABEL}'" \
+  .

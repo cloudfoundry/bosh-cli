@@ -1,3 +1,3 @@
 package cmd
 
-const VersionLabel = "[DEV BUILD]"
+var VersionLabel = "[DEV BUILD]"
