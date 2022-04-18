@@ -220,7 +220,10 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, 
 			cpiInfo.ApiVersion == bicloud.MaxCpiApiVersionSupported {
 			return deploy()
 		} else {
-			return bosherr.Errorf("Registry is not supported anymore")
+			return bosherr.Errorf(
+				"The `bosh` cli requires CPI v2.0 or greater, you are using %s",
+				cpiInfo.ApiVersion,
+			)
 		}
 	})
 	return err
