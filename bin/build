@@ -3,12 +3,10 @@ set -eu -o pipefail
 
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-cd "${ROOT_DIR}"
-
 default_version='[DEV BUILD]'
 VERSION_LABEL="${VERSION_LABEL:-${default_version}}"
 
 go build \
   -o "${ROOT_DIR}/out/bosh" \
   -ldflags="-X 'github.com/cloudfoundry/bosh-cli/cmd.VersionLabel=${VERSION_LABEL}'" \
-  .
+  "${ROOT_DIR}"
