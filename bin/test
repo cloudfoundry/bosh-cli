@@ -1,16 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -eu -o pipefail
 
-set -e
+ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-bin=$(dirname $0)
+"${ROOT_DIR}/clean"
 
-# Travis randomly kills go builds when using -race
-race=""
-if [ -z "$TRAVIS" ]; then
-  race="-race"
-fi
-
-$bin/clean
-$bin/test-prepare
-$bin/test-unit
-$bin/test-integration
+"${ROOT_DIR}/test-prepare"
+"${ROOT_DIR}/test-unit"
+"${ROOT_DIR}/test-integration"
