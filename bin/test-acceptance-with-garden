@@ -3,7 +3,7 @@ set -ex
 
 dummy_compiled_release_path=${BOSH_INIT_DUMMY_COMPILED_RELEASE_PATH:-./assets/sample-release-compiled.tgz}
 
-config_file=`mktemp -t bosh-init-config-XXXXXXXX`
+config_file=$(mktemp -t bosh-init-config-XXXXXXXX)
 cat > $config_file <<EOF
 {
   "stemcell_path": "${BOSH_INIT_STEMCELL_PATH}",

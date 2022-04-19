@@ -3,8 +3,6 @@ set -eu -o pipefail
 
 set -x
 
-source ~/.bashrc
-
 cd bosh-cli
 bin/clean
 bin/test-prepare
