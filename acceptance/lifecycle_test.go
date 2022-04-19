@@ -182,7 +182,8 @@ var _ = Describe("bosh", func() {
 		arch := "linux-amd64"
 		if os.Getenv("BUILD_ARCH") != "" {
 			arch = ""
-			os.Setenv("GOOS", arch)
+			err := os.Setenv("GOOS", arch)
+			Expect(err).NotTo(HaveOccurred())
 		}
 		err := bitestutils.BuildExecutableForArch(arch)
 		Expect(err).NotTo(HaveOccurred())
