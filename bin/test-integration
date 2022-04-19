@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
+set -eu -o pipefail
 
-set -e
+set -x
 
-bin=$(dirname $0)
+ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 echo -e "\n Running integration tests..."
-go run github.com/onsi/ginkgo/ginkgo -race -trace integration
+"${ROOT_DIR}/bin/ginkgo" -trace "${ROOT_DIR}/integration"
