@@ -9,6 +9,8 @@ SLOW_SPEC_THRESHOLD="${SLOW_SPEC_THRESHOLD:-20}"
   cd "${ROOT_DIR}"
   go install -v github.com/onsi/ginkgo/ginkgo
 )
+go_bin_path="$(go env GOPATH)/bin" # TODO this should be handled in the docker container
+export PATH=${go_bin_path}:${PATH}
 
 # shellcheck disable=SC2068
 ginkgo \
