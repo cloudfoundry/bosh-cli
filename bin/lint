@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -eu -o pipefail
+
+ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+
+(
+  cd "$ROOT_DIR" && \
+    go install -v github.com/golangci/golangci-lint/cmd/golangci-lint
+)
+
+golangci-lint version
+
+for os in linux windows; do
+  echo -e "\n lint-ing with GOOS=${os}..."
+  GOOS="${os}" golangci-lint run "${ROOT_DIR}"/...
+done
