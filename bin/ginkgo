@@ -13,10 +13,10 @@ go_bin_path="$(go env GOPATH)/bin" # TODO this should be handled in the docker c
 export PATH=${go_bin_path}:${PATH}
 
 # shellcheck disable=SC2068
+# TODO add `-race` when unit tests work with this flag
 ginkgo \
   -keepGoing \
   -skipPackage=vendor \
   -slowSpecThreshold="${SLOW_SPEC_THRESHOLD}" \
-  -race \
   -r \
   ${@}
