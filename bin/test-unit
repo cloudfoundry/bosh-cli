@@ -1,8 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -eu -o pipefail
 
-set -e
-
-bin=$(dirname $0)
+ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 reformatted_packages="$(go fmt $(go list github.com/cloudfoundry/bosh-cli/... | grep -v /vendor/))"
 
@@ -12,10 +11,10 @@ if [[ $reformatted_packages = *[![:space:]]* ]]; then
 fi
 
 echo -e "\n Running unit tests..."
-go run github.com/onsi/ginkgo/ginkgo -p -r $race -keepGoing -trace -randomizeAllSpecs -randomizeSuites -skipPackage="acceptance,integration,vendor" $@
+"${ROOT_DIR}/bin/ginkgo" -skipPackage="acceptance,integration"
 
 echo -e "\n Building docs example..."
-go build -o $bin/../out/example github.com/cloudfoundry/bosh-cli/docs/
+go build -o "${ROOT_DIR}/out/example" github.com/cloudfoundry/bosh-cli/docs/
 
 echo -e "\B Building bosh-cli..."
-go build -o $bin/../out/bosh github.com/cloudfoundry/bosh-cli
+"${ROOT_DIR}/bin/build"
