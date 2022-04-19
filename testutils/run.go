@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"time"
 
@@ -10,18 +11,29 @@ import (
 )
 
 func BuildExecutable() error {
-	return BuildExecutableForArch("")
+	return BuildExecutableFor("", "")
 }
 
-func BuildExecutableForArch(arch string) error {
-	buildArg := "./../bin/build"
-	if arch != "" {
-		buildArg = buildArg + "-" + arch
+func BuildExecutableFor(goos, goarch string) error {
+	const buildScript = "./../bin/build"
+
+	if goos != "" {
+		err := os.Setenv("GOOS", goos)
+		if err != nil {
+			return fmt.Errorf("failed to set GOOS=%s", goos)
+		}
 	}
 
-	session, err := RunCommand(buildArg)
+	if goarch != "" {
+		err := os.Setenv("GOARCH", goarch)
+		if err != nil {
+			return fmt.Errorf("failed to set GOARCH=%s", goarch)
+		}
+	}
+
+	session, err := RunCommand(buildScript)
 	if session.ExitCode() != 0 {
-		return fmt.Errorf("Failed to build bosh:\nstdout:\n%s\nstderr:\n%s", session.Out.Contents(), session.Err.Contents())
+		return fmt.Errorf("failed to build bosh:\nstdout:\n%s\nstderr:\n%s", session.Out.Contents(), session.Err.Contents())
 	}
 
 	return err
