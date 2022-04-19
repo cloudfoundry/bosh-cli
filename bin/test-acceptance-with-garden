@@ -1,17 +1,22 @@
 #!/usr/bin/env bash
-set -ex
+set -eu -o pipefail
 
-dummy_compiled_release_path=${BOSH_INIT_DUMMY_COMPILED_RELEASE_PATH:-./assets/sample-release-compiled.tgz}
+set -x
 
-config_file=$(mktemp -t bosh-init-config-XXXXXXXX)
-cat > $config_file <<EOF
+ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+
+config_file="$(mktemp -t bosh-init-config-XXXXXXXX)"
+
+default_compiled_release_path="${ROOT_DIR}/acceptance/assets/sample-release-compiled.tgz"
+
+cat > "${config_file}" <<EOF
 {
   "stemcell_path": "${BOSH_INIT_STEMCELL_PATH}",
   "cpi_release_path": "${BOSH_INIT_CPI_RELEASE_PATH}",
-  "dummy_compiled_release_path": "${dummy_compiled_release_path}"
+  "dummy_compiled_release_path": "${BOSH_INIT_DUMMY_COMPILED_RELEASE_PATH:-${default_compiled_release_path}}"
 }
 EOF
 
-export BOSH_INIT_CONFIG_PATH=$config_file
+export BOSH_INIT_CONFIG_PATH="${config_file}"
 
-./bin/test-acceptance
+"${ROOT_DIR}/bin/test-acceptance"
