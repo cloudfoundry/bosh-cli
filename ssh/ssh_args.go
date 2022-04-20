@@ -92,7 +92,7 @@ func (a SSHArgs) OptsForHost(host boshdir.Host) []string {
 	if len(a.ConnOpts.SOCKS5Proxy) > 0 {
 		proxyString := a.ConnOpts.SOCKS5Proxy
 		if strings.HasPrefix(proxyString, "ssh+") {
-			a.Socks5Proxy.StartWithDialer(a.dialer)
+			a.Socks5Proxy.StartWithDialer(a.dialer) //nolint:errcheck
 			proxyString, _ = a.Socks5Proxy.Addr()
 		}
 

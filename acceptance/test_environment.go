@@ -62,7 +62,7 @@ func (e testEnvironment) WriteContent(destName string, contents []byte) error {
 		return err
 	}
 
-	defer e.fileSystem.RemoveAll(tmpFile.Name())
+	defer e.fileSystem.RemoveAll(tmpFile.Name()) //nolint:errcheck
 
 	_, err = tmpFile.Write(contents)
 	if err != nil {

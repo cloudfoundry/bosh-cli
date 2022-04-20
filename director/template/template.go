@@ -178,7 +178,7 @@ func (l varsLookup) Get(name string) (interface{}, bool, error) {
 			return nil, false, err
 		}
 
-		val, found, err = processPatchPointer(pointer, val)
+		val, found, err = processPatchPointer(pointer, val) //nolint:ineffassign
 		if err != nil {
 			tokens := []patch.Token{}
 			for _, token := range pointer.Tokens() {

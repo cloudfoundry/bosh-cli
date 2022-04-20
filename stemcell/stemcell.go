@@ -9,7 +9,7 @@ import (
 
 	"path/filepath"
 
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 type ExtractedStemcell interface {
@@ -91,7 +91,7 @@ func (s *extractedStemcell) SetCloudProperties(newCloudProperties biproperty.Map
 }
 
 func (s *extractedStemcell) Pack(destinationPath string) error {
-	defer s.Cleanup()
+	defer s.Cleanup() //nolint:errcheck
 
 	err := s.save()
 	if err != nil {

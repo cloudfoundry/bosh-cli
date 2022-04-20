@@ -27,7 +27,7 @@ func (cmd InspectLocalReleaseCmd) Run(opts InspectLocalReleaseOpts) error {
 	if err != nil {
 		return err
 	}
-	defer release.CleanUp()
+	defer release.CleanUp() //nolint:errcheck
 
 	ReleaseTables{Release: release, ArchivePath: opts.Args.PathToRelease}.Print(cmd.ui)
 

@@ -67,7 +67,7 @@ func (c UploadReleaseCmd) uploadGit(opts UploadReleaseOpts) error {
 		return bosherr.WrapErrorf(err, "Creating tmp dir for git cloning")
 	}
 
-	defer c.fs.RemoveAll(repoPath)
+	defer c.fs.RemoveAll(repoPath) //nolint:errcheck
 
 	_, _, _, err = c.cmdRunner.RunCommand("git", "clone", opts.Args.URL.GitRepo(), "--depth", "1", repoPath)
 	if err != nil {
@@ -109,7 +109,7 @@ func (c UploadReleaseCmd) uploadFile(opts UploadReleaseOpts) error {
 		}
 	}
 
-	defer release.CleanUp()
+	defer release.CleanUp() //nolint:errcheck
 
 	return c.uploadRelease(release, opts)
 }
@@ -130,7 +130,7 @@ func (c UploadReleaseCmd) uploadRelease(release boshrel.Release, opts UploadRele
 		return err
 	}
 
-	defer c.fs.RemoveAll(path)
+	defer c.fs.RemoveAll(path) //nolint:errcheck
 
 	file, err := c.releaseArchiveFactory(path).File()
 	if err != nil {

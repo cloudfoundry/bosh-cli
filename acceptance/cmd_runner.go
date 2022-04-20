@@ -58,7 +58,7 @@ func (r *cmdRunner) RunStreamingCommand(out io.Writer, env map[string]string, ar
 
 	// write command being run
 	cmdString := fmt.Sprintf("> %s %s\n", cmd.Name, strings.Join(cmd.Args, " "))
-	out.Write([]byte(cmdString))
+	out.Write([]byte(cmdString)) //nolint:errcheck
 
 	return r.runner.RunComplexCommand(cmd)
 }

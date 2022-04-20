@@ -59,7 +59,7 @@ type fsReleaseIndexSchema_Entry struct {
 	Version string `yaml:"version"`
 }
 
-type releaseIndexEntry struct {
+type releaseIndexEntry struct { //nolint:deadcode
 	Version semver.Version
 }
 

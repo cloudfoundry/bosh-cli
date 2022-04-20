@@ -45,7 +45,7 @@ func NewBlobstore(davClient DavCLIClient, uuidGenerator boshuuid.Generator, fs b
 }
 
 func (b *blobstore) Get(blobID string) (LocalBlob, error) {
-	file, err := b.fs.TempFile("bosh-init-local-blob")
+	file, err := b.fs.TempFile("bosh-init-local-blob") //nolint:ineffassign
 	destinationPath := file.Name()
 	err = file.Close()
 	if err != nil {

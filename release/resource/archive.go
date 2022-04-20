@@ -106,7 +106,7 @@ func (a ArchiveImpl) Build(expectedFp string) (string, string, error) {
 }
 
 func (a ArchiveImpl) CleanUp(path string) {
-	a.compressor.CleanUp(path)
+	a.compressor.CleanUp(path) //nolint:errcheck
 }
 
 func (a ArchiveImpl) runPrepScripts(stagingDir string) error {

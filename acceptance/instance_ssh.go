@@ -78,7 +78,7 @@ func (s *instanceSSH) RunCommand(cmd string) (stdout, stderr string, exitCode in
 	if err != nil {
 		return "", "", -1, bosherr.WrapError(err, "Setting up SSH")
 	}
-	defer s.fileSystem.RemoveAll(sshConfigFile.Name())
+	defer s.fileSystem.RemoveAll(sshConfigFile.Name()) //nolint:errcheck
 
 	return s.runner.RunCommand(
 		"ssh",
@@ -94,7 +94,7 @@ func (s *instanceSSH) RunCommandWithSudo(cmd string) (stdout, stderr string, exi
 	if err != nil {
 		return "", "", -1, bosherr.WrapError(err, "Setting up SSH")
 	}
-	defer s.fileSystem.RemoveAll(sshConfigFile.Name())
+	defer s.fileSystem.RemoveAll(sshConfigFile.Name()) //nolint:errcheck
 
 	return s.runner.RunCommand(
 		"ssh",

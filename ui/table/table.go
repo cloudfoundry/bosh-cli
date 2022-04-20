@@ -31,7 +31,7 @@ func (t Table) AsRows() [][]Value {
 	}
 
 	if len(t.Rows) > 0 {
-		totalRows += len(t.Rows)
+		totalRows += len(t.Rows) //nolint:ineffassign
 
 		for _, r := range t.Rows {
 			rows = append(rows, r)
