@@ -4,6 +4,6 @@ set -eu -o pipefail
 set -x
 
 cd bosh-cli
-bin/clean
-bin/test-prepare
+
+bin/clean # TODO: is this needed in CI?
 bin/test-unit

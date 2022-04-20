@@ -10,6 +10,9 @@ if [[ $reformatted_packages = *[![:space:]]* ]]; then
   echo $reformatted_packages
 fi
 
+echo -e "\n Running linter..."
+"${ROOT_DIR}/bin/lint"
+
 echo -e "\n Running unit tests..."
 "${ROOT_DIR}/bin/ginkgo" -skipPackage="acceptance,integration"
 
