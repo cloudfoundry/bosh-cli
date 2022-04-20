@@ -12,7 +12,7 @@ export PATH=${go_bin_path}:${PATH}
 
 golangci-lint version
 
-for os in linux windows; do
+for os in linux; do
   echo -e "\n lint-ing with GOOS=${os}..."
   GOOS="${os}" golangci-lint run "${ROOT_DIR}"/...
 done
