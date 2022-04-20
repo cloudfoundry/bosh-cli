@@ -13,17 +13,14 @@ ensure_not_replace_value() { # TODO this does not appear to be used
   fi
 }
 
-set +x
 if [[ $(whoami) != "root" ]]; then
   echo "acceptance tests must be run as a privileged user"
   exit 1
 fi
-set -x
 
-BOSH_INIT_CPI_RELEASE_PATH=$(ls "${PWD}/cpi-release/*.tgz")
-BOSH_INIT_STEMCELL_PATH=$(ls "${PWD}/stemcell/*.tgz")
-
+BOSH_INIT_CPI_RELEASE_PATH="$(ls "${PWD}"/cpi-release/*.tgz)"
 export BOSH_INIT_CPI_RELEASE_PATH
+BOSH_INIT_STEMCELL_PATH="$(ls "${PWD}"/stemcell/*.tgz)"
 export BOSH_INIT_STEMCELL_PATH
 
 cd bosh-cli
