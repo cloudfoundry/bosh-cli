@@ -5,6 +5,5 @@ ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 "${ROOT_DIR}/clean"
 
-"${ROOT_DIR}/test-prepare"
 "${ROOT_DIR}/test-unit"
 "${ROOT_DIR}/test-integration"
