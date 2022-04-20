@@ -35,7 +35,8 @@ var _ = Describe("AddBlobCmd", func() {
 		)
 
 		BeforeEach(func() {
-			fs.WriteFileString("/path/to/blob.tgz", "blob")
+			err := fs.WriteFileString("/path/to/blob.tgz", "blob")
+			Expect(err).ToNot(HaveOccurred())
 			opts = AddBlobOpts{
 				Args: AddBlobArgs{
 					Path:      "/path/to/blob.tgz",

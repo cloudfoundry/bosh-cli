@@ -39,7 +39,7 @@ var _ = Describe("Extractor", func() {
 		blobSHA1 = "fakesha1"
 		fileName = "tarball.tgz"
 		blobstore.GetReturns(fileName, nil)
-		fakeError = errors.New("Initial error")
+		fakeError = errors.New("initial error")
 
 		extractor = NewExtractor(fs, compressor, blobstore, logger)
 	})
@@ -102,7 +102,8 @@ var _ = Describe("Extractor", func() {
 
 			Context("when the installed package dir already exists", func() {
 				BeforeEach(func() {
-					fs.MkdirAll(targetDir, os.ModePerm)
+					err := fs.MkdirAll(targetDir, os.ModePerm)
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				It("decompresses the blob into the target dir", func() {
@@ -127,7 +128,7 @@ var _ = Describe("Extractor", func() {
 						Expect(fs.FileExists(targetDir)).To(BeTrue())
 						err := extractor.Extract(blobID, blobSHA1, targetDir)
 						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(Equal("Decompressing compiled package: BlobID: 'fake-blob-id', BlobSHA1: 'fakesha1': Initial error"))
+						Expect(err.Error()).To(Equal("Decompressing compiled package: BlobID: 'fake-blob-id', BlobSHA1: 'fakesha1': initial error"))
 						Expect(fs.FileExists(targetDir)).To(BeTrue())
 					})
 				})
@@ -141,7 +142,7 @@ var _ = Describe("Extractor", func() {
 				It("returns an error", func() {
 					err := extractor.Extract(blobID, blobSHA1, targetDir)
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("Getting object from blobstore: fake-blob-id: Initial error"))
+					Expect(err.Error()).To(Equal("Getting object from blobstore: fake-blob-id: initial error"))
 				})
 			})
 
@@ -150,7 +151,7 @@ var _ = Describe("Extractor", func() {
 					fs.MkdirAllError = fakeError
 					err := extractor.Extract(blobID, blobSHA1, targetDir)
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("Creating target dir: fake-target-dir: Initial error"))
+					Expect(err.Error()).To(Equal("Creating target dir: fake-target-dir: initial error"))
 				})
 
 				It("cleans up the blob file", func() {
@@ -202,7 +203,8 @@ var _ = Describe("Extractor", func() {
 			binGlob = "fake-glob/*"
 			filePath = "fake-glob/file"
 			fs.SetGlob("fake-glob/*", []string{filePath})
-			fs.WriteFileString(filePath, "content")
+			err := fs.WriteFileString(filePath, "content")
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("fetches the files", func() {

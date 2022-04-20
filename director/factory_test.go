@@ -183,9 +183,10 @@ var _ = Describe("Factory", func() {
 					),
 				)
 
-				director.LatestCloudConfig()
+				_, err = director.LatestCloudConfig()
+				Expect(err).ToNot(HaveOccurred())
 
-				debugMsgs := []interface{}{}
+				debugMsgs := make([]interface{}, 0)
 				for i := 0; i < logger.DebugCallCount(); i++ {
 					_, _, args := logger.DebugArgsForCall(i)
 					if len(args) >= 1 {

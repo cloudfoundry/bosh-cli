@@ -190,31 +190,38 @@ license:
 				compressed = true
 			}
 
-			fs.WriteFileString(filepath.Join("/", "tmp", "job1.tgz"), "job1-content")
-			fs.WriteFileString(filepath.Join("/", "tmp", "job2.tgz"), "job2-content")
+			err := fs.WriteFileString(filepath.Join("/", "tmp", "job1.tgz"), "job1-content")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(filepath.Join("/", "tmp", "job2.tgz"), "job2-content")
+			Expect(err).ToNot(HaveOccurred())
 
 			release.JobsReturns([]*boshjob.Job{
 				boshjob.NewJob(NewResourceWithBuiltArchive("job1", "", filepath.Join("/", "tmp", "job1.tgz"), "")),
 				boshjob.NewJob(NewResourceWithBuiltArchive("job2", "", filepath.Join("/", "tmp", "job2.tgz"), "")),
 			})
 
-			fs.WriteFileString(filepath.Join("/", "tmp", "pkg1.tgz"), "pkg1-content")
-			fs.WriteFileString(filepath.Join("/", "tmp", "pkg2.tgz"), "pkg2-content")
+			err = fs.WriteFileString(filepath.Join("/", "tmp", "pkg1.tgz"), "pkg1-content")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(filepath.Join("/", "tmp", "pkg2.tgz"), "pkg2-content")
+			Expect(err).ToNot(HaveOccurred())
 
 			release.PackagesReturns([]*boshpkg.Package{
 				boshpkg.NewPackage(NewResourceWithBuiltArchive("pkg1", "", filepath.Join("/", "tmp", "pkg1.tgz"), ""), nil),
 				boshpkg.NewPackage(NewResourceWithBuiltArchive("pkg2", "", filepath.Join("/", "tmp", "pkg2.tgz"), ""), nil),
 			})
 
-			fs.WriteFileString(filepath.Join("/", "tmp", "cp1.tgz"), "cp1-content")
-			fs.WriteFileString(filepath.Join("/", "tmp", "cp2.tgz"), "cp2-content")
+			err = fs.WriteFileString(filepath.Join("/", "tmp", "cp1.tgz"), "cp1-content")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(filepath.Join("/", "tmp", "cp2.tgz"), "cp2-content")
+			Expect(err).ToNot(HaveOccurred())
 
 			release.CompiledPackagesReturns([]*boshpkg.CompiledPackage{
 				boshpkg.NewCompiledPackageWithArchive("cp1", "", "", filepath.Join("/", "tmp", "cp1.tgz"), "", nil),
 				boshpkg.NewCompiledPackageWithArchive("cp2", "", "", filepath.Join("/", "tmp", "cp2.tgz"), "", nil),
 			})
 
-			fs.WriteFileString(filepath.Join("/", "tmp", "lic.tgz"), "license-content")
+			err = fs.WriteFileString(filepath.Join("/", "tmp", "lic.tgz"), "license-content")
+			Expect(err).ToNot(HaveOccurred())
 
 			release.LicenseReturns(boshlic.NewLicense(
 				NewResourceWithBuiltArchive("lic", "", filepath.Join("/", "tmp", "lic.tgz"), "")))
@@ -261,8 +268,10 @@ license:
 		It("writes out jobs", func() {
 			compressed := false
 
-			fs.WriteFileString(filepath.Join("/", "tmp", "job1.tgz"), "job1-content")
-			fs.WriteFileString(filepath.Join("/", "tmp", "job2.tgz"), "job2-content")
+			err := fs.WriteFileString(filepath.Join("/", "tmp", "job1.tgz"), "job1-content")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(filepath.Join("/", "tmp", "job2.tgz"), "job2-content")
+			Expect(err).ToNot(HaveOccurred())
 
 			release.JobsReturns([]*boshjob.Job{
 				boshjob.NewJob(NewResourceWithBuiltArchive("job1", "", filepath.Join("/", "tmp", "job1.tgz"), "")),
@@ -300,8 +309,10 @@ license:
 		It("writes out all packages when filtering is off (nil)", func() {
 			compressed := false
 
-			fs.WriteFileString(filepath.Join("/", "tmp", "pkg1.tgz"), "pkg1-content")
-			fs.WriteFileString(filepath.Join("/", "tmp", "pkg2.tgz"), "pkg2-content")
+			err := fs.WriteFileString(filepath.Join("/", "tmp", "pkg1.tgz"), "pkg1-content")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(filepath.Join("/", "tmp", "pkg2.tgz"), "pkg2-content")
+			Expect(err).ToNot(HaveOccurred())
 
 			release.PackagesReturns([]*boshpkg.Package{
 				boshpkg.NewPackage(NewResourceWithBuiltArchive("pkg1", "", filepath.Join("/", "tmp", "pkg1.tgz"), ""), nil),
@@ -326,8 +337,10 @@ license:
 			compressed := false
 			pkgFpsToSkip = append(pkgFpsToSkip, "pkg1-fp")
 
-			fs.WriteFileString(filepath.Join("/", "tmp", "pkg1.tgz"), "pkg1-content")
-			fs.WriteFileString(filepath.Join("/", "tmp", "pkg2.tgz"), "pkg2-content")
+			err := fs.WriteFileString(filepath.Join("/", "tmp", "pkg1.tgz"), "pkg1-content")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(filepath.Join("/", "tmp", "pkg2.tgz"), "pkg2-content")
+			Expect(err).ToNot(HaveOccurred())
 
 			release.PackagesReturns([]*boshpkg.Package{
 				boshpkg.NewPackage(NewResourceWithBuiltArchive("pkg1", "pkg1-fp", filepath.Join("/", "tmp", "pkg1.tgz"), ""), nil),
@@ -365,8 +378,10 @@ license:
 		It("writes out all compiled packages when filtering is off (nil)", func() {
 			compressed := false
 
-			fs.WriteFileString(filepath.Join("/", "tmp", "cp1.tgz"), "cp1-content")
-			fs.WriteFileString(filepath.Join("/", "tmp", "cp2.tgz"), "cp2-content")
+			err := fs.WriteFileString(filepath.Join("/", "tmp", "cp1.tgz"), "cp1-content")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(filepath.Join("/", "tmp", "cp2.tgz"), "cp2-content")
+			Expect(err).ToNot(HaveOccurred())
 
 			release.CompiledPackagesReturns([]*boshpkg.CompiledPackage{
 				boshpkg.NewCompiledPackageWithArchive("cp1", "", "", filepath.Join("/", "tmp", "cp1.tgz"), "", nil),
@@ -391,8 +406,10 @@ license:
 			compressed := false
 			pkgFpsToSkip = append(pkgFpsToSkip, "cp1-fp")
 
-			fs.WriteFileString(filepath.Join("/", "tmp", "cp1.tgz"), "cp1-content")
-			fs.WriteFileString(filepath.Join("/", "tmp", "cp2.tgz"), "cp2-content")
+			err := fs.WriteFileString(filepath.Join("/", "tmp", "cp1.tgz"), "cp1-content")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(filepath.Join("/", "tmp", "cp2.tgz"), "cp2-content")
+			Expect(err).ToNot(HaveOccurred())
 
 			release.CompiledPackagesReturns([]*boshpkg.CompiledPackage{
 				boshpkg.NewCompiledPackageWithArchive("cp1", "cp1-fp", "", filepath.Join("/", "tmp", "cp1.tgz"), "", nil),
@@ -431,7 +448,8 @@ license:
 			compressed := false
 			decompressed := false
 
-			fs.WriteFileString(filepath.Join("/", "tmp", "lic.tgz"), "license-content")
+			err := fs.WriteFileString(filepath.Join("/", "tmp", "lic.tgz"), "license-content")
+			Expect(err).ToNot(HaveOccurred())
 
 			release.LicenseReturns(boshlic.NewLicense(
 				NewResourceWithBuiltArchive("lic", "", filepath.Join("/", "tmp", "lic.tgz"), "")))
@@ -470,14 +488,15 @@ license:
 		})
 
 		It("returns error if decompressing license fails", func() {
-			fs.WriteFileString(filepath.Join("/", "tmp", "lic.tgz"), "license-content")
+			err := fs.WriteFileString(filepath.Join("/", "tmp", "lic.tgz"), "license-content")
+			Expect(err).ToNot(HaveOccurred())
 
 			compressor.DecompressFileToDirErr = errors.New("fake-err")
 
 			release.LicenseReturns(boshlic.NewLicense(
 				NewResourceWithBuiltArchive("lic", "", filepath.Join("/", "tmp", "lic.tgz"), "")))
 
-			_, err := act()
+			_, err = act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 

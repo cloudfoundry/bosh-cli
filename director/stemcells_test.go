@@ -246,9 +246,8 @@ var _ = Describe("Director", func() {
 
 		BeforeEach(func() {
 			fs := fakesys.NewFakeFileSystem()
-			fs.WriteFileString("/file", "content")
-
-			var err error
+			err := fs.WriteFileString("/file", "content")
+			Expect(err).ToNot(HaveOccurred())
 
 			file, err = fs.OpenFile("/file", os.O_RDONLY, 0)
 			Expect(err).ToNot(HaveOccurred())

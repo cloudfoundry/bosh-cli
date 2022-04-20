@@ -56,9 +56,10 @@ var _ = Describe("InspectLocalReleaseCmd", func() {
 				"pkg-2-digest"),
 				[]string{"pkg-1-name"},
 			)
-			pkg2.AttachDependencies([]*boshpkg.Package{pkg1})
+			err := pkg2.AttachDependencies([]*boshpkg.Package{pkg1})
+			Expect(err).ToNot(HaveOccurred())
 
-			err := job.AttachPackages([]*boshpkg.Package{pkg1, pkg2})
+			err = job.AttachPackages([]*boshpkg.Package{pkg1, pkg2})
 			Expect(err).ToNot(HaveOccurred())
 
 			compiledPkg := boshpkg.NewCompiledPackageWithoutArchive(

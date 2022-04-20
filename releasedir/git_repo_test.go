@@ -22,7 +22,8 @@ var _ = Describe("GitRepo", func() {
 		fs = fakesys.NewFakeFileSystem()
 		cmdRunner = fakesys.NewFakeCmdRunner()
 		gitRepo = NewFSGitRepo("/dir", cmdRunner, fs)
-		fs.WriteFile("/dir/.git", []byte{})
+		err := fs.WriteFile("/dir/.git", []byte{})
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	Describe("Init", func() {
@@ -86,7 +87,8 @@ releases/**/*.tgz
 		})
 
 		It("returns 'non-git' if it's not a git repo", func() {
-			fs.RemoveAll("/dir/.git")
+			err := fs.RemoveAll("/dir/.git")
+			Expect(err).ToNot(HaveOccurred())
 			cmdRunner.AddCmdResult(cmd, fakesys.FakeCmdResult{
 				Stderr: "fatal: Not a git repository: '/dir/.git'\n",
 				Error:  errors.New("not a git repo (--short HEAD)"),
@@ -152,7 +154,8 @@ releases/**/*.tgz
 		})
 
 		It("returns false if it's not a git repo", func() {
-			fs.RemoveAll("/dir/.git")
+			err := fs.RemoveAll("/dir/.git")
+			Expect(err).ToNot(HaveOccurred())
 			cmdRunner.AddCmdResult(cmd, fakesys.FakeCmdResult{
 				Stderr: "fatal: not a git repository: '/dir/.git'\n",
 				Error:  errors.New("not a git repo (--short HEAD)"),

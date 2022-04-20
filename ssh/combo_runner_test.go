@@ -109,7 +109,7 @@ var _ = Describe("ComboRunner", func() {
 		It("provides ssh arguments to customize cmd", func() {
 			cmdFactory = func(host boshdir.Host, args SSHArgs) boshsys.Command {
 				optsStr := strings.Join(args.LoginForHost(host), " ")
-				opts := []string{}
+				opts := make([]string, 0)
 				switch {
 				case strings.Contains(optsStr, "127.0.0.1"):
 					opts = []string{"ip-1"}
@@ -158,11 +158,15 @@ var _ = Describe("ComboRunner", func() {
 			err := comboRunner.Run(connOpts, result, cmdFactory)
 			Expect(err).ToNot(HaveOccurred())
 
-			proc1.Stdout.Write([]byte("stdout1\n"))
-			proc1.Stderr.Write([]byte("stderr1\n"))
+			_, err = proc1.Stdout.Write([]byte("stdout1\n"))
+			Expect(err).ToNot(HaveOccurred())
+			_, err = proc1.Stderr.Write([]byte("stderr1\n"))
+			Expect(err).ToNot(HaveOccurred())
 
-			proc2.Stdout.Write([]byte("stdout2\n"))
-			proc2.Stderr.Write([]byte("stderr2\n"))
+			_, err = proc2.Stdout.Write([]byte("stdout2\n"))
+			Expect(err).ToNot(HaveOccurred())
+			_, err = proc2.Stderr.Write([]byte("stderr2\n"))
+			Expect(err).ToNot(HaveOccurred())
 
 			Expect(ui.Blocks).To(Equal([]string{
 				"job1/id1: stdout | ", "stdout1", "\n",
@@ -187,11 +191,15 @@ var _ = Describe("ComboRunner", func() {
 			err := comboRunner.Run(connOpts, result, cmdFactory)
 			Expect(err).ToNot(HaveOccurred())
 
-			proc1.Stdout.Write([]byte("stdout1\n"))
-			proc2.Stdout.Write([]byte("stdout2\n"))
+			_, err = proc1.Stdout.Write([]byte("stdout1\n"))
+			Expect(err).ToNot(HaveOccurred())
+			_, err = proc2.Stdout.Write([]byte("stdout2\n"))
+			Expect(err).ToNot(HaveOccurred())
 
-			proc1.Stderr.Write([]byte("stderr1\n"))
-			proc2.Stderr.Write([]byte("stderr2\n"))
+			_, err = proc1.Stderr.Write([]byte("stderr1\n"))
+			Expect(err).ToNot(HaveOccurred())
+			_, err = proc2.Stderr.Write([]byte("stderr2\n"))
+			Expect(err).ToNot(HaveOccurred())
 
 			Expect(ui.Blocks).To(Equal([]string{
 				"?/id1: stdout | ", "stdout1", "\n",
@@ -224,8 +232,10 @@ var _ = Describe("ComboRunner", func() {
 			err := comboRunner.Run(connOpts, result, cmdFactory)
 			Expect(err).ToNot(HaveOccurred())
 
-			proc1.Stdout.Write([]byte("stdout"))
-			proc1.Stderr.Write([]byte("stderr"))
+			_, err = proc1.Stdout.Write([]byte("stdout"))
+			Expect(err).ToNot(HaveOccurred())
+			_, err = proc1.Stderr.Write([]byte("stderr"))
+			Expect(err).ToNot(HaveOccurred())
 
 			Expect(stdout.String()).To(Equal("stdout"))
 			Expect(stderr.String()).To(Equal("stderr"))

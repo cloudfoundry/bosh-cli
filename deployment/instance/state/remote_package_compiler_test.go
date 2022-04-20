@@ -64,7 +64,8 @@ var _ = Describe("RemotePackageCompiler", func() {
 
 				pkg = boshpkg.NewPackage(NewResourceWithBuiltArchive(
 					"fake-package-name", "fake-package-fingerprint", archivePath, "fake-source-package-sha1"), []string{"fake-package-name-dep"})
-				pkg.AttachDependencies([]*boshpkg.Package{pkgDependency})
+				err := pkg.AttachDependencies([]*boshpkg.Package{pkgDependency})
+				Expect(err).ToNot(HaveOccurred())
 
 				depRecord1 := bistatepkg.CompiledPackageRecord{
 					BlobID:   "fake-compiled-package-blob-id-dep",
@@ -157,7 +158,8 @@ var _ = Describe("RemotePackageCompiler", func() {
 
 				pkg = boshpkg.NewCompiledPackageWithArchive(
 					"fake-package-name", "fake-package-fingerprint", "", archivePath, "fake-source-package-sha1", []string{"fake-package-name-dep"})
-				pkg.AttachDependencies([]*boshpkg.CompiledPackage{pkgDependency})
+				err := pkg.AttachDependencies([]*boshpkg.CompiledPackage{pkgDependency})
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("should skip compilation but still add blobstore package", func() {

@@ -3,7 +3,7 @@ package cmd_test
 import (
 	"path/filepath"
 
-	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
+	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
@@ -12,11 +12,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	mock_agentclient "github.com/cloudfoundry/bosh-cli/agentclient/mocks"
+	mockagentclient "github.com/cloudfoundry/bosh-cli/agentclient/mocks"
 	bicmd "github.com/cloudfoundry/bosh-cli/cmd"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
-	mock_deployment "github.com/cloudfoundry/bosh-cli/deployment/mocks"
+	mockdeployment "github.com/cloudfoundry/bosh-cli/deployment/mocks"
 	bidepltpl "github.com/cloudfoundry/bosh-cli/deployment/template"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	biinstall "github.com/cloudfoundry/bosh-cli/installation"
@@ -46,12 +46,12 @@ var _ = Describe("DeploymentStateManager", func() {
 
 		fakeUI *fakeui.FakeUI
 
-		mockDeploymentManagerFactory *mock_deployment.MockManagerFactory
-		mockDeploymentManager        *mock_deployment.MockManager
-		mockDeployment               *mock_deployment.MockDeployment
+		mockDeploymentManagerFactory *mockdeployment.MockManagerFactory
+		mockDeploymentManager        *mockdeployment.MockManager
+		mockDeployment               *mockdeployment.MockDeployment
 
-		mockAgentClient        *mock_agentclient.MockAgentClient
-		mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
+		mockAgentClient        *mockagentclient.MockAgentClient
+		mockAgentClientFactory *mockhttpagent.MockAgentClientFactory
 
 		fakeStage *fakebiui.FakeStage
 
@@ -84,7 +84,7 @@ nH9ttalAwSLBsobVaK8mmiAdtAdx+CmHWrB4UNxCPYasrt5A6a9A9SiQ2dLd
 `
 
 	var writeDeploymentManifest = func() {
-		fs.WriteFileString(deploymentManifestPath, `---
+		err := fs.WriteFileString(deploymentManifestPath, `---
 name: test-release
 
 releases:
@@ -117,6 +117,7 @@ cloud_provider:
       nH9ttalAwSLBsobVaK8mmiAdtAdx+CmHWrB4UNxCPYasrt5A6a9A9SiQ2dLd
       -----END CERTIFICATE-----
 `)
+		Expect(err).ToNot(HaveOccurred())
 	}
 
 	var newDeploymentStateManager = func() bicmd.DeploymentStateManager {
@@ -162,18 +163,19 @@ cloud_provider:
 		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 		deploymentStatePath = biconfig.DeploymentStatePath(deploymentManifestPath, "")
 		setupDeploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, deploymentStatePath)
-		setupDeploymentStateService.Load()
+		_, err := setupDeploymentStateService.Load()
+		Expect(err).ToNot(HaveOccurred())
 
 		fakeUI = &fakeui.FakeUI{}
 
 		fakeStage = fakebiui.NewFakeStage()
 
-		mockDeploymentManagerFactory = mock_deployment.NewMockManagerFactory(mockCtrl)
-		mockDeploymentManager = mock_deployment.NewMockManager(mockCtrl)
-		mockDeployment = mock_deployment.NewMockDeployment(mockCtrl)
+		mockDeploymentManagerFactory = mockdeployment.NewMockManagerFactory(mockCtrl)
+		mockDeploymentManager = mockdeployment.NewMockManager(mockCtrl)
+		mockDeployment = mockdeployment.NewMockDeployment(mockCtrl)
 
-		mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
-		mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
+		mockAgentClientFactory = mockhttpagent.NewMockAgentClientFactory(mockCtrl)
+		mockAgentClient = mockagentclient.NewMockAgentClient(mockCtrl)
 
 		directorID = "fake-uuid-0"
 		skipDrain = false
@@ -240,9 +242,10 @@ cloud_provider:
 		Context("when the deployment has been deployed", func() {
 			BeforeEach(func() {
 				// create deployment manifest yaml file
-				setupDeploymentStateService.Save(biconfig.DeploymentState{
+				err := setupDeploymentStateService.Save(biconfig.DeploymentState{
 					DirectorID: directorID,
 				})
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("stops the deployment", func() {
@@ -273,7 +276,8 @@ cloud_provider:
 
 		Context("when nothing has been deployed", func() {
 			BeforeEach(func() {
-				setupDeploymentStateService.Save(biconfig.DeploymentState{DirectorID: "fake-uuid-0"})
+				err := setupDeploymentStateService.Save(biconfig.DeploymentState{DirectorID: "fake-uuid-0"})
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("tries to stop deployment", func() {
@@ -341,9 +345,10 @@ cloud_provider:
 		Context("when the deployment has been deployed", func() {
 			BeforeEach(func() {
 				// create deployment manifest yaml file
-				setupDeploymentStateService.Save(biconfig.DeploymentState{
+				err := setupDeploymentStateService.Save(biconfig.DeploymentState{
 					DirectorID: directorID,
 				})
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("starts the deployment", func() {
@@ -366,7 +371,8 @@ cloud_provider:
 
 		Context("when nothing has been deployed", func() {
 			BeforeEach(func() {
-				setupDeploymentStateService.Save(biconfig.DeploymentState{DirectorID: "fake-uuid-0"})
+				err := setupDeploymentStateService.Save(biconfig.DeploymentState{DirectorID: "fake-uuid-0"})
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("tries to stop deployment", func() {

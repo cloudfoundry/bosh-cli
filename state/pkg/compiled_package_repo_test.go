@@ -57,9 +57,10 @@ var _ = Describe("CompiledPackageRepo", func() {
 		It("returns false if package dependencies have changed after saving", func() {
 			dependency := newPkg("dep-name", "dep-fp", nil)
 			pkg := newPkg("pkg-name", "pkg-fp", []string{"dep-name"})
-			pkg.AttachDependencies([]*boshrelpkg.Package{dependency})
+			err := pkg.AttachDependencies([]*boshrelpkg.Package{dependency})
+			Expect(err).ToNot(HaveOccurred())
 
-			err := compiledPackageRepo.Save(pkg, record)
+			err = compiledPackageRepo.Save(pkg, record)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, found, err := compiledPackageRepo.Find(pkg)
@@ -68,7 +69,8 @@ var _ = Describe("CompiledPackageRepo", func() {
 
 			dependency = newPkg("dep-name", "new-dep-fp", nil)
 			pkg = newPkg("pkg-name", "pkg-fp", []string{"dep-name"})
-			pkg.AttachDependencies([]*boshrelpkg.Package{dependency})
+			err = pkg.AttachDependencies([]*boshrelpkg.Package{dependency})
+			Expect(err).ToNot(HaveOccurred())
 
 			_, found, err = compiledPackageRepo.Find(pkg)
 			Expect(err).ToNot(HaveOccurred())
@@ -79,13 +81,15 @@ var _ = Describe("CompiledPackageRepo", func() {
 			dependency1 := newPkg("dep1-name", "dep1-fp", nil)
 			dependency2 := newPkg("dep2-name", "dep2-fp", nil)
 			pkg := newPkg("pkg-name", "pkg-fp", []string{"dep1-name", "dep2-name"})
-			pkg.AttachDependencies([]*boshrelpkg.Package{dependency1, dependency2})
+			err := pkg.AttachDependencies([]*boshrelpkg.Package{dependency1, dependency2})
+			Expect(err).ToNot(HaveOccurred())
 
-			err := compiledPackageRepo.Save(pkg, record)
+			err = compiledPackageRepo.Save(pkg, record)
 			Expect(err).ToNot(HaveOccurred())
 
 			pkg = newPkg("pkg-name", "pkg-fp", []string{"dep2-name", "dep1-name"})
-			pkg.AttachDependencies([]*boshrelpkg.Package{dependency2, dependency1})
+			err = pkg.AttachDependencies([]*boshrelpkg.Package{dependency2, dependency1})
+			Expect(err).ToNot(HaveOccurred())
 
 			result, found, err := compiledPackageRepo.Find(pkg)
 			Expect(err).ToNot(HaveOccurred())
@@ -97,11 +101,13 @@ var _ = Describe("CompiledPackageRepo", func() {
 			dependency1 := newPkg("dep1-name", "dep1-fp", []string{"dep3-name"})
 			dependency2 := newPkg("dep2-name", "dep2-fp", nil)
 			dependency3 := newPkg("dep3-name", "dep3-fp", nil)
-			dependency1.AttachDependencies([]*boshrelpkg.Package{dependency3})
+			err := dependency1.AttachDependencies([]*boshrelpkg.Package{dependency3})
+			Expect(err).ToNot(HaveOccurred())
 			pkg := newPkg("pkg-name", "pkg-fp", []string{"dep1-name", "dep2-name"})
-			pkg.AttachDependencies([]*boshrelpkg.Package{dependency1, dependency2})
+			err = pkg.AttachDependencies([]*boshrelpkg.Package{dependency1, dependency2})
+			Expect(err).ToNot(HaveOccurred())
 
-			err := compiledPackageRepo.Save(pkg, record)
+			err = compiledPackageRepo.Save(pkg, record)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, found, err := compiledPackageRepo.Find(pkg)
@@ -111,9 +117,11 @@ var _ = Describe("CompiledPackageRepo", func() {
 			dependency1 = newPkg("dep1-name", "dep1-fp", []string{"dep3-name"})
 			dependency2 = newPkg("dep2-name", "dep2-fp", nil)
 			dependency3 = newPkg("dep3-name", "new-dep3-fp", nil)
-			dependency1.AttachDependencies([]*boshrelpkg.Package{dependency3})
+			err = dependency1.AttachDependencies([]*boshrelpkg.Package{dependency3})
+			Expect(err).ToNot(HaveOccurred())
 			pkg = newPkg("pkg-name", "pkg-fp", []string{"dep1-name", "dep2-name"})
-			pkg.AttachDependencies([]*boshrelpkg.Package{dependency1, dependency2})
+			err = pkg.AttachDependencies([]*boshrelpkg.Package{dependency1, dependency2})
+			Expect(err).ToNot(HaveOccurred())
 
 			_, found, err = compiledPackageRepo.Find(pkg)
 			Expect(err).ToNot(HaveOccurred())
@@ -121,7 +129,7 @@ var _ = Describe("CompiledPackageRepo", func() {
 		})
 
 		It("returns error when saving to index fails", func() {
-			fs.WriteFileError = errors.New("Could not save")
+			fs.WriteFileError = errors.New("could not save")
 
 			record := CompiledPackageRecord{
 				BlobID:   "fake-blob-id",

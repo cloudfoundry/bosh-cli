@@ -52,7 +52,7 @@ var _ = Describe("sha1ify-release", func() {
 
 	It("converts the SHA2s into SHA1s for packages and jobs", func() {
 		sha1ifyReleasePath := createSimpleRelease()
-		defer fs.RemoveAll(filepath.Dir(sha1ifyReleasePath))
+		defer fs.RemoveAll(filepath.Dir(sha1ifyReleasePath)) //nolint:errcheck
 
 		dirtyPath, err := fs.TempDir("sha1release")
 		Expect(err).ToNot(HaveOccurred())

@@ -80,8 +80,10 @@ var _ = Describe("RepackStemcellCmd", func() {
 
 				sp := filepath.Join(scTempDir, "stemcell.MF")
 				ip := filepath.Join(scTempDir, "image")
-				fs.WriteFile(ip, []byte("image-contents"))
-				fs.WriteFile(sp, manifestBytes)
+				err = fs.WriteFile(ip, []byte("image-contents"))
+				Expect(err).ToNot(HaveOccurred())
+				err = fs.WriteFile(sp, manifestBytes)
+				Expect(err).ToNot(HaveOccurred())
 
 				compressedPath, err := compressor.CompressFilesInDir(scTempDir)
 				Expect(err).ToNot(HaveOccurred())
@@ -252,46 +254,49 @@ func (fc *FakeCompressor) CompressFilesInDir(dir string) (path string, err error
 	for _, file := range filesInDir {
 		fileContents, err := fc.fs.ReadFile(filepath.Join(dir, file))
 		if err != nil {
-			return "", fmt.Errorf("Reading file to compress: %s", err.Error())
+			return "", fmt.Errorf("reading file to compress: %s", err.Error())
 		}
 		archive[file] = fileContents
 	}
 	compressedArchive, err := json.Marshal(archive)
 	if err != nil {
-		return "", fmt.Errorf("Marshalling json: %s", err.Error())
+		return "", fmt.Errorf("marshalling json: %s", err.Error())
 	}
 	compressedFile, _ := fc.fs.TempFile("stemcell-tgz")
 	path = compressedFile.Name()
-	fc.fs.WriteFile(compressedFile.Name(), compressedArchive)
+	err = fc.fs.WriteFile(compressedFile.Name(), compressedArchive)
+	if err != nil {
+		return "", fmt.Errorf("writing file: %s", err.Error())
+	}
 	return path, nil
 }
 
-func (fc *FakeCompressor) CompressSpecificFilesInDir(dir string, files []string) (path string, err error) {
-	return "", errors.New("Not implemented")
+func (fc *FakeCompressor) CompressSpecificFilesInDir(_ string, _ []string) (path string, err error) {
+	return "", errors.New("not implemented")
 }
 
-func (fc *FakeCompressor) DecompressFileToDir(path string, dir string, options boshcmd.CompressorOptions) (err error) {
+func (fc *FakeCompressor) DecompressFileToDir(path string, dir string, _ boshcmd.CompressorOptions) (err error) {
 	archive, err := fc.fs.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("Reading file to decompress: %s", err.Error())
+		return fmt.Errorf("reading file to decompress: %s", err.Error())
 	}
 
 	decompressed := map[string][]byte{}
 	err = json.Unmarshal(archive, &decompressed)
 	if err != nil {
-		return fmt.Errorf("Unmarshalling files: %s", err.Error())
+		return fmt.Errorf("unmarshalling files: %s", err.Error())
 	}
 
 	for file, content := range decompressed {
 		err = fc.fs.WriteFile(filepath.Join(dir, file), content)
 		if err != nil {
-			return fmt.Errorf("Writing decompressed files: %s", err.Error())
+			return fmt.Errorf("writing decompressed files: %s", err.Error())
 		}
 	}
 	return nil
 }
 
 // CleanUp cleans up compressed file after it was used
-func (fc *FakeCompressor) CleanUp(path string) error {
-	return errors.New("Not implemented")
+func (fc *FakeCompressor) CleanUp(_ string) error {
+	return errors.New("not implemented")
 }

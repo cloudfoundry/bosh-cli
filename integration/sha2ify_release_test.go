@@ -4,15 +4,16 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"path/filepath"
+	"regexp"
+	"strings"
+
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"path/filepath"
-	"regexp"
-	"strings"
 )
 
 var _ = Describe("sha2ify-release", func() {
@@ -53,7 +54,7 @@ var _ = Describe("sha2ify-release", func() {
 
 	It("converts the SHA1s into SHA2s for packages and jobs", func() {
 		sha2ifyReleasePath := createSimpleRelease()
-		defer fs.RemoveAll(filepath.Dir(sha2ifyReleasePath))
+		defer fs.RemoveAll(filepath.Dir(sha2ifyReleasePath)) //nolint:errcheck
 
 		dirtyPath, err := fs.TempDir("sha2release")
 		Expect(err).ToNot(HaveOccurred())

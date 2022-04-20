@@ -42,7 +42,7 @@ var _ = Describe("ArchiveReaderImpl", func() {
 		})
 
 		It("returns a job with the details from the manifest", func() {
-			fs.WriteFileString("/extracted/job/job.MF", `---
+			err := fs.WriteFileString("/extracted/job/job.MF", `---
 name: name
 templates: {src: dst}
 packages: [pkg]
@@ -51,6 +51,7 @@ properties:
     description: prop-desc
     default: prop-default
 `)
+			Expect(err).ToNot(HaveOccurred())
 
 			job, err := reader.Read(ref, "archive-path")
 			Expect(err).NotTo(HaveOccurred())
@@ -63,7 +64,7 @@ properties:
 			Expect(job.Templates).To(Equal(map[string]string{"src": "dst"}))
 			Expect(job.PackageNames).To(Equal([]string{"pkg"}))
 			Expect(job.Properties).To(Equal(map[string]PropertyDefinition{
-				"prop": PropertyDefinition{
+				"prop": {
 					Description: "prop-desc",
 					Default:     biproperty.Property("prop-default"),
 				},
@@ -77,9 +78,10 @@ properties:
 		})
 
 		It("returns an error when the job manifest is invalid", func() {
-			fs.WriteFileString("/extracted/job/job.MF", "-")
+			err := fs.WriteFileString("/extracted/job/job.MF", "-")
+			Expect(err).ToNot(HaveOccurred())
 
-			_, err := reader.Read(ref, "archive-path")
+			_, err = reader.Read(ref, "archive-path")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Unmarshalling job spec"))
 		})
@@ -93,8 +95,10 @@ properties:
 		})
 
 		It("returns a job that can be cleaned up", func() {
-			fs.WriteFileString("/extracted/job/job.MF", "")
-			fs.MkdirAll("/extracted/job", os.ModeDir)
+			err := fs.WriteFileString("/extracted/job/job.MF", "")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.MkdirAll("/extracted/job", os.ModeDir)
+			Expect(err).ToNot(HaveOccurred())
 
 			job, err := reader.Read(ref, "archive-path")
 			Expect(err).NotTo(HaveOccurred())
@@ -104,7 +108,8 @@ properties:
 		})
 
 		It("returns error when cleaning up fails", func() {
-			fs.WriteFileString("/extracted/job/job.MF", "")
+			err := fs.WriteFileString("/extracted/job/job.MF", "")
+			Expect(err).ToNot(HaveOccurred())
 			fs.RemoveAllStub = func(_ string) error { return errors.New("fake-err") }
 
 			job, err := reader.Read(ref, "archive-path")

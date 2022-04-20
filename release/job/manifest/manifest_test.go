@@ -39,7 +39,8 @@ properties:
     default: prop2-default
 `
 
-		fs.WriteFileString("/path", contents)
+		err := fs.WriteFileString("/path", contents)
+		Expect(err).ToNot(HaveOccurred())
 
 		manifest, err := NewManifestFromPath("/path", fs)
 		Expect(err).ToNot(HaveOccurred())
@@ -64,18 +65,20 @@ properties:
 	})
 
 	It("returns error if manifest is not valid yaml", func() {
-		fs.WriteFileString("/path", "-")
+		err := fs.WriteFileString("/path", "-")
+		Expect(err).ToNot(HaveOccurred())
 
-		_, err := NewManifestFromPath("/path", fs)
+		_, err = NewManifestFromPath("/path", fs)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("line 1"))
 	})
 
 	It("returns error if manifest cannot be read", func() {
-		fs.WriteFileString("/path", "-")
+		err := fs.WriteFileString("/path", "-")
+		Expect(err).ToNot(HaveOccurred())
 		fs.ReadFileError = errors.New("fake-err")
 
-		_, err := NewManifestFromPath("/path", fs)
+		_, err = NewManifestFromPath("/path", fs)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("fake-err"))
 	})

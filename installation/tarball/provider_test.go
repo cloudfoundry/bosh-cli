@@ -44,7 +44,8 @@ var _ = Describe("Provider", func() {
 		Context("when URL starts with nothing", func() {
 			BeforeEach(func() {
 				source = newFakeSource("fake-file", "fake-sha1", "fake-description")
-				fs.WriteFileString("expanded-file-path", "")
+				err := fs.WriteFileString("expanded-file-path", "")
+				Expect(err).ToNot(HaveOccurred())
 				fs.ExpandPathExpanded = "expanded-file-path"
 			})
 
@@ -58,7 +59,8 @@ var _ = Describe("Provider", func() {
 		Context("when URL starts with file://", func() {
 			BeforeEach(func() {
 				source = newFakeSource("file://fake-file", "fake-sha1", "fake-description")
-				fs.WriteFileString("expanded-file-path", "")
+				err := fs.WriteFileString("expanded-file-path", "")
+				Expect(err).ToNot(HaveOccurred())
 				fs.ExpandPathExpanded = "expanded-file-path"
 			})
 
@@ -76,8 +78,10 @@ var _ = Describe("Provider", func() {
 
 			Context("when tarball is present in cache", func() {
 				BeforeEach(func() {
-					fs.WriteFileString("fake-source-path", "")
-					cache.Save("fake-source-path", source)
+					err := fs.WriteFileString("fake-source-path", "")
+					Expect(err).ToNot(HaveOccurred())
+					err = cache.Save("fake-source-path", source)
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				It("returns cached tarball path", func() {
@@ -118,9 +122,12 @@ var _ = Describe("Provider", func() {
 				})
 
 				AfterEach(func() {
-					os.RemoveAll(tempDownloadFilePath1)
-					os.RemoveAll(tempDownloadFilePath2)
-					os.RemoveAll(tempDownloadFilePath3)
+					err := os.RemoveAll(tempDownloadFilePath1)
+					Expect(err).ToNot(HaveOccurred())
+					err = os.RemoveAll(tempDownloadFilePath2)
+					Expect(err).ToNot(HaveOccurred())
+					err = os.RemoveAll(tempDownloadFilePath3)
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				Context("when downloading succeds", func() {
@@ -207,7 +214,8 @@ var _ = Describe("Provider", func() {
 						conn, _, err := w.(http.Hijacker).Hijack()
 						Expect(err).NotTo(HaveOccurred())
 
-						conn.Close()
+						err = conn.Close()
+						Expect(err).ToNot(HaveOccurred())
 					})
 
 					BeforeEach(func() {

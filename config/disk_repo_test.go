@@ -131,7 +131,8 @@ var _ = Describe("DiskRepo", func() {
 				Expect(err).ToNot(HaveOccurred())
 				diskID2 = record.ID
 
-				repo.UpdateCurrent(record.ID)
+				err = repo.UpdateCurrent(record.ID)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("returns existing disk", func() {

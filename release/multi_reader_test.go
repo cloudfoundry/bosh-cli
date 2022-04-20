@@ -55,7 +55,8 @@ var _ = Describe("MultiReader", func() {
 		})
 
 		It("uses dir reader when path is a directory", func() {
-			fs.MkdirAll("/release", os.ModePerm)
+			err := fs.MkdirAll("/release", os.ModePerm)
+			Expect(err).ToNot(HaveOccurred())
 
 			dirReader.ReadReturns(readRelease, nil)
 
@@ -70,7 +71,8 @@ var _ = Describe("MultiReader", func() {
 		})
 
 		It("uses archive reader when path is not a yml file or a directory", func() {
-			fs.WriteFileString("/release-archive", "archive")
+			err := fs.WriteFileString("/release-archive", "archive")
+			Expect(err).ToNot(HaveOccurred())
 
 			archiveReader.ReadReturns(readRelease, nil)
 

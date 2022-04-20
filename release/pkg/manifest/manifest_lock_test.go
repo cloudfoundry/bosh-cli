@@ -28,7 +28,8 @@ dependencies:
 - pkg2
 `
 
-		fs.WriteFileString("/path", contents)
+		err := fs.WriteFileString("/path", contents)
+		Expect(err).ToNot(HaveOccurred())
 
 		manifest, err := NewManifestLockFromPath("/path", fs)
 		Expect(err).ToNot(HaveOccurred())
@@ -40,18 +41,20 @@ dependencies:
 	})
 
 	It("returns error if manifest is not valid yaml", func() {
-		fs.WriteFileString("/path", "-")
+		err := fs.WriteFileString("/path", "-")
+		Expect(err).ToNot(HaveOccurred())
 
-		_, err := NewManifestLockFromPath("/path", fs)
+		_, err = NewManifestLockFromPath("/path", fs)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("line 1"))
 	})
 
 	It("returns error if manifest cannot be read", func() {
-		fs.WriteFileString("/path", "-")
+		err := fs.WriteFileString("/path", "-")
+		Expect(err).ToNot(HaveOccurred())
 		fs.ReadFileError = errors.New("fake-err")
 
-		_, err := NewManifestLockFromPath("/path", fs)
+		_, err = NewManifestLockFromPath("/path", fs)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("fake-err"))
 	})

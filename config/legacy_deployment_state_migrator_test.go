@@ -46,7 +46,8 @@ var _ = Describe("legacyDeploymentStateMigrator", func() {
 
 		Context("when legacy deployment config file exists (but is unparseable)", func() {
 			BeforeEach(func() {
-				fakeFs.WriteFileString(legacyDeploymentStateFilePath, `xyz`)
+				err := fakeFs.WriteFileString(legacyDeploymentStateFilePath, `xyz`)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("does not delete the legacy deployment state file", func() {
@@ -61,7 +62,8 @@ var _ = Describe("legacyDeploymentStateMigrator", func() {
 
 		Context("when legacy deployment config file exists (and is empty)", func() {
 			BeforeEach(func() {
-				fakeFs.WriteFileString(legacyDeploymentStateFilePath, `--- {}`)
+				err := fakeFs.WriteFileString(legacyDeploymentStateFilePath, `--- {}`)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("deletes the legacy deployment state file", func() {
@@ -76,7 +78,7 @@ var _ = Describe("legacyDeploymentStateMigrator", func() {
 		Context("when legacy deployment config file exists and UUID exists", func() {
 
 			BeforeEach(func() {
-				fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
+				err := fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
 instances:
 - :id: 1
   :name: micro-robinson
@@ -93,6 +95,7 @@ registry_instances:
   :instance_id: i-a1624150
   :settings: '{}'
 `)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("deletes the legacy deployment state file", func() {
@@ -129,7 +132,7 @@ registry_instances:
 		Context("when legacy deployment config file exists and it does not contain a UUID", func() {
 
 			BeforeEach(func() {
-				fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
+				err := fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
 instances:
 - :id: 1
   :name: micro-robinson
@@ -145,6 +148,7 @@ registry_instances:
   :instance_id: i-a1624150
   :settings: '{}'
 `)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("deletes the legacy deployment state file", func() {
@@ -180,7 +184,7 @@ registry_instances:
 
 		Context("when legacy deployment config file exists (without vm, disk, or stemcell)", func() {
 			BeforeEach(func() {
-				fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
+				err := fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
 instances:
 - :id: 1
   :name: micro-robinson
@@ -197,6 +201,7 @@ registry_instances:
   :instance_id: i-a1624150
   :settings: '{}'
 `)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("deletes the legacy deployment state file", func() {
@@ -232,7 +237,7 @@ registry_instances:
 
 		Context("when legacy deployment config file exists (with vm, disk & stemcell)", func() {
 			BeforeEach(func() {
-				fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
+				err := fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
 instances:
 - :id: 1
   :name: micro-robinson
@@ -249,6 +254,7 @@ registry_instances:
   :instance_id: i-a1624150
   :settings: '{}'
 `)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("deletes the legacy deployment state file", func() {
@@ -298,7 +304,7 @@ registry_instances:
 
 		Context("when legacy deployment config file exists (with vm only)", func() {
 			BeforeEach(func() {
-				fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
+				err := fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
 instances:
 - :id: 1
   :name: micro-robinson
@@ -315,6 +321,7 @@ registry_instances:
   :instance_id: i-a1624150
   :settings: '{}'
 `)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("deletes the legacy deployment state file", func() {
@@ -350,7 +357,7 @@ registry_instances:
 
 		Context("when legacy deployment config file exists (with disk only)", func() {
 			BeforeEach(func() {
-				fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
+				err := fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
 instances:
 - :id: 1
   :name: micro-robinson
@@ -367,6 +374,7 @@ registry_instances:
   :instance_id: i-a1624150
   :settings: '{}'
 `)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("deletes the legacy deployment state file", func() {
@@ -409,7 +417,7 @@ registry_instances:
 
 		Context("when legacy deployment config file exists and contains none-specific node tag (!)", func() {
 			BeforeEach(func() {
-				fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
+				err := fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
 instances:
 - :id: 1
   :name: micro-robinson
@@ -426,6 +434,7 @@ registry_instances:
   :instance_id: i-a1624150
   :settings: ! '{"vm":{"name":"fake-name"}}'
 `)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("deletes the legacy deployment state file", func() {
@@ -461,7 +470,7 @@ registry_instances:
 
 		Context("when legacy deployment config file exists (with stemcell only)", func() {
 			BeforeEach(func() {
-				fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
+				err := fakeFs.WriteFileString(legacyDeploymentStateFilePath, `---
 instances:
 - :id: 1
   :name: micro-robinson
@@ -478,6 +487,7 @@ registry_instances:
   :instance_id: i-a1624150
   :settings: '{}'
 `)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("deletes the legacy deployment state file", func() {

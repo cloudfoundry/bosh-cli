@@ -23,14 +23,15 @@ var _ = Describe("OpsFileArg", func() {
 		})
 
 		It("sets read operations", func() {
-			fs.WriteFileString("/some/path", `
+			err := fs.WriteFileString("/some/path", `
 - type: remove
   path: /a
 - type: remove
   path: /b
 `)
+			Expect(err).ToNot(HaveOccurred())
 
-			err := (&arg).UnmarshalFlag("/some/path")
+			err = (&arg).UnmarshalFlag("/some/path")
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(arg.Ops).To(Equal(patch.Ops{
@@ -50,9 +51,10 @@ var _ = Describe("OpsFileArg", func() {
 		})
 
 		It("returns an error if operations are not valid", func() {
-			fs.WriteFileString("/some/path", "- type: unknown")
+			err := fs.WriteFileString("/some/path", "- type: unknown")
+			Expect(err).ToNot(HaveOccurred())
 
-			err := (&arg).UnmarshalFlag("/some/path")
+			err = (&arg).UnmarshalFlag("/some/path")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(`Building ops: Unknown operation [0] with type 'unknown' within
 {
@@ -62,18 +64,20 @@ var _ = Describe("OpsFileArg", func() {
 		})
 
 		It("returns an error if reading file fails", func() {
-			fs.WriteFileString("/some/path", "content")
+			err := fs.WriteFileString("/some/path", "content")
+			Expect(err).ToNot(HaveOccurred())
 			fs.ReadFileError = errors.New("fake-err")
 
-			err := (&arg).UnmarshalFlag("/some/path")
+			err = (&arg).UnmarshalFlag("/some/path")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
 		It("returns an error if parsing file fails", func() {
-			fs.WriteFileString("/some/path", "content")
+			err := fs.WriteFileString("/some/path", "content")
+			Expect(err).ToNot(HaveOccurred())
 
-			err := (&arg).UnmarshalFlag("/some/path")
+			err = (&arg).UnmarshalFlag("/some/path")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Deserializing ops file '/some/path'"))
 		})

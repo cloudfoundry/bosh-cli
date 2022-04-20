@@ -32,7 +32,7 @@ var _ = Describe("Parser", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		parser = manifest.NewParser(fs, logger, validator)
 
-		fs.WriteFileString(comboManifestPath, `
+		err := fs.WriteFileString(comboManifestPath, `
 ---
 releases:
 - name: fake-release-name-1
@@ -49,6 +49,7 @@ releases:
   sha1: fake-sha4
 name: unknown-keys-are-ignored
 `)
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	Context("when combo manifest path does not exist", func() {
@@ -77,7 +78,7 @@ name: unknown-keys-are-ignored
 	Context("when release url points to a local file", func() {
 		Context("when release file path begins with 'file://~' or 'file:///'", func() {
 			BeforeEach(func() {
-				fs.WriteFileString(comboManifestPath, `
+				err := fs.WriteFileString(comboManifestPath, `
 ---
 releases:
 - name: fake-release-name-1
@@ -87,6 +88,7 @@ releases:
   url: file:///absolute-path/fake-release-2.tgz
   sha1: fake-sha2
 `)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("does not change release url", func() {
@@ -112,13 +114,14 @@ releases:
 
 		Context("when release file path does not begin with 'file://~' or 'file:///'", func() {
 			BeforeEach(func() {
-				fs.WriteFileString(comboManifestPath, `
+				err := fs.WriteFileString(comboManifestPath, `
 ---
 releases:
 - name: fake-release-name-3
   url: file://relative-path/fake-release-3.tgz
   sha1: fake-sha3
 `)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("changes release url to include absolute path to manifest directory", func() {
@@ -140,13 +143,14 @@ releases:
 
 	Context("when release url points to an http url", func() {
 		BeforeEach(func() {
-			fs.WriteFileString(comboManifestPath, `
+			err := fs.WriteFileString(comboManifestPath, `
 ---
 releases:
 - name: fake-release-name-4
   url: http://fake-url/fake-release-4.tgz
   sha1: fake-sha4
 `)
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("does not change the release url", func() {
@@ -196,12 +200,13 @@ releases:
 	})
 
 	It("interpolates variables and later resolves their values", func() {
-		fs.WriteFileString(comboManifestPath, `---
+		err := fs.WriteFileString(comboManifestPath, `---
 releases:
 - name: release-name
   url: ((url))
   sha1: release-sha1
 `)
+		Expect(err).ToNot(HaveOccurred())
 
 		vars := boshtpl.StaticVariables{"url": "file://file.tgz"}
 		ops := patch.Ops{
@@ -223,17 +228,18 @@ releases:
 	})
 
 	It("returns an error if variable key is missing", func() {
-		fs.WriteFileString(comboManifestPath, `---
+		err := fs.WriteFileString(comboManifestPath, `---
 releases:
 - name: release-name
   url: ((url))
   sha1: release-sha1
 `)
+		Expect(err).ToNot(HaveOccurred())
 
 		vars := boshtpl.StaticVariables{}
 		ops := patch.Ops{}
 
-		_, err := parser.Parse(comboManifestPath, vars, ops)
+		_, err = parser.Parse(comboManifestPath, vars, ops)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("Expected to find variables: url"))
 	})

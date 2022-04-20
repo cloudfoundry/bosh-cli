@@ -2,6 +2,7 @@ package disk_test
 
 import (
 	"errors"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -109,6 +110,7 @@ var _ = Describe("Disk", func() {
 			err = disk.Delete()
 			Expect(err).ToNot(HaveOccurred())
 			diskRecords, err := diskRepo.All()
+			Expect(err).ToNot(HaveOccurred())
 			Expect(diskRecords).To(BeEmpty())
 		})
 
@@ -177,6 +179,7 @@ var _ = Describe("Disk", func() {
 				Expect(err).To(Equal(deleteErr))
 
 				diskRecords, err := diskRepo.All()
+				Expect(err).ToNot(HaveOccurred())
 				Expect(diskRecords).To(BeEmpty())
 			})
 

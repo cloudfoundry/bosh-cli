@@ -16,7 +16,7 @@ import (
 	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 	bitemplate "github.com/cloudfoundry/bosh-cli/templatescompiler"
-	mock_template "github.com/cloudfoundry/bosh-cli/templatescompiler/mocks"
+	mocktemplate "github.com/cloudfoundry/bosh-cli/templatescompiler/mocks"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
@@ -33,7 +33,7 @@ var _ = Describe("JobRenderer", func() {
 	})
 
 	var (
-		mockJobListRenderer *mock_template.MockJobListRenderer
+		mockJobListRenderer *mocktemplate.MockJobListRenderer
 		fakeCompressor      *fakeboshcmd.FakeCompressor
 		fakeBlobstore       *fakeboshblob.FakeDigestBlobstore
 
@@ -53,7 +53,7 @@ var _ = Describe("JobRenderer", func() {
 	)
 
 	BeforeEach(func() {
-		mockJobListRenderer = mock_template.NewMockJobListRenderer(mockCtrl)
+		mockJobListRenderer = mocktemplate.NewMockJobListRenderer(mockCtrl)
 		fakeCompressor = fakeboshcmd.NewFakeCompressor()
 		fakeBlobstore = &fakeboshblob.FakeDigestBlobstore{}
 
@@ -76,11 +76,13 @@ var _ = Describe("JobRenderer", func() {
 
 		pkg1 := birelpkg.NewPackage(NewResource("pkg1-name", "pkg1-fp", nil), nil)
 		pkg2 := birelpkg.NewPackage(NewResource("pkg2-name", "pkg2-fp", nil), []string{"pkg1-name"})
-		pkg2.AttachDependencies([]*birelpkg.Package{pkg1})
+		err := pkg2.AttachDependencies([]*birelpkg.Package{pkg1})
+		Expect(err).ToNot(HaveOccurred())
 
 		job := bireljob.NewJob(NewResource("cpi", "fake-release-job-fingerprint", nil))
 		job.PackageNames = []string{"pkg2-name"}
-		job.AttachPackages([]*birelpkg.Package{pkg2})
+		err = job.AttachPackages([]*birelpkg.Package{pkg2})
+		Expect(err).ToNot(HaveOccurred())
 
 		releaseJob = *job
 		releaseJobs = []bireljob.Job{*job}

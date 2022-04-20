@@ -56,7 +56,8 @@ var _ = Describe("Record", func() {
 				Version: "fake-stemcell-version",
 				CID:     "fake-stemcell-cid",
 			}
-			stemcellRepo.SetFindCurrentBehavior(stemcellRecord, true, nil)
+			err := stemcellRepo.SetFindCurrentBehavior(stemcellRecord, true, nil)
+			Expect(err).ToNot(HaveOccurred())
 
 			deploymentRepo.SetFindCurrentBehavior("fake-manifest-sha1", true, nil)
 		})
@@ -224,7 +225,8 @@ var _ = Describe("Record", func() {
 
 		Context("when finding the currently deployed stemcell fails", func() {
 			BeforeEach(func() {
-				stemcellRepo.SetFindCurrentBehavior(biconfig.StemcellRecord{}, false, errors.New("fake-find-error"))
+				err := stemcellRepo.SetFindCurrentBehavior(biconfig.StemcellRecord{}, false, errors.New("fake-find-error"))
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("returns an error", func() {
@@ -236,7 +238,8 @@ var _ = Describe("Record", func() {
 
 		Context("when no stemcell is currently deployed", func() {
 			BeforeEach(func() {
-				stemcellRepo.SetFindCurrentBehavior(biconfig.StemcellRecord{}, false, nil)
+				err := stemcellRepo.SetFindCurrentBehavior(biconfig.StemcellRecord{}, false, nil)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("returns false", func() {
@@ -254,7 +257,8 @@ var _ = Describe("Record", func() {
 					Version: "fake-stemcell-version-2",
 					CID:     "fake-stemcell-cid-2",
 				}
-				stemcellRepo.SetFindCurrentBehavior(stemcellRecord, true, nil)
+				err := stemcellRepo.SetFindCurrentBehavior(stemcellRecord, true, nil)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("returns false", func() {
@@ -303,7 +307,8 @@ var _ = Describe("Record", func() {
 			})
 
 			It("does not update the release records", func() {
-				deploymentRecord.Update("fake-manifest-sha1", releases)
+				err := deploymentRecord.Update("fake-manifest-sha1", releases)
+				Expect(err).To(HaveOccurred())
 				Expect(releaseRepo.UpdateCallCount()).To(Equal(0))
 			})
 		})

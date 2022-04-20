@@ -83,7 +83,8 @@ var _ = Describe("UIDownloader", func() {
 				fs.ReturnTempFile = fakeFile
 
 				director.DownloadResourceUncheckedStub = func(_ string, out io.Writer) error {
-					out.Write([]byte("file-contents"))
+					_, err := out.Write([]byte("file-contents"))
+					Expect(err).ToNot(HaveOccurred())
 					return nil
 				}
 
@@ -101,15 +102,17 @@ var _ = Describe("UIDownloader", func() {
 
 			It("downloads specified blob to a specific destination", func() {
 				fakeFile := fakesys.NewFakeFile("/some-tmp-file", fs)
-				fakeFile.Write([]byte("file-contents"))
+				_, err := fakeFile.Write([]byte("file-contents"))
+				Expect(err).ToNot(HaveOccurred())
 				fs.ReturnTempFile = fakeFile
 
 				director.DownloadResourceUncheckedStub = func(_ string, out io.Writer) error {
-					out.Write([]byte("file-contents"))
+					_, err := out.Write([]byte("file-contents"))
+					Expect(err).ToNot(HaveOccurred())
 					return nil
 				}
 
-				err := act()
+				err = act()
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fs.FileExists("/some-tmp-file")).To(BeFalse())
@@ -125,10 +128,11 @@ var _ = Describe("UIDownloader", func() {
 
 			It("returns error if sha1 does not match expected sha1", func() {
 				fakeFile := fakesys.NewFakeFile("/some-tmp-file", fs)
-				fakeFile.Write([]byte("file-contents-that-were-corrupted"))
+				_, err := fakeFile.Write([]byte("file-contents-that-were-corrupted"))
+				Expect(err).ToNot(HaveOccurred())
 				fs.ReturnTempFile = fakeFile
 
-				err := act()
+				err = act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Expected stream to have digest 'a2511842a89119b9da922f9528307b7f8f55b798' but was '93135ede4065c7d5958ab7e328d501f8d4d9e2aa'"))
 
@@ -137,11 +141,12 @@ var _ = Describe("UIDownloader", func() {
 
 			It("returns error if sha1 check fails", func() {
 				fakeFile := fakesys.NewFakeFile("/some-tmp-file", fs)
-				fakeFile.Write([]byte("file-contents-that-were-corrupted"))
+				_, err := fakeFile.Write([]byte("file-contents-that-were-corrupted"))
+				Expect(err).ToNot(HaveOccurred())
 				fs.ReturnTempFile = fakeFile
 				fs.OpenFileErr = errors.New("fake-err")
 
-				err := act()
+				err = act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
 
@@ -158,7 +163,8 @@ var _ = Describe("UIDownloader", func() {
 				fs.ReturnTempFile = fakesys.NewFakeFile("/some-tmp-file", fs)
 
 				director.DownloadResourceUncheckedStub = func(_ string, out io.Writer) error {
-					out.Write([]byte("content"))
+					_, err := out.Write([]byte("content"))
+					Expect(err).ToNot(HaveOccurred())
 					return nil
 				}
 
@@ -192,7 +198,8 @@ var _ = Describe("UIDownloader", func() {
 				fs.ReturnTempFile = fakesys.NewFakeFile("/some-tmp-file", fs)
 
 				director.DownloadResourceUncheckedStub = func(_ string, out io.Writer) error {
-					out.Write([]byte("content"))
+					_, err := out.Write([]byte("content"))
+					Expect(err).ToNot(HaveOccurred())
 					return nil
 				}
 

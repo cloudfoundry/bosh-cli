@@ -59,10 +59,14 @@ var _ = Describe("RedigestRelease", func() {
 			Destination: FileArg{ExpandedPath: "/some/release_256.tgz"},
 		}
 
-		fs.WriteFileString(job1ResourcePath, "hello world")
-		fs.WriteFileString(pkg1ResourcePath, "hello world")
-		fs.WriteFileString(compiledPackage1ResourcePath, "hello world")
-		fs.WriteFileString(licenseResourcePath, "hello world")
+		err := fs.WriteFileString(job1ResourcePath, "hello world")
+		Expect(err).ToNot(HaveOccurred())
+		err = fs.WriteFileString(pkg1ResourcePath, "hello world")
+		Expect(err).ToNot(HaveOccurred())
+		err = fs.WriteFileString(compiledPackage1ResourcePath, "hello world")
+		Expect(err).ToNot(HaveOccurred())
+		err = fs.WriteFileString(licenseResourcePath, "hello world")
+		Expect(err).ToNot(HaveOccurred())
 
 		fakeSha128Release = &fakerel.FakeRelease{}
 		jobSha128 := boshjob.NewJob(NewResourceWithBuiltArchive("job-resource-1", "job-sha128-fp", job1ResourcePath, fileContentSha1))
@@ -262,7 +266,8 @@ var _ = Describe("RedigestRelease", func() {
 	Context("Given an invalid sha128 release tar", func() {
 		Context("Given a job that does not verify", func() {
 			BeforeEach(func() {
-				fs.WriteFileString(job1ResourcePath, "content that does not match expected sha1")
+				err := fs.WriteFileString(job1ResourcePath, "content that does not match expected sha1")
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("should return an error", func() {
@@ -275,7 +280,8 @@ var _ = Describe("RedigestRelease", func() {
 
 		Context("Given a package that does not verify", func() {
 			BeforeEach(func() {
-				fs.WriteFileString(pkg1ResourcePath, "content that does not match expected sha1")
+				err := fs.WriteFileString(pkg1ResourcePath, "content that does not match expected sha1")
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("should return an error", func() {
@@ -288,7 +294,8 @@ var _ = Describe("RedigestRelease", func() {
 
 		Context("Given a compiled package that does not verify", func() {
 			BeforeEach(func() {
-				fs.WriteFileString(compiledPackage1ResourcePath, "content that does not match expected sha1")
+				err := fs.WriteFileString(compiledPackage1ResourcePath, "content that does not match expected sha1")
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("should return an error", func() {
@@ -301,7 +308,8 @@ var _ = Describe("RedigestRelease", func() {
 
 		Context("Given a license that does not verify", func() {
 			BeforeEach(func() {
-				fs.WriteFileString(licenseResourcePath, "content that does not match expected sha1")
+				err := fs.WriteFileString(licenseResourcePath, "content that does not match expected sha1")
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("should return an error", func() {

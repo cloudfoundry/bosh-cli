@@ -82,11 +82,11 @@ var _ = Describe("FingerprinterImpl", func() {
 
 			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
 				// file1 directory is not sha1-ed
-				filepath.Join("/", "tmp", "file2"):        fakecrypto.CalculateInput{DigestStr: "file2-sha1"},
-				filepath.Join("/", "tmp", "file3"):        fakecrypto.CalculateInput{DigestStr: "file3-sha1"},
-				filepath.Join("/", "tmp", "rel", "file4"): fakecrypto.CalculateInput{DigestStr: "file4-sha1"},
-				filepath.Join("/", "tmp", "file5"):        fakecrypto.CalculateInput{DigestStr: "file5-sha1"},
-				filepath.Join("/", "tmp", "rel", "file6"): fakecrypto.CalculateInput{DigestStr: "file6-sha1"},
+				filepath.Join("/", "tmp", "file2"):        {DigestStr: "file2-sha1"},
+				filepath.Join("/", "tmp", "file3"):        {DigestStr: "file3-sha1"},
+				filepath.Join("/", "tmp", "rel", "file4"): {DigestStr: "file4-sha1"},
+				filepath.Join("/", "tmp", "file5"):        {DigestStr: "file5-sha1"},
+				filepath.Join("/", "tmp", "rel", "file6"): {DigestStr: "file6-sha1"},
 			})
 
 			chunks = []string{
@@ -124,13 +124,14 @@ var _ = Describe("FingerprinterImpl", func() {
 
 	It("returns an error when the resulting checksum contains unexpected content so it does not pass incompatible fingerprints to director", func() {
 		files := []File{NewFile(filepath.Join("/", "tmp", "file"), filepath.Join("/", "tmp"))}
-		fs.WriteFileString(filepath.Join("/", "tmp", "file"), "stuff")
+		err := fs.WriteFileString(filepath.Join("/", "tmp", "file"), "stuff")
+		Expect(err).ToNot(HaveOccurred())
 
 		digestCalculator.CalculateStringInputs = map[string]string{
 			strings.Join([]string{"v2", "file", "100644"}, ""): "whatTheAlgorithmIsThat!:asdfasdfasdfasdf",
 		}
 
-		_, err := fingerprinter.Calculate(files, []string{})
+		_, err = fingerprinter.Calculate(files, []string{})
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("Generated fingerprint contains unexpected characters 'whatTheAlgorithmIsThat!:asdfasdfasdfasdf'"))
@@ -147,11 +148,13 @@ var _ = Describe("FingerprinterImpl", func() {
 				NewFile(filepath.Join("/", "tmp", "symlink"), filepath.Join("/", "tmp")),
 			}
 
-			fs.WriteFileString(filepath.Join("/", "tmp", "regular"), "")
-			fs.Symlink(filepath.Join("/", "tmp", "regular"), filepath.Join("/", "tmp", "symlink"))
+			err := fs.WriteFileString(filepath.Join("/", "tmp", "regular"), "")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.Symlink(filepath.Join("/", "tmp", "regular"), filepath.Join("/", "tmp", "symlink"))
+			Expect(err).ToNot(HaveOccurred())
 
 			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-				filepath.Join("/", "tmp", "regular"): fakecrypto.CalculateInput{DigestStr: "regular-sha1"},
+				filepath.Join("/", "tmp", "regular"): {DigestStr: "regular-sha1"},
 			})
 
 			chunks := []string{
@@ -182,11 +185,13 @@ var _ = Describe("FingerprinterImpl", func() {
 				NewFile(filepath.Join("/", "tmp", "symlink"), filepath.Join("/", "tmp")),
 			}
 
-			fs.WriteFileString(filepath.Join("/", "tmp", "regular"), "")
-			fs.Symlink("nothing", filepath.Join("/", "tmp", "symlink"))
+			err := fs.WriteFileString(filepath.Join("/", "tmp", "regular"), "")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.Symlink("nothing", filepath.Join("/", "tmp", "symlink"))
+			Expect(err).ToNot(HaveOccurred())
 
 			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-				filepath.Join("/", "tmp", "regular"): fakecrypto.CalculateInput{DigestStr: "regular-sha1"},
+				filepath.Join("/", "tmp", "regular"): {DigestStr: "regular-sha1"},
 			})
 
 			chunks := []string{
@@ -223,7 +228,7 @@ var _ = Describe("FingerprinterImpl", func() {
 		})
 
 		digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-			filepath.Join("/", "tmp", "file2"): fakecrypto.CalculateInput{Err: errors.New("fake-err")},
+			filepath.Join("/", "tmp", "file2"): {Err: errors.New("fake-err")},
 		})
 
 		_, err := fingerprinter.Calculate([]File{NewFile(filepath.Join("/", "tmp", "file2"), filepath.Join("/", "tmp"))}, nil)

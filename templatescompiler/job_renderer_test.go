@@ -63,14 +63,14 @@ var _ = Describe("JobRenderer", func() {
 		fs = fakesys.NewFakeFileSystem()
 		jobRenderer = NewJobRenderer(fakeERBRenderer, fs, nil, logger)
 
-		fakeERBRenderer.SetRenderBehavior(
+		_ = fakeERBRenderer.SetRenderBehavior(
 			filepath.Join(srcPath, "templates/director.yml.erb"),
 			filepath.Join(dstPath, "config/director.yml"),
 			context,
 			nil,
 		)
 
-		fakeERBRenderer.SetRenderBehavior(
+		_ = fakeERBRenderer.SetRenderBehavior(
 			filepath.Join(srcPath, "monit"),
 			filepath.Join(dstPath, "monit"),
 			context,
@@ -106,7 +106,7 @@ var _ = Describe("JobRenderer", func() {
 
 		Context("when rendering fails", func() {
 			BeforeEach(func() {
-				fakeERBRenderer.SetRenderBehavior(
+				_ = fakeERBRenderer.SetRenderBehavior(
 					filepath.Join(srcPath, "templates/director.yml.erb"),
 					filepath.Join(dstPath, "config/director.yml"),
 					context,

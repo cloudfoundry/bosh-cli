@@ -34,7 +34,8 @@ var _ = Describe("RemoveBlobCmd", func() {
 		)
 
 		BeforeEach(func() {
-			fs.WriteFileString("/path/to/blob.tgz", "blob")
+			err := fs.WriteFileString("/path/to/blob.tgz", "blob")
+			Expect(err).ToNot(HaveOccurred())
 			opts = RemoveBlobOpts{
 				Args: RemoveBlobArgs{BlobsPath: "/path/to/blob.tgz"},
 			}

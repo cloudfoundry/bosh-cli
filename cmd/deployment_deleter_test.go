@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
+	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -16,18 +16,18 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	mock_agentclient "github.com/cloudfoundry/bosh-cli/agentclient/mocks"
-	mock_blobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
-	mock_cloud "github.com/cloudfoundry/bosh-cli/cloud/mocks"
+	mockagentclient "github.com/cloudfoundry/bosh-cli/agentclient/mocks"
+	mockblobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
+	mockcloud "github.com/cloudfoundry/bosh-cli/cloud/mocks"
 	bicmd "github.com/cloudfoundry/bosh-cli/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	bicpirel "github.com/cloudfoundry/bosh-cli/cpi/release"
-	mock_deployment "github.com/cloudfoundry/bosh-cli/deployment/mocks"
+	mockdeployment "github.com/cloudfoundry/bosh-cli/deployment/mocks"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	biinstall "github.com/cloudfoundry/bosh-cli/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
-	mock_install "github.com/cloudfoundry/bosh-cli/installation/mocks"
+	mockinstall "github.com/cloudfoundry/bosh-cli/installation/mocks"
 	bitarball "github.com/cloudfoundry/bosh-cli/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-cli/release"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
@@ -58,26 +58,26 @@ var _ = Describe("DeploymentDeleter", func() {
 			logger                      boshlog.Logger
 			releaseReader               *fakerel.FakeReader
 			releaseManager              birel.Manager
-			mockCpiInstaller            *mock_install.MockInstaller
-			mockCpiUninstaller          *mock_install.MockUninstaller
-			mockInstallerFactory        *mock_install.MockInstallerFactory
-			mockCloudFactory            *mock_cloud.MockFactory
+			mockCpiInstaller            *mockinstall.MockInstaller
+			mockCpiUninstaller          *mockinstall.MockUninstaller
+			mockInstallerFactory        *mockinstall.MockInstallerFactory
+			mockCloudFactory            *mockcloud.MockFactory
 			fakeUUIDGenerator           *fakeuuid.FakeGenerator
 			setupDeploymentStateService biconfig.DeploymentStateService
 			fakeInstallation            *fakecmd.FakeInstallation
 
 			fakeUI *fakeui.FakeUI
 
-			mockBlobstoreFactory *mock_blobstore.MockFactory
-			mockBlobstore        *mock_blobstore.MockBlobstore
+			mockBlobstoreFactory *mockblobstore.MockFactory
+			mockBlobstore        *mockblobstore.MockBlobstore
 
-			mockDeploymentManagerFactory *mock_deployment.MockManagerFactory
-			mockDeploymentManager        *mock_deployment.MockManager
-			mockDeployment               *mock_deployment.MockDeployment
+			mockDeploymentManagerFactory *mockdeployment.MockManagerFactory
+			mockDeploymentManager        *mockdeployment.MockManager
+			mockDeployment               *mockdeployment.MockDeployment
 
-			mockAgentClient        *mock_agentclient.MockAgentClient
-			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
-			mockCloud              *mock_cloud.MockCloud
+			mockAgentClient        *mockagentclient.MockAgentClient
+			mockAgentClientFactory *mockhttpagent.MockAgentClientFactory
+			mockCloud              *mockcloud.MockCloud
 
 			fakeStage *fakebiui.FakeStage
 
@@ -115,7 +115,7 @@ nH9ttalAwSLBsobVaK8mmiAdtAdx+CmHWrB4UNxCPYasrt5A6a9A9SiQ2dLd
 `
 
 		var writeDeploymentManifest = func() {
-			fs.WriteFileString(deploymentManifestPath, `---
+			err := fs.WriteFileString(deploymentManifestPath, `---
 name: test-release
 
 releases:
@@ -148,10 +148,12 @@ cloud_provider:
       nH9ttalAwSLBsobVaK8mmiAdtAdx+CmHWrB4UNxCPYasrt5A6a9A9SiQ2dLd
       -----END CERTIFICATE-----
 `)
+			Expect(err).ToNot(HaveOccurred())
 		}
 
 		var writeCPIReleaseTarball = func() {
-			fs.WriteFileString("/fake-cpi-release.tgz", "fake-tgz-content")
+			err := fs.WriteFileString("/fake-cpi-release.tgz", "fake-tgz-content")
+			Expect(err).ToNot(HaveOccurred())
 		}
 
 		var allowCPIToBeExtracted = func() {
@@ -322,34 +324,35 @@ cloud_provider:
 			fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
 			deploymentStatePath = biconfig.DeploymentStatePath(deploymentManifestPath, "")
 			setupDeploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, deploymentStatePath)
-			setupDeploymentStateService.Load()
+			_, err := setupDeploymentStateService.Load()
+			Expect(err).ToNot(HaveOccurred())
 
 			fakeUI = &fakeui.FakeUI{}
 
 			fakeStage = fakebiui.NewFakeStage()
 
-			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
-			mockCloudFactory = mock_cloud.NewMockFactory(mockCtrl)
+			mockCloud = mockcloud.NewMockCloud(mockCtrl)
+			mockCloudFactory = mockcloud.NewMockFactory(mockCtrl)
 
-			mockCpiInstaller = mock_install.NewMockInstaller(mockCtrl)
-			mockCpiUninstaller = mock_install.NewMockUninstaller(mockCtrl)
-			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
+			mockCpiInstaller = mockinstall.NewMockInstaller(mockCtrl)
+			mockCpiUninstaller = mockinstall.NewMockUninstaller(mockCtrl)
+			mockInstallerFactory = mockinstall.NewMockInstallerFactory(mockCtrl)
 
 			fakeInstallation = &fakecmd.FakeInstallation{}
 
-			mockBlobstoreFactory = mock_blobstore.NewMockFactory(mockCtrl)
-			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+			mockBlobstoreFactory = mockblobstore.NewMockFactory(mockCtrl)
+			mockBlobstore = mockblobstore.NewMockBlobstore(mockCtrl)
 			mockBlobstoreFactory.EXPECT().Create(mbusURL, gomock.Any()).Return(mockBlobstore, nil).AnyTimes()
 
-			mockDeploymentManagerFactory = mock_deployment.NewMockManagerFactory(mockCtrl)
-			mockDeploymentManager = mock_deployment.NewMockManager(mockCtrl)
-			mockDeployment = mock_deployment.NewMockDeployment(mockCtrl)
+			mockDeploymentManagerFactory = mockdeployment.NewMockManagerFactory(mockCtrl)
+			mockDeploymentManager = mockdeployment.NewMockManager(mockCtrl)
+			mockDeployment = mockdeployment.NewMockDeployment(mockCtrl)
 
 			releaseReader = &fakerel.FakeReader{}
 			releaseManager = biinstall.NewReleaseManager(logger)
 
-			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
-			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
+			mockAgentClientFactory = mockhttpagent.NewMockAgentClientFactory(mockCtrl)
+			mockAgentClient = mockagentclient.NewMockAgentClient(mockCtrl)
 
 			directorID = "fake-uuid-0"
 			skipDrain = false
@@ -396,14 +399,15 @@ cloud_provider:
 			Context("when the deployment has been deployed", func() {
 				BeforeEach(func() {
 					// create deployment manifest yaml file
-					setupDeploymentStateService.Save(biconfig.DeploymentState{
+					err := setupDeploymentStateService.Save(biconfig.DeploymentState{
 						DirectorID: directorID,
 					})
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				Context("stemcell version is 2 and present in deployment state", func() {
 					BeforeEach(func() {
-						setupDeploymentStateService.Save(biconfig.DeploymentState{
+						err := setupDeploymentStateService.Save(biconfig.DeploymentState{
 							DirectorID:        directorID,
 							CurrentStemcellID: "stemcell-id",
 							Stemcells: []biconfig.StemcellRecord{
@@ -413,6 +417,7 @@ cloud_provider:
 								},
 							},
 						})
+						Expect(err).ToNot(HaveOccurred())
 
 						stemcellApiVersionForDelete = 2
 					})
@@ -505,7 +510,8 @@ cloud_provider:
 
 			Context("when nothing has been deployed", func() {
 				BeforeEach(func() {
-					setupDeploymentStateService.Save(biconfig.DeploymentState{DirectorID: "fake-uuid-0"})
+					err := setupDeploymentStateService.Save(biconfig.DeploymentState{DirectorID: "fake-uuid-0"})
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				It("cleans up orphans, but does not delete any deployment", func() {

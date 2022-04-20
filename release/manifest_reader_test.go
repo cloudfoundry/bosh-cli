@@ -32,7 +32,7 @@ var _ = Describe("ManifestReader", func() {
 
 		Context("when manifest includes jobs and packages", func() {
 			It("returns release with jobs and packages", func() {
-				fs.WriteFileString("/release.yml", `---
+				err := fs.WriteFileString("/release.yml", `---
 name: release
 version: version
 commit_hash: commit
@@ -59,6 +59,7 @@ packages:
   sha1: pkg1-sha
   dependencies: [pkg2]
 `)
+				Expect(err).ToNot(HaveOccurred())
 
 				release, err := act()
 				Expect(err).NotTo(HaveOccurred())
@@ -68,7 +69,8 @@ packages:
 
 				pkg1 := boshpkg.NewPackage(NewExistingResource("pkg1", "pkg1-fp", "pkg1-sha"), []string{"pkg2"})
 				pkg2 := boshpkg.NewPackage(NewExistingResource("pkg2", "pkg2-fp", "pkg2-sha"), nil)
-				pkg1.AttachDependencies([]*boshpkg.Package{pkg2})
+				err = pkg1.AttachDependencies([]*boshpkg.Package{pkg2})
+				Expect(err).ToNot(HaveOccurred())
 
 				Expect(release.Name()).To(Equal("release"))
 				Expect(release.Version()).To(Equal("version"))
@@ -81,7 +83,7 @@ packages:
 			})
 
 			It("returns error if pkg's pkg dependencies cannot be satisfied", func() {
-				fs.WriteFileString("/release.yml", `---
+				err := fs.WriteFileString("/release.yml", `---
 name: release
 version: version
 packages:
@@ -91,15 +93,17 @@ packages:
   sha1: pkg1-sha
   dependencies: [pkg-with-other-name]
 `)
+				Expect(err).ToNot(HaveOccurred())
 
-				_, err := act()
+				_, err = act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(
 					"Expected to find package 'pkg-with-other-name' since it's a dependency of package 'pkg1'"))
 			})
 
 			It("returns a release that can be cleaned up", func() {
-				fs.WriteFileString("/release.yml", "")
+				err := fs.WriteFileString("/release.yml", "")
+				Expect(err).ToNot(HaveOccurred())
 
 				release, err := reader.Read("/release.yml")
 				Expect(err).NotTo(HaveOccurred())
@@ -111,7 +115,7 @@ packages:
 
 		Context("when manifest includes jobs and compiled packages and license", func() {
 			It("returns a release with jobs, compiled packages and license", func() {
-				fs.WriteFileString("/release.yml", `---
+				err := fs.WriteFileString("/release.yml", `---
 name: release
 version: version
 commit_hash: commit
@@ -145,8 +149,10 @@ license:
   fingerprint: lic-fp
   sha1: lic-sha
 `)
+				Expect(err).ToNot(HaveOccurred())
 
-				fs.WriteFileString("/release/license.tgz", "license")
+				err = fs.WriteFileString("/release/license.tgz", "license")
+				Expect(err).ToNot(HaveOccurred())
 
 				job1 := boshjob.NewJob(NewExistingResource("job1", "job1-fp", "job1-sha"))
 				job2 := boshjob.NewJob(NewExistingResource("job2", "job2-fp", "job2-sha"))
@@ -155,7 +161,8 @@ license:
 					"pkg1", "pkg1-fp", "pkg1-stemcell", "pkg1-sha", []string{"pkg2"})
 				compiledPkg2 := boshpkg.NewCompiledPackageWithoutArchive(
 					"pkg2", "pkg2-fp", "pkg2-stemcell", "pkg2-sha", nil)
-				compiledPkg1.AttachDependencies([]*boshpkg.CompiledPackage{compiledPkg2})
+				err = compiledPkg1.AttachDependencies([]*boshpkg.CompiledPackage{compiledPkg2})
+				Expect(err).ToNot(HaveOccurred())
 
 				lic := boshlic.NewLicense(NewExistingResource("license", "lic-fp", "lic-sha"))
 
@@ -174,7 +181,7 @@ license:
 			})
 
 			It("returns error if compiled pkg's compiled pkg dependencies cannot be satisfied", func() {
-				fs.WriteFileString("/release.yml", `---
+				err := fs.WriteFileString("/release.yml", `---
 name: release
 version: version
 
@@ -186,8 +193,9 @@ compiled_packages:
   sha1: pkg1-sha
   dependencies: [pkg-with-other-name]
 `)
+				Expect(err).ToNot(HaveOccurred())
 
-				_, err := act()
+				_, err = act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring(
 					"Expected to find compiled package 'pkg-with-other-name' since it's a dependency of compiled package 'pkg1'"))
@@ -196,7 +204,8 @@ compiled_packages:
 
 		Context("when the release manifest is invalid", func() {
 			BeforeEach(func() {
-				fs.WriteFileString("/release.yml", "-")
+				err := fs.WriteFileString("/release.yml", "-")
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("returns an error when the YAML in unparseable", func() {
@@ -206,9 +215,10 @@ compiled_packages:
 			})
 
 			It("returns an error when the release manifest is missing", func() {
-				fs.RemoveAll("/release.yml")
+				err := fs.RemoveAll("/release.yml")
+				Expect(err).ToNot(HaveOccurred())
 
-				_, err := act()
+				_, err = act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Reading manifest"))
 			})

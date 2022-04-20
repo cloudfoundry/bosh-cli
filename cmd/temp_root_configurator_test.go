@@ -32,7 +32,8 @@ var _ = Describe("TempRootConfigurator", func() {
 		})
 
 		AfterEach(func() {
-			os.RemoveAll(testTempDir)
+			err := os.RemoveAll(testTempDir)
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		var expectTempFileToBeCreatedUnderRoot = func(root, prefix string, fs boshsys.FileSystem) {
@@ -47,9 +48,11 @@ var _ = Describe("TempRootConfigurator", func() {
 			var existingFilePath string
 
 			BeforeEach(func() {
-				os.MkdirAll(tempRoot, os.ModePerm)
+				err := os.MkdirAll(tempRoot, os.ModePerm)
+				Expect(err).ToNot(HaveOccurred())
 				existingFilePath = filepath.Join(tempRoot, "existing-file")
-				ioutil.WriteFile(existingFilePath, []byte{}, os.ModePerm)
+				err = ioutil.WriteFile(existingFilePath, []byte{}, os.ModePerm)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("clears out any files already in the temp directory", func() {

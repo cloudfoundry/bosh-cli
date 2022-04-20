@@ -51,7 +51,8 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 
 	Describe("Exists", func() {
 		It("returns true if the config file exists", func() {
-			fakeFs.WriteFileString(deploymentStatePath, "")
+			err := fakeFs.WriteFileString(deploymentStatePath, "")
+			Expect(err).ToNot(HaveOccurred())
 			Expect(service.Exists()).To(BeTrue())
 		})
 
@@ -63,12 +64,12 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 	Describe("Load", func() {
 		It("reads the given config file", func() {
 			stemcells := []StemcellRecord{
-				StemcellRecord{
+				{
 					Name:    "fake-stemcell-name-1",
 					Version: "fake-stemcell-version-1",
 					CID:     "fake-stemcell-cid-1",
 				},
-				StemcellRecord{
+				{
 					Name:    "fake-stemcell-name-2",
 					Version: "fake-stemcell-version-2",
 					CID:     "fake-stemcell-cid-2",
@@ -92,7 +93,9 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 				"current_disk_id": "fake-disk-id",
 				"disks":           disks,
 			})
-			fakeFs.WriteFile(deploymentStatePath, deploymentStateFileContents)
+			Expect(err).ToNot(HaveOccurred())
+			err = fakeFs.WriteFile(deploymentStatePath, deploymentStateFileContents)
+			Expect(err).ToNot(HaveOccurred())
 
 			deploymentState, err := service.Load()
 			Expect(err).NotTo(HaveOccurred())
@@ -117,7 +120,8 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 
 		Context("when reading config file fails", func() {
 			BeforeEach(func() {
-				fakeFs.WriteFileString(deploymentStatePath, "{}")
+				err := fakeFs.WriteFileString(deploymentStatePath, "{}")
+				Expect(err).ToNot(HaveOccurred())
 				fakeFs.ReadFileError = errors.New("fake-read-error")
 			})
 
@@ -130,7 +134,8 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 
 		Context("when the config is invalid", func() {
 			It("returns an empty DeploymentState and an error", func() {
-				fakeFs.WriteFileString(deploymentStatePath, "some invalid content")
+				err := fakeFs.WriteFileString(deploymentStatePath, "some invalid content")
+				Expect(err).ToNot(HaveOccurred())
 				deploymentState, err := service.Load()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Unmarshalling deployment state file '/some/deployment.json'"))
@@ -166,6 +171,7 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			deploymentStateFileContents, err := fakeFs.ReadFileString(deploymentStatePath)
+			Expect(err).ToNot(HaveOccurred())
 			deploymentState := DeploymentState{
 				DirectorID: "deadbeef",
 				Stemcells: []StemcellRecord{
@@ -187,6 +193,7 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 				},
 			}
 			expectedDeploymentStateFileContents, err := json.MarshalIndent(deploymentState, "", "    ")
+			Expect(err).ToNot(HaveOccurred())
 			Expect(deploymentStateFileContents).To(Equal(string(expectedDeploymentStateFileContents)))
 		})
 
@@ -208,10 +215,11 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 
 	Describe("Cleanup", func() {
 		It("returns true if deployment state file deleted", func() {
-			fakeFs.WriteFileString(deploymentStatePath, "")
+			err := fakeFs.WriteFileString(deploymentStatePath, "")
+			Expect(err).ToNot(HaveOccurred())
 			Expect(service.Exists()).To(BeTrue())
 
-			err := service.Cleanup()
+			err = service.Cleanup()
 
 			Expect(err).ToNot(HaveOccurred())
 
@@ -221,14 +229,14 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 
 		It("returns error if delete opertation fails to remove file", func() {
 			fakeFs.RemoveAllStub = func(_ string) error {
-				return errors.New("Could not do that Dave")
+				return errors.New("could not do that Dave")
 			}
 
 			Expect(service.Exists()).To(BeFalse())
 
 			err := service.Cleanup()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("Could not do that Dave"))
+			Expect(err.Error()).To(ContainSubstring("could not do that Dave"))
 		})
 	})
 })

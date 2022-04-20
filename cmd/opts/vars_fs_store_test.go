@@ -31,7 +31,8 @@ var _ = Describe("VarsFSStore", func() {
 		})
 
 		It("returns value and found if store finds variable", func() {
-			fs.WriteFileString("/file", "key: val")
+			err := fs.WriteFileString("/file", "key: val")
+			Expect(err).ToNot(HaveOccurred())
 
 			val, found, err := store.Get(boshtpl.VariableDefinition{Name: "key"})
 			Expect(val).To(Equal("val"))
@@ -41,7 +42,8 @@ var _ = Describe("VarsFSStore", func() {
 
 		Context("when store does not find variable", func() {
 			BeforeEach(func() {
-				fs.WriteFileString("/file", "key: val")
+				err := fs.WriteFileString("/file", "key: val")
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("returns nil and not found if variable type is not available", func() {
@@ -105,25 +107,28 @@ var _ = Describe("VarsFSStore", func() {
 		})
 
 		It("returns error if reading file fails", func() {
-			fs.WriteFileString("/file", "contents")
+			err := fs.WriteFileString("/file", "contents")
+			Expect(err).ToNot(HaveOccurred())
 			fs.ReadFileError = errors.New("fake-err")
 
-			_, _, err := store.Get(boshtpl.VariableDefinition{})
+			_, _, err = store.Get(boshtpl.VariableDefinition{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
 		It("returns an error if parsing file fails", func() {
-			fs.WriteFileString("/file", "content")
+			err := fs.WriteFileString("/file", "content")
+			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err := store.Get(boshtpl.VariableDefinition{})
+			_, _, err = store.Get(boshtpl.VariableDefinition{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Deserializing variables file store '/file'"))
 		})
 
 		Context("when file contains only the yaml header", func() {
 			It("tries to generate value and save it if variable type is available", func() {
-				fs.WriteFileString("/file", "---")
+				err := fs.WriteFileString("/file", "---")
+				Expect(err).ToNot(HaveOccurred())
 
 				val, found, err := store.Get(boshtpl.VariableDefinition{Name: "key", Type: "password"})
 				Expect(len(val.(string))).To(BeNumerically(">", 10))
@@ -141,7 +146,8 @@ var _ = Describe("VarsFSStore", func() {
 		})
 
 		It("returns list of names without considering nested keys", func() {
-			fs.WriteFileString("/file", "key1: val\nkey2: {key3: nested}")
+			err := fs.WriteFileString("/file", "key1: val\nkey2: {key3: nested}")
+			Expect(err).ToNot(HaveOccurred())
 
 			defs, err := store.List()
 			Expect(defs).To(ConsistOf([]boshtpl.VariableDefinition{{Name: "key1"}, {Name: "key2"}}))
@@ -155,18 +161,20 @@ var _ = Describe("VarsFSStore", func() {
 		})
 
 		It("returns an error if parsing file fails", func() {
-			fs.WriteFileString("/file", "content")
+			err := fs.WriteFileString("/file", "content")
+			Expect(err).ToNot(HaveOccurred())
 
-			_, err := store.List()
+			_, err = store.List()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Deserializing variables file store '/file'"))
 		})
 
 		It("returns error if reading file fails", func() {
-			fs.WriteFileString("/file", "contents")
+			err := fs.WriteFileString("/file", "contents")
+			Expect(err).ToNot(HaveOccurred())
 			fs.ReadFileError = errors.New("fake-err")
 
-			_, err := store.List()
+			_, err = store.List()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})

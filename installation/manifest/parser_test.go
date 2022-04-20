@@ -82,7 +82,8 @@ cloud_provider:
 
 		Context("when parser fails to read the combo manifest file", func() {
 			JustBeforeEach(func() {
-				fakeFs.WriteFileString(comboManifestPath, fixtures.validManifest)
+				err := fakeFs.WriteFileString(comboManifestPath, fixtures.validManifest)
+				Expect(err).ToNot(HaveOccurred())
 				fakeFs.ReadFileError = errors.New("fake-read-file-error")
 			})
 
@@ -94,7 +95,8 @@ cloud_provider:
 
 		Context("with a valid manifest", func() {
 			BeforeEach(func() {
-				fakeFs.WriteFileString(comboManifestPath, fixtures.validManifest)
+				err := fakeFs.WriteFileString(comboManifestPath, fixtures.validManifest)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("parses installation from combo manifest", func() {
@@ -121,7 +123,7 @@ cloud_provider:
 			Context("with raw private key", func() {
 				Context("that is valid", func() {
 					BeforeEach(func() {
-						fakeFs.WriteFileString(comboManifestPath, `
+						err := fakeFs.WriteFileString(comboManifestPath, `
 ---
 name: fake-deployment-name
 cloud_provider:
@@ -147,6 +149,7 @@ cloud_provider:
       -----END RSA PRIVATE KEY-----
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
+						Expect(err).ToNot(HaveOccurred())
 						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 					})
 
@@ -168,7 +171,7 @@ cloud_provider:
 				})
 				Context("that is invalid", func() {
 					BeforeEach(func() {
-						fakeFs.WriteFileString(comboManifestPath, `
+						err := fakeFs.WriteFileString(comboManifestPath, `
 ---
 name: fake-deployment-name
 cloud_provider:
@@ -185,6 +188,7 @@ cloud_provider:
       -----END RSA PRIVATE KEY-----
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
+						Expect(err).ToNot(HaveOccurred())
 						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 					})
 
@@ -199,7 +203,7 @@ cloud_provider:
 			Context("with new format raw private key", func() {
 				Context("that is valid", func() {
 					BeforeEach(func() {
-						fakeFs.WriteFileString(comboManifestPath, `
+						err := fakeFs.WriteFileString(comboManifestPath, `
 ---
 name: fake-deployment-name
 cloud_provider:
@@ -228,6 +232,7 @@ cloud_provider:
       -----END OPENSSH PRIVATE KEY-----
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
+						Expect(err).ToNot(HaveOccurred())
 						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 					})
 
@@ -249,7 +254,7 @@ cloud_provider:
 				})
 				Context("that is invalid", func() {
 					BeforeEach(func() {
-						fakeFs.WriteFileString(comboManifestPath, `
+						err := fakeFs.WriteFileString(comboManifestPath, `
 ---
 name: fake-deployment-name
 cloud_provider:
@@ -266,6 +271,7 @@ cloud_provider:
       -----END OPENSSH PRIVATE KEY-----
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
+						Expect(err).ToNot(HaveOccurred())
 						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 					})
 
@@ -280,7 +286,7 @@ cloud_provider:
 			Context("with private key format", func() {
 				Context("that is unsupported", func() {
 					BeforeEach(func() {
-						fakeFs.WriteFileString(comboManifestPath, `
+						err := fakeFs.WriteFileString(comboManifestPath, `
 ---
 name: fake-deployment-name
 cloud_provider:
@@ -306,6 +312,7 @@ cloud_provider:
       ---- END SSH2 ENCRYPTED PRIVATE KEY ----
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
+						Expect(err).ToNot(HaveOccurred())
 						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 					})
 
@@ -320,7 +327,7 @@ cloud_provider:
 			Context("with private key path", func() {
 				Context("with absolute private_key path", func() {
 					BeforeEach(func() {
-						fakeFs.WriteFileString(comboManifestPath, `
+						err := fakeFs.WriteFileString(comboManifestPath, `
 ---
 name: fake-deployment-name
 cloud_provider:
@@ -334,15 +341,17 @@ cloud_provider:
     private_key: /path/to/fake-ssh-key.pem
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
+						Expect(err).ToNot(HaveOccurred())
 						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
-						fakeFs.WriteFileString("/path/to/fake-ssh-key.pem", "--- BEGIN KEY --- blah --- END KEY ---")
+						err = fakeFs.WriteFileString("/path/to/fake-ssh-key.pem", "--- BEGIN KEY --- blah --- END KEY ---")
+						Expect(err).ToNot(HaveOccurred())
 					})
 
 				})
 
 				Context("with relative private_key path", func() {
 					BeforeEach(func() {
-						fakeFs.WriteFileString(comboManifestPath, `---
+						err := fakeFs.WriteFileString(comboManifestPath, `---
 name: fake-deployment-name
 cloud_provider:
   template:
@@ -355,14 +364,16 @@ cloud_provider:
     private_key: tmp/fake-ssh-key.pem
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
+						Expect(err).ToNot(HaveOccurred())
 						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
-						fakeFs.WriteFileString("/path/to/tmp/fake-ssh-key.pem", "--- BEGIN KEY --- blah --- END KEY ---")
+						err = fakeFs.WriteFileString("/path/to/tmp/fake-ssh-key.pem", "--- BEGIN KEY --- blah --- END KEY ---")
+						Expect(err).ToNot(HaveOccurred())
 					})
 				})
 
 				Context("with private_key path beginning with '~'", func() {
 					BeforeEach(func() {
-						fakeFs.WriteFileString(comboManifestPath, `---
+						err := fakeFs.WriteFileString(comboManifestPath, `---
 name: fake-deployment-name
 cloud_provider:
   template:
@@ -375,16 +386,18 @@ cloud_provider:
     private_key: ~/tmp/fake-ssh-key.pem
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
+						Expect(err).ToNot(HaveOccurred())
 						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 						fakeFs.ExpandPathExpanded = "/Users/foo/tmp/fake-ssh-key.pem"
-						fakeFs.WriteFileString(fakeFs.ExpandPathExpanded, "--- BEGIN KEY --- blah --- END KEY ---")
+						err = fakeFs.WriteFileString(fakeFs.ExpandPathExpanded, "--- BEGIN KEY --- blah --- END KEY ---")
+						Expect(err).ToNot(HaveOccurred())
 					})
 
 				})
 
 				Context("when expanding to the home directory fails", func() {
 					BeforeEach(func() {
-						fakeFs.WriteFileString(comboManifestPath, `
+						err := fakeFs.WriteFileString(comboManifestPath, `
 ---
 name: fake-deployment-name
 cloud_provider:
@@ -398,6 +411,7 @@ cloud_provider:
     private_key: ~/tmp/fake-ssh-key.pem
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
+						Expect(err).ToNot(HaveOccurred())
 						fakeFs.ExpandPathErr = errors.New("fake-expand-error")
 					})
 
@@ -410,7 +424,7 @@ cloud_provider:
 
 				Context("when file does not exist", func() {
 					BeforeEach(func() {
-						fakeFs.WriteFileString(comboManifestPath, `---
+						err := fakeFs.WriteFileString(comboManifestPath, `---
 name: fake-deployment-name
 cloud_provider:
   template:
@@ -423,6 +437,7 @@ cloud_provider:
     private_key: /bar/fake-ssh-key.pem
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
+						Expect(err).ToNot(HaveOccurred())
 						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 					})
 					It("returns an error", func() {
@@ -435,13 +450,14 @@ cloud_provider:
 		})
 
 		It("handles installation manifest validation errors", func() {
-			fakeFs.WriteFileString(comboManifestPath, fixtures.validManifest)
+			err := fakeFs.WriteFileString(comboManifestPath, fixtures.validManifest)
+			Expect(err).ToNot(HaveOccurred())
 
 			fakeValidator.SetValidateBehavior([]fakes.ValidateOutput{
 				{Err: errors.New("nope")},
 			})
 
-			_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
+			_, err = parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Validating installation manifest: nope"))
 		})
@@ -451,7 +467,7 @@ cloud_provider:
 				fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 				fakeFs.ExpandPathExpanded = "/Users/foo/tmp/fake-ssh-key.pem"
 
-				fakeFs.WriteFileString(comboManifestPath, `---
+				err := fakeFs.WriteFileString(comboManifestPath, `---
 name: fake-deployment-name
 cloud_provider:
   template:
@@ -464,7 +480,9 @@ cloud_provider:
     private_key: ((url))
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
 `)
-				fakeFs.WriteFileString("/Users/foo/tmp/fake-ssh-key.pem", "--- BEGIN KEY --- blah --- END KEY ---")
+				Expect(err).ToNot(HaveOccurred())
+				err = fakeFs.WriteFileString("/Users/foo/tmp/fake-ssh-key.pem", "--- BEGIN KEY --- blah --- END KEY ---")
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("resolves their values", func() {
@@ -498,7 +516,7 @@ cloud_provider:
 			Context("with raw certificate", func() {
 				Context("that is valid", func() {
 					BeforeEach(func() {
-						fakeFs.WriteFileString(comboManifestPath, `
+						err := fakeFs.WriteFileString(comboManifestPath, `
 ---
 name: fake-deployment-name
 cloud_provider:
@@ -527,6 +545,7 @@ cloud_provider:
       nH9ttalAwSLBsobVaK8mmiAdtAdx+CmHWrB4UNxCPYasrt5A6a9A9SiQ2dLd
       -----END CERTIFICATE-----
 `)
+						Expect(err).ToNot(HaveOccurred())
 						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 					})
 
@@ -558,7 +577,7 @@ nH9ttalAwSLBsobVaK8mmiAdtAdx+CmHWrB4UNxCPYasrt5A6a9A9SiQ2dLd
 
 				Context("that is invalid", func() {
 					BeforeEach(func() {
-						fakeFs.WriteFileString(comboManifestPath, `
+						err := fakeFs.WriteFileString(comboManifestPath, `
 ---
 name: fake-deployment-name
 cloud_provider:
@@ -572,6 +591,7 @@ cloud_provider:
       no valid certificate
       -----END CERTIFICATE-----
 `)
+						Expect(err).ToNot(HaveOccurred())
 						fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 					})
 
@@ -585,7 +605,8 @@ cloud_provider:
 
 			Context("when ca cert is not provided", func() {
 				BeforeEach(func() {
-					fakeFs.WriteFileString(comboManifestPath, fixtures.missingPrivateKeyManifest)
+					err := fakeFs.WriteFileString(comboManifestPath, fixtures.missingPrivateKeyManifest)
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				It("does not expand the path", func() {

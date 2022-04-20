@@ -65,7 +65,8 @@ var _ = Describe("ArchiveReaderImpl", func() {
 		})
 
 		It("returns a package that can be cleaned up", func() {
-			fs.MkdirAll("/extracted/pkg", os.ModeDir)
+			err := fs.MkdirAll("/extracted/pkg", os.ModeDir)
+			Expect(err).ToNot(HaveOccurred())
 
 			pkg, err := reader.Read(ref, "archive-path")
 			Expect(err).NotTo(HaveOccurred())

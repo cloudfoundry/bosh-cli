@@ -137,7 +137,8 @@ var _ = Describe("Manager", func() {
 
 		Context("when reading disk repo fails", func() {
 			BeforeEach(func() {
-				fakeFs.WriteFileString("/fake/path", "{}")
+				err := fakeFs.WriteFileString("/fake/path", "{}")
+				Expect(err).ToNot(HaveOccurred())
 				fakeFs.ReadFileError = errors.New("fake-read-error")
 			})
 

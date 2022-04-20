@@ -39,7 +39,8 @@ var _ = Describe("DirReaderImpl", func() {
 
 	Describe("Read", func() {
 		It("returns a license collected from directory", func() {
-			fs.WriteFileString("LICENSE", "license-content")
+			err := fs.WriteFileString("LICENSE", "license-content")
+			Expect(err).ToNot(HaveOccurred())
 
 			fs.SetGlob(filepath.Join("/", "dir", "LICENSE*"), []string{filepath.Join("/", "dir", "LICENSE")})
 			fs.SetGlob(filepath.Join("/", "dir", "NOTICE*"), []string{})
@@ -51,7 +52,7 @@ var _ = Describe("DirReaderImpl", func() {
 			Expect(license).To(Equal(NewLicense(NewResource("license", "fp", archive))))
 
 			Expect(collectedFiles).To(Equal([]File{
-				File{Path: filepath.Join("/", "dir", "LICENSE"), DirPath: filepath.Join("/", "dir"), RelativePath: "LICENSE", UseBasename: true, ExcludeMode: true},
+				{Path: filepath.Join("/", "dir", "LICENSE"), DirPath: filepath.Join("/", "dir"), RelativePath: "LICENSE", UseBasename: true, ExcludeMode: true},
 			}))
 
 			Expect(collectedPrepFiles).To(BeEmpty())
@@ -60,8 +61,10 @@ var _ = Describe("DirReaderImpl", func() {
 		})
 
 		It("returns a license and notice collected from directory", func() {
-			fs.WriteFileString("LICENSE", "license-content")
-			fs.WriteFileString("NOTICE", "notice-content")
+			err := fs.WriteFileString("LICENSE", "license-content")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString("NOTICE", "notice-content")
+			Expect(err).ToNot(HaveOccurred())
 
 			fs.SetGlob(filepath.Join("/", "dir", "LICENSE*"), []string{filepath.Join("/", "dir", "LICENSE")})
 			fs.SetGlob(filepath.Join("/", "dir", "NOTICE*"), []string{filepath.Join("/", "dir", "NOTICE.md")})
@@ -73,8 +76,8 @@ var _ = Describe("DirReaderImpl", func() {
 			Expect(license).To(Equal(NewLicense(NewResource("license", "fp", archive))))
 
 			Expect(collectedFiles).To(Equal([]File{
-				File{Path: filepath.Join("/", "dir", "LICENSE"), DirPath: filepath.Join("/", "dir"), RelativePath: "LICENSE", UseBasename: true, ExcludeMode: true},
-				File{Path: filepath.Join("/", "dir", "NOTICE.md"), DirPath: filepath.Join("/", "dir"), RelativePath: "NOTICE.md", UseBasename: true, ExcludeMode: true},
+				{Path: filepath.Join("/", "dir", "LICENSE"), DirPath: filepath.Join("/", "dir"), RelativePath: "LICENSE", UseBasename: true, ExcludeMode: true},
+				{Path: filepath.Join("/", "dir", "NOTICE.md"), DirPath: filepath.Join("/", "dir"), RelativePath: "NOTICE.md", UseBasename: true, ExcludeMode: true},
 			}))
 
 			Expect(collectedPrepFiles).To(BeEmpty())
@@ -96,12 +99,13 @@ var _ = Describe("DirReaderImpl", func() {
 		})
 
 		It("returns error if fingerprinting fails", func() {
-			fs.WriteFileString("LICENSE", "license-content")
+			err := fs.WriteFileString("LICENSE", "license-content")
+			Expect(err).ToNot(HaveOccurred())
 			fs.SetGlob(filepath.Join("/", "dir", "LICENSE*"), []string{filepath.Join("/", "dir", "LICENSE")})
 
 			archive.FingerprintReturns("", errors.New("fake-err"))
 
-			_, err := reader.Read(filepath.Join("/", "dir"))
+			_, err = reader.Read(filepath.Join("/", "dir"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})

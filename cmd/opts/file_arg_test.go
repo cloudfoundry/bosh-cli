@@ -6,8 +6,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	"errors"
-	sysfakes "github.com/cloudfoundry/bosh-utils/system/fakes"
 	"os"
+
+	sysfakes "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("FileArg", func() {
@@ -21,9 +22,12 @@ var _ = Describe("FileArg", func() {
 			fs = sysfakes.NewFakeFileSystem()
 			arg = &FileArg{FS: fs}
 
-			fs.MkdirAll("/some/empty/dir", os.ModeDir)
-			fs.MkdirAll("/some/dir", os.ModeDir)
-			fs.WriteFileString("stuff", "/some/dir/contents")
+			err := fs.MkdirAll("/some/empty/dir", os.ModeDir)
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.MkdirAll("/some/dir", os.ModeDir)
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString("stuff", "/some/dir/contents")
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		Context("when the given path cannot be expanded in the file system", func() {
@@ -57,14 +61,15 @@ var _ = Describe("FileArg", func() {
 
 			Context("when the filesystem errors while stat'ing the file", func() {
 				It("returns an error", func() {
-					fs.WriteFileString("/some/tarball/path.tgz", "it exists")
+					err := fs.WriteFileString("/some/tarball/path.tgz", "it exists")
+					Expect(err).ToNot(HaveOccurred())
 					file := sysfakes.NewFakeFile("/some/tarball/path.tgz", fs)
-					file.StatErr = errors.New("can't stat me!")
+					file.StatErr = errors.New("can't stat me")
 					fs.RegisterOpenFile("/some/tarball/path.tgz", file)
 
-					err := arg.UnmarshalFlag("/some/tarball/path.tgz")
+					err = arg.UnmarshalFlag("/some/tarball/path.tgz")
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("Checking file path: can't stat me!"))
+					Expect(err.Error()).To(Equal("Checking file path: can't stat me"))
 				})
 			})
 

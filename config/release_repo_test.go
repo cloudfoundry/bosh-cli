@@ -28,7 +28,8 @@ var _ = Describe("ReleaseRepo", func() {
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 		fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 		deploymentStateService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
-		deploymentStateService.Load()
+		_, err := deploymentStateService.Load()
+		Expect(err).ToNot(HaveOccurred())
 		repo = NewReleaseRepo(deploymentStateService, fakeUUIDGenerator)
 	})
 
@@ -38,8 +39,8 @@ var _ = Describe("ReleaseRepo", func() {
 				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				conf.Releases = []ReleaseRecord{
-					ReleaseRecord{ID: "fake-guid-a", Name: "fake-name-a", Version: "fake-version-a"},
-					ReleaseRecord{ID: "fake-guid-b", Name: "fake-name-b", Version: "fake-version-b"},
+					{ID: "fake-guid-a", Name: "fake-name-a", Version: "fake-version-a"},
+					{ID: "fake-guid-b", Name: "fake-name-b", Version: "fake-version-b"},
 				}
 				err = deploymentStateService.Save(conf)
 				Expect(err).ToNot(HaveOccurred())
@@ -112,8 +113,8 @@ var _ = Describe("ReleaseRepo", func() {
 				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				conf.Releases = []ReleaseRecord{
-					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
-					ReleaseRecord{ID: "old-uuid", Name: "name2", Version: "2"},
+					{ID: "old-uuid", Name: "name1", Version: "1"},
+					{ID: "old-uuid", Name: "name2", Version: "2"},
 				}
 				err = deploymentStateService.Save(conf)
 				Expect(err).ToNot(HaveOccurred())
@@ -125,8 +126,8 @@ var _ = Describe("ReleaseRepo", func() {
 				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				conf.Releases = []ReleaseRecord{
-					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
-					ReleaseRecord{ID: "old-uuid", Name: "name2", Version: "3"},
+					{ID: "old-uuid", Name: "name1", Version: "1"},
+					{ID: "old-uuid", Name: "name2", Version: "3"},
 				}
 				err = deploymentStateService.Save(conf)
 				Expect(err).ToNot(HaveOccurred())
@@ -158,8 +159,8 @@ var _ = Describe("ReleaseRepo", func() {
 				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				conf.Releases = []ReleaseRecord{
-					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
-					ReleaseRecord{ID: "old-uuid", Name: "other-name", Version: "2"},
+					{ID: "old-uuid", Name: "name1", Version: "1"},
+					{ID: "old-uuid", Name: "other-name", Version: "2"},
 				}
 				err = deploymentStateService.Save(conf)
 				Expect(err).ToNot(HaveOccurred())
@@ -191,9 +192,9 @@ var _ = Describe("ReleaseRepo", func() {
 				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				conf.Releases = []ReleaseRecord{
-					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
-					ReleaseRecord{ID: "old-uuid", Name: "name2", Version: "2"},
-					ReleaseRecord{ID: "old-uuid", Name: "name3", Version: "3"},
+					{ID: "old-uuid", Name: "name1", Version: "1"},
+					{ID: "old-uuid", Name: "name2", Version: "2"},
+					{ID: "old-uuid", Name: "name3", Version: "3"},
 				}
 				err = deploymentStateService.Save(conf)
 				Expect(err).ToNot(HaveOccurred())
@@ -225,7 +226,7 @@ var _ = Describe("ReleaseRepo", func() {
 				conf, err := deploymentStateService.Load()
 				Expect(err).ToNot(HaveOccurred())
 				conf.Releases = []ReleaseRecord{
-					ReleaseRecord{ID: "old-uuid", Name: "name1", Version: "1"},
+					{ID: "old-uuid", Name: "name1", Version: "1"},
 				}
 				err = deploymentStateService.Save(conf)
 				Expect(err).ToNot(HaveOccurred())

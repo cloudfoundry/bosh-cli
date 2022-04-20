@@ -20,7 +20,7 @@ import (
 	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 	bistatepkg "github.com/cloudfoundry/bosh-cli/state/pkg"
-	mock_state_package "github.com/cloudfoundry/bosh-cli/state/pkg/mocks"
+	mockstatepackage "github.com/cloudfoundry/bosh-cli/state/pkg/mocks"
 )
 
 var _ = Describe("PackageCompiler", func() {
@@ -43,7 +43,7 @@ var _ = Describe("PackageCompiler", func() {
 		compressor              *fakecmd.FakeCompressor
 		packagesDir             string
 		blobstore               *fakeblobstore.FakeDigestBlobstore
-		mockCompiledPackageRepo *mock_state_package.MockCompiledPackageRepo
+		mockCompiledPackageRepo *mockstatepackage.MockCompiledPackageRepo
 
 		fakeExtractor *blobextractfakes.FakeExtractor
 
@@ -65,12 +65,13 @@ var _ = Describe("PackageCompiler", func() {
 
 		blobstore.CreateReturns("fake-blob-id", digest, nil)
 
-		mockCompiledPackageRepo = mock_state_package.NewMockCompiledPackageRepo(mockCtrl)
+		mockCompiledPackageRepo = mockstatepackage.NewMockCompiledPackageRepo(mockCtrl)
 
 		dependency1 = birelpkg.NewPackage(NewResource("pkg-dep1-name", "", nil), nil)
 		dependency2 = birelpkg.NewPackage(NewResource("pkg-dep2-name", "", nil), nil)
 		pkg = birelpkg.NewExtractedPackage(NewResource("pkg1-name", "", nil), []string{"pkg-dep1-name", "pkg-dep2-name"}, "/pkg-dir", fs)
-		pkg.AttachDependencies([]*birelpkg.Package{dependency1, dependency2})
+		err := pkg.AttachDependencies([]*birelpkg.Package{dependency1, dependency2})
+		Expect(err).ToNot(HaveOccurred())
 
 		compiler = NewPackageCompiler(
 			runner,
@@ -117,7 +118,8 @@ var _ = Describe("PackageCompiler", func() {
 			mockCompiledPackageRepo.EXPECT().Find(dependency2).Return(dep2, true, nil).AnyTimes()
 
 			// packaging file created when source is extracted
-			fs.WriteFileString("/pkg-dir/packaging", "")
+			err := fs.WriteFileString("/pkg-dir/packaging", "")
+			Expect(err).ToNot(HaveOccurred())
 
 			compressor.CompressFilesInDirTarballPath = compiledPackageTarballPath
 

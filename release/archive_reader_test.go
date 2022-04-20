@@ -48,7 +48,7 @@ var _ = Describe("ArchiveReader", func() {
 		Context("when the given release archive is a valid tar", func() {
 			Context("when manifest that includes jobs and packages", func() {
 				BeforeEach(func() {
-					fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), `---
+					err := fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), `---
 name: release
 version: version
 commit_hash: commit
@@ -75,6 +75,7 @@ packages:
   sha1: pkg1-sha
   dependencies: [pkg2]
 `)
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				It("returns a release from the given tar file", func() {
@@ -199,8 +200,10 @@ packages:
 				})
 
 				It("returns a release that can be cleaned up", func() {
-					fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), "")
-					fs.MkdirAll(filepath.Join("/", "extracted", "release"), os.ModeDir)
+					err := fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), "")
+					Expect(err).ToNot(HaveOccurred())
+					err = fs.MkdirAll(filepath.Join("/", "extracted", "release"), os.ModeDir)
+					Expect(err).ToNot(HaveOccurred())
 
 					release, err := reader.Read("archive-path")
 					Expect(err).NotTo(HaveOccurred())
@@ -210,7 +213,8 @@ packages:
 				})
 
 				It("returns error when cleaning up fails", func() {
-					fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), "")
+					err := fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), "")
+					Expect(err).ToNot(HaveOccurred())
 					fs.RemoveAllStub = func(_ string) error { return errors.New("fake-err") }
 
 					release, err := reader.Read("archive-path")
@@ -222,7 +226,7 @@ packages:
 
 			Context("when manifest that includes jobs and compiled packages and license", func() {
 				BeforeEach(func() {
-					fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), `---
+					err := fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), `---
 name: release
 version: version
 commit_hash: commit
@@ -257,8 +261,10 @@ license:
   sha1: lic-sha
 `,
 					)
+					Expect(err).ToNot(HaveOccurred())
 
-					fs.WriteFileString(filepath.Join("/", "extracted", "release", "license.tgz"), "license")
+					err = fs.WriteFileString(filepath.Join("/", "extracted", "release", "license.tgz"), "license")
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				It("returns a release from the given tar file", func() {
@@ -272,7 +278,8 @@ license:
 					compiledPkg2 := boshpkg.NewCompiledPackageWithArchive(
 						"pkg2", "pkg2-fp", "pkg2-stemcell",
 						filepath.Join("/", "extracted", "release", "compiled_packages", "pkg2.tgz"), "pkg2-sha", nil)
-					compiledPkg1.AttachDependencies([]*boshpkg.CompiledPackage{compiledPkg2})
+					err := compiledPkg1.AttachDependencies([]*boshpkg.CompiledPackage{compiledPkg2})
+					Expect(err).ToNot(HaveOccurred())
 
 					lic := boshlic.NewLicense(NewResourceWithBuiltArchive(
 						"license", "lic-fp", filepath.Join("/", "extracted", "release", "license.tgz"), "lic-sha"))
@@ -335,7 +342,7 @@ license:
 				})
 
 				It("returns error if compiled pkg's compiled pkg dependencies cannot be satisfied", func() {
-					fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), `---
+					err := fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), `---
 name: release
 version: version
 
@@ -347,8 +354,9 @@ compiled_packages:
   sha1: pkg1-sha
   dependencies: [pkg-with-other-name]
 `)
+					Expect(err).ToNot(HaveOccurred())
 
-					_, err := act()
+					_, err = act()
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring(
 						"Expected to find compiled package 'pkg-with-other-name' since it's a dependency of compiled package 'pkg1'"))
@@ -359,7 +367,8 @@ compiled_packages:
 
 			Context("when the release manifest is invalid", func() {
 				BeforeEach(func() {
-					fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), "-")
+					err := fs.WriteFileString(filepath.Join("/", "extracted", "release", "release.MF"), "-")
+					Expect(err).ToNot(HaveOccurred())
 				})
 
 				It("returns an error when the YAML in unparseable", func() {
@@ -369,8 +378,9 @@ compiled_packages:
 				})
 
 				It("returns an error when the release manifest is missing", func() {
-					fs.RemoveAll(filepath.Join("/", "extracted", "release", "release.MF"))
-					_, err := act()
+					err := fs.RemoveAll(filepath.Join("/", "extracted", "release", "release.MF"))
+					Expect(err).ToNot(HaveOccurred())
+					_, err = act()
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Reading manifest"))
 				})

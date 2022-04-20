@@ -29,9 +29,10 @@ var _ = Describe("Cache", func() {
 	})
 
 	It("is a cache hit when the tarball with that url and sha1 has been downloaded", func() {
-		fs.WriteFileString("source-path", "")
+		err := fs.WriteFileString("source-path", "")
+		Expect(err).ToNot(HaveOccurred())
 
-		err := cache.Save("source-path", &fakeSource{
+		err = cache.Save("source-path", &fakeSource{
 			sha1:        "fake-sha1",
 			url:         "http://foo.bar.com",
 			description: "some tarball",
@@ -48,9 +49,10 @@ var _ = Describe("Cache", func() {
 	})
 
 	It("is a cache miss when a tarball from a different url has been downloaded, even if SHA1 matches", func() {
-		fs.WriteFileString("source-path", "")
+		err := fs.WriteFileString("source-path", "")
+		Expect(err).ToNot(HaveOccurred())
 
-		err := cache.Save("source-path", &fakeSource{
+		err = cache.Save("source-path", &fakeSource{
 			sha1:        "fake-sha1",
 			url:         "http://foo.bar.com",
 			description: "some tarball",
@@ -66,9 +68,10 @@ var _ = Describe("Cache", func() {
 	})
 
 	It("is a cache miss when a tarball from a different SHA1 has been downloaded, even if url matches", func() {
-		fs.WriteFileString("source-path", "")
+		err := fs.WriteFileString("source-path", "")
+		Expect(err).ToNot(HaveOccurred())
 
-		err := cache.Save("source-path", &fakeSource{
+		err = cache.Save("source-path", &fakeSource{
 			sha1:        "fake-sha1",
 			url:         "http://foo.bar.com",
 			description: "some tarball",
@@ -84,9 +87,10 @@ var _ = Describe("Cache", func() {
 	})
 
 	It("saves files under the base path named with their URL sha1 and tarball sha1", func() {
-		fs.WriteFileString("source-path", "")
+		err := fs.WriteFileString("source-path", "")
+		Expect(err).ToNot(HaveOccurred())
 
-		err := cache.Save("source-path", &fakeSource{
+		err = cache.Save("source-path", &fakeSource{
 			sha1:        "fake-sha1",
 			url:         "http://foo.bar.com",
 			description: "some tarball",
@@ -105,9 +109,10 @@ var _ = Describe("Cache", func() {
 		fs.RenameError = &os.LinkError{
 			Err: syscall.Errno(0x12),
 		}
-		fs.WriteFileString("source-path", "")
+		err := fs.WriteFileString("source-path", "")
+		Expect(err).ToNot(HaveOccurred())
 
-		err := cache.Save("source-path", &fakeSource{
+		err = cache.Save("source-path", &fakeSource{
 			sha1:        "fake-sha1",
 			url:         "http://foo.bar.com",
 			description: "some tarball",

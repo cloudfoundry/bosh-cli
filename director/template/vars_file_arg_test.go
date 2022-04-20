@@ -23,9 +23,10 @@ var _ = Describe("VarsFileArg", func() {
 		})
 
 		It("sets read vars", func() {
-			fs.WriteFileString("/some/path", "name1: var1\nname2: var2")
+			err := fs.WriteFileString("/some/path", "name1: var1\nname2: var2")
+			Expect(err).ToNot(HaveOccurred())
 
-			err := (&arg).UnmarshalFlag("/some/path")
+			err = (&arg).UnmarshalFlag("/some/path")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(arg.Vars).To(Equal(StaticVariables{
 				"name1": "var1",
@@ -34,17 +35,19 @@ var _ = Describe("VarsFileArg", func() {
 		})
 
 		It("returns objects", func() {
-			fs.WriteFileString("/some/path", "name1: \n  key: value")
+			err := fs.WriteFileString("/some/path", "name1: \n  key: value")
+			Expect(err).ToNot(HaveOccurred())
 
-			err := (&arg).UnmarshalFlag("/some/path")
+			err = (&arg).UnmarshalFlag("/some/path")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(arg.Vars["name1"]).To(Equal(map[interface{}]interface{}{"key": "value"}))
 		})
 
 		It("returns yaml parsed objects of expected type", func() {
-			fs.WriteFileString("/some/path", "name1: 1\nname2: nil\nname3: true\nname4: \"\"\nname5: \nname6: ~\n")
+			err := fs.WriteFileString("/some/path", "name1: 1\nname2: nil\nname3: true\nname4: \"\"\nname5: \nname6: ~\n")
+			Expect(err).ToNot(HaveOccurred())
 
-			err := (&arg).UnmarshalFlag("/some/path")
+			err = (&arg).UnmarshalFlag("/some/path")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(arg.Vars).To(Equal(StaticVariables{
 				"name1": 1,
@@ -57,18 +60,20 @@ var _ = Describe("VarsFileArg", func() {
 		})
 
 		It("returns an error if reading file fails", func() {
-			fs.WriteFileString("/some/path", "content")
+			err := fs.WriteFileString("/some/path", "content")
+			Expect(err).ToNot(HaveOccurred())
 			fs.ReadFileError = errors.New("fake-err")
 
-			err := (&arg).UnmarshalFlag("/some/path")
+			err = (&arg).UnmarshalFlag("/some/path")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
 		It("returns an error if parsing file fails", func() {
-			fs.WriteFileString("/some/path", "content")
+			err := fs.WriteFileString("/some/path", "content")
+			Expect(err).ToNot(HaveOccurred())
 
-			err := (&arg).UnmarshalFlag("/some/path")
+			err = (&arg).UnmarshalFlag("/some/path")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Deserializing variables file '/some/path'"))
 		})

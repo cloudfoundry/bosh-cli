@@ -45,19 +45,21 @@ var _ = Describe("NewFSConfigFromPath", func() {
 
 	It("returns error if reading file fails", func() {
 		fs := fakesys.NewFakeFileSystem()
-		fs.WriteFileString("/config", "")
+		err := fs.WriteFileString("/config", "")
+		Expect(err).ToNot(HaveOccurred())
 		fs.ReadFileError = errors.New("fake-err")
 
-		_, err := NewFSConfigFromPath("/config", fs)
+		_, err = NewFSConfigFromPath("/config", fs)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("fake-err"))
 	})
 
 	It("returns error if config file cannot be unmarshaled", func() {
 		fs := fakesys.NewFakeFileSystem()
-		fs.WriteFileString("/config", "-")
+		err := fs.WriteFileString("/config", "-")
+		Expect(err).ToNot(HaveOccurred())
 
-		_, err := NewFSConfigFromPath("/config", fs)
+		_, err = NewFSConfigFromPath("/config", fs)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("line 1"))
 	})
@@ -97,9 +99,9 @@ var _ = Describe("FSConfig", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(updatedConfig.Environments()).To(Equal([]Environment{
-				Environment{URL: "url1", Alias: "alias1"},
-				Environment{URL: "url2", Alias: "alias2"},
-				Environment{URL: "url3", Alias: "alias3"},
+				{URL: "url1", Alias: "alias1"},
+				{URL: "url2", Alias: "alias2"},
+				{URL: "url3", Alias: "alias3"},
 			}))
 
 			err = updatedConfig.Save()
@@ -107,9 +109,9 @@ var _ = Describe("FSConfig", func() {
 
 			reloadedConfig := readConfig()
 			Expect(reloadedConfig.Environments()).To(Equal([]Environment{
-				Environment{URL: "url1", Alias: "alias1"},
-				Environment{URL: "url2", Alias: "alias2"},
-				Environment{URL: "url3", Alias: "alias3"},
+				{URL: "url1", Alias: "alias1"},
+				{URL: "url2", Alias: "alias2"},
+				{URL: "url3", Alias: "alias3"},
 			}))
 		})
 	})
@@ -139,13 +141,13 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("deletes an environment with a particular alias", func() {
-			len := len(config.Environments())
+			envLen := len(config.Environments())
 			var err error
 			config, err = config.UnaliasEnvironment("alias")
 			Expect(err).ToNot(HaveOccurred())
 
 			envs := config.Environments()
-			Expect(envs).To(HaveLen(len - 1))
+			Expect(envs).To(HaveLen(envLen - 1))
 
 			Expect(findEnv("alias", envs)).To(BeNil())
 			Expect(findEnv("alias2", envs)).ToNot(BeNil())
@@ -385,7 +387,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns creds with username/password if environment is found and basic creds are set", func() {
-			updatedConfig, err := config.AliasEnvironment("url", "alias", "")
+			updatedConfig, err := config.AliasEnvironment("url", "alias", "") //nolint:ineffassign
 			Expect(err).ToNot(HaveOccurred())
 
 			updatedConfig = config.SetCredentials("url", Creds{Client: "user", ClientSecret: "pass"})
@@ -408,7 +410,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns creds with token if environment is found and token is set", func() {
-			updatedConfig, err := config.AliasEnvironment("url", "alias", "")
+			updatedConfig, err := config.AliasEnvironment("url", "alias", "") //nolint:ineffassign
 			Expect(err).ToNot(HaveOccurred())
 
 			updatedConfig = config.SetCredentials("url", Creds{AccessToken: "access", AccessTokenType: "access-type", RefreshToken: "token"})
@@ -431,7 +433,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns creds for alias if environment is found and token is set", func() {
-			updatedConfig, err := config.AliasEnvironment("url", "alias", "")
+			updatedConfig, err := config.AliasEnvironment("url", "alias", "") //nolint:ineffassign
 			Expect(err).ToNot(HaveOccurred())
 
 			updatedConfig = config.SetCredentials("alias", Creds{AccessToken: "access", AccessTokenType: "access-type", RefreshToken: "token"})
@@ -454,7 +456,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("does not update existing config when creds are set", func() {
-			updatedConfig, err := config.AliasEnvironment("url", "alias", "")
+			updatedConfig, err := config.AliasEnvironment("url", "alias", "") //nolint:ineffassign
 			Expect(err).ToNot(HaveOccurred())
 
 			updatedConfig = config.SetCredentials("url", Creds{Client: "user"})

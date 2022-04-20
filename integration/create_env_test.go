@@ -20,11 +20,11 @@ import (
 
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-cli/agentclient/mocks"
-	mock_blobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
+	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
+	mockagentclient "github.com/cloudfoundry/bosh-cli/agentclient/mocks"
+	mockblobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
-	mock_cloud "github.com/cloudfoundry/bosh-cli/cloud/mocks"
+	mockcloud "github.com/cloudfoundry/bosh-cli/cloud/mocks"
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
@@ -33,7 +33,7 @@ import (
 	bidepl "github.com/cloudfoundry/bosh-cli/deployment"
 	bidisk "github.com/cloudfoundry/bosh-cli/deployment/disk"
 	biinstance "github.com/cloudfoundry/bosh-cli/deployment/instance"
-	mock_instance_state "github.com/cloudfoundry/bosh-cli/deployment/instance/state/mocks"
+	mockinstancestate "github.com/cloudfoundry/bosh-cli/deployment/instance/state/mocks"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	bisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel"
 	bidepltpl "github.com/cloudfoundry/bosh-cli/deployment/template"
@@ -41,7 +41,7 @@ import (
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	biinstall "github.com/cloudfoundry/bosh-cli/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
-	mock_install "github.com/cloudfoundry/bosh-cli/installation/mocks"
+	mockinstall "github.com/cloudfoundry/bosh-cli/installation/mocks"
 	bitarball "github.com/cloudfoundry/bosh-cli/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-cli/release"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
@@ -75,20 +75,20 @@ var _ = Describe("bosh", func() {
 
 			releaseManager birel.Manager
 
-			mockInstaller          *mock_install.MockInstaller
-			mockInstallerFactory   *mock_install.MockInstallerFactory
-			mockCloudFactory       *mock_cloud.MockFactory
-			mockCloud              *mock_cloud.MockCloud
-			mockAgentClient        *mock_agentclient.MockAgentClient
-			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
+			mockInstaller          *mockinstall.MockInstaller
+			mockInstallerFactory   *mockinstall.MockInstallerFactory
+			mockCloudFactory       *mockcloud.MockFactory
+			mockCloud              *mockcloud.MockCloud
+			mockAgentClient        *mockagentclient.MockAgentClient
+			mockAgentClientFactory *mockhttpagent.MockAgentClientFactory
 			releaseReader          *fakerel.FakeReader
 
-			mockStateBuilderFactory *mock_instance_state.MockBuilderFactory
-			mockStateBuilder        *mock_instance_state.MockBuilder
-			mockState               *mock_instance_state.MockState
+			mockStateBuilderFactory *mockinstancestate.MockBuilderFactory
+			mockStateBuilder        *mockinstancestate.MockBuilder
+			mockState               *mockinstancestate.MockState
 
-			mockBlobstoreFactory *mock_blobstore.MockFactory
-			mockBlobstore        *mock_blobstore.MockBlobstore
+			mockBlobstoreFactory *mockblobstore.MockFactory
+			mockBlobstore        *mockblobstore.MockBlobstore
 
 			fakeStemcellExtractor         *fakebistemcell.FakeExtractor
 			fakeUUIDGenerator             *fakeuuid.FakeGenerator
@@ -268,7 +268,8 @@ cloud_provider:
 			job := bireljob.NewJob(NewResource("fake-cpi-release-job-name", "", nil))
 			job.Templates = map[string]string{filepath.Join("templates", "cpi.erb"): "bin/cpi"}
 			job.PackageNames = []string{"fake-package-name"}
-			job.AttachPackages([]*birelpkg.Package{cpiPackage})
+			err := job.AttachPackages([]*birelpkg.Package{cpiPackage})
+			Expect(err).ToNot(HaveOccurred())
 			cpiRelease := birel.NewRelease(
 				"fake-cpi-release-name",
 				"1.1",
@@ -359,7 +360,7 @@ cloud_provider:
 					Templates: []bias.Blob{},
 				},
 				Packages: map[string]bias.Blob{
-					"fake-package-name": bias.Blob{
+					"fake-package-name": {
 						Name:        "fake-package-name",
 						Version:     "fake-package-fingerprint-cpi",
 						SHA1:        "fake-compiled-package-sha1-cpi",
@@ -779,25 +780,25 @@ cloud_provider:
 
 			fakeDigestCalculator = fakebicrypto.NewFakeDigestCalculator()
 
-			mockInstaller = mock_install.NewMockInstaller(mockCtrl)
-			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
-			mockCloudFactory = mock_cloud.NewMockFactory(mockCtrl)
+			mockInstaller = mockinstall.NewMockInstaller(mockCtrl)
+			mockInstallerFactory = mockinstall.NewMockInstallerFactory(mockCtrl)
+			mockCloudFactory = mockcloud.NewMockFactory(mockCtrl)
 
 			sshTunnelFactory = bisshtunnel.NewFactory(logger)
 
 			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
 
-			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
+			mockCloud = mockcloud.NewMockCloud(mockCtrl)
 
 			releaseReader = &fakerel.FakeReader{}
 			releaseManager = biinstall.NewReleaseManager(logger)
 
-			mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
-			mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
-			mockState = mock_instance_state.NewMockState(mockCtrl)
+			mockStateBuilderFactory = mockinstancestate.NewMockBuilderFactory(mockCtrl)
+			mockStateBuilder = mockinstancestate.NewMockBuilder(mockCtrl)
+			mockState = mockinstancestate.NewMockState(mockCtrl)
 
-			mockBlobstoreFactory = mock_blobstore.NewMockFactory(mockCtrl)
-			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+			mockBlobstoreFactory = mockblobstore.NewMockFactory(mockCtrl)
+			mockBlobstore = mockblobstore.NewMockBlobstore(mockCtrl)
 			mockBlobstoreFactory.EXPECT().Create(mbusURL, gomock.Any()).Return(mockBlobstore, nil).AnyTimes()
 
 			fakeStemcellExtractor = fakebistemcell.NewFakeExtractor()
@@ -806,8 +807,8 @@ cloud_provider:
 			stdErr = gbytes.NewBuffer()
 			fakeStage = fakebiui.NewFakeStage()
 
-			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
-			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
+			mockAgentClientFactory = mockhttpagent.NewMockAgentClientFactory(mockCtrl)
+			mockAgentClient = mockagentclient.NewMockAgentClient(mockCtrl)
 
 			mockAgentClientFactory.EXPECT().NewAgentClient(directorID, mbusURL, caCert).Return(mockAgentClient, nil).AnyTimes()
 

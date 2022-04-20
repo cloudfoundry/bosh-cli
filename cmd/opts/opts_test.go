@@ -36,9 +36,9 @@ var _ = Describe("Opts", func() {
 		})
 
 		It("long or short command options do not shadow global opts", func() {
-			globalLongOptNames := []string{}
-			globalShortOptNames := []string{}
-			cmdOptss := []reflect.Value{}
+			globalLongOptNames := make([]string, 0)
+			globalShortOptNames := make([]string, 0)
+			cmdOptss := make([]reflect.Value, 0)
 
 			optsStruct := reflect.TypeOf(opts).Elem()
 
@@ -1818,7 +1818,8 @@ var _ = Describe("Opts", func() {
 
 			It("rejects paths that are directories", func() {
 				opts.PathToResult.FS = fakesys.NewFakeFileSystem()
-				opts.PathToResult.FS.MkdirAll("/some/dir", os.ModeDir)
+				err := opts.PathToResult.FS.MkdirAll("/some/dir", os.ModeDir)
+				Expect(err).ToNot(HaveOccurred())
 				Expect(opts.PathToResult.UnmarshalFlag("/some/dir")).NotTo(Succeed())
 			})
 		})
@@ -3073,7 +3074,8 @@ var _ = Describe("Opts", func() {
 
 			It("rejects paths that are directories", func() {
 				opts.Tarball.FS = fakesys.NewFakeFileSystem()
-				opts.Tarball.FS.MkdirAll("/some/dir", os.ModeDir)
+				err := opts.Tarball.FS.MkdirAll("/some/dir", os.ModeDir)
+				Expect(err).ToNot(HaveOccurred())
 				Expect(opts.Tarball.UnmarshalFlag("/some/dir")).NotTo(Succeed())
 			})
 		})
@@ -3116,7 +3118,8 @@ var _ = Describe("Opts", func() {
 
 			It("rejects destinations that are directories", func() {
 				opts.Destination.FS = fakesys.NewFakeFileSystem()
-				opts.Destination.FS.MkdirAll("/some/dir", os.ModeDir)
+				err := opts.Destination.FS.MkdirAll("/some/dir", os.ModeDir)
+				Expect(err).ToNot(HaveOccurred())
 				Expect(opts.Destination.UnmarshalFlag("/some/dir")).NotTo(Succeed())
 			})
 		})

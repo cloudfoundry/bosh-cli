@@ -313,7 +313,7 @@ var _ = Describe("JSONUI", func() {
 				Content: "things2",
 			}
 
-			filteredHeader := []Header{}
+			filteredHeader := make([]Header, 0)
 
 			ui.PrintTableFiltered(table, filteredHeader)
 			ui.PrintTableFiltered(table2, filteredHeader)
@@ -339,25 +339,25 @@ var _ = Describe("JSONUI", func() {
 
 	Describe("AskForText", func() {
 		It("panics", func() {
-			Expect(func() { ui.AskForText("") }).To(Panic())
+			Expect(func() { _, _ = ui.AskForText("") }).To(Panic())
 		})
 	})
 
 	Describe("AskForPassword", func() {
 		It("panics", func() {
-			Expect(func() { ui.AskForPassword("") }).To(Panic())
+			Expect(func() { _, _ = ui.AskForPassword("") }).To(Panic())
 		})
 	})
 
 	Describe("AskForChoice", func() {
 		It("panics", func() {
-			Expect(func() { ui.AskForChoice("", nil) }).To(Panic())
+			Expect(func() { _, _ = ui.AskForChoice("", nil) }).To(Panic())
 		})
 	})
 
 	Describe("AskForConfirmation", func() {
 		It("panics", func() {
-			Expect(func() { ui.AskForConfirmation() }).To(Panic())
+			Expect(func() { _ = ui.AskForConfirmation() }).To(Panic())
 		})
 	})
 

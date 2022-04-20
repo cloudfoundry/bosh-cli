@@ -182,12 +182,16 @@ var _ = Describe("FSGenerator", func() {
 
 	Describe("Reset", func() {
 		It("removes .blobs, blobs, .dev_builds and dev_releases", func() {
-			fs.WriteFileString("/dir/.dev_builds/sub-dir", "")
-			fs.WriteFileString("/dir/dev_releases/sub-dir", "")
-			fs.WriteFileString("/dir/.blobs/sub-dir", "")
-			fs.WriteFileString("/dir/blobs/sub-dir", "")
+			err := fs.WriteFileString("/dir/.dev_builds/sub-dir", "")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString("/dir/dev_releases/sub-dir", "")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString("/dir/.blobs/sub-dir", "")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString("/dir/blobs/sub-dir", "")
+			Expect(err).ToNot(HaveOccurred())
 
-			err := releaseDir.Reset()
+			err = releaseDir.Reset()
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fs.FileExists("/dir/.dev_builds")).To(BeFalse())
@@ -646,16 +650,19 @@ var _ = Describe("FSGenerator", func() {
 			pkg2 := boshpkg.NewPackage(pkg2Res, []string{"pkg4-name"})
 			pkg3 := boshpkg.NewPackage(pkg3Res, []string{"pkg4-name"})
 			pkg4 := boshpkg.NewPackage(pkg4Res, nil)
-			pkg1.AttachDependencies([]*boshpkg.Package{pkg2, pkg3})
-			pkg2.AttachDependencies([]*boshpkg.Package{pkg4})
-			pkg3.AttachDependencies([]*boshpkg.Package{pkg4})
+			err := pkg1.AttachDependencies([]*boshpkg.Package{pkg2, pkg3})
+			Expect(err).ToNot(HaveOccurred())
+			err = pkg2.AttachDependencies([]*boshpkg.Package{pkg4})
+			Expect(err).ToNot(HaveOccurred())
+			err = pkg3.AttachDependencies([]*boshpkg.Package{pkg4})
+			Expect(err).ToNot(HaveOccurred())
 
 			// previous content will be overwritten
 			Expect(fs.WriteFileString("/dir/packages/pkg1-name/spec", "old-spec")).ToNot(HaveOccurred())
 			Expect(fs.WriteFileString("/dir/packages/pkg1-name/packaging", "old-packaging")).ToNot(HaveOccurred())
 			Expect(fs.WriteFileString("/dir/packages/pkg2-name/spec.lock", "old-spec-lock")).ToNot(HaveOccurred())
 
-			err := releaseDir.VendorPackage(pkg1)
+			err = releaseDir.VendorPackage(pkg1)
 			Expect(err).ToNot(HaveOccurred())
 
 			// recorded files

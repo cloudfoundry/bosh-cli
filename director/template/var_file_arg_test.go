@@ -23,17 +23,19 @@ var _ = Describe("VarFileArg", func() {
 		})
 
 		It("sets name and value from a file", func() {
-			fs.WriteFileString("/some/path", "val\nval")
+			err := fs.WriteFileString("/some/path", "val\nval")
+			Expect(err).ToNot(HaveOccurred())
 
-			err := (&arg).UnmarshalFlag("name=/some/path")
+			err = (&arg).UnmarshalFlag("name=/some/path")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(arg.Vars).To(Equal(StaticVariables{"name": "val\nval"}))
 		})
 
 		It("sets name and value when value contains a `=`", func() {
-			fs.WriteFileString("/some/path=", "val")
+			err := fs.WriteFileString("/some/path=", "val")
+			Expect(err).ToNot(HaveOccurred())
 
-			err := (&arg).UnmarshalFlag("name=/some/path=")
+			err = (&arg).UnmarshalFlag("name=/some/path=")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(arg.Vars).To(Equal(StaticVariables{"name": "val"}))
 		})
@@ -57,10 +59,11 @@ var _ = Describe("VarFileArg", func() {
 		})
 
 		It("returns an error if reading file fails", func() {
-			fs.WriteFileString("/some/path", "content")
+			err := fs.WriteFileString("/some/path", "content")
+			Expect(err).ToNot(HaveOccurred())
 			fs.ReadFileError = errors.New("fake-err")
 
-			err := (&arg).UnmarshalFlag("var=/some/path")
+			err = (&arg).UnmarshalFlag("var=/some/path")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})

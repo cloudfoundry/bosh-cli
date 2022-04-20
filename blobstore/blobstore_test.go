@@ -77,7 +77,8 @@ var _ = Describe("Blobstore", func() {
 
 	Describe("Add", func() {
 		BeforeEach(func() {
-			fs.WriteFileString("fake-source-path", "fake-contents")
+			err := fs.WriteFileString("fake-source-path", "fake-contents")
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("adds file to blobstore and returns its blob ID", func() {

@@ -17,30 +17,30 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
-	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
-	mock_agentclient "github.com/cloudfoundry/bosh-cli/agentclient/mocks"
-	mock_blobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
+	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
+	mockagentclient "github.com/cloudfoundry/bosh-cli/agentclient/mocks"
+	mockblobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
-	mock_cloud "github.com/cloudfoundry/bosh-cli/cloud/mocks"
+	mockcloud "github.com/cloudfoundry/bosh-cli/cloud/mocks"
 	bicmd "github.com/cloudfoundry/bosh-cli/cmd"
 	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
-	mock_config "github.com/cloudfoundry/bosh-cli/config/mocks"
+	mockconfig "github.com/cloudfoundry/bosh-cli/config/mocks"
 	bicpirel "github.com/cloudfoundry/bosh-cli/cpi/release"
 	"github.com/cloudfoundry/bosh-cli/deployment"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	fakebideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest/manifestfakes"
 	fakebideplval "github.com/cloudfoundry/bosh-cli/deployment/manifest/manifestfakes"
-	mock_deployment "github.com/cloudfoundry/bosh-cli/deployment/mocks"
+	mockdeployment "github.com/cloudfoundry/bosh-cli/deployment/mocks"
 	bidepltpl "github.com/cloudfoundry/bosh-cli/deployment/template"
 	fakebidepltpl "github.com/cloudfoundry/bosh-cli/deployment/template/templatefakes"
 	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/fakes"
-	mock_vm "github.com/cloudfoundry/bosh-cli/deployment/vm/mocks"
+	mockvm "github.com/cloudfoundry/bosh-cli/deployment/vm/mocks"
 	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
 	biinstall "github.com/cloudfoundry/bosh-cli/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
 	fakebiinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest/fakes"
-	mock_install "github.com/cloudfoundry/bosh-cli/installation/mocks"
+	mockinstall "github.com/cloudfoundry/bosh-cli/installation/mocks"
 	bitarball "github.com/cloudfoundry/bosh-cli/installation/tarball"
 	boshrel "github.com/cloudfoundry/bosh-cli/release"
 	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
@@ -51,7 +51,7 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
 	fakebirelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest/fakes"
 	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
-	mock_stemcell "github.com/cloudfoundry/bosh-cli/stemcell/mocks"
+	mockstemcell "github.com/cloudfoundry/bosh-cli/stemcell/mocks"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
 	biui "github.com/cloudfoundry/bosh-cli/ui"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
@@ -85,34 +85,34 @@ var _ = Describe("CreateEnvCmd", func() {
 			userInterface biui.UI
 			manifestSHA   string
 
-			mockDeployer         *mock_deployment.MockDeployer
-			mockInstaller        *mock_install.MockInstaller
-			mockInstallerFactory *mock_install.MockInstallerFactory
+			mockDeployer         *mockdeployment.MockDeployer
+			mockInstaller        *mockinstall.MockInstaller
+			mockInstallerFactory *mockinstall.MockInstallerFactory
 			releaseReader        *fakerel.FakeReader
 			releaseManager       biinstall.ReleaseManager
 
-			mockAgentClient        *mock_agentclient.MockAgentClient
-			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
-			mockCloudFactory       *mock_cloud.MockFactory
-			mockCloud              *mock_cloud.MockCloud
+			mockAgentClient        *mockagentclient.MockAgentClient
+			mockAgentClientFactory *mockhttpagent.MockAgentClientFactory
+			mockCloudFactory       *mockcloud.MockFactory
+			mockCloud              *mockcloud.MockCloud
 
 			cpiRelease *fakebirel.FakeRelease
 			logger     boshlog.Logger
 
-			mockBlobstoreFactory *mock_blobstore.MockFactory
-			mockBlobstore        *mock_blobstore.MockBlobstore
+			mockBlobstoreFactory *mockblobstore.MockFactory
+			mockBlobstore        *mockblobstore.MockBlobstore
 
-			mockVMManagerFactory       *mock_vm.MockManagerFactory
+			mockVMManagerFactory       *mockvm.MockManagerFactory
 			fakeVMManager              *fakebivm.FakeManager
 			fakeStemcellExtractor      *fakebistemcell.FakeExtractor
-			mockStemcellManager        *mock_stemcell.MockManager
+			mockStemcellManager        *mockstemcell.MockManager
 			fakeStemcellManagerFactory *fakebistemcell.FakeManagerFactory
 
 			fakeReleaseSetParser              *fakebirelsetmanifest.FakeParser
 			fakeInstallationParser            *fakebiinstallmanifest.FakeParser
 			fakeDeploymentParser              *fakebideplmanifest.FakeParser
 			fakeDeploymentTemplateFactory     *fakebidepltpl.FakeDeploymentTemplateFactory
-			mockLegacyDeploymentStateMigrator *mock_config.MockLegacyDeploymentStateMigrator
+			mockLegacyDeploymentStateMigrator *mockconfig.MockLegacyDeploymentStateMigrator
 			setupDeploymentStateService       biconfig.DeploymentStateService
 			fakeDeploymentValidator           *fakebideplval.FakeValidator
 
@@ -166,31 +166,32 @@ var _ = Describe("CreateEnvCmd", func() {
 				Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
 			})
 
-			fs.WriteFileString(deploymentManifestPath, "")
+			err := fs.WriteFileString(deploymentManifestPath, "")
+			Expect(err).ToNot(HaveOccurred())
 
-			mockDeployer = mock_deployment.NewMockDeployer(mockCtrl)
-			mockInstaller = mock_install.NewMockInstaller(mockCtrl)
-			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
+			mockDeployer = mockdeployment.NewMockDeployer(mockCtrl)
+			mockInstaller = mockinstall.NewMockInstaller(mockCtrl)
+			mockInstallerFactory = mockinstall.NewMockInstallerFactory(mockCtrl)
 
 			releaseReader = &fakerel.FakeReader{}
 			releaseManager = biinstall.NewReleaseManager(logger)
 
-			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
-			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
+			mockAgentClientFactory = mockhttpagent.NewMockAgentClientFactory(mockCtrl)
+			mockAgentClient = mockagentclient.NewMockAgentClient(mockCtrl)
 			mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any(), gomock.Any()).Return(mockAgentClient, nil).AnyTimes()
 
-			mockCloudFactory = mock_cloud.NewMockFactory(mockCtrl)
+			mockCloudFactory = mockcloud.NewMockFactory(mockCtrl)
 
-			mockBlobstoreFactory = mock_blobstore.NewMockFactory(mockCtrl)
-			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+			mockBlobstoreFactory = mockblobstore.NewMockFactory(mockCtrl)
+			mockBlobstore = mockblobstore.NewMockBlobstore(mockCtrl)
 			mockBlobstoreFactory.EXPECT().Create(mbusURL, gomock.Any()).Return(mockBlobstore, nil).AnyTimes()
 
-			mockVMManagerFactory = mock_vm.NewMockManagerFactory(mockCtrl)
+			mockVMManagerFactory = mockvm.NewMockManagerFactory(mockCtrl)
 			fakeVMManager = fakebivm.NewFakeManager()
 			mockVMManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClient).Return(fakeVMManager).AnyTimes()
 
 			fakeStemcellExtractor = fakebistemcell.NewFakeExtractor()
-			mockStemcellManager = mock_stemcell.NewMockManager(mockCtrl)
+			mockStemcellManager = mockstemcell.NewMockManager(mockCtrl)
 			fakeStemcellManagerFactory = fakebistemcell.NewFakeManagerFactory()
 
 			fakeReleaseSetParser = fakebirelsetmanifest.NewFakeParser()
@@ -198,7 +199,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			fakeDeploymentParser = &fakebideplmanifest.FakeParser{}
 			fakeDeploymentTemplateFactory = &fakebidepltpl.FakeDeploymentTemplateFactory{}
 
-			mockLegacyDeploymentStateMigrator = mock_config.NewMockLegacyDeploymentStateMigrator(mockCtrl)
+			mockLegacyDeploymentStateMigrator = mockconfig.NewMockLegacyDeploymentStateMigrator(mockCtrl)
 
 			configUUIDGenerator = &fakeuuid.FakeGenerator{}
 			configUUIDGenerator.GeneratedUUID = directorID
@@ -210,7 +211,6 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 
-			var err error
 			manifestSHA = "ed173647f91a1001fa3859cb7857b0318794a7e92b40412146a93bebfb052218c91c0299e7b495470bf67b462722b807e8db7b9df3b59866451efcf4ae9e27a4"
 			Expect(err).ToNot(HaveOccurred())
 
@@ -219,11 +219,14 @@ var _ = Describe("CreateEnvCmd", func() {
 			stemcellTarballPath = filepath.Join("/", "stemcell", "tarball", "path")
 
 			// create input files
-			fs.WriteFileString(cpiReleaseTarballPath, "")
-			fs.WriteFileString(stemcellTarballPath, "")
+			err = fs.WriteFileString(cpiReleaseTarballPath, "")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(stemcellTarballPath, "")
+			Expect(err).ToNot(HaveOccurred())
 
 			// deployment exists
-			fs.WriteFileString(deploymentManifestPath, "")
+			err = fs.WriteFileString(deploymentManifestPath, "")
+			Expect(err).ToNot(HaveOccurred())
 
 			// deployment is valid
 			fakeDeploymentValidator.SetValidateBehavior([]fakebideplval.ValidateOutput{
@@ -234,7 +237,8 @@ var _ = Describe("CreateEnvCmd", func() {
 			})
 
 			// stemcell exists
-			fs.WriteFile(stemcellTarballPath, []byte{})
+			err = fs.WriteFile(stemcellTarballPath, []byte{})
+			Expect(err).ToNot(HaveOccurred())
 
 			releaseSetManifest = birelsetmanifest.Manifest{
 				Releases: []birelmanifest.ReleaseRef{
@@ -395,7 +399,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			cloudStemcell = fakebistemcell.NewFakeCloudStemcell(
 				"fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version", stemcellApiVersion)
 
-			mockCloud = mock_cloud.NewMockCloud(mockCloudCtrl)
+			mockCloud = mockcloud.NewMockCloud(mockCloudCtrl)
 			mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}, nil).AnyTimes()
 			mockCloud.EXPECT().String().AnyTimes()
 
@@ -755,7 +759,8 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			BeforeEach(func() {
 				otherReleaseTarballPath = filepath.Join("/", "path", "to", "other-release.tgz")
-				fs.WriteFileString(otherReleaseTarballPath, "")
+				err := fs.WriteFileString(otherReleaseTarballPath, "")
+				Expect(err).ToNot(HaveOccurred())
 
 				otherRelease = &fakebirel.FakeRelease{}
 				otherRelease.NameReturns("other-release")
@@ -859,8 +864,8 @@ var _ = Describe("CreateEnvCmd", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(deploymentState.CurrentManifestSHA).To(Equal(manifestSHA))
-					keys := []string{}
-					ids := []string{}
+					keys := make([]string, 0)
+					ids := make([]string, 0)
 					for _, releaseRecord := range deploymentState.Releases {
 						keys = append(keys, fmt.Sprintf("%s-%s", releaseRecord.Name, releaseRecord.Version))
 						ids = append(ids, releaseRecord.ID)
@@ -976,7 +981,8 @@ var _ = Describe("CreateEnvCmd", func() {
 
 		Context("when the deployment state file does not exist", func() {
 			BeforeEach(func() {
-				fs.RemoveAll(deploymentStatePath)
+				err := fs.RemoveAll(deploymentStatePath)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("creates a deployment state", func() {
@@ -1072,7 +1078,8 @@ var _ = Describe("CreateEnvCmd", func() {
 					CurrentManifestSHA: "fake-manifest-sha",
 				}
 
-				setupDeploymentStateService.Save(previousDeploymentState)
+				err := setupDeploymentStateService.Save(previousDeploymentState)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("clears the deployment record", func() {

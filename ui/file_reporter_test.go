@@ -18,11 +18,11 @@ type FakeSeekableReader struct {
 }
 type FakeReaderCloser struct{}
 
-func (FakeSeekableReader) Read(p []byte) (n int, err error) {
+func (FakeSeekableReader) Read(_ []byte) (n int, err error) {
 	panic("should not call")
 }
 
-func (FakeReaderCloser) Read(p []byte) (n int, err error) {
+func (FakeReaderCloser) Read(_ []byte) (n int, err error) {
 	panic("should not call")
 }
 
@@ -52,7 +52,8 @@ var _ = Describe("ReadCloserProxy", func() {
 				fileReporter := NewFileReporter(&fakes.FakeUI{})
 				readCloserProxy := fileReporter.TrackUpload(0, seekerReader)
 
-				readCloserProxy.Seek(12, 42)
+				_, err := readCloserProxy.Seek(12, 42)
+				Expect(err).ToNot(HaveOccurred())
 				Expect(seekerReader.callTracker.Seeks).To(ContainElement([]interface{}{int64(12), 42}))
 			})
 		})

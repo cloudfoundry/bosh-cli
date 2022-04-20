@@ -2,6 +2,7 @@ package stemcell_test
 
 import (
 	"errors"
+
 	. "github.com/cloudfoundry/bosh-cli/stemcell"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -36,7 +37,8 @@ cloud_properties:
   ami:
     us-east-1: fake-ami-version
     `
-		fs.WriteFileString("fake-extracted-path/stemcell.MF", manifestContents)
+		err := fs.WriteFileString("fake-extracted-path/stemcell.MF", manifestContents)
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	It("extracts the stemcells from a stemcell path", func() {
@@ -89,7 +91,8 @@ cloud_properties:
   ami:
     us-east-1: fake-ami-version
     `
-			fs.WriteFileString("fake-extracted-path/stemcell.MF", manifestContents)
+			err := fs.WriteFileString("fake-extracted-path/stemcell.MF", manifestContents)
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("generates correct stemcell", func() {
@@ -148,7 +151,8 @@ cloud_properties:
 
 	Context("when parsing stemcell manifest fails", func() {
 		BeforeEach(func() {
-			fs.WriteFileString("fake-extracted-path/stemcell.MF", "<not-a-yaml>")
+			err := fs.WriteFileString("fake-extracted-path/stemcell.MF", "<not-a-yaml>")
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns an error", func() {

@@ -11,7 +11,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 	. "github.com/cloudfoundry/bosh-cli/state/job"
 	bistatepkg "github.com/cloudfoundry/bosh-cli/state/pkg"
-	mock_state_package "github.com/cloudfoundry/bosh-cli/state/pkg/mocks"
+	mockstatepackage "github.com/cloudfoundry/bosh-cli/state/pkg/mocks"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
@@ -27,7 +27,7 @@ var _ = Describe("DependencyCompiler", func() {
 	})
 
 	var (
-		mockPackageCompiler *mock_state_package.MockCompiler
+		mockPackageCompiler *mockstatepackage.MockCompiler
 		logger              boshlog.Logger
 
 		dependencyCompiler DependencyCompiler
@@ -44,7 +44,7 @@ var _ = Describe("DependencyCompiler", func() {
 	)
 
 	BeforeEach(func() {
-		mockPackageCompiler = mock_state_package.NewMockCompiler(mockCtrl)
+		mockPackageCompiler = mockstatepackage.NewMockCompiler(mockCtrl)
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		dependencyCompiler = NewDependencyCompiler(mockPackageCompiler, logger)
@@ -53,10 +53,12 @@ var _ = Describe("DependencyCompiler", func() {
 
 		pkg1 = newPkg("pkg1-name", "pkg1-fp", nil)
 		pkg2 = newPkg("pkg2-name", "pkg2-fp", []string{"pkg1-name"})
-		pkg2.AttachDependencies([]*boshrelpkg.Package{pkg1})
+		err := pkg2.AttachDependencies([]*boshrelpkg.Package{pkg1})
+		Expect(err).ToNot(HaveOccurred())
 		job = boshreljob.NewJob(NewResourceWithBuiltArchive("cpi", "job-fp", "path", "sha1"))
 		job.PackageNames = []string{"pkg2-name"}
-		job.AttachPackages([]*boshrelpkg.Package{pkg2})
+		err = job.AttachPackages([]*boshrelpkg.Package{pkg2})
+		Expect(err).ToNot(HaveOccurred())
 		jobs = []boshreljob.Job{*job}
 	})
 
@@ -123,13 +125,17 @@ var _ = Describe("DependencyCompiler", func() {
 			pkg1 = newPkg("pkg1-name", "pkg1-fp", []string{"pkg3-name"})
 			pkg2 = newPkg("pkg2-name", "pkg2-fp", []string{"pkg1-name"})
 			pkg3 = newPkg("pkg3-name", "pkg3-fp", []string{"pkg2-name"})
-			pkg1.AttachDependencies([]*boshrelpkg.Package{pkg3})
-			pkg2.AttachDependencies([]*boshrelpkg.Package{pkg1})
-			pkg3.AttachDependencies([]*boshrelpkg.Package{pkg2})
+			err := pkg1.AttachDependencies([]*boshrelpkg.Package{pkg3})
+			Expect(err).ToNot(HaveOccurred())
+			err = pkg2.AttachDependencies([]*boshrelpkg.Package{pkg1})
+			Expect(err).ToNot(HaveOccurred())
+			err = pkg3.AttachDependencies([]*boshrelpkg.Package{pkg2})
+			Expect(err).ToNot(HaveOccurred())
 
 			job = boshreljob.NewJob(NewResourceWithBuiltArchive("cpi", "job-fp", "path", "sha1"))
 			job.PackageNames = []string{"pkg2-name"}
-			job.AttachPackages([]*boshrelpkg.Package{pkg1, pkg2, pkg3})
+			err = job.AttachPackages([]*boshrelpkg.Package{pkg1, pkg2, pkg3})
+			Expect(err).ToNot(HaveOccurred())
 			jobs = []boshreljob.Job{*job}
 		})
 
@@ -169,7 +175,8 @@ var _ = Describe("DependencyCompiler", func() {
 		JustBeforeEach(func() {
 			job2 := boshreljob.NewJob(NewResourceWithBuiltArchive("job2-name", "job2-fp", "", ""))
 			job2.PackageNames = []string{"pkg2-name"}
-			job2.AttachPackages([]*boshrelpkg.Package{pkg2})
+			err := job2.AttachPackages([]*boshrelpkg.Package{pkg2})
+			Expect(err).ToNot(HaveOccurred())
 			jobs = append(jobs, *job2)
 		})
 
@@ -192,10 +199,12 @@ var _ = Describe("DependencyCompiler", func() {
 
 		BeforeEach(func() {
 			pkg3 = newPkg("pkg3-name", "pkg3-fp", []string{"pkg1-name"})
-			pkg3.AttachDependencies([]*boshrelpkg.Package{pkg1})
+			err := pkg3.AttachDependencies([]*boshrelpkg.Package{pkg1})
+			Expect(err).ToNot(HaveOccurred())
 
 			job.PackageNames = append(job.PackageNames, pkg3.Name())
-			job.AttachPackages([]*boshrelpkg.Package{pkg1, pkg2, pkg3})
+			err = job.AttachPackages([]*boshrelpkg.Package{pkg1, pkg2, pkg3})
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		JustBeforeEach(func() {

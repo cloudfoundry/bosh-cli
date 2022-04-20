@@ -190,7 +190,7 @@ var _ = Describe("NewResource", func() {
 		})
 
 		It("panics without building", func() {
-			Expect(func() { resource.Finalize(finalIndex) }).To(Panic())
+			Expect(func() { _ = resource.Finalize(finalIndex) }).To(Panic())
 		})
 
 		buildBeforeFinalizing := func() {
@@ -357,7 +357,7 @@ var _ = Describe("NewExistingResource", func() {
 		})
 
 		It("panics without building", func() {
-			Expect(func() { resource.Finalize(finalIndex) }).To(Panic())
+			Expect(func() { _ = resource.Finalize(finalIndex) }).To(Panic())
 		})
 
 		buildBeforeFinalizing := func() {
@@ -411,7 +411,8 @@ var _ = Describe("NewResourceWithBuiltArchive", func() {
 		file, err := fakeFs.TempFile("path")
 		Expect(err).ToNot(HaveOccurred())
 
-		fakeFs.WriteFileString(file.Name(), "hello world")
+		err = fakeFs.WriteFileString(file.Name(), "hello world")
+		Expect(err).ToNot(HaveOccurred())
 
 		filePathName = file.Name()
 		filePathNameSha1 = "2aae6c35c94fcfb415dbe95f408b9ce91ee846ed"

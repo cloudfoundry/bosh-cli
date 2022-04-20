@@ -25,9 +25,10 @@ var _ = Describe("FSGenerator", func() {
 
 	Describe("GenerateJob", func() {
 		It("makes job directory", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "public.yml"), "name: name")
+			err := fs.WriteFileString(filepath.Join("/", "dir", "public.yml"), "name: name")
+			Expect(err).ToNot(HaveOccurred())
 
-			err := gen.GenerateJob("job1")
+			err = gen.GenerateJob("job1")
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fs.ReadFileString(filepath.Join("/", "dir", "jobs", "job1", "spec"))).To(Equal(`---
@@ -46,9 +47,10 @@ properties: {}
 		})
 
 		It("returns error if job directory already exists", func() {
-			fs.MkdirAll(filepath.Join("/", "dir", "jobs", "job1"), os.ModePerm)
+			err := fs.MkdirAll(filepath.Join("/", "dir", "jobs", "job1"), os.ModePerm)
+			Expect(err).ToNot(HaveOccurred())
 
-			err := gen.GenerateJob("job1")
+			err = gen.GenerateJob("job1")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Job 'job1' at '" + filepath.Join("/", "dir", "jobs", "job1") + "' already exists"))
 		})
@@ -64,9 +66,10 @@ properties: {}
 
 	Describe("GeneratePackage", func() {
 		It("makes package directory", func() {
-			fs.WriteFileString(filepath.Join("/", "dir", "public.yml"), "name: name")
+			err := fs.WriteFileString(filepath.Join("/", "dir", "public.yml"), "name: name")
+			Expect(err).ToNot(HaveOccurred())
 
-			err := gen.GeneratePackage("pkg1")
+			err = gen.GeneratePackage("pkg1")
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fs.ReadFileString(filepath.Join("/", "dir", "packages", "pkg1", "spec"))).To(Equal(`---
@@ -81,9 +84,10 @@ files: []
 		})
 
 		It("returns error if package directory already exists", func() {
-			fs.MkdirAll(filepath.Join("/", "dir", "packages", "pkg1"), os.ModePerm)
+			err := fs.MkdirAll(filepath.Join("/", "dir", "packages", "pkg1"), os.ModePerm)
+			Expect(err).ToNot(HaveOccurred())
 
-			err := gen.GeneratePackage("pkg1")
+			err = gen.GeneratePackage("pkg1")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Package 'pkg1' at '" + filepath.Join("/", "dir", "packages", "pkg1") + "' already exists"))
 		})

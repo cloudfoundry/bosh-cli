@@ -48,7 +48,7 @@ var _ = Describe("upload-release command", func() {
 		tmpDir, err := fs.TempDir("bosh-upload-release-int-test")
 		Expect(err).ToNot(HaveOccurred())
 
-		defer fs.RemoveAll(tmpDir)
+		defer fs.RemoveAll(tmpDir) //nolint:errcheck
 
 		relName := filepath.Base(tmpDir)
 
@@ -142,7 +142,7 @@ blobstore:
 					ghttp.VerifyRequest("POST", "/releases"),
 					ghttp.RespondWith(http.StatusOK, `{"id":123, "state":"done"}`),
 					func(w http.ResponseWriter, req *http.Request) {
-						defer req.Body.Close()
+						defer req.Body.Close() //nolint:errcheck
 
 						body, err := ioutil.ReadAll(req.Body)
 						Expect(err).ToNot(HaveOccurred())
@@ -175,7 +175,7 @@ blobstore:
 			release, err := archiveReader.Read(uploadedReleaseFile)
 			Expect(err).ToNot(HaveOccurred())
 
-			defer release.CleanUp()
+			defer release.CleanUp() //nolint:errcheck
 
 			pkg1 := release.Packages()[0]
 			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-src"))).To(Equal("in-src"))
@@ -188,7 +188,7 @@ blobstore:
 		tmpDir, err := fs.TempDir("bosh-upload-release-int-test")
 		Expect(err).ToNot(HaveOccurred())
 
-		defer fs.RemoveAll(tmpDir)
+		defer fs.RemoveAll(tmpDir) //nolint:errcheck
 
 		{
 			execCmd([]string{"init-release", "--dir", tmpDir})
@@ -226,7 +226,8 @@ blobstore:
 		}
 
 		{ // Starting with empty tmp directory
-			fs.RemoveAll(boshTmpDir)
+			err := fs.RemoveAll(boshTmpDir)
+			Expect(err).ToNot(HaveOccurred())
 		}
 
 		uploadedReleaseFile := filepath.Join(tmpDir, "release-3.tgz")
@@ -252,7 +253,7 @@ blobstore:
 					ghttp.VerifyRequest("POST", "/releases"),
 					ghttp.RespondWith(http.StatusOK, `{"id":123, "state":"done"}`),
 					func(w http.ResponseWriter, req *http.Request) {
-						defer req.Body.Close()
+						defer req.Body.Close() //nolint:errcheck
 
 						body, err := ioutil.ReadAll(req.Body)
 						Expect(err).ToNot(HaveOccurred())
@@ -285,15 +286,17 @@ blobstore:
 			release, err := archiveReader.Read(uploadedReleaseFile)
 			Expect(err).ToNot(HaveOccurred())
 
-			defer release.CleanUp()
+			defer release.CleanUp() //nolint:errcheck
 
 			pkg1 := release.Packages()[0]
 			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-src"))).To(Equal("in-src"))
 
-			release.CleanUp()
+			err = release.CleanUp()
+			Expect(err).ToNot(HaveOccurred())
 		}
 
-		fs.RemoveAll(tmpDir)
+		err = fs.RemoveAll(tmpDir)
+		Expect(err).ToNot(HaveOccurred())
 
 		{ // Expect empty tmp directory to make sure we are not leaking any files
 			matches, err := fs.RecursiveGlob(filepath.Join(boshTmpDir, "*"))

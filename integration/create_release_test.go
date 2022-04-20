@@ -68,13 +68,17 @@ var _ = Describe("create-release command", func() {
 		// to ensure we can work inside symlinks (i.e. macOS /tmp)
 		containerDir := filepath.Join("/", "tmp", suffix)
 		symlinkedContainerDir := fmt.Sprintf("%s-symlinked", containerDir)
-		fs.MkdirAll(containerDir, 0755)
-		fs.Symlink(containerDir, symlinkedContainerDir)
+		err = fs.MkdirAll(containerDir, 0755)
+		Expect(err).ToNot(HaveOccurred())
+		err = fs.Symlink(containerDir, symlinkedContainerDir)
+		Expect(err).ToNot(HaveOccurred())
 		tmpDir := filepath.Join(symlinkedContainerDir, "release")
 
 		defer func() {
-			fs.RemoveAll(containerDir)
-			fs.RemoveAll(symlinkedContainerDir)
+			err = fs.RemoveAll(containerDir)
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.RemoveAll(symlinkedContainerDir)
+			Expect(err).ToNot(HaveOccurred())
 		}()
 
 		relName := filepath.Base(tmpDir)
@@ -247,7 +251,7 @@ license:
 			extractingRelease, err := extractingArchiveReader.Read(tgzFile)
 			Expect(err).ToNot(HaveOccurred())
 
-			defer extractingRelease.CleanUp()
+			defer extractingRelease.CleanUp() //nolint:errcheck
 
 			pkg1 := extractingRelease.Packages()[0]
 			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-src"))).To(Equal("in-src"))
@@ -258,7 +262,7 @@ license:
 			release, err := archiveReader.Read(tgzFile)
 			Expect(err).ToNot(HaveOccurred())
 
-			defer release.CleanUp()
+			defer release.CleanUp() //nolint:errcheck
 
 			job1 := release.Jobs()[0]
 			Expect(job1.PackageNames).To(ConsistOf("pkg1", "pkg2"))
@@ -275,7 +279,8 @@ license:
 		{ // removes unknown blobs, keeping known blobs
 			blobPath := filepath.Join(tmpDir, "blobs", "unknown-blob.tgz")
 
-			fs.WriteFileString(blobPath, "i don't belong here")
+			err := fs.WriteFileString(blobPath, "i don't belong here")
+			Expect(err).ToNot(HaveOccurred())
 
 			execCmd([]string{"create-release", "--dir", tmpDir})
 			Expect(fs.FileExists(blobPath)).To(BeFalse())

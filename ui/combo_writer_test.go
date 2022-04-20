@@ -53,7 +53,8 @@ var _ = Describe("ComboWriter", func() {
 
 			It(fmt.Sprintf("prints correctly '%d'", i), func() {
 				for _, in := range ex.Ins {
-					w.Write([]byte(in))
+					_, err := w.Write([]byte(in))
+					Expect(err).ToNot(HaveOccurred())
 				}
 				Expect(outBuffer.String()).To(Equal(ex.Out))
 			})

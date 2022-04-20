@@ -53,7 +53,8 @@ var _ = Describe("StopEnvCmd", func() {
 		}
 
 		var writeDeploymentManifest = func() {
-			fs.WriteFileString(deploymentManifestPath, `---manifest-content`)
+			err := fs.WriteFileString(deploymentManifestPath, `---manifest-content`)
+			Expect(err).ToNot(HaveOccurred())
 		}
 
 		BeforeEach(func() {
@@ -69,7 +70,7 @@ var _ = Describe("StopEnvCmd", func() {
 			It("gets passed to StopDeployment", func() {
 				skipDrain = true
 				mockDeploymentStateManager.EXPECT().StopDeployment(skipDrain, fakeStage).Return(nil)
-				newStopEnvCmd().Run(fakeStage, StopEnvOpts{
+				err := newStopEnvCmd().Run(fakeStage, StopEnvOpts{
 					Args: StartStopEnvArgs{
 						Manifest: FileBytesWithPathArg{Path: deploymentManifestPath},
 					},
@@ -79,17 +80,18 @@ var _ = Describe("StopEnvCmd", func() {
 					},
 					OpsFlags: OpsFlags{
 						OpsFiles: []OpsFileArg{
-							{Ops: patch.Ops([]patch.Op{patch.ErrOp{}})},
+							{Ops: []patch.Op{patch.ErrOp{}}},
 						},
 					},
 				})
+				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 
 		Context("state path is NOT specified", func() {
 			It("sends the manifest on to the StopDeployment", func() {
 				mockDeploymentStateManager.EXPECT().StopDeployment(skipDrain, fakeStage).Return(nil)
-				newStopEnvCmd().Run(fakeStage, StopEnvOpts{
+				err := newStopEnvCmd().Run(fakeStage, StopEnvOpts{
 					Args: StartStopEnvArgs{
 						Manifest: FileBytesWithPathArg{Path: deploymentManifestPath},
 					},
@@ -99,10 +101,11 @@ var _ = Describe("StopEnvCmd", func() {
 					},
 					OpsFlags: OpsFlags{
 						OpsFiles: []OpsFileArg{
-							{Ops: patch.Ops([]patch.Op{patch.ErrOp{}})},
+							{Ops: []patch.Op{patch.ErrOp{}}},
 						},
 					},
 				})
+				Expect(err).ToNot(HaveOccurred())
 
 				Expect(statePath).To(Equal(""))
 			})
@@ -111,7 +114,7 @@ var _ = Describe("StopEnvCmd", func() {
 		Context("state path is specified", func() {
 			It("sends the manifest on to the StopDeployment", func() {
 				mockDeploymentStateManager.EXPECT().StopDeployment(skipDrain, fakeStage).Return(nil)
-				newStopEnvCmd().Run(fakeStage, StopEnvOpts{
+				err := newStopEnvCmd().Run(fakeStage, StopEnvOpts{
 					StatePath: "/new/state/file/path/state.json",
 					SkipDrain: skipDrain,
 					Args: StartStopEnvArgs{
@@ -122,10 +125,11 @@ var _ = Describe("StopEnvCmd", func() {
 					},
 					OpsFlags: OpsFlags{
 						OpsFiles: []OpsFileArg{
-							{Ops: patch.Ops([]patch.Op{patch.ErrOp{}})},
+							{Ops: []patch.Op{patch.ErrOp{}}},
 						},
 					},
 				})
+				Expect(err).ToNot(HaveOccurred())
 
 				Expect(statePath).To(Equal("/new/state/file/path/state.json"))
 			})
@@ -145,7 +149,7 @@ var _ = Describe("StopEnvCmd", func() {
 					},
 					OpsFlags: OpsFlags{
 						OpsFiles: []OpsFileArg{
-							{Ops: patch.Ops([]patch.Op{patch.ErrOp{}})},
+							{Ops: []patch.Op{patch.ErrOp{}}},
 						},
 					},
 				})

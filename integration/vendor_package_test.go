@@ -71,7 +71,7 @@ var _ = Describe("vendor-package command", func() {
 		upstreamDir, err := fs.TempDir("bosh-vendor-package-int-test")
 		Expect(err).ToNot(HaveOccurred())
 
-		defer fs.RemoveAll(upstreamDir)
+		defer fs.RemoveAll(upstreamDir) //nolint:errcheck
 
 		{ // Initialize upstream release
 			execCmd([]string{"init-release", "--git", "--dir", upstreamDir})
@@ -118,7 +118,7 @@ blobstore:
 		targetDir, err := fs.TempDir("bosh-vendor-package-int-test")
 		Expect(err).ToNot(HaveOccurred())
 
-		defer fs.RemoveAll(targetDir)
+		defer fs.RemoveAll(targetDir) //nolint:errcheck
 
 		{ // Initialize target release
 			execCmd([]string{"init-release", "--git", "--dir", targetDir})
@@ -149,7 +149,7 @@ blobstore:
 			targetTarball, err := fs.TempFile("bosh-vendor-package-int-test")
 			Expect(err).ToNot(HaveOccurred())
 
-			defer fs.RemoveAll(targetTarball.Name())
+			defer fs.RemoveAll(targetTarball.Name()) //nolint:errcheck
 
 			execCmd([]string{"create-release", "--tarball", targetTarball.Name(), "--force", "--dir", targetDir})
 
@@ -159,7 +159,7 @@ blobstore:
 			release, err := archiveReader.Read(targetTarball.Name())
 			Expect(err).ToNot(HaveOccurred())
 
-			defer release.CleanUp()
+			defer release.CleanUp() //nolint:errcheck
 
 			pkg1 := release.Packages()[0]
 			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-src"))).To(Equal("in-src"))
@@ -217,7 +217,7 @@ blobstore:
 			targetTarball, err := fs.TempFile("bosh-vendor-package-int-test")
 			Expect(err).ToNot(HaveOccurred())
 
-			defer fs.RemoveAll(targetTarball.Name())
+			defer fs.RemoveAll(targetTarball.Name()) //nolint:errcheck
 
 			execCmd([]string{"create-release", "--tarball", targetTarball.Name(), "--force", "--dir", targetDir})
 
@@ -227,7 +227,7 @@ blobstore:
 			release, err := archiveReader.Read(targetTarball.Name())
 			Expect(err).ToNot(HaveOccurred())
 
-			defer release.CleanUp()
+			defer release.CleanUp() //nolint:errcheck
 
 			pkg1 := findPkg("pkg1", release)
 			content, err := fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-src"))

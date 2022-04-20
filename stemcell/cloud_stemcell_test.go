@@ -91,6 +91,7 @@ var _ = Describe("CloudStemcell", func() {
 			err = cloudStemcell.Delete()
 			Expect(err).ToNot(HaveOccurred())
 			stemcellRecords, err := stemcellRepo.All()
+			Expect(err).ToNot(HaveOccurred())
 			Expect(stemcellRecords).To(BeEmpty())
 		})
 
@@ -159,6 +160,7 @@ var _ = Describe("CloudStemcell", func() {
 				Expect(err).To(Equal(deleteErr))
 
 				stemcellRecords, err := stemcellRepo.All()
+				Expect(err).ToNot(HaveOccurred())
 				Expect(stemcellRecords).To(BeEmpty())
 			})
 

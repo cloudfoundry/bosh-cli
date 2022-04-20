@@ -62,7 +62,8 @@ var _ = Describe("Extractor", func() {
 			})
 
 			It("does not delete the destination file path", func() {
-				extractor.Extract(stemcellTarballPath)
+				_, err := extractor.Extract(stemcellTarballPath)
+				Expect(err).ToNot(HaveOccurred())
 				Expect(fs.FileExists(stemcellExtractionDir)).To(BeTrue())
 			})
 		})
@@ -79,7 +80,8 @@ var _ = Describe("Extractor", func() {
 			})
 
 			It("deletes the destination file path", func() {
-				extractor.Extract(stemcellTarballPath)
+				_, err := extractor.Extract(stemcellTarballPath)
+				Expect(err).To(HaveOccurred())
 				Expect(fs.FileExists(stemcellExtractionDir)).To(BeFalse())
 			})
 		})

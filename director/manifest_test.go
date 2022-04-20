@@ -20,7 +20,8 @@ var _ = Describe("NewManifestFromPath", func() {
 	})
 
 	It("returns a manifest with parsed name", func() {
-		fs.WriteFileString("/path", "---\nname: name")
+		err := fs.WriteFileString("/path", "---\nname: name")
+		Expect(err).ToNot(HaveOccurred())
 
 		man, err := NewManifestFromPath("/path", fs)
 		Expect(err).ToNot(HaveOccurred())
@@ -28,18 +29,20 @@ var _ = Describe("NewManifestFromPath", func() {
 	})
 
 	It("returns an error if manifest cannot be read", func() {
-		fs.WriteFileString("/path", "name: name")
+		err := fs.WriteFileString("/path", "name: name")
+		Expect(err).ToNot(HaveOccurred())
 		fs.ReadFileError = errors.New("fake-err")
 
-		_, err := NewManifestFromPath("/path", fs)
+		_, err = NewManifestFromPath("/path", fs)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("fake-err"))
 	})
 
 	It("returns an error if parsing yaml manifest", func() {
-		fs.WriteFileString("/path", "-")
+		err := fs.WriteFileString("/path", "-")
+		Expect(err).ToNot(HaveOccurred())
 
-		_, err := NewManifestFromPath("/path", fs)
+		_, err = NewManifestFromPath("/path", fs)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("Unmarshalling manifest"))
 	})

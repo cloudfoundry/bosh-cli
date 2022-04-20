@@ -63,11 +63,15 @@ var _ = Describe("DirReader", func() {
 				filepath.Join("/", "release", "packages", "pkg1"),
 			})
 
-			fs.MkdirAll(filepath.Join("/", "release", "jobs", "job2"), os.ModeDir)
-			fs.MkdirAll(filepath.Join("/", "release", "jobs", "job1"), os.ModeDir)
+			err := fs.MkdirAll(filepath.Join("/", "release", "jobs", "job2"), os.ModeDir)
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.MkdirAll(filepath.Join("/", "release", "jobs", "job1"), os.ModeDir)
+			Expect(err).ToNot(HaveOccurred())
 
-			fs.MkdirAll(filepath.Join("/", "release", "packages", "pkg2"), os.ModeDir)
-			fs.MkdirAll(filepath.Join("/", "release", "packages", "pkg1"), os.ModeDir)
+			err = fs.MkdirAll(filepath.Join("/", "release", "packages", "pkg2"), os.ModeDir)
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.MkdirAll(filepath.Join("/", "release", "packages", "pkg1"), os.ModeDir)
+			Expect(err).ToNot(HaveOccurred())
 
 			job1 = boshjob.NewJob(NewResource("job1", "job1-fp", nil))
 			job1.PackageNames = []string{"pkg1"}
@@ -223,7 +227,8 @@ var _ = Describe("DirReader", func() {
 				fs.SetGlob(filepath.Join("/", "release", "jobs", "*"), []string{})
 				fs.SetGlob(filepath.Join("/", "release", "packages", "*"), []string{})
 
-				fs.MkdirAll(filepath.Join("/", "release"), os.ModeDir)
+				err := fs.MkdirAll(filepath.Join("/", "release"), os.ModeDir)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("returns a release that does nothing", func() {
@@ -243,10 +248,13 @@ var _ = Describe("DirReader", func() {
 					filepath.Join("/", "release", "jobs", "lol"),
 				})
 
-				fs.MkdirAll(filepath.Join("/", "release", "jobs", "job1"), os.ModeDir)
-				fs.MkdirAll(filepath.Join("/", "release", "jobs", "job2"), os.ModeDir)
+				err := fs.MkdirAll(filepath.Join("/", "release", "jobs", "job1"), os.ModeDir)
+				Expect(err).ToNot(HaveOccurred())
+				err = fs.MkdirAll(filepath.Join("/", "release", "jobs", "job2"), os.ModeDir)
+				Expect(err).ToNot(HaveOccurred())
 
-				fs.WriteFileString(filepath.Join("/", "release", "jobs", "lol"), "why did the chicken cross the road?")
+				err = fs.WriteFileString(filepath.Join("/", "release", "jobs", "lol"), "why did the chicken cross the road?")
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("ignores the non-dir input", func() {
@@ -268,10 +276,13 @@ var _ = Describe("DirReader", func() {
 					filepath.Join("/", "release", "packages", "lol"),
 				})
 
-				fs.MkdirAll(filepath.Join("/", "release", "packages", "pkg1"), os.ModeDir)
-				fs.MkdirAll(filepath.Join("/", "release", "packages", "pkg2"), os.ModeDir)
+				err := fs.MkdirAll(filepath.Join("/", "release", "packages", "pkg1"), os.ModeDir)
+				Expect(err).ToNot(HaveOccurred())
+				err = fs.MkdirAll(filepath.Join("/", "release", "packages", "pkg2"), os.ModeDir)
+				Expect(err).ToNot(HaveOccurred())
 
-				fs.WriteFileString(filepath.Join("/", "release", "packages", "lol"), "why did the chicken cross the road?")
+				err = fs.WriteFileString(filepath.Join("/", "release", "packages", "lol"), "why did the chicken cross the road?")
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("ignores the non-dir input", func() {

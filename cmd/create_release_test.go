@@ -118,7 +118,8 @@ var _ = Describe("CreateReleaseCmd", func() {
 					fakeWriter.WriteStub = func(rel boshrel.Release, skipPkgs []string) (string, error) {
 						Expect(rel).To(Equal(release))
 
-						fakeFS.WriteFileString("/temp-tarball.tgz", "release content blah")
+						err := fakeFS.WriteFileString("/temp-tarball.tgz", "release content blah")
+						Expect(err).ToNot(HaveOccurred())
 						return "/temp-tarball.tgz", nil
 					}
 
@@ -157,7 +158,8 @@ var _ = Describe("CreateReleaseCmd", func() {
 					fakeWriter.WriteStub = func(rel boshrel.Release, skipPkgs []string) (string, error) {
 						Expect(rel).To(Equal(release))
 
-						fakeFS.WriteFileString("/temp-tarball.tgz", "release content blah")
+						err := fakeFS.WriteFileString("/temp-tarball.tgz", "release content blah")
+						Expect(err).ToNot(HaveOccurred())
 						return "/temp-tarball.tgz", nil
 					}
 
@@ -205,7 +207,8 @@ var _ = Describe("CreateReleaseCmd", func() {
 
 				It("returns error moving the archive fails", func() {
 					fakeWriter.WriteStub = func(rel boshrel.Release, skipPkgs []string) (string, error) {
-						fakeFS.WriteFileString("/temp-tarball.tgz", "release content blah")
+						err := fakeFS.WriteFileString("/temp-tarball.tgz", "release content blah")
+						Expect(err).ToNot(HaveOccurred())
 						return "/temp-tarball.tgz", nil
 					}
 
@@ -425,7 +428,8 @@ var _ = Describe("CreateReleaseCmd", func() {
 				fakeWriter.WriteStub = func(rel boshrel.Release, skipPkgs []string) (string, error) {
 					Expect(rel).To(Equal(release))
 
-					fakeFS.WriteFileString("/temp-tarball.tgz", "release content blah")
+					err := fakeFS.WriteFileString("/temp-tarball.tgz", "release content blah")
+					Expect(err).ToNot(HaveOccurred())
 					return "/temp-tarball.tgz", nil
 				}
 

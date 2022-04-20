@@ -101,6 +101,7 @@ var _ = Describe("Manager", func() {
 			Expect(cloudStemcell).To(Equal(expectedCloudStemcell))
 
 			stemcellRecords, err := stemcellRepo.All()
+			Expect(err).ToNot(HaveOccurred())
 			Expect(stemcellRecords).To(Equal([]biconfig.StemcellRecord{
 				{
 					ID:      "fake-stemcell-id-1",
@@ -205,7 +206,8 @@ var _ = Describe("Manager", func() {
 
 		Context("when reading stemcell repo fails", func() {
 			BeforeEach(func() {
-				fs.WriteFileString("/fake/path", "{}")
+				err := fs.WriteFileString("/fake/path", "{}")
+				Expect(err).ToNot(HaveOccurred())
 				fs.ReadFileError = errors.New("fake-read-error")
 			})
 

@@ -18,7 +18,7 @@ var _ = Describe("NewManifestFromPath", func() {
 	})
 
 	It("decodes release with base64 job/package sha1s and fingerprints", func() {
-		fs.WriteFileString("/release.yml", `---
+		err := fs.WriteFileString("/release.yml", `---
 name: release
 version: version
 commit_hash: commit
@@ -42,6 +42,7 @@ packages:
   version: !binary |-
     cGtnMS12ZXJzaW9u
 `)
+		Expect(err).ToNot(HaveOccurred())
 
 		manifest, err := NewManifestFromPath("/release.yml", fs)
 		Expect(err).NotTo(HaveOccurred())

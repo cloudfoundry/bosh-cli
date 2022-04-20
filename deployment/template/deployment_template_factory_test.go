@@ -52,13 +52,14 @@ var _ = Describe("TemplateFactory", func() {
 		Context("when creation and interpolation succeeds", func() {
 			It("interpolates variables and later resolves their values", func() {
 				path := "/path/to/fake-deployment-yml"
-				fakeFs.WriteFileString(path, `---
+				err := fakeFs.WriteFileString(path, `---
 name: fake-deployment-manifest
 resource_pools:
 - name: fake-resource-pool-name
   stemcell:
     url: ((url))
 `)
+				Expect(err).ToNot(HaveOccurred())
 
 				template, err := templateFactory.NewDeploymentTemplateFromPath(path)
 				Expect(err).ToNot(HaveOccurred())

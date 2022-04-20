@@ -2,6 +2,7 @@ package config_test
 
 import (
 	"fmt"
+
 	. "github.com/cloudfoundry/bosh-cli/config"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -317,7 +318,8 @@ var _ = Describe("StemcellRepo", func() {
 				record, err := repo.Save("fake-name", "fake-version-2", "fake-cid-2", apiVersion)
 				Expect(err).ToNot(HaveOccurred())
 
-				repo.UpdateCurrent(record.ID)
+				err = repo.UpdateCurrent(record.ID)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("returns existing stemcell", func() {

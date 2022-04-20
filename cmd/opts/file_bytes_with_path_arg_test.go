@@ -22,9 +22,10 @@ var _ = Describe("FileBytesWithPathArg", func() {
 		})
 
 		It("sets path and bytes", func() {
-			fs.WriteFileString("/some/path", "content")
+			err := fs.WriteFileString("/some/path", "content")
+			Expect(err).ToNot(HaveOccurred())
 
-			err := (&arg).UnmarshalFlag("/some/path")
+			err = (&arg).UnmarshalFlag("/some/path")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(arg.Path).To(Equal("/some/path"))
 			Expect(arg.Bytes).To(Equal([]byte("content")))
@@ -39,10 +40,11 @@ var _ = Describe("FileBytesWithPathArg", func() {
 		})
 
 		It("returns an error if reading file fails", func() {
-			fs.WriteFileString("/some/path", "content")
+			err := fs.WriteFileString("/some/path", "content")
+			Expect(err).ToNot(HaveOccurred())
 			fs.ReadFileError = errors.New("fake-err")
 
-			err := (&arg).UnmarshalFlag("/some/path")
+			err = (&arg).UnmarshalFlag("/some/path")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})

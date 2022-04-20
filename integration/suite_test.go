@@ -49,7 +49,7 @@ func TestIntegration(t *testing.T) {
 var _ = BeforeSuite(func() {
 	err := bitestutils.BuildExecutable()
 	Expect(err).NotTo(HaveOccurred())
-	cert, cacertBytes, err = testutils.Certsetup()
+	cert, cacertBytes, err = testutils.CertSetup()
 	validCACert = string(cacertBytes)
 	Expect(err).ToNot(HaveOccurred())
 

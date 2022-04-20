@@ -9,16 +9,16 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	mock_blobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
+	mockblobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
 	. "github.com/cloudfoundry/bosh-cli/deployment/instance/state"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
-	mock_deployment_release "github.com/cloudfoundry/bosh-cli/deployment/release/mocks"
+	mockdeploymentrelease "github.com/cloudfoundry/bosh-cli/deployment/release/mocks"
 	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
 	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
 	. "github.com/cloudfoundry/bosh-cli/release/resource"
 	bistatejob "github.com/cloudfoundry/bosh-cli/state/job"
-	mock_state_job "github.com/cloudfoundry/bosh-cli/state/job/mocks"
-	mock_template "github.com/cloudfoundry/bosh-cli/templatescompiler/mocks"
+	mockstatejob "github.com/cloudfoundry/bosh-cli/state/job/mocks"
+	mocktemplate "github.com/cloudfoundry/bosh-cli/templatescompiler/mocks"
 	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 )
 
@@ -36,11 +36,11 @@ var _ = Describe("Builder", func() {
 	var (
 		logger boshlog.Logger
 
-		mockReleaseJobResolver *mock_deployment_release.MockJobResolver
-		mockDependencyCompiler *mock_state_job.MockDependencyCompiler
-		mockJobListRenderer    *mock_template.MockJobListRenderer
-		mockCompressor         *mock_template.MockRenderedJobListCompressor
-		mockBlobstore          *mock_blobstore.MockBlobstore
+		mockReleaseJobResolver *mockdeploymentrelease.MockJobResolver
+		mockDependencyCompiler *mockstatejob.MockDependencyCompiler
+		mockJobListRenderer    *mocktemplate.MockJobListRenderer
+		mockCompressor         *mocktemplate.MockRenderedJobListCompressor
+		mockBlobstore          *mockblobstore.MockBlobstore
 
 		stateBuilder Builder
 	)
@@ -48,11 +48,11 @@ var _ = Describe("Builder", func() {
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		mockReleaseJobResolver = mock_deployment_release.NewMockJobResolver(mockCtrl)
-		mockDependencyCompiler = mock_state_job.NewMockDependencyCompiler(mockCtrl)
-		mockJobListRenderer = mock_template.NewMockJobListRenderer(mockCtrl)
-		mockCompressor = mock_template.NewMockRenderedJobListCompressor(mockCtrl)
-		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+		mockReleaseJobResolver = mockdeploymentrelease.NewMockJobResolver(mockCtrl)
+		mockDependencyCompiler = mockstatejob.NewMockDependencyCompiler(mockCtrl)
+		mockJobListRenderer = mocktemplate.NewMockJobListRenderer(mockCtrl)
+		mockCompressor = mocktemplate.NewMockRenderedJobListCompressor(mockCtrl)
+		mockBlobstore = mockblobstore.NewMockBlobstore(mockCtrl)
 	})
 
 	Describe("BuildInitialState", func() {
@@ -147,8 +147,8 @@ var _ = Describe("Builder", func() {
 
 	Describe("Build", func() {
 		var (
-			mockRenderedJobList        *mock_template.MockRenderedJobList
-			mockRenderedJobListArchive *mock_template.MockRenderedJobListArchive
+			mockRenderedJobList        *mocktemplate.MockRenderedJobList
+			mockRenderedJobListArchive *mocktemplate.MockRenderedJobListArchive
 
 			jobName            string
 			instanceID         int
@@ -165,8 +165,8 @@ var _ = Describe("Builder", func() {
 		)
 
 		BeforeEach(func() {
-			mockRenderedJobList = mock_template.NewMockRenderedJobList(mockCtrl)
-			mockRenderedJobListArchive = mock_template.NewMockRenderedJobListArchive(mockCtrl)
+			mockRenderedJobList = mocktemplate.NewMockRenderedJobList(mockCtrl)
+			mockRenderedJobListArchive = mocktemplate.NewMockRenderedJobListArchive(mockCtrl)
 
 			jobName = "fake-deployment-job-name"
 			instanceID = 0
@@ -213,7 +213,7 @@ var _ = Describe("Builder", func() {
 
 			agentState = biac.AgentState{
 				NetworkSpecs: map[string]biac.NetworkSpec{
-					"fake-network-name": biac.NetworkSpec{
+					"fake-network-name": {
 						IP: "1.2.3.5",
 					},
 				},
@@ -235,16 +235,19 @@ var _ = Describe("Builder", func() {
 
 			releasePackageRuby = boshpkg.NewPackage(NewResourceWithBuiltArchive(
 				"ruby", "ruby-fp", "ruby-path", "ruby-sha1"), []string{"libyaml"})
-			releasePackageRuby.AttachDependencies([]*boshpkg.Package{releasePackageLibyaml})
+			err := releasePackageRuby.AttachDependencies([]*boshpkg.Package{releasePackageLibyaml})
+			Expect(err).ToNot(HaveOccurred())
 
 			releasePackageCPI = boshpkg.NewPackage(NewResourceWithBuiltArchive(
 				"cpi", "cpi-fp", "cpi-path", "cpi-sha1"), []string{"ruby"})
-			releasePackageCPI.AttachDependencies([]*boshpkg.Package{releasePackageRuby})
+			err = releasePackageCPI.AttachDependencies([]*boshpkg.Package{releasePackageRuby})
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		JustBeforeEach(func() {
 			releaseJob := *boshjob.NewJob(NewResource("job-name", "job-fp", nil))
-			releaseJob.AttachPackages([]*boshpkg.Package{releasePackageCPI, releasePackageRuby})
+			err := releaseJob.AttachPackages([]*boshpkg.Package{releasePackageCPI, releasePackageRuby})
+			Expect(err).ToNot(HaveOccurred())
 
 			mockReleaseJobResolver.EXPECT().Resolve("job-name", "fake-release-name").Return(releaseJob, nil)
 
@@ -272,7 +275,7 @@ var _ = Describe("Builder", func() {
 			expectCompile = mockDependencyCompiler.EXPECT().Compile(releaseJobs, fakeStage).Return(compiledPackageRefs, nil).AnyTimes()
 
 			releaseJobProperties := map[string]*biproperty.Map{
-				"job-name": &biproperty.Map{
+				"job-name": {
 					"fake-template-property": "fake-template-property-value",
 				},
 			}
@@ -540,19 +543,19 @@ var _ = Describe("Builder", func() {
 					},
 				},
 				Packages: map[string]bias.Blob{
-					"cpi": bias.Blob{
+					"cpi": {
 						Name:        "cpi",
 						Version:     "cpi-fp",
 						SHA1:        "cpi-sha1",
 						BlobstoreID: "cpi-bosh-id",
 					},
-					"ruby": bias.Blob{
+					"ruby": {
 						Name:        "ruby",
 						Version:     "ruby-fp",
 						SHA1:        "ruby-sha1",
 						BlobstoreID: "ruby-blob-id",
 					},
-					"libyaml": bias.Blob{
+					"libyaml": {
 						Name:        "libyaml",
 						Version:     "libyaml-fp",
 						SHA1:        "libyaml-sha1",

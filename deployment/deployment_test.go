@@ -8,10 +8,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	mock_agentclient "github.com/cloudfoundry/bosh-cli/agentclient/mocks"
-	mock_blobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
-	mock_cloud "github.com/cloudfoundry/bosh-cli/cloud/mocks"
-	mock_instance_state "github.com/cloudfoundry/bosh-cli/deployment/instance/state/mocks"
+	mockagentclient "github.com/cloudfoundry/bosh-cli/agentclient/mocks"
+	mockblobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
+	mockcloud "github.com/cloudfoundry/bosh-cli/cloud/mocks"
+	mockinstancestate "github.com/cloudfoundry/bosh-cli/deployment/instance/state/mocks"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
 	"github.com/golang/mock/gomock"
 
@@ -47,14 +47,14 @@ var _ = Describe("Deployment", func() {
 		diskRepo               biconfig.DiskRepo
 		stemcellRepo           biconfig.StemcellRepo
 
-		mockCloud       *mock_cloud.MockCloud
-		mockAgentClient *mock_agentclient.MockAgentClient
+		mockCloud       *mockcloud.MockCloud
+		mockAgentClient *mockagentclient.MockAgentClient
 
-		mockStateBuilderFactory *mock_instance_state.MockBuilderFactory
-		mockStateBuilder        *mock_instance_state.MockBuilder
-		mockState               *mock_instance_state.MockState
+		mockStateBuilderFactory *mockinstancestate.MockBuilderFactory
+		mockStateBuilder        *mockinstancestate.MockBuilder
+		mockState               *mockinstancestate.MockState
 
-		mockBlobstore *mock_blobstore.MockBlobstore
+		mockBlobstore *mockblobstore.MockBlobstore
 
 		fakeStage *fakebiui.FakeStage
 
@@ -105,8 +105,8 @@ var _ = Describe("Deployment", func() {
 		diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeRepoUUIDGenerator)
 		stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeRepoUUIDGenerator)
 
-		mockCloud = mock_cloud.NewMockCloud(mockCtrl)
-		mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
+		mockCloud = mockcloud.NewMockCloud(mockCtrl)
+		mockAgentClient = mockagentclient.NewMockAgentClient(mockCtrl)
 
 		fakeStage = fakebiui.NewFakeStage()
 
@@ -125,15 +125,15 @@ var _ = Describe("Deployment", func() {
 		vmManagerFactory := bivm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeUUIDGenerator, fs, logger)
 		sshTunnelFactory := bisshtunnel.NewFactory(logger)
 
-		mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
-		mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
-		mockState = mock_instance_state.NewMockState(mockCtrl)
+		mockStateBuilderFactory = mockinstancestate.NewMockBuilderFactory(mockCtrl)
+		mockStateBuilder = mockinstancestate.NewMockBuilder(mockCtrl)
+		mockState = mockinstancestate.NewMockState(mockCtrl)
 
 		instanceFactory := biinstance.NewFactory(mockStateBuilderFactory)
 		instanceManagerFactory := biinstance.NewManagerFactory(sshTunnelFactory, instanceFactory, logger)
 		stemcellManagerFactory := bistemcell.NewManagerFactory(stemcellRepo)
 
-		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+		mockBlobstore = mockblobstore.NewMockBlobstore(mockCtrl)
 
 		deploymentManagerFactory := NewManagerFactory(vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory, deploymentFactory)
 		deploymentManager := deploymentManagerFactory.NewManager(mockCloud, mockAgentClient, mockBlobstore)
@@ -186,7 +186,7 @@ var _ = Describe("Deployment", func() {
 		Context("when the deployment has been deployed", func() {
 			BeforeEach(func() {
 				// create deployment manifest yaml file
-				deploymentStateService.Save(biconfig.DeploymentState{
+				err := deploymentStateService.Save(biconfig.DeploymentState{
 					DirectorID:        "fake-director-id",
 					InstallationID:    "fake-installation-id",
 					CurrentVMCID:      "fake-vm-cid",
@@ -206,6 +206,7 @@ var _ = Describe("Deployment", func() {
 						},
 					},
 				})
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("stops agent, unmounts disk, deletes vm, deletes disk, deletes stemcell", func() {
@@ -249,9 +250,11 @@ var _ = Describe("Deployment", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				_, found, err := vmRepo.FindCurrent()
+				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeFalse(), "should be no current VM")
 
 				_, found, err = diskRepo.FindCurrent()
+				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeFalse(), "should be no current disk")
 
 				diskRecords, err := diskRepo.All()
@@ -259,6 +262,7 @@ var _ = Describe("Deployment", func() {
 				Expect(diskRecords).To(BeEmpty(), "expected no disk records")
 
 				_, found, err = stemcellRepo.FindCurrent()
+				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeFalse(), "should be no current stemcell")
 
 				stemcellRecords, err := stemcellRepo.All()
@@ -311,7 +315,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("when nothing has been deployed", func() {
 			BeforeEach(func() {
-				deploymentStateService.Save(biconfig.DeploymentState{})
+				err := deploymentStateService.Save(biconfig.DeploymentState{})
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			JustBeforeEach(func() {
@@ -334,8 +339,10 @@ var _ = Describe("Deployment", func() {
 				expectHasVM *gomock.Call
 			)
 			BeforeEach(func() {
-				deploymentStateService.Save(biconfig.DeploymentState{})
-				vmRepo.UpdateCurrent("fake-vm-cid")
+				err := deploymentStateService.Save(biconfig.DeploymentState{})
+				Expect(err).ToNot(HaveOccurred())
+				err = vmRepo.UpdateCurrent("fake-vm-cid")
+				Expect(err).ToNot(HaveOccurred())
 
 				expectHasVM = mockCloud.EXPECT().HasVM("fake-vm-cid").Return(true, nil)
 			})
@@ -382,10 +389,12 @@ var _ = Describe("Deployment", func() {
 
 		Context("when a current disk exists", func() {
 			BeforeEach(func() {
-				deploymentStateService.Save(biconfig.DeploymentState{})
+				err := deploymentStateService.Save(biconfig.DeploymentState{})
+				Expect(err).ToNot(HaveOccurred())
 				diskRecord, err := diskRepo.Save("fake-disk-cid", 100, nil)
 				Expect(err).ToNot(HaveOccurred())
-				diskRepo.UpdateCurrent(diskRecord.ID)
+				err = diskRepo.UpdateCurrent(diskRecord.ID)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("deletes the disk", func() {
@@ -417,10 +426,12 @@ var _ = Describe("Deployment", func() {
 
 		Context("when a current stemcell exists", func() {
 			BeforeEach(func() {
-				deploymentStateService.Save(biconfig.DeploymentState{})
+				err := deploymentStateService.Save(biconfig.DeploymentState{})
+				Expect(err).ToNot(HaveOccurred())
 				stemcellRecord, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid", stemcellApiVersion)
 				Expect(err).ToNot(HaveOccurred())
-				stemcellRepo.UpdateCurrent(stemcellRecord.ID)
+				err = stemcellRepo.UpdateCurrent(stemcellRecord.ID)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("deletes the stemcell", func() {
@@ -475,7 +486,7 @@ var _ = Describe("Deployment", func() {
 		Context("when the deployment has been deployed", func() {
 			BeforeEach(func() {
 				// create deployment manifest yaml file
-				deploymentStateService.Save(biconfig.DeploymentState{
+				err := deploymentStateService.Save(biconfig.DeploymentState{
 					DirectorID:        "fake-director-id",
 					InstallationID:    "fake-installation-id",
 					CurrentVMCID:      "fake-vm-cid",
@@ -495,6 +506,7 @@ var _ = Describe("Deployment", func() {
 						},
 					},
 				})
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("stops agent and executes the pre-stop and post-stop scripts", func() {
@@ -567,7 +579,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("when nothing has been deployed", func() {
 			BeforeEach(func() {
-				deploymentStateService.Save(biconfig.DeploymentState{})
+				err := deploymentStateService.Save(biconfig.DeploymentState{})
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			JustBeforeEach(func() {
@@ -608,7 +621,7 @@ var _ = Describe("Deployment", func() {
 		Context("when the deployment has been deployed", func() {
 			BeforeEach(func() {
 				// create deployment manifest yaml file
-				deploymentStateService.Save(biconfig.DeploymentState{
+				err := deploymentStateService.Save(biconfig.DeploymentState{
 					DirectorID:        "fake-director-id",
 					InstallationID:    "fake-installation-id",
 					CurrentVMCID:      "fake-vm-cid",
@@ -628,6 +641,7 @@ var _ = Describe("Deployment", func() {
 						},
 					},
 				})
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("starts agent and executes the pre-start and post-start scripts", func() {
@@ -702,7 +716,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("when nothing has been deployed", func() {
 			BeforeEach(func() {
-				deploymentStateService.Save(biconfig.DeploymentState{})
+				err := deploymentStateService.Save(biconfig.DeploymentState{})
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			JustBeforeEach(func() {

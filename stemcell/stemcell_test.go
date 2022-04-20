@@ -248,9 +248,11 @@ var _ = Describe("Stemcell", func() {
 			extractedPath = "extracted-path"
 			imagePath = "extracted-path/image"
 
-			fakefs.MkdirAll(extractedPath, os.ModeDir)
+			err := fakefs.MkdirAll(extractedPath, os.ModeDir)
+			Expect(err).ToNot(HaveOccurred())
 			file := fakesys.NewFakeFile(imagePath, fakefs)
-			file.Write([]byte("tar-gz-header-and-content"))
+			_, err = file.Write([]byte("tar-gz-header-and-content"))
+			Expect(err).ToNot(HaveOccurred())
 
 			stemcell = NewExtractedStemcell(
 				manifest,
@@ -331,7 +333,8 @@ var _ = Describe("Stemcell", func() {
 			extractedPath = "extracted-path"
 			destinationPath = "destination/tarball.tgz"
 
-			fakefs.MkdirAll("destination", os.ModeDir)
+			err := fakefs.MkdirAll("destination", os.ModeDir)
+			Expect(err).ToNot(HaveOccurred())
 
 			stemcell = NewExtractedStemcell(
 				manifest,
@@ -362,7 +365,8 @@ var _ = Describe("Stemcell", func() {
 					compressor.CompressFilesInDirTarballPath = compressedTarballPath
 					compressor.CompressFilesInDirErr = nil
 					compressor.CompressFilesInDirCallBack = func() {
-						fakefs.WriteFileString(compressedTarballPath, "hello")
+						err := fakefs.WriteFileString(compressedTarballPath, "hello")
+						Expect(err).ToNot(HaveOccurred())
 					}
 
 					removeAllCalled = false
@@ -374,7 +378,7 @@ var _ = Describe("Stemcell", func() {
 						// We are returning an error to disable the removal of the directory containing the extracted files,
 						// particularly stemcell.MF, which we need to examine to test that OS/Version/Cloud Properties
 						// were properly updated.
-						return errors.New("Not error.")
+						return errors.New("not error")
 					}
 
 					err := stemcell.Pack(destinationPath)
@@ -411,7 +415,7 @@ var _ = Describe("Stemcell", func() {
 					fakefs.RemoveAllStub = func(path string) error {
 						removeAllCalled = true
 						Expect(path).To(Equal(extractedPath))
-						return errors.New("Not error.")
+						return errors.New("not error")
 					}
 					fakefs.WriteFileError = errors.New("could not write file")
 
@@ -430,7 +434,7 @@ var _ = Describe("Stemcell", func() {
 					fakefs.RemoveAllStub = func(path string) error {
 						removeAllCalled = true
 						Expect(path).To(Equal(extractedPath))
-						return errors.New("Not error.")
+						return errors.New("not error")
 					}
 
 					err := stemcell.Pack(destinationPath)

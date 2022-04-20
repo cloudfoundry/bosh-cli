@@ -18,7 +18,7 @@ var (
 )
 var _ = BeforeSuite(func() {
 	var err error
-	cert, cacertBytes, err = testutils.Certsetup()
+	cert, cacertBytes, err = testutils.CertSetup()
 	validCACert = string(cacertBytes)
 	Expect(err).ToNot(HaveOccurred())
 })
