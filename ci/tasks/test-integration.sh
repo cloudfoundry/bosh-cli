@@ -7,5 +7,6 @@ set -x
 /etc/init.d/ssh start
 
 cd bosh-cli
-bin/clean
+
+bin/clean # TODO: is this needed in CI?
 bin/test-integration
