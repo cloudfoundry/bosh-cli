@@ -10,7 +10,23 @@ ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 go_bin_path="$(go env GOPATH)/bin" # TODO this should be handled in the docker container
 export PATH=${go_bin_path}:${PATH}
 
+case ${1:-} in
+'-l' | '-w')
+  goimports_flag="${1}"
+  ;;
+'')
+  goimports_flag='-l'
+  ;;
+*)
+  echo "Error: invalid arg '${1}'"
+  echo "$(basename "$0") [flags]"
+  echo "  -l	list files whose formatting differs from goimport's"
+  echo "  -w	write result to (source) file instead of stdout"
+  exit
+  ;;
+esac
+
 pushd "${ROOT_DIR}" > /dev/null 2>&1
   # shellcheck disable=SC2046
-  goimports -w $(find "${ROOT_DIR}" -name '*.go' -and \( -not -path "${ROOT_DIR}/vendor/*" \))
+  goimports "${goimports_flag}" $(find "${ROOT_DIR}" -name '*.go' -and \( -not -path "${ROOT_DIR}/vendor/*" \))
 popd > /dev/null 2>&1
