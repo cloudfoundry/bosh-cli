@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"strconv"
 
 	. "github.com/cloudfoundry/bosh-cli/ui/table"
-	"strconv"
+
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type jsonUI struct {

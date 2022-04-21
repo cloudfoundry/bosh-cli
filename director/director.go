@@ -3,9 +3,10 @@ package director
 import (
 	"encoding/json"
 	"fmt"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"io"
 	"net/http"
+
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type DirectorImpl struct {

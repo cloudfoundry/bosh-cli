@@ -1,15 +1,16 @@
 package director_test
 
 import (
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
 	"errors"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
 	. "github.com/cloudfoundry/bosh-cli/director"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("NewFSReleaseArchive", func() {

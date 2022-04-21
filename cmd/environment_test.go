@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"errors"
+
 	"github.com/fatih/color"
 
 	. "github.com/onsi/ginkgo"

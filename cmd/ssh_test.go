@@ -2,7 +2,9 @@ package cmd_test
 
 import (
 	"errors"
+
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 

@@ -2,6 +2,7 @@ package disk
 
 import (
 	"encoding/json"
+
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"

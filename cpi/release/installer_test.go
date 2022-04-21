@@ -2,6 +2,7 @@ package release_test
 
 import (
 	"errors"
+
 	"github.com/cloudfoundry/bosh-cli/cpi/release"
 	biinstallation "github.com/cloudfoundry/bosh-cli/installation"
 	biinstallationmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
@@ -10,6 +11,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
 	"github.com/golang/mock/gomock"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

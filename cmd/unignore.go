@@ -1,7 +1,9 @@
 package cmd
 
-import boshdir "github.com/cloudfoundry/bosh-cli/director"
-import . "github.com/cloudfoundry/bosh-cli/cmd/opts"
+import (
+	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
+	boshdir "github.com/cloudfoundry/bosh-cli/director"
+)
 
 type UnignoreCmd struct {
 	deployment boshdir.Deployment

@@ -1,7 +1,5 @@
 package template
 
-import ()
-
 type InterpolatedTemplate struct {
 	content []byte
 	sha     string

@@ -1,9 +1,10 @@
 package net_test
 
 import (
+	"net"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"net"
 
 	binet "github.com/cloudfoundry/bosh-cli/common/net"
 )

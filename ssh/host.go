@@ -1,9 +1,10 @@
 package ssh
 
 import (
+	"strconv"
+
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"strconv"
 )
 
 // You only need **one** of these per package!

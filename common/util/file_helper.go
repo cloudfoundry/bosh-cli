@@ -1,10 +1,11 @@
 package util
 
 import (
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	gopath "path"
 	"path/filepath"
 	"strings"
+
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 func AbsolutifyPath(pathToManifest string, pathToFile string, fs boshsys.FileSystem) (string, error) {

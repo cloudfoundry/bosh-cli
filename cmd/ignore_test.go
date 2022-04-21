@@ -8,6 +8,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
 
 	"errors"
+
 	boshdir "github.com/cloudfoundry/bosh-cli/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 )

@@ -3,16 +3,19 @@ package integration_test
 import (
 	"crypto/x509"
 	"encoding/pem"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"gopkg.in/yaml.v2"
-	"time"
 
 	. "github.com/cloudfoundry/bosh-cli/cmd"
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+
+	"gopkg.in/yaml.v2"
 )
 
 var _ = Describe("interpolate command", func() {

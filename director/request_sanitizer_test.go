@@ -1,11 +1,12 @@
 package director_test
 
 import (
+	"net/http"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/director"
-	"net/http"
 )
 
 var _ = Describe("RequestSanitizer", func() {
