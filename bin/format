@@ -28,5 +28,6 @@ esac
 
 pushd "${ROOT_DIR}" > /dev/null 2>&1
   # shellcheck disable=SC2046
-  goimports "${goimports_flag}" $(find "${ROOT_DIR}" -name '*.go' -and \( -not -path "${ROOT_DIR}/vendor/*" \))
+  goimports "${goimports_flag}" \
+    $(find "${ROOT_DIR}" -name '*.go' -and \( -not -path "${ROOT_DIR}/vendor/*" \))
 popd > /dev/null 2>&1
