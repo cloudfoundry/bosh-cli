@@ -1,14 +1,14 @@
 # 4d63.com/gochecknoglobals v0.1.0
 ## explicit; go 1.15
 4d63.com/gochecknoglobals/checknoglobals
-# cloud.google.com/go v0.100.2
-## explicit; go 1.11
+# cloud.google.com/go v0.101.0
+## explicit; go 1.15
 cloud.google.com/go
 cloud.google.com/go/internal
 cloud.google.com/go/internal/optional
 cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
-# cloud.google.com/go/compute v1.6.0
+# cloud.google.com/go/compute v1.6.1
 ## explicit; go 1.15
 cloud.google.com/go/compute/metadata
 # cloud.google.com/go/iam v0.3.0
@@ -60,7 +60,7 @@ github.com/ashanbrown/forbidigo/forbidigo
 # github.com/ashanbrown/makezero v1.1.1
 ## explicit; go 1.12
 github.com/ashanbrown/makezero/makezero
-# github.com/aws/aws-sdk-go v1.43.41
+# github.com/aws/aws-sdk-go v1.43.45
 ## explicit; go 1.11
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -162,21 +162,21 @@ github.com/cloudfoundry/bosh-agent/agentclient/applyspec
 github.com/cloudfoundry/bosh-agent/agentclient/fakes
 github.com/cloudfoundry/bosh-agent/agentclient/http
 github.com/cloudfoundry/bosh-agent/agentclient/http/mocks
-# github.com/cloudfoundry/bosh-davcli v0.0.48
-## explicit; go 1.17
+# github.com/cloudfoundry/bosh-davcli v0.0.50
+## explicit; go 1.18
 github.com/cloudfoundry/bosh-davcli/client
 github.com/cloudfoundry/bosh-davcli/client/fakes
 github.com/cloudfoundry/bosh-davcli/config
 github.com/cloudfoundry/bosh-davcli/signer
-# github.com/cloudfoundry/bosh-gcscli v0.0.21
-## explicit; go 1.17
+# github.com/cloudfoundry/bosh-gcscli v0.0.23
+## explicit; go 1.18
 github.com/cloudfoundry/bosh-gcscli/client
 github.com/cloudfoundry/bosh-gcscli/config
-# github.com/cloudfoundry/bosh-s3cli v0.0.123
+# github.com/cloudfoundry/bosh-s3cli v0.0.124
 ## explicit; go 1.18
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.309
+# github.com/cloudfoundry/bosh-utils v0.0.310
 ## explicit; go 1.18
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/fakes
@@ -196,14 +196,14 @@ github.com/cloudfoundry/bosh-utils/system/fakes
 github.com/cloudfoundry/bosh-utils/uuid
 github.com/cloudfoundry/bosh-utils/uuid/fakes
 github.com/cloudfoundry/bosh-utils/work
-# github.com/cloudfoundry/config-server v0.1.50
+# github.com/cloudfoundry/config-server v0.1.51
 ## explicit; go 1.18
 github.com/cloudfoundry/config-server/types
 github.com/cloudfoundry/config-server/types/typesfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e
 ## explicit
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.51
+# github.com/cloudfoundry/socks5-proxy v0.2.52
 ## explicit; go 1.18
 github.com/cloudfoundry/socks5-proxy
 # github.com/cppforlife/go-patch v0.2.0
@@ -243,7 +243,7 @@ github.com/fatih/color
 # github.com/fatih/structtag v1.2.0
 ## explicit; go 1.12
 github.com/fatih/structtag
-# github.com/fsnotify/fsnotify v1.5.1
+# github.com/fsnotify/fsnotify v1.5.3
 ## explicit; go 1.13
 github.com/fsnotify/fsnotify
 # github.com/fzipp/gocyclo v0.4.0
@@ -305,6 +305,7 @@ github.com/golang/mock/gomock
 github.com/golang/mock/mockgen/model
 # github.com/golang/protobuf v1.5.2
 ## explicit; go 1.9
+github.com/golang/protobuf/jsonpb
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
@@ -771,10 +772,9 @@ github.com/ultraware/whitespace
 # github.com/uudashr/gocognit v1.0.5
 ## explicit; go 1.16
 github.com/uudashr/gocognit
-# github.com/vito/go-interact v1.0.0
+# github.com/vito/go-interact v1.0.1
 ## explicit; go 1.12
 github.com/vito/go-interact/interact
-github.com/vito/go-interact/interact/terminal
 # github.com/yagipy/maintidx v1.0.0
 ## explicit; go 1.17
 github.com/yagipy/maintidx
@@ -816,14 +816,13 @@ golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
-golang.org/x/crypto/ssh/terminal
 # golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3
 ## explicit; go 1.17
 golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/modfile
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20220412020605-290c469a71a5
+# golang.org/x/net v0.0.0-20220421235706-1d1ef9303861
 ## explicit; go 1.17
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -850,7 +849,7 @@ golang.org/x/oauth2/jwt
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 ## explicit
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20220412211240-33da011f77ad
+# golang.org/x/sys v0.0.0-20220422013727-9388b58f7150
 ## explicit; go 1.17
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
@@ -961,7 +960,7 @@ golang.org/x/tools/internal/typesinternal
 ## explicit; go 1.11
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.74.0
+# google.golang.org/api v0.75.0
 ## explicit; go 1.15
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
@@ -994,7 +993,7 @@ google.golang.org/appengine/internal/socket
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/socket
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20220414192740-2d67ff6cf2b4
+# google.golang.org/genproto v0.0.0-20220422154200-b37d22cd5731
 ## explicit; go 1.15
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/iam/v1
@@ -1009,7 +1008,7 @@ google.golang.org/genproto/googleapis/type/decimal
 google.golang.org/genproto/googleapis/type/expr
 google.golang.org/genproto/googleapis/type/fraction
 google.golang.org/genproto/googleapis/type/month
-# google.golang.org/grpc v1.45.0
+# google.golang.org/grpc v1.46.0
 ## explicit; go 1.14
 google.golang.org/grpc
 google.golang.org/grpc/attributes
@@ -1021,6 +1020,7 @@ google.golang.org/grpc/balancer/grpclb/grpc_lb_v1
 google.golang.org/grpc/balancer/grpclb/state
 google.golang.org/grpc/balancer/roundrobin
 google.golang.org/grpc/binarylog/grpc_binarylog_v1
+google.golang.org/grpc/channelz
 google.golang.org/grpc/codes
 google.golang.org/grpc/connectivity
 google.golang.org/grpc/credentials
@@ -1039,6 +1039,7 @@ google.golang.org/grpc/encoding/proto
 google.golang.org/grpc/grpclog
 google.golang.org/grpc/internal
 google.golang.org/grpc/internal/backoff
+google.golang.org/grpc/internal/balancer/gracefulswitch
 google.golang.org/grpc/internal/balancerload
 google.golang.org/grpc/internal/binarylog
 google.golang.org/grpc/internal/buffer
@@ -1051,6 +1052,7 @@ google.golang.org/grpc/internal/grpcrand
 google.golang.org/grpc/internal/grpcsync
 google.golang.org/grpc/internal/grpcutil
 google.golang.org/grpc/internal/metadata
+google.golang.org/grpc/internal/pretty
 google.golang.org/grpc/internal/resolver
 google.golang.org/grpc/internal/resolver/dns
 google.golang.org/grpc/internal/resolver/passthrough

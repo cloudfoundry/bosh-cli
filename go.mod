@@ -7,12 +7,12 @@ require (
 	code.cloudfoundry.org/workpool v0.0.0-20200131000409-2ac56b354115
 	github.com/cheggaaa/pb/v3 v3.0.8
 	github.com/cloudfoundry/bosh-agent v2.367.0+incompatible
-	github.com/cloudfoundry/bosh-davcli v0.0.48
-	github.com/cloudfoundry/bosh-gcscli v0.0.21
-	github.com/cloudfoundry/bosh-s3cli v0.0.123
-	github.com/cloudfoundry/bosh-utils v0.0.309
-	github.com/cloudfoundry/config-server v0.1.50
-	github.com/cloudfoundry/socks5-proxy v0.2.51
+	github.com/cloudfoundry/bosh-davcli v0.0.50
+	github.com/cloudfoundry/bosh-gcscli v0.0.23
+	github.com/cloudfoundry/bosh-s3cli v0.0.124
+	github.com/cloudfoundry/bosh-utils v0.0.310
+	github.com/cloudfoundry/config-server v0.1.51
+	github.com/cloudfoundry/socks5-proxy v0.2.52
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.0
@@ -25,7 +25,7 @@ require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.19.0
-	github.com/vito/go-interact v1.0.0
+	github.com/vito/go-interact v1.0.1
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 	golang.org/x/tools v0.1.10
 	gopkg.in/yaml.v2 v2.4.0
@@ -33,8 +33,8 @@ require (
 
 require (
 	4d63.com/gochecknoglobals v0.1.0 // indirect
-	cloud.google.com/go v0.100.2 // indirect
-	cloud.google.com/go/compute v1.6.0 // indirect
+	cloud.google.com/go v0.101.0 // indirect
+	cloud.google.com/go/compute v1.6.1 // indirect
 	cloud.google.com/go/iam v0.3.0 // indirect
 	cloud.google.com/go/storage v1.22.0 // indirect
 	code.cloudfoundry.org/tlsconfig v0.0.0-20211123175040-23cc9f05b6b3 // indirect
@@ -48,7 +48,7 @@ require (
 	github.com/alexkohler/prealloc v1.0.0 // indirect
 	github.com/ashanbrown/forbidigo v1.3.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
-	github.com/aws/aws-sdk-go v1.43.41 // indirect
+	github.com/aws/aws-sdk-go v1.43.45 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bkielbasa/cyclop v1.2.0 // indirect
 	github.com/blizzy78/varnamelen v0.6.1 // indirect
@@ -68,7 +68,7 @@ require (
 	github.com/esimonov/ifshort v1.0.4 // indirect
 	github.com/ettle/strcase v0.1.1 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
-	github.com/fsnotify/fsnotify v1.5.1 // indirect
+	github.com/fsnotify/fsnotify v1.5.3 // indirect
 	github.com/fzipp/gocyclo v0.4.0 // indirect
 	github.com/go-critic/go-critic v0.6.2 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
@@ -186,17 +186,17 @@ require (
 	gitlab.com/bosi/decorder v0.2.1 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
-	golang.org/x/net v0.0.0-20220412020605-290c469a71a5 // indirect
+	golang.org/x/net v0.0.0-20220421235706-1d1ef9303861 // indirect
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
+	golang.org/x/sys v0.0.0-20220422013727-9388b58f7150 // indirect
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f // indirect
-	google.golang.org/api v0.74.0 // indirect
+	google.golang.org/api v0.75.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20220414192740-2d67ff6cf2b4 // indirect
-	google.golang.org/grpc v1.45.0 // indirect
+	google.golang.org/genproto v0.0.0-20220422154200-b37d22cd5731 // indirect
+	google.golang.org/grpc v1.46.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
