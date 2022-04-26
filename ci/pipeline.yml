@@ -277,7 +277,7 @@ resources:
     type: github-status
     source:
       repository: cloudfoundry/bosh-cli
-      access_token: {{github_token}}
+      access_token: ((github_read_write_token))
       branch: main
       context: ci/published
 
@@ -388,15 +388,15 @@ resources:
     source:
       owner: cloudfoundry
       repository: bosh-cli
-      access_token: {{github_token}}
+      access_token: ((github_read_write_token))
       drafts: true
 
   - name: final-docker
     type: docker-image
     source:
       repository: bosh/cli2
-      username: {{docker_username}}
-      password: {{docker_password}}
+      username: ((docker.username))
+      password: ((docker.password))
       email: foo@bar.com
 
   - name: weekly
