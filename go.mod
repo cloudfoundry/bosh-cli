@@ -7,12 +7,12 @@ require (
 	code.cloudfoundry.org/workpool v0.0.0-20200131000409-2ac56b354115
 	github.com/cheggaaa/pb/v3 v3.0.8
 	github.com/cloudfoundry/bosh-agent v2.367.0+incompatible
-	github.com/cloudfoundry/bosh-davcli v0.0.51
-	github.com/cloudfoundry/bosh-gcscli v0.0.24
-	github.com/cloudfoundry/bosh-s3cli v0.0.125
-	github.com/cloudfoundry/bosh-utils v0.0.311
-	github.com/cloudfoundry/config-server v0.1.52
-	github.com/cloudfoundry/socks5-proxy v0.2.53
+	github.com/cloudfoundry/bosh-davcli v0.0.52
+	github.com/cloudfoundry/bosh-gcscli v0.0.25
+	github.com/cloudfoundry/bosh-s3cli v0.0.126
+	github.com/cloudfoundry/bosh-utils v0.0.312
+	github.com/cloudfoundry/config-server v0.1.53
+	github.com/cloudfoundry/socks5-proxy v0.2.54
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.0
@@ -26,14 +26,14 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.19.0
 	github.com/vito/go-interact v1.0.1
-	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f
+	golang.org/x/crypto v0.0.0-20220507011949-2cf3adece122
 	golang.org/x/tools v0.1.10
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
 	4d63.com/gochecknoglobals v0.1.0 // indirect
-	cloud.google.com/go v0.101.0 // indirect
+	cloud.google.com/go v0.101.1 // indirect
 	cloud.google.com/go/compute v1.6.1 // indirect
 	cloud.google.com/go/iam v0.3.0 // indirect
 	cloud.google.com/go/storage v1.22.0 // indirect
@@ -48,7 +48,7 @@ require (
 	github.com/alexkohler/prealloc v1.0.0 // indirect
 	github.com/ashanbrown/forbidigo v1.3.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
-	github.com/aws/aws-sdk-go v1.44.4 // indirect
+	github.com/aws/aws-sdk-go v1.44.9 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bkielbasa/cyclop v1.2.0 // indirect
 	github.com/blizzy78/varnamelen v0.6.1 // indirect
@@ -189,13 +189,13 @@ require (
 	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4 // indirect
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220429233432-b5fbb4746d32 // indirect
+	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6 // indirect
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f // indirect
-	google.golang.org/api v0.77.0 // indirect
+	google.golang.org/api v0.78.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20220429170224-98d788798c3e // indirect
+	google.golang.org/genproto v0.0.0-20220505152158-f39f71e6c8f3 // indirect
 	google.golang.org/grpc v1.46.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
