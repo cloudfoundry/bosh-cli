@@ -3,7 +3,10 @@ set -eu -o pipefail
 
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-echo -e "\n Checking formatting..."
+echo 'Note: if you want to quickly run tests for just one package, do it like this:'
+echo '  % bin/ginkgo path/to/package'
+
+echo -e "\n Checking formatting..." # TODO: should CI do this in parallel?
 files_needing_reformat="$("${ROOT_DIR}/bin/format" -l)"
 if [[ ${files_needing_reformat} = *[![:space:]]* ]]; then
   echo "Error: some files require formatting (below)"
@@ -14,14 +17,16 @@ if [[ ${files_needing_reformat} = *[![:space:]]* ]]; then
   exit 1
 fi
 
-echo -e "\n Running linter..."
+echo -e "\n Running linter..." # TODO: should CI do this in parallel?
 "${ROOT_DIR}/bin/lint"
 
-echo -e "\n Running unit tests..."
-"${ROOT_DIR}/bin/ginkgo" -skipPackage="acceptance,integration"
+echo -e "\n Building docs example..."# TODO: should CI do this in parallel?
+go build -o "${ROOT_DIR}/out/example" "${ROOT_DIR}/docs"
 
-echo -e "\n Building docs example..."
-go build -o "${ROOT_DIR}/out/example" github.com/cloudfoundry/bosh-cli/docs/
-
-echo -e "\B Building bosh-cli..."
+echo -e "\B Building bosh-cli..."# TODO: should CI do this in parallel?
 "${ROOT_DIR}/bin/build"
+
+echo -e "\n Running unit tests..."
+"${ROOT_DIR}/bin/ginkgo" -skipPackage="acceptance,integration"  "${ROOT_DIR}"
+
+echo -e "\n\033[0;32mSUCCESS\033[0m"
