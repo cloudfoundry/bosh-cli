@@ -1,0 +1,8 @@
+# https://github.com/golangci/golangci-lint#config-file
+linters:
+  enable:
+    - goimports
+
+output:
+  # Sort results by: filepath, line and column.
+  sort-results: true

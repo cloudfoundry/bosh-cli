@@ -6,17 +6,6 @@ ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 echo 'Note: if you want to quickly run tests for just one package, do it like this:'
 echo '  % bin/ginkgo path/to/package'
 
-echo -e "\n Checking formatting..." # TODO: should CI do this in parallel?
-files_needing_reformat="$("${ROOT_DIR}/bin/format" -l)"
-if [[ ${files_needing_reformat} = *[![:space:]]* ]]; then
-  echo "Error: some files require formatting (below)"
-  echo "${files_needing_reformat}"
-  echo "Error: some files require formatting (above)"
-  echo "=> run 'bin/format -w' to reformat with 'goimports'"
-  echo "   see: https://pkg.go.dev/golang.org/x/tools/cmd/goimports"
-  exit 1
-fi
-
 echo -e "\n Running linter..." # TODO: should CI do this in parallel?
 "${ROOT_DIR}/bin/lint"
 
