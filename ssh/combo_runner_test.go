@@ -3,7 +3,6 @@ package ssh_test
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 	"syscall"
@@ -109,7 +108,7 @@ var _ = Describe("ComboRunner", func() {
 		It("provides ssh arguments to customize cmd", func() {
 			cmdFactory = func(host boshdir.Host, args SSHArgs) boshsys.Command {
 				optsStr := strings.Join(args.LoginForHost(host), " ")
-				opts := make([]string, 0)
+				var opts []string
 				switch {
 				case strings.Contains(optsStr, "127.0.0.1"):
 					opts = []string{"ip-1"}
@@ -136,8 +135,8 @@ var _ = Describe("ComboRunner", func() {
 
 			session.StartReturns(sshArgs, nil)
 
-			cmdRunner.AddProcess(fmt.Sprintf("cmd ip-1"), &fakesys.FakeProcess{})
-			cmdRunner.AddProcess(fmt.Sprintf("cmd ip-2"), &fakesys.FakeProcess{})
+			cmdRunner.AddProcess("cmd ip-1", &fakesys.FakeProcess{})
+			cmdRunner.AddProcess("cmd ip-2", &fakesys.FakeProcess{})
 
 			err := comboRunner.Run(connOpts, result, cmdFactory)
 			Expect(err).ToNot(HaveOccurred())

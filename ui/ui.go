@@ -152,7 +152,7 @@ func (ui *WriterUI) AskForConfirmation() error {
 		return bosherr.WrapError(err, "Asking for confirmation")
 	}
 
-	if falseByDefault == false {
+	if !falseByDefault {
 		return errors.New("Stopped")
 	}
 

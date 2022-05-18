@@ -48,7 +48,7 @@ type BoshOpts struct {
 	UnaliasEnv   UnaliasEnvOpts   `command:"unalias-env"               description:"Remove an aliased environment"`
 
 	// Authentication
-	LogIn  LogInOpts  `command:"log-in"  alias:"l" alias:"login"  description:"Log in"`
+	LogIn  LogInOpts  `command:"log-in"  alias:"l" alias:"login"  description:"Log in"` //nolint:staticcheck
 	LogOut LogOutOpts `command:"log-out"           alias:"logout" description:"Log out"`
 
 	// Tasks
@@ -83,7 +83,7 @@ type BoshOpts struct {
 
 	// Deployments
 	Deployment       DeploymentOpts       `command:"deployment"        alias:"dep"             description:"Show deployment information"`
-	Deployments      DeploymentsOpts      `command:"deployments"       alias:"ds" alias:"deps" description:"List deployments"`
+	Deployments      DeploymentsOpts      `command:"deployments"       alias:"ds" alias:"deps" description:"List deployments"` //nolint:staticcheck
 	DeleteDeployment DeleteDeploymentOpts `command:"delete-deployment" alias:"deld"            description:"Delete deployment"`
 
 	Deploy   DeployOpts   `command:"deploy"   alias:"d"   description:"Update deployment"`
@@ -136,7 +136,7 @@ type BoshOpts struct {
 	UpdateResurrection UpdateResurrectionOpts `command:"update-resurrection"                            description:"Enable/disable resurrection"`
 	Ignore             IgnoreOpts             `command:"ignore"                                         description:"Ignore an instance"`
 	Unignore           UnignoreOpts           `command:"unignore"                                       description:"Unignore an instance"`
-	CloudCheck         CloudCheckOpts         `command:"cloud-check"     alias:"cck" alias:"cloudcheck" description:"Cloud consistency check and interactive repair"`
+	CloudCheck         CloudCheckOpts         `command:"cloud-check"     alias:"cck" alias:"cloudcheck" description:"Cloud consistency check and interactive repair"` //nolint:staticcheck
 	OrphanedVMs        OrphanedVMsOpts        `command:"orphaned-vms"                                   description:"List all the orphaned VMs in all deployments"`
 
 	// Instance management

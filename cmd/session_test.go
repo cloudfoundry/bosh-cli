@@ -145,8 +145,7 @@ var _ = Describe("SessionImpl", func() {
 							auth := req.Header.Get("Authorization")
 							Expect(auth).To(BeEmpty(), "Authorization header must empty")
 						},
-						ghttp.RespondWith(http.StatusOK, fmt.Sprintf(
-							`{"user_authentication":{"type":"basic","options":{}}}`)),
+						ghttp.RespondWith(http.StatusOK, `{"user_authentication":{"type":"basic","options":{}}}`),
 					),
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("GET", "/locks"),

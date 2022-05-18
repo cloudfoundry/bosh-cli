@@ -35,7 +35,7 @@ type FSReleaseDir struct {
 	finalIndicies boshrel.ArchiveIndicies
 
 	releaseReader        boshrel.Reader
-	releaseArchiveWriter boshrel.Writer
+	releaseArchiveWriter boshrel.Writer //nolint:unused
 
 	timeService clock.Clock
 	fs          boshsys.FileSystem
@@ -241,7 +241,7 @@ func (d FSReleaseDir) VendorPackage(pkg *boshpkg.Package) error {
 
 	d.collectDependentPackages(pkg, allInterestingPkgs)
 
-	for pkg2, _ := range allInterestingPkgs {
+	for pkg2 := range allInterestingPkgs {
 		err := pkg2.Finalize(d.finalIndicies.Packages)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Finalizing vendored package")

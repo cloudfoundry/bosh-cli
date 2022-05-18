@@ -108,9 +108,7 @@ var _ = Describe("Director", func() {
 	})
 
 	Describe("DiffCPIConfig", func() {
-		var expectedDiffResponse ConfigDiff
-
-		expectedDiffResponse = ConfigDiff{
+		expectedDiffResponse := ConfigDiff{
 			Diff: [][]interface{}{
 				[]interface{}{"cpis:", nil},
 				[]interface{}{"  name: smurf", "removed"},

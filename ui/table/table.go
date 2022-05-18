@@ -16,7 +16,7 @@ func (t Table) AsRows() [][]Value {
 		for _, s := range t.Sections {
 			if s.FirstColumn != nil && len(s.FirstColumn.String()) > 0 {
 				if len(s.Rows) > 0 && len(s.Rows[0]) > 0 {
-					for i, _ := range s.Rows {
+					for i := range s.Rows {
 						s.Rows[i][0] = s.FirstColumn
 					}
 				}
@@ -24,18 +24,14 @@ func (t Table) AsRows() [][]Value {
 
 			totalRows += len(s.Rows)
 
-			for _, r := range s.Rows {
-				rows = append(rows, r)
-			}
+			rows = append(rows, s.Rows...)
 		}
 	}
 
 	if len(t.Rows) > 0 {
 		totalRows += len(t.Rows) //nolint:ineffassign
 
-		for _, r := range t.Rows {
-			rows = append(rows, r)
-		}
+		rows = append(rows, t.Rows...)
 	}
 
 	// Fill in nils

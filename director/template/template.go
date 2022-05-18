@@ -178,7 +178,7 @@ func (l varsLookup) Get(name string) (interface{}, bool, error) {
 			return nil, false, err
 		}
 
-		val, found, err = processPatchPointer(pointer, val) //nolint:ineffassign
+		val, found, err = processPatchPointer(pointer, val) //nolint:ineffassign,staticcheck
 		if err != nil {
 			tokens := []patch.Token{}
 			for _, token := range pointer.Tokens() {
@@ -252,7 +252,7 @@ func (t varsTracker) Get(name string) (interface{}, bool, error) {
 		return nil, false, nil
 	}
 
-	for name, _ := range defVarTracker.missing {
+	for name := range defVarTracker.missing {
 		t.missing[name] = struct{}{}
 	}
 
@@ -273,7 +273,7 @@ func (t varsTracker) scopedVarsTracker(name string) (varsTracker, error) {
 	varsTracker.defs = t.defs
 	varsTracker.visited[name] = struct{}{}
 
-	for k, _ := range t.visited {
+	for k := range t.visited {
 		varsTracker.visited[k] = struct{}{}
 	}
 
@@ -394,7 +394,7 @@ func (t varsTracker) ExtraError() error {
 
 func (t varsTracker) multiErr(mapWithNames map[string]struct{}) error {
 	var names []string
-	for name, _ := range mapWithNames {
+	for name := range mapWithNames {
 		names = append(names, name)
 	}
 	sort.Strings(names)

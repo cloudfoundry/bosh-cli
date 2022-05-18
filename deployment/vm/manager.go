@@ -6,7 +6,6 @@ import (
 
 	"code.cloudfoundry.org/clock"
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
 	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
 	biconfig "github.com/cloudfoundry/bosh-cli/config"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
@@ -24,17 +23,16 @@ type Manager interface {
 }
 
 type manager struct {
-	vmRepo             biconfig.VMRepo
-	stemcellRepo       biconfig.StemcellRepo
-	diskDeployer       DiskDeployer
-	agentClient        biagentclient.AgentClient
-	agentClientFactory bihttpagent.AgentClientFactory
-	cloud              bicloud.Cloud
-	uuidGenerator      boshuuid.Generator
-	fs                 boshsys.FileSystem
-	logger             boshlog.Logger
-	logTag             string
-	timeService        Clock
+	vmRepo        biconfig.VMRepo
+	stemcellRepo  biconfig.StemcellRepo
+	diskDeployer  DiskDeployer
+	agentClient   biagentclient.AgentClient
+	cloud         bicloud.Cloud
+	uuidGenerator boshuuid.Generator
+	fs            boshsys.FileSystem
+	logger        boshlog.Logger
+	logTag        string
+	timeService   Clock
 }
 
 func NewManager(

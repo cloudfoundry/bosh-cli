@@ -81,7 +81,7 @@ func (s *state) CompiledPackages() []PackageRef { return s.compiledPackages }
 func (s *state) RenderedJobListArchive() BlobRef { return s.renderedJobListArchive }
 
 func (s *state) ToApplySpec() bias.ApplySpec {
-	jobTemplateList := make([]bias.Blob, len(s.renderedJobs), len(s.renderedJobs))
+	jobTemplateList := make([]bias.Blob, len(s.renderedJobs))
 	for i, renderedJob := range s.renderedJobs {
 		jobTemplateList[i] = bias.Blob{
 			Name:    renderedJob.Name,

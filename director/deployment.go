@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	gourl "net/url"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -16,8 +15,6 @@ type DeploymentImpl struct {
 
 	name        string
 	cloudConfig string
-
-	manifest string
 
 	releases  []Release
 	stemcells []Stemcell
@@ -187,7 +184,7 @@ func (d DeploymentImpl) ExportRelease(release ReleaseSlug, os OSVersionSlug, job
 		return ExportReleaseResult{}, err
 	}
 
-	return ExportReleaseResult{BlobstoreID: resp.BlobstoreID, SHA1: resp.SHA1}, nil
+	return ExportReleaseResult(resp), nil
 }
 
 func (d DeploymentImpl) Update(manifest []byte, opts UpdateOpts) error {
@@ -213,7 +210,7 @@ func (d DeploymentImpl) Delete(force bool) error {
 }
 
 func (d DeploymentImpl) AttachDisk(slug InstanceSlug, diskCID string, diskProperties string) error {
-	values := gourl.Values{}
+	values := url.Values{}
 	values.Add("deployment", d.Name())
 	values.Add("job", slug.Name())
 	values.Add("instance_id", slug.IndexOrID())
@@ -242,7 +239,7 @@ func (d DeploymentImpl) IsInProgress() (bool, error) {
 }
 
 func (d DeploymentImpl) Variables() ([]VariableResult, error) {
-	url, err := gourl.Parse(fmt.Sprintf("/deployments/%s/variables", d.name))
+	url, err := url.Parse(fmt.Sprintf("/deployments/%s/variables", d.name))
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Parsing variables path")
 	}
@@ -270,7 +267,7 @@ func (c Client) FetchLogs(deploymentName, job, indexOrID string, filters []strin
 		indexOrID = "*"
 	}
 
-	query := gourl.Values{}
+	query := url.Values{}
 
 	if len(filters) > 0 {
 		query.Add("filters", strings.Join(filters, ","))
@@ -374,7 +371,7 @@ func (c Client) NonConvergingJobAction(action string, deployment string, instanc
 	setHeaders := func(req *http.Request) {
 		req.Header.Add("Content-Type", "text/yaml")
 	}
-	query := gourl.Values{}
+	query := url.Values{}
 	if skipDrain {
 		query.Add("skip_drain", "true")
 	}
@@ -405,7 +402,7 @@ func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, ski
 
 	// allows to have empty job and indexOrID
 
-	query := gourl.Values{}
+	query := url.Values{}
 
 	query.Add("state", state)
 
@@ -522,7 +519,7 @@ func (c Client) ExportRelease(deploymentName string, release ReleaseSlug, os OSV
 }
 
 func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
-	query := gourl.Values{}
+	query := url.Values{}
 
 	if opts.Recreate {
 		query.Add("recreate", "true")
@@ -586,7 +583,7 @@ func (c Client) DeleteDeployment(deploymentName string, force bool) error {
 		return bosherr.Error("Expected non-empty deployment name")
 	}
 
-	query := gourl.Values{}
+	query := url.Values{}
 
 	if force {
 		query.Add("force", "true")

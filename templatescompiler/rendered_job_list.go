@@ -15,7 +15,6 @@ type RenderedJobList interface {
 
 type renderedJobList struct {
 	renderedJobs []RenderedJob
-	logTag       string
 }
 
 func NewRenderedJobList() RenderedJobList {

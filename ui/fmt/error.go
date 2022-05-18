@@ -24,7 +24,7 @@ func prefixingMultilineError(err error, prefix string, bullet string) string {
 	case bosherr.ComplexError:
 		return currPrefix + specificErr.Err.Error() + ":\n" + prefixingMultilineError(specificErr.Cause, prefix+Indent, "")
 	case bosherr.MultiError:
-		lines := make([]string, len(specificErr.Errors), len(specificErr.Errors))
+		lines := make([]string, len(specificErr.Errors))
 		for i, sibling := range specificErr.Errors {
 			lines[i] = prefixingMultilineError(sibling, prefix, Bullet)
 		}

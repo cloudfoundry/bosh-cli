@@ -108,9 +108,7 @@ var _ = Describe("Director", func() {
 	})
 
 	Describe("DiffCloudConfig", func() {
-		var expectedDiffResponse ConfigDiff
-
-		expectedDiffResponse = ConfigDiff{
+		expectedDiffResponse := ConfigDiff{
 			Diff: [][]interface{}{
 				[]interface{}{"azs:", nil},
 				[]interface{}{"- name: az2", "removed"},

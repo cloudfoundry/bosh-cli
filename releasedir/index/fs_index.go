@@ -73,10 +73,10 @@ var _ yaml.Marshaler = fsIndexSchema_SortedEntries{}
 
 func (e fsIndexSchema_SortedEntries) MarshalYAML() (interface{}, error) {
 	var keys []string
-	for k, _ := range e {
+	for k := range e {
 		keys = append(keys, k)
 	}
-	sort.Sort(sort.StringSlice(keys))
+	sort.Strings(keys)
 	var sortedEntries []yaml.MapItem
 	for _, k := range keys {
 		sortedEntries = append(sortedEntries, yaml.MapItem{Key: k, Value: e[k]})

@@ -128,7 +128,7 @@ func (t ValueBool) Compare(other Value) int {
 	switch {
 	case t.B == otherB:
 		return 0
-	case t.B == false && otherB == true:
+	case !t.B && otherB:
 		return -1
 	default:
 		return 1

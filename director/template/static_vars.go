@@ -16,7 +16,7 @@ func (v StaticVariables) Get(varDef VariableDefinition) (interface{}, bool, erro
 func (v StaticVariables) List() ([]VariableDefinition, error) {
 	var defs []VariableDefinition
 
-	for name, _ := range v.processed() {
+	for name := range v.processed() {
 		defs = append(defs, VariableDefinition{Name: name})
 	}
 

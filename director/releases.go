@@ -220,7 +220,7 @@ func (d DirectorImpl) ReleaseHasCompiledPackage(releaseSlug ReleaseSlug, osVersi
 				stemcellFoundForPackage = true
 			}
 		}
-		if stemcellFoundForPackage == false {
+		if !stemcellFoundForPackage {
 			return false, nil
 		}
 	}

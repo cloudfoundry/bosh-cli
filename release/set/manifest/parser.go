@@ -67,9 +67,7 @@ func (p *parser) Parse(path string, vars boshtpl.Variables, op patch.Op) (Manife
 		}
 	}
 
-	releaseSetManifest := Manifest{
-		Releases: comboManifest.Releases,
-	}
+	releaseSetManifest := Manifest(comboManifest)
 
 	err = p.validator.Validate(releaseSetManifest)
 	if err != nil {

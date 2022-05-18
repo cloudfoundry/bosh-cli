@@ -138,46 +138,6 @@ func (ri FileIndex) structToMap(s interface{}) (map[string]interface{}, error) {
 	return res, nil
 }
 
-func (ri FileIndex) mapToStruct(m map[string]interface{}, t interface{}) (reflect.Value, error) {
-	return ri.mapToNewStruct(m, reflect.ValueOf(t).Elem().Type())
-}
-
-func (ri FileIndex) mapToStructFromSlice(m map[string]interface{}, t interface{}) (reflect.Value, error) {
-	slice := reflect.ValueOf(t).Elem()
-
-	if slice.Kind() != reflect.Slice {
-		return reflect.Value{}, bosherr.Errorf(
-			"Must be reflect.Slice: %#v (%#v)",
-			slice, ri.kindToStr(slice.Kind()),
-		)
-	}
-
-	return ri.mapToNewStruct(m, slice.Type().Elem())
-}
-
-func (ri FileIndex) mapToNewStruct(m map[string]interface{}, t reflect.Type) (reflect.Value, error) {
-	if t.Kind() != reflect.Struct {
-		return reflect.Value{}, bosherr.Errorf(
-			"Must be reflect.Struct: %#v (%#v)",
-			t, ri.kindToStr(t.Kind()),
-		)
-	}
-
-	newStruct := reflect.New(t).Elem()
-
-	for k, v := range m {
-		f := newStruct.FieldByName(k)
-		if f.IsValid() && f.CanSet() {
-			// todo float64 -> int
-			// todo pointer values
-			// todo slices
-			f.Set(reflect.ValueOf(v))
-		}
-	}
-
-	return newStruct, nil
-}
-
 var kindToStrMap = map[reflect.Kind]string{
 	reflect.Invalid:       "Invalid",
 	reflect.Bool:          "Bool",

@@ -20,7 +20,7 @@ func NewCleanUpCmd(ui boshui.UI, director boshdir.Director) CleanUpCmd {
 
 func (c CleanUpCmd) Run(opts CleanUpOpts) error {
 
-	if opts.DryRun == false {
+	if !opts.DryRun {
 		err := c.ui.AskForConfirmation()
 		if err != nil {
 			return err
@@ -77,7 +77,7 @@ func (c CleanUpCmd) PrintCleanUpTable(resp boshdir.CleanUp) {
 		orphanedVmRows(resp.OrphanedVMs),
 	}
 
-	for i, _ := range titles {
+	for i := range titles {
 		table := boshtbl.Table{
 			Title:  titles[i],
 			Header: headers[i],
@@ -85,9 +85,7 @@ func (c CleanUpCmd) PrintCleanUpTable(resp boshdir.CleanUp) {
 				{Column: 0, Asc: true},
 			},
 		}
-		for _, r := range rows[i] {
-			table.Rows = append(table.Rows, r)
-		}
+		table.Rows = append(table.Rows, rows[i]...)
 		c.ui.PrintTable(table)
 	}
 }

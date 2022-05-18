@@ -20,6 +20,4 @@ func (rs RequestSanitizer) sanitizeAuthorization() {
 		rs.Request.Header.Del("Authorization")
 		rs.Request.Header.Add("Authorization", "[removed]")
 	}
-
-	return
 }
