@@ -123,7 +123,7 @@ func (ui *jsonUI) printTableHeader(table *Table) tableResp {
 		}
 	} else if len(table.AsRows()) > 0 {
 		var rawHeaders []Header
-		for i, _ := range table.AsRows()[0] {
+		for i := range table.AsRows()[0] {
 			val := Header{
 				Key:    fmt.Sprintf("col_%d", i),
 				Hidden: false,

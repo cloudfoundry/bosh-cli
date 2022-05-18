@@ -27,6 +27,7 @@ func (v *validator) Validate(manifest Manifest) error {
 		errs = append(errs, bosherr.Errorf("releases must contain at least 1 release"))
 	}
 
+	protocolRegex := regexp.MustCompile("^(file|http|https)://")
 	for releaseIdx, release := range manifest.Releases {
 		if v.isBlank(release.Name) {
 			errs = append(errs, bosherr.Errorf("releases[%d].name must be provided", releaseIdx))
@@ -41,8 +42,8 @@ func (v *validator) Validate(manifest Manifest) error {
 			errs = append(errs, bosherr.Errorf("releases[%d].url must be provided", releaseIdx))
 		}
 
-		matched, err := regexp.MatchString("^(file|http|https)://", release.URL)
-		if err != nil || !matched {
+		matched := protocolRegex.MatchString(release.URL)
+		if !matched {
 			errs = append(errs, bosherr.Errorf("releases[%d].url must be a valid URL (file:// or http(s)://)", releaseIdx))
 		}
 

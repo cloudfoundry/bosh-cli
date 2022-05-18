@@ -387,7 +387,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns creds with username/password if environment is found and basic creds are set", func() {
-			updatedConfig, err := config.AliasEnvironment("url", "alias", "") //nolint:ineffassign
+			updatedConfig, err := config.AliasEnvironment("url", "alias", "") //nolint:ineffassign,staticcheck
 			Expect(err).ToNot(HaveOccurred())
 
 			updatedConfig = config.SetCredentials("url", Creds{Client: "user", ClientSecret: "pass"})
@@ -410,7 +410,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns creds with token if environment is found and token is set", func() {
-			updatedConfig, err := config.AliasEnvironment("url", "alias", "") //nolint:ineffassign
+			updatedConfig, err := config.AliasEnvironment("url", "alias", "") //nolint:ineffassign,staticcheck
 			Expect(err).ToNot(HaveOccurred())
 
 			updatedConfig = config.SetCredentials("url", Creds{AccessToken: "access", AccessTokenType: "access-type", RefreshToken: "token"})
@@ -433,7 +433,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns creds for alias if environment is found and token is set", func() {
-			updatedConfig, err := config.AliasEnvironment("url", "alias", "") //nolint:ineffassign
+			updatedConfig, err := config.AliasEnvironment("url", "alias", "") //nolint:ineffassign,staticcheck
 			Expect(err).ToNot(HaveOccurred())
 
 			updatedConfig = config.SetCredentials("alias", Creds{AccessToken: "access", AccessTokenType: "access-type", RefreshToken: "token"})
@@ -456,7 +456,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("does not update existing config when creds are set", func() {
-			updatedConfig, err := config.AliasEnvironment("url", "alias", "") //nolint:ineffassign
+			updatedConfig, err := config.AliasEnvironment("url", "alias", "") //nolint:ineffassign,staticcheck
 			Expect(err).ToNot(HaveOccurred())
 
 			updatedConfig = config.SetCredentials("url", Creds{Client: "user"})

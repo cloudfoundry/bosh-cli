@@ -24,7 +24,7 @@ func NewHeadersFromStrings(titles []string) (headers []Header) {
 }
 
 func (t *Table) SetColumnVisibility(headers []Header) error {
-	for tableHeaderIdx, _ := range t.Header {
+	for tableHeaderIdx := range t.Header {
 		t.Header[tableHeaderIdx].Hidden = true
 	}
 
@@ -50,7 +50,7 @@ func (t *Table) SetColumnVisibility(headers []Header) error {
 }
 
 func (t *Table) SetColumnVisibilityFiltered(headers []Header, filterHeaders []Header) error {
-	for tableHeaderIdx, _ := range t.Header {
+	for tableHeaderIdx := range t.Header {
 		t.Header[tableHeaderIdx].Hidden = true
 	}
 

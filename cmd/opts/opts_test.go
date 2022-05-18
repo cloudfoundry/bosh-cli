@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	dupSpaces = regexp.MustCompile("\\s{2,}")
+	dupSpaces = regexp.MustCompile(`\s{2,}`)
 )
 
 func getStructTagForName(field string, opts interface{}) string {

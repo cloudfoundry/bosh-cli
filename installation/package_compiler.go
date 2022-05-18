@@ -40,7 +40,7 @@ func (b *packageCompiler) For(jobs []bireljob.Job, stage biui.Stage) ([]Compiled
 		return nil, bosherr.WrapError(err, "Compiling job package dependencies for installation")
 	}
 
-	compiledInstallationPackageRefs := make([]CompiledPackageRef, len(compiledPackageRefs), len(compiledPackageRefs))
+	compiledInstallationPackageRefs := make([]CompiledPackageRef, len(compiledPackageRefs))
 	for i, compiledPackageRef := range compiledPackageRefs {
 		compiledInstallationPackageRefs[i] = CompiledPackageRef{
 			Name:        compiledPackageRef.Name,

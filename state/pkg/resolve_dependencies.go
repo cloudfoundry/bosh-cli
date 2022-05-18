@@ -16,9 +16,7 @@ func resolveInner(pkg birelpkg.Compilable, noFollow []birelpkg.Compilable) []bir
 			all = append(all, depPkg)
 
 			tDeps := resolveInner(depPkg, joinUnique(all, noFollow))
-			for _, tDepPkg := range tDeps {
-				all = append(all, tDepPkg)
-			}
+			all = append(all, tDeps...)
 		}
 	}
 

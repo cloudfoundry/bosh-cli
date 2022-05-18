@@ -197,7 +197,7 @@ func (p *parser) parseDeploymentManifest(depManifest manifest, path string) (Man
 }
 
 func (p *parser) parseJobManifests(rawJobs []job) ([]Job, error) {
-	jobs := make([]Job, len(rawJobs), len(rawJobs))
+	jobs := make([]Job, len(rawJobs))
 	for i, rawJob := range rawJobs {
 		job := Job{
 			Name:               rawJob.Name,
@@ -218,7 +218,7 @@ func (p *parser) parseJobManifests(rawJobs []job) ([]Job, error) {
 		}
 
 		if templates != nil {
-			releaseJobRefs := make([]ReleaseJobRef, len(templates), len(templates))
+			releaseJobRefs := make([]ReleaseJobRef, len(templates))
 			for i, rawJobRef := range templates {
 				ref := ReleaseJobRef{
 					Name:    rawJobRef.Name,
@@ -240,7 +240,7 @@ func (p *parser) parseJobManifests(rawJobs []job) ([]Job, error) {
 		}
 
 		if rawJob.Networks != nil {
-			jobNetworks := make([]JobNetwork, len(rawJob.Networks), len(rawJob.Networks))
+			jobNetworks := make([]JobNetwork, len(rawJob.Networks))
 			for i, rawJobNetwork := range rawJob.Networks {
 				jobNetwork := JobNetwork{
 					Name:      rawJobNetwork.Name,
@@ -248,7 +248,7 @@ func (p *parser) parseJobManifests(rawJobs []job) ([]Job, error) {
 				}
 
 				if rawJobNetwork.Defaults != nil {
-					networkDefaults := make([]NetworkDefault, len(rawJobNetwork.Defaults), len(rawJobNetwork.Defaults))
+					networkDefaults := make([]NetworkDefault, len(rawJobNetwork.Defaults))
 					for i, rawDefaults := range rawJobNetwork.Defaults {
 						networkDefaults[i] = NetworkDefault(rawDefaults)
 					}
@@ -275,7 +275,7 @@ func (p *parser) parseJobManifests(rawJobs []job) ([]Job, error) {
 }
 
 func (p *parser) parseNetworkManifests(rawNetworks []network) ([]Network, error) {
-	networks := make([]Network, len(rawNetworks), len(rawNetworks))
+	networks := make([]Network, len(rawNetworks))
 	for i, rawNetwork := range rawNetworks {
 		network := Network{
 			Name: rawNetwork.Name,
@@ -310,7 +310,7 @@ func (p *parser) parseNetworkManifests(rawNetworks []network) ([]Network, error)
 }
 
 func (p *parser) parseResourcePoolManifests(rawResourcePools []resourcePool, path string) ([]ResourcePool, error) {
-	resourcePools := make([]ResourcePool, len(rawResourcePools), len(rawResourcePools))
+	resourcePools := make([]ResourcePool, len(rawResourcePools))
 	for i, rawResourcePool := range rawResourcePools {
 		resourcePool := ResourcePool{
 			Name:     rawResourcePool.Name,
@@ -342,7 +342,7 @@ func (p *parser) parseResourcePoolManifests(rawResourcePools []resourcePool, pat
 }
 
 func (p *parser) parseDiskPoolManifests(rawDiskPools []diskPool) ([]DiskPool, error) {
-	diskPools := make([]DiskPool, len(rawDiskPools), len(rawDiskPools))
+	diskPools := make([]DiskPool, len(rawDiskPools))
 	for i, rawDiskPool := range rawDiskPools {
 		diskPool := DiskPool{
 			Name:     rawDiskPool.Name,

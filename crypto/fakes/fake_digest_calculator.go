@@ -30,7 +30,7 @@ func (c *FakeDigestCalculator) CalculateString(data string) string {
 	}
 
 	var availableData []string
-	for key, _ := range c.CalculateStringInputs {
+	for key := range c.CalculateStringInputs {
 		availableData = append(availableData, key)
 	}
 

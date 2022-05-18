@@ -93,7 +93,7 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bidep
 		return nil, bosherr.WrapErrorf(err, "Compiling job package dependencies for instance '%s/%d'", jobName, instanceID)
 	}
 
-	compiledDeploymentPackageRefs := make([]PackageRef, len(compiledPackageRefs), len(compiledPackageRefs))
+	compiledDeploymentPackageRefs := make([]PackageRef, len(compiledPackageRefs))
 
 	for i, compiledPackageRef := range compiledPackageRefs {
 		compiledDeploymentPackageRefs[i] = PackageRef{
@@ -107,7 +107,7 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bidep
 	}
 
 	// convert array to array
-	renderedJobRefs := make([]JobRef, len(releaseJobs), len(releaseJobs))
+	renderedJobRefs := make([]JobRef, len(releaseJobs))
 
 	for i, releaseJob := range releaseJobs {
 		renderedJobRefs[i] = JobRef{
@@ -168,7 +168,7 @@ func (b *builder) BuildInitialState(jobName string, instanceID int, deploymentMa
 
 // FIXME: why do i exist here and in installation/state/builder.go??
 func (b *builder) resolveJobs(jobRefs []bideplmanifest.ReleaseJobRef) ([]bireljob.Job, error) {
-	releaseJobs := make([]bireljob.Job, len(jobRefs), len(jobRefs))
+	releaseJobs := make([]bireljob.Job, len(jobRefs))
 	for i, jobRef := range jobRefs {
 		release, err := b.releaseJobResolver.Resolve(jobRef.Name, jobRef.Release)
 		if err != nil {

@@ -78,7 +78,7 @@ func (y deploymentManifestParser) getManifest(path string, vars boshtpl.Variable
 			return bosherr.WrapError(err, "Validating deployment manifest")
 		}
 
-		if skipReleaseJobsValidation == false {
+		if !skipReleaseJobsValidation {
 			err = y.deploymentValidator.ValidateReleaseJobs(deploymentManifest, y.releaseManager)
 			if err != nil {
 				return bosherr.WrapError(err, "Validating deployment jobs refer to jobs in release")

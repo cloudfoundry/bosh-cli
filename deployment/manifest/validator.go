@@ -37,6 +37,7 @@ func (v *validator) Validate(deploymentManifest Manifest, releaseSetManifest bir
 	networksErrors := v.validateNetworks(deploymentManifest.Networks)
 	errs = append(errs, networksErrors...)
 
+	protocolRegex := regexp.MustCompile("^(file|http|https)://")
 	for idx, resourcePool := range deploymentManifest.ResourcePools {
 		if v.isBlank(resourcePool.Name) {
 			errs = append(errs, bosherr.Errorf("resource_pools[%d].name must be provided", idx))
@@ -51,8 +52,8 @@ func (v *validator) Validate(deploymentManifest Manifest, releaseSetManifest bir
 			errs = append(errs, bosherr.Errorf("resource_pools[%d].stemcell.url must be provided", idx))
 		}
 
-		matched, err := regexp.MatchString("^(file|http|https)://", resourcePool.Stemcell.URL)
-		if err != nil || !matched {
+		matched := protocolRegex.MatchString(resourcePool.Stemcell.URL)
+		if !matched {
 			errs = append(errs, bosherr.Errorf("resource_pools[%d].stemcell.url must be a valid URL (file:// or http(s)://)", idx))
 		}
 

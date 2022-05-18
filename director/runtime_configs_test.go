@@ -139,9 +139,7 @@ var _ = Describe("Director", func() {
 	})
 
 	Describe("DiffRuntimeConfig", func() {
-		var expectedDiffResponse ConfigDiff
-
-		expectedDiffResponse = ConfigDiff{
+		expectedDiffResponse := ConfigDiff{
 			Diff: [][]interface{}{
 				[]interface{}{"release:", nil},
 				[]interface{}{"  version: 0.0.1", "removed"},

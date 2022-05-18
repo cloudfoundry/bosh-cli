@@ -32,9 +32,7 @@ var _ = Describe("Deployment", func() {
 		})
 
 		Context("when diffing manifest with 'no redact' option", func() {
-			var expectedDiffResponse DeploymentDiffResponse
-
-			expectedDiffResponse = DeploymentDiffResponse{
+			expectedDiffResponse := DeploymentDiffResponse{
 				Context: map[string]interface{}{
 					"cloud_config_id":   2,
 					"runtime_config_id": nil,

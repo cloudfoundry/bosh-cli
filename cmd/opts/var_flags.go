@@ -20,19 +20,19 @@ func (f VarFlags) AsVariables() boshtpl.Variables {
 
 	staticVars := boshtpl.StaticVariables{}
 
-	for i, _ := range f.VarsEnvs {
+	for i := range f.VarsEnvs {
 		for k, v := range f.VarsEnvs[i].Vars {
 			staticVars[k] = v
 		}
 	}
 
-	for i, _ := range f.VarsFiles {
+	for i := range f.VarsFiles {
 		for k, v := range f.VarsFiles[i].Vars {
 			staticVars[k] = v
 		}
 	}
 
-	for i, _ := range f.VarFiles {
+	for i := range f.VarFiles {
 		for k, v := range f.VarFiles[i].Vars {
 			staticVars[k] = v
 		}

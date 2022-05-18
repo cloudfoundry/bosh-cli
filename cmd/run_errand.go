@@ -107,10 +107,3 @@ func (c RunErrandCmd) summarize(errandName string, results []boshdir.ErrandResul
 
 	return errandErr
 }
-
-func (c RunErrandCmd) printOutput(title, output string) {
-	if len(output) > 0 {
-		c.ui.PrintLinef("%s", title)
-		c.ui.PrintLinef("%s", output)
-	}
-}

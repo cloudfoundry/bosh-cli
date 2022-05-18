@@ -67,11 +67,10 @@ type CPICmdRunner interface {
 }
 
 type cpiCmdRunner struct {
-	cmdRunner  boshsys.CmdRunner
-	cpi        CPI
-	logger     boshlog.Logger
-	apiVersion int
-	logTag     string
+	cmdRunner boshsys.CmdRunner
+	cpi       CPI
+	logger    boshlog.Logger
+	logTag    string
 }
 
 func NewCPICmdRunner(

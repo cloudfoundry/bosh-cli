@@ -73,7 +73,7 @@ func (r DirReaderImpl) collectFiles(path string) (boshjobman.Manifest, []File, e
 		files = append(files, NewFile(monitPath, path))
 	}
 
-	for src, _ := range manifest.Templates {
+	for src := range manifest.Templates {
 		srcPath := filepath.Join(path, "templates", src)
 		files = append(files, NewFile(srcPath, path))
 	}

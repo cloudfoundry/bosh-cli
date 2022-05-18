@@ -40,7 +40,7 @@ func (h *hostBuilder) BuildHost(slug boshdir.AllOrInstanceGroupOrInstanceSlug, u
 		var targetVM boshdir.VMInfo
 		indexOrId := slug.IndexOrID()
 		for _, vm := range vms {
-			if vm.Active == nil || *vm.Active == false {
+			if vm.Active == nil || !*vm.Active {
 				continue
 			}
 			if vm.JobName == slug.Name() {

@@ -46,7 +46,7 @@ func (c *remotePackageCompiler) Compile(pkg birelpkg.Compilable) (bistatepkg.Com
 	if !pkg.IsCompiled() {
 		// Resolve dependencies from map of previously compiled packages.
 		// Only install the package's immediate dependencies.
-		packageDependencies := make([]biagentclient.BlobRef, len(pkg.Deps()), len(pkg.Deps()))
+		packageDependencies := make([]biagentclient.BlobRef, len(pkg.Deps()))
 
 		for i, pkgDep := range pkg.Deps() {
 			compiledPackageRecord, found, err := c.packageRepo.Find(pkgDep)

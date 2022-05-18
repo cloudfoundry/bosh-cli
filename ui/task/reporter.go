@@ -7,6 +7,8 @@ import (
 	"sync"
 
 	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type ReporterImpl struct {
@@ -69,7 +71,7 @@ func (r *ReporterImpl) TaskFinished(id int, state string) {
 	}
 
 	if r.noOutputSinceTaskStarted(id) {
-		r.ui.EndLinef(". %s", strings.Title(state))
+		r.ui.EndLinef(". %s", cases.Title(language.English).String(state))
 	} else {
 		r.ui.BeginLinef("\nTask %d %s\n", id, state)
 	}

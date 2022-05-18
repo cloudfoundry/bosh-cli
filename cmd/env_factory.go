@@ -56,8 +56,7 @@ type envFactory struct {
 	vmManagerFactory       bivm.ManagerFactory
 	stemcellManagerFactory bistemcell.ManagerFactory
 
-	instanceManagerFactory   biinstance.ManagerFactory
-	deploymentManagerFactory bidepl.ManagerFactory
+	instanceManagerFactory biinstance.ManagerFactory
 
 	agentClientFactory bihttpagent.AgentClientFactory
 	blobstoreFactory   biblobstore.Factory

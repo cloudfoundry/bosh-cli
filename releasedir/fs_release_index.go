@@ -44,10 +44,10 @@ var _ yaml.Marshaler = fsReleaseIndexSchema_SortedEntries{}
 
 func (e fsReleaseIndexSchema_SortedEntries) MarshalYAML() (interface{}, error) {
 	var keys []string
-	for k, _ := range e {
+	for k := range e {
 		keys = append(keys, k)
 	}
-	sort.Sort(sort.StringSlice(keys))
+	sort.Strings(keys)
 	var sortedEntries []yaml.MapItem
 	for _, k := range keys {
 		sortedEntries = append(sortedEntries, yaml.MapItem{Key: k, Value: e[k]})
@@ -59,7 +59,7 @@ type fsReleaseIndexSchema_Entry struct {
 	Version string `yaml:"version"`
 }
 
-type releaseIndexEntry struct { //nolint:deadcode
+type releaseIndexEntry struct { //nolint:deadcode,unused
 	Version semver.Version
 }
 
