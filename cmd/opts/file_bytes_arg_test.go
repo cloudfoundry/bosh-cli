@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

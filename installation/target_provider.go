@@ -3,7 +3,7 @@ package installation
 import (
 	"path/filepath"
 
-	biconfig "github.com/cloudfoundry/bosh-cli/config"
+	biconfig "github.com/cloudfoundry/bosh-cli/v6/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )

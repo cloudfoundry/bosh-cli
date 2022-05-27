@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
-	bierbrenderer "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer"
+	bireljob "github.com/cloudfoundry/bosh-cli/v6/release/job"
+	bierbrenderer "github.com/cloudfoundry/bosh-cli/v6/templatescompiler/erbrenderer"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"

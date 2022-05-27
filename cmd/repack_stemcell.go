@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	"github.com/cloudfoundry/bosh-cli/stemcell"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v6/stemcell"
+	boshui "github.com/cloudfoundry/bosh-cli/v6/ui"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"

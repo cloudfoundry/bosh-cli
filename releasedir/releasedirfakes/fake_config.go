@@ -4,7 +4,7 @@ package releasedirfakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/releasedir"
+	"github.com/cloudfoundry/bosh-cli/v6/releasedir"
 )
 
 type FakeConfig struct {

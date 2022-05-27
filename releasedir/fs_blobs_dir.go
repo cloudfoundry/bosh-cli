@@ -16,7 +16,7 @@ import (
 
 	"fmt"
 
-	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
+	bicrypto "github.com/cloudfoundry/bosh-cli/v6/crypto"
 	"github.com/cloudfoundry/bosh-utils/work"
 )
 

@@ -10,9 +10,9 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd"
+	boshui "github.com/cloudfoundry/bosh-cli/v6/ui"
+	fakeui "github.com/cloudfoundry/bosh-cli/v6/ui/fakes"
 )
 
 var _ = Describe("task command", func() {

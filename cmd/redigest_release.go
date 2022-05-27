@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	"github.com/cloudfoundry/bosh-cli/crypto"
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
-	"github.com/cloudfoundry/bosh-cli/release/license"
-	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v6/crypto"
+	boshrel "github.com/cloudfoundry/bosh-cli/v6/release"
+	boshjob "github.com/cloudfoundry/bosh-cli/v6/release/job"
+	"github.com/cloudfoundry/bosh-cli/v6/release/license"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v6/release/pkg"
+	boshui "github.com/cloudfoundry/bosh-cli/v6/ui"
 	crypto2 "github.com/cloudfoundry/bosh-utils/crypto"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 )

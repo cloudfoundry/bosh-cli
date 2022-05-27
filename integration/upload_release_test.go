@@ -12,10 +12,10 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd"
+	boshrel "github.com/cloudfoundry/bosh-cli/v6/release"
+	boshui "github.com/cloudfoundry/bosh-cli/v6/ui"
+	fakeui "github.com/cloudfoundry/bosh-cli/v6/ui/fakes"
 )
 
 var _ = Describe("upload-release command", func() {

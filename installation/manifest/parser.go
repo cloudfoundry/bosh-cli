@@ -12,9 +12,9 @@ import (
 	"github.com/cppforlife/go-patch/patch"
 	"gopkg.in/yaml.v2"
 
-	biutil "github.com/cloudfoundry/bosh-cli/common/util"
-	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
-	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
+	biutil "github.com/cloudfoundry/bosh-cli/v6/common/util"
+	boshtpl "github.com/cloudfoundry/bosh-cli/v6/director/template"
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v6/release/set/manifest"
 )
 
 type Parser interface {

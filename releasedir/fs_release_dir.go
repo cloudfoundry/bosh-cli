@@ -11,9 +11,9 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	boshpkgman "github.com/cloudfoundry/bosh-cli/release/pkg/manifest"
+	boshrel "github.com/cloudfoundry/bosh-cli/v6/release"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v6/release/pkg"
+	boshpkgman "github.com/cloudfoundry/bosh-cli/v6/release/pkg/manifest"
 )
 
 var (

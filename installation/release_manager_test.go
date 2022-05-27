@@ -5,9 +5,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/installation"
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
+	. "github.com/cloudfoundry/bosh-cli/v6/installation"
+	boshrel "github.com/cloudfoundry/bosh-cli/v6/release"
+	fakerel "github.com/cloudfoundry/bosh-cli/v6/release/releasefakes"
 )
 
 var _ = Describe("ReleaseManager", func() {

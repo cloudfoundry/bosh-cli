@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sort"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
-	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
+	boshui "github.com/cloudfoundry/bosh-cli/v6/ui"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v6/ui/table"
 )
 
 type InfoTable struct {

@@ -9,7 +9,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"errors"
-	. "github.com/cloudfoundry/bosh-cli/director"
+	. "github.com/cloudfoundry/bosh-cli/v6/director"
 )
 
 var _ = Describe("NewFSStemcellArchive", func() {

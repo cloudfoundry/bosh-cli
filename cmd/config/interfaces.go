@@ -1,6 +1,6 @@
 package config
 
-import "github.com/cloudfoundry/bosh-cli/uaa"
+import "github.com/cloudfoundry/bosh-cli/v6/uaa"
 
 //go:generate counterfeiter . Config
 

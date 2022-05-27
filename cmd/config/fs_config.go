@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"github.com/cloudfoundry/bosh-cli/uaa"
+	"github.com/cloudfoundry/bosh-cli/v6/uaa"
 	"gopkg.in/yaml.v2"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"

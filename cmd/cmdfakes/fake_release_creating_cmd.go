@@ -4,9 +4,9 @@ package cmdfakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/cmd"
-	"github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	"github.com/cloudfoundry/bosh-cli/v6/cmd"
+	"github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
+	boshrel "github.com/cloudfoundry/bosh-cli/v6/release"
 )
 
 type FakeReleaseCreatingCmd struct {

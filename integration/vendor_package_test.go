@@ -11,12 +11,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd"
+	boshtpl "github.com/cloudfoundry/bosh-cli/v6/director/template"
+	boshrel "github.com/cloudfoundry/bosh-cli/v6/release"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v6/release/pkg"
+	boshui "github.com/cloudfoundry/bosh-cli/v6/ui"
+	fakeui "github.com/cloudfoundry/bosh-cli/v6/ui/fakes"
 )
 
 var _ = Describe("vendor-package command", func() {

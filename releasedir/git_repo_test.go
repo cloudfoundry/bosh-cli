@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/releasedir"
+	. "github.com/cloudfoundry/bosh-cli/v6/releasedir"
 )
 
 var _ = Describe("GitRepo", func() {

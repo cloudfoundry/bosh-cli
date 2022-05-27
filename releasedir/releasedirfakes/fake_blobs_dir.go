@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/releasedir"
+	"github.com/cloudfoundry/bosh-cli/v6/releasedir"
 )
 
 type FakeBlobsDir struct {

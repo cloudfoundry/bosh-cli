@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
+	boshssh "github.com/cloudfoundry/bosh-cli/v6/ssh"
+	boshui "github.com/cloudfoundry/bosh-cli/v6/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )

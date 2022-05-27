@@ -15,7 +15,7 @@ echo -e "\n Running unit tests..."
 go run github.com/onsi/ginkgo/ginkgo -p -r $race -keepGoing -trace -randomizeAllSpecs -randomizeSuites -skipPackage="acceptance,integration,vendor" $@
 
 echo -e "\n Building docs example..."
-go build -o $bin/../out/example github.com/cloudfoundry/bosh-cli/docs/
+go build -o $bin/../out/example github.com/cloudfoundry/bosh-cli/v6/docs/
 
 echo -e "\B Building bosh-cli..."
-go build -o $bin/../out/bosh github.com/cloudfoundry/bosh-cli
+go build -o $bin/../out/bosh github.com/cloudfoundry/bosh-cli/v6

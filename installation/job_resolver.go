@@ -1,9 +1,9 @@
 package installation
 
 import (
-	bideplrel "github.com/cloudfoundry/bosh-cli/deployment/release"
-	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
-	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
+	bideplrel "github.com/cloudfoundry/bosh-cli/v6/deployment/release"
+	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v6/installation/manifest"
+	bireljob "github.com/cloudfoundry/bosh-cli/v6/release/job"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

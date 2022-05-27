@@ -10,8 +10,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	. "github.com/cloudfoundry/bosh-cli/ssh"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
+	. "github.com/cloudfoundry/bosh-cli/v6/ssh"
 )
 
 var _ = Describe("SSHArgs", func() {

@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
-	. "github.com/cloudfoundry/bosh-cli/installation/tarball"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	. "github.com/cloudfoundry/bosh-cli/v6/installation/tarball"
+	fakebiui "github.com/cloudfoundry/bosh-cli/v6/ui/fakes"
 	"github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"

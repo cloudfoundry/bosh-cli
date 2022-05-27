@@ -1,9 +1,9 @@
 package fakes
 
 import (
-	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
-	bivm "github.com/cloudfoundry/bosh-cli/deployment/vm"
-	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/v6/deployment/manifest"
+	bivm "github.com/cloudfoundry/bosh-cli/v6/deployment/vm"
+	bistemcell "github.com/cloudfoundry/bosh-cli/v6/stemcell"
 )
 
 type CreateInput struct {

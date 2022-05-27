@@ -1,8 +1,8 @@
 package configfakes
 
 import (
-	"github.com/cloudfoundry/bosh-cli/cmd/config"
-	"github.com/cloudfoundry/bosh-cli/uaa"
+	"github.com/cloudfoundry/bosh-cli/v6/cmd/config"
+	"github.com/cloudfoundry/bosh-cli/v6/uaa"
 )
 
 type FakeConfig2 struct {

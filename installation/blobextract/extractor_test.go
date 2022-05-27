@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	. "github.com/cloudfoundry/bosh-cli/installation/blobextract"
+	. "github.com/cloudfoundry/bosh-cli/v6/installation/blobextract"
 	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"

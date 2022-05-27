@@ -3,7 +3,7 @@ package ssh
 import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
 )
 
 type SCPRunnerImpl struct {

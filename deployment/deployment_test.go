@@ -1,36 +1,36 @@
 package deployment_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/deployment"
+	. "github.com/cloudfoundry/bosh-cli/v6/deployment"
 
 	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	mock_agentclient "github.com/cloudfoundry/bosh-cli/agentclient/mocks"
-	mock_blobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
-	mock_cloud "github.com/cloudfoundry/bosh-cli/cloud/mocks"
-	mock_instance_state "github.com/cloudfoundry/bosh-cli/deployment/instance/state/mocks"
-	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
+	mock_agentclient "github.com/cloudfoundry/bosh-cli/v6/agentclient/mocks"
+	mock_blobstore "github.com/cloudfoundry/bosh-cli/v6/blobstore/mocks"
+	mock_cloud "github.com/cloudfoundry/bosh-cli/v6/cloud/mocks"
+	mock_instance_state "github.com/cloudfoundry/bosh-cli/v6/deployment/instance/state/mocks"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/v6/deployment/manifest"
 	"github.com/golang/mock/gomock"
 
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
-	biconfig "github.com/cloudfoundry/bosh-cli/config"
-	bidisk "github.com/cloudfoundry/bosh-cli/deployment/disk"
-	biinstance "github.com/cloudfoundry/bosh-cli/deployment/instance"
-	bisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel"
-	bivm "github.com/cloudfoundry/bosh-cli/deployment/vm"
-	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
+	bicloud "github.com/cloudfoundry/bosh-cli/v6/cloud"
+	biconfig "github.com/cloudfoundry/bosh-cli/v6/config"
+	bidisk "github.com/cloudfoundry/bosh-cli/v6/deployment/disk"
+	biinstance "github.com/cloudfoundry/bosh-cli/v6/deployment/instance"
+	bisshtunnel "github.com/cloudfoundry/bosh-cli/v6/deployment/sshtunnel"
+	bivm "github.com/cloudfoundry/bosh-cli/v6/deployment/vm"
+	bistemcell "github.com/cloudfoundry/bosh-cli/v6/stemcell"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/v6/ui/fakes"
 )
 
 var _ = Describe("Deployment", func() {

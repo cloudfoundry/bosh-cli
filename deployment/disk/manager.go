@@ -3,10 +3,10 @@ package disk
 import (
 	"fmt"
 
-	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
-	biconfig "github.com/cloudfoundry/bosh-cli/config"
-	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
-	biui "github.com/cloudfoundry/bosh-cli/ui"
+	bicloud "github.com/cloudfoundry/bosh-cli/v6/cloud"
+	biconfig "github.com/cloudfoundry/bosh-cli/v6/config"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/v6/deployment/manifest"
+	biui "github.com/cloudfoundry/bosh-cli/v6/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )

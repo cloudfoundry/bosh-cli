@@ -2,9 +2,9 @@ package state
 
 import (
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	biblobstore "github.com/cloudfoundry/bosh-cli/blobstore"
-	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	bistatepkg "github.com/cloudfoundry/bosh-cli/state/pkg"
+	biblobstore "github.com/cloudfoundry/bosh-cli/v6/blobstore"
+	birelpkg "github.com/cloudfoundry/bosh-cli/v6/release/pkg"
+	bistatepkg "github.com/cloudfoundry/bosh-cli/v6/state/pkg"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

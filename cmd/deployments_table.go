@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
-	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
+	boshui "github.com/cloudfoundry/bosh-cli/v6/ui"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v6/ui/table"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 )

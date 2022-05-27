@@ -1,8 +1,8 @@
 package fakes
 
 import (
-	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
-	bidisk "github.com/cloudfoundry/bosh-cli/deployment/disk"
+	bicloud "github.com/cloudfoundry/bosh-cli/v6/cloud"
+	bidisk "github.com/cloudfoundry/bosh-cli/v6/deployment/disk"
 )
 
 type NewManagerInput struct {

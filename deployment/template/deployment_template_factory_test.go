@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/deployment/template"
-	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	. "github.com/cloudfoundry/bosh-cli/v6/deployment/template"
+	boshtpl "github.com/cloudfoundry/bosh-cli/v6/director/template"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 

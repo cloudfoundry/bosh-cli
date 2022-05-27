@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	. "github.com/cloudfoundry/bosh-cli/blobstore"
+	. "github.com/cloudfoundry/bosh-cli/v6/blobstore"
 	fakeboshdavcli "github.com/cloudfoundry/bosh-davcli/client/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"

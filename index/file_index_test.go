@@ -1,7 +1,7 @@
 package index_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/index"
+	. "github.com/cloudfoundry/bosh-cli/v6/index"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo"

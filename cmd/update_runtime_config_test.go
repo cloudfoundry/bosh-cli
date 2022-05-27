@@ -7,13 +7,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
-	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd"
+	fakecmd "github.com/cloudfoundry/bosh-cli/v6/cmd/cmdfakes"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
+	fakedir "github.com/cloudfoundry/bosh-cli/v6/director/directorfakes"
+	boshtpl "github.com/cloudfoundry/bosh-cli/v6/director/template"
+	fakeui "github.com/cloudfoundry/bosh-cli/v6/ui/fakes"
 )
 
 var _ = Describe("UpdateRuntimeConfigCmd", func() {

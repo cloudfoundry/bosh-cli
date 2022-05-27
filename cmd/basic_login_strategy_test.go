@@ -7,12 +7,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
-	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
-	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd"
+	fakecmd "github.com/cloudfoundry/bosh-cli/v6/cmd/cmdfakes"
+	cmdconf "github.com/cloudfoundry/bosh-cli/v6/cmd/config"
+	fakecmdconf "github.com/cloudfoundry/bosh-cli/v6/cmd/config/configfakes"
+	fakedir "github.com/cloudfoundry/bosh-cli/v6/director/directorfakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/v6/ui/fakes"
 )
 
 var _ = Describe("BasicLoginStrategy", func() {

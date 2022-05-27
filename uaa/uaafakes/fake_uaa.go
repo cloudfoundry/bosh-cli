@@ -4,7 +4,7 @@ package uaafakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/uaa"
+	"github.com/cloudfoundry/bosh-cli/v6/uaa"
 )
 
 type FakeUAA struct {

@@ -1,9 +1,9 @@
 package fakes
 
 import (
-	bidisk "github.com/cloudfoundry/bosh-cli/deployment/disk"
-	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
-	biui "github.com/cloudfoundry/bosh-cli/ui"
+	bidisk "github.com/cloudfoundry/bosh-cli/v6/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/v6/deployment/manifest"
+	biui "github.com/cloudfoundry/bosh-cli/v6/ui"
 )
 
 type FakeManager struct {

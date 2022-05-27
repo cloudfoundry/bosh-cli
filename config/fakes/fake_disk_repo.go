@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	biconfig "github.com/cloudfoundry/bosh-cli/config"
+	biconfig "github.com/cloudfoundry/bosh-cli/v6/config"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 

@@ -1,7 +1,7 @@
 package index_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/index"
+	. "github.com/cloudfoundry/bosh-cli/v6/index"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

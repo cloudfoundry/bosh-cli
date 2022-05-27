@@ -1,7 +1,7 @@
 package state_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/deployment/instance/state"
+	. "github.com/cloudfoundry/bosh-cli/v6/deployment/instance/state"
 
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	. "github.com/onsi/ginkgo"

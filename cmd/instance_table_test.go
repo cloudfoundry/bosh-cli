@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
 )
 
 var _ = Describe("InstanceTable", func() {

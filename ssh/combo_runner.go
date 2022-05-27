@@ -10,8 +10,8 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"github.com/hashicorp/go-multierror"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
+	boshui "github.com/cloudfoundry/bosh-cli/v6/ui"
 )
 
 type ComboRunner struct {

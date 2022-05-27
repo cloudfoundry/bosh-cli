@@ -1,27 +1,27 @@
 package cmd_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
 
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	. "github.com/cloudfoundry/bosh-cli/v6/release/resource"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
-	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	boshrel "github.com/cloudfoundry/bosh-cli/v6/release"
+	boshjob "github.com/cloudfoundry/bosh-cli/v6/release/job"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v6/release/pkg"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v6/ui/table"
 
-	fakecrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakecrypto "github.com/cloudfoundry/bosh-cli/v6/crypto/fakes"
+	fakerel "github.com/cloudfoundry/bosh-cli/v6/release/releasefakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/v6/ui/fakes"
 	fakefu "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
 
-	"github.com/cloudfoundry/bosh-cli/crypto/fakes"
-	"github.com/cloudfoundry/bosh-cli/release/license"
+	"github.com/cloudfoundry/bosh-cli/v6/crypto/fakes"
+	"github.com/cloudfoundry/bosh-cli/v6/release/license"
 	"github.com/cloudfoundry/bosh-utils/errors"
 )
 

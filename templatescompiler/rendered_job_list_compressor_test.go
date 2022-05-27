@@ -13,10 +13,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakebicrypto "github.com/cloudfoundry/bosh-cli/crypto/fakes"
-	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
-	. "github.com/cloudfoundry/bosh-cli/templatescompiler"
+	fakebicrypto "github.com/cloudfoundry/bosh-cli/v6/crypto/fakes"
+	bireljob "github.com/cloudfoundry/bosh-cli/v6/release/job"
+	. "github.com/cloudfoundry/bosh-cli/v6/release/resource"
+	. "github.com/cloudfoundry/bosh-cli/v6/templatescompiler"
 )
 
 var _ = Describe("RenderedJobListCompressor", func() {

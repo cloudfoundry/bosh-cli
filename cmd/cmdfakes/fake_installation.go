@@ -1,8 +1,8 @@
 package cmdfakes
 
 import (
-	biinstallation "github.com/cloudfoundry/bosh-cli/installation"
-	biui "github.com/cloudfoundry/bosh-cli/ui"
+	biinstallation "github.com/cloudfoundry/bosh-cli/v6/installation"
+	biui "github.com/cloudfoundry/bosh-cli/v6/ui"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 

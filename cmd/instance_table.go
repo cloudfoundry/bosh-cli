@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v6/ui/table"
 )
 
 type InstanceTableValues struct {

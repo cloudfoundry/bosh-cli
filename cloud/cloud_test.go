@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-cli/v6/cloud/fakes"
 
-	. "github.com/cloudfoundry/bosh-cli/cloud"
+	. "github.com/cloudfoundry/bosh-cli/v6/cloud"
 	. "github.com/onsi/ginkgo/extensions/table"
 )
 

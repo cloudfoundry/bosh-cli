@@ -11,13 +11,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
-	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
-	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/resourcefakes"
-	. "github.com/cloudfoundry/bosh-cli/releasedir"
-	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
+	boshrel "github.com/cloudfoundry/bosh-cli/v6/release"
+	boshman "github.com/cloudfoundry/bosh-cli/v6/release/manifest"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v6/release/pkg"
+	fakerel "github.com/cloudfoundry/bosh-cli/v6/release/releasefakes"
+	fakeres "github.com/cloudfoundry/bosh-cli/v6/release/resource/resourcefakes"
+	. "github.com/cloudfoundry/bosh-cli/v6/releasedir"
+	fakereldir "github.com/cloudfoundry/bosh-cli/v6/releasedir/releasedirfakes"
 )
 
 var _ = Describe("FSGenerator", func() {

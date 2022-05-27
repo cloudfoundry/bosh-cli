@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	. "github.com/cloudfoundry/bosh-cli/installation/tarball"
+	. "github.com/cloudfoundry/bosh-cli/v6/installation/tarball"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"

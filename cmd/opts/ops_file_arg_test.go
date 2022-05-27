@@ -3,7 +3,7 @@ package opts_test
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/ginkgo"

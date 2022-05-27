@@ -3,8 +3,8 @@ package opts
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
+	boshssh "github.com/cloudfoundry/bosh-cli/v6/ssh"
 )
 
 func (f GatewayFlags) AsSSHOpts() (boshdir.SSHOpts, boshssh.ConnectionOpts, error) {

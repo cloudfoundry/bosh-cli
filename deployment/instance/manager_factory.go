@@ -1,10 +1,10 @@
 package instance
 
 import (
-	biblobstore "github.com/cloudfoundry/bosh-cli/blobstore"
-	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
-	bisshtunnel "github.com/cloudfoundry/bosh-cli/deployment/sshtunnel"
-	bivm "github.com/cloudfoundry/bosh-cli/deployment/vm"
+	biblobstore "github.com/cloudfoundry/bosh-cli/v6/blobstore"
+	bicloud "github.com/cloudfoundry/bosh-cli/v6/cloud"
+	bisshtunnel "github.com/cloudfoundry/bosh-cli/v6/deployment/sshtunnel"
+	bivm "github.com/cloudfoundry/bosh-cli/v6/deployment/vm"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 

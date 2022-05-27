@@ -3,8 +3,8 @@ package fakes
 import (
 	"github.com/cppforlife/go-patch/patch"
 
-	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
-	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
+	boshtpl "github.com/cloudfoundry/bosh-cli/v6/director/template"
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v6/release/set/manifest"
 )
 
 type FakeParser struct {

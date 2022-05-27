@@ -3,8 +3,8 @@ package cmd
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	cmdconf "github.com/cloudfoundry/bosh-cli/v6/cmd/config"
+	boshui "github.com/cloudfoundry/bosh-cli/v6/ui"
 )
 
 type BasicLoginStrategy struct {

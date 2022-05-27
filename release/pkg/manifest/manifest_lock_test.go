@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/release/pkg/manifest"
+	. "github.com/cloudfoundry/bosh-cli/v6/release/pkg/manifest"
 )
 
 var _ = Describe("NewManifestLockFromPath", func() {

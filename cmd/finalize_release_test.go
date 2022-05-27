@@ -7,13 +7,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
-	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
-	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
+	boshrel "github.com/cloudfoundry/bosh-cli/v6/release"
+	fakerel "github.com/cloudfoundry/bosh-cli/v6/release/releasefakes"
+	fakereldir "github.com/cloudfoundry/bosh-cli/v6/releasedir/releasedirfakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/v6/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v6/ui/table"
 )
 
 var _ = Describe("FinalizeReleaseCmd", func() {

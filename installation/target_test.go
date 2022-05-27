@@ -1,7 +1,7 @@
 package installation_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/installation"
+	. "github.com/cloudfoundry/bosh-cli/v6/installation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 

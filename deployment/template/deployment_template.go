@@ -6,7 +6,7 @@ import (
 
 	"github.com/cppforlife/go-patch/patch"
 
-	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	boshtpl "github.com/cloudfoundry/bosh-cli/v6/director/template"
 )
 
 type DeploymentTemplate struct {

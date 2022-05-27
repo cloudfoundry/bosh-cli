@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	boshui "github.com/cloudfoundry/bosh-cli/v6/ui"
 )
 
 type Diff struct {

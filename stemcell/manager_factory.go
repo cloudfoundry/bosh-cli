@@ -1,8 +1,8 @@
 package stemcell
 
 import (
-	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
-	biconfig "github.com/cloudfoundry/bosh-cli/config"
+	bicloud "github.com/cloudfoundry/bosh-cli/v6/cloud"
+	biconfig "github.com/cloudfoundry/bosh-cli/v6/config"
 )
 
 type ManagerFactory interface {

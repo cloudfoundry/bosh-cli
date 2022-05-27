@@ -3,7 +3,7 @@ package ssh
 import (
 	"io"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
 )
 
 //go:generate counterfeiter . Runner

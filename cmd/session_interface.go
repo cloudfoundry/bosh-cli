@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
+	cmdconf "github.com/cloudfoundry/bosh-cli/v6/cmd/config"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
+	boshuaa "github.com/cloudfoundry/bosh-cli/v6/uaa"
 )
 
 //go:generate counterfeiter . SessionContext

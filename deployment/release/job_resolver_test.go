@@ -5,11 +5,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/deployment/release"
-	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
-	mock_release "github.com/cloudfoundry/bosh-cli/release/mocks"
-	fakerel "github.com/cloudfoundry/bosh-cli/release/releasefakes"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	. "github.com/cloudfoundry/bosh-cli/v6/deployment/release"
+	bireljob "github.com/cloudfoundry/bosh-cli/v6/release/job"
+	mock_release "github.com/cloudfoundry/bosh-cli/v6/release/mocks"
+	fakerel "github.com/cloudfoundry/bosh-cli/v6/release/releasefakes"
+	. "github.com/cloudfoundry/bosh-cli/v6/release/resource"
 )
 
 var _ = Describe("JobResolver", func() {

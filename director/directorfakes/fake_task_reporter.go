@@ -4,7 +4,7 @@ package directorfakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/director"
+	"github.com/cloudfoundry/bosh-cli/v6/director"
 )
 
 type FakeTaskReporter struct {

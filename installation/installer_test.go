@@ -3,21 +3,21 @@ package installation_test
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-cli/installation"
+	. "github.com/cloudfoundry/bosh-cli/v6/installation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-cli/installation/blobextract/fakeblobextract"
-	mock_install "github.com/cloudfoundry/bosh-cli/installation/mocks"
-	mock_registry "github.com/cloudfoundry/bosh-cli/registry/mocks"
+	"github.com/cloudfoundry/bosh-cli/v6/installation/blobextract/fakeblobextract"
+	mock_install "github.com/cloudfoundry/bosh-cli/v6/installation/mocks"
+	mock_registry "github.com/cloudfoundry/bosh-cli/v6/registry/mocks"
 	"github.com/golang/mock/gomock"
 
-	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
-	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
+	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v6/installation/manifest"
+	bireljob "github.com/cloudfoundry/bosh-cli/v6/release/job"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/v6/ui/fakes"
 )
 
 var _ = Describe("Installer", func() {

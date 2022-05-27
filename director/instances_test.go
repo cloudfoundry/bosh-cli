@@ -9,7 +9,7 @@ import (
 
 	"net/http"
 
-	. "github.com/cloudfoundry/bosh-cli/director"
+	. "github.com/cloudfoundry/bosh-cli/v6/director"
 )
 
 var _ = Describe("Instances", func() {

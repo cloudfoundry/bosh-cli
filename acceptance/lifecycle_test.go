@@ -8,13 +8,13 @@ import (
 	"strings"
 	"text/template"
 
-	. "github.com/cloudfoundry/bosh-cli/acceptance"
+	. "github.com/cloudfoundry/bosh-cli/v6/acceptance"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"os"
 
-	bitestutils "github.com/cloudfoundry/bosh-cli/testutils"
+	bitestutils "github.com/cloudfoundry/bosh-cli/v6/testutils"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )

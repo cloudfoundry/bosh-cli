@@ -7,17 +7,17 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/cppforlife/go-patch/patch"
 
-	biblobstore "github.com/cloudfoundry/bosh-cli/blobstore"
-	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
-	biconfig "github.com/cloudfoundry/bosh-cli/config"
-	bicpirel "github.com/cloudfoundry/bosh-cli/cpi/release"
-	bidepl "github.com/cloudfoundry/bosh-cli/deployment"
-	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
-	biinstall "github.com/cloudfoundry/bosh-cli/installation"
-	boshinst "github.com/cloudfoundry/bosh-cli/installation"
-	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
-	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
-	biui "github.com/cloudfoundry/bosh-cli/ui"
+	biblobstore "github.com/cloudfoundry/bosh-cli/v6/blobstore"
+	bicloud "github.com/cloudfoundry/bosh-cli/v6/cloud"
+	biconfig "github.com/cloudfoundry/bosh-cli/v6/config"
+	bicpirel "github.com/cloudfoundry/bosh-cli/v6/cpi/release"
+	bidepl "github.com/cloudfoundry/bosh-cli/v6/deployment"
+	boshtpl "github.com/cloudfoundry/bosh-cli/v6/director/template"
+	biinstall "github.com/cloudfoundry/bosh-cli/v6/installation"
+	boshinst "github.com/cloudfoundry/bosh-cli/v6/installation"
+	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v6/installation/manifest"
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v6/release/set/manifest"
+	biui "github.com/cloudfoundry/bosh-cli/v6/ui"
 )
 
 type DeploymentDeleter interface {

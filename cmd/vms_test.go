@@ -8,12 +8,12 @@ import (
 
 	"time"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
-	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
+	fakedir "github.com/cloudfoundry/bosh-cli/v6/director/directorfakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/v6/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v6/ui/table"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

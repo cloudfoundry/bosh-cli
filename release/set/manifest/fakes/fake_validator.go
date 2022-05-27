@@ -1,7 +1,7 @@
 package fakes
 
 import (
-	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v6/release/set/manifest"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

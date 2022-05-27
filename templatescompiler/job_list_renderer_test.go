@@ -8,10 +8,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshreljob "github.com/cloudfoundry/bosh-cli/release/job"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
-	. "github.com/cloudfoundry/bosh-cli/templatescompiler"
-	mock_template "github.com/cloudfoundry/bosh-cli/templatescompiler/mocks"
+	boshreljob "github.com/cloudfoundry/bosh-cli/v6/release/job"
+	. "github.com/cloudfoundry/bosh-cli/v6/release/resource"
+	. "github.com/cloudfoundry/bosh-cli/v6/templatescompiler"
+	mock_template "github.com/cloudfoundry/bosh-cli/v6/templatescompiler/mocks"
 )
 
 var _ = Describe("JobListRenderer", func() {

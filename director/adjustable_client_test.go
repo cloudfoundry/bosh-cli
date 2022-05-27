@@ -13,8 +13,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	. "github.com/cloudfoundry/bosh-cli/director"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
+	. "github.com/cloudfoundry/bosh-cli/v6/director"
+	fakedir "github.com/cloudfoundry/bosh-cli/v6/director/directorfakes"
 )
 
 type FakeResponseBodyFactory struct {

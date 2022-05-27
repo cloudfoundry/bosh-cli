@@ -4,7 +4,7 @@ package resourcefakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/release/resource"
+	"github.com/cloudfoundry/bosh-cli/v6/release/resource"
 )
 
 type FakeFingerprinter struct {

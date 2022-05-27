@@ -4,7 +4,7 @@ package stemcellfakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/stemcell"
+	"github.com/cloudfoundry/bosh-cli/v6/stemcell"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 

@@ -7,9 +7,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/release/job"
-	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	. "github.com/cloudfoundry/bosh-cli/v6/release/job"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v6/release/pkg"
+	. "github.com/cloudfoundry/bosh-cli/v6/release/resource"
 )
 
 var _ = Describe("Sorting Jobs", func() {

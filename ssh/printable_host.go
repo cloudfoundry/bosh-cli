@@ -3,7 +3,7 @@ package ssh
 import (
 	"strings"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
 )
 
 type printableHost struct {

@@ -8,7 +8,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
-	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
+	boshssh "github.com/cloudfoundry/bosh-cli/v6/ssh"
 )
 
 type SSHTunnel interface {

@@ -1,22 +1,22 @@
 package stemcell_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/stemcell"
+	. "github.com/cloudfoundry/bosh-cli/v6/stemcell"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"errors"
 	"path/filepath"
 
-	biconfig "github.com/cloudfoundry/bosh-cli/config"
+	biconfig "github.com/cloudfoundry/bosh-cli/v6/config"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 
-	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
-	fakebistemcell "github.com/cloudfoundry/bosh-cli/stemcell/stemcellfakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-cli/v6/cloud/fakes"
+	fakebistemcell "github.com/cloudfoundry/bosh-cli/v6/stemcell/stemcellfakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/v6/ui/fakes"
 )
 
 var _ = Describe("Manager", func() {

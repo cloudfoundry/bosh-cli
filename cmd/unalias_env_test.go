@@ -3,9 +3,9 @@ package cmd_test
 import (
 	"errors"
 
-	"github.com/cloudfoundry/bosh-cli/cmd"
-	"github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v6/cmd"
+	"github.com/cloudfoundry/bosh-cli/v6/cmd/config/configfakes"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

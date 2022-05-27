@@ -3,10 +3,10 @@ package cmd
 import (
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
+	boshrel "github.com/cloudfoundry/bosh-cli/v6/release"
+	boshreldir "github.com/cloudfoundry/bosh-cli/v6/releasedir"
+	boshui "github.com/cloudfoundry/bosh-cli/v6/ui"
 )
 
 type FinalizeReleaseCmd struct {

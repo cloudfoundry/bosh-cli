@@ -3,7 +3,7 @@ package util_test
 import (
 	"path/filepath"
 
-	"github.com/cloudfoundry/bosh-cli/common/util"
+	"github.com/cloudfoundry/bosh-cli/v6/common/util"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo"

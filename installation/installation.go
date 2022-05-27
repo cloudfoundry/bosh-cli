@@ -1,9 +1,9 @@
 package installation
 
 import (
-	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
-	biregistry "github.com/cloudfoundry/bosh-cli/registry"
-	biui "github.com/cloudfoundry/bosh-cli/ui"
+	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v6/installation/manifest"
+	biregistry "github.com/cloudfoundry/bosh-cli/v6/registry"
+	biui "github.com/cloudfoundry/bosh-cli/v6/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )

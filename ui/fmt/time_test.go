@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/ui/fmt"
+	. "github.com/cloudfoundry/bosh-cli/v6/ui/fmt"
 )
 
 var _ = Describe("Duration", func() {

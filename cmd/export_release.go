@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	. "github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
+	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

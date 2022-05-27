@@ -4,8 +4,8 @@ package sshfakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/director"
-	"github.com/cloudfoundry/bosh-cli/ssh"
+	"github.com/cloudfoundry/bosh-cli/v6/director"
+	"github.com/cloudfoundry/bosh-cli/v6/ssh"
 )
 
 type FakeSCPRunner struct {

@@ -8,13 +8,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/release"
-	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
-	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
-	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
-	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
-	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/resourcefakes"
+	. "github.com/cloudfoundry/bosh-cli/v6/release"
+	boshjob "github.com/cloudfoundry/bosh-cli/v6/release/job"
+	boshlic "github.com/cloudfoundry/bosh-cli/v6/release/license"
+	boshman "github.com/cloudfoundry/bosh-cli/v6/release/manifest"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v6/release/pkg"
+	. "github.com/cloudfoundry/bosh-cli/v6/release/resource"
+	fakeres "github.com/cloudfoundry/bosh-cli/v6/release/resource/resourcefakes"
 )
 
 var _ = Describe("Release", func() {

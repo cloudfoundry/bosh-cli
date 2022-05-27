@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/cloudfoundry/bosh-cli/release"
+	"github.com/cloudfoundry/bosh-cli/v6/release"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )

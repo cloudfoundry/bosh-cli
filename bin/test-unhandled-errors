@@ -8,9 +8,9 @@ echo ""
 go get github.com/kisielk/errcheck
 
 packages_to_check=$(go list ./... \
-  | grep -v "github.com/cloudfoundry/bosh-cli/acceptance" \
-  | grep -v "github.com/cloudfoundry/bosh-cli/integration" \
-  | grep -v "github.com/cloudfoundry/bosh-cli/vendor" \
+  | grep -v "github.com/cloudfoundry/bosh-cli/v6/acceptance" \
+  | grep -v "github.com/cloudfoundry/bosh-cli/v6/integration" \
+  | grep -v "github.com/cloudfoundry/bosh-cli/v6/vendor" \
   | xargs
 )
 

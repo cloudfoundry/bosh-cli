@@ -4,12 +4,12 @@ import (
 	"errors"
 	"log"
 
-	. "github.com/cloudfoundry/bosh-cli/installation"
+	. "github.com/cloudfoundry/bosh-cli/v6/installation"
 
-	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
-	mock_registry "github.com/cloudfoundry/bosh-cli/registry/mocks"
-	test_support_mocks "github.com/cloudfoundry/bosh-cli/test_support/mocks"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v6/installation/manifest"
+	mock_registry "github.com/cloudfoundry/bosh-cli/v6/registry/mocks"
+	test_support_mocks "github.com/cloudfoundry/bosh-cli/v6/test_support/mocks"
+	fakebiui "github.com/cloudfoundry/bosh-cli/v6/ui/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"

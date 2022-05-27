@@ -4,7 +4,7 @@ package releasefakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/release"
+	"github.com/cloudfoundry/bosh-cli/v6/release"
 )
 
 type FakeWriter struct {

@@ -4,7 +4,7 @@ package licensefakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/release/license"
+	"github.com/cloudfoundry/bosh-cli/v6/release/license"
 )
 
 type FakeDirReader struct {

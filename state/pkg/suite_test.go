@@ -5,8 +5,8 @@ import (
 	. "github.com/onsi/gomega"
 	"testing"
 
-	boshrelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	boshrelpkg "github.com/cloudfoundry/bosh-cli/v6/release/pkg"
+	. "github.com/cloudfoundry/bosh-cli/v6/release/resource"
 )
 
 func TestReg(t *testing.T) {

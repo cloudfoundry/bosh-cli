@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	urlhelper "github.com/cloudfoundry/bosh-cli/common/util"
-	biui "github.com/cloudfoundry/bosh-cli/ui"
+	urlhelper "github.com/cloudfoundry/bosh-cli/v6/common/util"
+	biui "github.com/cloudfoundry/bosh-cli/v6/ui"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cloudfoundry/bosh-utils/httpclient"
