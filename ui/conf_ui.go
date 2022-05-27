@@ -3,7 +3,7 @@ package ui
 import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
-	. "github.com/cloudfoundry/bosh-cli/ui/table"
+	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type ConfUI struct {

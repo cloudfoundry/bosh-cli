@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
+	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 )
 
 type UnaliasEnvCmd struct {

@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 )
 
 type IgnoreCmd struct {

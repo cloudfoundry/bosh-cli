@@ -5,8 +5,8 @@ import (
 	"io"
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/director"
-	ioa "github.com/cloudfoundry/bosh-cli/io"
+	"github.com/cloudfoundry/bosh-cli/v7/director"
+	ioa "github.com/cloudfoundry/bosh-cli/v7/io"
 )
 
 type FakeFileReporter struct {

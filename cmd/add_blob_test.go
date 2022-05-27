@@ -3,15 +3,15 @@ package cmd_test
 import (
 	"errors"
 
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
-	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
+	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
 )
 
 var _ = Describe("AddBlobCmd", func() {

@@ -4,9 +4,9 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	biui "github.com/cloudfoundry/bosh-cli/ui"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
+	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
 type UploadStemcellCmd struct {

@@ -3,7 +3,7 @@ package ssh
 import (
 	"io"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 )
 
 // You only need **one** of these per package!

@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/director/template"
+	. "github.com/cloudfoundry/bosh-cli/v7/director/template"
 )
 
 var _ = Describe("VarsEnvArg", func() {

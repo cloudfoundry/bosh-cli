@@ -6,9 +6,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	fakecmdconf "github.com/cloudfoundry/bosh-cli/cmd/config/configfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	fakecmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config/configfakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("LogOutCmd", func() {

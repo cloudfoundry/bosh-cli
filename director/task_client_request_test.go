@@ -11,8 +11,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	. "github.com/cloudfoundry/bosh-cli/director"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/director"
+	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 )
 
 var _ = Describe("TaskClientRequest", func() {

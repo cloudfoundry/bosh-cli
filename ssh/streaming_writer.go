@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
 type StreamingWriter struct {

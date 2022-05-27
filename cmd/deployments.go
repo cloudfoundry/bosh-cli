@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	biui "github.com/cloudfoundry/bosh-cli/ui"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
+	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
 type DeploymentsCmd struct {

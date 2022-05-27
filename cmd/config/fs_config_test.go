@@ -4,11 +4,11 @@ import (
 	"errors"
 	"os"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd/config"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-cli/uaa"
+	"github.com/cloudfoundry/bosh-cli/v7/uaa"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )

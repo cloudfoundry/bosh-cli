@@ -4,7 +4,7 @@ package indexfakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/releasedir/index"
+	"github.com/cloudfoundry/bosh-cli/v7/releasedir/index"
 )
 
 type FakeIndex struct {

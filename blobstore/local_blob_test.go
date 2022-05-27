@@ -1,7 +1,7 @@
 package blobstore_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/blobstore"
+	. "github.com/cloudfoundry/bosh-cli/v7/blobstore"
 
 	"bytes"
 

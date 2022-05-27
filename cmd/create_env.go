@@ -3,9 +3,9 @@ package cmd
 import (
 	"github.com/cppforlife/go-patch/patch"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
+	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
 type CreateEnvCmd struct {

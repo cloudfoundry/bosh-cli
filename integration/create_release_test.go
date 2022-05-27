@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -17,10 +17,10 @@ import (
 
 	"os"
 
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	boshrelman "github.com/cloudfoundry/bosh-cli/release/manifest"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
+	boshrelman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
+	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("create-release command", func() {

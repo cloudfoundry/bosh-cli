@@ -4,11 +4,11 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
-	cmdconf "github.com/cloudfoundry/bosh-cli/cmd/config"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
-	boshuit "github.com/cloudfoundry/bosh-cli/ui/task"
+	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
+	boshuaa "github.com/cloudfoundry/bosh-cli/v7/uaa"
+	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
+	boshuit "github.com/cloudfoundry/bosh-cli/v7/ui/task"
 )
 
 type SessionImpl struct {

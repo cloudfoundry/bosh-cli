@@ -9,7 +9,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"gopkg.in/yaml.v2"
 
-	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 )
 
 type VarsCertLoader struct {

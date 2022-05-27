@@ -8,5 +8,5 @@ VERSION_LABEL="${VERSION_LABEL:-${default_version}}"
 
 go build \
   -o "${ROOT_DIR}/out/bosh" \
-  -ldflags="-X 'github.com/cloudfoundry/bosh-cli/cmd.VersionLabel=${VERSION_LABEL}'" \
+  -ldflags="-X 'github.com/cloudfoundry/bosh-cli/v7/cmd.VersionLabel=${VERSION_LABEL}'" \
   "${ROOT_DIR}"

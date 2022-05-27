@@ -6,7 +6,7 @@ import (
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 )
 
 type Provider struct {

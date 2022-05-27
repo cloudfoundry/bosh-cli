@@ -5,11 +5,11 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
-	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
-	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
-	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
+	boshlic "github.com/cloudfoundry/bosh-cli/v7/release/license"
+	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 type ManifestReader struct {

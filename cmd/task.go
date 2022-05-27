@@ -3,9 +3,9 @@ package cmd
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	boshuit "github.com/cloudfoundry/bosh-cli/ui/task"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
+	boshuit "github.com/cloudfoundry/bosh-cli/v7/ui/task"
 )
 
 type TaskCmd struct {

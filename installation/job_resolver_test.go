@@ -1,16 +1,16 @@
 package installation_test
 
 import (
-	"github.com/cloudfoundry/bosh-cli/installation"
+	"github.com/cloudfoundry/bosh-cli/v7/installation"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	mock_deployment_release "github.com/cloudfoundry/bosh-cli/deployment/release/mocks"
-	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
-	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	mock_deployment_release "github.com/cloudfoundry/bosh-cli/v7/deployment/release/mocks"
+	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
+	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 

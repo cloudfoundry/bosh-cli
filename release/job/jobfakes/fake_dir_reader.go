@@ -4,7 +4,7 @@ package jobfakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/release/job"
+	"github.com/cloudfoundry/bosh-cli/v7/release/job"
 )
 
 type FakeDirReader struct {

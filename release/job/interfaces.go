@@ -1,7 +1,7 @@
 package job
 
 import (
-	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 )
 
 // You only need **one** of these per package!

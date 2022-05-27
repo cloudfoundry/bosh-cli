@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	biui "github.com/cloudfoundry/bosh-cli/ui"
-	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
+	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type InspectStemcellTarballCmd struct {

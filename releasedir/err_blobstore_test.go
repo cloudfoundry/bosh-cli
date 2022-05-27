@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/releasedir"
+	. "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 

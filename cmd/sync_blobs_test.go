@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	fakereldir "github.com/cloudfoundry/bosh-cli/releasedir/releasedirfakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
 )
 
 var _ = Describe("SyncBlobsCmd", func() {

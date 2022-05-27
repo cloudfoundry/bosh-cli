@@ -1,8 +1,8 @@
 package stemcell
 
 import (
-	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
-	biconfig "github.com/cloudfoundry/bosh-cli/config"
+	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
+	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

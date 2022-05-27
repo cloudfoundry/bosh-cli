@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	boshrelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
-	boshtbl "github.com/cloudfoundry/bosh-cli/ui/table"
+	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
+	boshrelpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
+	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type ReleaseTables struct {

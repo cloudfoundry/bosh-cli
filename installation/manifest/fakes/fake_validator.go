@@ -1,8 +1,8 @@
 package fakes
 
 import (
-	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
-	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
+	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

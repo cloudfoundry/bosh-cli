@@ -9,17 +9,17 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	mockblobstore "github.com/cloudfoundry/bosh-cli/blobstore/mocks"
-	. "github.com/cloudfoundry/bosh-cli/deployment/instance/state"
-	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
-	mockdeploymentrelease "github.com/cloudfoundry/bosh-cli/deployment/release/mocks"
-	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
-	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
-	bistatejob "github.com/cloudfoundry/bosh-cli/state/job"
-	mockstatejob "github.com/cloudfoundry/bosh-cli/state/job/mocks"
-	mocktemplate "github.com/cloudfoundry/bosh-cli/templatescompiler/mocks"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	mockblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
+	. "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
+	mockdeploymentrelease "github.com/cloudfoundry/bosh-cli/v7/deployment/release/mocks"
+	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	bistatejob "github.com/cloudfoundry/bosh-cli/v7/state/job"
+	mockstatejob "github.com/cloudfoundry/bosh-cli/v7/state/job/mocks"
+	mocktemplate "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/mocks"
+	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("Builder", func() {

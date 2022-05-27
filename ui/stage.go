@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/clock"
-	biuifmt "github.com/cloudfoundry/bosh-cli/ui/fmt"
+	biuifmt "github.com/cloudfoundry/bosh-cli/v7/ui/fmt"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 

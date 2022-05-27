@@ -4,9 +4,9 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/go-patch/patch"
 
-	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
-	biinstallmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
-	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
+	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
+	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
 )
 
 type ReleaseSetAndInstallationManifestParser struct {

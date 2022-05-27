@@ -4,8 +4,8 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/cppforlife/go-patch/patch"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
+	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 )
 
 type BoshOpts struct {
