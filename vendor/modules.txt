@@ -63,7 +63,7 @@ github.com/ashanbrown/forbidigo/forbidigo
 # github.com/ashanbrown/makezero v1.1.1
 ## explicit; go 1.12
 github.com/ashanbrown/makezero/makezero
-# github.com/aws/aws-sdk-go v1.44.24
+# github.com/aws/aws-sdk-go v1.44.26
 ## explicit; go 1.11
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -165,21 +165,21 @@ github.com/cloudfoundry/bosh-agent/agentclient/applyspec
 github.com/cloudfoundry/bosh-agent/agentclient/fakes
 github.com/cloudfoundry/bosh-agent/agentclient/http
 github.com/cloudfoundry/bosh-agent/agentclient/http/mocks
-# github.com/cloudfoundry/bosh-davcli v0.0.55
+# github.com/cloudfoundry/bosh-davcli v0.0.56
 ## explicit; go 1.18
 github.com/cloudfoundry/bosh-davcli/client
 github.com/cloudfoundry/bosh-davcli/client/fakes
 github.com/cloudfoundry/bosh-davcli/config
 github.com/cloudfoundry/bosh-davcli/signer
-# github.com/cloudfoundry/bosh-gcscli v0.0.28
+# github.com/cloudfoundry/bosh-gcscli v0.0.29
 ## explicit; go 1.18
 github.com/cloudfoundry/bosh-gcscli/client
 github.com/cloudfoundry/bosh-gcscli/config
-# github.com/cloudfoundry/bosh-s3cli v0.0.129
+# github.com/cloudfoundry/bosh-s3cli v0.0.130
 ## explicit; go 1.18
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.315
+# github.com/cloudfoundry/bosh-utils v0.0.316
 ## explicit; go 1.18
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/fakes
@@ -199,7 +199,7 @@ github.com/cloudfoundry/bosh-utils/system/fakes
 github.com/cloudfoundry/bosh-utils/uuid
 github.com/cloudfoundry/bosh-utils/uuid/fakes
 github.com/cloudfoundry/bosh-utils/work
-# github.com/cloudfoundry/config-server v0.1.56
+# github.com/cloudfoundry/config-server v0.1.57
 ## explicit; go 1.18
 github.com/cloudfoundry/config-server/types
 github.com/cloudfoundry/config-server/types/typesfakes
@@ -852,7 +852,7 @@ golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/modfile
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20220526153639-5463443f8c37
+# golang.org/x/net v0.0.0-20220531201128-c960675eff93
 ## explicit; go 1.17
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -1025,7 +1025,7 @@ google.golang.org/appengine/internal/socket
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/socket
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20220527130721-00d5c0f3be58
+# google.golang.org/genproto v0.0.0-20220601144221-27df5f98adab
 ## explicit; go 1.15
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/iam/v1
@@ -1040,7 +1040,7 @@ google.golang.org/genproto/googleapis/type/decimal
 google.golang.org/genproto/googleapis/type/expr
 google.golang.org/genproto/googleapis/type/fraction
 google.golang.org/genproto/googleapis/type/month
-# google.golang.org/grpc v1.46.2
+# google.golang.org/grpc v1.47.0
 ## explicit; go 1.14
 google.golang.org/grpc
 google.golang.org/grpc/attributes
@@ -1148,7 +1148,7 @@ gopkg.in/tomb.v1
 # gopkg.in/yaml.v2 v2.4.0
 ## explicit; go 1.15
 gopkg.in/yaml.v2
-# gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99
+# gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
 # honnef.co/go/tools v0.3.1
