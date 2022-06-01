@@ -1,8 +1,8 @@
 package license
 
 import (
-	"github.com/cloudfoundry/bosh-cli/crypto"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	"github.com/cloudfoundry/bosh-cli/v7/crypto"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	crypto2 "github.com/cloudfoundry/bosh-utils/crypto"
 )
 

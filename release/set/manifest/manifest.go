@@ -1,7 +1,7 @@
 package manifest
 
 import (
-	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
+	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 )
 
 type Manifest struct {

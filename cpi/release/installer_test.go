@@ -3,13 +3,13 @@ package release_test
 import (
 	"errors"
 
-	"github.com/cloudfoundry/bosh-cli/cpi/release"
-	biinstallation "github.com/cloudfoundry/bosh-cli/installation"
-	biinstallationmanifest "github.com/cloudfoundry/bosh-cli/installation/manifest"
-	"github.com/cloudfoundry/bosh-cli/installation/mocks"
-	mock_install "github.com/cloudfoundry/bosh-cli/installation/mocks"
-	"github.com/cloudfoundry/bosh-cli/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/cpi/release"
+	biinstallation "github.com/cloudfoundry/bosh-cli/v7/installation"
+	biinstallationmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
+	"github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
+	mock_install "github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/ui"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	"github.com/golang/mock/gomock"
 
 	. "github.com/onsi/ginkgo"

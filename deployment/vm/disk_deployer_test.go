@@ -1,22 +1,22 @@
 package vm_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/deployment/vm"
+	. "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 
-	biconfig "github.com/cloudfoundry/bosh-cli/config"
-	bidisk "github.com/cloudfoundry/bosh-cli/deployment/disk"
-	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
+	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
+	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	fakebicloud "github.com/cloudfoundry/bosh-cli/cloud/fakes"
-	fakebiconfig "github.com/cloudfoundry/bosh-cli/config/fakes"
-	fakebidisk "github.com/cloudfoundry/bosh-cli/deployment/disk/fakes"
-	fakebivm "github.com/cloudfoundry/bosh-cli/deployment/vm/fakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
+	fakebiconfig "github.com/cloudfoundry/bosh-cli/v7/config/fakes"
+	fakebidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk/fakes"
+	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
+	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("DiskDeployer", func() {

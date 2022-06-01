@@ -3,8 +3,8 @@ package disk
 import (
 	"encoding/json"
 
-	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
-	biconfig "github.com/cloudfoundry/bosh-cli/config"
+	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
+	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )

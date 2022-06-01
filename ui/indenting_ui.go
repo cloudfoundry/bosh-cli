@@ -3,7 +3,7 @@ package ui
 import (
 	"fmt"
 
-	. "github.com/cloudfoundry/bosh-cli/ui/table"
+	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type indentingUI struct {

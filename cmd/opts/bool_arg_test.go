@@ -3,7 +3,7 @@ package opts_test
 import (
 	"fmt"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

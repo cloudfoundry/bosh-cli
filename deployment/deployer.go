@@ -3,14 +3,14 @@ package deployment
 import (
 	"time"
 
-	biblobstore "github.com/cloudfoundry/bosh-cli/blobstore"
-	bicloud "github.com/cloudfoundry/bosh-cli/cloud"
-	bidisk "github.com/cloudfoundry/bosh-cli/deployment/disk"
-	biinstance "github.com/cloudfoundry/bosh-cli/deployment/instance"
-	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
-	bivm "github.com/cloudfoundry/bosh-cli/deployment/vm"
-	bistemcell "github.com/cloudfoundry/bosh-cli/stemcell"
-	biui "github.com/cloudfoundry/bosh-cli/ui"
+	biblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"
+	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
+	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
+	biinstance "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
+	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
+	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
+	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )

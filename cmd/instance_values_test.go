@@ -4,8 +4,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 )
 
 var _ = Describe("NewValueStringPercent", func() {

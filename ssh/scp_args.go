@@ -7,7 +7,7 @@ import (
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 )
 
 var windowsDisk = regexp.MustCompile(`^[A-Za-z]:\\`)

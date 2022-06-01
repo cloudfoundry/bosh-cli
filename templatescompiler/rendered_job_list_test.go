@@ -10,9 +10,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
-	. "github.com/cloudfoundry/bosh-cli/templatescompiler"
+	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	. "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
 )
 
 var _ = Describe("RenderedJobList", func() {

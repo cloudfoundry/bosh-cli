@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/release/license"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
-	fakeres "github.com/cloudfoundry/bosh-cli/release/resource/resourcefakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/license"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	fakeres "github.com/cloudfoundry/bosh-cli/v7/release/resource/resourcefakes"
 )
 
 var _ = Describe("DirReaderImpl", func() {

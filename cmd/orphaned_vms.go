@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"github.com/cloudfoundry/bosh-cli/director"
-	"github.com/cloudfoundry/bosh-cli/ui"
-	"github.com/cloudfoundry/bosh-cli/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/director"
+	"github.com/cloudfoundry/bosh-cli/v7/ui"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type OrphanedVMsCmd struct {

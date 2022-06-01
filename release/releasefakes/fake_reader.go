@@ -4,7 +4,7 @@ package releasefakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/release"
+	"github.com/cloudfoundry/bosh-cli/v7/release"
 )
 
 type FakeReader struct {

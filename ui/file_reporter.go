@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/cheggaaa/pb/v3"
-	bio "github.com/cloudfoundry/bosh-cli/io"
+	bio "github.com/cloudfoundry/bosh-cli/v7/io"
 )
 
 type FileReporter struct {

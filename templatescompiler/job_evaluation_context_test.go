@@ -13,11 +13,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshreljob "github.com/cloudfoundry/bosh-cli/release/job"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
-	. "github.com/cloudfoundry/bosh-cli/templatescompiler"
-	"github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer"
-	bierbrenderer "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer"
+	boshreljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	. "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
+	"github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
+	bierbrenderer "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
 	"github.com/cloudfoundry/bosh-utils/errors"
 )
 

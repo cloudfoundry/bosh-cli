@@ -6,13 +6,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	boshreljob "github.com/cloudfoundry/bosh-cli/release/job"
-	boshrelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
-	. "github.com/cloudfoundry/bosh-cli/state/job"
-	bistatepkg "github.com/cloudfoundry/bosh-cli/state/pkg"
-	mockstatepackage "github.com/cloudfoundry/bosh-cli/state/pkg/mocks"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	boshreljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
+	boshrelpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	. "github.com/cloudfoundry/bosh-cli/v7/state/job"
+	bistatepkg "github.com/cloudfoundry/bosh-cli/v7/state/pkg"
+	mockstatepackage "github.com/cloudfoundry/bosh-cli/v7/state/pkg/mocks"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("DependencyCompiler", func() {

@@ -7,13 +7,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd"
-	fakecmd "github.com/cloudfoundry/bosh-cli/cmd/cmdfakes"
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	fakedir "github.com/cloudfoundry/bosh-cli/director/directorfakes"
-	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
-	fakessh "github.com/cloudfoundry/bosh-cli/ssh/sshfakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
+	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
+	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
+	fakessh "github.com/cloudfoundry/bosh-cli/v7/ssh/sshfakes"
 )
 
 var _ = Describe("LogsCmd", func() {

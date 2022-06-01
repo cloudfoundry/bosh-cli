@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/release/pkg"
-	boshres "github.com/cloudfoundry/bosh-cli/release/resource"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
+	boshres "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 var _ = Describe("Sorting Packages", func() {

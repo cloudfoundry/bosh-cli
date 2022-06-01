@@ -8,10 +8,10 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshrel "github.com/cloudfoundry/bosh-cli/release"
-	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
+	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
+	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
 type CreateReleaseCmd struct {

@@ -7,7 +7,7 @@ import (
 	cfgtypes "github.com/cloudfoundry/config-server/types"
 	"gopkg.in/yaml.v2"
 
-	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 )
 
 type VarsFSStore struct {

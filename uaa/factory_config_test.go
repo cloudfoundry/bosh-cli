@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/uaa"
+	. "github.com/cloudfoundry/bosh-cli/v7/uaa"
 )
 
 var _ = Describe("NewConfigFromURL", func() {

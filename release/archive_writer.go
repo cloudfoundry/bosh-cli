@@ -10,9 +10,9 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
 
-	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
-	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
-	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
+	boshlic "github.com/cloudfoundry/bosh-cli/v7/release/license"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 )
 
 type ArchiveWriter struct {

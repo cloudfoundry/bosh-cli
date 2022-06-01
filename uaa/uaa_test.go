@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	. "github.com/cloudfoundry/bosh-cli/uaa"
+	. "github.com/cloudfoundry/bosh-cli/v7/uaa"
 )
 
 var _ = Describe("UAA", func() {

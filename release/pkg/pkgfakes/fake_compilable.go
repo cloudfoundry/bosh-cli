@@ -4,7 +4,7 @@ package pkgfakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/bosh-cli/release/pkg"
+	"github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 )
 
 type FakeCompilable struct {

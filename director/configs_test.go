@@ -3,7 +3,7 @@ package director_test
 import (
 	"net/http"
 
-	. "github.com/cloudfoundry/bosh-cli/director"
+	. "github.com/cloudfoundry/bosh-cli/v7/director"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 

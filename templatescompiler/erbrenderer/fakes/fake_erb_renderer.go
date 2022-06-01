@@ -3,8 +3,8 @@ package fakes
 import (
 	"fmt"
 
-	bierbrenderer "github.com/cloudfoundry/bosh-cli/templatescompiler/erbrenderer"
-	bitestutils "github.com/cloudfoundry/bosh-cli/testutils"
+	bierbrenderer "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
+	bitestutils "github.com/cloudfoundry/bosh-cli/v7/testutils"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 

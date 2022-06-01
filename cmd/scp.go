@@ -4,10 +4,10 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
-	boshssh "github.com/cloudfoundry/bosh-cli/ssh"
-	biui "github.com/cloudfoundry/bosh-cli/ui"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
+	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
+	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
 type SCPCmd struct {

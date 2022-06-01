@@ -8,8 +8,8 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
-	bicrypto "github.com/cloudfoundry/bosh-cli/crypto"
-	boshui "github.com/cloudfoundry/bosh-cli/ui"
+	bicrypto "github.com/cloudfoundry/bosh-cli/v7/crypto"
+	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
 type BasicDeps struct {

@@ -1,11 +1,11 @@
 package release
 
 import (
-	boshjob "github.com/cloudfoundry/bosh-cli/release/job"
-	boshlic "github.com/cloudfoundry/bosh-cli/release/license"
-	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
-	boshpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	boshres "github.com/cloudfoundry/bosh-cli/release/resource"
+	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
+	boshlic "github.com/cloudfoundry/bosh-cli/v7/release/license"
+	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
+	boshres "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 // You only need **one** of these per package!

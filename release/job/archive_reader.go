@@ -8,9 +8,9 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	boshjobman "github.com/cloudfoundry/bosh-cli/release/job/manifest"
-	boshman "github.com/cloudfoundry/bosh-cli/release/manifest"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
+	boshjobman "github.com/cloudfoundry/bosh-cli/v7/release/job/manifest"
+	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 type ArchiveReaderImpl struct {

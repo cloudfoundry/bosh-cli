@@ -4,12 +4,12 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cppforlife/go-patch/patch"
 
-	bideplmanifest "github.com/cloudfoundry/bosh-cli/deployment/manifest"
-	bidepltpl "github.com/cloudfoundry/bosh-cli/deployment/template"
-	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
-	birel "github.com/cloudfoundry/bosh-cli/release"
-	birelsetmanifest "github.com/cloudfoundry/bosh-cli/release/set/manifest"
-	biui "github.com/cloudfoundry/bosh-cli/ui"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
+	bidepltpl "github.com/cloudfoundry/bosh-cli/v7/deployment/template"
+	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
+	birel "github.com/cloudfoundry/bosh-cli/v7/release"
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
+	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
 type DeploymentManifestParser interface {

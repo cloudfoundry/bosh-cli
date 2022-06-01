@@ -1,20 +1,20 @@
 package cmd_test
 
 import (
-	bicmd "github.com/cloudfoundry/bosh-cli/cmd"
-	. "github.com/cloudfoundry/bosh-cli/cmd/opts"
+	bicmd "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	mockcmd "github.com/cloudfoundry/bosh-cli/cmd/mocks"
+	mockcmd "github.com/cloudfoundry/bosh-cli/v7/cmd/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	"github.com/golang/mock/gomock"
 
-	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
-	fakebiui "github.com/cloudfoundry/bosh-cli/ui/fakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/ui/fakes"
+	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
+	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("DeleteEnvCmd", func() {

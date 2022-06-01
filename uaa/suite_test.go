@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"testing"
 
-	"github.com/cloudfoundry/bosh-cli/testutils"
+	"github.com/cloudfoundry/bosh-cli/v7/testutils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

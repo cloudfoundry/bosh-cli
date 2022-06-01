@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	. "github.com/cloudfoundry/bosh-cli/cloud"
+	. "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"

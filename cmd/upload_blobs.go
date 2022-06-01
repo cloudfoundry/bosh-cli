@@ -3,7 +3,7 @@ package cmd
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	boshreldir "github.com/cloudfoundry/bosh-cli/releasedir"
+	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 )
 
 type UploadBlobsCmd struct {

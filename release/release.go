@@ -3,10 +3,10 @@ package release
 import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	bireljob "github.com/cloudfoundry/bosh-cli/release/job"
-	birellic "github.com/cloudfoundry/bosh-cli/release/license"
-	birelman "github.com/cloudfoundry/bosh-cli/release/manifest"
-	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
+	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
+	birellic "github.com/cloudfoundry/bosh-cli/v7/release/license"
+	birelman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
+	birelpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	"github.com/cloudfoundry/bosh-utils/work"
 )
 

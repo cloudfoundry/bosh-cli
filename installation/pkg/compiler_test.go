@@ -15,12 +15,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-cli/installation/blobextract/blobextractfakes"
-	. "github.com/cloudfoundry/bosh-cli/installation/pkg"
-	birelpkg "github.com/cloudfoundry/bosh-cli/release/pkg"
-	. "github.com/cloudfoundry/bosh-cli/release/resource"
-	bistatepkg "github.com/cloudfoundry/bosh-cli/state/pkg"
-	mockstatepackage "github.com/cloudfoundry/bosh-cli/state/pkg/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/installation/blobextract/blobextractfakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/installation/pkg"
+	birelpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	bistatepkg "github.com/cloudfoundry/bosh-cli/v7/state/pkg"
+	mockstatepackage "github.com/cloudfoundry/bosh-cli/v7/state/pkg/mocks"
 )
 
 var _ = Describe("PackageCompiler", func() {

@@ -3,7 +3,7 @@ package opts
 import (
 	cfgtypes "github.com/cloudfoundry/config-server/types"
 
-	boshtpl "github.com/cloudfoundry/bosh-cli/director/template"
+	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 )
 
 // Shared

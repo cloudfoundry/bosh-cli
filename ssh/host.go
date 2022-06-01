@@ -3,7 +3,7 @@ package ssh
 import (
 	"strconv"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/director"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
