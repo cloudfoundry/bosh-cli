@@ -60,9 +60,9 @@ type Director interface {
 	DiffConfig(configType string, name string, manifest []byte) (ConfigDiff, error)
 	DiffConfigByIDOrContent(fromID string, fromContent []byte, toID string, toContent []byte) (ConfigDiff, error)
 
-	LatestCloudConfig() (CloudConfig, error)
-	UpdateCloudConfig([]byte) error
-	DiffCloudConfig(manifest []byte) (ConfigDiff, error)
+	LatestCloudConfig(name string) (CloudConfig, error)
+	UpdateCloudConfig(name string, manifest []byte) error
+	DiffCloudConfig(name string, manifest []byte) (ConfigDiff, error)
 
 	LatestCPIConfig() (CPIConfig, error)
 	UpdateCPIConfig([]byte) error

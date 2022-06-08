@@ -38,6 +38,7 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 				Args: UpdateCloudConfigArgs{
 					CloudConfig: FileBytesArg{Bytes: []byte("cloud-config")},
 				},
+				Name: "angry-smurf",
 			}
 		})
 
@@ -49,7 +50,8 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 
 			Expect(director.UpdateCloudConfigCallCount()).To(Equal(1))
 
-			bytes := director.UpdateCloudConfigArgsForCall(0)
+			name, bytes := director.UpdateCloudConfigArgsForCall(0)
+			Expect(name).To(Equal("angry-smurf"))
 			Expect(bytes).To(Equal([]byte("cloud-config\n")))
 		})
 
@@ -80,7 +82,8 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 
 			Expect(director.UpdateCloudConfigCallCount()).To(Equal(1))
 
-			bytes := director.UpdateCloudConfigArgsForCall(0)
+			name, bytes := director.UpdateCloudConfigArgsForCall(0)
+			Expect(name).To(Equal("angry-smurf"))
 			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\nxyz: val\n")))
 		})
 

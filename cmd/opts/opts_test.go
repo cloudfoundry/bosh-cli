@@ -1448,6 +1448,20 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
+	Describe("CloudConfigOpts", func() {
+		var opts *CloudConfigOpts
+
+		BeforeEach(func() {
+			opts = &CloudConfigOpts{}
+		})
+
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(`long:"name" description:"Cloud-Config name (default: '')" default:""`))
+			})
+		})
+	})
+
 	Describe("UpdateCloudConfigOpts", func() {
 		var opts *UpdateCloudConfigOpts
 
@@ -1458,6 +1472,12 @@ var _ = Describe("Opts", func() {
 		Describe("Args", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
+			})
+		})
+
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(`long:"name" description:"Cloud-Config name (default: '')" default:""`))
 			})
 		})
 	})

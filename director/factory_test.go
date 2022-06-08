@@ -183,7 +183,7 @@ var _ = Describe("Factory", func() {
 					),
 				)
 
-				_, err = director.LatestCloudConfig()
+				_, err = director.LatestCloudConfig("")
 				Expect(err).To(HaveOccurred())
 
 				debugMsgs := make([]interface{}, 0)
