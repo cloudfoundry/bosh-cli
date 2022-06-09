@@ -23,6 +23,40 @@ var _ = Describe("VarKV", func() {
 			Expect(arg).To(Equal(VarKV{Name: "name", Value: "val"}))
 		})
 
+		It("reverts to the old (incorrect) behaviour and removes the wrapping double quotes if the value is a string", func() {
+			err := (&arg).UnmarshalFlag(`name="val"`)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(arg).To(Equal(VarKV{Name: "name", Value: "val"}))
+		})
+		It("reverts to the old (incorrect) behaviour and removes the wrapping single quotes if the value is a string", func() {
+			err := (&arg).UnmarshalFlag(`name='val'`)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(arg).To(Equal(VarKV{Name: "name", Value: "val"}))
+		})
+		It("fails if the string starts with unmatched quoting", func() {
+			err := (&arg).UnmarshalFlag(`name="my-password'`)
+			Expect(err).To(HaveOccurred())
+		})
+		It("only ever removes a single layer of wrapping quotes", func() {
+			err := (&arg).UnmarshalFlag(`name='""'`)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(arg).To(Equal(VarKV{Name: "name", Value: `""`}))
+		})
+		It("only removes wrapping quotes on an empty quoted value", func() {
+			err := (&arg).UnmarshalFlag(`name="''"`)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(arg).To(Equal(VarKV{Name: "name", Value: `''`}))
+		})
+		It("only removes wrapping quotes on a quoted value", func() {
+			err := (&arg).UnmarshalFlag(`name='"mocked-value"'`)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(arg).To(Equal(VarKV{Name: "name", Value: `"mocked-value"`}))
+		})
+		It("removes the quotes on a quoted blank string", func() {
+			err := (&arg).UnmarshalFlag(`name=''`)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(arg).To(Equal(VarKV{Name: "name", Value: ``}))
+		})
 		It("sets name and value when value contains a `=`", func() {
 			err := (&arg).UnmarshalFlag("public_key=ssh-rsa G4/+VHa1aw==")
 			Expect(err).ToNot(HaveOccurred())
@@ -54,6 +88,14 @@ var _ = Describe("VarKV", func() {
 				Expect(arg.Value.(map[interface{}]interface{})["key2"]).To(Equal(true))
 				val3 := arg.Value.(map[interface{}]interface{})["key3"]
 				Expect(val3).To(Equal(map[interface{}]interface{}{"key31": "str"}))
+			})
+		})
+
+		Context("When value has newlines, and the string is not valid yaml", func() {
+			It("works", func() {
+				err := (&arg).UnmarshalFlag("name=one\ntwo\nthree")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(arg).To(Equal(VarKV{Name: "name", Value: "one\ntwo\nthree"}))
 			})
 		})
 	})

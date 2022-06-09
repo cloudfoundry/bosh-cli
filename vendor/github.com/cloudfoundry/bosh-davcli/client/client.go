@@ -170,7 +170,9 @@ func (c client) createReq(method, blobID string, body io.Reader) (*http.Request,
 		return req, err
 	}
 
-	req.SetBasicAuth(c.config.User, c.config.Password)
+	if c.config.User != "" {
+		req.SetBasicAuth(c.config.User, c.config.Password)
+	}
 	return req, nil
 }
 

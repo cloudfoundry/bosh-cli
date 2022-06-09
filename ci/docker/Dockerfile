@@ -1,4 +1,4 @@
-FROM golang:1
+FROM bosh/golang-release
 
 RUN \
   apt-get update \

@@ -36,15 +36,16 @@ func (fake *FakeHostBuilder) BuildHost(arg1 director.AllOrInstanceGroupOrInstanc
 		arg2 string
 		arg3 ssh.DeploymentFetcher
 	}{arg1, arg2, arg3})
+	stub := fake.BuildHostStub
+	fakeReturns := fake.buildHostReturns
 	fake.recordInvocation("BuildHost", []interface{}{arg1, arg2, arg3})
 	fake.buildHostMutex.Unlock()
-	if fake.BuildHostStub != nil {
-		return fake.BuildHostStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.buildHostReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

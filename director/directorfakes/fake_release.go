@@ -108,15 +108,16 @@ func (fake *FakeRelease) CommitHashWithMark(arg1 string) string {
 	fake.commitHashWithMarkArgsForCall = append(fake.commitHashWithMarkArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.CommitHashWithMarkStub
+	fakeReturns := fake.commitHashWithMarkReturns
 	fake.recordInvocation("CommitHashWithMark", []interface{}{arg1})
 	fake.commitHashWithMarkMutex.Unlock()
-	if fake.CommitHashWithMarkStub != nil {
-		return fake.CommitHashWithMarkStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.commitHashWithMarkReturns
 	return fakeReturns.result1
 }
 
@@ -168,15 +169,16 @@ func (fake *FakeRelease) Delete(arg1 bool) error {
 	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
 		arg1 bool
 	}{arg1})
+	stub := fake.DeleteStub
+	fakeReturns := fake.deleteReturns
 	fake.recordInvocation("Delete", []interface{}{arg1})
 	fake.deleteMutex.Unlock()
-	if fake.DeleteStub != nil {
-		return fake.DeleteStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.deleteReturns
 	return fakeReturns.result1
 }
 
@@ -227,15 +229,16 @@ func (fake *FakeRelease) Exists() (bool, error) {
 	ret, specificReturn := fake.existsReturnsOnCall[len(fake.existsArgsForCall)]
 	fake.existsArgsForCall = append(fake.existsArgsForCall, struct {
 	}{})
+	stub := fake.ExistsStub
+	fakeReturns := fake.existsReturns
 	fake.recordInvocation("Exists", []interface{}{})
 	fake.existsMutex.Unlock()
-	if fake.ExistsStub != nil {
-		return fake.ExistsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.existsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -282,15 +285,16 @@ func (fake *FakeRelease) Jobs() ([]director.Job, error) {
 	ret, specificReturn := fake.jobsReturnsOnCall[len(fake.jobsArgsForCall)]
 	fake.jobsArgsForCall = append(fake.jobsArgsForCall, struct {
 	}{})
+	stub := fake.JobsStub
+	fakeReturns := fake.jobsReturns
 	fake.recordInvocation("Jobs", []interface{}{})
 	fake.jobsMutex.Unlock()
-	if fake.JobsStub != nil {
-		return fake.JobsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.jobsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -337,15 +341,16 @@ func (fake *FakeRelease) Name() string {
 	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
 	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
 	}{})
+	stub := fake.NameStub
+	fakeReturns := fake.nameReturns
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.nameReturns
 	return fakeReturns.result1
 }
 
@@ -389,15 +394,16 @@ func (fake *FakeRelease) Packages() ([]director.Package, error) {
 	ret, specificReturn := fake.packagesReturnsOnCall[len(fake.packagesArgsForCall)]
 	fake.packagesArgsForCall = append(fake.packagesArgsForCall, struct {
 	}{})
+	stub := fake.PackagesStub
+	fakeReturns := fake.packagesReturns
 	fake.recordInvocation("Packages", []interface{}{})
 	fake.packagesMutex.Unlock()
-	if fake.PackagesStub != nil {
-		return fake.PackagesStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.packagesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -444,15 +450,16 @@ func (fake *FakeRelease) Version() version.Version {
 	ret, specificReturn := fake.versionReturnsOnCall[len(fake.versionArgsForCall)]
 	fake.versionArgsForCall = append(fake.versionArgsForCall, struct {
 	}{})
+	stub := fake.VersionStub
+	fakeReturns := fake.versionReturns
 	fake.recordInvocation("Version", []interface{}{})
 	fake.versionMutex.Unlock()
-	if fake.VersionStub != nil {
-		return fake.VersionStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.versionReturns
 	return fakeReturns.result1
 }
 
@@ -497,15 +504,16 @@ func (fake *FakeRelease) VersionMark(arg1 string) string {
 	fake.versionMarkArgsForCall = append(fake.versionMarkArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.VersionMarkStub
+	fakeReturns := fake.versionMarkReturns
 	fake.recordInvocation("VersionMark", []interface{}{arg1})
 	fake.versionMarkMutex.Unlock()
-	if fake.VersionMarkStub != nil {
-		return fake.VersionMarkStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.versionMarkReturns
 	return fakeReturns.result1
 }
 

@@ -68,15 +68,16 @@ func (fake *FakeSessionContext) CACert() string {
 	ret, specificReturn := fake.cACertReturnsOnCall[len(fake.cACertArgsForCall)]
 	fake.cACertArgsForCall = append(fake.cACertArgsForCall, struct {
 	}{})
+	stub := fake.CACertStub
+	fakeReturns := fake.cACertReturns
 	fake.recordInvocation("CACert", []interface{}{})
 	fake.cACertMutex.Unlock()
-	if fake.CACertStub != nil {
-		return fake.CACertStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.cACertReturns
 	return fakeReturns.result1
 }
 
@@ -120,15 +121,16 @@ func (fake *FakeSessionContext) Config() config.Config {
 	ret, specificReturn := fake.configReturnsOnCall[len(fake.configArgsForCall)]
 	fake.configArgsForCall = append(fake.configArgsForCall, struct {
 	}{})
+	stub := fake.ConfigStub
+	fakeReturns := fake.configReturns
 	fake.recordInvocation("Config", []interface{}{})
 	fake.configMutex.Unlock()
-	if fake.ConfigStub != nil {
-		return fake.ConfigStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.configReturns
 	return fakeReturns.result1
 }
 
@@ -172,15 +174,16 @@ func (fake *FakeSessionContext) Credentials() config.Creds {
 	ret, specificReturn := fake.credentialsReturnsOnCall[len(fake.credentialsArgsForCall)]
 	fake.credentialsArgsForCall = append(fake.credentialsArgsForCall, struct {
 	}{})
+	stub := fake.CredentialsStub
+	fakeReturns := fake.credentialsReturns
 	fake.recordInvocation("Credentials", []interface{}{})
 	fake.credentialsMutex.Unlock()
-	if fake.CredentialsStub != nil {
-		return fake.CredentialsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.credentialsReturns
 	return fakeReturns.result1
 }
 
@@ -224,15 +227,16 @@ func (fake *FakeSessionContext) Deployment() string {
 	ret, specificReturn := fake.deploymentReturnsOnCall[len(fake.deploymentArgsForCall)]
 	fake.deploymentArgsForCall = append(fake.deploymentArgsForCall, struct {
 	}{})
+	stub := fake.DeploymentStub
+	fakeReturns := fake.deploymentReturns
 	fake.recordInvocation("Deployment", []interface{}{})
 	fake.deploymentMutex.Unlock()
-	if fake.DeploymentStub != nil {
-		return fake.DeploymentStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.deploymentReturns
 	return fakeReturns.result1
 }
 
@@ -276,15 +280,16 @@ func (fake *FakeSessionContext) Environment() string {
 	ret, specificReturn := fake.environmentReturnsOnCall[len(fake.environmentArgsForCall)]
 	fake.environmentArgsForCall = append(fake.environmentArgsForCall, struct {
 	}{})
+	stub := fake.EnvironmentStub
+	fakeReturns := fake.environmentReturns
 	fake.recordInvocation("Environment", []interface{}{})
 	fake.environmentMutex.Unlock()
-	if fake.EnvironmentStub != nil {
-		return fake.EnvironmentStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.environmentReturns
 	return fakeReturns.result1
 }
 

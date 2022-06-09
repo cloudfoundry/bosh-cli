@@ -48,9 +48,10 @@ func (fake *FakeBlobsDirReporter) BlobDownloadFinished(arg1 string, arg2 string,
 		arg2 string
 		arg3 error
 	}{arg1, arg2, arg3})
+	stub := fake.BlobDownloadFinishedStub
 	fake.recordInvocation("BlobDownloadFinished", []interface{}{arg1, arg2, arg3})
 	fake.blobDownloadFinishedMutex.Unlock()
-	if fake.BlobDownloadFinishedStub != nil {
+	if stub != nil {
 		fake.BlobDownloadFinishedStub(arg1, arg2, arg3)
 	}
 }
@@ -82,9 +83,10 @@ func (fake *FakeBlobsDirReporter) BlobDownloadStarted(arg1 string, arg2 int64, a
 		arg3 string
 		arg4 string
 	}{arg1, arg2, arg3, arg4})
+	stub := fake.BlobDownloadStartedStub
 	fake.recordInvocation("BlobDownloadStarted", []interface{}{arg1, arg2, arg3, arg4})
 	fake.blobDownloadStartedMutex.Unlock()
-	if fake.BlobDownloadStartedStub != nil {
+	if stub != nil {
 		fake.BlobDownloadStartedStub(arg1, arg2, arg3, arg4)
 	}
 }
@@ -115,9 +117,10 @@ func (fake *FakeBlobsDirReporter) BlobUploadFinished(arg1 string, arg2 string, a
 		arg2 string
 		arg3 error
 	}{arg1, arg2, arg3})
+	stub := fake.BlobUploadFinishedStub
 	fake.recordInvocation("BlobUploadFinished", []interface{}{arg1, arg2, arg3})
 	fake.blobUploadFinishedMutex.Unlock()
-	if fake.BlobUploadFinishedStub != nil {
+	if stub != nil {
 		fake.BlobUploadFinishedStub(arg1, arg2, arg3)
 	}
 }
@@ -148,9 +151,10 @@ func (fake *FakeBlobsDirReporter) BlobUploadStarted(arg1 string, arg2 int64, arg
 		arg2 int64
 		arg3 string
 	}{arg1, arg2, arg3})
+	stub := fake.BlobUploadStartedStub
 	fake.recordInvocation("BlobUploadStarted", []interface{}{arg1, arg2, arg3})
 	fake.blobUploadStartedMutex.Unlock()
-	if fake.BlobUploadStartedStub != nil {
+	if stub != nil {
 		fake.BlobUploadStartedStub(arg1, arg2, arg3)
 	}
 }

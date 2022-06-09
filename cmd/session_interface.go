@@ -6,7 +6,7 @@ import (
 	boshuaa "github.com/cloudfoundry/bosh-cli/v6/uaa"
 )
 
-//go:generate counterfeiter . SessionContext
+//counterfeiter:generate . SessionContext
 
 type SessionContext interface {
 	Environment() string
@@ -17,7 +17,7 @@ type SessionContext interface {
 	Deployment() string
 }
 
-//go:generate counterfeiter . Session
+//counterfeiter:generate . Session
 
 type Session interface {
 	Environment() string

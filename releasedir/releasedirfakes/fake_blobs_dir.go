@@ -86,15 +86,16 @@ func (fake *FakeBlobsDir) Blobs() ([]releasedir.Blob, error) {
 	ret, specificReturn := fake.blobsReturnsOnCall[len(fake.blobsArgsForCall)]
 	fake.blobsArgsForCall = append(fake.blobsArgsForCall, struct {
 	}{})
+	stub := fake.BlobsStub
+	fakeReturns := fake.blobsReturns
 	fake.recordInvocation("Blobs", []interface{}{})
 	fake.blobsMutex.Unlock()
-	if fake.BlobsStub != nil {
-		return fake.BlobsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.blobsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -141,15 +142,16 @@ func (fake *FakeBlobsDir) Init() error {
 	ret, specificReturn := fake.initReturnsOnCall[len(fake.initArgsForCall)]
 	fake.initArgsForCall = append(fake.initArgsForCall, struct {
 	}{})
+	stub := fake.InitStub
+	fakeReturns := fake.initReturns
 	fake.recordInvocation("Init", []interface{}{})
 	fake.initMutex.Unlock()
-	if fake.InitStub != nil {
-		return fake.InitStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.initReturns
 	return fakeReturns.result1
 }
 
@@ -194,15 +196,16 @@ func (fake *FakeBlobsDir) SyncBlobs(arg1 int) error {
 	fake.syncBlobsArgsForCall = append(fake.syncBlobsArgsForCall, struct {
 		arg1 int
 	}{arg1})
+	stub := fake.SyncBlobsStub
+	fakeReturns := fake.syncBlobsReturns
 	fake.recordInvocation("SyncBlobs", []interface{}{arg1})
 	fake.syncBlobsMutex.Unlock()
-	if fake.SyncBlobsStub != nil {
-		return fake.SyncBlobsStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.syncBlobsReturns
 	return fakeReturns.result1
 }
 
@@ -255,15 +258,16 @@ func (fake *FakeBlobsDir) TrackBlob(arg1 string, arg2 io.ReadCloser) (releasedir
 		arg1 string
 		arg2 io.ReadCloser
 	}{arg1, arg2})
+	stub := fake.TrackBlobStub
+	fakeReturns := fake.trackBlobReturns
 	fake.recordInvocation("TrackBlob", []interface{}{arg1, arg2})
 	fake.trackBlobMutex.Unlock()
-	if fake.TrackBlobStub != nil {
-		return fake.TrackBlobStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.trackBlobReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -318,15 +322,16 @@ func (fake *FakeBlobsDir) UntrackBlob(arg1 string) error {
 	fake.untrackBlobArgsForCall = append(fake.untrackBlobArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.UntrackBlobStub
+	fakeReturns := fake.untrackBlobReturns
 	fake.recordInvocation("UntrackBlob", []interface{}{arg1})
 	fake.untrackBlobMutex.Unlock()
-	if fake.UntrackBlobStub != nil {
-		return fake.UntrackBlobStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.untrackBlobReturns
 	return fakeReturns.result1
 }
 
@@ -377,15 +382,16 @@ func (fake *FakeBlobsDir) UploadBlobs() error {
 	ret, specificReturn := fake.uploadBlobsReturnsOnCall[len(fake.uploadBlobsArgsForCall)]
 	fake.uploadBlobsArgsForCall = append(fake.uploadBlobsArgsForCall, struct {
 	}{})
+	stub := fake.UploadBlobsStub
+	fakeReturns := fake.uploadBlobsReturns
 	fake.recordInvocation("UploadBlobs", []interface{}{})
 	fake.uploadBlobsMutex.Unlock()
-	if fake.UploadBlobsStub != nil {
-		return fake.UploadBlobsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.uploadBlobsReturns
 	return fakeReturns.result1
 }
 

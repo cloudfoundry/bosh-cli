@@ -77,15 +77,16 @@ func (fake *FakeCompilable) ArchiveDigest() string {
 	ret, specificReturn := fake.archiveDigestReturnsOnCall[len(fake.archiveDigestArgsForCall)]
 	fake.archiveDigestArgsForCall = append(fake.archiveDigestArgsForCall, struct {
 	}{})
+	stub := fake.ArchiveDigestStub
+	fakeReturns := fake.archiveDigestReturns
 	fake.recordInvocation("ArchiveDigest", []interface{}{})
 	fake.archiveDigestMutex.Unlock()
-	if fake.ArchiveDigestStub != nil {
-		return fake.ArchiveDigestStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.archiveDigestReturns
 	return fakeReturns.result1
 }
 
@@ -129,15 +130,16 @@ func (fake *FakeCompilable) ArchivePath() string {
 	ret, specificReturn := fake.archivePathReturnsOnCall[len(fake.archivePathArgsForCall)]
 	fake.archivePathArgsForCall = append(fake.archivePathArgsForCall, struct {
 	}{})
+	stub := fake.ArchivePathStub
+	fakeReturns := fake.archivePathReturns
 	fake.recordInvocation("ArchivePath", []interface{}{})
 	fake.archivePathMutex.Unlock()
-	if fake.ArchivePathStub != nil {
-		return fake.ArchivePathStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.archivePathReturns
 	return fakeReturns.result1
 }
 
@@ -181,15 +183,16 @@ func (fake *FakeCompilable) Deps() []pkg.Compilable {
 	ret, specificReturn := fake.depsReturnsOnCall[len(fake.depsArgsForCall)]
 	fake.depsArgsForCall = append(fake.depsArgsForCall, struct {
 	}{})
+	stub := fake.DepsStub
+	fakeReturns := fake.depsReturns
 	fake.recordInvocation("Deps", []interface{}{})
 	fake.depsMutex.Unlock()
-	if fake.DepsStub != nil {
-		return fake.DepsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.depsReturns
 	return fakeReturns.result1
 }
 
@@ -233,15 +236,16 @@ func (fake *FakeCompilable) Fingerprint() string {
 	ret, specificReturn := fake.fingerprintReturnsOnCall[len(fake.fingerprintArgsForCall)]
 	fake.fingerprintArgsForCall = append(fake.fingerprintArgsForCall, struct {
 	}{})
+	stub := fake.FingerprintStub
+	fakeReturns := fake.fingerprintReturns
 	fake.recordInvocation("Fingerprint", []interface{}{})
 	fake.fingerprintMutex.Unlock()
-	if fake.FingerprintStub != nil {
-		return fake.FingerprintStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.fingerprintReturns
 	return fakeReturns.result1
 }
 
@@ -285,15 +289,16 @@ func (fake *FakeCompilable) IsCompiled() bool {
 	ret, specificReturn := fake.isCompiledReturnsOnCall[len(fake.isCompiledArgsForCall)]
 	fake.isCompiledArgsForCall = append(fake.isCompiledArgsForCall, struct {
 	}{})
+	stub := fake.IsCompiledStub
+	fakeReturns := fake.isCompiledReturns
 	fake.recordInvocation("IsCompiled", []interface{}{})
 	fake.isCompiledMutex.Unlock()
-	if fake.IsCompiledStub != nil {
-		return fake.IsCompiledStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.isCompiledReturns
 	return fakeReturns.result1
 }
 
@@ -337,15 +342,16 @@ func (fake *FakeCompilable) Name() string {
 	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
 	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
 	}{})
+	stub := fake.NameStub
+	fakeReturns := fake.nameReturns
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.nameReturns
 	return fakeReturns.result1
 }
 

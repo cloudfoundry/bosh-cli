@@ -93,10 +93,6 @@ var _ = Describe("Director", func() {
     "snapshots": {
       "status": false
     },
-    "compiled_package_cache": {
-      "extras": { "provider": null },
-      "status": true
-    },
     "dns": {
       "extras": { "domain_name": "bosh" },
       "status": false
@@ -126,9 +122,8 @@ var _ = Describe("Director", func() {
 				},
 
 				Features: map[string]bool{
-					"snapshots":              false,
-					"compiled_package_cache": true,
-					"dns":                    false,
+					"snapshots": false,
+					"dns":       false,
 				},
 
 				CPI: "cpi",

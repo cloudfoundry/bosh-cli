@@ -137,15 +137,16 @@ func (fake *FakeConfig) AliasEnvironment(arg1 string, arg2 string, arg3 string) 
 		arg2 string
 		arg3 string
 	}{arg1, arg2, arg3})
+	stub := fake.AliasEnvironmentStub
+	fakeReturns := fake.aliasEnvironmentReturns
 	fake.recordInvocation("AliasEnvironment", []interface{}{arg1, arg2, arg3})
 	fake.aliasEnvironmentMutex.Unlock()
-	if fake.AliasEnvironmentStub != nil {
-		return fake.AliasEnvironmentStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.aliasEnvironmentReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -200,15 +201,16 @@ func (fake *FakeConfig) CACert(arg1 string) string {
 	fake.cACertArgsForCall = append(fake.cACertArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.CACertStub
+	fakeReturns := fake.cACertReturns
 	fake.recordInvocation("CACert", []interface{}{arg1})
 	fake.cACertMutex.Unlock()
-	if fake.CACertStub != nil {
-		return fake.CACertStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.cACertReturns
 	return fakeReturns.result1
 }
 
@@ -260,15 +262,16 @@ func (fake *FakeConfig) Credentials(arg1 string) config.Creds {
 	fake.credentialsArgsForCall = append(fake.credentialsArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.CredentialsStub
+	fakeReturns := fake.credentialsReturns
 	fake.recordInvocation("Credentials", []interface{}{arg1})
 	fake.credentialsMutex.Unlock()
-	if fake.CredentialsStub != nil {
-		return fake.CredentialsStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.credentialsReturns
 	return fakeReturns.result1
 }
 
@@ -319,15 +322,16 @@ func (fake *FakeConfig) Environments() []config.Environment {
 	ret, specificReturn := fake.environmentsReturnsOnCall[len(fake.environmentsArgsForCall)]
 	fake.environmentsArgsForCall = append(fake.environmentsArgsForCall, struct {
 	}{})
+	stub := fake.EnvironmentsStub
+	fakeReturns := fake.environmentsReturns
 	fake.recordInvocation("Environments", []interface{}{})
 	fake.environmentsMutex.Unlock()
-	if fake.EnvironmentsStub != nil {
-		return fake.EnvironmentsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.environmentsReturns
 	return fakeReturns.result1
 }
 
@@ -372,15 +376,16 @@ func (fake *FakeConfig) ResolveEnvironment(arg1 string) string {
 	fake.resolveEnvironmentArgsForCall = append(fake.resolveEnvironmentArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.ResolveEnvironmentStub
+	fakeReturns := fake.resolveEnvironmentReturns
 	fake.recordInvocation("ResolveEnvironment", []interface{}{arg1})
 	fake.resolveEnvironmentMutex.Unlock()
-	if fake.ResolveEnvironmentStub != nil {
-		return fake.ResolveEnvironmentStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.resolveEnvironmentReturns
 	return fakeReturns.result1
 }
 
@@ -431,15 +436,16 @@ func (fake *FakeConfig) Save() error {
 	ret, specificReturn := fake.saveReturnsOnCall[len(fake.saveArgsForCall)]
 	fake.saveArgsForCall = append(fake.saveArgsForCall, struct {
 	}{})
+	stub := fake.SaveStub
+	fakeReturns := fake.saveReturns
 	fake.recordInvocation("Save", []interface{}{})
 	fake.saveMutex.Unlock()
-	if fake.SaveStub != nil {
-		return fake.SaveStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.saveReturns
 	return fakeReturns.result1
 }
 
@@ -485,15 +491,16 @@ func (fake *FakeConfig) SetCredentials(arg1 string, arg2 config.Creds) config.Co
 		arg1 string
 		arg2 config.Creds
 	}{arg1, arg2})
+	stub := fake.SetCredentialsStub
+	fakeReturns := fake.setCredentialsReturns
 	fake.recordInvocation("SetCredentials", []interface{}{arg1, arg2})
 	fake.setCredentialsMutex.Unlock()
-	if fake.SetCredentialsStub != nil {
-		return fake.SetCredentialsStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.setCredentialsReturns
 	return fakeReturns.result1
 }
 
@@ -545,15 +552,16 @@ func (fake *FakeConfig) UnaliasEnvironment(arg1 string) (config.Config, error) {
 	fake.unaliasEnvironmentArgsForCall = append(fake.unaliasEnvironmentArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.UnaliasEnvironmentStub
+	fakeReturns := fake.unaliasEnvironmentReturns
 	fake.recordInvocation("UnaliasEnvironment", []interface{}{arg1})
 	fake.unaliasEnvironmentMutex.Unlock()
-	if fake.UnaliasEnvironmentStub != nil {
-		return fake.UnaliasEnvironmentStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.unaliasEnvironmentReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -608,15 +616,16 @@ func (fake *FakeConfig) UnsetCredentials(arg1 string) config.Config {
 	fake.unsetCredentialsArgsForCall = append(fake.unsetCredentialsArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.UnsetCredentialsStub
+	fakeReturns := fake.unsetCredentialsReturns
 	fake.recordInvocation("UnsetCredentials", []interface{}{arg1})
 	fake.unsetCredentialsMutex.Unlock()
-	if fake.UnsetCredentialsStub != nil {
-		return fake.UnsetCredentialsStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.unsetCredentialsReturns
 	return fakeReturns.result1
 }
 
@@ -669,15 +678,16 @@ func (fake *FakeConfig) UpdateConfigWithToken(arg1 string, arg2 uaa.AccessToken)
 		arg1 string
 		arg2 uaa.AccessToken
 	}{arg1, arg2})
+	stub := fake.UpdateConfigWithTokenStub
+	fakeReturns := fake.updateConfigWithTokenReturns
 	fake.recordInvocation("UpdateConfigWithToken", []interface{}{arg1, arg2})
 	fake.updateConfigWithTokenMutex.Unlock()
-	if fake.UpdateConfigWithTokenStub != nil {
-		return fake.UpdateConfigWithTokenStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.updateConfigWithTokenReturns
 	return fakeReturns.result1
 }
 

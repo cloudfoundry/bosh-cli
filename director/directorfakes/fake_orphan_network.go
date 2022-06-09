@@ -68,15 +68,16 @@ func (fake *FakeOrphanNetwork) CreatedAt() time.Time {
 	ret, specificReturn := fake.createdAtReturnsOnCall[len(fake.createdAtArgsForCall)]
 	fake.createdAtArgsForCall = append(fake.createdAtArgsForCall, struct {
 	}{})
+	stub := fake.CreatedAtStub
+	fakeReturns := fake.createdAtReturns
 	fake.recordInvocation("CreatedAt", []interface{}{})
 	fake.createdAtMutex.Unlock()
-	if fake.CreatedAtStub != nil {
-		return fake.CreatedAtStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.createdAtReturns
 	return fakeReturns.result1
 }
 
@@ -120,15 +121,16 @@ func (fake *FakeOrphanNetwork) Delete() error {
 	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
 	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
 	}{})
+	stub := fake.DeleteStub
+	fakeReturns := fake.deleteReturns
 	fake.recordInvocation("Delete", []interface{}{})
 	fake.deleteMutex.Unlock()
-	if fake.DeleteStub != nil {
-		return fake.DeleteStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.deleteReturns
 	return fakeReturns.result1
 }
 
@@ -172,15 +174,16 @@ func (fake *FakeOrphanNetwork) Name() string {
 	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
 	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
 	}{})
+	stub := fake.NameStub
+	fakeReturns := fake.nameReturns
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.nameReturns
 	return fakeReturns.result1
 }
 
@@ -224,15 +227,16 @@ func (fake *FakeOrphanNetwork) OrphanedAt() time.Time {
 	ret, specificReturn := fake.orphanedAtReturnsOnCall[len(fake.orphanedAtArgsForCall)]
 	fake.orphanedAtArgsForCall = append(fake.orphanedAtArgsForCall, struct {
 	}{})
+	stub := fake.OrphanedAtStub
+	fakeReturns := fake.orphanedAtReturns
 	fake.recordInvocation("OrphanedAt", []interface{}{})
 	fake.orphanedAtMutex.Unlock()
-	if fake.OrphanedAtStub != nil {
-		return fake.OrphanedAtStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.orphanedAtReturns
 	return fakeReturns.result1
 }
 
@@ -276,15 +280,16 @@ func (fake *FakeOrphanNetwork) Type() string {
 	ret, specificReturn := fake.typeReturnsOnCall[len(fake.typeArgsForCall)]
 	fake.typeArgsForCall = append(fake.typeArgsForCall, struct {
 	}{})
+	stub := fake.TypeStub
+	fakeReturns := fake.typeReturns
 	fake.recordInvocation("Type", []interface{}{})
 	fake.typeMutex.Unlock()
-	if fake.TypeStub != nil {
-		return fake.TypeStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.typeReturns
 	return fakeReturns.result1
 }
 

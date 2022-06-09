@@ -2,7 +2,10 @@ package config
 
 import "github.com/cloudfoundry/bosh-cli/v6/uaa"
 
-//go:generate counterfeiter . Config
+// You only need **one** of these per package!
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . Config
 
 type Config interface {
 	Environments() []Environment

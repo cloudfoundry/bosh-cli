@@ -20,8 +20,13 @@ jobs:
       - get: weekly
         trigger: true
       - get: bosh-cli
+      - get: golang-release
       - task: bump-deps
-        file: bosh-cli/ci/tasks/bump-deps.yml
+        file: golang-release/ci/tasks/shared/bump-deps.yml
+        input_mapping:
+          input_repo: bosh-cli
+        output_mapping:
+          output_repo: bumped-bosh-cli
       - task: test-unit
         input_mapping:
           bosh-cli: bumped-bosh-cli
@@ -87,7 +92,6 @@ jobs:
         input_mapping:
           bosh-cli: compiled-linux
         file: bosh-src/ci/tasks/test-integration.yml
-        tags: ["bosh-integration"]
         params:
           DB: postgresql
 
@@ -106,6 +110,8 @@ jobs:
           file: bosh-cli/ci/tasks/build-linux.yml
         - task: build-darwin
           file: bosh-cli/ci/tasks/build-darwin.yml
+        - task: build-darwin-arm64
+          file: bosh-cli/ci/tasks/build-darwin-arm64.yml
         - task: build-windows
           file: bosh-cli/ci/tasks/build-windows.yml
 
@@ -120,11 +126,12 @@ jobs:
           state: success
           commit: bosh-cli
 
-      - {put: bosh-cli-promoted, params: {repository: bosh-cli, tag: version-semver/number, tag_prefix: v}}
+      - {put: bosh-cli, params: {repository: bosh-cli, tag: version-semver/number, tag_prefix: v}}
 
       - in_parallel:
         - {put: release-bucket-linux, params: {file: compiled-linux/bosh-cli-*-linux-amd64}}
         - {put: release-bucket-darwin, params: {file: compiled-darwin/bosh-cli-*-darwin-amd64}}
+        - {put: release-bucket-darwin-arm64, params: {file: compiled-darwin-arm64/bosh-cli-*-darwin-arm64}}
         - {put: release-bucket-windows, params: {file: compiled-windows/bosh-cli-*-windows-amd64.exe}}
 
         - put: final-docker
@@ -158,6 +165,7 @@ jobs:
             globs:
               - compiled-linux/bosh-cli-*-linux-amd64
               - compiled-darwin/bosh-cli-*-darwin-amd64
+              - compiled-darwin-arm64/bosh-cli-*-darwin-arm64
               - compiled-windows/bosh-cli-*-windows-amd64.exe
             body: checksums/checksums
 
@@ -193,6 +201,11 @@ jobs:
           file: bosh-cli/ci/tasks/build-darwin.yml
           params:
             FILENAME_PREFIX: "alpha-"
+        - task: build-darwin-arm64
+          input_mapping: {version-semver: alpha-version-semver}
+          file: bosh-cli/ci/tasks/build-darwin-arm64.yml
+          params:
+            FILENAME_PREFIX: "alpha-"
         - task: build-windows
           input_mapping: {version-semver: alpha-version-semver}
           file: bosh-cli/ci/tasks/build-windows.yml
@@ -202,6 +215,7 @@ jobs:
       - in_parallel:
         - {put: alpha-release-bucket-linux, params: {file: compiled-linux/alpha-bosh-cli-*-linux-amd64}}
         - {put: alpha-release-bucket-darwin, params: {file: compiled-darwin/alpha-bosh-cli-*-darwin-amd64}}
+        - {put: alpha-release-bucket-darwin-arm64, params: {file: compiled-darwin-arm64/alpha-bosh-cli-*-darwin-arm64}}
         - {put: alpha-release-bucket-windows, params: {file: compiled-windows/alpha-bosh-cli-*-windows-amd64.exe}}
 
   - name: test-helper-urls
@@ -235,19 +249,18 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh.git
-      branch: master
 
   - name: bosh-agent
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh-agent.git
-      branch: master
+      branch: main
 
   - name: bosh-cli
     type: git
     source:
       uri: git@github.com:cloudfoundry/bosh-cli.git
-      branch: develop
+      branch: main
       private_key: {{concourse_github_private_key}}
 
   - name: bosh-warden-stemcell-xenial
@@ -265,15 +278,13 @@ resources:
     source:
       repository: cloudfoundry/bosh-cli
       access_token: {{github_token}}
-      branch: develop
+      branch: main
       context: ci/published
 
-  - name: bosh-cli-promoted
+  - name: golang-release
     type: git
     source:
-      uri: git@github.com:cloudfoundry/bosh-cli.git
-      branch: master
-      private_key: {{concourse_github_private_key}}
+      uri: https://github.com/bosh-packages/golang-release.git
 
   - name: release-bucket-linux
     type: s3
@@ -288,6 +299,15 @@ resources:
     type: s3
     source:
       regexp: bosh-cli-(.*)-darwin-amd64
+      bucket: {{aws_s3_release_bucket}}
+      region_name: {{aws_s3_release_bucket_region}}
+      access_key_id: {{aws_s3_release_bucket_access_key}}
+      secret_access_key: {{aws_s3_release_bucket_secret_key}}
+
+  - name: release-bucket-darwin-arm64
+    type: s3
+    source:
+      regexp: bosh-cli-(.*)-darwin-arm64
       bucket: {{aws_s3_release_bucket}}
       region_name: {{aws_s3_release_bucket_region}}
       access_key_id: {{aws_s3_release_bucket_access_key}}
@@ -315,6 +335,15 @@ resources:
     type: s3
     source:
       regexp: alpha-bosh-cli-(.*)-darwin-amd64
+      bucket: {{aws_s3_alpha_release_bucket}}
+      region_name: {{aws_s3_release_bucket_region}}
+      access_key_id: {{aws_s3_release_bucket_access_key}}
+      secret_access_key: {{aws_s3_release_bucket_secret_key}}
+
+  - name: alpha-release-bucket-darwin-arm64
+    type: s3
+    source:
+      regexp: alpha-bosh-cli-(.*)-darwin-arm64
       bucket: {{aws_s3_alpha_release_bucket}}
       region_name: {{aws_s3_release_bucket_region}}
       access_key_id: {{aws_s3_release_bucket_access_key}}

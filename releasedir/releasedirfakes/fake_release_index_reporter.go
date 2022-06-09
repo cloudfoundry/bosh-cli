@@ -26,9 +26,10 @@ func (fake *FakeReleaseIndexReporter) ReleaseIndexAdded(arg1 string, arg2 string
 		arg2 string
 		arg3 error
 	}{arg1, arg2, arg3})
+	stub := fake.ReleaseIndexAddedStub
 	fake.recordInvocation("ReleaseIndexAdded", []interface{}{arg1, arg2, arg3})
 	fake.releaseIndexAddedMutex.Unlock()
-	if fake.ReleaseIndexAddedStub != nil {
+	if stub != nil {
 		fake.ReleaseIndexAddedStub(arg1, arg2, arg3)
 	}
 }

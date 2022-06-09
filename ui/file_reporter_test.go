@@ -83,8 +83,8 @@ var _ = Describe("ReadCloserProxy", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(seekerReader.callTracker.Closes).To(Equal(1))
 			uiSaid := fakeUI.Said
-			Expect(len(uiSaid)).To(BeNumerically(">", 1))
-			Expect(uiSaid).To(ContainElement("["))
+			Expect(len(uiSaid)).To(BeNumerically(">", 0))
+			Expect(uiSaid[0]).To(ContainSubstring("[___"))
 		})
 	})
 })

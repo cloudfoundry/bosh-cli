@@ -52,15 +52,16 @@ func (fake *FakeIndexBlobs) Add(arg1 string, arg2 string, arg3 string) (string, 
 		arg2 string
 		arg3 string
 	}{arg1, arg2, arg3})
+	stub := fake.AddStub
+	fakeReturns := fake.addReturns
 	fake.recordInvocation("Add", []interface{}{arg1, arg2, arg3})
 	fake.addMutex.Unlock()
-	if fake.AddStub != nil {
-		return fake.AddStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.addReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -120,15 +121,16 @@ func (fake *FakeIndexBlobs) Get(arg1 string, arg2 string, arg3 string) (string, 
 		arg2 string
 		arg3 string
 	}{arg1, arg2, arg3})
+	stub := fake.GetStub
+	fakeReturns := fake.getReturns
 	fake.recordInvocation("Get", []interface{}{arg1, arg2, arg3})
 	fake.getMutex.Unlock()
-	if fake.GetStub != nil {
-		return fake.GetStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

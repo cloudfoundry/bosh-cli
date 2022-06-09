@@ -12,6 +12,7 @@ inputs:
   path: gopath/src/github.com/cloudfoundry/bosh-cli
 - name: compiled-linux
 - name: compiled-darwin
+- name: compiled-darwin-arm64
 - name: compiled-windows
 
 outputs:

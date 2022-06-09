@@ -5,7 +5,7 @@ import (
 	"github.com/cppforlife/go-patch/patch"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
-	. "github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
+	cmdopts "github.com/cloudfoundry/bosh-cli/v6/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v6/director"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v6/director/template"
 	boshrel "github.com/cloudfoundry/bosh-cli/v6/release"
@@ -20,11 +20,11 @@ type ReleaseManager struct {
 }
 
 type ReleaseUploadingCmd interface {
-	Run(UploadReleaseOpts) error
+	Run(cmdopts.UploadReleaseOpts) error
 }
 
 type ReleaseCreatingCmd interface {
-	Run(CreateReleaseOpts) (boshrel.Release, error)
+	Run(cmdopts.CreateReleaseOpts) (boshrel.Release, error)
 }
 
 func NewReleaseManager(
@@ -106,23 +106,26 @@ func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (pat
 		return nil, err
 	}
 
-	uploadOpts := UploadReleaseOpts{
+	uploadOpts := cmdopts.UploadReleaseOpts{
 		Name:    rel.Name,
-		Version: VersionArg(ver),
+		Version: cmdopts.VersionArg(ver),
 
-		Args: UploadReleaseArgs{URL: URLArg(rel.URL)},
+		Args: cmdopts.UploadReleaseArgs{URL: cmdopts.URLArg(rel.URL)},
 		SHA1: rel.SHA1,
 		Fix:  m.uploadWithFix,
 	}
-
+	if len(rel.ExportedFrom) > 0 {
+		// https://bosh.io/docs/locking-compiled-releases/#why-an-array It is an array but we only use the first item.
+		uploadOpts.Stemcell = boshdir.NewOSVersionSlug(rel.ExportedFrom[0].OS, rel.ExportedFrom[0].Version)
+	}
 	if len(rel.Stemcell.OS) > 0 {
 		uploadOpts.Stemcell = boshdir.NewOSVersionSlug(rel.Stemcell.OS, rel.Stemcell.Version)
 	}
 
 	if rel.Version == "create" {
-		createOpts := CreateReleaseOpts{
+		createOpts := cmdopts.CreateReleaseOpts{
 			Name:             rel.Name,
-			Directory:        DirOrCWDArg{Path: uploadOpts.Args.URL.FilePath()},
+			Directory:        cmdopts.DirOrCWDArg{Path: uploadOpts.Args.URL.FilePath()},
 			TimestampVersion: true,
 			Force:            true,
 		}
@@ -132,7 +135,7 @@ func (m ReleaseManager) createAndUploadRelease(rel boshdir.ManifestRelease) (pat
 			return nil, bosherr.WrapErrorf(err, "Processing release '%s/%s'", rel.Name, rel.Version)
 		}
 
-		uploadOpts = UploadReleaseOpts{Release: release}
+		uploadOpts = cmdopts.UploadReleaseOpts{Release: release}
 
 		replaceOp := patch.ReplaceOp{
 			// equivalent to /releases/name=?/version

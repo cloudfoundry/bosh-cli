@@ -188,17 +188,21 @@ func (d DirectorImpl) HasRelease(name, version string, stemcell OSVersionSlug) (
 	if err != nil {
 		return false, err
 	}
-
-	if !stemcell.IsProvided() || !found {
-		return found, nil
+	if found {
+		if stemcell.IsProvided() {
+			found, err := d.ReleaseHasCompiledPackage(NewReleaseSlug(name, version), stemcell)
+			return found, err
+		} else {
+			found, err := d.ReleaseHasSource(NewReleaseSlug(name, version))
+			return found, err
+		}
 	}
-
-	return d.releaseHasCompiledPackage(NewReleaseSlug(name, version), stemcell)
+	return found, err
 }
 
-// releaseHasCompiledPackage returns true if release contains
-// at least one compiled package that matches stemcell slug
-func (d DirectorImpl) releaseHasCompiledPackage(releaseSlug ReleaseSlug, osVersionSlug OSVersionSlug) (bool, error) {
+// releaseHasCompiledPackage returns true if all packages in
+// the release contain compiled packages that match the stemcell slug
+func (d DirectorImpl) ReleaseHasCompiledPackage(releaseSlug ReleaseSlug, osVersionSlug OSVersionSlug) (bool, error) {
 	release, err := d.FindRelease(releaseSlug)
 	if err != nil {
 		return false, err
@@ -210,14 +214,37 @@ func (d DirectorImpl) releaseHasCompiledPackage(releaseSlug ReleaseSlug, osVersi
 	}
 
 	for _, pkg := range pkgs {
+		var stemcellFoundForPackage = false
 		for _, compiledPkg := range pkg.CompiledPackages {
 			if compiledPkg.Stemcell == osVersionSlug {
-				return true, nil
+				stemcellFoundForPackage = true
 			}
+		}
+		if stemcellFoundForPackage == false {
+			return false, nil
 		}
 	}
 
-	return false, nil
+	return true, nil
+}
+
+func (d DirectorImpl) ReleaseHasSource(releaseSlug ReleaseSlug) (bool, error) {
+	release, err := d.FindRelease(releaseSlug)
+	if err != nil {
+		return false, err
+	}
+
+	pkgs, err := release.Packages()
+	if err != nil {
+		return false, err
+	}
+
+	for _, pkg := range pkgs {
+		if pkg.BlobstoreID == "" {
+			return false, nil
+		}
+	}
+	return true, nil
 }
 
 func (d DirectorImpl) UploadReleaseURL(url, sha1 string, rebase, fix bool) error {

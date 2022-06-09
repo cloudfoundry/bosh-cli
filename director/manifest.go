@@ -12,6 +12,9 @@ name: some-deployment
 releases:
 - name: release
   version: ver
+  exported_from:
+  - os: ...
+    version: ...
   stemcell:
     os: ...
     version: ...
@@ -30,7 +33,8 @@ type ManifestRelease struct {
 	URL  string
 	SHA1 string
 
-	Stemcell ManifestReleaseStemcell
+	Stemcell     ManifestReleaseStemcell
+	ExportedFrom []ManifestReleaseStemcell `yaml:"exported_from,omitempty"`
 }
 
 type ManifestReleaseStemcell struct {

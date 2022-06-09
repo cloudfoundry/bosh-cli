@@ -29,6 +29,7 @@ var _ = Describe("Disk", func() {
 	BeforeEach(func() {
 		diskCloudProperties = biproperty.Map{
 			"fake-cloud-property-key": "fake-cloud-property-value",
+			"list-property":           []interface{}{"list-item"},
 		}
 		fakeCloud = fakebicloud.NewFakeCloud()
 
@@ -51,7 +52,8 @@ var _ = Describe("Disk", func() {
 	Describe("NeedsMigration", func() {
 		Context("when size is different", func() {
 			It("returns true", func() {
-				needsMigration := disk.NeedsMigration(2048, diskCloudProperties)
+				needsMigration, err := disk.NeedsMigration(2048, diskCloudProperties)
+				Expect(err).ToNot(HaveOccurred())
 				Expect(needsMigration).To(BeTrue())
 			})
 		})
@@ -62,21 +64,28 @@ var _ = Describe("Disk", func() {
 					"fake-cloud-property-key": "new-fake-cloud-property-value",
 				}
 
-				needsMigration := disk.NeedsMigration(1024, newDiskCloudProperties)
+				needsMigration, err := disk.NeedsMigration(1024, newDiskCloudProperties)
+				Expect(err).ToNot(HaveOccurred())
 				Expect(needsMigration).To(BeTrue())
 			})
 		})
 
 		Context("when cloud properties are nil", func() {
 			It("returns true", func() {
-				needsMigration := disk.NeedsMigration(1024, nil)
+				needsMigration, err := disk.NeedsMigration(1024, nil)
+				Expect(err).ToNot(HaveOccurred())
 				Expect(needsMigration).To(BeTrue())
 			})
 		})
 
 		Context("when size and cloud properties are the same", func() {
 			It("returns false", func() {
-				needsMigration := disk.NeedsMigration(1024, diskCloudProperties)
+				newCloudProperties := biproperty.Map{
+					"fake-cloud-property-key": "fake-cloud-property-value",
+					"list-property":           biproperty.List{"list-item"},
+				}
+				needsMigration, err := disk.NeedsMigration(1024, newCloudProperties)
+				Expect(err).ToNot(HaveOccurred())
 				Expect(needsMigration).To(BeFalse())
 			})
 		})

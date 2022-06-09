@@ -40,15 +40,16 @@ func (fake *FakeGenerator) GenerateJob(arg1 string) error {
 	fake.generateJobArgsForCall = append(fake.generateJobArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GenerateJobStub
+	fakeReturns := fake.generateJobReturns
 	fake.recordInvocation("GenerateJob", []interface{}{arg1})
 	fake.generateJobMutex.Unlock()
-	if fake.GenerateJobStub != nil {
-		return fake.GenerateJobStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.generateJobReturns
 	return fakeReturns.result1
 }
 
@@ -100,15 +101,16 @@ func (fake *FakeGenerator) GeneratePackage(arg1 string) error {
 	fake.generatePackageArgsForCall = append(fake.generatePackageArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GeneratePackageStub
+	fakeReturns := fake.generatePackageReturns
 	fake.recordInvocation("GeneratePackage", []interface{}{arg1})
 	fake.generatePackageMutex.Unlock()
-	if fake.GeneratePackageStub != nil {
-		return fake.GeneratePackageStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.generatePackageReturns
 	return fakeReturns.result1
 }
 

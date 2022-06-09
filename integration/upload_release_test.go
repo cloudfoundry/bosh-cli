@@ -226,11 +226,6 @@ blobstore:
 		}
 
 		{ // Starting with empty tmp directory
-			matches, err := fs.RecursiveGlob(filepath.Join(boshTmpDir, "*"))
-			Expect(err).ToNot(HaveOccurred())
-			Expect(matches).ToNot(BeEmpty())
-
-			// create-release leaves dev artifacts, so clean up before upload
 			fs.RemoveAll(boshTmpDir)
 		}
 
@@ -244,6 +239,10 @@ blobstore:
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/info"),
 					ghttp.RespondWith(http.StatusOK, `{"user_authentication":{"type":"basic","options":{}}}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases"),
+					ghttp.RespondWith(http.StatusOK, "[]"),
 				),
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("POST", "/packages/matches"),

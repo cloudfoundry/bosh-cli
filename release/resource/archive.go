@@ -98,11 +98,15 @@ func (a ArchiveImpl) Build(expectedFp string) (string, string, error) {
 	//generation of digest string
 	archiveSHA1, err := a.digestCalculator.Calculate(archivePath)
 	if err != nil {
-		_ = a.compressor.CleanUp(archivePath)
+		a.CleanUp(archivePath)
 		return "", "", bosherr.WrapError(err, "Calculating archive SHA1")
 	}
 
 	return archivePath, archiveSHA1, nil
+}
+
+func (a ArchiveImpl) CleanUp(path string) {
+	a.compressor.CleanUp(path)
 }
 
 func (a ArchiveImpl) runPrepScripts(stagingDir string) error {

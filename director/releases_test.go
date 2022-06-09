@@ -149,18 +149,52 @@ var _ = Describe("Director", func() {
 			stemcell = OSVersionSlug{}
 		})
 
-		It("returns true if name and version matches", func() {
+		It("returns true if name and version matches and it has source", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/releases"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
 				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases/name", "version=ver"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `{
+					  "packages": [{
+						"blobstore_id": "123"
+					  }]
+					}`),
+				),
 			)
 
 			found, err := act()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
+		})
+
+		It("returns false if name and version matches but no source for some packages", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases/name", "version=ver"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `{
+					  "packages": [{
+						"blobstore_id": "ID_EXISTS"
+					  },{
+						"blobstore_id": ""
+					  }]
+					}`),
+				),
+			)
+
+			found, err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeFalse())
 		})
 
 		It("returns false if name and version does not match", func() {
@@ -205,6 +239,31 @@ var _ = Describe("Director", func() {
 			Expect(found).To(BeTrue())
 		})
 
+		It("returns false for compiled release if name and version match, but director only has source packages", func() {
+			stemcell = NewOSVersionSlug("stemcell-os", "stemcell-ver")
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases/name", "version=ver"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `{
+					  "packages": [{
+					    "compiled_packages": []
+					  }]
+					}`),
+				),
+			)
+
+			found, err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeFalse())
+		})
+
 		It("returns false if name, version matches but stemcell does not", func() {
 			stemcell = NewOSVersionSlug("stemcell-os", "stemcell-ver")
 
@@ -224,6 +283,41 @@ var _ = Describe("Director", func() {
 					    	{ "stemcell": "stemcell-os1/stemcell-ver" }
 					    ]
 					  }]
+					}`),
+				),
+			)
+
+			found, err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeFalse())
+		})
+
+		It("returns false if name, version matches but not all compiled packages have the matching stemcell", func() {
+			stemcell = NewOSVersionSlug("stemcell-os", "stemcell-ver")
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/releases/name", "version=ver"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `{
+					  "packages": [
+						{
+							"compiled_packages": [
+								{ "stemcell": "stemcell-os/stemcell-ver" },
+								{ "stemcell": "stemcell-os2/stemcell-ver2" }
+							]
+						},
+						{
+							"compiled_packages": [
+								{ "stemcell": "stemcell-os2/stemcell-ver2" }
+							]
+						}
+					  ]
 					}`),
 				),
 			)

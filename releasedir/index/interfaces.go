@@ -1,20 +1,23 @@
 package index
 
-//go:generate counterfeiter . Index
+// You only need **one** of these per package!
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . Index
 
 type Index interface {
 	Find(name, version string) (string, string, error)
 	Add(name, version, path, sha1 string) (string, string, error)
 }
 
-//go:generate counterfeiter . IndexBlobs
+//counterfeiter:generate . IndexBlobs
 
 type IndexBlobs interface {
 	Get(name, blobID, sha1 string) (string, error)
 	Add(name, path, sha1 string) (string, string, error)
 }
 
-//go:generate counterfeiter . Reporter
+//counterfeiter:generate . Reporter
 
 type Reporter interface {
 	IndexEntryStartedAdding(type_, desc string)

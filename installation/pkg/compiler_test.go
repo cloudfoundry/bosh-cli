@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-cli/v6/installation/blobextract/fakeblobextract"
+	"github.com/cloudfoundry/bosh-cli/v6/installation/blobextract/blobextractfakes"
 	. "github.com/cloudfoundry/bosh-cli/v6/installation/pkg"
 	birelpkg "github.com/cloudfoundry/bosh-cli/v6/release/pkg"
 	. "github.com/cloudfoundry/bosh-cli/v6/release/resource"
@@ -45,7 +45,7 @@ var _ = Describe("PackageCompiler", func() {
 		blobstore               *fakeblobstore.FakeDigestBlobstore
 		mockCompiledPackageRepo *mock_state_package.MockCompiledPackageRepo
 
-		fakeExtractor *fakeblobextract.FakeExtractor
+		fakeExtractor *blobextractfakes.FakeExtractor
 
 		dependency1 *birelpkg.Package
 		dependency2 *birelpkg.Package
@@ -58,7 +58,7 @@ var _ = Describe("PackageCompiler", func() {
 		fs = fakesys.NewFakeFileSystem()
 		compressor = fakecmd.NewFakeCompressor()
 
-		fakeExtractor = &fakeblobextract.FakeExtractor{}
+		fakeExtractor = &blobextractfakes.FakeExtractor{}
 
 		blobstore = &fakeblobstore.FakeDigestBlobstore{}
 		digest := boshcrypto.MustParseMultipleDigest("fakefingerprint")

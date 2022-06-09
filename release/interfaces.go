@@ -8,18 +8,21 @@ import (
 	boshres "github.com/cloudfoundry/bosh-cli/v6/release/resource"
 )
 
+// You only need **one** of these per package!
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 type Extractor interface {
 	Extract(string) (Release, error)
 }
 
-//go:generate counterfeiter . Reader
+//counterfeiter:generate . Reader
 
 type Reader interface {
 	// Read reads an archive for example and returns a Release.
 	Read(string) (Release, error)
 }
 
-//go:generate counterfeiter . Writer
+//counterfeiter:generate . Writer
 
 type Writer interface {
 	// Write writes an archive for example and returns its path.
@@ -28,7 +31,7 @@ type Writer interface {
 	Write(Release, []string) (string, error)
 }
 
-//go:generate counterfeiter . Release
+//counterfeiter:generate . Release
 
 type Release interface {
 	Name() string

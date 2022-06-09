@@ -35,7 +35,7 @@ var _ = Describe("Provider", func() {
 		fs = fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		cache = NewCache(filepath.Join("/", "fake-base-path"), fs, logger)
-		httpClient := httpclient.NewHTTPClient(httpclient.DefaultClient, logger)
+		httpClient := httpclient.NewHTTPClient(httpclient.CreateExternalDefaultClient(nil), logger)
 		provider = NewProvider(cache, fs, httpClient, 3, 0, logger)
 		fakeStage = fakebiui.NewFakeStage()
 	})

@@ -64,23 +64,32 @@ releases:
 - name: local
   url: file:///local-dir
   version: create
+- name: compiled-release-exported
+  url: file:///compiled-release-url.tgz
+  sha1: compiled-release-sha1
+  version: 1+compiled-release
+  exported_from:
+  - os: ubuntu-trusty
+    version: 3421
 `)
 
 			_, err := subject(bytes)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(4))
+			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(5))
 			runArgs := []UploadReleaseOpts{
 				uploadReleaseCmd.RunArgsForCall(0),
 				uploadReleaseCmd.RunArgsForCall(1),
 				uploadReleaseCmd.RunArgsForCall(2),
 				uploadReleaseCmd.RunArgsForCall(3),
+				uploadReleaseCmd.RunArgsForCall(4),
 			}
 
 			var capiRelease UploadReleaseOpts
 			var consulRelease UploadReleaseOpts
 			var compiledRelease UploadReleaseOpts
 			var localRelease UploadReleaseOpts
+			var compiledReleaseExported UploadReleaseOpts
 			for _, opts := range runArgs {
 				switch opts.Name {
 				case "capi":
@@ -91,6 +100,8 @@ releases:
 					compiledRelease = opts
 				case "local":
 					localRelease = opts
+				case "compiled-release-exported":
+					compiledReleaseExported = opts
 				}
 			}
 
@@ -119,6 +130,14 @@ releases:
 			}))
 			Expect(localRelease).To(Equal(UploadReleaseOpts{
 				Release: localRelease.Release, // only Release should be set
+			}))
+			Expect(compiledReleaseExported).To(Equal(UploadReleaseOpts{
+				Name:     "compiled-release-exported",
+				Args:     UploadReleaseArgs{URL: URLArg("file:///compiled-release-url.tgz")},
+				SHA1:     "compiled-release-sha1",
+				Version:  VersionArg(semver.MustNewVersionFromString("1+compiled-release")),
+				Fix:      fix,
+				Stemcell: boshdir.NewOSVersionSlug("ubuntu-trusty", "3421"),
 			}))
 		},
 			Entry("when without fix option", false, func(bytes []byte) ([]byte, error) {

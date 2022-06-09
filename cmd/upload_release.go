@@ -48,14 +48,12 @@ func NewUploadReleaseCmd(
 
 func (c UploadReleaseCmd) Run(opts UploadReleaseOpts) error {
 	switch {
-	case opts.Release != nil:
-		return c.uploadRelease(opts.Release, opts)
 	case opts.Args.URL.IsRemote():
 		return c.uploadIfNecessary(opts, c.uploadRemote)
 	case opts.Args.URL.IsGit():
 		return c.uploadIfNecessary(opts, c.uploadGit)
 	default:
-		return c.uploadFile(opts)
+		return c.uploadIfNecessary(opts, c.uploadFile)
 	}
 }
 
@@ -87,6 +85,7 @@ func (c UploadReleaseCmd) uploadGit(opts UploadReleaseOpts) error {
 }
 
 func (c UploadReleaseCmd) uploadFile(opts UploadReleaseOpts) error {
+
 	if c.releaseDirFactory == nil {
 		return bosherr.Errorf("Cannot upload non-remote release")
 	}
@@ -142,11 +141,13 @@ func (c UploadReleaseCmd) uploadRelease(release boshrel.Release, opts UploadRele
 }
 
 func (c UploadReleaseCmd) uploadIfNecessary(opts UploadReleaseOpts, uploadFunc func(UploadReleaseOpts) error) error {
+	if opts.Release != nil {
+		return c.uploadRelease(opts.Release, opts)
+	}
 	necessary, err := c.needToUpload(opts)
 	if err != nil || !necessary {
 		return err
 	}
-
 	return uploadFunc(opts)
 }
 
@@ -161,7 +162,6 @@ func (c UploadReleaseCmd) needToUpload(opts UploadReleaseOpts) (bool, error) {
 	if err != nil {
 		return true, err
 	}
-
 	if found {
 		if opts.Stemcell.IsProvided() {
 			c.ui.PrintLinef("Release '%s/%s' for stemcell '%s' already exists.", opts.Name, version, opts.Stemcell)

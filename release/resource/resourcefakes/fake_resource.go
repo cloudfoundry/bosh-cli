@@ -96,15 +96,16 @@ func (fake *FakeResource) ArchiveDigest() string {
 	ret, specificReturn := fake.archiveDigestReturnsOnCall[len(fake.archiveDigestArgsForCall)]
 	fake.archiveDigestArgsForCall = append(fake.archiveDigestArgsForCall, struct {
 	}{})
+	stub := fake.ArchiveDigestStub
+	fakeReturns := fake.archiveDigestReturns
 	fake.recordInvocation("ArchiveDigest", []interface{}{})
 	fake.archiveDigestMutex.Unlock()
-	if fake.ArchiveDigestStub != nil {
-		return fake.ArchiveDigestStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.archiveDigestReturns
 	return fakeReturns.result1
 }
 
@@ -148,15 +149,16 @@ func (fake *FakeResource) ArchivePath() string {
 	ret, specificReturn := fake.archivePathReturnsOnCall[len(fake.archivePathArgsForCall)]
 	fake.archivePathArgsForCall = append(fake.archivePathArgsForCall, struct {
 	}{})
+	stub := fake.ArchivePathStub
+	fakeReturns := fake.archivePathReturns
 	fake.recordInvocation("ArchivePath", []interface{}{})
 	fake.archivePathMutex.Unlock()
-	if fake.ArchivePathStub != nil {
-		return fake.ArchivePathStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.archivePathReturns
 	return fakeReturns.result1
 }
 
@@ -202,15 +204,16 @@ func (fake *FakeResource) Build(arg1 resource.ArchiveIndex, arg2 resource.Archiv
 		arg1 resource.ArchiveIndex
 		arg2 resource.ArchiveIndex
 	}{arg1, arg2})
+	stub := fake.BuildStub
+	fakeReturns := fake.buildReturns
 	fake.recordInvocation("Build", []interface{}{arg1, arg2})
 	fake.buildMutex.Unlock()
-	if fake.BuildStub != nil {
-		return fake.BuildStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.buildReturns
 	return fakeReturns.result1
 }
 
@@ -262,15 +265,16 @@ func (fake *FakeResource) Finalize(arg1 resource.ArchiveIndex) error {
 	fake.finalizeArgsForCall = append(fake.finalizeArgsForCall, struct {
 		arg1 resource.ArchiveIndex
 	}{arg1})
+	stub := fake.FinalizeStub
+	fakeReturns := fake.finalizeReturns
 	fake.recordInvocation("Finalize", []interface{}{arg1})
 	fake.finalizeMutex.Unlock()
-	if fake.FinalizeStub != nil {
-		return fake.FinalizeStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.finalizeReturns
 	return fakeReturns.result1
 }
 
@@ -321,15 +325,16 @@ func (fake *FakeResource) Fingerprint() string {
 	ret, specificReturn := fake.fingerprintReturnsOnCall[len(fake.fingerprintArgsForCall)]
 	fake.fingerprintArgsForCall = append(fake.fingerprintArgsForCall, struct {
 	}{})
+	stub := fake.FingerprintStub
+	fakeReturns := fake.fingerprintReturns
 	fake.recordInvocation("Fingerprint", []interface{}{})
 	fake.fingerprintMutex.Unlock()
-	if fake.FingerprintStub != nil {
-		return fake.FingerprintStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.fingerprintReturns
 	return fakeReturns.result1
 }
 
@@ -373,15 +378,16 @@ func (fake *FakeResource) Name() string {
 	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
 	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
 	}{})
+	stub := fake.NameStub
+	fakeReturns := fake.nameReturns
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.nameReturns
 	return fakeReturns.result1
 }
 
@@ -427,15 +433,16 @@ func (fake *FakeResource) RehashWithCalculator(arg1 crypto.DigestCalculator, arg
 		arg1 crypto.DigestCalculator
 		arg2 cryptoa.ArchiveDigestFilePathReader
 	}{arg1, arg2})
+	stub := fake.RehashWithCalculatorStub
+	fakeReturns := fake.rehashWithCalculatorReturns
 	fake.recordInvocation("RehashWithCalculator", []interface{}{arg1, arg2})
 	fake.rehashWithCalculatorMutex.Unlock()
-	if fake.RehashWithCalculatorStub != nil {
-		return fake.RehashWithCalculatorStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.rehashWithCalculatorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

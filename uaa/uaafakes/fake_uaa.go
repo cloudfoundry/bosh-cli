@@ -67,15 +67,16 @@ func (fake *FakeUAA) ClientCredentialsGrant() (uaa.AccessToken, error) {
 	ret, specificReturn := fake.clientCredentialsGrantReturnsOnCall[len(fake.clientCredentialsGrantArgsForCall)]
 	fake.clientCredentialsGrantArgsForCall = append(fake.clientCredentialsGrantArgsForCall, struct {
 	}{})
+	stub := fake.ClientCredentialsGrantStub
+	fakeReturns := fake.clientCredentialsGrantReturns
 	fake.recordInvocation("ClientCredentialsGrant", []interface{}{})
 	fake.clientCredentialsGrantMutex.Unlock()
-	if fake.ClientCredentialsGrantStub != nil {
-		return fake.ClientCredentialsGrantStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.clientCredentialsGrantReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -128,15 +129,16 @@ func (fake *FakeUAA) OwnerPasswordCredentialsGrant(arg1 []uaa.PromptAnswer) (uaa
 	fake.ownerPasswordCredentialsGrantArgsForCall = append(fake.ownerPasswordCredentialsGrantArgsForCall, struct {
 		arg1 []uaa.PromptAnswer
 	}{arg1Copy})
+	stub := fake.OwnerPasswordCredentialsGrantStub
+	fakeReturns := fake.ownerPasswordCredentialsGrantReturns
 	fake.recordInvocation("OwnerPasswordCredentialsGrant", []interface{}{arg1Copy})
 	fake.ownerPasswordCredentialsGrantMutex.Unlock()
-	if fake.OwnerPasswordCredentialsGrantStub != nil {
-		return fake.OwnerPasswordCredentialsGrantStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.ownerPasswordCredentialsGrantReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -190,15 +192,16 @@ func (fake *FakeUAA) Prompts() ([]uaa.Prompt, error) {
 	ret, specificReturn := fake.promptsReturnsOnCall[len(fake.promptsArgsForCall)]
 	fake.promptsArgsForCall = append(fake.promptsArgsForCall, struct {
 	}{})
+	stub := fake.PromptsStub
+	fakeReturns := fake.promptsReturns
 	fake.recordInvocation("Prompts", []interface{}{})
 	fake.promptsMutex.Unlock()
-	if fake.PromptsStub != nil {
-		return fake.PromptsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.promptsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -246,15 +249,16 @@ func (fake *FakeUAA) RefreshTokenGrant(arg1 string) (uaa.AccessToken, error) {
 	fake.refreshTokenGrantArgsForCall = append(fake.refreshTokenGrantArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.RefreshTokenGrantStub
+	fakeReturns := fake.refreshTokenGrantReturns
 	fake.recordInvocation("RefreshTokenGrant", []interface{}{arg1})
 	fake.refreshTokenGrantMutex.Unlock()
-	if fake.RefreshTokenGrantStub != nil {
-		return fake.RefreshTokenGrantStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.refreshTokenGrantReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
