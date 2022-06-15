@@ -299,7 +299,6 @@ cloud_provider:
 					Name:  "installing CPI",
 					Stage: &fakebiui.FakeStage{},
 				},
-				// mock installation.WithRegistryRunning doesn't add stages
 				{
 					Name:  "deleting deployment",
 					Stage: &fakebiui.FakeStage{},
