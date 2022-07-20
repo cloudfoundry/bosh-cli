@@ -13,6 +13,11 @@ type DirectorImpl struct {
 	client Client
 }
 
+func (d DirectorImpl) SetClient(c Client) DirectorImpl {
+	d.client = c
+	return d
+}
+
 type OrphanedVMResponse struct {
 	AZName         string   `json:"az"`
 	CID            string   `json:"cid"`
