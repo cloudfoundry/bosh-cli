@@ -177,7 +177,7 @@ var _ = Describe("Factory", func() {
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
-						ghttp.VerifyRequest("GET", "/cloud_configs", "limit=1"),
+						ghttp.VerifyRequest("GET", "/cloud_configs", "limit=1&name="),
 						ghttp.VerifyBasicAuth("username", "password"),
 						ghttp.RespondWith(http.StatusOK, `[]`),
 					),
