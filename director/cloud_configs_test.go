@@ -28,7 +28,7 @@ var _ = Describe("Director", func() {
 		It("returns latest cloud config if there is at least one", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/cloud_configs", "limit=1"),
+					ghttp.VerifyRequest("GET", "/cloud_configs", "name=&limit=1"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `[
 	{"properties": "first"},
@@ -37,21 +37,52 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			cc, err := director.LatestCloudConfig()
+			cc, err := director.LatestCloudConfig("")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cc).To(Equal(CloudConfig{Properties: "first"}))
 		})
 
-		It("returns error if there is no cloud config", func() {
+		It("returns named cloud config if there is at least one and name is specified", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/cloud_configs", "limit=1"),
+					ghttp.VerifyRequest("GET", "/cloud_configs", "name=foo-name&limit=1"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[
+	{"properties": "first"},
+	{"properties": "second"}
+]`),
+				),
+			)
+
+			cc, err := director.LatestCloudConfig("foo-name")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(cc).To(Equal(CloudConfig{Properties: "first"}))
+		})
+
+		It("returns error for when name cannot be found", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/cloud_configs", "name=foo-name&limit=1"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.RespondWith(http.StatusOK, `[]`),
 				),
 			)
 
-			_, err := director.LatestCloudConfig()
+			_, err := director.LatestCloudConfig("foo-name")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("No cloud config"))
+		})
+
+		It("returns error if there is no default cloud config", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/cloud_configs", "name=&limit=1"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.RespondWith(http.StatusOK, `[]`),
+				),
+			)
+
+			_, err := director.LatestCloudConfig("")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("No cloud config"))
 		})
@@ -59,7 +90,7 @@ var _ = Describe("Director", func() {
 		It("returns error if info response in non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("GET", "/cloud_configs"), server)
 
-			_, err := director.LatestCloudConfig()
+			_, err := director.LatestCloudConfig("")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Finding cloud configs: Director responded with non-successful status code"))
@@ -73,7 +104,7 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			_, err := director.LatestCloudConfig()
+			_, err := director.LatestCloudConfig("")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Finding cloud configs: Unmarshaling Director response"))
@@ -84,7 +115,7 @@ var _ = Describe("Director", func() {
 		It("updates cloud config", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/cloud_configs"),
+					ghttp.VerifyRequest("POST", "/cloud_configs", "name=smurf-runtime-config"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"text/yaml"},
@@ -93,14 +124,14 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			err := director.UpdateCloudConfig([]byte("config"))
+			err := director.UpdateCloudConfig("smurf-runtime-config", []byte("config"))
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns error if info response in non-200", func() {
-			AppendBadRequest(ghttp.VerifyRequest("POST", "/cloud_configs"), server)
+			AppendBadRequest(ghttp.VerifyRequest("POST", "/cloud_configs", "name="), server)
 
-			err := director.UpdateCloudConfig(nil)
+			err := director.UpdateCloudConfig("", nil)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Updating cloud config: Director responded with non-successful status code"))
@@ -116,10 +147,10 @@ var _ = Describe("Director", func() {
 			},
 		}
 
-		It("diffs cloud config", func() {
+		It("diffs cloud config with the given name", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/cloud_configs/diff"),
+					ghttp.VerifyRequest("POST", "/cloud_configs/diff", "name=cc1"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"text/yaml"},
@@ -128,7 +159,7 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			diff, err := director.DiffCloudConfig([]byte("config"))
+			diff, err := director.DiffCloudConfig("cc1", []byte("config"))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(diff).To(Equal(expectedDiffResponse))
 		})
@@ -136,7 +167,7 @@ var _ = Describe("Director", func() {
 		It("returns error if info response in non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("POST", "/cloud_configs/diff"), server)
 
-			_, err := director.DiffCloudConfig(nil)
+			_, err := director.DiffCloudConfig("smurf", nil)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Fetching diff result: Director responded with non-successful status code"))
@@ -145,7 +176,7 @@ var _ = Describe("Director", func() {
 		It("is backwards compatible with directors without the `/diff` endpoint", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/cloud_configs/diff"),
+					ghttp.VerifyRequest("POST", "/cloud_configs/diff", "name=cc1"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"text/yaml"},
@@ -154,7 +185,7 @@ var _ = Describe("Director", func() {
 				),
 			)
 
-			diff, err := director.DiffCloudConfig([]byte("config"))
+			diff, err := director.DiffCloudConfig("cc1", []byte("config"))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(diff).To(Equal(ConfigDiff{}))
 		})

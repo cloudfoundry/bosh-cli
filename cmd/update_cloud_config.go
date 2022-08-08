@@ -26,7 +26,7 @@ func (c UpdateCloudConfigCmd) Run(opts UpdateCloudConfigOpts) error {
 		return bosherr.WrapErrorf(err, "Evaluating cloud config")
 	}
 
-	cloudConfigDiff, err := c.director.DiffCloudConfig(bytes)
+	cloudConfigDiff, err := c.director.DiffCloudConfig(opts.Name, bytes)
 	if err != nil {
 		return err
 	}
@@ -39,5 +39,5 @@ func (c UpdateCloudConfigCmd) Run(opts UpdateCloudConfigOpts) error {
 		return err
 	}
 
-	return c.director.UpdateCloudConfig(bytes)
+	return c.director.UpdateCloudConfig(opts.Name, bytes)
 }

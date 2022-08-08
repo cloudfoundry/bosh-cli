@@ -1,7 +1,10 @@
 package director
 
 import (
+	"fmt"
 	"net/http"
+
+	gourl "net/url"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
@@ -10,8 +13,8 @@ type CloudConfig struct {
 	Properties string
 }
 
-func (d DirectorImpl) LatestCloudConfig() (CloudConfig, error) {
-	resps, err := d.client.CloudConfigs()
+func (d DirectorImpl) LatestCloudConfig(name string) (CloudConfig, error) {
+	resps, err := d.client.CloudConfigs(name)
 	if err != nil {
 		return CloudConfig{}, err
 	}
@@ -23,14 +26,20 @@ func (d DirectorImpl) LatestCloudConfig() (CloudConfig, error) {
 	return resps[0], nil
 }
 
-func (d DirectorImpl) UpdateCloudConfig(manifest []byte) error {
-	return d.client.UpdateCloudConfig(manifest)
+func (d DirectorImpl) UpdateCloudConfig(name string, manifest []byte) error {
+	return d.client.UpdateCloudConfig(name, manifest)
 }
 
-func (c Client) CloudConfigs() ([]CloudConfig, error) {
+func (c Client) CloudConfigs(name string) ([]CloudConfig, error) {
 	var resps []CloudConfig
 
-	err := c.clientRequest.Get("/cloud_configs?limit=1", &resps)
+	query := gourl.Values{}
+	query.Add("name", name)
+	query.Add("limit", "1")
+
+	path := fmt.Sprintf("/cloud_configs?%s", query.Encode())
+
+	err := c.clientRequest.Get(path, &resps)
 	if err != nil {
 		return resps, bosherr.WrapErrorf(err, "Finding cloud configs")
 	}
@@ -38,8 +47,11 @@ func (c Client) CloudConfigs() ([]CloudConfig, error) {
 	return resps, nil
 }
 
-func (c Client) UpdateCloudConfig(manifest []byte) error {
-	path := "/cloud_configs"
+func (c Client) UpdateCloudConfig(name string, manifest []byte) error {
+	query := gourl.Values{}
+	query.Add("name", name)
+
+	path := fmt.Sprintf("/cloud_configs?%s", query.Encode())
 
 	setHeaders := func(req *http.Request) {
 		req.Header.Add("Content-Type", "text/yaml")
@@ -53,8 +65,8 @@ func (c Client) UpdateCloudConfig(manifest []byte) error {
 	return nil
 }
 
-func (d DirectorImpl) DiffCloudConfig(manifest []byte) (ConfigDiff, error) {
-	resp, err := d.client.DiffCloudConfig(manifest)
+func (d DirectorImpl) DiffCloudConfig(name string, manifest []byte) (ConfigDiff, error) {
+	resp, err := d.client.DiffCloudConfig(name, manifest)
 	if err != nil {
 		return ConfigDiff{}, err
 	}
@@ -62,10 +74,15 @@ func (d DirectorImpl) DiffCloudConfig(manifest []byte) (ConfigDiff, error) {
 	return NewConfigDiff(resp.Diff), nil
 }
 
-func (c Client) DiffCloudConfig(manifest []byte) (ConfigDiffResponse, error) {
+func (c Client) DiffCloudConfig(name string, manifest []byte) (ConfigDiffResponse, error) {
+	query := gourl.Values{}
+	query.Add("name", name)
+
+	path := fmt.Sprintf("/cloud_configs/diff?%s", query.Encode())
+
 	setHeaders := func(req *http.Request) {
 		req.Header.Add("Content-Type", "text/yaml")
 	}
 
-	return c.postConfigDiff("/cloud_configs/diff", manifest, setHeaders)
+	return c.postConfigDiff(path, manifest, setHeaders)
 }

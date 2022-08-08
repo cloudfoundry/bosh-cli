@@ -417,6 +417,7 @@ type DeleteConfigArgs struct {
 // Cloud config
 
 type CloudConfigOpts struct {
+	Name string `long:"name" description:"Cloud-Config name (default: '')" default:""`
 	cmd
 }
 
@@ -424,6 +425,9 @@ type UpdateCloudConfigOpts struct {
 	Args UpdateCloudConfigArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
+
+	Name string `long:"name" description:"Cloud-Config name (default: '')" default:""`
+
 	cmd
 }
 
