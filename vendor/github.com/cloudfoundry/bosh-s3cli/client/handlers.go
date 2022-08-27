@@ -21,9 +21,9 @@ import (
 )
 
 const (
-	signatureVersion = "2"
-	signatureMethod  = "HmacSHA1"
-	timeFormat       = "2006-01-02T15:04:05Z"
+	signatureVersion = "2"                    //nolint:unused
+	signatureMethod  = "HmacSHA1"             //nolint:unused
+	timeFormat       = "2006-01-02T15:04:05Z" //nolint:unused
 )
 
 type signer struct {

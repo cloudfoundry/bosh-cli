@@ -3,13 +3,14 @@ package client
 import (
 	"crypto/sha1"
 	"fmt"
-	URLsigner "github.com/cloudfoundry/bosh-davcli/signer"
 	"io"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
 	"time"
+
+	URLsigner "github.com/cloudfoundry/bosh-davcli/signer"
 
 	davconf "github.com/cloudfoundry/bosh-davcli/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"

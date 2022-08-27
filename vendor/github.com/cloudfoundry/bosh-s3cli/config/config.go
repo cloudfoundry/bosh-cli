@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 )
 
@@ -26,7 +25,7 @@ type S3Cli struct {
 	SSEKMSKeyID          string `json:"sse_kms_key_id"`
 	MultipartUpload      bool   `json:"multipart_upload"`
 	UseV2SigningMethod   bool
-	HostStyle            bool   `json:"host_style"`
+	HostStyle            bool `json:"host_style"`
 }
 
 // EmptyRegion is required to allow us to use the AWS SDK against S3 compatible blobstores which do not have
@@ -34,7 +33,7 @@ type S3Cli struct {
 const EmptyRegion = " "
 
 const (
-	defaultRegion = "us-east-1"
+	defaultRegion = "us-east-1" //nolint:unused
 )
 
 // StaticCredentialsSource specifies that credentials will be supplied using access_key_id and secret_access_key
@@ -65,7 +64,7 @@ func newStaticCredentialsPresentError(desiredSource string) error {
 // NewFromReader returns a new s3cli configuration struct from the contents of reader.
 // reader.Read() is expected to return valid JSON
 func NewFromReader(reader io.Reader) (S3Cli, error) {
-	bytes, err := ioutil.ReadAll(reader)
+	bytes, err := io.ReadAll(reader)
 	if err != nil {
 		return S3Cli{}, err
 	}
@@ -108,7 +107,7 @@ func NewFromReader(reader io.Reader) (S3Cli, error) {
 			return S3Cli{}, errorStaticCredentialsMissing
 		}
 	default:
-		return S3Cli{}, fmt.Errorf("Invalid credentials_source: %s", c.CredentialsSource)
+		return S3Cli{}, fmt.Errorf("invalid credentials_source: %s", c.CredentialsSource)
 	}
 
 	switch Provider(c.Host) {
@@ -195,10 +194,10 @@ func (c *S3Cli) S3Endpoint() string {
 	if c.Host == "" {
 		return ""
 	}
-	if c.Port == 80 && c.UseSSL == false {
+	if c.Port == 80 && !c.UseSSL {
 		return c.Host
 	}
-	if c.Port == 443 && c.UseSSL == true {
+	if c.Port == 443 && c.UseSSL {
 		return c.Host
 	}
 	if c.Port != 0 {

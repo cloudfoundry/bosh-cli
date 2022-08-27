@@ -148,7 +148,7 @@ func (client *GCSBlobstore) putOnce(src io.ReadSeeker, dest string) error {
 	remoteWriter.ObjectAttrs.StorageClass = client.config.StorageClass
 
 	if _, err := io.Copy(remoteWriter, src); err != nil {
-		remoteWriter.CloseWithError(err)
+		remoteWriter.CloseWithError(err) //nolint:errcheck,staticcheck
 		return err
 	}
 

@@ -41,11 +41,11 @@ func newStorageClients(ctx context.Context, cfg *config.GCSCli) (*storage.Client
 		// no-op
 	case config.DefaultCredentialsSource:
 		if tokenSource, err := google.DefaultTokenSource(ctx, storage.ScopeFullControl); err == nil {
-			authenticatedClient, err = storage.NewClient(ctx, option.WithUserAgent(uaString), option.WithTokenSource(tokenSource))
+			authenticatedClient, err = storage.NewClient(ctx, option.WithUserAgent(uaString), option.WithTokenSource(tokenSource)) //nolint:ineffassign,staticcheck
 		}
 	case config.ServiceAccountFileCredentialsSource:
 		if token, err := google.JWTConfigFromJSON([]byte(cfg.ServiceAccountFile), storage.ScopeFullControl); err == nil {
-			authenticatedClient, err = storage.NewClient(ctx, option.WithUserAgent(uaString), option.WithTokenSource(token.TokenSource(ctx)))
+			authenticatedClient, err = storage.NewClient(ctx, option.WithUserAgent(uaString), option.WithTokenSource(token.TokenSource(ctx))) //nolint:ineffassign,staticcheck
 		}
 	default:
 		return nil, nil, errors.New("unknown credentials_source in configuration")
