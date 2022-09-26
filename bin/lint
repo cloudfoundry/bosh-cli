@@ -4,8 +4,10 @@ set -eu -o pipefail
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 (
-  cd "${ROOT_DIR}"
-  go install -v github.com/golangci/golangci-lint/cmd/golangci-lint
+  cd "$ROOT_DIR"
+  if ! command -v golangci-lint &> /dev/null; then
+    go install -v github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+  fi
 )
 go_bin_path="$(go env GOPATH)/bin" # TODO this should be handled in the docker container
 export PATH=${go_bin_path}:${PATH}
