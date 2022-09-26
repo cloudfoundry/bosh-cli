@@ -9,10 +9,10 @@ echo '  % bin/ginkgo path/to/package'
 echo -e "\n Running linter..." # TODO: should CI do this in parallel?
 "${ROOT_DIR}/bin/lint"
 
-echo -e "\n Building docs example..."# TODO: should CI do this in parallel?
+echo -e "\n Building docs example..." # TODO: should CI do this in parallel?
 go build -o "${ROOT_DIR}/out/example" "${ROOT_DIR}/docs"
 
-echo -e "\B Building bosh-cli..."# TODO: should CI do this in parallel?
+echo -e "\B Building bosh-cli..." # TODO: should CI do this in parallel?
 "${ROOT_DIR}/bin/build"
 
 echo -e "\n Running unit tests..."
