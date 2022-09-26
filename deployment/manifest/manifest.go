@@ -22,7 +22,7 @@ type Update struct {
 
 // NetworkInterfaces returns a map of network names to network interfaces.
 // We can't use map[string]NetworkInterface, because it's impossible to down-cast to what the cloud client requires.
-//TODO: refactor to NetworkInterfaces(Job) and use FindJobByName before using (then remove error)
+// TODO: refactor to NetworkInterfaces(Job) and use FindJobByName before using (then remove error)
 func (d Manifest) NetworkInterfaces(jobName string) (map[string]biproperty.Map, error) {
 	job, found := d.FindJobByName(jobName)
 	if !found {

@@ -2,16 +2,17 @@ package blobstore_test
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 	"strings"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/blobstore"
 	fakeboshdavcli "github.com/cloudfoundry/bosh-davcli/client/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Blobstore", func() {
@@ -38,7 +39,7 @@ var _ = Describe("Blobstore", func() {
 		})
 
 		It("gets the blob from the blobstore", func() {
-			fakeDavClient.GetContents = ioutil.NopCloser(strings.NewReader("fake-content"))
+			fakeDavClient.GetContents = io.NopCloser(strings.NewReader("fake-content"))
 
 			localBlob, err := blobstore.Get("fake-blob-id")
 			Expect(err).ToNot(HaveOccurred())
@@ -48,7 +49,7 @@ var _ = Describe("Blobstore", func() {
 		})
 
 		It("saves the blob to the destination path", func() {
-			fakeDavClient.GetContents = ioutil.NopCloser(strings.NewReader("fake-content"))
+			fakeDavClient.GetContents = io.NopCloser(strings.NewReader("fake-content"))
 
 			localBlob, err := blobstore.Get("fake-blob-id")
 			Expect(err).ToNot(HaveOccurred())

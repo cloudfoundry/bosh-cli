@@ -4,12 +4,12 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"io"
-	"io/ioutil"
 	"os"
+
+	"gopkg.in/yaml.v2"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"gopkg.in/yaml.v2"
 )
 
 type ReleaseArchiveWithMetadata struct {
@@ -67,7 +67,7 @@ func (a ReleaseArchiveWithMetadata) readMFBytes() ([]byte, error) {
 		}
 
 		if hdr.Name == a.fileName || hdr.Name == "./"+a.fileName {
-			bytes, err := ioutil.ReadAll(tr)
+			bytes, err := io.ReadAll(tr)
 			if err != nil {
 				return nil, bosherr.WrapErrorf(err, "Reading '%s' entry", a.fileName)
 			}

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 
@@ -221,7 +220,7 @@ func (r ClientRequest) readResponse(resp *http.Response, out io.Writer) ([]byte,
 			r.logger.Debug(logTag, "Dumping Director client response:\n%s", string(b))
 		}
 
-		respBody, err = ioutil.ReadAll(resp.Body)
+		respBody, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, nil, bosherr.WrapError(err, "Reading Director response")
 		}

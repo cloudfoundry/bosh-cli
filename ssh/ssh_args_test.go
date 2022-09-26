@@ -1,14 +1,15 @@
 package ssh_test
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 	"time"
 
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	proxy "github.com/cloudfoundry/socks5-proxy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	proxy "github.com/cloudfoundry/socks5-proxy"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	. "github.com/cloudfoundry/bosh-cli/v7/ssh"
@@ -62,7 +63,7 @@ var _ = Describe("SSHArgs", func() {
 				PrivKeyFile:         privKeyFile,
 				KnownHostsFile:      knownHostsFile,
 				CmdExistenceChecker: connectProxyCmdRunner,
-				Socks5Proxy:         proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(ioutil.Discard, "", log.LstdFlags), 1*time.Minute),
+				Socks5Proxy:         proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(io.Discard, "", log.LstdFlags), 1*time.Minute),
 			}
 			return args.OptsForHost(host)
 		}

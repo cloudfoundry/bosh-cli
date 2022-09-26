@@ -1,7 +1,7 @@
 package opts
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -25,7 +25,7 @@ func (a *FileBytesArg) UnmarshalFlag(data string) error {
 	}
 
 	if data == "-" {
-		bs, err := ioutil.ReadAll(os.Stdin)
+		bs, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Reading from stdin")
 		}

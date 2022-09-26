@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"crypto/tls"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -28,7 +27,7 @@ func TestIntegration(t *testing.T) {
 		originalHome = os.Getenv("HOME")
 
 		var err error
-		testHome, err = ioutil.TempDir("", "bosh-init-cli-integration")
+		testHome, err = os.MkdirTemp("", "bosh-init-cli-integration")
 		Expect(err).NotTo(HaveOccurred())
 
 		err = os.Setenv("HOME", testHome)

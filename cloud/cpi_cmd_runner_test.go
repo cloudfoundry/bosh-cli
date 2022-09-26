@@ -3,7 +3,7 @@ package cloud_test
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"os"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cloud"
@@ -65,7 +65,7 @@ var _ = Describe("CpiCmdRunner", func() {
 				"PATH":              "/usr/local/bin:/usr/bin:/bin:/sbin",
 			}))
 			Expect(actualCmd.UseIsolatedEnv).To(BeTrue())
-			bytes, err := ioutil.ReadAll(actualCmd.Stdin)
+			bytes, err := io.ReadAll(actualCmd.Stdin)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(bytes)).To(Equal(
 				`{` +
@@ -147,7 +147,7 @@ var _ = Describe("CpiCmdRunner", func() {
 					"PATH":              "/usr/local/bin:/usr/bin:/bin:/sbin",
 				}))
 				Expect(actualCmd.UseIsolatedEnv).To(BeTrue())
-				bytes, err := ioutil.ReadAll(actualCmd.Stdin)
+				bytes, err := io.ReadAll(actualCmd.Stdin)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(string(bytes)).To(Equal(
 					`{` +
@@ -248,7 +248,7 @@ var _ = Describe("CpiCmdRunner", func() {
 				Expect(cmdRunner.RunComplexCommands).To(HaveLen(1))
 
 				actualCmd := cmdRunner.RunComplexCommands[0]
-				bytes, err := ioutil.ReadAll(actualCmd.Stdin)
+				bytes, err := io.ReadAll(actualCmd.Stdin)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(string(bytes)).To(Equal(
 					`{` +

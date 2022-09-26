@@ -151,7 +151,7 @@ QAOSxgrLBblGLWcDF9fjMeYaUnI34pHviCKeVxfgsxDR+Jg11F78sPdYLOF6ipBe
 
 			certPool, err := FactoryConfig{CACert: caCert}.CACertPool()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(certPool.Subjects()[0]).To(ContainSubstring("Internet Widgits Pty Ltd"))
+			Expect(certPool.Subjects()[0]).To(ContainSubstring("Internet Widgits Pty Ltd")) //nolint:staticcheck
 		})
 	})
 })

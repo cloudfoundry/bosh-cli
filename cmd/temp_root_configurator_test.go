@@ -1,17 +1,16 @@
 package cmd_test
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
-	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 )
 
 var _ = Describe("TempRootConfigurator", func() {
@@ -23,7 +22,7 @@ var _ = Describe("TempRootConfigurator", func() {
 
 		BeforeEach(func() {
 			var err error
-			testTempDir, err = ioutil.TempDir("", "temp_root_configurator_test")
+			testTempDir, err = os.MkdirTemp("", "temp_root_configurator_test")
 			Expect(err).ToNot(HaveOccurred())
 
 			tempRoot = filepath.Join(testTempDir, "my-temp-root")
@@ -51,7 +50,7 @@ var _ = Describe("TempRootConfigurator", func() {
 				err := os.MkdirAll(tempRoot, os.ModePerm)
 				Expect(err).ToNot(HaveOccurred())
 				existingFilePath = filepath.Join(tempRoot, "existing-file")
-				err = ioutil.WriteFile(existingFilePath, []byte{}, os.ModePerm)
+				err = os.WriteFile(existingFilePath, []byte{}, os.ModePerm)
 				Expect(err).ToNot(HaveOccurred())
 			})
 

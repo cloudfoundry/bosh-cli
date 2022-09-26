@@ -3,13 +3,8 @@ package templatescompiler_test
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -19,6 +14,10 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
 	bierbrenderer "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
 	"github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 )
 
 var _ = Describe("JobEvaluationContext", func() {
@@ -118,7 +117,7 @@ var _ = Describe("JobEvaluationContext", func() {
 		commandRunner := boshsys.NewExecCmdRunner(logger)
 		erbRenderer = erbrenderer.NewERBRenderer(fs, commandRunner, logger)
 
-		srcFile, err := ioutil.TempFile("", "source.txt.erb")
+		srcFile, err := os.CreateTemp("", "source.txt.erb")
 		Expect(err).ToNot(HaveOccurred())
 		defer os.Remove(srcFile.Name())
 
@@ -145,7 +144,7 @@ var _ = Describe("JobEvaluationContext", func() {
 
 		err = erbRenderer.Render(srcFile.Name(), destFile.Name(), jobEvaluationContext)
 		Expect(err).ToNot(HaveOccurred())
-		contents, err := ioutil.ReadFile(destFile.Name())
+		contents, err := os.ReadFile(destFile.Name())
 		Expect(err).ToNot(HaveOccurred())
 		return (string)(contents)
 	}

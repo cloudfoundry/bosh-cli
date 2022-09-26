@@ -4,10 +4,13 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/installation/tarball"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -15,9 +18,6 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/ghttp"
 )
 
 var _ = Describe("Provider", func() {
@@ -109,11 +109,11 @@ var _ = Describe("Provider", func() {
 				)
 
 				BeforeEach(func() {
-					tempDownloadFile1, err := ioutil.TempFile("", "temp-download-file1")
+					tempDownloadFile1, err := os.CreateTemp("", "temp-download-file1")
 					Expect(err).ToNot(HaveOccurred())
-					tempDownloadFile2, err := ioutil.TempFile("", "temp-download-file2")
+					tempDownloadFile2, err := os.CreateTemp("", "temp-download-file2")
 					Expect(err).ToNot(HaveOccurred())
-					tempDownloadFile3, err := ioutil.TempFile("", "temp-download-file3")
+					tempDownloadFile3, err := os.CreateTemp("", "temp-download-file3")
 					Expect(err).ToNot(HaveOccurred())
 					fs.ReturnTempFiles = []boshsys.File{tempDownloadFile1, tempDownloadFile2, tempDownloadFile3}
 					tempDownloadFilePath1 = tempDownloadFile1.Name()

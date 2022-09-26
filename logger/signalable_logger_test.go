@@ -1,7 +1,7 @@
 package logger_test
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"syscall"
 
@@ -25,7 +25,7 @@ func captureOutputs(f func()) (stderr []byte) {
 	errC := make(chan []byte)
 
 	go func() {
-		bytes, _ := ioutil.ReadAll(rErr)
+		bytes, _ := io.ReadAll(rErr)
 		errC <- bytes
 	}()
 

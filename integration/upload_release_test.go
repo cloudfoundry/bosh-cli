@@ -1,16 +1,17 @@
 package integration_test
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
+
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
@@ -144,7 +145,7 @@ blobstore:
 					func(w http.ResponseWriter, req *http.Request) {
 						defer req.Body.Close() //nolint:errcheck
 
-						body, err := ioutil.ReadAll(req.Body)
+						body, err := io.ReadAll(req.Body)
 						Expect(err).ToNot(HaveOccurred())
 
 						err = fs.WriteFile(uploadedReleaseFile, body)
@@ -255,7 +256,7 @@ blobstore:
 					func(w http.ResponseWriter, req *http.Request) {
 						defer req.Body.Close() //nolint:errcheck
 
-						body, err := ioutil.ReadAll(req.Body)
+						body, err := io.ReadAll(req.Body)
 						Expect(err).ToNot(HaveOccurred())
 
 						err = fs.WriteFile(uploadedReleaseFile, body)

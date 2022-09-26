@@ -2,14 +2,14 @@ package cmd_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
@@ -32,7 +32,7 @@ var _ = Describe("Factory", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fs = boshsys.NewOsFileSystemWithStrictTempRoot(boshlog.NewLogger(boshlog.LevelNone))
 
-		f, err := ioutil.TempFile("", "file")
+		f, err := os.CreateTemp("", "file")
 		Expect(err).NotTo(HaveOccurred())
 
 		tmpFile = f.Name()
@@ -213,7 +213,7 @@ var _ = Describe("Factory", func() {
 		})
 
 		It("errors when excluding = from --skip-drain", func() {
-			f, err := ioutil.TempFile("", "job1")
+			f, err := os.CreateTemp("", "job1")
 			Expect(err).NotTo(HaveOccurred())
 
 			nonExistantPath := f.Name()

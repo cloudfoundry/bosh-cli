@@ -3,15 +3,13 @@ package director_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"net/http"
-	gourl "net/url"
+	"net/url"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"io"
-	"io/ioutil"
-	"strings"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
@@ -72,7 +70,7 @@ var _ = Describe("AdjustableClient", func() {
 
 		BeforeEach(func() {
 			req = &http.Request{
-				URL:    &gourl.URL{},
+				URL:    &url.URL{},
 				Header: http.Header(map[string][]string{}),
 			}
 		})
@@ -82,7 +80,7 @@ var _ = Describe("AdjustableClient", func() {
 
 			BeforeEach(func() {
 				reader := bytes.NewBuffer([]byte("fake-body"))
-				nopCloser = ioutil.NopCloser(reader)
+				nopCloser = io.NopCloser(reader)
 				req.Body = nopCloser
 			})
 
@@ -116,12 +114,12 @@ var _ = Describe("AdjustableClient", func() {
 					}
 
 					innerClient.DoStub = func(reqToExec *http.Request) (*http.Response, error) {
-						b, err := ioutil.ReadAll(reqToExec.Body)
+						b, err := io.ReadAll(reqToExec.Body)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(b).To(Equal([]byte("fake-body")))
 
 						newReader := strings.NewReader("changed_request_body")
-						newNopCloser := ioutil.NopCloser(newReader)
+						newNopCloser := io.NopCloser(newReader)
 
 						reqToExec.Body = newNopCloser
 

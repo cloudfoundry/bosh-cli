@@ -65,10 +65,12 @@ func (f FingerprinterImpl) Calculate(files []File, additionalChunks []string) (s
 }
 
 // fingerprintPath currently works with:
-// - pkg: [rel_path, digest, is_hook ? '' : file_mode]
+// - pkg: [rel_path, digest, is_hook ? "" : file_mode]
 //   - changes: sorting
+//
 // - job: [File.basename(abs_path), digest, file_mode]
 //   - changes: rel_path, sorting
+//
 // - lic: [File.basename(abs_path), digest]
 //   - changes: sorting
 func (f FingerprinterImpl) fingerprintPath(file File) (string, error) {

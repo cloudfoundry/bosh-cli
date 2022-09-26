@@ -5,12 +5,9 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
-	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
-	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -18,6 +15,8 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	bio "github.com/cloudfoundry/bosh-cli/v7/io"
+	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
+	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 )
 
 var _ = Describe("ClientRequest", func() {
@@ -377,7 +376,7 @@ var _ = Describe("ClientRequest", func() {
 
 			setHeaders := func(req *http.Request) {
 				req.Header.Add("Content-Type", "application/x-compressed")
-				req.Body = ioutil.NopCloser(bytes.NewBufferString("req-body"))
+				req.Body = io.NopCloser(bytes.NewBufferString("req-body"))
 				req.ContentLength = 8
 			}
 
@@ -392,8 +391,8 @@ var _ = Describe("ClientRequest", func() {
 				fileReporter := &fakedir.FakeFileReporter{
 					TrackUploadStub: func(size int64, reader io.ReadCloser) bio.ReadSeekCloser {
 						Expect(size).To(Equal(int64(8)))
-						Expect(ioutil.ReadAll(reader)).To(Equal([]byte("req-body")))
-						return NoopReadSeekCloser{Reader: ioutil.NopCloser(bytes.NewBufferString("req-body"))}
+						Expect(io.ReadAll(reader)).To(Equal([]byte("req-body")))
+						return NoopReadSeekCloser{Reader: io.NopCloser(bytes.NewBufferString("req-body"))}
 					},
 				}
 				req = buildReq(fileReporter)
@@ -419,7 +418,7 @@ var _ = Describe("ClientRequest", func() {
 
 			setHeaders := func(req *http.Request) {
 				req.Header.Add("Content-Type", "application/json")
-				req.Body = ioutil.NopCloser(bytes.NewBufferString("req-body"))
+				req.Body = io.NopCloser(bytes.NewBufferString("req-body"))
 				req.ContentLength = 8
 			}
 

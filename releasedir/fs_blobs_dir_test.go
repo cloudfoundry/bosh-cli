@@ -2,21 +2,20 @@ package releasedir_test
 
 import (
 	"errors"
-	"io/ioutil"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"syscall"
 
-	fakecrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakelogger "github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"fmt"
-
+	fakecrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
 )
@@ -490,7 +489,7 @@ bad-sha-blob.tgz:
 
 	Describe("TrackBlob", func() {
 		act := func() (Blob, error) {
-			content := ioutil.NopCloser(strings.NewReader("content"))
+			content := io.NopCloser(strings.NewReader("content"))
 			return blobsDir.TrackBlob(filepath.Join("dir", "file.tgz"), content)
 		}
 
