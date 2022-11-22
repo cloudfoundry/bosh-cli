@@ -73,6 +73,11 @@ type FakeResource struct {
 	nameReturnsOnCall map[int]struct {
 		result1 string
 	}
+	PrefixStub        func(string)
+	prefixMutex       sync.RWMutex
+	prefixArgsForCall []struct {
+		arg1 string
+	}
 	RehashWithCalculatorStub        func(crypto.DigestCalculator, cryptoa.ArchiveDigestFilePathReader) (resource.Resource, error)
 	rehashWithCalculatorMutex       sync.RWMutex
 	rehashWithCalculatorArgsForCall []struct {
@@ -426,6 +431,38 @@ func (fake *FakeResource) NameReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
+func (fake *FakeResource) Prefix(arg1 string) {
+	fake.prefixMutex.Lock()
+	fake.prefixArgsForCall = append(fake.prefixArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.PrefixStub
+	fake.recordInvocation("Prefix", []interface{}{arg1})
+	fake.prefixMutex.Unlock()
+	if stub != nil {
+		fake.PrefixStub(arg1)
+	}
+}
+
+func (fake *FakeResource) PrefixCallCount() int {
+	fake.prefixMutex.RLock()
+	defer fake.prefixMutex.RUnlock()
+	return len(fake.prefixArgsForCall)
+}
+
+func (fake *FakeResource) PrefixCalls(stub func(string)) {
+	fake.prefixMutex.Lock()
+	defer fake.prefixMutex.Unlock()
+	fake.PrefixStub = stub
+}
+
+func (fake *FakeResource) PrefixArgsForCall(i int) string {
+	fake.prefixMutex.RLock()
+	defer fake.prefixMutex.RUnlock()
+	argsForCall := fake.prefixArgsForCall[i]
+	return argsForCall.arg1
+}
+
 func (fake *FakeResource) RehashWithCalculator(arg1 crypto.DigestCalculator, arg2 cryptoa.ArchiveDigestFilePathReader) (resource.Resource, error) {
 	fake.rehashWithCalculatorMutex.Lock()
 	ret, specificReturn := fake.rehashWithCalculatorReturnsOnCall[len(fake.rehashWithCalculatorArgsForCall)]
@@ -506,6 +543,8 @@ func (fake *FakeResource) Invocations() map[string][][]interface{} {
 	defer fake.fingerprintMutex.RUnlock()
 	fake.nameMutex.RLock()
 	defer fake.nameMutex.RUnlock()
+	fake.prefixMutex.RLock()
+	defer fake.prefixMutex.RUnlock()
 	fake.rehashWithCalculatorMutex.RLock()
 	defer fake.rehashWithCalculatorMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

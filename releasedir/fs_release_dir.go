@@ -236,13 +236,14 @@ func (d FSReleaseDir) BuildRelease(name string, version semver.Version, force bo
 	return release, nil
 }
 
-func (d FSReleaseDir) VendorPackage(pkg *boshpkg.Package) error {
+func (d FSReleaseDir) VendorPackage(pkg *boshpkg.Package, prefix string) error {
 	allInterestingPkgs := map[*boshpkg.Package]struct{}{}
-
 	d.collectDependentPackages(pkg, allInterestingPkgs)
 
 	for pkg2 := range allInterestingPkgs {
+		pkg2.Prefix(prefix)
 		err := pkg2.Finalize(d.finalIndicies.Packages)
+
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Finalizing vendored package")
 		}

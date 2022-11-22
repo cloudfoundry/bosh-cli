@@ -134,10 +134,11 @@ type FakeReleaseDir struct {
 	resetReturnsOnCall map[int]struct {
 		result1 error
 	}
-	VendorPackageStub        func(*pkg.Package) error
+	VendorPackageStub        func(*pkg.Package, string) error
 	vendorPackageMutex       sync.RWMutex
 	vendorPackageArgsForCall []struct {
 		arg1 *pkg.Package
+		arg2 string
 	}
 	vendorPackageReturns struct {
 		result1 error
@@ -763,18 +764,19 @@ func (fake *FakeReleaseDir) ResetReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeReleaseDir) VendorPackage(arg1 *pkg.Package) error {
+func (fake *FakeReleaseDir) VendorPackage(arg1 *pkg.Package, arg2 string) error {
 	fake.vendorPackageMutex.Lock()
 	ret, specificReturn := fake.vendorPackageReturnsOnCall[len(fake.vendorPackageArgsForCall)]
 	fake.vendorPackageArgsForCall = append(fake.vendorPackageArgsForCall, struct {
 		arg1 *pkg.Package
-	}{arg1})
+		arg2 string
+	}{arg1, arg2})
 	stub := fake.VendorPackageStub
 	fakeReturns := fake.vendorPackageReturns
-	fake.recordInvocation("VendorPackage", []interface{}{arg1})
+	fake.recordInvocation("VendorPackage", []interface{}{arg1, arg2})
 	fake.vendorPackageMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -788,17 +790,17 @@ func (fake *FakeReleaseDir) VendorPackageCallCount() int {
 	return len(fake.vendorPackageArgsForCall)
 }
 
-func (fake *FakeReleaseDir) VendorPackageCalls(stub func(*pkg.Package) error) {
+func (fake *FakeReleaseDir) VendorPackageCalls(stub func(*pkg.Package, string) error) {
 	fake.vendorPackageMutex.Lock()
 	defer fake.vendorPackageMutex.Unlock()
 	fake.VendorPackageStub = stub
 }
 
-func (fake *FakeReleaseDir) VendorPackageArgsForCall(i int) *pkg.Package {
+func (fake *FakeReleaseDir) VendorPackageArgsForCall(i int) (*pkg.Package, string) {
 	fake.vendorPackageMutex.RLock()
 	defer fake.vendorPackageMutex.RUnlock()
 	argsForCall := fake.vendorPackageArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeReleaseDir) VendorPackageReturns(result1 error) {

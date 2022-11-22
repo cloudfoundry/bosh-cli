@@ -33,7 +33,7 @@ func (c VendorPackageCmd) Run(opts VendorPackageOpts) error {
 
 	for _, pkg := range srcRelease.Packages() {
 		if pkg.Name() == opts.Args.PackageName {
-			return dstReleaseDir.VendorPackage(pkg)
+			return dstReleaseDir.VendorPackage(pkg, opts.Prefix)
 		}
 	}
 

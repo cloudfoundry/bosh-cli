@@ -12,6 +12,7 @@ import (
 
 type ResourceImpl struct {
 	name        string
+	prefix      string
 	fingerprint string
 
 	archivePath   string
@@ -52,13 +53,21 @@ func NewResourceWithBuiltArchive(name, fp, path, sha1 string) *ResourceImpl {
 	}
 }
 
-func (r *ResourceImpl) Name() string        { return r.name }
+func (r *ResourceImpl) Name() string {
+	if r.prefix != "" {
+		return fmt.Sprintf("%s-%s", r.prefix, r.name)
+	}
+	return r.name
+}
+func (r *ResourceImpl) Prefix(prefix string) {
+	r.prefix = prefix
+}
 func (r *ResourceImpl) Fingerprint() string { return r.fingerprint }
 
 func (r *ResourceImpl) ArchivePath() string {
 	if len(r.archivePath) == 0 {
 		errMsg := "Internal inconsistency: Resource '%s/%s' must be found or built before getting its archive path"
-		panic(fmt.Sprintf(errMsg, r.name, r.fingerprint))
+		panic(fmt.Sprintf(errMsg, r.Name(), r.fingerprint))
 	}
 	return r.archivePath
 }
@@ -66,7 +75,7 @@ func (r *ResourceImpl) ArchivePath() string {
 func (r *ResourceImpl) ArchiveDigest() string {
 	if len(r.archiveDigest) == 0 {
 		errMsg := "Internal inconsistency: Resource '%s/%s' must be found or built before getting its archive SHA1"
-		panic(fmt.Sprintf(errMsg, r.name, r.fingerprint))
+		panic(fmt.Sprintf(errMsg, r.Name(), r.fingerprint))
 	}
 	return r.archiveDigest
 }
@@ -107,15 +116,16 @@ func (r *ResourceImpl) Build(devIndex, finalIndex ArchiveIndex) error {
 }
 
 func (r *ResourceImpl) Finalize(finalIndex ArchiveIndex) error {
-	finalPath, finalSHA1, err := finalIndex.Find(r.name, r.fingerprint)
+	finalPath, finalSHA1, err := finalIndex.Find(r.Name(), r.fingerprint)
 	if err != nil {
 		return err
 	} else if len(finalPath) > 0 {
+
 		r.attachArchive(finalPath, finalSHA1)
 		return nil
 	}
 
-	_, _, err = finalIndex.Add(r.name, r.fingerprint, r.ArchivePath(), r.ArchiveDigest())
+	_, _, err = finalIndex.Add(r.Name(), r.fingerprint, r.ArchivePath(), r.ArchiveDigest())
 	de, ok := err.(duplicateError)
 	if ok && de.IsDuplicate() {
 		return r.Finalize(finalIndex)
