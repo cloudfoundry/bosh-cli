@@ -7,11 +7,11 @@ require (
 	code.cloudfoundry.org/workpool v0.0.0-20200131000409-2ac56b354115
 	github.com/cheggaaa/pb/v3 v3.1.0
 	github.com/cloudfoundry/bosh-agent v2.367.0+incompatible
-	github.com/cloudfoundry/bosh-davcli v0.0.96
-	github.com/cloudfoundry/bosh-gcscli v0.0.70
+	github.com/cloudfoundry/bosh-davcli v0.0.98
+	github.com/cloudfoundry/bosh-gcscli v0.0.71
 	github.com/cloudfoundry/bosh-s3cli v0.0.164
-	github.com/cloudfoundry/bosh-utils v0.0.342
-	github.com/cloudfoundry/config-server v0.1.85
+	github.com/cloudfoundry/bosh-utils v0.0.343
+	github.com/cloudfoundry/config-server v0.1.86
 	github.com/cloudfoundry/socks5-proxy v0.2.80
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
@@ -51,7 +51,7 @@ require (
 	github.com/alexkohler/prealloc v1.0.0 // indirect
 	github.com/ashanbrown/forbidigo v1.3.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
-	github.com/aws/aws-sdk-go v1.44.142 // indirect
+	github.com/aws/aws-sdk-go v1.44.145 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bkielbasa/cyclop v1.2.0 // indirect
 	github.com/blizzy78/varnamelen v0.8.0 // indirect
