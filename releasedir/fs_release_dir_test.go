@@ -15,6 +15,7 @@ import (
 	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
+	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	fakeres "github.com/cloudfoundry/bosh-cli/v7/release/resource/resourcefakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
@@ -662,7 +663,7 @@ var _ = Describe("FSGenerator", func() {
 			Expect(fs.WriteFileString("/dir/packages/pkg1-name/packaging", "old-packaging")).ToNot(HaveOccurred())
 			Expect(fs.WriteFileString("/dir/packages/pkg2-name/spec.lock", "old-spec-lock")).ToNot(HaveOccurred())
 
-			err = releaseDir.VendorPackage(pkg1)
+			err = releaseDir.VendorPackage(pkg1, "")
 			Expect(err).ToNot(HaveOccurred())
 
 			// recorded files
@@ -707,6 +708,17 @@ fingerprint: pkg4-fp
 			Expect(pkg4Res.FinalizeArgsForCall(0) == finalIndicies.Packages).To(BeTrue())
 		})
 
+		It("finalize given package with prefix", func() {
+			pkg1Res := resource.NewResourceWithBuiltArchive("pkg1-name", "pkg1-fp", "/test/something", "something")
+			pkg1 := boshpkg.NewPackage(pkg1Res, nil)
+
+			err := releaseDir.VendorPackage(pkg1, "prefix")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fs.ReadFileString("/dir/packages/prefix-pkg1-name/spec.lock")).To(Equal(`name: prefix-pkg1-name
+fingerprint: pkg1-fp
+`))
+		})
+
 		It("returns error if package finalize fails", func() {
 			pkg1Res := &fakeres.FakeResource{
 				NameStub:        func() string { return "pkg1-name" },
@@ -716,7 +728,7 @@ fingerprint: pkg4-fp
 
 			pkg1Res.FinalizeReturns(errors.New("fake-err"))
 
-			err := releaseDir.VendorPackage(pkg1)
+			err := releaseDir.VendorPackage(pkg1, "")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
@@ -730,7 +742,7 @@ fingerprint: pkg4-fp
 
 			fs.RemoveAllStub = func(path string) error { return errors.New("fake-err") }
 
-			err := releaseDir.VendorPackage(pkg1)
+			err := releaseDir.VendorPackage(pkg1, "")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
@@ -741,7 +753,7 @@ fingerprint: pkg4-fp
 			}
 			pkg1 := boshpkg.NewPackage(pkg1Res, nil)
 
-			err := releaseDir.VendorPackage(pkg1)
+			err := releaseDir.VendorPackage(pkg1, "")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Marshaling vendored package 'pkg1-name' spec lock"))
 		})
@@ -755,7 +767,7 @@ fingerprint: pkg4-fp
 
 			fs.WriteFileErrors["/dir/packages/pkg1-name/spec.lock"] = errors.New("fake-err")
 
-			err := releaseDir.VendorPackage(pkg1)
+			err := releaseDir.VendorPackage(pkg1, "")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})

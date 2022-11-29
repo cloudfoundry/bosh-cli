@@ -17,6 +17,7 @@ func (a ByName) Less(i, j int) bool { return a[i].Name() < a[j].Name() }
 
 type Package struct {
 	resource Resource
+	prefix   string
 
 	Dependencies    []*Package
 	dependencyNames []string
@@ -63,7 +64,10 @@ func (p *Package) RehashWithCalculator(calculator crypto.DigestCalculator, archi
 }
 
 func (p *Package) Build(dev, final ArchiveIndex) error { return p.resource.Build(dev, final) }
-func (p *Package) Finalize(final ArchiveIndex) error   { return p.resource.Finalize(final) }
+func (p *Package) Finalize(final ArchiveIndex) error {
+	p.resource.Prefix(p.prefix)
+	return p.resource.Finalize(final)
+}
 
 func (p *Package) AttachDependencies(packages []*Package) error {
 	for _, pkgName := range p.dependencyNames {
@@ -99,7 +103,9 @@ func (p *Package) Deps() []Compilable {
 func (p *Package) IsCompiled() bool { return false }
 
 func (p *Package) ExtractedPath() string { return p.extractedPath }
-
+func (p *Package) Prefix(prefix string) {
+	p.prefix = prefix
+}
 func (p *Package) CleanUp() error {
 	if p.fs != nil && len(p.extractedPath) > 0 {
 		return p.fs.RemoveAll(p.extractedPath)

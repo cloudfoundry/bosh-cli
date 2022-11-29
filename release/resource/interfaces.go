@@ -36,6 +36,7 @@ type ArchiveIndex interface {
 
 type Resource interface {
 	Name() string
+	Prefix(prefix string)
 	Fingerprint() string
 
 	ArchivePath() string

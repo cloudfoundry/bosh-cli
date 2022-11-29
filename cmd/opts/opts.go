@@ -1019,6 +1019,7 @@ type VendorPackageOpts struct {
 	Args VendorPackageArgs `positional-args:"true" required:"true"`
 
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
+	Prefix    string      `long:"prefix" description:"Prefix to add to the package name" default:""`
 
 	cmd
 }
