@@ -18,11 +18,16 @@ import (
 
 const Doc = `check references to loop variables from within nested functions
 
-This analyzer checks for references to loop variables from within a
-function literal inside the loop body. It checks only instances where
-the function literal is called in a defer or go statement that is the
-last statement in the loop body, as otherwise we would need whole
-program analysis.
+This analyzer checks for references to loop variables from within a function
+literal inside the loop body. It checks for patterns where access to a loop
+variable is known to escape the current loop iteration:
+ 1. a call to go or defer at the end of the loop body
+ 2. a call to golang.org/x/sync/errgroup.Group.Go at the end of the loop body
+ 3. a call testing.T.Run where the subtest body invokes t.Parallel()
+
+In the case of (1) and (2), the analyzer only considers references in the last
+statement of the loop body as it is not deep enough to understand the effects
+of subsequent statements which might render the reference benign.
 
 For example:
 
@@ -50,10 +55,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
 		// Find the variables updated by the loop statement.
-		var vars []*ast.Ident
+		var vars []types.Object
 		addVar := func(expr ast.Expr) {
-			if id, ok := expr.(*ast.Ident); ok {
-				vars = append(vars, id)
+			if id, _ := expr.(*ast.Ident); id != nil {
+				if obj := pass.TypesInfo.ObjectOf(id); obj != nil {
+					vars = append(vars, obj)
+				}
 			}
 		}
 		var body *ast.BlockStmt
@@ -79,52 +86,79 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			return
 		}
 
-		// Inspect a go or defer statement
-		// if it's the last one in the loop body.
-		// (We give up if there are following statements,
-		// because it's hard to prove go isn't followed by wait,
-		// or defer by return.)
-		if len(body.List) == 0 {
-			return
-		}
-		// The function invoked in the last return statement.
-		var fun ast.Expr
-		switch s := body.List[len(body.List)-1].(type) {
-		case *ast.GoStmt:
-			fun = s.Call.Fun
-		case *ast.DeferStmt:
-			fun = s.Call.Fun
-		case *ast.ExprStmt: // check for errgroup.Group.Go()
-			if call, ok := s.X.(*ast.CallExpr); ok {
-				fun = goInvokes(pass.TypesInfo, call)
-			}
-		}
-		lit, ok := fun.(*ast.FuncLit)
-		if !ok {
-			return
-		}
-		ast.Inspect(lit.Body, func(n ast.Node) bool {
-			id, ok := n.(*ast.Ident)
-			if !ok || id.Obj == nil {
-				return true
-			}
-			if pass.TypesInfo.Types[id].Type == nil {
-				// Not referring to a variable (e.g. struct field name)
-				return true
-			}
-			for _, v := range vars {
-				if v.Obj == id.Obj {
-					pass.ReportRangef(id, "loop variable %s captured by func literal",
-						id.Name)
+		// Inspect statements to find function literals that may be run outside of
+		// the current loop iteration.
+		//
+		// For go, defer, and errgroup.Group.Go, we ignore all but the last
+		// statement, because it's hard to prove go isn't followed by wait, or
+		// defer by return.
+		//
+		// We consider every t.Run statement in the loop body, because there is
+		// no such commonly used mechanism for synchronizing parallel subtests.
+		// It is of course theoretically possible to synchronize parallel subtests,
+		// though such a pattern is likely to be exceedingly rare as it would be
+		// fighting against the test runner.
+		lastStmt := len(body.List) - 1
+		for i, s := range body.List {
+			var stmts []ast.Stmt // statements that must be checked for escaping references
+			switch s := s.(type) {
+			case *ast.GoStmt:
+				if i == lastStmt {
+					stmts = litStmts(s.Call.Fun)
+				}
+
+			case *ast.DeferStmt:
+				if i == lastStmt {
+					stmts = litStmts(s.Call.Fun)
+				}
+
+			case *ast.ExprStmt: // check for errgroup.Group.Go and testing.T.Run (with T.Parallel)
+				if call, ok := s.X.(*ast.CallExpr); ok {
+					if i == lastStmt {
+						stmts = litStmts(goInvoke(pass.TypesInfo, call))
+					}
+					if stmts == nil {
+						stmts = parallelSubtest(pass.TypesInfo, call)
+					}
 				}
 			}
-			return true
-		})
+
+			for _, stmt := range stmts {
+				ast.Inspect(stmt, func(n ast.Node) bool {
+					id, ok := n.(*ast.Ident)
+					if !ok {
+						return true
+					}
+					obj := pass.TypesInfo.Uses[id]
+					if obj == nil {
+						return true
+					}
+					for _, v := range vars {
+						if v == obj {
+							pass.ReportRangef(id, "loop variable %s captured by func literal", id.Name)
+						}
+					}
+					return true
+				})
+			}
+		}
 	})
 	return nil, nil
 }
 
-// goInvokes returns a function expression that would be called asynchronously
+// litStmts returns all statements from the function body of a function
+// literal.
+//
+// If fun is not a function literal, it returns nil.
+func litStmts(fun ast.Expr) []ast.Stmt {
+	lit, _ := fun.(*ast.FuncLit)
+	if lit == nil {
+		return nil
+	}
+	return lit.Body.List
+}
+
+// goInvoke returns a function expression that would be called asynchronously
 // (but not awaited) in another goroutine as a consequence of the call.
 // For example, given the g.Go call below, it returns the function literal expression.
 //
@@ -133,33 +167,164 @@ func run(pass *analysis.Pass) (interface{}, error) {
 //	g.Go(func() error { ... })
 //
 // Currently only "golang.org/x/sync/errgroup.Group()" is considered.
-func goInvokes(info *types.Info, call *ast.CallExpr) ast.Expr {
-	f := typeutil.StaticCallee(info, call)
-	// Note: Currently only supports: golang.org/x/sync/errgroup.Go.
-	if f == nil || f.Name() != "Go" {
-		return nil
-	}
-	recv := f.Type().(*types.Signature).Recv()
-	if recv == nil {
-		return nil
-	}
-	rtype, ok := recv.Type().(*types.Pointer)
-	if !ok {
-		return nil
-	}
-	named, ok := rtype.Elem().(*types.Named)
-	if !ok {
-		return nil
-	}
-	if named.Obj().Name() != "Group" {
-		return nil
-	}
-	pkg := f.Pkg()
-	if pkg == nil {
-		return nil
-	}
-	if pkg.Path() != "golang.org/x/sync/errgroup" {
+func goInvoke(info *types.Info, call *ast.CallExpr) ast.Expr {
+	if !isMethodCall(info, call, "golang.org/x/sync/errgroup", "Group", "Go") {
 		return nil
 	}
 	return call.Args[0]
+}
+
+// parallelSubtest returns statements that can be easily proven to execute
+// concurrently via the go test runner, as t.Run has been invoked with a
+// function literal that calls t.Parallel.
+//
+// In practice, users rely on the fact that statements before the call to
+// t.Parallel are synchronous. For example by declaring test := test inside the
+// function literal, but before the call to t.Parallel.
+//
+// Therefore, we only flag references in statements that are obviously
+// dominated by a call to t.Parallel. As a simple heuristic, we only consider
+// statements following the final labeled statement in the function body, to
+// avoid scenarios where a jump would cause either the call to t.Parallel or
+// the problematic reference to be skipped.
+//
+//	import "testing"
+//
+//	func TestFoo(t *testing.T) {
+//		tests := []int{0, 1, 2}
+//		for i, test := range tests {
+//			t.Run("subtest", func(t *testing.T) {
+//				println(i, test) // OK
+//		 		t.Parallel()
+//				println(i, test) // Not OK
+//			})
+//		}
+//	}
+func parallelSubtest(info *types.Info, call *ast.CallExpr) []ast.Stmt {
+	if !isMethodCall(info, call, "testing", "T", "Run") {
+		return nil
+	}
+
+	lit, _ := call.Args[1].(*ast.FuncLit)
+	if lit == nil {
+		return nil
+	}
+
+	// Capture the *testing.T object for the first argument to the function
+	// literal.
+	if len(lit.Type.Params.List[0].Names) == 0 {
+		return nil
+	}
+
+	tObj := info.Defs[lit.Type.Params.List[0].Names[0]]
+	if tObj == nil {
+		return nil
+	}
+
+	// Match statements that occur after a call to t.Parallel following the final
+	// labeled statement in the function body.
+	//
+	// We iterate over lit.Body.List to have a simple, fast and "frequent enough"
+	// dominance relationship for t.Parallel(): lit.Body.List[i] dominates
+	// lit.Body.List[j] for i < j unless there is a jump.
+	var stmts []ast.Stmt
+	afterParallel := false
+	for _, stmt := range lit.Body.List {
+		stmt, labeled := unlabel(stmt)
+		if labeled {
+			// Reset: naively we don't know if a jump could have caused the
+			// previously considered statements to be skipped.
+			stmts = nil
+			afterParallel = false
+		}
+
+		if afterParallel {
+			stmts = append(stmts, stmt)
+			continue
+		}
+
+		// Check if stmt is a call to t.Parallel(), for the correct t.
+		exprStmt, ok := stmt.(*ast.ExprStmt)
+		if !ok {
+			continue
+		}
+		expr := exprStmt.X
+		if isMethodCall(info, expr, "testing", "T", "Parallel") {
+			call, _ := expr.(*ast.CallExpr)
+			if call == nil {
+				continue
+			}
+			x, _ := call.Fun.(*ast.SelectorExpr)
+			if x == nil {
+				continue
+			}
+			id, _ := x.X.(*ast.Ident)
+			if id == nil {
+				continue
+			}
+			if info.Uses[id] == tObj {
+				afterParallel = true
+			}
+		}
+	}
+
+	return stmts
+}
+
+// unlabel returns the inner statement for the possibly labeled statement stmt,
+// stripping any (possibly nested) *ast.LabeledStmt wrapper.
+//
+// The second result reports whether stmt was an *ast.LabeledStmt.
+func unlabel(stmt ast.Stmt) (ast.Stmt, bool) {
+	labeled := false
+	for {
+		labelStmt, ok := stmt.(*ast.LabeledStmt)
+		if !ok {
+			return stmt, labeled
+		}
+		labeled = true
+		stmt = labelStmt.Stmt
+	}
+}
+
+// isMethodCall reports whether expr is a method call of
+// <pkgPath>.<typeName>.<method>.
+func isMethodCall(info *types.Info, expr ast.Expr, pkgPath, typeName, method string) bool {
+	call, ok := expr.(*ast.CallExpr)
+	if !ok {
+		return false
+	}
+
+	// Check that we are calling a method <method>
+	f := typeutil.StaticCallee(info, call)
+	if f == nil || f.Name() != method {
+		return false
+	}
+	recv := f.Type().(*types.Signature).Recv()
+	if recv == nil {
+		return false
+	}
+
+	// Check that the receiver is a <pkgPath>.<typeName> or
+	// *<pkgPath>.<typeName>.
+	rtype := recv.Type()
+	if ptr, ok := recv.Type().(*types.Pointer); ok {
+		rtype = ptr.Elem()
+	}
+	named, ok := rtype.(*types.Named)
+	if !ok {
+		return false
+	}
+	if named.Obj().Name() != typeName {
+		return false
+	}
+	pkg := f.Pkg()
+	if pkg == nil {
+		return false
+	}
+	if pkg.Path() != pkgPath {
+		return false
+	}
+
+	return true
 }

@@ -44,7 +44,7 @@ func UnusedParams(tests, exported, debug bool, args ...string) ([]string, error)
 	return c.lines(args...)
 }
 
-// Checker finds unused parameterss in a program. You probably want to use
+// Checker finds unused parameters in a program. You probably want to use
 // UnusedParams instead, unless you want to use a *loader.Program and
 // *ssa.Program directly.
 type Checker struct {
@@ -589,9 +589,8 @@ resLoop:
 			continue
 		}
 		c.debug("%s\n", par.String())
-		switch par.Object().Name() {
-		case "", "_": // unnamed
-			c.debug("  skip - unnamed\n")
+		if name := par.Object().Name(); name == "" || name[0] == '_' {
+			c.debug("  skip - no name or underscore name\n")
 			continue
 		}
 		if stdSizes.Sizeof(par.Type()) == 0 {
@@ -877,8 +876,16 @@ func recvPrefix(recv *ast.FieldList) string {
 		}
 		expr = star.X
 	}
-	id := expr.(*ast.Ident)
-	return id.Name + "."
+	switch expr := expr.(type) {
+	case *ast.Ident:
+		return expr.Name + "."
+	case *ast.IndexExpr:
+		return expr.X.(*ast.Ident).Name + "."
+	case *ast.IndexListExpr:
+		return expr.X.(*ast.Ident).Name + "."
+	default:
+		panic(fmt.Sprintf("unexepected receiver AST node: %T", expr))
+	}
 }
 
 // multipleImpls reports whether a function has multiple implementations in the
