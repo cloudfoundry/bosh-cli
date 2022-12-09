@@ -94,6 +94,7 @@ jobs:
         file: bosh-src/ci/tasks/test-integration.yml
         params:
           DB: postgresql
+          DB_VERSION: 13
 
   - name: build
     public: true
