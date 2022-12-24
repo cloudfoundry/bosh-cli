@@ -73,7 +73,7 @@ github.com/ashanbrown/forbidigo/forbidigo
 # github.com/ashanbrown/makezero v1.1.1
 ## explicit; go 1.12
 github.com/ashanbrown/makezero/makezero
-# github.com/aws/aws-sdk-go v1.44.162
+# github.com/aws/aws-sdk-go v1.44.167
 ## explicit; go 1.11
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -175,21 +175,21 @@ github.com/cloudfoundry/bosh-agent/agentclient/applyspec
 github.com/cloudfoundry/bosh-agent/agentclient/fakes
 github.com/cloudfoundry/bosh-agent/agentclient/http
 github.com/cloudfoundry/bosh-agent/agentclient/http/mocks
-# github.com/cloudfoundry/bosh-davcli v0.0.114
+# github.com/cloudfoundry/bosh-davcli v0.0.116
 ## explicit; go 1.19
 github.com/cloudfoundry/bosh-davcli/client
 github.com/cloudfoundry/bosh-davcli/client/fakes
 github.com/cloudfoundry/bosh-davcli/config
 github.com/cloudfoundry/bosh-davcli/signer
-# github.com/cloudfoundry/bosh-gcscli v0.0.81
+# github.com/cloudfoundry/bosh-gcscli v0.0.82
 ## explicit; go 1.19
 github.com/cloudfoundry/bosh-gcscli/client
 github.com/cloudfoundry/bosh-gcscli/config
-# github.com/cloudfoundry/bosh-s3cli v0.0.166
+# github.com/cloudfoundry/bosh-s3cli v0.0.167
 ## explicit; go 1.19
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.345
+# github.com/cloudfoundry/bosh-utils v0.0.346
 ## explicit; go 1.19
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/fakes
@@ -209,7 +209,7 @@ github.com/cloudfoundry/bosh-utils/system/fakes
 github.com/cloudfoundry/bosh-utils/uuid
 github.com/cloudfoundry/bosh-utils/uuid/fakes
 github.com/cloudfoundry/bosh-utils/work
-# github.com/cloudfoundry/config-server v0.1.89
+# github.com/cloudfoundry/config-server v0.1.90
 ## explicit; go 1.19
 github.com/cloudfoundry/config-server/types
 github.com/cloudfoundry/config-server/types/typesfakes
@@ -686,8 +686,8 @@ github.com/prometheus/client_model/go
 github.com/prometheus/common/expfmt
 github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
 github.com/prometheus/common/model
-# github.com/prometheus/procfs v0.8.0
-## explicit; go 1.17
+# github.com/prometheus/procfs v0.9.0
+## explicit; go 1.18
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
@@ -904,11 +904,11 @@ golang.org/x/crypto/internal/alias
 golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
-# golang.org/x/exp v0.0.0-20221215174704-0915cd710c24
+# golang.org/x/exp v0.0.0-20221217163422-3c43f8badb15
 ## explicit; go 1.18
 golang.org/x/exp/constraints
 golang.org/x/exp/slices
-# golang.org/x/exp/typeparams v0.0.0-20221215174704-0915cd710c24
+# golang.org/x/exp/typeparams v0.0.0-20221217163422-3c43f8badb15
 ## explicit; go 1.18
 golang.org/x/exp/typeparams
 # golang.org/x/mod v0.7.0
@@ -1251,6 +1251,6 @@ mvdan.cc/interfacer/check
 # mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b
 ## explicit
 mvdan.cc/lint
-# mvdan.cc/unparam v0.0.0-20221109083536-cac433cd1bcb
+# mvdan.cc/unparam v0.0.0-20221223090309-7455f1af531d
 ## explicit; go 1.18
 mvdan.cc/unparam/check
