@@ -3,7 +3,10 @@ set -eux
 
 base=$PWD
 
-echo "Assets" > binary-checksums
+cp release-notes/release-notes.md binary-checksums
+
+echo "" >> binary-checksums
+echo "Assets" >> binary-checksums
 echo -e "\`\`\`" >> binary-checksums
 echo "                                                          sha256  file"  >> binary-checksums
 

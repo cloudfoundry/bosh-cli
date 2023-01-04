@@ -13,6 +13,7 @@ inputs:
 - name: compiled-darwin-amd64
 - name: compiled-darwin-arm64
 - name: compiled-windows-amd64
+- name: release-notes
 
 outputs:
 - name: checksums
