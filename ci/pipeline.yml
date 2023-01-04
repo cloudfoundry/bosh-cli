@@ -1,18 +1,4 @@
 ---
-groups:
-- name: all
-  jobs:
-  - test-unit
-  - test-integration
-  - test-acceptance-xenial
-  - integration-postgres
-  - build
-  - build-alpha
-  - bump-minor
-  - bump-major
-  - bump-deps
-  - test-helper-urls
-
 jobs:
   - name: bump-deps
     public: true
@@ -96,15 +82,91 @@ jobs:
           DB: postgresql
           DB_VERSION: 13
 
+  - name: pre-release-fan-in
+    public: true
+    serial: true
+    plan:
+      - get: bosh-cli
+        trigger: true
+        passed:
+        - test-acceptance-xenial
+        - integration-postgres
+
+  - name: release-new-patch
+    public: true
+    plan:
+      - get: bosh-cli
+        passed:
+        - pre-release-fan-in
+      - put: version-semver
+        params:
+          bump: patch
+
+  - name: release-new-minor
+    public: true
+    plan:
+      - get: bosh-cli
+        passed:
+        - pre-release-fan-in
+      - put: version-semver
+        params:
+          bump: minor
+
+  - name: release-new-major
+    public: true
+    plan:
+      - get: bosh-cli
+        passed:
+        - pre-release-fan-in
+      - put: version-semver
+        params:
+          bump: major
+
+  - name: automatically-release-new-patch
+    serial: true
+    plan:
+    - in_parallel:
+      - get: bosh-cli
+        trigger: true
+        passed:
+        - pre-release-fan-in
+      - get: golang-release
+      - get: version-semver
+      - get: ubuntu-image
+    - try:
+        task: check-for-patched-cves
+        file: golang-release/ci/tasks/shared/check-for-patched-cves.yml
+        input_mapping:
+          input_repo: bosh-cli
+          version: version-semver
+        params:
+          SEVERITY: CRITICAL,HIGH
+          SOURCE_PATH: # root path
+        on_success:
+          do:
+          - put: release-notes
+            params:
+              file: patched_cves/release-notes.md
+          - put: version-semver
+            params:
+              bump: patch
+    - task: ensure-cve-checker-succeeded
+      file: golang-release/ci/tasks/shared/ensure-cve-checker-succeeded.yml
+      image: ubuntu-image
+      params:
+        description: |
+          Since the previous step is wrapped in a "try", this task checks that the previous step fully executed.
+
   - name: build
     public: true
     plan:
       - in_parallel:
         - get: bosh-cli
           passed:
-           - test-acceptance-xenial
-           - integration-postgres
+           - pre-release-fan-in
         - get: version-semver
+          trigger: true
+        - get: release-notes
         - get: homebrew-tap
       - in_parallel:
         - task: build-linux-amd64
@@ -175,9 +237,19 @@ jobs:
       - put: homebrew-tap
         params:
           repository: update-brew-formula-output/homebrew-tap
-      - put: version-semver
-        params:
-          bump: patch
+
+  - name: clear-release-notes
+    plan:
+    - get: version-semver
+      passed:
+      - build
+      trigger: true
+    - get: golang-release
+    - task: clear-release-notes
+      file: golang-release/ci/tasks/shared/clear-release-notes.yml
+    - put: release-notes
+      params:
+        file: release-notes/release-notes.md
 
   - name: build-alpha
     public: true
@@ -185,8 +257,7 @@ jobs:
       - in_parallel:
         - get: bosh-cli
           passed:
-           - test-acceptance-xenial
-           - integration-postgres
+           - pre-release-fan-in
           trigger: true
         - get: alpha-version-semver
           params: {bump: patch}
@@ -229,21 +300,6 @@ jobs:
           passed: [build-alpha]
       - task: test-helper-urls
         file: bosh-cli/ci/tasks/test-helper-urls.yml
-
-  - name: bump-minor
-    public: true
-    plan:
-      - get: version-semver
-        params: {bump: minor}
-      - {put: version-semver, params: {file: version-semver/number}}
-
-  - name: bump-major
-    public: true
-    plan:
-      - get: version-semver
-        params: {bump: major}
-      - {put: version-semver, params: {file: version-semver/number}}
-
 
 resources:
   - name: bosh-src
@@ -400,6 +456,14 @@ resources:
       password: ((docker.password))
       email: foo@bar.com
 
+  - name: ubuntu-image
+    type: docker-image
+    source:
+      repository: ubuntu
+      username: ((docker.username))
+      password: ((docker.password))
+      email: foo@bar.com
+
   - name: weekly
     type: time
     source:
@@ -415,7 +479,22 @@ resources:
       secret_access_key: ((integration_runtime_secret_access_key))
       versioned_file: "parallel_runtime_rspec.log"
 
+  - name: release-notes
+    type: gcs-resource
+    source:
+      bucket: bosh-ci-release-notes
+      json_key: ((gcp_credentials_json))
+      versioned_file: bosh-cli/release-notes.md
+      initial_version: "0"
+      initial_content_text: ""
+
 resource_types:
+  - name: gcs-resource
+    type: docker-image
+    source:
+      repository: frodenas/gcs-resource
+      username: ((docker.username))
+      password: ((docker.password))
   - name: github-status
     type: docker-image
     source:
