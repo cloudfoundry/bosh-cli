@@ -473,9 +473,9 @@ resources:
   - name: integration-tests-parallel-runtime
     type: s3
     source:
-      bucket: ((integration_runtime_bucket))
-      access_key_id: ((integration_runtime_access_key_id))
-      secret_access_key: ((integration_runtime_secret_access_key))
+      bucket: integration-tests-parallel-runtime-logs
+      access_key_id: ((bosh_integration_tests_parallel_aws_access_key.username))
+      secret_access_key: ((bosh_integration_tests_parallel_aws_access_key.password))
       versioned_file: "parallel_runtime_rspec.log"
 
   - name: release-notes
