@@ -853,6 +853,8 @@ type LogsOpts struct {
 	Jobs    []string `long:"job"   description:"Limit to only specific jobs"`
 	Filters []string `long:"only"  description:"Filter logs (comma-separated)"`
 	Agent   bool     `long:"agent" description:"Include only agent logs"`
+	System  bool     `long:"system" description:"Include only system logs"`
+	All     bool     `long:"all-logs" description:"Include all logs (agent, system, and job logs)"`
 
 	GatewayFlags
 

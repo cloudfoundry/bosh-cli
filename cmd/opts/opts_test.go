@@ -2580,6 +2580,22 @@ var _ = Describe("Opts", func() {
 				))
 			})
 		})
+
+		Describe("System", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("System", opts)).To(Equal(
+					`long:"system" description:"Include only system logs"`,
+				))
+			})
+		})
+
+		Describe("All", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("All", opts)).To(Equal(
+					`long:"all-logs" description:"Include all logs (agent, system, and job logs)"`,
+				))
+			})
+		})
 	})
 
 	Describe("StartOpts", func() {

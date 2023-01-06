@@ -66,10 +66,12 @@ var _ = Describe("LogsCmd", func() {
 
 				Expect(deployment.FetchLogsCallCount()).To(Equal(1))
 
-				slug, filters, agent := deployment.FetchLogsArgsForCall(0)
+				slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
 				Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
 				Expect(filters).To(BeEmpty())
 				Expect(agent).To(BeFalse())
+				Expect(system).To(BeFalse())
+				Expect(all).To(BeFalse())
 
 				Expect(downloader.DownloadCallCount()).To(Equal(1))
 
@@ -91,10 +93,50 @@ var _ = Describe("LogsCmd", func() {
 
 				Expect(deployment.FetchLogsCallCount()).To(Equal(1))
 
-				slug, filters, agent := deployment.FetchLogsArgsForCall(0)
+				slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
 				Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
 				Expect(filters).To(Equal([]string{"filter1", "filter2"}))
 				Expect(agent).To(BeTrue())
+				Expect(system).To(BeFalse())
+				Expect(all).To(BeFalse())
+			})
+
+			It("fetches system logs and allows custom filters", func() {
+				opts.Filters = []string{"filter1", "filter2"}
+				opts.System = true
+
+				deployment.FetchLogsReturns(boshdir.LogsResult{}, nil)
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deployment.FetchLogsCallCount()).To(Equal(1))
+
+				slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
+				Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
+				Expect(filters).To(Equal([]string{"filter1", "filter2"}))
+				Expect(agent).To(BeFalse())
+				Expect(system).To(BeTrue())
+				Expect(all).To(BeFalse())
+			})
+
+			It("fetches all logs and allows custom filters", func() {
+				opts.Filters = []string{"filter1", "filter2"}
+				opts.All = true
+
+				deployment.FetchLogsReturns(boshdir.LogsResult{}, nil)
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deployment.FetchLogsCallCount()).To(Equal(1))
+
+				slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
+				Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
+				Expect(filters).To(Equal([]string{"filter1", "filter2"}))
+				Expect(agent).To(BeFalse())
+				Expect(system).To(BeFalse())
+				Expect(all).To(BeTrue())
 			})
 
 			It("fetches logs for more than one instance", func() {

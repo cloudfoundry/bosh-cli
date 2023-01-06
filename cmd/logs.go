@@ -83,7 +83,17 @@ func (c LogsCmd) buildTailCmd(opts LogsOpts) []string {
 
 	var logsDir string
 
-	if opts.Agent {
+	if (opts.System && !opts.Agent) || opts.All {
+		// Globbing makes it very difficult to do fine-grained exclusions of file types. Because we do not want to tail compressed files,
+		// rotated files, or the files in the `sysstat` directory (some of which are binary), we're using find to get fine-grained
+		// control.
+		// If folks complain that we're tailing something that makes their terminal sad, feel free to add additional filtering here.
+		// Also note that this string will eventually get executed as "sudo bash -c '$TAIL_COMMAND'", so we need to backslash-escape
+		// globbing characters, rather than wrapping them in single-quotes.
+		tail = append(tail, "$(find /var/log -type f -not -name \\*.gz -and -not -name \\*.xz -and -not -name \\*.\\[1-9] -and -not -path /var/log/sysstat/\\* -and -not -wholename /var/log/wtmp -and -not -wholename /var/log/lastlog)")
+	}
+
+	if (opts.Agent && !opts.System) || opts.All {
 		tail = append(tail, "/var/vcap/bosh/log/current")
 	}
 
@@ -97,7 +107,7 @@ func (c LogsCmd) buildTailCmd(opts LogsOpts) []string {
 		for _, filter := range opts.Filters {
 			tail = append(tail, fmt.Sprintf("%s/%s", logsDir, filter))
 		}
-	} else if !opts.Agent {
+	} else if (!opts.Agent && !opts.System) || opts.All {
 		// includes only directory and its subdirectories
 		tail = append(tail, fmt.Sprintf("%s/**/*.log", logsDir))
 		tail = append(tail, fmt.Sprintf("$(if [ -f %s/*.log ]; then echo %s/*.log ; fi)", logsDir, logsDir))
@@ -120,7 +130,7 @@ func (c LogsCmd) fetch(opts LogsOpts) error {
 		name += "." + slug.IndexOrID()
 	}
 
-	result, err := c.deployment.FetchLogs(slug, opts.Filters, opts.Agent)
+	result, err := c.deployment.FetchLogs(slug, opts.Filters, opts.Agent, opts.System, opts.All)
 	if err != nil {
 		return err
 	}
