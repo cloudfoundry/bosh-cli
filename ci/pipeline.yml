@@ -438,7 +438,7 @@ resources:
     source:
       uri: git@github.com:cloudfoundry/homebrew-tap
       branch: master
-      private_key: {{cloudfoundry_homebrew_tap_deploy_key}}
+      private_key: ((github_deploy_key_homebrew-tap.private_key))
 
   - name: github-release
     type: github-release
