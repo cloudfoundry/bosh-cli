@@ -318,7 +318,7 @@ resources:
     source:
       uri: git@github.com:cloudfoundry/bosh-cli.git
       branch: main
-      private_key: {{concourse_github_private_key}}
+      private_key: ((github_deploy_key_bosh-cli.private_key))
 
   - name: bosh-warden-stemcell-xenial
     type: bosh-io-stemcell
