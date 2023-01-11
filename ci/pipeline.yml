@@ -347,91 +347,91 @@ resources:
     type: s3
     source:
       regexp: bosh-cli-(.*)-linux-amd64
-      bucket: {{aws_s3_release_bucket}}
-      region_name: {{aws_s3_release_bucket_region}}
-      access_key_id: {{aws_s3_release_bucket_access_key}}
-      secret_access_key: {{aws_s3_release_bucket_secret_key}}
+      bucket: bosh-cli-artifacts
+      region_name: us-east-1
+      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
 
   - name: release-bucket-darwin
     type: s3
     source:
       regexp: bosh-cli-(.*)-darwin-amd64
-      bucket: {{aws_s3_release_bucket}}
-      region_name: {{aws_s3_release_bucket_region}}
-      access_key_id: {{aws_s3_release_bucket_access_key}}
-      secret_access_key: {{aws_s3_release_bucket_secret_key}}
+      bucket: bosh-cli-artifacts
+      region_name: us-east-1
+      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
 
   - name: release-bucket-darwin-arm64
     type: s3
     source:
       regexp: bosh-cli-(.*)-darwin-arm64
-      bucket: {{aws_s3_release_bucket}}
-      region_name: {{aws_s3_release_bucket_region}}
-      access_key_id: {{aws_s3_release_bucket_access_key}}
-      secret_access_key: {{aws_s3_release_bucket_secret_key}}
+      bucket: bosh-cli-artifacts
+      region_name: us-east-1
+      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
 
   - name: release-bucket-windows
     type: s3
     source:
       regexp: bosh-cli-(.*)-windows-amd64.exe
-      bucket: {{aws_s3_release_bucket}}
-      region_name: {{aws_s3_release_bucket_region}}
-      access_key_id: {{aws_s3_release_bucket_access_key}}
-      secret_access_key: {{aws_s3_release_bucket_secret_key}}
+      bucket: bosh-cli-artifacts
+      region_name: us-east-1
+      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
 
   - name: alpha-release-bucket-linux-amd64
     type: s3
     source:
       regexp: alpha-bosh-cli-(.*)-linux-amd64
-      bucket: {{aws_s3_alpha_release_bucket}}
-      region_name: {{aws_s3_release_bucket_region}}
-      access_key_id: {{aws_s3_release_bucket_access_key}}
-      secret_access_key: {{aws_s3_release_bucket_secret_key}}
+      bucket: bosh-cli-alpha-artifacts
+      region_name: us-east-1
+      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
 
   - name: alpha-release-bucket-darwin-amd64
     type: s3
     source:
       regexp: alpha-bosh-cli-(.*)-darwin-amd64
-      bucket: {{aws_s3_alpha_release_bucket}}
-      region_name: {{aws_s3_release_bucket_region}}
-      access_key_id: {{aws_s3_release_bucket_access_key}}
-      secret_access_key: {{aws_s3_release_bucket_secret_key}}
+      bucket: bosh-cli-alpha-artifacts
+      region_name: us-east-1
+      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
 
   - name: alpha-release-bucket-darwin-arm64
     type: s3
     source:
       regexp: alpha-bosh-cli-(.*)-darwin-arm64
-      bucket: {{aws_s3_alpha_release_bucket}}
-      region_name: {{aws_s3_release_bucket_region}}
-      access_key_id: {{aws_s3_release_bucket_access_key}}
-      secret_access_key: {{aws_s3_release_bucket_secret_key}}
+      bucket: bosh-cli-alpha-artifacts
+      region_name: us-east-1
+      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
 
   - name: alpha-release-bucket-windows-amd64
     type: s3
     source:
       regexp: alpha-bosh-cli-(.*)-windows-amd64.exe
-      bucket: {{aws_s3_alpha_release_bucket}}
-      region_name: {{aws_s3_release_bucket_region}}
-      access_key_id: {{aws_s3_release_bucket_access_key}}
-      secret_access_key: {{aws_s3_release_bucket_secret_key}}
+      bucket: bosh-cli-alpha-artifacts
+      region_name: us-east-1
+      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
 
   - name: version-semver
     type: semver
     source:
       initial_version: 0.0.1
       key: cli-current-version
-      bucket: {{aws_s3_release_bucket}}
-      access_key_id: {{aws_s3_release_bucket_access_key}}
-      secret_access_key: {{aws_s3_release_bucket_secret_key}}
+      bucket: bosh-cli-artifacts
+      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
 
   - name: alpha-version-semver
     type: semver
     source:
       initial_version: 0.0.1
       key: cli-alpha-current-version
-      bucket: {{aws_s3_alpha_release_bucket}}
-      access_key_id: {{aws_s3_release_bucket_access_key}}
-      secret_access_key: {{aws_s3_release_bucket_secret_key}}
+      bucket: bosh-cli-alpha-artifacts
+      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
 
   - name: homebrew-tap
     type: git
