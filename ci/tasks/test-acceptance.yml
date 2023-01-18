@@ -4,8 +4,8 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: bosh/main-bosh-garden
-    tag: 'latest'
+    repository: bosh/docker-cpi
+    tag: 'main'
 
 inputs:
 - name: bosh-cli
