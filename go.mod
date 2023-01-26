@@ -2,6 +2,8 @@ module github.com/cloudfoundry/bosh-cli/v7
 
 go 1.19
 
+replace github.com/cloudfoundry/bosh-agent v2.367.0+incompatible => /Users/pivotal/workspace/bosh-agent
+
 require (
 	code.cloudfoundry.org/clock v1.0.0
 	code.cloudfoundry.org/workpool v0.0.0-20200131000409-2ac56b354115

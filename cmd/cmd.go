@@ -3,9 +3,11 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"github.com/cppforlife/go-patch/patch"
 
+	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
 	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
 	"github.com/cloudfoundry/bosh-cli/v7/crypto"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
@@ -365,12 +367,17 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewLogsCmd(deployment, downloader, deps.UUIDGen, nonIntSSHRunner).Run(*opts)
 
 	case *SSHOpts:
+		agentClientFactory := bihttpagent.NewAgentClientFactory(1*time.Second, deps.Logger)
+		agentClient, err := agentClientFactory.NewAgentClient("bosh-cli", opts.CreateEnvAuthFlags.Endpoint, opts.CreateEnvAuthFlags.Certificate)
+		if err != nil {
+			return err
+		}
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
 		intSSHRunner := sshProvider.NewSSHRunner(true)
 		nonIntSSHRunner := sshProvider.NewSSHRunner(false)
 		resultsSSHRunner := sshProvider.NewResultsSSHRunner(false)
 		sshHostBuilder := boshssh.NewHostBuilder()
-		return NewSSHCmd(deps.UUIDGen, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, deps.UI, sshHostBuilder).Run(*opts, c.getDeployment)
+		return NewSSHCmd(deps.UUIDGen, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, deps.UI, sshHostBuilder).Run(*opts, c.getDeployment, agentClient)
 
 	case *SCPOpts:
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)

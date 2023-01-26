@@ -942,7 +942,14 @@ type SSHOpts struct {
 
 	GatewayFlags
 
+	CreateEnvAuthFlags
+
 	cmd
+}
+
+type CreateEnvAuthFlags struct {
+	Endpoint    string `long:"agent-endpoint"    description:"Endpoint to connect to the agent's HTTPS NATS bus" env:"BOSH_AGENT_ENDPOINT"`
+	Certificate string `long:"agent-certificate"    description:"Certificate to connect to the agent's HTTPS NATS bus" env:"BOSH_AGENT_CERTIFICATE"`
 }
 
 type SCPOpts struct {

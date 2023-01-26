@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
@@ -37,7 +38,7 @@ func NewSSHCmd(
 	}
 }
 
-func (c SSHCmd) Run(opts SSHOpts, deploymentFetcher boshssh.DeploymentFetcher) error {
+func (c SSHCmd) Run(opts SSHOpts, deploymentFetcher boshssh.DeploymentFetcher, agentClient biagentclient.AgentClient) error {
 	if opts.Results || !c.ui.IsInteractive() {
 		if len(opts.Command) == 0 {
 			return bosherr.Errorf("Non-interactive SSH requires non-empty command")
@@ -53,21 +54,39 @@ func (c SSHCmd) Run(opts SSHOpts, deploymentFetcher boshssh.DeploymentFetcher) e
 
 	var result boshdir.SSHResult
 	if opts.PrivateKey.Bytes == nil {
-		c.deployment, err = deploymentFetcher()
-		if err != nil {
-			return err
-		}
-
 		// host key will be returned by agent over NATS
 		connOpts.RawOpts = append(connOpts.RawOpts, "-o", "StrictHostKeyChecking=yes")
 
-		result, err = c.deployment.SetUpSSH(opts.Args.Slug, sshOpts)
+		if opts.CreateEnvAuthFlags.IsEnabled() {
+			var agentResult biagentclient.SSHResult
+			agentResult, err = agentClient.SetUpSSH(sshOpts.Username, sshOpts.PublicKey)
+			result = boshdir.SSHResult{
+				Hosts: []boshdir.Host{
+					{
+						Username:      sshOpts.Username,
+						Host:          agentResult.Ip,
+						HostPublicKey: agentResult.HostPublicKey,
+					},
+				},
+			}
+		} else {
+			c.deployment, err = deploymentFetcher()
+			if err != nil {
+				return err
+			}
+
+			result, err = c.deployment.SetUpSSH(opts.Args.Slug, sshOpts)
+		}
 		if err != nil {
 			return err
 		}
 
 		defer func() {
-			_ = c.deployment.CleanUpSSH(opts.Args.Slug, sshOpts)
+			if opts.CreateEnvAuthFlags.IsEnabled() {
+				_, _ = agentClient.CleanUpSSH(sshOpts.Username)
+			} else {
+				_ = c.deployment.CleanUpSSH(opts.Args.Slug, sshOpts)
+			}
 		}()
 	} else {
 		// no automatic source of host key
