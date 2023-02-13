@@ -238,7 +238,8 @@ func (d FSReleaseDir) BuildRelease(name string, version semver.Version, force bo
 
 func (d FSReleaseDir) VendorPackage(pkg *boshpkg.Package, prefix string) error {
 	allInterestingPkgs := map[*boshpkg.Package]struct{}{}
-	d.collectDependentPackages(pkg, allInterestingPkgs)
+
+	d.collectDependentPackages(pkg, allInterestingPkgs, prefix)
 
 	for pkg2 := range allInterestingPkgs {
 		pkg2.Prefix(prefix)
@@ -257,10 +258,11 @@ func (d FSReleaseDir) VendorPackage(pkg *boshpkg.Package, prefix string) error {
 	return nil
 }
 
-func (d FSReleaseDir) collectDependentPackages(pkg *boshpkg.Package, allInterestingPkgs map[*boshpkg.Package]struct{}) {
+func (d FSReleaseDir) collectDependentPackages(pkg *boshpkg.Package, allInterestingPkgs map[*boshpkg.Package]struct{}, prefix string) {
 	allInterestingPkgs[pkg] = struct{}{}
+	pkg.Prefix(prefix)
 	for _, pkg2 := range pkg.Dependencies {
-		d.collectDependentPackages(pkg2, allInterestingPkgs)
+		d.collectDependentPackages(pkg2, allInterestingPkgs, prefix)
 	}
 }
 
