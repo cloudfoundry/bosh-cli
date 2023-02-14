@@ -2,7 +2,7 @@ package manifest_test
 
 import (
 	. "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	birelmanifest "github.com/cloudfoundry/bosh-cli/v7/release/manifest"

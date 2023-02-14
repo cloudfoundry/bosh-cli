@@ -7,7 +7,7 @@ import (
 	_ "github.com/golang/mock/mockgen/model"
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/maxbrunsfeld/counterfeiter/v6"
-	_ "github.com/onsi/ginkgo/ginkgo"
+	_ "github.com/onsi/ginkgo/v2/ginkgo"
 	_ "golang.org/x/tools/cmd/goimports"
 )
 

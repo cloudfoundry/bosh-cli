@@ -8,7 +8,7 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	semver "github.com/cppforlife/go-semi-semantic/version"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"

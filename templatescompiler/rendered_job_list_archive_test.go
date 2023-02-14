@@ -6,7 +6,7 @@ import (
 	"bytes"
 	"os"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	mock_template "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/mocks"

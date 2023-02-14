@@ -16,6 +16,6 @@ echo -e "\B Building bosh-cli..." # TODO: should CI do this in parallel?
 "${ROOT_DIR}/bin/build"
 
 echo -e "\n Running unit tests..."
-"${ROOT_DIR}/bin/ginkgo" -skipPackage="acceptance,integration"  "${ROOT_DIR}"
+"${ROOT_DIR}/bin/ginkgo" --skip-package "acceptance,integration"  "${ROOT_DIR}"
 
 echo -e "\n\033[0;32mSUCCESS\033[0m"

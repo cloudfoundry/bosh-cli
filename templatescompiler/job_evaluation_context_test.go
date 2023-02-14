@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	boshreljob "github.com/cloudfoundry/bosh-cli/v7/release/job"

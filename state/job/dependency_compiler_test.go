@@ -3,7 +3,7 @@ package job_test
 import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	boshreljob "github.com/cloudfoundry/bosh-cli/v7/release/job"

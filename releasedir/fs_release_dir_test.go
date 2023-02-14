@@ -8,7 +8,7 @@ import (
 	"code.cloudfoundry.org/clock/fakeclock"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	semver "github.com/cppforlife/go-semi-semantic/version"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"

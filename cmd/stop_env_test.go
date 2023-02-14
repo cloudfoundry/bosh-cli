@@ -4,7 +4,7 @@ import (
 	bicmd "github.com/cloudfoundry/bosh-cli/v7/cmd"
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	"github.com/cppforlife/go-patch/patch"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	mock_cmd "github.com/cloudfoundry/bosh-cli/v7/cmd/mocks"

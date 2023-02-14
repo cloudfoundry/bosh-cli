@@ -7,7 +7,7 @@ import (
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	semver "github.com/cppforlife/go-semi-semantic/version"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 

@@ -11,7 +11,7 @@ import (
 	mock_instance_state "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/mocks"
 	mock_vm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/mocks"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"

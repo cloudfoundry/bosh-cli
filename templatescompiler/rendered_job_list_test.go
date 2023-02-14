@@ -7,7 +7,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"

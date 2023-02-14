@@ -2,7 +2,7 @@ package cmd_test
 
 import (
 	"github.com/cppforlife/go-patch/patch"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd"

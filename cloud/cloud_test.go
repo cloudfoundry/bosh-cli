@@ -5,13 +5,12 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cloud"
-	. "github.com/onsi/ginkgo/extensions/table"
 )
 
 var _ = Describe("Cloud", func() {

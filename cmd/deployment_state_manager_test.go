@@ -9,7 +9,7 @@ import (
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	"github.com/cppforlife/go-patch/patch"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"

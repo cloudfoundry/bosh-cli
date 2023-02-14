@@ -7,7 +7,7 @@ import (
 	"regexp"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"

@@ -3,11 +3,11 @@ set -eu -o pipefail
 
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-SLOW_SPEC_THRESHOLD="${SLOW_SPEC_THRESHOLD:-20}"
+SLOW_SPEC_THRESHOLD="${SLOW_SPEC_THRESHOLD:-20s}"
 
 (
   cd "${ROOT_DIR}"
-  go install -v github.com/onsi/ginkgo/ginkgo
+  go install -v github.com/onsi/ginkgo/v2/ginkgo
 )
 go_bin_path="$(go env GOPATH)/bin" # TODO this should be handled in the docker container
 export PATH=${go_bin_path}:${PATH}
@@ -15,8 +15,8 @@ export PATH=${go_bin_path}:${PATH}
 # shellcheck disable=SC2068
 # TODO add `-race` when unit tests work with this flag
 ginkgo \
-  -keepGoing \
-  -skipPackage=vendor \
-  -slowSpecThreshold="${SLOW_SPEC_THRESHOLD}" \
+  --keep-going \
+  --skip-package vendor \
+  --slow-spec-threshold ${SLOW_SPEC_THRESHOLD} \
   -r \
   ${@}

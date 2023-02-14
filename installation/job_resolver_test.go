@@ -4,7 +4,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/installation"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	mock_deployment_release "github.com/cloudfoundry/bosh-cli/v7/deployment/release/mocks"
