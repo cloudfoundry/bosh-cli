@@ -247,8 +247,10 @@ func (d FSReleaseDir) VendorPackage(pkg *boshpkg.Package, prefix string) error {
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Finalizing vendored package")
 		}
+	}
 
-		err = d.writeVendoredPackage(pkg2)
+	for pkg2 := range allInterestingPkgs {
+		err := d.writeVendoredPackage(pkg2)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Writing vendored package")
 		}

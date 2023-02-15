@@ -708,6 +708,32 @@ fingerprint: pkg4-fp
 			Expect(pkg4Res.FinalizeArgsForCall(0) == finalIndicies.Packages).To(BeTrue())
 		})
 
+		It("reliably vendors packages with prefix inlcuding their dependencies", func() {
+			_, err := fs.ReadFileString("/dir/packages/prefixed-pkg1-name/spec.lock")
+
+			Expect(err).To(HaveOccurred())
+			pkg2Res := resource.NewResourceWithBuiltArchive("pkg2-name", "pkg2-fp", "/test/something", "something")
+			pkg3Res := resource.NewResourceWithBuiltArchive("pkg3-name", "pkg3-fp", "/test/something", "something")
+			pkg2 := boshpkg.NewPackage(pkg2Res, []string{})
+			pkg3 := boshpkg.NewPackage(pkg3Res, []string{})
+
+			pkg1Res := resource.NewResourceWithBuiltArchive("pkg1-name", "pkg1-fp", "/test/something", "something")
+			pkg1 := boshpkg.NewPackage(pkg1Res, []string{"pkg2-name", "pkg3-name"})
+
+			err = pkg1.AttachDependencies([]*boshpkg.Package{pkg2, pkg3})
+			Expect(err).ToNot(HaveOccurred())
+
+			err = releaseDir.VendorPackage(pkg1, "prefixed")
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/packages/prefixed-pkg1-name/spec.lock")).To(Equal(`name: prefixed-pkg1-name
+fingerprint: pkg1-fp
+dependencies:
+- prefixed-pkg2-name
+- prefixed-pkg3-name
+`))
+		})
+
 		It("finalize given package with prefix", func() {
 			pkg1Res := resource.NewResourceWithBuiltArchive("pkg1-name", "pkg1-fp", "/test/something", "something")
 			pkg1 := boshpkg.NewPackage(pkg1Res, nil)
