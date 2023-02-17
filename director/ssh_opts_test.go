@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"golang.org/x/crypto/ssh"
 

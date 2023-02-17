@@ -6,7 +6,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	"github.com/cppforlife/go-patch/patch"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 

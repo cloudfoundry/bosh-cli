@@ -12,7 +12,7 @@ import (
 	mock_deployment "github.com/cloudfoundry/bosh-cli/v7/deployment/mocks"
 	mock_stemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/mocks"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"

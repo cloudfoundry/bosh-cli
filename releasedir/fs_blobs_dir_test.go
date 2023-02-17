@@ -12,7 +12,7 @@ import (
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakelogger "github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	fakecrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"

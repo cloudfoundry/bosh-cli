@@ -3,7 +3,7 @@ package net_test
 import (
 	"net"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	binet "github.com/cloudfoundry/bosh-cli/v7/common/net"

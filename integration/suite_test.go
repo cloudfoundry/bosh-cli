@@ -8,7 +8,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/testutils"
 	bitestutils "github.com/cloudfoundry/bosh-cli/v7/testutils"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 

@@ -105,6 +105,7 @@ func (p *Package) IsCompiled() bool { return false }
 func (p *Package) ExtractedPath() string { return p.extractedPath }
 func (p *Package) Prefix(prefix string) {
 	p.prefix = prefix
+	//p.resource.Prefix(prefix)
 }
 func (p *Package) CleanUp() error {
 	if p.fs != nil && len(p.extractedPath) > 0 {

@@ -6,7 +6,7 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"

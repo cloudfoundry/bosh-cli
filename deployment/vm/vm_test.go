@@ -5,7 +5,7 @@ import (
 	"time"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"

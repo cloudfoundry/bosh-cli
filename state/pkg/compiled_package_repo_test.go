@@ -3,7 +3,7 @@ package pkg_test
 import (
 	"errors"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	biindex "github.com/cloudfoundry/bosh-cli/v7/index"

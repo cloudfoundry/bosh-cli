@@ -9,7 +9,7 @@ import (
 	"text/template"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/acceptance"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"os"
@@ -25,6 +25,10 @@ const (
 	stageCompiledPackageSkippedPattern = "\\.\\.\\. Skipped \\[Package already compiled\\] " + stageTimePattern + "$"
 )
 
+var _ = BeforeSuite(func() {
+	err := bitestutils.BuildExecutable()
+	Expect(err).NotTo(HaveOccurred())
+})
 var _ = Describe("bosh", func() {
 	var (
 		logger          boshlog.Logger
@@ -177,11 +181,6 @@ var _ = Describe("bosh", func() {
 
 		return outputLines[startIndex+1 : stopIndex], stopIndex
 	}
-
-	BeforeSuite(func() {
-		err := bitestutils.BuildExecutable()
-		Expect(err).NotTo(HaveOccurred())
-	})
 
 	BeforeEach(func() {
 		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter)

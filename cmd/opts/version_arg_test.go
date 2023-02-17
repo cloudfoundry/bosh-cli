@@ -2,7 +2,7 @@ package opts_test
 
 import (
 	semver "github.com/cppforlife/go-semi-semantic/version"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
