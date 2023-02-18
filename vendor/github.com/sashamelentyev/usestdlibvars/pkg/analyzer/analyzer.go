@@ -122,6 +122,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				return
 			}
 
+			switch cond.Op {
+			case token.LSS, token.GTR, token.LEQ, token.GEQ:
+				return
+			}
+
 			x, ok := cond.X.(*ast.SelectorExpr)
 			if !ok {
 				return
