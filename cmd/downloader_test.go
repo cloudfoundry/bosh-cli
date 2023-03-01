@@ -6,15 +6,21 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"syscall"
+	"testing"
 	"time"
 
 	"code.cloudfoundry.org/clock"
 	"code.cloudfoundry.org/clock/fakeclock"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/cloudfoundry/bosh-cli/v7/director"
+	"github.com/cloudfoundry/bosh-cli/v7/ui"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
@@ -221,3 +227,96 @@ var _ = Describe("UIDownloader", func() {
 		})
 	})
 })
+
+func TestNewUIDownloader(t *testing.T) {
+	type args struct {
+		director    director.Director
+		timeService clock.Clock
+		fs          system.FileSystem
+		ui          ui.UI
+	}
+	tests := []struct {
+		name string
+		args args
+		want UIDownloader
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NewUIDownloader(tt.args.director, tt.args.timeService, tt.args.fs, tt.args.ui); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewUIDownloader() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUIDownloader_Download(t *testing.T) {
+	type fields struct {
+		director    director.Director
+		timeService clock.Clock
+		fs          system.FileSystem
+		ui          ui.UI
+	}
+	type args struct {
+		blobstoreID string
+		sha1        string
+		prefix      string
+		dstDirPath  string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := UIDownloader{
+				director:    tt.fields.director,
+				timeService: tt.fields.timeService,
+				fs:          tt.fields.fs,
+				ui:          tt.fields.ui,
+			}
+			if err := d.Download(tt.args.blobstoreID, tt.args.sha1, tt.args.prefix, tt.args.dstDirPath); (err != nil) != tt.wantErr {
+				t.Errorf("Download() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestUIDownloader_verifyFile(t *testing.T) {
+	type fields struct {
+		director    director.Director
+		timeService clock.Clock
+		fs          system.FileSystem
+		ui          ui.UI
+	}
+	type args struct {
+		file           system.File
+		expectedDigest string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := UIDownloader{
+				director:    tt.fields.director,
+				timeService: tt.fields.timeService,
+				fs:          tt.fields.fs,
+				ui:          tt.fields.ui,
+			}
+			if err := d.verifyFile(tt.args.file, tt.args.expectedDigest); (err != nil) != tt.wantErr {
+				t.Errorf("verifyFile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

@@ -856,6 +856,8 @@ type LogsOpts struct {
 
 	GatewayFlags
 
+	CreateEnvAuthFlags
+
 	cmd
 }
 
@@ -948,8 +950,9 @@ type SSHOpts struct {
 }
 
 type CreateEnvAuthFlags struct {
-	Endpoint    string `long:"agent-endpoint"    description:"Endpoint to connect to the agent's HTTPS NATS bus" env:"BOSH_AGENT_ENDPOINT"`
-	Certificate string `long:"agent-certificate"    description:"Certificate to connect to the agent's HTTPS NATS bus" env:"BOSH_AGENT_CERTIFICATE"`
+	TargetDirector bool   `long:"director"             description:"Target the command at the BOSH director (or other type of VM deployed via create-env)"`
+	Endpoint       string `long:"agent-endpoint"       description:"Address to connect to the agent's HTTPS endpoint"      env:"BOSH_AGENT_ENDPOINT"`
+	Certificate    string `long:"agent-certificate"    description:"CA certificate to validate the agent's HTTPS endpoint" env:"BOSH_AGENT_CERTIFICATE"`
 }
 
 type SCPOpts struct {
@@ -962,6 +965,8 @@ type SCPOpts struct {
 	Username string `long:"username" short:"l" description:"Login name for authorized key" default:"vcap"`
 
 	GatewayFlags
+
+	CreateEnvAuthFlags
 
 	cmd
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/cppforlife/go-patch/patch"
 
 	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
+
 	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
 	"github.com/cloudfoundry/bosh-cli/v7/crypto"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
@@ -19,10 +20,11 @@ import (
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	boshuit "github.com/cloudfoundry/bosh-cli/v7/ui/task"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
+
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type Cmd struct {
@@ -360,11 +362,21 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewCleanUpCmd(deps.UI, c.director()).Run(*opts)
 
 	case *LogsOpts:
-		director, deployment := c.directorAndDeployment()
-		downloader := NewUIDownloader(director, deps.Time, deps.FS, deps.UI)
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
 		nonIntSSHRunner := sshProvider.NewSSHRunner(false)
-		return NewLogsCmd(deployment, downloader, deps.UUIDGen, nonIntSSHRunner).Run(*opts)
+		if opts.CreateEnvAuthFlags.TargetDirector {
+			agentClientFactory := bihttpagent.NewAgentClientFactory(1*time.Second, deps.Logger)
+			agentClient, err := agentClientFactory.NewAgentClient("bosh-cli", opts.CreateEnvAuthFlags.Endpoint, opts.CreateEnvAuthFlags.Certificate)
+			if err != nil {
+				return err
+			}
+			scpRunner := sshProvider.NewSCPRunner()
+			return NewEnvLogsCmd(agentClient, nonIntSSHRunner, scpRunner, deps.FS).Run(*opts)
+		} else {
+			director, deployment := c.directorAndDeployment()
+			downloader := NewUIDownloader(director, deps.Time, deps.FS, deps.UI)
+			return NewLogsCmd(deployment, downloader, deps.UUIDGen, nonIntSSHRunner).Run(*opts)
+		}
 
 	case *SSHOpts:
 		agentClientFactory := bihttpagent.NewAgentClientFactory(1*time.Second, deps.Logger)
@@ -380,10 +392,15 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewSSHCmd(deps.UUIDGen, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, deps.UI, sshHostBuilder).Run(*opts, c.getDeployment, agentClient)
 
 	case *SCPOpts:
+		agentClientFactory := bihttpagent.NewAgentClientFactory(1*time.Second, deps.Logger)
+		agentClient, err := agentClientFactory.NewAgentClient("bosh-cli", opts.CreateEnvAuthFlags.Endpoint, opts.CreateEnvAuthFlags.Certificate)
+		if err != nil {
+			return err
+		}
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
 		scpRunner := sshProvider.NewSCPRunner()
 		sshHostBuilder := boshssh.NewHostBuilder()
-		return NewSCPCmd(deps.UUIDGen, scpRunner, deps.UI, sshHostBuilder).Run(*opts, c.getDeployment)
+		return NewSCPCmd(deps.UUIDGen, scpRunner, deps.UI, sshHostBuilder).Run(*opts, c.getDeployment, agentClient)
 
 	case *ExportReleaseOpts:
 		director, deployment := c.directorAndDeployment()

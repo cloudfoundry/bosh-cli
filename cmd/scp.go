@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
@@ -32,7 +33,7 @@ func NewSCPCmd(
 	}
 }
 
-func (c SCPCmd) Run(opts SCPOpts, deploymentFetcher boshssh.DeploymentFetcher) error {
+func (c SCPCmd) Run(opts SCPOpts, deploymentFetcher boshssh.DeploymentFetcher, agentClient biagentclient.AgentClient) error {
 	scpArgs := boshssh.NewSCPArgs(opts.Args.Paths, opts.Recursive)
 
 	slug, err := scpArgs.AllOrInstanceGroupOrInstanceSlug()
@@ -47,21 +48,40 @@ func (c SCPCmd) Run(opts SCPOpts, deploymentFetcher boshssh.DeploymentFetcher) e
 
 	var result boshdir.SSHResult
 	if opts.PrivateKey.Bytes == nil {
-		c.deployment, err = deploymentFetcher()
-		if err != nil {
-			return err
+		if opts.CreateEnvAuthFlags.TargetDirector {
+			var agentResult biagentclient.SSHResult
+			agentResult, err = agentClient.SetUpSSH(sshOpts.Username, sshOpts.PublicKey)
+			result = boshdir.SSHResult{
+				Hosts: []boshdir.Host{
+					{
+						Username:      sshOpts.Username,
+						Host:          agentResult.Ip,
+						HostPublicKey: agentResult.HostPublicKey,
+						Job:           "create-env-vm",
+						IndexOrID:     "0",
+					},
+				},
+			}
+		} else {
+			c.deployment, err = deploymentFetcher()
+			if err != nil {
+				return err
+			}
+
+			// host key will be returned by agent over NATS
+			connOpts.RawOpts = append(connOpts.RawOpts, "-o", "StrictHostKeyChecking=yes")
+
+			result, err = c.deployment.SetUpSSH(slug, sshOpts)
+			if err != nil {
+				return err
+			}
 		}
-
-		// host key will be returned by agent over NATS
-		connOpts.RawOpts = append(connOpts.RawOpts, "-o", "StrictHostKeyChecking=yes")
-
-		result, err = c.deployment.SetUpSSH(slug, sshOpts)
-		if err != nil {
-			return err
-		}
-
 		defer func() {
-			_ = c.deployment.CleanUpSSH(slug, sshOpts)
+			if opts.CreateEnvAuthFlags.TargetDirector {
+				_, _ = agentClient.CleanUpSSH(sshOpts.Username)
+			} else {
+				_ = c.deployment.CleanUpSSH(slug, sshOpts)
+			}
 		}()
 	} else {
 		// no automatic source of host key

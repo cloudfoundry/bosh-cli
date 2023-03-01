@@ -2,12 +2,13 @@ package cmd
 
 import (
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 type SSHCmd struct {
@@ -57,7 +58,7 @@ func (c SSHCmd) Run(opts SSHOpts, deploymentFetcher boshssh.DeploymentFetcher, a
 		// host key will be returned by agent over NATS
 		connOpts.RawOpts = append(connOpts.RawOpts, "-o", "StrictHostKeyChecking=yes")
 
-		if opts.CreateEnvAuthFlags.IsEnabled() {
+		if opts.CreateEnvAuthFlags.TargetDirector {
 			var agentResult biagentclient.SSHResult
 			agentResult, err = agentClient.SetUpSSH(sshOpts.Username, sshOpts.PublicKey)
 			result = boshdir.SSHResult{
@@ -82,7 +83,7 @@ func (c SSHCmd) Run(opts SSHOpts, deploymentFetcher boshssh.DeploymentFetcher, a
 		}
 
 		defer func() {
-			if opts.CreateEnvAuthFlags.IsEnabled() {
+			if opts.CreateEnvAuthFlags.TargetDirector {
 				_, _ = agentClient.CleanUpSSH(sshOpts.Username)
 			} else {
 				_ = c.deployment.CleanUpSSH(opts.Args.Slug, sshOpts)

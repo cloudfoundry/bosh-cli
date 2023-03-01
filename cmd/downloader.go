@@ -42,14 +42,14 @@ func NewUIDownloader(
 	}
 }
 
-func (d UIDownloader) Download(blobstoreID, sha1, prefix, dstDirPath string) error {
+func (d UIDownloader) downloadAndVerify(prefix, dstDirPath, sha1 string, fileFillerFunc func(tmpFile boshsys.File, dstFilePath string) error) error {
 	tsSuffix := strings.Replace(d.timeService.Now().Format("20060102-150405.999999999"), ".", "-", -1)
 
 	dstFileName := fmt.Sprintf("%s-%s.tgz", prefix, tsSuffix)
 
 	dstFilePath := filepath.Join(dstDirPath, dstFileName)
 
-	tmpFile, err := d.fs.TempFile(fmt.Sprintf("director-resource-%s", blobstoreID))
+	tmpFile, err := d.fs.TempFile("bosh-cli-download")
 	if err != nil {
 		return err
 	}
@@ -57,12 +57,7 @@ func (d UIDownloader) Download(blobstoreID, sha1, prefix, dstDirPath string) err
 	defer tmpFile.Close()                //nolint:errcheck
 	defer d.fs.RemoveAll(tmpFile.Name()) //nolint:errcheck
 
-	d.ui.PrintLinef("Downloading resource '%s' to '%s'...", blobstoreID, dstFilePath)
-
-	err = d.director.DownloadResourceUnchecked(blobstoreID, tmpFile)
-	if err != nil {
-		return err
-	}
+	fileFillerFunc(tmpFile, dstFilePath)
 
 	// unfortunate. apparently old directors may not send the digest.
 	if len(sha1) > 0 {
@@ -83,6 +78,53 @@ func (d UIDownloader) Download(blobstoreID, sha1, prefix, dstDirPath string) err
 	}
 
 	return nil
+}
+
+func (d UIDownloader) Download(blobstoreID, sha1, prefix, dstDirPath string) error {
+	return d.downloadAndVerify(prefix, dstDirPath, sha1, func(tmpFile boshsys.File, dstFilePath string) error {
+		d.ui.PrintLinef("Downloading resource '%s' to '%s'...", blobstoreID, dstFilePath)
+		return d.director.DownloadResourceUnchecked(blobstoreID, tmpFile)
+	})
+	//tsSuffix := strings.Replace(d.timeService.Now().Format("20060102-150405.999999999"), ".", "-", -1)
+	//
+	//dstFileName := fmt.Sprintf("%s-%s.tgz", prefix, tsSuffix)
+	//
+	//dstFilePath := filepath.Join(dstDirPath, dstFileName)
+	//
+	//tmpFile, err := d.fs.TempFile(fmt.Sprintf("director-resource-%s", blobstoreID))
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//defer tmpFile.Close()                //nolint:errcheck
+	//defer d.fs.RemoveAll(tmpFile.Name()) //nolint:errcheck
+	//
+	//d.ui.PrintLinef("Downloading resource '%s' to '%s'...", blobstoreID, dstFilePath)
+	//
+	//err = d.director.DownloadResourceUnchecked(blobstoreID, tmpFile)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//// unfortunate. apparently old directors may not send the digest.
+	//if len(sha1) > 0 {
+	//	err = d.verifyFile(tmpFile, sha1)
+	//	if err != nil {
+	//		return err
+	//	}
+	//}
+	//
+	//err = tmpFile.Close()
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//err = boshfu.NewFileMover(d.fs).Move(tmpFile.Name(), dstFilePath)
+	//if err != nil {
+	//	return bosherr.WrapErrorf(err, "Moving to final destination")
+	//}
+	//
+	//return nil
 }
 
 func (d UIDownloader) verifyFile(file boshsys.File, expectedDigest string) error {

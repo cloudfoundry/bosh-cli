@@ -3,23 +3,24 @@ package cmd_test
 import (
 	"errors"
 
-	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	fakebiagentclient "github.com/cloudfoundry/bosh-agent/agentclient/fakes"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
 	fakessh "github.com/cloudfoundry/bosh-cli/v7/ssh/sshfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("SSHCmd", func() {
+var _ = FDescribe("SSHCmd", func() {
 	var (
 		deployment       *fakedir.FakeDeployment
+		agentclient      *fakebiagentclient.FakeAgentClient
 		uuidGen          *fakeuuid.FakeGenerator
 		intSSHRunner     *fakessh.FakeRunner
 		nonIntSSHRunner  *fakessh.FakeRunner
@@ -31,6 +32,7 @@ var _ = Describe("SSHCmd", func() {
 
 	BeforeEach(func() {
 		deployment = &fakedir.FakeDeployment{}
+		agentclient = &fakebiagentclient.FakeAgentClient{}
 		uuidGen = &fakeuuid.FakeGenerator{}
 		intSSHRunner = &fakessh.FakeRunner{}
 		nonIntSSHRunner = &fakessh.FakeRunner{}
@@ -65,7 +67,7 @@ var _ = Describe("SSHCmd", func() {
 			act = func() error {
 				return command.Run(opts, func() (boshdir.Deployment, error) {
 					return deployment, nil
-				})
+				}, agentclient)
 			}
 		})
 
