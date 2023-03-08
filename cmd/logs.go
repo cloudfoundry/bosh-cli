@@ -2,15 +2,25 @@ package cmd
 
 import (
 	"fmt"
+	"path/filepath"
 	"strconv"
 	"strings"
 
+	"code.cloudfoundry.org/clock"
+
+	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
+	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
+
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 )
 
 type LogsCmd struct {
@@ -56,7 +66,7 @@ func (c LogsCmd) tail(opts LogsOpts) error {
 		_ = c.deployment.CleanUpSSH(opts.Args.Slug, sshOpts)
 	}()
 
-	err = c.nonIntSSHRunner.Run(connOpts, result, c.buildTailCmd(opts))
+	err = c.nonIntSSHRunner.Run(connOpts, result, buildTailCmd(opts))
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Running follow over non-interactive SSH")
 	}
@@ -64,7 +74,7 @@ func (c LogsCmd) tail(opts LogsOpts) error {
 	return nil
 }
 
-func (c LogsCmd) buildTailCmd(opts LogsOpts) []string {
+func buildTailCmd(opts LogsOpts) []string {
 	cmd := []string{"sudo", "bash", "-c"}
 	tail := []string{"exec", "tail"}
 
@@ -143,6 +153,135 @@ func (c LogsCmd) fetch(opts LogsOpts) error {
 	)
 	if err != nil {
 		return bosherr.WrapError(err, "Downloading logs")
+	}
+
+	return nil
+}
+
+type EnvLogsCmd struct {
+	agentClientFactory bihttpagent.AgentClientFactory
+	nonIntSSHRunner    boshssh.Runner
+	scpRunner          boshssh.SCPRunner
+	fs                 boshsys.FileSystem
+	timeService        clock.Clock
+	ui                 boshui.UI
+}
+
+func NewEnvLogsCmd(
+	agentClientFactory bihttpagent.AgentClientFactory,
+	nonIntSSHRunner boshssh.Runner,
+	scpRunner boshssh.SCPRunner,
+	fs boshsys.FileSystem,
+	timeService clock.Clock,
+	ui boshui.UI,
+) EnvLogsCmd {
+	return EnvLogsCmd{
+		agentClientFactory: agentClientFactory,
+		nonIntSSHRunner:    nonIntSSHRunner,
+		scpRunner:          scpRunner,
+		fs:                 fs,
+		timeService:        timeService,
+		ui:                 ui,
+	}
+}
+
+func (c EnvLogsCmd) Run(opts LogsOpts) error {
+	agentClient, err := c.agentClientFactory.NewAgentClient("bosh-cli", opts.Endpoint, opts.Certificate)
+	if err != nil {
+		return err
+	}
+
+	sshOpts, connOpts, err := opts.GatewayFlags.AsSSHOpts()
+	if err != nil {
+		return err
+	}
+
+	agentResult, err := agentClient.SetUpSSH(sshOpts.Username, sshOpts.PublicKey)
+	if err != nil {
+		return err
+	}
+	sshResult := boshdir.SSHResult{
+		Hosts: []boshdir.Host{
+			{
+				Username:      sshOpts.Username,
+				Host:          agentResult.Ip,
+				HostPublicKey: agentResult.HostPublicKey,
+				Job:           "create-env-vm",
+				IndexOrID:     "0",
+			},
+		},
+	}
+
+	defer func() {
+		_, _ = agentClient.CleanUpSSH(sshOpts.Username)
+	}()
+
+	if opts.Follow || opts.Num > 0 {
+		return c.tail(opts, connOpts, sshResult)
+	}
+
+	return c.fetch(opts, connOpts, sshResult, agentClient)
+}
+
+func (c EnvLogsCmd) tail(opts LogsOpts, connOpts boshssh.ConnectionOpts, sshResult boshdir.SSHResult) error {
+	err := c.nonIntSSHRunner.Run(connOpts, sshResult, buildTailCmd(opts))
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Running follow over non-interactive SSH")
+	}
+
+	return nil
+}
+
+func (c EnvLogsCmd) fetch(opts LogsOpts, connOpts boshssh.ConnectionOpts, sshResult boshdir.SSHResult, agentClient biagentclient.AgentClient) error {
+	logType := "job"
+	if opts.Agent {
+		logType = "agent"
+	}
+	bundleLogsResult, err := agentClient.BundleLogs(sshResult.Hosts[0].Username, logType, opts.Filters)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = agentClient.RemoveFile(bundleLogsResult.LogsTarPath)
+	}()
+
+	// This is section is lifted from Downloader.Download, an opportunity for refactor in the future?
+	tsSuffix := strings.Replace(c.timeService.Now().Format("20060102-150405.999999999"), ".", "-", -1)
+	dstFileName := fmt.Sprintf("%s-%s.tgz", "create-env-vm-logs", tsSuffix)
+	dstFilePath := filepath.Join(opts.Directory.Path, dstFileName)
+
+	tmpFile, err := c.fs.TempFile("bosh-cli-scp-download")
+	if err != nil {
+		return err
+	}
+	defer tmpFile.Close()                //nolint:errcheck
+	defer c.fs.RemoveAll(tmpFile.Name()) //nolint:errcheck
+
+	c.ui.PrintLinef("Downloading create-env-vm/0 logs to '%s'...", dstFilePath)
+	scpArgs := boshssh.NewSCPArgs([]string{fmt.Sprintf("%s:%s", "create-env-vm/0", bundleLogsResult.LogsTarPath), tmpFile.Name()}, false)
+	err = c.scpRunner.Run(connOpts, sshResult, scpArgs)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Running SCP")
+	}
+
+	expectedMultipleDigest, err := boshcrypto.ParseMultipleDigest(bundleLogsResult.SHA512Digest)
+	if err != nil {
+		return err
+	}
+
+	err = expectedMultipleDigest.VerifyFilePath(tmpFile.Name(), c.fs)
+	if err != nil {
+		return err
+	}
+
+	err = tmpFile.Close()
+	if err != nil {
+		return err
+	}
+
+	err = boshfu.NewFileMover(c.fs).Move(tmpFile.Name(), dstFilePath)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Moving to final destination")
 	}
 
 	return nil
