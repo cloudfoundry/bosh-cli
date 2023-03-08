@@ -1,10 +1,16 @@
 package fakes
 
+import "github.com/cloudfoundry/bosh-utils/fileutil"
+
 type FakeCopier struct {
-	FilteredCopyToTempTempDir string
-	FilteredCopyToTempError   error
-	FilteredCopyToTempDir     string
-	FilteredCopyToTempFilters []string
+	FilteredCopyToTempTempDir      string
+	FilteredCopyToTempError        error
+	FilteredCopyToTempDir          string
+	FilteredCopyToTempFilters      []string
+	FilteredMultiCopyToTempDirs    []fileutil.DirToCopy
+	FilteredMultiCopyToTempFilters []string
+	FilteredMultiCopyToTempError   error
+	FilteredMultiCopyToTempDir     string
 
 	CleanUpTempDir string
 }
@@ -19,6 +25,14 @@ func (c *FakeCopier) FilteredCopyToTemp(dir string, filters []string) (tempDir s
 	c.FilteredCopyToTempFilters = filters
 	tempDir = c.FilteredCopyToTempTempDir
 	err = c.FilteredCopyToTempError
+	return
+}
+
+func (c *FakeCopier) FilteredMultiCopyToTemp(dirs []fileutil.DirToCopy, filters []string) (tempDir string, err error) {
+	c.FilteredMultiCopyToTempDirs = dirs
+	c.FilteredMultiCopyToTempFilters = filters
+	tempDir = c.FilteredMultiCopyToTempDir
+	err = c.FilteredMultiCopyToTempError
 	return
 }
 

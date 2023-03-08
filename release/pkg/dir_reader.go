@@ -48,7 +48,7 @@ func (r DirReaderImpl) Read(path string) (*Package, error) {
 
 	if manifestLock != nil {
 		resource := NewExistingResource(manifestLock.Name, manifestLock.Fingerprint, "")
-		return NewPackage(resource, manifestLock.Dependencies), nil
+		return NewPackage(resource, manifestLock.Dependencies, manifestLock.PackageVersions), nil
 	}
 
 	manifest, files, prepFiles, err := r.collectFiles(path)
@@ -67,7 +67,7 @@ func (r DirReaderImpl) Read(path string) (*Package, error) {
 
 	resource := NewResource(manifest.Name, fp, archive)
 
-	return NewPackage(resource, manifest.Dependencies), nil
+	return NewPackage(resource, manifest.Dependencies, manifest.PackageVersions), nil
 }
 
 func (r DirReaderImpl) collectLock(path string) (*ManifestLock, error) {

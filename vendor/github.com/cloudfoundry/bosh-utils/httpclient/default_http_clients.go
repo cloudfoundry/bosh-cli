@@ -54,6 +54,13 @@ func CreateDefaultClientInsecureSkipVerify() *http.Client {
 	return factory{}.New(insecureSkipVerify, external, disableKeepAlives, nil)
 }
 
+func ResetDialerContext() {
+	defaultDialerContextFunc = SOCKS5DialContextFuncFromEnvironment((&net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+	}), proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(ioutil.Discard, "", log.LstdFlags), 1*time.Minute))
+}
+
 type factory struct{}
 
 func (f factory) New(insecureSkipVerify, externalClient bool, disableKeepAlives bool, certPool *x509.CertPool) *http.Client {

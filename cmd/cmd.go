@@ -421,6 +421,24 @@ func (c Cmd) Execute() (cmdErr error) {
 		).Run(*opts)
 		return err
 
+	case *CreateSbomOpts:
+		relProv, relDirProv := c.releaseProviders()
+
+		releaseDirFactory := func(dir DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir) {
+			releaseReader := relDirProv.NewReleaseReader(dir.Path, c.BoshOpts.Parallel)
+			releaseDir := relDirProv.NewFSReleaseDir(dir.Path, c.BoshOpts.Parallel)
+			return releaseReader, releaseDir
+		}
+
+		_, err := NewCreateSbomCmd(
+			releaseDirFactory,
+			relProv.NewArchiveWriter(),
+			deps.Compressor,
+			c.deps.FS,
+			c.deps.UI,
+		).Run(*opts)
+		return err
+
 	case *Sha1ifyReleaseOpts:
 		relProv, _ := c.releaseProviders()
 

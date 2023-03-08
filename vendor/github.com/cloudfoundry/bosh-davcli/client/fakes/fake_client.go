@@ -28,7 +28,7 @@ func (c *FakeClient) Get(path string) (io.ReadCloser, error) {
 func (c *FakeClient) Put(path string, content io.ReadCloser, contentLength int64) error {
 	c.PutPath = path
 	contentBytes := make([]byte, contentLength)
-	content.Read(contentBytes)
+	content.Read(contentBytes) //nolint:errcheck
 	defer content.Close()
 	c.PutContents = string(contentBytes)
 	c.PutContentLength = contentLength

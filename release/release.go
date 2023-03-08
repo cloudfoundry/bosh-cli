@@ -104,11 +104,12 @@ func (r *release) Manifest() birelman.Manifest {
 
 	for _, pkg := range r.Packages() {
 		packageRefs = append(packageRefs, birelman.PackageRef{
-			Name:         pkg.Name(),
-			Version:      pkg.Fingerprint(),
-			Fingerprint:  pkg.Fingerprint(),
-			SHA1:         pkg.ArchiveDigest(),
-			Dependencies: pkg.DependencyNames(),
+			Name:            pkg.Name(),
+			Version:         pkg.Fingerprint(),
+			Fingerprint:     pkg.Fingerprint(),
+			SHA1:            pkg.ArchiveDigest(),
+			Dependencies:    pkg.DependencyNames(),
+			PackageVersions: pkg.PackageVersions,
 		})
 	}
 

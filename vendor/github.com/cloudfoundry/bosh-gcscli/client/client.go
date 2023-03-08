@@ -148,7 +148,7 @@ func (client *GCSBlobstore) putOnce(src io.ReadSeeker, dest string) error {
 	remoteWriter.ObjectAttrs.StorageClass = client.config.StorageClass
 
 	if _, err := io.Copy(remoteWriter, src); err != nil {
-		remoteWriter.CloseWithError(err)
+		remoteWriter.CloseWithError(err) //nolint:errcheck,staticcheck
 		return err
 	}
 
@@ -214,11 +214,13 @@ func (client *GCSBlobstore) Sign(id string, action string, expiry time.Duration)
 	}
 
 	// GET/PUT to the resultant signed url must include, in addition to the below:
-	// 'x-goog-encryption-key' and 'x-goog-encryption-key-hash'
+	// 'x-goog-encryption-key' and 'x-goog-encryption-key-sha256'
 	willEncrypt := len(client.config.EncryptionKey) > 0
 	if willEncrypt {
 		options.Headers = []string{
 			"x-goog-encryption-algorithm: AES256",
+			fmt.Sprintf("x-goog-encryption-key: %s", client.config.EncryptionKeyEncoded),
+			fmt.Sprintf("x-goog-encryption-key-sha256: %s", client.config.EncryptionKeySha256),
 		}
 	}
 	return storage.SignedURL(client.config.BucketName, id, &options)

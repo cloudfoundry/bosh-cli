@@ -112,7 +112,7 @@ func (r ManifestReader) newPackages(refs []boshman.PackageRef) ([]*boshpkg.Packa
 	for _, ref := range refs {
 		resource := NewExistingResource(ref.Name, ref.Fingerprint, ref.SHA1)
 
-		pkg := boshpkg.NewPackage(resource, ref.Dependencies)
+		pkg := boshpkg.NewPackage(resource, ref.Dependencies, ref.PackageVersions)
 
 		packages = append(packages, pkg)
 	}

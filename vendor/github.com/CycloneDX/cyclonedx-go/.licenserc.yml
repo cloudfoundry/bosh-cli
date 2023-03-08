@@ -1,0 +1,20 @@
+header:
+  license:
+    spdx-id: Apache-2.0
+    copyright-owner: OWASP Foundation
+  paths-ignore:
+    - "**/*.md"
+    - "**/go.mod"
+    - "**/go.sum"
+    - "**/testdata/**"
+    - ".github/**"
+    - ".gitignore"
+    - ".gitpod.yml"
+    - ".golangci.yml"
+    - ".goreleaser.yml"
+    - ".licenserc.yml"
+    - "CODEOWNERS"
+    - "LICENSE"
+    - "Makefile"
+    - "NOTICE"
+    - "cyclonedx_string.go"

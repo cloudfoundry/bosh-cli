@@ -30,7 +30,7 @@ func NewArchiveReaderImpl(
 func (r ArchiveReaderImpl) Read(ref boshman.PackageRef, path string) (*Package, error) {
 	resource := NewResourceWithBuiltArchive(ref.Name, ref.Fingerprint, path, ref.SHA1)
 
-	pkg := NewPackage(resource, ref.Dependencies)
+	pkg := NewPackage(resource, ref.Dependencies, ref.PackageVersions)
 
 	if r.extract {
 		extractPath, err := r.fs.TempDir("bosh-release-pkg")

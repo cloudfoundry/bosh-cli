@@ -3,13 +3,14 @@ package client
 import (
 	"crypto/sha1"
 	"fmt"
-	URLsigner "github.com/cloudfoundry/bosh-davcli/signer"
 	"io"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
 	"time"
+
+	URLsigner "github.com/cloudfoundry/bosh-davcli/signer"
 
 	davconf "github.com/cloudfoundry/bosh-davcli/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -170,7 +171,9 @@ func (c client) createReq(method, blobID string, body io.Reader) (*http.Request,
 		return req, err
 	}
 
-	req.SetBasicAuth(c.config.User, c.config.Password)
+	if c.config.User != "" {
+		req.SetBasicAuth(c.config.User, c.config.Password)
+	}
 	return req, nil
 }
 

@@ -1,8 +1,9 @@
 package client
 
 import (
-	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
 	"net/http"
+
+	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -40,7 +41,7 @@ func NewSDK(c config.S3Cli) (*s3.S3, error) {
 		s3Config = s3Config.WithCredentials(credentials.AnonymousCredentials)
 	}
 
-	s3Session := session.New(s3Config)
+	s3Session := session.New(s3Config) //nolint:staticcheck
 	s3Client := s3.New(s3Session)
 
 	if c.UseV2SigningMethod {

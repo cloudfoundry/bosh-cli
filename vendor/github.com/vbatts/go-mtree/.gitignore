@@ -1,0 +1,8 @@
+*~
+.cli.test
+.lint
+.test
+.vet
+.staticcheck
+.gocyclo
+gomtree
