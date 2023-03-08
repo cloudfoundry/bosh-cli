@@ -379,8 +379,14 @@ func (c Cmd) Execute() (cmdErr error) {
 		intSSHRunner := sshProvider.NewSSHRunner(true)
 		nonIntSSHRunner := sshProvider.NewSSHRunner(false)
 		resultsSSHRunner := sshProvider.NewResultsSSHRunner(false)
-		sshHostBuilder := boshssh.NewHostBuilder()
-		return NewSSHCmd(deps.UUIDGen, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, deps.UI, sshHostBuilder).Run(*opts, c.getDeployment)
+
+		if opts.TargetDirector {
+			agentClientFactory := bihttpagent.NewAgentClientFactory(1*time.Second, deps.Logger)
+			return NewEnvSSHCmd(agentClientFactory, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, deps.UI).Run(*opts)
+		} else {
+			sshHostBuilder := boshssh.NewHostBuilder()
+			return NewSSHCmd(intSSHRunner, nonIntSSHRunner, resultsSSHRunner, deps.UI, sshHostBuilder).Run(*opts, c.getDeployment)
+		}
 
 	case *SCPOpts:
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)

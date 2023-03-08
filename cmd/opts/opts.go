@@ -952,6 +952,8 @@ type SSHOpts struct {
 
 	GatewayFlags
 
+	CreateEnvAuthFlags
+
 	cmd
 }
 
