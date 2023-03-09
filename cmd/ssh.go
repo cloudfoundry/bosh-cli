@@ -136,6 +136,9 @@ func (c EnvSSHCmd) Run(opts SSHOpts) error {
 	if opts.PrivateKey.Bytes != nil {
 		return errors.New("the --private-key flag is not supported in combination with the --director flag")
 	}
+	if opts.Endpoint == "" || opts.Certificate == "" {
+		return errors.New("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set")
+	}
 
 	agentClient, err := c.agentClientFactory.NewAgentClient("bosh-cli", opts.Endpoint, opts.Certificate)
 	if err != nil {

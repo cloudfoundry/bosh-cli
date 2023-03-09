@@ -263,124 +263,170 @@ var _ = Describe("SCP", func() {
 			})
 
 			Context("when private key is not provided", func() {
-				BeforeEach(func() {
-					opts = SCPOpts{
-						CreateEnvAuthFlags: CreateEnvAuthFlags{
-							TargetDirector: true,
-							Endpoint:       "https:///foo:bar@10.0.0.5",
-							Certificate:    "some-cert",
-						},
-						GatewayFlags: GatewayFlags{
-							UUIDGen: uuidGen,
-						},
-					}
-					uuidGen.GeneratedUUID = UUID
+				Context("neither the endpoint or certificate flag is set", func() {
+					BeforeEach(func() {
+						opts = SCPOpts{
+							CreateEnvAuthFlags: CreateEnvAuthFlags{
+								TargetDirector: true,
+							},
+						}
+					})
 
-					agentClientFactory.EXPECT().NewAgentClient(
-						gomock.Eq("bosh-cli"),
-						gomock.Eq("https:///foo:bar@10.0.0.5"),
-						gomock.Eq("some-cert"),
-					).Return(agentClient, nil).Times(1)
+					It("errors", func() {
+						Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+					})
 				})
 
-				Context("when valid SCP args are provided", func() {
+				Context("only the endpoint flag is set", func() {
 					BeforeEach(func() {
-						opts.Args.Paths = []string{"from:file", "/something"}
-					})
-
-					It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
-						scpRunner.RunStub = func(boshssh.ConnectionOpts, boshdir.SSHResult, boshssh.SCPArgs) error {
-							agentClient.EXPECT().CleanUpSSH(gomock.Any()).Times(0)
-							return nil
+						opts = SCPOpts{
+							CreateEnvAuthFlags: CreateEnvAuthFlags{
+								TargetDirector: true,
+								Endpoint:       "https:///foo:bar@10.0.0.5",
+							},
 						}
-						agentClient.EXPECT().SetUpSSH(gomock.Eq(ExpUsername), mocks.GomegaMock(ContainSubstring("ssh-rsa AAAA"))).
-							Times(1)
-						agentClient.EXPECT().CleanUpSSH(gomock.Eq(ExpUsername)).
-							Times(1)
-
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
-
-						Expect(scpRunner.RunCallCount()).To(Equal(1))
 					})
 
-					It("returns an error if setting up SSH access fails", func() {
-						agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
-							Return(agentclient.SSHResult{}, errors.New("fake-ssh-err")).
-							Times(1)
-
-						err := command.Run(opts)
-
-						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("fake-ssh-err"))
+					It("errors", func() {
+						Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
 					})
+				})
 
-					It("returns an error if generating SSH options fails", func() {
-						uuidGen.GenerateError = errors.New("fake-uuid-err")
-
-						err := command.Run(opts)
-
-						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("fake-uuid-err"))
-					})
-
-					It("runs SCP with flags, and command", func() {
-						result := agentclient.SSHResult{
-							Command:       "setup",
-							Status:        "success",
-							Ip:            "10.0.0.5",
-							HostPublicKey: "some-public-key",
+				Context("only the certificate flag is set", func() {
+					BeforeEach(func() {
+						opts = SCPOpts{
+							CreateEnvAuthFlags: CreateEnvAuthFlags{
+								TargetDirector: true,
+								Certificate:    "some-cert",
+							},
 						}
-						agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
-							Return(result, nil).
-							Times(1)
-						agentClient.EXPECT().CleanUpSSH(gomock.Any()).
-							Times(1)
-
-						opts.GatewayFlags.Disable = true
-						opts.GatewayFlags.Username = "gw-username"
-						opts.GatewayFlags.Host = "gw-host"
-						opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-						opts.GatewayFlags.SOCKS5Proxy = "some-proxy"
-
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
-
-						Expect(scpRunner.RunCallCount()).To(Equal(1))
-
-						runConnOpts, runResult, runCommand := scpRunner.RunArgsForCall(0)
-						Expect(runConnOpts.PrivateKey).To(ContainSubstring("-----BEGIN RSA PRIVATE KEY-----"))
-						Expect(runConnOpts.GatewayDisable).To(Equal(true))
-						Expect(runConnOpts.GatewayUsername).To(Equal("gw-username"))
-						Expect(runConnOpts.GatewayHost).To(Equal("gw-host"))
-						Expect(runConnOpts.GatewayPrivateKeyPath).To(Equal("gw-private-key"))
-						Expect(runConnOpts.SOCKS5Proxy).To(Equal("some-proxy"))
-						Expect(runResult).To(Equal(boshdir.SSHResult{Hosts: []boshdir.Host{{Username: ExpUsername, Host: "10.0.0.5", HostPublicKey: "some-public-key", Job: "create-env-vm", IndexOrID: "0"}}}))
-						Expect(runCommand).To(Equal(boshssh.NewSCPArgs([]string{"from:file", "/something"}, false)))
 					})
 
-					It("sets up SCP to be recursive if recursive flag is set", func() {
-						opts.Recursive = true
-						agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
-							Times(1)
-						agentClient.EXPECT().CleanUpSSH(gomock.Any()).
-							Times(1)
+					It("errors", func() {
+						Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+					})
+				})
 
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
-						Expect(scpRunner.RunCallCount()).To(Equal(1))
+				Context("the endpoint and certificate flags are set", func() {
+					BeforeEach(func() {
+						opts = SCPOpts{
+							CreateEnvAuthFlags: CreateEnvAuthFlags{
+								TargetDirector: true,
+								Endpoint:       "https:///foo:bar@10.0.0.5",
+								Certificate:    "some-cert",
+							},
+							GatewayFlags: GatewayFlags{
+								UUIDGen: uuidGen,
+							},
+						}
+						uuidGen.GeneratedUUID = UUID
 
-						_, _, runCommand := scpRunner.RunArgsForCall(0)
-						Expect(runCommand).To(Equal(boshssh.NewSCPArgs([]string{"from:file", "/something"}, true)))
+						agentClientFactory.EXPECT().NewAgentClient(
+							gomock.Eq("bosh-cli"),
+							gomock.Eq("https:///foo:bar@10.0.0.5"),
+							gomock.Eq("some-cert"),
+						).Return(agentClient, nil).Times(1)
 					})
 
-					It("returns error if SCP errors", func() {
-						agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
-							Times(1)
-						agentClient.EXPECT().CleanUpSSH(gomock.Any()).
-							Times(1)
-						scpRunner.RunReturns(errors.New("fake-scp-err"))
+					Context("when valid SCP args are provided", func() {
+						BeforeEach(func() {
+							opts.Args.Paths = []string{"from:file", "/something"}
+						})
 
-						err := command.Run(opts)
+						It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
+							scpRunner.RunStub = func(boshssh.ConnectionOpts, boshdir.SSHResult, boshssh.SCPArgs) error {
+								agentClient.EXPECT().CleanUpSSH(gomock.Any()).Times(0)
+								return nil
+							}
+							agentClient.EXPECT().SetUpSSH(gomock.Eq(ExpUsername), mocks.GomegaMock(ContainSubstring("ssh-rsa AAAA"))).
+								Times(1)
+							agentClient.EXPECT().CleanUpSSH(gomock.Eq(ExpUsername)).
+								Times(1)
 
-						Expect(err).To(MatchError(ContainSubstring("fake-scp-err")))
+							Expect(command.Run(opts)).ToNot(HaveOccurred())
+
+							Expect(scpRunner.RunCallCount()).To(Equal(1))
+						})
+
+						It("returns an error if setting up SSH access fails", func() {
+							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
+								Return(agentclient.SSHResult{}, errors.New("fake-ssh-err")).
+								Times(1)
+
+							err := command.Run(opts)
+
+							Expect(err).To(HaveOccurred())
+							Expect(err.Error()).To(ContainSubstring("fake-ssh-err"))
+						})
+
+						It("returns an error if generating SSH options fails", func() {
+							uuidGen.GenerateError = errors.New("fake-uuid-err")
+
+							err := command.Run(opts)
+
+							Expect(err).To(HaveOccurred())
+							Expect(err.Error()).To(ContainSubstring("fake-uuid-err"))
+						})
+
+						It("runs SCP with flags, and command", func() {
+							result := agentclient.SSHResult{
+								Command:       "setup",
+								Status:        "success",
+								Ip:            "10.0.0.5",
+								HostPublicKey: "some-public-key",
+							}
+							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
+								Return(result, nil).
+								Times(1)
+							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
+								Times(1)
+
+							opts.GatewayFlags.Disable = true
+							opts.GatewayFlags.Username = "gw-username"
+							opts.GatewayFlags.Host = "gw-host"
+							opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
+							opts.GatewayFlags.SOCKS5Proxy = "some-proxy"
+
+							Expect(command.Run(opts)).ToNot(HaveOccurred())
+
+							Expect(scpRunner.RunCallCount()).To(Equal(1))
+
+							runConnOpts, runResult, runCommand := scpRunner.RunArgsForCall(0)
+							Expect(runConnOpts.PrivateKey).To(ContainSubstring("-----BEGIN RSA PRIVATE KEY-----"))
+							Expect(runConnOpts.GatewayDisable).To(Equal(true))
+							Expect(runConnOpts.GatewayUsername).To(Equal("gw-username"))
+							Expect(runConnOpts.GatewayHost).To(Equal("gw-host"))
+							Expect(runConnOpts.GatewayPrivateKeyPath).To(Equal("gw-private-key"))
+							Expect(runConnOpts.SOCKS5Proxy).To(Equal("some-proxy"))
+							Expect(runResult).To(Equal(boshdir.SSHResult{Hosts: []boshdir.Host{{Username: ExpUsername, Host: "10.0.0.5", HostPublicKey: "some-public-key", Job: "create-env-vm", IndexOrID: "0"}}}))
+							Expect(runCommand).To(Equal(boshssh.NewSCPArgs([]string{"from:file", "/something"}, false)))
+						})
+
+						It("sets up SCP to be recursive if recursive flag is set", func() {
+							opts.Recursive = true
+							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
+								Times(1)
+							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
+								Times(1)
+
+							Expect(command.Run(opts)).ToNot(HaveOccurred())
+							Expect(scpRunner.RunCallCount()).To(Equal(1))
+
+							_, _, runCommand := scpRunner.RunArgsForCall(0)
+							Expect(runCommand).To(Equal(boshssh.NewSCPArgs([]string{"from:file", "/something"}, true)))
+						})
+
+						It("returns error if SCP errors", func() {
+							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
+								Times(1)
+							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
+								Times(1)
+							scpRunner.RunReturns(errors.New("fake-scp-err"))
+
+							err := command.Run(opts)
+
+							Expect(err).To(MatchError(ContainSubstring("fake-scp-err")))
+						})
 					})
 				})
 			})

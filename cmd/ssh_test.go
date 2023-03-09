@@ -395,55 +395,191 @@ var _ = Describe("SSH", func() {
 			})
 
 			Context("when private key is not provided", func() {
-				BeforeEach(func() {
-					opts = SSHOpts{
-						CreateEnvAuthFlags: CreateEnvAuthFlags{
-							TargetDirector: true,
-							Endpoint:       "https:///foo:bar@10.0.0.5",
-							Certificate:    "some-cert",
-						},
-						GatewayFlags: GatewayFlags{UUIDGen: uuidGen},
+				Context("neither the endpoint or certificate flag is set", func() {
+					BeforeEach(func() {
+						opts = SSHOpts{
+							CreateEnvAuthFlags: CreateEnvAuthFlags{
+								TargetDirector: true,
+							},
+						}
+					})
+
+					It("errors", func() {
+						Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+					})
+				})
+
+				Context("only the endpoint flag is set", func() {
+					BeforeEach(func() {
+						opts = SSHOpts{
+							CreateEnvAuthFlags: CreateEnvAuthFlags{
+								TargetDirector: true,
+								Endpoint:       "https:///foo:bar@10.0.0.5",
+							},
+						}
+					})
+
+					It("errors", func() {
+						Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+					})
+				})
+
+				Context("only the certificate flag is set", func() {
+					BeforeEach(func() {
+						opts = SSHOpts{
+							CreateEnvAuthFlags: CreateEnvAuthFlags{
+								TargetDirector: true,
+								Certificate:    "some-cert",
+							},
+						}
+					})
+
+					It("errors", func() {
+						Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+					})
+				})
+
+				Context("the endpoint and certificate flags are set", func() {
+
+					BeforeEach(func() {
+						opts = SSHOpts{
+							CreateEnvAuthFlags: CreateEnvAuthFlags{
+								TargetDirector: true,
+								Endpoint:       "https:///foo:bar@10.0.0.5",
+								Certificate:    "some-cert",
+							},
+							GatewayFlags: GatewayFlags{UUIDGen: uuidGen},
+						}
+
+						uuidGen.GeneratedUUID = UUID
+
+						agentClientFactory.EXPECT().NewAgentClient(
+							gomock.Eq("bosh-cli"),
+							gomock.Eq("https:///foo:bar@10.0.0.5"),
+							gomock.Eq("some-cert"),
+						).Return(agentClient, nil).Times(1)
+					})
+
+					It("returns an error if generating SSH options fails", func() {
+						uuidGen.GenerateError = errors.New("fake-err")
+
+						err := command.Run(opts)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("fake-err"))
+					})
+
+					itRunsSpecifiedRunnerProperlyWhenCommandGiven := func(runner **fakessh.FakeRunner) {
+						Context("when command is provided", func() {
+							BeforeEach(func() {
+								opts.Command = []string{"cmd", "arg1"}
+							})
+
+							It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
+								(*runner).RunStub = func(boshssh.ConnectionOpts, boshdir.SSHResult, []string) error {
+									agentClient.EXPECT().CleanUpSSH(gomock.Any()).Times(0)
+									return nil
+								}
+								agentClient.EXPECT().SetUpSSH(gomock.Eq(ExpUsername), mocks.GomegaMock(ContainSubstring("ssh-rsa AAAA"))).
+									Times(1)
+								agentClient.EXPECT().CleanUpSSH(gomock.Eq(ExpUsername)).
+									Times(1)
+
+								Expect(command.Run(opts)).ToNot(HaveOccurred())
+
+								Expect((*runner).RunCallCount()).To(Equal(1))
+							})
+
+							It("runs non-interactive SSH", func() {
+								agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
+									Times(1)
+								agentClient.EXPECT().CleanUpSSH(gomock.Any()).
+									Times(1)
+
+								Expect(command.Run(opts)).ToNot(HaveOccurred())
+
+								Expect((*runner).RunCallCount()).To(Equal(1))
+								Expect(intSSHRunner.RunCallCount()).To(Equal(0))
+							})
+
+							It("returns an error if setting up SSH access fails", func() {
+								agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
+									Return(agentclient.SSHResult{}, errors.New("fake-ssh-err")).
+									Times(1)
+
+								err := command.Run(opts)
+
+								Expect(err).To(HaveOccurred())
+								Expect(err.Error()).To(ContainSubstring("fake-ssh-err"))
+							})
+
+							It("returns an error if generating SSH options fails", func() {
+								uuidGen.GenerateError = errors.New("fake-uuid-err")
+
+								err := command.Run(opts)
+
+								Expect(err).To(HaveOccurred())
+								Expect(err.Error()).To(ContainSubstring("fake-uuid-err"))
+							})
+
+							It("runs non-interactive SSH session with flags, and command", func() {
+								result := agentclient.SSHResult{
+									Command:       "setup",
+									Status:        "success",
+									Ip:            "10.0.0.5",
+									HostPublicKey: "some-public-key",
+								}
+								agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
+									Return(result, nil).
+									Times(1)
+								agentClient.EXPECT().CleanUpSSH(gomock.Any()).
+									Times(1)
+
+								opts.RawOpts = TrimmedSpaceArgs([]string{"raw1", "raw2"})
+								opts.GatewayFlags.Disable = true
+								opts.GatewayFlags.Username = "gw-username"
+								opts.GatewayFlags.Host = "gw-host"
+								opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
+								opts.GatewayFlags.SOCKS5Proxy = "socks5"
+
+								Expect(command.Run(opts)).ToNot(HaveOccurred())
+
+								Expect((*runner).RunCallCount()).To(Equal(1))
+
+								runConnOpts, runResult, runCommand := (*runner).RunArgsForCall(0)
+								Expect(runConnOpts.RawOpts).To(Equal([]string{"raw1", "raw2", "-o", "StrictHostKeyChecking=yes"}))
+								Expect(runConnOpts.PrivateKey).To(ContainSubstring("-----BEGIN RSA PRIVATE KEY-----"))
+								Expect(runConnOpts.GatewayDisable).To(Equal(true))
+								Expect(runConnOpts.GatewayUsername).To(Equal("gw-username"))
+								Expect(runConnOpts.GatewayHost).To(Equal("gw-host"))
+								Expect(runConnOpts.GatewayPrivateKeyPath).To(Equal("gw-private-key"))
+								Expect(runConnOpts.SOCKS5Proxy).To(Equal("socks5"))
+								Expect(runResult).To(Equal(boshdir.SSHResult{Hosts: []boshdir.Host{{Username: ExpUsername, Host: "10.0.0.5", HostPublicKey: "some-public-key", Job: "create-env-vm", IndexOrID: "0"}}}))
+								Expect(runCommand).To(Equal([]string{"cmd", "arg1"}))
+							})
+
+							It("returns error if non-interactive SSH session errors", func() {
+								(*runner).RunReturns(errors.New("fake-err"))
+								agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
+									Times(1)
+								agentClient.EXPECT().CleanUpSSH(gomock.Any()).
+									Times(1)
+
+								err := command.Run(opts)
+
+								Expect(err).To(HaveOccurred())
+								Expect(err.Error()).To(ContainSubstring("fake-err"))
+							})
+						})
 					}
 
-					uuidGen.GeneratedUUID = UUID
-
-					agentClientFactory.EXPECT().NewAgentClient(
-						gomock.Eq("bosh-cli"),
-						gomock.Eq("https:///foo:bar@10.0.0.5"),
-						gomock.Eq("some-cert"),
-					).Return(agentClient, nil).Times(1)
-				})
-
-				It("returns an error if generating SSH options fails", func() {
-					uuidGen.GenerateError = errors.New("fake-err")
-
-					err := command.Run(opts)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("fake-err"))
-				})
-
-				itRunsSpecifiedRunnerProperlyWhenCommandGiven := func(runner **fakessh.FakeRunner) {
-					Context("when command is provided", func() {
+					Context("when ui is interactive", func() {
 						BeforeEach(func() {
-							opts.Command = []string{"cmd", "arg1"}
+							ui.Interactive = true
 						})
 
-						It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
-							(*runner).RunStub = func(boshssh.ConnectionOpts, boshdir.SSHResult, []string) error {
-								agentClient.EXPECT().CleanUpSSH(gomock.Any()).Times(0)
-								return nil
-							}
-							agentClient.EXPECT().SetUpSSH(gomock.Eq(ExpUsername), mocks.GomegaMock(ContainSubstring("ssh-rsa AAAA"))).
-								Times(1)
-							agentClient.EXPECT().CleanUpSSH(gomock.Eq(ExpUsername)).
-								Times(1)
+						itRunsSpecifiedRunnerProperlyWhenCommandGiven(&nonIntSSHRunner)
 
-							Expect(command.Run(opts)).ToNot(HaveOccurred())
-
-							Expect((*runner).RunCallCount()).To(Equal(1))
-						})
-
-						It("runs non-interactive SSH", func() {
+						It("uses the interactive runner", func() {
 							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
 								Times(1)
 							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
@@ -451,141 +587,52 @@ var _ = Describe("SSH", func() {
 
 							Expect(command.Run(opts)).ToNot(HaveOccurred())
 
-							Expect((*runner).RunCallCount()).To(Equal(1))
+							Expect(intSSHRunner.RunCallCount()).To(Equal(1))
+							Expect(nonIntSSHRunner.RunCallCount()).To(Equal(0))
+							Expect(resultsSSHRunner.RunCallCount()).To(Equal(0))
+						})
+					})
+
+					Context("when ui is noninteractive", func() {
+						BeforeEach(func() {
+							ui.Interactive = false
+						})
+
+						itRunsSpecifiedRunnerProperlyWhenCommandGiven(&nonIntSSHRunner)
+
+						It("uses the noninteractive runner", func() {
+							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
+								Times(1)
+							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
+								Times(1)
+
+							Expect(command.Run(opts)).ToNot(HaveOccurred())
+
 							Expect(intSSHRunner.RunCallCount()).To(Equal(0))
+							Expect(nonIntSSHRunner.RunCallCount()).To(Equal(1))
+							Expect(resultsSSHRunner.RunCallCount()).To(Equal(0))
+						})
+					})
+
+					Context("when the results option is used", func() {
+						BeforeEach(func() {
+							opts.Results = true
 						})
 
-						It("returns an error if setting up SSH access fails", func() {
+						itRunsSpecifiedRunnerProperlyWhenCommandGiven(&resultsSSHRunner)
+
+						It("uses the results runner", func() {
 							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
-								Return(agentclient.SSHResult{}, errors.New("fake-ssh-err")).
-								Times(1)
-
-							err := command.Run(opts)
-
-							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("fake-ssh-err"))
-						})
-
-						It("returns an error if generating SSH options fails", func() {
-							uuidGen.GenerateError = errors.New("fake-uuid-err")
-
-							err := command.Run(opts)
-
-							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("fake-uuid-err"))
-						})
-
-						It("runs non-interactive SSH session with flags, and command", func() {
-							result := agentclient.SSHResult{
-								Command:       "setup",
-								Status:        "success",
-								Ip:            "10.0.0.5",
-								HostPublicKey: "some-public-key",
-							}
-							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
-								Return(result, nil).
 								Times(1)
 							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
 								Times(1)
-
-							opts.RawOpts = TrimmedSpaceArgs([]string{"raw1", "raw2"})
-							opts.GatewayFlags.Disable = true
-							opts.GatewayFlags.Username = "gw-username"
-							opts.GatewayFlags.Host = "gw-host"
-							opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-							opts.GatewayFlags.SOCKS5Proxy = "socks5"
 
 							Expect(command.Run(opts)).ToNot(HaveOccurred())
 
-							Expect((*runner).RunCallCount()).To(Equal(1))
-
-							runConnOpts, runResult, runCommand := (*runner).RunArgsForCall(0)
-							Expect(runConnOpts.RawOpts).To(Equal([]string{"raw1", "raw2", "-o", "StrictHostKeyChecking=yes"}))
-							Expect(runConnOpts.PrivateKey).To(ContainSubstring("-----BEGIN RSA PRIVATE KEY-----"))
-							Expect(runConnOpts.GatewayDisable).To(Equal(true))
-							Expect(runConnOpts.GatewayUsername).To(Equal("gw-username"))
-							Expect(runConnOpts.GatewayHost).To(Equal("gw-host"))
-							Expect(runConnOpts.GatewayPrivateKeyPath).To(Equal("gw-private-key"))
-							Expect(runConnOpts.SOCKS5Proxy).To(Equal("socks5"))
-							Expect(runResult).To(Equal(boshdir.SSHResult{Hosts: []boshdir.Host{{Username: ExpUsername, Host: "10.0.0.5", HostPublicKey: "some-public-key", Job: "create-env-vm", IndexOrID: "0"}}}))
-							Expect(runCommand).To(Equal([]string{"cmd", "arg1"}))
+							Expect(intSSHRunner.RunCallCount()).To(Equal(0))
+							Expect(nonIntSSHRunner.RunCallCount()).To(Equal(0))
+							Expect(resultsSSHRunner.RunCallCount()).To(Equal(1))
 						})
-
-						It("returns error if non-interactive SSH session errors", func() {
-							(*runner).RunReturns(errors.New("fake-err"))
-							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
-								Times(1)
-							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
-								Times(1)
-
-							err := command.Run(opts)
-
-							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("fake-err"))
-						})
-					})
-				}
-
-				Context("when ui is interactive", func() {
-					BeforeEach(func() {
-						ui.Interactive = true
-					})
-
-					itRunsSpecifiedRunnerProperlyWhenCommandGiven(&nonIntSSHRunner)
-
-					It("uses the interactive runner", func() {
-						agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
-							Times(1)
-						agentClient.EXPECT().CleanUpSSH(gomock.Any()).
-							Times(1)
-
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
-
-						Expect(intSSHRunner.RunCallCount()).To(Equal(1))
-						Expect(nonIntSSHRunner.RunCallCount()).To(Equal(0))
-						Expect(resultsSSHRunner.RunCallCount()).To(Equal(0))
-					})
-				})
-
-				Context("when ui is noninteractive", func() {
-					BeforeEach(func() {
-						ui.Interactive = false
-					})
-
-					itRunsSpecifiedRunnerProperlyWhenCommandGiven(&nonIntSSHRunner)
-
-					It("uses the noninteractive runner", func() {
-						agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
-							Times(1)
-						agentClient.EXPECT().CleanUpSSH(gomock.Any()).
-							Times(1)
-
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
-
-						Expect(intSSHRunner.RunCallCount()).To(Equal(0))
-						Expect(nonIntSSHRunner.RunCallCount()).To(Equal(1))
-						Expect(resultsSSHRunner.RunCallCount()).To(Equal(0))
-					})
-				})
-
-				Context("when the results option is used", func() {
-					BeforeEach(func() {
-						opts.Results = true
-					})
-
-					itRunsSpecifiedRunnerProperlyWhenCommandGiven(&resultsSSHRunner)
-
-					It("uses the results runner", func() {
-						agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
-							Times(1)
-						agentClient.EXPECT().CleanUpSSH(gomock.Any()).
-							Times(1)
-
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
-
-						Expect(intSSHRunner.RunCallCount()).To(Equal(0))
-						Expect(nonIntSSHRunner.RunCallCount()).To(Equal(0))
-						Expect(resultsSSHRunner.RunCallCount()).To(Equal(1))
 					})
 				})
 			})

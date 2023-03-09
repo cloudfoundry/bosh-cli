@@ -79,12 +79,12 @@ var _ = Describe("Logs", func() {
 
 					Expect(deployment.FetchLogsCallCount()).To(Equal(1))
 
-				slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
-				Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
-				Expect(filters).To(BeEmpty())
-				Expect(agent).To(BeFalse())
-				Expect(system).To(BeFalse())
-				Expect(all).To(BeFalse())
+					slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
+					Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
+					Expect(filters).To(BeEmpty())
+					Expect(agent).To(BeFalse())
+					Expect(system).To(BeFalse())
+					Expect(all).To(BeFalse())
 
 					Expect(downloader.DownloadCallCount()).To(Equal(1))
 
@@ -106,51 +106,51 @@ var _ = Describe("Logs", func() {
 
 					Expect(deployment.FetchLogsCallCount()).To(Equal(1))
 
-				slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
-				Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
-				Expect(filters).To(Equal([]string{"filter1", "filter2"}))
-				Expect(agent).To(BeTrue())
-				Expect(system).To(BeFalse())
-				Expect(all).To(BeFalse())
-			})
+					slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
+					Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
+					Expect(filters).To(Equal([]string{"filter1", "filter2"}))
+					Expect(agent).To(BeTrue())
+					Expect(system).To(BeFalse())
+					Expect(all).To(BeFalse())
+				})
 
-			It("fetches system logs and allows custom filters", func() {
-				opts.Filters = []string{"filter1", "filter2"}
-				opts.System = true
+				It("fetches system logs and allows custom filters", func() {
+					opts.Filters = []string{"filter1", "filter2"}
+					opts.System = true
 
-				deployment.FetchLogsReturns(boshdir.LogsResult{}, nil)
+					deployment.FetchLogsReturns(boshdir.LogsResult{}, nil)
 
-				err := act()
-				Expect(err).ToNot(HaveOccurred())
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
 
-				Expect(deployment.FetchLogsCallCount()).To(Equal(1))
+					Expect(deployment.FetchLogsCallCount()).To(Equal(1))
 
-				slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
-				Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
-				Expect(filters).To(Equal([]string{"filter1", "filter2"}))
-				Expect(agent).To(BeFalse())
-				Expect(system).To(BeTrue())
-				Expect(all).To(BeFalse())
-			})
+					slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
+					Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
+					Expect(filters).To(Equal([]string{"filter1", "filter2"}))
+					Expect(agent).To(BeFalse())
+					Expect(system).To(BeTrue())
+					Expect(all).To(BeFalse())
+				})
 
-			It("fetches all logs and allows custom filters", func() {
-				opts.Filters = []string{"filter1", "filter2"}
-				opts.All = true
+				It("fetches all logs and allows custom filters", func() {
+					opts.Filters = []string{"filter1", "filter2"}
+					opts.All = true
 
-				deployment.FetchLogsReturns(boshdir.LogsResult{}, nil)
+					deployment.FetchLogsReturns(boshdir.LogsResult{}, nil)
 
-				err := act()
-				Expect(err).ToNot(HaveOccurred())
+					err := act()
+					Expect(err).ToNot(HaveOccurred())
 
-				Expect(deployment.FetchLogsCallCount()).To(Equal(1))
+					Expect(deployment.FetchLogsCallCount()).To(Equal(1))
 
-				slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
-				Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
-				Expect(filters).To(Equal([]string{"filter1", "filter2"}))
-				Expect(agent).To(BeFalse())
-				Expect(system).To(BeFalse())
-				Expect(all).To(BeTrue())
-			})
+					slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
+					Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
+					Expect(filters).To(Equal([]string{"filter1", "filter2"}))
+					Expect(agent).To(BeFalse())
+					Expect(system).To(BeFalse())
+					Expect(all).To(BeTrue())
+				})
 
 				It("fetches logs for more than one instance", func() {
 					opts.Args.Slug = boshdir.NewAllOrInstanceGroupOrInstanceSlug("", "")
@@ -405,359 +405,405 @@ var _ = Describe("Logs", func() {
 				opts LogsOpts
 			)
 
-			BeforeEach(func() {
-				opts = LogsOpts{
-					CreateEnvAuthFlags: CreateEnvAuthFlags{
-						TargetDirector: true,
-						Endpoint:       "https:///foo:bar@10.0.0.5",
-						Certificate:    "some-cert",
-					},
-					GatewayFlags: GatewayFlags{UUIDGen: uuidGen},
-				}
-
-				uuidGen.GeneratedUUID = UUID
-
-				agentClientFactory.EXPECT().NewAgentClient(
-					gomock.Eq("bosh-cli"),
-					gomock.Eq("https:///foo:bar@10.0.0.5"),
-					gomock.Eq("some-cert"),
-				).Return(agentClient, nil).Times(1)
-			})
-
-			It("returns an error if generating SSH options fails", func() {
-				uuidGen.GenerateError = errors.New("fake-err")
-
-				err := command.Run(opts)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-err"))
-			})
-
-			It("returns an error if setting up SSH access fails", func() {
-				agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).Return(agentclient.SSHResult{}, errors.New("fake-ssh-err"))
-
-				err := command.Run(opts)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-ssh-err"))
-			})
-
-			Context("tailing logs", func() {
+			Context("neither the endpoint or certificate flag is set", func() {
 				BeforeEach(func() {
-					opts.Follow = true
+					opts = LogsOpts{
+						CreateEnvAuthFlags: CreateEnvAuthFlags{
+							TargetDirector: true,
+						},
+					}
 				})
 
-				It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
-					nonIntSSHRunner.RunStub = func(boshssh.ConnectionOpts, boshdir.SSHResult, []string) error {
-						agentClient.EXPECT().CleanUpSSH(gomock.Any()).Times(0)
-						return nil
+				It("errors", func() {
+					Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+				})
+			})
+
+			Context("only the endpoint flag is set", func() {
+				BeforeEach(func() {
+					opts = LogsOpts{
+						CreateEnvAuthFlags: CreateEnvAuthFlags{
+							TargetDirector: true,
+							Endpoint:       "https:///foo:bar@10.0.0.5",
+						},
+					}
+				})
+
+				It("errors", func() {
+					Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+				})
+			})
+
+			Context("only the certificate flag is set", func() {
+				BeforeEach(func() {
+					opts = LogsOpts{
+						CreateEnvAuthFlags: CreateEnvAuthFlags{
+							TargetDirector: true,
+							Certificate:    "some-cert",
+						},
+					}
+				})
+
+				It("errors", func() {
+					Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+				})
+			})
+
+			Context("the endpoint and certificate flags are set", func() {
+				BeforeEach(func() {
+					opts = LogsOpts{
+						CreateEnvAuthFlags: CreateEnvAuthFlags{
+							TargetDirector: true,
+							Endpoint:       "https:///foo:bar@10.0.0.5",
+							Certificate:    "some-cert",
+						},
+						GatewayFlags: GatewayFlags{UUIDGen: uuidGen},
 					}
 
-					agentClient.EXPECT().SetUpSSH(gomock.Eq(ExpUsername), mocks.GomegaMock(ContainSubstring("ssh-rsa AAAA"))).
-						Times(1)
-					agentClient.EXPECT().CleanUpSSH(gomock.Eq(ExpUsername)).
-						Times(1)
+					uuidGen.GeneratedUUID = UUID
 
-					Expect(command.Run(opts)).ToNot(HaveOccurred())
-
-					Expect(nonIntSSHRunner.RunCallCount()).To(Equal(1))
+					agentClientFactory.EXPECT().NewAgentClient(
+						gomock.Eq("bosh-cli"),
+						gomock.Eq("https:///foo:bar@10.0.0.5"),
+						gomock.Eq("some-cert"),
+					).Return(agentClient, nil).Times(1)
 				})
 
-				It("runs non-interactive SSH session with flags, and basic tail -f command that tails all logs", func() {
-					result := agentclient.SSHResult{
-						Command:       "setup",
-						Status:        "success",
-						Ip:            "10.0.0.5",
-						HostPublicKey: "some-public-key",
-					}
-					agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).Return(result, nil)
-					agentClient.EXPECT().CleanUpSSH(gomock.Any()).Times(1)
+				It("returns an error if generating SSH options fails", func() {
+					uuidGen.GenerateError = errors.New("fake-err")
 
-					opts.GatewayFlags.Disable = true
-					opts.GatewayFlags.Username = "gw-username"
-					opts.GatewayFlags.Host = "gw-host"
-					opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-					opts.GatewayFlags.SOCKS5Proxy = "some-proxy"
-
-					Expect(command.Run(opts)).ToNot(HaveOccurred())
-
-					Expect(nonIntSSHRunner.RunCallCount()).To(Equal(1))
-
-					runConnOpts, runResult, runCommand := nonIntSSHRunner.RunArgsForCall(0)
-					Expect(runConnOpts.PrivateKey).To(ContainSubstring("-----BEGIN RSA PRIVATE KEY-----"))
-					Expect(runConnOpts.GatewayDisable).To(Equal(true))
-					Expect(runConnOpts.GatewayUsername).To(Equal("gw-username"))
-					Expect(runConnOpts.GatewayHost).To(Equal("gw-host"))
-					Expect(runConnOpts.GatewayPrivateKeyPath).To(Equal("gw-private-key"))
-					Expect(runConnOpts.SOCKS5Proxy).To(Equal("some-proxy"))
-					Expect(runResult).To(Equal(boshdir.SSHResult{Hosts: []boshdir.Host{{Username: ExpUsername, Host: "10.0.0.5", HostPublicKey: "some-public-key", Job: "create-env-vm", IndexOrID: "0"}}}))
-					Expect(runCommand).To(Equal([]string{"sudo", "bash", "-c", "'exec tail -F /var/vcap/sys/log/**/*.log $(if [ -f /var/vcap/sys/log/*.log ]; then echo /var/vcap/sys/log/*.log ; fi)'"}))
+					err := command.Run(opts)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-err"))
 				})
 
-				Context("tail options", func() {
+				It("returns an error if setting up SSH access fails", func() {
+					agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).Return(agentclient.SSHResult{}, errors.New("fake-ssh-err"))
+
+					err := command.Run(opts)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-ssh-err"))
+				})
+
+				Context("tailing logs", func() {
+					BeforeEach(func() {
+						opts.Follow = true
+					})
+
+					It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
+						nonIntSSHRunner.RunStub = func(boshssh.ConnectionOpts, boshdir.SSHResult, []string) error {
+							agentClient.EXPECT().CleanUpSSH(gomock.Any()).Times(0)
+							return nil
+						}
+
+						agentClient.EXPECT().SetUpSSH(gomock.Eq(ExpUsername), mocks.GomegaMock(ContainSubstring("ssh-rsa AAAA"))).
+							Times(1)
+						agentClient.EXPECT().CleanUpSSH(gomock.Eq(ExpUsername)).
+							Times(1)
+
+						Expect(command.Run(opts)).ToNot(HaveOccurred())
+
+						Expect(nonIntSSHRunner.RunCallCount()).To(Equal(1))
+					})
+
+					It("runs non-interactive SSH session with flags, and basic tail -f command that tails all logs", func() {
+						result := agentclient.SSHResult{
+							Command:       "setup",
+							Status:        "success",
+							Ip:            "10.0.0.5",
+							HostPublicKey: "some-public-key",
+						}
+						agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).Return(result, nil)
+						agentClient.EXPECT().CleanUpSSH(gomock.Any()).Times(1)
+
+						opts.GatewayFlags.Disable = true
+						opts.GatewayFlags.Username = "gw-username"
+						opts.GatewayFlags.Host = "gw-host"
+						opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
+						opts.GatewayFlags.SOCKS5Proxy = "some-proxy"
+
+						Expect(command.Run(opts)).ToNot(HaveOccurred())
+
+						Expect(nonIntSSHRunner.RunCallCount()).To(Equal(1))
+
+						runConnOpts, runResult, runCommand := nonIntSSHRunner.RunArgsForCall(0)
+						Expect(runConnOpts.PrivateKey).To(ContainSubstring("-----BEGIN RSA PRIVATE KEY-----"))
+						Expect(runConnOpts.GatewayDisable).To(Equal(true))
+						Expect(runConnOpts.GatewayUsername).To(Equal("gw-username"))
+						Expect(runConnOpts.GatewayHost).To(Equal("gw-host"))
+						Expect(runConnOpts.GatewayPrivateKeyPath).To(Equal("gw-private-key"))
+						Expect(runConnOpts.SOCKS5Proxy).To(Equal("some-proxy"))
+						Expect(runResult).To(Equal(boshdir.SSHResult{Hosts: []boshdir.Host{{Username: ExpUsername, Host: "10.0.0.5", HostPublicKey: "some-public-key", Job: "create-env-vm", IndexOrID: "0"}}}))
+						Expect(runCommand).To(Equal([]string{"sudo", "bash", "-c", "'exec tail -F /var/vcap/sys/log/**/*.log $(if [ -f /var/vcap/sys/log/*.log ]; then echo /var/vcap/sys/log/*.log ; fi)'"}))
+					})
+
+					Context("tail options", func() {
+						BeforeEach(func() {
+							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).Return(agentclient.SSHResult{}, nil).Times(1)
+							agentClient.EXPECT().CleanUpSSH(gomock.Any()).Times(1)
+						})
+
+						It("runs tail command with specified number of lines and quiet option", func() {
+							opts.Num = 10
+							opts.Quiet = true
+
+							Expect(command.Run(opts)).ToNot(HaveOccurred())
+
+							_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
+							Expect(runCommand).To(Equal([]string{
+								"sudo", "bash", "-c", "'exec tail -F -n 10 -q /var/vcap/sys/log/**/*.log $(if [ -f /var/vcap/sys/log/*.log ]; then echo /var/vcap/sys/log/*.log ; fi)'"}))
+						})
+
+						It("runs tail command with specified number of lines even if following is not requested", func() {
+							opts.Follow = false
+							opts.Num = 10
+
+							Expect(command.Run(opts)).ToNot(HaveOccurred())
+
+							_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
+							Expect(runCommand).To(Equal([]string{
+								"sudo", "bash", "-c", "'exec tail -n 10 /var/vcap/sys/log/**/*.log $(if [ -f /var/vcap/sys/log/*.log ]; then echo /var/vcap/sys/log/*.log ; fi)'"}))
+						})
+
+						It("runs tail command for the agent log if agent is specified", func() {
+							opts.Agent = true
+
+							Expect(command.Run(opts)).ToNot(HaveOccurred())
+
+							_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
+							Expect(runCommand).To(Equal([]string{
+								"sudo", "bash", "-c", "'exec tail -F /var/vcap/bosh/log/current'"}))
+						})
+
+						It("runs tail command with jobs filters if specified", func() {
+							opts.Jobs = []string{"job1", "job2"}
+
+							Expect(command.Run(opts)).ToNot(HaveOccurred())
+
+							_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
+							Expect(runCommand).To(Equal([]string{
+								"sudo", "bash", "-c", "'exec tail -F /var/vcap/sys/log/job1/*.log /var/vcap/sys/log/job2/*.log'"}))
+						})
+
+						It("runs tail command with custom filters if specified", func() {
+							opts.Filters = []string{"other/*.log", "**/*.log"}
+
+							Expect(command.Run(opts)).ToNot(HaveOccurred())
+
+							_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
+							Expect(runCommand).To(Equal([]string{
+								"sudo", "bash", "-c", "'exec tail -F /var/vcap/sys/log/other/*.log /var/vcap/sys/log/**/*.log'"}))
+						})
+
+						It("runs tail command with agent log, and custom filters", func() {
+							opts.Agent = true
+							opts.Filters = []string{"other/*.log", "**/*.log"}
+
+							Expect(command.Run(opts)).ToNot(HaveOccurred())
+
+							_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
+							Expect(runCommand).To(Equal([]string{
+								"sudo", "bash", "-c", "'exec tail -F /var/vcap/bosh/log/current /var/vcap/sys/log/other/*.log /var/vcap/sys/log/**/*.log'"}))
+						})
+
+						It("returns error if non-interactive SSH session errors", func() {
+							nonIntSSHRunner.RunReturns(errors.New("fake-err"))
+
+							err := command.Run(opts)
+							Expect(err).To(HaveOccurred())
+							Expect(err.Error()).To(ContainSubstring("fake-err"))
+						})
+
+						It("does not try to fetch logs", func() {
+							agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
+
+							Expect(command.Run(opts)).ToNot(HaveOccurred())
+						})
+					})
+				})
+
+				Context("fetching logs", func() {
+					const emptyFileSHA512 string = "sha512:cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
+					var (
+						bundleResult agentclient.BundleLogsResult
+					)
+
 					BeforeEach(func() {
 						agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).Return(agentclient.SSHResult{}, nil).Times(1)
 						agentClient.EXPECT().CleanUpSSH(gomock.Any()).Times(1)
+
+						bundleResult = agentclient.BundleLogsResult{
+							LogsTarPath:  "/foo/bar",
+							SHA512Digest: emptyFileSHA512,
+						}
 					})
 
-					It("runs tail command with specified number of lines and quiet option", func() {
-						opts.Num = 10
-						opts.Quiet = true
+					It("bundles logs for jobs by default", func() {
+						agentClient.EXPECT().BundleLogs(
+							gomock.Eq(ExpUsername),
+							gomock.Eq("job"),
+							mocks.GomegaMock(HaveLen(0)),
+						).
+							Return(bundleResult, nil).
+							Times(1)
+						agentClient.EXPECT().RemoveFile(gomock.Any()).
+							Times(1)
 
 						Expect(command.Run(opts)).ToNot(HaveOccurred())
-
-						_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
-						Expect(runCommand).To(Equal([]string{
-							"sudo", "bash", "-c", "'exec tail -F -n 10 -q /var/vcap/sys/log/**/*.log $(if [ -f /var/vcap/sys/log/*.log ]; then echo /var/vcap/sys/log/*.log ; fi)'"}))
 					})
 
-					It("runs tail command with specified number of lines even if following is not requested", func() {
-						opts.Follow = false
-						opts.Num = 10
-
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
-
-						_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
-						Expect(runCommand).To(Equal([]string{
-							"sudo", "bash", "-c", "'exec tail -n 10 /var/vcap/sys/log/**/*.log $(if [ -f /var/vcap/sys/log/*.log ]; then echo /var/vcap/sys/log/*.log ; fi)'"}))
-					})
-
-					It("runs tail command for the agent log if agent is specified", func() {
+					It("bundles agent logs and allows custom filters", func() {
+						opts.Filters = []string{"filter1", "filter2"}
 						opts.Agent = true
 
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
-
-						_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
-						Expect(runCommand).To(Equal([]string{
-							"sudo", "bash", "-c", "'exec tail -F /var/vcap/bosh/log/current'"}))
-					})
-
-					It("runs tail command with jobs filters if specified", func() {
-						opts.Jobs = []string{"job1", "job2"}
-
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
-
-						_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
-						Expect(runCommand).To(Equal([]string{
-							"sudo", "bash", "-c", "'exec tail -F /var/vcap/sys/log/job1/*.log /var/vcap/sys/log/job2/*.log'"}))
-					})
-
-					It("runs tail command with custom filters if specified", func() {
-						opts.Filters = []string{"other/*.log", "**/*.log"}
+						agentClient.EXPECT().BundleLogs(
+							gomock.Eq(ExpUsername),
+							gomock.Eq("agent"),
+							gomock.Eq([]string{"filter1", "filter2"}),
+						).
+							Return(bundleResult, nil).
+							Times(1)
+						agentClient.EXPECT().RemoveFile(gomock.Any()).
+							Times(1)
 
 						Expect(command.Run(opts)).ToNot(HaveOccurred())
-
-						_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
-						Expect(runCommand).To(Equal([]string{
-							"sudo", "bash", "-c", "'exec tail -F /var/vcap/sys/log/other/*.log /var/vcap/sys/log/**/*.log'"}))
 					})
 
-					It("runs tail command with agent log, and custom filters", func() {
-						opts.Agent = true
-						opts.Filters = []string{"other/*.log", "**/*.log"}
-
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
-
-						_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
-						Expect(runCommand).To(Equal([]string{
-							"sudo", "bash", "-c", "'exec tail -F /var/vcap/bosh/log/current /var/vcap/sys/log/other/*.log /var/vcap/sys/log/**/*.log'"}))
-					})
-
-					It("returns error if non-interactive SSH session errors", func() {
-						nonIntSSHRunner.RunReturns(errors.New("fake-err"))
+					It("returns error if bundling logs failed", func() {
+						agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).Return(agentclient.BundleLogsResult{}, errors.New("fake-logs-err"))
 
 						err := command.Run(opts)
 						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("fake-err"))
+						Expect(err.Error()).To(ContainSubstring("fake-logs-err"))
 					})
 
-					It("does not try to fetch logs", func() {
-						agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
+					It("uses scp to download the log bundle", func() {
+						fakeFile := fakes.NewFakeFile("/tmp/baz", fs)
+						fs.ReturnTempFile = fakeFile
+						agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(bundleResult, nil).
+							Times(1)
+						agentClient.EXPECT().RemoveFile(gomock.Any()).
+							Times(1)
 
 						Expect(command.Run(opts)).ToNot(HaveOccurred())
+
+						Expect(scpRunner.RunCallCount()).To(Equal(1))
+						_, _, scpArgs := scpRunner.RunArgsForCall(0)
+						slug, err := scpArgs.AllOrInstanceGroupOrInstanceSlug()
+						Expect(err).NotTo(HaveOccurred())
+						Expect(slug.String()).To(Equal("create-env-vm/0"))
+						scpHost := boshdir.Host{Username: ExpUsername, Host: "10.0.0.5", Job: "create-env-vm", IndexOrID: "0"}
+						Expect(scpArgs.ForHost(scpHost)).To(HaveExactElements(fmt.Sprintf("%s@10.0.0.5:/foo/bar", ExpUsername), "/tmp/baz"))
+
+						Expect(ui.Said).To(ContainElement("Downloading create-env-vm/0 logs to 'create-env-vm-logs-20091110-230102-000000333.tgz'..."))
 					})
-				})
-			})
 
-			Context("fetching logs", func() {
-				const emptyFileSHA512 string = "sha512:cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
-				var (
-					bundleResult agentclient.BundleLogsResult
-				)
+					It("returns error if scp fails", func() {
+						scpRunner.RunReturns(errors.New("fake-scp-error"))
+						agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(bundleResult, nil).
+							Times(1)
+						agentClient.EXPECT().RemoveFile(gomock.Any()).
+							Times(1)
 
-				BeforeEach(func() {
-					agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).Return(agentclient.SSHResult{}, nil).Times(1)
-					agentClient.EXPECT().CleanUpSSH(gomock.Any()).Times(1)
+						err := command.Run(opts)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("Running SCP"))
+						Expect(err.Error()).To(ContainSubstring("fake-scp-err"))
+					})
 
-					bundleResult = agentclient.BundleLogsResult{
-						LogsTarPath:  "/foo/bar",
-						SHA512Digest: emptyFileSHA512,
-					}
-				})
+					It("returns error if parsing the sha fails", func() {
+						bundleResult.SHA512Digest = "garbage can"
 
-				It("bundles logs for jobs by default", func() {
-					agentClient.EXPECT().BundleLogs(
-						gomock.Eq(ExpUsername),
-						gomock.Eq("job"),
-						mocks.GomegaMock(HaveLen(0)),
-					).
-						Return(bundleResult, nil).
-						Times(1)
-					agentClient.EXPECT().RemoveFile(gomock.Any()).
-						Times(1)
+						agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(bundleResult, nil).
+							Times(1)
+						agentClient.EXPECT().RemoveFile(gomock.Any()).
+							Times(1)
 
-					Expect(command.Run(opts)).ToNot(HaveOccurred())
-				})
+						err := command.Run(opts)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("Unable to parse digest string"))
+					})
 
-				It("bundles agent logs and allows custom filters", func() {
-					opts.Filters = []string{"filter1", "filter2"}
-					opts.Agent = true
+					It("returns error if verifying the log file sha fails", func() {
+						fakeFile := fakes.NewFakeFile("/tmp/baz", fs)
+						fakeFile.Write([]byte("not empty anymore!")) //nolint:errcheck
+						fs.ReturnTempFile = fakeFile
 
-					agentClient.EXPECT().BundleLogs(
-						gomock.Eq(ExpUsername),
-						gomock.Eq("agent"),
-						gomock.Eq([]string{"filter1", "filter2"}),
-					).
-						Return(bundleResult, nil).
-						Times(1)
-					agentClient.EXPECT().RemoveFile(gomock.Any()).
-						Times(1)
+						agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(bundleResult, nil).
+							Times(1)
+						agentClient.EXPECT().RemoveFile(gomock.Any()).
+							Times(1)
 
-					Expect(command.Run(opts)).ToNot(HaveOccurred())
-				})
+						err := command.Run(opts)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("Expected stream to have digest"))
+					})
 
-				It("returns error if bundling logs failed", func() {
-					agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).Return(agentclient.BundleLogsResult{}, errors.New("fake-logs-err"))
+					It("Respects the path arg", func() {
+						agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(bundleResult, nil).
+							Times(1)
+						agentClient.EXPECT().RemoveFile(gomock.Any()).
+							Times(1)
+						opts.Directory.Path = "/hey/hello"
+						fs.MkdirAll("/hey/hello", os.FileMode(0777)) //nolint:errcheck
+						fs.ReturnTempFilesByPrefix = map[string]boshsys.File{
+							"bosh-cli-scp-download": fakes.NewFakeFile("/tmp/baz", fs),
+						}
+						fs.RenameStub = func(oldPath, newPath string) error {
+							Expect(oldPath).To(Equal("/tmp/baz"))
+							Expect(newPath).To(Equal("/hey/hello/create-env-vm-logs-20091110-230102-000000333.tgz"))
 
-					err := command.Run(opts)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("fake-logs-err"))
-				})
+							return nil
+						}
 
-				It("uses scp to download the log bundle", func() {
-					fakeFile := fakes.NewFakeFile("/tmp/baz", fs)
-					fs.ReturnTempFile = fakeFile
-					agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
-						Return(bundleResult, nil).
-						Times(1)
-					agentClient.EXPECT().RemoveFile(gomock.Any()).
-						Times(1)
+						Expect(command.Run(opts)).ToNot(HaveOccurred())
+						Expect(ui.Said).To(ContainElement("Downloading create-env-vm/0 logs to '/hey/hello/create-env-vm-logs-20091110-230102-000000333.tgz'..."))
+					})
 
-					Expect(command.Run(opts)).ToNot(HaveOccurred())
+					It("returns error if closing temp file fails", func() {
+						fakeFile := fakes.NewFakeFile("/tmp/baz", fs)
+						fakeFile.CloseErr = errors.New("fake-close-error")
+						fs.ReturnTempFile = fakeFile
+						agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(bundleResult, nil).
+							Times(1)
+						agentClient.EXPECT().RemoveFile(gomock.Any()).
+							Times(1)
 
-					Expect(scpRunner.RunCallCount()).To(Equal(1))
-					_, _, scpArgs := scpRunner.RunArgsForCall(0)
-					slug, err := scpArgs.AllOrInstanceGroupOrInstanceSlug()
-					Expect(err).NotTo(HaveOccurred())
-					Expect(slug.String()).To(Equal("create-env-vm/0"))
-					scpHost := boshdir.Host{Username: ExpUsername, Host: "10.0.0.5", Job: "create-env-vm", IndexOrID: "0"}
-					Expect(scpArgs.ForHost(scpHost)).To(HaveExactElements(fmt.Sprintf("%s@10.0.0.5:/foo/bar", ExpUsername), "/tmp/baz"))
+						err := command.Run(opts)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("fake-close-err"))
+					})
 
-					Expect(ui.Said).To(ContainElement("Downloading create-env-vm/0 logs to 'create-env-vm-logs-20091110-230102-000000333.tgz'..."))
-				})
+					It("returns error if moving file fails", func() {
+						fs.RenameError = errors.New("fake-rename-error")
+						agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(bundleResult, nil).
+							Times(1)
+						agentClient.EXPECT().RemoveFile(gomock.Any()).
+							Times(1)
 
-				It("returns error if scp fails", func() {
-					scpRunner.RunReturns(errors.New("fake-scp-error"))
-					agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
-						Return(bundleResult, nil).
-						Times(1)
-					agentClient.EXPECT().RemoveFile(gomock.Any()).
-						Times(1)
+						err := command.Run(opts)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("Moving to final destination"))
+						Expect(err.Error()).To(ContainSubstring("fake-rename-err"))
+					})
 
-					err := command.Run(opts)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Running SCP"))
-					Expect(err.Error()).To(ContainSubstring("fake-scp-err"))
-				})
+					It("does not try to tail logs", func() {
+						agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
+							Return(bundleResult, nil).
+							Times(1)
+						agentClient.EXPECT().RemoveFile(gomock.Any()).
+							Times(1)
 
-				It("returns error if parsing the sha fails", func() {
-					bundleResult.SHA512Digest = "garbage can"
-
-					agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
-						Return(bundleResult, nil).
-						Times(1)
-					agentClient.EXPECT().RemoveFile(gomock.Any()).
-						Times(1)
-
-					err := command.Run(opts)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Unable to parse digest string"))
-				})
-
-				It("returns error if verifying the log file sha fails", func() {
-					fakeFile := fakes.NewFakeFile("/tmp/baz", fs)
-					fakeFile.Write([]byte("not empty anymore!")) //nolint:errcheck
-					fs.ReturnTempFile = fakeFile
-
-					agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
-						Return(bundleResult, nil).
-						Times(1)
-					agentClient.EXPECT().RemoveFile(gomock.Any()).
-						Times(1)
-
-					err := command.Run(opts)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Expected stream to have digest"))
-				})
-
-				It("Respects the path arg", func() {
-					agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
-						Return(bundleResult, nil).
-						Times(1)
-					agentClient.EXPECT().RemoveFile(gomock.Any()).
-						Times(1)
-					opts.Directory.Path = "/hey/hello"
-					fs.MkdirAll("/hey/hello", os.FileMode(0777)) //nolint:errcheck
-					fs.ReturnTempFilesByPrefix = map[string]boshsys.File{
-						"bosh-cli-scp-download": fakes.NewFakeFile("/tmp/baz", fs),
-					}
-					fs.RenameStub = func(oldPath, newPath string) error {
-						Expect(oldPath).To(Equal("/tmp/baz"))
-						Expect(newPath).To(Equal("/hey/hello/create-env-vm-logs-20091110-230102-000000333.tgz"))
-
-						return nil
-					}
-
-					Expect(command.Run(opts)).ToNot(HaveOccurred())
-					Expect(ui.Said).To(ContainElement("Downloading create-env-vm/0 logs to '/hey/hello/create-env-vm-logs-20091110-230102-000000333.tgz'..."))
-				})
-
-				It("returns error if closing temp file fails", func() {
-					fakeFile := fakes.NewFakeFile("/tmp/baz", fs)
-					fakeFile.CloseErr = errors.New("fake-close-error")
-					fs.ReturnTempFile = fakeFile
-					agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
-						Return(bundleResult, nil).
-						Times(1)
-					agentClient.EXPECT().RemoveFile(gomock.Any()).
-						Times(1)
-
-					err := command.Run(opts)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("fake-close-err"))
-				})
-
-				It("returns error if moving file fails", func() {
-					fs.RenameError = errors.New("fake-rename-error")
-					agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
-						Return(bundleResult, nil).
-						Times(1)
-					agentClient.EXPECT().RemoveFile(gomock.Any()).
-						Times(1)
-
-					err := command.Run(opts)
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Moving to final destination"))
-					Expect(err.Error()).To(ContainSubstring("fake-rename-err"))
-				})
-
-				It("does not try to tail logs", func() {
-					agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).
-						Return(bundleResult, nil).
-						Times(1)
-					agentClient.EXPECT().RemoveFile(gomock.Any()).
-						Times(1)
-
-					Expect(command.Run(opts)).ToNot(HaveOccurred())
-					Expect(nonIntSSHRunner.RunCallCount()).To(Equal(0))
+						Expect(command.Run(opts)).ToNot(HaveOccurred())
+						Expect(nonIntSSHRunner.RunCallCount()).To(Equal(0))
+					})
 				})
 			})
 		})
