@@ -391,8 +391,14 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *SCPOpts:
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
 		scpRunner := sshProvider.NewSCPRunner()
-		sshHostBuilder := boshssh.NewHostBuilder()
-		return NewSCPCmd(deps.UUIDGen, scpRunner, deps.UI, sshHostBuilder).Run(*opts, c.getDeployment)
+
+		if opts.TargetDirector {
+			agentClientFactory := bihttpagent.NewAgentClientFactory(1*time.Second, deps.Logger)
+			return NewEnvSCPCmd(agentClientFactory, scpRunner).Run(*opts)
+		} else {
+			sshHostBuilder := boshssh.NewHostBuilder()
+			return NewSCPCmd(scpRunner, sshHostBuilder).Run(*opts, c.getDeployment)
+		}
 
 	case *ExportReleaseOpts:
 		director, deployment := c.directorAndDeployment()

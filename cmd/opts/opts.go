@@ -968,6 +968,8 @@ type SCPOpts struct {
 
 	GatewayFlags
 
+	CreateEnvAuthFlags
+
 	cmd
 }
 
