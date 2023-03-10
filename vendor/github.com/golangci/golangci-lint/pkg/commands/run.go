@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -355,7 +355,7 @@ func (e *Executor) runAnalysis(ctx context.Context, args []string) ([]result.Iss
 
 	lintCtx, err := e.contextLoader.Load(ctx, lintersToRun)
 	if err != nil {
-		return nil, fmt.Errorf("context loading failed: %w", err)
+		return nil, errors.Wrap(err, "context loading failed")
 	}
 	lintCtx.Log = e.log.Child(logutils.DebugKeyLintersContext)
 
@@ -494,8 +494,6 @@ func (e *Executor) createPrinter(format string, w io.Writer) (printers.Printer, 
 		p = printers.NewJunitXML(w)
 	case config.OutFormatGithubActions:
 		p = printers.NewGithub(w)
-	case config.OutFormatTeamCity:
-		p = printers.NewTeamCity(w)
 	default:
 		return nil, fmt.Errorf("unknown output format %s", format)
 	}
@@ -524,8 +522,7 @@ func (e *Executor) executeRun(_ *cobra.Command, args []string) {
 	if err := e.runAndPrint(ctx, args); err != nil {
 		e.log.Errorf("Running error: %s", err)
 		if e.exitCode == exitcodes.Success {
-			var exitErr *exitcodes.ExitError
-			if errors.As(err, &exitErr) {
+			if exitErr, ok := errors.Cause(err).(*exitcodes.ExitError); ok {
 				e.exitCode = exitErr.Code
 			} else {
 				e.exitCode = exitcodes.Failure

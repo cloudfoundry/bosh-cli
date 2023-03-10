@@ -5,6 +5,8 @@ import (
 	"os"
 	"sync"
 
+	"github.com/pkg/errors"
+
 	"github.com/golangci/golangci-lint/pkg/logutils"
 )
 
@@ -24,7 +26,7 @@ func (fc *FileCache) GetFileBytes(filePath string) ([]byte, error) {
 
 	fileBytes, err := os.ReadFile(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("can't read file %s: %w", filePath, err)
+		return nil, errors.Wrapf(err, "can't read file %s", filePath)
 	}
 
 	fc.files.Store(filePath, fileBytes)

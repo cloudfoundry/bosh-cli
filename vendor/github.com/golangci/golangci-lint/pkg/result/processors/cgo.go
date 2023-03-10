@@ -1,9 +1,10 @@
 package processors
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/golangci/golangci-lint/pkg/goutil"
 	"github.com/golangci/golangci-lint/pkg/result"
@@ -36,7 +37,7 @@ func (p Cgo) Process(issues []result.Issue) ([]result.Issue, error) {
 		if !filepath.IsAbs(i.FilePath()) {
 			absPath, err := filepath.Abs(i.FilePath())
 			if err != nil {
-				return false, fmt.Errorf("failed to build abs path for %q: %w", i.FilePath(), err)
+				return false, errors.Wrapf(err, "failed to build abs path for %q", i.FilePath())
 			}
 			issueFilePath = absPath
 		}

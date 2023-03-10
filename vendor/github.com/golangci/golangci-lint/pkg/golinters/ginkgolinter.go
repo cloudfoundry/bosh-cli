@@ -14,11 +14,9 @@ func NewGinkgoLinter(cfg *config.GinkgoLinterSettings) *goanalysis.Linter {
 	cfgMap := make(map[string]map[string]interface{})
 	if cfg != nil {
 		cfgMap[a.Name] = map[string]interface{}{
-			"suppress-len-assertion":     cfg.SuppressLenAssertion,
-			"suppress-nil-assertion":     cfg.SuppressNilAssertion,
-			"suppress-err-assertion":     cfg.SuppressErrAssertion,
-			"suppress-compare-assertion": cfg.SuppressCompareAssertion,
-			"allow-havelen-0":            cfg.AllowHaveLenZero,
+			"suppress-len-assertion": cfg.SuppressLenAssertion,
+			"suppress-nil-assertion": cfg.SuppressNilAssertion,
+			"suppress-err-assertion": cfg.SuppressErrAssertion,
 		}
 	}
 

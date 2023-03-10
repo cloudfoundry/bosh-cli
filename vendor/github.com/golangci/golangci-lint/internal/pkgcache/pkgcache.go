@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"runtime"
 	"sort"
 	"sync"
 
+	"github.com/pkg/errors"
 	"golang.org/x/tools/go/packages"
 
 	"github.com/golangci/golangci-lint/internal/cache"
@@ -61,7 +61,7 @@ func (c *Cache) Put(pkg *packages.Package, mode HashMode, key string, data inter
 		err = gob.NewEncoder(buf).Encode(data)
 	})
 	if err != nil {
-		return fmt.Errorf("failed to gob encode: %w", err)
+		return errors.Wrap(err, "failed to gob encode")
 	}
 
 	var aID cache.ActionID
@@ -71,13 +71,13 @@ func (c *Cache) Put(pkg *packages.Package, mode HashMode, key string, data inter
 		if err == nil {
 			subkey, subkeyErr := cache.Subkey(aID, key)
 			if subkeyErr != nil {
-				err = fmt.Errorf("failed to build subkey: %w", subkeyErr)
+				err = errors.Wrap(subkeyErr, "failed to build subkey")
 			}
 			aID = subkey
 		}
 	})
 	if err != nil {
-		return fmt.Errorf("failed to calculate package %s action id: %w", pkg.Name, err)
+		return errors.Wrapf(err, "failed to calculate package %s action id", pkg.Name)
 	}
 	c.ioSem <- struct{}{}
 	c.sw.TrackStage("cache io", func() {
@@ -85,7 +85,7 @@ func (c *Cache) Put(pkg *packages.Package, mode HashMode, key string, data inter
 	})
 	<-c.ioSem
 	if err != nil {
-		return fmt.Errorf("failed to save data to low-level cache by key %s for package %s: %w", key, pkg.Name, err)
+		return errors.Wrapf(err, "failed to save data to low-level cache by key %s for package %s", key, pkg.Name)
 	}
 
 	return nil
@@ -101,13 +101,13 @@ func (c *Cache) Get(pkg *packages.Package, mode HashMode, key string, data inter
 		if err == nil {
 			subkey, subkeyErr := cache.Subkey(aID, key)
 			if subkeyErr != nil {
-				err = fmt.Errorf("failed to build subkey: %w", subkeyErr)
+				err = errors.Wrap(subkeyErr, "failed to build subkey")
 			}
 			aID = subkey
 		}
 	})
 	if err != nil {
-		return fmt.Errorf("failed to calculate package %s action id: %w", pkg.Name, err)
+		return errors.Wrapf(err, "failed to calculate package %s action id", pkg.Name)
 	}
 
 	var b []byte
@@ -120,14 +120,14 @@ func (c *Cache) Get(pkg *packages.Package, mode HashMode, key string, data inter
 		if cache.IsErrMissing(err) {
 			return ErrMissing
 		}
-		return fmt.Errorf("failed to get data from low-level cache by key %s for package %s: %w", key, pkg.Name, err)
+		return errors.Wrapf(err, "failed to get data from low-level cache by key %s for package %s", key, pkg.Name)
 	}
 
 	c.sw.TrackStage("gob", func() {
 		err = gob.NewDecoder(bytes.NewReader(b)).Decode(data)
 	})
 	if err != nil {
-		return fmt.Errorf("failed to gob decode: %w", err)
+		return errors.Wrap(err, "failed to gob decode")
 	}
 
 	return nil
@@ -136,12 +136,12 @@ func (c *Cache) Get(pkg *packages.Package, mode HashMode, key string, data inter
 func (c *Cache) pkgActionID(pkg *packages.Package, mode HashMode) (cache.ActionID, error) {
 	hash, err := c.packageHash(pkg, mode)
 	if err != nil {
-		return cache.ActionID{}, fmt.Errorf("failed to get package hash: %w", err)
+		return cache.ActionID{}, errors.Wrap(err, "failed to get package hash")
 	}
 
 	key, err := cache.NewHash("action ID")
 	if err != nil {
-		return cache.ActionID{}, fmt.Errorf("failed to make a hash: %w", err)
+		return cache.ActionID{}, errors.Wrap(err, "failed to make a hash")
 	}
 	fmt.Fprintf(key, "pkgpath %s\n", pkg.PkgPath)
 	fmt.Fprintf(key, "pkghash %s\n", hash)
@@ -167,7 +167,7 @@ func (c *Cache) packageHash(pkg *packages.Package, mode HashMode) (string, error
 
 	key, err := cache.NewHash("package hash")
 	if err != nil {
-		return "", fmt.Errorf("failed to make a hash: %w", err)
+		return "", errors.Wrap(err, "failed to make a hash")
 	}
 
 	fmt.Fprintf(key, "pkgpath %s\n", pkg.PkgPath)
@@ -176,7 +176,7 @@ func (c *Cache) packageHash(pkg *packages.Package, mode HashMode) (string, error
 		h, fErr := cache.FileHash(f)
 		<-c.ioSem
 		if fErr != nil {
-			return "", fmt.Errorf("failed to calculate file %s hash: %w", f, fErr)
+			return "", errors.Wrapf(fErr, "failed to calculate file %s hash", f)
 		}
 		fmt.Fprintf(key, "file %s %x\n", f, h)
 	}
@@ -199,7 +199,7 @@ func (c *Cache) packageHash(pkg *packages.Package, mode HashMode) (string, error
 
 			depHash, depErr := c.packageHash(dep, depMode)
 			if depErr != nil {
-				return fmt.Errorf("failed to calculate hash for dependency %s with mode %d: %w", dep.Name, depMode, depErr)
+				return errors.Wrapf(depErr, "failed to calculate hash for dependency %s with mode %d", dep.Name, depMode)
 			}
 
 			fmt.Fprintf(key, "import %s %s\n", dep.PkgPath, depHash)

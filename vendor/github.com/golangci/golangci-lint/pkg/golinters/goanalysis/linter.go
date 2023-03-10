@@ -2,11 +2,11 @@ package goanalysis
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"strings"
 
+	"github.com/pkg/errors"
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/golangci/golangci-lint/pkg/lint/linter"
@@ -116,7 +116,7 @@ func (lnt *Linter) configureAnalyzer(a *analysis.Analyzer, cfg map[string]interf
 		}
 
 		if err := f.Value.Set(valueToString(v)); err != nil {
-			return fmt.Errorf("failed to set analyzer setting %q with value %v: %w", k, v, err)
+			return errors.Wrapf(err, "failed to set analyzer setting %q with value %v", k, v)
 		}
 	}
 
@@ -137,7 +137,7 @@ func (lnt *Linter) configure() error {
 		}
 
 		if err := lnt.configureAnalyzer(a, analyzerSettings); err != nil {
-			return fmt.Errorf("failed to configure analyzer %s: %w", analyzerName, err)
+			return errors.Wrapf(err, "failed to configure analyzer %s", analyzerName)
 		}
 	}
 
@@ -146,11 +146,11 @@ func (lnt *Linter) configure() error {
 
 func (lnt *Linter) preRun(lintCtx *linter.Context) error {
 	if err := analysis.Validate(lnt.analyzers); err != nil {
-		return fmt.Errorf("failed to validate analyzers: %w", err)
+		return errors.Wrap(err, "failed to validate analyzers")
 	}
 
 	if err := lnt.configure(); err != nil {
-		return fmt.Errorf("failed to configure analyzers: %w", err)
+		return errors.Wrap(err, "failed to configure analyzers")
 	}
 
 	if lnt.contextSetter != nil {

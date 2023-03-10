@@ -1,8 +1,9 @@
 package config
 
 import (
-	"errors"
 	"runtime"
+
+	"github.com/pkg/errors"
 )
 
 var defaultLintersSettings = LintersSettings{
@@ -19,10 +20,9 @@ var defaultLintersSettings = LintersSettings{
 		MaxBlankIdentifiers: 2,
 	},
 	ErrorLint: ErrorLintSettings{
-		Errorf:      true,
-		ErrorfMulti: true,
-		Asserts:     true,
-		Comparison:  true,
+		Errorf:     true,
+		Asserts:    true,
+		Comparison: true,
 	},
 	Exhaustive: ExhaustiveSettings{
 		Check:                      []string{"switch"},
@@ -201,6 +201,7 @@ type LintersSettings struct {
 	Testpackage      TestpackageSettings
 	Thelper          ThelperSettings
 	Unparam          UnparamSettings
+	Unused           StaticCheckSettings
 	UseStdlibVars    UseStdlibVarsSettings
 	Varcheck         VarCheckSettings
 	Varnamelen       VarnamelenSettings
@@ -280,10 +281,9 @@ type ErrChkJSONSettings struct {
 }
 
 type ErrorLintSettings struct {
-	Errorf      bool `mapstructure:"errorf"`
-	ErrorfMulti bool `mapstructure:"errorf-multi"`
-	Asserts     bool `mapstructure:"asserts"`
-	Comparison  bool `mapstructure:"comparison"`
+	Errorf     bool `mapstructure:"errorf"`
+	Asserts    bool `mapstructure:"asserts"`
+	Comparison bool `mapstructure:"comparison"`
 }
 
 type ExhaustiveSettings struct {
@@ -324,11 +324,9 @@ type GciSettings struct {
 }
 
 type GinkgoLinterSettings struct {
-	SuppressLenAssertion     bool `mapstructure:"suppress-len-assertion"`
-	SuppressNilAssertion     bool `mapstructure:"suppress-nil-assertion"`
-	SuppressErrAssertion     bool `mapstructure:"suppress-err-assertion"`
-	SuppressCompareAssertion bool `mapstructure:"suppress-compare-assertion"`
-	AllowHaveLenZero         bool `mapstructure:"allow-havelen-zero"`
+	SuppressLenAssertion bool `mapstructure:"suppress-len-assertion"`
+	SuppressNilAssertion bool `mapstructure:"suppress-nil-assertion"`
+	SuppressErrAssertion bool `mapstructure:"suppress-err-assertion"`
 }
 
 type GocognitSettings struct {

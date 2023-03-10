@@ -15,10 +15,9 @@ func NewErrorLint(cfg *config.ErrorLintSettings) *goanalysis.Linter {
 
 	if cfg != nil {
 		cfgMap[a.Name] = map[string]interface{}{
-			"errorf":       cfg.Errorf,
-			"errorf-multi": cfg.ErrorfMulti,
-			"asserts":      cfg.Asserts,
-			"comparison":   cfg.Comparison,
+			"errorf":     cfg.Errorf,
+			"asserts":    cfg.Asserts,
+			"comparison": cfg.Comparison,
 		}
 	}
 

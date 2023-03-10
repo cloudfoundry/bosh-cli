@@ -12,7 +12,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -20,6 +19,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/golangci/golangci-lint/internal/renameio"
 	"github.com/golangci/golangci-lint/internal/robustio"
@@ -79,7 +80,7 @@ func (c *Cache) fileName(id [HashSize]byte, key string) string {
 var errMissing = errors.New("cache entry not found")
 
 func IsErrMissing(err error) bool {
-	return errors.Is(err, errMissing)
+	return errors.Cause(err) == errMissing
 }
 
 const (
@@ -168,10 +169,10 @@ func (c *Cache) get(id ActionID) (Entry, error) {
 	etime := entry[1 : 1+20]
 	var buf [HashSize]byte
 	if _, err = hex.Decode(buf[:], eid); err != nil || buf != id {
-		return failed(fmt.Errorf("failed to hex decode eid data in %s: %w", fileName, err))
+		return failed(errors.Wrapf(err, "failed to hex decode eid data in %s", fileName))
 	}
 	if _, err = hex.Decode(buf[:], eout); err != nil {
-		return failed(fmt.Errorf("failed to hex decode eout data in %s: %w", fileName, err))
+		return failed(errors.Wrapf(err, "failed to hex decode eout data in %s", fileName))
 	}
 	i := 0
 	for i < len(esize) && esize[i] == ' ' {
@@ -191,7 +192,7 @@ func (c *Cache) get(id ActionID) (Entry, error) {
 	}
 
 	if err = c.used(fileName); err != nil {
-		return failed(fmt.Errorf("failed to mark %s as used: %w", fileName, err))
+		return failed(errors.Wrapf(err, "failed to mark %s as used", fileName))
 	}
 
 	return Entry{buf, size, time.Unix(0, tm)}, nil
@@ -263,7 +264,7 @@ func (c *Cache) used(file string) error {
 		if os.IsNotExist(err) {
 			return errMissing
 		}
-		return fmt.Errorf("failed to stat file %s: %w", file, err)
+		return errors.Wrapf(err, "failed to stat file %s", file)
 	}
 
 	if c.now().Sub(info.ModTime()) < mtimeInterval {
@@ -271,7 +272,7 @@ func (c *Cache) used(file string) error {
 	}
 
 	if err := os.Chtimes(file, c.now(), c.now()); err != nil {
-		return fmt.Errorf("failed to change time of file %s: %w", file, err)
+		return errors.Wrapf(err, "failed to change time of file %s", file)
 	}
 
 	return nil
@@ -384,7 +385,7 @@ func (c *Cache) putIndexEntry(id ActionID, out OutputID, size int64, allowVerify
 		return err
 	}
 	if err = os.Chtimes(file, c.now(), c.now()); err != nil { // mainly for tests
-		return fmt.Errorf("failed to change time of file %s: %w", file, err)
+		return errors.Wrapf(err, "failed to change time of file %s", file)
 	}
 
 	return nil
@@ -442,7 +443,7 @@ func (c *Cache) copyFile(file io.ReadSeeker, out OutputID, size int64) error {
 		if f, openErr := os.Open(name); openErr == nil {
 			h := sha256.New()
 			if _, copyErr := io.Copy(h, f); copyErr != nil {
-				return fmt.Errorf("failed to copy to sha256: %w", copyErr)
+				return errors.Wrap(copyErr, "failed to copy to sha256")
 			}
 
 			f.Close()
@@ -518,7 +519,7 @@ func (c *Cache) copyFile(file io.ReadSeeker, out OutputID, size int64) error {
 		return err
 	}
 	if err = os.Chtimes(name, c.now(), c.now()); err != nil { // mainly for tests
-		return fmt.Errorf("failed to change time of file %s: %w", name, err)
+		return errors.Wrapf(err, "failed to change time of file %s", name)
 	}
 
 	return nil

@@ -12,6 +12,7 @@ import (
 	"github.com/hexops/gotextdiff"
 	"github.com/hexops/gotextdiff/myers"
 	"github.com/hexops/gotextdiff/span"
+	"github.com/pkg/errors"
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/golangci/golangci-lint/pkg/config"
@@ -57,7 +58,7 @@ func NewGci(settings *config.GciSettings) *goanalysis.Linter {
 
 	return goanalysis.NewLinter(
 		gciName,
-		"Gci controls Go package import order and makes it always deterministic.",
+		"Gci controls golang package import order and makes it always deterministic.",
 		[]*analysis.Analyzer{analyzer},
 		nil,
 	).WithContextSetter(func(lintCtx *linter.Context) {
@@ -100,7 +101,7 @@ func runGci(pass *analysis.Pass, lintCtx *linter.Context, cfg *gcicfg.Config, lo
 
 		is, err := extractIssuesFromPatch(diff, lintCtx, gciName)
 		if err != nil {
-			return nil, fmt.Errorf("can't extract issues from gci diff output %s: %w", diff, err)
+			return nil, errors.Wrapf(err, "can't extract issues from gci diff output %s", diff)
 		}
 
 		for i := range is {

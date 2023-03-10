@@ -18,14 +18,13 @@ type GoVersion struct {
 //
 // As a special case, Major=0 covers all versions.
 func (v GoVersion) GreaterOrEqual(other GoVersion) bool {
-	switch {
-	case v.Major == 0:
+	if v.Major == 0 {
 		return true
-	case v.Major == other.Major:
-		return v.Minor >= other.Minor
-	default:
-		return v.Major >= other.Major
 	}
+	if v.Major == other.Major {
+		return v.Minor >= other.Minor
+	}
+	return v.Major >= other.Major
 }
 
 func ParseGoVersion(version string) (GoVersion, error) {

@@ -3,11 +3,12 @@ package goutil
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/golangci/golangci-lint/pkg/logutils"
 )
@@ -39,11 +40,11 @@ func (e *Env) Discover(ctx context.Context) error {
 	args = append(args, string(EnvGoCache), string(EnvGoRoot))
 	out, err := exec.CommandContext(ctx, "go", args...).Output()
 	if err != nil {
-		return fmt.Errorf("failed to run 'go env': %w", err)
+		return errors.Wrap(err, "failed to run 'go env'")
 	}
 
 	if err = json.Unmarshal(out, &e.vars); err != nil {
-		return fmt.Errorf("failed to parse 'go %s' json: %w", strings.Join(args, " "), err)
+		return errors.Wrapf(err, "failed to parse 'go %s' json", strings.Join(args, " "))
 	}
 
 	e.debugf("Read go env for %s: %#v", time.Since(startedAt), e.vars)

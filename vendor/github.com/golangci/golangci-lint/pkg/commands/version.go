@@ -3,9 +3,7 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
-	"runtime/debug"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -14,9 +12,10 @@ import (
 	"github.com/golangci/golangci-lint/pkg/config"
 )
 
-type versionInfo struct {
-	Info      BuildInfo
-	BuildInfo *debug.BuildInfo
+type jsonVersion struct {
+	Version string `json:"version"`
+	Commit  string `json:"commit"`
+	Date    string `json:"date"`
 }
 
 func (e *Executor) initVersionConfiguration(cmd *cobra.Command) {
@@ -29,7 +28,6 @@ func initVersionFlagSet(fs *pflag.FlagSet, cfg *config.Config) {
 	// Version config
 	vc := &cfg.Version
 	fs.StringVar(&vc.Format, "format", "", wh("The version's format can be: 'short', 'json'"))
-	fs.BoolVar(&vc.Debug, "debug", false, wh("Add build information"))
 }
 
 func (e *Executor) initVersion() {
@@ -39,45 +37,26 @@ func (e *Executor) initVersion() {
 		Args:              cobra.NoArgs,
 		ValidArgsFunction: cobra.NoFileCompletions,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			if e.cfg.Version.Debug {
-				info, ok := debug.ReadBuildInfo()
-				if !ok {
-					return nil
-				}
-
-				switch strings.ToLower(e.cfg.Version.Format) {
-				case "json":
-					return json.NewEncoder(os.Stdout).Encode(versionInfo{
-						Info:      e.buildInfo,
-						BuildInfo: info,
-					})
-
-				default:
-					fmt.Println(info.String())
-					return printVersion(os.Stdout, e.buildInfo)
-				}
-			}
-
 			switch strings.ToLower(e.cfg.Version.Format) {
 			case "short":
-				fmt.Println(e.buildInfo.Version)
+				fmt.Println(e.version)
 				return nil
 
 			case "json":
-				return json.NewEncoder(os.Stdout).Encode(e.buildInfo)
+				ver := jsonVersion{
+					Version: e.version,
+					Commit:  e.commit,
+					Date:    e.date,
+				}
+				return json.NewEncoder(os.Stdout).Encode(&ver)
 
 			default:
-				return printVersion(os.Stdout, e.buildInfo)
+				fmt.Printf("golangci-lint has version %s built from %s on %s\n", e.version, e.commit, e.date)
+				return nil
 			}
 		},
 	}
 
 	e.rootCmd.AddCommand(versionCmd)
 	e.initVersionConfiguration(versionCmd)
-}
-
-func printVersion(w io.Writer, buildInfo BuildInfo) error {
-	_, err := fmt.Fprintf(w, "golangci-lint has version %s built with %s from %s on %s\n",
-		buildInfo.Version, buildInfo.GoVersion, buildInfo.Commit, buildInfo.Date)
-	return err
 }

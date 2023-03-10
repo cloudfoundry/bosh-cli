@@ -2,11 +2,11 @@ package http
 
 import (
 	"encoding/json"
+
 	"runtime/debug"
 
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-
 	"github.com/cloudfoundry/bosh-agent/agentclient"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Response interface {
@@ -161,48 +161,4 @@ func (r *TaskResponse) TaskState() (string, error) {
 	}
 
 	return "finished", nil
-}
-
-type SSHResponse struct {
-	Value     SSHState
-	Exception *exception
-}
-
-func (r *SSHResponse) ServerError() error {
-	if r.Exception != nil {
-		return bosherr.Errorf("Agent responded with error: %s", r.Exception.Message)
-	}
-	return nil
-}
-
-func (r *SSHResponse) Unmarshal(message []byte) error {
-	return json.Unmarshal(message, r)
-}
-
-type SSHState struct {
-	Command       string `json:"command"`
-	Status        string `json:"status"`
-	Ip            string `json:"ip"`
-	HostPublicKey string `json:"host_public_key"`
-}
-
-type BundleLogsResponse struct {
-	Value     BundleLogsState
-	Exception *exception
-}
-
-func (r *BundleLogsResponse) ServerError() error {
-	if r.Exception != nil {
-		return bosherr.Errorf("Agent responded with error: %s", r.Exception.Message)
-	}
-	return nil
-}
-
-func (r *BundleLogsResponse) Unmarshal(message []byte) error {
-	return json.Unmarshal(message, r)
-}
-
-type BundleLogsState struct {
-	LogsTarPath  string `json:"logs_tar_path"`
-	SHA512Digest string `json:"sha512"`
 }

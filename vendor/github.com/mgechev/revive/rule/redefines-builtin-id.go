@@ -89,9 +89,6 @@ func (w *lintRedefinesBuiltinID) Visit(node ast.Node) ast.Visitor {
 	case *ast.GenDecl:
 		switch n.Tok {
 		case token.TYPE:
-			if len(n.Specs) < 1 {
-				return nil
-			}
 			typeSpec, ok := n.Specs[0].(*ast.TypeSpec)
 			if !ok {
 				return nil

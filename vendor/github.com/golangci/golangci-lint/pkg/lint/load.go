@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	"golang.org/x/tools/go/packages"
 
 	"github.com/golangci/golangci-lint/internal/pkgcache"
@@ -171,11 +172,11 @@ func (cl *ContextLoader) parseLoadedPackagesErrors(pkgs []*packages.Package) err
 			errs = append(errs, err)
 
 			if strings.Contains(err.Msg, "no Go files") {
-				return fmt.Errorf("package %s: %w", pkg.PkgPath, exitcodes.ErrNoGoFiles)
+				return errors.Wrapf(exitcodes.ErrNoGoFiles, "package %s", pkg.PkgPath)
 			}
 			if strings.Contains(err.Msg, "cannot find package") {
 				// when analyzing not existing directory
-				return fmt.Errorf("%v: %w", err.Msg, exitcodes.ErrFailure)
+				return errors.Wrap(exitcodes.ErrFailure, err.Msg)
 			}
 		}
 
@@ -194,7 +195,7 @@ func (cl *ContextLoader) loadPackages(ctx context.Context, loadMode packages.Loa
 
 	buildFlags, err := cl.makeBuildFlags()
 	if err != nil {
-		return nil, fmt.Errorf("failed to make build flags for go list: %w", err)
+		return nil, errors.Wrap(err, "failed to make build flags for go list")
 	}
 
 	conf := &packages.Config{
@@ -210,14 +211,14 @@ func (cl *ContextLoader) loadPackages(ctx context.Context, loadMode packages.Loa
 	cl.debugf("Built loader args are %s", args)
 	pkgs, err := packages.Load(conf, args...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load with go/packages: %w", err)
+		return nil, errors.Wrap(err, "failed to load with go/packages")
 	}
 
 	// Currently, go/packages doesn't guarantee that error will be returned
 	// if context was canceled. See
 	// https://github.com/golang/tools/commit/c5cec6710e927457c3c29d6c156415e8539a5111#r39261855
 	if ctx.Err() != nil {
-		return nil, fmt.Errorf("timed out to load packages: %w", ctx.Err())
+		return nil, errors.Wrap(ctx.Err(), "timed out to load packages")
 	}
 
 	if loadMode&packages.NeedSyntax == 0 {
@@ -298,7 +299,7 @@ func (cl *ContextLoader) Load(ctx context.Context, linters []*linter.Config) (*l
 	loadMode := cl.findLoadMode(linters)
 	pkgs, err := cl.loadPackages(ctx, loadMode)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load packages: %w", err)
+		return nil, errors.Wrap(err, "failed to load packages")
 	}
 
 	deduplicatedPkgs := cl.filterDuplicatePackages(pkgs)

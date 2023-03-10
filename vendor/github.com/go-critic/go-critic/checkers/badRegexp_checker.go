@@ -9,8 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/go-critic/go-critic/checkers/internal/astwalk"
-	"github.com/go-critic/go-critic/linter"
-
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/quasilyte/regex/syntax"
 )
 

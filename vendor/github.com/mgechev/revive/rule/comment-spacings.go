@@ -47,13 +47,7 @@ func (r *CommentSpacingsRule) Apply(file *lint.File, args lint.Arguments) []lint
 				continue // nothing to do
 			}
 
-			isMultiLineComment := commentLine[1] == '*'
-			isOK := commentLine[2] == '\n'
-			if isMultiLineComment && isOK {
-				continue
-			}
-
-			isOK = (commentLine[2] == ' ') || (commentLine[2] == '\t')
+			isOK := commentLine[2] == ' '
 			if isOK {
 				continue
 			}
