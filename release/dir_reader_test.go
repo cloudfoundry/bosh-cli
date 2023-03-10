@@ -77,8 +77,8 @@ var _ = Describe("DirReader", func() {
 			job1.PackageNames = []string{"pkg1"}
 			job2 = boshjob.NewJob(NewResource("job2", "job2-fp", nil))
 
-			pkg1 = boshpkg.NewPackage(NewResource("pkg1", "pkg1-fp", nil), []string{"pkg2"})
-			pkg2 = boshpkg.NewPackage(NewResource("pkg2", "pkg2-fp", nil), nil)
+			pkg1 = boshpkg.NewPackage(NewResource("pkg1", "pkg1-fp", nil), []string{"pkg2"}, nil)
+			pkg2 = boshpkg.NewPackage(NewResource("pkg2", "pkg2-fp", nil), nil, nil)
 
 			lic = boshlic.NewLicense(NewResource("lic", "lic-fp", nil))
 
@@ -193,7 +193,7 @@ var _ = Describe("DirReader", func() {
 				job1.PackageNames = []string{"pkg-with-other-name"}
 				jobReader.ReadReturns(job1, nil)
 
-				pkg1 = boshpkg.NewPackage(NewResource("pkg1", "pkg1-fp", nil), nil)
+				pkg1 = boshpkg.NewPackage(NewResource("pkg1", "pkg1-fp", nil), nil, nil)
 				pkgReader.ReadReturns(pkg1, nil)
 			})
 
@@ -210,7 +210,7 @@ var _ = Describe("DirReader", func() {
 				job1 = boshjob.NewJob(NewResource("job1", "job1-fp", nil))
 				jobReader.ReadReturns(job1, nil)
 
-				pkg1 = boshpkg.NewPackage(NewResource("pkg1", "pkg1-fp", nil), []string{"pkg-with-other-name"})
+				pkg1 = boshpkg.NewPackage(NewResource("pkg1", "pkg1-fp", nil), []string{"pkg-with-other-name"}, nil)
 				pkgReader.ReadReturns(pkg1, nil)
 			})
 

@@ -70,7 +70,7 @@ var _ = Describe("Release", func() {
 			}
 
 			pkgs := []*boshpkg.Package{
-				boshpkg.NewPackage(NewResource("pkg", "", nil), nil),
+				boshpkg.NewPackage(NewResource("pkg", "", nil), nil, nil),
 			}
 
 			compiledPkgs := []*boshpkg.CompiledPackage{
@@ -140,7 +140,7 @@ var _ = Describe("Release", func() {
 			jobs[0].PackageNames = []string{"pkg1", "pkg2"}
 
 			pkgs := []*boshpkg.Package{
-				boshpkg.NewPackage(NewExistingResource("pkg", "pkg-fp", "pkg-sha1"), []string{"pkg1"}),
+				boshpkg.NewPackage(NewExistingResource("pkg", "pkg-fp", "pkg-sha1"), []string{"pkg1"}, nil),
 			}
 
 			compiledPkgs := []*boshpkg.CompiledPackage{
@@ -205,7 +205,7 @@ var _ = Describe("Release", func() {
 			jobs := []*boshjob.Job{boshjob.NewJob(jobRes)}
 
 			pkgRes := &fakeres.FakeResource{}
-			pkgs := []*boshpkg.Package{boshpkg.NewPackage(pkgRes, nil)}
+			pkgs := []*boshpkg.Package{boshpkg.NewPackage(pkgRes, nil, nil)}
 
 			licRes := &fakeres.FakeResource{}
 			lic := boshlic.NewLicense(licRes)
@@ -263,7 +263,7 @@ var _ = Describe("Release", func() {
 		It("returns error if package building fails", func() {
 			pkgResOne := &fakeres.FakeResource{}
 			pkgResTwo := &fakeres.FakeResource{}
-			pkgs := []*boshpkg.Package{boshpkg.NewPackage(pkgResOne, nil), boshpkg.NewPackage(pkgResTwo, nil)}
+			pkgs := []*boshpkg.Package{boshpkg.NewPackage(pkgResOne, nil, nil), boshpkg.NewPackage(pkgResTwo, nil, nil)}
 
 			pkgResOne.BuildReturns(errors.New("package-one-failed"))
 			pkgResTwo.BuildReturns(errors.New("package-two-failed"))
@@ -291,7 +291,7 @@ var _ = Describe("Release", func() {
 			jobs := []*boshjob.Job{boshjob.NewJob(jobRes)}
 
 			pkgRes := &fakeres.FakeResource{}
-			pkgs := []*boshpkg.Package{boshpkg.NewPackage(pkgRes, nil)}
+			pkgs := []*boshpkg.Package{boshpkg.NewPackage(pkgRes, nil, nil)}
 
 			licRes := &fakeres.FakeResource{}
 			lic := boshlic.NewLicense(licRes)
@@ -334,7 +334,7 @@ var _ = Describe("Release", func() {
 
 		It("returns error if package finalizing fails", func() {
 			pkgRes := &fakeres.FakeResource{}
-			pkgs := []*boshpkg.Package{boshpkg.NewPackage(pkgRes, nil)}
+			pkgs := []*boshpkg.Package{boshpkg.NewPackage(pkgRes, nil, nil)}
 
 			pkgRes.FinalizeReturns(errors.New("fake-err"))
 			release = NewRelease("", "", "", true, nil, pkgs, nil, nil, "", fs)
@@ -358,7 +358,7 @@ var _ = Describe("Release", func() {
 	Describe("CleanUp", func() {
 		It("cleans up jobs, packages", func() {
 			jobs := []*boshjob.Job{boshjob.NewJob(&fakeres.FakeResource{})}
-			pkgs := []*boshpkg.Package{boshpkg.NewPackage(&fakeres.FakeResource{}, nil)}
+			pkgs := []*boshpkg.Package{boshpkg.NewPackage(&fakeres.FakeResource{}, nil, nil)}
 			release = NewRelease("", "", "", true, jobs, pkgs, nil, nil, "", fs)
 			Expect(release.CleanUp()).ToNot(HaveOccurred())
 		})

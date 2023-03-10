@@ -39,7 +39,7 @@ var _ = Describe("Sort", func() {
 	}
 
 	newPkg := func(name string) *Package {
-		return NewPackage(NewResource(name, "", nil), nil)
+		return NewPackage(NewResource(name, "", nil), nil, nil)
 	}
 
 	BeforeEach(func() {

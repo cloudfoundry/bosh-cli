@@ -63,9 +63,9 @@ var _ = Describe("VendorPackageCmd", func() {
 
 		It("vendors package by name from source release", func() {
 			pkg0 := boshpkg.NewPackage(NewResourceWithBuiltArchive(
-				"pkg0-name", "pkg0-fp", "pkg0-path", "pkg0-sha1"), nil)
+				"pkg0-name", "pkg0-fp", "pkg0-path", "pkg0-sha1"), nil, nil)
 			pkg1 := boshpkg.NewPackage(NewResourceWithBuiltArchive(
-				"pkg1-name", "pkg1-fp", "pkg1-path", "pkg1-sha1"), nil)
+				"pkg1-name", "pkg1-fp", "pkg1-path", "pkg1-sha1"), nil, nil)
 
 			srcRelease := &fakerel.FakeRelease{}
 			srcRelease.PackagesReturns([]*boshpkg.Package{pkg0, pkg1})
@@ -85,7 +85,7 @@ var _ = Describe("VendorPackageCmd", func() {
 
 		It("returns error if vendoring fails", func() {
 			pkg1 := boshpkg.NewPackage(NewResourceWithBuiltArchive(
-				"pkg1-name", "pkg1-fp", "pkg1-path", "pkg1-sha1"), nil)
+				"pkg1-name", "pkg1-fp", "pkg1-path", "pkg1-sha1"), nil, nil)
 
 			srcRelease := &fakerel.FakeRelease{}
 			srcRelease.PackagesReturns([]*boshpkg.Package{pkg1})
@@ -102,7 +102,7 @@ var _ = Describe("VendorPackageCmd", func() {
 
 		It("returns error if package does not exist within source release", func() {
 			pkg1 := boshpkg.NewPackage(NewResourceWithBuiltArchive(
-				"pkg1-other-name", "pkg1-fp", "pkg1-path", "pkg1-sha1"), nil)
+				"pkg1-other-name", "pkg1-fp", "pkg1-path", "pkg1-sha1"), nil, nil)
 
 			srcRelease := &fakerel.FakeRelease{}
 			srcRelease.PackagesReturns([]*boshpkg.Package{pkg1})

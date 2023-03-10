@@ -92,7 +92,7 @@ var _ = Describe("ArchiveReaderImpl", func() {
 			pkg, err := reader.Read(ref, "archive-path")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(pkg).To(Equal(NewPackage(NewResourceWithBuiltArchive(
-				"name", "fp", "archive-path", "archive-sha1"), []string{"pkg1"})))
+				"name", "fp", "archive-path", "archive-sha1"), []string{"pkg1"}, nil)))
 		})
 	})
 })

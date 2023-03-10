@@ -17,8 +17,8 @@ var _ = Describe("Sorting Packages", func() {
 		var expectedPackages []*Package
 		BeforeEach(func() {
 			for i := 5; i >= 0; i-- {
-				packages = append(packages, NewPackage(boshres.NewResourceWithBuiltArchive(fmt.Sprintf("name%d", i), "fp", "path", "sha1"), []string{"pkg1"}))
-				expectedPackages = append(expectedPackages, NewPackage(boshres.NewResourceWithBuiltArchive(fmt.Sprintf("name%d", 5-i), "fp", "path", "sha1"), []string{"pkg1"}))
+				packages = append(packages, NewPackage(boshres.NewResourceWithBuiltArchive(fmt.Sprintf("name%d", i), "fp", "path", "sha1"), []string{"pkg1"}, nil))
+				expectedPackages = append(expectedPackages, NewPackage(boshres.NewResourceWithBuiltArchive(fmt.Sprintf("name%d", 5-i), "fp", "path", "sha1"), []string{"pkg1"}, nil))
 			}
 		})
 
@@ -32,7 +32,7 @@ var _ = Describe("Sorting Packages", func() {
 var _ = Describe("Package", func() {
 	Describe("common methods", func() {
 		It("delegates to resource", func() {
-			pkg := NewPackage(boshres.NewResourceWithBuiltArchive("name", "fp", "path", "sha1"), []string{"pkg1"})
+			pkg := NewPackage(boshres.NewResourceWithBuiltArchive("name", "fp", "path", "sha1"), []string{"pkg1"}, nil)
 			Expect(pkg.Name()).To(Equal("name"))
 			Expect(pkg.String()).To(Equal("name"))
 			Expect(pkg.Fingerprint()).To(Equal("fp"))
@@ -44,10 +44,10 @@ var _ = Describe("Package", func() {
 
 	Describe("AttachDependencies", func() {
 		It("attaches dependencies based on their names", func() {
-			pkg := NewPackage(boshres.NewResourceWithBuiltArchive("name", "fp", "path", "sha1"), []string{"pkg1", "pkg2"})
-			pkg1 := NewPackage(boshres.NewResourceWithBuiltArchive("pkg1", "fp", "path", "sha1"), nil)
-			pkg2 := NewPackage(boshres.NewResourceWithBuiltArchive("pkg2", "fp", "path", "sha1"), nil)
-			unusedPkg := NewPackage(boshres.NewResourceWithBuiltArchive("unused", "fp", "path", "sha1"), nil)
+			pkg := NewPackage(boshres.NewResourceWithBuiltArchive("name", "fp", "path", "sha1"), []string{"pkg1", "pkg2"}, nil)
+			pkg1 := NewPackage(boshres.NewResourceWithBuiltArchive("pkg1", "fp", "path", "sha1"), nil, nil)
+			pkg2 := NewPackage(boshres.NewResourceWithBuiltArchive("pkg2", "fp", "path", "sha1"), nil, nil)
+			unusedPkg := NewPackage(boshres.NewResourceWithBuiltArchive("unused", "fp", "path", "sha1"), nil, nil)
 
 			err := pkg.AttachDependencies([]*Package{pkg1, unusedPkg, pkg2})
 			Expect(err).ToNot(HaveOccurred())
@@ -56,8 +56,8 @@ var _ = Describe("Package", func() {
 		})
 
 		It("returns error if dependency cannot be found", func() {
-			pkg := NewPackage(boshres.NewResourceWithBuiltArchive("name", "fp", "path", "sha1"), []string{"pkg1"})
-			pkg2 := NewPackage(boshres.NewResourceWithBuiltArchive("pkg2", "fp", "path", "sha1"), nil)
+			pkg := NewPackage(boshres.NewResourceWithBuiltArchive("name", "fp", "path", "sha1"), []string{"pkg1"}, nil)
+			pkg2 := NewPackage(boshres.NewResourceWithBuiltArchive("pkg2", "fp", "path", "sha1"), nil, nil)
 
 			err := pkg.AttachDependencies([]*Package{pkg2})
 			Expect(err).To(HaveOccurred())
@@ -67,7 +67,7 @@ var _ = Describe("Package", func() {
 
 	Describe("CleanUp", func() {
 		It("does nothing by default", func() {
-			pkg := NewPackage(boshres.NewResourceWithBuiltArchive("name", "fp", "path", "sha1"), nil)
+			pkg := NewPackage(boshres.NewResourceWithBuiltArchive("name", "fp", "path", "sha1"), nil, nil)
 			Expect(pkg.CleanUp()).ToNot(HaveOccurred())
 		})
 	})

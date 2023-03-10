@@ -70,7 +70,7 @@ var _ = Describe("RedigestRelease", func() {
 
 		fakeSha128Release = &fakerel.FakeRelease{}
 		jobSha128 := boshjob.NewJob(NewResourceWithBuiltArchive("job-resource-1", "job-sha128-fp", job1ResourcePath, fileContentSha1))
-		packageSha128 := boshpkg.NewPackage(NewResourceWithBuiltArchive("pkg-resource-1", "pkg-sha128-fp", pkg1ResourcePath, fileContentSha1), nil)
+		packageSha128 := boshpkg.NewPackage(NewResourceWithBuiltArchive("pkg-resource-1", "pkg-sha128-fp", pkg1ResourcePath, fileContentSha1), nil, nil)
 		compiledPackageSha128 := boshpkg.NewCompiledPackageWithArchive("compiledpkg-resource-1", "compiledpkg-sha128-fp", "1", compiledPackage1ResourcePath, fileContentSha1, nil)
 
 		fakeSha128Release.JobsReturns([]*boshjob.Job{jobSha128})

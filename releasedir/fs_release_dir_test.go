@@ -647,10 +647,10 @@ var _ = Describe("FSGenerator", func() {
 				FingerprintStub: func() string { return "pkg4-fp" },
 			}
 
-			pkg1 := boshpkg.NewPackage(pkg1Res, []string{"pkg2-name", "pkg3-name"})
-			pkg2 := boshpkg.NewPackage(pkg2Res, []string{"pkg4-name"})
-			pkg3 := boshpkg.NewPackage(pkg3Res, []string{"pkg4-name"})
-			pkg4 := boshpkg.NewPackage(pkg4Res, nil)
+			pkg1 := boshpkg.NewPackage(pkg1Res, []string{"pkg2-name", "pkg3-name"}, nil)
+			pkg2 := boshpkg.NewPackage(pkg2Res, []string{"pkg4-name"}, nil)
+			pkg3 := boshpkg.NewPackage(pkg3Res, []string{"pkg4-name"}, nil)
+			pkg4 := boshpkg.NewPackage(pkg4Res, nil, nil)
 			err := pkg1.AttachDependencies([]*boshpkg.Package{pkg2, pkg3})
 			Expect(err).ToNot(HaveOccurred())
 			err = pkg2.AttachDependencies([]*boshpkg.Package{pkg4})
@@ -714,11 +714,11 @@ fingerprint: pkg4-fp
 			Expect(err).To(HaveOccurred())
 			pkg2Res := resource.NewResourceWithBuiltArchive("pkg2-name", "pkg2-fp", "/test/something", "something")
 			pkg3Res := resource.NewResourceWithBuiltArchive("pkg3-name", "pkg3-fp", "/test/something", "something")
-			pkg2 := boshpkg.NewPackage(pkg2Res, []string{})
-			pkg3 := boshpkg.NewPackage(pkg3Res, []string{})
+			pkg2 := boshpkg.NewPackage(pkg2Res, []string{}, nil)
+			pkg3 := boshpkg.NewPackage(pkg3Res, []string{}, nil)
 
 			pkg1Res := resource.NewResourceWithBuiltArchive("pkg1-name", "pkg1-fp", "/test/something", "something")
-			pkg1 := boshpkg.NewPackage(pkg1Res, []string{"pkg2-name", "pkg3-name"})
+			pkg1 := boshpkg.NewPackage(pkg1Res, []string{"pkg2-name", "pkg3-name"}, nil)
 
 			err = pkg1.AttachDependencies([]*boshpkg.Package{pkg2, pkg3})
 			Expect(err).ToNot(HaveOccurred())
@@ -736,7 +736,7 @@ dependencies:
 
 		It("finalize given package with prefix", func() {
 			pkg1Res := resource.NewResourceWithBuiltArchive("pkg1-name", "pkg1-fp", "/test/something", "something")
-			pkg1 := boshpkg.NewPackage(pkg1Res, nil)
+			pkg1 := boshpkg.NewPackage(pkg1Res, nil, nil)
 
 			err := releaseDir.VendorPackage(pkg1, "prefix")
 			Expect(err).ToNot(HaveOccurred())
@@ -750,7 +750,7 @@ fingerprint: pkg1-fp
 				NameStub:        func() string { return "pkg1-name" },
 				FingerprintStub: func() string { return "pkg1-fp" },
 			}
-			pkg1 := boshpkg.NewPackage(pkg1Res, nil)
+			pkg1 := boshpkg.NewPackage(pkg1Res, nil, nil)
 
 			pkg1Res.FinalizeReturns(errors.New("fake-err"))
 
@@ -764,7 +764,7 @@ fingerprint: pkg1-fp
 				NameStub:        func() string { return "pkg1-name" },
 				FingerprintStub: func() string { return "pkg1-fp" },
 			}
-			pkg1 := boshpkg.NewPackage(pkg1Res, nil)
+			pkg1 := boshpkg.NewPackage(pkg1Res, nil, nil)
 
 			fs.RemoveAllStub = func(path string) error { return errors.New("fake-err") }
 
@@ -777,7 +777,7 @@ fingerprint: pkg1-fp
 			pkg1Res := &fakeres.FakeResource{
 				NameStub: func() string { return "pkg1-name" },
 			}
-			pkg1 := boshpkg.NewPackage(pkg1Res, nil)
+			pkg1 := boshpkg.NewPackage(pkg1Res, nil, nil)
 
 			err := releaseDir.VendorPackage(pkg1, "")
 			Expect(err).To(HaveOccurred())
@@ -789,7 +789,7 @@ fingerprint: pkg1-fp
 				NameStub:        func() string { return "pkg1-name" },
 				FingerprintStub: func() string { return "pkg1-fp" },
 			}
-			pkg1 := boshpkg.NewPackage(pkg1Res, nil)
+			pkg1 := boshpkg.NewPackage(pkg1Res, nil, nil)
 
 			fs.WriteFileErrors["/dir/packages/pkg1-name/spec.lock"] = errors.New("fake-err")
 

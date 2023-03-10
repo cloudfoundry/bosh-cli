@@ -29,10 +29,10 @@ var _ = Describe("ReleaseTables", func() {
 
 		BeforeEach(func() {
 			pkg1 := boshpkg.NewPackage(NewResourceWithBuiltArchive(
-				"pkg1-name", "pkg1-fp", "pkg1-path", "pkg1-sha1"), nil)
+				"pkg1-name", "pkg1-fp", "pkg1-path", "pkg1-sha1"), nil, nil)
 
 			pkg2 := boshpkg.NewPackage(NewResourceWithBuiltArchive(
-				"pkg2-name", "pkg2-fp", "pkg2-path", "pkg2-sha1"), []string{"pkg1-name"})
+				"pkg2-name", "pkg2-fp", "pkg2-path", "pkg2-sha1"), []string{"pkg1-name"}, nil)
 
 			err := pkg2.AttachDependencies([]*boshpkg.Package{pkg1})
 			Expect(err).ToNot(HaveOccurred())

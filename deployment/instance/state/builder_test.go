@@ -231,15 +231,15 @@ var _ = Describe("Builder", func() {
 			)
 
 			releasePackageLibyaml = boshpkg.NewPackage(NewResourceWithBuiltArchive(
-				"libyaml", "libyaml-fp", "libyaml-path", "libyaml-sha1"), nil)
+				"libyaml", "libyaml-fp", "libyaml-path", "libyaml-sha1"), nil, nil)
 
 			releasePackageRuby = boshpkg.NewPackage(NewResourceWithBuiltArchive(
-				"ruby", "ruby-fp", "ruby-path", "ruby-sha1"), []string{"libyaml"})
+				"ruby", "ruby-fp", "ruby-path", "ruby-sha1"), []string{"libyaml"}, nil)
 			err := releasePackageRuby.AttachDependencies([]*boshpkg.Package{releasePackageLibyaml})
 			Expect(err).ToNot(HaveOccurred())
 
 			releasePackageCPI = boshpkg.NewPackage(NewResourceWithBuiltArchive(
-				"cpi", "cpi-fp", "cpi-path", "cpi-sha1"), []string{"ruby"})
+				"cpi", "cpi-fp", "cpi-path", "cpi-sha1"), []string{"ruby"}, nil)
 			err = releasePackageCPI.AttachDependencies([]*boshpkg.Package{releasePackageRuby})
 			Expect(err).ToNot(HaveOccurred())
 		})

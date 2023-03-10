@@ -17,5 +17,5 @@ func TestReg(t *testing.T) {
 
 func newPkg(name, fp string, deps []string) *boshrelpkg.Package {
 	resource := NewResourceWithBuiltArchive(name, fp, "", "")
-	return boshrelpkg.NewPackage(resource, deps)
+	return boshrelpkg.NewPackage(resource, deps, nil)
 }

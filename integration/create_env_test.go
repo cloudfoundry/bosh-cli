@@ -264,7 +264,7 @@ cloud_provider:
 		}
 
 		var allowCPIToBeInstalled = func() {
-			cpiPackage := birelpkg.NewPackage(NewResource("fake-package-name", "fake-package-fingerprint-cpi", nil), nil)
+			cpiPackage := birelpkg.NewPackage(NewResource("fake-package-name", "fake-package-fingerprint-cpi", nil), nil, nil)
 			job := bireljob.NewJob(NewResource("fake-cpi-release-job-name", "", nil))
 			job.Templates = map[string]string{filepath.Join("templates", "cpi.erb"): "bin/cpi"}
 			job.PackageNames = []string{"fake-package-name"}

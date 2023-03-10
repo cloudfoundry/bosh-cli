@@ -67,8 +67,8 @@ var _ = Describe("PackageCompiler", func() {
 
 		mockCompiledPackageRepo = mockstatepackage.NewMockCompiledPackageRepo(mockCtrl)
 
-		dependency1 = birelpkg.NewPackage(NewResource("pkg-dep1-name", "", nil), nil)
-		dependency2 = birelpkg.NewPackage(NewResource("pkg-dep2-name", "", nil), nil)
+		dependency1 = birelpkg.NewPackage(NewResource("pkg-dep1-name", "", nil), nil, nil)
+		dependency2 = birelpkg.NewPackage(NewResource("pkg-dep2-name", "", nil), nil, nil)
 		pkg = birelpkg.NewExtractedPackage(NewResource("pkg1-name", "", nil), []string{"pkg-dep1-name", "pkg-dep2-name"}, "/pkg-dir", fs)
 		err := pkg.AttachDependencies([]*birelpkg.Package{dependency1, dependency2})
 		Expect(err).ToNot(HaveOccurred())

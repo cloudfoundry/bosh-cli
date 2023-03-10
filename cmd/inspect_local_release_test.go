@@ -48,14 +48,14 @@ var _ = Describe("InspectLocalReleaseCmd", func() {
 				"pkg-1-fp",
 				"/pkg-1-resource-path",
 				"pkg-1-digest",
-			), nil)
+			), nil, nil)
 			pkg2 := boshpkg.NewPackage(NewResourceWithBuiltArchive(
 				"pkg-2-name",
 				"pkg-2-fp",
 				"/pkg-2-resource-path",
 				"pkg-2-digest"),
 				[]string{"pkg-1-name"},
-			)
+				nil)
 			err := pkg2.AttachDependencies([]*boshpkg.Package{pkg1})
 			Expect(err).ToNot(HaveOccurred())
 

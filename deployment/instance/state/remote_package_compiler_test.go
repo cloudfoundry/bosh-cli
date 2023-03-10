@@ -60,10 +60,10 @@ var _ = Describe("RemotePackageCompiler", func() {
 
 			BeforeEach(func() {
 				pkgDependency = boshpkg.NewPackage(NewResource(
-					"fake-package-name-dep", "fake-package-fingerprint-dep", nil), nil)
+					"fake-package-name-dep", "fake-package-fingerprint-dep", nil), nil, nil)
 
 				pkg = boshpkg.NewPackage(NewResourceWithBuiltArchive(
-					"fake-package-name", "fake-package-fingerprint", archivePath, "fake-source-package-sha1"), []string{"fake-package-name-dep"})
+					"fake-package-name", "fake-package-fingerprint", archivePath, "fake-source-package-sha1"), []string{"fake-package-name-dep"}, nil)
 				err := pkg.AttachDependencies([]*boshpkg.Package{pkgDependency})
 				Expect(err).ToNot(HaveOccurred())
 

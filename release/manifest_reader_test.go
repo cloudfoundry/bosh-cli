@@ -67,8 +67,8 @@ packages:
 				job1 := boshjob.NewJob(NewExistingResource("job1", "job1-fp", "job1-sha"))
 				job2 := boshjob.NewJob(NewExistingResource("job2", "job2-fp", "job2-sha"))
 
-				pkg1 := boshpkg.NewPackage(NewExistingResource("pkg1", "pkg1-fp", "pkg1-sha"), []string{"pkg2"})
-				pkg2 := boshpkg.NewPackage(NewExistingResource("pkg2", "pkg2-fp", "pkg2-sha"), nil)
+				pkg1 := boshpkg.NewPackage(NewExistingResource("pkg1", "pkg1-fp", "pkg1-sha"), []string{"pkg2"}, nil)
+				pkg2 := boshpkg.NewPackage(NewExistingResource("pkg2", "pkg2-fp", "pkg2-sha"), nil, nil)
 				err = pkg1.AttachDependencies([]*boshpkg.Package{pkg2})
 				Expect(err).ToNot(HaveOccurred())
 

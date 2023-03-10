@@ -74,8 +74,8 @@ var _ = Describe("JobRenderer", func() {
 			},
 		}
 
-		pkg1 := birelpkg.NewPackage(NewResource("pkg1-name", "pkg1-fp", nil), nil)
-		pkg2 := birelpkg.NewPackage(NewResource("pkg2-name", "pkg2-fp", nil), []string{"pkg1-name"})
+		pkg1 := birelpkg.NewPackage(NewResource("pkg1-name", "pkg1-fp", nil), nil, nil)
+		pkg2 := birelpkg.NewPackage(NewResource("pkg2-name", "pkg2-fp", nil), []string{"pkg1-name"}, nil)
 		err := pkg2.AttachDependencies([]*birelpkg.Package{pkg1})
 		Expect(err).ToNot(HaveOccurred())
 

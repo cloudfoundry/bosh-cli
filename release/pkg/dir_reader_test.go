@@ -66,7 +66,7 @@ excluded_files: [ex-file1, ex-file2]
 
 			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), []string{"pkg1", "pkg2"})))
+			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), []string{"pkg1", "pkg2"}, nil)))
 
 			Expect(collectedFiles).To(ConsistOf(
 				// does not include spec
@@ -92,7 +92,7 @@ excluded_files: [ex-file1, ex-file2]
 
 			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
+			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil, nil)))
 
 			Expect(collectedFiles).To(Equal([]File{
 				{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
@@ -129,7 +129,7 @@ files: [in-file1, in-file2]
 
 			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
+			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil, nil)))
 
 			Expect(collectedFiles).To(ConsistOf([]File{
 				{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
@@ -169,7 +169,7 @@ files: [in-file1, in-file2]
 
 			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
+			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil, nil)))
 
 			Expect(collectedFiles).To(ConsistOf([]File{
 				{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
@@ -236,7 +236,7 @@ excluded_files: [ex-file1, ex-file2]
 
 			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
+			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil, nil)))
 
 			Expect(collectedFiles).To(Equal([]File{
 				{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
@@ -260,7 +260,7 @@ excluded_files: [ex-file1, ex-file2]
 
 			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
+			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil, nil)))
 
 			Expect(collectedFiles).To(Equal([]File{
 				{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
@@ -424,7 +424,7 @@ files: [in-file1, in-file2]
 
 			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
+			Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil, nil)))
 
 			Expect(collectedFiles).To(ConsistOf([]File{
 				{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
@@ -446,7 +446,7 @@ files: [in-file1, in-file2]
 
 			pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 			Expect(err).ToNot(HaveOccurred())
-			Expect(pkg).To(Equal(NewPackage(NewExistingResource("name", "fp", ""), []string{"pkg1"})))
+			Expect(pkg).To(Equal(NewPackage(NewExistingResource("name", "fp", ""), []string{"pkg1"}, nil)))
 		})
 
 		It("returns error if cannot deserialize spec lock", func() {
@@ -492,7 +492,7 @@ files: ["stuff/**/*"]
 			It("does not include any files that are nested underneath the symlink", func() {
 				pkg, err := reader.Read(filepath.Join(srcDirPath, "dir"))
 				Expect(err).NotTo(HaveOccurred())
-				Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil)))
+				Expect(pkg).To(Equal(NewPackage(NewResource("name", "fp", archive), nil, nil)))
 
 				Expect(collectedFiles).To(ConsistOf([]File{
 					{Path: filepath.Join(srcDirPath, "dir", "packaging"), DirPath: filepath.Join(srcDirPath, "dir"), RelativePath: "packaging", ExcludeMode: true},
