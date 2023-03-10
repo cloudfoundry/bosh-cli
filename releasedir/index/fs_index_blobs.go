@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
@@ -136,5 +138,8 @@ func (c FSIndexBlobs) blobPath(sha1 string) (string, error) {
 		return "", bosherr.WrapErrorf(err, "Creating cache directory")
 	}
 
+	if runtime.GOOS == "windows" {
+		sha1 = strings.ReplaceAll(sha1, ":", "_")
+	}
 	return filepath.Join(absDirPath, sha1), nil
 }
