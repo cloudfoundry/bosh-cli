@@ -93,6 +93,7 @@ var _ = Describe("Opts", func() {
 				"Command 'RepackStemcellOpts' shadows global long option 'version'",
 				"Command 'UploadReleaseOpts' shadows global long option 'version'",
 				"Command 'CreateReleaseOpts' shadows global long option 'version'",
+				"Command 'CreateSbomOpts' shadows global long option 'version'",
 				"Command 'FinalizeReleaseOpts' shadows global long option 'version'",
 			}))
 		})
@@ -749,6 +750,14 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("CreateRelease", opts)).To(Equal(
 					`command:"create-release" alias:"cr" description:"Create release"`,
+				))
+			})
+		})
+
+		Describe("CreateSbom", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("CreateSbom", opts)).To(Equal(
+					`command:"create-sbom" description:"Create Sbom"`,
 				))
 			})
 		})
@@ -3140,6 +3149,76 @@ var _ = Describe("Opts", func() {
 				err := opts.Tarball.FS.MkdirAll("/some/dir", os.ModeDir)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(opts.Tarball.UnmarshalFlag("/some/dir")).NotTo(Succeed())
+			})
+		})
+
+		Describe("Force", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Force", opts)).To(Equal(
+					`long:"force" description:"Ignore Git dirty state check"`,
+				))
+			})
+		})
+	})
+
+	Describe("CreateSbomOpts", func() {
+		var opts *CreateSbomOpts
+
+		BeforeEach(func() {
+			opts = &CreateSbomOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
+			})
+		})
+
+		Describe("Directory", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Directory", opts)).To(Equal(
+					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
+			})
+		})
+
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(
+					`long:"name" description:"Custom sbom name"`,
+				))
+			})
+		})
+
+		Describe("Filename", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Filename", opts)).To(Equal(
+					`long:"filename" description:"Filename for sbom output"`,
+				))
+			})
+		})
+
+		Describe("Type", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Type", opts)).To(Equal(
+					`long:"type" description:"Type of sbom output (supported values: cyclonedx)"`,
+				))
+			})
+		})
+
+		Describe("Version", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Version", opts)).To(Equal(
+					`long:"version" description:"Custom sbom version (e.g.: 1.0.0, 1.0-beta.2+dev.10)"`,
+				))
+			})
+		})
+
+		Describe("TimestampVersion", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("TimestampVersion", opts)).To(Equal(
+					`long:"timestamp-version" description:"Create sbom with the timestamp as the dev version (e.g.: 1+dev.TIMESTAMP)"`,
+				))
 			})
 		})
 

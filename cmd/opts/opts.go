@@ -161,7 +161,7 @@ type BoshOpts struct {
 	CreateRelease   CreateReleaseOpts   `command:"create-release"   alias:"cr" description:"Create release"`
 	VendorPackage   VendorPackageOpts   `command:"vendor-package"              description:"Vendor package"`
 
-	CreateSbom CreateSbomOpts `command:"create-sbom"   alias:"cs" description:"Create Sbom"`
+	CreateSbom CreateSbomOpts `command:"create-sbom" description:"Create Sbom"`
 
 	Sha1ifyRelease Sha1ifyReleaseOpts `command:"sha1ify-release"  description:"Convert release tarball to use SHA1"`
 	Sha2ifyRelease Sha2ifyReleaseOpts `command:"sha2ify-release"  description:"Convert release tarball to use SHA256"`
@@ -1087,9 +1087,12 @@ type CreateSbomOpts struct {
 
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 
-	Name             string     `long:"name"               description:"Custom release name"`
-	Version          VersionArg `long:"version"            description:"Custom release version (e.g.: 1.0.0, 1.0-beta.2+dev.10)"`
-	TimestampVersion bool       `long:"timestamp-version"  description:"Create release with the timestamp as the dev version (e.g.: 1+dev.TIMESTAMP)"`
+	Name             string     `long:"name"               description:"Custom sbom name"`
+	Version          VersionArg `long:"version"            description:"Custom sbom version (e.g.: 1.0.0, 1.0-beta.2+dev.10)"`
+	TimestampVersion bool       `long:"timestamp-version"  description:"Create sbom with the timestamp as the dev version (e.g.: 1+dev.TIMESTAMP)"`
+
+	Filename string `long:"filename"  description:"Filename for sbom output"`
+	Type     string `long:"type"      description:"Type of sbom output (supported values: cyclonedx)"`
 
 	Force bool `long:"force"   description:"Ignore Git dirty state check"`
 

@@ -123,8 +123,8 @@ func (c CreateSbomCmd) Run(opts CreateSbomOpts) (boshrel.Release, error) {
 	encoded, _ := formats.Encode(sbom, cyclonedxjson.Format())
 
 	//c.ui.BeginLinef("sbom to  %s\n", encoded)
-	c.ui.BeginLinef("Writing sbom to cyclonedx-sbom.json\n")
-	_ = ioutil.WriteFile("cyclonedx-sbom.json", encoded, 0644)
+	c.ui.BeginLinef("Writing sbom to %s\n", opts.Filename)
+	_ = ioutil.WriteFile(opts.Filename, encoded, 0644)
 	return release, nil
 }
 
