@@ -71,6 +71,7 @@ var _ = Describe("Factory", func() {
 			Entry("create-env", "create-env", []string{filePlaceholder}),
 			Entry("sha2ify-release", "sha2ify-release", []string{filePlaceholder, filePlaceholder}),
 			Entry("create-release", "create-release", []string{filePlaceholder}),
+			Entry("create-sbom", "create-sbom", []string{filePlaceholder}),
 			Entry("delete-deployment", "delete-deployment", []string{}),
 			Entry("delete-disk", "delete-disk", []string{"cid"}),
 			Entry("delete-env", "delete-env", []string{filePlaceholder}),
@@ -377,6 +378,7 @@ var _ = Describe("Factory", func() {
 			boshOpts.GeneratePackage = GeneratePackageOpts{}
 			boshOpts.VendorPackage = VendorPackageOpts{}
 			boshOpts.CreateRelease = CreateReleaseOpts{}
+			boshOpts.CreateSbom = CreateSbomOpts{}
 			boshOpts.FinalizeRelease = FinalizeReleaseOpts{}
 			boshOpts.Blobs = BlobsOpts{}
 			boshOpts.AddBlob = AddBlobOpts{}

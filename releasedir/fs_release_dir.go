@@ -280,7 +280,7 @@ func (d FSReleaseDir) writeVendoredPackage(pkg *boshpkg.Package) error {
 		return bosherr.WrapErrorf(err, "Creating package '%s' dir", name)
 	}
 
-	manifestLock := boshpkgman.ManifestLock{Name: name, Fingerprint: pkg.Fingerprint()}
+	manifestLock := boshpkgman.ManifestLock{Name: name, Fingerprint: pkg.Fingerprint(), PackageVersions: pkg.PackageVersions}
 
 	for _, pkg2 := range pkg.Dependencies {
 		manifestLock.Dependencies = append(manifestLock.Dependencies, pkg2.Name())
@@ -295,6 +295,8 @@ func (d FSReleaseDir) writeVendoredPackage(pkg *boshpkg.Package) error {
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Creating package '%s' spec lock file", name)
 	}
+
+	fmt.Printf("%s\n", manifestLockBytes)
 
 	return nil
 }

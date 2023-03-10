@@ -37,7 +37,7 @@ type PackageRef struct {
 	Fingerprint     string                    `yaml:"fingerprint"`
 	SHA1            string                    `yaml:"sha1"`
 	Dependencies    []string                  `yaml:"dependencies"`
-	PackageVersions []manifest.PackageVersion `yaml:"package_versions"`
+	PackageVersions []manifest.PackageVersion `yaml:"package_versions,omitempty"`
 }
 
 type CompiledPackageRef struct {

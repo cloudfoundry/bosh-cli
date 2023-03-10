@@ -16,6 +16,7 @@ import (
 	boshlic "github.com/cloudfoundry/bosh-cli/v7/release/license"
 	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
+	"github.com/cloudfoundry/bosh-cli/v7/release/pkg/manifest"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
@@ -72,6 +73,13 @@ var _ = Describe("ArchiveWriter", func() {
 						Fingerprint:  "pkg-fp",
 						SHA1:         "pkg-sha1",
 						Dependencies: []string{"pkg1"},
+						PackageVersions: []manifest.PackageVersion{
+							manifest.PackageVersion{
+								Name:    "pkg1",
+								Version: "0.0.1",
+								Project: "project1",
+							},
+						},
 					},
 				},
 				CompiledPkgs: []boshman.CompiledPackageRef{
@@ -111,6 +119,10 @@ packages:
   sha1: pkg-sha1
   dependencies:
   - pkg1
+  package_versions:
+  - name: pkg1
+    version: 0.0.1
+    project: project1
 compiled_packages:
 - name: cp
   version: cp-version

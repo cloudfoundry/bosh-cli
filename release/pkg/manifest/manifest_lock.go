@@ -10,7 +10,7 @@ type ManifestLock struct {
 	Name            string           `yaml:"name"`
 	Fingerprint     string           `yaml:"fingerprint"`
 	Dependencies    []string         `yaml:"dependencies,omitempty"`
-	PackageVersions []PackageVersion `yaml:"package_versions"`
+	PackageVersions []PackageVersion `yaml:"package_versions,omitempty"`
 }
 
 func NewManifestLockFromPath(path string, fs boshsys.FileSystem) (ManifestLock, error) {

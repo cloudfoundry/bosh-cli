@@ -2,6 +2,7 @@ package releasedir_test
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"code.cloudfoundry.org/clock"
@@ -669,6 +670,8 @@ var _ = Describe("FSGenerator", func() {
 			// recorded files
 			Expect(fs.FileExists("/dir/packages/pkg1-name/spec")).To(BeFalse())
 			Expect(fs.FileExists("/dir/packages/pkg1-name/packaging")).To(BeFalse())
+			fmt.Println(fs.ReadFileString("/dir/packages/pkg1-name/spec.lock"))
+			fmt.Println(fs.ReadFileString("/dir/packages/pkg2-name/spec.lock"))
 			Expect(fs.ReadFileString("/dir/packages/pkg1-name/spec.lock")).To(Equal(`name: pkg1-name
 fingerprint: pkg1-fp
 dependencies:

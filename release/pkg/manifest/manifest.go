@@ -11,7 +11,7 @@ type Manifest struct {
 	Dependencies    []string         `yaml:"dependencies"`
 	Files           []string         `yaml:"files"`
 	ExcludedFiles   []string         `yaml:"excluded_files"`
-	PackageVersions []PackageVersion `yaml:"package_versions"`
+	PackageVersions []PackageVersion `yaml:"package_versions,omitempty"`
 }
 
 type PackageVersion struct {
