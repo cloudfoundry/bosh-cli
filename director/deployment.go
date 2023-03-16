@@ -117,8 +117,8 @@ func (d DeploymentImpl) Manifest() (string, error) {
 	return resp.Manifest, nil
 }
 
-func (d DeploymentImpl) FetchLogs(slug AllOrInstanceGroupOrInstanceSlug, filters []string, agent bool) (LogsResult, error) {
-	blobID, sha1, err := d.client.FetchLogs(d.name, slug.Name(), slug.IndexOrID(), filters, agent)
+func (d DeploymentImpl) FetchLogs(slug AllOrInstanceGroupOrInstanceSlug, filters []string, agent bool, system bool, allLogs bool) (LogsResult, error) {
+	blobID, sha1, err := d.client.FetchLogs(d.name, slug.Name(), slug.IndexOrID(), filters, agent, system, allLogs)
 	if err != nil {
 		return LogsResult{}, err
 	}
@@ -254,13 +254,13 @@ func (d DeploymentImpl) Variables() ([]VariableResult, error) {
 	return response, nil
 }
 
-func (c Client) FetchLogs(deploymentName, job, indexOrID string, filters []string, agent bool) (string, string, error) {
+func (c Client) FetchLogs(deploymentName, instance, indexOrID string, filters []string, agent bool, system bool, allLogs bool) (string, string, error) {
 	if len(deploymentName) == 0 {
 		return "", "", bosherr.Error("Expected non-empty deployment name")
 	}
 
-	if len(job) == 0 {
-		job = "*"
+	if len(instance) == 0 {
+		instance = "*"
 	}
 
 	if len(indexOrID) == 0 {
@@ -273,14 +273,25 @@ func (c Client) FetchLogs(deploymentName, job, indexOrID string, filters []strin
 		query.Add("filters", strings.Join(filters, ","))
 	}
 
-	if agent {
-		query.Add("type", "agent")
+	var logTypes []string
+	if allLogs {
+		logTypes = append(logTypes, "agent")
+		logTypes = append(logTypes, "job")
+		logTypes = append(logTypes, "system")
 	} else {
-		query.Add("type", "job")
+		if agent {
+			logTypes = append(logTypes, "agent")
+		} else if system {
+			logTypes = append(logTypes, "system")
+		} else {
+			logTypes = append(logTypes, "job")
+		}
 	}
 
+	query.Add("type", strings.Join(logTypes, ","))
+
 	path := fmt.Sprintf("/deployments/%s/jobs/%s/%s/logs?%s",
-		deploymentName, job, indexOrID, query.Encode())
+		deploymentName, instance, indexOrID, query.Encode())
 
 	taskID, _, err := c.taskClientRequest.GetResult(path)
 	if err != nil {
