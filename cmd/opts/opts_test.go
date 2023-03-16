@@ -6,11 +6,12 @@ import (
 	"reflect"
 	"regexp"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 )
 
 var (
@@ -2845,6 +2846,32 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Paths", opts)).To(Equal(`positional-arg-name:"PATH"`))
 			})
+		})
+	})
+
+	Describe("CreateEnvAuthFlags", func() {
+		var opts *CreateEnvAuthFlags
+
+		BeforeEach(func() {
+			opts = &CreateEnvAuthFlags{}
+		})
+
+		It("TargetDirector contains desired values", func() {
+			Expect(getStructTagForName("TargetDirector", opts)).To(Equal(
+				`long:"director" description:"Target the command at the BOSH director (or other type of VM deployed via create-env)"`,
+			))
+		})
+
+		It("Endpoint contains desired values", func() {
+			Expect(getStructTagForName("Endpoint", opts)).To(Equal(
+				`long:"agent-endpoint" description:"Address to connect to the agent's HTTPS endpoint (used with --director)" env:"BOSH_AGENT_ENDPOINT"`,
+			))
+		})
+
+		It("Certificate contains desired values", func() {
+			Expect(getStructTagForName("Certificate", opts)).To(Equal(
+				`long:"agent-certificate" description:"CA certificate to validate the agent's HTTPS endpoint (used with --director)" env:"BOSH_AGENT_CERTIFICATE"`,
+			))
 		})
 	})
 

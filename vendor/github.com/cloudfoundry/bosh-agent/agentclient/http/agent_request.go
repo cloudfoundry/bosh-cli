@@ -2,7 +2,7 @@ package http
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -48,7 +48,7 @@ func (r agentRequest) Send(method string, arguments []interface{}, response Resp
 		return bosherr.Errorf("Agent responded with non-successful status code: %d", httpResponse.StatusCode)
 	}
 
-	responseBody, err := ioutil.ReadAll(httpResponse.Body)
+	responseBody, err := io.ReadAll(httpResponse.Body)
 	if err != nil {
 		return bosherr.WrapError(err, "Reading agent response")
 	}

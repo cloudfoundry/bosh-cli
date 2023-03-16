@@ -3,7 +3,9 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
+	"time"
 
+	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
 	"github.com/cppforlife/go-patch/patch"
 
 	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
@@ -17,10 +19,11 @@ import (
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	boshuit "github.com/cloudfoundry/bosh-cli/v7/ui/task"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
+
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type Cmd struct {
@@ -358,25 +361,44 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewCleanUpCmd(deps.UI, c.director()).Run(*opts)
 
 	case *LogsOpts:
-		director, deployment := c.directorAndDeployment()
-		downloader := NewUIDownloader(director, deps.Time, deps.FS, deps.UI)
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
 		nonIntSSHRunner := sshProvider.NewSSHRunner(false)
-		return NewLogsCmd(deployment, downloader, deps.UUIDGen, nonIntSSHRunner).Run(*opts)
+
+		if opts.TargetDirector {
+			agentClientFactory := bihttpagent.NewAgentClientFactory(1*time.Second, deps.Logger)
+			scpRunner := sshProvider.NewSCPRunner()
+			return NewEnvLogsCmd(agentClientFactory, nonIntSSHRunner, scpRunner, deps.FS, deps.Time, deps.UI).Run(*opts)
+		} else {
+			director, deployment := c.directorAndDeployment()
+			downloader := NewUIDownloader(director, deps.Time, deps.FS, deps.UI)
+			return NewLogsCmd(deployment, downloader, deps.UUIDGen, nonIntSSHRunner).Run(*opts)
+		}
 
 	case *SSHOpts:
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
 		intSSHRunner := sshProvider.NewSSHRunner(true)
 		nonIntSSHRunner := sshProvider.NewSSHRunner(false)
 		resultsSSHRunner := sshProvider.NewResultsSSHRunner(false)
-		sshHostBuilder := boshssh.NewHostBuilder()
-		return NewSSHCmd(deps.UUIDGen, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, deps.UI, sshHostBuilder).Run(*opts, c.getDeployment)
+
+		if opts.TargetDirector {
+			agentClientFactory := bihttpagent.NewAgentClientFactory(1*time.Second, deps.Logger)
+			return NewEnvSSHCmd(agentClientFactory, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, deps.UI).Run(*opts)
+		} else {
+			sshHostBuilder := boshssh.NewHostBuilder()
+			return NewSSHCmd(intSSHRunner, nonIntSSHRunner, resultsSSHRunner, deps.UI, sshHostBuilder).Run(*opts, c.getDeployment)
+		}
 
 	case *SCPOpts:
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
 		scpRunner := sshProvider.NewSCPRunner()
-		sshHostBuilder := boshssh.NewHostBuilder()
-		return NewSCPCmd(deps.UUIDGen, scpRunner, deps.UI, sshHostBuilder).Run(*opts, c.getDeployment)
+
+		if opts.TargetDirector {
+			agentClientFactory := bihttpagent.NewAgentClientFactory(1*time.Second, deps.Logger)
+			return NewEnvSCPCmd(agentClientFactory, scpRunner).Run(*opts)
+		} else {
+			sshHostBuilder := boshssh.NewHostBuilder()
+			return NewSCPCmd(scpRunner, sshHostBuilder).Run(*opts, c.getDeployment)
+		}
 
 	case *ExportReleaseOpts:
 		director, deployment := c.directorAndDeployment()

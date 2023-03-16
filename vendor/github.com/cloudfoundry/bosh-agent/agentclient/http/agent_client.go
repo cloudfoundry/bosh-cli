@@ -5,12 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloudfoundry/bosh-agent/agentclient"
-	"github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
+
+	"github.com/cloudfoundry/bosh-agent/agentclient"
+	"github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 )
 
 type AgentClient struct {
@@ -152,6 +153,73 @@ func (c *AgentClient) RunScript(scriptName string, options map[string]interface{
 	return err
 }
 
+func (c *AgentClient) SetUpSSH(user string, publicKey string) (agentclient.SSHResult, error) {
+	var response SSHResponse
+	sshParams := map[string]string{"user": user, "public_key": publicKey}
+	err := c.AgentRequest.Send("ssh", []interface{}{"setup", sshParams}, &response)
+
+	if err != nil {
+		return agentclient.SSHResult{}, err
+	}
+
+	if response.Value.Status != "success" {
+		return agentclient.SSHResult{}, bosherr.Errorf("Unable to setup SSH account with the agent, status was: %s", response.Value.Status)
+	}
+
+	return agentclient.SSHResult{
+		Command:       response.Value.Command,
+		Status:        response.Value.Status,
+		Ip:            response.Value.Ip,
+		HostPublicKey: response.Value.HostPublicKey,
+	}, nil
+}
+
+func (c *AgentClient) CleanUpSSH(user string) (agentclient.SSHResult, error) {
+	var response SSHResponse
+	sshParams := map[string]string{"user_regex": "^" + user}
+	err := c.AgentRequest.Send("ssh", []interface{}{"cleanup", sshParams}, &response)
+
+	if err != nil {
+		return agentclient.SSHResult{}, err
+	}
+
+	if response.Value.Status != "success" {
+		return agentclient.SSHResult{}, bosherr.Errorf("Unable to cleanup SSH account with the agent, status was: %s", response.Value.Status)
+	}
+
+	return agentclient.SSHResult{
+		Command: response.Value.Command,
+		Status:  response.Value.Status,
+	}, nil
+}
+
+func (c *AgentClient) BundleLogs(owningUser string, logType string, filters []string) (agentclient.BundleLogsResult, error) {
+	var response BundleLogsResponse
+	err := c.AgentRequest.Send("bundle_logs", []interface{}{map[string]interface{}{
+		"owning_user": owningUser,
+		"log_type":    logType,
+		"filters":     filters,
+	}}, &response)
+	if err != nil {
+		return agentclient.BundleLogsResult{}, err
+	}
+
+	return agentclient.BundleLogsResult{
+		LogsTarPath:  response.Value.LogsTarPath,
+		SHA512Digest: response.Value.SHA512Digest,
+	}, nil
+}
+
+func (c *AgentClient) RemoveFile(path string) error {
+	var response SimpleTaskResponse
+	err := c.AgentRequest.Send("remove_file", []interface{}{path}, &response)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *AgentClient) CompilePackage(packageSource agentclient.BlobRef, compiledPackageDependencies []agentclient.BlobRef) (compiledPackageRef agentclient.BlobRef, err error) {
 	dependencies := make(map[string]BlobRef, len(compiledPackageDependencies))
 	for _, dependency := range compiledPackageDependencies {
@@ -239,7 +307,7 @@ func (c *AgentClient) SendAsyncTaskMessage(method string, arguments []interface{
 			sendErrors++
 			shouldRetry := sendErrors <= c.toleratedErrorCount
 			err = bosherr.WrapError(err, "Sending 'get_task' to the agent")
-			c.logger.Debug(c.logTag, "Error occured sending get_task. Error retry %d of %d: %s", sendErrors, c.toleratedErrorCount, err.Error())
+			c.logger.Debug(c.logTag, "Error occurred sending get_task. Error retry %d of %d: %s", sendErrors, c.toleratedErrorCount, err.Error())
 			return shouldRetry, err
 		}
 		sendErrors = 0

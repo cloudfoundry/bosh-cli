@@ -1,17 +1,20 @@
 package cmd
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"errors"
+
+	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 )
 
 type SSHCmd struct {
 	deployment       boshdir.Deployment
-	uuidGen          boshuuid.Generator
 	intSSHRunner     boshssh.Runner
 	nonIntSSHRunner  boshssh.Runner
 	resultsSSHRunner boshssh.Runner
@@ -20,7 +23,6 @@ type SSHCmd struct {
 }
 
 func NewSSHCmd(
-	uuidGen boshuuid.Generator,
 	intSSHRunner boshssh.Runner,
 	nonIntSSHRunner boshssh.Runner,
 	resultsSSHRunner boshssh.Runner,
@@ -28,7 +30,6 @@ func NewSSHCmd(
 	hostBuilder boshssh.HostBuilder,
 ) SSHCmd {
 	return SSHCmd{
-		uuidGen:          uuidGen,
 		intSSHRunner:     intSSHRunner,
 		nonIntSSHRunner:  nonIntSSHRunner,
 		resultsSSHRunner: resultsSSHRunner,
@@ -88,6 +89,90 @@ func (c SSHCmd) Run(opts SSHOpts, deploymentFetcher boshssh.DeploymentFetcher) e
 			GatewayHost:     connOpts.GatewayHost,
 		}
 	}
+
+	var runner boshssh.Runner
+
+	if opts.Results {
+		runner = c.resultsSSHRunner
+	} else if !c.ui.IsInteractive() || len(opts.Command) > 0 {
+		runner = c.nonIntSSHRunner
+	} else {
+		runner = c.intSSHRunner
+	}
+
+	err = runner.Run(connOpts, result, opts.Command)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Running SSH")
+	}
+
+	return nil
+}
+
+type EnvSSHCmd struct {
+	agentClientFactory bihttpagent.AgentClientFactory
+	intSSHRunner       boshssh.Runner
+	nonIntSSHRunner    boshssh.Runner
+	resultsSSHRunner   boshssh.Runner
+	ui                 boshui.UI
+}
+
+func NewEnvSSHCmd(
+	agentClientFactory bihttpagent.AgentClientFactory,
+	intSSHRunner boshssh.Runner,
+	nonIntSSHRunner boshssh.Runner,
+	resultsSSHRunner boshssh.Runner,
+	ui boshui.UI,
+) EnvSSHCmd {
+	return EnvSSHCmd{
+		agentClientFactory: agentClientFactory,
+		intSSHRunner:       intSSHRunner,
+		nonIntSSHRunner:    nonIntSSHRunner,
+		resultsSSHRunner:   resultsSSHRunner,
+		ui:                 ui,
+	}
+}
+
+func (c EnvSSHCmd) Run(opts SSHOpts) error {
+	if opts.PrivateKey.Bytes != nil {
+		return errors.New("the --private-key flag is not supported in combination with the --director flag")
+	}
+	if opts.Endpoint == "" || opts.Certificate == "" {
+		return errors.New("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set")
+	}
+
+	agentClient, err := c.agentClientFactory.NewAgentClient("bosh-cli", opts.Endpoint, opts.Certificate)
+	if err != nil {
+		return err
+	}
+
+	sshOpts, connOpts, err := opts.GatewayFlags.AsSSHOpts()
+	if err != nil {
+		return err
+	}
+
+	connOpts.RawOpts = opts.RawOpts.AsStrings()
+	agentResult, err := agentClient.SetUpSSH(sshOpts.Username, sshOpts.PublicKey)
+	if err != nil {
+		return err
+	}
+	result := boshdir.SSHResult{
+		Hosts: []boshdir.Host{
+			{
+				Username:      sshOpts.Username,
+				Host:          agentResult.Ip,
+				HostPublicKey: agentResult.HostPublicKey,
+				Job:           "create-env-vm",
+				IndexOrID:     "0",
+			},
+		},
+	}
+
+	defer func() {
+		_, _ = agentClient.CleanUpSSH(sshOpts.Username)
+	}()
+
+	// host key will be returned by agent over HTTPS
+	connOpts.RawOpts = append(connOpts.RawOpts, "-o", "StrictHostKeyChecking=yes")
 
 	var runner boshssh.Runner
 

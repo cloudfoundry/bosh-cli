@@ -2,7 +2,7 @@ package agentclient
 
 import "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 
-//go:generate counterfeiter -o fakes/fake_agent_client.go agent_client_interface.go AgentClient
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/fake_agent_client.go . AgentClient
 
 type AgentClient interface {
 	Ping() (string, error)
@@ -21,6 +21,10 @@ type AgentClient interface {
 	DeleteARPEntries(ips []string) error
 	SyncDNS(blobID, sha1 string, version uint64) (string, error)
 	RunScript(scriptName string, options map[string]interface{}) error
+	SetUpSSH(username string, publicKey string) (SSHResult, error)
+	CleanUpSSH(username string) (SSHResult, error)
+	BundleLogs(owningUser string, logType string, filters []string) (BundleLogsResult, error)
+	RemoveFile(path string) error
 }
 
 type AgentState struct {
@@ -37,4 +41,16 @@ type BlobRef struct {
 	Version     string
 	BlobstoreID string
 	SHA1        string
+}
+
+type SSHResult struct {
+	Command       string
+	Status        string
+	Ip            string
+	HostPublicKey string
+}
+
+type BundleLogsResult struct {
+	LogsTarPath  string
+	SHA512Digest string
 }
