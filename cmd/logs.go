@@ -129,6 +129,25 @@ func buildTailCmd(opts LogsOpts) []string {
 	return cmd
 }
 
+func buildLogTypeArgument(opts LogsOpts) string {
+	var logTypes []string
+	if opts.All {
+		logTypes = append(logTypes, "agent")
+		logTypes = append(logTypes, "job")
+		logTypes = append(logTypes, "system")
+	} else {
+		if opts.Agent {
+			logTypes = append(logTypes, "agent")
+		} else if opts.System {
+			logTypes = append(logTypes, "system")
+		} else {
+			logTypes = append(logTypes, "job")
+		}
+	}
+	logType := strings.Join(logTypes, ",")
+	return logType
+}
+
 func (c LogsCmd) fetch(opts LogsOpts) error {
 	slug := opts.Args.Slug
 	name := c.deployment.Name()
@@ -141,7 +160,8 @@ func (c LogsCmd) fetch(opts LogsOpts) error {
 		name += "." + slug.IndexOrID()
 	}
 
-	result, err := c.deployment.FetchLogs(slug, opts.Filters, opts.Agent, opts.System, opts.All)
+	logType := buildLogTypeArgument(opts)
+	result, err := c.deployment.FetchLogs(slug, opts.Filters, logType)
 	if err != nil {
 		return err
 	}
@@ -238,10 +258,8 @@ func (c EnvLogsCmd) tail(opts LogsOpts, connOpts boshssh.ConnectionOpts, sshResu
 }
 
 func (c EnvLogsCmd) fetch(opts LogsOpts, connOpts boshssh.ConnectionOpts, sshResult boshdir.SSHResult, agentClient biagentclient.AgentClient) error {
-	logType := "job"
-	if opts.Agent {
-		logType = "agent"
-	}
+	logType := buildLogTypeArgument(opts)
+
 	bundleLogsResult, err := agentClient.BundleLogs(sshResult.Hosts[0].Username, logType, opts.Filters)
 	if err != nil {
 		return err

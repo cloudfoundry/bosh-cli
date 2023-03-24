@@ -117,8 +117,8 @@ func (d DeploymentImpl) Manifest() (string, error) {
 	return resp.Manifest, nil
 }
 
-func (d DeploymentImpl) FetchLogs(slug AllOrInstanceGroupOrInstanceSlug, filters []string, agent bool, system bool, allLogs bool) (LogsResult, error) {
-	blobID, sha1, err := d.client.FetchLogs(d.name, slug.Name(), slug.IndexOrID(), filters, agent, system, allLogs)
+func (d DeploymentImpl) FetchLogs(slug AllOrInstanceGroupOrInstanceSlug, filters []string, logTypes string) (LogsResult, error) {
+	blobID, sha1, err := d.client.FetchLogs(d.name, slug.Name(), slug.IndexOrID(), filters, logTypes)
 	if err != nil {
 		return LogsResult{}, err
 	}
@@ -254,7 +254,7 @@ func (d DeploymentImpl) Variables() ([]VariableResult, error) {
 	return response, nil
 }
 
-func (c Client) FetchLogs(deploymentName, instance, indexOrID string, filters []string, agent bool, system bool, allLogs bool) (string, string, error) {
+func (c Client) FetchLogs(deploymentName, instance, indexOrID string, filters []string, logTypes string) (string, string, error) {
 	if len(deploymentName) == 0 {
 		return "", "", bosherr.Error("Expected non-empty deployment name")
 	}
@@ -273,22 +273,7 @@ func (c Client) FetchLogs(deploymentName, instance, indexOrID string, filters []
 		query.Add("filters", strings.Join(filters, ","))
 	}
 
-	var logTypes []string
-	if allLogs {
-		logTypes = append(logTypes, "agent")
-		logTypes = append(logTypes, "job")
-		logTypes = append(logTypes, "system")
-	} else {
-		if agent {
-			logTypes = append(logTypes, "agent")
-		} else if system {
-			logTypes = append(logTypes, "system")
-		} else {
-			logTypes = append(logTypes, "job")
-		}
-	}
-
-	query.Add("type", strings.Join(logTypes, ","))
+	query.Add("type", logTypes)
 
 	path := fmt.Sprintf("/deployments/%s/jobs/%s/%s/logs?%s",
 		deploymentName, instance, indexOrID, query.Encode())

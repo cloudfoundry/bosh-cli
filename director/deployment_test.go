@@ -194,12 +194,12 @@ var _ = Describe("Deployment", func() {
 				),
 			)
 
-			result, err := deployment.FetchLogs(NewAllOrInstanceGroupOrInstanceSlug("job", "id"), nil, false, false, false)
+			result, err := deployment.FetchLogs(NewAllOrInstanceGroupOrInstanceSlug("job", "id"), nil, "job")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(Equal(LogsResult{BlobstoreID: "logs-blob-id", SHA1: ""}))
 		})
 
-		It("returns logs result for all deplotment", func() {
+		It("returns logs result for all jobs", func() {
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/deployments/dep/jobs/*/*/logs", "type=job"),
@@ -216,15 +216,15 @@ var _ = Describe("Deployment", func() {
 				),
 			)
 
-			result, err := deployment.FetchLogs(NewAllOrInstanceGroupOrInstanceSlug("", ""), nil, false, false, false)
+			result, err := deployment.FetchLogs(NewAllOrInstanceGroupOrInstanceSlug("", ""), nil, "job")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(Equal(LogsResult{BlobstoreID: "logs-blob-id", SHA1: ""}))
 		})
 
-		It("is able to apply filters and fetch agent logs", func() {
+		It("is able to apply filters and passes through the log type params when fetching logs", func() {
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/jobs/job/id/logs", "type=agent&filters=f1,f2"),
+					ghttp.VerifyRequest("GET", "/deployments/dep/jobs/job/id/logs", "type=log%20type%20here&filters=f1,f2"),
 					ghttp.VerifyBasicAuth("username", "password"),
 				),
 				``,
@@ -239,99 +239,7 @@ var _ = Describe("Deployment", func() {
 			)
 
 			result, err := deployment.FetchLogs(
-				NewAllOrInstanceGroupOrInstanceSlug("job", "id"), []string{"f1", "f2"}, true, false, false)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(result).To(Equal(LogsResult{BlobstoreID: "logs-blob-id", SHA1: ""}))
-		})
-
-		It("is correctly fetches job, agent, and system logs when --all is passed", func() {
-			ConfigureTaskResult(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/jobs/job/id/logs", "type=agent,job,system"),
-					ghttp.VerifyBasicAuth("username", "password"),
-				),
-				``,
-				server,
-			)
-
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/tasks/123"),
-					ghttp.RespondWith(http.StatusOK, `{"result":"logs-blob-id"}`),
-				),
-			)
-
-			result, err := deployment.FetchLogs(
-				NewAllOrInstanceGroupOrInstanceSlug("job", "id"), nil, false, false, true)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(result).To(Equal(LogsResult{BlobstoreID: "logs-blob-id", SHA1: ""}))
-		})
-
-		It("is correctly only fetches system logs when --system is passed", func() {
-			ConfigureTaskResult(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/jobs/job/id/logs", "type=system"),
-					ghttp.VerifyBasicAuth("username", "password"),
-				),
-				``,
-				server,
-			)
-
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/tasks/123"),
-					ghttp.RespondWith(http.StatusOK, `{"result":"logs-blob-id"}`),
-				),
-			)
-
-			result, err := deployment.FetchLogs(
-				NewAllOrInstanceGroupOrInstanceSlug("job", "id"), nil, false, true, false)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(result).To(Equal(LogsResult{BlobstoreID: "logs-blob-id", SHA1: ""}))
-		})
-
-		It("is correctly only fetches agent logs when --agent is passed", func() {
-			ConfigureTaskResult(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/jobs/job/id/logs", "type=agent"),
-					ghttp.VerifyBasicAuth("username", "password"),
-				),
-				``,
-				server,
-			)
-
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/tasks/123"),
-					ghttp.RespondWith(http.StatusOK, `{"result":"logs-blob-id"}`),
-				),
-			)
-
-			result, err := deployment.FetchLogs(
-				NewAllOrInstanceGroupOrInstanceSlug("job", "id"), nil, true, false, false)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(result).To(Equal(LogsResult{BlobstoreID: "logs-blob-id", SHA1: ""}))
-		})
-
-		It("is correctly only fetches job logs when no flags are passed", func() {
-			ConfigureTaskResult(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/deployments/dep/jobs/job/id/logs", "type=job"),
-					ghttp.VerifyBasicAuth("username", "password"),
-				),
-				``,
-				server,
-			)
-
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/tasks/123"),
-					ghttp.RespondWith(http.StatusOK, `{"result":"logs-blob-id"}`),
-				),
-			)
-
-			result, err := deployment.FetchLogs(
-				NewAllOrInstanceGroupOrInstanceSlug("job", "id"), nil, false, false, false)
+				NewAllOrInstanceGroupOrInstanceSlug("job", "id"), []string{"f1", "f2"}, "log type here")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(Equal(LogsResult{BlobstoreID: "logs-blob-id", SHA1: ""}))
 		})
@@ -348,7 +256,7 @@ var _ = Describe("Deployment", func() {
 
 			AppendBadRequest(ghttp.VerifyRequest("GET", "/tasks/123"), server)
 
-			_, err := deployment.FetchLogs(NewAllOrInstanceGroupOrInstanceSlug("job", "id"), nil, false, false, false)
+			_, err := deployment.FetchLogs(NewAllOrInstanceGroupOrInstanceSlug("job", "id"), nil, "job")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Finding task '123'"))
 		})
@@ -356,7 +264,7 @@ var _ = Describe("Deployment", func() {
 		It("returns error if response is non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("GET", "/deployments/dep/jobs/job/id/logs", "type=job"), server)
 
-			_, err := deployment.FetchLogs(NewAllOrInstanceGroupOrInstanceSlug("job", "id"), nil, false, false, false)
+			_, err := deployment.FetchLogs(NewAllOrInstanceGroupOrInstanceSlug("job", "id"), nil, "job")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Fetching logs"))
 		})
