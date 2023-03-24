@@ -5,7 +5,9 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	"github.com/cloudfoundry/bosh-cli/v7/crypto"
+	"github.com/cloudfoundry/bosh-cli/v7/release/pkg/manifest"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+
 	crypto2 "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
@@ -22,16 +24,20 @@ type Package struct {
 	Dependencies    []*Package
 	dependencyNames []string
 
+	PackageVersions []manifest.PackageVersion
+
 	extractedPath string
 	fs            boshsys.FileSystem
 }
 
-func NewPackage(resource Resource, dependencyNames []string) *Package {
+func NewPackage(resource Resource, dependencyNames []string, packageVersions []manifest.PackageVersion) *Package {
 	return &Package{
 		resource: resource,
 
 		Dependencies:    []*Package{},
 		dependencyNames: dependencyNames,
+
+		PackageVersions: packageVersions,
 	}
 }
 

@@ -3,6 +3,8 @@ package manifest
 import (
 	"strings"
 
+	"github.com/cloudfoundry/bosh-cli/v7/release/pkg/manifest"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	yaml "gopkg.in/yaml.v2"
@@ -30,11 +32,12 @@ type JobRef struct {
 }
 
 type PackageRef struct {
-	Name         string   `yaml:"name"`
-	Version      string   `yaml:"version"` // todo deprecate
-	Fingerprint  string   `yaml:"fingerprint"`
-	SHA1         string   `yaml:"sha1"`
-	Dependencies []string `yaml:"dependencies"`
+	Name            string                    `yaml:"name"`
+	Version         string                    `yaml:"version"` // todo deprecate
+	Fingerprint     string                    `yaml:"fingerprint"`
+	SHA1            string                    `yaml:"sha1"`
+	Dependencies    []string                  `yaml:"dependencies"`
+	PackageVersions []manifest.PackageVersion `yaml:"package_versions"`
 }
 
 type CompiledPackageRef struct {

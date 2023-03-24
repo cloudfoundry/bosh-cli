@@ -7,10 +7,17 @@ import (
 )
 
 type Manifest struct {
-	Name          string   `yaml:"name"`
-	Dependencies  []string `yaml:"dependencies"`
-	Files         []string `yaml:"files"`
-	ExcludedFiles []string `yaml:"excluded_files"`
+	Name            string           `yaml:"name"`
+	Dependencies    []string         `yaml:"dependencies"`
+	Files           []string         `yaml:"files"`
+	ExcludedFiles   []string         `yaml:"excluded_files"`
+	PackageVersions []PackageVersion `yaml:"package_versions"`
+}
+
+type PackageVersion struct {
+	Name    string `yaml:"name"`
+	Version string `yaml:"version"`
+	Project string `yaml:"project"`
 }
 
 func NewManifestFromPath(path string, fs boshsys.FileSystem) (Manifest, error) {
