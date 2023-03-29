@@ -79,12 +79,10 @@ var _ = Describe("Logs", func() {
 
 					Expect(deployment.FetchLogsCallCount()).To(Equal(1))
 
-					slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
+					slug, filters, logTypes := deployment.FetchLogsArgsForCall(0)
 					Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
 					Expect(filters).To(BeEmpty())
-					Expect(agent).To(BeFalse())
-					Expect(system).To(BeFalse())
-					Expect(all).To(BeFalse())
+					Expect(logTypes).To(Equal("job"))
 
 					Expect(downloader.DownloadCallCount()).To(Equal(1))
 
@@ -106,12 +104,10 @@ var _ = Describe("Logs", func() {
 
 					Expect(deployment.FetchLogsCallCount()).To(Equal(1))
 
-					slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
+					slug, filters, logTypes := deployment.FetchLogsArgsForCall(0)
 					Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
 					Expect(filters).To(Equal([]string{"filter1", "filter2"}))
-					Expect(agent).To(BeTrue())
-					Expect(system).To(BeFalse())
-					Expect(all).To(BeFalse())
+					Expect(logTypes).To(Equal("agent"))
 				})
 
 				It("fetches system logs and allows custom filters", func() {
@@ -125,12 +121,10 @@ var _ = Describe("Logs", func() {
 
 					Expect(deployment.FetchLogsCallCount()).To(Equal(1))
 
-					slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
+					slug, filters, logTypes := deployment.FetchLogsArgsForCall(0)
 					Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
 					Expect(filters).To(Equal([]string{"filter1", "filter2"}))
-					Expect(agent).To(BeFalse())
-					Expect(system).To(BeTrue())
-					Expect(all).To(BeFalse())
+					Expect(logTypes).To(Equal("system"))
 				})
 
 				It("fetches all logs and allows custom filters", func() {
@@ -144,12 +138,10 @@ var _ = Describe("Logs", func() {
 
 					Expect(deployment.FetchLogsCallCount()).To(Equal(1))
 
-					slug, filters, agent, system, all := deployment.FetchLogsArgsForCall(0)
+					slug, filters, logTypes := deployment.FetchLogsArgsForCall(0)
 					Expect(slug).To(Equal(boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index")))
 					Expect(filters).To(Equal([]string{"filter1", "filter2"}))
-					Expect(agent).To(BeFalse())
-					Expect(system).To(BeFalse())
-					Expect(all).To(BeTrue())
+					Expect(logTypes).To(Equal("agent,job,system"))
 				})
 
 				It("fetches logs for more than one instance", func() {
@@ -660,6 +652,40 @@ var _ = Describe("Logs", func() {
 							gomock.Eq(ExpUsername),
 							gomock.Eq("agent"),
 							gomock.Eq([]string{"filter1", "filter2"}),
+						).
+							Return(bundleResult, nil).
+							Times(1)
+						agentClient.EXPECT().RemoveFile(gomock.Any()).
+							Times(1)
+
+						Expect(command.Run(opts)).ToNot(HaveOccurred())
+					})
+
+					It("bundles system logs", func() {
+						opts.Filters = []string{}
+						opts.System = true
+
+						agentClient.EXPECT().BundleLogs(
+							gomock.Eq(ExpUsername),
+							gomock.Eq("system"),
+							gomock.Eq([]string{}),
+						).
+							Return(bundleResult, nil).
+							Times(1)
+						agentClient.EXPECT().RemoveFile(gomock.Any()).
+							Times(1)
+
+						Expect(command.Run(opts)).ToNot(HaveOccurred())
+					})
+
+					It("bundles all logs", func() {
+						opts.Filters = []string{}
+						opts.All = true
+
+						agentClient.EXPECT().BundleLogs(
+							gomock.Eq(ExpUsername),
+							gomock.Eq("agent,job,system"),
+							gomock.Eq([]string{}),
 						).
 							Return(bundleResult, nil).
 							Times(1)
