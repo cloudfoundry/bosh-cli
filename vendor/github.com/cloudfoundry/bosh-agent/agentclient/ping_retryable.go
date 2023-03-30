@@ -28,7 +28,7 @@ func (r *pingRetryable) Attempt() (bool, error) {
 				break
 			}
 		}
-		r, _ := regexp.Compile("x509: ")
+		r := regexp.MustCompile("x509: ")
 		if r.MatchString(err.Error()) {
 			return false, err
 		}
