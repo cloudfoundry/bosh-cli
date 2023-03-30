@@ -12,3 +12,6 @@ build-for-linux:
 	GOOS=linux GOARCH=386 go build -o bin/ginkgolinter-386-linux ./cmd/ginkgolinter
 
 build-all: build build-for-linux build-for-mac build-for-windows
+
+test: build
+	./tests/e2e.sh

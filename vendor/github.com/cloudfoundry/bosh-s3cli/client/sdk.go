@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/cloudfoundry/bosh-s3cli/config"
@@ -42,7 +43,14 @@ func NewSDK(c config.S3Cli) (*s3.S3, error) {
 	}
 
 	s3Session := session.New(s3Config) //nolint:staticcheck
-	s3Client := s3.New(s3Session)
+
+	var s3Client *s3.S3
+	if c.AssumeRoleArn != "" {
+		creds := stscreds.NewCredentials(s3Session, c.AssumeRoleArn)
+		s3Client = s3.New(s3Session, &aws.Config{Credentials: creds})
+	} else {
+		s3Client = s3.New(s3Session)
+	}
 
 	if c.UseV2SigningMethod {
 		setv2Handlers(s3Client)

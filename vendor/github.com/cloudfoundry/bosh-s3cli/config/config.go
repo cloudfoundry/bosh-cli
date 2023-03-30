@@ -23,6 +23,7 @@ type S3Cli struct {
 	SignatureVersion     int    `json:"signature_version,string"`
 	ServerSideEncryption string `json:"server_side_encryption"`
 	SSEKMSKeyID          string `json:"sse_kms_key_id"`
+	AssumeRoleArn        string `json:"assume_role_arn"`
 	MultipartUpload      bool   `json:"multipart_upload"`
 	UseV2SigningMethod   bool
 	HostStyle            bool `json:"host_style"`
