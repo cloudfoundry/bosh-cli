@@ -14,6 +14,10 @@ pushd compiled-linux-amd64
   shasum -a 256 bosh-cli-*-linux-amd64 >> $base/binary-checksums
 popd
 
+pushd compiled-linux-arm64
+  shasum -a 256 bosh-cli-*-linux-arm64 >> $base/binary-checksums
+popd
+
 pushd compiled-darwin-amd64
   shasum -a 256 bosh-cli-*-darwin-amd64 >> $base/binary-checksums
 popd

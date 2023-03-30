@@ -10,6 +10,7 @@ image_resource:
 inputs:
 - name: bosh-cli
 - name: compiled-linux-amd64
+- name: compiled-linux-arm64
 - name: compiled-darwin-amd64
 - name: compiled-darwin-arm64
 - name: compiled-windows-amd64
