@@ -240,6 +240,29 @@ It("should test that slowInt returns 42, eventually", func() {
 })
 ```
 
+### Comparing a pointer with a value
+The linter warns when comparing a pointer with a value.
+These comparisons are always wrong and will always fail.
+
+In case of a positive assertion (`To()` or `Should()`), the test will just fail.
+
+But the main concern is for false positive tests, when using a negative assertion (`NotTo()`, `ToNot()`, `ShouldNot()`,
+`Should(Not())` etc.); e.g.
+```go
+num := 5
+...
+pNum := &num
+...
+Expect(pNum).ShouldNot(Equal(6))
+```
+This assertion will pass, but for the wrong reasons: pNum is not equal 6, not because num == 5, but because pNum is
+a pointer, while `6` is an `int`.
+
+In the case above, the linter will suggest `Expect(pNum).ShouldNot(HaveValue(Equal(6)))`
+
+This is also right for additional matchers: `BeTrue()` and `BeFalse()`, `BeIdenticalTo()`, `BeEquivalentTo()` 
+and `BeNumerically`.
+
 ## Suppress the linter
 ### Suppress warning from command line
 * Use the `--suppress-len-assertion=true` flag to suppress the wrong length assertion warning
