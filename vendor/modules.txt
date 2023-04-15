@@ -10,7 +10,7 @@ cloud.google.com/go/internal
 cloud.google.com/go/internal/optional
 cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
-# cloud.google.com/go/compute v1.19.0
+# cloud.google.com/go/compute v1.19.1
 ## explicit; go 1.19
 cloud.google.com/go/compute/internal
 # cloud.google.com/go/compute/metadata v0.2.3
@@ -76,7 +76,7 @@ github.com/ashanbrown/forbidigo/forbidigo
 # github.com/ashanbrown/makezero v1.1.1
 ## explicit; go 1.12
 github.com/ashanbrown/makezero/makezero
-# github.com/aws/aws-sdk-go v1.44.239
+# github.com/aws/aws-sdk-go v1.44.244
 ## explicit; go 1.11
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -178,21 +178,21 @@ github.com/cloudfoundry/bosh-agent/agentclient/applyspec
 github.com/cloudfoundry/bosh-agent/agentclient/fakes
 github.com/cloudfoundry/bosh-agent/agentclient/http
 github.com/cloudfoundry/bosh-agent/agentclient/http/mocks
-# github.com/cloudfoundry/bosh-davcli v0.0.176
+# github.com/cloudfoundry/bosh-davcli v0.0.178
 ## explicit; go 1.20
 github.com/cloudfoundry/bosh-davcli/client
 github.com/cloudfoundry/bosh-davcli/client/fakes
 github.com/cloudfoundry/bosh-davcli/config
 github.com/cloudfoundry/bosh-davcli/signer
-# github.com/cloudfoundry/bosh-gcscli v0.0.114
+# github.com/cloudfoundry/bosh-gcscli v0.0.115
 ## explicit; go 1.20
 github.com/cloudfoundry/bosh-gcscli/client
 github.com/cloudfoundry/bosh-gcscli/config
-# github.com/cloudfoundry/bosh-s3cli v0.0.182
+# github.com/cloudfoundry/bosh-s3cli v0.0.183
 ## explicit; go 1.20
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.360
+# github.com/cloudfoundry/bosh-utils v0.0.361
 ## explicit; go 1.20
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/fakes
@@ -212,7 +212,7 @@ github.com/cloudfoundry/bosh-utils/system/fakes
 github.com/cloudfoundry/bosh-utils/uuid
 github.com/cloudfoundry/bosh-utils/uuid/fakes
 github.com/cloudfoundry/bosh-utils/work
-# github.com/cloudfoundry/config-server v0.1.109
+# github.com/cloudfoundry/config-server v0.1.110
 ## explicit; go 1.20
 github.com/cloudfoundry/config-server/types
 github.com/cloudfoundry/config-server/types/typesfakes
@@ -413,6 +413,27 @@ github.com/google/go-cmp/cmp/internal/value
 # github.com/google/pprof v0.0.0-20230406165453-00490a63f317
 ## explicit; go 1.19
 github.com/google/pprof/profile
+# github.com/google/s2a-go v0.1.1
+## explicit; go 1.16
+github.com/google/s2a-go
+github.com/google/s2a-go/fallback
+github.com/google/s2a-go/internal/authinfo
+github.com/google/s2a-go/internal/handshaker
+github.com/google/s2a-go/internal/handshaker/service
+github.com/google/s2a-go/internal/proto/common_go_proto
+github.com/google/s2a-go/internal/proto/s2a_context_go_proto
+github.com/google/s2a-go/internal/proto/s2a_go_proto
+github.com/google/s2a-go/internal/proto/v2/common_go_proto
+github.com/google/s2a-go/internal/proto/v2/s2a_context_go_proto
+github.com/google/s2a-go/internal/proto/v2/s2a_go_proto
+github.com/google/s2a-go/internal/record
+github.com/google/s2a-go/internal/record/internal/aeadcrypter
+github.com/google/s2a-go/internal/record/internal/halfconn
+github.com/google/s2a-go/internal/tokenmanager
+github.com/google/s2a-go/internal/v2
+github.com/google/s2a-go/internal/v2/certverifier
+github.com/google/s2a-go/internal/v2/remotesigner
+github.com/google/s2a-go/internal/v2/tlsconfigstore
 # github.com/google/uuid v1.3.0
 ## explicit
 github.com/google/uuid
@@ -517,7 +538,7 @@ github.com/kyoh86/exportloopref
 # github.com/ldez/gomoddirectives v0.2.3
 ## explicit; go 1.16
 github.com/ldez/gomoddirectives
-# github.com/ldez/tagliatelle v0.4.0
+# github.com/ldez/tagliatelle v0.5.0
 ## explicit; go 1.19
 github.com/ldez/tagliatelle
 # github.com/leonklingele/grouper v1.1.1
@@ -667,7 +688,7 @@ github.com/pmezard/go-difflib/difflib
 # github.com/polyfloyd/go-errorlint v1.4.0
 ## explicit; go 1.20
 github.com/polyfloyd/go-errorlint/errorlint
-# github.com/prometheus/client_golang v1.14.0
+# github.com/prometheus/client_golang v1.15.0
 ## explicit; go 1.17
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
@@ -894,9 +915,13 @@ go.uber.org/zap/zapcore
 ## explicit; go 1.17
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/chacha20
+golang.org/x/crypto/chacha20poly1305
+golang.org/x/crypto/cryptobyte
+golang.org/x/crypto/cryptobyte/asn1
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/curve25519/internal/field
 golang.org/x/crypto/ed25519
+golang.org/x/crypto/hkdf
 golang.org/x/crypto/internal/alias
 golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/ssh
@@ -1055,7 +1080,7 @@ golang.org/x/tools/internal/typesinternal
 ## explicit; go 1.17
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.116.0
+# google.golang.org/api v0.118.0
 ## explicit; go 1.19
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
@@ -1087,7 +1112,7 @@ google.golang.org/appengine/internal/socket
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/socket
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20230403163135-c38d8f061ccd
+# google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1
 ## explicit; go 1.19
 google.golang.org/genproto/googleapis/api
 google.golang.org/genproto/googleapis/api/annotations
@@ -1233,9 +1258,12 @@ honnef.co/go/tools/staticcheck/fakereflect
 honnef.co/go/tools/staticcheck/fakexml
 honnef.co/go/tools/stylecheck
 honnef.co/go/tools/unused
-# mvdan.cc/gofumpt v0.4.0
-## explicit; go 1.18
+# mvdan.cc/gofumpt v0.5.0
+## explicit; go 1.19
 mvdan.cc/gofumpt/format
+mvdan.cc/gofumpt/internal/govendor/go/doc/comment
+mvdan.cc/gofumpt/internal/govendor/go/format
+mvdan.cc/gofumpt/internal/govendor/go/printer
 mvdan.cc/gofumpt/internal/version
 # mvdan.cc/interfacer v0.0.0-20180901003855-c20040233aed
 ## explicit
