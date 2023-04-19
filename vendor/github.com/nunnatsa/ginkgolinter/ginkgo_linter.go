@@ -31,21 +31,26 @@ const (
 	wrongCompareWarningTemplate   = linterName + ": wrong comparison assertion; consider using `%s` instead"
 	doubleNegativeWarningTemplate = linterName + ": avoid double negative assertion; consider using `%s` instead"
 	valueInEventually             = linterName + ": use a function call in %s. This actually checks nothing, because %s receives the function returned value, instead of function itself, and this value is never changed"
-	beEmpty                       = "BeEmpty"
-	beNil                         = "BeNil"
-	beTrue                        = "BeTrue"
-	beFalse                       = "BeFalse"
-	beZero                        = "BeZero"
-	beNumerically                 = "BeNumerically"
-	beIdenticalTo                 = "BeIdenticalTo"
-	equal                         = "Equal"
-	not                           = "Not"
-	haveLen                       = "HaveLen"
-	succeed                       = "Succeed"
-	haveOccurred                  = "HaveOccurred"
-	expect                        = "Expect"
-	omega                         = "Ω"
-	expectWithOffset              = "ExpectWithOffset"
+	comparePointerToValue         = linterName + ": comparing a pointer to a value will always fail. consider using `%s` instead"
+)
+const ( // gomega methods
+	beEmpty          = "BeEmpty"
+	beEquivalentTo   = "BeEquivalentTo"
+	beFalse          = "BeFalse"
+	beIdenticalTo    = "BeIdenticalTo"
+	beNil            = "BeNil"
+	beNumerically    = "BeNumerically"
+	beTrue           = "BeTrue"
+	beZero           = "BeZero"
+	equal            = "Equal"
+	expect           = "Expect"
+	expectWithOffset = "ExpectWithOffset"
+	haveLen          = "HaveLen"
+	haveOccurred     = "HaveOccurred"
+	haveValue        = "HaveValue"
+	not              = "Not"
+	omega            = "Ω"
+	succeed          = "Succeed"
 )
 
 // Analyzer is the interface to go_vet
@@ -68,10 +73,10 @@ func NewAnalyzer() *analysis.Analyzer {
 	}
 
 	a := &analysis.Analyzer{
-		Name:             "ginkgolinter",
-		Doc:              doc,
-		Run:              linter.run,
-		RunDespiteErrors: true,
+		Name: "ginkgolinter",
+		Doc:  doc,
+		Run:  linter.run,
+		//RunDespiteErrors: true,
 	}
 
 	a.Flags.Init("ginkgolinter", flag.ExitOnError)
@@ -117,6 +122,8 @@ This should be replaced with:
 * trigger a warning when using Eventually or Constantly with a function call. This is in order to prevent the case when 
   using a function call instead of a function. Function call returns a value only once, and so the original value
   is tested again and again and is never changed.
+
+* trigger a warning when comparing a pointer to a value.
 `
 
 // main assertion function
@@ -175,10 +182,10 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 }
 
 func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, actualExpr *ast.CallExpr, handler gomegahandler.Handler) bool {
-	assertionExp = astcopy.CallExpr(assertionExp)
-	oldExpr := goFmt(pass.Fset, assertionExp)
+	expr := astcopy.CallExpr(assertionExp)
+	oldExpr := goFmt(pass.Fset, expr)
 
-	if checkAsyncAssertion(pass, config, assertionExp, actualExpr, handler, oldExpr) {
+	if checkAsyncAssertion(pass, config, expr, actualExpr, handler, oldExpr) {
 		return true
 	}
 
@@ -188,38 +195,97 @@ func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast
 	}
 
 	if !bool(config.SuppressLen) && isActualIsLenFunc(actualArg) {
-		return checkLengthMatcher(assertionExp, pass, handler, oldExpr)
-	} else {
-		if nilable, compOp := getNilableFromComparison(actualArg); nilable != nil {
-			if isExprError(pass, nilable) {
-				if config.SuppressErr {
-					return true
-				}
-			} else if config.SuppressNil {
+		return checkLengthMatcher(expr, pass, handler, oldExpr)
+	} else if nilable, compOp := getNilableFromComparison(actualArg); nilable != nil {
+		if isExprError(pass, nilable) {
+			if config.SuppressErr {
 				return true
 			}
+		} else if config.SuppressNil {
+			return true
+		}
 
-			return checkNilMatcher(assertionExp, pass, nilable, handler, compOp == token.NEQ, oldExpr)
+		return checkNilMatcher(expr, pass, nilable, handler, compOp == token.NEQ, oldExpr)
 
-		} else if first, second, op, ok := isComparison(pass, actualArg); ok {
-			matcher, shouldContinue := startCheckComparison(assertionExp, handler)
-			if !shouldContinue {
+	} else if first, second, op, ok := isComparison(pass, actualArg); ok {
+		matcher, shouldContinue := startCheckComparison(expr, handler)
+		if !shouldContinue {
+			return false
+		}
+		if !bool(config.SuppressLen) && isActualIsLenFunc(first) {
+			if handleLenComparison(pass, expr, matcher, first, second, op, handler, oldExpr) {
 				return false
 			}
-			if !bool(config.SuppressLen) && isActualIsLenFunc(first) {
-				if handleLenComparison(pass, assertionExp, matcher, first, second, op, handler, oldExpr) {
-					return false
-				}
-			}
-			return bool(config.SuppressCompare) || checkComparison(assertionExp, pass, matcher, handler, first, second, op, oldExpr)
+		}
+		return bool(config.SuppressCompare) || checkComparison(expr, pass, matcher, handler, first, second, op, oldExpr)
 
-		} else if isExprError(pass, actualArg) {
-			return bool(config.SuppressErr) || checkNilError(pass, assertionExp, handler, actualArg, oldExpr)
+	} else if isExprError(pass, actualArg) {
+		return bool(config.SuppressErr) || checkNilError(pass, expr, handler, actualArg, oldExpr)
 
-		} else {
-			return handleAssertionOnly(pass, config, assertionExp, handler, actualArg, oldExpr, true)
+	} else if checkPointerComparison(pass, config, assertionExp, expr, actualArg, handler, oldExpr) {
+		return false
+	} else {
+		return handleAssertionOnly(pass, config, expr, handler, actualArg, oldExpr, true)
+	}
+}
+
+// be careful - never change origExp!!! only modify its clone, expr!!!
+func checkPointerComparison(pass *analysis.Pass, config types.Config, origExp *ast.CallExpr, expr *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, oldExpr string) bool {
+	if !isPointer(pass, actualArg) {
+		return false
+	}
+	matcher, ok := origExp.Args[0].(*ast.CallExpr)
+	if !ok {
+		return false
+	}
+
+	matcherFuncName, ok := handler.GetActualFuncName(matcher)
+	if !ok {
+		return false
+	}
+
+	// not using recurse here, since we need the original expression, in order to get the TypeInfo, while we should not
+	// modify it.
+	for matcherFuncName == not {
+		reverseAssertionFuncLogic(expr)
+		expr.Args[0] = expr.Args[0].(*ast.CallExpr).Args[0]
+		matcher, ok = matcher.Args[0].(*ast.CallExpr)
+		if !ok {
+			return false
+		}
+
+		matcherFuncName, ok = handler.GetActualFuncName(matcher)
+		if !ok {
+			return false
 		}
 	}
+
+	switch matcherFuncName {
+	case equal, beIdenticalTo, beEquivalentTo:
+		arg := matcher.Args[0]
+		if isPointer(pass, arg) {
+			return false
+		}
+		if isNil(arg) {
+			return false
+		}
+		if isInterface(pass, arg) {
+			return false
+		}
+	case beFalse, beTrue, beNumerically:
+	default:
+		return false
+	}
+
+	handleAssertionOnly(pass, config, expr, handler, actualArg, oldExpr, false)
+
+	args := []ast.Expr{astcopy.CallExpr(expr.Args[0].(*ast.CallExpr))}
+	handler.ReplaceFunction(expr.Args[0].(*ast.CallExpr), ast.NewIdent(haveValue))
+	expr.Args[0].(*ast.CallExpr).Args = args
+	report(pass, expr, comparePointerToValue, oldExpr)
+
+	return true
+
 }
 
 // check async assertion does not assert function call. This is a real bug in the test. In this case, the assertion is
@@ -547,12 +613,12 @@ func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gome
 //	Equal(true) => BeTrue()
 //	Equal(false) => BeFalse()
 //	HaveLen(0) => BeEmpty()
-func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, oldExpr string, shouldReport bool) bool {
-	if len(assertionExp.Args) == 0 {
+func handleAssertionOnly(pass *analysis.Pass, config types.Config, expr *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, oldExpr string, shouldReport bool) bool {
+	if len(expr.Args) == 0 {
 		return true
 	}
 
-	equalFuncExpr, ok := assertionExp.Args[0].(*ast.CallExpr)
+	equalFuncExpr, ok := expr.Args[0].(*ast.CallExpr)
 	if !ok {
 		return true
 	}
@@ -586,8 +652,8 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 			replacement = beTrue
 			template = wrongBoolWarningTemplate
 		case "false":
-			if isNegativeAssertion(assertionExp) {
-				reverseAssertionFuncLogic(assertionExp)
+			if isNegativeAssertion(expr) {
+				reverseAssertionFuncLogic(expr)
 				replacement = beTrue
 			} else {
 				replacement = beFalse
@@ -601,17 +667,17 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 		equalFuncExpr.Args = nil
 
 		if shouldReport {
-			report(pass, assertionExp, template, oldExpr)
+			report(pass, expr, template, oldExpr)
 		}
 
 		return false
 
 	case beFalse:
-		if isNegativeAssertion(assertionExp) {
-			reverseAssertionFuncLogic(assertionExp)
+		if isNegativeAssertion(expr) {
+			reverseAssertionFuncLogic(expr)
 			handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(beTrue))
 			if shouldReport {
-				report(pass, assertionExp, doubleNegativeWarningTemplate, oldExpr)
+				report(pass, expr, doubleNegativeWarningTemplate, oldExpr)
 			}
 		}
 		return false
@@ -626,7 +692,7 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 				handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(beEmpty))
 				equalFuncExpr.Args = nil
 				if shouldReport {
-					report(pass, assertionExp, wrongLengthWarningTemplate, oldExpr)
+					report(pass, expr, wrongLengthWarningTemplate, oldExpr)
 				}
 				return false
 			}
@@ -635,9 +701,9 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 		return true
 
 	case not:
-		reverseAssertionFuncLogic(assertionExp)
-		assertionExp.Args[0] = assertionExp.Args[0].(*ast.CallExpr).Args[0]
-		return handleAssertionOnly(pass, config, assertionExp, handler, actualArg, oldExpr, shouldReport)
+		reverseAssertionFuncLogic(expr)
+		expr.Args[0] = expr.Args[0].(*ast.CallExpr).Args[0]
+		return handleAssertionOnly(pass, config, expr, handler, actualArg, oldExpr, shouldReport)
 	default:
 		return true
 	}
@@ -988,4 +1054,16 @@ func isExprError(pass *analysis.Pass, expr ast.Expr) bool {
 		}
 	}
 	return false
+}
+
+func isPointer(pass *analysis.Pass, expr ast.Expr) bool {
+	t := pass.TypesInfo.TypeOf(expr)
+	_, ok := t.(*gotypes.Pointer)
+	return ok
+}
+
+func isInterface(pass *analysis.Pass, expr ast.Expr) bool {
+	t := pass.TypesInfo.TypeOf(expr)
+	_, ok := t.(*gotypes.Named)
+	return ok
 }
