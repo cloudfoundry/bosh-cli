@@ -8,4 +8,5 @@ const (
 	ErrorInterface                      // ref as error
 	NamedInterface                      // ref as named
 	NamedStdInterface                   // ref as named stdlib
+	Generic                             // ref as generic type parameter
 )

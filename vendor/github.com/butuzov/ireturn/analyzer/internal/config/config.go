@@ -3,7 +3,7 @@ package config
 import (
 	"regexp"
 
-	"github.com/butuzov/ireturn/types"
+	"github.com/butuzov/ireturn/analyzer/internal/types"
 )
 
 // defaultConfig is core of the validation, ...
@@ -55,6 +55,8 @@ func (config *defaultConfig) compileList() {
 			config.quick |= uint8(types.AnonInterface)
 		case types.NameStdLib:
 			config.quick |= uint8(types.NamedStdInterface)
+		case types.NameGeneric:
+			config.quick |= uint8(types.Generic)
 		}
 
 		// allow to parse regular expressions

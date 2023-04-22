@@ -1,6 +1,6 @@
 package config
 
-import "github.com/butuzov/ireturn/types"
+import "github.com/butuzov/ireturn/analyzer/internal/types"
 
 // allowConfig specifies a list of interfaces (keywords, patters and regular expressions)
 // that are allowed by ireturn as valid to return, any non listed interface are rejected.
