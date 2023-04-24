@@ -1,0 +1,24 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: bosh/cli
+    tag: 'latest'
+
+inputs:
+- name: bosh-cli
+- name: version-semver
+
+outputs:
+- name: compiled-linux-arm64
+
+params:
+  GOOS:   linux
+  GOARCH: arm64
+  CGO_ENABLED: 0
+  FILENAME_PREFIX: ''
+
+run:
+  path: bosh-cli/ci/tasks/build.sh
