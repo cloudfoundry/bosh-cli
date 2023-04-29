@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"github.com/nunnatsa/ginkgolinter/version"
 	"go/ast"
 	"go/constant"
 	"go/printer"
@@ -74,9 +75,8 @@ func NewAnalyzer() *analysis.Analyzer {
 
 	a := &analysis.Analyzer{
 		Name: "ginkgolinter",
-		Doc:  doc,
+		Doc:  fmt.Sprintf(doc, version.Version()),
 		Run:  linter.run,
-		//RunDespiteErrors: true,
 	}
 
 	a.Flags.Init("ginkgolinter", flag.ExitOnError)
@@ -91,8 +91,13 @@ func NewAnalyzer() *analysis.Analyzer {
 }
 
 const doc = `enforces standards of using ginkgo and gomega
-currently, the linter searches for following:
 
+or
+       ginkgolinter version
+
+version: %s
+
+currently, the linter searches for following:
 * wrong length assertions. We want to assert the item rather than its length.
 For example:
 	Expect(len(x)).Should(Equal(1))
@@ -413,6 +418,9 @@ func checkComparison(exp *ast.CallExpr, pass *analysis.Pass, matcher *ast.CallEx
 		reverseAssertionFuncLogic(exp)
 		handleEqualComparison(pass, matcher, first, second, handler)
 	case token.GTR, token.GEQ, token.LSS, token.LEQ:
+		if !isNumeric(pass, first) {
+			return true
+		}
 		handler.ReplaceFunction(matcher, ast.NewIdent(beNumerically))
 		matcher.Args = []ast.Expr{
 			&ast.BasicLit{Kind: token.STRING, Value: fmt.Sprintf(`"%s"`, op.String())},
@@ -1066,4 +1074,14 @@ func isInterface(pass *analysis.Pass, expr ast.Expr) bool {
 	t := pass.TypesInfo.TypeOf(expr)
 	_, ok := t.(*gotypes.Named)
 	return ok
+}
+
+func isNumeric(pass *analysis.Pass, node ast.Expr) bool {
+	t := pass.TypesInfo.TypeOf(node)
+
+	switch t.String() {
+	case "int", "uint", "int8", "uint8", "int16", "uint16", "int32", "uint32", "int64", "uint64", "float32", "float64":
+		return true
+	}
+	return false
 }
