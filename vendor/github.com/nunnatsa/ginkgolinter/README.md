@@ -263,6 +263,20 @@ In the case above, the linter will suggest `Expect(pNum).ShouldNot(HaveValue(Equ
 This is also right for additional matchers: `BeTrue()` and `BeFalse()`, `BeIdenticalTo()`, `BeEquivalentTo()` 
 and `BeNumerically`.
 
+### Missing Assertion Method
+The linter warns when calling an "actual" method (e.g. `Expect()`, `Eventually()` etc.), without an assertion method (e.g 
+`Should()`, `NotTo()` etc.)
+
+For example:
+```go
+// no assertion for the result
+Eventually(doSomething).WithTimeout(time.Seconds * 5).WithPolling(time.Milliseconds * 100)
+```
+
+The linter will not suggest a fix for this warning.
+
+This rule cannot be suppressed.
+
 ## Suppress the linter
 ### Suppress warning from command line
 * Use the `--suppress-len-assertion=true` flag to suppress the wrong length assertion warning

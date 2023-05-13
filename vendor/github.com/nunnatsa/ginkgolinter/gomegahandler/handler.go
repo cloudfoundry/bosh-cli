@@ -52,9 +52,13 @@ func (h dotHandler) GetActualFuncName(expr *ast.CallExpr) (string, bool) {
 	case *ast.SelectorExpr:
 		if isGomegaVar(actualFunc.X, h) {
 			return actualFunc.Sel.Name, true
+		} else {
+			if x, ok := actualFunc.X.(*ast.CallExpr); ok {
+				return h.GetActualFuncName(x)
+			}
 		}
 	case *ast.CallExpr:
-		h.GetActualFuncName(actualFunc)
+		return h.GetActualFuncName(actualFunc)
 	}
 	return "", false
 }
@@ -97,18 +101,21 @@ func (g nameHandler) GetActualFuncName(expr *ast.CallExpr) (string, bool) {
 		return "", false
 	}
 
-	x, ok := selector.X.(*ast.Ident)
-	if !ok {
-		return "", false
-	}
-
-	if x.Name != string(g) {
-		if !isGomegaVar(x, g) {
-			return "", false
+	switch x := selector.X.(type) {
+	case *ast.Ident:
+		if x.Name != string(g) {
+			if !isGomegaVar(x, g) {
+				return "", false
+			}
 		}
+
+		return selector.Sel.Name, true
+
+	case *ast.CallExpr:
+		return g.GetActualFuncName(x)
 	}
 
-	return selector.Sel.Name, true
+	return "", false
 }
 
 // ReplaceFunction replaces the function with another one, for fix suggestions

@@ -22,35 +22,36 @@ func NewSDK(c config.S3Cli) (*s3.S3, error) {
 		httpClient = boshhttp.CreateDefaultClientInsecureSkipVerify()
 	}
 
-	s3Config := aws.NewConfig().
+	awsConfig := aws.NewConfig().
 		WithLogLevel(aws.LogOff).
 		WithS3ForcePathStyle(!c.HostStyle).
 		WithDisableSSL(!c.UseSSL).
 		WithHTTPClient(httpClient)
 
 	if c.UseRegion() {
-		s3Config = s3Config.WithRegion(c.Region).WithEndpoint(c.S3Endpoint())
+		awsConfig = awsConfig.WithRegion(c.Region).WithEndpoint(c.S3Endpoint())
 	} else {
-		s3Config = s3Config.WithRegion(config.EmptyRegion).WithEndpoint(c.S3Endpoint())
+		awsConfig = awsConfig.WithRegion(config.EmptyRegion).WithEndpoint(c.S3Endpoint())
 	}
 
 	if c.CredentialsSource == config.StaticCredentialsSource {
-		s3Config = s3Config.WithCredentials(credentials.NewStaticCredentials(c.AccessKeyID, c.SecretAccessKey, ""))
+		awsConfig = awsConfig.WithCredentials(credentials.NewStaticCredentials(c.AccessKeyID, c.SecretAccessKey, ""))
 	}
 
 	if c.CredentialsSource == config.NoneCredentialsSource {
-		s3Config = s3Config.WithCredentials(credentials.AnonymousCredentials)
+		awsConfig = awsConfig.WithCredentials(credentials.AnonymousCredentials)
 	}
 
-	s3Session := session.New(s3Config) //nolint:staticcheck
+	s3Session, err := session.NewSession(awsConfig)
+	if err != nil {
+		return nil, err
+	}
 
-	var s3Client *s3.S3
 	if c.AssumeRoleArn != "" {
-		creds := stscreds.NewCredentials(s3Session, c.AssumeRoleArn)
-		s3Client = s3.New(s3Session, &aws.Config{Credentials: creds})
-	} else {
-		s3Client = s3.New(s3Session)
+		awsConfig = awsConfig.WithCredentials(stscreds.NewCredentials(s3Session, c.AssumeRoleArn))
 	}
+
+	s3Client := s3.New(s3Session, awsConfig)
 
 	if c.UseV2SigningMethod {
 		setv2Handlers(s3Client)

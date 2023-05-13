@@ -33,25 +33,34 @@ const (
 	doubleNegativeWarningTemplate = linterName + ": avoid double negative assertion; consider using `%s` instead"
 	valueInEventually             = linterName + ": use a function call in %s. This actually checks nothing, because %s receives the function returned value, instead of function itself, and this value is never changed"
 	comparePointerToValue         = linterName + ": comparing a pointer to a value will always fail. consider using `%s` instead"
+	missingAssertionMessage       = linterName + `: %q: missing assertion method. Expected "Should()", "To()", "ShouldNot()", "ToNot()" or "NotTo()"`
+	missingAsyncAssertionMessage  = linterName + `: %q: missing assertion method. Expected "Should()" or "ShouldNot()"`
 )
-const ( // gomega methods
-	beEmpty          = "BeEmpty"
-	beEquivalentTo   = "BeEquivalentTo"
-	beFalse          = "BeFalse"
-	beIdenticalTo    = "BeIdenticalTo"
-	beNil            = "BeNil"
-	beNumerically    = "BeNumerically"
-	beTrue           = "BeTrue"
-	beZero           = "BeZero"
-	equal            = "Equal"
-	expect           = "Expect"
-	expectWithOffset = "ExpectWithOffset"
-	haveLen          = "HaveLen"
-	haveOccurred     = "HaveOccurred"
-	haveValue        = "HaveValue"
-	not              = "Not"
-	omega            = "Ω"
-	succeed          = "Succeed"
+const ( // gomega matchers
+	beEmpty        = "BeEmpty"
+	beEquivalentTo = "BeEquivalentTo"
+	beFalse        = "BeFalse"
+	beIdenticalTo  = "BeIdenticalTo"
+	beNil          = "BeNil"
+	beNumerically  = "BeNumerically"
+	beTrue         = "BeTrue"
+	beZero         = "BeZero"
+	equal          = "Equal"
+	haveLen        = "HaveLen"
+	haveOccurred   = "HaveOccurred"
+	haveValue      = "HaveValue"
+	not            = "Not"
+	omega          = "Ω"
+	succeed        = "Succeed"
+)
+
+const ( // gomega actuals
+	expect                 = "Expect"
+	expectWithOffset       = "ExpectWithOffset"
+	eventually             = "Eventually"
+	eventuallyWithOffset   = "EventuallyWithOffset"
+	consistently           = "Consistently"
+	consistentlyWithOffset = "ConsistentlyWithOffset"
 )
 
 // Analyzer is the interface to go_vet
@@ -98,54 +107,50 @@ or
 version: %s
 
 currently, the linter searches for following:
-* wrong length assertions. We want to assert the item rather than its length.
+* trigger a warning when using Eventually or Constantly with a function call. This is in order to prevent the case when 
+  using a function call instead of a function. Function call returns a value only once, and so the original value
+  is tested again and again and is never changed. [Bug]
+
+* trigger a warning when comparing a pointer to a value. [Bug]
+
+* trigger a warning for missing assertion method: [Bug]
+	Eventually(checkSomething)
+
+* wrong length assertions. We want to assert the item rather than its length. [Style]
 For example:
 	Expect(len(x)).Should(Equal(1))
 This should be replaced with:
 	Expect(x)).Should(HavelLen(1))
 	
-* wrong nil assertions. We want to assert the item rather than a comparison result.
+* wrong nil assertions. We want to assert the item rather than a comparison result. [Style]
 For example:
 	Expect(x == nil).Should(BeTrue())
 This should be replaced with:
 	Expect(x).Should(BeNil())
 
-* wrong error assertions. For example:
+* wrong error assertions. For example: [Style]
 	Expect(err == nil).Should(BeTrue())
 This should be replaced with:
 	Expect(err).ShouldNot(HaveOccurred())
 
-* wrong boolean comparison, for example:
+* wrong boolean comparison, for example: [Style]
 	Expect(x == 8).Should(BeTrue())
 This should be replaced with:
 	Expect(x).Should(BeEqual(8))
 
-* replaces Equal(true/false) with BeTrue()/BeFalse()
+* replaces Equal(true/false) with BeTrue()/BeFalse() [Style]
 
-* replaces HaveLen(0) with BeEmpty()
-
-* trigger a warning when using Eventually or Constantly with a function call. This is in order to prevent the case when 
-  using a function call instead of a function. Function call returns a value only once, and so the original value
-  is tested again and again and is never changed.
-
-* trigger a warning when comparing a pointer to a value.
+* replaces HaveLen(0) with BeEmpty() [Style]
 `
 
 // main assertion function
 func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
-	if l.config.AllTrue() {
-		return nil, nil
-	}
-
 	for _, file := range pass.Files {
 		fileConfig := l.config.Clone()
 
 		cm := ast.NewCommentMap(pass.Fset, file, file.Comments)
 
 		fileConfig.UpdateFromFile(cm)
-		if fileConfig.AllTrue() {
-			continue
-		}
 
 		handler := gomegahandler.GetGomegaHandler(file)
 		if handler == nil { // no gomega import => no use in gomega in this file; nothing to do here
@@ -171,7 +176,13 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 			}
 
 			assertionFunc, ok := assertionExp.Fun.(*ast.SelectorExpr)
-			if !ok || !isAssertionFunc(assertionFunc.Sel.Name) {
+			if !ok {
+				checkNoAssertion(pass, assertionExp, handler)
+				return true
+			}
+
+			if !isAssertionFunc(assertionFunc.Sel.Name) {
+				checkNoAssertion(pass, assertionExp, handler)
 				return true
 			}
 
@@ -303,9 +314,9 @@ func checkAsyncAssertion(pass *analysis.Pass, config types.Config, expr *ast.Cal
 
 	var funcIndex int
 	switch funcName {
-	case "Eventually", "Consistently":
+	case eventually, consistently:
 		funcIndex = 0
-	case "EventuallyWithOffset", "ConsistentlyWithOffset":
+	case eventuallyWithOffset, consistentlyWithOffset:
 		funcIndex = 1
 	default:
 		return false
@@ -968,6 +979,17 @@ func report(pass *analysis.Pass, expr *ast.CallExpr, messageTemplate, oldExpr st
 	})
 }
 
+func reportNoFix(pass *analysis.Pass, pos token.Pos, message string, args ...any) {
+	if len(args) > 0 {
+		message = fmt.Sprintf(message, args...)
+	}
+
+	pass.Report(analysis.Diagnostic{
+		Pos:     pos,
+		Message: message,
+	})
+}
+
 func getNilableFromComparison(actualArg ast.Expr) (ast.Expr, token.Token) {
 	bin, ok := actualArg.(*ast.BinaryExpr)
 	if !ok {
@@ -1081,6 +1103,29 @@ func isNumeric(pass *analysis.Pass, node ast.Expr) bool {
 
 	switch t.String() {
 	case "int", "uint", "int8", "uint8", "int16", "uint16", "int32", "uint32", "int64", "uint64", "float32", "float64":
+		return true
+	}
+	return false
+}
+
+func checkNoAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler) {
+	funcName, ok := handler.GetActualFuncName(expr)
+	if ok {
+		if isActualFunc(funcName) {
+			reportNoFix(pass, expr.Pos(), missingAssertionMessage, funcName)
+		} else if isActualAsyncFunc(funcName) {
+			reportNoFix(pass, expr.Pos(), missingAsyncAssertionMessage, funcName)
+		}
+	}
+}
+
+func isActualFunc(name string) bool {
+	return name == expect || name == expectWithOffset
+}
+
+func isActualAsyncFunc(name string) bool {
+	switch name {
+	case eventually, eventuallyWithOffset, consistently, consistentlyWithOffset:
 		return true
 	}
 	return false
