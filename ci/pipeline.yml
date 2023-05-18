@@ -359,8 +359,9 @@ resources:
       regexp: bosh-cli-(.*)-linux-amd64
       bucket: bosh-cli-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
+      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
+      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
 
   - name: release-bucket-linux-arm64
     type: s3
@@ -368,8 +369,9 @@ resources:
       regexp: bosh-cli-(.*)-linux-arm64
       bucket: bosh-cli-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
+      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
+      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
 
   - name: release-bucket-darwin
     type: s3
@@ -377,8 +379,10 @@ resources:
       regexp: bosh-cli-(.*)-darwin-amd64
       bucket: bosh-cli-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
+      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
+      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
+      
 
   - name: release-bucket-darwin-arm64
     type: s3
@@ -386,8 +390,9 @@ resources:
       regexp: bosh-cli-(.*)-darwin-arm64
       bucket: bosh-cli-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
+      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
+      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
 
   - name: release-bucket-windows
     type: s3
@@ -395,8 +400,9 @@ resources:
       regexp: bosh-cli-(.*)-windows-amd64.exe
       bucket: bosh-cli-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
+      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
+      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
 
   - name: alpha-release-bucket-linux-amd64
     type: s3
@@ -404,8 +410,9 @@ resources:
       regexp: alpha-bosh-cli-(.*)-linux-amd64
       bucket: bosh-cli-alpha-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
+      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
+      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
 
   - name: alpha-release-bucket-linux-arm64
     type: s3
@@ -413,8 +420,9 @@ resources:
       regexp: alpha-bosh-cli-(.*)-linux-arm64
       bucket: bosh-cli-alpha-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
+      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
+      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
 
   - name: alpha-release-bucket-darwin-amd64
     type: s3
@@ -422,8 +430,9 @@ resources:
       regexp: alpha-bosh-cli-(.*)-darwin-amd64
       bucket: bosh-cli-alpha-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
+      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
+      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
 
   - name: alpha-release-bucket-darwin-arm64
     type: s3
@@ -431,8 +440,9 @@ resources:
       regexp: alpha-bosh-cli-(.*)-darwin-arm64
       bucket: bosh-cli-alpha-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
+      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
+      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
 
   - name: alpha-release-bucket-windows-amd64
     type: s3
@@ -440,8 +450,9 @@ resources:
       regexp: alpha-bosh-cli-(.*)-windows-amd64.exe
       bucket: bosh-cli-alpha-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
+      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
+      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
 
   - name: version-semver
     type: semver
@@ -449,8 +460,9 @@ resources:
       initial_version: 0.0.1
       key: cli-current-version
       bucket: bosh-cli-artifacts
-      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
+      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
+      assume_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
 
   - name: alpha-version-semver
     type: semver
@@ -458,8 +470,9 @@ resources:
       initial_version: 0.0.1
       key: cli-alpha-current-version
       bucket: bosh-cli-alpha-artifacts
-      access_key_id: ((bosh-cli-artifacts-upload_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_aws_access_key.password))
+      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
+      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
+      assume_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
 
   - name: homebrew-tap
     type: git
@@ -528,3 +541,8 @@ resource_types:
     source:
       repository: dpb587/github-status-resource
       tag: master
+  - name: semver
+    type: docker-image
+    source:
+      repository: concourse/semver-resource
+      tag: 1.6
