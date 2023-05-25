@@ -811,7 +811,7 @@ type VMsOpts struct {
 
 type CloudCheckOpts struct {
 	Auto        bool     `long:"auto"       short:"a" description:"Resolve problems automatically"`
-	Resolutions []string `long:"resolution"           description:"Apply resolution of given type"`
+	Resolutions []string `long:"resolution"           description:"Apply resolution of given type (e.g.: 'recreate_vm'). Can be used multiple times."`
 	Report      bool     `long:"report"     short:"r" description:"Only generate report; don't attempt to resolve problems"`
 	cmd
 }
