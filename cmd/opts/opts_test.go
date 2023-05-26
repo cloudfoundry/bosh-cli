@@ -2441,7 +2441,7 @@ var _ = Describe("Opts", func() {
 		Describe("Resolution", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Resolutions", opts)).To(Equal(
-					`long:"resolution" description:"Apply resolution of given type"`,
+					`long:"resolution" description:"Apply resolution of given type (e.g.: 'recreate_vm'). Can be used multiple times."`,
 				))
 			})
 		})
