@@ -42,13 +42,12 @@ type gostdExpander struct {
 	cache []string
 }
 
-// Expand We can do this as all imports that are not root are either prefixed with a domain
+// We can do this as all imports that are not root are either prefixed with a domain
 // or prefixed with `./` or `/` to dictate it is a local file reference
 func (e *gostdExpander) Expand() ([]string, error) {
 	if len(e.cache) != 0 {
 		return e.cache, nil
 	}
-
 	root := path.Join(findGOROOT(), "src")
 	fs, err := os.ReadDir(root)
 	if err != nil {
@@ -65,8 +64,8 @@ func (e *gostdExpander) Expand() ([]string, error) {
 	return pkgPrefix, nil
 }
 
-// code borrowed from https://github.com/golang/tools/blob/86c93e8732cce300d0270bce23117456ce92bb17/cmd/godoc/goroot.go#L15-L30
 func findGOROOT() string {
+	// code borrowed from https://github.com/golang/tools/blob/86c93e8732cce300d0270bce23117456ce92bb17/cmd/godoc/goroot.go#L15-L30
 	if env := os.Getenv("GOROOT"); env != "" {
 		return filepath.Clean(env)
 	}
