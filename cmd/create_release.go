@@ -86,7 +86,7 @@ func (c CreateReleaseCmd) buildRelease(releaseDir boshreldir.ReleaseDir, opts Cr
 	if len(name) == 0 {
 		name, err = releaseDir.DefaultName()
 		if err != nil {
-			return nil, err
+			return nil, bosherr.WrapErrorf(err, "Check that you're in the top-level of the release directory")
 		}
 	}
 

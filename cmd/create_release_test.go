@@ -465,7 +465,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 
 				err := act()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-err"))
+				Expect(err.Error()).To(ContainSubstring("Check that you're in the top-level of the release directory: fake-err"))
 			})
 
 			It("returns error if retrieving next dev version fails", func() {
