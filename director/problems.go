@@ -12,8 +12,9 @@ import (
 type Problem struct {
 	ID int // e.g. 4
 
-	Type        string // e.g. "unresponsive_agent"
-	Description string // e.g. "api/1 (5efd2cb8-d73b-4e45-6df4-58f5dd5ec2ec) is not responding"
+	Type          string // e.g. "unresponsive_agent"
+	Description   string // e.g. "api/1 (5efd2cb8-d73b-4e45-6df4-58f5dd5ec2ec) is not responding"
+	InstanceGroup string `json:"instance_group"` // e.g. "database"
 
 	Data        interface{}
 	Resolutions []ProblemResolution
@@ -33,8 +34,8 @@ type ProblemResolution struct {
 }
 
 type ProblemAnswer struct {
-	ProblemID  int
-	Resolution ProblemResolution
+	ProblemID  int               `yaml:"problem_id"`
+	Resolution ProblemResolution `yaml:"resolution"`
 }
 
 func (d DeploymentImpl) ScanForProblems() ([]Problem, error) {
