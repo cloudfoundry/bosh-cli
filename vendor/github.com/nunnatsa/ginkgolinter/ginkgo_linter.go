@@ -333,10 +333,7 @@ func checkAsyncAssertion(pass *analysis.Pass, config types.Config, expr *ast.Cal
 		if len(actualExpr.Args) > funcIndex {
 			if fun, funcCall := actualExpr.Args[funcIndex].(*ast.CallExpr); funcCall {
 				t = pass.TypesInfo.TypeOf(fun)
-				switch t.(type) {
-				// allow functions that return function or channel.
-				case *gotypes.Signature, *gotypes.Chan, *gotypes.Pointer:
-				default:
+				if !isValidAsyncValueType(t) {
 					actualExpr = handler.GetActualExpr(expr.Fun.(*ast.SelectorExpr))
 
 					if len(fun.Args) > 0 {
@@ -369,6 +366,18 @@ func checkAsyncAssertion(pass *analysis.Pass, config types.Config, expr *ast.Cal
 
 	handleAssertionOnly(pass, config, expr, handler, actualExpr, oldExpr, true)
 	return true
+}
+
+func isValidAsyncValueType(t gotypes.Type) bool {
+	switch t.(type) {
+	// allow functions that return function or channel.
+	case *gotypes.Signature, *gotypes.Chan, *gotypes.Pointer:
+		return true
+	case *gotypes.Named:
+		return isValidAsyncValueType(t.Underlying())
+	}
+
+	return false
 }
 
 func startCheckComparison(exp *ast.CallExpr, handler gomegahandler.Handler) (*ast.CallExpr, bool) {
