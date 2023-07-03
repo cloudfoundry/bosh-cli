@@ -74,6 +74,10 @@ func (ui *jsonUI) AskForText(_ string) (string, error) {
 	panic("Cannot ask for input in JSON UI")
 }
 
+func (ui *jsonUI) AskForTextWithDefaultValue(_, _ string) (string, error) {
+	panic("Cannot ask for input in JSON UI")
+}
+
 func (ui *jsonUI) AskForChoice(_ string, _ []string) (int, error) {
 	panic("Cannot ask for a choice in JSON UI")
 }
@@ -84,6 +88,10 @@ func (ui *jsonUI) AskForPassword(_ string) (string, error) {
 
 func (ui *jsonUI) AskForConfirmation() error {
 	panic("Cannot ask for confirmation in JSON UI")
+}
+
+func (ui *jsonUI) AskForConfirmationWithLabel(_ string) error {
+	panic("Cannot ask for confirmation with label in JSON UI")
 }
 
 func (ui *jsonUI) IsInteractive() bool {

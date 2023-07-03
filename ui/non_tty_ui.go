@@ -37,6 +37,10 @@ func (ui *NonTTYUI) AskForText(label string) (string, error) {
 	return ui.parent.AskForText(label)
 }
 
+func (ui *NonTTYUI) AskForTextWithDefaultValue(label, defaultValue string) (string, error) {
+	return ui.parent.AskForTextWithDefaultValue(label, defaultValue)
+}
+
 func (ui *NonTTYUI) AskForChoice(label string, options []string) (int, error) {
 	return ui.parent.AskForChoice(label, options)
 }
@@ -47,6 +51,10 @@ func (ui *NonTTYUI) AskForPassword(label string) (string, error) {
 
 func (ui *NonTTYUI) AskForConfirmation() error {
 	return ui.parent.AskForConfirmation()
+}
+
+func (ui *NonTTYUI) AskForConfirmationWithLabel(label string) error {
+	return ui.parent.AskForConfirmationWithLabel(label)
 }
 
 func (ui *NonTTYUI) IsInteractive() bool {

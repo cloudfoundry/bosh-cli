@@ -1,8 +1,9 @@
 package ui
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
+	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type nonInteractiveUI struct {
@@ -45,19 +46,28 @@ func (ui *nonInteractiveUI) PrintTableFiltered(table Table, filterHeader []Heade
 	ui.parent.PrintTableFiltered(table, filterHeader)
 }
 
-func (ui *nonInteractiveUI) AskForText(label string) (string, error) {
+func (ui *nonInteractiveUI) AskForText(_ string) (string, error) {
 	panic(bosherr.NewUserError("Cannot ask for input in non-interactive UI"))
 }
 
-func (ui *nonInteractiveUI) AskForChoice(label string, options []string) (int, error) {
+func (ui *nonInteractiveUI) AskForTextWithDefaultValue(_, _ string) (string, error) {
+	panic(bosherr.NewUserError("Cannot ask for input in non-interactive UI"))
+}
+
+func (ui *nonInteractiveUI) AskForChoice(_ string, _ []string) (int, error) {
 	panic(bosherr.NewUserError("Cannot ask for a choice in non-interactive UI"))
 }
 
-func (ui *nonInteractiveUI) AskForPassword(label string) (string, error) {
+func (ui *nonInteractiveUI) AskForPassword(_ string) (string, error) {
 	panic(bosherr.NewUserError("Cannot ask for password in non-interactive UI"))
 }
 
 func (ui *nonInteractiveUI) AskForConfirmation() error {
+	// Always respond successfully
+	return nil
+}
+
+func (ui *nonInteractiveUI) AskForConfirmationWithLabel(_ string) error {
 	// Always respond successfully
 	return nil
 }

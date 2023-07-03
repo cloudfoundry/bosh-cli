@@ -95,6 +95,12 @@ var _ = Describe("NonInteractiveUI", func() {
 		})
 	})
 
+	Describe("AskForTextWithDefaultValue", func() {
+		It("panics", func() {
+			Expect(func() { _, _ = ui.AskForTextWithDefaultValue("", "") }).To(Panic())
+		})
+	})
+
 	Describe("AskForPassword", func() {
 		It("panics", func() {
 			Expect(func() { _, _ = ui.AskForPassword("") }).To(Panic())
@@ -110,6 +116,12 @@ var _ = Describe("NonInteractiveUI", func() {
 	Describe("AskForConfirmation", func() {
 		It("responds affirmatively with no error", func() {
 			Expect(ui.AskForConfirmation()).To(BeNil())
+		})
+	})
+
+	Describe("AskForConfirmationWithLabel", func() {
+		It("responds affirmatively with no error", func() {
+			Expect(ui.AskForConfirmationWithLabel("")).To(BeNil())
 		})
 	})
 

@@ -343,6 +343,12 @@ var _ = Describe("JSONUI", func() {
 		})
 	})
 
+	Describe("AskForTextWithDefaultValue", func() {
+		It("panics", func() {
+			Expect(func() { _, _ = ui.AskForTextWithDefaultValue("", "") }).To(Panic())
+		})
+	})
+
 	Describe("AskForPassword", func() {
 		It("panics", func() {
 			Expect(func() { _, _ = ui.AskForPassword("") }).To(Panic())
@@ -358,6 +364,12 @@ var _ = Describe("JSONUI", func() {
 	Describe("AskForConfirmation", func() {
 		It("panics", func() {
 			Expect(func() { _ = ui.AskForConfirmation() }).To(Panic())
+		})
+	})
+
+	Describe("AskForConfirmationWithLabel", func() {
+		It("panics", func() {
+			Expect(func() { _ = ui.AskForConfirmationWithLabel("") }).To(Panic())
 		})
 	})
 

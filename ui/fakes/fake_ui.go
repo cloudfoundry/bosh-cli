@@ -111,6 +111,22 @@ func (ui *FakeUI) AskForText(label string) (string, error) {
 	return answer.Text, answer.Error
 }
 
+func (ui *FakeUI) AskForTextWithDefaultValue(label, defaultValue string) (string, error) {
+	ui.mutex.Lock()
+	defer ui.mutex.Unlock()
+
+	ui.AskedTextLabels = append(ui.AskedTextLabels, label)
+	answer := ui.AskedText[0]
+	ui.AskedText = ui.AskedText[1:]
+
+	returnText := defaultValue
+	if answer.Text != "" {
+		returnText = answer.Text
+	}
+
+	return returnText, answer.Error
+}
+
 func (ui *FakeUI) AskForChoice(label string, options []string) (int, error) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
@@ -143,6 +159,15 @@ func (ui *FakeUI) AskForConfirmation() error {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
+	ui.AskedConfirmationCalled = true
+	return ui.AskedConfirmationErr
+}
+
+func (ui *FakeUI) AskForConfirmationWithLabel(label string) error {
+	ui.mutex.Lock()
+	defer ui.mutex.Unlock()
+
+	ui.AskedTextLabels = append(ui.AskedTextLabels, label)
 	ui.AskedConfirmationCalled = true
 	return ui.AskedConfirmationErr
 }

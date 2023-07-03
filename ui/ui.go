@@ -116,6 +116,17 @@ func (ui *WriterUI) AskForText(label string) (string, error) {
 	return text, nil
 }
 
+func (ui *WriterUI) AskForTextWithDefaultValue(label, defaultValue string) (string, error) {
+	text := defaultValue
+
+	err := interact.NewInteraction(label).Resolve(&text)
+	if err != nil {
+		return "", bosherr.WrapError(err, "Asking for text")
+	}
+
+	return text, nil
+}
+
 func (ui *WriterUI) AskForChoice(label string, options []string) (int, error) {
 	var choices []interact.Choice
 
@@ -148,6 +159,21 @@ func (ui *WriterUI) AskForConfirmation() error {
 	falseByDefault := false
 
 	err := interact.NewInteraction("Continue?").Resolve(&falseByDefault)
+	if err != nil {
+		return bosherr.WrapError(err, "Asking for confirmation")
+	}
+
+	if !falseByDefault {
+		return errors.New("Stopped")
+	}
+
+	return nil
+}
+
+func (ui *WriterUI) AskForConfirmationWithLabel(label string) error {
+	falseByDefault := false
+
+	err := interact.NewInteraction(label).Resolve(&falseByDefault)
 	if err != nil {
 		return bosherr.WrapError(err, "Asking for confirmation")
 	}

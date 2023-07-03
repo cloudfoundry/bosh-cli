@@ -67,6 +67,11 @@ func (ui *paddingUI) AskForText(label string) (string, error) {
 	return ui.parent.AskForText(label)
 }
 
+func (ui *paddingUI) AskForTextWithDefaultValue(label, defaultValue string) (string, error) {
+	ui.padBefore(paddingUIModeAskText)
+	return ui.parent.AskForTextWithDefaultValue(label, defaultValue)
+}
+
 func (ui *paddingUI) AskForChoice(label string, options []string) (int, error) {
 	ui.padBefore(paddingUIModeAuto)
 	return ui.parent.AskForChoice(label, options)
@@ -80,6 +85,11 @@ func (ui *paddingUI) AskForPassword(label string) (string, error) {
 func (ui *paddingUI) AskForConfirmation() error {
 	ui.padBefore(paddingUIModeAuto)
 	return ui.parent.AskForConfirmation()
+}
+
+func (ui *paddingUI) AskForConfirmationWithLabel(label string) error {
+	ui.padBefore(paddingUIModeAuto)
+	return ui.parent.AskForConfirmationWithLabel(label)
 }
 
 func (ui *paddingUI) IsInteractive() bool {

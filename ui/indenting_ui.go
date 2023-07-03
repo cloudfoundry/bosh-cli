@@ -50,6 +50,10 @@ func (ui *indentingUI) AskForText(label string) (string, error) {
 	return ui.parent.AskForText(label)
 }
 
+func (ui *indentingUI) AskForTextWithDefaultValue(label, defaultValue string) (string, error) {
+	return ui.parent.AskForTextWithDefaultValue(label, defaultValue)
+}
+
 func (ui *indentingUI) AskForChoice(label string, options []string) (int, error) {
 	return ui.parent.AskForChoice(label, options)
 }
@@ -60,6 +64,10 @@ func (ui *indentingUI) AskForPassword(label string) (string, error) {
 
 func (ui *indentingUI) AskForConfirmation() error {
 	return ui.parent.AskForConfirmation()
+}
+
+func (ui *indentingUI) AskForConfirmationWithLabel(label string) error {
+	return ui.parent.AskForConfirmationWithLabel(label)
 }
 
 func (ui *indentingUI) IsInteractive() bool {

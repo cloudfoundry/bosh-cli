@@ -62,6 +62,10 @@ func (ui *ColorUI) AskForText(label string) (string, error) {
 	return ui.parent.AskForText(label)
 }
 
+func (ui *ColorUI) AskForTextWithDefaultValue(label, defaultValue string) (string, error) {
+	return ui.parent.AskForTextWithDefaultValue(label, defaultValue)
+}
+
 func (ui *ColorUI) AskForChoice(label string, options []string) (int, error) {
 	return ui.parent.AskForChoice(label, options)
 }
@@ -72,6 +76,10 @@ func (ui *ColorUI) AskForPassword(label string) (string, error) {
 
 func (ui *ColorUI) AskForConfirmation() error {
 	return ui.parent.AskForConfirmation()
+}
+
+func (ui *ColorUI) AskForConfirmationWithLabel(label string) error {
+	return ui.parent.AskForConfirmationWithLabel(label)
 }
 
 func (ui *ColorUI) IsInteractive() bool {

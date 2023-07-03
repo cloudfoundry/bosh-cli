@@ -18,11 +18,14 @@ type UI interface {
 	PrintTableFiltered(Table, []Header)
 
 	AskForText(label string) (string, error)
+	AskForTextWithDefaultValue(label, defaultValue string) (string, error)
 	AskForChoice(label string, options []string) (int, error)
 	AskForPassword(label string) (string, error)
 
 	// AskForConfirmation returns error if user doesnt want to continue
 	AskForConfirmation() error
+	// AskForConfirmationWithLabel returns error if user doesnt want to continue
+	AskForConfirmationWithLabel(label string) error
 
 	IsInteractive() bool
 
