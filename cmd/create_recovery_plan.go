@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"sort"
+	"strconv"
 
 	"gopkg.in/yaml.v2"
 
@@ -17,9 +18,9 @@ import (
 )
 
 type InstanceGroupPlan struct {
-	Name               string            `yaml:"name"`
-	MaxInFlight        string            `yaml:"max_in_flight,omitempty"`
-	PlannedResolutions map[string]string `yaml:"planned_resolutions"`
+	Name                string            `yaml:"name"`
+	MaxInFlightOverride string            `yaml:"max_in_flight_override,omitempty"`
+	PlannedResolutions  map[string]string `yaml:"planned_resolutions"`
 }
 
 type RecoveryPlan struct {
@@ -47,6 +48,11 @@ func (c CreateRecoveryPlanCmd) Run(opts CreateRecoveryPlanOpts) error {
 		return nil
 	}
 
+	maxInFlightByInstanceGroup, err := c.getMaxInFlightByInstanceGroup()
+	if err != nil {
+		return err
+	}
+
 	var plan RecoveryPlan
 	for _, instanceGroup := range sortedInstanceGroups(problemsByInstanceGroup) {
 		c.ui.PrintLinef("Instance Group '%s'\n", instanceGroup)
@@ -56,9 +62,24 @@ func (c CreateRecoveryPlanCmd) Run(opts CreateRecoveryPlanOpts) error {
 			return err
 		}
 
+		instanceGroupCurrentMaxInFlight := maxInFlightByInstanceGroup[instanceGroup]
+		var instanceGroupMaxInFlightOverride string
+		if c.ui.AskForConfirmationWithLabel(
+			fmt.Sprintf("Override current max_in_flight value of '%s'?", instanceGroupCurrentMaxInFlight),
+		) == nil {
+			instanceGroupMaxInFlightOverride, err = c.ui.AskForTextWithDefaultValue(
+				fmt.Sprintf("max_in_flight override for '%s'", instanceGroup),
+				instanceGroupCurrentMaxInFlight,
+			)
+			if err != nil {
+				return err
+			}
+		}
+
 		plan.InstanceGroupsPlan = append(plan.InstanceGroupsPlan, InstanceGroupPlan{
-			Name:               instanceGroup,
-			PlannedResolutions: instanceGroupResolutions,
+			Name:                instanceGroup,
+			MaxInFlightOverride: instanceGroupMaxInFlightOverride,
+			PlannedResolutions:  instanceGroupResolutions,
 		})
 	}
 
@@ -68,6 +89,52 @@ func (c CreateRecoveryPlanCmd) Run(opts CreateRecoveryPlanOpts) error {
 	}
 
 	return c.fs.WriteFile(opts.Args.RecoveryPlan.ExpandedPath, bytes)
+}
+
+type updateInstanceGroup struct {
+	Name   string                 `yaml:"name"`
+	Update map[string]interface{} `yaml:"update"`
+}
+
+type updateManifest struct {
+	InstanceGroups []updateInstanceGroup  `yaml:"instance_groups"`
+	Update         map[string]interface{} `yaml:"update"`
+}
+
+func (c CreateRecoveryPlanCmd) getMaxInFlightByInstanceGroup() (map[string]string, error) {
+	rawManifest, err := c.deployment.Manifest()
+	if err != nil {
+		return nil, err
+	}
+
+	var updateManifest updateManifest
+	err = yaml.Unmarshal([]byte(rawManifest), &updateManifest)
+	if err != nil {
+		return nil, err
+	}
+
+	globalMaxInFlight := updateManifest.Update["max_in_flight"]
+	flightMap := make(map[string]string)
+	for _, instanceGroup := range updateManifest.InstanceGroups {
+		groupMaxInFlight := instanceGroup.Update["max_in_flight"]
+		if groupMaxInFlight == nil {
+			groupMaxInFlight = globalMaxInFlight
+		}
+		flightMap[instanceGroup.Name] = ensureString(groupMaxInFlight)
+	}
+
+	return flightMap, nil
+}
+
+func ensureString(i interface{}) string {
+	switch v := i.(type) {
+	case int:
+		return strconv.Itoa(v)
+	case string:
+		return v
+	}
+
+	return i.(string)
 }
 
 func sortedInstanceGroups(problemsByInstanceGroup map[string][]boshdir.Problem) []string {

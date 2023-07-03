@@ -152,6 +152,11 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 				deployment.ScanForProblemsReturns(severalProbs, nil)
 				ui.AskedChoiceChosens = []int{0, 1, 2}
 				ui.AskedChoiceErrs = []error{nil, nil, nil}
+				ui.AskedConfirmationErr = nil
+				ui.AskedText = []fakeui.Answer{
+					{Text: "10", Error: nil},
+					{Text: "50%", Error: nil},
+				}
 			})
 
 			It("shows problems by instance group and type", func() {
@@ -239,10 +244,12 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 				Expect(actualPlan.InstanceGroupsPlan).To(HaveLen(2))
 
 				Expect(actualPlan.InstanceGroupsPlan[0].Name).To(Equal("diego_cell"))
+				Expect(actualPlan.InstanceGroupsPlan[0].MaxInFlightOverride).To(Equal("10"))
 				Expect(actualPlan.InstanceGroupsPlan[0].PlannedResolutions).To(HaveLen(1))
 				Expect(actualPlan.InstanceGroupsPlan[0].PlannedResolutions).To(HaveKeyWithValue("unresponsive_agent", *skipResolution.Name))
 
 				Expect(actualPlan.InstanceGroupsPlan[1].Name).To(Equal("router"))
+				Expect(actualPlan.InstanceGroupsPlan[1].MaxInFlightOverride).To(Equal("50%"))
 				Expect(actualPlan.InstanceGroupsPlan[1].PlannedResolutions).To(HaveLen(2))
 				Expect(actualPlan.InstanceGroupsPlan[1].PlannedResolutions).To(HaveKeyWithValue("missing_vm", *recreateResolution.Name))
 				Expect(actualPlan.InstanceGroupsPlan[1].PlannedResolutions).To(HaveKeyWithValue("mount_info_mismatch", *reattachDiskAndRebootResolution.Name))
@@ -254,6 +261,29 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 				err := act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+
+			It("does not override max_in_flight if not confirmed", func() {
+				ui.AskedConfirmationErr = errors.New("fake-err")
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeFS.WriteFileCallCount).To(Equal(1))
+				Expect(fakeFS.FileExists("/tmp/foo.yml")).To(BeTrue())
+				bytes, err := fakeFS.ReadFile("/tmp/foo.yml")
+				Expect(err).ToNot(HaveOccurred())
+
+				var actualPlan RecoveryPlan
+				Expect(yaml.Unmarshal(bytes, &actualPlan)).ToNot(HaveOccurred())
+
+				Expect(actualPlan.InstanceGroupsPlan).To(HaveLen(2))
+
+				Expect(actualPlan.InstanceGroupsPlan[0].Name).To(Equal("diego_cell"))
+				Expect(actualPlan.InstanceGroupsPlan[0].MaxInFlightOverride).To(BeEmpty())
+
+				Expect(actualPlan.InstanceGroupsPlan[1].Name).To(Equal("router"))
+				Expect(actualPlan.InstanceGroupsPlan[1].MaxInFlightOverride).To(BeEmpty())
 			})
 
 			Context("director does not return instance group", func() {
