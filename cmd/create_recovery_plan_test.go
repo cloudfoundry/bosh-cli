@@ -240,12 +240,12 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 
 				Expect(actualPlan.InstanceGroupsPlan[0].Name).To(Equal("diego_cell"))
 				Expect(actualPlan.InstanceGroupsPlan[0].PlannedResolutions).To(HaveLen(1))
-				Expect(actualPlan.InstanceGroupsPlan[0].PlannedResolutions).To(HaveKeyWithValue("unresponsive_agent", skipResolution))
+				Expect(actualPlan.InstanceGroupsPlan[0].PlannedResolutions).To(HaveKeyWithValue("unresponsive_agent", *skipResolution.Name))
 
 				Expect(actualPlan.InstanceGroupsPlan[1].Name).To(Equal("router"))
 				Expect(actualPlan.InstanceGroupsPlan[1].PlannedResolutions).To(HaveLen(2))
-				Expect(actualPlan.InstanceGroupsPlan[1].PlannedResolutions).To(HaveKeyWithValue("missing_vm", recreateResolution))
-				Expect(actualPlan.InstanceGroupsPlan[1].PlannedResolutions).To(HaveKeyWithValue("mount_info_mismatch", reattachDiskAndRebootResolution))
+				Expect(actualPlan.InstanceGroupsPlan[1].PlannedResolutions).To(HaveKeyWithValue("missing_vm", *recreateResolution.Name))
+				Expect(actualPlan.InstanceGroupsPlan[1].PlannedResolutions).To(HaveKeyWithValue("mount_info_mismatch", *reattachDiskAndRebootResolution.Name))
 			})
 
 			It("returns an error if asking fails", func() {

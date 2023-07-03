@@ -17,9 +17,9 @@ import (
 )
 
 type InstanceGroupPlan struct {
-	Name               string                               `yaml:"name"`
-	MaxInFlight        string                               `yaml:"max_in_flight,omitempty"`
-	PlannedResolutions map[string]boshdir.ProblemResolution `yaml:"planned_resolutions"`
+	Name               string            `yaml:"name"`
+	MaxInFlight        string            `yaml:"max_in_flight,omitempty"`
+	PlannedResolutions map[string]string `yaml:"planned_resolutions"`
 }
 
 type RecoveryPlan struct {
@@ -80,10 +80,10 @@ func sortedInstanceGroups(problemsByInstanceGroup map[string][]boshdir.Problem) 
 	return instanceGroups
 }
 
-func (c CreateRecoveryPlanCmd) processProblemsByType(problems []boshdir.Problem) (map[string]boshdir.ProblemResolution, error) {
+func (c CreateRecoveryPlanCmd) processProblemsByType(problems []boshdir.Problem) (map[string]string, error) {
 	problemsByType := mapProblemsByTrait(problems, func(p boshdir.Problem) string { return p.Type })
 
-	resolutions := make(map[string]boshdir.ProblemResolution)
+	resolutions := make(map[string]string)
 	for problemType, problemsForType := range problemsByType {
 		c.printProblemTable(problemType, problemsForType)
 
@@ -97,7 +97,7 @@ func (c CreateRecoveryPlanCmd) processProblemsByType(problems []boshdir.Problem)
 			return nil, err
 		}
 
-		resolutions[problemType] = problemsForType[0].Resolutions[chosenIndex]
+		resolutions[problemType] = *problemsForType[0].Resolutions[chosenIndex].Name
 	}
 
 	return resolutions, nil
