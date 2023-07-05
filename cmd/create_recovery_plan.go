@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"sort"
-	"strconv"
 
 	"gopkg.in/yaml.v2"
 
@@ -120,21 +119,10 @@ func (c CreateRecoveryPlanCmd) getMaxInFlightByInstanceGroup() (map[string]strin
 		if groupMaxInFlight == nil {
 			groupMaxInFlight = globalMaxInFlight
 		}
-		flightMap[instanceGroup.Name] = ensureString(groupMaxInFlight)
+		flightMap[instanceGroup.Name] = fmt.Sprintf("%v", groupMaxInFlight)
 	}
 
 	return flightMap, nil
-}
-
-func ensureString(i interface{}) string {
-	switch v := i.(type) {
-	case int:
-		return strconv.Itoa(v)
-	case string:
-		return v
-	}
-
-	return i.(string)
 }
 
 func sortedInstanceGroups(problemsByInstanceGroup map[string][]boshdir.Problem) []string {
