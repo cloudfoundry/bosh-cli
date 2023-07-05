@@ -53,7 +53,7 @@ func (c CreateRecoveryPlanCmd) Run(opts CreateRecoveryPlanOpts) error {
 	}
 
 	var plan RecoveryPlan
-	for _, instanceGroup := range sortedInstanceGroups(problemsByInstanceGroup) {
+	for _, instanceGroup := range sortedMapKeys(problemsByInstanceGroup) {
 		c.ui.PrintLinef("Instance Group '%s'\n", instanceGroup)
 
 		instanceGroupResolutions, err := c.processProblemsByType(problemsByInstanceGroup[instanceGroup])
@@ -125,21 +125,22 @@ func (c CreateRecoveryPlanCmd) getMaxInFlightByInstanceGroup() (map[string]strin
 	return flightMap, nil
 }
 
-func sortedInstanceGroups(problemsByInstanceGroup map[string][]boshdir.Problem) []string {
-	var instanceGroups []string
-	for k := range problemsByInstanceGroup {
-		instanceGroups = append(instanceGroups, k)
+func sortedMapKeys(problemMap map[string][]boshdir.Problem) []string {
+	var keys []string
+	for k := range problemMap {
+		keys = append(keys, k)
 	}
-	sort.Strings(instanceGroups)
+	sort.Strings(keys)
 
-	return instanceGroups
+	return keys
 }
 
 func (c CreateRecoveryPlanCmd) processProblemsByType(problems []boshdir.Problem) (map[string]string, error) {
 	problemsByType := mapProblemsByTrait(problems, func(p boshdir.Problem) string { return p.Type })
 
 	resolutions := make(map[string]string)
-	for problemType, problemsForType := range problemsByType {
+	for _, problemType := range sortedMapKeys(problemsByType) {
+		problemsForType := problemsByType[problemType]
 		c.printProblemTable(problemType, problemsForType)
 
 		var opts []string
