@@ -52,6 +52,7 @@ var _ = Describe("Director", func() {
 		"id": 4,
 		"type": "unresponsive_agent",
 		"description": "desc1",
+		"instance_group": "diego_cell",
 		"resolutions": [
 			{"name": "Skip for now", "plan": "ignore"},
 			{"name": "Reboot VM", "plan": "reboot_vm"}
@@ -61,6 +62,7 @@ var _ = Describe("Director", func() {
 		"id": 5,
 		"type": "unresponsive_agent",
 		"description": "desc2",
+		"instance_group": "router",
 		"resolutions": [
 			{"name": "Skip for now", "plan": "ignore"}
 		]
@@ -78,6 +80,7 @@ var _ = Describe("Director", func() {
 			Expect(problem0.ID).To(Equal(4))
 			Expect(problem0.Type).To(Equal("unresponsive_agent"))
 			Expect(problem0.Description).To(Equal("desc1"))
+			Expect(problem0.InstanceGroup).To(Equal("diego_cell"))
 			problem0Resolutions := problem0.Resolutions
 			Expect(len(problem0Resolutions)).To(Equal(2))
 			Expect(*problem0Resolutions[0].Name).To(Equal("Skip for now"))
@@ -89,6 +92,7 @@ var _ = Describe("Director", func() {
 			Expect(problem1.ID).To(Equal(5))
 			Expect(problem1.Type).To(Equal("unresponsive_agent"))
 			Expect(problem1.Description).To(Equal("desc2"))
+			Expect(problem1.InstanceGroup).To(Equal("router"))
 			problem1Resolutions := problem1.Resolutions
 			Expect(len(problem1Resolutions)).To(Equal(1))
 			Expect(*problem1Resolutions[0].Name).To(Equal("Skip for now"))
