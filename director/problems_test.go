@@ -173,7 +173,50 @@ var _ = Describe("Director", func() {
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"application/json"},
 					}),
-					ghttp.VerifyBody([]byte(`{"resolutions":{"4":"res1-name","5":"res2-name"}}`)),
+					ghttp.VerifyJSON(`{
+  "resolutions": {
+    "4": "res1-name",
+    "5": "res2-name"
+  },
+  "max_in_flight_overrides": {
+    "ig-1": "10",
+    "ig-2": "50%"
+  }
+}`),
+				),
+				"",
+				server,
+			)
+
+			resolutionName1 := "res1-name"
+			resolutionName2 := "res2-name"
+			answers := []ProblemAnswer{
+				{ProblemID: 4, Resolution: ProblemResolution{Name: &resolutionName1}},
+				{ProblemID: 5, Resolution: ProblemResolution{Name: &resolutionName2}},
+			}
+			overrides := map[string]string{
+				"ig-1": "10",
+				"ig-2": "50%",
+			}
+
+			err := deployment.ResolveProblems(answers, overrides)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("omits instance_group_overrides from request body if provided overrides are nil", func() {
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("PUT", "/deployments/dep1/problems"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"application/json"},
+					}),
+					ghttp.VerifyJSON(`{
+  "resolutions": {
+    "4": "res1-name",
+    "5": "res2-name"
+  }
+}`),
 				),
 				"",
 				server,
@@ -186,14 +229,14 @@ var _ = Describe("Director", func() {
 				{ProblemID: 5, Resolution: ProblemResolution{Name: &resolutionName2}},
 			}
 
-			err := deployment.ResolveProblems(answers)
+			err := deployment.ResolveProblems(answers, nil)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns error if response is non-200", func() {
 			AppendBadRequest(ghttp.VerifyRequest("PUT", "/deployments/dep1/problems"), server)
 
-			err := deployment.ResolveProblems(nil)
+			err := deployment.ResolveProblems(nil, nil)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Resolving problems for deployment 'dep1': Director responded with non-successful status code"))

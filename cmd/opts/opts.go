@@ -138,6 +138,7 @@ type BoshOpts struct {
 	Unignore           UnignoreOpts           `command:"unignore"                                       description:"Unignore an instance"`
 	CloudCheck         CloudCheckOpts         `command:"cloud-check"     alias:"cck" alias:"cloudcheck" description:"Cloud consistency check and interactive repair"` //nolint:staticcheck
 	CreateRecoveryPlan CreateRecoveryPlanOpts `command:"create-recovery-plan"                           description:"Interactively generate a recovery plan for disaster repair"`
+	Recover            RecoverOpts            `command:"recover"                           description:"Apply a recovery plan for disaster repair"`
 	OrphanedVMs        OrphanedVMsOpts        `command:"orphaned-vms"                                   description:"List all the orphaned VMs in all deployments"`
 
 	// Instance management
@@ -824,6 +825,15 @@ type CreateRecoveryPlanOpts struct {
 
 type CreateRecoveryPlanArgs struct {
 	RecoveryPlan FileArg `positional-arg-name:"PATH" description:"Create recovery plan file at path"`
+}
+
+type RecoverOpts struct {
+	Args RecoverArgs `positional-args:"true" required:"true"`
+	cmd
+}
+
+type RecoverArgs struct {
+	RecoveryPlan FileArg `positional-arg-name:"PATH" description:"Path to a recovery plan file"`
 }
 
 type OrphanedVMsOpts struct {

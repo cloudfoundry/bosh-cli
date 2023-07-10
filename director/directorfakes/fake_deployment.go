@@ -238,10 +238,11 @@ type FakeDeployment struct {
 		result1 []director.Release
 		result2 error
 	}
-	ResolveProblemsStub        func([]director.ProblemAnswer) error
+	ResolveProblemsStub        func([]director.ProblemAnswer, map[string]string) error
 	resolveProblemsMutex       sync.RWMutex
 	resolveProblemsArgsForCall []struct {
 		arg1 []director.ProblemAnswer
+		arg2 map[string]string
 	}
 	resolveProblemsReturns struct {
 		result1 error
@@ -1572,7 +1573,7 @@ func (fake *FakeDeployment) ReleasesReturnsOnCall(i int, result1 []director.Rele
 	}{result1, result2}
 }
 
-func (fake *FakeDeployment) ResolveProblems(arg1 []director.ProblemAnswer) error {
+func (fake *FakeDeployment) ResolveProblems(arg1 []director.ProblemAnswer, arg2 map[string]string) error {
 	var arg1Copy []director.ProblemAnswer
 	if arg1 != nil {
 		arg1Copy = make([]director.ProblemAnswer, len(arg1))
@@ -1582,13 +1583,14 @@ func (fake *FakeDeployment) ResolveProblems(arg1 []director.ProblemAnswer) error
 	ret, specificReturn := fake.resolveProblemsReturnsOnCall[len(fake.resolveProblemsArgsForCall)]
 	fake.resolveProblemsArgsForCall = append(fake.resolveProblemsArgsForCall, struct {
 		arg1 []director.ProblemAnswer
-	}{arg1Copy})
+		arg2 map[string]string
+	}{arg1Copy, arg2})
 	stub := fake.ResolveProblemsStub
 	fakeReturns := fake.resolveProblemsReturns
-	fake.recordInvocation("ResolveProblems", []interface{}{arg1Copy})
+	fake.recordInvocation("ResolveProblems", []interface{}{arg1Copy, arg2})
 	fake.resolveProblemsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -1602,17 +1604,17 @@ func (fake *FakeDeployment) ResolveProblemsCallCount() int {
 	return len(fake.resolveProblemsArgsForCall)
 }
 
-func (fake *FakeDeployment) ResolveProblemsCalls(stub func([]director.ProblemAnswer) error) {
+func (fake *FakeDeployment) ResolveProblemsCalls(stub func([]director.ProblemAnswer, map[string]string) error) {
 	fake.resolveProblemsMutex.Lock()
 	defer fake.resolveProblemsMutex.Unlock()
 	fake.ResolveProblemsStub = stub
 }
 
-func (fake *FakeDeployment) ResolveProblemsArgsForCall(i int) []director.ProblemAnswer {
+func (fake *FakeDeployment) ResolveProblemsArgsForCall(i int) ([]director.ProblemAnswer, map[string]string) {
 	fake.resolveProblemsMutex.RLock()
 	defer fake.resolveProblemsMutex.RUnlock()
 	argsForCall := fake.resolveProblemsArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeDeployment) ResolveProblemsReturns(result1 error) {

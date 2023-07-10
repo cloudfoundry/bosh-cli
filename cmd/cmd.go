@@ -360,6 +360,9 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *CreateRecoveryPlanOpts:
 		return NewCreateRecoveryPlanCmd(c.deployment(), deps.UI, deps.FS).Run(*opts)
 
+	case *RecoverOpts:
+		return NewRecoverCmd(c.deployment(), deps.UI, deps.FS).Run(*opts)
+
 	case *CleanUpOpts:
 		return NewCleanUpCmd(deps.UI, c.director()).Run(*opts)
 
