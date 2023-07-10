@@ -74,7 +74,7 @@ func (c CloudCheckCmd) Run(opts CloudCheckOpts) error {
 		return err
 	}
 
-	return c.deployment.ResolveProblems(answers)
+	return c.deployment.ResolveProblems(answers, nil)
 }
 
 func (_ CloudCheckCmd) applyResolutions(resolutionsToApply []string, probs []boshdir.Problem) ([]boshdir.ProblemAnswer, error) {

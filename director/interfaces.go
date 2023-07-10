@@ -5,9 +5,10 @@ import (
 	"os"
 	"time"
 
-	bio "github.com/cloudfoundry/bosh-cli/v7/io"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	semver "github.com/cppforlife/go-semi-semantic/version"
+
+	bio "github.com/cloudfoundry/bosh-cli/v7/io"
 )
 
 // You only need **one** of these per package!
@@ -152,7 +153,7 @@ type Deployment interface {
 	RunErrand(string, bool, bool, []InstanceGroupOrInstanceSlug) ([]ErrandResult, error)
 
 	ScanForProblems() ([]Problem, error)
-	ResolveProblems([]ProblemAnswer) error
+	ResolveProblems([]ProblemAnswer, map[string]string) error
 
 	Snapshots() ([]Snapshot, error)
 	TakeSnapshots() error

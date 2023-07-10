@@ -2487,6 +2487,38 @@ var _ = Describe("Opts", func() {
 		})
 	})
 
+	Describe("RecoverOpts", func() {
+		var opts *RecoverOpts
+
+		BeforeEach(func() {
+			opts = &RecoverOpts{}
+		})
+
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(
+					`positional-args:"true" required:"true"`,
+				))
+			})
+		})
+	})
+
+	Describe("RecoverArgs", func() {
+		var opts *RecoverArgs
+
+		BeforeEach(func() {
+			opts = &RecoverArgs{}
+		})
+
+		Describe("RecoveryPlan", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("RecoveryPlan", opts)).To(Equal(
+					`positional-arg-name:"PATH" description:"Path to a recovery plan file"`,
+				))
+			})
+		})
+	})
+
 	Describe("UpdateResurrectionOpts", func() {
 		var opts *UpdateResurrectionOpts
 

@@ -22,6 +22,20 @@ type InstanceGroupPlan struct {
 	PlannedResolutions  map[string]string `yaml:"planned_resolutions"`
 }
 
+func (p InstanceGroupPlan) resolutionName(problem boshdir.Problem) string {
+	return p.PlannedResolutions[problem.Type]
+}
+
+func (p InstanceGroupPlan) resolutionPlan(problem boshdir.Problem) string {
+	for _, r := range problem.Resolutions {
+		if *r.Name == p.resolutionName(problem) {
+			return r.Plan
+		}
+	}
+
+	return "No resolution planned"
+}
+
 type RecoveryPlan struct {
 	InstanceGroupsPlan []InstanceGroupPlan `yaml:"instance_groups_plan"`
 }
@@ -37,7 +51,7 @@ func NewCreateRecoveryPlanCmd(deployment boshdir.Deployment, ui boshui.UI, fs bo
 }
 
 func (c CreateRecoveryPlanCmd) Run(opts CreateRecoveryPlanOpts) error {
-	problemsByInstanceGroup, err := c.getProblemsByInstanceGroup()
+	problemsByInstanceGroup, err := getProblemsByInstanceGroup(c.deployment)
 	if err != nil {
 		return err
 	}
@@ -180,8 +194,8 @@ func (c CreateRecoveryPlanCmd) printProblemTable(problemType string, problemsFor
 	c.ui.PrintTable(table)
 }
 
-func (c CreateRecoveryPlanCmd) getProblemsByInstanceGroup() (map[string][]boshdir.Problem, error) {
-	problems, err := c.deployment.ScanForProblems()
+func getProblemsByInstanceGroup(deployment boshdir.Deployment) (map[string][]boshdir.Problem, error) {
+	problems, err := deployment.ScanForProblems()
 	if err != nil {
 		return nil, err
 	}

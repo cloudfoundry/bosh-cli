@@ -122,8 +122,9 @@ var _ = Describe("CloudCheckCmd", func() {
 
 						Expect(deployment.ResolveProblemsCallCount()).To(Equal(1))
 
-						problemAnswers := deployment.ResolveProblemsArgsForCall(0)
+						problemAnswers, overrides := deployment.ResolveProblemsArgsForCall(0)
 						Expect(len(problemAnswers)).To(Equal(2))
+						Expect(overrides).To(BeNil())
 
 						problemAnswer0 := problemAnswers[0]
 						Expect(problemAnswer0.ProblemID).To(Equal(3))
