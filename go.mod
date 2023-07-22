@@ -7,11 +7,11 @@ require (
 	code.cloudfoundry.org/workpool v0.0.0-20230612151832-b93da105e0e8
 	github.com/cheggaaa/pb/v3 v3.1.4
 	github.com/cloudfoundry/bosh-agent v0.0.61-0.20230301011448-4cfe06c13ad7
-	github.com/cloudfoundry/bosh-davcli v0.0.241
-	github.com/cloudfoundry/bosh-gcscli v0.0.142
-	github.com/cloudfoundry/bosh-s3cli v0.0.208
-	github.com/cloudfoundry/bosh-utils v0.0.372
-	github.com/cloudfoundry/config-server v0.1.129
+	github.com/cloudfoundry/bosh-davcli v0.0.243
+	github.com/cloudfoundry/bosh-gcscli v0.0.143
+	github.com/cloudfoundry/bosh-s3cli v0.0.209
+	github.com/cloudfoundry/bosh-utils v0.0.373
+	github.com/cloudfoundry/config-server v0.1.130
 	github.com/cloudfoundry/socks5-proxy v0.2.94
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
@@ -36,7 +36,7 @@ require (
 	4d63.com/gocheckcompilerdirectives v1.2.1 // indirect
 	4d63.com/gochecknoglobals v0.2.1 // indirect
 	cloud.google.com/go v0.110.6 // indirect
-	cloud.google.com/go/compute v1.21.0 // indirect
+	cloud.google.com/go/compute v1.22.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v1.1.1 // indirect
 	cloud.google.com/go/storage v1.31.0 // indirect
@@ -56,7 +56,7 @@ require (
 	github.com/alingse/asasalint v0.0.11 // indirect
 	github.com/ashanbrown/forbidigo v1.6.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
-	github.com/aws/aws-sdk-go v1.44.300 // indirect
+	github.com/aws/aws-sdk-go v1.44.306 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bkielbasa/cyclop v1.2.1 // indirect
 	github.com/blizzy78/varnamelen v0.8.0 // indirect
@@ -154,7 +154,7 @@ require (
 	github.com/nishanths/exhaustive v0.11.0 // indirect
 	github.com/nishanths/predeclared v0.2.2 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
-	github.com/nunnatsa/ginkgolinter v0.12.2 // indirect
+	github.com/nunnatsa/ginkgolinter v0.13.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.9 // indirect
 	github.com/pivotal-cf/paraphernalia v0.0.0-20180203224945-a64ae2051c20 // indirect
@@ -202,12 +202,12 @@ require (
 	github.com/tommy-muehle/go-mnd/v2 v2.5.1 // indirect
 	github.com/ultraware/funlen v0.0.3 // indirect
 	github.com/ultraware/whitespace v0.0.5 // indirect
-	github.com/uudashr/gocognit v1.0.6 // indirect
+	github.com/uudashr/gocognit v1.0.7 // indirect
 	github.com/xen0n/gosmopolitan v1.2.1 // indirect
 	github.com/yagipy/maintidx v1.0.0 // indirect
 	github.com/yeya24/promlinter v0.2.0 // indirect
 	github.com/ykadowak/zerologlint v0.1.3 // indirect
-	gitlab.com/bosi/decorder v0.2.3 // indirect
+	gitlab.com/bosi/decorder v0.4.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.tmz.dev/musttag v0.7.1 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
@@ -222,11 +222,11 @@ require (
 	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/term v0.10.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/api v0.131.0 // indirect
+	google.golang.org/api v0.132.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230711160842-782d3b101e98 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20230711160842-782d3b101e98 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230711160842-782d3b101e98 // indirect
+	google.golang.org/genproto v0.0.0-20230720185612-659f7aaaa771 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20230720185612-659f7aaaa771 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230720185612-659f7aaaa771 // indirect
 	google.golang.org/grpc v1.56.2 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
