@@ -22,12 +22,12 @@ type Config struct {
 	SuppressErr     Boolean
 	SuppressCompare Boolean
 	SuppressAsync   Boolean
-	SuppressFocus   Boolean
+	ForbidFocus     Boolean
 	AllowHaveLen0   Boolean
 }
 
 func (s *Config) AllTrue() bool {
-	return bool(s.SuppressLen && s.SuppressNil && s.SuppressErr && s.SuppressCompare && s.SuppressAsync && s.SuppressFocus)
+	return bool(s.SuppressLen && s.SuppressNil && s.SuppressErr && s.SuppressCompare && s.SuppressAsync && !s.ForbidFocus)
 }
 
 func (s *Config) Clone() Config {
@@ -37,7 +37,7 @@ func (s *Config) Clone() Config {
 		SuppressErr:     s.SuppressErr,
 		SuppressCompare: s.SuppressCompare,
 		SuppressAsync:   s.SuppressAsync,
-		SuppressFocus:   s.SuppressFocus,
+		ForbidFocus:     s.ForbidFocus,
 		AllowHaveLen0:   s.AllowHaveLen0,
 	}
 }
@@ -56,12 +56,20 @@ func (s *Config) UpdateFromComment(commentGroup []*ast.CommentGroup) {
 				comment = strings.TrimSuffix(comment, "*/")
 				comment = strings.TrimSpace(comment)
 
-				s.SuppressLen = s.SuppressLen || (comment == suppressLengthAssertionWarning)
-				s.SuppressNil = s.SuppressNil || (comment == suppressNilAssertionWarning)
-				s.SuppressErr = s.SuppressErr || (comment == suppressErrAssertionWarning)
-				s.SuppressCompare = s.SuppressCompare || (comment == suppressCompareAssertionWarning)
-				s.SuppressAsync = s.SuppressAsync || (comment == suppressAsyncAsertWarning)
-				s.SuppressFocus = s.SuppressFocus || (comment == suppressFocusContainerWarning)
+				switch comment {
+				case suppressLengthAssertionWarning:
+					s.SuppressLen = true
+				case suppressNilAssertionWarning:
+					s.SuppressNil = true
+				case suppressErrAssertionWarning:
+					s.SuppressErr = true
+				case suppressCompareAssertionWarning:
+					s.SuppressCompare = true
+				case suppressAsyncAsertWarning:
+					s.SuppressAsync = true
+				case suppressFocusContainerWarning:
+					s.ForbidFocus = false
+				}
 			}
 		}
 	}

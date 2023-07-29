@@ -159,6 +159,8 @@ This rule finds ginkgo focus containers in the code.
 ginkgo supports the `FDescribe`, `FContext`, `FWhen` and `FIt` containers to allow the developer to focus
 on a specific test or set of tests during test development or debug.
 
+***This rule is disabled by default***. Use the `--forbid-focus-container=true` command line flag to enable it.  
+
 For example:
 ```go
 var _ = Describe("checking something", func() {
@@ -304,7 +306,6 @@ Expect(c1 == x1).Should(BeTrue()) // ==> Expect(x1).Should(Equal(c1))
 * Use the `--suppress-err-assertion=true` flag to suppress the wrong error assertion warning
 * Use the `--suppress-compare-assertion=true` flag to suppress the wrong comparison assertion warning
 * Use the `--suppress-async-assertion=true` flag to suppress the function call in async assertion warning
-* Use the `--suppress-focus-container=true` flag to suppress the focus container warning
 * Use the `--allow-havelen-0=true` flag to avoid warnings about `HaveLen(0)`; Note: this parameter is only supported from
   command line, and not from a comment.
 
