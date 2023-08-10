@@ -2,6 +2,7 @@ package fileutil
 
 import (
 	"fmt"
+	"runtime"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -33,7 +34,10 @@ func (c tarballCompressor) CompressSpecificFilesInDir(dir string, files []string
 
 	tarballPath := tarball.Name()
 
-	args := []string{"czf", tarballPath, "-C", dir}
+	args := []string{"-czf", tarballPath, "-C", dir}
+	if runtime.GOOS == "darwin" {
+		args = append([]string{"--no-mac-metadata"}, args...)
+	}
 
 	for _, file := range files {
 		args = append(args, file)

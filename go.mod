@@ -10,7 +10,7 @@ require (
 	github.com/cloudfoundry/bosh-davcli v0.0.253
 	github.com/cloudfoundry/bosh-gcscli v0.0.148
 	github.com/cloudfoundry/bosh-s3cli v0.0.212
-	github.com/cloudfoundry/bosh-utils v0.0.380
+	github.com/cloudfoundry/bosh-utils v0.0.383
 	github.com/cloudfoundry/config-server v0.1.131
 	github.com/cloudfoundry/socks5-proxy v0.2.95
 	github.com/cppforlife/go-patch v0.2.0
@@ -28,7 +28,7 @@ require (
 	github.com/vito/go-interact v1.0.1
 	golang.org/x/crypto v0.12.0
 	golang.org/x/text v0.12.0
-	golang.org/x/tools v0.11.1
+	golang.org/x/tools v0.12.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
