@@ -226,6 +226,7 @@ type UpdateOpts struct {
 	MaxInFlight             string
 	DryRun                  bool
 	Diff                    DeploymentDiff
+	ForceLatestVariables    bool
 }
 
 //counterfeiter:generate . ReleaseSeries

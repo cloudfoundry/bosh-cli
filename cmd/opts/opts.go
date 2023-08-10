@@ -505,7 +505,8 @@ type DeployOpts struct {
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
 
-	DryRun bool `long:"dry-run" description:"Renders job templates without altering deployment"`
+	DryRun               bool `long:"dry-run" description:"Renders job templates without altering deployment"`
+	ForceLatestVariables bool `long:"force-latest-variables" description:"Retrieve the latest variable values from the config server regardless of their update strategy"`
 
 	cmd
 }

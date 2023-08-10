@@ -545,6 +545,10 @@ func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
 		query.Add("dry_run", "true")
 	}
 
+	if opts.ForceLatestVariables {
+		query.Add("force_latest_variables", "true")
+	}
+
 	if len(opts.Diff.context) != 0 {
 		context := map[string]interface{}{}
 

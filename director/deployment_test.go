@@ -947,6 +947,29 @@ var _ = Describe("Deployment", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		It("succeeds updating deployment with force latest variables flag", func() {
+			forceLatestVariables := true
+
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments", fmt.Sprintf("force_latest_variables=%t", forceLatestVariables)),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.VerifyBody([]byte("manifest")),
+				),
+				``,
+				server,
+			)
+
+			updateOpts := UpdateOpts{
+				ForceLatestVariables: forceLatestVariables,
+			}
+			err := deployment.Update([]byte("manifest"), updateOpts)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
 		It("succeeds updating deployment with diff context values", func() {
 			context := map[string]interface{}{
 				"cloud_config_id":          "2",
