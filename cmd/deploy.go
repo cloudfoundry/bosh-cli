@@ -72,6 +72,7 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 		Canaries:                opts.Canaries,
 		MaxInFlight:             opts.MaxInFlight,
 		Diff:                    deploymentDiff,
+		ForceLatestVariables:    opts.ForceLatestVariables,
 	}
 
 	return c.deployment.Update(bytes, updateOpts)

@@ -1630,6 +1630,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("ForceLatestVariables", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("ForceLatestVariables", opts)).To(Equal(
+					`long:"force-latest-variables" description:"Retrieve the latest variable values from the config server regardless of their update strategy"`,
+				))
+			})
+		})
+
 		Describe("FixReleases", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("FixReleases", opts)).To(Equal(
