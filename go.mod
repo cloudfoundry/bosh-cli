@@ -19,6 +19,7 @@ require (
 	github.com/fatih/color v1.16.0
 	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.55.2
+	github.com/gopacket/gopacket v1.1.1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/mattn/go-isatty v0.0.20

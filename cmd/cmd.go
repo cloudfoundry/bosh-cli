@@ -366,6 +366,9 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *CleanUpOpts:
 		return NewCleanUpCmd(deps.UI, c.director()).Run(*opts)
 
+	case *PcapOpts:
+		return NewPcapCmd(c.deployment(), NewPcapRunner(deps.UI)).Run(*opts)
+
 	case *LogsOpts:
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
 		nonIntSSHRunner := sshProvider.NewSSHRunner(false)
