@@ -80,6 +80,7 @@ var allRules = append([]lint.Rule{
 	&rule.FunctionLength{},
 	&rule.NestedStructs{},
 	&rule.UselessBreak{},
+	&rule.UncheckedTypeAssertionRule{},
 	&rule.TimeEqualRule{},
 	&rule.BannedCharsRule{},
 	&rule.OptimizeOperandsOrderRule{},
@@ -88,6 +89,8 @@ var allRules = append([]lint.Rule{
 	&rule.CommentSpacingsRule{},
 	&rule.IfReturnRule{},
 	&rule.RedundantImportAlias{},
+	&rule.ImportAliasNamingRule{},
+	&rule.EnforceMapStyleRule{},
 }, defaultRules...)
 
 var allFormatters = []lint.Formatter{
