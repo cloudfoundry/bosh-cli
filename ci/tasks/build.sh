@@ -14,9 +14,7 @@ fi
 
 cd bosh-cli/
 
-git_rev="$(git rev-parse --short HEAD)"
-timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-export VERSION_LABEL="${semver}-${git_rev}-${timestamp}"
+export VERSION_LABEL="${semver}"
 
 bin/build
 
