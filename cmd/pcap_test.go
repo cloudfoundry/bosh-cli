@@ -3,7 +3,6 @@ package cmd_test
 import (
 	"errors"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
-	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -11,6 +10,7 @@ import (
 
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
+	fakepcap "github.com/cloudfoundry/bosh-cli/v7/pcap/pcapfakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 )
 
@@ -22,14 +22,14 @@ var _ = Describe("pcap", func() {
 		var (
 			deployment *fakedir.FakeDeployment
 			uuidGen    *fakeuuid.FakeGenerator
-			pcapRunner *fakecmd.FakePcapRunner
+			pcapRunner *fakepcap.FakePcapRunner
 			command    cmd.PcapCmd
 		)
 
 		BeforeEach(func() {
 			deployment = &fakedir.FakeDeployment{}
 			uuidGen = &fakeuuid.FakeGenerator{}
-			pcapRunner = &fakecmd.FakePcapRunner{}
+			pcapRunner = &fakepcap.FakePcapRunner{}
 			command = cmd.NewPcapCmd(deployment, pcapRunner)
 		})
 
