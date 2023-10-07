@@ -8,6 +8,9 @@ import (
 	"go/printer"
 	"go/token"
 	"os"
+	"path/filepath"
+
+	"github.com/golangci/gofmt/gofmt/internal/diff"
 )
 
 type RewriteRule struct {
@@ -59,12 +62,10 @@ func RunRewrite(filename string, needSimplify bool, rewriteRules []RewriteRule) 
 	}
 
 	// formatting has changed
-	data, err := diffWithReplaceTempFile(src, res, filename)
-	if err != nil {
-		return nil, fmt.Errorf("error computing diff: %s", err)
-	}
+	newName := filepath.ToSlash(filename)
+	oldName := newName + ".orig"
 
-	return data, nil
+	return diff.Diff(oldName, src, newName, res), nil
 }
 
 func rewriteFileContent(fset *token.FileSet, file *ast.File, rewriteRules []RewriteRule) (*ast.File, error) {
