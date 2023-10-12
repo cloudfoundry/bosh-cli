@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"golang.org/x/crypto/ssh"
 	"unicode"
+
+	"golang.org/x/crypto/ssh"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
@@ -55,9 +56,7 @@ func (c PcapCmd) Run(opts PcapOpts) error {
 		return fmt.Errorf("ssh: parse private key: %w", err)
 	}
 
-	c.pcapRunner.Run(result, sshOpts.Username, argv, opts, privateKey)
-
-	return nil
+	return c.pcapRunner.Run(result, sshOpts.Username, argv, opts, privateKey)
 }
 
 func buildPcapCmd(opts PcapOpts) (string, error) {

@@ -4,11 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gopacket/gopacket"
-	"github.com/gopacket/gopacket/layers"
-	"github.com/gopacket/gopacket/pcap"
-	"github.com/gopacket/gopacket/pcapgo"
-	"golang.org/x/crypto/ssh"
 	"io"
 	"net"
 	"os"
@@ -17,6 +12,12 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/gopacket/gopacket"
+	"github.com/gopacket/gopacket/layers"
+	"github.com/gopacket/gopacket/pcap"
+	"github.com/gopacket/gopacket/pcapgo"
+	"golang.org/x/crypto/ssh"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
@@ -62,7 +63,7 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 
 		packets, err := captureSSH(argv, opts.Filter, username, host, privateKey, opts.StopTimeout, wg, done, p.ui, ctx, cancel)
 		if err != nil {
-			// c.ui.ErrorLinef writes error message to stdout/sdterr but does not stop the workflow
+			// c.ui.ErrorLinef writes error message to stdout/stderr but does not stop the workflow
 			p.ui.ErrorLinef("Capture cannot be started on the instance: %s/%s due to error. \nContinue on other instances", host.Job, host.IndexOrID)
 
 			continue
@@ -236,7 +237,9 @@ func openPcapHandle(tcpdumpCmd string, session *ssh.Session, wg *sync.WaitGroup,
 	if err != nil {
 		return nil, err
 	}
-	go io.Copy(os.Stderr, stderr)
+	go func() {
+		_, _ = io.Copy(os.Stderr, stderr)
+	}()
 
 	// The session must start before we open the handle, otherwise opening the
 	// handle blocks forever. Probably since it expects to be able to read the
