@@ -9,9 +9,12 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/golangci/gofmt/gofmt/internal/diff"
 )
+
+var parserModeMu sync.RWMutex
 
 type RewriteRule struct {
 	Pattern     string
@@ -34,7 +37,9 @@ func RunRewrite(filename string, needSimplify bool, rewriteRules []RewriteRule) 
 
 	fset := token.NewFileSet()
 
+	parserModeMu.Lock()
 	initParserMode()
+	parserModeMu.Unlock()
 
 	file, sourceAdj, indentAdj, err := parse(fset, filename, src, false)
 	if err != nil {
