@@ -958,7 +958,7 @@ type PcapOpts struct {
 	Interface   string        `long:"interface" short:"i" description:"Specifies the network interface to listen on." default:"eth0" required:"false"`
 	Filter      string        `long:"filter" short:"f" description:"Filter to apply when running tcpdump."`
 	SnapLength  uint32        `long:"snaplen" short:"s" description:"Snarf snaplen bytes of data from each packet rather than the default of 65535 bytes." default:"65535"`
-	Output      string        `long:"output" short:"o" description:"File to write pcap to."`
+	Output      string        `long:"output" short:"o" description:"File to write pcap to." required:"true"`
 	StopTimeout time.Duration `long:"stop-timeout" description:"Timeout to wait for data to flush before session stop." default:"5s"`
 
 	GatewayFlags

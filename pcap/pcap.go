@@ -63,8 +63,8 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 
 		packets, err := captureSSH(argv, opts.Filter, username, host, privateKey, opts.StopTimeout, wg, done, p.ui, ctx, cancel)
 		if err != nil {
-			// c.ui.ErrorLinef writes error message to stdout/stderr but does not stop the workflow
-			p.ui.ErrorLinef("Capture cannot be started on the instance: %s/%s due to error. \nContinue on other instances", host.Job, host.IndexOrID)
+			// c.ui.ErrorLinef writes error message to stdout/sdterr but does not stop the workflow
+			p.ui.ErrorLinef("Capture cannot be started on the instance %s/%s due to error: %s. \nContinue on other instances", host.Job, host.IndexOrID, err.Error())
 
 			continue
 		}
@@ -119,7 +119,7 @@ func writePacketsToFile(snapLength uint32, outputFile string, packetCs []<-chan 
 		for packet := range mergedPackets {
 			err = packetWriter.WritePacket(packet.Metadata().CaptureInfo, packet.Data())
 			if err != nil {
-				ui.ErrorLinef("Writing packet to file failed")
+				ui.ErrorLinef("Writing packet to file failed due to error: %s/n", err.Error())
 			}
 		}
 		_ = packetFile.Sync()
