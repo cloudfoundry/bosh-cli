@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"strings"
 
 	// Should only be imported here to avoid leaking use of goflags through project
@@ -13,6 +14,10 @@ import (
 
 type Factory struct {
 	deps BasicDeps
+}
+
+type Conf struct {
+	Flags []string `yaml:"flags"`
 }
 
 func NewFactory(deps BasicDeps) Factory {
@@ -101,6 +106,18 @@ func (f Factory) New(args []string) (Cmd, error) {
 	parser.WriteHelp(helpText)
 
 	_, err := parser.ParseArgs(args)
+
+	c := NewCmd(*boshOpts, cmdOpts, f.deps)
+
+	config, err := c.director().LatestConfig("deploy", "default")
+
+	var conf Conf
+
+	yaml.Unmarshal([]byte(config.Content), &conf)
+
+	args = append(args, conf.Flags...)
+
+	_, err = parser.ParseArgs(args)
 
 	// --help and --version result in errors; turn them into successful output cmds
 	if typedErr, ok := err.(*goflags.Error); ok {
