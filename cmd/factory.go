@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	"gopkg.in/yaml.v2"
 	"strings"
 
@@ -107,17 +108,18 @@ func (f Factory) New(args []string) (Cmd, error) {
 
 	_, err := parser.ParseArgs(args)
 
-	c := NewCmd(*boshOpts, cmdOpts, f.deps)
+	// add global deployment flags from configs of type deploy and parse again
+	if _, ok := cmdOpts.(*DeployOpts); ok {
+		var conf Conf
 
-	config, err := c.director().LatestConfig("deploy", "default")
+		configs, _ := NewCmd(*boshOpts, cmdOpts, f.deps).director().ListConfigs(1, boshdir.ConfigsFilter{Type: "deploy"})
+		for _, config := range configs {
+			yaml.Unmarshal([]byte(config.Content), &conf)
+			args = append(args, conf.Flags...)
+		}
 
-	var conf Conf
-
-	yaml.Unmarshal([]byte(config.Content), &conf)
-
-	args = append(args, conf.Flags...)
-
-	_, err = parser.ParseArgs(args)
+		_, err = parser.ParseArgs(args)
+	}
 
 	// --help and --version result in errors; turn them into successful output cmds
 	if typedErr, ok := err.(*goflags.Error); ok {
