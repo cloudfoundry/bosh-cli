@@ -7,18 +7,17 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	"github.com/cloudfoundry/bosh-cli/v7/director"
 	"github.com/cloudfoundry/bosh-cli/v7/pcap"
-	"golang.org/x/crypto/ssh"
 )
 
 type FakePcapRunner struct {
-	RunStub        func(director.SSHResult, string, string, opts.PcapOpts, ssh.Signer) error
+	RunStub        func(director.SSHResult, string, string, opts.PcapOpts, string) error
 	runMutex       sync.RWMutex
 	runArgsForCall []struct {
 		arg1 director.SSHResult
 		arg2 string
 		arg3 string
 		arg4 opts.PcapOpts
-		arg5 ssh.Signer
+		arg5 string
 	}
 	runReturns struct {
 		result1 error
@@ -30,7 +29,7 @@ type FakePcapRunner struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakePcapRunner) Run(arg1 director.SSHResult, arg2 string, arg3 string, arg4 opts.PcapOpts, arg5 ssh.Signer) error {
+func (fake *FakePcapRunner) Run(arg1 director.SSHResult, arg2 string, arg3 string, arg4 opts.PcapOpts, arg5 string) error {
 	fake.runMutex.Lock()
 	ret, specificReturn := fake.runReturnsOnCall[len(fake.runArgsForCall)]
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
@@ -38,7 +37,7 @@ func (fake *FakePcapRunner) Run(arg1 director.SSHResult, arg2 string, arg3 strin
 		arg2 string
 		arg3 string
 		arg4 opts.PcapOpts
-		arg5 ssh.Signer
+		arg5 string
 	}{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.RunStub
 	fakeReturns := fake.runReturns
@@ -59,13 +58,13 @@ func (fake *FakePcapRunner) RunCallCount() int {
 	return len(fake.runArgsForCall)
 }
 
-func (fake *FakePcapRunner) RunCalls(stub func(director.SSHResult, string, string, opts.PcapOpts, ssh.Signer) error) {
+func (fake *FakePcapRunner) RunCalls(stub func(director.SSHResult, string, string, opts.PcapOpts, string) error) {
 	fake.runMutex.Lock()
 	defer fake.runMutex.Unlock()
 	fake.RunStub = stub
 }
 
-func (fake *FakePcapRunner) RunArgsForCall(i int) (director.SSHResult, string, string, opts.PcapOpts, ssh.Signer) {
+func (fake *FakePcapRunner) RunArgsForCall(i int) (director.SSHResult, string, string, opts.PcapOpts, string) {
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
 	argsForCall := fake.runArgsForCall[i]

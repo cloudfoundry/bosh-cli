@@ -21,7 +21,9 @@ import (
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
+	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 var (
@@ -35,18 +37,19 @@ var (
 
 //counterfeiter:generate . PcapRunner
 type PcapRunner interface {
-	Run(boshdir.SSHResult, string, string, PcapOpts, ssh.Signer) error
+	Run(boshdir.SSHResult, string, string, PcapOpts, string) error
 }
 
-func NewPcapRunner(ui boshui.UI) PcapRunner {
-	return PcapRunnerImpl{ui: ui}
+func NewPcapRunner(ui boshui.UI, logger boshlog.Logger) PcapRunner {
+	return PcapRunnerImpl{ui: ui, logger: logger}
 }
 
 type PcapRunnerImpl struct {
-	ui boshui.UI
+	ui     boshui.UI
+	logger boshlog.Logger
 }
 
-func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv string, opts PcapOpts, privateKey ssh.Signer) error {
+func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv string, opts PcapOpts, privateKey string) error {
 	var packetCs []<-chan gopacket.Packet
 
 	done := make(chan struct{})
@@ -55,13 +58,24 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 
 	ctx, cancel := context.WithCancelCause(context.Background())
 
+	clientFactory := boshssh.NewClientFactory(p.logger)
+
+	clientOpts := boshssh.ClientOpts{
+		Port:       22,
+		User:       username,
+		Password:   "",
+		PrivateKey: privateKey,
+	}
+
 	runningCaptures := 0
 
 	for _, host := range result.Hosts {
+		clientOpts.Host = host.Host
+		boshSSHClient := clientFactory.New(clientOpts)
 
 		p.ui.BeginLinef("Start capture on %s/%s\n", host.Job, host.IndexOrID)
 
-		packets, err := captureSSH(argv, opts.Filter, username, host, privateKey, opts.StopTimeout, wg, done, p.ui, ctx, cancel)
+		packets, err := captureSSH(argv, opts.Filter, host, boshSSHClient, opts.StopTimeout, wg, done, p.ui, ctx, cancel)
 		if err != nil {
 			// c.ui.ErrorLinef writes error message to stdout/sdterr but does not stop the workflow
 			p.ui.ErrorLinef("Capture cannot be started on the instance %s/%s due to error: %s. \nContinue on other instances", host.Job, host.IndexOrID, err.Error())
@@ -138,27 +152,21 @@ func addFilterToCmd(tcpdump, filter, clientIP string, clientSSHPort int) string 
 	return fmt.Sprintf("%s %q", tcpdump, filter)
 }
 
-func captureSSH(tcpdumpCmd, filter, user string, host boshdir.Host, privateKeyPem ssh.Signer, stopTimeout time.Duration, wg *sync.WaitGroup, done chan struct{}, ui boshui.UI, ctx context.Context, cancel context.CancelCauseFunc) (<-chan gopacket.Packet, error) {
-	client, err := ssh.Dial("tcp", host.Host+":22", &ssh.ClientConfig{
-		Config:          ssh.Config{},
-		User:            user,
-		Auth:            []ssh.AuthMethod{ssh.PublicKeys(privateKeyPem)},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Timeout:         time.Second,
-	})
+func captureSSH(tcpdumpCmd, filter string, host boshdir.Host, boshSSHClient boshssh.Client, stopTimeout time.Duration, wg *sync.WaitGroup, done chan struct{}, ui boshui.UI, ctx context.Context, cancel context.CancelCauseFunc) (<-chan gopacket.Packet, error) {
+	err := boshSSHClient.Start()
 	if err != nil {
-		return nil, fmt.Errorf("ssh: dial: %w", err)
+		return nil, err
 	}
 
-	clientSSHAddr, err := getSSHClientIP(client)
+	clientSSHAddr, err := getSSHClientIP(boshSSHClient)
 	if err != nil {
-		client.Close()
+		boshSSHClient.Stop()
 		return nil, fmt.Errorf("outbound IP not found %w", err)
 	}
 
-	session, err := client.NewSession()
+	session, err := boshSSHClient.NewSession()
 	if err != nil {
-		client.Close()
+		boshSSHClient.Stop()
 		return nil, fmt.Errorf("ssh: new session: %w", err)
 	}
 
@@ -168,13 +176,13 @@ func captureSSH(tcpdumpCmd, filter, user string, host boshdir.Host, privateKeyPe
 	packets, err := openPcapHandle(tcpdump, session, wg, cancel)
 	if err != nil {
 		session.Close()
-		client.Close()
+		boshSSHClient.Stop()
 		return nil, err
 	}
 
 	wg.Add(1)
 	go func() {
-		defer client.Close()
+		defer boshSSHClient.Stop()
 		defer wg.Done()
 
 		ui.BeginLinef("\nRunning on %s/%s. To stop capturing traffic and generate a pcap file, press CTRL-C during the capture\n", host.Job, host.IndexOrID)
@@ -205,8 +213,8 @@ func captureSSH(tcpdumpCmd, filter, user string, host boshdir.Host, privateKeyPe
 	return packets, nil
 }
 
-func getSSHClientIP(client *ssh.Client) (*net.TCPAddr, error) {
-	session, err := client.NewSession()
+func getSSHClientIP(boshSSHClient boshssh.Client) (*net.TCPAddr, error) {
+	session, err := boshSSHClient.NewSession()
 	if err != nil {
 		return nil, fmt.Errorf("ssh: new session: %w", err)
 	}

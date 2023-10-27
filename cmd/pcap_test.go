@@ -5,14 +5,12 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	"golang.org/x/crypto/ssh"
-
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakepcap "github.com/cloudfoundry/bosh-cli/v7/pcap/pcapfakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("pcap", func() {
@@ -61,7 +59,7 @@ var _ = Describe("pcap", func() {
 				})
 
 				It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
-					pcapRunner.RunStub = func(result boshdir.SSHResult, username string, argv string, opts PcapOpts, privateKey ssh.Signer) error {
+					pcapRunner.RunStub = func(result boshdir.SSHResult, username string, argv string, opts PcapOpts, privateKey string) error {
 						Expect(argv).To(Equal("sudo tcpdump -w - -i eth0 -s 65535"))
 						return nil
 					}
@@ -88,7 +86,7 @@ var _ = Describe("pcap", func() {
 				It("provides custom opts, sets up SSH access, runs SSH command and later cleans up SSH access", func() {
 					opts.SnapLength = 300
 					opts.Interface = "any"
-					pcapRunner.RunStub = func(result boshdir.SSHResult, username string, argv string, opts PcapOpts, privateKey ssh.Signer) error {
+					pcapRunner.RunStub = func(result boshdir.SSHResult, username string, argv string, opts PcapOpts, privateKey string) error {
 						Expect(argv).To(Equal("sudo tcpdump -w - -i any -s 300"))
 						Expect(deployment.CleanUpSSHCallCount()).To(Equal(0))
 						return nil
