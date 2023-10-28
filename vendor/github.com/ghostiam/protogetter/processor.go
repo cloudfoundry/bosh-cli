@@ -31,8 +31,12 @@ func (c *processor) process(n ast.Node) (*Result, error) {
 	switch x := n.(type) {
 	case *ast.AssignStmt:
 		// Skip any assignment to the field.
-		for _, lhs := range x.Lhs {
-			c.filter.AddPos(lhs.Pos())
+		for _, s := range x.Lhs {
+			c.filter.AddPos(s.Pos())
+
+			if se, ok := s.(*ast.StarExpr); ok {
+				c.filter.AddPos(se.X.Pos())
+			}
 		}
 
 	case *ast.IncDecStmt:

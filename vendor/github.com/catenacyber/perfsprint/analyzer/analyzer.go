@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"go/types"
 	"strconv"
+	"strings"
 
 	"golang.org/x/tools/go/analysis/passes/inspect"
 	"golang.org/x/tools/go/ast/inspector"
@@ -14,22 +15,47 @@ import (
 	"golang.org/x/tools/go/analysis"
 )
 
-var Analyzer = &analysis.Analyzer{
-	Name:     "perfsprint",
-	Doc:      "Checks that fmt.Sprintf can be replaced with a faster alternative.",
-	Run:      run,
-	Requires: []*analysis.Analyzer{inspect.Analyzer},
+type perfSprint struct {
+	intConv  bool
+	errError bool
+	errorf   bool
+	sprintf1 bool
 }
 
-func run(pass *analysis.Pass) (interface{}, error) {
-	var fmtSprintObj, fmtSprintfObj types.Object
+func newPerfSprint() *perfSprint {
+	return &perfSprint{
+		intConv:  true,
+		errError: false,
+		errorf:   true,
+		sprintf1: true,
+	}
+}
+
+func New() *analysis.Analyzer {
+	n := newPerfSprint()
+	r := &analysis.Analyzer{
+		Name:     "perfsprint",
+		Doc:      "Checks that fmt.Sprintf can be replaced with a faster alternative.",
+		Run:      n.run,
+		Requires: []*analysis.Analyzer{inspect.Analyzer},
+	}
+	r.Flags.BoolVar(&n.intConv, "int-conversion", true, "optimizes even if it requires an int or uint type cast")
+	r.Flags.BoolVar(&n.errError, "err-error", false, "optimizes into err.Error() even if it is only equivalent for non-nil errors")
+	r.Flags.BoolVar(&n.errorf, "errorf", true, "optimizes fmt.Errorf")
+	r.Flags.BoolVar(&n.sprintf1, "sprintf1", true, "optimizes fmt.Sprintf with only one argument")
+	return r
+}
+
+func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
+	var fmtSprintObj, fmtSprintfObj, fmtErrorfObj types.Object
 	for _, pkg := range pass.Pkg.Imports() {
 		if pkg.Path() == "fmt" {
 			fmtSprintObj = pkg.Scope().Lookup("Sprint")
 			fmtSprintfObj = pkg.Scope().Lookup("Sprintf")
+			fmtErrorfObj = pkg.Scope().Lookup("Errorf")
 		}
 	}
-	if fmtSprintfObj == nil {
+	if fmtSprintfObj == nil && fmtSprintObj == nil && fmtErrorfObj == nil {
 		return nil, nil
 	}
 
@@ -52,10 +78,22 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			err   error
 		)
 		switch {
+		case calledObj == fmtErrorfObj && len(call.Args) == 1:
+			fn = "fmt.Errorf"
+			verb = "%s"
+			value = call.Args[0]
+
 		case calledObj == fmtSprintObj && len(call.Args) == 1:
 			fn = "fmt.Sprint"
 			verb = "%v"
 			value = call.Args[0]
+
+		case calledObj == fmtSprintfObj && len(call.Args) == 1:
+			if n.sprintf1 {
+				fn = "fmt.Sprintf"
+				verb = "%s"
+				value = call.Args[0]
+			}
 
 		case calledObj == fmtSprintfObj && len(call.Args) == 2:
 			verbLit, ok := call.Args[0].(*ast.BasicLit)
@@ -77,6 +115,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 		switch verb {
 		default:
+			if fn == "fmt.Sprintf" && (strings.HasPrefix(verb, "%s") || strings.HasSuffix(verb, "%s")) {
+				break
+			}
 			return
 		case "%d", "%v", "%x", "%t", "%s":
 		}
@@ -88,23 +129,42 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		var d *analysis.Diagnostic
 		switch {
 		case isBasicType(valueType, types.String) && oneOf(verb, "%v", "%s"):
-			d = &analysis.Diagnostic{
-				Pos:     call.Pos(),
-				End:     call.End(),
-				Message: fn + " can be replaced with just using the string",
-				SuggestedFixes: []analysis.SuggestedFix{
-					{
-						Message: "Just use string value",
-						TextEdits: []analysis.TextEdit{{
-							Pos:     call.Pos(),
-							End:     call.End(),
-							NewText: []byte(formatNode(pass.Fset, value)),
-						}},
+			if fn == "fmt.Errorf" {
+				d = &analysis.Diagnostic{
+					Pos:     call.Pos(),
+					End:     call.End(),
+					Message: fn + " can be replaced with errors.New",
+					SuggestedFixes: []analysis.SuggestedFix{
+						{
+							Message: "Use errors.New",
+							TextEdits: []analysis.TextEdit{{
+								Pos:     call.Pos(),
+								End:     value.Pos(),
+								NewText: []byte("errors.New("),
+							}},
+						},
 					},
-				},
+				}
+			} else {
+				d = &analysis.Diagnostic{
+					Pos:     call.Pos(),
+					End:     call.End(),
+					Message: fn + " can be replaced with just using the string",
+					SuggestedFixes: []analysis.SuggestedFix{
+						{
+							Message: "Just use string value",
+							TextEdits: []analysis.TextEdit{{
+								Pos:     call.Pos(),
+								End:     call.End(),
+								NewText: []byte(formatNode(pass.Fset, value)),
+							}},
+						},
+					},
+				}
 			}
-
-		case types.Implements(valueType, errIface) && oneOf(verb, "%v", "%s"):
+		case types.Implements(valueType, errIface) && oneOf(verb, "%v", "%s") && n.errError:
+			// known false positive if this error is nil
+			// fmt.Sprint(nil) does not panic like nil.Error() does
 			errMethodCall := formatNode(pass.Fset, value) + ".Error()"
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
@@ -184,7 +244,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				},
 			}
 
-		case isBasicType(valueType, types.Int8, types.Int16, types.Int32) && oneOf(verb, "%v", "%d"):
+		case isBasicType(valueType, types.Int8, types.Int16, types.Int32) && oneOf(verb, "%v", "%d") && n.intConv:
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -247,7 +307,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				},
 			}
 
-		case isBasicType(valueType, types.Uint8, types.Uint16, types.Uint32, types.Uint) && oneOf(verb, "%v", "%d"):
+		case isBasicType(valueType, types.Uint8, types.Uint16, types.Uint32, types.Uint) && oneOf(verb, "%v", "%d", "%x") && n.intConv:
+			base := []byte("), 10")
+			if verb == "%x" {
+				base = []byte("), 16")
+			}
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -264,13 +328,17 @@ func run(pass *analysis.Pass) (interface{}, error) {
 							{
 								Pos:     value.End(),
 								End:     value.End(),
-								NewText: []byte("), 10"),
+								NewText: base,
 							},
 						},
 					},
 				},
 			}
-		case isBasicType(valueType, types.Uint64) && oneOf(verb, "%v", "%d"):
+		case isBasicType(valueType, types.Uint64) && oneOf(verb, "%v", "%d", "%x"):
+			base := []byte(", 10")
+			if verb == "%x" {
+				base = []byte(", 16")
+			}
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -287,16 +355,38 @@ func run(pass *analysis.Pass) (interface{}, error) {
 							{
 								Pos:     value.End(),
 								End:     value.End(),
-								NewText: []byte(", 10"),
+								NewText: base,
 							},
 						},
+					},
+				},
+			}
+		case isBasicType(valueType, types.String) && fn == "fmt.Sprintf" && (strings.HasPrefix(verb, "%s") || strings.HasSuffix(verb, "%s")):
+			var fix string
+			if strings.HasSuffix(verb, "%s") {
+				fix = strconv.Quote(verb[:len(verb)-2]) + "+" + formatNode(pass.Fset, value)
+			} else {
+				fix = formatNode(pass.Fset, value) + "+" + strconv.Quote(verb[2:])
+			}
+			d = &analysis.Diagnostic{
+				Pos:     call.Pos(),
+				End:     call.End(),
+				Message: fn + " can be replaced with string addition",
+				SuggestedFixes: []analysis.SuggestedFix{
+					{
+						Message: "Use string addition",
+						TextEdits: []analysis.TextEdit{{
+							Pos:     call.Pos(),
+							End:     call.End(),
+							NewText: []byte(fix),
+						}},
 					},
 				},
 			}
 		}
 
 		if d != nil {
-			// Need to run goimports to fix using of fmt, strconv or encoding/hex afterwards.
+			// Need to run goimports to fix using of fmt, strconv, errors or encoding/hex afterwards.
 			pass.Report(*d)
 		}
 	})
