@@ -33,7 +33,8 @@ type BoshOpts struct {
 	NoColorOpt        bool        `long:"no-color"                  description:"Toggle colorized output"`
 	NonInteractiveOpt bool        `long:"non-interactive" short:"n" description:"Don't ask for user input" env:"BOSH_NON_INTERACTIVE"`
 
-	Help HelpOpts `command:"help" description:"Show this help message"`
+	Help       HelpOpts `command:"help" description:"Show this help message"`
+	Completion NoOpts   `command:"completion" description:"Generate the autocompletion script for bosh for the specified shell."`
 
 	// -----> Director management
 
@@ -181,6 +182,7 @@ type BoshOpts struct {
 type HelpOpts struct {
 	cmd
 }
+type NoOpts struct{}
 
 // Original bosh-init
 
