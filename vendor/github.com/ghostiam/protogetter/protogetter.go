@@ -97,8 +97,10 @@ func Run(pass *analysis.Pass, cfg *Config) ([]Issue, error) {
 
 	nodeTypes := []ast.Node{
 		(*ast.AssignStmt)(nil),
+		(*ast.BinaryExpr)(nil),
 		(*ast.CallExpr)(nil),
 		(*ast.SelectorExpr)(nil),
+		(*ast.StarExpr)(nil),
 		(*ast.IncDecStmt)(nil),
 		(*ast.UnaryExpr)(nil),
 	}
