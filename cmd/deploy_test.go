@@ -21,6 +21,7 @@ var _ = Describe("DeployCmd", func() {
 		ui              *fakeui.FakeUI
 		deployment      *fakedir.FakeDeployment
 		releaseUploader *fakecmd.FakeReleaseUploader
+		director        *fakedir.FakeDirector
 		command         DeployCmd
 	)
 
@@ -34,7 +35,9 @@ var _ = Describe("DeployCmd", func() {
 			UploadReleasesStub: func(bytes []byte) ([]byte, error) { return bytes, nil },
 		}
 
-		command = NewDeployCmd(ui, deployment, releaseUploader)
+		director = &fakedir.FakeDirector{}
+
+		command = NewDeployCmd(ui, deployment, releaseUploader, director)
 	})
 
 	Describe("Run", func() {
@@ -280,6 +283,22 @@ releases:
 			err := act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+
+		It("overrides the opts with the flags from configs of type deploy", func() {
+			configs := []boshdir.Config{{"1", "default", "deploy", "0000", "", "flags:\n  - fix", true}}
+
+			director.ListConfigsReturns(configs, nil)
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			_, updateOpts := deployment.UpdateArgsForCall(0)
+
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				Fix: true,
+			}))
 		})
 	})
 })

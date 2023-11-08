@@ -2,6 +2,7 @@ package cmd
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"gopkg.in/yaml.v3"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
@@ -13,6 +14,7 @@ type DeployCmd struct {
 	ui              boshui.UI
 	deployment      boshdir.Deployment
 	releaseUploader ReleaseUploader
+	director        boshdir.Director
 }
 
 type ReleaseUploader interface {
@@ -20,16 +22,35 @@ type ReleaseUploader interface {
 	UploadReleasesWithFix([]byte) ([]byte, error)
 }
 
+type Conf struct {
+	Flags              []string `yaml:"flags"`
+	IncludeDeployments []string `yaml:"include"`
+}
+
 func NewDeployCmd(
 	ui boshui.UI,
 	deployment boshdir.Deployment,
 	releaseUploader ReleaseUploader,
+	director boshdir.Director,
 ) DeployCmd {
-	return DeployCmd{ui, deployment, releaseUploader}
+	return DeployCmd{ui, deployment, releaseUploader, director}
 }
 
 func (c DeployCmd) Run(opts DeployOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.Manifest.Bytes)
+
+	configs, _ := c.director.ListConfigs(1, boshdir.ConfigsFilter{Type: "deploy"})
+
+	for _, config := range configs {
+		var conf Conf
+
+		yaml.Unmarshal([]byte(config.Content), &conf)
+		if conf.IncludeDeployments == nil || includeContains(conf.IncludeDeployments, c.deployment.Name()) {
+			c.ui.PrintLinef("Using deployment flags from config of type '%s' (name: '%s')", config.Type, config.Name)
+
+			opts = setFlags(conf.Flags, opts)
+		}
+	}
 
 	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp(), boshtpl.EvaluateOpts{})
 	if err != nil {
@@ -75,6 +96,32 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 	}
 
 	return c.deployment.Update(bytes, updateOpts)
+}
+
+func setFlags(flags []string, opts DeployOpts) DeployOpts {
+	for j := range flags {
+		switch flags[j] {
+		case "fix-releases":
+			opts.FixReleases = true
+		case "fix":
+			opts.Fix = true
+		case "recreate":
+			opts.Recreate = true
+		case "recreate-persistent-disks":
+			opts.RecreatePersistentDisks = true
+		}
+	}
+
+	return opts
+}
+
+func includeContains(slice []string, value string) bool {
+	for _, item := range slice {
+		if item == value {
+			return true
+		}
+	}
+	return false
 }
 
 func (c DeployCmd) checkDeploymentName(bytes []byte) error {
