@@ -25,6 +25,7 @@ type ReleaseUploader interface {
 type Conf struct {
 	Flags              []string `yaml:"flags"`
 	IncludeDeployments []string `yaml:"include"`
+	ExcludeDeployments []string `yaml:"exclude"`
 }
 
 func NewDeployCmd(
@@ -45,10 +46,23 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 		var conf Conf
 
 		yaml.Unmarshal([]byte(config.Content), &conf)
-		if conf.IncludeDeployments == nil || includeContains(conf.IncludeDeployments, c.deployment.Name()) {
-			c.ui.PrintLinef("Using deployment flags from config of type '%s' (name: '%s')", config.Type, config.Name)
 
-			opts = setFlags(conf.Flags, opts)
+		deploymentIncluded := containsDeployment(conf.IncludeDeployments, c.deployment.Name())
+		deploymentExcluded := containsDeployment(conf.ExcludeDeployments, c.deployment.Name())
+
+		if conf.ExcludeDeployments != nil &&
+			conf.IncludeDeployments != nil {
+			c.ui.PrintLinef("Ignoring deployment flags from config of type '%s' (name: '%s'). Please use only 'include'- OR 'exclude'-property in the config.", config.Type, config.Name)
+		} else {
+			if (conf.IncludeDeployments == nil && conf.ExcludeDeployments == nil) ||
+				deploymentIncluded ||
+				(!deploymentExcluded && conf.ExcludeDeployments != nil) {
+				c.ui.PrintLinef("!!!!!!!")
+				c.ui.PrintLinef("Using deployment flags from config of type '%s' (name: '%s')", config.Type, config.Name)
+				c.ui.PrintLinef("!!!!!!!")
+
+				opts = setFlags(conf.Flags, opts)
+			}
 		}
 	}
 
@@ -115,7 +129,7 @@ func setFlags(flags []string, opts DeployOpts) DeployOpts {
 	return opts
 }
 
-func includeContains(slice []string, value string) bool {
+func containsDeployment(slice []string, value string) bool {
 	for _, item := range slice {
 		if item == value {
 			return true

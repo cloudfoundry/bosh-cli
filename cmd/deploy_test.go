@@ -285,10 +285,78 @@ releases:
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
-		It("overrides the opts with the flags from configs of type deploy", func() {
+		It("overwrites the opts with the flags from configs of type deploy", func() {
 			configs := []boshdir.Config{{"1", "default", "deploy", "0000", "", "flags:\n  - fix", true}}
 
 			director.ListConfigsReturns(configs, nil)
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			_, updateOpts := deployment.UpdateArgsForCall(0)
+
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				Fix: true,
+			}))
+		})
+
+		It("overwrites the opts with the flags from configs of type deploy if the deployment is included", func() {
+			configs := []boshdir.Config{{"1", "default", "deploy", "0000", "", "flags:\n  - fix\ninclude:\n  - dep", true}}
+
+			director.ListConfigsReturns(configs, nil)
+			deployment.NameReturns("dep")
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			_, updateOpts := deployment.UpdateArgsForCall(0)
+
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				Fix: true,
+			}))
+		})
+
+		It("does not overwrite the opts with the flags from configs of type deploy if the deployment is not included", func() {
+			configs := []boshdir.Config{{"1", "default", "deploy", "0000", "", "flags:\n  - fix\ninclude:\n  - foo", true}}
+
+			director.ListConfigsReturns(configs, nil)
+			deployment.NameReturns("dep")
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			_, updateOpts := deployment.UpdateArgsForCall(0)
+
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				Fix: false,
+			}))
+		})
+
+		It("does not overwrite the opts with the flags from configs of type deploy if the deployment is excluded", func() {
+			configs := []boshdir.Config{{"1", "default", "deploy", "0000", "", "flags:\n  - fix\nexclude:\n  - dep", true}}
+
+			director.ListConfigsReturns(configs, nil)
+			deployment.NameReturns("dep")
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			_, updateOpts := deployment.UpdateArgsForCall(0)
+
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				Fix: false,
+			}))
+		})
+
+		It("overwrites the opts with the flags from configs of type deploy if the deployment is not excluded", func() {
+			configs := []boshdir.Config{{"1", "default", "deploy", "0000", "", "flags:\n  - fix\nexclude:\n  - foo", true}}
+
+			director.ListConfigsReturns(configs, nil)
+			deployment.NameReturns("dep")
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
