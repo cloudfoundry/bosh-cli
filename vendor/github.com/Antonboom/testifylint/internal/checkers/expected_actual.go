@@ -2,6 +2,7 @@ package checkers
 
 import (
 	"go/ast"
+	"go/token"
 	"go/types"
 	"regexp"
 
@@ -38,9 +39,23 @@ func (checker *ExpectedActual) SetExpVarPattern(p *regexp.Regexp) *ExpectedActua
 }
 
 func (checker ExpectedActual) Check(pass *analysis.Pass, call *CallMeta) *analysis.Diagnostic {
-	switch call.Fn.Name {
-	case "Equal", "Equalf", "NotEqual", "NotEqualf",
-		"JSONEq", "JSONEqf", "YAMLEq", "YAMLEqf":
+	switch call.Fn.NameFTrimmed {
+	case "Equal",
+		"EqualExportedValues",
+		"EqualValues",
+		"Exactly",
+		"JSONEq",
+		"InDelta",
+		"InDeltaMapValues",
+		"InDeltaSlice",
+		"InEpsilon",
+		"IsType",
+		"NotEqual",
+		"NotEqualValues",
+		"NotSame",
+		"Same",
+		"WithinDuration",
+		"YAMLEq":
 	default:
 		return nil
 	}
@@ -77,15 +92,22 @@ func (checker ExpectedActual) isExpectedValueCandidate(pass *analysis.Pass, expr
 		return true
 
 	case *ast.CallExpr:
-		return isCastedBasicLitOrExpectedValue(v, checker.expVarPattern) ||
+		return isParenExpr(v) ||
+			isCastedBasicLitOrExpectedValue(v, checker.expVarPattern) ||
 			isExpectedValueFactory(v, checker.expVarPattern)
 	}
 
 	return isBasicLit(expr) ||
 		isUntypedConst(pass, expr) ||
 		isTypedConst(pass, expr) ||
+		isAddressOperation(expr) ||
 		isIdentNamedAsExpected(checker.expVarPattern, expr) ||
 		isStructFieldNamedAsExpected(checker.expVarPattern, expr)
+}
+
+func isParenExpr(ce *ast.CallExpr) bool {
+	_, ok := ce.Fun.(*ast.ParenExpr)
+	return ok
 }
 
 func isCastedBasicLitOrExpectedValue(ce *ast.CallExpr, pattern *regexp.Regexp) bool {
@@ -143,6 +165,11 @@ func isUntypedConst(p *analysis.Pass, e ast.Expr) bool {
 func isTypedConst(p *analysis.Pass, e ast.Expr) bool {
 	tt, ok := p.TypesInfo.Types[e]
 	return ok && tt.IsValue() && tt.Value != nil
+}
+
+func isAddressOperation(e ast.Expr) bool {
+	ue, ok := e.(*ast.UnaryExpr)
+	return ok && ue.Op == token.AND
 }
 
 func isIdentNamedAsExpected(pattern *regexp.Regexp, e ast.Expr) bool {
