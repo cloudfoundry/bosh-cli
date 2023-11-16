@@ -61,10 +61,11 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 	clientFactory := boshssh.NewClientFactory(p.logger)
 
 	clientOpts := boshssh.ClientOpts{
-		Port:       22,
-		User:       username,
-		Password:   "",
-		PrivateKey: privateKey,
+		Port:         22,
+		User:         username,
+		Password:     "",
+		PrivateKey:   privateKey,
+		DisableSOCKS: opts.GatewayFlags.Disable,
 	}
 
 	runningCaptures := 0
@@ -160,13 +161,17 @@ func captureSSH(tcpdumpCmd, filter string, host boshdir.Host, boshSSHClient bosh
 
 	clientSSHAddr, err := getSSHClientIP(boshSSHClient)
 	if err != nil {
-		boshSSHClient.Stop()
+		// ignore error as after the function returns due to error, the underlying process finishes
+		_ = boshSSHClient.Stop()
+
 		return nil, fmt.Errorf("outbound IP not found %w", err)
 	}
 
 	session, err := boshSSHClient.NewSession()
 	if err != nil {
-		boshSSHClient.Stop()
+		// ignore error as after the function returns due to error, the underlying process finishes
+		_ = boshSSHClient.Stop()
+
 		return nil, fmt.Errorf("ssh: new session: %w", err)
 	}
 
@@ -176,13 +181,19 @@ func captureSSH(tcpdumpCmd, filter string, host boshdir.Host, boshSSHClient bosh
 	packets, err := openPcapHandle(tcpdump, session, wg, cancel)
 	if err != nil {
 		session.Close()
-		boshSSHClient.Stop()
+
+		// ignore error as after the function returns due to error, the underlying process finishes
+		_ = boshSSHClient.Stop()
+
 		return nil, err
 	}
 
 	wg.Add(1)
 	go func() {
-		defer boshSSHClient.Stop()
+		defer func() {
+			// ignore error as after the function returns due to error, the underlying process finishes
+			_ = boshSSHClient.Stop()
+		}()
 		defer wg.Done()
 
 		ui.BeginLinef("\nRunning on %s/%s. To stop capturing traffic and generate a pcap file, press CTRL-C during the capture\n", host.Job, host.IndexOrID)
