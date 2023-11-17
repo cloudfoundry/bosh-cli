@@ -10,6 +10,10 @@ jobs:
     name: lint
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Setup Image
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update && sudo apt-get install -y libpcap-dev
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
