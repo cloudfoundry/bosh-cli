@@ -302,7 +302,17 @@ releases:
 		})
 
 		It("overwrites the opts with the flags from configs of type deploy if the deployment is included", func() {
-			configs := []boshdir.Config{{"1", "default", "deploy", "0000", "", "flags:\n  - fix\ninclude:\n  - dep", true}}
+			configs := []boshdir.Config{
+				{
+					ID:        "1",
+					Name:      "default",
+					Type:      "deploy",
+					CreatedAt: "0000",
+					Team:      "",
+					Content:   "flags:\n  - fix\ninclude:\n  - dep",
+					Current:   true,
+				},
+			}
 
 			director.ListConfigsReturns(configs, nil)
 			deployment.NameReturns("dep")
@@ -319,7 +329,17 @@ releases:
 		})
 
 		It("does not overwrite the opts with the flags from configs of type deploy if the deployment is not included", func() {
-			configs := []boshdir.Config{{"1", "default", "deploy", "0000", "", "flags:\n  - fix\ninclude:\n  - foo", true}}
+			configs := []boshdir.Config{
+				{
+					ID:        "1",
+					Name:      "default",
+					Type:      "deploy",
+					CreatedAt: "0000",
+					Team:      "",
+					Content:   "flags:\n  - fix\ninclude:\n  - foo",
+					Current:   true,
+				},
+			}
 
 			director.ListConfigsReturns(configs, nil)
 			deployment.NameReturns("dep")
@@ -336,7 +356,17 @@ releases:
 		})
 
 		It("does not overwrite the opts with the flags from configs of type deploy if the deployment is excluded", func() {
-			configs := []boshdir.Config{{"1", "default", "deploy", "0000", "", "flags:\n  - fix\nexclude:\n  - dep", true}}
+			configs := []boshdir.Config{
+				{
+					ID:        "1",
+					Name:      "default",
+					Type:      "deploy",
+					CreatedAt: "0000",
+					Team:      "",
+					Content:   "flags:\n  - fix\nexclude:\n  - dep",
+					Current:   true,
+				},
+			}
 
 			director.ListConfigsReturns(configs, nil)
 			deployment.NameReturns("dep")
@@ -353,7 +383,17 @@ releases:
 		})
 
 		It("overwrites the opts with the flags from configs of type deploy if the deployment is not excluded", func() {
-			configs := []boshdir.Config{{"1", "default", "deploy", "0000", "", "flags:\n  - fix\nexclude:\n  - foo", true}}
+			configs := []boshdir.Config{
+				{
+					ID:        "1",
+					Name:      "default",
+					Type:      "deploy",
+					CreatedAt: "0000",
+					Team:      "",
+					Content:   "flags:\n  - fix\nexclude:\n  - foo",
+					Current:   true,
+				},
+			}
 
 			director.ListConfigsReturns(configs, nil)
 			deployment.NameReturns("dep")

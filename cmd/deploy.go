@@ -45,7 +45,10 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 	for _, config := range configs {
 		var conf Conf
 
-		yaml.Unmarshal([]byte(config.Content), &conf)
+		err := yaml.Unmarshal([]byte(config.Content), &conf)
+		if err != nil {
+			return err
+		}
 
 		deploymentIncluded := applies(conf.IncludeDeployments, c.deployment.Name())
 		deploymentExcluded := applies(conf.ExcludeDeployments, c.deployment.Name())
