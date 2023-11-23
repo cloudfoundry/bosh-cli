@@ -57,9 +57,7 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 			if (conf.IncludeDeployments == nil && conf.ExcludeDeployments == nil) ||
 				deploymentIncluded ||
 				(!deploymentExcluded && conf.ExcludeDeployments != nil) {
-				c.ui.PrintLinef("!!!!!!!")
-				c.ui.PrintLinef("Using deployment flags from config of type '%s' (name: '%s')", config.Type, config.Name)
-				c.ui.PrintLinef("!!!!!!!")
+				c.ui.ErrorLinef("Using deployment flags from config of type '%s' (name: '%s')", config.Type, config.Name)
 
 				opts = setFlags(conf.Flags, opts)
 			}
