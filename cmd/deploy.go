@@ -47,8 +47,8 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 
 		yaml.Unmarshal([]byte(config.Content), &conf)
 
-		deploymentIncluded := containsDeployment(conf.IncludeDeployments, c.deployment.Name())
-		deploymentExcluded := containsDeployment(conf.ExcludeDeployments, c.deployment.Name())
+		deploymentIncluded := applies(conf.IncludeDeployments, c.deployment.Name())
+		deploymentExcluded := applies(conf.ExcludeDeployments, c.deployment.Name())
 
 		if conf.ExcludeDeployments != nil &&
 			conf.IncludeDeployments != nil {
@@ -127,7 +127,7 @@ func setFlags(flags []string, opts DeployOpts) DeployOpts {
 	return opts
 }
 
-func containsDeployment(slice []string, value string) bool {
+func applies(slice []string, value string) bool {
 	for _, item := range slice {
 		if item == value {
 			return true
