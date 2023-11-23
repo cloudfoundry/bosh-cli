@@ -23,6 +23,7 @@ type Client interface {
 
 	Dial(net, addr string) (net.Conn, error)
 	Listen(net, addr string) (net.Listener, error)
+	NewSession() (*ssh.Session, error)
 }
 
 type ClientImpl struct {
@@ -112,6 +113,10 @@ func (s *ClientImpl) Stop() error {
 		return s.client.Close()
 	}
 	return nil
+}
+
+func (s *ClientImpl) NewSession() (*ssh.Session, error) {
+	return s.client.NewSession()
 }
 
 func (s *ClientImpl) newClient(network, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {

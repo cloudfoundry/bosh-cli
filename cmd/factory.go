@@ -96,6 +96,7 @@ func (f Factory) New(args []string) (Cmd, error) {
 	boshOpts.SSH.GatewayFlags.UUIDGen = f.deps.UUIDGen
 	boshOpts.SCP.GatewayFlags.UUIDGen = f.deps.UUIDGen
 	boshOpts.Logs.GatewayFlags.UUIDGen = f.deps.UUIDGen
+	boshOpts.Pcap.GatewayFlags.UUIDGen = f.deps.UUIDGen
 
 	helpText := bytes.NewBufferString("")
 	parser.WriteHelp(helpText)

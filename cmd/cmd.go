@@ -23,6 +23,7 @@ import (
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/pcap"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
@@ -365,6 +366,9 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *CleanUpOpts:
 		return NewCleanUpCmd(deps.UI, c.director()).Run(*opts)
+
+	case *PcapOpts:
+		return NewPcapCmd(c.deployment(), pcap.NewPcapRunner(deps.UI, deps.Logger)).Run(*opts)
 
 	case *LogsOpts:
 		sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)

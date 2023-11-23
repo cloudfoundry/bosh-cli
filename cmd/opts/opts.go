@@ -1,6 +1,8 @@
 package opts
 
 import (
+	"time"
+
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/cppforlife/go-patch/patch"
 
@@ -149,6 +151,7 @@ type BoshOpts struct {
 	Restart  RestartOpts  `command:"restart"   description:"Restart instance(s)"`
 	Recreate RecreateOpts `command:"recreate"  description:"Recreate instance(s)"`
 	DeleteVM DeleteVMOpts `command:"delete-vm" description:"Delete VM"`
+	Pcap     PcapOpts     `command:"pcap"      description:"Capture network packets on instance(s)"`
 
 	// SSH instance
 	SSH SSHOpts `command:"ssh" description:"SSH into instance(s)"`
@@ -947,6 +950,20 @@ type RecreateOpts struct {
 
 	Converge   bool `long:"converge" description:"Converge the deployment state before running action (default)"`
 	NoConverge bool `long:"no-converge" description:"Act only on specified instance"`
+
+	cmd
+}
+
+type PcapOpts struct {
+	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
+
+	Interface   string        `long:"interface" short:"i" description:"Specifies the network interface to listen on." default:"eth0" required:"false"`
+	Filter      string        `long:"filter" short:"f" description:"Filter to apply when running tcpdump."`
+	SnapLength  uint32        `long:"snaplen" short:"s" description:"Snarf snaplen bytes of data from each packet rather than the default of 65535 bytes." default:"65535"`
+	Output      string        `long:"output" short:"o" description:"File to write pcap to." required:"true"`
+	StopTimeout time.Duration `long:"stop-timeout" description:"Timeout to wait for data to flush before session stop." default:"5s"`
+
+	GatewayFlags
 
 	cmd
 }
