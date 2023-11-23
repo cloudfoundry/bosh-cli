@@ -286,7 +286,16 @@ releases:
 		})
 
 		It("overwrites the opts with the flags from configs of type deploy", func() {
-			configs := []boshdir.Config{{"1", "default", "deploy", "0000", "", "flags:\n  - fix", true}}
+			configs := []boshdir.Config{
+				{
+					ID:   "1",
+					Name: "default", Type: "deploy",
+					CreatedAt: "0000",
+					Team:      "",
+					Content:   "flags:\n  - fix",
+					Current:   true,
+				},
+			}
 
 			director.ListConfigsReturns(configs, nil)
 
