@@ -13,5 +13,6 @@ RUN \
     sshpass \
     strace \
     zlib1g-dev \
+    libpcap-dev \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
