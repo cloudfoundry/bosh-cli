@@ -383,6 +383,7 @@ var _ = Describe("Factory", func() {
 			boshOpts.RemoveBlob = RemoveBlobOpts{}
 			boshOpts.SyncBlobs = SyncBlobsOpts{}
 			boshOpts.UploadBlobs = UploadBlobsOpts{}
+			boshOpts.Pcap = PcapOpts{}
 			boshOpts.SSH = SSHOpts{}
 			boshOpts.SCP = SCPOpts{}
 			boshOpts.Deploy = DeployOpts{}
