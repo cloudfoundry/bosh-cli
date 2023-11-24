@@ -341,7 +341,7 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *DeployOpts:
 		director, deployment := c.directorAndDeployment()
 		releaseManager := c.releaseManager(director)
-		return NewDeployCmd(deps.UI, deployment, releaseManager).Run(*opts)
+		return NewDeployCmd(deps.UI, deployment, releaseManager, director).Run(*opts)
 
 	case *StartOpts:
 		return NewStartCmd(deps.UI, c.deployment()).Run(*opts)

@@ -21,6 +21,7 @@ var _ = Describe("DeployCmd", func() {
 		ui              *fakeui.FakeUI
 		deployment      *fakedir.FakeDeployment
 		releaseUploader *fakecmd.FakeReleaseUploader
+		director        *fakedir.FakeDirector
 		command         DeployCmd
 	)
 
@@ -34,7 +35,9 @@ var _ = Describe("DeployCmd", func() {
 			UploadReleasesStub: func(bytes []byte) ([]byte, error) { return bytes, nil },
 		}
 
-		command = NewDeployCmd(ui, deployment, releaseUploader)
+		director = &fakedir.FakeDirector{}
+
+		command = NewDeployCmd(ui, deployment, releaseUploader, director)
 	})
 
 	Describe("Run", func() {
@@ -295,6 +298,139 @@ releases:
 			err := act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+
+		It("overwrites the opts with the flags from configs of type deploy", func() {
+			configs := []boshdir.Config{
+				{
+					ID:   "1",
+					Name: "default", Type: "deploy",
+					CreatedAt: "0000",
+					Team:      "",
+					Content:   "flags:\n  - fix",
+					Current:   true,
+				},
+			}
+
+			director.ListConfigsReturns(configs, nil)
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			_, updateOpts := deployment.UpdateArgsForCall(0)
+
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				Fix: true,
+			}))
+		})
+
+		It("overwrites the opts with the flags from configs of type deploy if the deployment is included", func() {
+			configs := []boshdir.Config{
+				{
+					ID:        "1",
+					Name:      "default",
+					Type:      "deploy",
+					CreatedAt: "0000",
+					Team:      "",
+					Content:   "flags:\n  - fix\ninclude:\n  - dep",
+					Current:   true,
+				},
+			}
+
+			director.ListConfigsReturns(configs, nil)
+			deployment.NameReturns("dep")
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			_, updateOpts := deployment.UpdateArgsForCall(0)
+
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				Fix: true,
+			}))
+		})
+
+		It("does not overwrite the opts with the flags from configs of type deploy if the deployment is not included", func() {
+			configs := []boshdir.Config{
+				{
+					ID:        "1",
+					Name:      "default",
+					Type:      "deploy",
+					CreatedAt: "0000",
+					Team:      "",
+					Content:   "flags:\n  - fix\ninclude:\n  - foo",
+					Current:   true,
+				},
+			}
+
+			director.ListConfigsReturns(configs, nil)
+			deployment.NameReturns("dep")
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			_, updateOpts := deployment.UpdateArgsForCall(0)
+
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				Fix: false,
+			}))
+		})
+
+		It("does not overwrite the opts with the flags from configs of type deploy if the deployment is excluded", func() {
+			configs := []boshdir.Config{
+				{
+					ID:        "1",
+					Name:      "default",
+					Type:      "deploy",
+					CreatedAt: "0000",
+					Team:      "",
+					Content:   "flags:\n  - fix\nexclude:\n  - dep",
+					Current:   true,
+				},
+			}
+
+			director.ListConfigsReturns(configs, nil)
+			deployment.NameReturns("dep")
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			_, updateOpts := deployment.UpdateArgsForCall(0)
+
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				Fix: false,
+			}))
+		})
+
+		It("overwrites the opts with the flags from configs of type deploy if the deployment is not excluded", func() {
+			configs := []boshdir.Config{
+				{
+					ID:        "1",
+					Name:      "default",
+					Type:      "deploy",
+					CreatedAt: "0000",
+					Team:      "",
+					Content:   "flags:\n  - fix\nexclude:\n  - foo",
+					Current:   true,
+				},
+			}
+
+			director.ListConfigsReturns(configs, nil)
+			deployment.NameReturns("dep")
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			_, updateOpts := deployment.UpdateArgsForCall(0)
+
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				Fix: true,
+			}))
 		})
 	})
 })
