@@ -15,7 +15,6 @@ import (
 
 	"github.com/gopacket/gopacket"
 	"github.com/gopacket/gopacket/layers"
-	"github.com/gopacket/gopacket/pcap"
 	"github.com/gopacket/gopacket/pcapgo"
 	"golang.org/x/crypto/ssh"
 
@@ -286,22 +285,18 @@ func openPcapHandle(tcpdumpCmd string, session *ssh.Session, wg *sync.WaitGroup,
 	// The pcap handle can be created without blocking after readable exists.
 	out := make(chan gopacket.Packet)
 	go func() {
-		handle, err := pcap.OpenOfflineFile(readable)
+		ngReader, err := pcapgo.NewReader(readable)
 		if err != nil {
 			cancel(openHandleError)
 			return
 		}
 
-		packetSource := gopacket.NewPacketSource(handle, layers.LayerTypeEthernet)
+		packetSource := gopacket.NewPacketSource(ngReader, layers.LayerTypeEthernet)
 
 		// Run a goroutine that will write packets to the channel
-		go func() {
-			defer handle.Close()
-
-			for packet := range packetSource.Packets() {
-				out <- packet
-			}
-		}()
+		for packet := range packetSource.Packets() {
+			out <- packet
+		}
 	}()
 	return out, nil
 }
