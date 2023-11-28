@@ -497,7 +497,6 @@ github.com/googleapis/gax-go/v2/internal
 ## explicit; go 1.20
 github.com/gopacket/gopacket
 github.com/gopacket/gopacket/layers
-github.com/gopacket/gopacket/pcap
 github.com/gopacket/gopacket/pcapgo
 # github.com/gordonklaus/ineffassign v0.1.0
 ## explicit; go 1.14
