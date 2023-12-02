@@ -6,6 +6,7 @@ import (
 	"go/format"
 	"go/token"
 	"go/types"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -58,6 +59,8 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 	if fmtSprintfObj == nil && fmtSprintObj == nil && fmtErrorfObj == nil {
 		return nil, nil
 	}
+	removedFmtUsages := make(map[string]int)
+	neededPackages := make(map[string]map[string]bool)
 
 	insp := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 	nodeFilter := []ast.Node{
@@ -79,9 +82,13 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 		)
 		switch {
 		case calledObj == fmtErrorfObj && len(call.Args) == 1:
-			fn = "fmt.Errorf"
-			verb = "%s"
-			value = call.Args[0]
+			if n.errorf {
+				fn = "fmt.Errorf"
+				verb = "%s"
+				value = call.Args[0]
+			} else {
+				return
+			}
 
 		case calledObj == fmtSprintObj && len(call.Args) == 1:
 			fn = "fmt.Sprint"
@@ -93,6 +100,8 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 				fn = "fmt.Sprintf"
 				verb = "%s"
 				value = call.Args[0]
+			} else {
+				return
 			}
 
 		case calledObj == fmtSprintfObj && len(call.Args) == 2:
@@ -129,7 +138,14 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 		var d *analysis.Diagnostic
 		switch {
 		case isBasicType(valueType, types.String) && oneOf(verb, "%v", "%s"):
+			fname := pass.Fset.File(call.Pos()).Name()
+			_, ok := neededPackages[fname]
+			if !ok {
+				neededPackages[fname] = make(map[string]bool)
+			}
+			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
 			if fn == "fmt.Errorf" {
+				neededPackages[fname]["errors"] = true
 				d = &analysis.Diagnostic{
 					Pos:     call.Pos(),
 					End:     call.End(),
@@ -166,6 +182,8 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 			// known false positive if this error is nil
 			// fmt.Sprint(nil) does not panic like nil.Error() does
 			errMethodCall := formatNode(pass.Fset, value) + ".Error()"
+			fname := pass.Fset.File(call.Pos()).Name()
+			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -183,6 +201,13 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 			}
 
 		case isBasicType(valueType, types.Bool) && oneOf(verb, "%v", "%t"):
+			fname := pass.Fset.File(call.Pos()).Name()
+			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			_, ok := neededPackages[fname]
+			if !ok {
+				neededPackages[fname] = make(map[string]bool)
+			}
+			neededPackages[fname]["strconv"] = true
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -205,6 +230,13 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 				return
 			}
 
+			fname := pass.Fset.File(call.Pos()).Name()
+			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			_, ok := neededPackages[fname]
+			if !ok {
+				neededPackages[fname] = make(map[string]bool)
+			}
+			neededPackages[fname]["encoding/hex"] = true
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -228,6 +260,13 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 				},
 			}
 		case isSlice && isBasicType(s.Elem(), types.Uint8) && oneOf(verb, "%x"):
+			fname := pass.Fset.File(call.Pos()).Name()
+			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			_, ok := neededPackages[fname]
+			if !ok {
+				neededPackages[fname] = make(map[string]bool)
+			}
+			neededPackages[fname]["encoding/hex"] = true
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -245,6 +284,13 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 			}
 
 		case isBasicType(valueType, types.Int8, types.Int16, types.Int32) && oneOf(verb, "%v", "%d") && n.intConv:
+			fname := pass.Fset.File(call.Pos()).Name()
+			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			_, ok := neededPackages[fname]
+			if !ok {
+				neededPackages[fname] = make(map[string]bool)
+			}
+			neededPackages[fname]["strconv"] = true
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -268,6 +314,13 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 				},
 			}
 		case isBasicType(valueType, types.Int) && oneOf(verb, "%v", "%d"):
+			fname := pass.Fset.File(call.Pos()).Name()
+			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			_, ok := neededPackages[fname]
+			if !ok {
+				neededPackages[fname] = make(map[string]bool)
+			}
+			neededPackages[fname]["strconv"] = true
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -284,6 +337,13 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 				},
 			}
 		case isBasicType(valueType, types.Int64) && oneOf(verb, "%v", "%d"):
+			fname := pass.Fset.File(call.Pos()).Name()
+			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			_, ok := neededPackages[fname]
+			if !ok {
+				neededPackages[fname] = make(map[string]bool)
+			}
+			neededPackages[fname]["strconv"] = true
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -312,6 +372,13 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 			if verb == "%x" {
 				base = []byte("), 16")
 			}
+			fname := pass.Fset.File(call.Pos()).Name()
+			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			_, ok := neededPackages[fname]
+			if !ok {
+				neededPackages[fname] = make(map[string]bool)
+			}
+			neededPackages[fname]["strconv"] = true
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -339,6 +406,13 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 			if verb == "%x" {
 				base = []byte(", 16")
 			}
+			fname := pass.Fset.File(call.Pos()).Name()
+			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			_, ok := neededPackages[fname]
+			if !ok {
+				neededPackages[fname] = make(map[string]bool)
+			}
+			neededPackages[fname]["strconv"] = true
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -368,6 +442,8 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 			} else {
 				fix = formatNode(pass.Fset, value) + "+" + strconv.Quote(verb[2:])
 			}
+			fname := pass.Fset.File(call.Pos()).Name()
+			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -390,6 +466,82 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 			pass.Report(*d)
 		}
 	})
+
+	if len(removedFmtUsages) > 0 {
+		for _, pkg := range pass.Pkg.Imports() {
+			if pkg.Path() == "fmt" {
+				insp = pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
+				nodeFilter = []ast.Node{
+					(*ast.SelectorExpr)(nil),
+				}
+				insp.Preorder(nodeFilter, func(node ast.Node) {
+					selec := node.(*ast.SelectorExpr)
+					selecok, ok := selec.X.(*ast.Ident)
+					if ok {
+						pkgname, ok := pass.TypesInfo.ObjectOf(selecok).(*types.PkgName)
+						if ok && pkgname.Name() == pkg.Name() {
+							fname := pass.Fset.File(pkgname.Pos()).Name()
+							removedFmtUsages[fname] = removedFmtUsages[fname] - 1
+						}
+					}
+				})
+			} else if pkg.Path() == "errors" || pkg.Path() == "strconv" || pkg.Path() == "encoding/hex" {
+				insp = pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
+				nodeFilter = []ast.Node{
+					(*ast.ImportSpec)(nil),
+				}
+				insp.Preorder(nodeFilter, func(node ast.Node) {
+					gd := node.(*ast.ImportSpec)
+					if gd.Path.Value == strconv.Quote(pkg.Path()) {
+						fname := pass.Fset.File(gd.Pos()).Name()
+						_, ok := neededPackages[fname]
+						if ok {
+							delete(neededPackages[fname], pkg.Path())
+						}
+					}
+				})
+			}
+		}
+		insp = pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
+		nodeFilter = []ast.Node{
+			(*ast.ImportSpec)(nil),
+		}
+		insp.Preorder(nodeFilter, func(node ast.Node) {
+			gd := node.(*ast.ImportSpec)
+			if gd.Path.Value == `"fmt"` {
+				fix := ""
+				fname := pass.Fset.File(gd.Pos()).Name()
+				if removedFmtUsages[fname] < 0 {
+					fix = fix + `"fmt"`
+					if len(neededPackages[fname]) == 0 {
+						return
+					}
+				}
+				keys := make([]string, 0, len(neededPackages[fname]))
+				for k := range neededPackages[fname] {
+					keys = append(keys, k)
+				}
+				sort.Strings(keys)
+				for _, k := range keys {
+					fix = fix + "\n\t\"" + k + `"`
+				}
+				pass.Report(analysis.Diagnostic{
+					Pos:     gd.Pos(),
+					End:     gd.End(),
+					Message: "Fix imports",
+					SuggestedFixes: []analysis.SuggestedFix{
+						{
+							Message: "Fix imports",
+							TextEdits: []analysis.TextEdit{{
+								Pos:     gd.Pos(),
+								End:     gd.End(),
+								NewText: []byte(fix),
+							}},
+						},
+					}})
+			}
+		})
+	}
 
 	return nil, nil
 }
