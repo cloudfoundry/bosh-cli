@@ -10,20 +10,13 @@ A Go linter that ensures consistent code style when using `log/slog`.
 ## 📌 About
 
 The `log/slog` API allows two different types of arguments: key-value pairs and attributes.
-People may have different opinions about which one is better,
-but nobody probably wants to mix them up because it makes the code harder to read:
-
-```go
-slog.Info("a user has logged in", "user_id", 42, slog.String("ip_address", "192.0.2.0")) // ugh
-```
-
-`sloglint` finds such function calls and checks that all the arguments are either key-value pairs or attributes.
-The linter has several options, so you can adjust it to your own code style.
+While people may have different opinions about which one is better, most seem to agree on one thing: it should be consistent.
+With `sloglint` you can enforce various rules for `log/slog` based on your preferred code style.
 
 ## 🚀 Features
 
-* Forbid mixing key-value pairs and attributes within a single function call (default)
-* Enforce using either key-value pairs or attributes for the entire project (optional)
+* Enforce not mixing key-value pairs and attributes (default)
+* Enforce using either key-value pairs only or attributes only (optional)
 * Enforce using methods that accept a context (optional)
 * Enforce using static log messages (optional)
 * Enforce using constants instead of raw keys (optional)
@@ -50,6 +43,16 @@ Run `golangci-lint` with `sloglint` enabled.
 See the list of [available options][3] to configure the linter.
 
 When using `sloglint` standalone, pass the options as flags of the same name.
+
+### No mixed arguments
+
+The `no-mixed-args` option causes `sloglint` to report mixing key-values pairs and attributes within a single function call:
+
+```go
+slog.Info("a user has logged in", "user_id", 42, slog.String("ip_address", "192.0.2.0")) // sloglint: key-value pairs and attributes should not be mixed
+```
+
+It is enabled by default.
 
 ### Key-value pairs only
 
@@ -124,7 +127,8 @@ func UserId(value int) slog.Attr { return slog.Int("user_id", value) }
 slog.Info("a user has logged in", UserId(42))
 ```
 
-> 💡 Such helpers can be automatically generated for you by the [`sloggen`][4] tool. Give it a try too!
+> [!TIP]
+> Such helpers can be automatically generated for you by the [`sloggen`][4] tool. Give it a try too!
 
 ### Key naming convention
 
