@@ -29,7 +29,7 @@ require (
 	github.com/peterbourgon/diskv v2.0.1+incompatible
 	github.com/spf13/cobra v1.8.0
 	github.com/vito/go-interact v1.0.1
-	golang.org/x/crypto v0.16.0
+	golang.org/x/crypto v0.17.0
 	golang.org/x/text v0.14.0
 	golang.org/x/tools v0.16.1
 	gopkg.in/yaml.v2 v2.4.0
