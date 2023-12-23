@@ -341,29 +341,31 @@ func checkMatchError(pass *analysis.Pass, origExp *ast.CallExpr, actualArg ast.E
 }
 
 func doCheckMatchError(pass *analysis.Pass, origExp *ast.CallExpr, matcher *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, oldExpr string) bool {
-	if name, ok := handler.GetActualFuncName(matcher); ok {
-		switch name {
-		case matchError:
-		case not:
-			nested, ok := matcher.Args[0].(*ast.CallExpr)
-			if !ok {
-				return false
-			}
-
-			return doCheckMatchError(pass, origExp, nested, actualArg, handler, oldExpr)
-		case and, or:
-			res := true
-			for _, arg := range matcher.Args {
-				if nested, ok := arg.(*ast.CallExpr); ok {
-					if !doCheckMatchError(pass, origExp, nested, actualArg, handler, oldExpr) {
-						res = false
-					}
-				}
-			}
-			return res
-		default:
+	name, ok := handler.GetActualFuncName(matcher)
+	if !ok {
+		return false
+	}
+	switch name {
+	case matchError:
+	case not:
+		nested, ok := matcher.Args[0].(*ast.CallExpr)
+		if !ok {
 			return false
 		}
+
+		return doCheckMatchError(pass, origExp, nested, actualArg, handler, oldExpr)
+	case and, or:
+		res := true
+		for _, arg := range matcher.Args {
+			if nested, ok := arg.(*ast.CallExpr); ok {
+				if !doCheckMatchError(pass, origExp, nested, actualArg, handler, oldExpr) {
+					res = false
+				}
+			}
+		}
+		return res
+	default:
+		return false
 	}
 
 	if !isExprError(pass, actualArg) {
