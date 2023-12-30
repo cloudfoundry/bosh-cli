@@ -7,11 +7,11 @@ require (
 	code.cloudfoundry.org/workpool v0.0.0-20230612151832-b93da105e0e8
 	github.com/cheggaaa/pb/v3 v3.1.4
 	github.com/cloudfoundry/bosh-agent v0.0.61-0.20230301011448-4cfe06c13ad7
-	github.com/cloudfoundry/bosh-davcli v0.0.299
-	github.com/cloudfoundry/bosh-gcscli v0.0.183
-	github.com/cloudfoundry/bosh-s3cli v0.0.246
-	github.com/cloudfoundry/bosh-utils v0.0.418
-	github.com/cloudfoundry/config-server v0.1.160
+	github.com/cloudfoundry/bosh-davcli v0.0.300
+	github.com/cloudfoundry/bosh-gcscli v0.0.184
+	github.com/cloudfoundry/bosh-s3cli v0.0.247
+	github.com/cloudfoundry/bosh-utils v0.0.419
+	github.com/cloudfoundry/config-server v0.1.161
 	github.com/cloudfoundry/socks5-proxy v0.2.106
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
@@ -62,7 +62,7 @@ require (
 	github.com/alingse/asasalint v0.0.11 // indirect
 	github.com/ashanbrown/forbidigo v1.6.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
-	github.com/aws/aws-sdk-go v1.49.9 // indirect
+	github.com/aws/aws-sdk-go v1.49.13 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bkielbasa/cyclop v1.2.1 // indirect
 	github.com/blizzy78/varnamelen v0.8.0 // indirect
@@ -80,7 +80,7 @@ require (
 	github.com/chavacava/garif v0.1.0 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e // indirect
 	github.com/curioswitch/go-reassign v0.2.0 // indirect
-	github.com/daixiang0/gci v0.12.0 // indirect
+	github.com/daixiang0/gci v0.12.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/denis-tingaikin/go-header v0.4.3 // indirect
 	github.com/esimonov/ifshort v1.0.4 // indirect
@@ -118,7 +118,7 @@ require (
 	github.com/golangci/unconvert v0.0.0-20180507085042-28b1c447d1f4 // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/pprof v0.0.0-20231212022811-ec68065c825e // indirect
+	github.com/google/pprof v0.0.0-20231229205709-960ae82b1e42 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/google/uuid v1.5.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
@@ -172,7 +172,7 @@ require (
 	github.com/pivotal-cf/paraphernalia v0.0.0-20180203224945-a64ae2051c20 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/polyfloyd/go-errorlint v1.4.7 // indirect
-	github.com/prometheus/client_golang v1.17.0 // indirect
+	github.com/prometheus/client_golang v1.18.0 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.45.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
@@ -231,8 +231,8 @@ require (
 	go.tmz.dev/musttag v0.7.2 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
-	golang.org/x/exp v0.0.0-20231219180239-dc181d75b848 // indirect
-	golang.org/x/exp/typeparams v0.0.0-20231219180239-dc181d75b848 // indirect
+	golang.org/x/exp v0.0.0-20231226003508-02704c960a9b // indirect
+	golang.org/x/exp/typeparams v0.0.0-20231226003508-02704c960a9b // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
@@ -252,5 +252,5 @@ require (
 	mvdan.cc/gofumpt v0.5.0 // indirect
 	mvdan.cc/interfacer v0.0.0-20180901003855-c20040233aed // indirect
 	mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b // indirect
-	mvdan.cc/unparam v0.0.0-20230917202934-3ee2d22f45fb // indirect
+	mvdan.cc/unparam v0.0.0-20231227222031-fe02aa31e4f6 // indirect
 )
