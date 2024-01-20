@@ -52,8 +52,8 @@ func AsString(level LogLevel) string {
 	return "DEBUG"
 }
 
-//to update cd logger && go run github.com/maxbrunsfeld/counterfeiter -generate
-//counterfeiter:generate . Logger
+// to update cd logger && go run github.com/maxbrunsfeld/counterfeiter -generate
+// counterfeiter:generate . Logger
 type Logger interface {
 	Debug(tag, msg string, args ...interface{})
 	DebugWithDetails(tag, msg string, args ...interface{})
@@ -64,6 +64,7 @@ type Logger interface {
 	HandlePanic(tag string)
 	ToggleForcedDebug()
 	UseRFC3339Timestamps()
+	UseTags(tags []LogTag)
 	Flush() error
 	FlushTimeout(time.Duration) error
 }
@@ -74,6 +75,12 @@ type logger struct {
 	forcedDebug     bool
 	loggerMu        sync.Mutex
 	timestampFormat string
+	tags            []LogTag
+}
+
+type LogTag struct {
+	Name     string   `json:"name"`
+	LogLevel LogLevel `json:"log_level"`
 }
 
 func New(level LogLevel, out *log.Logger) Logger {
@@ -100,11 +107,15 @@ func (l *logger) UseRFC3339Timestamps() {
 	l.timestampFormat = rfc3339TimeFormat
 }
 
+func (l *logger) UseTags(tags []LogTag) {
+	l.tags = tags
+}
+
 func (l *logger) Flush() error                       { return nil }
 func (l *logger) FlushTimeout(_ time.Duration) error { return nil }
 
 func (l *logger) Debug(tag, msg string, args ...interface{}) {
-	if l.level > LevelDebug && !l.forcedDebug {
+	if l.getLogLevel(tag) > LevelDebug && !l.forcedDebug {
 		return
 	}
 
@@ -120,7 +131,7 @@ func (l *logger) DebugWithDetails(tag, msg string, args ...interface{}) {
 }
 
 func (l *logger) Info(tag, msg string, args ...interface{}) {
-	if l.level > LevelInfo && !l.forcedDebug {
+	if l.getLogLevel(tag) > LevelInfo && !l.forcedDebug {
 		return
 	}
 
@@ -129,7 +140,7 @@ func (l *logger) Info(tag, msg string, args ...interface{}) {
 }
 
 func (l *logger) Warn(tag, msg string, args ...interface{}) {
-	if l.level > LevelWarn && !l.forcedDebug {
+	if l.getLogLevel(tag) > LevelWarn && !l.forcedDebug {
 		return
 	}
 
@@ -138,7 +149,7 @@ func (l *logger) Warn(tag, msg string, args ...interface{}) {
 }
 
 func (l *logger) Error(tag, msg string, args ...interface{}) {
-	if l.level > LevelError && !l.forcedDebug {
+	if l.getLogLevel(tag) > LevelError && !l.forcedDebug {
 		return
 	}
 
@@ -189,4 +200,13 @@ func (l *logger) printf(tag, msg string, args ...interface{}) {
 	l.logger.SetPrefix("[" + tag + "] " + timestamp + " ")
 	l.logger.Output(2, s)
 	l.loggerMu.Unlock()
+}
+
+func (l *logger) getLogLevel(tag string) LogLevel {
+	for _, logTag := range l.tags {
+		if logTag.Name == tag {
+			return logTag.LogLevel
+		}
+	}
+	return l.level
 }

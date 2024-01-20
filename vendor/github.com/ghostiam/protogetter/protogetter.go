@@ -62,10 +62,11 @@ func flags(opts *Config) flag.FlagSet {
 }
 
 type Config struct {
-	Mode             Mode // Zero value is StandaloneMode.
-	SkipGeneratedBy  []string
-	SkipFiles        []string
-	SkipAnyGenerated bool
+	Mode                    Mode // Zero value is StandaloneMode.
+	SkipGeneratedBy         []string
+	SkipFiles               []string
+	SkipAnyGenerated        bool
+	ReplaceFirstArgInAppend bool
 }
 
 func Run(pass *analysis.Pass, cfg *Config) ([]Issue, error) {
@@ -127,7 +128,7 @@ func Run(pass *analysis.Pass, cfg *Config) ([]Issue, error) {
 
 	filter := NewPosFilter()
 	ins.Preorder(nodeTypes, func(node ast.Node) {
-		report := analyse(pass, filter, node)
+		report := analyse(pass, filter, node, cfg)
 		if report == nil {
 			return
 		}
@@ -143,7 +144,7 @@ func Run(pass *analysis.Pass, cfg *Config) ([]Issue, error) {
 	return issues, nil
 }
 
-func analyse(pass *analysis.Pass, filter *PosFilter, n ast.Node) *Report {
+func analyse(pass *analysis.Pass, filter *PosFilter, n ast.Node, cfg *Config) *Report {
 	// fmt.Printf("\n>>> check: %s\n", formatNode(n))
 	// ast.Print(pass.Fset, n)
 	if filter.IsFiltered(n.Pos()) {
@@ -151,7 +152,7 @@ func analyse(pass *analysis.Pass, filter *PosFilter, n ast.Node) *Report {
 		return nil
 	}
 
-	result, err := Process(pass.TypesInfo, filter, n)
+	result, err := Process(pass.TypesInfo, filter, n, cfg)
 	if err != nil {
 		pass.Report(analysis.Diagnostic{
 			Pos:     n.Pos(),

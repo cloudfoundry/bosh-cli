@@ -74,6 +74,11 @@ type FakeLogger struct {
 	toggleForcedDebugMutex       sync.RWMutex
 	toggleForcedDebugArgsForCall []struct {
 	}
+	UseTagsStub        func()
+	UseTagsMutex       sync.RWMutex
+	UseTagsArgsForCall []struct {
+		tags []logger.LogTag
+	}
 	UseRFC3339TimestampsStub        func()
 	useRFC3339TimestampsMutex       sync.RWMutex
 	useRFC3339TimestampsArgsForCall []struct {
@@ -418,6 +423,30 @@ func (fake *FakeLogger) ToggleForcedDebugCalls(stub func()) {
 	fake.toggleForcedDebugMutex.Lock()
 	defer fake.toggleForcedDebugMutex.Unlock()
 	fake.ToggleForcedDebugStub = stub
+}
+
+func (fake *FakeLogger) UseTags(tags []logger.LogTag) {
+	fake.UseTagsMutex.Lock()
+	fake.UseTagsArgsForCall = append(fake.UseTagsArgsForCall, struct {
+		tags []logger.LogTag
+	}{tags})
+	fake.recordInvocation("UseTags", []interface{}{tags})
+	fake.UseTagsMutex.Unlock()
+	if fake.UseTagsStub != nil {
+		fake.UseTagsStub()
+	}
+}
+
+func (fake *FakeLogger) UseTagsCallCount() int {
+	fake.UseTagsMutex.RLock()
+	defer fake.UseTagsMutex.RUnlock()
+	return len(fake.UseTagsArgsForCall)
+}
+
+func (fake *FakeLogger) UseTagsCalls(stub func()) {
+	fake.UseTagsMutex.Lock()
+	defer fake.UseTagsMutex.Unlock()
+	fake.UseTagsStub = stub
 }
 
 func (fake *FakeLogger) UseRFC3339Timestamps() {

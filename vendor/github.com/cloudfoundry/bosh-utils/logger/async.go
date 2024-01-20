@@ -134,3 +134,7 @@ func (l *asyncLogger) ToggleForcedDebug() {
 func (l *asyncLogger) UseRFC3339Timestamps() {
 	l.log.UseRFC3339Timestamps()
 }
+
+func (l *asyncLogger) UseTags(tags []LogTag) {
+	l.log.UseTags(tags)
+}

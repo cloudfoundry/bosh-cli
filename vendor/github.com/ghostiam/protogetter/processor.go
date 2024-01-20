@@ -12,16 +12,18 @@ import (
 type processor struct {
 	info   *types.Info
 	filter *PosFilter
+	cfg    *Config
 
 	to   strings.Builder
 	from strings.Builder
 	err  error
 }
 
-func Process(info *types.Info, filter *PosFilter, n ast.Node) (*Result, error) {
+func Process(info *types.Info, filter *PosFilter, n ast.Node, cfg *Config) (*Result, error) {
 	p := &processor{
 		info:   info,
 		filter: filter,
+		cfg:    cfg,
 	}
 
 	return p.process(n)
@@ -51,6 +53,14 @@ func (c *processor) process(n ast.Node) (*Result, error) {
 		}
 
 	case *ast.CallExpr:
+		if !c.cfg.ReplaceFirstArgInAppend && len(x.Args) > 0 {
+			if v, ok := x.Fun.(*ast.Ident); ok && v.Name == "append" {
+				// Skip first argument of append function.
+				c.filter.AddPos(x.Args[0].Pos())
+				break
+			}
+		}
+
 		f, ok := x.Fun.(*ast.SelectorExpr)
 		if !ok {
 			return &Result{}, nil
