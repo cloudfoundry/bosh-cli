@@ -10,8 +10,12 @@ import (
 
 // NilCompare detects situations like
 //
-//	assert.Equal(t, value, nil)
-//	assert.NotEqual(t, value, nil)
+//	assert.Equal(t, nil, value)
+//	assert.EqualValues(t, nil, value)
+//	assert.Exactly(t, nil, value)
+//
+//	assert.NotEqual(t, nil, value)
+//	assert.NotEqualValues(t, nil, value)
 //
 // and requires
 //

@@ -14,9 +14,13 @@ import (
 //
 //	assert.Nil(t, err)
 //	assert.NotNil(t, err)
-//	assert.Equal(t, err, nil)
-//	assert.NotEqual(t, err, nil)
+//	assert.Equal(t, nil, err)
+//	assert.EqualValues(t, nil, err)
+//	assert.Exactly(t, nil, err)
 //	assert.ErrorIs(t, err, nil)
+//
+//	assert.NotEqual(t, nil, err)
+//	assert.NotEqualValues(t, nil, err)
 //	assert.NotErrorIs(t, err, nil)
 //
 // and requires
@@ -37,14 +41,14 @@ func (checker ErrorNil) Check(pass *analysis.Pass, call *CallMeta) *analysis.Dia
 
 	proposedFn, survivingArg, replacementEndPos := func() (string, ast.Expr, token.Pos) {
 		switch call.Fn.NameFTrimmed {
-		case "NotNil":
-			if len(call.Args) >= 1 && isError(pass, call.Args[0]) {
-				return errorFn, call.Args[0], call.Args[0].End()
-			}
-
 		case "Nil":
 			if len(call.Args) >= 1 && isError(pass, call.Args[0]) {
 				return noErrorFn, call.Args[0], call.Args[0].End()
+			}
+
+		case "NotNil":
+			if len(call.Args) >= 1 && isError(pass, call.Args[0]) {
+				return errorFn, call.Args[0], call.Args[0].End()
 			}
 
 		case "Equal", "EqualValues", "Exactly", "ErrorIs":

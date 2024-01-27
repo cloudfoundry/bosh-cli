@@ -18,7 +18,9 @@ var registry = checkersRegistry{
 	{factory: asCheckerFactory(NewExpectedActual), enabledByDefault: true},
 	{factory: asCheckerFactory(NewSuiteExtraAssertCall), enabledByDefault: true},
 	{factory: asCheckerFactory(NewSuiteDontUsePkg), enabledByDefault: true},
+	{factory: asCheckerFactory(NewUselessAssert), enabledByDefault: true},
 	// Advanced checkers.
+	{factory: asCheckerFactory(NewBlankImport), enabledByDefault: true},
 	{factory: asCheckerFactory(NewGoRequire), enabledByDefault: true},
 	{factory: asCheckerFactory(NewRequireError), enabledByDefault: true},
 	{factory: asCheckerFactory(NewSuiteTHelper), enabledByDefault: false},

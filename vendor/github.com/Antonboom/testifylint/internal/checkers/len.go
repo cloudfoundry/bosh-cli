@@ -10,6 +10,8 @@ import (
 // Len detects situations like
 //
 //	assert.Equal(t, 3, len(arr))
+//	assert.EqualValues(t, 3, len(arr))
+//	assert.Exactly(t, 3, len(arr))
 //	assert.True(t, len(arr) == 3)
 //
 // and requires

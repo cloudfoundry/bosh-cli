@@ -13,7 +13,10 @@ import (
 // BoolCompare detects situations like
 //
 //	assert.Equal(t, false, result)
-//	assert.NotEqual(t, result, true)
+//	assert.EqualValues(t, false, result)
+//	assert.Exactly(t, false, result)
+//	assert.NotEqual(t, true, result)
+//	assert.NotEqualValues(t, true, result)
 //	assert.False(t, !result)
 //	assert.True(t, result == true)
 //	...

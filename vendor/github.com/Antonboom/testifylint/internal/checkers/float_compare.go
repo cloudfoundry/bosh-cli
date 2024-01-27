@@ -11,13 +11,15 @@ import (
 
 // FloatCompare detects situation like
 //
-//	assert.Equal(t, 42.42, a)
-//	assert.True(t, a == 42.42)
-//	assert.False(t, a != 42.42)
+//	assert.Equal(t, 42.42, result)
+//	assert.EqualValues(t, 42.42, result)
+//	assert.Exactly(t, 42.42, result)
+//	assert.True(t, result == 42.42)
+//	assert.False(t, result != 42.42)
 //
 // and requires
 //
-//	assert.InEpsilon(t, 42.42, a, 0.0001) // Or assert.InDelta
+//	assert.InEpsilon(t, 42.42, result, 0.0001) // Or assert.InDelta
 type FloatCompare struct{}
 
 // NewFloatCompare constructs FloatCompare checker.

@@ -15,9 +15,19 @@ import (
 //
 //	assert.Len(t, arr, 0)
 //	assert.Equal(t, 0, len(arr))
+//	assert.EqualValues(t, 0, len(arr))
+//	assert.Exactly(t, 0, len(arr))
+//	assert.LessOrEqual(t, len(arr), 0)
+//	assert.GreaterOrEqual(t, 0, len(arr))
+//	assert.Less(t, len(arr), 0)
+//	assert.Greater(t, 0, len(arr))
+//	assert.Less(t, len(arr), 1)
+//	assert.Greater(t, 1, len(arr))
+//
 //	assert.NotEqual(t, 0, len(arr))
-//	assert.GreaterOrEqual(t, len(arr), 1)
-//	...
+//	assert.NotEqualValues(t, 0, len(arr))
+//	assert.Less(t, 0, len(arr))
+//	assert.Greater(t, len(arr), 0)
 //
 // and requires
 //
@@ -78,12 +88,12 @@ func (checker Empty) checkEmpty(pass *analysis.Pass, call *CallMeta) *analysis.D
 		}
 
 	case "Less":
-		if lenArg, ok := isBuiltinLenCall(pass, a); ok && isOne(b) {
+		if lenArg, ok := isBuiltinLenCall(pass, a); ok && (isOne(b) || isZero(b)) {
 			return newUseEmptyDiagnostic(a.Pos(), b.End(), lenArg)
 		}
 
 	case "Greater":
-		if lenArg, ok := isBuiltinLenCall(pass, b); ok && isOne(a) {
+		if lenArg, ok := isBuiltinLenCall(pass, b); ok && (isOne(a) || isZero(a)) {
 			return newUseEmptyDiagnostic(a.Pos(), b.End(), lenArg)
 		}
 	}
@@ -116,13 +126,13 @@ func (checker Empty) checkNotEmpty(pass *analysis.Pass, call *CallMeta) *analysi
 			return newUseNotEmptyDiagnostic(a.Pos(), b.End(), lenArg)
 		}
 
-	case "Greater":
-		if lenArg, ok := isBuiltinLenCall(pass, a); ok && isZero(b) {
+	case "Less":
+		if lenArg, ok := isBuiltinLenCall(pass, b); ok && isZero(a) {
 			return newUseNotEmptyDiagnostic(a.Pos(), b.End(), lenArg)
 		}
 
-	case "Less":
-		if lenArg, ok := isBuiltinLenCall(pass, b); ok && isZero(a) {
+	case "Greater":
+		if lenArg, ok := isBuiltinLenCall(pass, a); ok && isZero(b) {
 			return newUseNotEmptyDiagnostic(a.Pos(), b.End(), lenArg)
 		}
 	}
