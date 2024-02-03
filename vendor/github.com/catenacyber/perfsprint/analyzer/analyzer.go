@@ -17,18 +17,20 @@ import (
 )
 
 type perfSprint struct {
-	intConv  bool
-	errError bool
-	errorf   bool
-	sprintf1 bool
+	intConv    bool
+	errError   bool
+	errorf     bool
+	sprintf1   bool
+	fiximports bool
 }
 
 func newPerfSprint() *perfSprint {
 	return &perfSprint{
-		intConv:  true,
-		errError: false,
-		errorf:   true,
-		sprintf1: true,
+		intConv:    true,
+		errError:   false,
+		errorf:     true,
+		sprintf1:   true,
+		fiximports: true,
 	}
 }
 
@@ -44,6 +46,7 @@ func New() *analysis.Analyzer {
 	r.Flags.BoolVar(&n.errError, "err-error", false, "optimizes into err.Error() even if it is only equivalent for non-nil errors")
 	r.Flags.BoolVar(&n.errorf, "errorf", true, "optimizes fmt.Errorf")
 	r.Flags.BoolVar(&n.sprintf1, "sprintf1", true, "optimizes fmt.Sprintf with only one argument")
+	r.Flags.BoolVar(&n.fiximports, "fiximports", true, "fix needed imports from other fixes")
 	return r
 }
 
@@ -159,7 +162,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 			if !ok {
 				neededPackages[fname] = make(map[string]bool)
 			}
-			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			removedFmtUsages[fname]++
 			if fn == "fmt.Errorf" {
 				neededPackages[fname]["errors"] = true
 				d = &analysis.Diagnostic{
@@ -199,7 +202,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 			// fmt.Sprint(nil) does not panic like nil.Error() does
 			errMethodCall := formatNode(pass.Fset, value) + ".Error()"
 			fname := pass.Fset.File(call.Pos()).Name()
-			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			removedFmtUsages[fname]++
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -218,7 +221,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 
 		case isBasicType(valueType, types.Bool) && oneOf(verb, "%v", "%t"):
 			fname := pass.Fset.File(call.Pos()).Name()
-			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			removedFmtUsages[fname]++
 			_, ok := neededPackages[fname]
 			if !ok {
 				neededPackages[fname] = make(map[string]bool)
@@ -247,7 +250,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 			}
 
 			fname := pass.Fset.File(call.Pos()).Name()
-			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			removedFmtUsages[fname]++
 			_, ok := neededPackages[fname]
 			if !ok {
 				neededPackages[fname] = make(map[string]bool)
@@ -277,7 +280,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 			}
 		case isSlice && isBasicType(s.Elem(), types.Uint8) && oneOf(verb, "%x"):
 			fname := pass.Fset.File(call.Pos()).Name()
-			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			removedFmtUsages[fname]++
 			_, ok := neededPackages[fname]
 			if !ok {
 				neededPackages[fname] = make(map[string]bool)
@@ -301,7 +304,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 
 		case isBasicType(valueType, types.Int8, types.Int16, types.Int32) && oneOf(verb, "%v", "%d") && n.intConv:
 			fname := pass.Fset.File(call.Pos()).Name()
-			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			removedFmtUsages[fname]++
 			_, ok := neededPackages[fname]
 			if !ok {
 				neededPackages[fname] = make(map[string]bool)
@@ -331,7 +334,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 			}
 		case isBasicType(valueType, types.Int) && oneOf(verb, "%v", "%d"):
 			fname := pass.Fset.File(call.Pos()).Name()
-			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			removedFmtUsages[fname]++
 			_, ok := neededPackages[fname]
 			if !ok {
 				neededPackages[fname] = make(map[string]bool)
@@ -354,7 +357,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 			}
 		case isBasicType(valueType, types.Int64) && oneOf(verb, "%v", "%d"):
 			fname := pass.Fset.File(call.Pos()).Name()
-			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			removedFmtUsages[fname]++
 			_, ok := neededPackages[fname]
 			if !ok {
 				neededPackages[fname] = make(map[string]bool)
@@ -389,7 +392,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 				base = []byte("), 16")
 			}
 			fname := pass.Fset.File(call.Pos()).Name()
-			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			removedFmtUsages[fname]++
 			_, ok := neededPackages[fname]
 			if !ok {
 				neededPackages[fname] = make(map[string]bool)
@@ -423,7 +426,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 				base = []byte(", 16")
 			}
 			fname := pass.Fset.File(call.Pos()).Name()
-			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			removedFmtUsages[fname]++
 			_, ok := neededPackages[fname]
 			if !ok {
 				neededPackages[fname] = make(map[string]bool)
@@ -463,7 +466,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 				fix = formatNode(pass.Fset, value) + "+" + strconv.Quote(verb[5:])
 			}
 			fname := pass.Fset.File(call.Pos()).Name()
-			removedFmtUsages[fname] = removedFmtUsages[fname] + 1
+			removedFmtUsages[fname]++
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
@@ -486,7 +489,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 		}
 	})
 
-	if len(removedFmtUsages) > 0 {
+	if len(removedFmtUsages) > 0 && n.fiximports {
 		for _, pkg := range pass.Pkg.Imports() {
 			if pkg.Path() == "fmt" {
 				insp = pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
@@ -500,7 +503,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 						pkgname, ok := pass.TypesInfo.ObjectOf(selecok).(*types.PkgName)
 						if ok && pkgname.Name() == pkg.Name() {
 							fname := pass.Fset.File(pkgname.Pos()).Name()
-							removedFmtUsages[fname] = removedFmtUsages[fname] - 1
+							removedFmtUsages[fname]--
 						}
 					}
 				})
@@ -531,7 +534,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 				fix := ""
 				fname := pass.Fset.File(gd.Pos()).Name()
 				if removedFmtUsages[fname] < 0 {
-					fix = fix + `"fmt"`
+					fix += `"fmt"`
 					if len(neededPackages[fname]) == 0 {
 						return
 					}
