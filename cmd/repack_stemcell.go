@@ -1,26 +1,21 @@
 package cmd
 
 import (
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	"gopkg.in/yaml.v2"
+
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	"github.com/cloudfoundry/bosh-cli/v7/stemcell"
-	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"gopkg.in/yaml.v2"
 )
 
 type RepackStemcellCmd struct {
-	ui                boshui.UI
-	fs                boshsys.FileSystem
 	stemcellExtractor stemcell.Extractor
 }
 
 func NewRepackStemcellCmd(
-	ui boshui.UI,
-	fs boshsys.FileSystem,
 	stemcellExtractor stemcell.Extractor,
 ) RepackStemcellCmd {
-	return RepackStemcellCmd{ui: ui, fs: fs, stemcellExtractor: stemcellExtractor}
+	return RepackStemcellCmd{stemcellExtractor: stemcellExtractor}
 }
 
 func (c RepackStemcellCmd) Run(opts RepackStemcellOpts) error {

@@ -209,7 +209,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		stemcellReader := bistemcell.NewReader(deps.Compressor, deps.FS)
 		stemcellExtractor := bistemcell.NewExtractor(stemcellReader, deps.FS)
 
-		return NewRepackStemcellCmd(deps.UI, deps.FS, stemcellExtractor).Run(*opts)
+		return NewRepackStemcellCmd(stemcellExtractor).Run(*opts)
 
 	case *InspectStemcellTarballOpts:
 		stemcellArchiveFactory := func(path string) boshdir.StemcellArchive {
