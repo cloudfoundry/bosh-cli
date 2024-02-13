@@ -110,6 +110,15 @@ func (checker ExpectedActual) isWrongExpectedActualOrder(pass *analysis.Pass, fi
 
 func (checker ExpectedActual) isExpectedValueCandidate(pass *analysis.Pass, expr ast.Expr) bool {
 	switch v := expr.(type) {
+	case *ast.ParenExpr:
+		return checker.isExpectedValueCandidate(pass, v.X)
+
+	case *ast.StarExpr: // *value
+		return checker.isExpectedValueCandidate(pass, v.X)
+
+	case *ast.UnaryExpr:
+		return (v.Op == token.AND) && checker.isExpectedValueCandidate(pass, v.X) // &value
+
 	case *ast.CompositeLit:
 		return true
 
@@ -122,7 +131,6 @@ func (checker ExpectedActual) isExpectedValueCandidate(pass *analysis.Pass, expr
 	return isBasicLit(expr) ||
 		isUntypedConst(pass, expr) ||
 		isTypedConst(pass, expr) ||
-		isAddressOperation(expr) ||
 		isIdentNamedAsExpected(checker.expVarPattern, expr) ||
 		isStructVarNamedAsExpected(checker.expVarPattern, expr) ||
 		isStructFieldNamedAsExpected(checker.expVarPattern, expr)
@@ -189,11 +197,6 @@ func isUntypedConst(p *analysis.Pass, e ast.Expr) bool {
 func isTypedConst(p *analysis.Pass, e ast.Expr) bool {
 	tt, ok := p.TypesInfo.Types[e]
 	return ok && tt.IsValue() && tt.Value != nil
-}
-
-func isAddressOperation(e ast.Expr) bool {
-	ue, ok := e.(*ast.UnaryExpr)
-	return ok && ue.Op == token.AND
 }
 
 func isIdentNamedAsExpected(pattern *regexp.Regexp, e ast.Expr) bool {

@@ -31,7 +31,7 @@ const requireErrorReport = "for error assertions use require"
 //
 // RequireError ignores:
 // - assertion in the `if` condition;
-// - the entire `if-else` block, if there is an assertion in the `if` condition;
+// - the entire `if-else[-if]` block, if there is an assertion in any `if` condition;
 // - the last assertion in the block, if there are no methods/functions calls after it;
 // - assertions in an explicit goroutine;
 // - assertions in an explicit testing cleanup function or suite teardown methods;
@@ -80,6 +80,7 @@ func (checker RequireError) Check(pass *analysis.Pass, inspector *inspector.Insp
 		call := &callMeta{
 			call:         callExpr,
 			testifyCall:  testifyCall,
+			rootIf:       findRootIf(stack),
 			parentIf:     findNearestNode[*ast.IfStmt](stack),
 			parentBlock:  findNearestNode[*ast.BlockStmt](stack),
 			inIfCond:     inIfCond,
@@ -157,10 +158,10 @@ func needToSkipBasedOnContext(
 		return true
 	}
 
-	if currCall.parentIf != nil {
+	if currCall.rootIf != nil {
 		for _, rootCall := range otherCalls {
-			if (rootCall.parentIf == currCall.parentIf) && rootCall.inIfCond {
-				// Skip assertions in the entire if-else parentBlock, if the "if condition" contains assertion.
+			if (rootCall.rootIf == currCall.rootIf) && rootCall.inIfCond {
+				// Skip assertions in the entire if-else[-if] block, if some of "if condition" contains assertion.
 				return true
 			}
 		}
@@ -175,7 +176,20 @@ func needToSkipBasedOnContext(
 	_, blockEndWithReturn := block.List[len(block.List)-1].(*ast.ReturnStmt)
 	if !blockEndWithReturn {
 		for i := currCallIndex + 1; i < len(otherCalls); i++ {
-			if (otherCalls[i].parentIf == nil) || (otherCalls[i].parentIf != currCall.parentIf) {
+			nextCall := otherCalls[i]
+			nextCallInElseBlock := false
+
+			if pIf := currCall.parentIf; pIf != nil && pIf.Else != nil {
+				ast.Inspect(pIf.Else, func(n ast.Node) bool {
+					if n == nextCall.call {
+						nextCallInElseBlock = true
+						return false
+					}
+					return true
+				})
+			}
+
+			if !nextCallInElseBlock {
 				noCallsAfter = false
 				break
 			}
@@ -233,10 +247,28 @@ func findSurroundingFunc(pass *analysis.Pass, stack []ast.Node) *funcID {
 	return nil
 }
 
+func findRootIf(stack []ast.Node) *ast.IfStmt {
+	nearestIf, i := findNearestNodeWithIdx[*ast.IfStmt](stack)
+	for ; i > 0; i-- {
+		parent, ok := stack[i-1].(*ast.IfStmt)
+		if ok {
+			nearestIf = parent
+		} else {
+			break
+		}
+	}
+	return nearestIf
+}
+
 func findNearestNode[T ast.Node](stack []ast.Node) (v T) {
+	v, _ = findNearestNodeWithIdx[T](stack)
+	return
+}
+
+func findNearestNodeWithIdx[T ast.Node](stack []ast.Node) (v T, index int) {
 	for i := len(stack) - 2; i >= 0; i-- {
 		if n, ok := stack[i].(T); ok {
-			return n
+			return n, i
 		}
 	}
 	return
@@ -273,7 +305,8 @@ func markCallsInNoErrorSequence(callsByBlock map[*ast.BlockStmt][]*callMeta) {
 type callMeta struct {
 	call         *ast.CallExpr
 	testifyCall  *CallMeta
-	parentIf     *ast.IfStmt
+	rootIf       *ast.IfStmt // The root `if` in if-else[-if] chain.
+	parentIf     *ast.IfStmt // The nearest `if`, can be equal with rootIf.
 	parentBlock  *ast.BlockStmt
 	inIfCond     bool // True for code like `if assert.ErrorAs(t, err, &target) {`.
 	inNoErrorSeq bool // True for sequence of `assert.NoError` assertions.
