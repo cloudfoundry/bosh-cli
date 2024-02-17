@@ -22,6 +22,7 @@ type perfSprint struct {
 	errorf     bool
 	sprintf1   bool
 	fiximports bool
+	strconcat  bool
 }
 
 func newPerfSprint() *perfSprint {
@@ -31,6 +32,7 @@ func newPerfSprint() *perfSprint {
 		errorf:     true,
 		sprintf1:   true,
 		fiximports: true,
+		strconcat:  true,
 	}
 }
 
@@ -47,6 +49,7 @@ func New() *analysis.Analyzer {
 	r.Flags.BoolVar(&n.errorf, "errorf", true, "optimizes fmt.Errorf")
 	r.Flags.BoolVar(&n.sprintf1, "sprintf1", true, "optimizes fmt.Sprintf with only one argument")
 	r.Flags.BoolVar(&n.fiximports, "fiximports", true, "fix needed imports from other fixes")
+	r.Flags.BoolVar(&n.strconcat, "strconcat", true, "optimizes into strings concatenation")
 	return r
 }
 
@@ -143,7 +146,7 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 
 		switch verb {
 		default:
-			if fn == "fmt.Sprintf" && isConcatable(verb) {
+			if fn == "fmt.Sprintf" && isConcatable(verb) && n.strconcat {
 				break
 			}
 			return
@@ -470,10 +473,10 @@ func (n *perfSprint) run(pass *analysis.Pass) (interface{}, error) {
 			d = &analysis.Diagnostic{
 				Pos:     call.Pos(),
 				End:     call.End(),
-				Message: fn + " can be replaced with string addition",
+				Message: fn + " can be replaced with string concatenation",
 				SuggestedFixes: []analysis.SuggestedFix{
 					{
-						Message: "Use string addition",
+						Message: "Use string concatenation",
 						TextEdits: []analysis.TextEdit{{
 							Pos:     call.Pos(),
 							End:     call.End(),
