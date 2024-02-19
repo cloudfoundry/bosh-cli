@@ -68,7 +68,6 @@ jobs:
           trigger: true
         - get: bosh-agent
           trigger: true
-        - get: integration-tests-parallel-runtime
 
       - task: build-linux-amd64
         file: bosh-cli/ci/tasks/build-linux-amd64.yml
@@ -185,11 +184,6 @@ jobs:
 
       - task: create-dockerfile
         file: bosh-cli/ci/tasks/create-dockerfile.yml
-
-      - put: bosh-cli-commit-status
-        params:
-          state: success
-          commit: bosh-cli
 
       - {put: bosh-cli, params: {repository: bosh-cli, tag: version-semver/number, tag_prefix: v}}
 
@@ -340,139 +334,117 @@ resources:
     source:
       repository: cppforlife/bosh-warden-cpi-release
 
-  - name: bosh-cli-commit-status
-    type: github-status
-    source:
-      repository: cloudfoundry/bosh-cli
-      access_token: ((github_read_write_token))
-      branch: main
-      context: ci/published
-
   - name: golang-release
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh-package-golang-release.git
 
   - name: release-bucket-linux
-    type: s3
+    type: gcs-resource
     source:
       regexp: bosh-cli-(.*)-linux-amd64
       bucket: bosh-cli-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
-      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
+      driver: gcs
+      json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: release-bucket-linux-arm64
-    type: s3
+    type: gcs-resource
     source:
       regexp: bosh-cli-(.*)-linux-arm64
       bucket: bosh-cli-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
-      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
+      driver: gcs
+      json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: release-bucket-darwin
-    type: s3
+    type: gcs-resource
     source:
       regexp: bosh-cli-(.*)-darwin-amd64
       bucket: bosh-cli-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
-      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
+      driver: gcs
+      json_key: ((bosh-cli/gcp_service_key_json))
       
 
   - name: release-bucket-darwin-arm64
-    type: s3
+    type: gcs-resource
     source:
       regexp: bosh-cli-(.*)-darwin-arm64
       bucket: bosh-cli-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
-      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
+      driver: gcs
+      json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: release-bucket-windows
-    type: s3
+    type: gcs-resource
     source:
       regexp: bosh-cli-(.*)-windows-amd64.exe
       bucket: bosh-cli-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
-      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
+      driver: gcs
+      json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: alpha-release-bucket-linux-amd64
-    type: s3
+    type: gcs-resource
     source:
       regexp: alpha-bosh-cli-(.*)-linux-amd64
       bucket: bosh-cli-alpha-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
-      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
+      driver: gcs
+      json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: alpha-release-bucket-linux-arm64
-    type: s3
+    type: gcs-resource
     source:
       regexp: alpha-bosh-cli-(.*)-linux-arm64
       bucket: bosh-cli-alpha-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
-      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
+      driver: gcs
+      json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: alpha-release-bucket-darwin-amd64
-    type: s3
+    type: gcs-resource
     source:
       regexp: alpha-bosh-cli-(.*)-darwin-amd64
       bucket: bosh-cli-alpha-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
-      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
+      driver: gcs
+      json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: alpha-release-bucket-darwin-arm64
-    type: s3
+    type: gcs-resource
     source:
       regexp: alpha-bosh-cli-(.*)-darwin-arm64
       bucket: bosh-cli-alpha-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
-      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
+      driver: gcs
+      json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: alpha-release-bucket-windows-amd64
-    type: s3
+    type: gcs-resource
     source:
       regexp: alpha-bosh-cli-(.*)-windows-amd64.exe
       bucket: bosh-cli-alpha-artifacts
       region_name: us-east-1
-      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
-      aws_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
+      driver: gcs
+      json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: version-semver
     type: semver
     source:
-      initial_version: 0.0.1
       key: cli-current-version
       bucket: bosh-cli-artifacts
-      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
-      assume_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
+      driver: gcs
+      json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: alpha-version-semver
     type: semver
     source:
-      initial_version: 0.0.1
       key: cli-alpha-current-version
       bucket: bosh-cli-alpha-artifacts
-      access_key_id: ((bosh-cli-artifacts-upload_assume_aws_access_key.username))
-      secret_access_key: ((bosh-cli-artifacts-upload_assume_aws_access_key.password))
-      assume_role_arn: ((bosh-cli-artifacts-upload_assume_aws_access_key.role_arn))
+      driver: gcs
+      json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: homebrew-tap
     type: git
@@ -486,22 +458,22 @@ resources:
     source:
       owner: cloudfoundry
       repository: bosh-cli
-      access_token: ((github_read_write_token))
+      access_token: ((github_public_repo_token))
 
   - name: final-docker
     type: docker-image
     source:
       repository: bosh/cli2
-      username: ((docker.username))
-      password: ((docker.password))
+      username: ((bosh-dockerhub.username))
+      password: ((bosh-dockerhub.password))
       email: foo@bar.com
 
   - name: ubuntu-image
     type: docker-image
     source:
       repository: ubuntu
-      username: ((docker.username))
-      password: ((docker.password))
+      username: ((bosh-dockerhub.username))
+      password: ((bosh-dockerhub.password))
       email: foo@bar.com
 
   - name: weekly
@@ -511,20 +483,11 @@ resources:
       stop: 4:30 -0700
       days: [Saturday]
 
-  - name: integration-tests-parallel-runtime
-    type: s3
-    source:
-      bucket: integration-tests-parallel-runtime-logs
-      access_key_id: ((bosh_integration_tests_parallel_assume_aws_access_key.username))
-      secret_access_key: ((bosh_integration_tests_parallel_assume_aws_access_key.password))
-      aws_role_arn: ((bosh_integration_tests_parallel_assume_aws_access_key.role_arn))
-      versioned_file: "parallel_runtime_rspec.log"
-
   - name: release-notes
     type: gcs-resource
     source:
-      bucket: bosh-ci-release-notes
-      json_key: ((gcp_credentials_json))
+      bucket: bosh-cli-pipeline
+      json_key: ((bosh-cli/gcp_service_key_json))
       versioned_file: bosh-cli/release-notes.md
       initial_version: "0"
       initial_content_text: ""
@@ -534,8 +497,8 @@ resource_types:
     type: docker-image
     source:
       repository: frodenas/gcs-resource
-      username: ((docker.username))
-      password: ((docker.password))
+      username: ((bosh-dockerhub.username))
+      password: ((bosh-dockerhub.password))
   - name: github-status
     type: docker-image
     source:
