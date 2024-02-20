@@ -68,6 +68,7 @@ jobs:
           trigger: true
         - get: bosh-agent
           trigger: true
+        - get: integration-tests-parallel-runtime
 
       - task: build-linux-amd64
         file: bosh-cli/ci/tasks/build-linux-amd64.yml
@@ -344,8 +345,6 @@ resources:
     source:
       regexp: bosh-cli-(.*)-linux-amd64
       bucket: bosh-cli-artifacts
-      region_name: us-east-1
-      driver: gcs
       json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: release-bucket-linux-arm64
@@ -353,8 +352,6 @@ resources:
     source:
       regexp: bosh-cli-(.*)-linux-arm64
       bucket: bosh-cli-artifacts
-      region_name: us-east-1
-      driver: gcs
       json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: release-bucket-darwin
@@ -362,8 +359,6 @@ resources:
     source:
       regexp: bosh-cli-(.*)-darwin-amd64
       bucket: bosh-cli-artifacts
-      region_name: us-east-1
-      driver: gcs
       json_key: ((bosh-cli/gcp_service_key_json))
       
 
@@ -372,8 +367,6 @@ resources:
     source:
       regexp: bosh-cli-(.*)-darwin-arm64
       bucket: bosh-cli-artifacts
-      region_name: us-east-1
-      driver: gcs
       json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: release-bucket-windows
@@ -381,8 +374,6 @@ resources:
     source:
       regexp: bosh-cli-(.*)-windows-amd64.exe
       bucket: bosh-cli-artifacts
-      region_name: us-east-1
-      driver: gcs
       json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: alpha-release-bucket-linux-amd64
@@ -390,8 +381,6 @@ resources:
     source:
       regexp: alpha-bosh-cli-(.*)-linux-amd64
       bucket: bosh-cli-alpha-artifacts
-      region_name: us-east-1
-      driver: gcs
       json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: alpha-release-bucket-linux-arm64
@@ -399,8 +388,6 @@ resources:
     source:
       regexp: alpha-bosh-cli-(.*)-linux-arm64
       bucket: bosh-cli-alpha-artifacts
-      region_name: us-east-1
-      driver: gcs
       json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: alpha-release-bucket-darwin-amd64
@@ -408,8 +395,6 @@ resources:
     source:
       regexp: alpha-bosh-cli-(.*)-darwin-amd64
       bucket: bosh-cli-alpha-artifacts
-      region_name: us-east-1
-      driver: gcs
       json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: alpha-release-bucket-darwin-arm64
@@ -417,8 +402,6 @@ resources:
     source:
       regexp: alpha-bosh-cli-(.*)-darwin-arm64
       bucket: bosh-cli-alpha-artifacts
-      region_name: us-east-1
-      driver: gcs
       json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: alpha-release-bucket-windows-amd64
@@ -426,8 +409,6 @@ resources:
     source:
       regexp: alpha-bosh-cli-(.*)-windows-amd64.exe
       bucket: bosh-cli-alpha-artifacts
-      region_name: us-east-1
-      driver: gcs
       json_key: ((bosh-cli/gcp_service_key_json))
 
   - name: version-semver
@@ -482,6 +463,13 @@ resources:
       start: 3:00 -0700
       stop: 4:30 -0700
       days: [Saturday]
+
+  - name: integration-tests-parallel-runtime
+    type: gcs-resource
+    source:
+      bucket: bosh-cli-pipeline
+      json_key: ((bosh-cli/gcp_service_key_json))
+      versioned_file: "parallel_runtime_rspec.log"
 
   - name: release-notes
     type: gcs-resource
