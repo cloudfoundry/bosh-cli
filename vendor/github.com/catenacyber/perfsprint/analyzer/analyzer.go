@@ -62,6 +62,9 @@ func isConcatable(verb string) bool {
 		(strings.HasSuffix(verb, "%s") && !strings.Contains(verb, "%[1]s")) ||
 			(strings.HasSuffix(verb, "%[1]s") && !strings.Contains(verb, "%s"))
 
+	if strings.Count(verb, "%[1]s") > 1 {
+		return false
+	}
 	return (hasPrefix || hasSuffix) && !(hasPrefix && hasSuffix)
 }
 
