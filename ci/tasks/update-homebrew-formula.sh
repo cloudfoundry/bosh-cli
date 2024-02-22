@@ -18,14 +18,14 @@ class BoshCli < Formula
 
   if OS.mac?
     if Hardware::CPU.arm?
-      url "https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-#{version}-darwin-arm64"
+      url "https://storage.googleapis.com/bosh-cli-artifacts/bosh-cli-#{version}-darwin-arm64"
       sha256 "${darwin_arm64_cli_sha256}"
     else
-      url "https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-#{version}-darwin-amd64"
+      url "https://storage.googleapis.com/bosh-cli-artifacts/bosh-cli-#{version}-darwin-amd64"
       sha256 "${darwin_amd64_cli_sha256}"
     end
   elsif OS.linux?
-    url "https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-#{version}-linux-amd64"
+    url "https://storage.googleapis.com/bosh-cli-artifacts/bosh-cli-#{version}-linux-amd64"
     sha256 "${linux_amd64_cli_sha256}"
   end
 
