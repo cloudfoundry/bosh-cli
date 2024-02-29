@@ -7,7 +7,7 @@ image_resource:
     repository: bosh/cli
 
 inputs:
-  - name: bosh-docker-cli-src
+  - name: bosh-cli-docker-src
 
 outputs:
   - name: docker-files
