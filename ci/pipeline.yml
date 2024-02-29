@@ -1,5 +1,23 @@
 ---
 jobs:
+  - name: build-bosh-cli-docker-image
+    public: true
+    serial: true
+    plan:
+      - in_parallel:
+          - get: bosh-cli-docker-src
+            trigger: true
+          - get: golang-release
+            trigger: true
+      - task: write-metadata-file
+        file: bosh-cli-docker-src/ci/docker/write-metadata-file.yml
+      - put: bosh-cli-docker-image
+        params:
+          build: "docker-files"
+          tag: "docker-files/tag"
+        get_params:
+          skip_download: true
+
   - name: bump-deps
     public: true
     plan:
@@ -325,6 +343,15 @@ resources:
       branch: main
       private_key: ((github_deploy_key_bosh-cli.private_key))
 
+  - name: bosh-cli-docker-src
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/bosh-cli.git
+      branch: main
+      private_key: ((github_deploy_key_bosh-cli.private_key))
+      paths:
+        - "ci/docker"
+
   - name: bosh-warden-stemcell-xenial
     type: bosh-io-stemcell
     source:
@@ -448,6 +475,13 @@ resources:
       username: ((bosh-dockerhub.username))
       password: ((bosh-dockerhub.password))
       email: foo@bar.com
+
+  - name: bosh-cli-docker-image
+    type: docker-image
+    source:
+      repository: bosh/cli
+      username: ((bosh-dockerhub.username))
+      password: ((bosh-dockerhub.password))
 
   - name: ubuntu-image
     type: docker-image

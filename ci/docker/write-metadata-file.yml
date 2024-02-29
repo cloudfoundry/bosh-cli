@@ -5,16 +5,15 @@ image_resource:
   type: docker-image
   source:
     repository: bosh/cli
-    tag: 'latest'
 
 inputs:
-  - name: bosh-cli-src
+  - name: bosh-docker-cli-src
 
 outputs:
   - name: docker-files
 
 run:
-  path: bosh-cli-src/ci/docker/write-metadata-file.sh
+  path: bosh-cli-docker-src/ci/docker/write-metadata-file.sh
 
 params:
   DOCKER_IMAGE_TAG: latest
