@@ -7,7 +7,7 @@ jobs:
       - in_parallel:
           - get: bosh-cli-docker-src
             trigger: true
-          - get: golang-release
+          - get: golang-release-image
             trigger: true
       - task: write-metadata-file
         file: bosh-cli-docker-src/ci/docker/write-metadata-file.yml
@@ -366,6 +366,13 @@ resources:
     type: git
     source:
       uri: https://github.com/cloudfoundry/bosh-package-golang-release.git
+
+  - name: golang-release-image
+    type: docker-image
+    source:
+      repository: bosh/golang-release
+      username: ((bosh-dockerhub.username))
+      password: ((bosh-dockerhub.password))
 
   - name: release-bucket-linux
     type: gcs-resource
