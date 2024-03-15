@@ -151,6 +151,26 @@ jobs:
       - get: golang-release
       - get: version-semver
       - get: ubuntu-image
+      - get: release-bucket-linux
+    - task: build-linux-amd64
+      file: bosh-cli/ci/tasks/build-linux-amd64.yml
+    - try:
+        task: check-for-updated-binary-version
+        file: golang-release/ci/tasks/shared/check-for-updated-binary-version.yml
+        input_mapping:
+          previous_binary: release-bucket-linux
+          current_binary: compiled-linux-amd64
+        params:
+          PREVIOUS_BINARY_PATTERN: bosh-cli-*-linux-amd64
+          CURRENT_BINARY_PATTERN: bosh-cli-*-linux-amd64
+        on_success:
+          do:
+          - put: release-notes
+            params:
+              file: release-notes/release-notes.md
+          - put: version-semver
+            params:
+              bump: patch
     - try:
         task: check-for-patched-cves
         file: golang-release/ci/tasks/shared/check-for-patched-cves.yml
