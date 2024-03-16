@@ -3,10 +3,8 @@ package httpclient
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-
 	"io"
+	"net/http"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -68,7 +66,7 @@ func (r *RequestRetryable) Attempt() (bool, error) {
 		r.request.Body, err = r.request.GetBody()
 		if err != nil {
 			if r.originalBody != nil {
-				r.originalBody.Close()
+				r.originalBody.Close() //nolint:errcheck
 			}
 
 			return false, bosherr.WrapError(err, "Updating request body for retry")
@@ -85,9 +83,9 @@ func (r *RequestRetryable) Attempt() (bool, error) {
 		// forcing an EOF.
 		// This should not be necessary when the following CL gets accepted:
 		// https://go-review.googlesource.com/c/go/+/62891
-		io.Copy(ioutil.Discard, r.response.Body)
+		io.Copy(io.Discard, r.response.Body) //nolint:errcheck
 
-		r.response.Body.Close()
+		r.response.Body.Close() //nolint:errcheck
 	}
 
 	r.attempt++
@@ -97,7 +95,7 @@ func (r *RequestRetryable) Attempt() (bool, error) {
 
 	attemptable, err := r.isResponseAttemptable(r.response, err)
 	if !attemptable && r.originalBody != nil {
-		r.originalBody.Close()
+		r.originalBody.Close() //nolint:errcheck
 	}
 
 	return attemptable, err
@@ -127,7 +125,7 @@ func formatRequest(req *http.Request) string {
 	return fmt.Sprintf("Request{ Method: '%s', URL: '%s' }", req.Method, req.URL)
 }
 
-func formatResponse(resp *http.Response) string {
+func formatResponse(resp *http.Response) string { //nolint:unused
 	if resp == nil {
 		return "Response(nil)"
 	}
@@ -153,16 +151,16 @@ func MakeReplayable(r *http.Request) (io.ReadCloser, error) {
 				return nil, bosherr.WrapError(err, "Seeking to beginning of seekable request body")
 			}
 
-			return ioutil.NopCloser(seekableBody), nil
+			return io.NopCloser(seekableBody), nil
 		}
 	} else {
-		bodyBytes, err := ioutil.ReadAll(r.Body)
+		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			return originalBody, bosherr.WrapError(err, "Buffering request body")
 		}
 
 		r.GetBody = func() (io.ReadCloser, error) {
-			return ioutil.NopCloser(bytes.NewReader(bodyBytes)), nil
+			return io.NopCloser(bytes.NewReader(bodyBytes)), nil
 		}
 	}
 

@@ -1,3 +1,4 @@
+//go:build !windows
 // +build !windows
 
 package system
@@ -108,10 +109,8 @@ func (p *execProcess) signalGroup(sig syscall.Signal) error {
 
 func (p *execProcess) groupExists() bool {
 	err := syscall.Kill(-p.pgid, syscall.Signal(0))
-	if p.isGroupDoesNotExistError(err) {
-		return false
-	}
-	return true
+
+	return !p.isGroupDoesNotExistError(err)
 }
 
 func (p *execProcess) isGroupDoesNotExistError(err error) bool {

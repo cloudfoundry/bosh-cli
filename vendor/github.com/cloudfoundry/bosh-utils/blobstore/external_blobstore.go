@@ -2,10 +2,9 @@ package blobstore
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path/filepath"
-
-	"errors"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -50,7 +49,7 @@ func (b externalBlobstore) Get(blobID string) (string, error) {
 
 	err = b.run("get", blobID, fileName)
 	if err != nil {
-		b.fs.RemoveAll(fileName)
+		b.fs.RemoveAll(fileName) //nolint:errcheck
 		return "", err
 	}
 

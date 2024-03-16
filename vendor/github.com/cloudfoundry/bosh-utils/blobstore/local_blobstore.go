@@ -42,7 +42,7 @@ func (b localBlobstore) Get(blobID string) (fileName string, err error) {
 
 	err = b.fs.CopyFile(path.Join(b.path(), blobID), fileName)
 	if err != nil {
-		b.fs.RemoveAll(fileName)
+		b.fs.RemoveAll(fileName) //nolint:errcheck
 		return "", bosherr.WrapError(err, "Copying file")
 	}
 
@@ -50,7 +50,7 @@ func (b localBlobstore) Get(blobID string) (fileName string, err error) {
 }
 
 func (b localBlobstore) CleanUp(fileName string) error {
-	b.fs.RemoveAll(fileName)
+	b.fs.RemoveAll(fileName) //nolint:errcheck
 	return nil
 }
 
@@ -83,12 +83,12 @@ func (b localBlobstore) Create(fileName string) (blobID string, err error) {
 }
 
 func (b localBlobstore) Validate() error {
-	path, found := b.options["blobstore_path"]
+	p, found := b.options["blobstore_path"]
 	if !found {
 		return bosherr.Error("missing blobstore_path")
 	}
 
-	_, ok := path.(string)
+	_, ok := p.(string)
 	if !ok {
 		return bosherr.Error("blobstore_path must be a string")
 	}

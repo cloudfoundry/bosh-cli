@@ -2,7 +2,6 @@ package httpclient
 
 import (
 	"context"
-	"io/ioutil"
 	"net"
 	"net/url"
 	"os"
@@ -57,7 +56,7 @@ func SOCKS5DialContextFuncFromEnvironment(origDialer *net.Dialer, socks5Proxy Pr
 			)
 		}
 
-		proxySSHKey, err := ioutil.ReadFile(proxySSHKeyPath)
+		proxySSHKey, err := os.ReadFile(proxySSHKeyPath)
 		if err != nil {
 			return errorDialFunc(err, "Reading private key file for SOCKS5 Proxy")
 		}

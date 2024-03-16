@@ -3,7 +3,7 @@ package httpclient
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -19,7 +19,7 @@ var (
 	defaultDialerContextFunc = SOCKS5DialContextFuncFromEnvironment((&net.Dialer{
 		Timeout:   30 * time.Second,
 		KeepAlive: 30 * time.Second,
-	}), proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(ioutil.Discard, "", log.LstdFlags), 1*time.Minute))
+	}), proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(io.Discard, "", log.LstdFlags), 1*time.Minute))
 )
 
 type Client interface {
@@ -58,7 +58,7 @@ func ResetDialerContext() {
 	defaultDialerContextFunc = SOCKS5DialContextFuncFromEnvironment((&net.Dialer{
 		Timeout:   30 * time.Second,
 		KeepAlive: 30 * time.Second,
-	}), proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(ioutil.Discard, "", log.LstdFlags), 1*time.Minute))
+	}), proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(io.Discard, "", log.LstdFlags), 1*time.Minute))
 }
 
 type factory struct{}

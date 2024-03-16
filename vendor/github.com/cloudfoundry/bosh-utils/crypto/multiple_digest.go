@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"strings"
+	"unicode"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"os"
-	"unicode"
 )
 
 type MultipleDigest struct {
@@ -59,7 +59,7 @@ func NewMultipleDigest(stream io.ReadSeeker, algos []Algorithm) (MultipleDigest,
 
 	digests := []Digest{}
 	for _, algo := range algos {
-		stream.Seek(0, 0)
+		stream.Seek(0, 0) //nolint:errcheck
 		digest, err := algo.CreateDigest(stream)
 		if err != nil {
 			return MultipleDigest{}, err

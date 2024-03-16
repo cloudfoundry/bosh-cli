@@ -404,7 +404,7 @@ func (fs *FakeFileSystem) StatHelper(path string) (os.FileInfo, error) {
 			return nil, fmt.Errorf("stat: %s: no such file or directory", path)
 		}
 
-		stats = targetStats
+		stats = targetStats //nolint:staticcheck
 	}
 
 	return NewFakeFile(path, fs).Stat()
@@ -439,7 +439,7 @@ func (fs *FakeFileSystem) readlink(path string) (string, error) {
 	}
 
 	if stats.FileType != FakeFileTypeSymlink {
-		return "", errors.New(fmt.Sprintf("cannot readlink of non-symlink"))
+		return "", fmt.Errorf("cannot readlink of non-symlink")
 	}
 
 	return stats.SymlinkTarget, nil
@@ -536,7 +536,7 @@ func (fs *FakeFileSystem) writeFile(path string, content []byte) error {
 	path = fs.fileRegistry.UnifiedPath(path)
 	parent := gopath.Dir(path)
 	if parent != "." {
-		fs.writeDir(parent)
+		fs.writeDir(parent) //nolint:errcheck
 	}
 
 	stats := fs.getOrCreateFile(path)
@@ -550,7 +550,7 @@ func (fs *FakeFileSystem) writeDir(path string) error {
 
 	grandparent := gopath.Dir(parent)
 	if grandparent != parent {
-		fs.writeDir(parent)
+		fs.writeDir(parent) //nolint:errcheck
 	}
 
 	stats := fs.getOrCreateFile(path)
@@ -576,13 +576,13 @@ func (fs *FakeFileSystem) ConvergeFileContents(path string, content []byte, opts
 		if stats == nil {
 			return true, nil
 		}
-		return bytes.Compare(stats.Content, content) != 0, nil
+		return bytes.Compare(stats.Content, content) != 0, nil //nolint:gosimple
 	}
 
 	stats := fs.getOrCreateFile(path)
 	stats.FileType = FakeFileTypeFile
 
-	if bytes.Compare(stats.Content, content) != 0 {
+	if bytes.Compare(stats.Content, content) != 0 { //nolint:gosimple
 		stats.Content = content
 		return true, nil
 	}
@@ -591,12 +591,12 @@ func (fs *FakeFileSystem) ConvergeFileContents(path string, content []byte, opts
 }
 
 func (fs *FakeFileSystem) ReadFileString(path string) (string, error) {
-	bytes, err := fs.ReadFile(path)
+	b, err := fs.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
 
-	return string(bytes), nil
+	return string(b), nil
 }
 
 func (fs *FakeFileSystem) RegisterReadFileError(path string, err error) {
@@ -684,7 +684,7 @@ func (fs *FakeFileSystem) Rename(oldPath, newPath string) error {
 	}
 
 	// Ignore error from RemoveAll
-	fs.removeAll(oldPath)
+	fs.removeAll(oldPath) //nolint:errcheck
 
 	return nil
 }
@@ -779,7 +779,7 @@ func (fs *FakeFileSystem) CopyFile(srcPath, dstPath string) error {
 
 	srcFile := fs.fileRegistry.Get(srcPath)
 	if srcFile == nil {
-		return errors.New(fmt.Sprintf("%s doesn't exist", srcPath))
+		return fmt.Errorf("%s doesn't exist", srcPath)
 	}
 
 	fs.fileRegistry.Register(dstPath, srcFile)

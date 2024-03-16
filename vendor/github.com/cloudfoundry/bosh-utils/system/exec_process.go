@@ -21,7 +21,7 @@ type execProcess struct {
 	keepAttached bool
 	quiet        bool
 	pid          int
-	pgid         int
+	pgid         int //nolint:unused
 	logger       boshlog.Logger
 	waitCh       chan Result
 }
@@ -56,12 +56,12 @@ func (p *execProcess) wait() Result {
 	// err will be non-nil if command exits with non-0 status
 	err := p.cmd.Wait()
 
-	stdout := string(p.stdoutWriter.Bytes())
+	stdout := p.stdoutWriter.String()
 	if !p.quiet {
 		p.logger.Debug(execProcessLogTag, "Stdout: %s", stdout)
 	}
 
-	stderr := string(p.stderrWriter.Bytes())
+	stderr := p.stderrWriter.String()
 	if !p.quiet {
 		p.logger.Debug(execProcessLogTag, "Stderr: %s", stderr)
 	}

@@ -100,11 +100,11 @@ func (r *FakeCmdRunner) RunComplexCommand(cmd boshsys.Command) (string, string, 
 	stdout, stderr, exitstatus, err := r.getOutputsForCmd(runCmd)
 
 	if cmd.Stdout != nil {
-		cmd.Stdout.Write([]byte(stdout))
+		cmd.Stdout.Write([]byte(stdout)) //nolint:errcheck
 	}
 
 	if cmd.Stderr != nil {
-		cmd.Stderr.Write([]byte(stderr))
+		cmd.Stderr.Write([]byte(stderr)) //nolint:errcheck
 	}
 
 	return stdout, stderr, exitstatus, err

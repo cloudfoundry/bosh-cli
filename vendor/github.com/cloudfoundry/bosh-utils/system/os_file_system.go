@@ -2,14 +2,12 @@ package system
 
 import (
 	"bytes"
+	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"errors"
 
 	"github.com/bmatcuk/doublestar"
 	fsWrapper "github.com/charlievieth/fs"
@@ -170,7 +168,7 @@ func (fs *osFileSystem) ConvergeFileContents(path string, content []byte, opts .
 	}
 	defer file.Close()
 
-	src, err := ioutil.ReadAll(file)
+	src, err := io.ReadAll(file)
 	if err != nil {
 		return true, bosherr.WrapErrorf(err, "Reading file %s", path)
 	}
@@ -216,7 +214,7 @@ func (fs *osFileSystem) ReadFileWithOpts(path string, opts ReadOpts) (content []
 
 	defer file.Close()
 
-	content, err = ioutil.ReadAll(file)
+	content, err = io.ReadAll(file)
 	if err != nil {
 		err = bosherr.WrapErrorf(err, "Reading file content %s", path)
 		return
@@ -245,7 +243,7 @@ func (fs *osFileSystem) FileExists(path string) bool {
 func (fs *osFileSystem) Rename(oldPath, newPath string) (err error) {
 	fs.logger.Debug(fs.logTag, "Renaming %s to %s", oldPath, newPath)
 
-	fs.RemoveAll(newPath)
+	fs.RemoveAll(newPath) //nolint:errcheck
 	return fsWrapper.Rename(oldPath, newPath)
 }
 
@@ -254,16 +252,16 @@ func (fs *osFileSystem) Symlink(oldPath, newPath string) error {
 
 	source, target, err := fs.symlinkPaths(oldPath, newPath)
 	if err != nil {
-		bosherr.WrapErrorf(err, "Getting absolute paths for target and path links: %s %s", oldPath, newPath)
+		bosherr.WrapErrorf(err, "Getting absolute paths for target and path links: %s %s", oldPath, newPath) //nolint:errcheck
 	}
 	if fi, err := fs.Lstat(target); err == nil {
 		if fi.Mode()&os.ModeSymlink != 0 {
 			// Symlink
-			new, err := fs.Readlink(target)
+			targetPath, err := fs.Readlink(target)
 			if err != nil {
 				return bosherr.WrapErrorf(err, "Reading link for %s", target)
 			}
-			if filepath.Clean(source) == filepath.Clean(new) {
+			if filepath.Clean(source) == filepath.Clean(targetPath) {
 				return nil
 			}
 		}
@@ -274,7 +272,7 @@ func (fs *osFileSystem) Symlink(oldPath, newPath string) error {
 
 	containingDir := filepath.Dir(target)
 	if !fs.FileExists(containingDir) {
-		fs.MkdirAll(containingDir, os.FileMode(0700))
+		fs.MkdirAll(containingDir, os.FileMode(0700)) //nolint:errcheck
 	}
 
 	return fsWrapper.Symlink(source, target)
@@ -376,7 +374,7 @@ func (fs *osFileSystem) TempFile(prefix string) (file File, err error) {
 	if fs.tempRoot == "" && fs.requiresTempRoot {
 		return nil, errors.New("Set a temp directory root with ChangeTempRoot before making temp files")
 	}
-	return ioutil.TempFile(fs.tempRoot, prefix)
+	return os.CreateTemp(fs.tempRoot, prefix)
 }
 
 func (fs *osFileSystem) TempDir(prefix string) (path string, err error) {
@@ -384,7 +382,7 @@ func (fs *osFileSystem) TempDir(prefix string) (path string, err error) {
 	if fs.tempRoot == "" && fs.requiresTempRoot {
 		return "", errors.New("Set a temp directory root with ChangeTempRoot before making temp directories")
 	}
-	return ioutil.TempDir(fs.tempRoot, prefix)
+	return os.MkdirTemp(fs.tempRoot, prefix)
 }
 
 func (fs *osFileSystem) ChangeTempRoot(tempRootPath string) error {
@@ -416,7 +414,7 @@ func (fs *osFileSystem) Walk(root string, walkFunc filepath.WalkFunc) error {
 	return filepath.Walk(root, walkFunc)
 }
 
-func (fs *osFileSystem) runCommand(cmd string) (string, error) {
+func (fs *osFileSystem) runCommand(cmd string) (string, error) { //nolint:unused
 	var stdout bytes.Buffer
 	shCmd := exec.Command("sh", "-c", cmd)
 	shCmd.Stdout = &stdout

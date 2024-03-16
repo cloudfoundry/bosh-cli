@@ -7,7 +7,7 @@ import (
 )
 
 type unlimitedRetryStrategy struct {
-	maxAttempts int
+	maxAttempts int //nolint:unused
 	delay       time.Duration
 	retryable   Retryable
 	logger      boshlog.Logger

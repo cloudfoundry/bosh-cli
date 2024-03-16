@@ -46,7 +46,7 @@ func (c genericCpCopier) FilteredMultiCopyToTemp(dirs []DirToCopy, filters []str
 	err = os.Chmod(tempDir, os.FileMode(0755))
 	if err != nil {
 		c.CleanUp(tempDir)
-		bosherr.WrapError(err, "Fixing permissions on temp dir")
+		bosherr.WrapError(err, "Fixing permissions on temp dir") //nolint:errcheck
 	}
 
 	for _, dirToCopy := range dirs {

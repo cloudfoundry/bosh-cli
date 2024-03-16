@@ -43,7 +43,7 @@ func (w *asyncWriter) doFlush() {
 	for i := 0; i < n; i++ {
 		select {
 		case p := <-w.queue:
-			w.w.Write(p)
+			w.w.Write(p) //nolint:errcheck
 		default:
 		}
 	}
@@ -56,7 +56,7 @@ func (w *asyncWriter) doWork() {
 			w.doFlush()
 			close(c)
 		case p := <-w.queue:
-			w.w.Write(p)
+			w.w.Write(p) //nolint:errcheck
 		}
 	}
 }
@@ -67,7 +67,7 @@ type asyncLogger struct {
 }
 
 func (l *asyncLogger) Flush() error {
-	l.writer.Flush()
+	l.writer.Flush() //nolint:errcheck
 	return nil
 }
 
@@ -122,7 +122,7 @@ func (l *asyncLogger) ErrorWithDetails(tag, msg string, args ...interface{}) {
 
 func (l *asyncLogger) HandlePanic(tag string) {
 	if l.log.recoverPanic(tag) {
-		l.FlushTimeout(time.Second * 30)
+		l.FlushTimeout(time.Second * 30) //nolint:errcheck
 		os.Exit(2)
 	}
 }

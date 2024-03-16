@@ -1,13 +1,11 @@
 package httpclient
 
 import (
-	"net/http"
-	"strings"
-
 	"errors"
-	"regexp"
-
+	"net/http"
 	"net/url"
+	"regexp"
+	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -173,7 +171,7 @@ func scrubEndpointQuery(endpoint string) string {
 	}
 
 	query := parsedURL.Query()
-	for key, _ := range query {
+	for key, _ := range query { //nolint:gosimple
 		query[key] = []string{"<redacted>"}
 	}
 

@@ -30,7 +30,7 @@ func BuildMap(rawProperties map[interface{}]interface{}) (Map, error) {
 // BuildList creates a new property List from an slice of interface{}, erroring if any elements are maps with non-string keys.
 // Slices in the property List are converted to property Lists. Maps in the property List are converted to property Maps.
 func BuildList(rawProperties []interface{}) (List, error) {
-	result := make(List, len(rawProperties), len(rawProperties))
+	result := make(List, len(rawProperties), len(rawProperties)) //nolint:gosimple
 
 	for i, val := range rawProperties {
 		convertedVal, err := Build(val)

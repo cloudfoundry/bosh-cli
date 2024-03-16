@@ -17,7 +17,7 @@ func NewMutualTLSClient(identity tls.Certificate, caCertPool *x509.CertPool, ser
 	)
 
 	clientConfig := tlsConfig.Client(tlsconfig.WithAuthority(caCertPool))
-	clientConfig.BuildNameToCertificate()
+	clientConfig.BuildNameToCertificate() //nolint:staticcheck
 	clientConfig.ServerName = serverName
 
 	return &http.Client{

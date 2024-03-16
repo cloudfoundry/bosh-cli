@@ -198,7 +198,7 @@ func (l *logger) printf(tag, msg string, args ...interface{}) {
 	l.loggerMu.Lock()
 	timestamp := time.Now().Format(l.timestampFormat)
 	l.logger.SetPrefix("[" + tag + "] " + timestamp + " ")
-	l.logger.Output(2, s)
+	l.logger.Output(2, s) //nolint:errcheck
 	l.loggerMu.Unlock()
 }
 
