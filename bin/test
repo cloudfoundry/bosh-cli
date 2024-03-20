@@ -3,7 +3,7 @@ set -eu -o pipefail
 
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-"${ROOT_DIR}/clean"
+"${ROOT_DIR}/bin/clean"
 
-"${ROOT_DIR}/test-unit"
-"${ROOT_DIR}/test-integration"
+"${ROOT_DIR}/bin/test-unit"
+"${ROOT_DIR}/bin/test-integration"
