@@ -17,20 +17,20 @@ import (
 const cobraCompletionCmdName = "completion"
 const cobraCompleteCmdName = "__complete"
 
-func IsItCompletionCommand(args []string) bool {
+func isCompletionCommand(args []string) bool {
 	return len(args) > 0 && (args[0] == cobraCompletionCmdName || args[0] == cobraCompleteCmdName)
 }
 
-type BoshComplete struct {
+type completionTestHarness struct {
 	completionFunctionsMap *completion.CompleteFunctionsMap
 	rootCmd                *cobra.Command
 	cmdContext             *completion.CmdContext
 }
 
-func NewBoshCompleteWithFunctions(cmdContext *completion.CmdContext, completionFunctionsMap *completion.CompleteFunctionsMap) *BoshComplete {
+func newCompletionTestHarness(cmdContext *completion.CmdContext, completionFunctionsMap *completion.CompleteFunctionsMap) *completionTestHarness {
 	// https://github.com/spf13/cobra/blob/main/site/content/completions/_index.md
 
-	c := &BoshComplete{
+	c := &completionTestHarness{
 		completionFunctionsMap: completionFunctionsMap,
 		rootCmd:                &cobra.Command{Use: "bosh"},
 		cmdContext:             cmdContext,
@@ -39,7 +39,7 @@ func NewBoshCompleteWithFunctions(cmdContext *completion.CmdContext, completionF
 	return c
 }
 
-func (c *BoshComplete) discoverBoshCommands(parentCommand *cobra.Command, fieldType reflect.Type, level int) {
+func (c *completionTestHarness) discoverBoshCommands(parentCommand *cobra.Command, fieldType reflect.Type, level int) {
 	for i := 0; i < fieldType.NumField(); i++ {
 		field := fieldType.Field(i)
 		if field.Name == "Args" {
@@ -55,7 +55,15 @@ func (c *BoshComplete) discoverBoshCommands(parentCommand *cobra.Command, fieldT
 	}
 }
 
-func (c *BoshComplete) addCommand(parentCommand *cobra.Command, field reflect.StructField) *cobra.Command {
+func (c *completionTestHarness) tryToBindValidArgsFunction(cmd *cobra.Command, argsTypeName string) {
+	if fun, ok := (*c.completionFunctionsMap)[argsTypeName]; ok {
+		cmd.ValidArgsFunction = fun
+	} else {
+		GinkgoLogr.Info(fmt.Sprintf("Unknown Args Type %s, command %s", argsTypeName, cmd.Name()))
+	}
+}
+
+func (c *completionTestHarness) addCommand(parentCommand *cobra.Command, field reflect.StructField) *cobra.Command {
 	cmdName := field.Tag.Get("command")
 	newCmd := &cobra.Command{
 		Use:     cmdName,
@@ -67,7 +75,7 @@ func (c *BoshComplete) addCommand(parentCommand *cobra.Command, field reflect.St
 	return newCmd
 }
 
-func (c *BoshComplete) getTagValues(fieldTag reflect.StructTag, tagName string) []string {
+func (c *completionTestHarness) getTagValues(fieldTag reflect.StructTag, tagName string) []string {
 	rawTag := string(fieldTag)
 	parts := strings.Split(rawTag, " ")
 	prefix := tagName + ":"
@@ -81,7 +89,7 @@ func (c *BoshComplete) getTagValues(fieldTag reflect.StructTag, tagName string) 
 	return values
 }
 
-func (c *BoshComplete) addFlag(cmd *cobra.Command, field reflect.StructField, rootLevel bool) {
+func (c *completionTestHarness) addFlag(cmd *cobra.Command, field reflect.StructField, rootLevel bool) {
 	name := field.Tag.Get("long")
 	short := field.Tag.Get("short")
 	value := field.Tag.Get("default")
@@ -90,15 +98,15 @@ func (c *BoshComplete) addFlag(cmd *cobra.Command, field reflect.StructField, ro
 	if env != "" {
 		usage = usage + ", env: " + env
 	}
-	flagSet := cmd.Flags()
+	cmdFlagSet := cmd.Flags()
 	if rootLevel {
-		flagSet = cmd.PersistentFlags()
+		cmdFlagSet = cmd.PersistentFlags()
 	}
 	p := c.findStoreForFlagValue(name)
 	if p == nil {
-		flagSet.StringP(name, short, value, usage)
+		cmdFlagSet.StringP(name, short, value, usage)
 	} else {
-		flagSet.StringVarP(p, name, short, value, usage)
+		cmdFlagSet.StringVarP(p, name, short, value, usage)
 	}
 	if fun, ok := (*c.completionFunctionsMap)["--"+name]; ok {
 		err := cmd.RegisterFlagCompletionFunc(name, fun)
@@ -108,7 +116,7 @@ func (c *BoshComplete) addFlag(cmd *cobra.Command, field reflect.StructField, ro
 	}
 }
 
-func (c *BoshComplete) findStoreForFlagValue(flagName string) *string {
+func (c *completionTestHarness) findStoreForFlagValue(flagName string) *string {
 	switch flagName {
 	case "environment":
 		return &c.cmdContext.EnvironmentName
@@ -120,7 +128,7 @@ func (c *BoshComplete) findStoreForFlagValue(flagName string) *string {
 	return nil
 }
 
-func (c *BoshComplete) ExecuteCaptured(args []string) (*CapturedResult, error) {
+func (c *completionTestHarness) execute(args []string) (*commandAndStdout, error) {
 	buf := new(bytes.Buffer)
 	c.rootCmd.SetOut(buf)
 	c.rootCmd.SetErr(GinkgoWriter)
@@ -130,24 +138,16 @@ func (c *BoshComplete) ExecuteCaptured(args []string) (*CapturedResult, error) {
 		return nil, err
 	}
 	retLines := strings.Split(buf.String(), "\n")
-	return &CapturedResult{Lines: retLines, Command: retCmd}, nil
+	return &commandAndStdout{Lines: retLines, Command: retCmd}, nil
 }
 
-func (c *BoshComplete) tryToBindValidArgsFunction(cmd *cobra.Command, argsTypeName string) {
-	if fun, ok := (*c.completionFunctionsMap)[argsTypeName]; ok {
-		cmd.ValidArgsFunction = fun
-	} else {
-		GinkgoLogr.Info(fmt.Sprintf("Unknown Args Type %s, command %s", argsTypeName, cmd.Name()))
-	}
-}
-
-type CapturedResult struct {
+type commandAndStdout struct {
 	Lines   []string
 	Command *cobra.Command
 }
 
 var _ = Describe("Completion Integration Tests", func() {
-	var boshComplete *BoshComplete
+	var boshComplete *completionTestHarness
 
 	BeforeEach(func() {
 		fakeCmdCtx := &completion.CmdContext{}
@@ -155,17 +155,17 @@ var _ = Describe("Completion Integration Tests", func() {
 		fakeCompletionFunctionMap :=
 			completion.NewCompleteFunctionsMap(boshlog.NewWriterLogger(boshlog.LevelInfo, GinkgoWriter), fakeDq)
 
-		boshComplete = NewBoshCompleteWithFunctions(fakeCmdCtx, fakeCompletionFunctionMap)
+		boshComplete = newCompletionTestHarness(fakeCmdCtx, fakeCompletionFunctionMap)
 	})
 
 	It("is this bosh completion command", func() {
-		Expect(IsItCompletionCommand([]string{"completion"})).To(BeTrue())
-		Expect(IsItCompletionCommand([]string{"completion", "something-else"})).To(BeTrue())
-		Expect(IsItCompletionCommand([]string{"__complete"})).To(BeTrue())
-		Expect(IsItCompletionCommand([]string{"__complete", "something-else"})).To(BeTrue())
-		Expect(IsItCompletionCommand([]string{})).To(BeFalse())
-		Expect(IsItCompletionCommand([]string{"deployments"})).To(BeFalse())
-		Expect(IsItCompletionCommand([]string{"something-else"})).To(BeFalse())
+		Expect(isCompletionCommand([]string{"completion"})).To(BeTrue())
+		Expect(isCompletionCommand([]string{"completion", "something-else"})).To(BeTrue())
+		Expect(isCompletionCommand([]string{"__complete"})).To(BeTrue())
+		Expect(isCompletionCommand([]string{"__complete", "something-else"})).To(BeTrue())
+		Expect(isCompletionCommand([]string{})).To(BeFalse())
+		Expect(isCompletionCommand([]string{"deployments"})).To(BeFalse())
+		Expect(isCompletionCommand([]string{"something-else"})).To(BeFalse())
 	})
 
 	It("completion", func() {
@@ -256,9 +256,9 @@ type testCase struct {
 	wantErr        bool
 }
 
-func (tc testCase) check(boshComplete *BoshComplete) {
+func (tc testCase) check(boshComplete *completionTestHarness) {
 	args := strings.Split(tc.args, " ")
-	result, err := boshComplete.ExecuteCaptured(args)
+	result, err := boshComplete.execute(args)
 	if tc.wantErr {
 		Expect(err).To(HaveOccurred())
 	} else {
