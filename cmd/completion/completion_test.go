@@ -2,7 +2,7 @@ package completion_test
 
 import (
 	"bytes"
-	"os"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -16,7 +16,6 @@ import (
 
 const cobraCompletionCmdName = "completion"
 const cobraCompleteCmdName = "__complete"
-const logTag = "completion"
 
 func IsItCompletionCommand(args []string) bool {
 	return len(args) > 0 && (args[0] == cobraCompletionCmdName || args[0] == cobraCompleteCmdName)
@@ -26,15 +25,13 @@ type BoshComplete struct {
 	completionFunctionsMap *completion.CompleteFunctionsMap
 	rootCmd                *cobra.Command
 	cmdContext             *completion.CmdContext
-	logger                 boshlog.Logger
 }
 
-func NewBoshCompleteWithFunctions(logger boshlog.Logger, cmdContext *completion.CmdContext, completionFunctionsMap *completion.CompleteFunctionsMap) *BoshComplete {
+func NewBoshCompleteWithFunctions(cmdContext *completion.CmdContext, completionFunctionsMap *completion.CompleteFunctionsMap) *BoshComplete {
 	// https://github.com/spf13/cobra/blob/main/site/content/completions/_index.md
 
 	c := &BoshComplete{
 		completionFunctionsMap: completionFunctionsMap,
-		logger:                 logger,
 		rootCmd:                &cobra.Command{Use: "bosh"},
 		cmdContext:             cmdContext,
 	}
@@ -106,7 +103,7 @@ func (c *BoshComplete) addFlag(cmd *cobra.Command, field reflect.StructField, ro
 	if fun, ok := (*c.completionFunctionsMap)["--"+name]; ok {
 		err := cmd.RegisterFlagCompletionFunc(name, fun)
 		if err != nil {
-			c.logger.Warn(logTag, "register flag %s completion function error: %v", name, err)
+			GinkgoLogr.Info(fmt.Sprintf("register flag %s completion function error: %v", name, err))
 		}
 	}
 }
@@ -141,10 +138,9 @@ func (c *BoshComplete) ExecuteCaptured(args []string) (*CapturedResult, error) {
 
 func (c *BoshComplete) tryToBindValidArgsFunction(cmd *cobra.Command, argsTypeName string) {
 	if fun, ok := (*c.completionFunctionsMap)[argsTypeName]; ok {
-		//c.logger.Debug(c.logTag, "Command ValidArgsFunction '%s': `%v`", cmd.Name(), GetShortFunName(fun))
 		cmd.ValidArgsFunction = fun
 	} else {
-		c.logger.Warn(logTag, "Unknown Args Type %s, command %s", argsTypeName, cmd.Name())
+		GinkgoLogr.Info(fmt.Sprintf("Unknown Args Type %s, command %s", argsTypeName, cmd.Name()))
 	}
 }
 
@@ -159,11 +155,12 @@ var _ = Describe("Completion Integration Tests", func() {
 	)
 
 	BeforeEach(func() {
-		testLogger := boshlog.NewWriterLogger(boshlog.LevelInfo, os.Stderr)
 		fakeCmdCtx := &completion.CmdContext{}
 		fakeDq := completion.NewDirectorQueryFake(fakeCmdCtx)
-		fakeCompletionFunctionMap := completion.NewCompleteFunctionsMap(testLogger, fakeDq)
-		boshComplete = NewBoshCompleteWithFunctions(testLogger, fakeCmdCtx, fakeCompletionFunctionMap)
+		fakeCompletionFunctionMap :=
+			completion.NewCompleteFunctionsMap(boshlog.NewWriterLogger(boshlog.LevelInfo, GinkgoWriter), fakeDq)
+
+		boshComplete = NewBoshCompleteWithFunctions(fakeCmdCtx, fakeCompletionFunctionMap)
 	})
 
 	It("is this bosh completion command", func() {
