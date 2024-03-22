@@ -120,15 +120,11 @@ func (c *BoshComplete) findStoreForFlagValue(flagName string) *string {
 	return nil
 }
 
-func (c *BoshComplete) Execute(args []string) (*cobra.Command, error) {
-	c.rootCmd.SetArgs(args)
-	return c.rootCmd.ExecuteC()
-}
-
 func (c *BoshComplete) ExecuteCaptured(args []string) (*CapturedResult, error) {
 	buf := new(bytes.Buffer)
 	c.rootCmd.SetOut(buf)
-	retCmd, err := c.Execute(args)
+	c.rootCmd.SetArgs(args)
+	retCmd, err := c.rootCmd.ExecuteC()
 	if err != nil {
 		return nil, err
 	}
@@ -150,9 +146,7 @@ type CapturedResult struct {
 }
 
 var _ = Describe("Completion Integration Tests", func() {
-	var (
-		boshComplete *BoshComplete
-	)
+	var boshComplete *BoshComplete
 
 	BeforeEach(func() {
 		fakeCmdCtx := &completion.CmdContext{}
