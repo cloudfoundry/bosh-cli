@@ -5,9 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	boshcmd "github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/spf13/cobra"
 )
@@ -45,22 +43,6 @@ type BoshComplete struct {
 	rootCmd                *cobra.Command
 	cmdContext             *CmdContext
 	logger                 boshlog.Logger
-}
-
-func NewBoshComplete(blindUi *boshui.ConfUI, logger boshlog.Logger) *BoshComplete {
-	deps := boshcmd.NewBasicDeps(blindUi, logger)
-	cmdFactory := boshcmd.NewFactory(deps)
-	var session boshcmd.Session
-	cmd, err := cmdFactory.New([]string{initCmdName}) // just to init session
-	if err != nil {
-		logger.Debug(logTag, "session initialization (command '%s') error: %v", initCmdName, err)
-	} else {
-		session = NewCmdBridge(cmd, deps).Session()
-	}
-	cmdContext := &CmdContext{}
-	dq := NewDirectorQuery(logger, cmdContext, session)
-	cfMap := NewCompleteFunctionsMap(logger, dq)
-	return NewBoshCompleteWithFunctions(logger, cmdContext, cfMap)
 }
 
 func NewBoshCompleteWithFunctions(logger boshlog.Logger, cmdContext *CmdContext, completionFunctionsMap *CompleteFunctionsMap) *BoshComplete {
