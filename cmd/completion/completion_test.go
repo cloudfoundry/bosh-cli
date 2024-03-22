@@ -1,10 +1,9 @@
 package completion_test
 
 import (
-	"os"
 	"strings"
 
-	"github.com/cloudfoundry/bosh-utils/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -12,15 +11,15 @@ import (
 )
 
 var _ = Describe("Completion Integration Tests", func() {
-	var (
-		boshComplete *completion.BoshComplete
-	)
+	var boshComplete *completion.BoshComplete
 
 	BeforeEach(func() {
-		testLogger := logger.NewWriterLogger(logger.LevelInfo, os.Stderr)
+		testLogger := boshlog.NewWriterLogger(boshlog.LevelInfo, GinkgoWriter)
 		fakeCmdCtx := &completion.CmdContext{}
 		fakeDq := completion.NewDirectorQueryFake(fakeCmdCtx)
-		fakeCompletionFunctionMap := completion.NewCompleteFunctionsMap(testLogger, fakeDq)
+		fakeCompletionFunctionMap :=
+			completion.NewCompleteFunctionsMap(testLogger, fakeDq)
+
 		boshComplete = completion.NewBoshCompleteWithFunctions(testLogger, fakeCmdCtx, fakeCompletionFunctionMap)
 	})
 

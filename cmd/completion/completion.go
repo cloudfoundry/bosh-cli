@@ -23,6 +23,11 @@ func IsItCompletionCommand(args []string) bool {
 	return len(args) > 0 && (args[0] == cobraCompletionCmdName || args[0] == cobraCompleteCmdName)
 }
 
+type CapturedResult struct {
+	Lines   []string
+	Command *cobra.Command
+}
+
 type CmdContext struct {
 	ConfigPath      string
 	EnvironmentName string
@@ -169,9 +174,4 @@ func (c *BoshComplete) tryToBindValidArgsFunction(cmd *cobra.Command, argsTypeNa
 	} else {
 		c.logger.Warn(logTag, "Unknown Args Type %s, command %s", argsTypeName, cmd.Name())
 	}
-}
-
-type CapturedResult struct {
-	Lines   []string
-	Command *cobra.Command
 }
