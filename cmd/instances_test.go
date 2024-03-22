@@ -61,7 +61,6 @@ var _ = Describe("InstancesCmd", func() {
 
 					IPs:        []string{"in1-ip1", "in1-ip2"},
 					Deployment: "dep",
-					DNS:        []string{"in1-dns1", "in1-dns2"},
 
 					State:       "in1-state",
 					VMID:        "in1-cid",
@@ -115,7 +114,6 @@ var _ = Describe("InstancesCmd", func() {
 
 					IPs:        []string{"in2-ip1"},
 					Deployment: "dep",
-					DNS:        []string{"in2-dns1"},
 
 					State:       "in2-state",
 					VMID:        "in2-cid",
@@ -540,73 +538,6 @@ var _ = Describe("InstancesCmd", func() {
 										boshtbl.NewValueInt(0),
 										boshtbl.NewValueBool(false),
 										boshtbl.NewValueBool(false),
-									},
-								},
-							},
-						},
-					}))
-				})
-
-				It("lists instances for the deployment including dns", func() {
-					opts.DNS = true
-
-					Expect(act()).ToNot(HaveOccurred())
-
-					Expect(ui.Table).To(Equal(boshtbl.Table{
-						Title:   "Deployment 'dep'",
-						Content: "instances",
-
-						Header: []boshtbl.Header{
-							boshtbl.NewHeader("Instance"),
-							boshtbl.NewHeader("Process State"),
-							boshtbl.NewHeader("AZ"),
-							boshtbl.NewHeader("IPs"),
-							boshtbl.NewHeader("Deployment"),
-							boshtbl.NewHeader("DNS A Records"),
-						},
-
-						SortBy: []boshtbl.ColumnSort{
-							{Column: 0, Asc: true},
-							{Column: 1, Asc: true},
-						},
-
-						Sections: []boshtbl.Section{
-							{
-								FirstColumn: boshtbl.NewValueString("job-name"),
-								Rows: [][]boshtbl.Value{
-									{
-										boshtbl.NewValueString("job-name"),
-										boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
-										boshtbl.ValueString{},
-										boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
-										boshtbl.NewValueString("dep"),
-										boshtbl.NewValueStrings([]string{"in1-dns1", "in1-dns2"}),
-									},
-								},
-							},
-							{
-								FirstColumn: boshtbl.NewValueString("job-name"),
-								Rows: [][]boshtbl.Value{
-									{
-										boshtbl.NewValueString("job-name"),
-										boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
-										boshtbl.NewValueString("in2-az"),
-										boshtbl.NewValueStrings([]string{"in2-ip1"}),
-										boshtbl.NewValueString("dep"),
-										boshtbl.NewValueStrings([]string{"in2-dns1"}),
-									},
-								},
-							},
-							{
-								FirstColumn: boshtbl.NewValueString("?"),
-								Rows: [][]boshtbl.Value{
-									{
-										boshtbl.NewValueString("?"),
-										boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
-										boshtbl.ValueString{},
-										boshtbl.ValueStrings{},
-										boshtbl.NewValueString("dep"),
-										boshtbl.ValueStrings{},
 									},
 								},
 							},

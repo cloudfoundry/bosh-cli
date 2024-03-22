@@ -19,7 +19,7 @@ var _ = Describe("InstanceTable", func() {
 
 		BeforeEach(func() {
 			info = boshdir.VMInfo{}
-			tbl = InstanceTable{Details: true, DNS: true, Vitals: true, CloudProperties: true}
+			tbl = InstanceTable{Details: true, Vitals: true, CloudProperties: true}
 		})
 
 		Describe("name, id", func() {

@@ -23,7 +23,6 @@ type VMInfo struct {
 
 	IPs        []string `json:"ips"`
 	Deployment string   `json:"deployment_name"`
-	DNS        []string `json:"dns"`
 
 	AZ              string      `json:"az"`
 	State           string      `json:"state"`
