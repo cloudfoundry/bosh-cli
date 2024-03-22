@@ -123,6 +123,7 @@ func (c *BoshComplete) findStoreForFlagValue(flagName string) *string {
 func (c *BoshComplete) ExecuteCaptured(args []string) (*CapturedResult, error) {
 	buf := new(bytes.Buffer)
 	c.rootCmd.SetOut(buf)
+	c.rootCmd.SetErr(GinkgoWriter)
 	c.rootCmd.SetArgs(args)
 	retCmd, err := c.rootCmd.ExecuteC()
 	if err != nil {
