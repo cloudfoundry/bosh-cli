@@ -2,11 +2,10 @@ package cmd_test
 
 import (
 	"errors"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"time"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
@@ -61,7 +60,6 @@ var _ = Describe("VMsCmd", func() {
 
 					IPs:        []string{"in1-ip1", "in1-ip2"},
 					Deployment: "dep",
-					DNS:        []string{"in1-dns1", "in1-dns2"},
 
 					VMID:               "in1-cid",
 					AgentID:            "in1-agent-id",
@@ -96,7 +94,6 @@ var _ = Describe("VMsCmd", func() {
 
 					IPs:        []string{"in2-ip1"},
 					Deployment: "dep",
-					DNS:        []string{"in2-dns1"},
 
 					VMID:               "in2-cid",
 					AgentID:            "in2-agent-id",
@@ -195,68 +192,6 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.ValueString{},
 								boshtbl.ValueString{S: "-"},
 								boshtbl.ValueString{S: "-"},
-							},
-						},
-					}))
-				})
-
-				It("lists VMs for the deployment including dns", func() {
-					opts.DNS = true
-
-					Expect(act()).ToNot(HaveOccurred())
-
-					Expect(ui.Table).To(Equal(boshtbl.Table{
-						Title: "Deployment 'dep1'",
-
-						Content: "vms",
-
-						Header: []boshtbl.Header{
-							boshtbl.NewHeader("Instance"),
-							boshtbl.NewHeader("Process State"),
-							boshtbl.NewHeader("AZ"),
-							boshtbl.NewHeader("IPs"),
-							boshtbl.NewHeader("VM CID"),
-							boshtbl.NewHeader("VM Type"),
-							boshtbl.NewHeader("Active"),
-							boshtbl.NewHeader("Stemcell"),
-							boshtbl.NewHeader("DNS A Records"),
-						},
-
-						SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
-
-						Rows: [][]boshtbl.Value{
-							{
-								boshtbl.NewValueString("job-name"),
-								boshtbl.NewValueFmt(boshtbl.NewValueString("in1-process-state"), true),
-								boshtbl.ValueString{},
-								boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
-								boshtbl.NewValueString("in1-cid"),
-								boshtbl.NewValueString("in1-rp"),
-								boshtbl.NewValueString("true"),
-								boshtbl.NewValueString("stemcell/version"),
-								boshtbl.NewValueStrings([]string{"in1-dns1", "in1-dns2"}),
-							},
-							{
-								boshtbl.NewValueString("job-name"),
-								boshtbl.NewValueFmt(boshtbl.NewValueString("in2-process-state"), true),
-								boshtbl.NewValueString("in2-az"),
-								boshtbl.NewValueStrings([]string{"in2-ip1"}),
-								boshtbl.NewValueString("in2-cid"),
-								boshtbl.NewValueString("in2-rp"),
-								boshtbl.NewValueString("false"),
-								boshtbl.NewValueString("stemcell/version"),
-								boshtbl.NewValueStrings([]string{"in2-dns1"}),
-							},
-							{
-								boshtbl.NewValueString("?"),
-								boshtbl.NewValueFmt(boshtbl.NewValueString("unresponsive agent"), true),
-								boshtbl.ValueString{},
-								boshtbl.ValueStrings{},
-								boshtbl.ValueString{},
-								boshtbl.ValueString{},
-								boshtbl.ValueString{S: "-"},
-								boshtbl.ValueString{S: "-"},
-								boshtbl.ValueStrings{},
 							},
 						},
 					}))

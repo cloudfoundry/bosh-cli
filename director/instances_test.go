@@ -1,13 +1,12 @@
 package director_test
 
 import (
+	"net/http"
 	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
-
-	"net/http"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/director"
 )
@@ -99,7 +98,6 @@ var _ = Describe("Instances", func() {
 
 				IPs:        []string{"ip"},
 				Deployment: "dep",
-				DNS:        []string{"dns"},
 
 				AZ:           "az",
 				VMID:         "vm-cid",

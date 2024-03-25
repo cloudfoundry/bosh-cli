@@ -26,7 +26,6 @@ func (c InstancesCmd) Run(opts InstancesOpts) error {
 		DeploymentDetails: true,
 		Processes:         opts.Processes,
 		Details:           opts.Details,
-		DNS:               opts.DNS,
 		Vitals:            opts.Vitals,
 	}
 

@@ -2366,14 +2366,6 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
-		Describe("DNS", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("DNS", opts)).To(Equal(
-					`long:"dns" description:"Show DNS A records"`,
-				))
-			})
-		})
-
 		Describe("Vitals", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Vitals", opts)).To(Equal(
@@ -2404,14 +2396,6 @@ var _ = Describe("Opts", func() {
 
 		BeforeEach(func() {
 			opts = &VMsOpts{}
-		})
-
-		Describe("DNS", func() {
-			It("contains desired values", func() {
-				Expect(getStructTagForName("DNS", opts)).To(Equal(
-					`long:"dns" description:"Show DNS A records"`,
-				))
-			})
 		})
 
 		Describe("Vitals", func() {

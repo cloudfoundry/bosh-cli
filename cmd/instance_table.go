@@ -32,9 +32,6 @@ type InstanceTableValues struct {
 
 	Stemcell boshtbl.Value
 
-	// DNS
-	DNS boshtbl.Value
-
 	// Vitals
 	Uptime boshtbl.Value // only for Process
 	Load   boshtbl.Value
@@ -76,9 +73,6 @@ var InstanceTableHeader = InstanceTableValues{
 
 	Stemcell: boshtbl.NewValueString("Stemcell"),
 
-	// DNS
-	DNS: boshtbl.NewValueString("DNS A Records"),
-
 	// Vitals
 	Uptime: boshtbl.NewValueString("Uptime"), // only for Process
 	Load:   boshtbl.NewValueString("Load\n(1m, 5m, 15m)"),
@@ -97,7 +91,7 @@ var InstanceTableHeader = InstanceTableValues{
 }
 
 type InstanceTable struct {
-	Processes, VMDetails, DeploymentDetails, Details, Stemcell, DNS, Vitals, CloudProperties bool
+	Processes, VMDetails, DeploymentDetails, Details, Stemcell, Vitals, CloudProperties bool
 }
 
 func (t InstanceTable) Headers() []boshtbl.Header {
@@ -154,9 +148,6 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 		CloudProperties: boshtbl.NewValueInterface(i.CloudProperties),
 
 		Stemcell: boshtbl.NewValueString(stemcell),
-
-		// DNS
-		DNS: boshtbl.NewValueStrings(i.DNS),
 
 		// Vitals
 		Uptime: ValueUptime{i.Vitals.Uptime.Seconds},
@@ -239,10 +230,6 @@ func (t InstanceTable) AsValues(v InstanceTableValues) []boshtbl.Value {
 
 	if t.CloudProperties {
 		result = append(result, v.CloudProperties)
-	}
-
-	if t.DNS {
-		result = append(result, v.DNS)
 	}
 
 	if t.Vitals {
