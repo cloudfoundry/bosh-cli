@@ -4,14 +4,14 @@ go 1.21.0
 
 require (
 	code.cloudfoundry.org/clock v1.1.0
-	code.cloudfoundry.org/workpool v0.0.0-20230612151832-b93da105e0e8
+	code.cloudfoundry.org/workpool v0.0.0-20240408164905-b6c2fa5a80e4
 	github.com/cheggaaa/pb/v3 v3.1.5
 	github.com/cloudfoundry/bosh-agent v0.0.61-0.20230301011448-4cfe06c13ad7
-	github.com/cloudfoundry/bosh-davcli v0.0.333
-	github.com/cloudfoundry/bosh-gcscli v0.0.216
-	github.com/cloudfoundry/bosh-s3cli v0.0.281
-	github.com/cloudfoundry/bosh-utils v0.0.455
-	github.com/cloudfoundry/config-server v0.1.176
+	github.com/cloudfoundry/bosh-davcli v0.0.334
+	github.com/cloudfoundry/bosh-gcscli v0.0.217
+	github.com/cloudfoundry/bosh-s3cli v0.0.283
+	github.com/cloudfoundry/bosh-utils v0.0.456
+	github.com/cloudfoundry/config-server v0.1.177
 	github.com/cloudfoundry/socks5-proxy v0.2.116
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
@@ -41,9 +41,9 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v1.1.7 // indirect
 	cloud.google.com/go/storage v1.40.0 // indirect
-	code.cloudfoundry.org/tlsconfig v0.0.0-20240405144453-942277399864 // indirect
+	code.cloudfoundry.org/tlsconfig v0.0.0-20240410162701-78a97c114f7f // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
-	github.com/aws/aws-sdk-go v1.51.16 // indirect
+	github.com/aws/aws-sdk-go v1.51.21 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e // indirect
@@ -57,7 +57,7 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/pprof v0.0.0-20240402174815-29b9bb013b0f // indirect
+	github.com/google/pprof v0.0.0-20240409012703-83162a5b38cd // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
@@ -89,9 +89,9 @@ require (
 	golang.org/x/term v0.19.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/api v0.172.0 // indirect
-	google.golang.org/genproto v0.0.0-20240401170217-c3f982113cda // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240401170217-c3f982113cda // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240401170217-c3f982113cda // indirect
-	google.golang.org/grpc v1.63.0 // indirect
+	google.golang.org/genproto v0.0.0-20240412170617-26222e5d3d56 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240412170617-26222e5d3d56 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240412170617-26222e5d3d56 // indirect
+	google.golang.org/grpc v1.63.2 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 )
