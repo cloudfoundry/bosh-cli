@@ -26,7 +26,9 @@ type S3Cli struct {
 	AssumeRoleArn        string `json:"assume_role_arn"`
 	MultipartUpload      bool   `json:"multipart_upload"`
 	UseV2SigningMethod   bool
-	HostStyle            bool `json:"host_style"`
+	HostStyle            bool   `json:"host_style"`
+	SwiftAuthAccount     string `json:"swift_auth_account"`
+	SwiftTempURLKey      string `json:"swift_temp_url_key"`
 }
 
 // EmptyRegion is required to allow us to use the AWS SDK against S3 compatible blobstores which do not have
