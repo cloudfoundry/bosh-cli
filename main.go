@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/completion"
 	"os"
 	"os/signal"
 	"runtime/debug"
@@ -24,19 +25,27 @@ func main() {
 
 	ui := boshui.NewConfUI(logger)
 	defer ui.Flush()
-
-	cmdFactory := boshcmd.NewFactory(boshcmd.NewBasicDeps(ui, logger))
-
-	cmd, err := cmdFactory.New(os.Args[1:])
-	if err != nil {
-		fail(err, ui, logger)
-	}
-
-	err = cmd.Execute()
-	if err != nil {
-		fail(err, ui, logger)
+	if completion.IsItCompletionCommand(os.Args[1:]) {
+		// completion support
+		blindUi := boshui.NewWrappingConfUI(&completion.BlindUI{}, logger) // only completion can write to stdout
+		bc := completion.NewBoshComplete(blindUi, logger)
+		if _, err := bc.Execute(os.Args[1:]); err != nil {
+			fail(err, ui, logger)
+		}
 	} else {
-		success(ui, logger)
+		cmdFactory := boshcmd.NewFactory(boshcmd.NewBasicDeps(ui, logger))
+
+		cmd, err := cmdFactory.New(os.Args[1:])
+		if err != nil {
+			fail(err, ui, logger)
+		}
+
+		err = cmd.Execute()
+		if err != nil {
+			fail(err, ui, logger)
+		} else {
+			success(ui, logger)
+		}
 	}
 }
 
