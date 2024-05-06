@@ -112,6 +112,10 @@ func (p Provider) newBlobstore(dirPath string) boshblob.DigestBlobstore {
 
 	switch provider {
 	case "local":
+		blobstorePath, found := options["blobstore_path"].(string)
+		if found && !filepath.IsAbs(blobstorePath) {
+			options["blobstore_path"] = filepath.Join(dirPath, blobstorePath)
+		}
 		blobstore = boshblob.NewLocalBlobstore(p.fs, p.uuidGen, options)
 	case "s3":
 		blobstore = NewS3Blobstore(p.fs, p.uuidGen, options)
