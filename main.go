@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/cloudfoundry/bosh-cli/v7/cmd/completion"
 	"os"
 	"os/signal"
 	"runtime/debug"
 	"syscall"
+
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/completion"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
