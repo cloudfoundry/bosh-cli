@@ -163,14 +163,6 @@ jobs:
         params:
           PREVIOUS_BINARY_PATTERN: bosh-cli-*-linux-amd64
           CURRENT_BINARY_PATTERN: bosh-cli-*-linux-amd64
-        on_success:
-          do:
-          - put: release-notes
-            params:
-              file: release-notes/release-notes.md
-          - put: version-semver
-            params:
-              bump: patch
     - try:
         task: check-for-patched-cves
         file: golang-release/ci/tasks/shared/check-for-patched-cves.yml
@@ -180,20 +172,42 @@ jobs:
         params:
           SEVERITY: CRITICAL,HIGH
           SOURCE_PATH: # root path
-        on_success:
-          do:
-          - put: release-notes
-            params:
-              file: patched_cves/release-notes.md
-          - put: version-semver
-            params:
-              bump: patch
     - task: ensure-cve-checker-succeeded
       file: golang-release/ci/tasks/shared/ensure-cve-checker-succeeded.yml
       image: ubuntu-image
       params:
         description: |
           Since the previous step is wrapped in a "try", this task checks that the previous step fully executed.
+    - try:
+        task: check-needs-release
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: {repository: alpine}
+          inputs:
+          - name: release-notes
+          run:
+            path: /bin/sh
+            args:
+            - -c
+            - |
+              if [ -f release-notes/needs-release ]; then
+                echo "## Release Notes"
+                echo "${release-notes/release-notes.md}"
+                exit 0
+              else
+                echo "No release needed"
+                exit 1
+              fi
+        on_success:
+          do:
+          - put: release-notes
+            params:
+              file: release-notes/release-notes.md
+          - put: version-semver
+            params:
+              bump: patch
 
   - name: build
     public: true
