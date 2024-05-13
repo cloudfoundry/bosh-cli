@@ -99,6 +99,7 @@ jobs:
         params:
           DB: postgresql
           DB_VERSION: 15
+          DB_TLS: true
 
   - name: pre-release-fan-in
     public: true
