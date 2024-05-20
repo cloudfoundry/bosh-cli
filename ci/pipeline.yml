@@ -239,7 +239,7 @@ jobs:
       - task: create-dockerfile
         file: bosh-cli/ci/tasks/create-dockerfile.yml
 
-      - {put: bosh-cli, params: {repository: bosh-cli, tag: version-semver/number, tag_prefix: v}}
+      - {put: bosh-cli, params: {repository: bosh-cli, tag: version-semver/number, tag_prefix: v, only_tag: true }}
 
       - in_parallel:
         - {put: release-bucket-linux, params: {file: compiled-linux-amd64/bosh-cli-*-linux-amd64}}
