@@ -40,7 +40,7 @@ cloud.google.com/go/storage/internal/apiv2/storagepb
 ## explicit; go 1.20
 code.cloudfoundry.org/clock
 code.cloudfoundry.org/clock/fakeclock
-# code.cloudfoundry.org/tlsconfig v0.0.0-20240427164042-d6180ef19863
+# code.cloudfoundry.org/tlsconfig v0.0.0-20240522170710-79df114af82a
 ## explicit; go 1.19
 code.cloudfoundry.org/tlsconfig
 # code.cloudfoundry.org/workpool v0.0.0-20240408164905-b6c2fa5a80e4
@@ -49,7 +49,7 @@ code.cloudfoundry.org/workpool
 # github.com/VividCortex/ewma v1.2.0
 ## explicit; go 1.12
 github.com/VividCortex/ewma
-# github.com/aws/aws-sdk-go v1.52.2
+# github.com/aws/aws-sdk-go v1.53.8
 ## explicit; go 1.19
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -131,11 +131,11 @@ github.com/cloudfoundry/bosh-davcli/signer
 ## explicit; go 1.21.0
 github.com/cloudfoundry/bosh-gcscli/client
 github.com/cloudfoundry/bosh-gcscli/config
-# github.com/cloudfoundry/bosh-s3cli v0.0.289
+# github.com/cloudfoundry/bosh-s3cli v0.0.295
 ## explicit; go 1.21.0
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.460
+# github.com/cloudfoundry/bosh-utils v0.0.466
 ## explicit; go 1.21.0
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/fakes
@@ -162,7 +162,7 @@ github.com/cloudfoundry/config-server/types/typesfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e
 ## explicit
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.116
+# github.com/cloudfoundry/socks5-proxy v0.2.117
 ## explicit; go 1.21.0
 github.com/cloudfoundry/socks5-proxy
 # github.com/cppforlife/go-patch v0.2.0
@@ -214,7 +214,7 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/pprof v0.0.0-20240430035430-e4905b036c4e
+# github.com/google/pprof v0.0.0-20240509144519-723abb6459b7
 ## explicit; go 1.19
 github.com/google/pprof/profile
 # github.com/google/s2a-go v0.1.7
@@ -297,7 +297,7 @@ github.com/maxbrunsfeld/counterfeiter/v6/generator
 # github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
 ## explicit
 github.com/nu7hatch/gouuid
-# github.com/onsi/ginkgo/v2 v2.17.2
+# github.com/onsi/ginkgo/v2 v2.17.3
 ## explicit; go 1.20
 github.com/onsi/ginkgo/v2
 github.com/onsi/ginkgo/v2/config
@@ -406,7 +406,7 @@ go.opentelemetry.io/otel/metric/noop
 ## explicit; go 1.21
 go.opentelemetry.io/otel/trace
 go.opentelemetry.io/otel/trace/embedded
-# golang.org/x/crypto v0.22.0
+# golang.org/x/crypto v0.23.0
 ## explicit; go 1.18
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/chacha20
@@ -425,7 +425,7 @@ golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.24.0
+# golang.org/x/net v0.25.0
 ## explicit; go 1.18
 golang.org/x/net/bpf
 golang.org/x/net/context
@@ -456,16 +456,16 @@ golang.org/x/oauth2/jwt
 ## explicit; go 1.18
 golang.org/x/sync/errgroup
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.19.0
+# golang.org/x/sys v0.20.0
 ## explicit; go 1.18
 golang.org/x/sys/cpu
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.19.0
+# golang.org/x/term v0.20.0
 ## explicit; go 1.18
 golang.org/x/term
-# golang.org/x/text v0.14.0
+# golang.org/x/text v0.15.0
 ## explicit; go 1.18
 golang.org/x/text/cases
 golang.org/x/text/encoding
@@ -492,7 +492,7 @@ golang.org/x/text/unicode/norm
 # golang.org/x/time v0.5.0
 ## explicit; go 1.18
 golang.org/x/time/rate
-# golang.org/x/tools v0.20.0
+# golang.org/x/tools v0.21.0
 ## explicit; go 1.19
 golang.org/x/tools/cmd/goimports
 golang.org/x/tools/cover
@@ -509,7 +509,6 @@ golang.org/x/tools/internal/event
 golang.org/x/tools/internal/event/core
 golang.org/x/tools/internal/event/keys
 golang.org/x/tools/internal/event/label
-golang.org/x/tools/internal/event/tag
 golang.org/x/tools/internal/gcimporter
 golang.org/x/tools/internal/gocommand
 golang.org/x/tools/internal/gopathwalk
