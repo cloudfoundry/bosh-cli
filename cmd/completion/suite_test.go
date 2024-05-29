@@ -9,5 +9,5 @@ import (
 
 func TestReg(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "completion")
+	RunSpecs(t, "cmd/completion")
 }
