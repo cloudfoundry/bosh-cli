@@ -1,17 +1,19 @@
 package pkg
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/cloudfoundry/bosh-cli/v7/installation/blobextract"
-	birelpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
-	bistatepkg "github.com/cloudfoundry/bosh-cli/v7/state/pkg"
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+
+	"github.com/cloudfoundry/bosh-cli/v7/installation/blobextract"
+	birelpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
+	bistatepkg "github.com/cloudfoundry/bosh-cli/v7/state/pkg"
 )
 
 type compiler struct {
@@ -50,9 +52,6 @@ func NewPackageCompiler(
 }
 
 func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageRecord, bool, error) {
-	// This is a variable being used now to fulfill the requirement of the compiler_interface compile method
-	// to indicate whether the package is already compiled. Compiled CPI releases are not currently allowed.
-	// No other packages, but CPI ones, are currently being compiled locally.
 	isCompiledPackage := false
 
 	c.logger.Debug(c.logTag, "Checking for compiled package '%s/%s'", pkg.Name(), pkg.Fingerprint())
@@ -77,51 +76,62 @@ func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageR
 		}
 	}()
 
-	c.logger.Debug(c.logTag, "Compiling package '%s/%s'", pkg.Name(), pkg.Fingerprint())
+	var tarball string
+	switch v := pkg.(type) {
+	case *birelpkg.Package:
+		c.logger.Debug(c.logTag, "Compiling package '%s/%s'", pkg.Name(), pkg.Fingerprint())
 
-	installDir := filepath.Join(c.packagesDir, pkg.Name())
+		installDir := filepath.Join(c.packagesDir, pkg.Name())
 
-	err = c.fileSystem.MkdirAll(installDir, os.ModePerm)
-	if err != nil {
-		return record, isCompiledPackage, bosherr.WrapError(err, "Creating package install dir")
-	}
-
-	packageSrcDir := pkg.(*birelpkg.Package).ExtractedPath()
-
-	if !c.fileSystem.FileExists(filepath.Join(packageSrcDir, "packaging")) {
-		return record, isCompiledPackage, bosherr.Errorf("Packaging script for package '%s' not found", pkg.Name())
-	}
-
-	cmd := boshsys.Command{
-		Name: "bash",
-		Args: []string{"-x", "packaging"},
-		Env: map[string]string{
-			"BOSH_COMPILE_TARGET": packageSrcDir,
-			"BOSH_INSTALL_TARGET": installDir,
-			"BOSH_PACKAGE_NAME":   pkg.Name(),
-			"BOSH_PACKAGES_DIR":   c.packagesDir,
-			"PATH":                os.Getenv("PATH"),
-			"LD_LIBRARY_PATH":     os.Getenv("LD_LIBRARY_PATH"),
-		},
-		UseIsolatedEnv: true,
-		WorkingDir:     packageSrcDir,
-	}
-
-	_, _, _, err = c.runner.RunComplexCommand(cmd)
-	if err != nil {
-		return record, isCompiledPackage, bosherr.WrapError(err, "Compiling package")
-	}
-
-	tarball, err := c.compressor.CompressFilesInDir(installDir)
-	if err != nil {
-		return record, isCompiledPackage, bosherr.WrapError(err, "Compressing compiled package")
-	}
-
-	defer func() {
-		if err = c.compressor.CleanUp(tarball); err != nil {
-			c.logger.Warn(c.logTag, "Failed to clean up tarball: %s", err.Error())
+		err = c.fileSystem.MkdirAll(installDir, os.ModePerm)
+		if err != nil {
+			return record, isCompiledPackage, bosherr.WrapError(err, "Creating package install dir")
 		}
-	}()
+
+		packageSrcDir := pkg.(*birelpkg.Package).ExtractedPath()
+
+		if !c.fileSystem.FileExists(filepath.Join(packageSrcDir, "packaging")) {
+			return record, isCompiledPackage, bosherr.Errorf("Packaging script for package '%s' not found", pkg.Name())
+		}
+
+		cmd := boshsys.Command{
+			Name: "bash",
+			Args: []string{"-x", "packaging"},
+			Env: map[string]string{
+				"BOSH_COMPILE_TARGET": packageSrcDir,
+				"BOSH_INSTALL_TARGET": installDir,
+				"BOSH_PACKAGE_NAME":   pkg.Name(),
+				"BOSH_PACKAGES_DIR":   c.packagesDir,
+				"PATH":                os.Getenv("PATH"),
+				"LD_LIBRARY_PATH":     os.Getenv("LD_LIBRARY_PATH"),
+			},
+			UseIsolatedEnv: true,
+			WorkingDir:     packageSrcDir,
+		}
+
+		_, _, _, err = c.runner.RunComplexCommand(cmd)
+		if err != nil {
+			return record, isCompiledPackage, bosherr.WrapError(err, "Compiling package")
+		}
+
+		tarball, err = c.compressor.CompressFilesInDir(installDir)
+		if err != nil {
+			return record, isCompiledPackage, bosherr.WrapError(err, "Compressing compiled package")
+		}
+
+		defer func() {
+			if err = c.compressor.CleanUp(tarball); err != nil {
+				c.logger.Warn(c.logTag, "Failed to clean up tarball: %s", err.Error())
+			}
+		}()
+	case *birelpkg.CompiledPackage:
+		c.logger.Debug(c.logTag, "Using compiled package '%s/%s'", pkg.Name(), pkg.Fingerprint())
+
+		isCompiledPackage = true
+		tarball = pkg.ArchivePath()
+	default:
+		panic(fmt.Sprintf("Unknown package object type %T!\n", v))
+	}
 
 	blobID, digest, err := c.blobstore.Create(tarball)
 	if err != nil {
