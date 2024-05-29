@@ -129,9 +129,8 @@ func (tc testCase) check(boshComplete *completion.BoshComplete) {
 	} else {
 		Expect(err).ToNot(HaveOccurred())
 	}
-	if result == nil {
-		Expect(result).ToNot(BeNil())
-	}
+	Expect(result).ToNot(BeNil())
+
 	if tc.wantStartsWith {
 		for i, wantLine := range tc.wantRes {
 			Expect(wantLine).To(Equal(result.Lines[i]))
