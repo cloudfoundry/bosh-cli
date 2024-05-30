@@ -157,13 +157,17 @@ func (c *BoshComplete) Execute(args []string) (*cobra.Command, error) {
 }
 
 func (c *BoshComplete) ExecuteCaptured(args []string) (*CapturedResult, error) {
-	buf := new(bytes.Buffer)
-	c.rootCmd.SetOut(buf)
+	outBuf := &bytes.Buffer{}
+	errBuf := &bytes.Buffer{}
+
+	c.rootCmd.SetOut(outBuf)
+	c.rootCmd.SetErr(errBuf)
 	retCmd, err := c.Execute(args)
 	if err != nil {
 		return nil, err
 	}
-	retLines := strings.Split(buf.String(), "\n")
+	retLines := strings.Split(outBuf.String(), "\n")
+	c.logger.Debug("BoshComplete.ExecuteCapture() STDERR", errBuf.String())
 	return &CapturedResult{Lines: retLines, Command: retCmd}, nil
 }
 
