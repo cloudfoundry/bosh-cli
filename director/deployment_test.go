@@ -925,11 +925,9 @@ var _ = Describe("Deployment", func() {
 		})
 
 		It("succeeds updating deployment with dry-run flags", func() {
-			dryRun := true
-
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/deployments", fmt.Sprintf("dry_run=%t", dryRun)),
+					ghttp.VerifyRequest("POST", "/deployments", "dry_run=true"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"text/yaml"},
@@ -941,18 +939,16 @@ var _ = Describe("Deployment", func() {
 			)
 
 			updateOpts := UpdateOpts{
-				DryRun: dryRun,
+				DryRun: true,
 			}
 			err := deployment.Update([]byte("manifest"), updateOpts)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("succeeds updating deployment with force latest variables flag", func() {
-			forceLatestVariables := true
-
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/deployments", fmt.Sprintf("force_latest_variables=%t", forceLatestVariables)),
+					ghttp.VerifyRequest("POST", "/deployments", "force_latest_variables=true"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"text/yaml"},
@@ -964,7 +960,7 @@ var _ = Describe("Deployment", func() {
 			)
 
 			updateOpts := UpdateOpts{
-				ForceLatestVariables: forceLatestVariables,
+				ForceLatestVariables: true,
 			}
 			err := deployment.Update([]byte("manifest"), updateOpts)
 			Expect(err).ToNot(HaveOccurred())
