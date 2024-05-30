@@ -3,12 +3,11 @@ package director_test
 import (
 	"crypto/tls"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/director"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/gomega"
-
 	"github.com/onsi/gomega/ghttp"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	. "github.com/cloudfoundry/bosh-cli/v7/director"
 )
 
 func BuildServer() (Director, *ghttp.Server) {
