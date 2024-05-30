@@ -10,7 +10,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/director"
 )
 
-var _ bool = Describe("Director", func() {
+var _ = Describe("Director", func() {
 	var (
 		director Director
 		server   *ghttp.Server
