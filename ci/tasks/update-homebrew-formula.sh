@@ -64,7 +64,7 @@ end
 EOF
 
   git add bosh-cli.rb
-  if ! [ -z "$(git status --porcelain)" ];
+  if [ -n "$(git status --porcelain)" ];
   then
     git config --global user.email "cf-bosh-eng@pivotal.io"
     git config --global user.name "BOSH CI"
