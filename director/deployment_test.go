@@ -316,7 +316,7 @@ var _ = Describe("Deployment", func() {
 		It("for an single instance, ignore instance returns without an error", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					///:deployment/instance_groups/:instancegroup/:id/ignore
+					///:deployment/instance_groups/:instance_group_name/:id/ignore
 					ghttp.VerifyRequest("PUT", "/deployments/dep/instance_groups/ig_name/id/ignore"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
@@ -331,10 +331,10 @@ var _ = Describe("Deployment", func() {
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
-		It("unignores for an instance and returns without an error", func() {
+		It("un-ignores for an instance and returns without an error", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					///:deployment/instance_groups/:instancegroup/:id/ignore
+					///:deployment/instance_groups/:instance_group_name/:id/ignore
 					ghttp.VerifyRequest("PUT", "/deployments/dep/instance_groups/ig_name/id/ignore"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
@@ -449,7 +449,7 @@ var _ = Describe("Deployment", func() {
 					Expect(err).ToNot(HaveOccurred())
 				})
 
-				It("changes state for all indicies of a job", func() {
+				It("changes state for all indices of a job", func() {
 					slug = NewAllOrInstanceGroupOrInstanceSlug("job", "")
 
 					ConfigureTaskResult(
@@ -1028,7 +1028,7 @@ var _ = Describe("Deployment", func() {
 			Expect(deployment.Delete(true)).ToNot(HaveOccurred())
 		})
 
-		It("succeeds even if error occurrs if deployment no longer exists", func() {
+		It("succeeds even if error occurs if deployment no longer exists", func() {
 			AppendBadRequest(ghttp.VerifyRequest("DELETE", "/deployments/dep"), server)
 
 			server.AppendHandlers(
@@ -1078,7 +1078,7 @@ var _ = Describe("Deployment", func() {
 	})
 
 	Describe("AttachDisk", func() {
-		It("calls attachdisk director api", func() {
+		It("calls attach-disk director api", func() {
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("PUT", "/disks/disk_cid/attachments", "deployment=dep&job=dea&instance_id=17f01a35-bf9c-4949-bcf2-c07a95e4df33"),
@@ -1113,7 +1113,7 @@ var _ = Describe("Deployment", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("calls attachdisk director api with disk_properties if not empty", func() {
+		It("calls attach-disk director api with disk_properties if not empty", func() {
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("PUT", "/disks/disk_cid/attachments", "deployment=dep&job=dea&instance_id=17f01a35-bf9c-4949-bcf2-c07a95e4df33&disk_properties=copy"),
@@ -1228,5 +1228,4 @@ var _ = Describe("Deployment", func() {
 		})
 
 	})
-
 })
