@@ -38,10 +38,10 @@ var _ = Describe("Deployment", func() {
 					"runtime_config_id": nil,
 				},
 				Diff: [][]interface{}{
-					[]interface{}{"name: simple manifest", nil},
-					[]interface{}{"properties:", nil},
-					[]interface{}{"  - property1", "removed"},
-					[]interface{}{"  - property2", "added"},
+					{"name: simple manifest", nil},
+					{"properties:", nil},
+					{"  - property1", "removed"},
+					{"  - property2", "added"},
 				},
 			}
 
