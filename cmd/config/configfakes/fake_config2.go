@@ -49,7 +49,7 @@ func (f *FakeConfig2) AliasEnvironment(environment, alias, caCert string) (confi
 	}, f.AliasEnvironmentErr
 }
 
-func (fake *FakeConfig2) UpdateConfigWithToken(environment string, t uaa.AccessToken) error {
+func (f *FakeConfig2) UpdateConfigWithToken(environment string, t uaa.AccessToken) error {
 	panic("Not implemented")
 }
 func (f *FakeConfig2) UnaliasEnvironment(alias string) (config.Config, error) {
