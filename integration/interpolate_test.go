@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	"gopkg.in/yaml.v2"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -20,7 +20,7 @@ var _ = Describe("interpolate command", func() {
 	var (
 		ui                            *fakeui.FakeUI
 		fs                            boshsys.FileSystem
-		cmdFactory                    Factory
+		cmdFactory                    cmd.Factory
 		tmpFilePath, otherTmpFilePath string
 	)
 
@@ -31,7 +31,7 @@ var _ = Describe("interpolate command", func() {
 
 		fs = boshsys.NewOsFileSystem(logger)
 
-		cmdFactory = NewFactory(NewBasicDepsWithFS(confUI, fs, logger))
+		cmdFactory = cmd.NewFactory(cmd.NewBasicDepsWithFS(confUI, fs, logger))
 
 		tmpFile, err := fs.TempFile("")
 		Expect(err).NotTo(HaveOccurred())

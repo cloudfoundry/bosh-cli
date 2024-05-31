@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshrelman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
@@ -24,8 +24,8 @@ var _ = Describe("create-release command", func() {
 	var (
 		ui         *fakeui.FakeUI
 		fs         boshsys.FileSystem
-		deps       BasicDeps
-		cmdFactory Factory
+		deps       cmd.BasicDeps
+		cmdFactory cmd.Factory
 	)
 
 	BeforeEach(func() {
@@ -34,8 +34,8 @@ var _ = Describe("create-release command", func() {
 		confUI := boshui.NewWrappingConfUI(ui, logger)
 
 		fs = boshsys.NewOsFileSystem(logger)
-		deps = NewBasicDepsWithFS(confUI, fs, logger)
-		cmdFactory = NewFactory(deps)
+		deps = cmd.NewBasicDepsWithFS(confUI, fs, logger)
+		cmdFactory = cmd.NewFactory(deps)
 	})
 
 	removeSHA256s := func(contents string) string {

@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
@@ -22,8 +22,8 @@ var _ = Describe("vendor-package command", func() {
 	var (
 		ui         *fakeui.FakeUI
 		fs         boshsys.FileSystem
-		deps       BasicDeps
-		cmdFactory Factory
+		deps       cmd.BasicDeps
+		cmdFactory cmd.Factory
 	)
 
 	BeforeEach(func() {
@@ -32,8 +32,8 @@ var _ = Describe("vendor-package command", func() {
 		confUI := boshui.NewWrappingConfUI(ui, logger)
 
 		fs = boshsys.NewOsFileSystem(logger)
-		deps = NewBasicDepsWithFS(confUI, fs, logger)
-		cmdFactory = NewFactory(deps)
+		deps = cmd.NewBasicDepsWithFS(confUI, fs, logger)
+		cmdFactory = cmd.NewFactory(deps)
 	})
 
 	opFile := func(path string, op patch.Op) {

@@ -26,8 +26,8 @@ import (
 	mockblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	mockcloud "github.com/cloudfoundry/bosh-cli/v7/cloud/mocks"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	bicpirel "github.com/cloudfoundry/bosh-cli/v7/cpi/release"
 	fakebicrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
@@ -49,7 +49,7 @@ import (
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
-	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
@@ -264,8 +264,8 @@ cloud_provider:
 		}
 
 		var allowCPIToBeInstalled = func() {
-			cpiPackage := birelpkg.NewPackage(NewResource("fake-package-name", "fake-package-fingerprint-cpi", nil), nil)
-			job := bireljob.NewJob(NewResource("fake-cpi-release-job-name", "", nil))
+			cpiPackage := birelpkg.NewPackage(resource.NewResource("fake-package-name", "fake-package-fingerprint-cpi", nil), nil)
+			job := bireljob.NewJob(resource.NewResource("fake-cpi-release-job-name", "", nil))
 			job.Templates = map[string]string{filepath.Join("templates", "cpi.erb"): "bin/cpi"}
 			job.PackageNames = []string{"fake-package-name"}
 			err := job.AttachPackages([]*birelpkg.Package{cpiPackage})
@@ -379,7 +379,7 @@ cloud_provider:
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		}
 
-		var newCreateEnvCmd = func() *CreateEnvCmd {
+		var newCreateEnvCmd = func() *cmd.CreateEnvCmd {
 			deploymentParser := bideplmanifest.NewParser(fs, logger)
 			releaseSetValidator := birelsetmanifest.NewValidator(logger)
 			releaseSetParser := birelsetmanifest.NewParser(fs, logger, releaseSetValidator)
@@ -398,7 +398,7 @@ cloud_provider:
 			deploymentFactory := bidepl.NewFactory(pingTimeout, pingDelay)
 
 			ui := biui.NewWriterUI(stdOut, stdErr, logger)
-			doGet := func(deploymentManifestPath string, statePath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) DeploymentPreparer {
+			doGet := func(deploymentManifestPath string, statePath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) cmd.DeploymentPreparer {
 				// todo: figure this out?
 				deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, statePath))
 				vmRepo = biconfig.NewVMRepo(deploymentStateService)
@@ -433,11 +433,11 @@ cloud_provider:
 					StemcellExtractor: fakeStemcellExtractor,
 				}
 
-				releaseSetAndInstallationManifestParser := ReleaseSetAndInstallationManifestParser{
+				releaseSetAndInstallationManifestParser := cmd.ReleaseSetAndInstallationManifestParser{
 					ReleaseSetParser:   releaseSetParser,
 					InstallationParser: installationParser,
 				}
-				deploymentManifestParser := NewDeploymentManifestParser(
+				deploymentManifestParser := cmd.NewDeploymentManifestParser(
 					deploymentParser,
 					deploymentValidator,
 					releaseManager,
@@ -452,9 +452,9 @@ cloud_provider:
 					filepath.Join("fake-install-dir"),
 				)
 
-				tempRootConfigurator := NewTempRootConfigurator(fs)
+				tempRootConfigurator := cmd.NewTempRootConfigurator(fs)
 
-				return NewDeploymentPreparer(
+				return cmd.NewDeploymentPreparer(
 					ui,
 					logger,
 					"deployCmd",
@@ -481,7 +481,7 @@ cloud_provider:
 				)
 			}
 
-			return NewCreateEnvCmd(ui, doGet)
+			return cmd.NewCreateEnvCmd(ui, doGet)
 		}
 
 		var expectDeployFlow = func() {
@@ -839,7 +839,7 @@ cloud_provider:
 				err := fs.WriteFileString(otherReleaseTarballPath, "fake-other-tgz-content")
 				Expect(err).ToNot(HaveOccurred())
 
-				job := bireljob.NewJob(NewResource("other", "", nil))
+				job := bireljob.NewJob(resource.NewResource("other", "", nil))
 
 				otherRelease := birel.NewRelease(
 					"fake-other-release-name",
@@ -1070,6 +1070,6 @@ cloud_provider:
 	})
 })
 
-func newDeployOpts(manifestPath string, statePath string) CreateEnvOpts {
-	return CreateEnvOpts{StatePath: statePath, Args: CreateEnvArgs{Manifest: FileBytesWithPathArg{Path: manifestPath}}}
+func newDeployOpts(manifestPath string, statePath string) opts.CreateEnvOpts {
+	return opts.CreateEnvOpts{StatePath: statePath, Args: opts.CreateEnvArgs{Manifest: opts.FileBytesWithPathArg{Path: manifestPath}}}
 }

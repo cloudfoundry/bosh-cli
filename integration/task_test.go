@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -19,8 +19,8 @@ var _ = Describe("task command", func() {
 	var (
 		ui         *fakeui.FakeUI
 		fs         boshsys.FileSystem
-		deps       BasicDeps
-		cmdFactory Factory
+		deps       cmd.BasicDeps
+		cmdFactory cmd.Factory
 	)
 
 	BeforeEach(func() {
@@ -29,8 +29,8 @@ var _ = Describe("task command", func() {
 		confUI := boshui.NewWrappingConfUI(ui, logger)
 
 		fs = boshsys.NewOsFileSystem(logger)
-		deps = NewBasicDepsWithFS(confUI, fs, logger)
-		cmdFactory = NewFactory(deps)
+		deps = cmd.NewBasicDepsWithFS(confUI, fs, logger)
+		cmdFactory = cmd.NewFactory(deps)
 	})
 
 	It("streams task output", func() {

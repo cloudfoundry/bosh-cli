@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -20,8 +20,8 @@ var _ = Describe("sha1ify-release", func() {
 	var (
 		ui                  *fakeui.FakeUI
 		fs                  boshsys.FileSystem
-		deps                BasicDeps
-		cmdFactory          Factory
+		deps                cmd.BasicDeps
+		cmdFactory          cmd.Factory
 		releaseProvider     boshrel.Provider
 		createSimpleRelease func() string
 	)
@@ -32,8 +32,8 @@ var _ = Describe("sha1ify-release", func() {
 		confUI := boshui.NewWrappingConfUI(ui, logger)
 
 		fs = boshsys.NewOsFileSystem(logger)
-		deps = NewBasicDepsWithFS(confUI, fs, logger)
-		cmdFactory = NewFactory(deps)
+		deps = cmd.NewBasicDepsWithFS(confUI, fs, logger)
+		cmdFactory = cmd.NewFactory(deps)
 
 		releaseProvider = boshrel.NewProvider(
 			deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
