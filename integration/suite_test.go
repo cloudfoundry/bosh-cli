@@ -7,6 +7,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/testutils"
@@ -47,11 +48,26 @@ func TestIntegration(t *testing.T) {
 var _ = BeforeSuite(func() {
 	err := testutils.BuildExecutable()
 	Expect(err).NotTo(HaveOccurred())
+
 	cert, cacertBytes, err = testutils.CertSetup()
-	validCACert = string(cacertBytes)
 	Expect(err).ToNot(HaveOccurred())
 
+	validCACert = string(cacertBytes)
 })
+
+func buildHTTPSServer() (string, *ghttp.Server) {
+	GinkgoHelper()
+
+	server := ghttp.NewUnstartedServer()
+
+	server.HTTPTestServer.TLS = &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+
+	server.HTTPTestServer.StartTLS()
+
+	return validCACert, server
+}
 
 func execCmd(cmdFactory cmd.Factory, args []string) {
 	GinkgoHelper()

@@ -34,7 +34,7 @@ var _ = Describe("task command", func() {
 	})
 
 	It("streams task output", func() {
-		directorCACert, director := BuildHTTPSServer()
+		directorCACert, director := buildHTTPSServer()
 		defer director.Close()
 
 		processing := ghttp.CombineHandlers(
