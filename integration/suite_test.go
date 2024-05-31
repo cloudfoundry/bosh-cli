@@ -4,12 +4,16 @@ import (
 	"crypto/tls"
 	"testing"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/testutils"
+	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var (
@@ -17,16 +21,17 @@ var (
 
 	buildHTTPSServerCert        tls.Certificate
 	buildHTTPSServerValidCACert string
+
+	fs boshsys.FileSystem
+
+	ui         *fakeui.FakeUI
+	deps       cmd.BasicDeps
+	cmdFactory cmd.Factory
 )
 
 func TestIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "integration")
-
-	BeforeEach(func() {
-		testHome = GinkgoT().TempDir()
-		GinkgoT().Setenv("HOME", testHome)
-	})
 }
 
 var _ = BeforeSuite(func() {
@@ -38,6 +43,19 @@ var _ = BeforeSuite(func() {
 	Expect(err).ToNot(HaveOccurred())
 
 	buildHTTPSServerValidCACert = string(cacertBytes)
+})
+
+var _ = BeforeEach(func() {
+	testHome = GinkgoT().TempDir()
+	GinkgoT().Setenv("HOME", testHome)
+
+	logger := boshlog.NewLogger(boshlog.LevelNone)
+	fs = boshsys.NewOsFileSystem(logger)
+
+	ui = &fakeui.FakeUI{}
+	deps = cmd.NewBasicDepsWithFS(boshui.NewWrappingConfUI(ui, logger), fs, logger)
+
+	cmdFactory = cmd.NewFactory(deps)
 })
 
 func buildHTTPSServer() (string, *ghttp.Server) {
@@ -53,17 +71,17 @@ func buildHTTPSServer() (string, *ghttp.Server) {
 	return buildHTTPSServerValidCACert, server
 }
 
-func createCommand(cmdFactory cmd.Factory, args []string) cmd.Cmd {
+func createCommand(commandFactory cmd.Factory, args []string) cmd.Cmd {
 	GinkgoHelper()
-	command, err := cmdFactory.New(args)
+	command, err := commandFactory.New(args)
 	Expect(err).ToNot(HaveOccurred())
 
 	return command
 }
 
-func createAndExecCommand(cmdFactory cmd.Factory, args []string) {
+func createAndExecCommand(commandFactory cmd.Factory, args []string) {
 	GinkgoHelper()
 
-	err := createCommand(cmdFactory, args).Execute()
+	err := createCommand(commandFactory, args).Execute()
 	Expect(err).ToNot(HaveOccurred())
 }

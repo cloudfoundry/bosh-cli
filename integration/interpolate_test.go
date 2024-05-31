@@ -5,34 +5,18 @@ import (
 	"encoding/pem"
 	"time"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"gopkg.in/yaml.v2"
-
-	"github.com/cloudfoundry/bosh-cli/v7/cmd"
-	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("interpolate command", func() {
 	var (
-		ui                            *fakeui.FakeUI
-		fs                            boshsys.FileSystem
-		cmdFactory                    cmd.Factory
-		tmpFilePath, otherTmpFilePath string
+		tmpFilePath      string
+		otherTmpFilePath string
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
-		logger := boshlog.NewLogger(boshlog.LevelNone)
-		confUI := boshui.NewWrappingConfUI(ui, logger)
-
-		fs = boshsys.NewOsFileSystem(logger)
-
-		cmdFactory = cmd.NewFactory(cmd.NewBasicDepsWithFS(confUI, fs, logger))
-
 		tmpFile, err := fs.TempFile("")
 		Expect(err).NotTo(HaveOccurred())
 		tmpFilePath = tmpFile.Name()
