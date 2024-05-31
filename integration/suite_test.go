@@ -16,9 +16,9 @@ import (
 var (
 	originalHome string
 	testHome     string
-	cert         tls.Certificate
-	cacertBytes  []byte
-	validCACert  string
+
+	buildHTTPSServerCert        tls.Certificate
+	buildHTTPSServerValidCACert string
 )
 
 func TestIntegration(t *testing.T) {
@@ -49,24 +49,24 @@ var _ = BeforeSuite(func() {
 	err := testutils.BuildExecutable()
 	Expect(err).NotTo(HaveOccurred())
 
-	cert, cacertBytes, err = testutils.CertSetup()
+	var cacertBytes []byte
+	buildHTTPSServerCert, cacertBytes, err = testutils.CertSetup()
 	Expect(err).ToNot(HaveOccurred())
 
-	validCACert = string(cacertBytes)
+	buildHTTPSServerValidCACert = string(cacertBytes)
 })
 
 func buildHTTPSServer() (string, *ghttp.Server) {
 	GinkgoHelper()
 
 	server := ghttp.NewUnstartedServer()
-
 	server.HTTPTestServer.TLS = &tls.Config{
-		Certificates: []tls.Certificate{cert},
+		Certificates: []tls.Certificate{buildHTTPSServerCert},
 	}
 
 	server.HTTPTestServer.StartTLS()
 
-	return validCACert, server
+	return buildHTTPSServerValidCACert, server
 }
 
 func execCmd(cmdFactory cmd.Factory, args []string) {
