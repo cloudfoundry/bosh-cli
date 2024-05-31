@@ -115,7 +115,7 @@ blobstore:
 		uploadedReleaseFile := filepath.Join(tmpDir, "release-3.tgz")
 
 		{
-			directorCACert, director := BuildHTTPSServer()
+			directorCACert, director := buildHTTPSServer()
 			defer director.Close()
 
 			director.AppendHandlers(
@@ -226,7 +226,7 @@ blobstore:
 		uploadedReleaseFile := filepath.Join(tmpDir, "release-3.tgz")
 
 		{
-			directorCACert, director := BuildHTTPSServer()
+			directorCACert, director := buildHTTPSServer()
 			defer director.Close()
 
 			director.AppendHandlers(
