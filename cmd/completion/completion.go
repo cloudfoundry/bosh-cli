@@ -23,6 +23,11 @@ func IsItCompletionCommand(args []string) bool {
 	return len(args) > 0 && (args[0] == cobraCompletionCmdName || args[0] == cobraCompleteCmdName)
 }
 
+type CapturedResult struct {
+	Lines   []string
+	Command *cobra.Command
+}
+
 type CmdContext struct {
 	ConfigPath      string
 	EnvironmentName string
@@ -152,13 +157,17 @@ func (c *BoshComplete) Execute(args []string) (*cobra.Command, error) {
 }
 
 func (c *BoshComplete) ExecuteCaptured(args []string) (*CapturedResult, error) {
-	buf := new(bytes.Buffer)
-	c.rootCmd.SetOut(buf)
+	outBuf := &bytes.Buffer{}
+	errBuf := &bytes.Buffer{}
+
+	c.rootCmd.SetOut(outBuf)
+	c.rootCmd.SetErr(errBuf)
 	retCmd, err := c.Execute(args)
 	if err != nil {
 		return nil, err
 	}
-	retLines := strings.Split(buf.String(), "\n")
+	retLines := strings.Split(outBuf.String(), "\n")
+	c.logger.Debug("BoshComplete.ExecuteCapture() STDERR", errBuf.String())
 	return &CapturedResult{Lines: retLines, Command: retCmd}, nil
 }
 
@@ -169,9 +178,4 @@ func (c *BoshComplete) tryToBindValidArgsFunction(cmd *cobra.Command, argsTypeNa
 	} else {
 		c.logger.Warn(logTag, "Unknown Args Type %s, command %s", argsTypeName, cmd.Name())
 	}
-}
-
-type CapturedResult struct {
-	Lines   []string
-	Command *cobra.Command
 }
