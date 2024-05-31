@@ -146,6 +146,8 @@ jobs:
     plan:
     - in_parallel:
       - get: bosh-cli
+        params:
+          fetch_tags: true
         trigger: true
         passed:
         - pre-release-fan-in
@@ -429,7 +431,7 @@ resources:
       regexp: bosh-cli-(.*)-darwin-amd64
       bucket: bosh-cli-artifacts
       json_key: ((bosh-cli/gcp_service_key_json))
-      
+
 
   - name: release-bucket-darwin-arm64
     type: gcs-resource
