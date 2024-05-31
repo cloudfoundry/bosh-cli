@@ -53,11 +53,17 @@ func buildHTTPSServer() (string, *ghttp.Server) {
 	return buildHTTPSServerValidCACert, server
 }
 
-func execCmd(cmdFactory cmd.Factory, args []string) {
+func createCommand(cmdFactory cmd.Factory, args []string) cmd.Cmd {
 	GinkgoHelper()
 	command, err := cmdFactory.New(args)
 	Expect(err).ToNot(HaveOccurred())
 
-	err = command.Execute()
+	return command
+}
+
+func execCmd(cmdFactory cmd.Factory, args []string) {
+	GinkgoHelper()
+
+	err := createCommand(cmdFactory, args).Execute()
 	Expect(err).ToNot(HaveOccurred())
 }

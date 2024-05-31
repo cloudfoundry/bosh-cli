@@ -46,11 +46,7 @@ var _ = Describe("interpolate command", func() {
 		err := fs.WriteFileString(tmpFilePath, "file: ((key))")
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{"interpolate", tmpFilePath, "-v", "key=val"})
-		Expect(err).ToNot(HaveOccurred())
-
-		err = cmd.Execute()
-		Expect(err).ToNot(HaveOccurred())
+		execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "-v", "key=val"})
 		Expect(ui.Blocks).To(Equal([]string{"file: val\n"}))
 	})
 
@@ -61,16 +57,12 @@ var _ = Describe("interpolate command", func() {
 		err = fs.WriteFileString(otherTmpFilePath, "file-val-content")
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{
+		execCmd(cmdFactory, []string{
 			"interpolate", tmpFilePath,
 			"-v", "key.subkey=val",
 			"-v", "key.subkey2=val2",
 			"--var-file", "key.subkey3=" + otherTmpFilePath,
 		})
-		Expect(err).ToNot(HaveOccurred())
-
-		err = cmd.Execute()
-		Expect(err).ToNot(HaveOccurred())
 		Expect(ui.Blocks).To(Equal([]string{"file:\n  subkey: val\n  subkey2: val2\n  subkey3: file-val-content\nfile2: val2\n"}))
 	})
 
@@ -78,11 +70,7 @@ var _ = Describe("interpolate command", func() {
 		err := fs.WriteFileString(tmpFilePath, "file: ((key))")
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{"interpolate", tmpFilePath, "-v", `key={"nested": true}`, "--path", "/file/nested"})
-		Expect(err).ToNot(HaveOccurred())
-
-		err = cmd.Execute()
-		Expect(err).ToNot(HaveOccurred())
+		execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "-v", `key={"nested": true}`, "--path", "/file/nested"})
 		Expect(ui.Blocks).To(Equal([]string{"true\n"}))
 	})
 
@@ -97,11 +85,7 @@ variables:
 		var genedPass string
 
 		{ // running command first time
-			cmd, err := cmdFactory.New([]string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
-			Expect(err).ToNot(HaveOccurred())
-
-			err = cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
 			Expect(ui.Blocks).To(HaveLen(1))
 
 			genedPass = ui.Blocks[0]
@@ -115,11 +99,7 @@ variables:
 		ui.Blocks = []string{}
 
 		{ // running command second time
-			cmd, err := cmdFactory.New([]string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
-			Expect(err).ToNot(HaveOccurred())
-
-			err = cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
 			Expect(ui.Blocks[0]).To(Equal(genedPass))
 		}
 	})
@@ -137,11 +117,7 @@ variables:
 		var genedPass string
 
 		{ // running command first time
-			cmd, err := cmdFactory.New([]string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
-			Expect(err).ToNot(HaveOccurred())
-
-			err = cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
 			Expect(ui.Blocks).To(HaveLen(1))
 
 			genedPass = ui.Blocks[0]
@@ -155,11 +131,7 @@ variables:
 		ui.Blocks = []string{}
 
 		{ // running command second time
-			cmd, err := cmdFactory.New([]string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
-			Expect(err).ToNot(HaveOccurred())
-
-			err = cmd.Execute()
-			Expect(err).ToNot(HaveOccurred())
+			execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
 			Expect(ui.Blocks[0]).To(Equal(genedPass))
 		}
 	})
@@ -186,11 +158,7 @@ variables:
 `)
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "-v", "common_name=test.com"})
-		Expect(err).ToNot(HaveOccurred())
-
-		err = cmd.Execute()
-		Expect(err).ToNot(HaveOccurred())
+		execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "-v", "common_name=test.com"})
 		Expect(ui.Blocks).To(HaveLen(1))
 
 		type expectedCert struct {
@@ -263,11 +231,7 @@ variables:
 `)
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
-		Expect(err).ToNot(HaveOccurred())
-
-		err = cmd.Execute()
-		Expect(err).ToNot(HaveOccurred())
+		execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
 		Expect(ui.Blocks).To(HaveLen(1))
 
 		type expectedCert struct {
@@ -324,11 +288,7 @@ variables:
 `)
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
-		Expect(err).ToNot(HaveOccurred())
-
-		err = cmd.Execute()
-		Expect(err).ToNot(HaveOccurred())
+		execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
 		Expect(ui.Blocks).To(HaveLen(1))
 
 		type expectedCert struct {
@@ -385,11 +345,7 @@ variables:
 `)
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
-		Expect(err).ToNot(HaveOccurred())
-
-		err = cmd.Execute()
-		Expect(err).ToNot(HaveOccurred())
+		execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
 		Expect(ui.Blocks).To(HaveLen(1))
 
 		type expectedCert struct {
@@ -456,15 +412,14 @@ variables:
 		err = fs.WriteFileString(roVarsTmpFilePath, "used_key: true\nunused_file: true")
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{
+		command := createCommand(cmdFactory, []string{
 			"interpolate", tmpFilePath,
 			"-v", "used_key=val",
 			"--vars-store", otherTmpFilePath,
 			"--var-errs",
 		})
-		Expect(err).ToNot(HaveOccurred())
 
-		err = cmd.Execute()
+		err = command.Execute()
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("Expected to find variables: ca2\ncommon_name\nmissing_key"))
 	})
@@ -495,7 +450,7 @@ variables:
 		err = fs.WriteFileString(roVarsTmpFilePath, "used_key: true\nunused_file: true")
 		Expect(err).ToNot(HaveOccurred())
 
-		cmd, err := cmdFactory.New([]string{
+		command := createCommand(cmdFactory, []string{
 			"interpolate", tmpFilePath,
 			"-v", "common_name=name",
 			"-v", "used_key=val",
@@ -504,9 +459,8 @@ variables:
 			"--vars-store", otherTmpFilePath,
 			"--var-errs-unused",
 		})
-		Expect(err).ToNot(HaveOccurred())
 
-		err = cmd.Execute()
+		err = command.Execute()
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("Expected to use variables: unused_file\nunused_flag"))
 	})
