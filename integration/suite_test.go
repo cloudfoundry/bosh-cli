@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"crypto/tls"
-	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -14,8 +13,7 @@ import (
 )
 
 var (
-	originalHome string
-	testHome     string
+	testHome string
 
 	buildHTTPSServerCert        tls.Certificate
 	buildHTTPSServerValidCACert string
@@ -26,22 +24,8 @@ func TestIntegration(t *testing.T) {
 	RunSpecs(t, "integration")
 
 	BeforeEach(func() {
-		originalHome = os.Getenv("HOME")
-
-		var err error
-		testHome, err = os.MkdirTemp("", "bosh-init-cli-integration")
-		Expect(err).NotTo(HaveOccurred())
-
-		err = os.Setenv("HOME", testHome)
-		Expect(err).NotTo(HaveOccurred())
-	})
-
-	AfterEach(func() {
-		err := os.Setenv("HOME", originalHome)
-		Expect(err).NotTo(HaveOccurred())
-
-		err = os.RemoveAll(testHome)
-		Expect(err).NotTo(HaveOccurred())
+		testHome = GinkgoT().TempDir()
+		GinkgoT().Setenv("HOME", testHome)
 	})
 }
 
