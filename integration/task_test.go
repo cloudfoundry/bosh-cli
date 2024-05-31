@@ -4,35 +4,12 @@ import (
 	"net/http"
 	"strings"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
-
-	"github.com/cloudfoundry/bosh-cli/v7/cmd"
-	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("task command", func() {
-	var (
-		ui         *fakeui.FakeUI
-		fs         boshsys.FileSystem
-		deps       cmd.BasicDeps
-		cmdFactory cmd.Factory
-	)
-
-	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
-		logger := boshlog.NewLogger(boshlog.LevelNone)
-		confUI := boshui.NewWrappingConfUI(ui, logger)
-
-		fs = boshsys.NewOsFileSystem(logger)
-		deps = cmd.NewBasicDepsWithFS(confUI, fs, logger)
-		cmdFactory = cmd.NewFactory(deps)
-	})
-
 	It("streams task output", func() {
 		directorCACert, director := buildHTTPSServer()
 		defer director.Close()

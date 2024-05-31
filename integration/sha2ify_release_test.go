@@ -5,40 +5,23 @@ import (
 	"regexp"
 	"strings"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
-	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("sha2ify-release", func() {
 
 	var (
-		ui                  *fakeui.FakeUI
-		fs                  boshsys.FileSystem
-		deps                cmd.BasicDeps
-		cmdFactory          cmd.Factory
 		releaseProvider     boshrel.Provider
 		createSimpleRelease func() string
 		removeSHA1s         func(string) string
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
-		logger := boshlog.NewLogger(boshlog.LevelNone)
-		confUI := boshui.NewWrappingConfUI(ui, logger)
-
-		fs = boshsys.NewOsFileSystem(logger)
-		deps = cmd.NewBasicDepsWithFS(confUI, fs, logger)
-		cmdFactory = cmd.NewFactory(deps)
-
-		releaseProvider = boshrel.NewProvider(
-			deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
+		releaseProvider =
+			boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
 
 	})
 

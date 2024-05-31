@@ -7,37 +7,15 @@ import (
 	"regexp"
 	"strings"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"github.com/cloudfoundry/bosh-utils/uuid"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshrelman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
-	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("create-release command", func() {
-	var (
-		ui         *fakeui.FakeUI
-		fs         boshsys.FileSystem
-		deps       cmd.BasicDeps
-		cmdFactory cmd.Factory
-	)
-
-	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
-		logger := boshlog.NewLogger(boshlog.LevelNone)
-		confUI := boshui.NewWrappingConfUI(ui, logger)
-
-		fs = boshsys.NewOsFileSystem(logger)
-		deps = cmd.NewBasicDepsWithFS(confUI, fs, logger)
-		cmdFactory = cmd.NewFactory(deps)
-	})
-
 	removeSHA256s := func(contents string) string {
 		matchSHA256s := regexp.MustCompile("sha1: sha256:[a-z0-9]{64}\n")
 		return matchSHA256s.ReplaceAllString(contents, "sha1: replaced\n")
