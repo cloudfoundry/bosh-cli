@@ -40,16 +40,6 @@ var _ = Describe("sha1ify-release", func() {
 
 	})
 
-	execCmd := func(args []string) {
-		cmd, err := cmdFactory.New(args)
-		Expect(err).ToNot(HaveOccurred())
-
-		err = cmd.Execute()
-
-		Expect(err).ToNot(HaveOccurred())
-
-	}
-
 	It("converts the SHA2s into SHA1s for packages and jobs", func() {
 		sha1ifyReleasePath := createSimpleRelease()
 		defer fs.RemoveAll(filepath.Dir(sha1ifyReleasePath)) //nolint:errcheck
@@ -59,7 +49,7 @@ var _ = Describe("sha1ify-release", func() {
 
 		outFile := filepath.Join(dirtyPath, "small-sha1-release.tgz")
 
-		execCmd([]string{"sha1ify-release", sha1ifyReleasePath, outFile})
+		execCmd(cmdFactory, []string{"sha1ify-release", sha1ifyReleasePath, outFile})
 
 		extractor := releaseProvider.NewExtractingArchiveReader()
 
@@ -91,7 +81,7 @@ var _ = Describe("sha1ify-release", func() {
 
 		outFile := filepath.Join(dirtyPath, "small-sha1-release.tgz")
 
-		execCmd([]string{"sha1ify-release", "assets/small-sha256-compiled-release.tgz", outFile})
+		execCmd(cmdFactory, []string{"sha1ify-release", "assets/small-sha256-compiled-release.tgz", outFile})
 
 		extractor := releaseProvider.NewExtractingArchiveReader()
 
@@ -119,15 +109,15 @@ var _ = Describe("sha1ify-release", func() {
 		relName := filepath.Base(tmpDir)
 
 		{
-			execCmd([]string{"init-release", "--dir", tmpDir})
+			execCmd(cmdFactory, []string{"init-release", "--dir", tmpDir})
 			Expect(fs.FileExists(filepath.Join(tmpDir, "config"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "jobs"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "packages"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "src"))).To(BeTrue())
 		}
 
-		execCmd([]string{"generate-job", "job1", "--dir", tmpDir})
-		execCmd([]string{"generate-package", "pkg1", "--dir", tmpDir})
+		execCmd(cmdFactory, []string{"generate-job", "job1", "--dir", tmpDir})
+		execCmd(cmdFactory, []string{"generate-package", "pkg1", "--dir", tmpDir})
 
 		err = fs.WriteFileString(filepath.Join(tmpDir, "LICENSE"), "LICENSE")
 		Expect(err).ToNot(HaveOccurred())
@@ -155,7 +145,7 @@ var _ = Describe("sha1ify-release", func() {
 		sha2ifyReleasePath := filepath.Join(tmpDir, "sha2ify-release.tgz")
 
 		{ // Make empty release
-			execCmd([]string{"create-release", "--sha2", "--dir", tmpDir, "--tarball", sha2ifyReleasePath})
+			execCmd(cmdFactory, []string{"create-release", "--sha2", "--dir", tmpDir, "--tarball", sha2ifyReleasePath})
 
 			_, err := fs.ReadFileString(filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.1.yml"))
 			Expect(err).ToNot(HaveOccurred())

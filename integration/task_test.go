@@ -33,14 +33,6 @@ var _ = Describe("task command", func() {
 		cmdFactory = NewFactory(deps)
 	})
 
-	execCmd := func(args []string) {
-		cmd, err := cmdFactory.New(args)
-		Expect(err).ToNot(HaveOccurred())
-
-		err = cmd.Execute()
-		Expect(err).ToNot(HaveOccurred())
-	}
-
 	It("streams task output", func() {
 		directorCACert, director := BuildHTTPSServer()
 		defer director.Close()
@@ -96,7 +88,7 @@ var _ = Describe("task command", func() {
 			),
 		)
 
-		execCmd([]string{"task", "123", "-e", director.URL(), "--ca-cert", directorCACert})
+		execCmd(cmdFactory, []string{"task", "123", "-e", director.URL(), "--ca-cert", directorCACert})
 
 		output := strings.Join(ui.Blocks, "\n")
 		Expect(output).To(ContainSubstring("event-one"))

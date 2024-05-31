@@ -5,11 +5,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/cloudfoundry/bosh-cli/v7/testutils"
-	bitestutils "github.com/cloudfoundry/bosh-cli/v7/testutils"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/testutils"
 )
 
 var (
@@ -22,6 +22,7 @@ var (
 
 func TestIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
+	RunSpecs(t, "integration")
 
 	BeforeEach(func() {
 		originalHome = os.Getenv("HOME")
@@ -41,15 +42,22 @@ func TestIntegration(t *testing.T) {
 		err = os.RemoveAll(testHome)
 		Expect(err).NotTo(HaveOccurred())
 	})
-
-	RunSpecs(t, "integration")
 }
 
 var _ = BeforeSuite(func() {
-	err := bitestutils.BuildExecutable()
+	err := testutils.BuildExecutable()
 	Expect(err).NotTo(HaveOccurred())
 	cert, cacertBytes, err = testutils.CertSetup()
 	validCACert = string(cacertBytes)
 	Expect(err).ToNot(HaveOccurred())
 
 })
+
+func execCmd(cmdFactory cmd.Factory, args []string) {
+	GinkgoHelper()
+	command, err := cmdFactory.New(args)
+	Expect(err).ToNot(HaveOccurred())
+
+	err = command.Execute()
+	Expect(err).ToNot(HaveOccurred())
+}

@@ -3,7 +3,6 @@ package integration_test
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -37,14 +36,6 @@ var _ = Describe("vendor-package command", func() {
 		cmdFactory = NewFactory(deps)
 	})
 
-	execCmd := func(args []string) {
-		cmd, err := cmdFactory.New(args)
-		Expect(err).ToNot(HaveOccurred())
-
-		err = cmd.Execute()
-		Expect(err).ToNot(HaveOccurred(), "Failed running cmd: "+strings.Join(args, " "))
-	}
-
 	opFile := func(path string, op patch.Op) {
 		contents, err := fs.ReadFile(path)
 		Expect(err).ToNot(HaveOccurred())
@@ -74,7 +65,7 @@ var _ = Describe("vendor-package command", func() {
 		defer fs.RemoveAll(upstreamDir) //nolint:errcheck
 
 		{ // Initialize upstream release
-			execCmd([]string{"init-release", "--git", "--dir", upstreamDir})
+			execCmd(cmdFactory, []string{"init-release", "--git", "--dir", upstreamDir})
 
 			blobstoreConfig := fmt.Sprintf(`
 blobstore:
@@ -91,7 +82,7 @@ blobstore:
 			err = fs.WriteFileString(finalConfigPath, prevContents+blobstoreConfig)
 			Expect(err).ToNot(HaveOccurred())
 
-			execCmd([]string{"generate-package", "pkg1", "--dir", upstreamDir})
+			execCmd(cmdFactory, []string{"generate-package", "pkg1", "--dir", upstreamDir})
 		}
 
 		{ // Add a bit of content to upstream release
@@ -112,7 +103,7 @@ blobstore:
 
 			opFile(pkg1SpecPath, replaceOp)
 
-			execCmd([]string{"create-release", "--final", "--force", "--dir", upstreamDir})
+			execCmd(cmdFactory, []string{"create-release", "--final", "--force", "--dir", upstreamDir})
 		}
 
 		targetDir, err := fs.TempDir("bosh-vendor-package-int-test")
@@ -121,7 +112,7 @@ blobstore:
 		defer fs.RemoveAll(targetDir) //nolint:errcheck
 
 		{ // Initialize target release
-			execCmd([]string{"init-release", "--git", "--dir", targetDir})
+			execCmd(cmdFactory, []string{"init-release", "--git", "--dir", targetDir})
 
 			blobstoreConfig := fmt.Sprintf(`
 blobstore:
@@ -138,11 +129,11 @@ blobstore:
 			err = fs.WriteFileString(finalConfigPath, prevContents+blobstoreConfig)
 			Expect(err).ToNot(HaveOccurred())
 
-			execCmd([]string{"generate-package", "pkg2", "--dir", targetDir})
+			execCmd(cmdFactory, []string{"generate-package", "pkg2", "--dir", targetDir})
 		}
 
 		{ // Bring over vendored pkg1
-			execCmd([]string{"vendor-package", "pkg1", upstreamDir, "--dir", targetDir})
+			execCmd(cmdFactory, []string{"vendor-package", "pkg1", upstreamDir, "--dir", targetDir})
 		}
 
 		{ // Check contents of a target release
@@ -151,7 +142,7 @@ blobstore:
 
 			defer fs.RemoveAll(targetTarball.Name()) //nolint:errcheck
 
-			execCmd([]string{"create-release", "--tarball", targetTarball.Name(), "--force", "--dir", targetDir})
+			execCmd(cmdFactory, []string{"create-release", "--tarball", targetTarball.Name(), "--force", "--dir", targetDir})
 
 			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
 			archiveReader := relProvider.NewExtractingArchiveReader()
@@ -171,7 +162,7 @@ blobstore:
 		}
 
 		{ // Add package dependency to upstream release
-			execCmd([]string{"generate-package", "dependent-pkg", "--dir", upstreamDir})
+			execCmd(cmdFactory, []string{"generate-package", "dependent-pkg", "--dir", upstreamDir})
 
 			err := fs.WriteFileString(filepath.Join(upstreamDir, "src", "dependent-pkg-file"), "in-dependent-pkg")
 			Expect(err).ToNot(HaveOccurred())
@@ -206,11 +197,11 @@ blobstore:
 
 			opFile(pkg1SpecPath, replaceOp)
 
-			execCmd([]string{"create-release", "--final", "--force", "--dir", upstreamDir})
+			execCmd(cmdFactory, []string{"create-release", "--final", "--force", "--dir", upstreamDir})
 		}
 
 		{ // Bring over vendored pkg1
-			execCmd([]string{"vendor-package", "pkg1", upstreamDir, "--dir", targetDir})
+			execCmd(cmdFactory, []string{"vendor-package", "pkg1", upstreamDir, "--dir", targetDir})
 		}
 
 		{ // Check contents of a target release with updated package version and dependent package
@@ -219,7 +210,7 @@ blobstore:
 
 			defer fs.RemoveAll(targetTarball.Name()) //nolint:errcheck
 
-			execCmd([]string{"create-release", "--tarball", targetTarball.Name(), "--force", "--dir", targetDir})
+			execCmd(cmdFactory, []string{"create-release", "--tarball", targetTarball.Name(), "--force", "--dir", targetDir})
 
 			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
 			archiveReader := relProvider.NewExtractingArchiveReader()
