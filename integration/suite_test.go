@@ -49,7 +49,7 @@ var _ = BeforeEach(func() {
 	testHome = GinkgoT().TempDir()
 	GinkgoT().Setenv("HOME", testHome)
 
-	logger := boshlog.NewLogger(boshlog.LevelNone)
+	logger := boshlog.NewWriterLogger(boshlog.LevelNone, GinkgoWriter)
 	fs = boshsys.NewOsFileSystem(logger)
 
 	ui = &fakeui.FakeUI{}
