@@ -38,14 +38,6 @@ var _ = Describe("create-release command", func() {
 		cmdFactory = NewFactory(deps)
 	})
 
-	execCmd := func(args []string) {
-		cmd, err := cmdFactory.New(args)
-		Expect(err).ToNot(HaveOccurred())
-
-		err = cmd.Execute()
-		Expect(err).ToNot(HaveOccurred())
-	}
-
 	removeSHA256s := func(contents string) string {
 		matchSHA256s := regexp.MustCompile("sha1: sha256:[a-z0-9]{64}\n")
 		return matchSHA256s.ReplaceAllString(contents, "sha1: replaced\n")
@@ -81,16 +73,16 @@ var _ = Describe("create-release command", func() {
 		relName := filepath.Base(tmpDir)
 
 		{
-			execCmd([]string{"init-release", "--dir", tmpDir})
+			execCmd(cmdFactory, []string{"init-release", "--dir", tmpDir})
 			Expect(fs.FileExists(filepath.Join(tmpDir, "config"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "jobs"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "packages"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "src"))).To(BeTrue())
 		}
 
-		execCmd([]string{"generate-job", "job1", "--dir", tmpDir})
-		execCmd([]string{"generate-package", "pkg1", "--dir", tmpDir})
-		execCmd([]string{"generate-package", "pkg2", "--dir", tmpDir})
+		execCmd(cmdFactory, []string{"generate-job", "job1", "--dir", tmpDir})
+		execCmd(cmdFactory, []string{"generate-package", "pkg1", "--dir", tmpDir})
+		execCmd(cmdFactory, []string{"generate-package", "pkg2", "--dir", tmpDir})
 
 		err = fs.WriteFileString(filepath.Join(tmpDir, "LICENSE"), "LICENSE")
 		Expect(err).ToNot(HaveOccurred())
@@ -116,7 +108,7 @@ var _ = Describe("create-release command", func() {
 		}
 
 		{ // Make empty release
-			execCmd([]string{"create-release", "--dir", tmpDir})
+			execCmd(cmdFactory, []string{"create-release", "--dir", tmpDir})
 
 			contents, err := fs.ReadFileString(filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.1.yml"))
 			Expect(err).ToNot(HaveOccurred())
@@ -162,7 +154,7 @@ license:
 			err = fs.WriteFileString(randomFile, "in-blobs")
 			Expect(err).ToNot(HaveOccurred())
 
-			execCmd([]string{"add-blob", randomFile, "in-blobs", "--dir", tmpDir})
+			execCmd(cmdFactory, []string{"add-blob", randomFile, "in-blobs", "--dir", tmpDir})
 
 			pkg1SpecPath := filepath.Join(tmpDir, "packages", "pkg1", "spec")
 
@@ -174,7 +166,7 @@ license:
 		}
 
 		{ // Make release with some contents
-			execCmd([]string{"create-release", "--dir", tmpDir})
+			execCmd(cmdFactory, []string{"create-release", "--dir", tmpDir})
 
 			rel1File := filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.1.yml")
 			rel2File := filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.2.yml")
@@ -230,7 +222,7 @@ license:
 		}
 
 		{ // check contents of index files when sha2 flag is supplied
-			execCmd([]string{"create-release", "--sha2", "--dir", tmpDir})
+			execCmd(cmdFactory, []string{"create-release", "--sha2", "--dir", tmpDir})
 
 			expectSha256Checksums(filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.3.yml"))
 			expectSha256Checksums(filepath.Join(tmpDir, ".dev_builds", "jobs", "job1", "index.yml"))
@@ -241,7 +233,7 @@ license:
 		{ // Check contents of made release via its tarball
 			tgzFile := filepath.Join(tmpDir, "release-3.tgz")
 
-			execCmd([]string{"create-release", "--dir", tmpDir, "--tarball", tgzFile})
+			execCmd(cmdFactory, []string{"create-release", "--dir", tmpDir, "--tarball", tgzFile})
 			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
 			extractingArchiveReader := relProvider.NewExtractingArchiveReader()
 
@@ -279,7 +271,7 @@ license:
 			err := fs.WriteFileString(blobPath, "i don't belong here")
 			Expect(err).ToNot(HaveOccurred())
 
-			execCmd([]string{"create-release", "--dir", tmpDir})
+			execCmd(cmdFactory, []string{"create-release", "--dir", tmpDir})
 			Expect(fs.FileExists(blobPath)).To(BeFalse())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "blobs", "in-blobs"))).To(BeTrue())
 		}
