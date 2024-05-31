@@ -151,9 +151,10 @@ func (c *BoshComplete) addFlag(cmd *cobra.Command, field reflect.StructField, ro
 	}
 }
 
-func (c *BoshComplete) Execute(args []string) (*cobra.Command, error) {
+func (c *BoshComplete) Execute(args []string) error {
 	c.rootCmd.SetArgs(args)
-	return c.rootCmd.ExecuteC()
+	_, err := c.rootCmd.ExecuteC()
+	return err
 }
 
 func (c *BoshComplete) ExecuteCaptured(args []string) (*CapturedResult, error) {
@@ -162,7 +163,8 @@ func (c *BoshComplete) ExecuteCaptured(args []string) (*CapturedResult, error) {
 
 	c.rootCmd.SetOut(outBuf)
 	c.rootCmd.SetErr(errBuf)
-	retCmd, err := c.Execute(args)
+	c.rootCmd.SetArgs(args)
+	retCmd, err := c.rootCmd.ExecuteC()
 	if err != nil {
 		return nil, err
 	}
