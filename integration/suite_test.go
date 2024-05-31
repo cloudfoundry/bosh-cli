@@ -61,7 +61,7 @@ func createCommand(cmdFactory cmd.Factory, args []string) cmd.Cmd {
 	return command
 }
 
-func execCmd(cmdFactory cmd.Factory, args []string) {
+func createAndExecCommand(cmdFactory cmd.Factory, args []string) {
 	GinkgoHelper()
 
 	err := createCommand(cmdFactory, args).Execute()

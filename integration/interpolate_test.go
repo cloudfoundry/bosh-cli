@@ -46,7 +46,7 @@ var _ = Describe("interpolate command", func() {
 		err := fs.WriteFileString(tmpFilePath, "file: ((key))")
 		Expect(err).ToNot(HaveOccurred())
 
-		execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "-v", "key=val"})
+		createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "-v", "key=val"})
 		Expect(ui.Blocks).To(Equal([]string{"file: val\n"}))
 	})
 
@@ -57,7 +57,7 @@ var _ = Describe("interpolate command", func() {
 		err = fs.WriteFileString(otherTmpFilePath, "file-val-content")
 		Expect(err).ToNot(HaveOccurred())
 
-		execCmd(cmdFactory, []string{
+		createAndExecCommand(cmdFactory, []string{
 			"interpolate", tmpFilePath,
 			"-v", "key.subkey=val",
 			"-v", "key.subkey2=val2",
@@ -70,7 +70,7 @@ var _ = Describe("interpolate command", func() {
 		err := fs.WriteFileString(tmpFilePath, "file: ((key))")
 		Expect(err).ToNot(HaveOccurred())
 
-		execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "-v", `key={"nested": true}`, "--path", "/file/nested"})
+		createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "-v", `key={"nested": true}`, "--path", "/file/nested"})
 		Expect(ui.Blocks).To(Equal([]string{"true\n"}))
 	})
 
@@ -85,7 +85,7 @@ variables:
 		var genedPass string
 
 		{ // running command first time
-			execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
+			createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
 			Expect(ui.Blocks).To(HaveLen(1))
 
 			genedPass = ui.Blocks[0]
@@ -99,7 +99,7 @@ variables:
 		ui.Blocks = []string{}
 
 		{ // running command second time
-			execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
+			createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
 			Expect(ui.Blocks[0]).To(Equal(genedPass))
 		}
 	})
@@ -117,7 +117,7 @@ variables:
 		var genedPass string
 
 		{ // running command first time
-			execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
+			createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
 			Expect(ui.Blocks).To(HaveLen(1))
 
 			genedPass = ui.Blocks[0]
@@ -131,7 +131,7 @@ variables:
 		ui.Blocks = []string{}
 
 		{ // running command second time
-			execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
+			createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
 			Expect(ui.Blocks[0]).To(Equal(genedPass))
 		}
 	})
@@ -158,7 +158,7 @@ variables:
 `)
 		Expect(err).ToNot(HaveOccurred())
 
-		execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "-v", "common_name=test.com"})
+		createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "-v", "common_name=test.com"})
 		Expect(ui.Blocks).To(HaveLen(1))
 
 		type expectedCert struct {
@@ -231,7 +231,7 @@ variables:
 `)
 		Expect(err).ToNot(HaveOccurred())
 
-		execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
+		createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
 		Expect(ui.Blocks).To(HaveLen(1))
 
 		type expectedCert struct {
@@ -288,7 +288,7 @@ variables:
 `)
 		Expect(err).ToNot(HaveOccurred())
 
-		execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
+		createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
 		Expect(ui.Blocks).To(HaveLen(1))
 
 		type expectedCert struct {
@@ -345,7 +345,7 @@ variables:
 `)
 		Expect(err).ToNot(HaveOccurred())
 
-		execCmd(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
+		createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
 		Expect(ui.Blocks).To(HaveLen(1))
 
 		type expectedCert struct {

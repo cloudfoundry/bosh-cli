@@ -65,7 +65,7 @@ var _ = Describe("vendor-package command", func() {
 		defer fs.RemoveAll(upstreamDir) //nolint:errcheck
 
 		{ // Initialize upstream release
-			execCmd(cmdFactory, []string{"init-release", "--git", "--dir", upstreamDir})
+			createAndExecCommand(cmdFactory, []string{"init-release", "--git", "--dir", upstreamDir})
 
 			blobstoreConfig := fmt.Sprintf(`
 blobstore:
@@ -82,7 +82,7 @@ blobstore:
 			err = fs.WriteFileString(finalConfigPath, prevContents+blobstoreConfig)
 			Expect(err).ToNot(HaveOccurred())
 
-			execCmd(cmdFactory, []string{"generate-package", "pkg1", "--dir", upstreamDir})
+			createAndExecCommand(cmdFactory, []string{"generate-package", "pkg1", "--dir", upstreamDir})
 		}
 
 		{ // Add a bit of content to upstream release
@@ -103,7 +103,7 @@ blobstore:
 
 			opFile(pkg1SpecPath, replaceOp)
 
-			execCmd(cmdFactory, []string{"create-release", "--final", "--force", "--dir", upstreamDir})
+			createAndExecCommand(cmdFactory, []string{"create-release", "--final", "--force", "--dir", upstreamDir})
 		}
 
 		targetDir, err := fs.TempDir("bosh-vendor-package-int-test")
@@ -112,7 +112,7 @@ blobstore:
 		defer fs.RemoveAll(targetDir) //nolint:errcheck
 
 		{ // Initialize target release
-			execCmd(cmdFactory, []string{"init-release", "--git", "--dir", targetDir})
+			createAndExecCommand(cmdFactory, []string{"init-release", "--git", "--dir", targetDir})
 
 			blobstoreConfig := fmt.Sprintf(`
 blobstore:
@@ -129,11 +129,11 @@ blobstore:
 			err = fs.WriteFileString(finalConfigPath, prevContents+blobstoreConfig)
 			Expect(err).ToNot(HaveOccurred())
 
-			execCmd(cmdFactory, []string{"generate-package", "pkg2", "--dir", targetDir})
+			createAndExecCommand(cmdFactory, []string{"generate-package", "pkg2", "--dir", targetDir})
 		}
 
 		{ // Bring over vendored pkg1
-			execCmd(cmdFactory, []string{"vendor-package", "pkg1", upstreamDir, "--dir", targetDir})
+			createAndExecCommand(cmdFactory, []string{"vendor-package", "pkg1", upstreamDir, "--dir", targetDir})
 		}
 
 		{ // Check contents of a target release
@@ -142,7 +142,7 @@ blobstore:
 
 			defer fs.RemoveAll(targetTarball.Name()) //nolint:errcheck
 
-			execCmd(cmdFactory, []string{"create-release", "--tarball", targetTarball.Name(), "--force", "--dir", targetDir})
+			createAndExecCommand(cmdFactory, []string{"create-release", "--tarball", targetTarball.Name(), "--force", "--dir", targetDir})
 
 			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
 			archiveReader := relProvider.NewExtractingArchiveReader()
@@ -162,7 +162,7 @@ blobstore:
 		}
 
 		{ // Add package dependency to upstream release
-			execCmd(cmdFactory, []string{"generate-package", "dependent-pkg", "--dir", upstreamDir})
+			createAndExecCommand(cmdFactory, []string{"generate-package", "dependent-pkg", "--dir", upstreamDir})
 
 			err := fs.WriteFileString(filepath.Join(upstreamDir, "src", "dependent-pkg-file"), "in-dependent-pkg")
 			Expect(err).ToNot(HaveOccurred())
@@ -197,11 +197,11 @@ blobstore:
 
 			opFile(pkg1SpecPath, replaceOp)
 
-			execCmd(cmdFactory, []string{"create-release", "--final", "--force", "--dir", upstreamDir})
+			createAndExecCommand(cmdFactory, []string{"create-release", "--final", "--force", "--dir", upstreamDir})
 		}
 
 		{ // Bring over vendored pkg1
-			execCmd(cmdFactory, []string{"vendor-package", "pkg1", upstreamDir, "--dir", targetDir})
+			createAndExecCommand(cmdFactory, []string{"vendor-package", "pkg1", upstreamDir, "--dir", targetDir})
 		}
 
 		{ // Check contents of a target release with updated package version and dependent package
@@ -210,7 +210,7 @@ blobstore:
 
 			defer fs.RemoveAll(targetTarball.Name()) //nolint:errcheck
 
-			execCmd(cmdFactory, []string{"create-release", "--tarball", targetTarball.Name(), "--force", "--dir", targetDir})
+			createAndExecCommand(cmdFactory, []string{"create-release", "--tarball", targetTarball.Name(), "--force", "--dir", targetDir})
 
 			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
 			archiveReader := relProvider.NewExtractingArchiveReader()

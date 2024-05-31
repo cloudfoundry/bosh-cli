@@ -46,9 +46,9 @@ var _ = Describe("upload-release command", func() {
 		relName := filepath.Base(tmpDir)
 
 		{
-			execCmd(cmdFactory, []string{"init-release", "--git", "--dir", tmpDir})
-			execCmd(cmdFactory, []string{"generate-job", "job1", "--dir", tmpDir})
-			execCmd(cmdFactory, []string{"generate-package", "pkg1", "--dir", tmpDir})
+			createAndExecCommand(cmdFactory, []string{"init-release", "--git", "--dir", tmpDir})
+			createAndExecCommand(cmdFactory, []string{"generate-job", "job1", "--dir", tmpDir})
+			createAndExecCommand(cmdFactory, []string{"generate-package", "pkg1", "--dir", tmpDir})
 		}
 
 		{ // job1 depends on both packages
@@ -106,7 +106,7 @@ blobstore:
 			execGit([]string{"add", "-A"})
 			execGit([]string{"commit", "-m", "init"})
 
-			execCmd(cmdFactory, []string{"create-release", "--dir", tmpDir, "--final"})
+			createAndExecCommand(cmdFactory, []string{"create-release", "--dir", tmpDir, "--final"})
 
 			execGit([]string{"add", "-A"})
 			execGit([]string{"commit", "-m", "Final release 1"})
@@ -158,7 +158,7 @@ blobstore:
 				),
 			)
 
-			execCmd(cmdFactory, []string{"upload-release", "git+file://" + tmpDir, "-e", director.URL(), "--ca-cert", directorCACert})
+			createAndExecCommand(cmdFactory, []string{"upload-release", "git+file://" + tmpDir, "-e", director.URL(), "--ca-cert", directorCACert})
 		}
 
 		{ // Check contents of uploaded release
@@ -184,9 +184,9 @@ blobstore:
 		defer fs.RemoveAll(tmpDir) //nolint:errcheck
 
 		{
-			execCmd(cmdFactory, []string{"init-release", "--dir", tmpDir})
-			execCmd(cmdFactory, []string{"generate-job", "job1", "--dir", tmpDir})
-			execCmd(cmdFactory, []string{"generate-package", "pkg1", "--dir", tmpDir})
+			createAndExecCommand(cmdFactory, []string{"init-release", "--dir", tmpDir})
+			createAndExecCommand(cmdFactory, []string{"generate-job", "job1", "--dir", tmpDir})
+			createAndExecCommand(cmdFactory, []string{"generate-package", "pkg1", "--dir", tmpDir})
 		}
 
 		{ // job1 depends on both packages
@@ -215,7 +215,7 @@ blobstore:
 		releaseTarballFile := filepath.Join(tmpDir, "release-tarball.tgz")
 
 		{ // Create dev release
-			execCmd(cmdFactory, []string{"create-release", "--dir", tmpDir, "--tarball", releaseTarballFile})
+			createAndExecCommand(cmdFactory, []string{"create-release", "--dir", tmpDir, "--tarball", releaseTarballFile})
 		}
 
 		{ // Starting with empty tmp directory
@@ -269,7 +269,7 @@ blobstore:
 				),
 			)
 
-			execCmd(cmdFactory, []string{"upload-release", releaseTarballFile, "-e", director.URL(), "--ca-cert", directorCACert})
+			createAndExecCommand(cmdFactory, []string{"upload-release", releaseTarballFile, "-e", director.URL(), "--ca-cert", directorCACert})
 		}
 
 		{ // Check contents of uploaded release
