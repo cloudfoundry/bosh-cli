@@ -7,14 +7,13 @@ import (
 	"runtime/debug"
 	"syscall"
 
-	"github.com/cloudfoundry/bosh-cli/v7/cmd/completion"
-
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshlogfile "github.com/cloudfoundry/bosh-utils/logger/file"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	boshcmd "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/completion"
 	bilog "github.com/cloudfoundry/bosh-cli/v7/logger"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	boshuifmt "github.com/cloudfoundry/bosh-cli/v7/ui/fmt"
@@ -26,11 +25,14 @@ func main() {
 
 	ui := boshui.NewConfUI(logger)
 	defer ui.Flush()
+
 	if completion.IsItCompletionCommand(os.Args[1:]) {
 		// completion support
 		blindUi := boshui.NewWrappingConfUI(&completion.BlindUI{}, logger) // only completion can write to stdout
 		bc := completion.NewBoshComplete(blindUi, logger)
-		if _, err := bc.Execute(os.Args[1:]); err != nil {
+
+		err := bc.Execute(os.Args[1:])
+		if err != nil {
 			fail(err, ui, logger)
 		}
 	} else {
