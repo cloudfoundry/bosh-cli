@@ -5,6 +5,7 @@ import (
 
 	"code.cloudfoundry.org/clock"
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -13,7 +14,6 @@ import (
 	bicrypto "github.com/cloudfoundry/bosh-cli/v7/crypto"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshidx "github.com/cloudfoundry/bosh-cli/v7/releasedir/index"
-	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 type Provider struct {

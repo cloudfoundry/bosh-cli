@@ -1,10 +1,11 @@
 package stemcell
 
 import (
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	bitarball "github.com/cloudfoundry/bosh-cli/v7/installation/tarball"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Fetcher struct {

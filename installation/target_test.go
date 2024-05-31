@@ -1,11 +1,12 @@
 package installation_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/installation"
+	"path/filepath"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"path/filepath"
+	. "github.com/cloudfoundry/bosh-cli/v7/installation"
 )
 
 var _ = Describe("Target", func() {

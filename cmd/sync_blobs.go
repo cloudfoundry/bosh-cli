@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
+	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 )
 
 type SyncBlobsCmd struct {

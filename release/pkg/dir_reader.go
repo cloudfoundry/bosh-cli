@@ -1,13 +1,12 @@
 package pkg
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-
-	"errors"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/release/pkg/manifest"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"

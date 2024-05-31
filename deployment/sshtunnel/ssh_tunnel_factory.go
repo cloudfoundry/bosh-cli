@@ -1,8 +1,9 @@
 package sshtunnel
 
 import (
-	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
+	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
 )
 
 type Options struct {

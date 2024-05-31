@@ -1,10 +1,6 @@
 package config_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/config"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"encoding/json"
 	"errors"
 	"path/filepath"
@@ -13,6 +9,10 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	. "github.com/cloudfoundry/bosh-cli/v7/config"
 )
 
 var _ = Describe("fileSystemDeploymentStateService", func() {

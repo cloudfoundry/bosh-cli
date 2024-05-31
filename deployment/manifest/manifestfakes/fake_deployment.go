@@ -1,8 +1,9 @@
 package manifestfakes
 
 import (
-	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
+
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 )
 
 func NewFakeReleaseJobRef() bideplmanifest.ReleaseJobRef {

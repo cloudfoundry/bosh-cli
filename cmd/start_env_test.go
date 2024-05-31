@@ -1,17 +1,16 @@
 package cmd_test
 
 import (
-	bicmd "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	"github.com/cppforlife/go-patch/patch"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	bicmd "github.com/cloudfoundry/bosh-cli/v7/cmd"
 	mockcmd "github.com/cloudfoundry/bosh-cli/v7/cmd/mocks"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	"github.com/golang/mock/gomock"
-
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"

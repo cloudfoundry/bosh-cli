@@ -2,11 +2,17 @@ package vm_test
 
 import (
 	"errors"
-
 	"time"
 
 	"code.cloudfoundry.org/clock"
 	fakebiagentclient "github.com/cloudfoundry/bosh-agent/agentclient/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
 	"github.com/cloudfoundry/bosh-cli/v7/cloud"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
@@ -16,12 +22,6 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Manager", func() {

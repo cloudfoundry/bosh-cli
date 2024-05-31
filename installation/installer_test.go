@@ -3,19 +3,17 @@ package installation_test
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/installation"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	. "github.com/cloudfoundry/bosh-cli/v7/installation"
 	"github.com/cloudfoundry/bosh-cli/v7/installation/blobextract/blobextractfakes"
-	mock_install "github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
-	"github.com/golang/mock/gomock"
-
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
+	mock_install "github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
-
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 

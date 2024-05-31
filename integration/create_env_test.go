@@ -21,6 +21,8 @@ import (
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
+	"github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+
 	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
 	mockblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
@@ -54,7 +56,6 @@ import (
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
-	"github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 )
 
 var _ = Describe("bosh", func() {

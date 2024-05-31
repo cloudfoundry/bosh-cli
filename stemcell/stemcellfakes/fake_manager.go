@@ -3,9 +3,10 @@ package stemcellfakes
 import (
 	"fmt"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type FakeManager struct {

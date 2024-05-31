@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/uaa"
-	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 )
 
 var _ = Describe("Factory", func() {

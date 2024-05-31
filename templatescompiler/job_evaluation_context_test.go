@@ -5,6 +5,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -13,11 +18,6 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
 	"github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
 	bierbrenderer "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
-	"github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 )
 
 var _ = Describe("JobEvaluationContext", func() {

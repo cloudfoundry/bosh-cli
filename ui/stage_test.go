@@ -5,13 +5,13 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/ui"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"code.cloudfoundry.org/clock/fakeclock"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	. "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
 var _ = Describe("Stage", func() {

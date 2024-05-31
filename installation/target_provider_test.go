@@ -1,16 +1,16 @@
 package installation_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/installation"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"path/filepath"
 
-	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
+	. "github.com/cloudfoundry/bosh-cli/v7/installation"
 )
 
 var _ = Describe("TargetProvider", func() {

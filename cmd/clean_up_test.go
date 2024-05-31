@@ -4,16 +4,15 @@ import (
 	"errors"
 	"time"
 
+	"github.com/cppforlife/go-semi-semantic/version"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
-	"github.com/cppforlife/go-semi-semantic/version"
 )
 
 var _ = Describe("CleanUpCmd", func() {

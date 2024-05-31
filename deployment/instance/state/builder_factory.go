@@ -2,12 +2,13 @@ package state
 
 import (
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
 	biblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"
 	bideplrel "github.com/cloudfoundry/bosh-cli/v7/deployment/release"
 	bistatejob "github.com/cloudfoundry/bosh-cli/v7/state/job"
 	bistatepkg "github.com/cloudfoundry/bosh-cli/v7/state/pkg"
 	bitemplate "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type BuilderFactory interface {

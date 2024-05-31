@@ -5,11 +5,12 @@ import (
 	"reflect"
 	"strings"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/spf13/cobra"
+
 	boshcmd "github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/spf13/cobra"
 )
 
 const initCmdName = "help"

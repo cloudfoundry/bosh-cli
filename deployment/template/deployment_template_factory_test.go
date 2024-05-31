@@ -7,9 +7,10 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/template"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("TemplateFactory", func() {

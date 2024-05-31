@@ -1,8 +1,9 @@
 package fakes
 
 import (
-	"github.com/cloudfoundry/bosh-cli/v7/cloud"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
+
+	"github.com/cloudfoundry/bosh-cli/v7/cloud"
 )
 
 type FakeCloud struct {

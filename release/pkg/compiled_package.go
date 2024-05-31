@@ -2,12 +2,12 @@ package pkg
 
 import (
 	"fmt"
-
 	"os"
 
-	"github.com/cloudfoundry/bosh-cli/v7/crypto"
 	crypto2 "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
+	"github.com/cloudfoundry/bosh-cli/v7/crypto"
 )
 
 type CompiledPackage struct {

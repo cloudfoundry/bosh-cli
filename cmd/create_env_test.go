@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 
+	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -17,7 +18,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
-	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
 	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
 	mockblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"

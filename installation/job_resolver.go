@@ -1,10 +1,11 @@
 package installation
 
 import (
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	bideplrel "github.com/cloudfoundry/bosh-cli/v7/deployment/release"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type JobResolver interface {

@@ -3,12 +3,12 @@ package releasedir
 import (
 	"io"
 
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshrelman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
-	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 // You only need **one** of these per package!

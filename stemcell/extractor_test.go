@@ -3,13 +3,13 @@ package stemcell_test
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/stemcell"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	. "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("Extractor", func() {

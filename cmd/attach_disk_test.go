@@ -3,12 +3,13 @@ package cmd_test
 import (
 	"errors"
 
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("AttachDisk", func() {

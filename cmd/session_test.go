@@ -4,17 +4,15 @@ import (
 	"fmt"
 	"net/http"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/cloudfoundry/bosh-cli/v7/cmd/config/configfakes"
 	"github.com/onsi/gomega/ghttp"
 
-	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
+	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/config/configfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 

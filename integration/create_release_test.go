@@ -2,21 +2,18 @@ package integration_test
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"github.com/cloudfoundry/bosh-utils/uuid"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"github.com/cloudfoundry/bosh-utils/uuid"
-
-	"os"
-
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshrelman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"

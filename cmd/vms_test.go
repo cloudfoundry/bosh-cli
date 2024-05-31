@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -13,7 +14,6 @@ import (
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 var _ = Describe("VMsCmd", func() {

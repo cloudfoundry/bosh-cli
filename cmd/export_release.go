@@ -5,9 +5,10 @@ import (
 	"sort"
 	"strings"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type ExportReleaseCmd struct {

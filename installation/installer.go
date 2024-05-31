@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"path/filepath"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
 	"github.com/cloudfoundry/bosh-cli/v7/installation/blobextract"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type InstalledJob struct {

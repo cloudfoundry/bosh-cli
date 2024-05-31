@@ -7,15 +7,16 @@ import (
 
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 type Clock interface {

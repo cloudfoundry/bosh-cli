@@ -1,10 +1,11 @@
 package cmd
 
 import (
+	"github.com/fatih/color"
+
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
-	"github.com/fatih/color"
 )
 
 type CertificateInfoTable struct {

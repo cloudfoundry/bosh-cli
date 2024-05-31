@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshuaa "github.com/cloudfoundry/bosh-cli/v7/uaa"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 // Fill out consts and run this file: `go run docs/example.go`

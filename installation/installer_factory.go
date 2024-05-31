@@ -1,6 +1,13 @@
 package installation
 
 import (
+	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
+	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+
 	bideplrel "github.com/cloudfoundry/bosh-cli/v7/deployment/release"
 	biindex "github.com/cloudfoundry/bosh-cli/v7/index"
 	"github.com/cloudfoundry/bosh-cli/v7/installation/blobextract"
@@ -10,12 +17,6 @@ import (
 	bitemplate "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
 	bierbrenderer "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
-	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
 type InstallerFactory interface {

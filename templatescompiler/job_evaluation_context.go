@@ -3,12 +3,13 @@ package templatescompiler
 import (
 	"encoding/json"
 
-	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
-	bierbrenderer "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+
+	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
+	bierbrenderer "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
 )
 
 type jobEvaluationContext struct {

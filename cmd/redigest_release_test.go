@@ -1,28 +1,24 @@
 package cmd_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-
-	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
-
+	"github.com/cloudfoundry/bosh-utils/errors"
+	fakefu "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
+	fakecrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
-	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
-	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
-
-	fakecrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
-	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
-	fakefu "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
-	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
-
-	"github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
 	"github.com/cloudfoundry/bosh-cli/v7/release/license"
-	"github.com/cloudfoundry/bosh-utils/errors"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
+	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 var _ = Describe("RedigestRelease", func() {

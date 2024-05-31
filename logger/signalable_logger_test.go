@@ -5,11 +5,11 @@ import (
 	"os"
 	"syscall"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	bilog "github.com/cloudfoundry/bosh-cli/v7/logger"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 func captureOutputs(f func()) (stderr []byte) {

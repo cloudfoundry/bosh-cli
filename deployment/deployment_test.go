@@ -1,35 +1,32 @@
 package deployment_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/deployment"
-
 	"time"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
-	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
-	mockblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
-	mockcloud "github.com/cloudfoundry/bosh-cli/v7/cloud/mocks"
-	mockinstancestate "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/mocks"
-	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
-	"github.com/golang/mock/gomock"
 
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
-	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
-	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
-	biinstance "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
-	bisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel"
-	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
-	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	"github.com/golang/mock/gomock"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
+	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
+	mockblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
+	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
+	mockcloud "github.com/cloudfoundry/bosh-cli/v7/cloud/mocks"
+	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
+	. "github.com/cloudfoundry/bosh-cli/v7/deployment"
+	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
+	biinstance "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
+	mockinstancestate "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/mocks"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
+	bisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel"
+	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
+	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 

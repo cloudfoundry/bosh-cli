@@ -2,11 +2,11 @@ package state_test
 
 import (
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	mock_agentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	mock_agentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
 	mock_blobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state"
 	biindex "github.com/cloudfoundry/bosh-cli/v7/index"

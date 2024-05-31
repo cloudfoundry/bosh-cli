@@ -11,13 +11,13 @@ import (
 
 	"code.cloudfoundry.org/clock"
 	"code.cloudfoundry.org/clock/fakeclock"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("UIDownloader", func() {

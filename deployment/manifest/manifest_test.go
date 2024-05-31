@@ -1,11 +1,11 @@
 package manifest_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	. "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 )
 
 var _ = Describe("Manifest", func() {

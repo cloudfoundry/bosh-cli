@@ -2,10 +2,11 @@ package state
 
 import (
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	biblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"
 	birelpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	bistatepkg "github.com/cloudfoundry/bosh-cli/v7/state/pkg"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type remotePackageCompiler struct {

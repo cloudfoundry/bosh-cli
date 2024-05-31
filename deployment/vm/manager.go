@@ -6,15 +6,16 @@ import (
 
 	"code.cloudfoundry.org/clock"
 	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
-	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
-	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
-	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+
+	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
+	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
+	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 )
 
 type Manager interface {

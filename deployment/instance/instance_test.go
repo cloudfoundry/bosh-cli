@@ -1,25 +1,22 @@
 package instance_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
-
 	"time"
 
+	"github.com/cloudfoundry/bosh-agent/agentclient"
+	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	mock_instance_state "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/mocks"
-	"github.com/golang/mock/gomock"
-
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
-	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
-
-	"github.com/cloudfoundry/bosh-agent/agentclient"
 	fakebidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk/fakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
+	mock_instance_state "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/mocks"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"

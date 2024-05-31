@@ -3,7 +3,6 @@ package cmd_test
 import (
 	"errors"
 
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -12,6 +11,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("AddBlobCmd", func() {

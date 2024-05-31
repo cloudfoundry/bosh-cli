@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gopacket/gopacket"
 	"github.com/gopacket/gopacket/layers"
 	"github.com/gopacket/gopacket/pcapgo"
@@ -22,7 +23,6 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 var (

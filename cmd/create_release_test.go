@@ -3,6 +3,7 @@ package cmd_test
 import (
 	"errors"
 
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -15,7 +16,6 @@ import (
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("CreateReleaseCmd", func() {
