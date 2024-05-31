@@ -16,7 +16,7 @@ golangci-lint version
 
 linted_os_list=(linux)
 
-for os in ${linted_os_list[*]}; do
+for os in "${linted_os_list[@]}"; do
   echo -e "\n lint-ing with GOOS=${os}..."
   GOOS="${os}" golangci-lint run "${ROOT_DIR}"/...
 done
