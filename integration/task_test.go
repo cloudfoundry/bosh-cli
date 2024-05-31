@@ -88,7 +88,7 @@ var _ = Describe("task command", func() {
 			),
 		)
 
-		execCmd(cmdFactory, []string{"task", "123", "-e", director.URL(), "--ca-cert", directorCACert})
+		createAndExecCommand(cmdFactory, []string{"task", "123", "-e", director.URL(), "--ca-cert", directorCACert})
 
 		output := strings.Join(ui.Blocks, "\n")
 		Expect(output).To(ContainSubstring("event-one"))

@@ -51,7 +51,7 @@ var _ = Describe("sha2ify-release", func() {
 
 		outFile := filepath.Join(dirtyPath, "small-sha256-release.tgz")
 
-		execCmd(cmdFactory, []string{"sha2ify-release", sha2ifyReleasePath, outFile})
+		createAndExecCommand(cmdFactory, []string{"sha2ify-release", sha2ifyReleasePath, outFile})
 
 		extractor := releaseProvider.NewExtractingArchiveReader()
 
@@ -83,7 +83,7 @@ var _ = Describe("sha2ify-release", func() {
 
 		outFile := filepath.Join(dirtyPath, "small-sha256-release.tgz")
 
-		execCmd(cmdFactory, []string{"sha2ify-release", "assets/small-sha128-compiled-release.tgz", outFile})
+		createAndExecCommand(cmdFactory, []string{"sha2ify-release", "assets/small-sha128-compiled-release.tgz", outFile})
 
 		extractor := releaseProvider.NewExtractingArchiveReader()
 
@@ -116,15 +116,15 @@ var _ = Describe("sha2ify-release", func() {
 		relName := filepath.Base(tmpDir)
 
 		{
-			execCmd(cmdFactory, []string{"init-release", "--dir", tmpDir})
+			createAndExecCommand(cmdFactory, []string{"init-release", "--dir", tmpDir})
 			Expect(fs.FileExists(filepath.Join(tmpDir, "config"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "jobs"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "packages"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "src"))).To(BeTrue())
 		}
 
-		execCmd(cmdFactory, []string{"generate-job", "job1", "--dir", tmpDir})
-		execCmd(cmdFactory, []string{"generate-package", "pkg1", "--dir", tmpDir})
+		createAndExecCommand(cmdFactory, []string{"generate-job", "job1", "--dir", tmpDir})
+		createAndExecCommand(cmdFactory, []string{"generate-package", "pkg1", "--dir", tmpDir})
 
 		err = fs.WriteFileString(filepath.Join(tmpDir, "LICENSE"), "LICENSE")
 		Expect(err).ToNot(HaveOccurred())
@@ -152,7 +152,7 @@ var _ = Describe("sha2ify-release", func() {
 		sha2ifyReleasePath := filepath.Join(tmpDir, "sha2ify-release.tgz")
 
 		{ // Make empty release
-			execCmd(cmdFactory, []string{"create-release", "--dir", tmpDir, "--tarball", sha2ifyReleasePath})
+			createAndExecCommand(cmdFactory, []string{"create-release", "--dir", tmpDir, "--tarball", sha2ifyReleasePath})
 
 			_, err := fs.ReadFileString(filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.1.yml"))
 			Expect(err).ToNot(HaveOccurred())

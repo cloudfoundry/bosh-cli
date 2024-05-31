@@ -73,16 +73,16 @@ var _ = Describe("create-release command", func() {
 		relName := filepath.Base(tmpDir)
 
 		{
-			execCmd(cmdFactory, []string{"init-release", "--dir", tmpDir})
+			createAndExecCommand(cmdFactory, []string{"init-release", "--dir", tmpDir})
 			Expect(fs.FileExists(filepath.Join(tmpDir, "config"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "jobs"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "packages"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "src"))).To(BeTrue())
 		}
 
-		execCmd(cmdFactory, []string{"generate-job", "job1", "--dir", tmpDir})
-		execCmd(cmdFactory, []string{"generate-package", "pkg1", "--dir", tmpDir})
-		execCmd(cmdFactory, []string{"generate-package", "pkg2", "--dir", tmpDir})
+		createAndExecCommand(cmdFactory, []string{"generate-job", "job1", "--dir", tmpDir})
+		createAndExecCommand(cmdFactory, []string{"generate-package", "pkg1", "--dir", tmpDir})
+		createAndExecCommand(cmdFactory, []string{"generate-package", "pkg2", "--dir", tmpDir})
 
 		err = fs.WriteFileString(filepath.Join(tmpDir, "LICENSE"), "LICENSE")
 		Expect(err).ToNot(HaveOccurred())
@@ -108,7 +108,7 @@ var _ = Describe("create-release command", func() {
 		}
 
 		{ // Make empty release
-			execCmd(cmdFactory, []string{"create-release", "--dir", tmpDir})
+			createAndExecCommand(cmdFactory, []string{"create-release", "--dir", tmpDir})
 
 			contents, err := fs.ReadFileString(filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.1.yml"))
 			Expect(err).ToNot(HaveOccurred())
@@ -154,7 +154,7 @@ license:
 			err = fs.WriteFileString(randomFile, "in-blobs")
 			Expect(err).ToNot(HaveOccurred())
 
-			execCmd(cmdFactory, []string{"add-blob", randomFile, "in-blobs", "--dir", tmpDir})
+			createAndExecCommand(cmdFactory, []string{"add-blob", randomFile, "in-blobs", "--dir", tmpDir})
 
 			pkg1SpecPath := filepath.Join(tmpDir, "packages", "pkg1", "spec")
 
@@ -166,7 +166,7 @@ license:
 		}
 
 		{ // Make release with some contents
-			execCmd(cmdFactory, []string{"create-release", "--dir", tmpDir})
+			createAndExecCommand(cmdFactory, []string{"create-release", "--dir", tmpDir})
 
 			rel1File := filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.1.yml")
 			rel2File := filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.2.yml")
@@ -222,7 +222,7 @@ license:
 		}
 
 		{ // check contents of index files when sha2 flag is supplied
-			execCmd(cmdFactory, []string{"create-release", "--sha2", "--dir", tmpDir})
+			createAndExecCommand(cmdFactory, []string{"create-release", "--sha2", "--dir", tmpDir})
 
 			expectSha256Checksums(filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.3.yml"))
 			expectSha256Checksums(filepath.Join(tmpDir, ".dev_builds", "jobs", "job1", "index.yml"))
@@ -233,7 +233,7 @@ license:
 		{ // Check contents of made release via its tarball
 			tgzFile := filepath.Join(tmpDir, "release-3.tgz")
 
-			execCmd(cmdFactory, []string{"create-release", "--dir", tmpDir, "--tarball", tgzFile})
+			createAndExecCommand(cmdFactory, []string{"create-release", "--dir", tmpDir, "--tarball", tgzFile})
 			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
 			extractingArchiveReader := relProvider.NewExtractingArchiveReader()
 
@@ -271,7 +271,7 @@ license:
 			err := fs.WriteFileString(blobPath, "i don't belong here")
 			Expect(err).ToNot(HaveOccurred())
 
-			execCmd(cmdFactory, []string{"create-release", "--dir", tmpDir})
+			createAndExecCommand(cmdFactory, []string{"create-release", "--dir", tmpDir})
 			Expect(fs.FileExists(blobPath)).To(BeFalse())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "blobs", "in-blobs"))).To(BeTrue())
 		}
