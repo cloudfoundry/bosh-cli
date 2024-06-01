@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -19,12 +19,12 @@ import (
 var _ = Describe("InspectStemcellTarballCmd", func() {
 	Describe("Run", func() {
 		var (
-			fs               *fakesys.FakeFileSystem
-			archive          *fakedir.FakeStemcellArchive
-			command          InspectStemcellTarballCmd
-			ui               *fakeui.FakeUI
-			opts             InspectStemcellTarballOpts
-			stemcellMetadata boshdir.StemcellMetadata
+			fs                         *fakesys.FakeFileSystem
+			archive                    *fakedir.FakeStemcellArchive
+			command                    cmd.InspectStemcellTarballCmd
+			ui                         *fakeui.FakeUI
+			inspectStemcellTarballOpts opts.InspectStemcellTarballOpts
+			stemcellMetadata           boshdir.StemcellMetadata
 		)
 
 		BeforeEach(func() {
@@ -49,17 +49,17 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 				return archive
 			}
 
-			opts = InspectStemcellTarballOpts{}
+			inspectStemcellTarballOpts = opts.InspectStemcellTarballOpts{}
 			ui = &fakeui.FakeUI{}
 
-			command = NewInspectStemcellTarballCmd(stemcellArchiveFactory, ui)
+			command = cmd.NewInspectStemcellTarballCmd(stemcellArchiveFactory, ui)
 		})
 
 		Context("when infrastructure is known", func() {
 			It("returns a table with name, os, version, and infrastructure", func() {
 				archive.InfoReturns(stemcellMetadata, nil)
 
-				err := command.Run(opts)
+				err := command.Run(inspectStemcellTarballOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
@@ -99,7 +99,7 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 			It("returns a table with name, os, version, and infrastructure", func() {
 				archive.InfoReturns(stemcellMetadata, nil)
 
-				err := command.Run(opts)
+				err := command.Run(inspectStemcellTarballOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
@@ -139,7 +139,7 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 			It("returns a table with name, os, version, and infrastructure", func() {
 				archive.InfoReturns(stemcellMetadata, nil)
 
-				err := command.Run(opts)
+				err := command.Run(inspectStemcellTarballOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
@@ -173,7 +173,7 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 		It("returns error if retrieving stemcell archive info fails", func() {
 			archive.InfoReturns(boshdir.StemcellMetadata{}, errors.New("fake-err"))
 
-			err := command.Run(opts)
+			err := command.Run(inspectStemcellTarballOpts)
 			Expect(err).To(HaveOccurred())
 		})
 	})

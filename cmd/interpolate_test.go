@@ -5,8 +5,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -14,40 +14,40 @@ import (
 var _ = Describe("InterpolateCmd", func() {
 	var (
 		ui      *fakeui.FakeUI
-		command InterpolateCmd
+		command cmd.InterpolateCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
-		command = NewInterpolateCmd(ui)
+		command = cmd.NewInterpolateCmd(ui)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts InterpolateOpts
+			interpolateOpts opts.InterpolateOpts
 		)
 
 		BeforeEach(func() {
-			opts = InterpolateOpts{}
+			interpolateOpts = opts.InterpolateOpts{}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(interpolateOpts) }
 
 		It("shows templated manifest", func() {
-			opts.Args.Manifest = FileBytesArg{
+			interpolateOpts.Args.Manifest = opts.FileBytesArg{
 				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
 			}
 
-			opts.VarKVs = []boshtpl.VarKV{
+			interpolateOpts.VarKVs = []boshtpl.VarKV{
 				{Name: "name1", Value: "val1-from-kv"},
 			}
 
-			opts.VarsFiles = []boshtpl.VarsFileArg{
+			interpolateOpts.VarsFiles = []boshtpl.VarsFileArg{
 				{Vars: boshtpl.StaticVariables(map[string]interface{}{"name1": "val1-from-file"})},
 				{Vars: boshtpl.StaticVariables(map[string]interface{}{"name2": "val2-from-file"})},
 			}
 
-			opts.OpsFiles = []OpsFileArg{
+			interpolateOpts.OpsFiles = []opts.OpsFileArg{
 				{
 					Ops: patch.Ops([]patch.Op{
 						patch.ReplaceOp{Path: patch.MustNewPointerFromString("/xyz?"), Value: "val"},
@@ -63,15 +63,15 @@ var _ = Describe("InterpolateCmd", func() {
 		})
 
 		It("returns portion of the template after it's interpolated if path is given", func() {
-			opts.Args.Manifest = FileBytesArg{
+			interpolateOpts.Args.Manifest = opts.FileBytesArg{
 				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
 			}
 
-			opts.VarKVs = []boshtpl.VarKV{
+			interpolateOpts.VarKVs = []boshtpl.VarKV{
 				{Name: "name1", Value: "val1-from-kv"},
 			}
 
-			opts.VarsFiles = []boshtpl.VarsFileArg{
+			interpolateOpts.VarsFiles = []boshtpl.VarsFileArg{
 				{
 					Vars: boshtpl.StaticVariables(map[string]interface{}{
 						"var": map[interface{}]interface{}{"name3": "var-val"},
@@ -79,7 +79,7 @@ var _ = Describe("InterpolateCmd", func() {
 				},
 			}
 
-			opts.OpsFiles = []OpsFileArg{
+			interpolateOpts.OpsFiles = []opts.OpsFileArg{
 				{
 					Ops: patch.Ops([]patch.Op{
 						patch.ReplaceOp{Path: patch.MustNewPointerFromString("/name2"), Value: "((var))"},
@@ -87,7 +87,7 @@ var _ = Describe("InterpolateCmd", func() {
 				},
 			}
 
-			opts.Path = patch.MustNewPointerFromString("/name2/name3")
+			interpolateOpts.Path = patch.MustNewPointerFromString("/name2/name3")
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -95,11 +95,11 @@ var _ = Describe("InterpolateCmd", func() {
 		})
 
 		It("returns portion of the template formatting multiline string without YAML indent", func() {
-			opts.Args.Manifest = FileBytesArg{
+			interpolateOpts.Args.Manifest = opts.FileBytesArg{
 				Bytes: []byte(`key: "line1\nline2"`),
 			}
 
-			opts.Path = patch.MustNewPointerFromString("/key")
+			interpolateOpts.Path = patch.MustNewPointerFromString("/key")
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -107,11 +107,11 @@ var _ = Describe("InterpolateCmd", func() {
 		})
 
 		It("returns portion of the template formatting result as regular YAML", func() {
-			opts.Args.Manifest = FileBytesArg{
+			interpolateOpts.Args.Manifest = opts.FileBytesArg{
 				Bytes: []byte("key:\n  subkey:\n    subsubkey: key"),
 			}
 
-			opts.Path = patch.MustNewPointerFromString("/key")
+			interpolateOpts.Path = patch.MustNewPointerFromString("/key")
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -119,15 +119,15 @@ var _ = Describe("InterpolateCmd", func() {
 		})
 
 		It("returns error if variables are not found in templated manifest if var-errs flag is set", func() {
-			opts.Args.Manifest = FileBytesArg{
+			interpolateOpts.Args.Manifest = opts.FileBytesArg{
 				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
 			}
 
-			opts.VarKVs = []boshtpl.VarKV{
+			interpolateOpts.VarKVs = []boshtpl.VarKV{
 				{Name: "name1", Value: "val1-from-kv"},
 			}
 
-			opts.VarErrors = true
+			interpolateOpts.VarErrors = true
 
 			err := act()
 			Expect(err).To(HaveOccurred())
@@ -135,15 +135,15 @@ var _ = Describe("InterpolateCmd", func() {
 		})
 
 		It("returns error if variables are not used in templated manifest if var-errs-unused flag is set", func() {
-			opts.Args.Manifest = FileBytesArg{
+			interpolateOpts.Args.Manifest = opts.FileBytesArg{
 				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
 			}
 
-			opts.VarKVs = []boshtpl.VarKV{
+			interpolateOpts.VarKVs = []boshtpl.VarKV{
 				{Name: "name3", Value: "val3-from-kv"},
 			}
 
-			opts.VarErrorsUnused = true
+			interpolateOpts.VarErrorsUnused = true
 
 			err := act()
 			Expect(err).To(HaveOccurred())

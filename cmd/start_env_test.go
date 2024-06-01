@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	bicmd "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	mockcmd "github.com/cloudfoundry/bosh-cli/v7/cmd/mocks"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -38,8 +38,8 @@ var _ = Describe("StartEnvCmd", func() {
 			statePath              string
 		)
 
-		var newStartEnvCmd = func() *bicmd.StartEnvCmd {
-			doGetFunc := func(manifestPath string, statePath_ string, vars boshtpl.Variables, op patch.Op) bicmd.DeploymentStateManager {
+		var newStartEnvCmd = func() *cmd.StartEnvCmd {
+			doGetFunc := func(manifestPath string, statePath_ string, vars boshtpl.Variables, op patch.Op) cmd.DeploymentStateManager {
 				Expect(manifestPath).To(Equal(deploymentManifestPath))
 				Expect(vars).To(Equal(boshtpl.NewMultiVars([]boshtpl.Variables{boshtpl.StaticVariables{"key": "value"}})))
 				Expect(op).To(Equal(patch.Ops{patch.ErrOp{}}))
@@ -47,7 +47,7 @@ var _ = Describe("StartEnvCmd", func() {
 				return mockDeploymentStateManager
 			}
 
-			return bicmd.NewStartEnvCmd(fakeUI, doGetFunc)
+			return cmd.NewStartEnvCmd(fakeUI, doGetFunc)
 		}
 
 		var writeDeploymentManifest = func() {
@@ -66,15 +66,15 @@ var _ = Describe("StartEnvCmd", func() {
 		Context("state path is NOT specified", func() {
 			It("sends the manifest on to the StartDeployment", func() {
 				mockDeploymentStateManager.EXPECT().StartDeployment(fakeStage).Return(nil)
-				err := newStartEnvCmd().Run(fakeStage, StartEnvOpts{
-					Args: StartStopEnvArgs{
-						Manifest: FileBytesWithPathArg{Path: deploymentManifestPath},
+				err := newStartEnvCmd().Run(fakeStage, opts.StartEnvOpts{
+					Args: opts.StartStopEnvArgs{
+						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},
 					},
-					VarFlags: VarFlags{
+					VarFlags: opts.VarFlags{
 						VarKVs: []boshtpl.VarKV{{Name: "key", Value: "value"}},
 					},
-					OpsFlags: OpsFlags{
-						OpsFiles: []OpsFileArg{
+					OpsFlags: opts.OpsFlags{
+						OpsFiles: []opts.OpsFileArg{
 							{Ops: []patch.Op{patch.ErrOp{}}},
 						},
 					},
@@ -88,16 +88,16 @@ var _ = Describe("StartEnvCmd", func() {
 		Context("state path is specified", func() {
 			It("sends the manifest on to the StartDeployment", func() {
 				mockDeploymentStateManager.EXPECT().StartDeployment(fakeStage).Return(nil)
-				err := newStartEnvCmd().Run(fakeStage, StartEnvOpts{
+				err := newStartEnvCmd().Run(fakeStage, opts.StartEnvOpts{
 					StatePath: "/new/state/file/path/state.json",
-					Args: StartStopEnvArgs{
-						Manifest: FileBytesWithPathArg{Path: deploymentManifestPath},
+					Args: opts.StartStopEnvArgs{
+						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},
 					},
-					VarFlags: VarFlags{
+					VarFlags: opts.VarFlags{
 						VarKVs: []boshtpl.VarKV{{Name: "key", Value: "value"}},
 					},
-					OpsFlags: OpsFlags{
-						OpsFiles: []OpsFileArg{
+					OpsFlags: opts.OpsFlags{
+						OpsFiles: []opts.OpsFileArg{
 							{Ops: []patch.Op{patch.ErrOp{}}},
 						},
 					},
@@ -112,15 +112,15 @@ var _ = Describe("StartEnvCmd", func() {
 			It("sends the manifest on to the StartDeployment", func() {
 				err := bosherr.Error("boom")
 				mockDeploymentStateManager.EXPECT().StartDeployment(fakeStage).Return(err)
-				returnedErr := newStartEnvCmd().Run(fakeStage, StartEnvOpts{
-					Args: StartStopEnvArgs{
-						Manifest: FileBytesWithPathArg{Path: deploymentManifestPath},
+				returnedErr := newStartEnvCmd().Run(fakeStage, opts.StartEnvOpts{
+					Args: opts.StartStopEnvArgs{
+						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},
 					},
-					VarFlags: VarFlags{
+					VarFlags: opts.VarFlags{
 						VarKVs: []boshtpl.VarKV{{Name: "key", Value: "value"}},
 					},
-					OpsFlags: OpsFlags{
-						OpsFiles: []OpsFileArg{
+					OpsFlags: opts.OpsFlags{
+						OpsFiles: []opts.OpsFileArg{
 							{Ops: []patch.Op{patch.ErrOp{}}},
 						},
 					},

@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
@@ -21,25 +21,25 @@ var _ = Describe("FinalizeReleaseCmd", func() {
 		releaseReader *fakerel.FakeReader
 		releaseDir    *fakereldir.FakeReleaseDir
 		ui            *fakeui.FakeUI
-		command       FinalizeReleaseCmd
+		command       cmd.FinalizeReleaseCmd
 	)
 
 	BeforeEach(func() {
 		releaseReader = &fakerel.FakeReader{}
 		releaseDir = &fakereldir.FakeReleaseDir{}
 		ui = &fakeui.FakeUI{}
-		command = NewFinalizeReleaseCmd(releaseReader, releaseDir, ui)
+		command = cmd.NewFinalizeReleaseCmd(releaseReader, releaseDir, ui)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts    FinalizeReleaseOpts
-			release *fakerel.FakeRelease
+			finalizeReleaseOpts opts.FinalizeReleaseOpts
+			release             *fakerel.FakeRelease
 		)
 
 		BeforeEach(func() {
-			opts = FinalizeReleaseOpts{
-				Args: FinalizeReleaseArgs{Path: "/archive-path"},
+			finalizeReleaseOpts = opts.FinalizeReleaseOpts{
+				Args: opts.FinalizeReleaseArgs{Path: "/archive-path"},
 			}
 
 			release = &fakerel.FakeRelease{
@@ -52,7 +52,7 @@ var _ = Describe("FinalizeReleaseCmd", func() {
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(finalizeReleaseOpts) }
 
 		It("finalizes release based on path, picking next final version", func() {
 			releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
@@ -90,8 +90,8 @@ var _ = Describe("FinalizeReleaseCmd", func() {
 		})
 
 		It("finalizes release based on path, using custom name and version", func() {
-			opts.Name = "custom-name"
-			opts.Version = VersionArg(semver.MustNewVersionFromString("custom-ver"))
+			finalizeReleaseOpts.Name = "custom-name"
+			finalizeReleaseOpts.Version = opts.VersionArg(semver.MustNewVersionFromString("custom-ver"))
 
 			releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
 				Expect(path).To(Equal("/archive-path"))

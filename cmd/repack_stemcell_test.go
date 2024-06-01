@@ -4,23 +4,21 @@ import (
 	"errors"
 
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	"github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
-
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 )
 
 var _ = Describe("RepackStemcellCmd", func() {
 	Describe("Run", func() {
 		var (
 			fakeExtractor *stemcellfakes.FakeExtractor
-			command       RepackStemcellCmd
+			command       cmd.RepackStemcellCmd
 
-			opts RepackStemcellOpts
+			repackStemcellOpts opts.RepackStemcellOpts
 
 			stemcellPath string
 			resultPath   string
@@ -30,14 +28,14 @@ var _ = Describe("RepackStemcellCmd", func() {
 
 		BeforeEach(func() {
 			fakeExtractor = stemcellfakes.NewFakeExtractor()
-			command = NewRepackStemcellCmd(fakeExtractor)
+			command = cmd.NewRepackStemcellCmd(fakeExtractor)
 
 			stemcellPath = "definitely/a/path"
 			resultPath = "a/different/path/here"
-			opts = RepackStemcellOpts{
-				Args: RepackStemcellArgs{
+			repackStemcellOpts = opts.RepackStemcellOpts{
+				Args: opts.RepackStemcellArgs{
 					PathToStemcell: stemcellPath,
-					PathToResult:   FileArg{ExpandedPath: resultPath},
+					PathToResult:   opts.FileArg{ExpandedPath: resultPath},
 				},
 			}
 
@@ -47,7 +45,7 @@ var _ = Describe("RepackStemcellCmd", func() {
 
 		Context("no flags are passed", func() {
 			It("does not modify the extracted stemcell before packing", func() {
-				err := command.Run(opts)
+				err := command.Run(repackStemcellOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeExtractedStemcell.SetNameCallCount()).To(BeZero())
@@ -66,11 +64,11 @@ var _ = Describe("RepackStemcellCmd", func() {
 
 			BeforeEach(func() {
 				name = "foo"
-				opts.Name = name
+				repackStemcellOpts.Name = name
 			})
 
 			It("modifies the extracted stemcell's name", func() {
-				err := command.Run(opts)
+				err := command.Run(repackStemcellOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeExtractedStemcell.SetNameCallCount()).To(Equal(1))
@@ -84,11 +82,11 @@ var _ = Describe("RepackStemcellCmd", func() {
 
 			BeforeEach(func() {
 				version = "1.2.3"
-				opts.Version = version
+				repackStemcellOpts.Version = version
 			})
 
 			It("modifies the extracted stemcell's version", func() {
-				err := command.Run(opts)
+				err := command.Run(repackStemcellOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeExtractedStemcell.SetVersionCallCount()).To(Equal(1))
@@ -99,11 +97,11 @@ var _ = Describe("RepackStemcellCmd", func() {
 
 		Context("empty-image flag is passed", func() {
 			BeforeEach(func() {
-				opts.EmptyImage = true
+				repackStemcellOpts.EmptyImage = true
 			})
 
 			It("modifies the extracted stemcell's image", func() {
-				err := command.Run(opts)
+				err := command.Run(repackStemcellOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeExtractedStemcell.EmptyImageCallCount()).To(Equal(1))
@@ -113,7 +111,7 @@ var _ = Describe("RepackStemcellCmd", func() {
 			It("returns an error if empty image fails", func() {
 				fakeExtractedStemcell.EmptyImageReturns(errors.New("uh oh"))
 
-				err := command.Run(opts)
+				err := command.Run(repackStemcellOpts)
 				Expect(err).To(MatchError("uh oh"))
 
 				Expect(fakeExtractedStemcell.EmptyImageCallCount()).To(Equal(1))
@@ -126,11 +124,11 @@ var _ = Describe("RepackStemcellCmd", func() {
 
 			BeforeEach(func() {
 				cloudProperties = `{"foo": "bar"}`
-				opts.CloudProperties = cloudProperties
+				repackStemcellOpts.CloudProperties = cloudProperties
 			})
 
 			It("modifies the extracted stemcell's cloud properties", func() {
-				err := command.Run(opts)
+				err := command.Run(repackStemcellOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeExtractedStemcell.SetCloudPropertiesCallCount()).To(Equal(1))
@@ -139,9 +137,9 @@ var _ = Describe("RepackStemcellCmd", func() {
 			})
 
 			It("returns an error if yaml umarshalling fails", func() {
-				opts.CloudProperties = "not/yaml/no/siree"
+				repackStemcellOpts.CloudProperties = "not/yaml/no/siree"
 
-				err := command.Run(opts)
+				err := command.Run(repackStemcellOpts)
 				Expect(err).To(MatchError(ContainSubstring("yaml: unmarshal")))
 
 				Expect(fakeExtractedStemcell.SetCloudPropertiesCallCount()).To(BeZero())
@@ -154,11 +152,11 @@ var _ = Describe("RepackStemcellCmd", func() {
 
 			BeforeEach(func() {
 				format = []string{"foo", "bar", "baz"}
-				opts.Format = format
+				repackStemcellOpts.Format = format
 			})
 
 			It("modifies the extracted stemcell's format", func() {
-				err := command.Run(opts)
+				err := command.Run(repackStemcellOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeExtractedStemcell.SetFormatCallCount()).To(Equal(1))

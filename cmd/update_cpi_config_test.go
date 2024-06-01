@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
@@ -19,29 +19,29 @@ var _ = Describe("UpdateCPIConfigCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  UpdateCPIConfigCmd
+		command  cmd.UpdateCPIConfigCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewUpdateCPIConfigCmd(ui, director)
+		command = cmd.NewUpdateCPIConfigCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts UpdateCPIConfigOpts
+			updateCPIConfigOpts opts.UpdateCPIConfigOpts
 		)
 
 		BeforeEach(func() {
-			opts = UpdateCPIConfigOpts{
-				Args: UpdateCPIConfigArgs{
-					CPIConfig: FileBytesArg{Bytes: []byte("cpi-config")},
+			updateCPIConfigOpts = opts.UpdateCPIConfigOpts{
+				Args: opts.UpdateCPIConfigArgs{
+					CPIConfig: opts.FileBytesArg{Bytes: []byte("cpi-config")},
 				},
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(updateCPIConfigOpts) }
 
 		It("updates cpi config", func() {
 			err := act()
@@ -54,20 +54,20 @@ var _ = Describe("UpdateCPIConfigCmd", func() {
 		})
 
 		It("updates templated cpi config", func() {
-			opts.Args.CPIConfig = FileBytesArg{
+			updateCPIConfigOpts.Args.CPIConfig = opts.FileBytesArg{
 				Bytes: []byte("name: ((name))\ntype: ((type))"),
 			}
 
-			opts.VarKVs = []boshtpl.VarKV{
+			updateCPIConfigOpts.VarKVs = []boshtpl.VarKV{
 				{Name: "name", Value: "val1-from-kv"},
 			}
 
-			opts.VarsFiles = []boshtpl.VarsFileArg{
+			updateCPIConfigOpts.VarsFiles = []boshtpl.VarsFileArg{
 				{Vars: boshtpl.StaticVariables(map[string]interface{}{"name": "val1-from-file"})},
 				{Vars: boshtpl.StaticVariables(map[string]interface{}{"type": "val2-from-file"})},
 			}
 
-			opts.OpsFiles = []OpsFileArg{
+			updateCPIConfigOpts.OpsFiles = []opts.OpsFileArg{
 				{
 					Ops: patch.Ops([]patch.Op{
 						patch.ReplaceOp{Path: patch.MustNewPointerFromString("/xyz?"), Value: "val"},
@@ -128,9 +128,9 @@ var _ = Describe("UpdateCPIConfigCmd", func() {
 
 		Context("when NoRedact option is passed", func() {
 			BeforeEach(func() {
-				opts = UpdateCPIConfigOpts{
-					Args: UpdateCPIConfigArgs{
-						CPIConfig: FileBytesArg{Bytes: []byte("cpis: config")},
+				updateCPIConfigOpts = opts.UpdateCPIConfigOpts{
+					Args: opts.UpdateCPIConfigArgs{
+						CPIConfig: opts.FileBytesArg{Bytes: []byte("cpis: config")},
 					},
 					NoRedact: true,
 				}

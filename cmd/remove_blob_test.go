@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -18,30 +18,30 @@ var _ = Describe("RemoveBlobCmd", func() {
 		blobsDir *fakereldir.FakeBlobsDir
 		fs       *fakesys.FakeFileSystem
 		ui       *fakeui.FakeUI
-		command  RemoveBlobCmd
+		command  cmd.RemoveBlobCmd
 	)
 
 	BeforeEach(func() {
 		blobsDir = &fakereldir.FakeBlobsDir{}
 		fs = fakesys.NewFakeFileSystem()
 		ui = &fakeui.FakeUI{}
-		command = NewRemoveBlobCmd(blobsDir, ui)
+		command = cmd.NewRemoveBlobCmd(blobsDir, ui)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts RemoveBlobOpts
+			removeBlobOpts opts.RemoveBlobOpts
 		)
 
 		BeforeEach(func() {
 			err := fs.WriteFileString("/path/to/blob.tgz", "blob")
 			Expect(err).ToNot(HaveOccurred())
-			opts = RemoveBlobOpts{
-				Args: RemoveBlobArgs{BlobsPath: "/path/to/blob.tgz"},
+			removeBlobOpts = opts.RemoveBlobOpts{
+				Args: opts.RemoveBlobArgs{BlobsPath: "/path/to/blob.tgz"},
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(removeBlobOpts) }
 
 		It("untracks blob", func() {
 			blobsDir.UntrackBlobReturns(nil)

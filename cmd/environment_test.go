@@ -4,12 +4,11 @@ import (
 	"errors"
 
 	"github.com/fatih/color"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -18,21 +17,21 @@ import (
 
 var _ = Describe("EnvironmentCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
-		director *fakedir.FakeDirector
-		command  EnvironmentCmd
-		opts     EnvironmentOpts
+		ui              *fakeui.FakeUI
+		director        *fakedir.FakeDirector
+		command         cmd.EnvironmentCmd
+		environmentOpts opts.EnvironmentOpts
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewEnvironmentCmd(ui, director)
-		opts = EnvironmentOpts{}
+		command = cmd.NewEnvironmentCmd(ui, director)
+		environmentOpts = opts.EnvironmentOpts{}
 	})
 
 	Describe("Run", func() {
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(environmentOpts) }
 
 		It("outputs a table that should be transposed", func() {
 			info := boshdir.Info{}
@@ -155,7 +154,7 @@ var _ = Describe("EnvironmentCmd", func() {
 
 		Context("When details flag is passed", func() {
 			BeforeEach(func() {
-				opts = EnvironmentOpts{Details: true}
+				environmentOpts = opts.EnvironmentOpts{Details: true}
 			})
 
 			It("it renders the certificates information", func() {

@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
-	bicmd "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	mockdeployment "github.com/cloudfoundry/bosh-cli/v7/deployment/mocks"
@@ -22,8 +22,7 @@ import (
 	biinstall "github.com/cloudfoundry/bosh-cli/v7/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
-	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
@@ -53,7 +52,7 @@ var _ = Describe("DeploymentStateManager", func() {
 		mockAgentClient        *mockagentclient.MockAgentClient
 		mockAgentClientFactory *mockhttpagent.MockAgentClientFactory
 
-		fakeStage *fakebiui.FakeStage
+		fakeStage *fakeui.FakeStage
 
 		directorID string
 
@@ -120,28 +119,28 @@ cloud_provider:
 		Expect(err).ToNot(HaveOccurred())
 	}
 
-	var newDeploymentStateManager = func() bicmd.DeploymentStateManager {
+	var newDeploymentStateManager = func() cmd.DeploymentStateManager {
 		releaseSetValidator := birelsetmanifest.NewValidator(logger)
 		releaseSetParser := birelsetmanifest.NewParser(fs, logger, releaseSetValidator)
 		installationValidator := biinstallmanifest.NewValidator(logger)
 		installationParser := biinstallmanifest.NewParser(fs, fakeUUIDGenerator, logger, installationValidator)
 		deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, ""))
 
-		releaseSetAndInstallationManifestParser := bicmd.ReleaseSetAndInstallationManifestParser{
+		releaseSetAndInstallationManifestParser := cmd.ReleaseSetAndInstallationManifestParser{
 			ReleaseSetParser:   releaseSetParser,
 			InstallationParser: installationParser,
 		}
 		deploymentParser := bideplmanifest.NewParser(fs, logger)
 		deploymentValidator := bideplmanifest.NewValidator(logger)
 		releaseManager := biinstall.NewReleaseManager(logger)
-		deploymentManifestParser := bicmd.NewDeploymentManifestParser(
+		deploymentManifestParser := cmd.NewDeploymentManifestParser(
 			deploymentParser,
 			deploymentValidator,
 			releaseManager,
 			bidepltpl.NewDeploymentTemplateFactory(fs),
 		)
 
-		return bicmd.NewDeploymentStateManager(
+		return cmd.NewDeploymentStateManager(
 			fakeUI,
 			"deleteCmd",
 			logger,
@@ -168,7 +167,7 @@ cloud_provider:
 
 		fakeUI = &fakeui.FakeUI{}
 
-		fakeStage = fakebiui.NewFakeStage()
+		fakeStage = fakeui.NewFakeStage()
 
 		mockDeploymentManagerFactory = mockdeployment.NewMockManagerFactory(mockCtrl)
 		mockDeploymentManager = mockdeployment.NewMockManager(mockCtrl)
@@ -195,7 +194,7 @@ cloud_provider:
 			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
 
 			gomock.InOrder(
-				mockDeployment.EXPECT().Stop(skipDrain, gomock.Any()).Do(func(_ bool, stage biui.Stage) {
+				mockDeployment.EXPECT().Stop(skipDrain, gomock.Any()).Do(func(_ bool, stage boshui.Stage) {
 					Expect(fakeStage.SubStages).To(ContainElement(stage))
 				}),
 			)
@@ -206,18 +205,18 @@ cloud_provider:
 				"Deployment state: '" + filepath.Join("/", "deployment-dir", "fake-deployment-manifest-state.json") + "'\n",
 			}))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*fakeui.PerformCall{
 				{
 					Name: "validating",
-					Stage: &fakebiui.FakeStage{
-						PerformCalls: []*fakebiui.PerformCall{
+					Stage: &fakeui.FakeStage{
+						PerformCalls: []*fakeui.PerformCall{
 							{Name: "Validating deployment manifest"},
 						},
 					},
 				},
 				{
 					Name:  "stopping deployment",
-					Stage: &fakebiui.FakeStage{},
+					Stage: &fakeui.FakeStage{},
 				},
 			}))
 		}
@@ -297,7 +296,7 @@ cloud_provider:
 			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
 
 			gomock.InOrder(
-				mockDeployment.EXPECT().Start(gomock.Any(), gomock.Any()).Do(func(stage biui.Stage, update bideplmanifest.Update) {
+				mockDeployment.EXPECT().Start(gomock.Any(), gomock.Any()).Do(func(stage boshui.Stage, update bideplmanifest.Update) {
 					Expect(fakeStage.SubStages).To(ContainElement(stage))
 					Expect(update).ToNot(BeNil())
 				}),
@@ -309,18 +308,18 @@ cloud_provider:
 				"Deployment state: '" + filepath.Join("/", "deployment-dir", "fake-deployment-manifest-state.json") + "'\n",
 			}))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*fakeui.PerformCall{
 				{
 					Name: "validating",
-					Stage: &fakebiui.FakeStage{
-						PerformCalls: []*fakebiui.PerformCall{
+					Stage: &fakeui.FakeStage{
+						PerformCalls: []*fakeui.PerformCall{
 							{Name: "Validating deployment manifest"},
 						},
 					},
 				},
 				{
 					Name:  "starting deployment",
-					Stage: &fakebiui.FakeStage{},
+					Stage: &fakeui.FakeStage{},
 				},
 			}))
 		}

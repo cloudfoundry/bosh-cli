@@ -6,10 +6,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -21,27 +20,27 @@ var _ = Describe("RunErrandCmd", func() {
 		deployment *fakedir.FakeDeployment
 		downloader *fakecmd.FakeDownloader
 		ui         *fakeui.FakeUI
-		command    RunErrandCmd
+		command    cmd.RunErrandCmd
 	)
 
 	BeforeEach(func() {
 		deployment = &fakedir.FakeDeployment{}
 		downloader = &fakecmd.FakeDownloader{}
 		ui = &fakeui.FakeUI{}
-		command = NewRunErrandCmd(deployment, downloader, ui)
+		command = cmd.NewRunErrandCmd(deployment, downloader, ui)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts RunErrandOpts
+			runErrandOpts opts.RunErrandOpts
 		)
 
 		BeforeEach(func() {
-			opts = RunErrandOpts{
-				Args:        RunErrandArgs{Name: "errand-name"},
+			runErrandOpts = opts.RunErrandOpts{
+				Args:        opts.RunErrandArgs{Name: "errand-name"},
 				KeepAlive:   true,
 				WhenChanged: true,
-				InstanceGroupOrInstanceSlugFlags: InstanceGroupOrInstanceSlugFlags{
+				InstanceGroupOrInstanceSlugFlags: opts.InstanceGroupOrInstanceSlugFlags{
 					Slugs: []boshdir.InstanceGroupOrInstanceSlug{
 						boshdir.NewInstanceGroupOrInstanceSlug("group2", "uuid"),
 					},
@@ -49,13 +48,13 @@ var _ = Describe("RunErrandCmd", func() {
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(runErrandOpts) }
 
 		Context("when errand succeeds", func() {
 			Context("when multiple errands return", func() {
 				It("downloads logs if requested", func() {
-					opts.DownloadLogs = true
-					opts.LogsDirectory = DirOrCWDArg{Path: "/fake-dir"}
+					runErrandOpts.DownloadLogs = true
+					runErrandOpts.LogsDirectory = opts.DirOrCWDArg{Path: "/fake-dir"}
 
 					result := []boshdir.ErrandResult{{
 						ExitCode:        0,
@@ -88,7 +87,7 @@ var _ = Describe("RunErrandCmd", func() {
 				})
 
 				It("does not download logs if not requested", func() {
-					opts.DownloadLogs = false
+					runErrandOpts.DownloadLogs = false
 
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
@@ -97,8 +96,8 @@ var _ = Describe("RunErrandCmd", func() {
 				})
 
 				It("does not download logs if requested and not logs blob returned", func() {
-					opts.DownloadLogs = true
-					opts.LogsDirectory = DirOrCWDArg{Path: "/fake-dir"}
+					runErrandOpts.DownloadLogs = true
+					runErrandOpts.LogsDirectory = opts.DirOrCWDArg{Path: "/fake-dir"}
 
 					result := []boshdir.ErrandResult{{ExitCode: 0}}
 
@@ -185,8 +184,8 @@ var _ = Describe("RunErrandCmd", func() {
 			})
 
 			It("downloads logs if requested", func() {
-				opts.DownloadLogs = true
-				opts.LogsDirectory = DirOrCWDArg{Path: "/fake-dir"}
+				runErrandOpts.DownloadLogs = true
+				runErrandOpts.LogsDirectory = opts.DirOrCWDArg{Path: "/fake-dir"}
 
 				result := []boshdir.ErrandResult{{
 					ExitCode:        0,
@@ -209,7 +208,7 @@ var _ = Describe("RunErrandCmd", func() {
 			})
 
 			It("does not download logs if not requested", func() {
-				opts.DownloadLogs = false
+				runErrandOpts.DownloadLogs = false
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -218,8 +217,8 @@ var _ = Describe("RunErrandCmd", func() {
 			})
 
 			It("does not download logs if requested and not logs blob returned", func() {
-				opts.DownloadLogs = true
-				opts.LogsDirectory = DirOrCWDArg{Path: "/fake-dir"}
+				runErrandOpts.DownloadLogs = true
+				runErrandOpts.LogsDirectory = opts.DirOrCWDArg{Path: "/fake-dir"}
 
 				result := []boshdir.ErrandResult{{ExitCode: 0}}
 

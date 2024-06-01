@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -19,25 +19,25 @@ var _ = Describe("TasksCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  TasksCmd
+		command  cmd.TasksCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewTasksCmd(ui, director)
+		command = cmd.NewTasksCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts TasksOpts
+			tasksOpts opts.TasksOpts
 		)
 
 		BeforeEach(func() {
-			opts = TasksOpts{}
+			tasksOpts = opts.TasksOpts{}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(tasksOpts) }
 
 		Context("when current tasks are requested", func() {
 			It("lists current tasks", func() {
@@ -126,7 +126,7 @@ var _ = Describe("TasksCmd", func() {
 			It("filters tasks based options", func() {
 				director.CurrentTasksReturns(nil, nil)
 
-				opts = TasksOpts{}
+				tasksOpts = opts.TasksOpts{}
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -134,8 +134,8 @@ var _ = Describe("TasksCmd", func() {
 					All: true,
 				}))
 
-				opts.All = true
-				opts.Deployment = "deployment"
+				tasksOpts.All = true
+				tasksOpts.Deployment = "deployment"
 
 				err = act()
 				Expect(err).ToNot(HaveOccurred())
@@ -157,7 +157,7 @@ var _ = Describe("TasksCmd", func() {
 		Context("when recent tasks are requested", func() {
 			BeforeEach(func() {
 				recent := 30
-				opts.Recent = &recent
+				tasksOpts.Recent = &recent
 			})
 
 			It("lists recent tasks", func() {
@@ -250,8 +250,8 @@ var _ = Describe("TasksCmd", func() {
 				_, filter := director.RecentTasksArgsForCall(0)
 				Expect(filter).To(Equal(boshdir.TasksFilter{}))
 
-				opts.All = true
-				opts.Deployment = "deployment"
+				tasksOpts.All = true
+				tasksOpts.Deployment = "deployment"
 
 				Expect(act()).ToNot(HaveOccurred())
 				_, filter = director.RecentTasksArgsForCall(1)

@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -18,13 +18,13 @@ var _ = Describe("ReleasesCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  ReleasesCmd
+		command  cmd.ReleasesCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewReleasesCmd(ui, director)
+		command = cmd.NewReleasesCmd(ui, director)
 	})
 
 	Describe("Run", func() {

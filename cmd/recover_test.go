@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 	"gopkg.in/yaml.v2"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -29,27 +29,27 @@ var _ = Describe("RecoverCmd", func() {
 		deployment *fakedir.FakeDeployment
 		ui         *fakeui.FakeUI
 		fakeFS     *fakesys.FakeFileSystem
-		command    RecoverCmd
+		command    cmd.RecoverCmd
 	)
 
 	BeforeEach(func() {
 		deployment = &fakedir.FakeDeployment{}
 		ui = &fakeui.FakeUI{}
 		fakeFS = fakesys.NewFakeFileSystem()
-		command = NewRecoverCmd(deployment, ui, fakeFS)
+		command = cmd.NewRecoverCmd(deployment, ui, fakeFS)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts         RecoverOpts
+			recoverOpts  opts.RecoverOpts
 			severalProbs []boshdir.Problem
-			plan         RecoveryPlan
+			plan         cmd.RecoveryPlan
 		)
 
 		BeforeEach(func() {
-			opts = RecoverOpts{
-				Args: RecoverArgs{
-					RecoveryPlan: FileArg{
+			recoverOpts = opts.RecoverOpts{
+				Args: opts.RecoverArgs{
+					RecoveryPlan: opts.FileArg{
 						ExpandedPath: "/tmp/foo.yml",
 						FS:           fakeFS,
 					},
@@ -99,8 +99,8 @@ var _ = Describe("RecoverCmd", func() {
 				},
 			}
 
-			plan = RecoveryPlan{
-				InstanceGroupsPlan: []InstanceGroupPlan{
+			plan = cmd.RecoveryPlan{
+				InstanceGroupsPlan: []cmd.InstanceGroupPlan{
 					{
 						Name:                "diego_cell",
 						MaxInFlightOverride: "10",
@@ -126,7 +126,7 @@ var _ = Describe("RecoverCmd", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(recoverOpts) }
 
 		Context("scanning for problems failed", func() {
 			BeforeEach(func() {

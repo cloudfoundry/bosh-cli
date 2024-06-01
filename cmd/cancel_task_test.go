@@ -6,35 +6,35 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 )
 
 var _ = Describe("CancelTaskCmd", func() {
 	var (
 		director *fakedir.FakeDirector
-		command  CancelTaskCmd
+		command  cmd.CancelTaskCmd
 	)
 
 	BeforeEach(func() {
 		director = &fakedir.FakeDirector{}
-		command = NewCancelTaskCmd(director)
+		command = cmd.NewCancelTaskCmd(director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts CancelTaskOpts
-			task *fakedir.FakeTask
+			cancelTaskOpts opts.CancelTaskOpts
+			task           *fakedir.FakeTask
 		)
 
 		BeforeEach(func() {
-			opts = CancelTaskOpts{Args: TaskArgs{ID: 123}}
+			cancelTaskOpts = opts.CancelTaskOpts{Args: opts.TaskArgs{ID: 123}}
 			task = &fakedir.FakeTask{}
 			director.FindTaskReturns(task, nil)
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(cancelTaskOpts) }
 
 		It("fetches and cancels given task", func() {
 			err := act()

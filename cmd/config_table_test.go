@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
@@ -22,7 +22,7 @@ var _ = Describe("ConfigTable", func() {
 	Describe("Print", func() {
 		It("shows config info as transposed tabled", func() {
 			config := boshdir.Config{ID: "123", Type: "my-type", Name: "my-name", CreatedAt: "sunday", Content: "some-content"}
-			ConfigTable{Config: config, UI: ui}.Print()
+			cmd.ConfigTable{Config: config, UI: ui}.Print()
 			Expect(ui.Table).To(Equal(
 				boshtbl.Table{
 					Content: "config",

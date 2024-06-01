@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -16,27 +16,27 @@ var _ = Describe("DeleteNetworkCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  DeleteNetworkCmd
+		command  cmd.DeleteNetworkCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewDeleteNetworkCmd(ui, director)
+		command = cmd.NewDeleteNetworkCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts DeleteNetworkOpts
+			deleteNetworkOpts opts.DeleteNetworkOpts
 		)
 
 		BeforeEach(func() {
-			opts = DeleteNetworkOpts{
-				Args: DeleteNetworkArgs{Name: "network-name"},
+			deleteNetworkOpts = opts.DeleteNetworkOpts{
+				Args: opts.DeleteNetworkArgs{Name: "network-name"},
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(deleteNetworkOpts) }
 
 		It("deletes orphaned network", func() {
 			network := &fakedir.FakeOrphanNetwork{}

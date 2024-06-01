@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
@@ -22,18 +22,18 @@ var _ = Describe("VendorPackageCmd", func() {
 		srcReleaseDir *fakereldir.FakeReleaseDir
 		dstReleaseDir *fakereldir.FakeReleaseDir
 		ui            *fakeui.FakeUI
-		command       VendorPackageCmd
+		command       cmd.VendorPackageCmd
 	)
 
 	BeforeEach(func() {
 		srcReleaseDir = &fakereldir.FakeReleaseDir{}
 		dstReleaseDir = &fakereldir.FakeReleaseDir{}
 
-		releaseDirFactory := func(dir DirOrCWDArg) boshreldir.ReleaseDir {
+		releaseDirFactory := func(dir opts.DirOrCWDArg) boshreldir.ReleaseDir {
 			switch dir {
-			case DirOrCWDArg{Path: "/src-dir"}:
+			case opts.DirOrCWDArg{Path: "/src-dir"}:
 				return srcReleaseDir
-			case DirOrCWDArg{Path: "/dst-dir"}:
+			case opts.DirOrCWDArg{Path: "/dst-dir"}:
 				return dstReleaseDir
 			default:
 				panic("Unexpected release dir")
@@ -41,25 +41,25 @@ var _ = Describe("VendorPackageCmd", func() {
 		}
 
 		ui = &fakeui.FakeUI{}
-		command = NewVendorPackageCmd(releaseDirFactory, ui)
+		command = cmd.NewVendorPackageCmd(releaseDirFactory, ui)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts VendorPackageOpts
+			vendorPackageOpts opts.VendorPackageOpts
 		)
 
 		BeforeEach(func() {
-			opts = VendorPackageOpts{
-				Args: VendorPackageArgs{
+			vendorPackageOpts = opts.VendorPackageOpts{
+				Args: opts.VendorPackageArgs{
 					PackageName: "pkg1-name",
-					URL:         DirOrCWDArg{Path: "/src-dir"},
+					URL:         opts.DirOrCWDArg{Path: "/src-dir"},
 				},
-				Directory: DirOrCWDArg{Path: "/dst-dir"},
+				Directory: opts.DirOrCWDArg{Path: "/dst-dir"},
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(vendorPackageOpts) }
 
 		It("vendors package by name from source release", func() {
 			pkg0 := boshpkg.NewPackage(NewResourceWithBuiltArchive(

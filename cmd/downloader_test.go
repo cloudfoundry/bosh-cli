@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -26,7 +26,7 @@ var _ = Describe("UIDownloader", func() {
 		fs          *fakesys.FakeFileSystem
 		timeService clock.Clock
 		ui          *fakeui.FakeUI
-		downloader  UIDownloader
+		downloader  cmd.UIDownloader
 	)
 
 	BeforeEach(func() {
@@ -34,7 +34,7 @@ var _ = Describe("UIDownloader", func() {
 		timeService = fakeclock.NewFakeClock(time.Date(2009, time.November, 10, 23, 1, 2, 333, time.UTC))
 		fs = fakesys.NewFakeFileSystem()
 		ui = &fakeui.FakeUI{}
-		downloader = NewUIDownloader(director, timeService, fs, ui)
+		downloader = cmd.NewUIDownloader(director, timeService, fs, ui)
 	})
 
 	Describe("Download", func() {

@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
@@ -30,15 +30,15 @@ var _ = Describe("UploadReleaseCmd", func() {
 		fs            *fakesys.FakeFileSystem
 		archive       *fakedir.FakeReleaseArchive
 		ui            *fakeui.FakeUI
-		command       UploadReleaseCmd
+		command       cmd.UploadReleaseCmd
 	)
 
 	BeforeEach(func() {
 		releaseReader = &fakerel.FakeReader{}
 		releaseDir = &fakereldir.FakeReleaseDir{}
 
-		releaseDirFactory := func(dir DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir) {
-			Expect(dir).To(Equal(DirOrCWDArg{Path: "/dir"}))
+		releaseDirFactory := func(dir opts.DirOrCWDArg) (boshrel.Reader, boshreldir.ReleaseDir) {
+			Expect(dir).To(Equal(opts.DirOrCWDArg{Path: "/dir"}))
 			return releaseReader, releaseDir
 		}
 
@@ -62,25 +62,25 @@ var _ = Describe("UploadReleaseCmd", func() {
 
 		ui = &fakeui.FakeUI{}
 
-		command = NewUploadReleaseCmd(releaseDirFactory, releaseWriter, director, releaseArchiveFactory, cmdRunner, fs, ui)
+		command = cmd.NewUploadReleaseCmd(releaseDirFactory, releaseWriter, director, releaseArchiveFactory, cmdRunner, fs, ui)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts UploadReleaseOpts
+			uploadReleaseOpts opts.UploadReleaseOpts
 		)
 
 		BeforeEach(func() {
-			opts = UploadReleaseOpts{
-				Directory: DirOrCWDArg{Path: "/dir"},
+			uploadReleaseOpts = opts.UploadReleaseOpts{
+				Directory: opts.DirOrCWDArg{Path: "/dir"},
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(uploadReleaseOpts) }
 
 		Context("when url is remote (http/https)", func() {
 			BeforeEach(func() {
-				opts.Args.URL = "https://some-file.tzg"
+				uploadReleaseOpts.Args.URL = "https://some-file.tzg"
 			})
 
 			It("uploads given release", func() {
@@ -97,16 +97,16 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("uploads given release even if reader is nil", func() {
-				command = NewUploadReleaseCmd(nil, nil, director, nil, nil, nil, ui)
+				command = cmd.NewUploadReleaseCmd(nil, nil, director, nil, nil, nil, ui)
 
-				err := command.Run(opts)
+				err := command.Run(uploadReleaseOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(director.UploadReleaseURLCallCount()).To(Equal(1))
 			})
 
 			It("uploads given release with a fix flag without checking if release exists", func() {
-				opts.Fix = true
+				uploadReleaseOpts.Fix = true
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -123,8 +123,8 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("uploads given release with a specified rebase, sha1, etc.", func() {
-				opts.Rebase = true
-				opts.SHA1 = "sha1"
+				uploadReleaseOpts.Rebase = true
+				uploadReleaseOpts.SHA1 = "sha1"
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -139,8 +139,8 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("does not upload release if name and version match existing release", func() {
-				opts.Name = "existing-name"
-				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
+				uploadReleaseOpts.Name = "existing-name"
+				uploadReleaseOpts.Version = opts.VersionArg(semver.MustNewVersionFromString("existing-ver"))
 
 				director.HasReleaseReturns(true, nil)
 
@@ -159,9 +159,9 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("does not upload compiled release if name, version and stemcell match existing release", func() {
-				opts.Name = "existing-name"
-				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
-				opts.Stemcell = boshdir.NewOSVersionSlug("ubuntu-trusty", "3421")
+				uploadReleaseOpts.Name = "existing-name"
+				uploadReleaseOpts.Version = opts.VersionArg(semver.MustNewVersionFromString("existing-ver"))
+				uploadReleaseOpts.Stemcell = boshdir.NewOSVersionSlug("ubuntu-trusty", "3421")
 
 				director.HasReleaseReturns(true, nil)
 
@@ -180,8 +180,8 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("uploads release if name and version does not match existing release", func() {
-				opts.Name = "existing-name"
-				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
+				uploadReleaseOpts.Name = "existing-name"
+				uploadReleaseOpts.Version = opts.VersionArg(semver.MustNewVersionFromString("existing-ver"))
 
 				director.HasReleaseReturns(false, nil)
 
@@ -229,7 +229,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 			)
 
 			BeforeEach(func() {
-				opts.Args.URL = "./some-file.tgz"
+				uploadReleaseOpts.Args.URL = "./some-file.tgz"
 
 				release = &fakerel.FakeRelease{
 					NameStub: func() string { return "rel" },
@@ -240,9 +240,9 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("returns an error if reader is nil", func() {
-				command = NewUploadReleaseCmd(nil, nil, director, nil, nil, nil, ui)
+				command = cmd.NewUploadReleaseCmd(nil, nil, director, nil, nil, nil, ui)
 
-				err := command.Run(opts)
+				err := command.Run(uploadReleaseOpts)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Cannot upload non-remote release"))
 			})
@@ -281,8 +281,8 @@ var _ = Describe("UploadReleaseCmd", func() {
 					Expect(path).To(Equal("./some-file.tgz"))
 					return release, nil
 				}
-				opts.Name = "existing-name"
-				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
+				uploadReleaseOpts.Name = "existing-name"
+				uploadReleaseOpts.Version = opts.VersionArg(semver.MustNewVersionFromString("existing-ver"))
 				director.HasReleaseReturns(true, nil)
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -300,9 +300,9 @@ var _ = Describe("UploadReleaseCmd", func() {
 					Expect(path).To(Equal("./some-file.tgz"))
 					return release, nil
 				}
-				opts.Name = "existing-name"
-				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
-				opts.Stemcell = boshdir.NewOSVersionSlug("ubuntu-xenial", "621.176")
+				uploadReleaseOpts.Name = "existing-name"
+				uploadReleaseOpts.Version = opts.VersionArg(semver.MustNewVersionFromString("existing-ver"))
+				uploadReleaseOpts.Stemcell = boshdir.NewOSVersionSlug("ubuntu-xenial", "621.176")
 
 				director.ReleaseHasCompiledPackageReturnsOnCall(1, false, nil)
 				err := act()
@@ -315,14 +315,14 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("does upload a release if url points to a folder and version is create", func() {
-				opts.Args.URL = "./some-folder"
+				uploadReleaseOpts.Args.URL = "./some-folder"
 				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
 					Expect(path).To(Equal("./some-folder"))
 					return release, nil
 				}
-				opts.Name = "existing-name"
-				opts.Version = VersionArg(semver.MustNewVersionFromString("create"))
-				opts.Stemcell = boshdir.NewOSVersionSlug("ubuntu-xenial", "621.176")
+				uploadReleaseOpts.Name = "existing-name"
+				uploadReleaseOpts.Version = opts.VersionArg(semver.MustNewVersionFromString("create"))
+				uploadReleaseOpts.Stemcell = boshdir.NewOSVersionSlug("ubuntu-xenial", "621.176")
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 				name, version, stemcell := director.HasReleaseArgsForCall(0)
@@ -359,7 +359,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("uploads given release with a fix flag hence does not filter out any packages", func() {
-				opts.Fix = true
+				uploadReleaseOpts.Fix = true
 
 				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
 					Expect(path).To(Equal("./some-file.tgz"))
@@ -415,8 +415,8 @@ var _ = Describe("UploadReleaseCmd", func() {
 
 			BeforeEach(func() {
 				// Command's --dir flag is not used
-				opts.Args.URL = "git://./some-repo"
-				opts.Directory = DirOrCWDArg{Path: "/dir-that-does-not-matter"}
+				uploadReleaseOpts.Args.URL = "git://./some-repo"
+				uploadReleaseOpts.Directory = opts.DirOrCWDArg{Path: "/dir-that-does-not-matter"}
 
 				// Destination for git clone
 				fs.TempDirDir = "/dir"
@@ -430,16 +430,16 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("returns an error if reader is nil", func() {
-				command = NewUploadReleaseCmd(nil, nil, director, nil, cmdRunner, fs, ui)
+				command = cmd.NewUploadReleaseCmd(nil, nil, director, nil, cmdRunner, fs, ui)
 
-				err := command.Run(opts)
+				err := command.Run(uploadReleaseOpts)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Cannot upload non-remote release"))
 			})
 
 			It("uploads given release", func() {
-				opts.Name = "rel1"
-				opts.Version = VersionArg(semver.MustNewVersionFromString("1.1"))
+				uploadReleaseOpts.Name = "rel1"
+				uploadReleaseOpts.Version = opts.VersionArg(semver.MustNewVersionFromString("1.1"))
 				afterClone := false
 
 				cmdRunner.SetCmdCallback("git clone git://./some-repo --depth 1 /dir", func() {
@@ -478,7 +478,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("uploads given release with a fix flag hence does not filter out any packages", func() {
-				opts.Fix = true
+				uploadReleaseOpts.Fix = true
 
 				releaseDir.FindReleaseStub = func(name string, version semver.Version) (boshrel.Release, error) {
 					Expect(name).To(Equal(""))
@@ -505,8 +505,8 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("does not upload release if name and version match existing release", func() {
-				opts.Name = "existing-name"
-				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
+				uploadReleaseOpts.Name = "existing-name"
+				uploadReleaseOpts.Version = opts.VersionArg(semver.MustNewVersionFromString("existing-ver"))
 
 				director.HasReleaseReturns(true, nil)
 
@@ -572,7 +572,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 			)
 
 			BeforeEach(func() {
-				opts.Args.URL = ""
+				uploadReleaseOpts.Args.URL = ""
 
 				release = &fakerel.FakeRelease{
 					NameStub: func() string { return "rel" },
@@ -584,8 +584,8 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("uploads found release based on name and version", func() {
-				opts.Name = "rel1"
-				opts.Version = VersionArg(semver.MustNewVersionFromString("1.1"))
+				uploadReleaseOpts.Name = "rel1"
+				uploadReleaseOpts.Version = opts.VersionArg(semver.MustNewVersionFromString("1.1"))
 
 				releaseDir.FindReleaseStub = func(name string, version semver.Version) (boshrel.Release, error) {
 					Expect(name).To(Equal("rel1"))
@@ -618,7 +618,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("uploads given release with a fix flag and does not try to repack release", func() {
-				opts.Fix = true
+				uploadReleaseOpts.Fix = true
 
 				releaseDir.FindReleaseReturns(release, nil)
 

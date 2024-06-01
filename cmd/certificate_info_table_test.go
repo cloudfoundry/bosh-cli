@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
@@ -28,7 +28,7 @@ var _ = Describe("CertificateInfoTable", func() {
 				{Path: "baz", Expiry: "2018-10-21T21:43:57Z", DaysLeft: -10},
 			}
 
-			CertificateInfoTable{Certificates: certsInfo, UI: ui}.Print()
+			cmd.CertificateInfoTable{Certificates: certsInfo, UI: ui}.Print()
 
 			Expect(ui.Table.Title).To(Equal(color.New(color.Bold).Sprintf(color.YellowString("CERTIFICATE EXPIRY DATE INFORMATION"))))
 			Expect(ui.Table.Header).To(Equal([]boshtbl.Header{

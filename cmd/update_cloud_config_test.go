@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
@@ -19,30 +19,30 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  UpdateCloudConfigCmd
+		command  cmd.UpdateCloudConfigCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewUpdateCloudConfigCmd(ui, director)
+		command = cmd.NewUpdateCloudConfigCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts UpdateCloudConfigOpts
+			updateCloudConfigOpts opts.UpdateCloudConfigOpts
 		)
 
 		BeforeEach(func() {
-			opts = UpdateCloudConfigOpts{
-				Args: UpdateCloudConfigArgs{
-					CloudConfig: FileBytesArg{Bytes: []byte("cloud-config")},
+			updateCloudConfigOpts = opts.UpdateCloudConfigOpts{
+				Args: opts.UpdateCloudConfigArgs{
+					CloudConfig: opts.FileBytesArg{Bytes: []byte("cloud-config")},
 				},
 				Name: "angry-smurf",
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(updateCloudConfigOpts) }
 
 		It("updates cloud config", func() {
 			err := act()
@@ -56,20 +56,20 @@ var _ = Describe("UpdateCloudConfigCmd", func() {
 		})
 
 		It("updates templated cloud config", func() {
-			opts.Args.CloudConfig = FileBytesArg{
+			updateCloudConfigOpts.Args.CloudConfig = opts.FileBytesArg{
 				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
 			}
 
-			opts.VarKVs = []boshtpl.VarKV{
+			updateCloudConfigOpts.VarKVs = []boshtpl.VarKV{
 				{Name: "name1", Value: "val1-from-kv"},
 			}
 
-			opts.VarsFiles = []boshtpl.VarsFileArg{
+			updateCloudConfigOpts.VarsFiles = []boshtpl.VarsFileArg{
 				{Vars: boshtpl.StaticVariables(map[string]interface{}{"name1": "val1-from-file"})},
 				{Vars: boshtpl.StaticVariables(map[string]interface{}{"name2": "val2-from-file"})},
 			}
 
-			opts.OpsFiles = []OpsFileArg{
+			updateCloudConfigOpts.OpsFiles = []opts.OpsFileArg{
 				{
 					Ops: patch.Ops([]patch.Op{
 						patch.ReplaceOp{Path: patch.MustNewPointerFromString("/xyz?"), Value: "val"},

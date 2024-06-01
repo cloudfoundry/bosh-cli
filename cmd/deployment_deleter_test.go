@@ -19,7 +19,7 @@ import (
 	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
 	mockblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
 	mockcloud "github.com/cloudfoundry/bosh-cli/v7/cloud/mocks"
-	bicmd "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	bicpirel "github.com/cloudfoundry/bosh-cli/v7/cpi/release"
@@ -29,15 +29,13 @@ import (
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	mockinstall "github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
 	bitarball "github.com/cloudfoundry/bosh-cli/v7/installation/tarball"
-	birel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
-	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
-	birelpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
+	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
-	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
@@ -57,7 +55,7 @@ var _ = Describe("DeploymentDeleter", func() {
 			fs                          *fakesys.FakeFileSystem
 			logger                      boshlog.Logger
 			releaseReader               *fakerel.FakeReader
-			releaseManager              birel.Manager
+			releaseManager              boshrel.Manager
 			mockCpiInstaller            *mockinstall.MockInstaller
 			mockCpiUninstaller          *mockinstall.MockUninstaller
 			mockInstallerFactory        *mockinstall.MockInstallerFactory
@@ -79,7 +77,7 @@ var _ = Describe("DeploymentDeleter", func() {
 			mockAgentClientFactory *mockhttpagent.MockAgentClientFactory
 			mockCloud              *mockcloud.MockCloud
 
-			fakeStage *fakebiui.FakeStage
+			fakeStage *fakeui.FakeStage
 
 			directorID string
 
@@ -157,17 +155,17 @@ cloud_provider:
 		}
 
 		var allowCPIToBeExtracted = func() {
-			job := bireljob.NewJob(NewResource("fake-cpi-release-job-name", "job-fp", nil))
+			job := boshjob.NewJob(NewResource("fake-cpi-release-job-name", "job-fp", nil))
 			job.Templates = map[string]string{"templates/cpi.erb": "bin/cpi"}
 
-			cpiRelease := birel.NewRelease(
+			cpiRelease := boshrel.NewRelease(
 				"fake-cpi-release-name",
 				"fake-cpi-release-version",
 				"fake-sha",
 				false,
-				[]*bireljob.Job{job},
-				[]*birelpkg.Package{},
-				[]*birelpkg.CompiledPackage{},
+				[]*boshjob.Job{job},
+				[]*boshpkg.Package{},
+				[]*boshpkg.CompiledPackage{},
 				nil,
 				"fake-cpi-extracted-dir",
 				fs,
@@ -198,7 +196,7 @@ cloud_provider:
 			target := biinstall.NewTarget(filepath.Join("fake-install-dir", "fake-installation-id"))
 			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockCpiInstaller).AnyTimes()
 
-			expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage biui.Stage) {
+			expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage boshui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(fakeInstallation, nil).AnyTimes()
 			mockCpiInstaller.EXPECT().Cleanup(fakeInstallation).AnyTimes()
@@ -206,7 +204,7 @@ cloud_provider:
 			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID, stemcellApiVersionForDelete).Return(mockCloud, nil).AnyTimes()
 		}
 
-		var newDeploymentDeleter = func() bicmd.DeploymentDeleter {
+		var newDeploymentDeleter = func() cmd.DeploymentDeleter {
 			releaseSetValidator := birelsetmanifest.NewValidator(logger)
 			releaseSetParser := birelsetmanifest.NewParser(fs, logger, releaseSetValidator)
 			installationValidator := biinstallmanifest.NewValidator(logger)
@@ -221,7 +219,7 @@ cloud_provider:
 				Validator:        bicpirel.NewValidator(),
 			}
 			releaseFetcher := biinstall.NewReleaseFetcher(tarballProvider, releaseReader, releaseManager)
-			releaseSetAndInstallationManifestParser := bicmd.ReleaseSetAndInstallationManifestParser{
+			releaseSetAndInstallationManifestParser := cmd.ReleaseSetAndInstallationManifestParser{
 				ReleaseSetParser:   releaseSetParser,
 				InstallationParser: installationParser,
 			}
@@ -233,9 +231,9 @@ cloud_provider:
 				filepath.Join("fake-install-dir"),
 			)
 
-			tempRootConfigurator := bicmd.NewTempRootConfigurator(fs)
+			tempRootConfigurator := cmd.NewTempRootConfigurator(fs)
 
-			return bicmd.NewDeploymentDeleter(
+			return cmd.NewDeploymentDeleter(
 				fakeUI,
 				"deleteCmd",
 				logger,
@@ -262,7 +260,7 @@ cloud_provider:
 			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
 
 			gomock.InOrder(
-				mockDeployment.EXPECT().Delete(skipDrain, gomock.Any()).Do(func(_ bool, stage biui.Stage) {
+				mockDeployment.EXPECT().Delete(skipDrain, gomock.Any()).Do(func(_ bool, stage boshui.Stage) {
 					Expect(fakeStage.SubStages).To(ContainElement(stage))
 				}),
 				mockDeploymentManager.EXPECT().Cleanup(fakeStage),
@@ -285,11 +283,11 @@ cloud_provider:
 				"Deployment state: '" + filepath.Join("/", "deployment-dir", "fake-deployment-manifest-state.json") + "'\n",
 			}))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*fakeui.PerformCall{
 				{
 					Name: "validating",
-					Stage: &fakebiui.FakeStage{
-						PerformCalls: []*fakebiui.PerformCall{
+					Stage: &fakeui.FakeStage{
+						PerformCalls: []*fakeui.PerformCall{
 							{Name: "Validating release 'fake-cpi-release-name'"},
 							{Name: "Validating cpi release"},
 						},
@@ -297,11 +295,11 @@ cloud_provider:
 				},
 				{
 					Name:  "installing CPI",
-					Stage: &fakebiui.FakeStage{},
+					Stage: &fakeui.FakeStage{},
 				},
 				{
 					Name:  "deleting deployment",
-					Stage: &fakebiui.FakeStage{},
+					Stage: &fakeui.FakeStage{},
 				},
 				{
 					Name: "Uninstalling local artifacts for CPI and deployment",
@@ -328,7 +326,7 @@ cloud_provider:
 
 			fakeUI = &fakeui.FakeUI{}
 
-			fakeStage = fakebiui.NewFakeStage()
+			fakeStage = fakeui.NewFakeStage()
 
 			mockCloud = mockcloud.NewMockCloud(mockCtrl)
 			mockCloudFactory = mockcloud.NewMockFactory(mockCtrl)
@@ -543,7 +541,7 @@ cloud_provider:
 
 				fakeInstallation := &fakecmd.FakeInstallation{}
 
-				expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage biui.Stage) {
+				expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage boshui.Stage) {
 					Expect(fakeStage.SubStages).To(ContainElement(stage))
 				}).Return(fakeInstallation, nil).AnyTimes()
 				mockCpiInstaller.EXPECT().Cleanup(fakeInstallation).AnyTimes()

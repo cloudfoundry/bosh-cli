@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -18,24 +18,24 @@ var _ = Describe("InspectReleaseCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  InspectReleaseCmd
+		command  cmd.InspectReleaseCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewInspectReleaseCmd(ui, director)
+		command = cmd.NewInspectReleaseCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts    InspectReleaseOpts
-			release *fakedir.FakeRelease
+			inspectReleaseOpts opts.InspectReleaseOpts
+			release            *fakedir.FakeRelease
 		)
 
 		BeforeEach(func() {
-			opts = InspectReleaseOpts{
-				Args: InspectReleaseArgs{
+			inspectReleaseOpts = opts.InspectReleaseOpts{
+				Args: opts.InspectReleaseArgs{
 					Slug: boshdir.NewReleaseSlug("some-name", "some-version"),
 				},
 			}
@@ -44,7 +44,7 @@ var _ = Describe("InspectReleaseCmd", func() {
 			director.FindReleaseReturns(release, nil)
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(inspectReleaseOpts) }
 
 		It("shows jobs and packages for specified release", func() {
 			release.JobsStub = func() ([]boshdir.Job, error) {

@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/config/configfakes"
@@ -23,7 +23,7 @@ var _ = Describe("SessionImpl", func() {
 		printEnvironment bool
 		printDeployment  bool
 		logger           boshlog.Logger
-		sess             *SessionImpl
+		sess             *cmd.SessionImpl
 	)
 
 	BeforeEach(func() {
@@ -35,7 +35,7 @@ var _ = Describe("SessionImpl", func() {
 		printEnvironment = false
 		printDeployment = false
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		sess = NewSessionImpl(context, ui, printEnvironment, printDeployment, logger)
+		sess = cmd.NewSessionImpl(context, ui, printEnvironment, printDeployment, logger)
 	})
 
 	Describe("UAA", func() {

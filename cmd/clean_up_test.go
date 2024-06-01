@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -19,25 +19,25 @@ var _ = Describe("CleanUpCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  CleanUpCmd
+		command  cmd.CleanUpCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewCleanUpCmd(ui, director)
+		command = cmd.NewCleanUpCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts CleanUpOpts
+			cleanUpOpts opts.CleanUpOpts
 		)
 
 		BeforeEach(func() {
-			opts = CleanUpOpts{}
+			cleanUpOpts = opts.CleanUpOpts{}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(cleanUpOpts) }
 
 		It("cleans up director resources", func() {
 			err := act()
@@ -48,7 +48,7 @@ var _ = Describe("CleanUpCmd", func() {
 		})
 
 		It("cleans up *all* director resources", func() {
-			opts.All = true
+			cleanUpOpts.All = true
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())

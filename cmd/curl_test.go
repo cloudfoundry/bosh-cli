@@ -10,8 +10,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -20,14 +20,14 @@ var _ = Describe("CurlCmd", func() {
 	var (
 		ui      *fakeui.FakeUI
 		server  *ghttp.Server
-		command CurlCmd
+		command cmd.CurlCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		server = ghttp.NewServer()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		command = NewCurlCmd(ui, boshdir.NewClientRequest(
+		command = cmd.NewCurlCmd(ui, boshdir.NewClientRequest(
 			server.URL(),
 			boshhttp.NewHTTPClient(boshhttp.CreateDefaultClient(nil), logger),
 			boshdir.NewNoopFileReporter(),
@@ -41,23 +41,23 @@ var _ = Describe("CurlCmd", func() {
 
 	Describe("Run", func() {
 		var (
-			opts CurlOpts
+			curlOpts opts.CurlOpts
 		)
 
 		BeforeEach(func() {
-			opts = CurlOpts{}
+			curlOpts = opts.CurlOpts{}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(curlOpts) }
 
 		Describe("GET requests", func() {
 			BeforeEach(func() {
-				opts.Method = "GET"
+				curlOpts.Method = "GET"
 			})
 
 			It("does not return error and prints response body", func() {
-				opts.Args.Path = "/path?query=query-val"
-				opts.Headers = []CurlHeader{
+				curlOpts.Args.Path = "/path?query=query-val"
+				curlOpts.Headers = []opts.CurlHeader{
 					{Name: "Header1", Value: "header1-val"},
 					{Name: "Header2", Value: "header2-val1"},
 					{Name: "Header2", Value: "header2-val2"},
@@ -80,7 +80,7 @@ var _ = Describe("CurlCmd", func() {
 			})
 
 			It("returns error if client request considers response as failure", func() {
-				opts.Args.Path = "/path"
+				curlOpts.Args.Path = "/path"
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
@@ -98,8 +98,8 @@ var _ = Describe("CurlCmd", func() {
 			})
 
 			It("shows response headers if requested", func() {
-				opts.Args.Path = "/path"
-				opts.ShowHeaders = true
+				curlOpts.Args.Path = "/path"
+				curlOpts.ShowHeaders = true
 
 				respHeaders := http.Header{}
 				respHeaders.Add("Date", "date") // dont want date to change
@@ -136,12 +136,12 @@ var _ = Describe("CurlCmd", func() {
 
 		Describe("POST requests", func() {
 			BeforeEach(func() {
-				opts.Method = "POST"
+				curlOpts.Method = "POST"
 			})
 
 			It("does not return error and prints response body", func() {
-				opts.Args.Path = "/path?query=query-val"
-				opts.Headers = []CurlHeader{
+				curlOpts.Args.Path = "/path?query=query-val"
+				curlOpts.Headers = []opts.CurlHeader{
 					{Name: "Header1", Value: "header1-val"},
 					{Name: "Header2", Value: "header2-val1"},
 					{Name: "Header2", Value: "header2-val2"},
@@ -164,8 +164,8 @@ var _ = Describe("CurlCmd", func() {
 			})
 
 			It("accepts request body", func() {
-				opts.Args.Path = "/path?query=query-val"
-				opts.Body = FileBytesArg{
+				curlOpts.Args.Path = "/path?query=query-val"
+				curlOpts.Body = opts.FileBytesArg{
 					Bytes: []byte("req-body"),
 				}
 
@@ -184,7 +184,7 @@ var _ = Describe("CurlCmd", func() {
 			})
 
 			It("returns error if client request considers response as failure", func() {
-				opts.Args.Path = "/path"
+				curlOpts.Args.Path = "/path"
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
@@ -202,8 +202,8 @@ var _ = Describe("CurlCmd", func() {
 			})
 
 			It("shows response headers if requested", func() {
-				opts.Args.Path = "/path"
-				opts.ShowHeaders = true
+				curlOpts.Args.Path = "/path"
+				curlOpts.ShowHeaders = true
 
 				respHeaders := http.Header{}
 				respHeaders.Add("Date", "date") // dont want date to change
@@ -240,12 +240,12 @@ var _ = Describe("CurlCmd", func() {
 
 		Describe("PUT requests", func() {
 			BeforeEach(func() {
-				opts.Method = "PUT"
+				curlOpts.Method = "PUT"
 			})
 
 			It("does not return error and prints response body", func() {
-				opts.Args.Path = "/path?query=query-val"
-				opts.Headers = []CurlHeader{
+				curlOpts.Args.Path = "/path?query=query-val"
+				curlOpts.Headers = []opts.CurlHeader{
 					{Name: "Header1", Value: "header1-val"},
 					{Name: "Header2", Value: "header2-val1"},
 					{Name: "Header2", Value: "header2-val2"},
@@ -268,8 +268,8 @@ var _ = Describe("CurlCmd", func() {
 			})
 
 			It("accepts request body", func() {
-				opts.Args.Path = "/path?query=query-val"
-				opts.Body = FileBytesArg{
+				curlOpts.Args.Path = "/path?query=query-val"
+				curlOpts.Body = opts.FileBytesArg{
 					Bytes: []byte("req-body"),
 				}
 
@@ -288,7 +288,7 @@ var _ = Describe("CurlCmd", func() {
 			})
 
 			It("returns error if client request considers response as failure", func() {
-				opts.Args.Path = "/path"
+				curlOpts.Args.Path = "/path"
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
@@ -306,8 +306,8 @@ var _ = Describe("CurlCmd", func() {
 			})
 
 			It("shows response headers if requested", func() {
-				opts.Args.Path = "/path"
-				opts.ShowHeaders = true
+				curlOpts.Args.Path = "/path"
+				curlOpts.ShowHeaders = true
 
 				respHeaders := http.Header{}
 				respHeaders.Add("Date", "date") // dont want date to change
@@ -344,11 +344,11 @@ var _ = Describe("CurlCmd", func() {
 
 		Describe("DELETE requests", func() {
 			BeforeEach(func() {
-				opts.Method = "DELETE"
+				curlOpts.Method = "DELETE"
 			})
 
 			It("does not return error and prints response body", func() {
-				opts.Args.Path = "/path?query=query-val"
+				curlOpts.Args.Path = "/path?query=query-val"
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
@@ -365,8 +365,8 @@ var _ = Describe("CurlCmd", func() {
 			})
 
 			It("returns error if any headers are provided (currently no supported)", func() {
-				opts.Args.Path = "/path"
-				opts.Headers = []CurlHeader{
+				curlOpts.Args.Path = "/path"
+				curlOpts.Headers = []opts.CurlHeader{
 					{Name: "Header1", Value: "header1-val"},
 				}
 
@@ -380,7 +380,7 @@ var _ = Describe("CurlCmd", func() {
 			})
 
 			It("returns error if client request considers response as failure", func() {
-				opts.Args.Path = "/path"
+				curlOpts.Args.Path = "/path"
 
 				server.AppendHandlers(
 					ghttp.CombineHandlers(
@@ -398,8 +398,8 @@ var _ = Describe("CurlCmd", func() {
 			})
 
 			It("shows response headers if requested", func() {
-				opts.Args.Path = "/path"
-				opts.ShowHeaders = true
+				curlOpts.Args.Path = "/path"
+				curlOpts.ShowHeaders = true
 
 				respHeaders := http.Header{}
 				respHeaders.Add("Date", "date") // dont want date to change
@@ -436,11 +436,11 @@ var _ = Describe("CurlCmd", func() {
 
 		Describe("unknown method requests", func() {
 			BeforeEach(func() {
-				opts.Method = "UNKNOWN"
+				curlOpts.Method = "UNKNOWN"
 			})
 
 			It("returns error", func() {
-				opts.Args.Path = "/path"
+				curlOpts.Args.Path = "/path"
 
 				err := act()
 				Expect(err).To(HaveOccurred())

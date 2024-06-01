@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -18,28 +18,28 @@ var _ = Describe("DiffConfigCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  DiffConfigCmd
+		command  cmd.DiffConfigCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewDiffConfigCmd(ui, director)
+		command = cmd.NewDiffConfigCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts DiffConfigOpts
+			diffConfigOpts opts.DiffConfigOpts
 		)
 
 		BeforeEach(func() {
-			opts = DiffConfigOpts{
+			diffConfigOpts = opts.DiffConfigOpts{
 				FromID: "1",
 				ToID:   "2",
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(diffConfigOpts) }
 
 		It("diff two configs", func() {
 			err := act()
