@@ -4,8 +4,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 )
@@ -13,21 +13,21 @@ import (
 var _ = Describe("CancelTasksCmd", func() {
 	var (
 		director *fakedir.FakeDirector
-		command  CancelTasksCmd
+		command  cmd.CancelTasksCmd
 	)
 
 	BeforeEach(func() {
 		director = &fakedir.FakeDirector{}
-		command = NewCancelTasksCmd(director)
+		command = cmd.NewCancelTasksCmd(director)
 	})
 
 	Describe("Run", func() {
-		var opts CancelTasksOpts
+		var cancelTasksOpts opts.CancelTasksOpts
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(cancelTasksOpts) }
 
 		It("cancels all tasks given types", func() {
-			opts = CancelTasksOpts{
+			cancelTasksOpts = opts.CancelTasksOpts{
 				Types: []string{"fake-type1", "fake-type2"},
 			}
 
@@ -41,7 +41,7 @@ var _ = Describe("CancelTasksCmd", func() {
 		})
 
 		It("cancels all tasks given states", func() {
-			opts = CancelTasksOpts{
+			cancelTasksOpts = opts.CancelTasksOpts{
 				States: []string{"fake-state", "fake-state2"},
 			}
 
@@ -55,7 +55,7 @@ var _ = Describe("CancelTasksCmd", func() {
 		})
 
 		It("cancels all tasks given deployments", func() {
-			opts = CancelTasksOpts{
+			cancelTasksOpts = opts.CancelTasksOpts{
 				Deployment: "fake-deployment",
 			}
 

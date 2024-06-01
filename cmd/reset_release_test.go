@@ -6,32 +6,32 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
 )
 
 var _ = Describe("ResetReleaseCmd", func() {
 	var (
 		releaseDir *fakereldir.FakeReleaseDir
-		command    ResetReleaseCmd
+		command    cmd.ResetReleaseCmd
 	)
 
 	BeforeEach(func() {
 		releaseDir = &fakereldir.FakeReleaseDir{}
-		command = NewResetReleaseCmd(releaseDir)
+		command = cmd.NewResetReleaseCmd(releaseDir)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts ResetReleaseOpts
+			resetReleaseOpts opts.ResetReleaseOpts
 		)
 
 		BeforeEach(func() {
-			opts = ResetReleaseOpts{}
+			resetReleaseOpts = opts.ResetReleaseOpts{}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(resetReleaseOpts) }
 
 		It("resets release", func() {
 			err := act()

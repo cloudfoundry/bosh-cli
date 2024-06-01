@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -18,29 +18,29 @@ var _ = Describe("NetworksCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  NetworksCmd
+		command  cmd.NetworksCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewNetworksCmd(ui, director)
+		command = cmd.NewNetworksCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts NetworksOpts
+			networksOpts opts.NetworksOpts
 		)
 
 		BeforeEach(func() {
-			opts = NetworksOpts{}
+			networksOpts = opts.NetworksOpts{}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(networksOpts) }
 
 		Context("when orphaned networks requested", func() {
 			BeforeEach(func() {
-				opts.Orphaned = true
+				networksOpts.Orphaned = true
 			})
 
 			It("lists networks", func() {

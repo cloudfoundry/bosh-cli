@@ -6,21 +6,21 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
 )
 
 var _ = Describe("SyncBlobsCmd", func() {
 	var (
 		blobsDir     *fakereldir.FakeBlobsDir
-		command      SyncBlobsCmd
+		command      cmd.SyncBlobsCmd
 		numOfWorkers int
 	)
 
 	BeforeEach(func() {
 		numOfWorkers = 5
 		blobsDir = &fakereldir.FakeBlobsDir{}
-		command = NewSyncBlobsCmd(blobsDir, numOfWorkers)
+		command = cmd.NewSyncBlobsCmd(blobsDir, numOfWorkers)
 	})
 
 	Describe("Run", func() {

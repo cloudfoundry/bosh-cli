@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -20,26 +20,26 @@ var _ = Describe("VMsCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  VMsCmd
+		command  cmd.VMsCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewVMsCmd(ui, director, 1)
+		command = cmd.NewVMsCmd(ui, director, 1)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts  VMsOpts
-			infos []boshdir.VMInfo
+			vMsOpts opts.VMsOpts
+			infos   []boshdir.VMInfo
 		)
 
 		BeforeEach(func() {
-			opts = VMsOpts{}
+			vMsOpts = opts.VMsOpts{}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(vMsOpts) }
 
 		BeforeEach(func() {
 			index1 := 1
@@ -198,7 +198,7 @@ var _ = Describe("VMsCmd", func() {
 				})
 
 				It("lists VMs for the deployment including vitals", func() {
-					opts.Vitals = true
+					vMsOpts.Vitals = true
 
 					Expect(act()).ToNot(HaveOccurred())
 
@@ -243,17 +243,17 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.NewValueString("true"),
 								boshtbl.NewValueString("stemcell/version"),
 								boshtbl.NewValueTime(time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC)),
-								ValueUptime{},
+								cmd.ValueUptime{},
 								boshtbl.NewValueString("0.02, 0.06, 0.11"),
-								ValueCPUTotal{},
-								NewValueStringPercent("1.2"),
-								NewValueStringPercent("0.3"),
-								NewValueStringPercent("2.1"),
-								ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "20", KB: "2000"}},
-								ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "21", KB: "2100"}},
-								ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "35"}},
-								ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "45"}},
-								ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "55"}},
+								cmd.ValueCPUTotal{},
+								cmd.NewValueStringPercent("1.2"),
+								cmd.NewValueStringPercent("0.3"),
+								cmd.NewValueStringPercent("2.1"),
+								cmd.ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "20", KB: "2000"}},
+								cmd.ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "21", KB: "2100"}},
+								cmd.ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "35"}},
+								cmd.ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "45"}},
+								cmd.ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "55"}},
 							},
 							{
 								boshtbl.NewValueString("job-name"),
@@ -265,17 +265,17 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.NewValueString("false"),
 								boshtbl.NewValueString("stemcell/version"),
 								boshtbl.NewValueTime(time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC)),
-								ValueUptime{},
+								cmd.ValueUptime{},
 								boshtbl.NewValueString("0.52, 0.56, 0.51"),
-								ValueCPUTotal{},
-								NewValueStringPercent("51.2"),
-								NewValueStringPercent("50.3"),
-								NewValueStringPercent("52.1"),
-								ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "60", KB: "6000"}},
-								ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "61", KB: "6100"}},
-								ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "75"}},
-								ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "85"}},
-								ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "95"}},
+								cmd.ValueCPUTotal{},
+								cmd.NewValueStringPercent("51.2"),
+								cmd.NewValueStringPercent("50.3"),
+								cmd.NewValueStringPercent("52.1"),
+								cmd.ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "60", KB: "6000"}},
+								cmd.ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "61", KB: "6100"}},
+								cmd.ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "75"}},
+								cmd.ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "85"}},
+								cmd.ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "95"}},
 							},
 							{
 								boshtbl.NewValueString("?"),
@@ -287,24 +287,24 @@ var _ = Describe("VMsCmd", func() {
 								boshtbl.ValueString{S: "-"},
 								boshtbl.ValueString{S: "-"},
 								boshtbl.NewValueTime(time.Time{}.UTC()),
-								ValueUptime{},
+								cmd.ValueUptime{},
 								boshtbl.ValueString{},
-								ValueCPUTotal{},
-								NewValueStringPercent(""),
-								NewValueStringPercent(""),
-								NewValueStringPercent(""),
-								ValueMemSize{},
-								ValueMemSize{},
-								ValueDiskSize{},
-								ValueDiskSize{},
-								ValueDiskSize{},
+								cmd.ValueCPUTotal{},
+								cmd.NewValueStringPercent(""),
+								cmd.NewValueStringPercent(""),
+								cmd.NewValueStringPercent(""),
+								cmd.ValueMemSize{},
+								cmd.ValueMemSize{},
+								cmd.ValueDiskSize{},
+								cmd.ValueDiskSize{},
+								cmd.ValueDiskSize{},
 							},
 						},
 					}))
 				})
 
 				It("lists VMs for the deployment including cloud properties", func() {
-					opts.CloudProperties = true
+					vMsOpts.CloudProperties = true
 
 					Expect(act()).ToNot(HaveOccurred())
 
@@ -463,7 +463,7 @@ var _ = Describe("VMsCmd", func() {
 
 		Context("when listing single deployment", func() {
 			BeforeEach(func() {
-				opts.Deployment = "dep1"
+				vMsOpts.Deployment = "dep1"
 			})
 
 			It("lists VMs for the deployment", func() {
@@ -553,7 +553,7 @@ var _ = Describe("VMsCmd", func() {
 
 		Context("when listing multiple deployments", func() {
 			BeforeEach(func() {
-				command = NewVMsCmd(ui, director, 5)
+				command = cmd.NewVMsCmd(ui, director, 5)
 			})
 
 			It("retrieves deployment vms in parallel", func() {

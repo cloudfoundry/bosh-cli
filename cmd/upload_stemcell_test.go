@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -21,7 +21,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 		fs               *fakesys.FakeFileSystem
 		archive          *fakedir.FakeStemcellArchive
 		ui               *fakeui.FakeUI
-		command          UploadStemcellCmd
+		command          cmd.UploadStemcellCmd
 		existingInfo     boshdir.StemcellInfo
 		existingMetadata boshdir.StemcellMetadata
 	)
@@ -43,23 +43,23 @@ var _ = Describe("UploadStemcellCmd", func() {
 			return archive
 		}
 
-		command = NewUploadStemcellCmd(director, stemcellArchiveFactory, ui)
+		command = cmd.NewUploadStemcellCmd(director, stemcellArchiveFactory, ui)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts UploadStemcellOpts
+			uploadStemcellOpts opts.UploadStemcellOpts
 		)
 
 		BeforeEach(func() {
-			opts = UploadStemcellOpts{}
+			uploadStemcellOpts = opts.UploadStemcellOpts{}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(uploadStemcellOpts) }
 
 		Context("when url is remote (http/https)", func() {
 			BeforeEach(func() {
-				opts.Args.URL = "https://some-file.tzg"
+				uploadStemcellOpts.Args.URL = "https://some-file.tzg"
 			})
 
 			It("uploads given stemcell", func() {
@@ -77,7 +77,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 
 			It("uploads given stemcell with a fix flag without checking if stemcell exists", func() {
 				director.StemcellNeedsUploadReturns(true, nil)
-				opts.Fix = true
+				uploadStemcellOpts.Fix = true
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -94,7 +94,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 
 			It("uploads given stemcell with a specified sha1", func() {
 				director.StemcellNeedsUploadReturns(true, nil)
-				opts.SHA1 = "sha1"
+				uploadStemcellOpts.SHA1 = "sha1"
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -108,8 +108,8 @@ var _ = Describe("UploadStemcellCmd", func() {
 			})
 
 			It("uploads a stemcell when any CPI is missing it", func() {
-				opts.Name = "existing-name"
-				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
+				uploadStemcellOpts.Name = "existing-name"
+				uploadStemcellOpts.Version = opts.VersionArg(semver.MustNewVersionFromString("existing-ver"))
 
 				director.StemcellNeedsUploadReturns(
 					true,
@@ -134,8 +134,8 @@ var _ = Describe("UploadStemcellCmd", func() {
 			})
 
 			It("does not upload stemcell if no CPI needs that name and version", func() {
-				opts.Name = "existing-name"
-				opts.Version = VersionArg(semver.MustNewVersionFromString("existing-ver"))
+				uploadStemcellOpts.Name = "existing-name"
+				uploadStemcellOpts.Version = opts.VersionArg(semver.MustNewVersionFromString("existing-ver"))
 
 				director.StemcellNeedsUploadReturns(false, nil)
 
@@ -173,7 +173,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 
 		Context("when url is a local file (file or no prefix)", func() {
 			BeforeEach(func() {
-				opts.Args.URL = "./some-file.tgz"
+				uploadStemcellOpts.Args.URL = "./some-file.tgz"
 			})
 
 			It("uploads given stemcell", func() {
@@ -190,7 +190,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 
 			It("uploads given stemcell with a fix flag without checking if stemcell exists", func() {
 				director.StemcellNeedsUploadReturns(true, nil)
-				opts.Fix = true
+				uploadStemcellOpts.Fix = true
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())

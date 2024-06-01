@@ -1,14 +1,13 @@
 package cmd_test
 
 import (
+	"errors"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-
-	"errors"
-
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 )
@@ -16,30 +15,30 @@ import (
 var _ = Describe("IgnoreCmd", func() {
 	var (
 		deployment *fakedir.FakeDeployment
-		command    IgnoreCmd
+		command    cmd.IgnoreCmd
 	)
 
 	BeforeEach(func() {
 		deployment = &fakedir.FakeDeployment{}
-		command = NewIgnoreCmd(deployment)
+		command = cmd.NewIgnoreCmd(deployment)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts IgnoreOpts
+			ignoreOpts opts.IgnoreOpts
 		)
 
 		BeforeEach(func() {
-			opts = IgnoreOpts{}
+			ignoreOpts = opts.IgnoreOpts{}
 		})
 
 		act := func() error {
-			return command.Run(opts)
+			return command.Run(ignoreOpts)
 		}
 
 		Context("when ignoring an instance", func() {
 			BeforeEach(func() {
-				opts.Args.Slug = boshdir.NewInstanceSlug("some-name", "some-id")
+				ignoreOpts.Args.Slug = boshdir.NewInstanceSlug("some-name", "some-id")
 			})
 
 			It("ignores the instance", func() {

@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -17,21 +17,21 @@ var _ = Describe("CloudConfigCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  CloudConfigCmd
+		command  cmd.CloudConfigCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewCloudConfigCmd(ui, director)
+		command = cmd.NewCloudConfigCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts CloudConfigOpts
+			cloudConfigOpts opts.CloudConfigOpts
 		)
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(cloudConfigOpts) }
 
 		It("shows cloud config", func() {
 			cloudConfig := boshdir.CloudConfig{

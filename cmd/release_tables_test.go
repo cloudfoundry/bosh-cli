@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
@@ -58,7 +58,7 @@ var _ = Describe("ReleaseTables", func() {
 
 		Context("when there are no compiled packages", func() {
 			It("shows info about release with archive path", func() {
-				ReleaseTables{Release: release, ArchivePath: "/archive-path"}.Print(ui)
+				cmd.ReleaseTables{Release: release, ArchivePath: "/archive-path"}.Print(ui)
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
 					Header: []boshtbl.Header{
@@ -133,7 +133,7 @@ var _ = Describe("ReleaseTables", func() {
 			})
 
 			It("shows info about release with archive path", func() {
-				ReleaseTables{Release: release, ArchivePath: "/archive-path"}.Print(ui)
+				cmd.ReleaseTables{Release: release, ArchivePath: "/archive-path"}.Print(ui)
 
 				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
 					Header: []boshtbl.Header{
@@ -215,7 +215,7 @@ var _ = Describe("ReleaseTables", func() {
 		})
 
 		It("shows info about release without archive path", func() {
-			ReleaseTables{Release: release}.Print(ui)
+			cmd.ReleaseTables{Release: release}.Print(ui)
 
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
 				Header: []boshtbl.Header{

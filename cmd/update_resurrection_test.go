@@ -6,35 +6,35 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 )
 
 var _ = Describe("UpdateResurrectionCmd", func() {
 	var (
 		director *fakedir.FakeDirector
-		command  UpdateResurrectionCmd
+		command  cmd.UpdateResurrectionCmd
 	)
 
 	BeforeEach(func() {
 		director = &fakedir.FakeDirector{}
-		command = NewUpdateResurrectionCmd(director)
+		command = cmd.NewUpdateResurrectionCmd(director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts UpdateResurrectionOpts
+			updateResurrectionOpts opts.UpdateResurrectionOpts
 		)
 
 		BeforeEach(func() {
-			opts = UpdateResurrectionOpts{}
+			updateResurrectionOpts = opts.UpdateResurrectionOpts{}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(updateResurrectionOpts) }
 
 		It("enables resurrection", func() {
-			opts.Args.Enabled = BoolArg(true)
+			updateResurrectionOpts.Args.Enabled = opts.BoolArg(true)
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -44,7 +44,7 @@ var _ = Describe("UpdateResurrectionCmd", func() {
 		})
 
 		It("disables resurrection", func() {
-			opts.Args.Enabled = BoolArg(false)
+			updateResurrectionOpts.Args.Enabled = opts.BoolArg(false)
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())

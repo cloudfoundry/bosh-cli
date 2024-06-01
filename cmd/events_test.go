@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -19,14 +19,14 @@ var _ = Describe("EventsCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  EventsCmd
+		command  cmd.EventsCmd
 		events   []boshdir.Event
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewEventsCmd(ui, director)
+		command = cmd.NewEventsCmd(ui, director)
 		events = []boshdir.Event{
 			&fakedir.FakeEvent{
 				IDStub:        func() string { return "4" },
@@ -64,16 +64,16 @@ var _ = Describe("EventsCmd", func() {
 
 	Describe("Run", func() {
 		var (
-			opts EventsOpts
+			eventsOpts opts.EventsOpts
 		)
 		BeforeEach(func() {
-			opts = EventsOpts{}
+			eventsOpts = opts.EventsOpts{}
 		})
 
 		It("lists events", func() {
 			director.EventsReturns(events, nil)
 
-			err := command.Run(opts)
+			err := command.Run(eventsOpts)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(director.EventsArgsForCall(0)).To(Equal(boshdir.EventsFilter{}))
@@ -127,20 +127,20 @@ var _ = Describe("EventsCmd", func() {
 		})
 
 		It("filters events based on options", func() {
-			opts.BeforeID = "0"
-			opts.Before = time.Date(2050, time.November, 10, 23, 0, 0, 0, time.UTC).String()
-			opts.After = time.Date(3055, time.November, 10, 23, 0, 0, 0, time.UTC).String()
-			opts.Deployment = "deployment"
-			opts.Task = "task"
-			opts.Instance = "instance2"
-			opts.User = "user2"
-			opts.Action = "action2"
-			opts.ObjectName = "object-name2"
-			opts.ObjectType = "object-type2"
+			eventsOpts.BeforeID = "0"
+			eventsOpts.Before = time.Date(2050, time.November, 10, 23, 0, 0, 0, time.UTC).String()
+			eventsOpts.After = time.Date(3055, time.November, 10, 23, 0, 0, 0, time.UTC).String()
+			eventsOpts.Deployment = "deployment"
+			eventsOpts.Task = "task"
+			eventsOpts.Instance = "instance2"
+			eventsOpts.User = "user2"
+			eventsOpts.Action = "action2"
+			eventsOpts.ObjectName = "object-name2"
+			eventsOpts.ObjectType = "object-type2"
 
 			director.EventsReturns(nil, nil)
 
-			err := command.Run(opts)
+			err := command.Run(eventsOpts)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(director.EventsArgsForCall(0)).To(Equal(boshdir.EventsFilter{
@@ -160,7 +160,7 @@ var _ = Describe("EventsCmd", func() {
 		It("returns error if events cannot be retrieved", func() {
 			director.EventsReturns(nil, errors.New("fake-err"))
 
-			err := command.Run(opts)
+			err := command.Run(eventsOpts)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})

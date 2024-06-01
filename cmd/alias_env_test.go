@@ -6,11 +6,11 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
 	fakecmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config/configfakes"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -22,13 +22,13 @@ var _ = Describe("AliasEnvCmd", func() {
 		sessions map[*fakecmdconf.FakeConfig2]*fakecmd.FakeSession
 		config   *fakecmdconf.FakeConfig2
 		ui       *fakeui.FakeUI
-		command  AliasEnvCmd
+		command  cmd.AliasEnvCmd
 	)
 
 	BeforeEach(func() {
 		sessions = map[*fakecmdconf.FakeConfig2]*fakecmd.FakeSession{}
 
-		sessionFactory := func(config cmdconf.Config) Session {
+		sessionFactory := func(config cmdconf.Config) cmd.Session {
 			typedConfig, ok := config.(*fakecmdconf.FakeConfig2)
 			if !ok {
 				panic("Expected to find FakeConfig2")
@@ -52,23 +52,23 @@ var _ = Describe("AliasEnvCmd", func() {
 
 		ui = &fakeui.FakeUI{}
 
-		command = NewAliasEnvCmd(sessionFactory, config, ui)
+		command = cmd.NewAliasEnvCmd(sessionFactory, config, ui)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts            AliasEnvOpts
+			aliasEnvOpts    opts.AliasEnvOpts
 			updatedSession  *fakecmd.FakeSession
 			updatedConfig   *fakecmdconf.FakeConfig2
 			updatedDirector *fakedir.FakeDirector
 		)
 
 		BeforeEach(func() {
-			opts = AliasEnvOpts{}
+			aliasEnvOpts = opts.AliasEnvOpts{}
 
-			opts.URL = "environment-url"
-			opts.Args.Alias = "environment-alias"
-			opts.CACert = CACertArg{Content: "environment-ca-cert"}
+			aliasEnvOpts.URL = "environment-url"
+			aliasEnvOpts.Args.Alias = "environment-alias"
+			aliasEnvOpts.CACert = opts.CACertArg{Content: "environment-ca-cert"}
 
 			updatedConfig = &fakecmdconf.FakeConfig2{
 				Existing: fakecmdconf.ConfigContents{
@@ -87,7 +87,7 @@ var _ = Describe("AliasEnvCmd", func() {
 			sessions[updatedConfig] = updatedSession
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(aliasEnvOpts) }
 
 		It("returns error if aliasing fails", func() {
 			config.AliasEnvironmentErr = errors.New("fake-err")

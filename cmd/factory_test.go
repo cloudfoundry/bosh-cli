@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"os"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
-
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
@@ -23,7 +22,7 @@ const filePlaceholder = "replace-me"
 var _ = Describe("Factory", func() {
 	var (
 		fs      boshsys.FileSystem
-		factory Factory
+		factory cmd.Factory
 		tmpFile string
 	)
 
@@ -39,10 +38,10 @@ var _ = Describe("Factory", func() {
 		ui := boshui.NewConfUI(logger)
 		defer ui.Flush()
 
-		deps := NewBasicDeps(ui, logger)
+		deps := cmd.NewBasicDeps(ui, logger)
 		deps.FS = fs
 
-		factory = NewFactory(deps)
+		factory = cmd.NewFactory(deps)
 	})
 
 	Context("extra args and flags", func() {
@@ -132,16 +131,16 @@ var _ = Describe("Factory", func() {
 				cmd, err := factory.New([]string{"ssh", "group", "cmd", "extra", "args"})
 				Expect(err).ToNot(HaveOccurred())
 
-				opts := cmd.Opts.(*SSHOpts)
-				Expect(opts.Command).To(Equal([]string{"cmd", "extra", "args"}))
+				sshOpts := cmd.Opts.(*opts.SSHOpts)
+				Expect(sshOpts.Command).To(Equal([]string{"cmd", "extra", "args"}))
 			})
 
 			It("uses all remaining arguments as a command even that look like flags", func() {
 				cmd, err := factory.New([]string{"ssh", "group", "cmd", "extra", "args", "--", "--gw-disable"})
 				Expect(err).ToNot(HaveOccurred())
 
-				opts := cmd.Opts.(*SSHOpts)
-				Expect(opts.Command).To(Equal([]string{"cmd", "extra", "args", "--gw-disable"}))
+				sshOpts := cmd.Opts.(*opts.SSHOpts)
+				Expect(sshOpts.Command).To(Equal([]string{"cmd", "extra", "args", "--gw-disable"}))
 			})
 
 			It("returns error if command is given and extra arguments are specified", func() {
@@ -175,7 +174,7 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"ssh", "group", "cmd", "extra", "args", "--", "--gw-disable"})
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = cmd.Opts.(*SSHOpts).GatewayFlags.AsSSHOpts()
+			_, _, err = cmd.Opts.(*opts.SSHOpts).GatewayFlags.AsSSHOpts()
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -183,7 +182,7 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"scp", "group", "cmd", "extra", "args", "--", "--gw-disable"})
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = cmd.Opts.(*SCPOpts).GatewayFlags.AsSSHOpts()
+			_, _, err = cmd.Opts.(*opts.SCPOpts).GatewayFlags.AsSSHOpts()
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -191,7 +190,7 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"logs", "-f", "cmd"})
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = cmd.Opts.(*LogsOpts).GatewayFlags.AsSSHOpts()
+			_, _, err = cmd.Opts.(*opts.LogsOpts).GatewayFlags.AsSSHOpts()
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
@@ -204,8 +203,8 @@ var _ = Describe("Factory", func() {
 			slug1, _ := boshdir.NewInstanceGroupOrInstanceSlugFromString("job1")
 			slug2, _ := boshdir.NewInstanceGroupOrInstanceSlugFromString("job2")
 
-			opts := cmd.Opts.(*DeployOpts)
-			Expect(opts.SkipDrain).To(Equal([]boshdir.SkipDrain{
+			deployOpts := cmd.Opts.(*opts.DeployOpts)
+			Expect(deployOpts.SkipDrain).To(Equal([]boshdir.SkipDrain{
 				{Slug: slug1},
 				{Slug: slug2},
 			}))
@@ -227,8 +226,8 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"deploy", "--skip-drain", tmpFile})
 			Expect(err).ToNot(HaveOccurred())
 
-			opts := cmd.Opts.(*DeployOpts)
-			Expect(opts.SkipDrain).To(Equal([]boshdir.SkipDrain{
+			deployOpts := cmd.Opts.(*opts.DeployOpts)
+			Expect(deployOpts.SkipDrain).To(Equal([]boshdir.SkipDrain{
 				{All: true},
 			}))
 		})
@@ -251,17 +250,17 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"alias-env", "-e", "env", "alias"})
 			Expect(err).ToNot(HaveOccurred())
 
-			opts := cmd.Opts.(*AliasEnvOpts)
-			Expect(opts.URL).To(Equal("env"))
+			aliasEnvOpts := cmd.Opts.(*opts.AliasEnvOpts)
+			Expect(aliasEnvOpts.URL).To(Equal("env"))
 		})
 
 		It("is passed the global CA cert", func() {
 			cmd, err := factory.New([]string{"alias-env", "--ca-cert", "BEGIN ca-cert", "alias"})
 			Expect(err).ToNot(HaveOccurred())
 
-			opts := cmd.Opts.(*AliasEnvOpts)
-			opts.CACert.FS = nil
-			Expect(opts.CACert).To(Equal(CACertArg{Content: "BEGIN ca-cert"}))
+			aliasEnvOpts := cmd.Opts.(*opts.AliasEnvOpts)
+			aliasEnvOpts.CACert.FS = nil
+			Expect(aliasEnvOpts.CACert).To(Equal(opts.CACertArg{Content: "BEGIN ca-cert"}))
 		})
 	})
 
@@ -270,8 +269,8 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"events", "--deployment", "deployment"})
 			Expect(err).ToNot(HaveOccurred())
 
-			opts := cmd.Opts.(*EventsOpts)
-			Expect(opts.Deployment).To(Equal("deployment"))
+			eventsOpts := cmd.Opts.(*opts.EventsOpts)
+			Expect(eventsOpts.Deployment).To(Equal("deployment"))
 		})
 	})
 
@@ -280,8 +279,8 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"vms", "--deployment", "deployment"})
 			Expect(err).ToNot(HaveOccurred())
 
-			opts := cmd.Opts.(*VMsOpts)
-			Expect(opts.Deployment).To(Equal("deployment"))
+			vMsOpts := cmd.Opts.(*opts.VMsOpts)
+			Expect(vMsOpts.Deployment).To(Equal("deployment"))
 		})
 	})
 
@@ -290,8 +289,8 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"instances", "--deployment", "deployment"})
 			Expect(err).ToNot(HaveOccurred())
 
-			opts := cmd.Opts.(*InstancesOpts)
-			Expect(opts.Deployment).To(Equal("deployment"))
+			instancesOpts := cmd.Opts.(*opts.InstancesOpts)
+			Expect(instancesOpts.Deployment).To(Equal("deployment"))
 		})
 	})
 
@@ -300,8 +299,8 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"tasks", "--deployment", "deployment"})
 			Expect(err).ToNot(HaveOccurred())
 
-			opts := cmd.Opts.(*TasksOpts)
-			Expect(opts.Deployment).To(Equal("deployment"))
+			tasksOpts := cmd.Opts.(*opts.TasksOpts)
+			Expect(tasksOpts.Deployment).To(Equal("deployment"))
 		})
 	})
 
@@ -310,8 +309,8 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"task", "--deployment", "deployment"})
 			Expect(err).ToNot(HaveOccurred())
 
-			opts := cmd.Opts.(*TaskOpts)
-			Expect(opts.Deployment).To(Equal("deployment"))
+			taskOpts := cmd.Opts.(*opts.TaskOpts)
+			Expect(taskOpts.Deployment).To(Equal("deployment"))
 		})
 	})
 
@@ -320,10 +319,10 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"help"})
 			Expect(err).ToNot(HaveOccurred())
 
-			opts := cmd.Opts.(*MessageOpts)
-			Expect(opts.Message).To(ContainSubstring("Usage:"))
-			Expect(opts.Message).To(ContainSubstring("Application Options:"))
-			Expect(opts.Message).To(ContainSubstring("Available commands:"))
+			messageOpts := cmd.Opts.(*opts.MessageOpts)
+			Expect(messageOpts.Message).To(ContainSubstring("Usage:"))
+			Expect(messageOpts.Message).To(ContainSubstring("Application Options:"))
+			Expect(messageOpts.Message).To(ContainSubstring("Available commands:"))
 		})
 	})
 
@@ -332,23 +331,23 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"--help"})
 			Expect(err).ToNot(HaveOccurred())
 
-			opts := cmd.Opts.(*MessageOpts)
-			Expect(opts.Message).To(ContainSubstring("Usage:"))
-			Expect(opts.Message).To(ContainSubstring(
+			messageOpts := cmd.Opts.(*opts.MessageOpts)
+			Expect(messageOpts.Message).To(ContainSubstring("Usage:"))
+			Expect(messageOpts.Message).To(ContainSubstring(
 				"SSH into instance(s)                               https://bosh.io/docs/cli-v2#ssh"))
-			Expect(opts.Message).To(ContainSubstring("Application Options:"))
-			Expect(opts.Message).To(ContainSubstring("Available commands:"))
+			Expect(messageOpts.Message).To(ContainSubstring("Application Options:"))
+			Expect(messageOpts.Message).To(ContainSubstring("Available commands:"))
 		})
 
 		It("has a command help flag", func() {
 			cmd, err := factory.New([]string{"ssh", "--help"})
 			Expect(err).ToNot(HaveOccurred())
 
-			opts := cmd.Opts.(*MessageOpts)
-			Expect(opts.Message).To(ContainSubstring("Usage:"))
-			Expect(opts.Message).To(ContainSubstring("SSH into instance(s)\n\nhttps://bosh.io/docs/cli-v2#ssh"))
-			Expect(opts.Message).To(ContainSubstring("Application Options:"))
-			Expect(opts.Message).To(ContainSubstring("[ssh command options]"))
+			messageOpts := cmd.Opts.(*opts.MessageOpts)
+			Expect(messageOpts.Message).To(ContainSubstring("Usage:"))
+			Expect(messageOpts.Message).To(ContainSubstring("SSH into instance(s)\n\nhttps://bosh.io/docs/cli-v2#ssh"))
+			Expect(messageOpts.Message).To(ContainSubstring("Application Options:"))
+			Expect(messageOpts.Message).To(ContainSubstring("[ssh command options]"))
 		})
 	})
 
@@ -357,44 +356,44 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"--version"})
 			Expect(err).ToNot(HaveOccurred())
 
-			opts := cmd.Opts.(*MessageOpts)
-			Expect(opts.Message).To(Equal("version [DEV BUILD]\n"))
+			messageOpts := cmd.Opts.(*opts.MessageOpts)
+			Expect(messageOpts.Message).To(Equal("version [DEV BUILD]\n"))
 		})
 	})
 
 	Describe("global options", func() {
-		clearNonGlobalOpts := func(boshOpts BoshOpts) BoshOpts {
+		clearNonGlobalOpts := func(boshOpts opts.BoshOpts) opts.BoshOpts {
 			boshOpts.VersionOpt = nil   // can't compare functions
 			boshOpts.CACertOpt.FS = nil // fs is populated by factory.New
-			boshOpts.UploadRelease = UploadReleaseOpts{}
-			boshOpts.ExportRelease = ExportReleaseOpts{}
-			boshOpts.RunErrand = RunErrandOpts{}
-			boshOpts.Logs = LogsOpts{}
-			boshOpts.Interpolate = InterpolateOpts{}
-			boshOpts.InitRelease = InitReleaseOpts{}
-			boshOpts.ResetRelease = ResetReleaseOpts{}
-			boshOpts.GenerateJob = GenerateJobOpts{}
-			boshOpts.GeneratePackage = GeneratePackageOpts{}
-			boshOpts.VendorPackage = VendorPackageOpts{}
-			boshOpts.CreateRelease = CreateReleaseOpts{}
-			boshOpts.FinalizeRelease = FinalizeReleaseOpts{}
-			boshOpts.Blobs = BlobsOpts{}
-			boshOpts.AddBlob = AddBlobOpts{}
-			boshOpts.RemoveBlob = RemoveBlobOpts{}
-			boshOpts.SyncBlobs = SyncBlobsOpts{}
-			boshOpts.UploadBlobs = UploadBlobsOpts{}
-			boshOpts.Pcap = PcapOpts{}
-			boshOpts.SSH = SSHOpts{}
-			boshOpts.SCP = SCPOpts{}
-			boshOpts.Deploy = DeployOpts{}
-			boshOpts.UpdateRuntimeConfig = UpdateRuntimeConfigOpts{}
-			boshOpts.VMs = VMsOpts{}
-			boshOpts.Instances = InstancesOpts{}
-			boshOpts.Config = ConfigOpts{}
-			boshOpts.Configs = ConfigsOpts{}
-			boshOpts.UpdateConfig = UpdateConfigOpts{}
-			boshOpts.DeleteConfig = DeleteConfigOpts{}
-			boshOpts.Curl = CurlOpts{}
+			boshOpts.UploadRelease = opts.UploadReleaseOpts{}
+			boshOpts.ExportRelease = opts.ExportReleaseOpts{}
+			boshOpts.RunErrand = opts.RunErrandOpts{}
+			boshOpts.Logs = opts.LogsOpts{}
+			boshOpts.Interpolate = opts.InterpolateOpts{}
+			boshOpts.InitRelease = opts.InitReleaseOpts{}
+			boshOpts.ResetRelease = opts.ResetReleaseOpts{}
+			boshOpts.GenerateJob = opts.GenerateJobOpts{}
+			boshOpts.GeneratePackage = opts.GeneratePackageOpts{}
+			boshOpts.VendorPackage = opts.VendorPackageOpts{}
+			boshOpts.CreateRelease = opts.CreateReleaseOpts{}
+			boshOpts.FinalizeRelease = opts.FinalizeReleaseOpts{}
+			boshOpts.Blobs = opts.BlobsOpts{}
+			boshOpts.AddBlob = opts.AddBlobOpts{}
+			boshOpts.RemoveBlob = opts.RemoveBlobOpts{}
+			boshOpts.SyncBlobs = opts.SyncBlobsOpts{}
+			boshOpts.UploadBlobs = opts.UploadBlobsOpts{}
+			boshOpts.Pcap = opts.PcapOpts{}
+			boshOpts.SSH = opts.SSHOpts{}
+			boshOpts.SCP = opts.SCPOpts{}
+			boshOpts.Deploy = opts.DeployOpts{}
+			boshOpts.UpdateRuntimeConfig = opts.UpdateRuntimeConfigOpts{}
+			boshOpts.VMs = opts.VMsOpts{}
+			boshOpts.Instances = opts.InstancesOpts{}
+			boshOpts.Config = opts.ConfigOpts{}
+			boshOpts.Configs = opts.ConfigsOpts{}
+			boshOpts.UpdateConfig = opts.UpdateConfigOpts{}
+			boshOpts.DeleteConfig = opts.DeleteConfigOpts{}
+			boshOpts.Curl = opts.CurlOpts{}
 			return boshOpts
 		}
 
@@ -403,14 +402,14 @@ var _ = Describe("Factory", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			// Check against entire BoshOpts to avoid future missing assertions
-			Expect(clearNonGlobalOpts(cmd.BoshOpts)).To(Equal(BoshOpts{
+			Expect(clearNonGlobalOpts(cmd.BoshOpts)).To(Equal(opts.BoshOpts{
 				ConfigPathOpt: "~/.bosh/config",
 				Parallel:      5,
 			}))
 		})
 
 		It("can set variety of options", func() {
-			opts := []string{
+			optsArray := []string{
 				"--config", "config",
 				"--environment", "env",
 				"--ca-cert", "BEGIN ca-cert",
@@ -425,13 +424,13 @@ var _ = Describe("Factory", func() {
 				"locks",
 			}
 
-			cmd, err := factory.New(opts)
+			cmd, err := factory.New(optsArray)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(clearNonGlobalOpts(cmd.BoshOpts)).To(Equal(BoshOpts{
+			Expect(clearNonGlobalOpts(cmd.BoshOpts)).To(Equal(opts.BoshOpts{
 				ConfigPathOpt:     "config",
 				EnvironmentOpt:    "env",
-				CACertOpt:         CACertArg{Content: "BEGIN ca-cert"},
+				CACertOpt:         opts.CACertArg{Content: "BEGIN ca-cert"},
 				ClientOpt:         "client",
 				ClientSecretOpt:   "client-secret",
 				DeploymentOpt:     "dep",
@@ -444,13 +443,13 @@ var _ = Describe("Factory", func() {
 		})
 
 		It("errors when --user is set", func() {
-			opts := []string{
+			optsArray := []string{
 				"--user", "foo",
 				"--json",
 				"--tty",
 			}
 
-			_, err := factory.New(opts)
+			_, err := factory.New(optsArray)
 			Expect(err).To(HaveOccurred())
 		})
 	})

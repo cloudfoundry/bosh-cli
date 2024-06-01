@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -16,27 +16,27 @@ var _ = Describe("DeleteSnapshotCmd", func() {
 	var (
 		ui         *fakeui.FakeUI
 		deployment *fakedir.FakeDeployment
-		command    DeleteSnapshotCmd
+		command    cmd.DeleteSnapshotCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		deployment = &fakedir.FakeDeployment{}
-		command = NewDeleteSnapshotCmd(ui, deployment)
+		command = cmd.NewDeleteSnapshotCmd(ui, deployment)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts DeleteSnapshotOpts
+			deleteSnapshotOpts opts.DeleteSnapshotOpts
 		)
 
 		BeforeEach(func() {
-			opts = DeleteSnapshotOpts{
-				Args: DeleteSnapshotArgs{CID: "some-cid"},
+			deleteSnapshotOpts = opts.DeleteSnapshotOpts{
+				Args: opts.DeleteSnapshotArgs{CID: "some-cid"},
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(deleteSnapshotOpts) }
 
 		It("deletes snapshot", func() {
 			err := act()

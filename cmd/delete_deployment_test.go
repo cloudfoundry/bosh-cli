@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -16,25 +16,25 @@ var _ = Describe("DeleteDeploymentCmd", func() {
 	var (
 		ui         *fakeui.FakeUI
 		deployment *fakedir.FakeDeployment
-		command    DeleteDeploymentCmd
+		command    cmd.DeleteDeploymentCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		deployment = &fakedir.FakeDeployment{}
-		command = NewDeleteDeploymentCmd(ui, deployment)
+		command = cmd.NewDeleteDeploymentCmd(ui, deployment)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts DeleteDeploymentOpts
+			deleteDeploymentOpts opts.DeleteDeploymentOpts
 		)
 
 		BeforeEach(func() {
-			opts = DeleteDeploymentOpts{}
+			deleteDeploymentOpts = opts.DeleteDeploymentOpts{}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(deleteDeploymentOpts) }
 
 		It("deletes deployment", func() {
 			err := act()
@@ -45,7 +45,7 @@ var _ = Describe("DeleteDeploymentCmd", func() {
 		})
 
 		It("deletes deployment forcefully if requested", func() {
-			opts.Force = true
+			deleteDeploymentOpts.Force = true
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())

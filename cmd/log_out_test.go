@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakecmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config/configfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -15,13 +15,13 @@ var _ = Describe("LogOutCmd", func() {
 	var (
 		config  *fakecmdconf.FakeConfig
 		ui      *fakeui.FakeUI
-		command LogOutCmd
+		command cmd.LogOutCmd
 	)
 
 	BeforeEach(func() {
 		config = &fakecmdconf.FakeConfig{}
 		ui = &fakeui.FakeUI{}
-		command = NewLogOutCmd("environment", config, ui)
+		command = cmd.NewLogOutCmd("environment", config, ui)
 	})
 
 	Describe("Run", func() {
@@ -59,7 +59,7 @@ var _ = Describe("LogOutCmd", func() {
 		})
 
 		It("returns error if environment is empty", func() {
-			command = NewLogOutCmd("", config, ui)
+			command = cmd.NewLogOutCmd("", config, ui)
 			err := act()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Expected non-empty Director URL"))

@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -16,27 +16,27 @@ var _ = Describe("DeleteDiskCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  DeleteDiskCmd
+		command  cmd.DeleteDiskCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewDeleteDiskCmd(ui, director)
+		command = cmd.NewDeleteDiskCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts DeleteDiskOpts
+			deleteDiskOpts opts.DeleteDiskOpts
 		)
 
 		BeforeEach(func() {
-			opts = DeleteDiskOpts{
-				Args: DeleteDiskArgs{CID: "disk-cid"},
+			deleteDiskOpts = opts.DeleteDiskOpts{
+				Args: opts.DeleteDiskArgs{CID: "disk-cid"},
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(deleteDiskOpts) }
 
 		It("deletes orphaned disk", func() {
 			disk := &fakedir.FakeOrphanDisk{}

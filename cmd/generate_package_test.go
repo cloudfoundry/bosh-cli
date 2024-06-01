@@ -6,32 +6,32 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
 )
 
 var _ = Describe("GeneratePackageCmd", func() {
 	var (
 		releaseDir *fakereldir.FakeReleaseDir
-		command    GeneratePackageCmd
+		command    cmd.GeneratePackageCmd
 	)
 
 	BeforeEach(func() {
 		releaseDir = &fakereldir.FakeReleaseDir{}
-		command = NewGeneratePackageCmd(releaseDir)
+		command = cmd.NewGeneratePackageCmd(releaseDir)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts GeneratePackageOpts
+			generatePackageOpts opts.GeneratePackageOpts
 		)
 
 		BeforeEach(func() {
-			opts = GeneratePackageOpts{Args: GeneratePackageArgs{Name: "pkg"}}
+			generatePackageOpts = opts.GeneratePackageOpts{Args: opts.GeneratePackageArgs{Name: "pkg"}}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(generatePackageOpts) }
 
 		It("generates package", func() {
 			err := act()

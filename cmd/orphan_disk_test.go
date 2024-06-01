@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -16,27 +16,27 @@ var _ = Describe("OrphanDiskCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  OrphanDiskCmd
+		command  cmd.OrphanDiskCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewOrphanDiskCmd(ui, director)
+		command = cmd.NewOrphanDiskCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts OrphanDiskOpts
+			orphanDiskOpts opts.OrphanDiskOpts
 		)
 
 		BeforeEach(func() {
-			opts = OrphanDiskOpts{
-				Args: OrphanDiskArgs{CID: "disk-cid"},
+			orphanDiskOpts = opts.OrphanDiskOpts{
+				Args: opts.OrphanDiskArgs{CID: "disk-cid"},
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(orphanDiskOpts) }
 
 		It("orphans disk", func() {
 			err := act()

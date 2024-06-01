@@ -8,11 +8,10 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	bicmd "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	mock_cmd "github.com/cloudfoundry/bosh-cli/v7/cmd/mocks"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	mockcmd "github.com/cloudfoundry/bosh-cli/v7/cmd/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
@@ -29,18 +28,18 @@ var _ = Describe("StopEnvCmd", func() {
 
 	Describe("Run", func() {
 		var (
-			mockDeploymentStateManager *mock_cmd.MockDeploymentStateManager
+			mockDeploymentStateManager *mockcmd.MockDeploymentStateManager
 			fs                         *fakesys.FakeFileSystem
 
 			fakeUI                 *fakeui.FakeUI
-			fakeStage              *fakebiui.FakeStage
+			fakeStage              *fakeui.FakeStage
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			statePath              string
 			skipDrain              bool
 		)
 
-		var newStopEnvCmd = func() *bicmd.StopEnvCmd {
-			doGetFunc := func(manifestPath string, statePath_ string, vars boshtpl.Variables, op patch.Op) bicmd.DeploymentStateManager {
+		var newStopEnvCmd = func() *cmd.StopEnvCmd {
+			doGetFunc := func(manifestPath string, statePath_ string, vars boshtpl.Variables, op patch.Op) cmd.DeploymentStateManager {
 				Expect(manifestPath).To(Equal(deploymentManifestPath))
 				Expect(vars).To(Equal(boshtpl.NewMultiVars([]boshtpl.Variables{boshtpl.StaticVariables{"key": "value"}})))
 				Expect(op).To(Equal(patch.Ops{patch.ErrOp{}}))
@@ -48,7 +47,7 @@ var _ = Describe("StopEnvCmd", func() {
 				return mockDeploymentStateManager
 			}
 
-			return bicmd.NewStopEnvCmd(fakeUI, doGetFunc)
+			return cmd.NewStopEnvCmd(fakeUI, doGetFunc)
 		}
 
 		var writeDeploymentManifest = func() {
@@ -57,7 +56,7 @@ var _ = Describe("StopEnvCmd", func() {
 		}
 
 		BeforeEach(func() {
-			mockDeploymentStateManager = mock_cmd.NewMockDeploymentStateManager(mockCtrl)
+			mockDeploymentStateManager = mockcmd.NewMockDeploymentStateManager(mockCtrl)
 			fs = fakesys.NewFakeFileSystem()
 			fs.EnableStrictTempRootBehavior()
 			fakeUI = &fakeui.FakeUI{}
@@ -69,16 +68,16 @@ var _ = Describe("StopEnvCmd", func() {
 			It("gets passed to StopDeployment", func() {
 				skipDrain = true
 				mockDeploymentStateManager.EXPECT().StopDeployment(skipDrain, fakeStage).Return(nil)
-				err := newStopEnvCmd().Run(fakeStage, StopEnvOpts{
-					Args: StartStopEnvArgs{
-						Manifest: FileBytesWithPathArg{Path: deploymentManifestPath},
+				err := newStopEnvCmd().Run(fakeStage, opts.StopEnvOpts{
+					Args: opts.StartStopEnvArgs{
+						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},
 					},
 					SkipDrain: skipDrain,
-					VarFlags: VarFlags{
+					VarFlags: opts.VarFlags{
 						VarKVs: []boshtpl.VarKV{{Name: "key", Value: "value"}},
 					},
-					OpsFlags: OpsFlags{
-						OpsFiles: []OpsFileArg{
+					OpsFlags: opts.OpsFlags{
+						OpsFiles: []opts.OpsFileArg{
 							{Ops: []patch.Op{patch.ErrOp{}}},
 						},
 					},
@@ -90,16 +89,16 @@ var _ = Describe("StopEnvCmd", func() {
 		Context("state path is NOT specified", func() {
 			It("sends the manifest on to the StopDeployment", func() {
 				mockDeploymentStateManager.EXPECT().StopDeployment(skipDrain, fakeStage).Return(nil)
-				err := newStopEnvCmd().Run(fakeStage, StopEnvOpts{
-					Args: StartStopEnvArgs{
-						Manifest: FileBytesWithPathArg{Path: deploymentManifestPath},
+				err := newStopEnvCmd().Run(fakeStage, opts.StopEnvOpts{
+					Args: opts.StartStopEnvArgs{
+						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},
 					},
 					SkipDrain: skipDrain,
-					VarFlags: VarFlags{
+					VarFlags: opts.VarFlags{
 						VarKVs: []boshtpl.VarKV{{Name: "key", Value: "value"}},
 					},
-					OpsFlags: OpsFlags{
-						OpsFiles: []OpsFileArg{
+					OpsFlags: opts.OpsFlags{
+						OpsFiles: []opts.OpsFileArg{
 							{Ops: []patch.Op{patch.ErrOp{}}},
 						},
 					},
@@ -113,17 +112,17 @@ var _ = Describe("StopEnvCmd", func() {
 		Context("state path is specified", func() {
 			It("sends the manifest on to the StopDeployment", func() {
 				mockDeploymentStateManager.EXPECT().StopDeployment(skipDrain, fakeStage).Return(nil)
-				err := newStopEnvCmd().Run(fakeStage, StopEnvOpts{
+				err := newStopEnvCmd().Run(fakeStage, opts.StopEnvOpts{
 					StatePath: "/new/state/file/path/state.json",
 					SkipDrain: skipDrain,
-					Args: StartStopEnvArgs{
-						Manifest: FileBytesWithPathArg{Path: deploymentManifestPath},
+					Args: opts.StartStopEnvArgs{
+						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},
 					},
-					VarFlags: VarFlags{
+					VarFlags: opts.VarFlags{
 						VarKVs: []boshtpl.VarKV{{Name: "key", Value: "value"}},
 					},
-					OpsFlags: OpsFlags{
-						OpsFiles: []OpsFileArg{
+					OpsFlags: opts.OpsFlags{
+						OpsFiles: []opts.OpsFileArg{
 							{Ops: []patch.Op{patch.ErrOp{}}},
 						},
 					},
@@ -138,16 +137,16 @@ var _ = Describe("StopEnvCmd", func() {
 			It("sends the manifest on to the StopDeployment", func() {
 				err := bosherr.Error("boom")
 				mockDeploymentStateManager.EXPECT().StopDeployment(skipDrain, fakeStage).Return(err)
-				returnedErr := newStopEnvCmd().Run(fakeStage, StopEnvOpts{
-					Args: StartStopEnvArgs{
-						Manifest: FileBytesWithPathArg{Path: deploymentManifestPath},
+				returnedErr := newStopEnvCmd().Run(fakeStage, opts.StopEnvOpts{
+					Args: opts.StartStopEnvArgs{
+						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},
 					},
 					SkipDrain: skipDrain,
-					VarFlags: VarFlags{
+					VarFlags: opts.VarFlags{
 						VarKVs: []boshtpl.VarKV{{Name: "key", Value: "value"}},
 					},
-					OpsFlags: OpsFlags{
-						OpsFiles: []OpsFileArg{
+					OpsFlags: opts.OpsFlags{
+						OpsFiles: []opts.OpsFileArg{
 							{Ops: []patch.Op{patch.ErrOp{}}},
 						},
 					},

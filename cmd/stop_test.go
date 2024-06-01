@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -17,29 +17,29 @@ var _ = Describe("StopCmd", func() {
 	var (
 		ui         *fakeui.FakeUI
 		deployment *fakedir.FakeDeployment
-		command    StopCmd
+		command    cmd.StopCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		deployment = &fakedir.FakeDeployment{}
-		command = NewStopCmd(ui, deployment)
+		command = cmd.NewStopCmd(ui, deployment)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts StopOpts
+			stopOpts opts.StopOpts
 		)
 
 		BeforeEach(func() {
-			opts = StopOpts{
-				Args: AllOrInstanceGroupOrInstanceSlugArgs{
+			stopOpts = opts.StopOpts{
+				Args: opts.AllOrInstanceGroupOrInstanceSlugArgs{
 					Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("some-name", "0"),
 				},
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(stopOpts) }
 
 		It("stops deployment, pool or instances", func() {
 			err := act()
@@ -54,7 +54,7 @@ var _ = Describe("StopCmd", func() {
 		})
 
 		It("stops allowing to detach vms", func() {
-			opts.Hard = true
+			stopOpts.Hard = true
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -68,7 +68,7 @@ var _ = Describe("StopCmd", func() {
 		})
 
 		It("stops allowing to skip drain scripts", func() {
-			opts.SkipDrain = true
+			stopOpts.SkipDrain = true
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -100,7 +100,7 @@ var _ = Describe("StopCmd", func() {
 		})
 
 		It("can set canaries", func() {
-			opts.Canaries = "30%"
+			stopOpts.Canaries = "30%"
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -112,7 +112,7 @@ var _ = Describe("StopCmd", func() {
 		})
 
 		It("can set max_in_flight", func() {
-			opts.MaxInFlight = "5"
+			stopOpts.MaxInFlight = "5"
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -125,42 +125,42 @@ var _ = Describe("StopCmd", func() {
 
 		Context("coverge and no-converge flags", func() {
 			It("can set converge", func() {
-				opts.Converge = true
+				stopOpts.Converge = true
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deployment.StopCallCount()).To(Equal(1))
 
-				_, opts := deployment.StopArgsForCall(0)
-				Expect(opts.Converge).To(BeTrue())
+				_, stopOpts := deployment.StopArgsForCall(0)
+				Expect(stopOpts.Converge).To(BeTrue())
 			})
 
 			It("converge by default", func() {
-				opts.Converge = false
-				opts.NoConverge = false
+				stopOpts.Converge = false
+				stopOpts.NoConverge = false
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deployment.StopCallCount()).To(Equal(1))
 
-				_, opts := deployment.StopArgsForCall(0)
-				Expect(opts.Converge).To(BeTrue())
+				_, stopOpts := deployment.StopArgsForCall(0)
+				Expect(stopOpts.Converge).To(BeTrue())
 			})
 
 			It("can set no-converge", func() {
-				opts.NoConverge = true
+				stopOpts.NoConverge = true
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deployment.StopCallCount()).To(Equal(1))
 
-				_, opts := deployment.StopArgsForCall(0)
-				Expect(opts.Converge).To(BeFalse())
+				_, stopOpts := deployment.StopArgsForCall(0)
+				Expect(stopOpts.Converge).To(BeFalse())
 			})
 
 			It("rejects combining converge and no-converge", func() {
-				opts.Converge = true
-				opts.NoConverge = true
+				stopOpts.Converge = true
+				stopOpts.NoConverge = true
 				err := act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Can't set converge and no-converge"))
@@ -168,8 +168,8 @@ var _ = Describe("StopCmd", func() {
 			})
 
 			It("doesn't allow canaries flag when no-converge is specified", func() {
-				opts.NoConverge = true
-				opts.Canaries = "1"
+				stopOpts.NoConverge = true
+				stopOpts.Canaries = "1"
 				err := act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Can't set canaries and no-converge"))
@@ -177,8 +177,8 @@ var _ = Describe("StopCmd", func() {
 			})
 
 			It("doesn't allow max-in-flight flag when no-converge is specified", func() {
-				opts.NoConverge = true
-				opts.MaxInFlight = "1"
+				stopOpts.NoConverge = true
+				stopOpts.MaxInFlight = "1"
 				err := act()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Can't set max-in-flight and no-converge"))
@@ -188,14 +188,14 @@ var _ = Describe("StopCmd", func() {
 			Context("with invalid slugs for no-converge on a deployment", func() {
 
 				BeforeEach(func() {
-					opts = StopOpts{
-						Args: AllOrInstanceGroupOrInstanceSlugArgs{
+					stopOpts = opts.StopOpts{
+						Args: opts.AllOrInstanceGroupOrInstanceSlugArgs{
 							Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("", ""),
 						},
 					}
 				})
 				It("errors", func() {
-					opts.NoConverge = true
+					stopOpts.NoConverge = true
 					err := act()
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("You are trying to run stop with --no-converge on an entire instance group. This operation is not allowed. Trying using the --converge flag or running it against a specific instance."))

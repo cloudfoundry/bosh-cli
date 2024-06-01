@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -16,27 +16,27 @@ var _ = Describe("DeleteVMCmd", func() {
 	var (
 		ui         *fakeui.FakeUI
 		deployment *fakedir.FakeDeployment
-		command    DeleteVMCmd
+		command    cmd.DeleteVMCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		deployment = &fakedir.FakeDeployment{}
-		command = NewDeleteVMCmd(ui, deployment)
+		command = cmd.NewDeleteVMCmd(ui, deployment)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts DeleteVMOpts
+			deleteVMOpts opts.DeleteVMOpts
 		)
 
 		BeforeEach(func() {
-			opts = DeleteVMOpts{
-				Args: DeleteVMArgs{CID: "some-cid"},
+			deleteVMOpts = opts.DeleteVMOpts{
+				Args: opts.DeleteVMArgs{CID: "some-cid"},
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(deleteVMOpts) }
 
 		It("deletes vm", func() {
 			err := act()

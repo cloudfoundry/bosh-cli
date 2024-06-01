@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
@@ -38,7 +38,7 @@ var _ = Describe("InfoTable", func() {
 				CPI: "cpi",
 			}
 
-			InfoTable{Info: info, UI: ui}.Print()
+			cmd.InfoTable{Info: info, UI: ui}.Print()
 
 			Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
 				boshtbl.NewHeader("Name"),
@@ -68,7 +68,7 @@ var _ = Describe("InfoTable", func() {
 				Version: "director-version",
 			}
 
-			InfoTable{Info: info, UI: ui}.Print()
+			cmd.InfoTable{Info: info, UI: ui}.Print()
 
 			Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
 				boshtbl.NewHeader("Name"),

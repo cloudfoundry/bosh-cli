@@ -6,32 +6,32 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
 )
 
 var _ = Describe("GenerateJobCmd", func() {
 	var (
 		releaseDir *fakereldir.FakeReleaseDir
-		command    GenerateJobCmd
+		command    cmd.GenerateJobCmd
 	)
 
 	BeforeEach(func() {
 		releaseDir = &fakereldir.FakeReleaseDir{}
-		command = NewGenerateJobCmd(releaseDir)
+		command = cmd.NewGenerateJobCmd(releaseDir)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts GenerateJobOpts
+			generateJobOpts opts.GenerateJobOpts
 		)
 
 		BeforeEach(func() {
-			opts = GenerateJobOpts{Args: GenerateJobArgs{Name: "job"}}
+			generateJobOpts = opts.GenerateJobOpts{Args: opts.GenerateJobArgs{Name: "job"}}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(generateJobOpts) }
 
 		It("generates job", func() {
 			err := act()

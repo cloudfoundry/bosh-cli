@@ -7,9 +7,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
@@ -19,15 +19,15 @@ var _ = Describe("ReleaseManager", func() {
 	var (
 		createReleaseCmd *fakecmd.FakeReleaseCreatingCmd
 		uploadReleaseCmd *fakecmd.FakeReleaseUploadingCmd
-		releaseManager   ReleaseManager
+		releaseManager   cmd.ReleaseManager
 	)
 
 	BeforeEach(func() {
 		createReleaseCmd = &fakecmd.FakeReleaseCreatingCmd{
-			RunStub: func(opts CreateReleaseOpts) (boshrel.Release, error) {
+			RunStub: func(createReleaseOpts opts.CreateReleaseOpts) (boshrel.Release, error) {
 				release := &fakerel.FakeRelease{
-					NameStub:    func() string { return opts.Name },
-					VersionStub: func() string { return opts.Name + "-created-ver" },
+					NameStub:    func() string { return createReleaseOpts.Name },
+					VersionStub: func() string { return createReleaseOpts.Name + "-created-ver" },
 				}
 				return release, nil
 			},
@@ -36,7 +36,7 @@ var _ = Describe("ReleaseManager", func() {
 		uploadReleaseCmd = &fakecmd.FakeReleaseUploadingCmd{}
 
 		threadCount := 5
-		releaseManager = NewReleaseManager(createReleaseCmd, uploadReleaseCmd, threadCount)
+		releaseManager = cmd.NewReleaseManager(createReleaseCmd, uploadReleaseCmd, threadCount)
 	})
 
 	Describe("UploadReleases", func() {
@@ -76,7 +76,7 @@ releases:
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(uploadReleaseCmd.RunCallCount()).To(Equal(5))
-			runArgs := []UploadReleaseOpts{
+			runArgs := []opts.UploadReleaseOpts{
 				uploadReleaseCmd.RunArgsForCall(0),
 				uploadReleaseCmd.RunArgsForCall(1),
 				uploadReleaseCmd.RunArgsForCall(2),
@@ -84,57 +84,57 @@ releases:
 				uploadReleaseCmd.RunArgsForCall(4),
 			}
 
-			var capiRelease UploadReleaseOpts
-			var consulRelease UploadReleaseOpts
-			var compiledRelease UploadReleaseOpts
-			var localRelease UploadReleaseOpts
-			var compiledReleaseExported UploadReleaseOpts
-			for _, opts := range runArgs {
-				switch opts.Name {
+			var capiRelease opts.UploadReleaseOpts
+			var consulRelease opts.UploadReleaseOpts
+			var compiledRelease opts.UploadReleaseOpts
+			var localRelease opts.UploadReleaseOpts
+			var compiledReleaseExported opts.UploadReleaseOpts
+			for _, uploadReleaseOpts := range runArgs {
+				switch uploadReleaseOpts.Name {
 				case "capi":
-					capiRelease = opts
+					capiRelease = uploadReleaseOpts
 				case "consul":
-					consulRelease = opts
+					consulRelease = uploadReleaseOpts
 				case "compiled-release":
-					compiledRelease = opts
+					compiledRelease = uploadReleaseOpts
 				case "local":
-					localRelease = opts
+					localRelease = uploadReleaseOpts
 				case "compiled-release-exported":
-					compiledReleaseExported = opts
+					compiledReleaseExported = uploadReleaseOpts
 				}
 			}
 
-			Expect(capiRelease).To(Equal(UploadReleaseOpts{
+			Expect(capiRelease).To(Equal(opts.UploadReleaseOpts{
 				Name:    "capi",
-				Args:    UploadReleaseArgs{URL: URLArg("https://capi-url")},
+				Args:    opts.UploadReleaseArgs{URL: opts.URLArg("https://capi-url")},
 				SHA1:    "capi-sha1",
-				Version: VersionArg(semver.MustNewVersionFromString("1+capi")),
+				Version: opts.VersionArg(semver.MustNewVersionFromString("1+capi")),
 				Fix:     fix,
 			}))
-			Expect(consulRelease).To(Equal(UploadReleaseOpts{
+			Expect(consulRelease).To(Equal(opts.UploadReleaseOpts{
 				Name:    "consul",
-				Args:    UploadReleaseArgs{URL: URLArg("https://consul-url")},
+				Args:    opts.UploadReleaseArgs{URL: opts.URLArg("https://consul-url")},
 				SHA1:    "consul-sha1",
-				Version: VersionArg(semver.MustNewVersionFromString("1+consul")),
+				Version: opts.VersionArg(semver.MustNewVersionFromString("1+consul")),
 				Fix:     fix,
 			}))
-			Expect(compiledRelease).To(Equal(UploadReleaseOpts{
+			Expect(compiledRelease).To(Equal(opts.UploadReleaseOpts{
 				Name:    "compiled-release",
-				Args:    UploadReleaseArgs{URL: URLArg("https://compiled-release-url")},
+				Args:    opts.UploadReleaseArgs{URL: opts.URLArg("https://compiled-release-url")},
 				SHA1:    "compiled-release-sha1",
-				Version: VersionArg(semver.MustNewVersionFromString("1+compiled-release")),
+				Version: opts.VersionArg(semver.MustNewVersionFromString("1+compiled-release")),
 				Fix:     fix,
 
 				Stemcell: boshdir.NewOSVersionSlug("ubuntu-trusty", "3421"),
 			}))
-			Expect(localRelease).To(Equal(UploadReleaseOpts{
+			Expect(localRelease).To(Equal(opts.UploadReleaseOpts{
 				Release: localRelease.Release, // only Release should be set
 			}))
-			Expect(compiledReleaseExported).To(Equal(UploadReleaseOpts{
+			Expect(compiledReleaseExported).To(Equal(opts.UploadReleaseOpts{
 				Name:     "compiled-release-exported",
-				Args:     UploadReleaseArgs{URL: URLArg("file:///compiled-release-url.tgz")},
+				Args:     opts.UploadReleaseArgs{URL: opts.URLArg("file:///compiled-release-url.tgz")},
 				SHA1:     "compiled-release-sha1",
-				Version:  VersionArg(semver.MustNewVersionFromString("1+compiled-release")),
+				Version:  opts.VersionArg(semver.MustNewVersionFromString("1+compiled-release")),
 				Fix:      fix,
 				Stemcell: boshdir.NewOSVersionSlug("ubuntu-trusty", "3421"),
 			}))
@@ -183,32 +183,32 @@ releases:
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(createReleaseCmd.RunCallCount()).To(Equal(2))
-			runArgs := []CreateReleaseOpts{
+			runArgs := []opts.CreateReleaseOpts{
 				createReleaseCmd.RunArgsForCall(0),
 				createReleaseCmd.RunArgsForCall(1),
 			}
 
-			var capiRelease CreateReleaseOpts
-			var consulRelease CreateReleaseOpts
-			for _, opts := range runArgs {
-				switch opts.Name {
+			var capiRelease opts.CreateReleaseOpts
+			var consulRelease opts.CreateReleaseOpts
+			for _, createReleaseOpts := range runArgs {
+				switch createReleaseOpts.Name {
 				case "capi":
-					capiRelease = opts
+					capiRelease = createReleaseOpts
 				case "consul":
-					consulRelease = opts
+					consulRelease = createReleaseOpts
 				}
 			}
 
-			Expect(capiRelease).To(Equal(CreateReleaseOpts{
+			Expect(capiRelease).To(Equal(opts.CreateReleaseOpts{
 				Name:             "capi",
-				Directory:        DirOrCWDArg{Path: "/capi-dir"},
+				Directory:        opts.DirOrCWDArg{Path: "/capi-dir"},
 				TimestampVersion: true,
 				Force:            true,
 			}))
 
-			Expect(consulRelease).To(Equal(CreateReleaseOpts{
+			Expect(consulRelease).To(Equal(opts.CreateReleaseOpts{
 				Name:             "consul",
-				Directory:        DirOrCWDArg{Path: "/consul-dir"},
+				Directory:        opts.DirOrCWDArg{Path: "/consul-dir"},
 				TimestampVersion: true,
 				Force:            true,
 			}))
