@@ -29,7 +29,7 @@ type BoshOpts struct {
 	DeploymentOpt string `long:"deployment" short:"d" description:"Deployment name" env:"BOSH_DEPLOYMENT"`
 
 	// Output formatting
-	ColumnOpt         []ColumnOpt `long:"column"                    description:"Filter to show only given column(s)"`
+	ColumnOpt         []ColumnOpt `long:"column"                    description:"Filter to show only given column(s), use the --column flag for each column you wish to include"`
 	JSONOpt           bool        `long:"json"                      description:"Output as JSON"`
 	TTYOpt            bool        `long:"tty"                       description:"Force TTY-like output"`
 	NoColorOpt        bool        `long:"no-color"                  description:"Toggle colorized output"`
