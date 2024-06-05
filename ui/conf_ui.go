@@ -84,7 +84,7 @@ func (ui *ConfUI) PrintTable(table Table) {
 	if len(ui.showColumns) > 0 {
 		err := table.SetColumnVisibility(ui.showColumns)
 		if err != nil {
-			panic(err)
+			ui.parent.PrintErrorBlock(err.Error())
 		}
 	}
 
@@ -95,7 +95,7 @@ func (ui *ConfUI) PrintTableFiltered(table Table, filterHeader []Header) {
 	if len(ui.showColumns) > 0 {
 		err := table.SetColumnVisibilityFiltered(ui.showColumns, filterHeader)
 		if err != nil {
-			panic(err)
+			ui.parent.PrintErrorBlock(err.Error())
 		}
 	}
 

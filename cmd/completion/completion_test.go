@@ -144,7 +144,7 @@ var globalFlags = []string{
 	"--ca-cert\tDirector CA certificate path or value, env: BOSH_CA_CERT",
 	"--client\tOverride username or UAA client, env: BOSH_CLIENT",
 	"--client-secret\tOverride password or UAA client secret, env: BOSH_CLIENT_SECRET",
-	"--column\tFilter to show only given column(s)",
+	"--column\tFilter to show only given column(s), use the --column flag for each column you wish to include",
 	"--config\tConfig file path, env: BOSH_CONFIG",
 	"--deployment\tDeployment name, env: BOSH_DEPLOYMENT",
 	"-d\tDeployment name, env: BOSH_DEPLOYMENT",
