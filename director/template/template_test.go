@@ -20,6 +20,44 @@ var _ = Describe("Template", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal([]byte("foo\n")))
 	})
+	Context("the (( variable )) placeholder uses spaces", func() {
+		It(`can interpolate values even if var name is prefixed with a whitespace`, func() {
+			template := NewTemplate([]byte("(( key))"))
+			vars := StaticVariables{"key": "foo"}
+
+			result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal([]byte("foo\n")))
+		})
+		It(`can interpolate values even if var name is suffixed with a whitespace`, func() {
+			template := NewTemplate([]byte("((key ))"))
+			vars := StaticVariables{"key": "foo"}
+
+			result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal([]byte("foo\n")))
+		})
+		It(`can interpolate values even if var name is surrounded by whitespace`, func() {
+			template := NewTemplate([]byte("(( key ))"))
+			vars := StaticVariables{"key": "foo"}
+
+			result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal([]byte("foo\n")))
+		})
+		It("can interpolate a specific indexed value of an variable that is an array", func() {
+			template := NewTemplate([]byte("(( key)): (( value.1))"))
+			vars := StaticVariables{
+				"key":   "foo",
+				"value": []interface{}{"bar", "baz"},
+			}
+
+			result, err := template.Evaluate(vars, nil, EvaluateOpts{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal([]byte("foo: baz\n")))
+		})
+
+	})
 
 	It("can interpolate a specific indexed value of an variable that is an array", func() {
 		template := NewTemplate([]byte("((key)): ((value.1))"))
