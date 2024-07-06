@@ -3,16 +3,16 @@ module github.com/cloudfoundry/bosh-cli/v7
 go 1.21.0
 
 require (
-	code.cloudfoundry.org/clock v1.1.0
+	code.cloudfoundry.org/clock v1.2.0
 	code.cloudfoundry.org/workpool v0.0.0-20240408164905-b6c2fa5a80e4
 	github.com/cheggaaa/pb/v3 v3.1.5
 	github.com/cloudfoundry/bosh-agent v0.0.61-0.20230301011448-4cfe06c13ad7
-	github.com/cloudfoundry/bosh-davcli v0.0.350
-	github.com/cloudfoundry/bosh-gcscli v0.0.233
-	github.com/cloudfoundry/bosh-s3cli v0.0.302
-	github.com/cloudfoundry/bosh-utils v0.0.474
-	github.com/cloudfoundry/config-server v0.1.192
-	github.com/cloudfoundry/socks5-proxy v0.2.118
+	github.com/cloudfoundry/bosh-davcli v0.0.353
+	github.com/cloudfoundry/bosh-gcscli v0.0.236
+	github.com/cloudfoundry/bosh-s3cli v0.0.305
+	github.com/cloudfoundry/bosh-utils v0.0.477
+	github.com/cloudfoundry/config-server v0.1.193
+	github.com/cloudfoundry/socks5-proxy v0.2.119
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.1
@@ -28,7 +28,7 @@ require (
 	github.com/peterbourgon/diskv v2.0.1+incompatible
 	github.com/spf13/cobra v1.8.1
 	github.com/vito/go-interact v1.0.1
-	golang.org/x/crypto v0.24.0
+	golang.org/x/crypto v0.25.0
 	golang.org/x/text v0.16.0
 	golang.org/x/tools v0.22.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -37,14 +37,14 @@ require (
 
 require (
 	cloud.google.com/go v0.115.0 // indirect
-	cloud.google.com/go/auth v0.6.0 // indirect
+	cloud.google.com/go/auth v0.6.1 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
-	cloud.google.com/go/compute/metadata v0.3.0 // indirect
-	cloud.google.com/go/iam v1.1.9 // indirect
-	cloud.google.com/go/storage v1.42.0 // indirect
-	code.cloudfoundry.org/tlsconfig v0.0.0-20240613173017-075d5b187a0d // indirect
+	cloud.google.com/go/compute/metadata v0.4.0 // indirect
+	cloud.google.com/go/iam v1.1.10 // indirect
+	cloud.google.com/go/storage v1.43.0 // indirect
+	code.cloudfoundry.org/tlsconfig v0.0.0-20240705175211-7a5a6eee6ef2 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
-	github.com/aws/aws-sdk-go v1.54.11 // indirect
+	github.com/aws/aws-sdk-go v1.54.15 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e // indirect
@@ -77,22 +77,22 @@ require (
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.52.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.52.0 // indirect
-	go.opentelemetry.io/otel v1.27.0 // indirect
-	go.opentelemetry.io/otel/metric v1.27.0 // indirect
-	go.opentelemetry.io/otel/trace v1.27.0 // indirect
-	golang.org/x/mod v0.18.0 // indirect
-	golang.org/x/net v0.26.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.53.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.53.0 // indirect
+	go.opentelemetry.io/otel v1.28.0 // indirect
+	go.opentelemetry.io/otel/metric v1.28.0 // indirect
+	go.opentelemetry.io/otel/trace v1.28.0 // indirect
+	golang.org/x/mod v0.19.0 // indirect
+	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
-	golang.org/x/term v0.21.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/term v0.22.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	google.golang.org/api v0.186.0 // indirect
-	google.golang.org/genproto v0.0.0-20240624140628-dc46fd24d27d // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240624140628-dc46fd24d27d // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240624140628-dc46fd24d27d // indirect
-	google.golang.org/grpc v1.64.0 // indirect
+	google.golang.org/api v0.187.0 // indirect
+	google.golang.org/genproto v0.0.0-20240701130421-f6361c86f094 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240701130421-f6361c86f094 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240701130421-f6361c86f094 // indirect
+	google.golang.org/grpc v1.65.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 )
