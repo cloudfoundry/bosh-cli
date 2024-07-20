@@ -7,11 +7,11 @@ require (
 	code.cloudfoundry.org/workpool v0.0.0-20240408164905-b6c2fa5a80e4
 	github.com/cheggaaa/pb/v3 v3.1.5
 	github.com/cloudfoundry/bosh-agent v0.0.61-0.20230301011448-4cfe06c13ad7
-	github.com/cloudfoundry/bosh-davcli v0.0.354
-	github.com/cloudfoundry/bosh-gcscli v0.0.237
-	github.com/cloudfoundry/bosh-s3cli v0.0.306
-	github.com/cloudfoundry/bosh-utils v0.0.478
-	github.com/cloudfoundry/config-server v0.1.194
+	github.com/cloudfoundry/bosh-davcli v0.0.355
+	github.com/cloudfoundry/bosh-gcscli v0.0.238
+	github.com/cloudfoundry/bosh-s3cli v0.0.307
+	github.com/cloudfoundry/bosh-utils v0.0.479
+	github.com/cloudfoundry/config-server v0.1.195
 	github.com/cloudfoundry/socks5-proxy v0.2.120
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
@@ -44,7 +44,7 @@ require (
 	cloud.google.com/go/storage v1.43.0 // indirect
 	code.cloudfoundry.org/tlsconfig v0.0.0-20240712175922-ffce9516cec8 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
-	github.com/aws/aws-sdk-go v1.54.19 // indirect
+	github.com/aws/aws-sdk-go v1.54.20 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e // indirect
