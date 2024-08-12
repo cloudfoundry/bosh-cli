@@ -347,6 +347,7 @@ var _ = Describe("CreateEnvCmd", func() {
 					deploymentStateService,
 					fakeInstallationUUIDGenerator,
 					filepath.Join("fake-install-dir"),
+					"",
 				)
 				tempRootConfigurator := cmd.NewTempRootConfigurator(fs)
 
@@ -418,7 +419,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			fakeInstallationParser.ParseManifest = installationManifest
 
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
-			target := biinstall.NewTarget(installationPath)
+			target := biinstall.NewTarget(installationPath, "")
 
 			installedJob := biinstall.NewInstalledJob(
 				biinstall.RenderedJobRef{

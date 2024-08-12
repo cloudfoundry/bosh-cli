@@ -30,7 +30,7 @@ var _ = Describe("Uninstaller", func() {
 			err = fs.WriteFileString(filepath.Join(installationPath, "some-installation-artifact"), "something-blah")
 			Expect(err).ToNot(HaveOccurred())
 
-			installationTarget := installation.NewTarget(installationPath)
+			installationTarget := installation.NewTarget(installationPath, "")
 
 			uninstaller := installation.NewUninstaller(fs, boshlogger)
 
@@ -53,7 +53,7 @@ var _ = Describe("Uninstaller", func() {
 				return errors.New("can't remove that")
 			}
 
-			installationTarget := installation.NewTarget("/not/a/path")
+			installationTarget := installation.NewTarget("/not/a/path", "")
 
 			uninstaller := installation.NewUninstaller(fs, boshlogger)
 

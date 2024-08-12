@@ -302,7 +302,7 @@ cloud_provider:
 				Properties: biproperty.Map{},
 			}
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
-			target := biinstall.NewTarget(installationPath)
+			target := biinstall.NewTarget(installationPath, "")
 
 			installedJob := biinstall.InstalledJob{}
 			installedJob.Name = "fake-cpi-release-job-name"
@@ -450,6 +450,7 @@ cloud_provider:
 					deploymentStateService,
 					installationUuidGenerator,
 					filepath.Join("fake-install-dir"),
+					"",
 				)
 
 				tempRootConfigurator := cmd.NewTempRootConfigurator(fs)

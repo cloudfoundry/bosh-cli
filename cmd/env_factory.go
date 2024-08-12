@@ -71,6 +71,7 @@ func NewEnvFactory(
 	manifestVars boshtpl.Variables,
 	manifestOp patch.Op,
 	recreatePersistentDisks bool,
+	packageDir string,
 ) *envFactory {
 	f := envFactory{
 		deps:         deps,
@@ -126,7 +127,7 @@ func NewEnvFactory(
 	}
 
 	f.targetProvider = boshinst.NewTargetProvider(
-		f.deploymentStateService, deps.UUIDGen, filepath.Join(workspaceRootPath, "installations"))
+		f.deploymentStateService, deps.UUIDGen, filepath.Join(workspaceRootPath, "installations"), packageDir)
 
 	{
 		diskRepo := biconfig.NewDiskRepo(f.deploymentStateService, deps.UUIDGen)

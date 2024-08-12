@@ -50,7 +50,7 @@ var _ = Describe("Installer", func() {
 		mockPackageCompiler = mock_install.NewMockPackageCompiler(mockCtrl)
 		fakeExtractor = &blobextractfakes.FakeExtractor{}
 
-		target = NewTarget("fake-installation-path")
+		target = NewTarget("fake-installation-path", "")
 		installationManifest = biinstallmanifest.Manifest{
 			Name:       "fake-installation-name",
 			Properties: biproperty.Map{},

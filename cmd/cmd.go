@@ -72,7 +72,7 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *CreateEnvOpts:
 		envProvider := func(manifestPath string, statePath string, vars boshtpl.Variables, op patch.Op) DeploymentPreparer {
-			return NewEnvFactory(deps, manifestPath, statePath, vars, op, opts.RecreatePersistentDisks).Preparer()
+			return NewEnvFactory(deps, manifestPath, statePath, vars, op, opts.RecreatePersistentDisks, opts.PackageDir).Preparer()
 		}
 
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
@@ -80,7 +80,7 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *DeleteEnvOpts:
 		envProvider := func(manifestPath string, statePath string, vars boshtpl.Variables, op patch.Op) DeploymentDeleter {
-			return NewEnvFactory(deps, manifestPath, statePath, vars, op, false).Deleter()
+			return NewEnvFactory(deps, manifestPath, statePath, vars, op, false, opts.PackageDir).Deleter()
 		}
 
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
@@ -88,7 +88,7 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *StopEnvOpts:
 		envProvider := func(manifestPath string, statePath string, vars boshtpl.Variables, op patch.Op) DeploymentStateManager {
-			return NewEnvFactory(deps, manifestPath, statePath, vars, op, false).StateManager()
+			return NewEnvFactory(deps, manifestPath, statePath, vars, op, false, "").StateManager()
 		}
 
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
@@ -96,7 +96,7 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *StartEnvOpts:
 		envProvider := func(manifestPath string, statePath string, vars boshtpl.Variables, op patch.Op) DeploymentStateManager {
-			return NewEnvFactory(deps, manifestPath, statePath, vars, op, false).StateManager()
+			return NewEnvFactory(deps, manifestPath, statePath, vars, op, false, "").StateManager()
 		}
 
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)

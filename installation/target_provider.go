@@ -17,17 +17,20 @@ type targetProvider struct {
 	deploymentStateService biconfig.DeploymentStateService
 	uuidGenerator          boshuuid.Generator
 	installationsRootPath  string
+	packageDir             string
 }
 
 func NewTargetProvider(
 	deploymentStateService biconfig.DeploymentStateService,
 	uuidGenerator boshuuid.Generator,
 	installationsRootPath string,
+	packageDir string,
 ) TargetProvider {
 	return &targetProvider{
 		deploymentStateService: deploymentStateService,
 		uuidGenerator:          uuidGenerator,
 		installationsRootPath:  installationsRootPath,
+		packageDir:             packageDir,
 	}
 }
 
@@ -51,5 +54,5 @@ func (p *targetProvider) NewTarget() (Target, error) {
 		}
 	}
 
-	return NewTarget(filepath.Join(p.installationsRootPath, installationID)), nil
+	return NewTarget(filepath.Join(p.installationsRootPath, installationID), p.packageDir), nil
 }
