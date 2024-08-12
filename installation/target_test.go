@@ -13,7 +13,7 @@ var _ = Describe("Target", func() {
 	Describe("Paths", func() {
 		var target Target
 		BeforeEach(func() {
-			target = NewTarget("/home/fake/madcow")
+			target = NewTarget("/home/fake/madcow", "")
 		})
 
 		It("returns the blobstore path", func() {

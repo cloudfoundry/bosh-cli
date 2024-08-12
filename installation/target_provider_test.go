@@ -36,7 +36,7 @@ var _ = Describe("TargetProvider", func() {
 			logger,
 			configPath,
 		)
-		targetProvider = NewTargetProvider(deploymentStateService, fakeUUIDGenerator, installationsRootPath)
+		targetProvider = NewTargetProvider(deploymentStateService, fakeUUIDGenerator, installationsRootPath, "")
 	})
 
 	Context("when the installation_id exists in the deployment state", func() {

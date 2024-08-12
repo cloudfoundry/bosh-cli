@@ -193,7 +193,7 @@ cloud_provider:
 				},
 			}
 
-			target := biinstall.NewTarget(filepath.Join("fake-install-dir", "fake-installation-id"))
+			target := biinstall.NewTarget(filepath.Join("fake-install-dir", "fake-installation-id"), "")
 			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockCpiInstaller).AnyTimes()
 
 			expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage boshui.Stage) {
@@ -229,6 +229,7 @@ cloud_provider:
 				deploymentStateService,
 				fakeInstallationUUIDGenerator,
 				filepath.Join("fake-install-dir"),
+				"",
 			)
 
 			tempRootConfigurator := cmd.NewTempRootConfigurator(fs)
@@ -536,7 +537,7 @@ cloud_provider:
 					},
 				}
 
-				target := biinstall.NewTarget(filepath.Join("fake-install-dir", "fake-installation-id"))
+				target := biinstall.NewTarget(filepath.Join("fake-install-dir", "fake-installation-id"), "")
 				mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockCpiInstaller).AnyTimes()
 
 				fakeInstallation := &fakecmd.FakeInstallation{}
