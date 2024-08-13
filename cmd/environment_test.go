@@ -178,7 +178,7 @@ var _ = Describe("EnvironmentCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(ui.Table).To(Equal(boshtbl.Table{
-					Title: color.New(color.Bold).Sprintf(color.YellowString("CERTIFICATE EXPIRY DATE INFORMATION")),
+					Title: color.New(color.Bold, color.FgYellow).Sprint("CERTIFICATE EXPIRY DATE INFORMATION"),
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Certificate"),
 						boshtbl.NewHeader("Expiry Date (UTC)"),

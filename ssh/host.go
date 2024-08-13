@@ -63,7 +63,7 @@ func (h *hostBuilder) BuildHost(slug boshdir.AllOrInstanceGroupOrInstanceSlug, u
 		if targetVM.JobName == "" {
 			return boshdir.Host{}, bosherr.Errorf("Instance %s has no active VM", slug)
 		}
-		if targetVM.IPs == nil || len(targetVM.IPs) == 0 {
+		if len(targetVM.IPs) == 0 {
 			return boshdir.Host{}, bosherr.Errorf("VM %s has no IP address", targetVM.VMID)
 		}
 		targetHost = targetVM.IPs[0]

@@ -30,7 +30,7 @@ var _ = Describe("CertificateInfoTable", func() {
 
 			cmd.CertificateInfoTable{Certificates: certsInfo, UI: ui}.Print()
 
-			Expect(ui.Table.Title).To(Equal(color.New(color.Bold).Sprintf(color.YellowString("CERTIFICATE EXPIRY DATE INFORMATION"))))
+			Expect(ui.Table.Title).To(Equal(color.New(color.Bold, color.FgYellow).Sprint("CERTIFICATE EXPIRY DATE INFORMATION")))
 			Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
 				boshtbl.NewHeader("Certificate"),
 				boshtbl.NewHeader("Expiry Date (UTC)"),

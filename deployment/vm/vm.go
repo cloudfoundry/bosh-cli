@@ -24,7 +24,8 @@ type Clock interface {
 	Now() time.Time
 }
 
-// go:generate counterfeiter . VM
+// You only need **one** of these per package!
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 type VM interface {
 	CID() string
