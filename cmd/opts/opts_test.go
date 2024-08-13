@@ -845,6 +845,12 @@ var _ = Describe("Opts", func() {
 			))
 		})
 
+		It("has --package-dir", func() {
+			Expect(getStructTagForName("PackageDir", opts)).To(Equal(
+				`long:"package-dir" value-name:"DIR" description:"Package cache location override"`,
+			))
+		})
+
 		It("has --recreate", func() {
 			Expect(getStructTagForName("Recreate", opts)).To(Equal(
 				`long:"recreate" description:"Recreate VM in deployment"`,
@@ -896,6 +902,12 @@ var _ = Describe("Opts", func() {
 		It("has --state", func() {
 			Expect(getStructTagForName("StatePath", opts)).To(Equal(
 				`long:"state" value-name:"PATH" description:"State file path"`,
+			))
+		})
+
+		It("has --package-dir", func() {
+			Expect(getStructTagForName("PackageDir", opts)).To(Equal(
+				`long:"package-dir" value-name:"DIR" description:"Package cache location override"`,
 			))
 		})
 

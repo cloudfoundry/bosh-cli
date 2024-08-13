@@ -46,7 +46,7 @@ var _ = Describe("Installer", func() {
 			installStage = fakeui.NewFakeStage()
 			installation = mocks.NewMockInstallation(mockCtrl)
 
-			target = biinstallation.NewTarget("fake-installation-path")
+			target = biinstallation.NewTarget("fake-installation-path", "")
 			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockInstaller).AnyTimes()
 			expectInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any())
 			expectCleanup = mockInstaller.EXPECT().Cleanup(installation).Return(nil)

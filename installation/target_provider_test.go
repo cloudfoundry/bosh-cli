@@ -36,7 +36,24 @@ var _ = Describe("TargetProvider", func() {
 			logger,
 			configPath,
 		)
-		targetProvider = NewTargetProvider(deploymentStateService, fakeUUIDGenerator, installationsRootPath)
+		targetProvider = NewTargetProvider(deploymentStateService, fakeUUIDGenerator, installationsRootPath, "")
+	})
+
+	Context("when a packageDir is passed in", func() {
+		var packageDir string
+
+		BeforeEach(func() {
+			packageDir = "/some/good/dir"
+
+			targetProvider = NewTargetProvider(deploymentStateService, fakeUUIDGenerator, installationsRootPath, packageDir)
+		})
+
+		It("is passed through to the target", func() {
+			target, err := targetProvider.NewTarget()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(target.PackagesPath()).To(Equal(packageDir))
+		})
 	})
 
 	Context("when the installation_id exists in the deployment state", func() {
