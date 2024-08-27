@@ -30,9 +30,8 @@ var _ = Describe("Validator", func() {
 
 		validManifest = Manifest{
 			Name: "fake-installation-name",
-			Template: ReleaseJobRef{
-				Name:    "cpi",
-				Release: "provided-valid-release-name",
+			Templates: []ReleaseJobRef{
+				{Name: "cpi", Release: "provided-valid-release-name"},
 			},
 			Properties: biproperty.Map{
 				"fake-prop-key": "fake-prop-value",
@@ -57,8 +56,20 @@ var _ = Describe("Validator", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("validates template must be fully specified", func() {
+		It("errors when validating an empty manifest", func() {
 			manifest := Manifest{}
+
+			err := validator.Validate(manifest, releaseSetManifest)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("either cloud_provider.templates or cloud_provider.template must be provided and must contain at least one release"))
+		})
+
+		It("validates template must be fully specified", func() {
+			manifest := Manifest{
+				Templates: []ReleaseJobRef{
+					{Name: "", Release: ""},
+				},
+			}
 
 			err := validator.Validate(manifest, releaseSetManifest)
 			Expect(err).To(HaveOccurred())
@@ -68,8 +79,8 @@ var _ = Describe("Validator", func() {
 
 		It("validates template.name is not blank", func() {
 			manifest := Manifest{
-				Template: ReleaseJobRef{
-					Name: " ",
+				Templates: []ReleaseJobRef{
+					{Name: " "},
 				},
 			}
 
@@ -80,8 +91,8 @@ var _ = Describe("Validator", func() {
 
 		It("validates template.release is not blank", func() {
 			manifest := Manifest{
-				Template: ReleaseJobRef{
-					Release: " ",
+				Templates: []ReleaseJobRef{
+					{Release: " "},
 				},
 			}
 
@@ -92,14 +103,21 @@ var _ = Describe("Validator", func() {
 
 		It("validates the release is available", func() {
 			manifest := Manifest{
-				Template: ReleaseJobRef{
-					Release: "not-provided-valid-release-name",
+				Templates: []ReleaseJobRef{
+					{Release: "not-provided-valid-release-name"},
 				},
 			}
 
 			err := validator.Validate(manifest, releaseSetManifest)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("cloud_provider.template.release 'not-provided-valid-release-name' must refer to a release in releases"))
+		})
+
+		It("validates the release successfully when multiple valid templates are specified", func() {
+			validManifest.Templates = append(validManifest.Templates, ReleaseJobRef{Name: "plugin", Release: "provided-valid-release-name"})
+
+			err := validator.Validate(validManifest, releaseSetManifest)
+			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 })

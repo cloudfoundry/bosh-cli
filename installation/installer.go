@@ -81,22 +81,38 @@ func (i *installer) Install(manifest biinstallmanifest.Manifest, stage biui.Stag
 		return nil, bosherr.WrapError(err, "Rendering and uploading Jobs")
 	}
 
-	renderedCPIJob := renderedJobRefs[0]
-	installedJob, err := i.installJob(renderedCPIJob, stage)
-	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Installing job '%s' for CPI release", renderedCPIJob.Name)
+	installedJobs := []InstalledJob{}
+
+	for _, renderedCPIJob := range renderedJobRefs {
+		installedJob, err := i.installJob(renderedCPIJob, stage)
+		if err != nil {
+			return nil, bosherr.WrapErrorf(err, "Installing job '%s' for CPI release", renderedCPIJob.Name)
+		}
+		installedJobs = append(installedJobs, installedJob)
+
 	}
 
 	return NewInstallation(
 		i.target,
-		installedJob,
+		installedJobs,
 		manifest,
 	), nil
 }
 
 func (i *installer) Cleanup(installation Installation) error {
-	job := installation.Job()
-	return i.blobExtractor.Cleanup(job.BlobstoreID, job.Path)
+	errs := []error{}
+	for _, job := range installation.Jobs() {
+		err := i.blobExtractor.Cleanup(job.BlobstoreID, job.Path)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if len(errs) > 0 {
+		return bosherr.NewMultiError(errs...)
+	} else {
+		return nil
+	}
 }
 
 func (i *installer) installPackages(compiledPackages []CompiledPackageRef) error {

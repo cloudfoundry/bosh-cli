@@ -25,8 +25,10 @@ func NewJobResolver(
 }
 
 func (b *jobResolver) From(installationManifest biinstallmanifest.Manifest) ([]bireljob.Job, error) {
-	// installation only ever has one job: the cpi job.
-	jobsReferencesInRelease := []biinstallmanifest.ReleaseJobRef{installationManifest.Template}
+	jobsReferencesInRelease := []biinstallmanifest.ReleaseJobRef{}
+	for _, template := range installationManifest.Templates {
+		jobsReferencesInRelease = append(jobsReferencesInRelease, biinstallmanifest.ReleaseJobRef{Name: template.Name, Release: template.Release})
+	}
 
 	releaseJobs := make([]bireljob.Job, len(jobsReferencesInRelease))
 	for i, jobRef := range jobsReferencesInRelease {

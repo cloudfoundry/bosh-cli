@@ -251,9 +251,8 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			// parsed CPI deployment manifest
 			installationManifest = biinstallmanifest.Manifest{
-				Template: biinstallmanifest.ReleaseJobRef{
-					Name:    "fake-cpi-release-job-name",
-					Release: "fake-cpi-release-name",
+				Templates: []biinstallmanifest.ReleaseJobRef{
+					{Name: "fake-cpi-release-job-name", Release: "fake-cpi-release-name"},
 				},
 				Mbus: mbusURL,
 			}
@@ -322,7 +321,6 @@ var _ = Describe("CreateEnvCmd", func() {
 				cpiInstaller := bicpirel.CpiInstaller{
 					ReleaseManager:   releaseManager,
 					InstallerFactory: mockInstallerFactory,
-					Validator:        bicpirel.NewValidator(),
 				}
 				releaseFetcher := biinstall.NewReleaseFetcher(tarballProvider, releaseReader, releaseManager)
 				stemcellFetcher := bistemcell.Fetcher{
@@ -430,14 +428,15 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockInstaller).AnyTimes()
 
-			installation := biinstall.NewInstallation(target, installedJob, installationManifest)
+			installation := biinstall.NewInstallation(target, []biinstall.InstalledJob{installedJob},
+				installationManifest)
 
 			expectInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ interface{}, stage boshui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(installation, nil).AnyTimes()
 			mockInstaller.EXPECT().Cleanup(installation).AnyTimes()
 
-			//mockDeployment := mock_deployment.NewMockDeployment(mockCtrl)
+			// mockDeployment := mock_deployment.NewMockDeployment(mockCtrl)
 
 			expectDeploy = mockDeployer.EXPECT().Deploy(
 				mockCloud,
@@ -748,7 +747,8 @@ var _ = Describe("CreateEnvCmd", func() {
 			It("returns error", func() {
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Invalid CPI release 'fake-cpi-release-name': CPI release must contain specified job 'fake-cpi-release-job-name'"))
+				//nolint:gosimple
+				Expect(err.Error()).To(Equal(fmt.Sprintf("Found 0 releases containing a template that renders to target 'bin/cpi'. Expected to find 1. Releases inspected: [fake-cpi-release-name]\nrelease 'fake-cpi-release-name' must contain specified job 'fake-cpi-release-job-name'")))
 			})
 		})
 

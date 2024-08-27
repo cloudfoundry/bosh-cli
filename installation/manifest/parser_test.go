@@ -47,9 +47,9 @@ var _ = Describe("Parser", func() {
 ---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
   properties:
     fake-property-name:
@@ -59,9 +59,9 @@ cloud_provider:
 ---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   ssh_tunnel:
     host: 54.34.56.8
     port: 22
@@ -105,9 +105,8 @@ cloud_provider:
 
 				Expect(installationManifest).To(Equal(manifest.Manifest{
 					Name: "fake-deployment-name",
-					Template: manifest.ReleaseJobRef{
-						Name:    "fake-cpi-job-name",
-						Release: "fake-cpi-release-name",
+					Templates: []manifest.ReleaseJobRef{
+						{Name: "fake-cpi-job-name", Release: "fake-cpi-release-name"},
 					},
 					Properties: biproperty.Map{
 						"fake-property-name": biproperty.Map{
@@ -127,9 +126,9 @@ cloud_provider:
 ---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   ssh_tunnel:
     host: 54.34.56.8
     port: 22
@@ -159,9 +158,8 @@ cloud_provider:
 
 						Expect(installationManifest).To(Equal(manifest.Manifest{
 							Name: "fake-deployment-name",
-							Template: manifest.ReleaseJobRef{
-								Name:    "fake-cpi-job-name",
-								Release: "fake-cpi-release-name",
+							Templates: []manifest.ReleaseJobRef{
+								{Name: "fake-cpi-job-name", Release: "fake-cpi-release-name"},
 							},
 							Properties: biproperty.Map{},
 							Mbus:       "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
@@ -175,9 +173,9 @@ cloud_provider:
 ---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   ssh_tunnel:
     host: 54.34.56.8
     port: 22
@@ -207,9 +205,9 @@ cloud_provider:
 ---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   ssh_tunnel:
     host: 54.34.56.8
     port: 22
@@ -242,9 +240,8 @@ cloud_provider:
 
 						Expect(installationManifest).To(Equal(manifest.Manifest{
 							Name: "fake-deployment-name",
-							Template: manifest.ReleaseJobRef{
-								Name:    "fake-cpi-job-name",
-								Release: "fake-cpi-release-name",
+							Templates: []manifest.ReleaseJobRef{
+								{Name: "fake-cpi-job-name", Release: "fake-cpi-release-name"},
 							},
 							Properties: biproperty.Map{},
 							Mbus:       "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
@@ -258,9 +255,9 @@ cloud_provider:
 ---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   ssh_tunnel:
     host: 54.34.56.8
     port: 22
@@ -290,9 +287,9 @@ cloud_provider:
 ---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   ssh_tunnel:
     host: 54.34.56.8
     port: 22
@@ -331,9 +328,9 @@ cloud_provider:
 ---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   ssh_tunnel:
     host: 54.34.56.8
     port: 22
@@ -354,9 +351,9 @@ cloud_provider:
 						err := fakeFs.WriteFileString(comboManifestPath, `---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   ssh_tunnel:
     host: 54.34.56.8
     port: 22
@@ -376,9 +373,9 @@ cloud_provider:
 						err := fakeFs.WriteFileString(comboManifestPath, `---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   ssh_tunnel:
     host: 54.34.56.8
     port: 22
@@ -401,9 +398,9 @@ cloud_provider:
 ---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   ssh_tunnel:
     host: 54.34.56.8
     port: 22
@@ -427,9 +424,9 @@ cloud_provider:
 						err := fakeFs.WriteFileString(comboManifestPath, `---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   ssh_tunnel:
     host: 54.34.56.8
     port: 22
@@ -470,9 +467,9 @@ cloud_provider:
 				err := fakeFs.WriteFileString(comboManifestPath, `---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   ssh_tunnel:
     host: 54.34.56.8
     port: 22
@@ -496,9 +493,8 @@ cloud_provider:
 
 				Expect(installationManifest).To(Equal(manifest.Manifest{
 					Name: "replaced-name",
-					Template: manifest.ReleaseJobRef{
-						Name:    "fake-cpi-job-name",
-						Release: "fake-cpi-release-name",
+					Templates: []manifest.ReleaseJobRef{
+						{Name: "fake-cpi-job-name", Release: "fake-cpi-release-name"},
 					},
 					Properties: biproperty.Map{},
 					Mbus:       "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
@@ -520,9 +516,9 @@ cloud_provider:
 ---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
   cert:
     ca: |
@@ -581,9 +577,9 @@ nH9ttalAwSLBsobVaK8mmiAdtAdx+CmHWrB4UNxCPYasrt5A6a9A9SiQ2dLd
 ---
 name: fake-deployment-name
 cloud_provider:
-  template:
-    name: fake-cpi-job-name
-    release: fake-cpi-release-name
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
   mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
   cert:
     ca: |
@@ -615,6 +611,117 @@ cloud_provider:
 
 					Expect(installationManifest.Cert.CA).To(Equal(""))
 				})
+			})
+		})
+
+		Context("when multiple releases are specified in templates", func() {
+			BeforeEach(func() {
+				err := fakeFs.WriteFileString(comboManifestPath, `
+---
+name: fake-deployment-name
+cloud_provider:
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
+    - name: fake-cpi-plugin-job-name
+      release: fake-cpi-release-name
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+  properties:
+    fake-property-name:
+      nested-property: fake-property-value
+`)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("parses installation from combo manifest", func() {
+				installationManifest, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(installationManifest).To(Equal(manifest.Manifest{
+					Name: "fake-deployment-name",
+					Templates: []manifest.ReleaseJobRef{
+						{Name: "fake-cpi-job-name", Release: "fake-cpi-release-name"},
+						{Name: "fake-cpi-plugin-job-name", Release: "fake-cpi-release-name"},
+					},
+					Properties: biproperty.Map{
+						"fake-property-name": biproperty.Map{
+							"nested-property": "fake-property-value",
+						},
+					},
+					Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
+				}))
+			})
+
+			Context("when there are multiple Jobs with the same names in the specified templates", func() {
+				BeforeEach(func() {
+					err := fakeFs.WriteFileString(comboManifestPath, `
+---
+name: fake-deployment-name
+cloud_provider:
+  templates:
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-name
+    - name: fake-cpi-job-name
+      release: fake-cpi-release-other-name
+    - name: fake-cpi-job-name-not-duplicate
+      release: fake-cpi-release
+    - name: fake-cpi-job-name-number-two
+      release: fake-cpi-release
+    - name: fake-cpi-job-name-number-two
+      release: fake-cpi-release
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+  properties:
+    fake-property-name:
+      nested-property: fake-property-value
+`)
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				It("detects the duplicate names and returns an error containing only the duplicate names", func() {
+					_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
+
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("'fake-cpi-job-name'"))
+					Expect(err.Error()).To(ContainSubstring("'fake-cpi-job-name-number-two'"))
+					Expect(err.Error()).ToNot(ContainSubstring("'fake-cpi-job-name-not-duplicate'"))
+				})
+
+			})
+		})
+
+		Context("when the deprecated template key is specified instead of the templates key", func() {
+			BeforeEach(func() {
+				err := fakeFs.WriteFileString(comboManifestPath, `
+---
+name: fake-deployment-name
+cloud_provider:
+  template:
+    name: fake-cpi-job-name
+    release: fake-cpi-release-name
+  mbus: http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868
+  properties:
+    fake-property-name:
+      nested-property: fake-property-value
+`)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("parses installation from combo manifest", func() {
+				installationManifest, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(installationManifest).To(Equal(manifest.Manifest{
+					Name: "fake-deployment-name",
+					Templates: []manifest.ReleaseJobRef{
+						{Name: "fake-cpi-job-name", Release: "fake-cpi-release-name"},
+					},
+					Properties: biproperty.Map{
+						"fake-property-name": biproperty.Map{
+							"nested-property": "fake-property-value",
+						},
+					},
+					Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
+				}))
 			})
 		})
 	})

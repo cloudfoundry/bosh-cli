@@ -122,7 +122,6 @@ func NewEnvFactory(
 		f.cpiInstaller = bicpirel.CpiInstaller{
 			ReleaseManager:   f.releaseManager,
 			InstallerFactory: installerFactory,
-			Validator:        bicpirel.NewValidator(),
 		}
 	}
 

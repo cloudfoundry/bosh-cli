@@ -65,9 +65,8 @@ var _ = Describe("JobRenderer", func() {
 
 		manifest = biinstallmanifest.Manifest{
 			Name: "fake-installation-name",
-			Template: biinstallmanifest.ReleaseJobRef{
-				Name:    "fake-cpi-job-name",
-				Release: "fake-cpi-release-name",
+			Templates: []biinstallmanifest.ReleaseJobRef{
+				{Name: "fake-cpi-job-name", Release: "fake-cpi-release-name"},
 			},
 			Properties: biproperty.Map{
 				"fake-installation-property": "fake-installation-property-value",
