@@ -3,5 +3,17 @@ set -eu -o pipefail
 
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-echo -e "\n Running integration tests..."
+if [ -n "${BOSH_ALL_PROXY:-}" ]; then
+  echo "BOSH_ALL_PROXY set, unsetting for integration test run"
+  temp_bosh_all_proxy="$BOSH_ALL_PROXY"
+  unset BOSH_ALL_PROXY
+fi
+
+echo -e "\nRunning integration tests..."
 "${ROOT_DIR}/bin/ginkgo" -trace "${ROOT_DIR}/integration"
+
+# Restore the value of BOSH_ALL_PROXY after the tests run
+if [ -n "${temp_bosh_all_proxy:-}" ]; then
+  echo -e "\nBOSH_ALL_PROXY has been re-exported with the original value"
+  export BOSH_ALL_PROXY="${temp_bosh_all_proxy}"
+fi
