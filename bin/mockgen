@@ -3,7 +3,7 @@
 set -e
 bin=$(dirname $0)
 
-rootPackage=github.com/cloudfoundry/bosh-cli
+rootPackage=github.com/cloudfoundry/bosh-cli/v7
 
 srcFiles=(
   config/LegacyDeploymentStateMigrator
