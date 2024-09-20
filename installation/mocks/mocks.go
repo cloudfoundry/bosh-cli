@@ -37,18 +37,18 @@ func (m *MockInstallation) EXPECT() *MockInstallationMockRecorder {
 	return m.recorder
 }
 
-// Job mocks base method.
-func (m *MockInstallation) Job() installation.InstalledJob {
+// Jobs mocks base method.
+func (m *MockInstallation) Jobs() []installation.InstalledJob {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Job")
-	ret0, _ := ret[0].(installation.InstalledJob)
+	ret := m.ctrl.Call(m, "Jobs")
+	ret0, _ := ret[0].([]installation.InstalledJob)
 	return ret0
 }
 
-// Job indicates an expected call of Job.
-func (mr *MockInstallationMockRecorder) Job() *gomock.Call {
+// Jobs indicates an expected call of Jobs.
+func (mr *MockInstallationMockRecorder) Jobs() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Job", reflect.TypeOf((*MockInstallation)(nil).Job))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Jobs", reflect.TypeOf((*MockInstallation)(nil).Jobs))
 }
 
 // Target mocks base method.

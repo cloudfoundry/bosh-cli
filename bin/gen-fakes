@@ -31,6 +31,9 @@ counterfeiter director FileReporter
 counterfeiter director TaskReporter
 counterfeiter director Event
 
+# FakeInstallation is generated in cmd/cmdfakes because that's where it's used
+counterfeiter -o cmd/cmdfakes installation Installation
+
 counterfeiter uaa UAA
 counterfeiter uaa Token
 counterfeiter uaa AccessToken

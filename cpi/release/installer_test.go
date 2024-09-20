@@ -52,6 +52,8 @@ var _ = Describe("Installer", func() {
 			expectCleanup = mockInstaller.EXPECT().Cleanup(installation).Return(nil)
 		})
 
+		It("should validate CPI release that include CPI and plugin releases", Pending, func() {})
+
 		It("should install the CPI and call the passed in function with the installation", func() {
 			cpiInstaller := release.CpiInstaller{
 				InstallerFactory: mockInstallerFactory,

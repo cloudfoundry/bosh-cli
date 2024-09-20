@@ -6,23 +6,23 @@ import (
 
 type Installation interface {
 	Target() Target
-	Job() InstalledJob
+	Jobs() []InstalledJob
 }
 
 type installation struct {
 	target   Target
-	job      InstalledJob
+	jobs     []InstalledJob
 	manifest biinstallmanifest.Manifest
 }
 
 func NewInstallation(
 	target Target,
-	job InstalledJob,
+	jobs []InstalledJob,
 	manifest biinstallmanifest.Manifest,
 ) Installation {
 	return &installation{
 		target:   target,
-		job:      job,
+		jobs:     jobs,
 		manifest: manifest,
 	}
 }
@@ -31,6 +31,6 @@ func (i *installation) Target() Target {
 	return i.target
 }
 
-func (i *installation) Job() InstalledJob {
-	return i.job
+func (i *installation) Jobs() []InstalledJob {
+	return i.jobs
 }

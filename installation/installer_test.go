@@ -37,9 +37,9 @@ var _ = Describe("Installer", func() {
 
 		logger boshlog.Logger
 
-		installer    Installer
-		target       Target
-		installedJob InstalledJob
+		installer     Installer
+		target        Target
+		installedJobs []InstalledJob
 	)
 
 	BeforeEach(func() {
@@ -56,7 +56,12 @@ var _ = Describe("Installer", func() {
 			Properties: biproperty.Map{},
 		}
 		renderedCPIJob := NewRenderedJobRef("cpi", "fake-release-job-fingerprint", "fake-rendered-job-blobstore-id", "fake-rendered-job-blobstore-id")
-		installedJob = NewInstalledJob(renderedCPIJob, "/extracted-release-path/cpi")
+		renderedCPIPluginJob := NewRenderedJobRef("cpi-plugin", "fake-release-job-fingerprint", "fake-rendered-job-blobstore-id", "fake-rendered-job-blobstore-id")
+
+		installedJobs = make([]InstalledJob, 0)
+		installedJobs = append(installedJobs, NewInstalledJob(renderedCPIJob, "/extracted-release-path/cpi"))
+		installedJobs = append(installedJobs, NewInstalledJob(renderedCPIPluginJob,
+			"/extracted-release-path/cpi-plugin"))
 	})
 
 	JustBeforeEach(func() {
@@ -92,7 +97,11 @@ var _ = Describe("Installer", func() {
 			compiledPackages := []CompiledPackageRef{ref}
 
 			releaseJobs = []bireljob.Job{}
-			renderedJobRefs = []RenderedJobRef{installedJob.RenderedJobRef}
+
+			renderedJobRefs = make([]RenderedJobRef, 0)
+			for _, installedJob := range installedJobs {
+				renderedJobRefs = append(renderedJobRefs, installedJob.RenderedJobRef)
+			}
 			mockJobResolver.EXPECT().From(installationManifest).Return(releaseJobs, nil).AnyTimes()
 			mockPackageCompiler.EXPECT().For(releaseJobs, fakeStage).Return(compiledPackages, nil).AnyTimes()
 		})
@@ -137,7 +146,7 @@ var _ = Describe("Installer", func() {
 		BeforeEach(func() {
 			installation = NewInstallation(
 				target,
-				installedJob,
+				installedJobs,
 				installationManifest,
 			)
 		})
@@ -146,11 +155,13 @@ var _ = Describe("Installer", func() {
 			err := installer.Cleanup(installation)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeExtractor.CleanupCallCount()).To(Equal(1))
+			Expect(fakeExtractor.CleanupCallCount()).To(Equal(2))
 
-			blobstoreID, extractedBlobPath := fakeExtractor.CleanupArgsForCall(0)
-			Expect(blobstoreID).To(Equal(installedJob.BlobstoreID))
-			Expect(extractedBlobPath).To(Equal(installedJob.Path))
+			for i, installedJob := range installedJobs {
+				blobstoreID, extractedBlobPath := fakeExtractor.CleanupArgsForCall(i)
+				Expect(blobstoreID).To(Equal(installedJob.BlobstoreID))
+				Expect(extractedBlobPath).To(Equal(installedJob.Path))
+			}
 		})
 
 		It("returns errors when cleaning up installed jobs", func() {

@@ -36,6 +36,7 @@ type manifest struct {
 
 type installation struct {
 	Template   template
+	Templates  []template
 	Properties map[interface{}]interface{}
 	SSHTunnel  SSHTunnel `yaml:"ssh_tunnel"`
 	Mbus       string
@@ -113,12 +114,38 @@ func (p *parser) Parse(path string, vars boshtpl.Variables, op patch.Op, release
 
 	installationManifest := Manifest{
 		Name: comboManifest.Name,
-		Template: ReleaseJobRef{
-			Name:    comboManifest.CloudProvider.Template.Name,
-			Release: comboManifest.CloudProvider.Template.Release,
-		},
 		Mbus: comboManifest.CloudProvider.Mbus,
 		Cert: comboManifest.CloudProvider.Cert,
+	}
+
+	templateList := []ReleaseJobRef{}
+	templateNameCount := make(map[string]int)
+	if len(comboManifest.CloudProvider.Templates) != 0 {
+		for _, template := range comboManifest.CloudProvider.Templates {
+			templateName := template.Name
+			templateList = append(templateList, ReleaseJobRef{Name: templateName, Release: template.Release})
+			// Check for duplicate names
+			templateNameCount[templateName] = templateNameCount[templateName] + 1
+		}
+
+		installationManifest.Templates = templateList
+	} else {
+		templateList = append(templateList, ReleaseJobRef{
+			Name:    comboManifest.CloudProvider.Template.Name,
+			Release: comboManifest.CloudProvider.Template.Release,
+		})
+		installationManifest.Templates = templateList
+	}
+
+	duplicateTemplateNames := []string{}
+	for templateName, count := range templateNameCount {
+		if count > 1 {
+			duplicateTemplateNames = append(duplicateTemplateNames, "'"+templateName+"'")
+		}
+	}
+
+	if len(duplicateTemplateNames) != 0 {
+		return Manifest{}, bosherr.WrapErrorf(err, "Duplicate templates names are illegal. Duplicate template names found: %v", strings.Join(duplicateTemplateNames, ", "))
 	}
 
 	properties, err := biproperty.BuildMap(comboManifest.CloudProvider.Properties)

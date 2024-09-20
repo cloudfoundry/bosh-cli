@@ -126,15 +126,23 @@ func (c *deploymentDeleter) DeleteDeployment(skipDrain bool, stage biui.Stage) (
 			return err
 		}
 
-		cpiReleaseName := installationManifest.Template.Release
-		cpiReleaseRef, found := releaseSetManifest.FindByName(cpiReleaseName)
-		if !found {
-			return bosherr.Errorf("installation release '%s' must refer to a release in releases", cpiReleaseName)
+		errs := []error{}
+		for _, template := range installationManifest.Templates {
+
+			cpiReleaseName := template.Release
+			cpiReleaseRef, found := releaseSetManifest.FindByName(cpiReleaseName)
+			if !found {
+				return bosherr.Errorf("installation release '%s' must refer to a release in releases", cpiReleaseName)
+			}
+
+			err = c.releaseFetcher.DownloadAndExtract(cpiReleaseRef, stage)
+			if err != nil {
+				errs = append(errs, err)
+			}
 		}
 
-		err = c.releaseFetcher.DownloadAndExtract(cpiReleaseRef, stage)
-		if err != nil {
-			return err
+		if len(errs) > 0 {
+			return bosherr.NewMultiError(errs...)
 		}
 
 		err = c.cpiInstaller.ValidateCpiRelease(installationManifest, stage)

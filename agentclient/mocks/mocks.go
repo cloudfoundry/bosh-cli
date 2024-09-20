@@ -5,36 +5,37 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
 	applyspec "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
-// MockAgentClient is a mock of AgentClient interface
+// MockAgentClient is a mock of AgentClient interface.
 type MockAgentClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockAgentClientMockRecorder
 }
 
-// MockAgentClientMockRecorder is the mock recorder for MockAgentClient
+// MockAgentClientMockRecorder is the mock recorder for MockAgentClient.
 type MockAgentClientMockRecorder struct {
 	mock *MockAgentClient
 }
 
-// NewMockAgentClient creates a new mock instance
+// NewMockAgentClient creates a new mock instance.
 func NewMockAgentClient(ctrl *gomock.Controller) *MockAgentClient {
 	mock := &MockAgentClient{ctrl: ctrl}
 	mock.recorder = &MockAgentClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAgentClient) EXPECT() *MockAgentClientMockRecorder {
 	return m.recorder
 }
 
-// AddPersistentDisk mocks base method
+// AddPersistentDisk mocks base method.
 func (m *MockAgentClient) AddPersistentDisk(arg0 string, arg1 interface{}) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddPersistentDisk", arg0, arg1)
@@ -42,13 +43,13 @@ func (m *MockAgentClient) AddPersistentDisk(arg0 string, arg1 interface{}) error
 	return ret0
 }
 
-// AddPersistentDisk indicates an expected call of AddPersistentDisk
+// AddPersistentDisk indicates an expected call of AddPersistentDisk.
 func (mr *MockAgentClientMockRecorder) AddPersistentDisk(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPersistentDisk", reflect.TypeOf((*MockAgentClient)(nil).AddPersistentDisk), arg0, arg1)
 }
 
-// Apply mocks base method
+// Apply mocks base method.
 func (m *MockAgentClient) Apply(arg0 applyspec.ApplySpec) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Apply", arg0)
@@ -56,13 +57,13 @@ func (m *MockAgentClient) Apply(arg0 applyspec.ApplySpec) error {
 	return ret0
 }
 
-// Apply indicates an expected call of Apply
+// Apply indicates an expected call of Apply.
 func (mr *MockAgentClientMockRecorder) Apply(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Apply", reflect.TypeOf((*MockAgentClient)(nil).Apply), arg0)
 }
 
-// BundleLogs mocks base method
+// BundleLogs mocks base method.
 func (m *MockAgentClient) BundleLogs(arg0, arg1 string, arg2 []string) (agentclient.BundleLogsResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BundleLogs", arg0, arg1, arg2)
@@ -71,13 +72,13 @@ func (m *MockAgentClient) BundleLogs(arg0, arg1 string, arg2 []string) (agentcli
 	return ret0, ret1
 }
 
-// BundleLogs indicates an expected call of BundleLogs
+// BundleLogs indicates an expected call of BundleLogs.
 func (mr *MockAgentClientMockRecorder) BundleLogs(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BundleLogs", reflect.TypeOf((*MockAgentClient)(nil).BundleLogs), arg0, arg1, arg2)
 }
 
-// CleanUpSSH mocks base method
+// CleanUpSSH mocks base method.
 func (m *MockAgentClient) CleanUpSSH(arg0 string) (agentclient.SSHResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CleanUpSSH", arg0)
@@ -86,13 +87,13 @@ func (m *MockAgentClient) CleanUpSSH(arg0 string) (agentclient.SSHResult, error)
 	return ret0, ret1
 }
 
-// CleanUpSSH indicates an expected call of CleanUpSSH
+// CleanUpSSH indicates an expected call of CleanUpSSH.
 func (mr *MockAgentClientMockRecorder) CleanUpSSH(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanUpSSH", reflect.TypeOf((*MockAgentClient)(nil).CleanUpSSH), arg0)
 }
 
-// CompilePackage mocks base method
+// CompilePackage mocks base method.
 func (m *MockAgentClient) CompilePackage(arg0 agentclient.BlobRef, arg1 []agentclient.BlobRef) (agentclient.BlobRef, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CompilePackage", arg0, arg1)
@@ -101,13 +102,13 @@ func (m *MockAgentClient) CompilePackage(arg0 agentclient.BlobRef, arg1 []agentc
 	return ret0, ret1
 }
 
-// CompilePackage indicates an expected call of CompilePackage
+// CompilePackage indicates an expected call of CompilePackage.
 func (mr *MockAgentClientMockRecorder) CompilePackage(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CompilePackage", reflect.TypeOf((*MockAgentClient)(nil).CompilePackage), arg0, arg1)
 }
 
-// DeleteARPEntries mocks base method
+// DeleteARPEntries mocks base method.
 func (m *MockAgentClient) DeleteARPEntries(arg0 []string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteARPEntries", arg0)
@@ -115,13 +116,13 @@ func (m *MockAgentClient) DeleteARPEntries(arg0 []string) error {
 	return ret0
 }
 
-// DeleteARPEntries indicates an expected call of DeleteARPEntries
+// DeleteARPEntries indicates an expected call of DeleteARPEntries.
 func (mr *MockAgentClientMockRecorder) DeleteARPEntries(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteARPEntries", reflect.TypeOf((*MockAgentClient)(nil).DeleteARPEntries), arg0)
 }
 
-// Drain mocks base method
+// Drain mocks base method.
 func (m *MockAgentClient) Drain(arg0 string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Drain", arg0)
@@ -130,13 +131,13 @@ func (m *MockAgentClient) Drain(arg0 string) (int64, error) {
 	return ret0, ret1
 }
 
-// Drain indicates an expected call of Drain
+// Drain indicates an expected call of Drain.
 func (mr *MockAgentClientMockRecorder) Drain(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Drain", reflect.TypeOf((*MockAgentClient)(nil).Drain), arg0)
 }
 
-// GetState mocks base method
+// GetState mocks base method.
 func (m *MockAgentClient) GetState() (agentclient.AgentState, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetState")
@@ -145,13 +146,13 @@ func (m *MockAgentClient) GetState() (agentclient.AgentState, error) {
 	return ret0, ret1
 }
 
-// GetState indicates an expected call of GetState
+// GetState indicates an expected call of GetState.
 func (mr *MockAgentClientMockRecorder) GetState() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetState", reflect.TypeOf((*MockAgentClient)(nil).GetState))
 }
 
-// ListDisk mocks base method
+// ListDisk mocks base method.
 func (m *MockAgentClient) ListDisk() ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListDisk")
@@ -160,13 +161,13 @@ func (m *MockAgentClient) ListDisk() ([]string, error) {
 	return ret0, ret1
 }
 
-// ListDisk indicates an expected call of ListDisk
+// ListDisk indicates an expected call of ListDisk.
 func (mr *MockAgentClientMockRecorder) ListDisk() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDisk", reflect.TypeOf((*MockAgentClient)(nil).ListDisk))
 }
 
-// MigrateDisk mocks base method
+// MigrateDisk mocks base method.
 func (m *MockAgentClient) MigrateDisk() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MigrateDisk")
@@ -174,13 +175,13 @@ func (m *MockAgentClient) MigrateDisk() error {
 	return ret0
 }
 
-// MigrateDisk indicates an expected call of MigrateDisk
+// MigrateDisk indicates an expected call of MigrateDisk.
 func (mr *MockAgentClientMockRecorder) MigrateDisk() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MigrateDisk", reflect.TypeOf((*MockAgentClient)(nil).MigrateDisk))
 }
 
-// MountDisk mocks base method
+// MountDisk mocks base method.
 func (m *MockAgentClient) MountDisk(arg0 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MountDisk", arg0)
@@ -188,13 +189,13 @@ func (m *MockAgentClient) MountDisk(arg0 string) error {
 	return ret0
 }
 
-// MountDisk indicates an expected call of MountDisk
+// MountDisk indicates an expected call of MountDisk.
 func (mr *MockAgentClientMockRecorder) MountDisk(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MountDisk", reflect.TypeOf((*MockAgentClient)(nil).MountDisk), arg0)
 }
 
-// Ping mocks base method
+// Ping mocks base method.
 func (m *MockAgentClient) Ping() (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Ping")
@@ -203,13 +204,13 @@ func (m *MockAgentClient) Ping() (string, error) {
 	return ret0, ret1
 }
 
-// Ping indicates an expected call of Ping
+// Ping indicates an expected call of Ping.
 func (mr *MockAgentClientMockRecorder) Ping() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockAgentClient)(nil).Ping))
 }
 
-// RemoveFile mocks base method
+// RemoveFile mocks base method.
 func (m *MockAgentClient) RemoveFile(arg0 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveFile", arg0)
@@ -217,13 +218,13 @@ func (m *MockAgentClient) RemoveFile(arg0 string) error {
 	return ret0
 }
 
-// RemoveFile indicates an expected call of RemoveFile
+// RemoveFile indicates an expected call of RemoveFile.
 func (mr *MockAgentClientMockRecorder) RemoveFile(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveFile", reflect.TypeOf((*MockAgentClient)(nil).RemoveFile), arg0)
 }
 
-// RemovePersistentDisk mocks base method
+// RemovePersistentDisk mocks base method.
 func (m *MockAgentClient) RemovePersistentDisk(arg0 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemovePersistentDisk", arg0)
@@ -231,13 +232,13 @@ func (m *MockAgentClient) RemovePersistentDisk(arg0 string) error {
 	return ret0
 }
 
-// RemovePersistentDisk indicates an expected call of RemovePersistentDisk
+// RemovePersistentDisk indicates an expected call of RemovePersistentDisk.
 func (mr *MockAgentClientMockRecorder) RemovePersistentDisk(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemovePersistentDisk", reflect.TypeOf((*MockAgentClient)(nil).RemovePersistentDisk), arg0)
 }
 
-// RunScript mocks base method
+// RunScript mocks base method.
 func (m *MockAgentClient) RunScript(arg0 string, arg1 map[string]interface{}) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RunScript", arg0, arg1)
@@ -245,13 +246,13 @@ func (m *MockAgentClient) RunScript(arg0 string, arg1 map[string]interface{}) er
 	return ret0
 }
 
-// RunScript indicates an expected call of RunScript
+// RunScript indicates an expected call of RunScript.
 func (mr *MockAgentClientMockRecorder) RunScript(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunScript", reflect.TypeOf((*MockAgentClient)(nil).RunScript), arg0, arg1)
 }
 
-// SetUpSSH mocks base method
+// SetUpSSH mocks base method.
 func (m *MockAgentClient) SetUpSSH(arg0, arg1 string) (agentclient.SSHResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetUpSSH", arg0, arg1)
@@ -260,13 +261,13 @@ func (m *MockAgentClient) SetUpSSH(arg0, arg1 string) (agentclient.SSHResult, er
 	return ret0, ret1
 }
 
-// SetUpSSH indicates an expected call of SetUpSSH
+// SetUpSSH indicates an expected call of SetUpSSH.
 func (mr *MockAgentClientMockRecorder) SetUpSSH(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUpSSH", reflect.TypeOf((*MockAgentClient)(nil).SetUpSSH), arg0, arg1)
 }
 
-// Start mocks base method
+// Start mocks base method.
 func (m *MockAgentClient) Start() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Start")
@@ -274,13 +275,13 @@ func (m *MockAgentClient) Start() error {
 	return ret0
 }
 
-// Start indicates an expected call of Start
+// Start indicates an expected call of Start.
 func (mr *MockAgentClientMockRecorder) Start() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockAgentClient)(nil).Start))
 }
 
-// Stop mocks base method
+// Stop mocks base method.
 func (m *MockAgentClient) Stop() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Stop")
@@ -288,13 +289,13 @@ func (m *MockAgentClient) Stop() error {
 	return ret0
 }
 
-// Stop indicates an expected call of Stop
+// Stop indicates an expected call of Stop.
 func (mr *MockAgentClientMockRecorder) Stop() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stop", reflect.TypeOf((*MockAgentClient)(nil).Stop))
 }
 
-// SyncDNS mocks base method
+// SyncDNS mocks base method.
 func (m *MockAgentClient) SyncDNS(arg0, arg1 string, arg2 uint64) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SyncDNS", arg0, arg1, arg2)
@@ -303,13 +304,13 @@ func (m *MockAgentClient) SyncDNS(arg0, arg1 string, arg2 uint64) (string, error
 	return ret0, ret1
 }
 
-// SyncDNS indicates an expected call of SyncDNS
+// SyncDNS indicates an expected call of SyncDNS.
 func (mr *MockAgentClientMockRecorder) SyncDNS(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncDNS", reflect.TypeOf((*MockAgentClient)(nil).SyncDNS), arg0, arg1, arg2)
 }
 
-// UnmountDisk mocks base method
+// UnmountDisk mocks base method.
 func (m *MockAgentClient) UnmountDisk(arg0 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UnmountDisk", arg0)
@@ -317,7 +318,7 @@ func (m *MockAgentClient) UnmountDisk(arg0 string) error {
 	return ret0
 }
 
-// UnmountDisk indicates an expected call of UnmountDisk
+// UnmountDisk indicates an expected call of UnmountDisk.
 func (mr *MockAgentClientMockRecorder) UnmountDisk(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnmountDisk", reflect.TypeOf((*MockAgentClient)(nil).UnmountDisk), arg0)

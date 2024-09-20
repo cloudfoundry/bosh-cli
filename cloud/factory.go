@@ -31,19 +31,28 @@ func NewFactory(
 }
 
 func (f *factory) NewCloud(installation biinstall.Installation, directorID string, stemcellApiVersion int) (Cloud, error) {
-	cpiJob := installation.Job()
-	target := installation.Target()
-	cpi := CPI{
-		JobPath:     cpiJob.Path,
-		JobsDir:     target.JobsPath(),
-		PackagesDir: target.PackagesPath(),
+	numberCpiBinariesFound := 0
+	foundCPI := CPI{}
+
+	for _, cpiJob := range installation.Jobs() {
+		target := installation.Target()
+		cpi := CPI{
+			JobPath:     cpiJob.Path,
+			JobsDir:     target.JobsPath(),
+			PackagesDir: target.PackagesPath(),
+		}
+
+		cmdPath := cpi.ExecutablePath()
+		if f.fs.FileExists(cmdPath) {
+			numberCpiBinariesFound += 1
+			foundCPI = cpi
+		}
 	}
 
-	cmdPath := cpi.ExecutablePath()
-	if !f.fs.FileExists(cmdPath) {
-		return nil, bosherr.Errorf("Installed CPI job '%s' does not contain the required executable '%s'", cpiJob.Name, cmdPath)
+	if numberCpiBinariesFound != 1 {
+		return nil, bosherr.Errorf("Found %d Jobs with a 'bin/cpi' binary. Expected 1.", numberCpiBinariesFound)
 	}
 
-	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, cpi, f.logger)
+	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, foundCPI, f.logger)
 	return NewCloud(cpiCmdRunner, directorID, stemcellApiVersion, f.logger), nil
 }

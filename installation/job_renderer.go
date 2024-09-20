@@ -61,10 +61,6 @@ func (b *jobRenderer) RenderAndUploadFrom(installationManifest biinstallmanifest
 		return nil, bosherr.WrapError(err, "Rendering job templates for installation")
 	}
 
-	if len(renderedJobRefs) != 1 {
-		return nil, bosherr.Error("Too many jobs rendered... oops?")
-	}
-
 	return renderedJobRefs, nil
 }
 
