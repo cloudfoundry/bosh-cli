@@ -37,7 +37,7 @@ func (c *openstackSwiftS3Client) signedURL(action string, objectID string, expir
 	h.Write([]byte(hmacBody))
 	signature := hex.EncodeToString(h.Sum(nil))
 
-	url := fmt.Sprintf("https://%s%s?temp_url_sig=%s&temp_url_expires=%d\n", c.s3cliConfig.Host, path, signature, expires)
+	url := fmt.Sprintf("https://%s%s?temp_url_sig=%s&temp_url_expires=%d", c.s3cliConfig.Host, path, signature, expires)
 
 	return url, nil
 }

@@ -7,11 +7,11 @@ require (
 	code.cloudfoundry.org/workpool v0.0.0-20240408164905-b6c2fa5a80e4
 	github.com/cheggaaa/pb/v3 v3.1.5
 	github.com/cloudfoundry/bosh-agent v0.0.61-0.20230301011448-4cfe06c13ad7
-	github.com/cloudfoundry/bosh-davcli v0.0.365
-	github.com/cloudfoundry/bosh-gcscli v0.0.248
-	github.com/cloudfoundry/bosh-s3cli v0.0.316
-	github.com/cloudfoundry/bosh-utils v0.0.495
-	github.com/cloudfoundry/config-server v0.1.204
+	github.com/cloudfoundry/bosh-davcli v0.0.366
+	github.com/cloudfoundry/bosh-gcscli v0.0.249
+	github.com/cloudfoundry/bosh-s3cli v0.0.318
+	github.com/cloudfoundry/bosh-utils v0.0.496
+	github.com/cloudfoundry/config-server v0.1.205
 	github.com/cloudfoundry/socks5-proxy v0.2.124
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
@@ -88,10 +88,10 @@ require (
 	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/term v0.24.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
-	google.golang.org/api v0.197.0 // indirect
+	google.golang.org/api v0.198.0 // indirect
 	google.golang.org/genproto v0.0.0-20240903143218-8af14fe29dc1 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
-	google.golang.org/grpc v1.66.2 // indirect
+	google.golang.org/grpc v1.67.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 )
