@@ -103,7 +103,9 @@ func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageR
 			"PATH":                os.Getenv("PATH"),
 			"LD_LIBRARY_PATH":     os.Getenv("LD_LIBRARY_PATH"),
 		},
-		UseIsolatedEnv: true,
+		// 🚧 To-do: Make this configurable via cli-flag or use everywhere the environment-variable
+		// “BOSH_CPI_USE_ISOLATED_ENV” as in cpi_cmd_runner.go, see <https://github.com/cloudfoundry/bosh-cli/issues/660>.
+		UseIsolatedEnv: false,
 		WorkingDir:     packageSrcDir,
 	}
 

@@ -115,8 +115,10 @@ func (r *cpiCmdRunner) Run(context CmdContext, method string, apiVersion int, ar
 		Env: map[string]string{
 			"BOSH_PACKAGES_DIR": r.cpi.PackagesDir,
 			"BOSH_JOBS_DIR":     r.cpi.JobsDir,
-			"PATH":              "/usr/local/bin:/usr/bin:/bin:/sbin",
+			"PATH":              os.Getenv("PATH"),
 		},
+		// 🚧 To-do: Make this configurable via cli-flag or use everywhere the environment-variable
+		// “BOSH_CPI_USE_ISOLATED_ENV” as in cpi_cmd_runner.go, see <https://github.com/cloudfoundry/bosh-cli/issues/660>.
 		UseIsolatedEnv: useIsolatedEnv,
 		Stdin:          bytes.NewReader(inputBytes),
 	}
