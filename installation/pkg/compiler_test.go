@@ -36,6 +36,7 @@ var _ = Describe("PackageCompiler", func() {
 
 	var (
 		logger                  boshlog.Logger
+		useIsolatedEnv          bool
 		compiler                bistatepkg.Compiler
 		runner                  *fakesys.FakeCmdRunner
 		pkg                     *birelpkg.Package
@@ -53,6 +54,8 @@ var _ = Describe("PackageCompiler", func() {
 
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
+		useIsolatedEnv = true
+
 		packagesDir = "fake-packages-dir"
 		runner = fakesys.NewFakeCmdRunner()
 		fs = fakesys.NewFakeFileSystem()
@@ -82,6 +85,7 @@ var _ = Describe("PackageCompiler", func() {
 			mockCompiledPackageRepo,
 			fakeExtractor,
 			logger,
+			useIsolatedEnv,
 		)
 	})
 

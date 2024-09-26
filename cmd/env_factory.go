@@ -71,6 +71,7 @@ func NewEnvFactory(
 	manifestVars boshtpl.Variables,
 	manifestOp patch.Op,
 	recreatePersistentDisks bool,
+	useIsolatedEnv bool,
 ) *envFactory {
 	f := envFactory{
 		deps:         deps,
@@ -116,7 +117,7 @@ func NewEnvFactory(
 	{
 		installerFactory := boshinst.NewInstallerFactory(
 			deps.UI, deps.CmdRunner, deps.Compressor, releaseJobResolver,
-			deps.UUIDGen, deps.Logger, deps.FS, deps.DigestCreationAlgorithms)
+			deps.UUIDGen, deps.Logger, useIsolatedEnv, deps.FS, deps.DigestCreationAlgorithms)
 
 		f.cpiInstaller = bicpirel.CpiInstaller{
 			ReleaseManager:   f.releaseManager,
