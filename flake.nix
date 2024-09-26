@@ -25,6 +25,7 @@
               delve
               go
               gopls
+              gotools
             ];
           };
         });

@@ -66,7 +66,7 @@ type CPICmdRunner interface {
 }
 
 type cpiCmdRunner struct {
-	cmdRunner boshsys.CmdRunner
+	cmdRunner      boshsys.CmdRunner
 	cpi            CPI
 	logger         boshlog.Logger
 	logTag         string
@@ -80,10 +80,10 @@ func NewCPICmdRunner(
 	useIsolatedEnv bool,
 ) CPICmdRunner {
 	return &cpiCmdRunner{
-		cmdRunner: cmdRunner,
-		cpi:       cpi,
-		logger:    logger,
-		logTag:    "cpiCmdRunner",
+		cmdRunner:      cmdRunner,
+		cpi:            cpi,
+		logger:         logger,
+		logTag:         "cpiCmdRunner",
 		useIsolatedEnv: useIsolatedEnv,
 	}
 }
@@ -114,7 +114,6 @@ func (r *cpiCmdRunner) Run(context CmdContext, method string, apiVersion int, ar
 		UseIsolatedEnv: r.useIsolatedEnv,
 		Stdin:          bytes.NewReader(inputBytes),
 	}
-	fmt.Printf("cpi_cmd_runner.go: UseIsolatedEnv = %t\n", cmd.UseIsolatedEnv) // 🚧 To-do: Debug-code
 
 	stdout, stderr, exitCode, err := r.cmdRunner.RunComplexCommand(cmd)
 	r.logger.Debug(r.logTag, "Exit Code %d when executing external CPI command '%s'\nSTDIN: '%s'\nSTDOUT: '%s'\nSTDERR: '%s'", exitCode, cmdPath, string(inputBytes), stdout, stderr)

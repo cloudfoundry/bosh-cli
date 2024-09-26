@@ -35,7 +35,7 @@ var _ = Describe("CpiCmdRunner", func() {
 
 		cmdRunner = fakesys.NewFakeCmdRunner()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		cpiCmdRunner = NewCPICmdRunner(cmdRunner, cpi, logger)
+		cpiCmdRunner = NewCPICmdRunner(cmdRunner, cpi, logger, true)
 
 		apiVersion = 1
 	})
