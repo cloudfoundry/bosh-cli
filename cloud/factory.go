@@ -12,20 +12,23 @@ type Factory interface {
 }
 
 type factory struct {
-	fs        boshsys.FileSystem
-	cmdRunner boshsys.CmdRunner
-	logger    boshlog.Logger
+	fs             boshsys.FileSystem
+	cmdRunner      boshsys.CmdRunner
+	logger         boshlog.Logger
+	useIsolatedEnv bool
 }
 
 func NewFactory(
 	fs boshsys.FileSystem,
 	cmdRunner boshsys.CmdRunner,
 	logger boshlog.Logger,
+	useIsolatedEnv bool,
 ) Factory {
 	return &factory{
-		fs:        fs,
-		cmdRunner: cmdRunner,
-		logger:    logger,
+		fs:             fs,
+		cmdRunner:      cmdRunner,
+		logger:         logger,
+		useIsolatedEnv: useIsolatedEnv,
 	}
 }
 
@@ -43,6 +46,6 @@ func (f *factory) NewCloud(installation biinstall.Installation, directorID strin
 		return nil, bosherr.Errorf("Installed CPI job '%s' does not contain the required executable '%s'", cpiJob.Name, cmdPath)
 	}
 
-	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, cpi, f.logger)
+	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, cpi, f.logger, f.useIsolatedEnv)
 	return NewCloud(cpiCmdRunner, directorID, stemcellApiVersion, f.logger), nil
 }

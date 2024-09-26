@@ -150,7 +150,7 @@ func NewEnvFactory(
 		f.blobstoreFactory = biblobstore.NewBlobstoreFactory(deps.UUIDGen, deps.FS, deps.Logger)
 		f.deploymentFactory = bidepl.NewFactory(10*time.Second, 500*time.Millisecond)
 		f.agentClientFactory = bihttpagent.NewAgentClientFactory(1*time.Second, deps.Logger)
-		f.cloudFactory = bicloud.NewFactory(deps.FS, deps.CmdRunner, deps.Logger)
+		f.cloudFactory = bicloud.NewFactory(deps.FS, deps.CmdRunner, deps.Logger, useIsolatedEnv)
 	}
 
 	{

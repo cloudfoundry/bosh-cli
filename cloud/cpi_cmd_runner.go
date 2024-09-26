@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -68,21 +67,24 @@ type CPICmdRunner interface {
 
 type cpiCmdRunner struct {
 	cmdRunner boshsys.CmdRunner
-	cpi       CPI
-	logger    boshlog.Logger
-	logTag    string
+	cpi            CPI
+	logger         boshlog.Logger
+	logTag         string
+	useIsolatedEnv bool
 }
 
 func NewCPICmdRunner(
 	cmdRunner boshsys.CmdRunner,
 	cpi CPI,
 	logger boshlog.Logger,
+	useIsolatedEnv bool,
 ) CPICmdRunner {
 	return &cpiCmdRunner{
 		cmdRunner: cmdRunner,
 		cpi:       cpi,
 		logger:    logger,
 		logTag:    "cpiCmdRunner",
+		useIsolatedEnv: useIsolatedEnv,
 	}
 }
 
@@ -100,14 +102,6 @@ func (r *cpiCmdRunner) Run(context CmdContext, method string, apiVersion int, ar
 	if err != nil {
 		return CmdOutput{}, bosherr.WrapErrorf(err, "Marshalling external CPI command input %#v", cmdInput)
 	}
-	useIsolatedEnv := true
-	value, present := os.LookupEnv("BOSH_CPI_USE_ISOLATED_ENV")
-	if present {
-		useIsolatedEnv, err = strconv.ParseBool(value)
-		if err != nil {
-			return CmdOutput{}, bosherr.WrapErrorf(err, "Parsing $BOSH_CPI_USE_ISOLATED_ENV error, could not parse value: %v", value)
-		}
-	}
 
 	cmdPath := r.cpi.ExecutablePath()
 	cmd := boshsys.Command{
@@ -117,11 +111,11 @@ func (r *cpiCmdRunner) Run(context CmdContext, method string, apiVersion int, ar
 			"BOSH_JOBS_DIR":     r.cpi.JobsDir,
 			"PATH":              os.Getenv("PATH"),
 		},
-		// 🚧 To-do: Make this configurable via cli-flag or use everywhere the environment-variable
-		// “BOSH_CPI_USE_ISOLATED_ENV” as in cpi_cmd_runner.go, see <https://github.com/cloudfoundry/bosh-cli/issues/660>.
-		UseIsolatedEnv: useIsolatedEnv,
+		UseIsolatedEnv: r.useIsolatedEnv,
 		Stdin:          bytes.NewReader(inputBytes),
 	}
+	fmt.Printf("cpi_cmd_runner.go: UseIsolatedEnv = %t\n", cmd.UseIsolatedEnv) // 🚧 To-do: Debug-code
+
 	stdout, stderr, exitCode, err := r.cmdRunner.RunComplexCommand(cmd)
 	r.logger.Debug(r.logTag, "Exit Code %d when executing external CPI command '%s'\nSTDIN: '%s'\nSTDOUT: '%s'\nSTDERR: '%s'", exitCode, cmdPath, string(inputBytes), stdout, stderr)
 	if err != nil {

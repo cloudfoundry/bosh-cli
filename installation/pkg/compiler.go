@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -109,6 +110,8 @@ func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageR
 		UseIsolatedEnv: c.useIsolatedEnv,
 		WorkingDir:     packageSrcDir,
 	}
+
+	fmt.Printf("compiler.go: UseIsolatedEnv = %t\n", cmd.UseIsolatedEnv) // 🚧 To-do: Debug-code
 
 	_, _, _, err = c.runner.RunComplexCommand(cmd)
 	if err != nil {
