@@ -72,7 +72,7 @@ func (c Cmd) Execute() (cmdErr error) {
 
 	case *CreateEnvOpts:
 		envProvider := func(manifestPath string, statePath string, vars boshtpl.Variables, op patch.Op) DeploymentPreparer {
-			return NewEnvFactory(deps, manifestPath, statePath, vars, op, opts.RecreatePersistentDisks, opts.UseIsolatedEnv).Preparer()
+			return NewEnvFactory(deps, manifestPath, statePath, vars, op, opts.RecreatePersistentDisks, !opts.AvoidIsolatedEnv).Preparer()
 		}
 
 		stage := boshui.NewStage(deps.UI, deps.Time, deps.Logger)
