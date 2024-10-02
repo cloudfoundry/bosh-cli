@@ -495,7 +495,7 @@ cloud_provider:
 			gomock.InOrder(
 				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}, nil).AnyTimes(),
 				mockCloud.EXPECT().CreateStemcell(filepath.Join("fake-stemcell-extracted-dir", "image"), stemcellCloudProperties).Return(stemcellCID, nil),
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(vmCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, gomock.Any(), networkInterfaces, vmEnv).Return(vmCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(vmCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
@@ -542,7 +542,7 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
@@ -594,7 +594,7 @@ cloud_provider:
 				expectDeleteVM1,
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
@@ -649,7 +649,7 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
@@ -687,7 +687,7 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
@@ -709,7 +709,7 @@ cloud_provider:
 			)
 		}
 
-		var expectDeployWithDiskMigrationRepair = func() {
+		var expectDeployWithDiskMigrationRepair = func(failedMigrationDiskCID string) {
 			agentID := "fake-uuid-2"
 			oldVMCID := "fake-vm-cid-2"
 			newVMCID := "fake-vm-cid-3"
@@ -731,7 +731,7 @@ cloud_provider:
 				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID, failedMigrationDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
@@ -980,9 +980,10 @@ cloud_provider:
 					})
 
 					It("deletes unused disks", func() {
-						expectDeployWithDiskMigrationRepair()
+						failedMigrationDiskCID := "fake-disk-cid-2"
+						expectDeployWithDiskMigrationRepair(failedMigrationDiskCID)
 
-						mockCloud.EXPECT().DeleteDisk("fake-disk-cid-2")
+						mockCloud.EXPECT().DeleteDisk(failedMigrationDiskCID)
 
 						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 						Expect(err).ToNot(HaveOccurred())
@@ -1002,7 +1003,7 @@ cloud_provider:
 			var expectNoDeployHappened = func() {
 				expectDeleteVM := mockCloud.EXPECT().DeleteVM(gomock.Any())
 				expectDeleteVM.Times(0)
-				expectCreateVM := mockCloud.EXPECT().CreateVM(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any())
+				expectCreateVM := mockCloud.EXPECT().CreateVM(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any())
 				expectCreateVM.Times(0)
 
 				mockCloud.EXPECT().HasVM(gomock.Any()).Return(true, nil).AnyTimes()

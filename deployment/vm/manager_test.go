@@ -38,6 +38,7 @@ var _ = Describe("Manager", func() {
 		fakeDiskDeployer          *fakebivm.FakeDiskDeployer
 		fakeAgentClient           *fakebiagentclient.FakeAgentClient
 		stemcell                  bistemcell.CloudStemcell
+		diskCIDs                  []string
 		fs                        *fakesys.FakeFileSystem
 		fakeTimeService           Clock
 	)
@@ -56,6 +57,7 @@ var _ = Describe("Manager", func() {
 		fakeDiskDeployer = fakebivm.NewFakeDiskDeployer()
 		fakeTime := time.Date(2016, time.November, 10, 23, 0, 0, 0, time.UTC)
 		fakeTimeService = &FakeClock{Times: []time.Time{fakeTime, time.Now().Add(10 * time.Minute)}}
+		diskCIDs = []string{"fake-disk-cid-1"}
 
 		manager = NewManager(
 			fakeVMRepo,
@@ -124,7 +126,7 @@ var _ = Describe("Manager", func() {
 
 	Describe("Create", func() {
 		It("creates a VM", func() {
-			vm, err := manager.Create(stemcell, deploymentManifest)
+			vm, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 			Expect(err).ToNot(HaveOccurred())
 			expectedVM := NewVMWithMetadata(
 				"fake-vm-cid",
@@ -153,6 +155,7 @@ var _ = Describe("Manager", func() {
 					AgentID:            "fake-uuid-0",
 					StemcellCID:        "fake-stemcell-cid",
 					CloudProperties:    expectedCloudProperties,
+					DiskCIDs:           diskCIDs,
 					NetworksInterfaces: expectedNetworkInterfaces,
 					Env:                expectedEnv,
 				},
@@ -160,7 +163,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("sets the vm metadata", func() {
-			_, err := manager.Create(stemcell, deploymentManifest)
+			_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeCloud.SetVMMetadataCid).To(Equal("fake-vm-cid"))
 			Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
@@ -191,7 +194,7 @@ var _ = Describe("Manager", func() {
 					},
 				}
 
-				_, err := manager.Create(stemcell, deploymentManifest)
+				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeCloud.CreateVMInput).To(Equal(
@@ -199,6 +202,7 @@ var _ = Describe("Manager", func() {
 						AgentID:            "fake-uuid-0",
 						StemcellCID:        "fake-stemcell-cid",
 						CloudProperties:    expectedCloudProperties,
+						DiskCIDs:           diskCIDs,
 						NetworksInterfaces: expectedNetworkInterfaces,
 						Env:                expectedEnv,
 					},
@@ -228,7 +232,7 @@ var _ = Describe("Manager", func() {
 						"name":           "awesome-name",
 					}
 
-					_, err := manager.Create(stemcell, deploymentManifest)
+					_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
@@ -245,7 +249,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("updates the current vm record", func() {
-			_, err := manager.Create(stemcell, deploymentManifest)
+			_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeVMRepo.UpdateCurrentCID).To(Equal("fake-vm-cid"))
@@ -257,13 +261,13 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := manager.Create(stemcell, deploymentManifest)
+				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-set-metadata-error"))
 			})
 
 			It("still updates the current vm record", func() {
-				_, err := manager.Create(stemcell, deploymentManifest)
+				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 				Expect(err).To(HaveOccurred())
 				Expect(fakeVMRepo.UpdateCurrentCID).To(Equal("fake-vm-cid"))
 			})
@@ -276,7 +280,7 @@ var _ = Describe("Manager", func() {
 				})
 				fakeCloud.SetVMMetadataError = notImplementedCloudError
 
-				_, err := manager.Create(stemcell, deploymentManifest)
+				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -287,7 +291,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := manager.Create(stemcell, deploymentManifest)
+				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-create-error"))
 			})

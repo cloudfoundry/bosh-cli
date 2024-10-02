@@ -64,6 +64,7 @@ type CreateVMInput struct {
 	AgentID            string
 	StemcellCID        string
 	CloudProperties    biproperty.Map
+	DiskCIDs           []string
 	NetworksInterfaces map[string]biproperty.Map
 	Env                biproperty.Map
 }
@@ -130,6 +131,7 @@ func (c *FakeCloud) CreateVM(
 	agentID string,
 	stemcellCID string,
 	cloudProperties biproperty.Map,
+	diskCIDs []string,
 	networksInterfaces map[string]biproperty.Map,
 	env biproperty.Map,
 ) (string, error) {
@@ -137,6 +139,7 @@ func (c *FakeCloud) CreateVM(
 		AgentID:            agentID,
 		StemcellCID:        stemcellCID,
 		CloudProperties:    cloudProperties,
+		DiskCIDs:           diskCIDs,
 		NetworksInterfaces: networksInterfaces,
 		Env:                env,
 	}

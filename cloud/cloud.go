@@ -23,6 +23,7 @@ type Cloud interface {
 		agentID string,
 		stemcellCID string,
 		cloudProperties biproperty.Map,
+		diskCIDS []string,
 		networksInterfaces map[string]biproperty.Map,
 		env biproperty.Map,
 	) (vmCID string, err error)
@@ -153,14 +154,14 @@ func (c cloud) CreateVM(
 	agentID string,
 	stemcellCID string,
 	cloudProperties biproperty.Map,
+	diskCIDS []string,
 	networksInterfaces map[string]biproperty.Map,
 	env biproperty.Map,
 ) (string, error) {
 	var (
-		ok           bool
-		cidString    string
-		method       = "create_vm"
-		diskLocality = []interface{}{} // not used with bosh-init
+		ok        bool
+		cidString string
+		method    = "create_vm"
 	)
 
 	cpiInfo, err := c.Info()
@@ -176,7 +177,7 @@ func (c cloud) CreateVM(
 		stemcellCID,
 		cloudProperties,
 		networksInterfaces,
-		diskLocality,
+		diskCIDS,
 		env,
 	)
 

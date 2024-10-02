@@ -98,6 +98,7 @@ var _ = Describe("Manager", func() {
 			diskPool           bideplmanifest.DiskPool
 			deploymentManifest bideplmanifest.Manifest
 			fakeCloudStemcell  *fakebistemcell.FakeCloudStemcell
+			diskCIDs           []string
 
 			expectedInstance Instance
 			expectedDisk     *fakebidisk.FakeDisk
@@ -164,6 +165,8 @@ var _ = Describe("Manager", func() {
 
 			fakeCloudStemcell = fakebistemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version", apiVersion)
 
+			diskCIDs = []string{"fake-disk-cid"}
+
 			fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
 			fakeVMManager.CreateVM = fakeVM
 
@@ -194,6 +197,7 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
+				diskCIDs,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -202,6 +206,7 @@ var _ = Describe("Manager", func() {
 			Expect(fakeVMManager.CreateInput).To(Equal(fakebivm.CreateInput{
 				Stemcell: fakeCloudStemcell,
 				Manifest: deploymentManifest,
+				DiskCIDs: diskCIDs,
 			}))
 		})
 
@@ -211,6 +216,7 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
+				diskCIDs,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -224,6 +230,7 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
+				diskCIDs,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -240,6 +247,7 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
+				diskCIDs,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -262,6 +270,7 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
+				diskCIDs,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -286,6 +295,7 @@ var _ = Describe("Manager", func() {
 					0,
 					deploymentManifest,
 					fakeCloudStemcell,
+					diskCIDs,
 					fakeStage,
 				)
 				Expect(err).To(HaveOccurred())
@@ -298,6 +308,7 @@ var _ = Describe("Manager", func() {
 					0,
 					deploymentManifest,
 					fakeCloudStemcell,
+					diskCIDs,
 					fakeStage,
 				)
 				Expect(err).To(HaveOccurred())

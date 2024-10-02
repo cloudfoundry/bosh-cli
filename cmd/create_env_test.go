@@ -436,8 +436,6 @@ var _ = Describe("CreateEnvCmd", func() {
 			}).Return(installation, nil).AnyTimes()
 			mockInstaller.EXPECT().Cleanup(installation).AnyTimes()
 
-			// mockDeployment := mock_deployment.NewMockDeployment(mockCtrl)
-
 			expectDeploy = mockDeployer.EXPECT().Deploy(
 				mockCloud,
 				boshDeploymentManifest,
@@ -446,7 +444,8 @@ var _ = Describe("CreateEnvCmd", func() {
 				mockBlobstore,
 				expectedSkipDrain,
 				gomock.Any(),
-			).Do(func(_, _, _, _, _, _ interface{}, stage boshui.Stage) {
+				gomock.Any(),
+			).Do(func(_, _, _, _, _, _ interface{}, _ interface{}, stage boshui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(nil, expectedDeployError).AnyTimes()
 
@@ -1067,6 +1066,7 @@ var _ = Describe("CreateEnvCmd", func() {
 					mockBlobstore,
 					expectedSkipDrain,
 					gomock.Any(),
+					gomock.Any(),
 				).Return(nil, expectedDeployError).AnyTimes()
 
 				previousDeploymentState := biconfig.DeploymentState{
@@ -1115,6 +1115,34 @@ var _ = Describe("CreateEnvCmd", func() {
 			It("still deploys", func() {
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Context("the deployment state file exists", func() {
+			It("reads the disks out of the file and passes their CIDs to the deployer", func() {
+				err := fs.WriteFileString(deploymentStatePath, `
+				{
+					"disks": [
+								{
+									"id": "bc5dd497-b882-4397-6e9f-22f862277217",
+									"cid": "disk-cid-from-state",
+									"size": 51200,
+									"cloud_properties": {
+										"datastores": [
+										"sharedVmfs-0"
+										],
+										"type": "thin"
+									}
+								}
+							]
+				}`)
+				Expect(err).ToNot(HaveOccurred())
+
+				expectDeploy.Do(func(_, _, _, _, _, _ interface{}, diskCIDs []string, _ interface{}) {
+					Expect(diskCIDs).To(ConsistOf("disk-cid-from-state"))
+				})
+				err = command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 	})
