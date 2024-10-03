@@ -20,7 +20,7 @@ import (
 
 type Manager interface {
 	FindCurrent() (VM, bool, error)
-	Create(bistemcell.CloudStemcell, bideplmanifest.Manifest) (VM, error)
+	Create(stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest, diskCIDs []string) (VM, error)
 }
 
 type manager struct {
@@ -86,7 +86,7 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 	return vm, true, err
 }
 
-func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest) (VM, error) {
+func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest, diskCIDs []string) (VM, error) {
 	jobName := deploymentManifest.JobName()
 	networkInterfaces, err := deploymentManifest.NetworkInterfaces(jobName)
 	m.logger.Debug(m.logTag, "Creating VM with network interfaces: %#v", networkInterfaces)
@@ -113,7 +113,7 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 			}
 		}
 	}
-	cid, err := m.createAndRecordVM(agentID, stemcell, resourcePool, networkInterfaces)
+	cid, err := m.createAndRecordVM(agentID, stemcell, resourcePool, diskCIDs, networkInterfaces)
 	if err != nil {
 		return nil, err
 	}
@@ -158,8 +158,8 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 	return vm, nil
 }
 
-func (m *manager) createAndRecordVM(agentID string, stemcell bistemcell.CloudStemcell, resourcePool bideplmanifest.ResourcePool, networkInterfaces map[string]biproperty.Map) (string, error) {
-	cid, err := m.cloud.CreateVM(agentID, stemcell.CID(), resourcePool.CloudProperties, networkInterfaces, resourcePool.Env)
+func (m *manager) createAndRecordVM(agentID string, stemcell bistemcell.CloudStemcell, resourcePool bideplmanifest.ResourcePool, diskCIDs []string, networkInterfaces map[string]biproperty.Map) (string, error) {
+	cid, err := m.cloud.CreateVM(agentID, stemcell.CID(), resourcePool.CloudProperties, diskCIDs, networkInterfaces, resourcePool.Env)
 	if err != nil {
 		return "", bosherr.WrapErrorf(err, "Creating vm with stemcell cid '%s'", stemcell.CID())
 	}

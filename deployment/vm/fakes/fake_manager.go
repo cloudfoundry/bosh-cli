@@ -9,6 +9,7 @@ import (
 type CreateInput struct {
 	Stemcell bistemcell.CloudStemcell
 	Manifest bideplmanifest.Manifest
+	DiskCIDs []string
 }
 
 type FakeManager struct {
@@ -33,10 +34,11 @@ func (m *FakeManager) FindCurrent() (bivm.VM, bool, error) {
 	return m.findCurrentBehaviour.vm, m.findCurrentBehaviour.found, m.findCurrentBehaviour.err
 }
 
-func (m *FakeManager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest) (bivm.VM, error) {
+func (m *FakeManager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest, diskCIDs []string) (bivm.VM, error) {
 	input := CreateInput{
 		Stemcell: stemcell,
 		Manifest: deploymentManifest,
+		DiskCIDs: diskCIDs,
 	}
 	m.CreateInput = input
 

@@ -24,6 +24,7 @@ type Manager interface {
 		id int,
 		deploymentManifest bideplmanifest.Manifest,
 		cloudStemcell bistemcell.CloudStemcell,
+		diskCIDs []string,
 		eventLoggerStage biui.Stage,
 	) (Instance, []bidisk.Disk, error)
 	DeleteAll(
@@ -97,13 +98,14 @@ func (m *manager) Create(
 	id int,
 	deploymentManifest bideplmanifest.Manifest,
 	cloudStemcell bistemcell.CloudStemcell,
+	diskCIDs []string,
 	eventLoggerStage biui.Stage,
 ) (Instance, []bidisk.Disk, error) {
 	var vm bivm.VM
 	stepName := fmt.Sprintf("Creating VM for instance '%s/%d' from stemcell '%s'", jobName, id, cloudStemcell.CID())
 	err := eventLoggerStage.Perform(stepName, func() error {
 		var err error
-		vm, err = m.vmManager.Create(cloudStemcell, deploymentManifest)
+		vm, err = m.vmManager.Create(cloudStemcell, deploymentManifest, diskCIDs)
 		if err != nil {
 			return bosherr.WrapError(err, "Creating VM")
 		}

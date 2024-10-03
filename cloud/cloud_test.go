@@ -373,6 +373,7 @@ var _ = Describe("Cloud", func() {
 			stemcellCID       string
 			cloudProperties   biproperty.Map
 			networkInterfaces map[string]biproperty.Map
+			diskCIDs          []string
 			env               biproperty.Map
 		)
 
@@ -387,6 +388,7 @@ var _ = Describe("Cloud", func() {
 					},
 				},
 			}
+			diskCIDs = []string{"fake-disk-cid"}
 			cloudProperties = biproperty.Map{
 				"fake-cloud-property-key": "fake-cloud-property-value",
 			}
@@ -408,7 +410,7 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("executes the cpi job script with the director UUID and stemcell CID", func() {
-				_, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env)
+				_, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, diskCIDs, networkInterfaces, env)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeCPICmdRunner.CurrentRunInput).To(HaveLen(2))
 				Expect(fakeCPICmdRunner.CurrentRunInput[1]).To(Equal(fakebicloud.RunInput{
@@ -419,7 +421,7 @@ var _ = Describe("Cloud", func() {
 						stemcellCID,
 						cloudProperties,
 						networkInterfaces,
-						[]interface{}{},
+						diskCIDs,
 						env,
 					},
 					ApiVersion: 1,
@@ -427,7 +429,7 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("returns the cid returned from executing the cpi script", func() {
-				cid, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env)
+				cid, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, diskCIDs, networkInterfaces, env)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(cid).To(Equal("fake-vm-cid"))
 			})
@@ -448,7 +450,7 @@ var _ = Describe("Cloud", func() {
 				})
 
 				It("returns the vm cid", func() {
-					cid, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env)
+					cid, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, diskCIDs, networkInterfaces, env)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(cid).To(Equal("fake-vm-cid"))
 				})
@@ -468,7 +470,7 @@ var _ = Describe("Cloud", func() {
 					})
 
 					It("returns error", func() {
-						_, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env)
+						_, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, diskCIDs, networkInterfaces, env)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("Unexpected external CPI command result: '[]interface {}"))
 					})
@@ -489,7 +491,7 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env)
+				_, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, diskCIDs, networkInterfaces, env)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Unexpected external CPI command result: '1'"))
 			})
@@ -501,14 +503,14 @@ var _ = Describe("Cloud", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env)
+				_, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, diskCIDs, networkInterfaces, env)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-run-error"))
 			})
 		})
 
 		itHandlesCPIErrors("create_vm", func() error {
-			_, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, networkInterfaces, env)
+			_, err := cloud.CreateVM(agentID, stemcellCID, cloudProperties, diskCIDs, networkInterfaces, env)
 			return err
 		})
 
