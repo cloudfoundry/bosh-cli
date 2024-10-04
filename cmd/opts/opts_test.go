@@ -180,7 +180,7 @@ var _ = Describe("Opts", func() {
 		Describe("TTYOpt", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("TTYOpt", opts)).To(Equal(
-					`long:"tty" description:"Force TTY-like output"`,
+					`long:"tty" description:"Force TTY-like output" env:"BOSH_TTY"`,
 				))
 			})
 		})

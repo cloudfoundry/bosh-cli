@@ -31,7 +31,7 @@ type BoshOpts struct {
 	// Output formatting
 	ColumnOpt         []ColumnOpt `long:"column"                    description:"Filter to show only given column(s), use the --column flag for each column you wish to include"`
 	JSONOpt           bool        `long:"json"                      description:"Output as JSON"`
-	TTYOpt            bool        `long:"tty"                       description:"Force TTY-like output"`
+	TTYOpt            bool        `long:"tty"                       description:"Force TTY-like output" env:"BOSH_TTY"`
 	NoColorOpt        bool        `long:"no-color"                  description:"Toggle colorized output"`
 	NonInteractiveOpt bool        `long:"non-interactive" short:"n" description:"Don't ask for user input" env:"BOSH_NON_INTERACTIVE"`
 
