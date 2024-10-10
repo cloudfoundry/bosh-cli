@@ -158,7 +158,7 @@ var globalFlags = []string{
 	"-n\tDon't ask for user input, env: BOSH_NON_INTERACTIVE",
 	"--parallel\tThe max number of parallel operations",
 	"--sha2\tUse SHA256 checksums, env: BOSH_SHA2",
-	"--tty\tForce TTY-like output",
+	"--tty\tForce TTY-like output, env: BOSH_TTY",
 	"--version\tShow CLI version",
 	"-v\tShow CLI version",
 }
