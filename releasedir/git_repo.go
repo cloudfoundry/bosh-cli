@@ -74,7 +74,7 @@ func (r FSGitRepo) LastCommitSHA() (string, error) {
 func (r FSGitRepo) MustNotBeDirty(force bool) (bool, error) {
 	cmd := boshsys.Command{
 		Name:       "git",
-		Args:       []string{"status", "--short"},
+		Args:       []string{"status", "--porcelain=1"},
 		WorkingDir: r.dirPath,
 	}
 	stdout, stderr, _, err := r.runner.RunComplexCommand(cmd)
