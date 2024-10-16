@@ -2,7 +2,7 @@ package director
 
 import (
 	"archive/tar"
-	"compress/gzip"
+	gzip "github.com/klauspost/pgzip"
 	"io"
 	"os"
 

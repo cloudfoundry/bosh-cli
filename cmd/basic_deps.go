@@ -43,7 +43,7 @@ func NewBasicDepsWithFS(ui *boshui.ConfUI, fs boshsys.FileSystem, logger boshlog
 
 		UUIDGen:                  boshuuid.NewGenerator(),
 		CmdRunner:                cmdRunner,
-		Compressor:               boshcmd.NewTarballCompressor(cmdRunner, fs),
+		Compressor:               boshcmd.NewTarballCompressor(fs),
 		DigestCalculator:         digestCalculator,
 		DigestCreationAlgorithms: digestCreationAlgorithms,
 		Time:                     clock.NewClock(),
