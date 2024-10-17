@@ -5,4 +5,4 @@ set -x
 cd bosh-cli
 
 echo "Building docs example..."
-go build -o out/example docs
+go build -o out/example "${PWD}/docs"
