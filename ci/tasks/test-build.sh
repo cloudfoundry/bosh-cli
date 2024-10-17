@@ -4,4 +4,4 @@ set -x
 
 cd bosh-cli
 
-bin/test-unit
+bin/build

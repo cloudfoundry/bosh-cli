@@ -1,0 +1,14 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: bosh/cli
+    tag: 'latest'
+
+inputs:
+- name: bosh-cli
+
+run:
+  path: bosh-cli/ci/tasks/lint.sh

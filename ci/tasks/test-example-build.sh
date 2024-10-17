@@ -4,4 +4,5 @@ set -x
 
 cd bosh-cli
 
-bin/test-unit
+echo "Building docs example..."
+go build -o out/example docs

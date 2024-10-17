@@ -44,6 +44,12 @@ jobs:
     plan:
       - get: bosh-cli
         trigger: true
+      - task: lint
+        file: bosh-cli/ci/tasks/lint.yml
+      - task: test-example-build
+        file: bosh-cli/ci/tasks/test-example-build.yml
+      - task: test-build
+        file: bosh-cli/ci/tasks/test-build.yml
       - task: test-unit
         file: bosh-cli/ci/tasks/test-unit.yml
 
