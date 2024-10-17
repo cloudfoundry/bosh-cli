@@ -3,7 +3,7 @@ package director_test
 import (
 	"archive/tar"
 	"bytes"
-	"compress/gzip"
+	gzip "github.com/klauspost/pgzip"
 	"errors"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
