@@ -19,4 +19,4 @@ jobs:
         with:
           go-version-file: go.mod
       - uses: golangci/golangci-lint-action@v6
-      - run: bin/test-unt
+      - run: bin/test-unit
