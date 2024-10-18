@@ -11,4 +11,4 @@ inputs:
 - name: bosh-cli
 
 run:
-  path: bosh-cli/ci/tasks/test-example-build.sh
+  path: bosh-cli/ci/tasks/test-build-docs-example.sh
