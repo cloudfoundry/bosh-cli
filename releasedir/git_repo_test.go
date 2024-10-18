@@ -69,7 +69,7 @@ releases/**/*.tgz
 	})
 
 	Describe("LastCommitSHA", func() {
-		cmd := "git rev-parse --porcelain=1 HEAD"
+		cmd := "git rev-parse --short HEAD"
 
 		It("returns last commit", func() {
 			cmdRunner.AddCmdResult(cmd, fakesys.FakeCmdResult{
@@ -81,7 +81,7 @@ releases/**/*.tgz
 
 			Expect(cmdRunner.RunComplexCommands).To(Equal([]boshsys.Command{{
 				Name:       "git",
-				Args:       []string{"rev-parse", "--porcelain=1", "HEAD"},
+				Args:       []string{"rev-parse", "--short", "HEAD"},
 				WorkingDir: "/dir",
 			}}))
 		})
@@ -91,7 +91,7 @@ releases/**/*.tgz
 			Expect(err).ToNot(HaveOccurred())
 			cmdRunner.AddCmdResult(cmd, fakesys.FakeCmdResult{
 				Stderr: "fatal: Not a git repository: '/dir/.git'\n",
-				Error:  errors.New("not a git repo (--porcelain=1 HEAD)"),
+				Error:  errors.New("not a git repo (--short HEAD)"),
 			})
 			cmdRunner.AddCmdResult("git rev-parse --git-dir", fakesys.FakeCmdResult{
 				Stderr: "fatal: Not a git repository: '/dir/.git'\n",
@@ -158,7 +158,7 @@ releases/**/*.tgz
 			Expect(err).ToNot(HaveOccurred())
 			cmdRunner.AddCmdResult(cmd, fakesys.FakeCmdResult{
 				Stderr: "fatal: not a git repository: '/dir/.git'\n",
-				Error:  errors.New("not a git repo (--porcelain=1 HEAD)"),
+				Error:  errors.New("not a git repo (--short HEAD)"),
 			})
 			cmdRunner.AddCmdResult("git rev-parse --git-dir", fakesys.FakeCmdResult{
 				Stderr: "fatal: not a git repository: '/dir/.git'\n",

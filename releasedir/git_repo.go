@@ -52,7 +52,7 @@ releases/**/*.tgz
 func (r FSGitRepo) LastCommitSHA() (string, error) {
 	cmd := boshsys.Command{
 		Name:       "git",
-		Args:       []string{"rev-parse", "--porcelain=1", "HEAD"},
+		Args:       []string{"rev-parse", "--short", "HEAD"},
 		WorkingDir: r.dirPath,
 	}
 	stdout, stderr, _, err := r.runner.RunComplexCommand(cmd)
