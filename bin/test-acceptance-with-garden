@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
-set -x
 
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
@@ -15,6 +14,7 @@ cat > "${config_file}" <<EOF
   "dummy_compiled_release_path": "${BOSH_INIT_DUMMY_COMPILED_RELEASE_PATH:-${default_compiled_release_path}}"
 }
 EOF
+cat "${config_file}"
 
 export BOSH_INIT_CONFIG_PATH="${config_file}"
 
