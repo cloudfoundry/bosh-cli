@@ -15,6 +15,7 @@
 package gcp
 
 import (
+	"context"
 	"fmt"
 	"strings"
 )
@@ -49,7 +50,7 @@ func (d *Detector) GKEHostID() (string, error) {
 
 // GKEClusterName returns the name if the GKE cluster in which this program is running.
 func (d *Detector) GKEClusterName() (string, error) {
-	return d.metadata.InstanceAttributeValue(clusterNameMetadataAttr)
+	return d.metadata.InstanceAttributeValueWithContext(context.TODO(), clusterNameMetadataAttr)
 }
 
 type LocationType int64
@@ -62,7 +63,7 @@ const (
 
 // GKEAvailabilityZoneOrRegion returns the location of the cluster and whether the cluster is zonal or regional.
 func (d *Detector) GKEAvailabilityZoneOrRegion() (string, LocationType, error) {
-	clusterLocation, err := d.metadata.InstanceAttributeValue(clusterLocationMetadataAttr)
+	clusterLocation, err := d.metadata.InstanceAttributeValueWithContext(context.TODO(), clusterLocationMetadataAttr)
 	if err != nil {
 		return "", UndefinedLocation, err
 	}
