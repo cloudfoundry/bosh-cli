@@ -3,20 +3,20 @@ module github.com/cloudfoundry/bosh-cli/v7
 go 1.22.0
 
 require (
-	code.cloudfoundry.org/clock v1.16.0
-	code.cloudfoundry.org/workpool v0.0.0-20241001204435-8c0f2d16a840
+	code.cloudfoundry.org/clock v1.17.0
+	code.cloudfoundry.org/workpool v0.0.0-20241026002256-14280f1325fc
 	github.com/cheggaaa/pb/v3 v3.1.5
 	github.com/cloudfoundry/bosh-agent v0.0.61-0.20230301011448-4cfe06c13ad7
-	github.com/cloudfoundry/bosh-davcli v0.0.371
-	github.com/cloudfoundry/bosh-gcscli v0.0.254
-	github.com/cloudfoundry/bosh-s3cli v0.0.323
+	github.com/cloudfoundry/bosh-davcli v0.0.372
+	github.com/cloudfoundry/bosh-gcscli v0.0.255
+	github.com/cloudfoundry/bosh-s3cli v0.0.324
 	github.com/cloudfoundry/bosh-utils v0.0.500
-	github.com/cloudfoundry/config-server v0.1.210
-	github.com/cloudfoundry/socks5-proxy v0.2.128
+	github.com/cloudfoundry/config-server v0.1.211
+	github.com/cloudfoundry/socks5-proxy v0.2.129
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.1
-	github.com/fatih/color v1.17.0
+	github.com/fatih/color v1.18.0
 	github.com/golang/mock v1.6.0
 	github.com/gopacket/gopacket v1.2.0
 	github.com/hashicorp/go-multierror v1.1.1
@@ -36,13 +36,13 @@ require (
 )
 
 require (
-	cel.dev/expr v0.16.2 // indirect
+	cel.dev/expr v0.18.0 // indirect
 	cloud.google.com/go v0.116.0 // indirect
-	cloud.google.com/go/auth v0.9.8 // indirect
+	cloud.google.com/go/auth v0.9.9 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.4 // indirect
 	cloud.google.com/go/compute/metadata v0.5.2 // indirect
-	cloud.google.com/go/iam v1.2.1 // indirect
-	cloud.google.com/go/monitoring v1.21.1 // indirect
+	cloud.google.com/go/iam v1.2.2 // indirect
+	cloud.google.com/go/monitoring v1.21.2 // indirect
 	cloud.google.com/go/storage v1.45.0 // indirect
 	code.cloudfoundry.org/tlsconfig v0.7.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.24.3 // indirect
@@ -67,7 +67,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/pprof v0.0.0-20241017200806-017d972448fc // indirect
+	github.com/google/pprof v0.0.0-20241023014458-598669927662 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect
@@ -101,10 +101,10 @@ require (
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/term v0.25.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
-	google.golang.org/api v0.201.0 // indirect
-	google.golang.org/genproto v0.0.0-20241015192408-796eee8c2d53 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20241015192408-796eee8c2d53 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241015192408-796eee8c2d53 // indirect
+	google.golang.org/api v0.203.0 // indirect
+	google.golang.org/genproto v0.0.0-20241021214115-324edc3d5d38 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20241021214115-324edc3d5d38 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241021214115-324edc3d5d38 // indirect
 	google.golang.org/grpc v1.67.1 // indirect
 	google.golang.org/grpc/stats/opentelemetry v0.0.0-20240907200651-3ffb98b2c93a // indirect
 	google.golang.org/protobuf v1.35.1 // indirect
