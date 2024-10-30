@@ -307,7 +307,7 @@ func (c *DeploymentPreparer) stemcellApiVersion(stemcell bistemcell.ExtractedSte
 
 // These disk CIDs get passed all the way to the create_vm cpi call
 func (c *DeploymentPreparer) extractDiskCIDsFromState(deploymentState biconfig.DeploymentState) []string {
-	var diskCIDs []string
+	diskCIDs := make([]string, 0)
 	for _, disk := range deploymentState.Disks {
 		diskCIDs = append(diskCIDs, disk.CID)
 	}

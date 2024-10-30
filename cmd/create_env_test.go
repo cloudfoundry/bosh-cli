@@ -1,6 +1,7 @@
 package cmd_test
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -1140,6 +1141,22 @@ var _ = Describe("CreateEnvCmd", func() {
 
 				expectDeploy.Do(func(_, _, _, _, _, _ interface{}, diskCIDs []string, _ interface{}) {
 					Expect(diskCIDs).To(ConsistOf("disk-cid-from-state"))
+				})
+				err = command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("constructs and empty array of disks using make, due to odd behavior in golang where empty var []string marshals as null", func() {
+				err := fs.WriteFileString(deploymentStatePath, `
+				{
+					"disks": null
+				}`)
+				Expect(err).ToNot(HaveOccurred())
+
+				expectDeploy.Do(func(_, _, _, _, _, _ interface{}, diskCIDs []string, _ interface{}) {
+					jsonMarshalOfDisks, err := json.Marshal(diskCIDs)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(string(jsonMarshalOfDisks)).To(Equal("[]"))
 				})
 				err = command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
