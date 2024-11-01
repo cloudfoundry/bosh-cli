@@ -159,6 +159,8 @@ jobs:
         passed:
         - pre-release-fan-in
       - get: golang-release
+      - get: bosh-shared-ci
+      - get: security-scanner-image
       - get: version-semver
       - get: ubuntu-image
       - get: release-bucket-linux
@@ -175,19 +177,18 @@ jobs:
           CURRENT_BINARY_PATTERN: bosh-cli-*-linux-amd64
     - try:
         task: check-for-patched-cves
-        file: golang-release/ci/tasks/shared/check-for-patched-cves.yml
+        file: bosh-shared-ci/tasks/release/check-for-patched-cves.yml
+        image: security-scanner-image
         input_mapping:
           input_repo: bosh-cli
           version: version-semver
         params:
           SEVERITY: CRITICAL,HIGH
-          SOURCE_PATH: # root path
     - task: ensure-cve-checker-succeeded
-      file: golang-release/ci/tasks/shared/ensure-cve-checker-succeeded.yml
+      file: bosh-shared-ci/tasks/release/ensure-task-succeeded.yml
       image: ubuntu-image
-      params:
-        description: |
-          Since the previous step is wrapped in a "try", this task checks that the previous step fully executed.
+      input_mapping:
+        task-output-folder: patched_cves
     - try:
         task: check-needs-release
         config:
@@ -411,10 +412,23 @@ resources:
     source:
       uri: https://github.com/cloudfoundry/bosh-package-golang-release.git
 
+  - name: bosh-shared-ci
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry/bosh-shared-ci.git
+      private_key: ((github_deploy_key_bosh-shared-ci.private_key))
+
   - name: golang-release-image
-    type: docker-image
+    type: registry-image
     source:
       repository: bosh/golang-release
+      username: ((bosh-dockerhub.username))
+      password: ((bosh-dockerhub.password))
+
+  - name: security-scanner-image
+    type: registry-image
+    source:
+      repository: bosh/security-scanner
       username: ((bosh-dockerhub.username))
       password: ((bosh-dockerhub.password))
 
