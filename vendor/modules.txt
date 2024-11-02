@@ -7,7 +7,7 @@ cloud.google.com/go/internal
 cloud.google.com/go/internal/optional
 cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
-# cloud.google.com/go/auth v0.9.9
+# cloud.google.com/go/auth v0.10.0
 ## explicit; go 1.21
 cloud.google.com/go/auth
 cloud.google.com/go/auth/credentials
@@ -24,8 +24,8 @@ cloud.google.com/go/auth/internal/credsfile
 cloud.google.com/go/auth/internal/jwt
 cloud.google.com/go/auth/internal/transport
 cloud.google.com/go/auth/internal/transport/cert
-# cloud.google.com/go/auth/oauth2adapt v0.2.4
-## explicit; go 1.20
+# cloud.google.com/go/auth/oauth2adapt v0.2.5
+## explicit; go 1.21
 cloud.google.com/go/auth/oauth2adapt
 # cloud.google.com/go/compute/metadata v0.5.2
 ## explicit; go 1.21
@@ -39,30 +39,30 @@ cloud.google.com/go/iam/apiv1/iampb
 cloud.google.com/go/monitoring/apiv3/v2
 cloud.google.com/go/monitoring/apiv3/v2/monitoringpb
 cloud.google.com/go/monitoring/internal
-# cloud.google.com/go/storage v1.45.0
+# cloud.google.com/go/storage v1.46.0
 ## explicit; go 1.21
 cloud.google.com/go/storage
 cloud.google.com/go/storage/experimental
 cloud.google.com/go/storage/internal
 cloud.google.com/go/storage/internal/apiv2
 cloud.google.com/go/storage/internal/apiv2/storagepb
-# code.cloudfoundry.org/clock v1.17.0
+# code.cloudfoundry.org/clock v1.19.0
 ## explicit; go 1.22.0
 code.cloudfoundry.org/clock
 code.cloudfoundry.org/clock/fakeclock
-# code.cloudfoundry.org/tlsconfig v0.7.0
+# code.cloudfoundry.org/tlsconfig v0.8.0
 ## explicit; go 1.22
 code.cloudfoundry.org/tlsconfig
-# code.cloudfoundry.org/workpool v0.0.0-20241026002256-14280f1325fc
+# code.cloudfoundry.org/workpool v0.0.0-20241029002937-525c4cca6f6a
 ## explicit
 code.cloudfoundry.org/workpool
-# github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.24.3
+# github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.25.0
 ## explicit; go 1.21
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp
-# github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.48.3
+# github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.49.0
 ## explicit; go 1.22
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric
-# github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.48.3
+# github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.49.0
 ## explicit; go 1.22
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping
 # github.com/VividCortex/ewma v1.2.0
@@ -147,17 +147,17 @@ github.com/cloudfoundry/bosh-agent/agentclient/applyspec
 github.com/cloudfoundry/bosh-agent/agentclient/fakes
 github.com/cloudfoundry/bosh-agent/agentclient/http
 github.com/cloudfoundry/bosh-agent/agentclient/http/mocks
-# github.com/cloudfoundry/bosh-davcli v0.0.372
+# github.com/cloudfoundry/bosh-davcli v0.0.373
 ## explicit; go 1.22.0
 github.com/cloudfoundry/bosh-davcli/client
 github.com/cloudfoundry/bosh-davcli/client/fakes
 github.com/cloudfoundry/bosh-davcli/config
 github.com/cloudfoundry/bosh-davcli/signer
-# github.com/cloudfoundry/bosh-gcscli v0.0.255
+# github.com/cloudfoundry/bosh-gcscli v0.0.256
 ## explicit; go 1.22.0
 github.com/cloudfoundry/bosh-gcscli/client
 github.com/cloudfoundry/bosh-gcscli/config
-# github.com/cloudfoundry/bosh-s3cli v0.0.324
+# github.com/cloudfoundry/bosh-s3cli v0.0.325
 ## explicit; go 1.22.0
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
@@ -181,14 +181,14 @@ github.com/cloudfoundry/bosh-utils/system/fakes
 github.com/cloudfoundry/bosh-utils/uuid
 github.com/cloudfoundry/bosh-utils/uuid/fakes
 github.com/cloudfoundry/bosh-utils/work
-# github.com/cloudfoundry/config-server v0.1.211
+# github.com/cloudfoundry/config-server v0.1.212
 ## explicit; go 1.22.0
 github.com/cloudfoundry/config-server/types
 github.com/cloudfoundry/config-server/types/typesfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee
 ## explicit; go 1.21.0
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.129
+# github.com/cloudfoundry/socks5-proxy v0.2.130
 ## explicit; go 1.22.0
 github.com/cloudfoundry/socks5-proxy
 # github.com/cncf/xds/go v0.0.0-20240905190251-b4127c9b8d78
@@ -290,7 +290,7 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/pprof v0.0.0-20241023014458-598669927662
+# github.com/google/pprof v0.0.0-20241101162523-b92577c0c142
 ## explicit; go 1.22
 github.com/google/pprof/profile
 # github.com/google/s2a-go v0.1.8
@@ -372,8 +372,8 @@ github.com/maxbrunsfeld/counterfeiter/v6/generator
 # github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
 ## explicit
 github.com/nu7hatch/gouuid
-# github.com/onsi/ginkgo/v2 v2.20.2
-## explicit; go 1.22
+# github.com/onsi/ginkgo/v2 v2.21.0
+## explicit; go 1.22.0
 github.com/onsi/ginkgo/v2
 github.com/onsi/ginkgo/v2/config
 github.com/onsi/ginkgo/v2/formatter
@@ -394,7 +394,7 @@ github.com/onsi/ginkgo/v2/internal/parallel_support
 github.com/onsi/ginkgo/v2/internal/testingtproxy
 github.com/onsi/ginkgo/v2/reporters
 github.com/onsi/ginkgo/v2/types
-# github.com/onsi/gomega v1.34.2
+# github.com/onsi/gomega v1.35.1
 ## explicit; go 1.22
 github.com/onsi/gomega
 github.com/onsi/gomega/format
@@ -622,7 +622,7 @@ golang.org/x/tools/internal/stdlib
 golang.org/x/tools/internal/typeparams
 golang.org/x/tools/internal/typesinternal
 golang.org/x/tools/internal/versions
-# google.golang.org/api v0.203.0
+# google.golang.org/api v0.204.0
 ## explicit; go 1.21
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport

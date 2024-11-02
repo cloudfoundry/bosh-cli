@@ -39,7 +39,7 @@ func (d *Detector) onGKE() bool {
 	}
 	// If we are on k8s, make sure that we are actually on GKE, and not a
 	// different managed k8s platform.
-	_, err := d.GKEClusterName()
+	_, err := d.metadata.InstanceAttributeValueWithContext(context.TODO(), clusterLocationMetadataAttr)
 	return err == nil
 }
 
