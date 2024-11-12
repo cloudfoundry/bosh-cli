@@ -54,8 +54,10 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 	done := make(chan struct{})
 
 	wg := &sync.WaitGroup{}
+	var err error
 
 	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(err)
 
 	clientFactory := boshssh.NewClientFactory(p.logger)
 
@@ -89,10 +91,11 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 	}
 
 	if runningCaptures == 0 {
-		return fmt.Errorf("starting of all pcap captures failed")
+		err = errors.New("starting of all pcap captures failed")
+		return err
 	}
 
-	err := writePacketsToFile(opts.SnapLength, opts.Output, packetCs, p.ui)
+	err = writePacketsToFile(opts.SnapLength, opts.Output, packetCs, p.ui)
 	if err != nil {
 		return fmt.Errorf("write to output file failed: %w", err)
 	}
