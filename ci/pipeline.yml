@@ -94,6 +94,7 @@ jobs:
         - get: bosh-agent
           trigger: true
         - get: integration-tests-parallel-runtime
+        - get: config-server
 
       - task: build-linux-amd64
         file: bosh-cli/ci/tasks/build-linux-amd64.yml
@@ -396,6 +397,13 @@ resources:
       private_key: ((github_deploy_key_bosh-cli.private_key))
       paths:
         - "ci/docker"
+
+  - name: config-server
+    type: git
+    source:
+      uri: git@github.com:cloudfoundry/config-server.git
+      branch: develop
+      private_key: ((github_deploy_key_config-server.private_key))
 
   - name: bosh-warden-stemcell-xenial
     type: bosh-io-stemcell
