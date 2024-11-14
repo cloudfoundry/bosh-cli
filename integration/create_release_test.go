@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/cloudfoundry/bosh-utils/uuid"
@@ -15,18 +14,13 @@ import (
 	boshrelman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 )
 
+func expectSha256Checksums(filePath string) {
+	contents, err := fs.ReadFileString(filePath)
+	Expect(err).ToNot(HaveOccurred())
+	Expect(contents).To(MatchRegexp("sha1: sha256:.*"))
+}
+
 var _ = Describe("create-release command", func() {
-	removeSHA256s := func(contents string) string {
-		matchSHA256s := regexp.MustCompile("sha1: sha256:[a-z0-9]{64}\n")
-		return matchSHA256s.ReplaceAllString(contents, "sha1: replaced\n")
-	}
-
-	expectSha256Checksums := func(filePath string) {
-		contents, err := fs.ReadFileString(filePath)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(contents).To(MatchRegexp("sha1: sha256:.*"))
-	}
-
 	It("can iterate on a basic release", func() {
 		suffix, err := uuid.NewGenerator().Generate()
 		Expect(err).ToNot(HaveOccurred())
@@ -50,22 +44,27 @@ var _ = Describe("create-release command", func() {
 
 		relName := filepath.Base(tmpDir)
 
-		{
+		By("running `init-release`", func() {
 			createAndExecCommand(cmdFactory, []string{"init-release", "--dir", tmpDir})
 			Expect(fs.FileExists(filepath.Join(tmpDir, "config"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "jobs"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "packages"))).To(BeTrue())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "src"))).To(BeTrue())
-		}
+		})
 
-		createAndExecCommand(cmdFactory, []string{"generate-job", "job1", "--dir", tmpDir})
-		createAndExecCommand(cmdFactory, []string{"generate-package", "pkg1", "--dir", tmpDir})
-		createAndExecCommand(cmdFactory, []string{"generate-package", "pkg2", "--dir", tmpDir})
+		By("running `generate-job`", func() {
+			createAndExecCommand(cmdFactory, []string{"generate-job", "job1", "--dir", tmpDir})
+		})
+
+		By("running `generate-package` twice", func() {
+			createAndExecCommand(cmdFactory, []string{"generate-package", "pkg1", "--dir", tmpDir})
+			createAndExecCommand(cmdFactory, []string{"generate-package", "pkg2", "--dir", tmpDir})
+		})
 
 		err = fs.WriteFileString(filepath.Join(tmpDir, "LICENSE"), "LICENSE")
 		Expect(err).ToNot(HaveOccurred())
 
-		{ // pkg1 depends on pkg2 for compilation
+		By("making one package depend on another", func() {
 			pkg1SpecPath := filepath.Join(tmpDir, "packages", "pkg1", "spec")
 
 			contents, err := fs.ReadFileString(pkg1SpecPath)
@@ -73,9 +72,9 @@ var _ = Describe("create-release command", func() {
 
 			err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "dependencies: []", "dependencies: [pkg2]", -1))
 			Expect(err).ToNot(HaveOccurred())
-		}
+		})
 
-		{ // job1 depends on both packages
+		By("making a job depend on two packages", func() {
 			jobSpecPath := filepath.Join(tmpDir, "jobs", "job1", "spec")
 
 			contents, err := fs.ReadFileString(jobSpecPath)
@@ -83,9 +82,9 @@ var _ = Describe("create-release command", func() {
 
 			err = fs.WriteFileString(jobSpecPath, strings.Replace(contents, "packages: []", "packages: [pkg1, pkg2]", -1))
 			Expect(err).ToNot(HaveOccurred())
-		}
+		})
 
-		{ // Make empty release
+		By("using `create-release` to make an empty release", func() {
 			createAndExecCommand(cmdFactory, []string{"create-release", "--dir", tmpDir})
 
 			contents, err := fs.ReadFileString(filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.1.yml"))
@@ -121,9 +120,9 @@ license:
   fingerprint: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
   sha1: replaced
 `))
-		}
+		})
 
-		{ // Add a bit of content
+		By("adding a file under `src/`", func() {
 			err := fs.WriteFileString(filepath.Join(tmpDir, "src", "in-src"), "in-src")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -141,9 +140,9 @@ license:
 
 			err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "files: []", "files:\n- in-src\n- in-blobs", -1))
 			Expect(err).ToNot(HaveOccurred())
-		}
+		})
 
-		{ // Make release with some contents
+		By("running `create-release` to make a release with some content", func() {
 			createAndExecCommand(cmdFactory, []string{"create-release", "--dir", tmpDir})
 
 			rel1File := filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.1.yml")
@@ -197,18 +196,18 @@ license:
 			// and pkg2 did not change
 			Expect(man1.Packages[1].Name).To(Equal(man2.Packages[1].Name))
 			Expect(man1.Packages[1].Fingerprint).To(Equal(man2.Packages[1].Fingerprint))
-		}
+		})
 
-		{ // check contents of index files when sha2 flag is supplied
+		By("running `create-release` with `--sha2`", func() {
 			createAndExecCommand(cmdFactory, []string{"create-release", "--sha2", "--dir", tmpDir})
 
 			expectSha256Checksums(filepath.Join(tmpDir, "dev_releases", relName, relName+"-0+dev.3.yml"))
 			expectSha256Checksums(filepath.Join(tmpDir, ".dev_builds", "jobs", "job1", "index.yml"))
 			expectSha256Checksums(filepath.Join(tmpDir, ".dev_builds", "packages", "pkg1", "index.yml"))
 			expectSha256Checksums(filepath.Join(tmpDir, ".dev_builds", "license", "index.yml"))
-		}
+		})
 
-		{ // Check contents of made release via its tarball
+		By("running `create-release` with `--tarball`", func() {
 			tgzFile := filepath.Join(tmpDir, "release-3.tgz")
 
 			createAndExecCommand(cmdFactory, []string{"create-release", "--dir", tmpDir, "--tarball", tgzFile})
@@ -233,17 +232,17 @@ license:
 
 			job1 := release.Jobs()[0]
 			Expect(job1.PackageNames).To(ConsistOf("pkg1", "pkg2"))
-		}
+		})
 
-		{ // Check that tarballs will not overwrite a directory
+		By("running `create-release` with `--tarball` which points at an existing directory", func() {
 			directoryPath := filepath.Join(tmpDir, "tarball-collision-dir")
 			Expect(fs.MkdirAll(directoryPath, os.ModeDir)).To(Succeed())
 			_, err := cmdFactory.New([]string{"create-release", "--dir", tmpDir, "--tarball", directoryPath})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Path must not be directory"))
-		}
+		})
 
-		{ // removes unknown blobs, keeping known blobs
+		By("running `create-release` unknown blobs will be removed from the `blobs/` dir", func() {
 			blobPath := filepath.Join(tmpDir, "blobs", "unknown-blob.tgz")
 
 			err := fs.WriteFileString(blobPath, "i don't belong here")
@@ -252,6 +251,6 @@ license:
 			createAndExecCommand(cmdFactory, []string{"create-release", "--dir", tmpDir})
 			Expect(fs.FileExists(blobPath)).To(BeFalse())
 			Expect(fs.FileExists(filepath.Join(tmpDir, "blobs", "in-blobs"))).To(BeTrue())
-		}
+		})
 	})
 })

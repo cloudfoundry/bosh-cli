@@ -13,36 +13,36 @@ import (
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 )
 
-var _ = Describe("vendor-package command", func() {
-	opFile := func(path string, op patch.Op) {
-		contents, err := fs.ReadFile(path)
-		Expect(err).ToNot(HaveOccurred())
-
-		tpl := boshtpl.NewTemplate(contents)
-
-		contents, err = tpl.Evaluate(nil, op, boshtpl.EvaluateOpts{})
-		Expect(err).ToNot(HaveOccurred())
-
-		err = fs.WriteFile(path, contents)
-		Expect(err).ToNot(HaveOccurred())
-	}
-
-	findPkg := func(name string, release boshrel.Release) *boshpkg.Package {
-		for _, pkg := range release.Packages() {
-			if pkg.Name() == name {
-				return pkg
-			}
+func findPkg(name string, release boshrel.Release) *boshpkg.Package {
+	for _, pkg := range release.Packages() {
+		if pkg.Name() == name {
+			return pkg
 		}
-		panic(fmt.Sprintf("Expected to find package '%s'", name))
 	}
+	panic(fmt.Sprintf("Expected to find package '%s'", name))
+}
 
+func opFile(path string, op patch.Op) {
+	contents, err := fs.ReadFile(path)
+	Expect(err).ToNot(HaveOccurred())
+
+	tpl := boshtpl.NewTemplate(contents)
+
+	contents, err = tpl.Evaluate(nil, op, boshtpl.EvaluateOpts{})
+	Expect(err).ToNot(HaveOccurred())
+
+	err = fs.WriteFile(path, contents)
+	Expect(err).ToNot(HaveOccurred())
+}
+
+var _ = Describe("vendor-package command", func() {
 	It("vendors packages", func() {
 		upstreamDir, err := fs.TempDir("bosh-vendor-package-int-test")
 		Expect(err).ToNot(HaveOccurred())
 
 		defer fs.RemoveAll(upstreamDir) //nolint:errcheck
 
-		{ // Initialize upstream release
+		By("running `init-release` to create the upstream release", func() {
 			createAndExecCommand(cmdFactory, []string{"init-release", "--git", "--dir", upstreamDir})
 
 			blobstoreConfig := fmt.Sprintf(`
@@ -61,35 +61,35 @@ blobstore:
 			Expect(err).ToNot(HaveOccurred())
 
 			createAndExecCommand(cmdFactory, []string{"generate-package", "pkg1", "--dir", upstreamDir})
-		}
 
-		{ // Add a bit of content to upstream release
-			err := fs.WriteFileString(filepath.Join(upstreamDir, "src", "in-src"), "in-src")
-			Expect(err).ToNot(HaveOccurred())
+			By("adding some content for testing purposes", func() {
+				err := fs.WriteFileString(filepath.Join(upstreamDir, "src", "in-src"), "in-src")
+				Expect(err).ToNot(HaveOccurred())
 
-			pkg1SpecPath := filepath.Join(upstreamDir, "packages", "pkg1", "spec")
+				pkg1SpecPath := filepath.Join(upstreamDir, "packages", "pkg1", "spec")
 
-			replaceOp := patch.ReplaceOp{
-				// eq /files/-
-				Path: patch.NewPointer([]patch.Token{
-					patch.RootToken{},
-					patch.KeyToken{Key: "files"},
-					patch.AfterLastIndexToken{},
-				}),
-				Value: "in-src",
-			}
+				replaceOp := patch.ReplaceOp{
+					// eq /files/-
+					Path: patch.NewPointer([]patch.Token{
+						patch.RootToken{},
+						patch.KeyToken{Key: "files"},
+						patch.AfterLastIndexToken{},
+					}),
+					Value: "in-src",
+				}
 
-			opFile(pkg1SpecPath, replaceOp)
+				opFile(pkg1SpecPath, replaceOp)
 
-			createAndExecCommand(cmdFactory, []string{"create-release", "--final", "--force", "--dir", upstreamDir})
-		}
+				createAndExecCommand(cmdFactory, []string{"create-release", "--final", "--force", "--dir", upstreamDir})
+			})
+		})
 
 		targetDir, err := fs.TempDir("bosh-vendor-package-int-test")
 		Expect(err).ToNot(HaveOccurred())
 
 		defer fs.RemoveAll(targetDir) //nolint:errcheck
 
-		{ // Initialize target release
+		By("running `init-release` to create the target release", func() {
 			createAndExecCommand(cmdFactory, []string{"init-release", "--git", "--dir", targetDir})
 
 			blobstoreConfig := fmt.Sprintf(`
@@ -108,13 +108,13 @@ blobstore:
 			Expect(err).ToNot(HaveOccurred())
 
 			createAndExecCommand(cmdFactory, []string{"generate-package", "pkg2", "--dir", targetDir})
-		}
+		})
 
-		{ // Bring over vendored pkg1
+		By("running `vendor-package` to vendor the upstream release's package `pkg1`", func() {
 			createAndExecCommand(cmdFactory, []string{"vendor-package", "pkg1", upstreamDir, "--dir", targetDir})
-		}
+		})
 
-		{ // Check contents of a target release
+		By("verifying that the upstream release's package `pkg1` has been vendored", func() {
 			targetTarball, err := fs.TempFile("bosh-vendor-package-int-test")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -132,14 +132,14 @@ blobstore:
 
 			pkg1 := release.Packages()[0]
 			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-src"))).To(Equal("in-src"))
-		}
+		})
 
-		{ // Add new bits to upstream release
+		By("updating content in the upstream release's `pkg1`", func() {
 			err := fs.WriteFileString(filepath.Join(upstreamDir, "src", "in-src"), "in-src-updated")
 			Expect(err).ToNot(HaveOccurred())
-		}
+		})
 
-		{ // Add package dependency to upstream release
+		By("adding a package `dependent-pkg` to the upstream release", func() {
 			createAndExecCommand(cmdFactory, []string{"generate-package", "dependent-pkg", "--dir", upstreamDir})
 
 			err := fs.WriteFileString(filepath.Join(upstreamDir, "src", "dependent-pkg-file"), "in-dependent-pkg")
@@ -158,9 +158,9 @@ blobstore:
 			}
 
 			opFile(specPath, replaceOp)
-		}
+		})
 
-		{ // Make pkg1 depend on dependent-package
+		By("making the upstream release's package `pkg1` dependent on `dependent-pkg`", func() {
 			pkg1SpecPath := filepath.Join(upstreamDir, "packages", "pkg1", "spec")
 
 			replaceOp := patch.ReplaceOp{
@@ -176,13 +176,13 @@ blobstore:
 			opFile(pkg1SpecPath, replaceOp)
 
 			createAndExecCommand(cmdFactory, []string{"create-release", "--final", "--force", "--dir", upstreamDir})
-		}
+		})
 
-		{ // Bring over vendored pkg1
+		By("again running `vendor-package` to vendor the upstream release's package `pkg1`", func() {
 			createAndExecCommand(cmdFactory, []string{"vendor-package", "pkg1", upstreamDir, "--dir", targetDir})
-		}
+		})
 
-		{ // Check contents of a target release with updated package version and dependent package
+		By("verifying that both `pkg1` and its dependency `dependent-pkg` have both been vendored", func() {
 			targetTarball, err := fs.TempFile("bosh-vendor-package-int-test")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -209,6 +209,6 @@ blobstore:
 			Expect(content).To(Equal("in-dependent-pkg"))
 
 			Expect(pkg1.Dependencies).To(Equal([]*boshpkg.Package{dependentPkg}))
-		}
+		})
 	})
 })
