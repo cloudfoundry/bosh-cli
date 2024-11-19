@@ -35,13 +35,27 @@ func (c PcapCmd) Run(opts PcapOpts) error {
 		return err
 	}
 
-	result, err := c.deployment.SetUpSSH(opts.Args.Slug, sshOpts)
-	if err != nil {
-		return err
+	var result boshdir.SSHResult
+
+	slugs := []boshdir.AllOrInstanceGroupOrInstanceSlug{{}}
+
+	if len(opts.Args.Slugs) > 0 {
+		slugs = opts.Args.Slugs
+	}
+
+	for _, slug := range slugs {
+		res, err := c.deployment.SetUpSSH(slug, sshOpts)
+		if err != nil {
+			return err
+		}
+
+		result.Hosts = append(result.Hosts, res.Hosts...)
 	}
 
 	defer func() {
-		_ = c.deployment.CleanUpSSH(opts.Args.Slug, sshOpts)
+		for _, slug := range slugs {
+			_ = c.deployment.CleanUpSSH(slug, sshOpts)
+		}
 	}()
 
 	argv, err := buildPcapCmd(opts)

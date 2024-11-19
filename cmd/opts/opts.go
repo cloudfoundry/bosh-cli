@@ -955,7 +955,7 @@ type RecreateOpts struct {
 }
 
 type PcapOpts struct {
-	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
+	Args MultiAllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
 
 	Interface   string        `long:"interface" short:"i" description:"Specifies the network interface to listen on." default:"eth0" required:"false"`
 	Filter      string        `long:"filter" short:"f" description:"Filter to apply when running tcpdump."`
@@ -966,6 +966,10 @@ type PcapOpts struct {
 	GatewayFlags
 
 	cmd
+}
+
+type MultiAllOrInstanceGroupOrInstanceSlugArgs struct {
+	Slugs []boshdir.AllOrInstanceGroupOrInstanceSlug `positional-arg-name:"INSTANCE-GROUP[/INSTANCE-ID]"`
 }
 
 type AllOrInstanceGroupOrInstanceSlugArgs struct {
