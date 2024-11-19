@@ -50,10 +50,12 @@ type PcapRunnerImpl struct {
 
 func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv string, opts PcapOpts, privateKey string) error {
 	var packetCs []<-chan gopacket.Packet
+	var mu sync.Mutex
 
 	done := make(chan struct{})
 
 	wg := &sync.WaitGroup{}
+	startWg := &sync.WaitGroup{}
 	var err error
 
 	ctx, cancel := context.WithCancelCause(context.Background())
@@ -71,24 +73,41 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 
 	runningCaptures := 0
 
+	fmt.Println("Expected hosts for SSH capture:")
 	for _, host := range result.Hosts {
-		clientOpts.Host = host.Host
-		boshSSHClient := clientFactory.New(clientOpts)
-
-		p.ui.BeginLinef("Start capture on %s/%s\n", host.Job, host.IndexOrID)
-
-		packets, err := captureSSH(argv, opts.Filter, host, boshSSHClient, opts.StopTimeout, wg, done, p.ui, ctx, cancel)
-		if err != nil {
-			// c.ui.ErrorLinef writes error message to stdout/sdterr but does not stop the workflow
-			p.ui.ErrorLinef("Capture cannot be started on the instance %s/%s due to error: %s. \nContinue on other instances", host.Job, host.IndexOrID, err.Error())
-
-			continue
-		}
-
-		runningCaptures++
-
-		packetCs = append(packetCs, packets)
+		fmt.Printf("Job: %s, IndexOrID: %s, IP: %s\n", host.Job, host.IndexOrID, host.Host)
 	}
+
+	var proceed string
+	fmt.Print("Do you want to proceed with the capture? (yes/no): ")
+	fmt.Scanln(&proceed)
+	if strings.ToLower(proceed) != "yes" {
+		return errors.New("user aborted the capture")
+	}
+
+	startWg.Add(len(result.Hosts))
+	for _, host := range result.Hosts {
+		go func(host boshdir.Host) {
+			defer startWg.Done()
+			clientOpts.Host = host.Host
+			boshSSHClient := clientFactory.New(clientOpts)
+
+			p.ui.BeginLinef("Start capture on %s/%s\n", host.Job, host.IndexOrID)
+
+			packets, err := captureSSH(argv, opts.Filter, host, boshSSHClient, opts.StopTimeout, wg, done, p.ui, ctx, cancel)
+			if err != nil {
+				// c.ui.ErrorLinef writes error message to stdout/sdterr but does not stop the workflow
+				p.ui.ErrorLinef("Capture cannot be started on the instance %s/%s due to error: %s. \nContinue on other instances", host.Job, host.IndexOrID, err.Error())
+				return
+			}
+
+			mu.Lock()
+			runningCaptures++
+			packetCs = append(packetCs, packets)
+			mu.Unlock()
+		}(host)
+	}
+	startWg.Wait()
 
 	if runningCaptures == 0 {
 		err = errors.New("starting of all pcap captures failed")
