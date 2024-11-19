@@ -71,8 +71,8 @@ func NewEnvFactory(
 	manifestVars boshtpl.Variables,
 	manifestOp patch.Op,
 	recreatePersistentDisks bool,
-	useIsolatedEnv bool,
 	packageDir string,
+	useIsolatedEnv bool,
 ) *envFactory {
 	f := envFactory{
 		deps:         deps,
