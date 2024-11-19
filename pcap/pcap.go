@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/fatih/color"
 	"io"
 	"net"
 	"os"
@@ -73,16 +75,11 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 
 	runningCaptures := 0
 
-	fmt.Println("Expected hosts for SSH capture:")
-	for _, host := range result.Hosts {
-		fmt.Printf("Job: %s, IndexOrID: %s, IP: %s\n", host.Job, host.IndexOrID, host.Host)
-	}
+	p.ui.PrintTable(sshResultTable(result))
 
-	var proceed string
-	fmt.Print("Do you want to proceed with the capture? (yes/no): ")
-	fmt.Scanln(&proceed)
-	if strings.ToLower(proceed) != "yes" {
-		return errors.New("user aborted the capture")
+	err = p.ui.AskForConfirmation()
+	if err != nil {
+		return err
 	}
 
 	startWg.Add(len(result.Hosts))
@@ -344,4 +341,34 @@ func mergePackets(packetCs []<-chan gopacket.Packet) <-chan gopacket.Packet {
 	}()
 
 	return out
+}
+
+func sshResultTable(result boshdir.SSHResult) boshtbl.Table {
+	var rows [][]boshtbl.Value
+
+	for _, host := range result.Hosts {
+		row := []boshtbl.Value{
+			boshtbl.NewValueString(host.Job),
+			boshtbl.NewValueString(host.IndexOrID),
+			boshtbl.NewValueString(host.Host),
+		}
+		rows = append(rows, row)
+	}
+
+	notes := []string{fmt.Sprintf("Traffic on %d VMs will be captured.", len(rows))}
+	if len(rows) > 5 {
+		notes = append(notes, "\nWarning: This could put a significant load on the BOSH Director. Use at your own discretion.")
+	}
+
+	return boshtbl.Table{
+		Title: color.New(color.Bold).Sprint("Expected VMs for SSH capture"),
+		Notes: notes,
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Instance Group"),
+			boshtbl.NewHeader("ID"),
+			boshtbl.NewHeader("IP"),
+		},
+		Rows:      rows,
+		Transpose: false,
+	}
 }

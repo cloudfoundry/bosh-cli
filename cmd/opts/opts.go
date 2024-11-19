@@ -969,7 +969,7 @@ type PcapOpts struct {
 }
 
 type MultiAllOrInstanceGroupOrInstanceSlugArgs struct {
-	Slugs []boshdir.AllOrInstanceGroupOrInstanceSlug `positional-arg-name:"INSTANCE-GROUP[/INSTANCE-ID]"`
+	Slugs []boshdir.AllOrInstanceGroupOrInstanceSlug `positional-arg-name:"INSTANCE-GROUP[/INSTANCE-ID]..."`
 }
 
 type AllOrInstanceGroupOrInstanceSlugArgs struct {
