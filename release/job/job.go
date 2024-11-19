@@ -1,6 +1,7 @@
 package job
 
 import (
+	crypto2 "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -8,7 +9,6 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/crypto"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
-	crypto2 "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 type ByName []*Job

@@ -4,34 +4,34 @@ import (
 	"errors"
 	"time"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 var _ = Describe("InstancesCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  InstancesCmd
+		command  cmd.InstancesCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewInstancesCmd(ui, director, 1)
+		command = cmd.NewInstancesCmd(ui, director, 1)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts           InstancesOpts
+			instancesOpts  opts.InstancesOpts
 			infos          []boshdir.VMInfo
 			procCPUTotal   float64
 			procMemPercent float64
@@ -39,10 +39,10 @@ var _ = Describe("InstancesCmd", func() {
 			procUptime     uint64
 		)
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(instancesOpts) }
 
 		BeforeEach(func() {
-			opts = InstancesOpts{}
+			instancesOpts = opts.InstancesOpts{}
 
 			index1 := 1
 			index2 := 2
@@ -284,7 +284,7 @@ var _ = Describe("InstancesCmd", func() {
 			)
 
 			BeforeEach(func() {
-				opts.Deployment = "dep"
+				instancesOpts.Deployment = "dep"
 
 				deployment = &fakedir.FakeDeployment{
 					NameStub:          func() string { return "dep" },
@@ -360,7 +360,7 @@ var _ = Describe("InstancesCmd", func() {
 				})
 
 				It("lists instances with processes", func() {
-					opts.Processes = true
+					instancesOpts.Processes = true
 
 					Expect(act()).ToNot(HaveOccurred())
 
@@ -451,7 +451,7 @@ var _ = Describe("InstancesCmd", func() {
 				})
 
 				It("lists instances for the deployment including details", func() {
-					opts.Details = true
+					instancesOpts.Details = true
 
 					Expect(act()).ToNot(HaveOccurred())
 
@@ -546,8 +546,8 @@ var _ = Describe("InstancesCmd", func() {
 				})
 
 				It("lists instances for the deployment including vitals and processes", func() {
-					opts.Vitals = true
-					opts.Processes = true
+					instancesOpts.Vitals = true
+					instancesOpts.Processes = true
 
 					Expect(act()).ToNot(HaveOccurred())
 
@@ -593,17 +593,17 @@ var _ = Describe("InstancesCmd", func() {
 										boshtbl.NewValueStrings([]string{"in1-ip1", "in1-ip2"}),
 										boshtbl.NewValueString("dep"),
 										boshtbl.NewValueTime(time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC)),
-										ValueUptime{},
+										cmd.ValueUptime{},
 										boshtbl.NewValueString("0.02, 0.06, 0.11"),
-										ValueCPUTotal{},
-										NewValueStringPercent("1.2"),
-										NewValueStringPercent("0.3"),
-										NewValueStringPercent("2.1"),
-										ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "20", KB: "2000"}},
-										ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "21", KB: "2100"}},
-										ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "35"}},
-										ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "45"}},
-										ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "55"}},
+										cmd.ValueCPUTotal{},
+										cmd.NewValueStringPercent("1.2"),
+										cmd.NewValueStringPercent("0.3"),
+										cmd.NewValueStringPercent("2.1"),
+										cmd.ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "20", KB: "2000"}},
+										cmd.ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "21", KB: "2100"}},
+										cmd.ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "35"}},
+										cmd.ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "45"}},
+										cmd.ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "55"}},
 									},
 									{
 										boshtbl.ValueString{},
@@ -613,13 +613,13 @@ var _ = Describe("InstancesCmd", func() {
 										nil,
 										nil,
 										nil,
-										ValueUptime{Secs: &procUptime},
+										cmd.ValueUptime{Secs: &procUptime},
 										nil,
-										ValueCPUTotal{Total: &procCPUTotal},
+										cmd.ValueCPUTotal{Total: &procCPUTotal},
 										nil,
 										nil,
 										nil,
-										ValueMemIntSize{Size: boshdir.VMInfoVitalsMemIntSize{Percent: &procMemPercent, KB: &procMemKB}},
+										cmd.ValueMemIntSize{Size: boshdir.VMInfoVitalsMemIntSize{Percent: &procMemPercent, KB: &procMemKB}},
 										nil,
 										nil,
 										nil,
@@ -633,13 +633,13 @@ var _ = Describe("InstancesCmd", func() {
 										nil,
 										nil,
 										nil,
-										ValueUptime{},
+										cmd.ValueUptime{},
 										nil,
-										ValueCPUTotal{},
+										cmd.ValueCPUTotal{},
 										nil,
 										nil,
 										nil,
-										ValueMemIntSize{},
+										cmd.ValueMemIntSize{},
 										nil,
 										nil,
 										nil,
@@ -658,17 +658,17 @@ var _ = Describe("InstancesCmd", func() {
 										boshtbl.NewValueStrings([]string{"in2-ip1"}),
 										boshtbl.NewValueString("dep"),
 										boshtbl.NewValueTime(time.Date(2016, time.January, 9, 6, 23, 25, 0, time.UTC)),
-										ValueUptime{},
+										cmd.ValueUptime{},
 										boshtbl.NewValueString("0.52, 0.56, 0.51"),
-										ValueCPUTotal{},
-										NewValueStringPercent("51.2"),
-										NewValueStringPercent("50.3"),
-										NewValueStringPercent("52.1"),
-										ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "60", KB: "6000"}},
-										ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "61", KB: "6100"}},
-										ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "75"}},
-										ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "85"}},
-										ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "95"}},
+										cmd.ValueCPUTotal{},
+										cmd.NewValueStringPercent("51.2"),
+										cmd.NewValueStringPercent("50.3"),
+										cmd.NewValueStringPercent("52.1"),
+										cmd.ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "60", KB: "6000"}},
+										cmd.ValueMemSize{Size: boshdir.VMInfoVitalsMemSize{Percent: "61", KB: "6100"}},
+										cmd.ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "75"}},
+										cmd.ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "85"}},
+										cmd.ValueDiskSize{Size: boshdir.VMInfoVitalsDiskSize{Percent: "95"}},
 									},
 									{
 										boshtbl.ValueString{},
@@ -678,13 +678,13 @@ var _ = Describe("InstancesCmd", func() {
 										nil,
 										nil,
 										nil,
-										ValueUptime{},
+										cmd.ValueUptime{},
 										nil,
-										ValueCPUTotal{},
+										cmd.ValueCPUTotal{},
 										nil,
 										nil,
 										nil,
-										ValueMemIntSize{},
+										cmd.ValueMemIntSize{},
 										nil,
 										nil,
 										nil,
@@ -703,17 +703,17 @@ var _ = Describe("InstancesCmd", func() {
 										boshtbl.ValueStrings{},
 										boshtbl.NewValueString("dep"),
 										boshtbl.NewValueTime(time.Time{}.UTC()),
-										ValueUptime{},
+										cmd.ValueUptime{},
 										boshtbl.ValueString{},
-										ValueCPUTotal{},
-										NewValueStringPercent(""),
-										NewValueStringPercent(""),
-										NewValueStringPercent(""),
-										ValueMemSize{},
-										ValueMemSize{},
-										ValueDiskSize{},
-										ValueDiskSize{},
-										ValueDiskSize{},
+										cmd.ValueCPUTotal{},
+										cmd.NewValueStringPercent(""),
+										cmd.NewValueStringPercent(""),
+										cmd.NewValueStringPercent(""),
+										cmd.ValueMemSize{},
+										cmd.ValueMemSize{},
+										cmd.ValueDiskSize{},
+										cmd.ValueDiskSize{},
+										cmd.ValueDiskSize{},
 									},
 								},
 							},
@@ -722,7 +722,7 @@ var _ = Describe("InstancesCmd", func() {
 				})
 
 				It("lists failing (non-running) instances", func() {
-					opts.Failing = true
+					instancesOpts.Failing = true
 
 					// Hides second VM
 					infos[1].ProcessState = "running"
@@ -777,8 +777,8 @@ var _ = Describe("InstancesCmd", func() {
 				})
 
 				It("includes failing processes when listing failing (non-running) instances and processes", func() {
-					opts.Failing = true
-					opts.Processes = true
+					instancesOpts.Failing = true
+					instancesOpts.Processes = true
 
 					// Hides first process in the first VM
 					infos[0].Processes[0].State = "running"
@@ -866,7 +866,7 @@ var _ = Describe("InstancesCmd", func() {
 
 		Context("when listing multiple deployments", func() {
 			BeforeEach(func() {
-				command = NewInstancesCmd(ui, director, 5)
+				command = cmd.NewInstancesCmd(ui, director, 5)
 			})
 
 			It("retrieves deployment vms in parallel", func() {

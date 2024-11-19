@@ -7,9 +7,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
@@ -22,7 +22,7 @@ var _ = Describe("DeployCmd", func() {
 		deployment      *fakedir.FakeDeployment
 		releaseUploader *fakecmd.FakeReleaseUploader
 		director        *fakedir.FakeDirector
-		command         DeployCmd
+		command         cmd.DeployCmd
 	)
 
 	BeforeEach(func() {
@@ -37,23 +37,23 @@ var _ = Describe("DeployCmd", func() {
 
 		director = &fakedir.FakeDirector{}
 
-		command = NewDeployCmd(ui, deployment, releaseUploader, director)
+		command = cmd.NewDeployCmd(ui, deployment, releaseUploader, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts DeployOpts
+			deployOpts opts.DeployOpts
 		)
 
 		BeforeEach(func() {
-			opts = DeployOpts{
-				Args: DeployArgs{
-					Manifest: FileBytesArg{Bytes: []byte("name: dep")},
+			deployOpts = opts.DeployOpts{
+				Args: opts.DeployArgs{
+					Manifest: opts.FileBytesArg{Bytes: []byte("name: dep")},
 				},
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(deployOpts) }
 
 		It("deploys manifest", func() {
 			err := act()
@@ -67,10 +67,10 @@ var _ = Describe("DeployCmd", func() {
 		})
 
 		It("deploys manifest allowing to recreate, recreate persistent disks, fix, and skip drain", func() {
-			opts.RecreatePersistentDisks = true
-			opts.Recreate = true
-			opts.Fix = true
-			opts.SkipDrain = boshdir.SkipDrains{boshdir.SkipDrain{All: true}}
+			deployOpts.RecreatePersistentDisks = true
+			deployOpts.Recreate = true
+			deployOpts.Fix = true
+			deployOpts.SkipDrain = boshdir.SkipDrains{boshdir.SkipDrain{All: true}}
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -88,7 +88,7 @@ var _ = Describe("DeployCmd", func() {
 		})
 
 		It("deploys manifest allowing to dry_run", func() {
-			opts.DryRun = true
+			deployOpts.DryRun = true
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -103,7 +103,7 @@ var _ = Describe("DeployCmd", func() {
 		})
 
 		It("deploys manifest allowing to force latest variables", func() {
-			opts.ForceLatestVariables = true
+			deployOpts.ForceLatestVariables = true
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -118,20 +118,20 @@ var _ = Describe("DeployCmd", func() {
 		})
 
 		It("deploys templated manifest", func() {
-			opts.Args.Manifest = FileBytesArg{
+			deployOpts.Args.Manifest = opts.FileBytesArg{
 				Bytes: []byte("name: dep\nname1: ((name1))\nname2: ((name2))\n"),
 			}
 
-			opts.VarKVs = []boshtpl.VarKV{
+			deployOpts.VarKVs = []boshtpl.VarKV{
 				{Name: "name1", Value: "val1-from-kv"},
 			}
 
-			opts.VarsFiles = []boshtpl.VarsFileArg{
+			deployOpts.VarsFiles = []boshtpl.VarsFileArg{
 				{Vars: boshtpl.StaticVariables(map[string]interface{}{"name1": "val1-from-file"})},
 				{Vars: boshtpl.StaticVariables(map[string]interface{}{"name2": "val2-from-file"})},
 			}
 
-			opts.OpsFiles = []OpsFileArg{
+			deployOpts.OpsFiles = []opts.OpsFileArg{
 				{
 					Ops: patch.Ops([]patch.Op{
 						patch.ReplaceOp{Path: patch.MustNewPointerFromString("/xyz?"), Value: "val"},
@@ -149,7 +149,7 @@ var _ = Describe("DeployCmd", func() {
 		})
 
 		It("does not deploy if name specified in the manifest does not match deployment's name", func() {
-			opts.Args.Manifest = FileBytesArg{
+			deployOpts.Args.Manifest = opts.FileBytesArg{
 				Bytes: []byte("name: other-name"),
 			}
 
@@ -162,11 +162,11 @@ var _ = Describe("DeployCmd", func() {
 		})
 
 		It("uploads releases provided in the manifest after manifest has been interpolated", func() {
-			opts.Args.Manifest = FileBytesArg{
+			deployOpts.Args.Manifest = opts.FileBytesArg{
 				Bytes: []byte("name: dep\nbefore-upload-manifest: ((key))"),
 			}
 
-			opts.VarKVs = []boshtpl.VarKV{
+			deployOpts.VarKVs = []boshtpl.VarKV{
 				{Name: "key", Value: "key-val"},
 			}
 
@@ -185,15 +185,15 @@ var _ = Describe("DeployCmd", func() {
 		})
 
 		It("uploads releases provided in the manifest with fix after manifest has been interpolated", func() {
-			opts.Args.Manifest = FileBytesArg{
+			deployOpts.Args.Manifest = opts.FileBytesArg{
 				Bytes: []byte("name: dep\nbefore-upload-manifest-with-fix: ((key))"),
 			}
 
-			opts.VarKVs = []boshtpl.VarKV{
+			deployOpts.VarKVs = []boshtpl.VarKV{
 				{Name: "key", Value: "key-val"},
 			}
 
-			opts.FixReleases = true
+			deployOpts.FixReleases = true
 
 			releaseUploader.UploadReleasesWithFixReturns([]byte("after-upload-manifest-with-fix"), nil)
 
@@ -210,7 +210,7 @@ var _ = Describe("DeployCmd", func() {
 		})
 
 		It("returns error and does not deploy if uploading releases fails", func() {
-			opts.Args.Manifest = FileBytesArg{
+			deployOpts.Args.Manifest = opts.FileBytesArg{
 				Bytes: []byte(`
 name: dep
 releases:
@@ -231,7 +231,7 @@ releases:
 		})
 
 		It("uploads releases but does not deploy if confirmation is rejected", func() {
-			opts.Args.Manifest = FileBytesArg{
+			deployOpts.Args.Manifest = opts.FileBytesArg{
 				Bytes: []byte(`
 name: dep
 releases:
@@ -300,7 +300,7 @@ releases:
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
-		It("overwrites the opts with the flags from configs of type deploy", func() {
+		It("overwrites the deployOpts with the flags from configs of type deploy", func() {
 			configs := []boshdir.Config{
 				{
 					ID:   "1",
@@ -325,7 +325,7 @@ releases:
 			}))
 		})
 
-		It("overwrites the opts with the flags from configs of type deploy if the deployment is included", func() {
+		It("overwrites the deployOpts with the flags from configs of type deploy if the deployment is included", func() {
 			configs := []boshdir.Config{
 				{
 					ID:        "1",
@@ -352,7 +352,7 @@ releases:
 			}))
 		})
 
-		It("does not overwrite the opts with the flags from configs of type deploy if the deployment is not included", func() {
+		It("does not overwrite the deployOpts with the flags from configs of type deploy if the deployment is not included", func() {
 			configs := []boshdir.Config{
 				{
 					ID:        "1",
@@ -379,7 +379,7 @@ releases:
 			}))
 		})
 
-		It("does not overwrite the opts with the flags from configs of type deploy if the deployment is excluded", func() {
+		It("does not overwrite the deployOpts with the flags from configs of type deploy if the deployment is excluded", func() {
 			configs := []boshdir.Config{
 				{
 					ID:        "1",
@@ -406,7 +406,7 @@ releases:
 			}))
 		})
 
-		It("overwrites the opts with the flags from configs of type deploy if the deployment is not excluded", func() {
+		It("overwrites the deployOpts with the flags from configs of type deploy if the deployment is not excluded", func() {
 			configs := []boshdir.Config{
 				{
 					ID:        "1",

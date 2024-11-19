@@ -1,11 +1,12 @@
 package cmd
 
 import (
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type UpdateConfigCmd struct {

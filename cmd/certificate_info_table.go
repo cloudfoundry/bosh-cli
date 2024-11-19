@@ -1,10 +1,11 @@
 package cmd
 
 import (
+	"github.com/fatih/color"
+
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
-	"github.com/fatih/color"
 )
 
 type CertificateInfoTable struct {
@@ -25,7 +26,7 @@ func (t CertificateInfoTable) Print() {
 	}
 
 	table := boshtbl.Table{
-		Title: color.New(color.Bold).Sprintf(color.YellowString("CERTIFICATE EXPIRY DATE INFORMATION")),
+		Title: color.New(color.Bold, color.FgYellow).Sprint("CERTIFICATE EXPIRY DATE INFORMATION"),
 		Header: []boshtbl.Header{
 			boshtbl.NewHeader("Certificate"),
 			boshtbl.NewHeader("Expiry Date (UTC)"),

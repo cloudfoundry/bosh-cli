@@ -1,20 +1,19 @@
 package stemcell_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/stemcell"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"errors"
 	"path/filepath"
 
-	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
 	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
+	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
+	. "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )

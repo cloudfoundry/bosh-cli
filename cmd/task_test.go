@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 )
@@ -17,33 +17,33 @@ var _ = Describe("TaskCmd", func() {
 		eventsRep *fakedir.FakeTaskReporter
 		plainRep  *fakedir.FakeTaskReporter
 		director  *fakedir.FakeDirector
-		command   TaskCmd
+		command   cmd.TaskCmd
 	)
 
 	BeforeEach(func() {
 		eventsRep = &fakedir.FakeTaskReporter{}
 		plainRep = &fakedir.FakeTaskReporter{}
 		director = &fakedir.FakeDirector{}
-		command = NewTaskCmd(eventsRep, plainRep, director)
+		command = cmd.NewTaskCmd(eventsRep, plainRep, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts TaskOpts
-			task *fakedir.FakeTask
+			taskOpts opts.TaskOpts
+			task     *fakedir.FakeTask
 		)
 
 		BeforeEach(func() {
-			opts = TaskOpts{}
+			taskOpts = opts.TaskOpts{}
 			task = &fakedir.FakeTask{}
 			director.FindTaskReturns(task, nil)
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(taskOpts) }
 
 		Context("when id is specified", func() {
 			BeforeEach(func() {
-				opts.Args.ID = 123
+				taskOpts.Args.ID = 123
 			})
 
 			It("fetches given task", func() {
@@ -67,7 +67,7 @@ var _ = Describe("TaskCmd", func() {
 			})
 
 			It("shows task's 'event' output if requested", func() {
-				opts.Event = true
+				taskOpts.Event = true
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -81,7 +81,7 @@ var _ = Describe("TaskCmd", func() {
 			})
 
 			It("shows task's 'cpi' output if requested", func() {
-				opts.CPI = true
+				taskOpts.CPI = true
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -95,7 +95,7 @@ var _ = Describe("TaskCmd", func() {
 			})
 
 			It("shows task's 'debug' output if requested", func() {
-				opts.Debug = true
+				taskOpts.Debug = true
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -109,7 +109,7 @@ var _ = Describe("TaskCmd", func() {
 			})
 
 			It("shows task's 'result' output if requested", func() {
-				opts.Result = true
+				taskOpts.Result = true
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -157,7 +157,7 @@ var _ = Describe("TaskCmd", func() {
 			})
 
 			It("shows task's 'event' output if requested", func() {
-				opts.Event = true
+				taskOpts.Event = true
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -171,7 +171,7 @@ var _ = Describe("TaskCmd", func() {
 			})
 
 			It("shows task's 'cpi' output if requested", func() {
-				opts.CPI = true
+				taskOpts.CPI = true
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -185,7 +185,7 @@ var _ = Describe("TaskCmd", func() {
 			})
 
 			It("shows task's 'debug' output if requested", func() {
-				opts.Debug = true
+				taskOpts.Debug = true
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -199,7 +199,7 @@ var _ = Describe("TaskCmd", func() {
 			})
 
 			It("shows task's 'result' output if requested", func() {
-				opts.Result = true
+				taskOpts.Result = true
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -217,8 +217,8 @@ var _ = Describe("TaskCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(director.CurrentTasksArgsForCall(0)).To(Equal(boshdir.TasksFilter{}))
 
-				opts.All = true
-				opts.Deployment = "deployment-name"
+				taskOpts.All = true
+				taskOpts.Deployment = "deployment-name"
 
 				err = act()
 				Expect(err).ToNot(HaveOccurred())

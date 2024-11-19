@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"path/filepath"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
 	"github.com/cloudfoundry/bosh-cli/v7/installation/blobextract"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type InstalledJob struct {
@@ -80,22 +81,38 @@ func (i *installer) Install(manifest biinstallmanifest.Manifest, stage biui.Stag
 		return nil, bosherr.WrapError(err, "Rendering and uploading Jobs")
 	}
 
-	renderedCPIJob := renderedJobRefs[0]
-	installedJob, err := i.installJob(renderedCPIJob, stage)
-	if err != nil {
-		return nil, bosherr.WrapErrorf(err, "Installing job '%s' for CPI release", renderedCPIJob.Name)
+	installedJobs := []InstalledJob{}
+
+	for _, renderedCPIJob := range renderedJobRefs {
+		installedJob, err := i.installJob(renderedCPIJob, stage)
+		if err != nil {
+			return nil, bosherr.WrapErrorf(err, "Installing job '%s' for CPI release", renderedCPIJob.Name)
+		}
+		installedJobs = append(installedJobs, installedJob)
+
 	}
 
 	return NewInstallation(
 		i.target,
-		installedJob,
+		installedJobs,
 		manifest,
 	), nil
 }
 
 func (i *installer) Cleanup(installation Installation) error {
-	job := installation.Job()
-	return i.blobExtractor.Cleanup(job.BlobstoreID, job.Path)
+	errs := []error{}
+	for _, job := range installation.Jobs() {
+		err := i.blobExtractor.Cleanup(job.BlobstoreID, job.Path)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if len(errs) > 0 {
+		return bosherr.NewMultiError(errs...)
+	} else {
+		return nil
+	}
 }
 
 func (i *installer) installPackages(compiledPackages []CompiledPackageRef) error {

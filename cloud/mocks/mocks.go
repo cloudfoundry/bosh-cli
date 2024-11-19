@@ -82,18 +82,18 @@ func (mr *MockCloudMockRecorder) CreateStemcell(arg0, arg1 interface{}) *gomock.
 }
 
 // CreateVM mocks base method.
-func (m *MockCloud) CreateVM(arg0, arg1 string, arg2 property.Map, arg3 map[string]property.Map, arg4 property.Map) (string, error) {
+func (m *MockCloud) CreateVM(arg0, arg1 string, arg2 property.Map, arg3 []string, arg4 map[string]property.Map, arg5 property.Map) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateVM", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "CreateVM", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateVM indicates an expected call of CreateVM.
-func (mr *MockCloudMockRecorder) CreateVM(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+func (mr *MockCloudMockRecorder) CreateVM(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateVM", reflect.TypeOf((*MockCloud)(nil).CreateVM), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateVM", reflect.TypeOf((*MockCloud)(nil).CreateVM), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 // DeleteDisk mocks base method.

@@ -199,7 +199,6 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, 
 
 		deploy := func() error {
 			return c.deploy(
-				installation,
 				deploymentState,
 				extractedStemcell,
 				installationManifest,
@@ -230,7 +229,6 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, 
 }
 
 func (c *DeploymentPreparer) deploy(
-	installation biinstall.Installation,
 	deploymentState biconfig.DeploymentState,
 	extractedStemcell bistemcell.ExtractedStemcell,
 	installationManifest biinstallmanifest.Manifest,
@@ -271,6 +269,7 @@ func (c *DeploymentPreparer) deploy(
 			vmManager,
 			blobstore,
 			skipDrain,
+			c.extractDiskCIDsFromState(deploymentState),
 			deployStage,
 		)
 		if err != nil {
@@ -304,4 +303,14 @@ func (c *DeploymentPreparer) stemcellApiVersion(stemcell bistemcell.ExtractedSte
 		return 1
 	}
 	return stemcellApiVersion
+}
+
+// These disk CIDs get passed all the way to the create_vm cpi call
+func (c *DeploymentPreparer) extractDiskCIDsFromState(deploymentState biconfig.DeploymentState) []string {
+	diskCIDs := make([]string, 0)
+	for _, disk := range deploymentState.Disks {
+		diskCIDs = append(diskCIDs, disk.CID)
+	}
+
+	return diskCIDs
 }

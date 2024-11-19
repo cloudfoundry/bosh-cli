@@ -18,10 +18,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/mocks"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
@@ -39,7 +39,7 @@ var _ = Describe("Logs", func() {
 			downloader      *fakecmd.FakeDownloader
 			uuidGen         *fakeuuid.FakeGenerator
 			nonIntSSHRunner *fakessh.FakeRunner
-			command         LogsCmd
+			command         cmd.LogsCmd
 		)
 
 		BeforeEach(func() {
@@ -49,25 +49,25 @@ var _ = Describe("Logs", func() {
 			downloader = &fakecmd.FakeDownloader{}
 			uuidGen = &fakeuuid.FakeGenerator{}
 			nonIntSSHRunner = &fakessh.FakeRunner{}
-			command = NewLogsCmd(deployment, downloader, uuidGen, nonIntSSHRunner)
+			command = cmd.NewLogsCmd(deployment, downloader, uuidGen, nonIntSSHRunner)
 		})
 
 		Describe("Run", func() {
 			var (
-				opts LogsOpts
+				logsOpts opts.LogsOpts
 			)
 
 			BeforeEach(func() {
-				opts = LogsOpts{
-					Args: AllOrInstanceGroupOrInstanceSlugArgs{
+				logsOpts = opts.LogsOpts{
+					Args: opts.AllOrInstanceGroupOrInstanceSlugArgs{
 						Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("job", "index"),
 					},
 
-					Directory: DirOrCWDArg{Path: "/fake-dir"},
+					Directory: opts.DirOrCWDArg{Path: "/fake-dir"},
 				}
 			})
 
-			act := func() error { return command.Run(opts) }
+			act := func() error { return command.Run(logsOpts) }
 
 			Context("when fetching logs (not tailing)", func() {
 				It("fetches logs for a given instance", func() {
@@ -94,8 +94,8 @@ var _ = Describe("Logs", func() {
 				})
 
 				It("fetches agent logs and allows custom filters", func() {
-					opts.Filters = []string{"filter1", "filter2"}
-					opts.Agent = true
+					logsOpts.Filters = []string{"filter1", "filter2"}
+					logsOpts.Agent = true
 
 					deployment.FetchLogsReturns(boshdir.LogsResult{}, nil)
 
@@ -111,8 +111,8 @@ var _ = Describe("Logs", func() {
 				})
 
 				It("fetches system logs and allows custom filters", func() {
-					opts.Filters = []string{"filter1", "filter2"}
-					opts.System = true
+					logsOpts.Filters = []string{"filter1", "filter2"}
+					logsOpts.System = true
 
 					deployment.FetchLogsReturns(boshdir.LogsResult{}, nil)
 
@@ -128,8 +128,8 @@ var _ = Describe("Logs", func() {
 				})
 
 				It("fetches all logs and allows custom filters", func() {
-					opts.Filters = []string{"filter1", "filter2"}
-					opts.All = true
+					logsOpts.Filters = []string{"filter1", "filter2"}
+					logsOpts.All = true
 
 					deployment.FetchLogsReturns(boshdir.LogsResult{}, nil)
 
@@ -145,7 +145,7 @@ var _ = Describe("Logs", func() {
 				})
 
 				It("fetches logs for more than one instance", func() {
-					opts.Args.Slug = boshdir.NewAllOrInstanceGroupOrInstanceSlug("", "")
+					logsOpts.Args.Slug = boshdir.NewAllOrInstanceGroupOrInstanceSlug("", "")
 
 					result := boshdir.LogsResult{BlobstoreID: "blob-id", SHA1: "sha1"}
 					deployment.FetchLogsReturns(result, nil)
@@ -190,8 +190,8 @@ var _ = Describe("Logs", func() {
 			Context("when tailing logs (or specifying number of lines)", func() {
 
 				BeforeEach(func() {
-					opts.Follow = true
-					opts.GatewayFlags.UUIDGen = uuidGen
+					logsOpts.Follow = true
+					logsOpts.GatewayFlags.UUIDGen = uuidGen
 					uuidGen.GeneratedUUID = UUID
 				})
 
@@ -217,7 +217,7 @@ var _ = Describe("Logs", func() {
 				})
 
 				It("sets up SSH access for more than one instance", func() {
-					opts.Args.Slug = boshdir.NewAllOrInstanceGroupOrInstanceSlug("", "")
+					logsOpts.Args.Slug = boshdir.NewAllOrInstanceGroupOrInstanceSlug("", "")
 
 					Expect(act()).ToNot(HaveOccurred())
 
@@ -248,11 +248,11 @@ var _ = Describe("Logs", func() {
 					result := boshdir.SSHResult{Hosts: []boshdir.Host{{Host: "ip1"}}}
 					deployment.SetUpSSHReturns(result, nil)
 
-					opts.GatewayFlags.Disable = true
-					opts.GatewayFlags.Username = "gw-username"
-					opts.GatewayFlags.Host = "gw-host"
-					opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-					opts.GatewayFlags.SOCKS5Proxy = "some-proxy"
+					logsOpts.GatewayFlags.Disable = true
+					logsOpts.GatewayFlags.Username = "gw-username"
+					logsOpts.GatewayFlags.Host = "gw-host"
+					logsOpts.GatewayFlags.PrivateKeyPath = "gw-private-key"
+					logsOpts.GatewayFlags.SOCKS5Proxy = "some-proxy"
 
 					Expect(act()).ToNot(HaveOccurred())
 
@@ -270,8 +270,8 @@ var _ = Describe("Logs", func() {
 				})
 
 				It("runs tail command with specified number of lines and quiet option", func() {
-					opts.Num = 10
-					opts.Quiet = true
+					logsOpts.Num = 10
+					logsOpts.Quiet = true
 
 					deployment.SetUpSSHReturns(boshdir.SSHResult{}, nil)
 					Expect(act()).ToNot(HaveOccurred())
@@ -282,8 +282,8 @@ var _ = Describe("Logs", func() {
 				})
 
 				It("runs tail command with specified number of lines even if following is not requested", func() {
-					opts.Follow = false
-					opts.Num = 10
+					logsOpts.Follow = false
+					logsOpts.Num = 10
 
 					deployment.SetUpSSHReturns(boshdir.SSHResult{}, nil)
 					Expect(act()).ToNot(HaveOccurred())
@@ -294,7 +294,7 @@ var _ = Describe("Logs", func() {
 				})
 
 				It("runs tail command for the agent log if agent is specified", func() {
-					opts.Agent = true
+					logsOpts.Agent = true
 
 					deployment.SetUpSSHReturns(boshdir.SSHResult{}, nil)
 					Expect(act()).ToNot(HaveOccurred())
@@ -305,7 +305,7 @@ var _ = Describe("Logs", func() {
 				})
 
 				It("runs tail command with jobs filters if specified", func() {
-					opts.Jobs = []string{"job1", "job2"}
+					logsOpts.Jobs = []string{"job1", "job2"}
 
 					deployment.SetUpSSHReturns(boshdir.SSHResult{}, nil)
 					Expect(act()).ToNot(HaveOccurred())
@@ -316,7 +316,7 @@ var _ = Describe("Logs", func() {
 				})
 
 				It("runs tail command with custom filters if specified", func() {
-					opts.Filters = []string{"other/*.log", "**/*.log"}
+					logsOpts.Filters = []string{"other/*.log", "**/*.log"}
 
 					deployment.SetUpSSHReturns(boshdir.SSHResult{}, nil)
 					Expect(act()).ToNot(HaveOccurred())
@@ -327,8 +327,8 @@ var _ = Describe("Logs", func() {
 				})
 
 				It("runs tail command with agent log, and custom filters", func() {
-					opts.Agent = true
-					opts.Filters = []string{"other/*.log", "**/*.log"}
+					logsOpts.Agent = true
+					logsOpts.Filters = []string{"other/*.log", "**/*.log"}
 
 					deployment.SetUpSSHReturns(boshdir.SSHResult{}, nil)
 					Expect(act()).ToNot(HaveOccurred())
@@ -369,7 +369,7 @@ var _ = Describe("Logs", func() {
 
 			uuidGen *fakeuuid.FakeGenerator
 
-			command EnvLogsCmd
+			command cmd.EnvLogsCmd
 		)
 
 		BeforeEach(func() {
@@ -385,7 +385,7 @@ var _ = Describe("Logs", func() {
 
 			uuidGen = &fakeuuid.FakeGenerator{}
 
-			command = NewEnvLogsCmd(agentClientFactory, nonIntSSHRunner, scpRunner, fs, timeService, ui)
+			command = cmd.NewEnvLogsCmd(agentClientFactory, nonIntSSHRunner, scpRunner, fs, timeService, ui)
 		})
 
 		AfterEach(func() {
@@ -394,27 +394,27 @@ var _ = Describe("Logs", func() {
 
 		Describe("Run", func() {
 			var (
-				opts LogsOpts
+				logsOpts opts.LogsOpts
 			)
 
 			Context("neither the endpoint or certificate flag is set", func() {
 				BeforeEach(func() {
-					opts = LogsOpts{
-						CreateEnvAuthFlags: CreateEnvAuthFlags{
+					logsOpts = opts.LogsOpts{
+						CreateEnvAuthFlags: opts.CreateEnvAuthFlags{
 							TargetDirector: true,
 						},
 					}
 				})
 
 				It("errors", func() {
-					Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+					Expect(command.Run(logsOpts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
 				})
 			})
 
 			Context("only the endpoint flag is set", func() {
 				BeforeEach(func() {
-					opts = LogsOpts{
-						CreateEnvAuthFlags: CreateEnvAuthFlags{
+					logsOpts = opts.LogsOpts{
+						CreateEnvAuthFlags: opts.CreateEnvAuthFlags{
 							TargetDirector: true,
 							Endpoint:       "https:///foo:bar@10.0.0.5",
 						},
@@ -422,14 +422,14 @@ var _ = Describe("Logs", func() {
 				})
 
 				It("errors", func() {
-					Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+					Expect(command.Run(logsOpts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
 				})
 			})
 
 			Context("only the certificate flag is set", func() {
 				BeforeEach(func() {
-					opts = LogsOpts{
-						CreateEnvAuthFlags: CreateEnvAuthFlags{
+					logsOpts = opts.LogsOpts{
+						CreateEnvAuthFlags: opts.CreateEnvAuthFlags{
 							TargetDirector: true,
 							Certificate:    "some-cert",
 						},
@@ -437,19 +437,19 @@ var _ = Describe("Logs", func() {
 				})
 
 				It("errors", func() {
-					Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+					Expect(command.Run(logsOpts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
 				})
 			})
 
 			Context("the endpoint and certificate flags are set", func() {
 				BeforeEach(func() {
-					opts = LogsOpts{
-						CreateEnvAuthFlags: CreateEnvAuthFlags{
+					logsOpts = opts.LogsOpts{
+						CreateEnvAuthFlags: opts.CreateEnvAuthFlags{
 							TargetDirector: true,
 							Endpoint:       "https:///foo:bar@10.0.0.5",
 							Certificate:    "some-cert",
 						},
-						GatewayFlags: GatewayFlags{UUIDGen: uuidGen},
+						GatewayFlags: opts.GatewayFlags{UUIDGen: uuidGen},
 					}
 
 					uuidGen.GeneratedUUID = UUID
@@ -464,7 +464,7 @@ var _ = Describe("Logs", func() {
 				It("returns an error if generating SSH options fails", func() {
 					uuidGen.GenerateError = errors.New("fake-err")
 
-					err := command.Run(opts)
+					err := command.Run(logsOpts)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-err"))
 				})
@@ -472,14 +472,14 @@ var _ = Describe("Logs", func() {
 				It("returns an error if setting up SSH access fails", func() {
 					agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).Return(agentclient.SSHResult{}, errors.New("fake-ssh-err"))
 
-					err := command.Run(opts)
+					err := command.Run(logsOpts)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-ssh-err"))
 				})
 
 				Context("tailing logs", func() {
 					BeforeEach(func() {
-						opts.Follow = true
+						logsOpts.Follow = true
 					})
 
 					It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
@@ -493,7 +493,7 @@ var _ = Describe("Logs", func() {
 						agentClient.EXPECT().CleanUpSSH(gomock.Eq(ExpUsername)).
 							Times(1)
 
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
+						Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 
 						Expect(nonIntSSHRunner.RunCallCount()).To(Equal(1))
 					})
@@ -508,13 +508,13 @@ var _ = Describe("Logs", func() {
 						agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).Return(result, nil)
 						agentClient.EXPECT().CleanUpSSH(gomock.Any()).Times(1)
 
-						opts.GatewayFlags.Disable = true
-						opts.GatewayFlags.Username = "gw-username"
-						opts.GatewayFlags.Host = "gw-host"
-						opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-						opts.GatewayFlags.SOCKS5Proxy = "some-proxy"
+						logsOpts.GatewayFlags.Disable = true
+						logsOpts.GatewayFlags.Username = "gw-username"
+						logsOpts.GatewayFlags.Host = "gw-host"
+						logsOpts.GatewayFlags.PrivateKeyPath = "gw-private-key"
+						logsOpts.GatewayFlags.SOCKS5Proxy = "some-proxy"
 
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
+						Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 
 						Expect(nonIntSSHRunner.RunCallCount()).To(Equal(1))
 
@@ -536,10 +536,10 @@ var _ = Describe("Logs", func() {
 						})
 
 						It("runs tail command with specified number of lines and quiet option", func() {
-							opts.Num = 10
-							opts.Quiet = true
+							logsOpts.Num = 10
+							logsOpts.Quiet = true
 
-							Expect(command.Run(opts)).ToNot(HaveOccurred())
+							Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 
 							_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
 							Expect(runCommand).To(Equal([]string{
@@ -547,10 +547,10 @@ var _ = Describe("Logs", func() {
 						})
 
 						It("runs tail command with specified number of lines even if following is not requested", func() {
-							opts.Follow = false
-							opts.Num = 10
+							logsOpts.Follow = false
+							logsOpts.Num = 10
 
-							Expect(command.Run(opts)).ToNot(HaveOccurred())
+							Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 
 							_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
 							Expect(runCommand).To(Equal([]string{
@@ -558,9 +558,9 @@ var _ = Describe("Logs", func() {
 						})
 
 						It("runs tail command for the agent log if agent is specified", func() {
-							opts.Agent = true
+							logsOpts.Agent = true
 
-							Expect(command.Run(opts)).ToNot(HaveOccurred())
+							Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 
 							_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
 							Expect(runCommand).To(Equal([]string{
@@ -568,9 +568,9 @@ var _ = Describe("Logs", func() {
 						})
 
 						It("runs tail command with jobs filters if specified", func() {
-							opts.Jobs = []string{"job1", "job2"}
+							logsOpts.Jobs = []string{"job1", "job2"}
 
-							Expect(command.Run(opts)).ToNot(HaveOccurred())
+							Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 
 							_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
 							Expect(runCommand).To(Equal([]string{
@@ -578,9 +578,9 @@ var _ = Describe("Logs", func() {
 						})
 
 						It("runs tail command with custom filters if specified", func() {
-							opts.Filters = []string{"other/*.log", "**/*.log"}
+							logsOpts.Filters = []string{"other/*.log", "**/*.log"}
 
-							Expect(command.Run(opts)).ToNot(HaveOccurred())
+							Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 
 							_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
 							Expect(runCommand).To(Equal([]string{
@@ -588,10 +588,10 @@ var _ = Describe("Logs", func() {
 						})
 
 						It("runs tail command with agent log, and custom filters", func() {
-							opts.Agent = true
-							opts.Filters = []string{"other/*.log", "**/*.log"}
+							logsOpts.Agent = true
+							logsOpts.Filters = []string{"other/*.log", "**/*.log"}
 
-							Expect(command.Run(opts)).ToNot(HaveOccurred())
+							Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 
 							_, _, runCommand := nonIntSSHRunner.RunArgsForCall(0)
 							Expect(runCommand).To(Equal([]string{
@@ -601,7 +601,7 @@ var _ = Describe("Logs", func() {
 						It("returns error if non-interactive SSH session errors", func() {
 							nonIntSSHRunner.RunReturns(errors.New("fake-err"))
 
-							err := command.Run(opts)
+							err := command.Run(logsOpts)
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring("fake-err"))
 						})
@@ -609,7 +609,7 @@ var _ = Describe("Logs", func() {
 						It("does not try to fetch logs", func() {
 							agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
 
-							Expect(command.Run(opts)).ToNot(HaveOccurred())
+							Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 						})
 					})
 				})
@@ -641,12 +641,12 @@ var _ = Describe("Logs", func() {
 						agentClient.EXPECT().RemoveFile(gomock.Any()).
 							Times(1)
 
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
+						Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 					})
 
 					It("bundles agent logs and allows custom filters", func() {
-						opts.Filters = []string{"filter1", "filter2"}
-						opts.Agent = true
+						logsOpts.Filters = []string{"filter1", "filter2"}
+						logsOpts.Agent = true
 
 						agentClient.EXPECT().BundleLogs(
 							gomock.Eq(ExpUsername),
@@ -658,12 +658,12 @@ var _ = Describe("Logs", func() {
 						agentClient.EXPECT().RemoveFile(gomock.Any()).
 							Times(1)
 
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
+						Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 					})
 
 					It("bundles system logs", func() {
-						opts.Filters = []string{}
-						opts.System = true
+						logsOpts.Filters = []string{}
+						logsOpts.System = true
 
 						agentClient.EXPECT().BundleLogs(
 							gomock.Eq(ExpUsername),
@@ -675,12 +675,12 @@ var _ = Describe("Logs", func() {
 						agentClient.EXPECT().RemoveFile(gomock.Any()).
 							Times(1)
 
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
+						Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 					})
 
 					It("bundles all logs", func() {
-						opts.Filters = []string{}
-						opts.All = true
+						logsOpts.Filters = []string{}
+						logsOpts.All = true
 
 						agentClient.EXPECT().BundleLogs(
 							gomock.Eq(ExpUsername),
@@ -692,13 +692,13 @@ var _ = Describe("Logs", func() {
 						agentClient.EXPECT().RemoveFile(gomock.Any()).
 							Times(1)
 
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
+						Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 					})
 
 					It("returns error if bundling logs failed", func() {
 						agentClient.EXPECT().BundleLogs(gomock.Any(), gomock.Any(), gomock.Any()).Return(agentclient.BundleLogsResult{}, errors.New("fake-logs-err"))
 
-						err := command.Run(opts)
+						err := command.Run(logsOpts)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-logs-err"))
 					})
@@ -712,7 +712,7 @@ var _ = Describe("Logs", func() {
 						agentClient.EXPECT().RemoveFile(gomock.Any()).
 							Times(1)
 
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
+						Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 
 						Expect(scpRunner.RunCallCount()).To(Equal(1))
 						_, _, scpArgs := scpRunner.RunArgsForCall(0)
@@ -733,7 +733,7 @@ var _ = Describe("Logs", func() {
 						agentClient.EXPECT().RemoveFile(gomock.Any()).
 							Times(1)
 
-						err := command.Run(opts)
+						err := command.Run(logsOpts)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("Running SCP"))
 						Expect(err.Error()).To(ContainSubstring("fake-scp-err"))
@@ -748,7 +748,7 @@ var _ = Describe("Logs", func() {
 						agentClient.EXPECT().RemoveFile(gomock.Any()).
 							Times(1)
 
-						err := command.Run(opts)
+						err := command.Run(logsOpts)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("Unable to parse digest string"))
 					})
@@ -764,7 +764,7 @@ var _ = Describe("Logs", func() {
 						agentClient.EXPECT().RemoveFile(gomock.Any()).
 							Times(1)
 
-						err := command.Run(opts)
+						err := command.Run(logsOpts)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("Expected stream to have digest"))
 					})
@@ -775,7 +775,7 @@ var _ = Describe("Logs", func() {
 							Times(1)
 						agentClient.EXPECT().RemoveFile(gomock.Any()).
 							Times(1)
-						opts.Directory.Path = "/hey/hello"
+						logsOpts.Directory.Path = "/hey/hello"
 						fs.MkdirAll("/hey/hello", os.FileMode(0777)) //nolint:errcheck
 						fs.ReturnTempFilesByPrefix = map[string]boshsys.File{
 							"bosh-cli-scp-download": fakes.NewFakeFile("/tmp/baz", fs),
@@ -787,7 +787,7 @@ var _ = Describe("Logs", func() {
 							return nil
 						}
 
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
+						Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 						Expect(ui.Said).To(ContainElement("Downloading create-env-vm/0 logs to '/hey/hello/create-env-vm-logs-20091110-230102-000000333.tgz'..."))
 					})
 
@@ -801,7 +801,7 @@ var _ = Describe("Logs", func() {
 						agentClient.EXPECT().RemoveFile(gomock.Any()).
 							Times(1)
 
-						err := command.Run(opts)
+						err := command.Run(logsOpts)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-close-err"))
 					})
@@ -814,7 +814,7 @@ var _ = Describe("Logs", func() {
 						agentClient.EXPECT().RemoveFile(gomock.Any()).
 							Times(1)
 
-						err := command.Run(opts)
+						err := command.Run(logsOpts)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("Moving to final destination"))
 						Expect(err.Error()).To(ContainSubstring("fake-rename-err"))
@@ -827,7 +827,7 @@ var _ = Describe("Logs", func() {
 						agentClient.EXPECT().RemoveFile(gomock.Any()).
 							Times(1)
 
-						Expect(command.Run(opts)).ToNot(HaveOccurred())
+						Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 						Expect(nonIntSSHRunner.RunCallCount()).To(Equal(0))
 					})
 				})

@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 )
@@ -15,28 +15,28 @@ import (
 var _ = Describe("TakeSnapshotCmd", func() {
 	var (
 		deployment *fakedir.FakeDeployment
-		command    TakeSnapshotCmd
+		command    cmd.TakeSnapshotCmd
 	)
 
 	BeforeEach(func() {
 		deployment = &fakedir.FakeDeployment{}
-		command = NewTakeSnapshotCmd(deployment)
+		command = cmd.NewTakeSnapshotCmd(deployment)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts TakeSnapshotOpts
+			takeSnapshotOpts opts.TakeSnapshotOpts
 		)
 
 		BeforeEach(func() {
-			opts = TakeSnapshotOpts{}
+			takeSnapshotOpts = opts.TakeSnapshotOpts{}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(takeSnapshotOpts) }
 
 		Context("when taking a snapshot of specific instance", func() {
 			BeforeEach(func() {
-				opts.Args.Slug = boshdir.NewInstanceSlug("some-name", "some-id")
+				takeSnapshotOpts.Args.Slug = boshdir.NewInstanceSlug("some-name", "some-id")
 			})
 
 			It("take snapshots for a given instance", func() {

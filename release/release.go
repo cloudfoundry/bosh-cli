@@ -2,12 +2,12 @@ package release
 
 import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"github.com/cloudfoundry/bosh-utils/work"
 
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	birellic "github.com/cloudfoundry/bosh-cli/v7/release/license"
 	birelman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 	birelpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
-	"github.com/cloudfoundry/bosh-utils/work"
 )
 
 type release struct {

@@ -3,12 +3,11 @@ package uaa_test
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/uaa"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/config/configfakes"
-
+	. "github.com/cloudfoundry/bosh-cli/v7/uaa"
 	fakeuaa "github.com/cloudfoundry/bosh-cli/v7/uaa/uaafakes"
 )
 

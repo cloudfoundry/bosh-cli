@@ -3,19 +3,19 @@ package cmd_test
 import (
 	"errors"
 
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("ManifestCmd", func() {
 	var (
 		ui         *fakeui.FakeUI
 		deployment *fakedir.FakeDeployment
-		command    ManifestCmd
+		command    cmd.ManifestCmd
 	)
 
 	BeforeEach(func() {
@@ -24,7 +24,7 @@ var _ = Describe("ManifestCmd", func() {
 	})
 
 	JustBeforeEach(func() {
-		command = NewManifestCmd(ui, deployment)
+		command = cmd.NewManifestCmd(ui, deployment)
 	})
 
 	Describe("Run", func() {

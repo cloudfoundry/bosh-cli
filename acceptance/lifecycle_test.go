@@ -4,19 +4,18 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"regexp"
 	"strings"
 	"text/template"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/acceptance"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"os"
-
+	. "github.com/cloudfoundry/bosh-cli/v7/acceptance"
 	bitestutils "github.com/cloudfoundry/bosh-cli/v7/testutils"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
 const (

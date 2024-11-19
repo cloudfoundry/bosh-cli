@@ -3,7 +3,10 @@ package state
 import (
 	"errors"
 
-	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	"github.com/cloudfoundry/bosh-agent/agentclient"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 
 	biblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
@@ -12,9 +15,6 @@ import (
 	bistatejob "github.com/cloudfoundry/bosh-cli/v7/state/job"
 	bitemplate "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 
 type Builder interface {

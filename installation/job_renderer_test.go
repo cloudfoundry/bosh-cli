@@ -2,6 +2,7 @@ package installation_test
 
 import (
 	fakeboshblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakeboshcmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -18,7 +19,6 @@ import (
 	bitemplate "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
 	mocktemplate "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/mocks"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
-	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 var _ = Describe("JobRenderer", func() {
@@ -65,9 +65,8 @@ var _ = Describe("JobRenderer", func() {
 
 		manifest = biinstallmanifest.Manifest{
 			Name: "fake-installation-name",
-			Template: biinstallmanifest.ReleaseJobRef{
-				Name:    "fake-cpi-job-name",
-				Release: "fake-cpi-release-name",
+			Templates: []biinstallmanifest.ReleaseJobRef{
+				{Name: "fake-cpi-job-name", Release: "fake-cpi-release-name"},
 			},
 			Properties: biproperty.Map{
 				"fake-installation-property": "fake-installation-property-value",

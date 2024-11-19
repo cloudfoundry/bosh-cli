@@ -9,11 +9,12 @@ import (
 	"strings"
 	"time"
 
-	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	proxy "github.com/cloudfoundry/socks5-proxy"
+
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 )
 
 type SSHArgs struct {

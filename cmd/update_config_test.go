@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
@@ -20,31 +20,31 @@ var _ = Describe("UpdateConfigCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  UpdateConfigCmd
+		command  cmd.UpdateConfigCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewUpdateConfigCmd(ui, director)
+		command = cmd.NewUpdateConfigCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts UpdateConfigOpts
+			updateConfigOpts opts.UpdateConfigOpts
 		)
 
 		BeforeEach(func() {
-			opts = UpdateConfigOpts{
-				Args: UpdateConfigArgs{
-					Config: FileBytesArg{Bytes: []byte("fake-config")},
+			updateConfigOpts = opts.UpdateConfigOpts{
+				Args: opts.UpdateConfigArgs{
+					Config: opts.FileBytesArg{Bytes: []byte("fake-config")},
 				},
 				Type: "my-type",
 				Name: "my-name",
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(updateConfigOpts) }
 
 		It("uploads new config", func() {
 			err := act()
@@ -60,20 +60,20 @@ var _ = Describe("UpdateConfigCmd", func() {
 		})
 
 		It("updates templated config", func() {
-			opts.Args.Config = FileBytesArg{
+			updateConfigOpts.Args.Config = opts.FileBytesArg{
 				Bytes: []byte("name1: ((name1))\nname2: ((name2))"),
 			}
 
-			opts.VarKVs = []boshtpl.VarKV{
+			updateConfigOpts.VarKVs = []boshtpl.VarKV{
 				{Name: "name1", Value: "val1-from-kv"},
 			}
 
-			opts.VarsFiles = []boshtpl.VarsFileArg{
+			updateConfigOpts.VarsFiles = []boshtpl.VarsFileArg{
 				{Vars: boshtpl.StaticVariables(map[string]interface{}{"name1": "val1-from-file"})},
 				{Vars: boshtpl.StaticVariables(map[string]interface{}{"name2": "val2-from-file"})},
 			}
 
-			opts.OpsFiles = []OpsFileArg{
+			updateConfigOpts.OpsFiles = []opts.OpsFileArg{
 				{
 					Ops: patch.Ops([]patch.Op{
 						patch.ReplaceOp{Path: patch.MustNewPointerFromString("/xyz?"), Value: "val"},
@@ -165,9 +165,9 @@ var _ = Describe("UpdateConfigCmd", func() {
 
 		Context("when expected-latest-id is specified", func() {
 			BeforeEach(func() {
-				opts = UpdateConfigOpts{
-					Args: UpdateConfigArgs{
-						Config: FileBytesArg{Bytes: []byte("---")},
+				updateConfigOpts = opts.UpdateConfigOpts{
+					Args: opts.UpdateConfigArgs{
+						Config: opts.FileBytesArg{Bytes: []byte("---")},
 					},
 					Type:             "my-type",
 					Name:             "my-name",
@@ -206,9 +206,9 @@ var _ = Describe("UpdateConfigCmd", func() {
 
 		Context("when uploading an empty YAML document", func() {
 			BeforeEach(func() {
-				opts = UpdateConfigOpts{
-					Args: UpdateConfigArgs{
-						Config: FileBytesArg{Bytes: []byte("---")},
+				updateConfigOpts = opts.UpdateConfigOpts{
+					Args: opts.UpdateConfigArgs{
+						Config: opts.FileBytesArg{Bytes: []byte("---")},
 					},
 					Type: "my-type",
 					Name: "",

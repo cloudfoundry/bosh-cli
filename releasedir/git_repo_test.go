@@ -123,7 +123,7 @@ releases/**/*.tgz
 	})
 
 	Describe("MustNotBeDirty", func() {
-		cmd := "git status --short"
+		cmd := "git status --porcelain=1"
 
 		It("returns false if there are no changes", func() {
 			cmdRunner.AddCmdResult(cmd, fakesys.FakeCmdResult{Stdout: ""})
@@ -133,7 +133,7 @@ releases/**/*.tgz
 
 			Expect(cmdRunner.RunComplexCommands).To(Equal([]boshsys.Command{{
 				Name:       "git",
-				Args:       []string{"status", "--short"},
+				Args:       []string{"status", "--porcelain=1"},
 				WorkingDir: "/dir",
 			}}))
 		})

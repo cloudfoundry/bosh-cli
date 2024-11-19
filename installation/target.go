@@ -5,12 +5,14 @@ import (
 )
 
 type Target struct {
-	path string
+	path       string
+	packageDir string
 }
 
-func NewTarget(path string) Target {
+func NewTarget(path string, packageDir string) Target {
 	return Target{
 		path,
+		packageDir,
 	}
 }
 
@@ -31,7 +33,11 @@ func (t Target) TemplatesIndexPath() string {
 }
 
 func (t Target) PackagesPath() string {
-	return filepath.Join(t.path, "packages")
+	if t.packageDir != "" {
+		return t.packageDir
+	} else {
+		return filepath.Join(t.path, "packages")
+	}
 }
 
 func (t Target) JobsPath() string {

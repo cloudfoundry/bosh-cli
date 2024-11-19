@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -17,13 +17,13 @@ var _ = Describe("BlobsCmd", func() {
 	var (
 		blobsDir *fakereldir.FakeBlobsDir
 		ui       *fakeui.FakeUI
-		command  BlobsCmd
+		command  cmd.BlobsCmd
 	)
 
 	BeforeEach(func() {
 		blobsDir = &fakereldir.FakeBlobsDir{}
 		ui = &fakeui.FakeUI{}
-		command = NewBlobsCmd(blobsDir, ui)
+		command = cmd.NewBlobsCmd(blobsDir, ui)
 	})
 
 	Describe("Run", func() {

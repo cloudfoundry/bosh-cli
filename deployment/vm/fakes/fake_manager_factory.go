@@ -3,10 +3,11 @@ package fakes
 import (
 	"fmt"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	bitestutils "github.com/cloudfoundry/bosh-cli/v7/testutils"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type NewManagerInput struct {

@@ -1,16 +1,13 @@
 package config_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/config"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
-	//	"encoding/json"
-	//	"errors"
-	//
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	. "github.com/cloudfoundry/bosh-cli/v7/config"
 )
 
 var _ = Describe("legacyDeploymentStateMigrator", func() {

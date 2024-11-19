@@ -11,9 +11,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/mocks"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
@@ -34,7 +34,7 @@ var _ = Describe("SSH", func() {
 			resultsSSHRunner *fakessh.FakeRunner
 			ui               *fakeui.FakeUI
 			hostBuilder      *fakessh.FakeHostBuilder
-			command          SSHCmd
+			command          cmd.SSHCmd
 		)
 
 		BeforeEach(func() {
@@ -45,22 +45,22 @@ var _ = Describe("SSH", func() {
 			resultsSSHRunner = &fakessh.FakeRunner{}
 			hostBuilder = &fakessh.FakeHostBuilder{}
 			ui = &fakeui.FakeUI{}
-			command = NewSSHCmd(intSSHRunner, nonIntSSHRunner, resultsSSHRunner, ui, hostBuilder)
+			command = cmd.NewSSHCmd(intSSHRunner, nonIntSSHRunner, resultsSSHRunner, ui, hostBuilder)
 		})
 
 		Describe("Run", func() {
 			var (
-				opts SSHOpts
-				act  func() error
+				sshOpts opts.SSHOpts
+				act     func() error
 			)
 
 			BeforeEach(func() {
-				opts = SSHOpts{
-					Args: SshSlugArgs{
+				sshOpts = opts.SSHOpts{
+					Args: opts.SshSlugArgs{
 						Slug: boshdir.NewAllOrInstanceGroupOrInstanceSlug("job-name", ""),
 					},
 
-					GatewayFlags: GatewayFlags{
+					GatewayFlags: opts.GatewayFlags{
 						UUIDGen: uuidGen,
 					},
 				}
@@ -68,7 +68,7 @@ var _ = Describe("SSH", func() {
 				uuidGen.GeneratedUUID = UUID
 
 				act = func() error {
-					return command.Run(opts, func() (boshdir.Deployment, error) {
+					return command.Run(sshOpts, func() (boshdir.Deployment, error) {
 						return deployment, nil
 					})
 				}
@@ -77,7 +77,7 @@ var _ = Describe("SSH", func() {
 			itRunsNonInteractiveSSHWhenCommandIsGiven := func(runner **fakessh.FakeRunner) {
 				Context("when command is provided", func() {
 					BeforeEach(func() {
-						opts.Command = []string{"cmd", "arg1"}
+						sshOpts.Command = []string{"cmd", "arg1"}
 					})
 
 					It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
@@ -125,12 +125,12 @@ var _ = Describe("SSH", func() {
 						result := boshdir.SSHResult{Hosts: []boshdir.Host{{Host: "ip1"}}}
 						deployment.SetUpSSHReturns(result, nil)
 
-						opts.RawOpts = TrimmedSpaceArgs([]string{"raw1", "raw2"})
-						opts.GatewayFlags.Disable = true
-						opts.GatewayFlags.Username = "gw-username"
-						opts.GatewayFlags.Host = "gw-host"
-						opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-						opts.GatewayFlags.SOCKS5Proxy = "socks5"
+						sshOpts.RawOpts = opts.TrimmedSpaceArgs([]string{"raw1", "raw2"})
+						sshOpts.GatewayFlags.Disable = true
+						sshOpts.GatewayFlags.Username = "gw-username"
+						sshOpts.GatewayFlags.Host = "gw-host"
+						sshOpts.GatewayFlags.PrivateKeyPath = "gw-private-key"
+						sshOpts.GatewayFlags.SOCKS5Proxy = "socks5"
 
 						Expect(act()).ToNot(HaveOccurred())
 
@@ -204,11 +204,11 @@ var _ = Describe("SSH", func() {
 						result := boshdir.SSHResult{Hosts: []boshdir.Host{{Host: "ip1"}}}
 						deployment.SetUpSSHReturns(result, nil)
 
-						opts.RawOpts = TrimmedSpaceArgs([]string{"raw1", "raw2"})
-						opts.GatewayFlags.Disable = true
-						opts.GatewayFlags.Username = "gw-username"
-						opts.GatewayFlags.Host = "gw-host"
-						opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
+						sshOpts.RawOpts = opts.TrimmedSpaceArgs([]string{"raw1", "raw2"})
+						sshOpts.GatewayFlags.Disable = true
+						sshOpts.GatewayFlags.Username = "gw-username"
+						sshOpts.GatewayFlags.Host = "gw-host"
+						sshOpts.GatewayFlags.PrivateKeyPath = "gw-private-key"
 
 						Expect(act()).ToNot(HaveOccurred())
 
@@ -258,7 +258,7 @@ var _ = Describe("SSH", func() {
 			Context("when results are requested", func() {
 				BeforeEach(func() {
 					ui.Interactive = true
-					opts.Results = true
+					sshOpts.Results = true
 				})
 
 				itRunsNonInteractiveSSHWhenCommandIsGiven(&resultsSSHRunner)
@@ -286,11 +286,11 @@ var _ = Describe("SSH", func() {
 				}
 				BeforeEach(func() {
 					ui.Interactive = false
-					opts.Command = []string{"do", "it"}
+					sshOpts.Command = []string{"do", "it"}
 
-					opts.PrivateKey.Bytes = []byte("topsecret")
-					opts.Username = "vcap"
-					opts.Args.Slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("1.2.3.4")
+					sshOpts.PrivateKey.Bytes = []byte("topsecret")
+					sshOpts.Username = "vcap"
+					sshOpts.Args.Slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("1.2.3.4")
 
 					hostBuilder.BuildHostReturns(expectedHost, nil)
 				})
@@ -307,8 +307,8 @@ var _ = Describe("SSH", func() {
 					Expect(hostBuilder.BuildHostCallCount()).To(Equal(1))
 					slug, username, _ := hostBuilder.BuildHostArgsForCall(0)
 
-					Expect(slug).To(Equal(opts.Args.Slug))
-					Expect(username).To(Equal(opts.Username))
+					Expect(slug).To(Equal(sshOpts.Args.Slug))
+					Expect(username).To(Equal(sshOpts.Username))
 
 					Expect(nonIntSSHRunner.RunCallCount()).To(Equal(1))
 					conn, result, _ := nonIntSSHRunner.RunArgsForCall(0)
@@ -355,7 +355,7 @@ var _ = Describe("SSH", func() {
 
 			uuidGen *fakeuuid.FakeGenerator
 
-			command EnvSSHCmd
+			command cmd.EnvSSHCmd
 		)
 
 		BeforeEach(func() {
@@ -370,7 +370,7 @@ var _ = Describe("SSH", func() {
 
 			uuidGen = &fakeuuid.FakeGenerator{}
 
-			command = NewEnvSSHCmd(agentClientFactory, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, ui)
+			command = cmd.NewEnvSSHCmd(agentClientFactory, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, ui)
 		})
 
 		AfterEach(func() {
@@ -379,16 +379,16 @@ var _ = Describe("SSH", func() {
 
 		Describe("Run", func() {
 			var (
-				opts SSHOpts
+				sshOpts opts.SSHOpts
 			)
 
 			Context("when private key is provided", func() {
 				BeforeEach(func() {
-					opts.PrivateKey.Bytes = []byte("topsecret")
+					sshOpts.PrivateKey.Bytes = []byte("topsecret")
 				})
 
 				It("errors", func() {
-					err := command.Run(opts)
+					err := command.Run(sshOpts)
 
 					Expect(err).To(MatchError("the --private-key flag is not supported in combination with the --director flag"))
 				})
@@ -397,22 +397,22 @@ var _ = Describe("SSH", func() {
 			Context("when private key is not provided", func() {
 				Context("neither the endpoint or certificate flag is set", func() {
 					BeforeEach(func() {
-						opts = SSHOpts{
-							CreateEnvAuthFlags: CreateEnvAuthFlags{
+						sshOpts = opts.SSHOpts{
+							CreateEnvAuthFlags: opts.CreateEnvAuthFlags{
 								TargetDirector: true,
 							},
 						}
 					})
 
 					It("errors", func() {
-						Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+						Expect(command.Run(sshOpts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
 					})
 				})
 
 				Context("only the endpoint flag is set", func() {
 					BeforeEach(func() {
-						opts = SSHOpts{
-							CreateEnvAuthFlags: CreateEnvAuthFlags{
+						sshOpts = opts.SSHOpts{
+							CreateEnvAuthFlags: opts.CreateEnvAuthFlags{
 								TargetDirector: true,
 								Endpoint:       "https:///foo:bar@10.0.0.5",
 							},
@@ -420,14 +420,14 @@ var _ = Describe("SSH", func() {
 					})
 
 					It("errors", func() {
-						Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+						Expect(command.Run(sshOpts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
 					})
 				})
 
 				Context("only the certificate flag is set", func() {
 					BeforeEach(func() {
-						opts = SSHOpts{
-							CreateEnvAuthFlags: CreateEnvAuthFlags{
+						sshOpts = opts.SSHOpts{
+							CreateEnvAuthFlags: opts.CreateEnvAuthFlags{
 								TargetDirector: true,
 								Certificate:    "some-cert",
 							},
@@ -435,20 +435,20 @@ var _ = Describe("SSH", func() {
 					})
 
 					It("errors", func() {
-						Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+						Expect(command.Run(sshOpts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
 					})
 				})
 
 				Context("the endpoint and certificate flags are set", func() {
 
 					BeforeEach(func() {
-						opts = SSHOpts{
-							CreateEnvAuthFlags: CreateEnvAuthFlags{
+						sshOpts = opts.SSHOpts{
+							CreateEnvAuthFlags: opts.CreateEnvAuthFlags{
 								TargetDirector: true,
 								Endpoint:       "https:///foo:bar@10.0.0.5",
 								Certificate:    "some-cert",
 							},
-							GatewayFlags: GatewayFlags{UUIDGen: uuidGen},
+							GatewayFlags: opts.GatewayFlags{UUIDGen: uuidGen},
 						}
 
 						uuidGen.GeneratedUUID = UUID
@@ -463,7 +463,7 @@ var _ = Describe("SSH", func() {
 					It("returns an error if generating SSH options fails", func() {
 						uuidGen.GenerateError = errors.New("fake-err")
 
-						err := command.Run(opts)
+						err := command.Run(sshOpts)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-err"))
 					})
@@ -471,7 +471,7 @@ var _ = Describe("SSH", func() {
 					itRunsSpecifiedRunnerProperlyWhenCommandGiven := func(runner **fakessh.FakeRunner) {
 						Context("when command is provided", func() {
 							BeforeEach(func() {
-								opts.Command = []string{"cmd", "arg1"}
+								sshOpts.Command = []string{"cmd", "arg1"}
 							})
 
 							It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
@@ -484,7 +484,7 @@ var _ = Describe("SSH", func() {
 								agentClient.EXPECT().CleanUpSSH(gomock.Eq(ExpUsername)).
 									Times(1)
 
-								Expect(command.Run(opts)).ToNot(HaveOccurred())
+								Expect(command.Run(sshOpts)).ToNot(HaveOccurred())
 
 								Expect((*runner).RunCallCount()).To(Equal(1))
 							})
@@ -495,7 +495,7 @@ var _ = Describe("SSH", func() {
 								agentClient.EXPECT().CleanUpSSH(gomock.Any()).
 									Times(1)
 
-								Expect(command.Run(opts)).ToNot(HaveOccurred())
+								Expect(command.Run(sshOpts)).ToNot(HaveOccurred())
 
 								Expect((*runner).RunCallCount()).To(Equal(1))
 								Expect(intSSHRunner.RunCallCount()).To(Equal(0))
@@ -506,7 +506,7 @@ var _ = Describe("SSH", func() {
 									Return(agentclient.SSHResult{}, errors.New("fake-ssh-err")).
 									Times(1)
 
-								err := command.Run(opts)
+								err := command.Run(sshOpts)
 
 								Expect(err).To(HaveOccurred())
 								Expect(err.Error()).To(ContainSubstring("fake-ssh-err"))
@@ -515,7 +515,7 @@ var _ = Describe("SSH", func() {
 							It("returns an error if generating SSH options fails", func() {
 								uuidGen.GenerateError = errors.New("fake-uuid-err")
 
-								err := command.Run(opts)
+								err := command.Run(sshOpts)
 
 								Expect(err).To(HaveOccurred())
 								Expect(err.Error()).To(ContainSubstring("fake-uuid-err"))
@@ -534,14 +534,14 @@ var _ = Describe("SSH", func() {
 								agentClient.EXPECT().CleanUpSSH(gomock.Any()).
 									Times(1)
 
-								opts.RawOpts = TrimmedSpaceArgs([]string{"raw1", "raw2"})
-								opts.GatewayFlags.Disable = true
-								opts.GatewayFlags.Username = "gw-username"
-								opts.GatewayFlags.Host = "gw-host"
-								opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-								opts.GatewayFlags.SOCKS5Proxy = "socks5"
+								sshOpts.RawOpts = opts.TrimmedSpaceArgs([]string{"raw1", "raw2"})
+								sshOpts.GatewayFlags.Disable = true
+								sshOpts.GatewayFlags.Username = "gw-username"
+								sshOpts.GatewayFlags.Host = "gw-host"
+								sshOpts.GatewayFlags.PrivateKeyPath = "gw-private-key"
+								sshOpts.GatewayFlags.SOCKS5Proxy = "socks5"
 
-								Expect(command.Run(opts)).ToNot(HaveOccurred())
+								Expect(command.Run(sshOpts)).ToNot(HaveOccurred())
 
 								Expect((*runner).RunCallCount()).To(Equal(1))
 
@@ -564,7 +564,7 @@ var _ = Describe("SSH", func() {
 								agentClient.EXPECT().CleanUpSSH(gomock.Any()).
 									Times(1)
 
-								err := command.Run(opts)
+								err := command.Run(sshOpts)
 
 								Expect(err).To(HaveOccurred())
 								Expect(err.Error()).To(ContainSubstring("fake-err"))
@@ -585,7 +585,7 @@ var _ = Describe("SSH", func() {
 							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
 								Times(1)
 
-							Expect(command.Run(opts)).ToNot(HaveOccurred())
+							Expect(command.Run(sshOpts)).ToNot(HaveOccurred())
 
 							Expect(intSSHRunner.RunCallCount()).To(Equal(1))
 							Expect(nonIntSSHRunner.RunCallCount()).To(Equal(0))
@@ -606,7 +606,7 @@ var _ = Describe("SSH", func() {
 							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
 								Times(1)
 
-							Expect(command.Run(opts)).ToNot(HaveOccurred())
+							Expect(command.Run(sshOpts)).ToNot(HaveOccurred())
 
 							Expect(intSSHRunner.RunCallCount()).To(Equal(0))
 							Expect(nonIntSSHRunner.RunCallCount()).To(Equal(1))
@@ -616,7 +616,7 @@ var _ = Describe("SSH", func() {
 
 					Context("when the results option is used", func() {
 						BeforeEach(func() {
-							opts.Results = true
+							sshOpts.Results = true
 						})
 
 						itRunsSpecifiedRunnerProperlyWhenCommandGiven(&resultsSSHRunner)
@@ -627,7 +627,7 @@ var _ = Describe("SSH", func() {
 							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
 								Times(1)
 
-							Expect(command.Run(opts)).ToNot(HaveOccurred())
+							Expect(command.Run(sshOpts)).ToNot(HaveOccurred())
 
 							Expect(intSSHRunner.RunCallCount()).To(Equal(0))
 							Expect(nonIntSSHRunner.RunCallCount()).To(Equal(0))

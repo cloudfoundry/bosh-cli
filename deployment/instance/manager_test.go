@@ -1,28 +1,25 @@
 package instance_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
-
 	"errors"
 	"time"
 
+	"github.com/cloudfoundry/bosh-agent/agentclient"
+	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	mock_agentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
 	mock_blobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
-	mock_instance_state "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/mocks"
-	"github.com/golang/mock/gomock"
-
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
-	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
-
-	"github.com/cloudfoundry/bosh-agent/agentclient"
 	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
+	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	fakebidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk/fakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
+	mock_instance_state "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/mocks"
+	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
@@ -101,6 +98,7 @@ var _ = Describe("Manager", func() {
 			diskPool           bideplmanifest.DiskPool
 			deploymentManifest bideplmanifest.Manifest
 			fakeCloudStemcell  *fakebistemcell.FakeCloudStemcell
+			diskCIDs           []string
 
 			expectedInstance Instance
 			expectedDisk     *fakebidisk.FakeDisk
@@ -167,6 +165,8 @@ var _ = Describe("Manager", func() {
 
 			fakeCloudStemcell = fakebistemcell.NewFakeCloudStemcell("fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version", apiVersion)
 
+			diskCIDs = []string{"fake-disk-cid"}
+
 			fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
 			fakeVMManager.CreateVM = fakeVM
 
@@ -197,6 +197,7 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
+				diskCIDs,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -205,6 +206,7 @@ var _ = Describe("Manager", func() {
 			Expect(fakeVMManager.CreateInput).To(Equal(fakebivm.CreateInput{
 				Stemcell: fakeCloudStemcell,
 				Manifest: deploymentManifest,
+				DiskCIDs: diskCIDs,
 			}))
 		})
 
@@ -214,6 +216,7 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
+				diskCIDs,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -227,6 +230,7 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
+				diskCIDs,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -243,6 +247,7 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
+				diskCIDs,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -265,6 +270,7 @@ var _ = Describe("Manager", func() {
 				0,
 				deploymentManifest,
 				fakeCloudStemcell,
+				diskCIDs,
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -289,6 +295,7 @@ var _ = Describe("Manager", func() {
 					0,
 					deploymentManifest,
 					fakeCloudStemcell,
+					diskCIDs,
 					fakeStage,
 				)
 				Expect(err).To(HaveOccurred())
@@ -301,6 +308,7 @@ var _ = Describe("Manager", func() {
 					0,
 					deploymentManifest,
 					fakeCloudStemcell,
+					diskCIDs,
 					fakeStage,
 				)
 				Expect(err).To(HaveOccurred())

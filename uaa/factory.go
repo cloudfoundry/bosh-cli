@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"

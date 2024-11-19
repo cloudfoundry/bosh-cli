@@ -6,16 +6,5 @@ ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 echo 'Note: if you want to quickly run tests for just one package, do it like this:'
 echo '  % bin/ginkgo path/to/package'
 
-echo -e "\n Running linter..." # TODO: should CI do this in parallel?
-"${ROOT_DIR}/bin/lint"
-
-echo -e "\n Building docs example..." # TODO: should CI do this in parallel?
-go build -o "${ROOT_DIR}/out/example" "${ROOT_DIR}/docs"
-
-echo -e "\B Building bosh-cli..." # TODO: should CI do this in parallel?
-"${ROOT_DIR}/bin/build"
-
-echo -e "\n Running unit tests..."
+echo "Running unit tests..."
 "${ROOT_DIR}/bin/ginkgo" --skip-package "acceptance,integration"  "${ROOT_DIR}"
-
-echo -e "\n\033[0;32mSUCCESS\033[0m"

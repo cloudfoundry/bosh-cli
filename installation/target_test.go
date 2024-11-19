@@ -1,18 +1,19 @@
 package installation_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/installation"
+	"path/filepath"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"path/filepath"
+	. "github.com/cloudfoundry/bosh-cli/v7/installation"
 )
 
 var _ = Describe("Target", func() {
 	Describe("Paths", func() {
 		var target Target
 		BeforeEach(func() {
-			target = NewTarget("/home/fake/madcow")
+			target = NewTarget("/home/fake/madcow", "")
 		})
 
 		It("returns the blobstore path", func() {
@@ -27,8 +28,22 @@ var _ = Describe("Target", func() {
 			Expect(target.TemplatesIndexPath()).To(Equal(filepath.Join("/", "home", "fake", "madcow", "templates.json")))
 		})
 
-		It("returns the packages path", func() {
-			Expect(target.PackagesPath()).To(Equal(filepath.Join("/", "home", "fake", "madcow", "packages")))
+		Context("packageDir is NOT provided", func() {
+			It("returns the packages path as a subdirectory of the path", func() {
+				Expect(target.PackagesPath()).To(Equal(filepath.Join("/", "home", "fake", "madcow", "packages")))
+			})
+		})
+
+		Context("packageDir is provided", func() {
+			var packagesDir string
+			BeforeEach(func() {
+				packagesDir = "/some/good/path"
+				target = NewTarget("/home/fake/madcow", packagesDir)
+			})
+
+			It("returns the provided packages path", func() {
+				Expect(target.PackagesPath()).To(Equal(packagesDir))
+			})
 		})
 
 		It("returns the temp path", func() {

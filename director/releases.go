@@ -6,9 +6,10 @@ import (
 	"net/http"
 	gourl "net/url"
 
-	urlhelper "github.com/cloudfoundry/bosh-cli/v7/common/util"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	semver "github.com/cppforlife/go-semi-semantic/version"
+
+	urlhelper "github.com/cloudfoundry/bosh-cli/v7/common/util"
 )
 
 type ReleaseImpl struct {

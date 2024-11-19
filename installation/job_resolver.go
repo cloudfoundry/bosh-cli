@@ -1,10 +1,11 @@
 package installation
 
 import (
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	bideplrel "github.com/cloudfoundry/bosh-cli/v7/deployment/release"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type JobResolver interface {
@@ -24,8 +25,10 @@ func NewJobResolver(
 }
 
 func (b *jobResolver) From(installationManifest biinstallmanifest.Manifest) ([]bireljob.Job, error) {
-	// installation only ever has one job: the cpi job.
-	jobsReferencesInRelease := []biinstallmanifest.ReleaseJobRef{installationManifest.Template}
+	jobsReferencesInRelease := []biinstallmanifest.ReleaseJobRef{}
+	for _, template := range installationManifest.Templates {
+		jobsReferencesInRelease = append(jobsReferencesInRelease, biinstallmanifest.ReleaseJobRef{Name: template.Name, Release: template.Release})
+	}
 
 	releaseJobs := make([]bireljob.Job, len(jobsReferencesInRelease))
 	for i, jobRef := range jobsReferencesInRelease {

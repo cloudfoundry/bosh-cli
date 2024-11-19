@@ -11,9 +11,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/mocks"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
@@ -30,7 +30,7 @@ var _ = Describe("SCP", func() {
 			uuidGen     *fakeuuid.FakeGenerator
 			scpRunner   *fakessh.FakeSCPRunner
 			hostBuilder *fakessh.FakeHostBuilder
-			command     SCPCmd
+			command     cmd.SCPCmd
 		)
 
 		BeforeEach(func() {
@@ -38,25 +38,25 @@ var _ = Describe("SCP", func() {
 			uuidGen = &fakeuuid.FakeGenerator{}
 			scpRunner = &fakessh.FakeSCPRunner{}
 			hostBuilder = &fakessh.FakeHostBuilder{}
-			command = NewSCPCmd(scpRunner, hostBuilder)
+			command = cmd.NewSCPCmd(scpRunner, hostBuilder)
 		})
 
 		Describe("Run", func() {
 			var (
-				opts SCPOpts
-				act  func() error
+				scpOpts opts.SCPOpts
+				act     func() error
 			)
 
 			BeforeEach(func() {
-				opts = SCPOpts{
-					GatewayFlags: GatewayFlags{
+				scpOpts = opts.SCPOpts{
+					GatewayFlags: opts.GatewayFlags{
 						UUIDGen: uuidGen,
 					},
 				}
 				uuidGen.GeneratedUUID = UUID
 
 				act = func() error {
-					return command.Run(opts, func() (boshdir.Deployment, error) {
+					return command.Run(scpOpts, func() (boshdir.Deployment, error) {
 						return deployment, nil
 					})
 				}
@@ -64,7 +64,7 @@ var _ = Describe("SCP", func() {
 
 			Context("when valid SCP args are provided", func() {
 				BeforeEach(func() {
-					opts.Args.Paths = []string{"from:file", "/something"}
+					scpOpts.Args.Paths = []string{"from:file", "/something"}
 				})
 
 				It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
@@ -106,11 +106,11 @@ var _ = Describe("SCP", func() {
 					result := boshdir.SSHResult{Hosts: []boshdir.Host{{Host: "ip1"}}}
 					deployment.SetUpSSHReturns(result, nil)
 
-					opts.GatewayFlags.Disable = true
-					opts.GatewayFlags.Username = "gw-username"
-					opts.GatewayFlags.Host = "gw-host"
-					opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-					opts.GatewayFlags.SOCKS5Proxy = "some-proxy"
+					scpOpts.GatewayFlags.Disable = true
+					scpOpts.GatewayFlags.Username = "gw-username"
+					scpOpts.GatewayFlags.Host = "gw-host"
+					scpOpts.GatewayFlags.PrivateKeyPath = "gw-private-key"
+					scpOpts.GatewayFlags.SOCKS5Proxy = "some-proxy"
 
 					Expect(act()).ToNot(HaveOccurred())
 
@@ -128,7 +128,7 @@ var _ = Describe("SCP", func() {
 				})
 
 				It("sets up SCP to be recursive if recursive flag is set", func() {
-					opts.Recursive = true
+					scpOpts.Recursive = true
 					Expect(act()).ToNot(HaveOccurred())
 					Expect(scpRunner.RunCallCount()).To(Equal(1))
 
@@ -152,10 +152,10 @@ var _ = Describe("SCP", func() {
 					Host:      "1.2.3.4",
 				}
 				BeforeEach(func() {
-					opts.Args.Paths = []string{"1.2.3.4:file", "/something"}
+					scpOpts.Args.Paths = []string{"1.2.3.4:file", "/something"}
 
-					opts.PrivateKey.Bytes = []byte("topsecret")
-					opts.Username = "vcap"
+					scpOpts.PrivateKey.Bytes = []byte("topsecret")
+					scpOpts.Username = "vcap"
 
 					hostBuilder.BuildHostReturns(expectedHost, nil)
 				})
@@ -175,7 +175,7 @@ var _ = Describe("SCP", func() {
 
 					expectedSlug, _ := boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("1.2.3.4")
 					Expect(slug).To(Equal(expectedSlug))
-					Expect(username).To(Equal(opts.Username))
+					Expect(username).To(Equal(scpOpts.Username))
 
 					Expect(scpRunner.RunCallCount()).To(Equal(1))
 					conn, result, _ := scpRunner.RunArgsForCall(0)
@@ -208,7 +208,7 @@ var _ = Describe("SCP", func() {
 
 			Context("when valid SCP args are not provided", func() {
 				BeforeEach(func() {
-					opts.Args.Paths = []string{"invalid-arg"}
+					scpOpts.Args.Paths = []string{"invalid-arg"}
 				})
 
 				It("returns an error", func() {
@@ -227,7 +227,7 @@ var _ = Describe("SCP", func() {
 			agentClient        *mockagentclient.MockAgentClient
 			uuidGen            *fakeuuid.FakeGenerator
 			scpRunner          *fakessh.FakeSCPRunner
-			command            EnvSCPCmd
+			command            cmd.EnvSCPCmd
 		)
 
 		BeforeEach(func() {
@@ -238,7 +238,7 @@ var _ = Describe("SCP", func() {
 
 			uuidGen = &fakeuuid.FakeGenerator{}
 			scpRunner = &fakessh.FakeSCPRunner{}
-			command = NewEnvSCPCmd(agentClientFactory, scpRunner)
+			command = cmd.NewEnvSCPCmd(agentClientFactory, scpRunner)
 		})
 
 		AfterEach(func() {
@@ -247,16 +247,16 @@ var _ = Describe("SCP", func() {
 
 		Describe("Run", func() {
 			var (
-				opts SCPOpts
+				scpOpts opts.SCPOpts
 			)
 
 			Context("when private key is provided", func() {
 				BeforeEach(func() {
-					opts.PrivateKey.Bytes = []byte("topsecret")
+					scpOpts.PrivateKey.Bytes = []byte("topsecret")
 				})
 
 				It("errors", func() {
-					err := command.Run(opts)
+					err := command.Run(scpOpts)
 
 					Expect(err).To(MatchError("the --private-key flag is not supported in combination with the --director flag"))
 				})
@@ -265,22 +265,22 @@ var _ = Describe("SCP", func() {
 			Context("when private key is not provided", func() {
 				Context("neither the endpoint or certificate flag is set", func() {
 					BeforeEach(func() {
-						opts = SCPOpts{
-							CreateEnvAuthFlags: CreateEnvAuthFlags{
+						scpOpts = opts.SCPOpts{
+							CreateEnvAuthFlags: opts.CreateEnvAuthFlags{
 								TargetDirector: true,
 							},
 						}
 					})
 
 					It("errors", func() {
-						Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+						Expect(command.Run(scpOpts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
 					})
 				})
 
 				Context("only the endpoint flag is set", func() {
 					BeforeEach(func() {
-						opts = SCPOpts{
-							CreateEnvAuthFlags: CreateEnvAuthFlags{
+						scpOpts = opts.SCPOpts{
+							CreateEnvAuthFlags: opts.CreateEnvAuthFlags{
 								TargetDirector: true,
 								Endpoint:       "https:///foo:bar@10.0.0.5",
 							},
@@ -288,14 +288,14 @@ var _ = Describe("SCP", func() {
 					})
 
 					It("errors", func() {
-						Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+						Expect(command.Run(scpOpts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
 					})
 				})
 
 				Context("only the certificate flag is set", func() {
 					BeforeEach(func() {
-						opts = SCPOpts{
-							CreateEnvAuthFlags: CreateEnvAuthFlags{
+						scpOpts = opts.SCPOpts{
+							CreateEnvAuthFlags: opts.CreateEnvAuthFlags{
 								TargetDirector: true,
 								Certificate:    "some-cert",
 							},
@@ -303,19 +303,19 @@ var _ = Describe("SCP", func() {
 					})
 
 					It("errors", func() {
-						Expect(command.Run(opts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
+						Expect(command.Run(scpOpts)).To(MatchError("the --director flag requires both the --agent-endpoint and --agent-certificate flags to be set"))
 					})
 				})
 
 				Context("the endpoint and certificate flags are set", func() {
 					BeforeEach(func() {
-						opts = SCPOpts{
-							CreateEnvAuthFlags: CreateEnvAuthFlags{
+						scpOpts = opts.SCPOpts{
+							CreateEnvAuthFlags: opts.CreateEnvAuthFlags{
 								TargetDirector: true,
 								Endpoint:       "https:///foo:bar@10.0.0.5",
 								Certificate:    "some-cert",
 							},
-							GatewayFlags: GatewayFlags{
+							GatewayFlags: opts.GatewayFlags{
 								UUIDGen: uuidGen,
 							},
 						}
@@ -330,7 +330,7 @@ var _ = Describe("SCP", func() {
 
 					Context("when valid SCP args are provided", func() {
 						BeforeEach(func() {
-							opts.Args.Paths = []string{"from:file", "/something"}
+							scpOpts.Args.Paths = []string{"from:file", "/something"}
 						})
 
 						It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
@@ -343,7 +343,7 @@ var _ = Describe("SCP", func() {
 							agentClient.EXPECT().CleanUpSSH(gomock.Eq(ExpUsername)).
 								Times(1)
 
-							Expect(command.Run(opts)).ToNot(HaveOccurred())
+							Expect(command.Run(scpOpts)).ToNot(HaveOccurred())
 
 							Expect(scpRunner.RunCallCount()).To(Equal(1))
 						})
@@ -353,7 +353,7 @@ var _ = Describe("SCP", func() {
 								Return(agentclient.SSHResult{}, errors.New("fake-ssh-err")).
 								Times(1)
 
-							err := command.Run(opts)
+							err := command.Run(scpOpts)
 
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring("fake-ssh-err"))
@@ -362,7 +362,7 @@ var _ = Describe("SCP", func() {
 						It("returns an error if generating SSH options fails", func() {
 							uuidGen.GenerateError = errors.New("fake-uuid-err")
 
-							err := command.Run(opts)
+							err := command.Run(scpOpts)
 
 							Expect(err).To(HaveOccurred())
 							Expect(err.Error()).To(ContainSubstring("fake-uuid-err"))
@@ -381,13 +381,13 @@ var _ = Describe("SCP", func() {
 							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
 								Times(1)
 
-							opts.GatewayFlags.Disable = true
-							opts.GatewayFlags.Username = "gw-username"
-							opts.GatewayFlags.Host = "gw-host"
-							opts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-							opts.GatewayFlags.SOCKS5Proxy = "some-proxy"
+							scpOpts.GatewayFlags.Disable = true
+							scpOpts.GatewayFlags.Username = "gw-username"
+							scpOpts.GatewayFlags.Host = "gw-host"
+							scpOpts.GatewayFlags.PrivateKeyPath = "gw-private-key"
+							scpOpts.GatewayFlags.SOCKS5Proxy = "some-proxy"
 
-							Expect(command.Run(opts)).ToNot(HaveOccurred())
+							Expect(command.Run(scpOpts)).ToNot(HaveOccurred())
 
 							Expect(scpRunner.RunCallCount()).To(Equal(1))
 
@@ -403,13 +403,13 @@ var _ = Describe("SCP", func() {
 						})
 
 						It("sets up SCP to be recursive if recursive flag is set", func() {
-							opts.Recursive = true
+							scpOpts.Recursive = true
 							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
 								Times(1)
 							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
 								Times(1)
 
-							Expect(command.Run(opts)).ToNot(HaveOccurred())
+							Expect(command.Run(scpOpts)).ToNot(HaveOccurred())
 							Expect(scpRunner.RunCallCount()).To(Equal(1))
 
 							_, _, runCommand := scpRunner.RunArgsForCall(0)
@@ -423,7 +423,7 @@ var _ = Describe("SCP", func() {
 								Times(1)
 							scpRunner.RunReturns(errors.New("fake-scp-err"))
 
-							err := command.Run(opts)
+							err := command.Run(scpOpts)
 
 							Expect(err).To(MatchError(ContainSubstring("fake-scp-err")))
 						})

@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -18,26 +18,26 @@ var _ = Describe("ConfigCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  ConfigCmd
+		command  cmd.ConfigCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewConfigCmd(ui, director)
+		command = cmd.NewConfigCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts ConfigOpts
+			configOpts opts.ConfigOpts
 		)
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(configOpts) }
 
 		Context("when neither ID nor options are given", func() {
 
 			BeforeEach(func() {
-				opts = ConfigOpts{}
+				configOpts = opts.ConfigOpts{}
 			})
 
 			It("returns an error", func() {
@@ -50,8 +50,8 @@ var _ = Describe("ConfigCmd", func() {
 		Context("when only ID is given", func() {
 
 			BeforeEach(func() {
-				opts = ConfigOpts{
-					Args: ConfigArgs{ID: "123"},
+				configOpts = opts.ConfigOpts{
+					Args: opts.ConfigArgs{ID: "123"},
 				}
 			})
 
@@ -107,8 +107,8 @@ var _ = Describe("ConfigCmd", func() {
 		Context("when ID and type option is given", func() {
 
 			BeforeEach(func() {
-				opts = ConfigOpts{
-					Args: ConfigArgs{ID: "123"},
+				configOpts = opts.ConfigOpts{
+					Args: opts.ConfigArgs{ID: "123"},
 					Type: "my-type",
 				}
 			})
@@ -122,8 +122,8 @@ var _ = Describe("ConfigCmd", func() {
 
 		Context("when ID and name option is given", func() {
 			BeforeEach(func() {
-				opts = ConfigOpts{
-					Args: ConfigArgs{ID: "123"},
+				configOpts = opts.ConfigOpts{
+					Args: opts.ConfigArgs{ID: "123"},
 					Name: "my-name",
 				}
 			})
@@ -137,7 +137,7 @@ var _ = Describe("ConfigCmd", func() {
 
 		Context("when only the name option is given", func() {
 			BeforeEach(func() {
-				opts = ConfigOpts{
+				configOpts = opts.ConfigOpts{
 					Name: "my-name",
 				}
 			})
@@ -151,7 +151,7 @@ var _ = Describe("ConfigCmd", func() {
 
 		Context("when only the type option is given", func() {
 			BeforeEach(func() {
-				opts = ConfigOpts{
+				configOpts = opts.ConfigOpts{
 					Type: "my-type",
 				}
 			})
@@ -166,7 +166,7 @@ var _ = Describe("ConfigCmd", func() {
 		Context("when ID is not given and both options are given", func() {
 
 			BeforeEach(func() {
-				opts = ConfigOpts{
+				configOpts = opts.ConfigOpts{
 					Type: "my-type",
 					Name: "my-name",
 				}

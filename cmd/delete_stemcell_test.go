@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -17,24 +17,24 @@ var _ = Describe("DeleteStemcellCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  DeleteStemcellCmd
+		command  cmd.DeleteStemcellCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewDeleteStemcellCmd(ui, director)
+		command = cmd.NewDeleteStemcellCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts     DeleteStemcellOpts
-			stemcell *fakedir.FakeStemcell
+			deleteStemcellOpts opts.DeleteStemcellOpts
+			stemcell           *fakedir.FakeStemcell
 		)
 
 		BeforeEach(func() {
-			opts = DeleteStemcellOpts{
-				Args: DeleteStemcellArgs{
+			deleteStemcellOpts = opts.DeleteStemcellOpts{
+				Args: opts.DeleteStemcellArgs{
 					Slug: boshdir.NewStemcellSlug("some-name", "some-version"),
 				},
 			}
@@ -43,7 +43,7 @@ var _ = Describe("DeleteStemcellCmd", func() {
 			director.FindStemcellReturns(stemcell, nil)
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(deleteStemcellOpts) }
 
 		It("deletes stemcell", func() {
 			err := act()
@@ -58,7 +58,7 @@ var _ = Describe("DeleteStemcellCmd", func() {
 		})
 
 		It("deletes stemcell forcefully if requested", func() {
-			opts.Force = true
+			deleteStemcellOpts.Force = true
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())

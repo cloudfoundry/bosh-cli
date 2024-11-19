@@ -5,28 +5,28 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
 	fakeconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config/configfakes"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 )
 
 var _ = Describe("SessionContextImpl", func() {
 	var (
-		opts   BoshOpts
-		config *fakeconf.FakeConfig
-		fs     *fakesys.FakeFileSystem
+		boshOpts opts.BoshOpts
+		config   *fakeconf.FakeConfig
+		fs       *fakesys.FakeFileSystem
 	)
 
 	BeforeEach(func() {
-		opts = BoshOpts{}
+		boshOpts = opts.BoshOpts{}
 		config = &fakeconf.FakeConfig{
 			ResolveEnvironmentStub: func(in string) string { return in },
 		}
 		fs = fakesys.NewFakeFileSystem()
 	})
 
-	build := func() *SessionContextImpl { return NewSessionContextImpl(opts, config, fs) }
+	build := func() *cmd.SessionContextImpl { return cmd.NewSessionContextImpl(boshOpts, config, fs) }
 
 	Describe("Environment", func() {
 		It("returns resolved global option if provided", func() {
@@ -35,7 +35,7 @@ var _ = Describe("SessionContextImpl", func() {
 				return "resolved-url"
 			}
 
-			opts.EnvironmentOpt = "opt-alias"
+			boshOpts.EnvironmentOpt = "opt-alias"
 
 			Expect(build().Environment()).To(Equal("resolved-url"))
 		})
@@ -52,7 +52,7 @@ var _ = Describe("SessionContextImpl", func() {
 				return cmdconf.Creds{Client: "config-username"}
 			}
 
-			opts.EnvironmentOpt = "opt-alias"
+			boshOpts.EnvironmentOpt = "opt-alias"
 
 			Expect(build().Credentials()).To(Equal(cmdconf.Creds{Client: "config-username"}))
 		})
@@ -63,7 +63,7 @@ var _ = Describe("SessionContextImpl", func() {
 				ClientSecret: "config-client-secret",
 			})
 
-			opts.ClientOpt = "opt-client"
+			boshOpts.ClientOpt = "opt-client"
 
 			Expect(build().Credentials()).To(Equal(cmdconf.Creds{
 				Client:       "opt-client",
@@ -77,8 +77,8 @@ var _ = Describe("SessionContextImpl", func() {
 				ClientSecret: "config-client-secret",
 			})
 
-			opts.ClientOpt = "opt-client"
-			opts.ClientSecretOpt = "opt-client-secret"
+			boshOpts.ClientOpt = "opt-client"
+			boshOpts.ClientSecretOpt = "opt-client-secret"
 
 			Expect(build().Credentials()).To(Equal(cmdconf.Creds{
 				Client:       "opt-client",
@@ -89,18 +89,18 @@ var _ = Describe("SessionContextImpl", func() {
 
 	Describe("CACert", func() {
 		BeforeEach(func() {
-			opts.EnvironmentOpt = "opt-url"
+			boshOpts.EnvironmentOpt = "opt-url"
 		})
 
 		It("returns global option if provided", func() {
 			config.CACertReturns("config-cert")
-			opts.CACertOpt = CACertArg{Content: "opt-cert"}
+			boshOpts.CACertOpt = opts.CACertArg{Content: "opt-cert"}
 			Expect(build().CACert()).To(Equal("opt-cert"))
 		})
 
 		It("returns config value if global option is not set", func() {
 			config.CACertReturns("config-cert")
-			opts.CACertOpt = CACertArg{}
+			boshOpts.CACertOpt = opts.CACertArg{}
 			Expect(build().CACert()).To(Equal("config-cert"))
 		})
 
@@ -111,7 +111,7 @@ var _ = Describe("SessionContextImpl", func() {
 
 	Describe("Deployment", func() {
 		It("returns global option if provided", func() {
-			opts.DeploymentOpt = "opt-dep"
+			boshOpts.DeploymentOpt = "opt-dep"
 			Expect(build().Deployment()).To(Equal("opt-dep"))
 		})
 

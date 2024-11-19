@@ -1,9 +1,10 @@
 package license
 
 import (
+	crypto2 "github.com/cloudfoundry/bosh-utils/crypto"
+
 	"github.com/cloudfoundry/bosh-cli/v7/crypto"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
-	crypto2 "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 type License struct {

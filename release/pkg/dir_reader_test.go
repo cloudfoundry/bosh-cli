@@ -6,14 +6,13 @@ import (
 	"os"
 	"path/filepath"
 
+	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
-
 	fakeres "github.com/cloudfoundry/bosh-cli/v7/release/resource/resourcefakes"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 )
 
 var _ = Describe("DirReaderImpl", func() {

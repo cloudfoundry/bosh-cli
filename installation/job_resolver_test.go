@@ -1,17 +1,17 @@
 package installation_test
 
 import (
-	"github.com/cloudfoundry/bosh-cli/v7/installation"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	mock_deployment_release "github.com/cloudfoundry/bosh-cli/v7/deployment/release/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 )
 
 var _ = Describe("JobResolver", func() {
@@ -38,9 +38,8 @@ var _ = Describe("JobResolver", func() {
 
 		manifest = biinstallmanifest.Manifest{
 			Name: "fake-installation-name",
-			Template: biinstallmanifest.ReleaseJobRef{
-				Name:    "fake-cpi-job-name",
-				Release: "fake-cpi-release-name",
+			Templates: []biinstallmanifest.ReleaseJobRef{
+				{Name: "fake-cpi-job-name", Release: "fake-cpi-release-name"},
 			},
 			Properties: biproperty.Map{
 				"fake-installation-property": "fake-installation-property-value",

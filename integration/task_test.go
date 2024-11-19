@@ -4,45 +4,14 @@ import (
 	"net/http"
 	"strings"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
-
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("task command", func() {
-	var (
-		ui         *fakeui.FakeUI
-		fs         boshsys.FileSystem
-		deps       BasicDeps
-		cmdFactory Factory
-	)
-
-	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
-		logger := boshlog.NewLogger(boshlog.LevelNone)
-		confUI := boshui.NewWrappingConfUI(ui, logger)
-
-		fs = boshsys.NewOsFileSystem(logger)
-		deps = NewBasicDepsWithFS(confUI, fs, logger)
-		cmdFactory = NewFactory(deps)
-	})
-
-	execCmd := func(args []string) {
-		cmd, err := cmdFactory.New(args)
-		Expect(err).ToNot(HaveOccurred())
-
-		err = cmd.Execute()
-		Expect(err).ToNot(HaveOccurred())
-	}
-
 	It("streams task output", func() {
-		directorCACert, director := BuildHTTPSServer()
+		directorCACert, director := buildHTTPSServer()
 		defer director.Close()
 
 		processing := ghttp.CombineHandlers(
@@ -96,7 +65,7 @@ var _ = Describe("task command", func() {
 			),
 		)
 
-		execCmd([]string{"task", "123", "-e", director.URL(), "--ca-cert", directorCACert})
+		createAndExecCommand(cmdFactory, []string{"task", "123", "-e", director.URL(), "--ca-cert", directorCACert})
 
 		output := strings.Join(ui.Blocks, "\n")
 		Expect(output).To(ContainSubstring("event-one"))

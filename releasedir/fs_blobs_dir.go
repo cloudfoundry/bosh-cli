@@ -1,6 +1,7 @@
 package releasedir
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -12,12 +13,10 @@ import (
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+	"github.com/cloudfoundry/bosh-utils/work"
 	"gopkg.in/yaml.v2"
 
-	"fmt"
-
 	bicrypto "github.com/cloudfoundry/bosh-cli/v7/crypto"
-	"github.com/cloudfoundry/bosh-utils/work"
 )
 
 type FSBlobsDir struct {

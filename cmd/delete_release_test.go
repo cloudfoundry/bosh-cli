@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -17,25 +17,25 @@ var _ = Describe("DeleteReleaseCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  DeleteReleaseCmd
+		command  cmd.DeleteReleaseCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewDeleteReleaseCmd(ui, director)
+		command = cmd.NewDeleteReleaseCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts DeleteReleaseOpts
+			deleteReleaseOpts opts.DeleteReleaseOpts
 		)
 
 		BeforeEach(func() {
-			opts = DeleteReleaseOpts{}
+			deleteReleaseOpts = opts.DeleteReleaseOpts{}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(deleteReleaseOpts) }
 
 		Context("when release series is requested for deletion", func() {
 			var (
@@ -43,7 +43,7 @@ var _ = Describe("DeleteReleaseCmd", func() {
 			)
 
 			BeforeEach(func() {
-				opts.Args.Slug = boshdir.NewReleaseOrSeriesSlug("some-name", "")
+				deleteReleaseOpts.Args.Slug = boshdir.NewReleaseOrSeriesSlug("some-name", "")
 
 				releaseSeries = &fakedir.FakeReleaseSeries{}
 				director.FindReleaseSeriesReturns(releaseSeries, nil)
@@ -64,7 +64,7 @@ var _ = Describe("DeleteReleaseCmd", func() {
 			})
 
 			It("does not delete release series which does not exist", func() {
-				opts.Args.Slug = boshdir.NewReleaseOrSeriesSlug("not-existing-release", "")
+				deleteReleaseOpts.Args.Slug = boshdir.NewReleaseOrSeriesSlug("not-existing-release", "")
 				releaseSeries.ExistsReturns(false, nil)
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -78,7 +78,7 @@ var _ = Describe("DeleteReleaseCmd", func() {
 			})
 
 			It("deletes release series forcefully if requested", func() {
-				opts.Force = true
+				deleteReleaseOpts.Force = true
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
@@ -133,7 +133,7 @@ var _ = Describe("DeleteReleaseCmd", func() {
 			)
 
 			BeforeEach(func() {
-				opts.Args.Slug = boshdir.NewReleaseOrSeriesSlug("some-name", "some-version")
+				deleteReleaseOpts.Args.Slug = boshdir.NewReleaseOrSeriesSlug("some-name", "some-version")
 
 				release = &fakedir.FakeRelease{}
 				director.FindReleaseReturns(release, nil)
@@ -154,7 +154,7 @@ var _ = Describe("DeleteReleaseCmd", func() {
 			})
 
 			It("does not delete release which does not exist", func() {
-				opts.Args.Slug = boshdir.NewReleaseOrSeriesSlug("some-other-name", "some-version")
+				deleteReleaseOpts.Args.Slug = boshdir.NewReleaseOrSeriesSlug("some-other-name", "some-version")
 				release.ExistsReturns(false, nil)
 
 				err := act()
@@ -169,7 +169,7 @@ var _ = Describe("DeleteReleaseCmd", func() {
 			})
 
 			It("deletes release forcefully if requested", func() {
-				opts.Force = true
+				deleteReleaseOpts.Force = true
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())

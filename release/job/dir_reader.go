@@ -1,14 +1,13 @@
 package job
 
 import (
+	"errors"
+	"fmt"
 	"path/filepath"
+	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-
-	"errors"
-	"fmt"
-	"strings"
 
 	boshjobman "github.com/cloudfoundry/bosh-cli/v7/release/job/manifest"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"

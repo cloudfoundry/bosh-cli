@@ -1,8 +1,9 @@
 package resource
 
 import (
-	"github.com/cloudfoundry/bosh-cli/v7/crypto"
 	crypto2 "github.com/cloudfoundry/bosh-utils/crypto"
+
+	"github.com/cloudfoundry/bosh-cli/v7/crypto"
 )
 
 // You only need **one** of these per package!

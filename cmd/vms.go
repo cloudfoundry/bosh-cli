@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"code.cloudfoundry.org/workpool"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type VMsCmd struct {

@@ -5,9 +5,10 @@ import (
 	"path/filepath"
 	"time"
 
+	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
+	"github.com/cloudfoundry/bosh-utils/httpclient"
 	"github.com/cppforlife/go-patch/patch"
 
-	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
 	biblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
@@ -32,7 +33,6 @@ import (
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	bitemplate "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
 	bitemplateerb "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
-	"github.com/cloudfoundry/bosh-utils/httpclient"
 )
 
 type envFactory struct {
@@ -72,6 +72,7 @@ func NewEnvFactory(
 	manifestOp patch.Op,
 	recreatePersistentDisks bool,
 	useIsolatedEnv bool,
+	packageDir string,
 ) *envFactory {
 	f := envFactory{
 		deps:         deps,
@@ -122,12 +123,11 @@ func NewEnvFactory(
 		f.cpiInstaller = bicpirel.CpiInstaller{
 			ReleaseManager:   f.releaseManager,
 			InstallerFactory: installerFactory,
-			Validator:        bicpirel.NewValidator(),
 		}
 	}
 
 	f.targetProvider = boshinst.NewTargetProvider(
-		f.deploymentStateService, deps.UUIDGen, filepath.Join(workspaceRootPath, "installations"))
+		f.deploymentStateService, deps.UUIDGen, filepath.Join(workspaceRootPath, "installations"), packageDir)
 
 	{
 		diskRepo := biconfig.NewDiskRepo(f.deploymentStateService, deps.UUIDGen)

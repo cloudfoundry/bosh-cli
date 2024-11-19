@@ -3,11 +3,11 @@ package director_test
 import (
 	"net/http"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/director"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
 	"github.com/onsi/gomega/ghttp"
+
+	. "github.com/cloudfoundry/bosh-cli/v7/director"
 )
 
 var _ = Describe("Deployment", func() {
@@ -38,10 +38,10 @@ var _ = Describe("Deployment", func() {
 					"runtime_config_id": nil,
 				},
 				Diff: [][]interface{}{
-					[]interface{}{"name: simple manifest", nil},
-					[]interface{}{"properties:", nil},
-					[]interface{}{"  - property1", "removed"},
-					[]interface{}{"  - property2", "added"},
+					{"name: simple manifest", nil},
+					{"properties:", nil},
+					{"  - property1", "removed"},
+					{"  - property2", "added"},
 				},
 			}
 

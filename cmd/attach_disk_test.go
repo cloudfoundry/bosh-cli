@@ -3,29 +3,30 @@ package cmd_test
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
-	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
+	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 )
 
 var _ = Describe("AttachDisk", func() {
 	var (
-		command    AttachDiskCmd
+		command    cmd.AttachDiskCmd
 		deployment *fakedir.FakeDeployment
 	)
 
 	BeforeEach(func() {
 		deployment = &fakedir.FakeDeployment{}
 
-		command = NewAttachDiskCmd(deployment)
+		command = cmd.NewAttachDiskCmd(deployment)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts           AttachDiskOpts
+			attachDiskOpts opts.AttachDiskOpts
 			act            func() error
 			instanceSlug   boshdir.InstanceSlug
 			diskCid        string
@@ -34,7 +35,7 @@ var _ = Describe("AttachDisk", func() {
 
 		BeforeEach(func() {
 			act = func() error {
-				err := command.Run(opts)
+				err := command.Run(attachDiskOpts)
 				return err
 			}
 
@@ -42,13 +43,13 @@ var _ = Describe("AttachDisk", func() {
 			diskCid = "some-disk-id"
 			diskProperties = "copy"
 
-			opts = AttachDiskOpts{
-				Args: AttachDiskArgs{
+			attachDiskOpts = opts.AttachDiskOpts{
+				Args: opts.AttachDiskArgs{
 					Slug:    instanceSlug,
 					DiskCID: diskCid,
 				},
 			}
-			opts.DiskProperties = diskProperties
+			attachDiskOpts.DiskProperties = diskProperties
 		})
 
 		It("tells the director to attach a disk", func() {

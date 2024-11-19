@@ -1,16 +1,16 @@
 package installation_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/installation"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"path/filepath"
 
-	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
+	. "github.com/cloudfoundry/bosh-cli/v7/installation"
 )
 
 var _ = Describe("TargetProvider", func() {
@@ -36,7 +36,24 @@ var _ = Describe("TargetProvider", func() {
 			logger,
 			configPath,
 		)
-		targetProvider = NewTargetProvider(deploymentStateService, fakeUUIDGenerator, installationsRootPath)
+		targetProvider = NewTargetProvider(deploymentStateService, fakeUUIDGenerator, installationsRootPath, "")
+	})
+
+	Context("when a packageDir is passed in", func() {
+		var packageDir string
+
+		BeforeEach(func() {
+			packageDir = "/some/good/dir"
+
+			targetProvider = NewTargetProvider(deploymentStateService, fakeUUIDGenerator, installationsRootPath, packageDir)
+		})
+
+		It("is passed through to the target", func() {
+			target, err := targetProvider.NewTarget()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(target.PackagesPath()).To(Equal(packageDir))
+		})
 	})
 
 	Context("when the installation_id exists in the deployment state", func() {

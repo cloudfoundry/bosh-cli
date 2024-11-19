@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 	"gopkg.in/yaml.v2"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -36,33 +36,33 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 		deployment *fakedir.FakeDeployment
 		ui         *fakeui.FakeUI
 		fakeFS     *fakesys.FakeFileSystem
-		command    CreateRecoveryPlanCmd
+		command    cmd.CreateRecoveryPlanCmd
 	)
 
 	BeforeEach(func() {
 		deployment = &fakedir.FakeDeployment{}
 		ui = &fakeui.FakeUI{}
 		fakeFS = fakesys.NewFakeFileSystem()
-		command = NewCreateRecoveryPlanCmd(deployment, ui, fakeFS)
+		command = cmd.NewCreateRecoveryPlanCmd(deployment, ui, fakeFS)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts         CreateRecoveryPlanOpts
-			severalProbs []boshdir.Problem
+			createRecoveryPlanOpts opts.CreateRecoveryPlanOpts
+			problems               []boshdir.Problem
 		)
 
 		BeforeEach(func() {
-			opts = CreateRecoveryPlanOpts{
-				Args: CreateRecoveryPlanArgs{
-					RecoveryPlan: FileArg{
+			createRecoveryPlanOpts = opts.CreateRecoveryPlanOpts{
+				Args: opts.CreateRecoveryPlanArgs{
+					RecoveryPlan: opts.FileArg{
 						ExpandedPath: "/tmp/foo.yml",
 						FS:           fakeFS,
 					},
 				},
 			}
 
-			severalProbs = []boshdir.Problem{
+			problems = []boshdir.Problem{
 				{
 					ID: 3,
 
@@ -106,7 +106,7 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(createRecoveryPlanOpts) }
 
 		Context("scanning for problems failed", func() {
 			BeforeEach(func() {
@@ -149,7 +149,7 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 
 		Context("problems are found", func() {
 			BeforeEach(func() {
-				deployment.ScanForProblemsReturns(severalProbs, nil)
+				deployment.ScanForProblemsReturns(problems, nil)
 				ui.AskedChoiceChosens = []int{0, 1, 2}
 				ui.AskedChoiceErrs = []error{nil, nil, nil}
 				ui.AskedConfirmationErr = nil
@@ -238,7 +238,7 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 				bytes, err := fakeFS.ReadFile("/tmp/foo.yml")
 				Expect(err).ToNot(HaveOccurred())
 
-				var actualPlan RecoveryPlan
+				var actualPlan cmd.RecoveryPlan
 				Expect(yaml.Unmarshal(bytes, &actualPlan)).ToNot(HaveOccurred())
 
 				Expect(actualPlan.InstanceGroupsPlan).To(HaveLen(2))
@@ -274,7 +274,7 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 				bytes, err := fakeFS.ReadFile("/tmp/foo.yml")
 				Expect(err).ToNot(HaveOccurred())
 
-				var actualPlan RecoveryPlan
+				var actualPlan cmd.RecoveryPlan
 				Expect(yaml.Unmarshal(bytes, &actualPlan)).ToNot(HaveOccurred())
 
 				Expect(actualPlan.InstanceGroupsPlan).To(HaveLen(2))
@@ -288,7 +288,7 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 
 			Context("director does not return instance group", func() {
 				BeforeEach(func() {
-					grouplessProbs := severalProbs
+					grouplessProbs := problems
 					for i := range grouplessProbs {
 						grouplessProbs[i].InstanceGroup = ""
 					}

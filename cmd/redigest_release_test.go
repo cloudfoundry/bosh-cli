@@ -1,28 +1,24 @@
 package cmd_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-
-	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
-
+	"github.com/cloudfoundry/bosh-utils/errors"
+	fakefu "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
+	fakecrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
-	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
-	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
-
-	fakecrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
-	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
-	fakefu "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
-	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
-
-	"github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
 	"github.com/cloudfoundry/bosh-cli/v7/release/license"
-	"github.com/cloudfoundry/bosh-utils/errors"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
+	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 var _ = Describe("RedigestRelease", func() {
@@ -31,8 +27,8 @@ var _ = Describe("RedigestRelease", func() {
 		ui                           *fakeui.FakeUI
 		fmv                          *fakefu.FakeMover
 		releaseWriter                *fakerel.FakeWriter
-		command                      RedigestReleaseCmd
-		args                         RedigestReleaseArgs
+		command                      cmd.RedigestReleaseCmd
+		args                         opts.RedigestReleaseArgs
 		fakeDigestCalculator         *fakes.FakeDigestCalculator
 		releaseWriterTempDestination string
 		fakeSha128Release            *fakerel.FakeRelease
@@ -53,10 +49,10 @@ var _ = Describe("RedigestRelease", func() {
 		fs = fakes2.NewFakeFileSystem()
 
 		fakeDigestCalculator = fakes.NewFakeDigestCalculator()
-		command = NewRedigestReleaseCmd(releaseReader, releaseWriter, fakeDigestCalculator, fmv, fs, ui)
-		args = RedigestReleaseArgs{
+		command = cmd.NewRedigestReleaseCmd(releaseReader, releaseWriter, fakeDigestCalculator, fmv, fs, ui)
+		args = opts.RedigestReleaseArgs{
 			Path:        "/some/release_128.tgz",
-			Destination: FileArg{ExpandedPath: "/some/release_256.tgz"},
+			Destination: opts.FileArg{ExpandedPath: "/some/release_256.tgz"},
 		}
 
 		err := fs.WriteFileString(job1ResourcePath, "hello world")
@@ -323,9 +319,9 @@ var _ = Describe("RedigestRelease", func() {
 
 	Context("Given a bad file path", func() {
 		BeforeEach(func() {
-			args = RedigestReleaseArgs{
+			args = opts.RedigestReleaseArgs{
 				Path:        "/some/release_128.tgz",
-				Destination: FileArg{ExpandedPath: "/some/release_256.tgz"},
+				Destination: opts.FileArg{ExpandedPath: "/some/release_256.tgz"},
 			}
 
 			releaseReader.ReadReturns(nil, errors.Error("disaster"))

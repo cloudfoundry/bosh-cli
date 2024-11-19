@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
+	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -15,8 +17,6 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	bio "github.com/cloudfoundry/bosh-cli/v7/io"
-	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
-	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 )
 
 var _ = Describe("ClientRequest", func() {
@@ -164,7 +164,7 @@ var _ = Describe("ClientRequest", func() {
 			It("includes response body in the error if response errors", func() {
 				server.SetHandler(0, ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/path"),
-					ghttp.RespondWith(500, "body"),
+					ghttp.RespondWith(http.StatusInternalServerError, "body"),
 				))
 
 				body, resp, err := req.RawGet("/path", nil, nil)
@@ -200,7 +200,7 @@ var _ = Describe("ClientRequest", func() {
 			It("is not used if response errors", func() {
 				server.SetHandler(0, ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/path"),
-					ghttp.RespondWith(500, "body"),
+					ghttp.RespondWith(http.StatusInternalServerError, "body"),
 				))
 
 				buf := bytes.NewBufferString("")

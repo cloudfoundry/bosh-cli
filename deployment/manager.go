@@ -1,11 +1,12 @@
 package deployment
 
 import (
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	biinstance "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type Manager interface {

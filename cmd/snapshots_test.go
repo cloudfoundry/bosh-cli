@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -19,17 +19,17 @@ var _ = Describe("SnapshotsCmd", func() {
 	var (
 		ui         *fakeui.FakeUI
 		deployment *fakedir.FakeDeployment
-		command    SnapshotsCmd
+		command    cmd.SnapshotsCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		deployment = &fakedir.FakeDeployment{}
-		command = NewSnapshotsCmd(ui, deployment)
+		command = cmd.NewSnapshotsCmd(ui, deployment)
 	})
 
 	Describe("Run", func() {
-		act := func() error { return command.Run(SnapshotsOpts{}) }
+		act := func() error { return command.Run(opts.SnapshotsOpts{}) }
 
 		It("lists current snapshots", func() {
 			jobIndex := 10

@@ -1,9 +1,10 @@
 package release
 
 import (
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	birel "github.com/cloudfoundry/bosh-cli/v7/release"
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type JobResolver interface {

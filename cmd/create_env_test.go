@@ -1,11 +1,13 @@
 package cmd_test
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
 	"regexp"
 
+	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -17,13 +19,12 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
-	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
 	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
 	mockblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	mockcloud "github.com/cloudfoundry/bosh-cli/v7/cloud/mocks"
-	bicmd "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	mockconfig "github.com/cloudfoundry/bosh-cli/v7/config/mocks"
 	bicpirel "github.com/cloudfoundry/bosh-cli/v7/cpi/release"
@@ -43,7 +44,7 @@ import (
 	mockinstall "github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
 	bitarball "github.com/cloudfoundry/bosh-cli/v7/installation/tarball"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
-	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
+	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	birelmanifest "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 	fakebirel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
@@ -53,8 +54,8 @@ import (
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	mockstemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/mocks"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
-	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("CreateEnvCmd", func() {
@@ -78,11 +79,11 @@ var _ = Describe("CreateEnvCmd", func() {
 		)
 
 		var (
-			command       *bicmd.CreateEnvCmd
+			command       *cmd.CreateEnvCmd
 			fs            *fakesys.FakeFileSystem
 			stdOut        *gbytes.Buffer
 			stdErr        *gbytes.Buffer
-			userInterface biui.UI
+			userInterface boshui.UI
 			manifestSHA   string
 
 			mockDeployer         *mockdeployment.MockDeployer
@@ -119,7 +120,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			fakeUUIDGenerator   *fakeuuid.FakeGenerator
 			configUUIDGenerator *fakeuuid.FakeGenerator
 
-			fakeStage *fakebiui.FakeStage
+			fakeStage *fakeui.FakeStage
 
 			deploymentManifestPath string
 			deploymentStatePath    string
@@ -138,7 +139,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			cloudStemcell bistemcell.CloudStemcell
 
-			defaultCreateEnvOpts CreateEnvOpts
+			defaultCreateEnvOpts opts.CreateEnvOpts
 
 			expectedSkipDrain bool
 
@@ -157,7 +158,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 			stdOut = gbytes.NewBuffer()
 			stdErr = gbytes.NewBuffer()
-			userInterface = biui.NewWriterUI(stdOut, stdErr, logger)
+			userInterface = boshui.NewWriterUI(stdOut, stdErr, logger)
 			fs = fakesys.NewFakeFileSystem()
 			fs.EnableStrictTempRootBehavior()
 			deploymentManifestPath = filepath.Join("/", "path", "to", "manifest.yml")
@@ -207,7 +208,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			fakeDeploymentValidator = fakebideplval.NewFakeValidator()
 
-			fakeStage = fakebiui.NewFakeStage()
+			fakeStage = fakeui.NewFakeStage()
 
 			fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 
@@ -251,9 +252,8 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			// parsed CPI deployment manifest
 			installationManifest = biinstallmanifest.Manifest{
-				Template: biinstallmanifest.ReleaseJobRef{
-					Name:    "fake-cpi-release-job-name",
-					Release: "fake-cpi-release-name",
+				Templates: []biinstallmanifest.ReleaseJobRef{
+					{Name: "fake-cpi-release-job-name", Release: "fake-cpi-release-name"},
 				},
 				Mbus: mbusURL,
 			}
@@ -282,16 +282,16 @@ var _ = Describe("CreateEnvCmd", func() {
 			cpiRelease.NameReturns("fake-cpi-release-name")
 			cpiRelease.VersionReturns("1.0")
 
-			job := bireljob.NewJob(NewResource("fake-cpi-release-job-name", "job-fp", nil))
+			job := boshjob.NewJob(NewResource("fake-cpi-release-job-name", "job-fp", nil))
 			job.Templates = map[string]string{"templates/cpi.erb": "bin/cpi"}
-			cpiRelease.JobsReturns([]*bireljob.Job{job})
-			cpiRelease.FindJobByNameStub = func(jobName string) (bireljob.Job, bool) {
+			cpiRelease.JobsReturns([]*boshjob.Job{job})
+			cpiRelease.FindJobByNameStub = func(jobName string) (boshjob.Job, bool) {
 				for _, job := range cpiRelease.Jobs() {
 					if job.Name() == jobName {
 						return *job, true
 					}
 				}
-				return bireljob.Job{}, false
+				return boshjob.Job{}, false
 			}
 
 			releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
@@ -299,9 +299,9 @@ var _ = Describe("CreateEnvCmd", func() {
 				return cpiRelease, nil
 			}
 
-			defaultCreateEnvOpts = CreateEnvOpts{
-				Args: CreateEnvArgs{
-					Manifest: FileBytesWithPathArg{Path: deploymentManifestPath},
+			defaultCreateEnvOpts = opts.CreateEnvOpts{
+				Args: opts.CreateEnvArgs{
+					Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},
 				},
 			}
 			stemcellApiVersion = 2
@@ -309,7 +309,7 @@ var _ = Describe("CreateEnvCmd", func() {
 		})
 
 		JustBeforeEach(func() {
-			doGet := func(deploymentManifestPath string, statePath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) bicmd.DeploymentPreparer {
+			doGet := func(deploymentManifestPath string, statePath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) cmd.DeploymentPreparer {
 				deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, statePath))
 				deploymentRepo := biconfig.NewDeploymentRepo(deploymentStateService)
 				releaseRepo := biconfig.NewReleaseRepo(deploymentStateService, fakeUUIDGenerator)
@@ -322,19 +322,18 @@ var _ = Describe("CreateEnvCmd", func() {
 				cpiInstaller := bicpirel.CpiInstaller{
 					ReleaseManager:   releaseManager,
 					InstallerFactory: mockInstallerFactory,
-					Validator:        bicpirel.NewValidator(),
 				}
 				releaseFetcher := biinstall.NewReleaseFetcher(tarballProvider, releaseReader, releaseManager)
 				stemcellFetcher := bistemcell.Fetcher{
 					TarballProvider:   tarballProvider,
 					StemcellExtractor: fakeStemcellExtractor,
 				}
-				releaseSetAndInstallationManifestParser := bicmd.ReleaseSetAndInstallationManifestParser{
+				releaseSetAndInstallationManifestParser := cmd.ReleaseSetAndInstallationManifestParser{
 					ReleaseSetParser:   fakeReleaseSetParser,
 					InstallationParser: fakeInstallationParser,
 				}
 
-				deploymentManifestParser := bicmd.NewDeploymentManifestParser(
+				deploymentManifestParser := cmd.NewDeploymentManifestParser(
 					fakeDeploymentParser,
 					fakeDeploymentValidator,
 					releaseManager,
@@ -347,10 +346,11 @@ var _ = Describe("CreateEnvCmd", func() {
 					deploymentStateService,
 					fakeInstallationUUIDGenerator,
 					filepath.Join("fake-install-dir"),
+					"",
 				)
-				tempRootConfigurator := bicmd.NewTempRootConfigurator(fs)
+				tempRootConfigurator := cmd.NewTempRootConfigurator(fs)
 
-				return bicmd.NewDeploymentPreparer(
+				return cmd.NewDeploymentPreparer(
 					userInterface,
 					logger,
 					"deployCmd",
@@ -377,7 +377,7 @@ var _ = Describe("CreateEnvCmd", func() {
 				)
 			}
 
-			command = bicmd.NewCreateEnvCmd(userInterface, doGet)
+			command = cmd.NewCreateEnvCmd(userInterface, doGet)
 
 			expectLegacyMigrate = mockLegacyDeploymentStateMigrator.EXPECT().MigrateIfExists(filepath.Join("/", "path", "to", "bosh-deployments.yml")).AnyTimes()
 
@@ -418,7 +418,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			fakeInstallationParser.ParseManifest = installationManifest
 
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
-			target := biinstall.NewTarget(installationPath)
+			target := biinstall.NewTarget(installationPath, "")
 
 			installedJob := biinstall.NewInstalledJob(
 				biinstall.RenderedJobRef{
@@ -429,14 +429,13 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockInstaller).AnyTimes()
 
-			installation := biinstall.NewInstallation(target, installedJob, installationManifest)
+			installation := biinstall.NewInstallation(target, []biinstall.InstalledJob{installedJob},
+				installationManifest)
 
-			expectInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ interface{}, stage biui.Stage) {
+			expectInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ interface{}, stage boshui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(installation, nil).AnyTimes()
 			mockInstaller.EXPECT().Cleanup(installation).AnyTimes()
-
-			//mockDeployment := mock_deployment.NewMockDeployment(mockCtrl)
 
 			expectDeploy = mockDeployer.EXPECT().Deploy(
 				mockCloud,
@@ -446,7 +445,8 @@ var _ = Describe("CreateEnvCmd", func() {
 				mockBlobstore,
 				expectedSkipDrain,
 				gomock.Any(),
-			).Do(func(_, _, _, _, _, _ interface{}, stage biui.Stage) {
+				gomock.Any(),
+			).Do(func(_, _, _, _, _, _ interface{}, _ interface{}, stage boshui.Stage) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(nil, expectedDeployError).AnyTimes()
 
@@ -470,10 +470,10 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			Context("when state file is specified", func() {
 				It("prints specified state file path", func() {
-					createEnvOptsWithStatePath := CreateEnvOpts{
+					createEnvOptsWithStatePath := opts.CreateEnvOpts{
 						StatePath: filepath.Join("/", "specified", "path", "to", "cool-state.json"),
-						Args: CreateEnvArgs{
-							Manifest: FileBytesWithPathArg{Path: deploymentManifestPath},
+						Args: opts.CreateEnvArgs{
+							Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},
 						},
 					}
 
@@ -562,10 +562,10 @@ var _ = Describe("CreateEnvCmd", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls[0]).To(Equal(&fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[0]).To(Equal(&fakeui.PerformCall{
 				Name: "validating",
-				Stage: &fakebiui.FakeStage{
-					PerformCalls: []*fakebiui.PerformCall{
+				Stage: &fakeui.FakeStage{
+					PerformCalls: []*fakeui.PerformCall{
 						{Name: "Validating release 'fake-cpi-release-name'"},
 						{Name: "Validating cpi release"},
 						{Name: "Validating deployment manifest"},
@@ -587,9 +587,9 @@ var _ = Describe("CreateEnvCmd", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls[1]).To(Equal(&fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[1]).To(Equal(&fakeui.PerformCall{
 				Name:  "installing CPI",
-				Stage: &fakebiui.FakeStage{}, // mock installer doesn't add sub-stages
+				Stage: &fakeui.FakeStage{}, // mock installer doesn't add sub-stages
 			}))
 		})
 
@@ -618,9 +618,9 @@ var _ = Describe("CreateEnvCmd", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls[2]).To(Equal(&fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[2]).To(Equal(&fakeui.PerformCall{
 				Name:  "deploying",
-				Stage: &fakebiui.FakeStage{}, // mock deployer doesn't add sub-stages
+				Stage: &fakeui.FakeStage{}, // mock deployer doesn't add sub-stages
 			}))
 		})
 
@@ -739,15 +739,16 @@ var _ = Describe("CreateEnvCmd", func() {
 
 		Context("when the cpi release does not contain a 'cpi' job", func() {
 			BeforeEach(func() {
-				cpiRelease.JobsReturns([]*bireljob.Job{
-					bireljob.NewJob(NewResource("not-cpi", "job-fp", nil)),
+				cpiRelease.JobsReturns([]*boshjob.Job{
+					boshjob.NewJob(NewResource("not-cpi", "job-fp", nil)),
 				})
 			})
 
 			It("returns error", func() {
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("Invalid CPI release 'fake-cpi-release-name': CPI release must contain specified job 'fake-cpi-release-job-name'"))
+				//nolint:gosimple
+				Expect(err.Error()).To(Equal(fmt.Sprintf("Found 0 releases containing a template that renders to target 'bin/cpi'. Expected to find 1. Releases inspected: [fake-cpi-release-name]\nrelease 'fake-cpi-release-name' must contain specified job 'fake-cpi-release-job-name'")))
 			})
 		})
 
@@ -765,8 +766,8 @@ var _ = Describe("CreateEnvCmd", func() {
 				otherRelease = &fakebirel.FakeRelease{}
 				otherRelease.NameReturns("other-release")
 				otherRelease.VersionReturns("1234")
-				otherRelease.JobsReturns([]*bireljob.Job{
-					bireljob.NewJob(NewResource("not-cpi", "job-fp", nil)),
+				otherRelease.JobsReturns([]*boshjob.Job{
+					boshjob.NewJob(NewResource("not-cpi", "job-fp", nil)),
 				})
 
 				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
@@ -1066,6 +1067,7 @@ var _ = Describe("CreateEnvCmd", func() {
 					mockBlobstore,
 					expectedSkipDrain,
 					gomock.Any(),
+					gomock.Any(),
 				).Return(nil, expectedDeployError).AnyTimes()
 
 				previousDeploymentState := biconfig.DeploymentState{
@@ -1114,6 +1116,50 @@ var _ = Describe("CreateEnvCmd", func() {
 			It("still deploys", func() {
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		Context("the deployment state file exists", func() {
+			It("reads the disks out of the file and passes their CIDs to the deployer", func() {
+				err := fs.WriteFileString(deploymentStatePath, `
+				{
+					"disks": [
+								{
+									"id": "bc5dd497-b882-4397-6e9f-22f862277217",
+									"cid": "disk-cid-from-state",
+									"size": 51200,
+									"cloud_properties": {
+										"datastores": [
+										"sharedVmfs-0"
+										],
+										"type": "thin"
+									}
+								}
+							]
+				}`)
+				Expect(err).ToNot(HaveOccurred())
+
+				expectDeploy.Do(func(_, _, _, _, _, _ interface{}, diskCIDs []string, _ interface{}) {
+					Expect(diskCIDs).To(ConsistOf("disk-cid-from-state"))
+				})
+				err = command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("constructs and empty array of disks using make, due to odd behavior in golang where empty var []string marshals as null", func() {
+				err := fs.WriteFileString(deploymentStatePath, `
+				{
+					"disks": null
+				}`)
+				Expect(err).ToNot(HaveOccurred())
+
+				expectDeploy.Do(func(_, _, _, _, _, _ interface{}, diskCIDs []string, _ interface{}) {
+					jsonMarshalOfDisks, err := json.Marshal(diskCIDs)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(string(jsonMarshalOfDisks)).To(Equal("[]"))
+				})
+				err = command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 	})

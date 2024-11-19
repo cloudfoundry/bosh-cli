@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
 	biblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
@@ -12,8 +15,6 @@ import (
 	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type Manager interface {
@@ -23,6 +24,7 @@ type Manager interface {
 		id int,
 		deploymentManifest bideplmanifest.Manifest,
 		cloudStemcell bistemcell.CloudStemcell,
+		diskCIDs []string,
 		eventLoggerStage biui.Stage,
 	) (Instance, []bidisk.Disk, error)
 	DeleteAll(
@@ -96,13 +98,14 @@ func (m *manager) Create(
 	id int,
 	deploymentManifest bideplmanifest.Manifest,
 	cloudStemcell bistemcell.CloudStemcell,
+	diskCIDs []string,
 	eventLoggerStage biui.Stage,
 ) (Instance, []bidisk.Disk, error) {
 	var vm bivm.VM
 	stepName := fmt.Sprintf("Creating VM for instance '%s/%d' from stemcell '%s'", jobName, id, cloudStemcell.CID())
 	err := eventLoggerStage.Perform(stepName, func() error {
 		var err error
-		vm, err = m.vmManager.Create(cloudStemcell, deploymentManifest)
+		vm, err = m.vmManager.Create(cloudStemcell, deploymentManifest, diskCIDs)
 		if err != nil {
 			return bosherr.WrapError(err, "Creating VM")
 		}

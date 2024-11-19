@@ -3,9 +3,8 @@ package director
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
-
 	"io"
+	"net/http"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"

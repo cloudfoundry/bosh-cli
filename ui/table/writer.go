@@ -137,12 +137,12 @@ func (w *Writer) Flush() error {
 
 			paddingSize := w.widths[colIdx] - len(col.String)
 			if colIdx == lastColIdx {
-				_, err := fmt.Fprintf(w.w, w.borderStr)
+				_, err := fmt.Fprint(w.w, w.borderStr)
 				if err != nil {
 					return err
 				}
 			} else {
-				_, err := fmt.Fprintf(w.w, strings.Repeat(w.bgStr, paddingSize)+w.borderStr)
+				_, err := fmt.Fprint(w.w, strings.Repeat(w.bgStr, paddingSize)+w.borderStr)
 				if err != nil {
 					return err
 				}

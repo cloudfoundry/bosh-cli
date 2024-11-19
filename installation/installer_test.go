@@ -3,19 +3,17 @@ package installation_test
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/installation"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	biproperty "github.com/cloudfoundry/bosh-utils/property"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	. "github.com/cloudfoundry/bosh-cli/v7/installation"
 	"github.com/cloudfoundry/bosh-cli/v7/installation/blobextract/blobextractfakes"
-	mock_install "github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
-	"github.com/golang/mock/gomock"
-
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
+	mock_install "github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
-
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
@@ -39,9 +37,9 @@ var _ = Describe("Installer", func() {
 
 		logger boshlog.Logger
 
-		installer    Installer
-		target       Target
-		installedJob InstalledJob
+		installer     Installer
+		target        Target
+		installedJobs []InstalledJob
 	)
 
 	BeforeEach(func() {
@@ -52,13 +50,18 @@ var _ = Describe("Installer", func() {
 		mockPackageCompiler = mock_install.NewMockPackageCompiler(mockCtrl)
 		fakeExtractor = &blobextractfakes.FakeExtractor{}
 
-		target = NewTarget("fake-installation-path")
+		target = NewTarget("fake-installation-path", "")
 		installationManifest = biinstallmanifest.Manifest{
 			Name:       "fake-installation-name",
 			Properties: biproperty.Map{},
 		}
 		renderedCPIJob := NewRenderedJobRef("cpi", "fake-release-job-fingerprint", "fake-rendered-job-blobstore-id", "fake-rendered-job-blobstore-id")
-		installedJob = NewInstalledJob(renderedCPIJob, "/extracted-release-path/cpi")
+		renderedCPIPluginJob := NewRenderedJobRef("cpi-plugin", "fake-release-job-fingerprint", "fake-rendered-job-blobstore-id", "fake-rendered-job-blobstore-id")
+
+		installedJobs = make([]InstalledJob, 0)
+		installedJobs = append(installedJobs, NewInstalledJob(renderedCPIJob, "/extracted-release-path/cpi"))
+		installedJobs = append(installedJobs, NewInstalledJob(renderedCPIPluginJob,
+			"/extracted-release-path/cpi-plugin"))
 	})
 
 	JustBeforeEach(func() {
@@ -94,7 +97,11 @@ var _ = Describe("Installer", func() {
 			compiledPackages := []CompiledPackageRef{ref}
 
 			releaseJobs = []bireljob.Job{}
-			renderedJobRefs = []RenderedJobRef{installedJob.RenderedJobRef}
+
+			renderedJobRefs = make([]RenderedJobRef, 0)
+			for _, installedJob := range installedJobs {
+				renderedJobRefs = append(renderedJobRefs, installedJob.RenderedJobRef)
+			}
 			mockJobResolver.EXPECT().From(installationManifest).Return(releaseJobs, nil).AnyTimes()
 			mockPackageCompiler.EXPECT().For(releaseJobs, fakeStage).Return(compiledPackages, nil).AnyTimes()
 		})
@@ -139,7 +146,7 @@ var _ = Describe("Installer", func() {
 		BeforeEach(func() {
 			installation = NewInstallation(
 				target,
-				installedJob,
+				installedJobs,
 				installationManifest,
 			)
 		})
@@ -148,11 +155,13 @@ var _ = Describe("Installer", func() {
 			err := installer.Cleanup(installation)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeExtractor.CleanupCallCount()).To(Equal(1))
+			Expect(fakeExtractor.CleanupCallCount()).To(Equal(2))
 
-			blobstoreID, extractedBlobPath := fakeExtractor.CleanupArgsForCall(0)
-			Expect(blobstoreID).To(Equal(installedJob.BlobstoreID))
-			Expect(extractedBlobPath).To(Equal(installedJob.Path))
+			for i, installedJob := range installedJobs {
+				blobstoreID, extractedBlobPath := fakeExtractor.CleanupArgsForCall(i)
+				Expect(blobstoreID).To(Equal(installedJob.BlobstoreID))
+				Expect(extractedBlobPath).To(Equal(installedJob.Path))
+			}
 		})
 
 		It("returns errors when cleaning up installed jobs", func() {

@@ -1,20 +1,18 @@
 package templatescompiler_test
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
-
 	"bytes"
 	"os"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
-	mock_template "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/mocks"
-	"github.com/golang/mock/gomock"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	"github.com/golang/mock/gomock"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	. "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
+	mock_template "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/mocks"
 )
 
 var _ = Describe("RenderedJobListArchive", func() {

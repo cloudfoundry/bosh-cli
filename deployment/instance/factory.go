@@ -1,11 +1,12 @@
 package instance
 
 import (
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
 	biblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"
 	biinstancestate "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state"
 	bisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel"
 	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type Factory interface {

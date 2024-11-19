@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gopacket/gopacket"
 	"github.com/gopacket/gopacket/layers"
 	"github.com/gopacket/gopacket/pcapgo"
@@ -22,7 +23,6 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 var (
@@ -54,8 +54,10 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 	done := make(chan struct{})
 
 	wg := &sync.WaitGroup{}
+	var err error
 
 	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(err)
 
 	clientFactory := boshssh.NewClientFactory(p.logger)
 
@@ -89,10 +91,11 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 	}
 
 	if runningCaptures == 0 {
-		return fmt.Errorf("starting of all pcap captures failed")
+		err = errors.New("starting of all pcap captures failed")
+		return err
 	}
 
-	err := writePacketsToFile(opts.SnapLength, opts.Output, packetCs, p.ui)
+	err = writePacketsToFile(opts.SnapLength, opts.Output, packetCs, p.ui)
 	if err != nil {
 		return fmt.Errorf("write to output file failed: %w", err)
 	}

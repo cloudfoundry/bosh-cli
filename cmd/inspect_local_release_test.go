@@ -3,30 +3,27 @@ package cmd_test
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-
-	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
-
-	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
-	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
-
-	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
-	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
+	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
+	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 var _ = Describe("InspectLocalReleaseCmd", func() {
 	Describe("Run", func() {
 		var (
-			fakeRelease   *fakerel.FakeRelease
-			releaseReader *fakerel.FakeReader
-			ui            *fakeui.FakeUI
-			opts          InspectLocalReleaseOpts
-			command       InspectLocalReleaseCmd
+			fakeRelease             *fakerel.FakeRelease
+			releaseReader           *fakerel.FakeReader
+			ui                      *fakeui.FakeUI
+			inspectLocalReleaseOpts opts.InspectLocalReleaseOpts
+			command                 cmd.InspectLocalReleaseCmd
 		)
 
 		BeforeEach(func() {
@@ -77,19 +74,19 @@ var _ = Describe("InspectLocalReleaseCmd", func() {
 			releaseReader = &fakerel.FakeReader{}
 			releaseReader.ReadReturns(fakeRelease, nil)
 
-			opts = InspectLocalReleaseOpts{
-				Args: InspectLocalReleaseArgs{
+			inspectLocalReleaseOpts = opts.InspectLocalReleaseOpts{
+				Args: opts.InspectLocalReleaseArgs{
 					PathToRelease: "/some/release.tgz",
 				},
 			}
 
 			ui = &fakeui.FakeUI{}
 
-			command = NewInspectLocalReleaseCmd(releaseReader, ui)
+			command = cmd.NewInspectLocalReleaseCmd(releaseReader, ui)
 		})
 
 		It("prints tables with release, job and package information", func() {
-			err := command.Run(opts)
+			err := command.Run(inspectLocalReleaseOpts)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
@@ -171,7 +168,7 @@ var _ = Describe("InspectLocalReleaseCmd", func() {
 		It("returns error if reading the release manifest fails", func() {
 			releaseReader.ReadReturns(nil, errors.New("fake-err"))
 
-			err := command.Run(opts)
+			err := command.Run(inspectLocalReleaseOpts)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})

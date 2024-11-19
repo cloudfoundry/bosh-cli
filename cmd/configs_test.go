@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -18,30 +18,30 @@ var _ = Describe("ConfigsCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  ConfigsCmd
+		command  cmd.ConfigsCmd
 		configs  []boshdir.Config
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewConfigsCmd(ui, director)
+		command = cmd.NewConfigsCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts ConfigsOpts
+			configsOpts opts.ConfigsOpts
 		)
 
 		BeforeEach(func() {
-			opts = ConfigsOpts{Recent: 1}
+			configsOpts = opts.ConfigsOpts{Recent: 1}
 			configs = []boshdir.Config{
 				boshdir.Config{Type: "my-type", Name: "some-name", Team: "team1"},
 				boshdir.Config{Type: "my-type", Name: "other-name"},
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(configsOpts) }
 
 		It("lists configs", func() {
 			director.ListConfigsReturns(configs, nil)
@@ -97,7 +97,7 @@ var _ = Describe("ConfigsCmd", func() {
 
 		Context("When filtering for type", func() {
 			BeforeEach(func() {
-				opts = ConfigsOpts{
+				configsOpts = opts.ConfigsOpts{
 					Type:   "my-type",
 					Recent: 1,
 				}
@@ -144,7 +144,7 @@ var _ = Describe("ConfigsCmd", func() {
 
 		Context("When filtering for name", func() {
 			BeforeEach(func() {
-				opts = ConfigsOpts{
+				configsOpts = opts.ConfigsOpts{
 					Name:   "some-name",
 					Recent: 1,
 				}
@@ -191,7 +191,7 @@ var _ = Describe("ConfigsCmd", func() {
 
 		Context("When filtering for both, type and name", func() {
 			BeforeEach(func() {
-				opts = ConfigsOpts{
+				configsOpts = opts.ConfigsOpts{
 					Type:   "my-type",
 					Name:   "some-name",
 					Recent: 1,
@@ -239,7 +239,7 @@ var _ = Describe("ConfigsCmd", func() {
 
 		Context("limit is specified", func() {
 			BeforeEach(func() {
-				opts = ConfigsOpts{Recent: 2}
+				configsOpts = opts.ConfigsOpts{Recent: 2}
 				configs = []boshdir.Config{
 					boshdir.Config{Type: "my-type", Name: "some-name", ID: "123", Current: false},
 					boshdir.Config{Type: "my-type", Name: "some-name", ID: "234", Current: true},

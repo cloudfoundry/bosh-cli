@@ -3,6 +3,10 @@ package release_test
 import (
 	"errors"
 
+	"github.com/golang/mock/gomock"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
 	"github.com/cloudfoundry/bosh-cli/v7/cpi/release"
 	biinstallation "github.com/cloudfoundry/bosh-cli/v7/installation"
 	biinstallationmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
@@ -10,10 +14,6 @@ import (
 	mock_install "github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
 	"github.com/cloudfoundry/bosh-cli/v7/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
-	"github.com/golang/mock/gomock"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Installer", func() {
@@ -46,11 +46,13 @@ var _ = Describe("Installer", func() {
 			installStage = fakeui.NewFakeStage()
 			installation = mocks.NewMockInstallation(mockCtrl)
 
-			target = biinstallation.NewTarget("fake-installation-path")
+			target = biinstallation.NewTarget("fake-installation-path", "")
 			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockInstaller).AnyTimes()
 			expectInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any())
 			expectCleanup = mockInstaller.EXPECT().Cleanup(installation).Return(nil)
 		})
+
+		It("should validate CPI release that include CPI and plugin releases", Pending, func() {})
 
 		It("should install the CPI and call the passed in function with the installation", func() {
 			cpiInstaller := release.CpiInstaller{

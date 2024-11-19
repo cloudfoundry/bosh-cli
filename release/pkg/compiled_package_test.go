@@ -1,16 +1,15 @@
 package pkg_test
 
 import (
+	"errors"
+
+	"github.com/cloudfoundry/bosh-utils/crypto/cryptofakes"
+	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
-
-	"errors"
-
 	"github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
-	"github.com/cloudfoundry/bosh-utils/crypto/cryptofakes"
-	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
+	. "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 )
 
 var _ = Describe("NewCompiledPackageWithoutArchive", func() {

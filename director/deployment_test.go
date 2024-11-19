@@ -316,7 +316,7 @@ var _ = Describe("Deployment", func() {
 		It("for an single instance, ignore instance returns without an error", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					///:deployment/instance_groups/:instancegroup/:id/ignore
+					///:deployment/instance_groups/:instance_group_name/:id/ignore
 					ghttp.VerifyRequest("PUT", "/deployments/dep/instance_groups/ig_name/id/ignore"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
@@ -331,10 +331,10 @@ var _ = Describe("Deployment", func() {
 			Expect(server.ReceivedRequests()).To(HaveLen(1))
 		})
 
-		It("unignores for an instance and returns without an error", func() {
+		It("un-ignores for an instance and returns without an error", func() {
 			server.AppendHandlers(
 				ghttp.CombineHandlers(
-					///:deployment/instance_groups/:instancegroup/:id/ignore
+					///:deployment/instance_groups/:instance_group_name/:id/ignore
 					ghttp.VerifyRequest("PUT", "/deployments/dep/instance_groups/ig_name/id/ignore"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
@@ -449,7 +449,7 @@ var _ = Describe("Deployment", func() {
 					Expect(err).ToNot(HaveOccurred())
 				})
 
-				It("changes state for all indicies of a job", func() {
+				It("changes state for all indices of a job", func() {
 					slug = NewAllOrInstanceGroupOrInstanceSlug("job", "")
 
 					ConfigureTaskResult(
@@ -925,11 +925,9 @@ var _ = Describe("Deployment", func() {
 		})
 
 		It("succeeds updating deployment with dry-run flags", func() {
-			dryRun := true
-
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/deployments", fmt.Sprintf("dry_run=%t", dryRun)),
+					ghttp.VerifyRequest("POST", "/deployments", "dry_run=true"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"text/yaml"},
@@ -941,18 +939,16 @@ var _ = Describe("Deployment", func() {
 			)
 
 			updateOpts := UpdateOpts{
-				DryRun: dryRun,
+				DryRun: true,
 			}
 			err := deployment.Update([]byte("manifest"), updateOpts)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("succeeds updating deployment with force latest variables flag", func() {
-			forceLatestVariables := true
-
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/deployments", fmt.Sprintf("force_latest_variables=%t", forceLatestVariables)),
+					ghttp.VerifyRequest("POST", "/deployments", "force_latest_variables=true"),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"text/yaml"},
@@ -964,7 +960,7 @@ var _ = Describe("Deployment", func() {
 			)
 
 			updateOpts := UpdateOpts{
-				ForceLatestVariables: forceLatestVariables,
+				ForceLatestVariables: true,
 			}
 			err := deployment.Update([]byte("manifest"), updateOpts)
 			Expect(err).ToNot(HaveOccurred())
@@ -1028,7 +1024,7 @@ var _ = Describe("Deployment", func() {
 			Expect(deployment.Delete(true)).ToNot(HaveOccurred())
 		})
 
-		It("succeeds even if error occurrs if deployment no longer exists", func() {
+		It("succeeds even if error occurs if deployment no longer exists", func() {
 			AppendBadRequest(ghttp.VerifyRequest("DELETE", "/deployments/dep"), server)
 
 			server.AppendHandlers(
@@ -1078,7 +1074,7 @@ var _ = Describe("Deployment", func() {
 	})
 
 	Describe("AttachDisk", func() {
-		It("calls attachdisk director api", func() {
+		It("calls attach-disk director api", func() {
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("PUT", "/disks/disk_cid/attachments", "deployment=dep&job=dea&instance_id=17f01a35-bf9c-4949-bcf2-c07a95e4df33"),
@@ -1113,7 +1109,7 @@ var _ = Describe("Deployment", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("calls attachdisk director api with disk_properties if not empty", func() {
+		It("calls attach-disk director api with disk_properties if not empty", func() {
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("PUT", "/disks/disk_cid/attachments", "deployment=dep&job=dea&instance_id=17f01a35-bf9c-4949-bcf2-c07a95e4df33&disk_properties=copy"),
@@ -1133,7 +1129,7 @@ var _ = Describe("Deployment", func() {
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("PUT", "/disks/disk_cid/attachments", "deployment=dep&job=dea&instance_id=17f01a35-bf9c-4949-bcf2-c07a95e4df33"),
 						ghttp.VerifyBasicAuth("username", "password"),
-						ghttp.RespondWith(500, "Internal Server Error"),
+						ghttp.RespondWith(http.StatusInternalServerError, "Internal Server Error"),
 					),
 					"",
 					server,
@@ -1228,5 +1224,4 @@ var _ = Describe("Deployment", func() {
 		})
 
 	})
-
 })

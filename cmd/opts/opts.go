@@ -29,9 +29,9 @@ type BoshOpts struct {
 	DeploymentOpt string `long:"deployment" short:"d" description:"Deployment name" env:"BOSH_DEPLOYMENT"`
 
 	// Output formatting
-	ColumnOpt         []ColumnOpt `long:"column"                    description:"Filter to show only given column(s)"`
+	ColumnOpt         []ColumnOpt `long:"column"                    description:"Filter to show only given column(s), use the --column flag for each column you wish to include"`
 	JSONOpt           bool        `long:"json"                      description:"Output as JSON"`
-	TTYOpt            bool        `long:"tty"                       description:"Force TTY-like output"`
+	TTYOpt            bool        `long:"tty"                       description:"Force TTY-like output" env:"BOSH_TTY"`
 	NoColorOpt        bool        `long:"no-color"                  description:"Toggle colorized output"`
 	NonInteractiveOpt bool        `long:"non-interactive" short:"n" description:"Don't ask for user input" env:"BOSH_NON_INTERACTIVE"`
 
@@ -198,6 +198,7 @@ type CreateEnvOpts struct {
 	Recreate                bool   `long:"recreate" description:"Recreate VM in deployment"`
 	RecreatePersistentDisks bool   `long:"recreate-persistent-disks" description:"Recreate persistent disks in the deployment"`
 	AvoidIsolatedEnv        bool   `long:"avoid-isolated-environment" short:"I" description:"Compile and run cpi-commands in a clean environment or not"`
+	PackageDir              string `long:"package-dir" value-name:"DIR" description:"Package cache location override"`
 	cmd
 }
 
@@ -209,8 +210,9 @@ type DeleteEnvOpts struct {
 	Args DeleteEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
-	SkipDrain bool   `long:"skip-drain" description:"Skip running drain and pre-stop scripts"`
-	StatePath string `long:"state" value-name:"PATH" description:"State file path"`
+	SkipDrain  bool   `long:"skip-drain" description:"Skip running drain and pre-stop scripts"`
+	StatePath  string `long:"state" value-name:"PATH" description:"State file path"`
+	PackageDir string `long:"package-dir" value-name:"DIR" description:"Package cache location override"`
 	cmd
 }
 

@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
 	fakecmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config/configfakes"
@@ -20,17 +20,17 @@ var _ = Describe("BasicLoginStrategy", func() {
 		sessions map[cmdconf.Config]*fakecmd.FakeSession
 		config   *fakecmdconf.FakeConfig
 		ui       *fakeui.FakeUI
-		strategy BasicLoginStrategy
+		strategy cmd.BasicLoginStrategy
 	)
 
 	BeforeEach(func() {
 		sessions = map[cmdconf.Config]*fakecmd.FakeSession{}
-		sessionFactory := func(config cmdconf.Config) Session {
+		sessionFactory := func(config cmdconf.Config) cmd.Session {
 			return sessions[config]
 		}
 		config = &fakecmdconf.FakeConfig{}
 		ui = &fakeui.FakeUI{}
-		strategy = NewBasicLoginStrategy(sessionFactory, config, ui)
+		strategy = cmd.NewBasicLoginStrategy(sessionFactory, config, ui)
 	})
 
 	Describe("Try", func() {

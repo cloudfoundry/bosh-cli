@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	fakecmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config/configfakes"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
@@ -20,14 +20,14 @@ var _ = Describe("DeploymentCmd", func() {
 		session *fakecmd.FakeSession
 		config  *fakecmdconf.FakeConfig
 		ui      *fakeui.FakeUI
-		command DeploymentCmd
+		command cmd.DeploymentCmd
 	)
 
 	BeforeEach(func() {
 		session = &fakecmd.FakeSession{}
 		config = &fakecmdconf.FakeConfig{}
 		ui = &fakeui.FakeUI{}
-		command = NewDeploymentCmd(session, config, ui)
+		command = cmd.NewDeploymentCmd(session, config, ui)
 	})
 
 	Describe("Run", func() {

@@ -7,9 +7,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 )
@@ -18,7 +18,7 @@ var _ = Describe("ExportReleaseCmd", func() {
 	var (
 		deployment         *fakedir.FakeDeployment
 		downloader         *fakecmd.FakeDownloader
-		command            ExportReleaseCmd
+		command            cmd.ExportReleaseCmd
 		stubReleaseName    string
 		stubReleaseVersion string
 		stubJobName        string
@@ -27,7 +27,7 @@ var _ = Describe("ExportReleaseCmd", func() {
 	BeforeEach(func() {
 		deployment = &fakedir.FakeDeployment{}
 		downloader = &fakecmd.FakeDownloader{}
-		command = NewExportReleaseCmd(deployment, downloader)
+		command = cmd.NewExportReleaseCmd(deployment, downloader)
 		stubReleaseName = "rel"
 		stubReleaseVersion = "rel-ver"
 		stubJobName = "fake-job"
@@ -54,22 +54,22 @@ var _ = Describe("ExportReleaseCmd", func() {
 
 	Describe("Run", func() {
 		var (
-			opts ExportReleaseOpts
+			exportReleaseOpts opts.ExportReleaseOpts
 		)
 
 		BeforeEach(func() {
-			opts = ExportReleaseOpts{
-				Args: ExportReleaseArgs{
+			exportReleaseOpts = opts.ExportReleaseOpts{
+				Args: opts.ExportReleaseArgs{
 					ReleaseSlug:   boshdir.NewReleaseSlug("rel", "rel-ver"),
 					OSVersionSlug: boshdir.NewOSVersionSlug("os", "os-ver"),
 				},
 
-				Directory: DirOrCWDArg{Path: "/fake-dir"},
+				Directory: opts.DirOrCWDArg{Path: "/fake-dir"},
 				Jobs:      []string{"fake-job"},
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(exportReleaseOpts) }
 
 		It("fetches exported release", func() {
 			result := boshdir.ExportReleaseResult{

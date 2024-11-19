@@ -4,10 +4,11 @@ import (
 	"errors"
 	"os"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 )
 
 var _ = Describe("FileBytesArg", func() {

@@ -3,14 +3,15 @@ package cmd_test
 import (
 	"errors"
 
-	"github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
-	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakepcap "github.com/cloudfoundry/bosh-cli/v7/pcap/pcapfakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
+	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
+	fakepcap "github.com/cloudfoundry/bosh-cli/v7/pcap/pcapfakes"
 )
 
 var _ = Describe("pcap", func() {
@@ -34,13 +35,13 @@ var _ = Describe("pcap", func() {
 
 		Describe("Run", func() {
 			var (
-				opts PcapOpts
-				act  func() error
+				pcapOpts opts.PcapOpts
+				act      func() error
 			)
 
 			BeforeEach(func() {
-				opts = PcapOpts{
-					GatewayFlags: GatewayFlags{
+				pcapOpts = opts.PcapOpts{
+					GatewayFlags: opts.GatewayFlags{
 						UUIDGen: uuidGen,
 					},
 					SnapLength: 65535,
@@ -49,17 +50,17 @@ var _ = Describe("pcap", func() {
 				uuidGen.GeneratedUUID = UUID
 
 				act = func() error {
-					return command.Run(opts)
+					return command.Run(pcapOpts)
 				}
 			})
 
 			Context("when valid pcap args are provided", func() {
 				BeforeEach(func() {
-					opts.Args.Slug = boshdir.AllOrInstanceGroupOrInstanceSlug{}
+					pcapOpts.Args.Slug = boshdir.AllOrInstanceGroupOrInstanceSlug{}
 				})
 
 				It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
-					pcapRunner.RunStub = func(result boshdir.SSHResult, username string, argv string, opts PcapOpts, privateKey string) error {
+					pcapRunner.RunStub = func(result boshdir.SSHResult, username string, argv string, pcapOpts opts.PcapOpts, privateKey string) error {
 						Expect(argv).To(Equal("sudo tcpdump -w - -i eth0 -s 65535"))
 						return nil
 					}
@@ -84,9 +85,9 @@ var _ = Describe("pcap", func() {
 					Expect(err.Error()).To(ContainSubstring("fake-err"))
 				})
 				It("provides custom opts, sets up SSH access, runs SSH command and later cleans up SSH access", func() {
-					opts.SnapLength = 300
-					opts.Interface = "any"
-					pcapRunner.RunStub = func(result boshdir.SSHResult, username string, argv string, opts PcapOpts, privateKey string) error {
+					pcapOpts.SnapLength = 300
+					pcapOpts.Interface = "any"
+					pcapRunner.RunStub = func(result boshdir.SSHResult, username string, argv string, pcapOpts opts.PcapOpts, privateKey string) error {
 						Expect(argv).To(Equal("sudo tcpdump -w - -i any -s 300"))
 						Expect(deployment.CleanUpSSHCallCount()).To(Equal(0))
 						return nil

@@ -7,7 +7,11 @@ import (
 	"text/template"
 	"time"
 
+	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -18,15 +22,12 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
-	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
 	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
 	mockblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	mockcloud "github.com/cloudfoundry/bosh-cli/v7/cloud/mocks"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	bicpirel "github.com/cloudfoundry/bosh-cli/v7/cpi/release"
 	fakebicrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
@@ -48,13 +49,12 @@ import (
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
-	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
-	"github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 )
 
 var _ = Describe("bosh", func() {
@@ -264,8 +264,8 @@ cloud_provider:
 		}
 
 		var allowCPIToBeInstalled = func() {
-			cpiPackage := birelpkg.NewPackage(NewResource("fake-package-name", "fake-package-fingerprint-cpi", nil), nil)
-			job := bireljob.NewJob(NewResource("fake-cpi-release-job-name", "", nil))
+			cpiPackage := birelpkg.NewPackage(resource.NewResource("fake-package-name", "fake-package-fingerprint-cpi", nil), nil)
+			job := bireljob.NewJob(resource.NewResource("fake-cpi-release-job-name", "", nil))
 			job.Templates = map[string]string{filepath.Join("templates", "cpi.erb"): "bin/cpi"}
 			job.PackageNames = []string{"fake-package-name"}
 			err := job.AttachPackages([]*birelpkg.Package{cpiPackage})
@@ -291,9 +291,8 @@ cloud_provider:
 
 			installationManifest := biinstallmanifest.Manifest{
 				Name: "test-deployment",
-				Template: biinstallmanifest.ReleaseJobRef{
-					Name:    "fake-cpi-release-job-name",
-					Release: "fake-cpi-release-name",
+				Templates: []biinstallmanifest.ReleaseJobRef{
+					{Name: "fake-cpi-release-job-name", Release: "fake-cpi-release-name"},
 				},
 				Mbus: mbusURL,
 				Cert: biinstallmanifest.Certificate{
@@ -302,13 +301,14 @@ cloud_provider:
 				Properties: biproperty.Map{},
 			}
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
-			target := biinstall.NewTarget(installationPath)
+			target := biinstall.NewTarget(installationPath, "")
 
 			installedJob := biinstall.InstalledJob{}
 			installedJob.Name = "fake-cpi-release-job-name"
 			installedJob.Path = filepath.Join(target.JobsPath(), "fake-cpi-release-job-name")
 
-			installation := biinstall.NewInstallation(target, installedJob, installationManifest)
+			installation := biinstall.NewInstallation(target, []biinstall.InstalledJob{installedJob},
+				installationManifest)
 
 			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockInstaller).AnyTimes()
 
@@ -379,7 +379,7 @@ cloud_provider:
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		}
 
-		var newCreateEnvCmd = func() *CreateEnvCmd {
+		var newCreateEnvCmd = func() *cmd.CreateEnvCmd {
 			deploymentParser := bideplmanifest.NewParser(fs, logger)
 			releaseSetValidator := birelsetmanifest.NewValidator(logger)
 			releaseSetParser := birelsetmanifest.NewParser(fs, logger, releaseSetValidator)
@@ -398,7 +398,7 @@ cloud_provider:
 			deploymentFactory := bidepl.NewFactory(pingTimeout, pingDelay)
 
 			ui := biui.NewWriterUI(stdOut, stdErr, logger)
-			doGet := func(deploymentManifestPath string, statePath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) DeploymentPreparer {
+			doGet := func(deploymentManifestPath string, statePath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) cmd.DeploymentPreparer {
 				// todo: figure this out?
 				deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, statePath))
 				vmRepo = biconfig.NewVMRepo(deploymentStateService)
@@ -425,7 +425,6 @@ cloud_provider:
 				cpiInstaller := bicpirel.CpiInstaller{
 					ReleaseManager:   releaseManager,
 					InstallerFactory: mockInstallerFactory,
-					Validator:        bicpirel.NewValidator(),
 				}
 				releaseFetcher := biinstall.NewReleaseFetcher(tarballProvider, releaseReader, releaseManager)
 				stemcellFetcher := bistemcell.Fetcher{
@@ -433,11 +432,11 @@ cloud_provider:
 					StemcellExtractor: fakeStemcellExtractor,
 				}
 
-				releaseSetAndInstallationManifestParser := ReleaseSetAndInstallationManifestParser{
+				releaseSetAndInstallationManifestParser := cmd.ReleaseSetAndInstallationManifestParser{
 					ReleaseSetParser:   releaseSetParser,
 					InstallationParser: installationParser,
 				}
-				deploymentManifestParser := NewDeploymentManifestParser(
+				deploymentManifestParser := cmd.NewDeploymentManifestParser(
 					deploymentParser,
 					deploymentValidator,
 					releaseManager,
@@ -450,11 +449,12 @@ cloud_provider:
 					deploymentStateService,
 					installationUuidGenerator,
 					filepath.Join("fake-install-dir"),
+					"",
 				)
 
-				tempRootConfigurator := NewTempRootConfigurator(fs)
+				tempRootConfigurator := cmd.NewTempRootConfigurator(fs)
 
-				return NewDeploymentPreparer(
+				return cmd.NewDeploymentPreparer(
 					ui,
 					logger,
 					"deployCmd",
@@ -481,7 +481,7 @@ cloud_provider:
 				)
 			}
 
-			return NewCreateEnvCmd(ui, doGet)
+			return cmd.NewCreateEnvCmd(ui, doGet)
 		}
 
 		var expectDeployFlow = func() {
@@ -495,7 +495,7 @@ cloud_provider:
 			gomock.InOrder(
 				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}, nil).AnyTimes(),
 				mockCloud.EXPECT().CreateStemcell(filepath.Join("fake-stemcell-extracted-dir", "image"), stemcellCloudProperties).Return(stemcellCID, nil),
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(vmCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, gomock.Any(), networkInterfaces, vmEnv).Return(vmCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(vmCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
@@ -542,7 +542,7 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
@@ -594,7 +594,7 @@ cloud_provider:
 				expectDeleteVM1,
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
@@ -649,7 +649,7 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
@@ -687,7 +687,7 @@ cloud_provider:
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
 				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
@@ -709,7 +709,7 @@ cloud_provider:
 			)
 		}
 
-		var expectDeployWithDiskMigrationRepair = func() {
+		var expectDeployWithDiskMigrationRepair = func(failedMigrationDiskCID string) {
 			agentID := "fake-uuid-2"
 			oldVMCID := "fake-vm-cid-2"
 			newVMCID := "fake-vm-cid-3"
@@ -731,7 +731,7 @@ cloud_provider:
 				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
 				mockCloud.EXPECT().DeleteVM(oldVMCID),
 
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, networkInterfaces, vmEnv).Return(newVMCID, nil),
+				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID, failedMigrationDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
 				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
 				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
 
@@ -839,7 +839,7 @@ cloud_provider:
 				err := fs.WriteFileString(otherReleaseTarballPath, "fake-other-tgz-content")
 				Expect(err).ToNot(HaveOccurred())
 
-				job := bireljob.NewJob(NewResource("other", "", nil))
+				job := bireljob.NewJob(resource.NewResource("other", "", nil))
 
 				otherRelease := birel.NewRelease(
 					"fake-other-release-name",
@@ -980,9 +980,10 @@ cloud_provider:
 					})
 
 					It("deletes unused disks", func() {
-						expectDeployWithDiskMigrationRepair()
+						failedMigrationDiskCID := "fake-disk-cid-2"
+						expectDeployWithDiskMigrationRepair(failedMigrationDiskCID)
 
-						mockCloud.EXPECT().DeleteDisk("fake-disk-cid-2")
+						mockCloud.EXPECT().DeleteDisk(failedMigrationDiskCID)
 
 						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 						Expect(err).ToNot(HaveOccurred())
@@ -1002,7 +1003,7 @@ cloud_provider:
 			var expectNoDeployHappened = func() {
 				expectDeleteVM := mockCloud.EXPECT().DeleteVM(gomock.Any())
 				expectDeleteVM.Times(0)
-				expectCreateVM := mockCloud.EXPECT().CreateVM(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any())
+				expectCreateVM := mockCloud.EXPECT().CreateVM(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any())
 				expectCreateVM.Times(0)
 
 				mockCloud.EXPECT().HasVM(gomock.Any()).Return(true, nil).AnyTimes()
@@ -1070,6 +1071,6 @@ cloud_provider:
 	})
 })
 
-func newDeployOpts(manifestPath string, statePath string) CreateEnvOpts {
-	return CreateEnvOpts{StatePath: statePath, Args: CreateEnvArgs{Manifest: FileBytesWithPathArg{Path: manifestPath}}}
+func newDeployOpts(manifestPath string, statePath string) opts.CreateEnvOpts {
+	return opts.CreateEnvOpts{StatePath: statePath, Args: opts.CreateEnvArgs{Manifest: opts.FileBytesWithPathArg{Path: manifestPath}}}
 }

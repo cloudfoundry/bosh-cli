@@ -3,7 +3,6 @@ package director
 import (
 	"fmt"
 	"net/http"
-
 	gourl "net/url"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"

@@ -4,22 +4,22 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 var _ = Describe("DiffConfigTable", func() {
 	var (
-		ui   *fakeui.FakeUI
-		opts DiffConfigOpts
-		diff Diff
+		ui             *fakeui.FakeUI
+		diffConfigOpts opts.DiffConfigOpts
+		diff           cmd.Diff
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
-		opts = DiffConfigOpts{
+		diffConfigOpts = opts.DiffConfigOpts{
 			FromID: "1",
 			ToID:   "2",
 		}
@@ -28,12 +28,12 @@ var _ = Describe("DiffConfigTable", func() {
 			{"some line that was added", "added"},
 			{"some line that was removed", "removed"},
 		}
-		diff = NewDiff(lines)
+		diff = cmd.NewDiff(lines)
 	})
 
 	Describe("Print", func() {
 		It("shows diff config as transposed table", func() {
-			NewConfigDiffTable(diff, opts, ui).Print()
+			cmd.NewConfigDiffTable(diff, diffConfigOpts, ui).Print()
 
 			Expect(ui.Table).To(Equal(
 				boshtbl.Table{

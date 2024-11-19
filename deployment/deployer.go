@@ -3,6 +3,9 @@ package deployment
 import (
 	"time"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
 	biblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
@@ -11,19 +14,18 @@ import (
 	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 type Deployer interface {
 	Deploy(
-		bicloud.Cloud,
-		bideplmanifest.Manifest,
-		bistemcell.CloudStemcell,
-		bivm.Manager,
-		biblobstore.Blobstore,
-		bool,
-		biui.Stage,
+		cloud bicloud.Cloud,
+		deploymentManifest bideplmanifest.Manifest,
+		cloudStemcell bistemcell.CloudStemcell,
+		vmManager bivm.Manager,
+		blobstore biblobstore.Blobstore,
+		skipDrain bool,
+		diskCIDs []string,
+		deployStage biui.Stage,
 	) (Deployment, error)
 }
 
@@ -57,6 +59,7 @@ func (d *deployer) Deploy(
 	vmManager bivm.Manager,
 	blobstore biblobstore.Blobstore,
 	skipDrain bool,
+	diskCIDs []string,
 	deployStage biui.Stage,
 ) (Deployment, error) {
 	instanceManager := d.instanceManagerFactory.NewManager(cloud, vmManager, blobstore)
@@ -67,7 +70,7 @@ func (d *deployer) Deploy(
 		return nil, err
 	}
 
-	instances, disks, err := d.createAllInstances(deploymentManifest, instanceManager, cloudStemcell, deployStage)
+	instances, disks, err := d.createAllInstances(deploymentManifest, instanceManager, cloudStemcell, diskCIDs, deployStage)
 	if err != nil {
 		return nil, err
 	}
@@ -80,6 +83,7 @@ func (d *deployer) createAllInstances(
 	deploymentManifest bideplmanifest.Manifest,
 	instanceManager biinstance.Manager,
 	cloudStemcell bistemcell.CloudStemcell,
+	diskCIDs []string,
 	deployStage biui.Stage,
 ) ([]biinstance.Instance, []bidisk.Disk, error) {
 	instances := []biinstance.Instance{}
@@ -94,7 +98,7 @@ func (d *deployer) createAllInstances(
 			return instances, disks, bosherr.Errorf("Job '%s' must have only one instance, found %d", jobSpec.Name, jobSpec.Instances)
 		}
 		for instanceID := 0; instanceID < jobSpec.Instances; instanceID++ {
-			instance, instanceDisks, err := instanceManager.Create(jobSpec.Name, instanceID, deploymentManifest, cloudStemcell, deployStage)
+			instance, instanceDisks, err := instanceManager.Create(jobSpec.Name, instanceID, deploymentManifest, cloudStemcell, diskCIDs, deployStage)
 			if err != nil {
 				return instances, disks, bosherr.WrapErrorf(err, "Creating instance '%s/%d'", jobSpec.Name, instanceID)
 			}

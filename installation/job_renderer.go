@@ -1,14 +1,15 @@
 package installation
 
 import (
-	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
-	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
-	bitemplate "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
-	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	boshblob "github.com/cloudfoundry/bosh-utils/blobstore"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
+
+	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
+	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
+	bitemplate "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
+	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
 type JobRenderer interface {
@@ -58,10 +59,6 @@ func (b *jobRenderer) RenderAndUploadFrom(installationManifest biinstallmanifest
 	renderedJobRefs, err := b.renderJobTemplates(jobs, releaseJobProperties, jobProperties, globalProperties, installationManifest.Name, stage)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Rendering job templates for installation")
-	}
-
-	if len(renderedJobRefs) != 1 {
-		return nil, bosherr.Error("Too many jobs rendered... oops?")
 	}
 
 	return renderedJobRefs, nil

@@ -136,6 +136,130 @@ var _ = Describe("Director", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Parsing version for release"))
 		})
+
+		Describe("Release response", func() {
+			var release Release
+
+			BeforeEach(func() {
+				var err error
+
+				release, err = director.FindRelease(NewReleaseSlug("name", "ver"))
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			Describe("Name", func() {
+				It("returns name", func() {
+					Expect(release.Name()).To(Equal("name"))
+				})
+			})
+
+			Describe("Exists", func() {
+				It("returns true if release exists", func() {
+					server.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", "/releases"),
+							ghttp.VerifyBasicAuth("username", "password"),
+							ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
+						),
+					)
+
+					exists, err := release.Exists()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(exists).To(BeTrue())
+				})
+
+				It("returns false if release does not exist", func() {
+					server.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", "/releases"),
+							ghttp.VerifyBasicAuth("username", "password"),
+							ghttp.RespondWith(http.StatusOK, `[{"name":"other-name","release_versions":[{"version":"other-ver"}]}]`),
+						),
+					)
+
+					exists, err := release.Exists()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(exists).To(BeFalse())
+				})
+
+				It("returns false and an error when failing to get the release slug", func() {
+					AppendBadRequest(ghttp.VerifyRequest("GET", "/releases"), server)
+
+					exists, err := release.Exists()
+					Expect(err).To(HaveOccurred())
+					Expect(exists).To(BeFalse())
+				})
+			})
+
+			Describe("Delete", func() {
+				It("succeeds deleting", func() {
+					ConfigureTaskResult(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("DELETE", "/releases/name", "version=ver"),
+							ghttp.VerifyBasicAuth("username", "password"),
+						),
+						"",
+						server,
+					)
+
+					Expect(release.Delete(false)).ToNot(HaveOccurred())
+				})
+
+				It("succeeds deleting with force flag", func() {
+					ConfigureTaskResult(ghttp.VerifyRequest("DELETE", "/releases/name", "version=ver&force=true"), "", server)
+
+					Expect(release.Delete(true)).ToNot(HaveOccurred())
+				})
+
+				It("succeeds even if error occurrs if release no longer exist", func() {
+					AppendBadRequest(ghttp.VerifyRequest("DELETE", "/releases/name"), server)
+
+					server.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", "/releases"),
+							ghttp.VerifyBasicAuth("username", "password"),
+							ghttp.RespondWith(http.StatusOK, "[]"),
+						),
+					)
+
+					Expect(release.Delete(false)).ToNot(HaveOccurred())
+				})
+
+				It("returns delete error if listing releases fails", func() {
+					AppendBadRequest(ghttp.VerifyRequest("DELETE", "/releases/name"), server)
+
+					server.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", "/releases"),
+							ghttp.VerifyBasicAuth("username", "password"),
+							ghttp.RespondWith(http.StatusOK, ""),
+						),
+					)
+
+					err := release.Delete(false)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring(
+						"Deleting release or series 'name[/ver]': Director responded with non-successful status code"))
+				})
+
+				It("returns delete error if response is non-200 and release still exists", func() {
+					AppendBadRequest(ghttp.VerifyRequest("DELETE", "/releases/name"), server)
+
+					server.AppendHandlers(
+						ghttp.CombineHandlers(
+							ghttp.VerifyRequest("GET", "/releases"),
+							ghttp.VerifyBasicAuth("username", "password"),
+							ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
+						),
+					)
+
+					err := release.Delete(false)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring(
+						"Deleting release or series 'name[/ver]': Director responded with non-successful status code"))
+				})
+			})
+		})
 	})
 
 	Describe("HasRelease", func() {
@@ -486,140 +610,6 @@ var _ = Describe("Director", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Uploading release file: Unmarshaling Director response"))
-		})
-	})
-})
-
-var _ = Describe("Release", func() {
-	var (
-		director Director
-		release  Release
-		server   *ghttp.Server
-	)
-
-	BeforeEach(func() {
-		director, server = BuildServer()
-
-		var err error
-
-		release, err = director.FindRelease(NewReleaseSlug("name", "ver"))
-		Expect(err).ToNot(HaveOccurred())
-	})
-
-	AfterEach(func() {
-		server.Close()
-	})
-
-	Describe("Name", func() {
-		It("returns name", func() {
-			Expect(release.Name()).To(Equal("name"))
-		})
-	})
-
-	Describe("Exists", func() {
-		It("returns true if release exists", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/releases"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
-				),
-			)
-
-			exists, err := release.Exists()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(exists).To(BeTrue())
-		})
-
-		It("returns false if release does not exist", func() {
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/releases"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusOK, `[{"name":"other-name","release_versions":[{"version":"other-ver"}]}]`),
-				),
-			)
-
-			exists, err := release.Exists()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(exists).To(BeFalse())
-		})
-
-		It("returns false and an error when failing to get the release slug", func() {
-			AppendBadRequest(ghttp.VerifyRequest("GET", "/releases"), server)
-
-			exists, err := release.Exists()
-			Expect(err).To(HaveOccurred())
-			Expect(exists).To(BeFalse())
-		})
-	})
-
-	Describe("Delete", func() {
-		It("succeeds deleting", func() {
-			ConfigureTaskResult(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("DELETE", "/releases/name", "version=ver"),
-					ghttp.VerifyBasicAuth("username", "password"),
-				),
-				"",
-				server,
-			)
-
-			Expect(release.Delete(false)).ToNot(HaveOccurred())
-		})
-
-		It("succeeds deleting with force flag", func() {
-			ConfigureTaskResult(ghttp.VerifyRequest("DELETE", "/releases/name", "version=ver&force=true"), "", server)
-
-			Expect(release.Delete(true)).ToNot(HaveOccurred())
-		})
-
-		It("succeeds even if error occurrs if release no longer exist", func() {
-			AppendBadRequest(ghttp.VerifyRequest("DELETE", "/releases/name"), server)
-
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/releases"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusOK, "[]"),
-				),
-			)
-
-			Expect(release.Delete(false)).ToNot(HaveOccurred())
-		})
-
-		It("returns delete error if listing releases fails", func() {
-			AppendBadRequest(ghttp.VerifyRequest("DELETE", "/releases/name"), server)
-
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/releases"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusOK, ""),
-				),
-			)
-
-			err := release.Delete(false)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(
-				"Deleting release or series 'name[/ver]': Director responded with non-successful status code"))
-		})
-
-		It("returns delete error if response is non-200 and release still exists", func() {
-			AppendBadRequest(ghttp.VerifyRequest("DELETE", "/releases/name"), server)
-
-			server.AppendHandlers(
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/releases"),
-					ghttp.VerifyBasicAuth("username", "password"),
-					ghttp.RespondWith(http.StatusOK, `[{"name":"name","release_versions":[{"version":"ver"}]}]`),
-				),
-			)
-
-			err := release.Delete(false)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(
-				"Deleting release or series 'name[/ver]': Director responded with non-successful status code"))
 		})
 	})
 })

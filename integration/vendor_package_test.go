@@ -3,78 +3,47 @@ package integration_test
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
-	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
-var _ = Describe("vendor-package command", func() {
-	var (
-		ui         *fakeui.FakeUI
-		fs         boshsys.FileSystem
-		deps       BasicDeps
-		cmdFactory Factory
-	)
-
-	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
-		logger := boshlog.NewLogger(boshlog.LevelNone)
-		confUI := boshui.NewWrappingConfUI(ui, logger)
-
-		fs = boshsys.NewOsFileSystem(logger)
-		deps = NewBasicDepsWithFS(confUI, fs, logger)
-		cmdFactory = NewFactory(deps)
-	})
-
-	execCmd := func(args []string) {
-		cmd, err := cmdFactory.New(args)
-		Expect(err).ToNot(HaveOccurred())
-
-		err = cmd.Execute()
-		Expect(err).ToNot(HaveOccurred(), "Failed running cmd: "+strings.Join(args, " "))
-	}
-
-	opFile := func(path string, op patch.Op) {
-		contents, err := fs.ReadFile(path)
-		Expect(err).ToNot(HaveOccurred())
-
-		tpl := boshtpl.NewTemplate(contents)
-
-		contents, err = tpl.Evaluate(nil, op, boshtpl.EvaluateOpts{})
-		Expect(err).ToNot(HaveOccurred())
-
-		err = fs.WriteFile(path, contents)
-		Expect(err).ToNot(HaveOccurred())
-	}
-
-	findPkg := func(name string, release boshrel.Release) *boshpkg.Package {
-		for _, pkg := range release.Packages() {
-			if pkg.Name() == name {
-				return pkg
-			}
+func findPkg(name string, release boshrel.Release) *boshpkg.Package {
+	for _, pkg := range release.Packages() {
+		if pkg.Name() == name {
+			return pkg
 		}
-		panic(fmt.Sprintf("Expected to find package '%s'", name))
 	}
+	panic(fmt.Sprintf("Expected to find package '%s'", name))
+}
 
+func opFile(path string, op patch.Op) {
+	contents, err := fs.ReadFile(path)
+	Expect(err).ToNot(HaveOccurred())
+
+	tpl := boshtpl.NewTemplate(contents)
+
+	contents, err = tpl.Evaluate(nil, op, boshtpl.EvaluateOpts{})
+	Expect(err).ToNot(HaveOccurred())
+
+	err = fs.WriteFile(path, contents)
+	Expect(err).ToNot(HaveOccurred())
+}
+
+var _ = Describe("vendor-package command", func() {
 	It("vendors packages", func() {
 		upstreamDir, err := fs.TempDir("bosh-vendor-package-int-test")
 		Expect(err).ToNot(HaveOccurred())
 
 		defer fs.RemoveAll(upstreamDir) //nolint:errcheck
 
-		{ // Initialize upstream release
-			execCmd([]string{"init-release", "--git", "--dir", upstreamDir})
+		By("running `init-release` to create the upstream release", func() {
+			createAndExecCommand(cmdFactory, []string{"init-release", "--git", "--dir", upstreamDir})
 
 			blobstoreConfig := fmt.Sprintf(`
 blobstore:
@@ -91,37 +60,37 @@ blobstore:
 			err = fs.WriteFileString(finalConfigPath, prevContents+blobstoreConfig)
 			Expect(err).ToNot(HaveOccurred())
 
-			execCmd([]string{"generate-package", "pkg1", "--dir", upstreamDir})
-		}
+			createAndExecCommand(cmdFactory, []string{"generate-package", "pkg1", "--dir", upstreamDir})
 
-		{ // Add a bit of content to upstream release
-			err := fs.WriteFileString(filepath.Join(upstreamDir, "src", "in-src"), "in-src")
-			Expect(err).ToNot(HaveOccurred())
+			By("adding some content for testing purposes", func() {
+				err := fs.WriteFileString(filepath.Join(upstreamDir, "src", "in-src"), "in-src")
+				Expect(err).ToNot(HaveOccurred())
 
-			pkg1SpecPath := filepath.Join(upstreamDir, "packages", "pkg1", "spec")
+				pkg1SpecPath := filepath.Join(upstreamDir, "packages", "pkg1", "spec")
 
-			replaceOp := patch.ReplaceOp{
-				// eq /files/-
-				Path: patch.NewPointer([]patch.Token{
-					patch.RootToken{},
-					patch.KeyToken{Key: "files"},
-					patch.AfterLastIndexToken{},
-				}),
-				Value: "in-src",
-			}
+				replaceOp := patch.ReplaceOp{
+					// eq /files/-
+					Path: patch.NewPointer([]patch.Token{
+						patch.RootToken{},
+						patch.KeyToken{Key: "files"},
+						patch.AfterLastIndexToken{},
+					}),
+					Value: "in-src",
+				}
 
-			opFile(pkg1SpecPath, replaceOp)
+				opFile(pkg1SpecPath, replaceOp)
 
-			execCmd([]string{"create-release", "--final", "--force", "--dir", upstreamDir})
-		}
+				createAndExecCommand(cmdFactory, []string{"create-release", "--final", "--force", "--dir", upstreamDir})
+			})
+		})
 
 		targetDir, err := fs.TempDir("bosh-vendor-package-int-test")
 		Expect(err).ToNot(HaveOccurred())
 
 		defer fs.RemoveAll(targetDir) //nolint:errcheck
 
-		{ // Initialize target release
-			execCmd([]string{"init-release", "--git", "--dir", targetDir})
+		By("running `init-release` to create the target release", func() {
+			createAndExecCommand(cmdFactory, []string{"init-release", "--git", "--dir", targetDir})
 
 			blobstoreConfig := fmt.Sprintf(`
 blobstore:
@@ -138,20 +107,20 @@ blobstore:
 			err = fs.WriteFileString(finalConfigPath, prevContents+blobstoreConfig)
 			Expect(err).ToNot(HaveOccurred())
 
-			execCmd([]string{"generate-package", "pkg2", "--dir", targetDir})
-		}
+			createAndExecCommand(cmdFactory, []string{"generate-package", "pkg2", "--dir", targetDir})
+		})
 
-		{ // Bring over vendored pkg1
-			execCmd([]string{"vendor-package", "pkg1", upstreamDir, "--dir", targetDir})
-		}
+		By("running `vendor-package` to vendor the upstream release's package `pkg1`", func() {
+			createAndExecCommand(cmdFactory, []string{"vendor-package", "pkg1", upstreamDir, "--dir", targetDir})
+		})
 
-		{ // Check contents of a target release
+		By("verifying that the upstream release's package `pkg1` has been vendored", func() {
 			targetTarball, err := fs.TempFile("bosh-vendor-package-int-test")
 			Expect(err).ToNot(HaveOccurred())
 
 			defer fs.RemoveAll(targetTarball.Name()) //nolint:errcheck
 
-			execCmd([]string{"create-release", "--tarball", targetTarball.Name(), "--force", "--dir", targetDir})
+			createAndExecCommand(cmdFactory, []string{"create-release", "--tarball", targetTarball.Name(), "--force", "--dir", targetDir})
 
 			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
 			archiveReader := relProvider.NewExtractingArchiveReader()
@@ -163,15 +132,15 @@ blobstore:
 
 			pkg1 := release.Packages()[0]
 			Expect(fs.ReadFileString(filepath.Join(pkg1.ExtractedPath(), "in-src"))).To(Equal("in-src"))
-		}
+		})
 
-		{ // Add new bits to upstream release
+		By("updating content in the upstream release's `pkg1`", func() {
 			err := fs.WriteFileString(filepath.Join(upstreamDir, "src", "in-src"), "in-src-updated")
 			Expect(err).ToNot(HaveOccurred())
-		}
+		})
 
-		{ // Add package dependency to upstream release
-			execCmd([]string{"generate-package", "dependent-pkg", "--dir", upstreamDir})
+		By("adding a package `dependent-pkg` to the upstream release", func() {
+			createAndExecCommand(cmdFactory, []string{"generate-package", "dependent-pkg", "--dir", upstreamDir})
 
 			err := fs.WriteFileString(filepath.Join(upstreamDir, "src", "dependent-pkg-file"), "in-dependent-pkg")
 			Expect(err).ToNot(HaveOccurred())
@@ -189,9 +158,9 @@ blobstore:
 			}
 
 			opFile(specPath, replaceOp)
-		}
+		})
 
-		{ // Make pkg1 depend on dependent-package
+		By("making the upstream release's package `pkg1` dependent on `dependent-pkg`", func() {
 			pkg1SpecPath := filepath.Join(upstreamDir, "packages", "pkg1", "spec")
 
 			replaceOp := patch.ReplaceOp{
@@ -206,20 +175,20 @@ blobstore:
 
 			opFile(pkg1SpecPath, replaceOp)
 
-			execCmd([]string{"create-release", "--final", "--force", "--dir", upstreamDir})
-		}
+			createAndExecCommand(cmdFactory, []string{"create-release", "--final", "--force", "--dir", upstreamDir})
+		})
 
-		{ // Bring over vendored pkg1
-			execCmd([]string{"vendor-package", "pkg1", upstreamDir, "--dir", targetDir})
-		}
+		By("again running `vendor-package` to vendor the upstream release's package `pkg1`", func() {
+			createAndExecCommand(cmdFactory, []string{"vendor-package", "pkg1", upstreamDir, "--dir", targetDir})
+		})
 
-		{ // Check contents of a target release with updated package version and dependent package
+		By("verifying that both `pkg1` and its dependency `dependent-pkg` have both been vendored", func() {
 			targetTarball, err := fs.TempFile("bosh-vendor-package-int-test")
 			Expect(err).ToNot(HaveOccurred())
 
 			defer fs.RemoveAll(targetTarball.Name()) //nolint:errcheck
 
-			execCmd([]string{"create-release", "--tarball", targetTarball.Name(), "--force", "--dir", targetDir})
+			createAndExecCommand(cmdFactory, []string{"create-release", "--tarball", targetTarball.Name(), "--force", "--dir", targetDir})
 
 			relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
 			archiveReader := relProvider.NewExtractingArchiveReader()
@@ -240,6 +209,6 @@ blobstore:
 			Expect(content).To(Equal("in-dependent-pkg"))
 
 			Expect(pkg1.Dependencies).To(Equal([]*boshpkg.Package{dependentPkg}))
-		}
+		})
 	})
 })

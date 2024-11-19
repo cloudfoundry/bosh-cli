@@ -3,15 +3,15 @@ package cmd_test
 import (
 	"errors"
 
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
+	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("AddBlobCmd", func() {
@@ -19,33 +19,33 @@ var _ = Describe("AddBlobCmd", func() {
 		blobsDir *fakereldir.FakeBlobsDir
 		fs       *fakesys.FakeFileSystem
 		ui       *fakeui.FakeUI
-		command  AddBlobCmd
+		command  cmd.AddBlobCmd
 	)
 
 	BeforeEach(func() {
 		blobsDir = &fakereldir.FakeBlobsDir{}
 		fs = fakesys.NewFakeFileSystem()
 		ui = &fakeui.FakeUI{}
-		command = NewAddBlobCmd(blobsDir, fs, ui)
+		command = cmd.NewAddBlobCmd(blobsDir, fs, ui)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts AddBlobOpts
+			addBlobOpts opts.AddBlobOpts
 		)
 
 		BeforeEach(func() {
 			err := fs.WriteFileString("/path/to/blob.tgz", "blob")
 			Expect(err).ToNot(HaveOccurred())
-			opts = AddBlobOpts{
-				Args: AddBlobArgs{
+			addBlobOpts = opts.AddBlobOpts{
+				Args: opts.AddBlobArgs{
 					Path:      "/path/to/blob.tgz",
 					BlobsPath: "my-blob.tgz",
 				},
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(addBlobOpts) }
 
 		It("starts tracking blob", func() {
 			blobsDir.TrackBlobReturns(boshreldir.Blob{Path: "my-blob.tgz"}, nil)

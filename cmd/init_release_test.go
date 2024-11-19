@@ -6,32 +6,32 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
 )
 
 var _ = Describe("InitReleaseCmd", func() {
 	var (
 		releaseDir *fakereldir.FakeReleaseDir
-		command    InitReleaseCmd
+		command    cmd.InitReleaseCmd
 	)
 
 	BeforeEach(func() {
 		releaseDir = &fakereldir.FakeReleaseDir{}
-		command = NewInitReleaseCmd(releaseDir)
+		command = cmd.NewInitReleaseCmd(releaseDir)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts InitReleaseOpts
+			initReleaseOpts opts.InitReleaseOpts
 		)
 
 		BeforeEach(func() {
-			opts = InitReleaseOpts{}
+			initReleaseOpts = opts.InitReleaseOpts{}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(initReleaseOpts) }
 
 		It("inits release", func() {
 			err := act()
@@ -42,7 +42,7 @@ var _ = Describe("InitReleaseCmd", func() {
 		})
 
 		It("inits release with git as true", func() {
-			opts.Git = true
+			initReleaseOpts.Git = true
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())

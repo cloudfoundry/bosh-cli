@@ -1,13 +1,13 @@
 package cmd_test
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"time"
-
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -16,18 +16,18 @@ import (
 
 var _ = Describe("EventCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
-		director *fakedir.FakeDirector
-		command  EventCmd
-		event    boshdir.Event
-		opts     EventOpts
+		ui        *fakeui.FakeUI
+		director  *fakedir.FakeDirector
+		command   cmd.EventCmd
+		event     boshdir.Event
+		eventOpts opts.EventOpts
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewEventCmd(ui, director)
-		opts.Args.ID = "4"
+		command = cmd.NewEventCmd(ui, director)
+		eventOpts.Args.ID = "4"
 	})
 
 	Describe("Run", func() {
@@ -36,7 +36,7 @@ var _ = Describe("EventCmd", func() {
 
 			director.EventReturns(event, nil)
 
-			err := command.Run(opts)
+			err := command.Run(eventOpts)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(ui.Table.Transpose).To(Equal(true))
@@ -62,7 +62,7 @@ var _ = Describe("EventCmd", func() {
 
 				director.EventReturns(event, nil)
 
-				err := command.Run(opts)
+				err := command.Run(eventOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
@@ -127,7 +127,7 @@ var _ = Describe("EventCmd", func() {
 
 				director.EventReturns(event, nil)
 
-				err := command.Run(opts)
+				err := command.Run(eventOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
@@ -171,7 +171,7 @@ var _ = Describe("EventCmd", func() {
 
 				director.EventReturns(event, nil)
 
-				err := command.Run(opts)
+				err := command.Run(eventOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("User")))
@@ -188,7 +188,7 @@ var _ = Describe("EventCmd", func() {
 
 				director.EventReturns(event, nil)
 
-				err := command.Run(opts)
+				err := command.Run(eventOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("Object Name")))
@@ -205,7 +205,7 @@ var _ = Describe("EventCmd", func() {
 
 				director.EventReturns(event, nil)
 
-				err := command.Run(opts)
+				err := command.Run(eventOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("Task ID")))
@@ -222,7 +222,7 @@ var _ = Describe("EventCmd", func() {
 
 				director.EventReturns(event, nil)
 
-				err := command.Run(opts)
+				err := command.Run(eventOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("Deployment")))
@@ -239,7 +239,7 @@ var _ = Describe("EventCmd", func() {
 
 				director.EventReturns(event, nil)
 
-				err := command.Run(opts)
+				err := command.Run(eventOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("Instance")))
@@ -256,7 +256,7 @@ var _ = Describe("EventCmd", func() {
 
 				director.EventReturns(event, nil)
 
-				err := command.Run(opts)
+				err := command.Run(eventOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("Context")))
@@ -273,7 +273,7 @@ var _ = Describe("EventCmd", func() {
 
 				director.EventReturns(event, nil)
 
-				err := command.Run(opts)
+				err := command.Run(eventOpts)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(ui.Table.Header).To(ContainElement(boshtbl.NewHeader("Error")))

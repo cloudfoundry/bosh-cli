@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -17,25 +17,25 @@ var _ = Describe("RuntimeConfigCmd", func() {
 	var (
 		ui       *fakeui.FakeUI
 		director *fakedir.FakeDirector
-		command  RuntimeConfigCmd
+		command  cmd.RuntimeConfigCmd
 	)
 
 	BeforeEach(func() {
 		ui = &fakeui.FakeUI{}
 		director = &fakedir.FakeDirector{}
-		command = NewRuntimeConfigCmd(ui, director)
+		command = cmd.NewRuntimeConfigCmd(ui, director)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts RuntimeConfigOpts
+			runtimeConfigOpts opts.RuntimeConfigOpts
 		)
 		BeforeEach(func() {
-			opts = RuntimeConfigOpts{
+			runtimeConfigOpts = opts.RuntimeConfigOpts{
 				Name: "some-foo-config",
 			}
 		})
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(runtimeConfigOpts) }
 
 		It("shows runtime config", func() {
 			runtimeConfig := boshdir.RuntimeConfig{

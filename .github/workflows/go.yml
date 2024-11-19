@@ -7,7 +7,6 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest]
-    name: lint
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup Image
@@ -19,3 +18,18 @@ jobs:
         with:
           go-version-file: go.mod
       - uses: golangci/golangci-lint-action@v6
+  test-unit:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup Image
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update && sudo apt-get install -y libpcap-dev
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: bin/test-unit

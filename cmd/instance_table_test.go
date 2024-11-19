@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 )
 
@@ -14,12 +14,12 @@ var _ = Describe("InstanceTable", func() {
 	Describe("ForVMInfo", func() {
 		var (
 			info boshdir.VMInfo
-			tbl  InstanceTable
+			tbl  cmd.InstanceTable
 		)
 
 		BeforeEach(func() {
 			info = boshdir.VMInfo{}
-			tbl = InstanceTable{Details: true, Vitals: true, CloudProperties: true}
+			tbl = cmd.InstanceTable{Details: true, Vitals: true, CloudProperties: true}
 		})
 
 		Describe("name, id", func() {

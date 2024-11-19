@@ -1,25 +1,25 @@
 package completion_test
 
 import (
-	"os"
 	"strings"
 
-	"github.com/cloudfoundry/bosh-cli/v7/cmd/completion"
-	"github.com/cloudfoundry/bosh-utils/logger"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/completion"
 )
 
 var _ = Describe("Completion Integration Tests", func() {
-	var (
-		boshComplete *completion.BoshComplete
-	)
+	var boshComplete *completion.BoshComplete
 
 	BeforeEach(func() {
-		testLogger := logger.NewWriterLogger(logger.LevelInfo, os.Stderr)
+		testLogger := boshlog.NewWriterLogger(boshlog.LevelInfo, GinkgoWriter)
 		fakeCmdCtx := &completion.CmdContext{}
 		fakeDq := completion.NewDirectorQueryFake(fakeCmdCtx)
-		fakeCompletionFunctionMap := completion.NewCompleteFunctionsMap(testLogger, fakeDq)
+		fakeCompletionFunctionMap :=
+			completion.NewCompleteFunctionsMap(testLogger, fakeDq)
+
 		boshComplete = completion.NewBoshCompleteWithFunctions(testLogger, fakeCmdCtx, fakeCompletionFunctionMap)
 	})
 
@@ -129,9 +129,8 @@ func (tc testCase) check(boshComplete *completion.BoshComplete) {
 	} else {
 		Expect(err).ToNot(HaveOccurred())
 	}
-	if result == nil {
-		Expect(result).ToNot(BeNil())
-	}
+	Expect(result).ToNot(BeNil())
+
 	if tc.wantStartsWith {
 		for i, wantLine := range tc.wantRes {
 			Expect(wantLine).To(Equal(result.Lines[i]))
@@ -145,7 +144,7 @@ var globalFlags = []string{
 	"--ca-cert\tDirector CA certificate path or value, env: BOSH_CA_CERT",
 	"--client\tOverride username or UAA client, env: BOSH_CLIENT",
 	"--client-secret\tOverride password or UAA client secret, env: BOSH_CLIENT_SECRET",
-	"--column\tFilter to show only given column(s)",
+	"--column\tFilter to show only given column(s), use the --column flag for each column you wish to include",
 	"--config\tConfig file path, env: BOSH_CONFIG",
 	"--deployment\tDeployment name, env: BOSH_DEPLOYMENT",
 	"-d\tDeployment name, env: BOSH_DEPLOYMENT",
@@ -159,7 +158,7 @@ var globalFlags = []string{
 	"-n\tDon't ask for user input, env: BOSH_NON_INTERACTIVE",
 	"--parallel\tThe max number of parallel operations",
 	"--sha2\tUse SHA256 checksums, env: BOSH_SHA2",
-	"--tty\tForce TTY-like output",
+	"--tty\tForce TTY-like output, env: BOSH_TTY",
 	"--version\tShow CLI version",
 	"-v\tShow CLI version",
 }

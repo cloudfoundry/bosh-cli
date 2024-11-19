@@ -3,9 +3,10 @@ package installation
 import (
 	"path/filepath"
 
-	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
+
+	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 )
 
 type TargetProvider interface {
@@ -16,17 +17,20 @@ type targetProvider struct {
 	deploymentStateService biconfig.DeploymentStateService
 	uuidGenerator          boshuuid.Generator
 	installationsRootPath  string
+	packageDir             string
 }
 
 func NewTargetProvider(
 	deploymentStateService biconfig.DeploymentStateService,
 	uuidGenerator boshuuid.Generator,
 	installationsRootPath string,
+	packageDir string,
 ) TargetProvider {
 	return &targetProvider{
 		deploymentStateService: deploymentStateService,
 		uuidGenerator:          uuidGenerator,
 		installationsRootPath:  installationsRootPath,
+		packageDir:             packageDir,
 	}
 }
 
@@ -50,5 +54,5 @@ func (p *targetProvider) NewTarget() (Target, error) {
 		}
 	}
 
-	return NewTarget(filepath.Join(p.installationsRootPath, installationID)), nil
+	return NewTarget(filepath.Join(p.installationsRootPath, installationID), p.packageDir), nil
 }

@@ -3,9 +3,10 @@ package completion
 import (
 	"reflect"
 
-	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/spf13/cobra"
+
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 )
 
 type CompleteFunctions struct {

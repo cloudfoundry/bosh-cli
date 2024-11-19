@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -24,23 +24,23 @@ var _ = Describe("CloudCheckCmd", func() {
 	var (
 		deployment *fakedir.FakeDeployment
 		ui         *fakeui.FakeUI
-		command    CloudCheckCmd
+		command    cmd.CloudCheckCmd
 	)
 
 	BeforeEach(func() {
 		deployment = &fakedir.FakeDeployment{}
 		ui = &fakeui.FakeUI{}
-		command = NewCloudCheckCmd(deployment, ui)
+		command = cmd.NewCloudCheckCmd(deployment, ui)
 	})
 
 	Describe("Run", func() {
 		var (
-			opts         CloudCheckOpts
-			severalProbs []boshdir.Problem
+			cloudCheckOpts opts.CloudCheckOpts
+			severalProbs   []boshdir.Problem
 		)
 
 		BeforeEach(func() {
-			opts = CloudCheckOpts{}
+			cloudCheckOpts = opts.CloudCheckOpts{}
 
 			severalProbs = []boshdir.Problem{
 				{
@@ -71,7 +71,7 @@ var _ = Describe("CloudCheckCmd", func() {
 			}
 		})
 
-		act := func() error { return command.Run(opts) }
+		act := func() error { return command.Run(cloudCheckOpts) }
 
 		Context("when trying to resolve problems (not just reporting)", func() {
 			Context("when auto resolution is disabled", func() {
@@ -204,7 +204,7 @@ var _ = Describe("CloudCheckCmd", func() {
 
 			Context("when auto resolution is enabled", func() {
 				BeforeEach(func() {
-					opts.Auto = true
+					cloudCheckOpts.Auto = true
 				})
 
 				Context("when several problems were found", func() {
@@ -318,8 +318,8 @@ var _ = Describe("CloudCheckCmd", func() {
 
 			Context("when resolutions are provided", func() {
 				BeforeEach(func() {
-					opts.Auto = false
-					opts.Resolutions = []string{"delete_disk_reference", "delete_vm_reference"}
+					cloudCheckOpts.Auto = false
+					cloudCheckOpts.Resolutions = []string{"delete_disk_reference", "delete_vm_reference"}
 				})
 
 				Context("when every problems has a matching resolution", func() {
@@ -458,7 +458,7 @@ var _ = Describe("CloudCheckCmd", func() {
 
 		Context("when only reporting", func() {
 			BeforeEach(func() {
-				opts.Report = true
+				cloudCheckOpts.Report = true
 			})
 
 			It("returns error if there are any problems found by the scan", func() {

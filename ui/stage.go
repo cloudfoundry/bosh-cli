@@ -4,8 +4,9 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/clock"
-	biuifmt "github.com/cloudfoundry/bosh-cli/v7/ui/fmt"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
+	biuifmt "github.com/cloudfoundry/bosh-cli/v7/ui/fmt"
 )
 
 type Stage interface {

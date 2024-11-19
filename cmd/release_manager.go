@@ -2,6 +2,7 @@ package cmd
 
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cloudfoundry/bosh-utils/work"
 	"github.com/cppforlife/go-patch/patch"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
@@ -9,7 +10,6 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
-	"github.com/cloudfoundry/bosh-utils/work"
 )
 
 type ReleaseManager struct {

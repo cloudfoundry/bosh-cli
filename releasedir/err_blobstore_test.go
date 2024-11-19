@@ -3,11 +3,11 @@ package releasedir_test
 import (
 	"errors"
 
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/releasedir"
-	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 var _ = Describe("ErrBlobstore", func() {

@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
-
 	gourl "net/url"
+	"strconv"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )

@@ -90,26 +90,23 @@ func (b S3Blobstore) Validate() error {
 	return err
 }
 
-func (b S3Blobstore) client() (s3client.S3Blobstore, error) {
+func (b S3Blobstore) client() (s3client.S3CompatibleClient, error) {
 	bytes, err := json.Marshal(b.options)
 	if err != nil {
-		return s3client.S3Blobstore{}, bosherr.WrapErrorf(err, "Marshaling config")
+		return nil, bosherr.WrapErrorf(err, "Marshaling config")
 	}
 
 	conf, err := s3config.NewFromReader(gobytes.NewBuffer(bytes))
 	if err != nil {
-		return s3client.S3Blobstore{}, bosherr.WrapErrorf(err, "Reading config")
+		return nil, bosherr.WrapErrorf(err, "Reading config")
 	}
 
-	s3ClientSDK, err := s3client.NewSDK(conf)
+	s3ClientSDK, err := s3client.NewAwsS3Client(&conf)
 	if err != nil {
-		return s3client.S3Blobstore{}, bosherr.WrapErrorf(err, "Building client SDK")
+		return nil, bosherr.WrapErrorf(err, "Building client SDK")
 	}
 
-	client, err := s3client.New(s3ClientSDK, &conf)
-	if err != nil {
-		return s3client.S3Blobstore{}, bosherr.WrapErrorf(err, "Validating config")
-	}
+	client := s3client.New(s3ClientSDK, &conf)
 
 	return client, nil
 }

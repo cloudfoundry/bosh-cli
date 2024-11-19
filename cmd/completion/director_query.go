@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
 	boshcmd "github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 // TODO: type QueryFunc func(prefix string) ([]string, error)

@@ -3,17 +3,17 @@ package client
 import (
 	"net/http"
 
-	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
+
 	"github.com/cloudfoundry/bosh-s3cli/config"
 )
 
-func NewSDK(c config.S3Cli) (*s3.S3, error) {
+func NewAwsS3Client(c *config.S3Cli) (*s3.S3, error) {
 	var httpClient *http.Client
 
 	if c.SSLVerifyPeer {

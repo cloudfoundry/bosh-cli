@@ -48,9 +48,9 @@ func (c Client) postConfigDiff(path string, manifest []byte, setHeaders func(*ht
 				var descriptionExp = regexp.MustCompile(`description":"(.+?)"`)
 				errorDescription := descriptionExp.FindStringSubmatch(err.Error())
 				if len(errorDescription) > 0 {
-					return resp, bosherr.Errorf(errorDescription[1])
+					return resp, bosherr.Error(errorDescription[1])
 				} else {
-					return resp, bosherr.Errorf(err.Error())
+					return resp, bosherr.Error(err.Error())
 				}
 			} else {
 				// endpoint couldn't be found => return empty diff, just for compatibility with directors which don't have the endpoint

@@ -3,10 +3,11 @@ package stemcellfakes
 import (
 	"fmt"
 
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	bitestutils "github.com/cloudfoundry/bosh-cli/v7/testutils"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
 type NewManagerInput struct {

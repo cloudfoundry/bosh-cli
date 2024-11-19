@@ -7,14 +7,15 @@ import (
 	"strings"
 	"time"
 
-	urlhelper "github.com/cloudfoundry/bosh-cli/v7/common/util"
-	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+
+	urlhelper "github.com/cloudfoundry/bosh-cli/v7/common/util"
+	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
 type Source interface {

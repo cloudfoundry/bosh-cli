@@ -6,14 +6,14 @@ import (
 	"path/filepath"
 	"regexp"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
-	"github.com/cloudfoundry/bosh-cli/v7/installation"
 	"github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/cloudfoundry/bosh-utils/system"
 	"github.com/cloudfoundry/bosh-utils/system/fakes"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+
+	"github.com/cloudfoundry/bosh-cli/v7/installation"
 )
 
 var _ = Describe("Uninstaller", func() {
@@ -30,7 +30,7 @@ var _ = Describe("Uninstaller", func() {
 			err = fs.WriteFileString(filepath.Join(installationPath, "some-installation-artifact"), "something-blah")
 			Expect(err).ToNot(HaveOccurred())
 
-			installationTarget := installation.NewTarget(installationPath)
+			installationTarget := installation.NewTarget(installationPath, "")
 
 			uninstaller := installation.NewUninstaller(fs, boshlogger)
 
@@ -53,7 +53,7 @@ var _ = Describe("Uninstaller", func() {
 				return errors.New("can't remove that")
 			}
 
-			installationTarget := installation.NewTarget("/not/a/path")
+			installationTarget := installation.NewTarget("/not/a/path", "")
 
 			uninstaller := installation.NewUninstaller(fs, boshlogger)
 

@@ -1,11 +1,13 @@
 package manifest
 
 import (
+	"fmt"
 	"strings"
 
-	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
+	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
 )
 
 type Validator interface {
@@ -23,21 +25,16 @@ func NewValidator(logger boshlog.Logger) Validator {
 }
 
 func (v *validator) Validate(manifest Manifest, releaseSetManifest birelsetmanifest.Manifest) error {
-	errs := []error{}
+	var errs []error
 
-	cpiJobName := manifest.Template.Name
-	if v.isBlank(cpiJobName) {
-		errs = append(errs, bosherr.Error("cloud_provider.template.name must be provided"))
+	// When there is nothing in templates, return an error. It should have a CPI release.
+	if len(manifest.Templates) == 0 {
+		return fmt.Errorf("either cloud_provider.templates or cloud_provider.template must be provided and must contain at least one release")
 	}
 
-	cpiReleaseName := manifest.Template.Release
-	if v.isBlank(cpiReleaseName) {
-		errs = append(errs, bosherr.Error("cloud_provider.template.release must be provided"))
-	}
-
-	_, found := releaseSetManifest.FindByName(cpiReleaseName)
-	if !found {
-		errs = append(errs, bosherr.Errorf("cloud_provider.template.release '%s' must refer to a release in releases", cpiReleaseName))
+	for _, template := range manifest.Templates {
+		errRet := v.validateReleaseJobRef(template, releaseSetManifest)
+		errs = append(errs, errRet...)
 	}
 
 	if len(errs) > 0 {
@@ -45,6 +42,25 @@ func (v *validator) Validate(manifest Manifest, releaseSetManifest birelsetmanif
 	}
 
 	return nil
+}
+
+func (v *validator) validateReleaseJobRef(releaseJobRef ReleaseJobRef, releaseSetManifest birelsetmanifest.Manifest) []error {
+	var errs []error
+	jobName := releaseJobRef.Name
+	if v.isBlank(jobName) {
+		errs = append(errs, bosherr.Error("cloud_provider.template.name must be provided"))
+	}
+
+	releaseName := releaseJobRef.Release
+	if v.isBlank(releaseName) {
+		errs = append(errs, bosherr.Error("cloud_provider.template.release must be provided"))
+	}
+
+	_, found := releaseSetManifest.FindByName(releaseName)
+	if !found {
+		errs = append(errs, bosherr.Errorf("cloud_provider.template.release '%s' must refer to a release in releases", releaseName))
+	}
+	return errs
 }
 
 func (v *validator) isBlank(str string) bool {
