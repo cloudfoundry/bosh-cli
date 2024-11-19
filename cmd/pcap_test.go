@@ -56,7 +56,7 @@ var _ = Describe("pcap", func() {
 
 			Context("when valid pcap args are provided", func() {
 				BeforeEach(func() {
-					pcapOpts.Args.Slug = boshdir.AllOrInstanceGroupOrInstanceSlug{}
+					pcapOpts.Args.Slugs = []boshdir.AllOrInstanceGroupOrInstanceSlug{{}}
 				})
 
 				It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {

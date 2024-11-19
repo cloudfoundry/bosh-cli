@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
-	"github.com/fatih/color"
 	"io"
 	"net"
 	"os"
@@ -14,6 +12,9 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/fatih/color"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gopacket/gopacket"
