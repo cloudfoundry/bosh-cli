@@ -356,9 +356,9 @@ func sshResultTable(result boshdir.SSHResult) boshtbl.Table {
 		rows = append(rows, row)
 	}
 
-	notes := []string{fmt.Sprintf("Traffic on %d VMs will be captured.", len(rows))}
+	notes := []string{fmt.Sprintf("Traffic on %d VM(s) will be captured.", len(rows))}
 	if len(rows) > 5 {
-		notes = append(notes, "\nWarning: This could put a significant load on the BOSH Director. Use at your own discretion.")
+		notes = append(notes, "\nWarning: This could cause significant load for various components and could result in a very large capture file. Use at your own discretion.")
 	}
 
 	return boshtbl.Table{

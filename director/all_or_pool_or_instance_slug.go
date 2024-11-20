@@ -33,6 +33,16 @@ func (s AllOrInstanceGroupOrInstanceSlug) InstanceSlug() (InstanceSlug, bool) {
 	return InstanceSlug{}, false
 }
 
+func (s AllOrInstanceGroupOrInstanceSlug) Overlaps(other AllOrInstanceGroupOrInstanceSlug) bool {
+	if s.name != other.name {
+		return false
+	}
+
+	// There is an overlap if either slug is empty or if the indexOrID or IP matches
+	return s.indexOrID == "" || other.indexOrID == "" || s.indexOrID == other.indexOrID || s.ip == other.ip
+
+}
+
 func (s AllOrInstanceGroupOrInstanceSlug) String() string {
 	if len(s.indexOrID) > 0 {
 		return fmt.Sprintf("%s/%s", s.name, s.indexOrID)
