@@ -2,7 +2,7 @@ package director
 
 import (
 	"archive/tar"
-	gzip "github.com/klauspost/pgzip"
+	"github.com/klauspost/pgzip"
 	"io"
 	"os"
 
@@ -48,7 +48,7 @@ func (a StemcellArchiveWithMetadata) readMFBytes() ([]byte, error) {
 
 	defer file.Close()
 
-	gr, err := gzip.NewReader(file)
+	gr, err := pgzip.NewReader(file)
 	if err != nil {
 		return nil, err
 	}

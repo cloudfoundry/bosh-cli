@@ -3,7 +3,7 @@ package director_test
 import (
 	"archive/tar"
 	"bytes"
-	gzip "github.com/klauspost/pgzip"
+	"github.com/klauspost/pgzip"
 	"errors"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -29,7 +29,7 @@ var _ = Describe("NewFSReleaseArchive", func() {
 
 		validReleaseTgzBytes := func(fileName, content string) []byte {
 			fileBytes := &bytes.Buffer{}
-			gzipWriter := gzip.NewWriter(fileBytes)
+			gzipWriter := pgzip.NewWriter(fileBytes)
 			tarWriter := tar.NewWriter(gzipWriter)
 
 			{
@@ -77,7 +77,7 @@ var _ = Describe("NewFSReleaseArchive", func() {
 			err := tarWriter.Close()
 			Expect(err).ToNot(HaveOccurred())
 
-			err = gzipWriter.Close()
+			err = pgzipWriter.Close()
 			Expect(err).ToNot(HaveOccurred())
 
 			return fileBytes.Bytes()
@@ -114,7 +114,7 @@ var _ = Describe("NewFSReleaseArchive", func() {
 
 		It("returns error if cannot read tar", func() {
 			fileBytes := &bytes.Buffer{}
-			gzipWriter := gzip.NewWriter(fileBytes)
+			gzipWriter := pgzip.NewWriter(fileBytes)
 
 			_, err := gzipWriter.Write([]byte("invalid-tar"))
 			Expect(err).ToNot(HaveOccurred())
