@@ -2,9 +2,10 @@ package director
 
 import (
 	"archive/tar"
-	"github.com/klauspost/pgzip"
 	"io"
 	"os"
+
+	"github.com/klauspost/pgzip"
 
 	"gopkg.in/yaml.v2"
 

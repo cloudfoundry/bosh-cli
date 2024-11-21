@@ -3,8 +3,9 @@ package director_test
 import (
 	"archive/tar"
 	"bytes"
-	"github.com/klauspost/pgzip"
 	"errors"
+
+	"github.com/klauspost/pgzip"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
@@ -77,7 +78,7 @@ var _ = Describe("NewFSReleaseArchive", func() {
 			err := tarWriter.Close()
 			Expect(err).ToNot(HaveOccurred())
 
-			err = pgzipWriter.Close()
+			err = gzipWriter.Close()
 			Expect(err).ToNot(HaveOccurred())
 
 			return fileBytes.Bytes()

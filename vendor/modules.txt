@@ -50,7 +50,7 @@ cloud.google.com/go/storage/internal/apiv2/storagepb
 ## explicit; go 1.22.0
 code.cloudfoundry.org/clock
 code.cloudfoundry.org/clock/fakeclock
-# code.cloudfoundry.org/tlsconfig v0.8.0
+# code.cloudfoundry.org/tlsconfig v0.9.0
 ## explicit; go 1.22
 code.cloudfoundry.org/tlsconfig
 # code.cloudfoundry.org/workpool v0.0.0-20241029002937-525c4cca6f6a
@@ -161,7 +161,7 @@ github.com/cloudfoundry/bosh-gcscli/config
 ## explicit; go 1.22.0
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.500
+# github.com/cloudfoundry/bosh-utils v0.0.503
 ## explicit; go 1.22.0
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/fakes

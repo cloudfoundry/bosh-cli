@@ -181,7 +181,7 @@ var _ = Describe("Archive", func() {
 			digestCalculator = bicrypto.NewDigestCalculator(fs, []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1})
 			fingerprinter := NewFingerprinterImpl(digestCalculator, fs, followSymlinks)
 			cmdRunner := boshsys.NewExecCmdRunner(logger)
-			compressor = boshcmd.NewTarballCompressor(cmdRunner, fs)
+			compressor = boshcmd.NewTarballCompressor(fs)
 
 			files := []File{
 				NewFile(filepath.Join(uniqueDir, "file1"), uniqueDir),

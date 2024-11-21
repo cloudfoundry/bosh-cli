@@ -3,8 +3,9 @@ package director_test
 import (
 	"archive/tar"
 	"bytes"
-	"github.com/klauspost/pgzip"
 	"errors"
+
+	"github.com/klauspost/pgzip"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"

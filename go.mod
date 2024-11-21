@@ -10,7 +10,7 @@ require (
 	github.com/cloudfoundry/bosh-davcli v0.0.374
 	github.com/cloudfoundry/bosh-gcscli v0.0.257
 	github.com/cloudfoundry/bosh-s3cli v0.0.326
-	github.com/cloudfoundry/bosh-utils v0.0.500
+	github.com/cloudfoundry/bosh-utils v0.0.503
 	github.com/cloudfoundry/config-server v0.1.214
 	github.com/cloudfoundry/socks5-proxy v0.2.131
 	github.com/cppforlife/go-patch v0.2.0
@@ -45,7 +45,7 @@ require (
 	cloud.google.com/go/iam v1.2.2 // indirect
 	cloud.google.com/go/monitoring v1.21.2 // indirect
 	cloud.google.com/go/storage v1.46.0 // indirect
-	code.cloudfoundry.org/tlsconfig v0.8.0 // indirect
+	code.cloudfoundry.org/tlsconfig v0.9.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.25.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.49.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.49.0 // indirect
