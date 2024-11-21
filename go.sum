@@ -23,8 +23,8 @@ cloud.google.com/go/trace v1.11.2 h1:4ZmaBdL8Ng/ajrgKqY5jfvzqMXbrDcBsUGXOT9aqTtI
 cloud.google.com/go/trace v1.11.2/go.mod h1:bn7OwXd4pd5rFuAnTrzBuoZ4ax2XQeG3qNgYmfCy0Io=
 code.cloudfoundry.org/clock v1.20.0 h1:evna9D0iZm2LGEOTH1qooDdGcsTx4wfACdCArWpBpbU=
 code.cloudfoundry.org/clock v1.20.0/go.mod h1:lbTmT6tMYRsX878c49dSgbn0+jO1W2iYPOcOwYyV0Yk=
-code.cloudfoundry.org/tlsconfig v0.8.0 h1:2kg6Y8ix58T+84iDu1yAFEx6wsHfkg5Mah4twdtbeIs=
-code.cloudfoundry.org/tlsconfig v0.8.0/go.mod h1:S6L3WxtIy4a4wPnmtqUQXiIYlrIk7tUIXj5z+5QYqGY=
+code.cloudfoundry.org/tlsconfig v0.9.0 h1:5gXZFMTYzuN02wuP3KNcHoKcTCqcKpL4k8Qo2q1jIl0=
+code.cloudfoundry.org/tlsconfig v0.9.0/go.mod h1:P1DZ9RcPeMguVWveDyZt5PTpLTB8yVv/riz+iRFdlZk=
 code.cloudfoundry.org/workpool v0.0.0-20241029002937-525c4cca6f6a h1:mBcUQ5iFQNqILJtiBDuya12OvbZHYTcN4QO6y8P/+5Q=
 code.cloudfoundry.org/workpool v0.0.0-20241029002937-525c4cca6f6a/go.mod h1:O9HdfntfyDvYRH9nh03XdpnGMbjyZVi8nb2Kh+6hDho=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
@@ -62,8 +62,8 @@ github.com/cloudfoundry/bosh-gcscli v0.0.257 h1:Cu3ET8FE6w2WhoirImflh6RiuYEogdWT
 github.com/cloudfoundry/bosh-gcscli v0.0.257/go.mod h1:Pf1Md5H1Al3TmNb05EkRk+upMM2bhM2N8hhjt4Gk41Y=
 github.com/cloudfoundry/bosh-s3cli v0.0.326 h1:XcHylZoP31YXOEuoFvtaEXU8+oXCzBIRSFU3GEGseQw=
 github.com/cloudfoundry/bosh-s3cli v0.0.326/go.mod h1:xW6fLQVe55kcA3mIh8skD47jCBMkf05MlEXRqJNkP6Q=
-github.com/cloudfoundry/bosh-utils v0.0.500 h1:am7t3jymDRE9kjwQrDY9YzlPnx6RXPQw4OPuZxaIZuE=
-github.com/cloudfoundry/bosh-utils v0.0.500/go.mod h1:ei4cKypTn2mHQQ2fy/tD+43YAJ/IS35h/Ao+P9iR3Xc=
+github.com/cloudfoundry/bosh-utils v0.0.503 h1:DuIipFBTiudRMsmr6RIfjSXc6gJF5IBZaRVJQtmf70Q=
+github.com/cloudfoundry/bosh-utils v0.0.503/go.mod h1:0kOKnoVRsmW848K4o6SBdR5Wr1GfErPdbwvo1q1dZGA=
 github.com/cloudfoundry/config-server v0.1.214 h1:yjQYAb2gvnd6Tr1LgRfGjrqqZ60YqgjN+nRHlfZYnf4=
 github.com/cloudfoundry/config-server v0.1.214/go.mod h1:JCkcwT68cODxhbYyq1kcAKtVcouSjFWq1njKNCgzuTE=
 github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee h1:88ruSYvCUKX2YcF2CMYVTmPGITvNdRbzaBRk2c/iMds=
@@ -170,6 +170,10 @@ github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGw
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
 github.com/jpillora/backoff v1.0.0 h1:uvFg412JmmHBHw7iwprIxkPMI+sGQ4kzOWsMeHnm2EA=
 github.com/jpillora/backoff v1.0.0/go.mod h1:J/6gKK9jxlEcS3zixgDgUAsiuZ7yrSoa/FX5e0EB2j4=
+github.com/klauspost/compress v1.17.11 h1:In6xLpyWOi1+C7tXUUWv2ot1QvBjxevKAaI6IXrJmUc=
+github.com/klauspost/compress v1.17.11/go.mod h1:pMDklpSncoRMuLFrf1W9Ss9KT+0rH90U12bZKk7uwG0=
+github.com/klauspost/pgzip v1.2.6 h1:8RXeL5crjEUFnR2/Sn6GJNWtSQ3Dk8pq4CL3jvdDyjU=
+github.com/klauspost/pgzip v1.2.6/go.mod h1:Ch1tH69qFZu15pkjo5kYi6mth2Zzwzt50oCQKQE9RUs=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
 github.com/kr/pty v1.1.8 h1:AkaSdXYQOWeaO3neb8EM634ahkXXe3jYbVh/F9lq+GI=

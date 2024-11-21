@@ -3,8 +3,9 @@ package director_test
 import (
 	"archive/tar"
 	"bytes"
-	"compress/gzip"
 	"errors"
+
+	"github.com/klauspost/pgzip"
 
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
@@ -29,7 +30,7 @@ var _ = Describe("NewFSStemcellArchive", func() {
 
 		validStemcellTgzBytes := func(fileName, content string) []byte {
 			fileBytes := &bytes.Buffer{}
-			gzipWriter := gzip.NewWriter(fileBytes)
+			gzipWriter := pgzip.NewWriter(fileBytes)
 			tarWriter := tar.NewWriter(gzipWriter)
 
 			{
@@ -114,7 +115,7 @@ var _ = Describe("NewFSStemcellArchive", func() {
 
 		It("returns error if cannot read tar", func() {
 			fileBytes := &bytes.Buffer{}
-			gzipWriter := gzip.NewWriter(fileBytes)
+			gzipWriter := pgzip.NewWriter(fileBytes)
 
 			_, err := gzipWriter.Write([]byte("invalid-tar"))
 			Expect(err).ToNot(HaveOccurred())
