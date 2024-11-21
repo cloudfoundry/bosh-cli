@@ -190,6 +190,46 @@ var _ = Describe("PackageCompiler", func() {
 				Expect(runner.RunComplexCommands[0]).To(Equal(expectedCmd))
 			})
 
+			Context("when useIsolatedEnv is set to false", func() {
+				BeforeEach(func() {
+					useIsolatedEnv = false
+					compiler = NewPackageCompiler(
+						runner,
+						packagesDir,
+						fs,
+						compressor,
+						blobstore,
+						mockCompiledPackageRepo,
+						fakeExtractor,
+						logger,
+						useIsolatedEnv,
+					)
+				})
+
+				It("runs the packaging script with UseIsolatedEnv set to false", func() {
+					_, _, err := compiler.Compile(pkg)
+					Expect(err).ToNot(HaveOccurred())
+
+					expectedCmd := boshsys.Command{
+						Name: "bash",
+						Args: []string{"-x", "packaging"},
+						Env: map[string]string{
+							"BOSH_COMPILE_TARGET": "/pkg-dir",
+							"BOSH_INSTALL_TARGET": installPath,
+							"BOSH_PACKAGE_NAME":   "pkg1-name",
+							"BOSH_PACKAGES_DIR":   packagesDir,
+							"PATH":                os.Getenv("PATH"),
+							"LD_LIBRARY_PATH":     os.Getenv("LD_LIBRARY_PATH"),
+						},
+						UseIsolatedEnv: false,
+						WorkingDir:     "/pkg-dir",
+					}
+
+					Expect(runner.RunComplexCommands).To(HaveLen(1))
+					Expect(runner.RunComplexCommands[0]).To(Equal(expectedCmd))
+				})
+			})
+
 			It("compresses the compiled package", func() {
 				_, _, err := compiler.Compile(pkg)
 				Expect(err).ToNot(HaveOccurred())
