@@ -8,6 +8,7 @@ package pcapgo
 
 import (
 	"bufio"
+	"compress/gzip"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -56,32 +57,49 @@ type NgReader struct {
 	activeSection     bool
 	bigEndian         bool
 	decryptionSecrets []decryptionSecret
+	nameRecords       []NgNameRecord
 }
 
-// NewNgReader initializes a new writer, reads the first section header, and if necessary according to the options the first interface.
+// NewNgReader initializes a new reader, reads the first section header, and if necessary according to the options the first interface.
 func NewNgReader(r io.Reader, options NgReaderOptions) (*NgReader, error) {
-	ret := &NgReader{
-		r: bufio.NewReader(r),
+	reader := &NgReader{
 		currentOption: ngOption{
 			value: make([]byte, 1024),
 		},
 		decryptionSecrets: make([]decryptionSecret, 0),
+		nameRecords:       make([]NgNameRecord, 0),
 		options:           options,
+		r:                 bufio.NewReader(r),
 	}
 
-	//pcapng _must_ start with a section header
-	if err := ret.readBlock(); err != nil {
-		return nil, err
-	}
-	if ret.currentBlock.typ != ngBlockTypeSectionHeader {
-		return nil, fmt.Errorf("Unknown magic %x", ret.currentBlock.typ)
-	}
-
-	if err := ret.readSectionHeader(); err != nil {
+	gzipMagic, err := reader.r.Peek(2)
+	if err != nil {
 		return nil, err
 	}
 
-	return ret, nil
+	if gzipMagic[0] == magicGzip1 && gzipMagic[1] == magicGzip2 {
+		gzipReader, err := gzip.NewReader(reader.r)
+		if err != nil {
+			return nil, err
+		}
+
+		reader.r = bufio.NewReader(gzipReader)
+	}
+
+	// pcapng _must_ start with a section header
+	if err = reader.readBlock(); err != nil {
+		return nil, err
+	}
+
+	if reader.currentBlock.typ != ngBlockTypeSectionHeader {
+		return nil, fmt.Errorf("Unknown magic %x", reader.currentBlock.typ)
+	}
+
+	if err = reader.readSectionHeader(); err != nil {
+		return nil, err
+	}
+
+	return reader, nil
 }
 
 // First a couple of helper functions to speed things up
@@ -204,8 +222,10 @@ func (r *NgReader) readSectionHeader() error {
 		}
 		r.options.SectionEndCallback(interfaces, r.sectionInfo)
 	}
-	// clear the interfaces
+	// clear interfaces, decryption secrets and name records
 	r.ifaces = r.ifaces[:0]
+	r.decryptionSecrets = r.decryptionSecrets[:0]
+	r.nameRecords = r.nameRecords[:0]
 	r.activeSection = false
 
 RESTART:
@@ -318,6 +338,10 @@ func (r *NgReader) firstInterface() error {
 			return errors.New("A section must have an interface before a packet block")
 		case ngBlockTypeDecryptionSecrets:
 			if err := r.readDecryptionSecretsBlock(); err != nil {
+				return err
+			}
+		case ngBlockTypeNameResolution:
+			if err := r.readNameResolutionBlock(); err != nil {
 				return err
 			}
 		}
@@ -508,6 +532,10 @@ FIND_PACKET:
 			r.ci.CaptureLength = int(r.getUint32(r.buf[12:16]))
 			r.ci.Length = int(r.getUint32(r.buf[16:20]))
 			break FIND_PACKET
+		case ngBlockTypeNameResolution:
+			if err := r.readNameResolutionBlock(); err != nil {
+				return err
+			}
 		default:
 			if _, err := r.r.Discard(int(r.currentBlock.length)); err != nil {
 				return err
@@ -609,4 +637,17 @@ func (r *NgReader) Resolution() gopacket.TimestampResolution {
 		return gopacket.TimestampResolution{}
 	}
 	return r.ifaces[0].Resolution()
+}
+
+// Interface returns interface information and statistics of interface with the given id.
+func (r *NgReader) Name(i int) (NgNameRecord, error) {
+	if i >= len(r.nameRecords) || i < 0 {
+		return NgNameRecord{}, fmt.Errorf("Interface %d invalid. There are only %d interfaces", i, len(r.nameRecords))
+	}
+	return r.nameRecords[i], nil
+}
+
+// NInterfaces returns the current number of interfaces.
+func (r *NgReader) NNames() int {
+	return len(r.nameRecords)
 }
