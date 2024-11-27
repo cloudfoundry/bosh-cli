@@ -39,7 +39,7 @@ var (
 
 //counterfeiter:generate . PcapRunner
 type PcapRunner interface {
-	Run(boshdir.SSHResult, string, string, PcapOpts, string) error
+	Run(boshdir.SSHResult, string, string, PcapOpts, string, int) error
 }
 
 func NewPcapRunner(ui boshui.UI, logger boshlog.Logger) PcapRunner {
@@ -51,7 +51,7 @@ type PcapRunnerImpl struct {
 	logger boshlog.Logger
 }
 
-func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv string, opts PcapOpts, privateKey string) error {
+func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv string, opts PcapOpts, privateKey string, parallel int) error {
 	var packetCs []<-chan gopacket.Packet
 	var mu sync.Mutex
 
@@ -83,27 +83,47 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 		return err
 	}
 
-	startWg.Add(len(result.Hosts))
-	for _, host := range result.Hosts {
-		go func(host boshdir.Host) {
-			defer startWg.Done()
-			clientOpts.Host = host.Host
-			boshSSHClient := clientFactory.New(clientOpts)
+	if parallel == 0 {
+		parallel = 1
+	}
+	workSize := len(result.Hosts)
+	if parallel > workSize {
+		parallel = workSize
+	}
+	workChan := make(chan boshdir.Host, len(result.Hosts))
+	resultChan := make(chan error, len(result.Hosts))
 
-			p.ui.BeginLinef("Start capture on %s/%s\n", host.Job, host.IndexOrID)
+	for i := 0; i < parallel; i++ {
+		go func() {
+			for host := range workChan {
+				clientOpts.Host = host.Host
+				boshSSHClient := clientFactory.New(clientOpts)
+				var packets <-chan gopacket.Packet
+				packets, err = captureSSH(argv, opts.Filter, host, boshSSHClient, opts.StopTimeout, wg, done, p.ui, ctx, cancel)
+				if err != nil {
+					p.ui.ErrorLinef("Capture cannot be started on the instance %s/%s due to error: %s. \nContinue on other instances", host.Job, host.IndexOrID, err.Error())
+					resultChan <- err
+					continue
+				}
 
-			packets, err := captureSSH(argv, opts.Filter, host, boshSSHClient, opts.StopTimeout, wg, done, p.ui, ctx, cancel)
-			if err != nil {
-				// c.ui.ErrorLinef writes error message to stdout/sdterr but does not stop the workflow
-				p.ui.ErrorLinef("Capture cannot be started on the instance %s/%s due to error: %s. \nContinue on other instances", host.Job, host.IndexOrID, err.Error())
-				return
+				mu.Lock()
+				runningCaptures++
+				packetCs = append(packetCs, packets)
+				mu.Unlock()
+				resultChan <- nil
 			}
+		}()
+	}
 
-			mu.Lock()
-			runningCaptures++
-			packetCs = append(packetCs, packets)
-			mu.Unlock()
-		}(host)
+	for _, host := range result.Hosts {
+		workChan <- host
+	}
+	close(workChan)
+
+	for i := 0; i < len(result.Hosts); i++ {
+		if err = <-resultChan; err != nil {
+			startWg.Done()
+		}
 	}
 	startWg.Wait()
 
@@ -195,6 +215,7 @@ func captureSSH(tcpdumpCmd, filter string, host boshdir.Host, boshSSHClient bosh
 	}
 
 	tcpdump := addFilterToCmd(tcpdumpCmd, filter, clientSSHAddr.IP.String(), clientSSHAddr.Port)
+	// comment this out?
 	ui.ErrorLinef(tcpdump)
 
 	packets, err := openPcapHandle(tcpdump, session, wg, cancel)
@@ -214,7 +235,7 @@ func captureSSH(tcpdumpCmd, filter string, host boshdir.Host, boshSSHClient bosh
 			_ = boshSSHClient.Stop()
 		}()
 		defer wg.Done()
-
+		// comment this out?
 		ui.BeginLinef("\nRunning on %s/%s. To stop capturing traffic and generate a pcap file, press CTRL-C during the capture\n", host.Job, host.IndexOrID)
 
 		select {
