@@ -17,15 +17,18 @@ const (
 type PcapCmd struct {
 	deployment boshdir.Deployment
 	pcapRunner pcap.PcapRunner
+	parallel   int
 }
 
 func NewPcapCmd(
 	deployment boshdir.Deployment,
 	pcapRunner pcap.PcapRunner,
+	parallel int,
 ) PcapCmd {
 	return PcapCmd{
 		deployment: deployment,
 		pcapRunner: pcapRunner,
+		parallel:   parallel,
 	}
 }
 
@@ -71,7 +74,7 @@ func (c PcapCmd) Run(opts PcapOpts) error {
 		return fmt.Errorf("invalid pcap cmd options: %w", err)
 	}
 
-	return c.pcapRunner.Run(result, sshOpts.Username, argv, opts, connOpts.PrivateKey)
+	return c.pcapRunner.Run(result, sshOpts.Username, argv, opts, connOpts.PrivateKey, c.parallel)
 }
 
 func buildPcapCmd(opts PcapOpts) (string, error) {
