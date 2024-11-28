@@ -34,13 +34,24 @@ func (s AllOrInstanceGroupOrInstanceSlug) InstanceSlug() (InstanceSlug, bool) {
 }
 
 func (s AllOrInstanceGroupOrInstanceSlug) Overlaps(other AllOrInstanceGroupOrInstanceSlug) bool {
+
+	// If the names/instance groups are different, there is no overlap
 	if s.name != other.name {
 		return false
 	}
 
-	// There is an overlap if either slug is empty or if the indexOrID or IP matches
-	return s.indexOrID == "" || other.indexOrID == "" || s.indexOrID == other.indexOrID || s.ip == other.ip
+	// If either slug is empty, there is an overlap
+	if s.indexOrID == "" || other.indexOrID == "" {
+		return true
+	}
 
+	// If the indexOrID matches, there is an overlap
+	if s.indexOrID == other.indexOrID {
+		return true
+	}
+
+	// If the IPs match, there is an overlap
+	return s.ip != "" && other.ip != "" && s.ip == other.ip
 }
 
 func (s AllOrInstanceGroupOrInstanceSlug) String() string {

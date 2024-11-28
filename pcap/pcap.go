@@ -58,7 +58,6 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 	done := make(chan struct{})
 
 	wg := &sync.WaitGroup{}
-	startWg := &sync.WaitGroup{}
 	var err error
 
 	ctx, cancel := context.WithCancelCause(context.Background())
@@ -76,13 +75,14 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 
 	runningCaptures := 0
 
+	// Print the table of instances that will be captured, and ask for confirmation
 	p.ui.PrintTable(sshResultTable(result))
-
 	err = p.ui.AskForConfirmation()
 	if err != nil {
 		return err
 	}
 
+	// Set upper and lower boundaries for parallel connection establishment
 	if parallel == 0 {
 		parallel = 1
 	}
@@ -90,6 +90,7 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 	if parallel > workSize {
 		parallel = workSize
 	}
+
 	workChan := make(chan boshdir.Host, len(result.Hosts))
 	resultChan := make(chan error, len(result.Hosts))
 
@@ -120,12 +121,11 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 	}
 	close(workChan)
 
-	for i := 0; i < len(result.Hosts); i++ {
+	for i := 0; i < workSize; i++ {
 		if err = <-resultChan; err != nil {
-			startWg.Done()
+			return err
 		}
 	}
-	startWg.Wait()
 
 	if runningCaptures == 0 {
 		err = errors.New("starting of all pcap captures failed")
@@ -215,8 +215,6 @@ func captureSSH(tcpdumpCmd, filter string, host boshdir.Host, boshSSHClient bosh
 	}
 
 	tcpdump := addFilterToCmd(tcpdumpCmd, filter, clientSSHAddr.IP.String(), clientSSHAddr.Port)
-	// comment this out?
-	ui.ErrorLinef(tcpdump)
 
 	packets, err := openPcapHandle(tcpdump, session, wg, cancel)
 	if err != nil {
@@ -235,8 +233,6 @@ func captureSSH(tcpdumpCmd, filter string, host boshdir.Host, boshSSHClient bosh
 			_ = boshSSHClient.Stop()
 		}()
 		defer wg.Done()
-		// comment this out?
-		ui.BeginLinef("\nRunning on %s/%s. To stop capturing traffic and generate a pcap file, press CTRL-C during the capture\n", host.Job, host.IndexOrID)
 
 		select {
 		case <-ctx.Done():
