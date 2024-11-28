@@ -40,19 +40,14 @@ func (c PcapCmd) Run(opts PcapOpts) error {
 
 	var result boshdir.SSHResult
 
+	// If no slugs are provided, default to capturing all instances by using an empty slug.
 	slugs := []boshdir.AllOrInstanceGroupOrInstanceSlug{{}}
 
 	if len(opts.Args.Slugs) > 0 {
 		slugs = opts.Args.Slugs
 	}
 
-	for i := 0; i < len(slugs); i++ {
-		for j := i + 1; j < len(slugs); j++ {
-			if slugs[i].Overlaps(slugs[j]) {
-				return fmt.Errorf("found redundant capture targets: %v and %v", slugs[i], slugs[j])
-			}
-		}
-	}
+	slugs = boshdir.DeduplicateSlugs(slugs)
 
 	for _, slug := range slugs {
 		res, err := c.deployment.SetUpSSH(slug, sshOpts)
