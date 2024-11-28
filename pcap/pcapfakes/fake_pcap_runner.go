@@ -10,7 +10,7 @@ import (
 )
 
 type FakePcapRunner struct {
-	RunStub        func(director.SSHResult, string, string, opts.PcapOpts, string) error
+	RunStub        func(director.SSHResult, string, string, opts.PcapOpts, string, int) error
 	runMutex       sync.RWMutex
 	runArgsForCall []struct {
 		arg1 director.SSHResult
@@ -18,6 +18,7 @@ type FakePcapRunner struct {
 		arg3 string
 		arg4 opts.PcapOpts
 		arg5 string
+		arg6 int
 	}
 	runReturns struct {
 		result1 error
@@ -29,7 +30,7 @@ type FakePcapRunner struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakePcapRunner) Run(arg1 director.SSHResult, arg2 string, arg3 string, arg4 opts.PcapOpts, arg5 string) error {
+func (fake *FakePcapRunner) Run(arg1 director.SSHResult, arg2 string, arg3 string, arg4 opts.PcapOpts, arg5 string, arg6 int) error {
 	fake.runMutex.Lock()
 	ret, specificReturn := fake.runReturnsOnCall[len(fake.runArgsForCall)]
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
@@ -38,13 +39,14 @@ func (fake *FakePcapRunner) Run(arg1 director.SSHResult, arg2 string, arg3 strin
 		arg3 string
 		arg4 opts.PcapOpts
 		arg5 string
-	}{arg1, arg2, arg3, arg4, arg5})
+		arg6 int
+	}{arg1, arg2, arg3, arg4, arg5, arg6})
 	stub := fake.RunStub
 	fakeReturns := fake.runReturns
-	fake.recordInvocation("Run", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.recordInvocation("Run", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6})
 	fake.runMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5)
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6)
 	}
 	if specificReturn {
 		return ret.result1
@@ -58,7 +60,7 @@ func (fake *FakePcapRunner) RunCallCount() int {
 	return len(fake.runArgsForCall)
 }
 
-func (fake *FakePcapRunner) RunCalls(stub func(director.SSHResult, string, string, opts.PcapOpts, string) error) {
+func (fake *FakePcapRunner) RunCalls(stub func(director.SSHResult, string, string, opts.PcapOpts, string, int) error) {
 	fake.runMutex.Lock()
 	defer fake.runMutex.Unlock()
 	fake.RunStub = stub
