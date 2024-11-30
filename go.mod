@@ -3,16 +3,16 @@ module github.com/cloudfoundry/bosh-cli/v7
 go 1.22.0
 
 require (
-	code.cloudfoundry.org/clock v1.21.0
+	code.cloudfoundry.org/clock v1.22.0
 	code.cloudfoundry.org/workpool v0.0.0-20241029002937-525c4cca6f6a
 	github.com/cheggaaa/pb/v3 v3.1.5
 	github.com/cloudfoundry/bosh-agent v0.0.61-0.20230301011448-4cfe06c13ad7
-	github.com/cloudfoundry/bosh-davcli v0.0.379
-	github.com/cloudfoundry/bosh-gcscli v0.0.261
-	github.com/cloudfoundry/bosh-s3cli v0.0.331
-	github.com/cloudfoundry/bosh-utils v0.0.503
-	github.com/cloudfoundry/config-server v0.1.220
-	github.com/cloudfoundry/socks5-proxy v0.2.132
+	github.com/cloudfoundry/bosh-davcli v0.0.380
+	github.com/cloudfoundry/bosh-gcscli v0.0.262
+	github.com/cloudfoundry/bosh-s3cli v0.0.332
+	github.com/cloudfoundry/bosh-utils v0.0.504
+	github.com/cloudfoundry/config-server v0.1.221
+	github.com/cloudfoundry/socks5-proxy v0.2.133
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.1
@@ -25,7 +25,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.9.0
 	github.com/onsi/ginkgo/v2 v2.22.0
-	github.com/onsi/gomega v1.35.1
+	github.com/onsi/gomega v1.36.0
 	github.com/peterbourgon/diskv v2.0.1+incompatible
 	github.com/spf13/cobra v1.8.1
 	github.com/vito/go-interact v1.0.1
@@ -65,10 +65,10 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
-	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/pprof v0.0.0-20241122213907-cbe949e5a41b // indirect
+	github.com/google/pprof v0.0.0-20241128161848-dc51965c6481 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect
