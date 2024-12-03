@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"crypto/tls"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -97,6 +98,67 @@ func removeSHA1s(contents string) string {
 func removeSHA256s(contents string) string {
 	matchSHA256s := regexp.MustCompile("sha1: sha256:[a-z0-9]{64}\n")
 	return matchSHA256s.ReplaceAllString(contents, "sha1: replaced\n")
+}
+
+func listTarballContents(tarballPath string) []string {
+	contents := []string{}
+	cmd := exec.Command("tar", "ztf", tarballPath)
+	output, err := cmd.Output()
+	Expect(err).ToNot(HaveOccurred())
+	files := strings.Split(string(output), "\n")
+	for _, file := range files {
+		if file != "" {
+			contents = append(contents, file)
+		}
+	}
+	return contents
+}
+
+func setupReleaseDir(releaseDir, releaseName string) {
+	By("running `init-release`, `generate-job`, and `generate-package`", func() {
+		createAndExecCommand(cmdFactory, []string{"init-release", "--git", "--dir", releaseDir})
+		createAndExecCommand(cmdFactory, []string{"generate-job", "job1", "--dir", releaseDir})
+		createAndExecCommand(cmdFactory, []string{"generate-package", "pkg1", "--dir", releaseDir})
+	})
+
+	By("creating a job that depends on `pkg1`", func() {
+		jobSpecPath := filepath.Join(releaseDir, "jobs", "job1", "spec")
+
+		contents, err := fs.ReadFileString(jobSpecPath)
+		Expect(err).ToNot(HaveOccurred())
+
+		err = fs.WriteFileString(jobSpecPath, strings.Replace(contents, "packages: []", "packages: [pkg1]", -1))
+		Expect(err).ToNot(HaveOccurred())
+	})
+
+	By("adding some content", func() {
+		err := fs.WriteFileString(filepath.Join(releaseDir, "src", "in-src"), "in-src")
+		Expect(err).ToNot(HaveOccurred())
+
+		pkg1SpecPath := filepath.Join(releaseDir, "packages", "pkg1", "spec")
+
+		contents, err := fs.ReadFileString(pkg1SpecPath)
+		Expect(err).ToNot(HaveOccurred())
+
+		err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "files: []", "files:\n- in-src", -1))
+		Expect(err).ToNot(HaveOccurred())
+	})
+
+	By("creating a release with local blobstore", func() {
+		blobstoreDir := filepath.Join(releaseDir, ".blobstore")
+
+		err := fs.MkdirAll(blobstoreDir, 0777)
+		Expect(err).ToNot(HaveOccurred())
+
+		finalYaml := "name: " + releaseName + `
+blobstore:
+  provider: local
+  options:
+    blobstore_path: ` + blobstoreDir
+
+		err = fs.WriteFileString(filepath.Join(releaseDir, "config", "final.yml"), finalYaml)
+		Expect(err).ToNot(HaveOccurred())
+	})
 }
 
 func createSimpleRelease() string {
