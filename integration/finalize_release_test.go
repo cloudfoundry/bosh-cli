@@ -1,111 +1,182 @@
-package integration
+package integration_test
 
 import (
+	"crypto/sha256"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+
 	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"gopkg.in/yaml.v2"
 )
 
-var _ = Describe("create-release command", func() {
+var _ = Describe("finalize-release command", func() {
+	var releaseDir string
+
+	releaseName := "test-release"
+
 	Context("when finalizing a release that was built elsewhere", func() {
+
+		BeforeEach(func() {
+			tmpDir, err := fs.TempDir("bosh-finalize-release-int-test")
+			Expect(err).ToNot(HaveOccurred())
+			releaseDir = tmpDir // to use the releaseDir value in other functions
+
+			DeferCleanup(func() {
+				err = fs.RemoveAll(tmpDir)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			By("running `init-release`, `generate-job`, and `generate-package`", func() {
+				createAndExecCommand(cmdFactory, []string{"init-release", "--git", "--dir", releaseDir})
+				createAndExecCommand(cmdFactory, []string{"generate-job", "job1", "--dir", releaseDir})
+				createAndExecCommand(cmdFactory, []string{"generate-package", "pkg1", "--dir", releaseDir})
+			})
+
+			By("creating a job that depends on `pkg1`", func() {
+				jobSpecPath := filepath.Join(releaseDir, "jobs", "job1", "spec")
+
+				contents, err := fs.ReadFileString(jobSpecPath)
+				Expect(err).ToNot(HaveOccurred())
+
+				err = fs.WriteFileString(jobSpecPath, strings.Replace(contents, "packages: []", "packages: [pkg1]", -1))
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			By("adding some content", func() {
+				err := fs.WriteFileString(filepath.Join(releaseDir, "src", "in-src"), "in-src")
+				Expect(err).ToNot(HaveOccurred())
+
+				pkg1SpecPath := filepath.Join(releaseDir, "packages", "pkg1", "spec")
+
+				contents, err := fs.ReadFileString(pkg1SpecPath)
+				Expect(err).ToNot(HaveOccurred())
+
+				err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "files: []", "files:\n- in-src", -1))
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			By("creating a release with local blobstore", func() {
+				blobstoreDir := filepath.Join(releaseDir, ".blobstore")
+
+				err := fs.MkdirAll(blobstoreDir, 0777)
+				Expect(err).ToNot(HaveOccurred())
+
+				finalYaml := "name: " + releaseName + `
+blobstore:
+  provider: local
+  options:
+    blobstore_path: ` + blobstoreDir
+
+				err = fs.WriteFileString(filepath.Join(releaseDir, "config", "final.yml"), finalYaml)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			createAndExecCommand(cmdFactory, []string{"create-release", "--dir", releaseDir, fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--force"})
+
+		})
+
 		It("updates the .final_builds index for each job and package", func() {
-			//	Dir.chdir(IntegrationSupport::ClientSandbox.test_release_dir) do
-			//	  bosh_runner.run_in_current_dir("finalize-release #{asset_path('dummy-gocli-release.tgz')} --force")
-			//
-			//	  job_index = YAML.load_file(File.absolute_path('.final_builds/jobs/dummy/index.yml'))
-			//	  expect(job_index).to include('builds')
-			//	  expect(job_index['builds']).to include('a2f501d07c3e96689185ee6ebe26c15d54d4849a')
-			//	  expect(job_index['builds']['a2f501d07c3e96689185ee6ebe26c15d54d4849a']).to include('version', 'blobstore_id', 'sha1')
-			//
-			//	  package_index = YAML.load_file(File.absolute_path('.final_builds/packages/dummy_package/index.yml'))
-			//	  expect(package_index).to include('builds')
-			//	  expect(package_index['builds']).to include('a29b3b1174dc200826055732082bf21c7a765669')
-			//	  expect(package_index['builds']['a29b3b1174dc200826055732082bf21c7a765669'])
-			//	    .to include('version', 'blobstore_id', 'sha1')
-			//	end
+			createAndExecCommand(cmdFactory, []string{"finalize-release", "--dir", releaseDir, fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
+
+			jobContents, err := fs.ReadFileString(fmt.Sprintf("%s/.final_builds/jobs/job1/index.yml", releaseDir))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(jobContents).ToNot(BeEmpty())
+
+			type JobContents struct {
+				Builds struct {
+					Id struct {
+						Version     string `yaml:"version"`
+						BlobstoreID string `yaml:"blobstore_id"`
+						Sha1        string `yaml:"sha1"`
+					} `yaml:"7225651667f52a2c600a4b7271c76b7277268730574d55dae509c0e9ad6c89e7"`
+				} `yaml:"builds"`
+				FormatVersion string `yaml:"format-version"`
+			}
+			jobs := JobContents{}
+			err = yaml.Unmarshal([]byte(jobContents), &jobs)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(jobs.Builds.Id.Version).To(Equal("7225651667f52a2c600a4b7271c76b7277268730574d55dae509c0e9ad6c89e7"))
+			Expect(jobs.Builds.Id.BlobstoreID).NotTo(BeEmpty())
+			Expect(jobs.Builds.Id.Sha1).NotTo(BeEmpty())
+			Expect(jobs.FormatVersion).To(Equal("2"))
+
+			pkgContents, err := fs.ReadFileString(fmt.Sprintf("%s/.final_builds/packages/pkg1/index.yml", releaseDir))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(jobContents).ToNot(BeEmpty())
+
+			type PackageContents struct {
+				Builds struct {
+					Id struct {
+						Version     string `yaml:"version"`
+						BlobstoreID string `yaml:"blobstore_id"`
+						Sha1        string `yaml:"sha1"`
+					} `yaml:"074b9ff2fd95d50d32db373ae16bd8cb5d6e098beb7ff35745ea1b5115264710"`
+				} `yaml:"builds"`
+				FormatVersion string `yaml:"format-version"`
+			}
+
+			packages := PackageContents{}
+			err = yaml.Unmarshal([]byte(pkgContents), &packages)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(packages.Builds.Id.Version).To(Equal("074b9ff2fd95d50d32db373ae16bd8cb5d6e098beb7ff35745ea1b5115264710"))
+			Expect(packages.Builds.Id.BlobstoreID).NotTo(BeEmpty())
+			Expect(packages.Builds.Id.Sha1).NotTo(BeEmpty())
+			Expect(packages.FormatVersion).To(Equal("2"))
 		})
 
 		It("prints release summary", func() {
-			//	Dir.chdir(IntegrationSupport::ClientSandbox.test_release_dir) do
-			//	  out = table(
-			//	    bosh_runner.run_in_current_dir("finalize-release #{asset_path('dummy-gocli-release.tgz')} --force", json: true),
-			//	  )
-			//	  expect(out).to include(
-			//	    {
-			//	      'job' => 'dummy/a2f501d07c3e96689185ee6ebe26c15d54d4849a',
-			//	      'digest' => '16baf0c24e2dac2a21ccdcd4655be403a602f573',
-			//	      'packages' => '',
-			//	    },
-			//	    {
-			//	      'job' => 'dummy_with_bad_package/0c5fa6ab55ab9d030354a26c722fe3b6e83a775b',
-			//	      'digest' => '6c67d40fa0df7a0ccfd49c873db533cb555b5f9c',
-			//	      'packages' => '',
-			//	    },
-			//	    {
-			//	      'job' => 'dummy_with_package/97a702673f3096a8251273cd7962ae39c0f63b7b',
-			//	      'digest' => 'e1f50e9b1fd987e1c36c1cc322cbbcbf51a577a8',
-			//	      'packages' => '',
-			//	    },
-			//	    {
-			//	      'job' => 'dummy_with_properties/c55e682be87812d0cb378c82150d619c0b9252e9',
-			//	      'digest' => '415b4a9f29c21c1e193b540536fd15550fcefad3',
-			//	      'packages' => '',
-			//	    },
-			//	    {
-			//	      'job' => 'multi-monit-dummy/1441e36bc3a9888ae638baab4c6c19654cfdaf9e',
-			//	      'digest' => '0059f555ab6e1e70e419665e19926a2290ffdd20',
-			//	      'packages' => '',
-			//	    },
-			//	  )
-			//	  expect(out).to include(
-			//	    {
-			//	      'package' => 'bad_package/e44d6e76a3cb74bfda0ec6d56dfbb334ca798209',
-			//	      'digest' => '19b574c0f3d0d4910d4a4db85ede41ab9c734469',
-			//	      'dependencies' => '',
-			//	    },
-			//	    {
-			//	      'package' => 'dummy_package/a29b3b1174dc200826055732082bf21c7a765669',
-			//	      'digest' => '42ade2b5b3495a989a8ffeeacc7e08c2387d29ba',
-			//	      'dependencies' => '',
-			//	    },
-			//	  )
-			//	end
-		})
-
-		It("updates the releases index", func() {
-			//	Dir.chdir(IntegrationSupport::ClientSandbox.test_release_dir) do
-			//	  bosh_runner.run_in_current_dir("finalize-release #{asset_path('dummy-gocli-release.tgz')} --force")
-			//	  job_index = YAML.load_file(File.absolute_path('.final_builds/jobs/dummy/index.yml'))
-			//	  expect(job_index).to include('builds')
-			//	  expect(job_index['builds']).to include('a2f501d07c3e96689185ee6ebe26c15d54d4849a')
-			//	  expect(job_index['builds']['a2f501d07c3e96689185ee6ebe26c15d54d4849a']).to include('version', 'blobstore_id', 'sha1')
-			//	end
+			createAndExecCommand(cmdFactory, []string{"finalize-release", "--dir", releaseDir, fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
+			output := strings.Join(ui.Said, " ")
+			Expect(output).To(ContainSubstring("Added job 'job1/7225651667f52a2c600a4b7271c76b7277268730574d55dae509c0e9ad6c89e7'"))
+			Expect(output).To(ContainSubstring("Added package 'pkg1/074b9ff2fd95d50d32db373ae16bd8cb5d6e098beb7ff35745ea1b5115264710'"))
+			Expect(output).To(ContainSubstring("Added final release 'test-release/1'"))
 		})
 
 		It("cannot create a final release without the blobstore configured", func() {
-			//	Dir.chdir(IntegrationSupport::ClientSandbox.test_release_dir) do
-			//	  FileUtils.cp(asset_path('empty_blobstore_config.yml'), 'config/final.yml')
-			//	  out = bosh_runner.run_in_current_dir(
-			//	    "finalize-release #{asset_path('dummy-gocli-release.tgz')} --force",
-			//	    json: true,
-			//	    failure_expected: true,
-			//	  )
-			//	  expect(out).to match(%r{Expected non-empty 'blobstore.provider' in config .*/config/final\.yml})
-			//	end
+			err := fs.WriteFileString(filepath.Join(releaseDir, "config", "final.yml"), "")
+			Expect(err).ToNot(HaveOccurred())
+
+			command := createCommand(cmdFactory, []string{"finalize-release", "--dir", releaseDir, fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
+			err = command.Execute()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(MatchRegexp("Expected non-empty 'blobstore.provider' in config .*/config/final\\.yml"))
 		})
 
 		It("cannot create a final release without the blobstore secret configured", func() {
-			//	Dir.chdir(IntegrationSupport::ClientSandbox.test_release_dir) do
-			//	  FileUtils.cp(asset_path('blobstore_config_requiring_credentials.yml'), 'config/final.yml')
-			//	  out = bosh_runner.run_in_current_dir(
-			//	    "finalize-release #{asset_path('dummy-gocli-release.tgz')} --force",
-			//	    json: true,
-			//	    failure_expected: true,
-			//	  )
-			//	  expect(out).to match(/Creating blob in inner blobstore:\\n\s+Generating blobstore ID:\\n\s+the client operates in read only mode. Change 'credentials_source' parameter value/)
-			//	end
+			finalYaml := `---
+blobstore:
+  provider: s3
+  options:
+    bucket_name: test
+`
+			err := fs.WriteFileString(filepath.Join(releaseDir, "config", "final.yml"), finalYaml)
+			Expect(err).ToNot(HaveOccurred())
+
+			command := createCommand(cmdFactory, []string{"finalize-release", "--dir", releaseDir, fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
+			err = command.Execute()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(MatchRegexp("Creating blob in inner blobstore: Generating blobstore ID: the client operates in read only mode. Change 'credentials_source' parameter value"))
 		})
 
 		Context("when no previous releases have been made", func() {
 			It("finalize-release uploads the job & package blobs", func() {
+				Expect(fs.FileExists(fmt.Sprintf("%s/releases", releaseDir))).To(Equal(false))
+				//Expect(fs.FileExists(fmt.Sprintf("%s/dev_releases", releaseDir))).To(Equal(false))
+				Expect(fs.FileExists(fmt.Sprintf("%s/.final_releases", releaseDir))).To(Equal(false))
+				// Expect(fs.FileExists(fmt.Sprintf("%s/.dev_builds", releaseDir))).To(Equal(false))
+				// Expect(fs.FileExists(fmt.Sprintf("%s/.blobstore", releaseDir))).To(Equal(false))
+
+				createAndExecCommand(cmdFactory, []string{"finalize-release", "--dir", releaseDir, fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
+
+				Expect(fs.FileExists(fmt.Sprintf("%s/releases/%s/%s-1.yml", releaseDir, releaseName, releaseName))).To(Equal(true))
+				Expect(fs.FileExists(fmt.Sprintf("%s/.final_builds/jobs/job1/index.yml", releaseDir))).To(Equal(true))
+				Expect(fs.FileExists(fmt.Sprintf("%s/.final_builds/packages/pkg1/index.yml", releaseDir))).To(Equal(true))
 				//	Dir.chdir(IntegrationSupport::ClientSandbox.test_release_dir) do
 				//	  expect(Dir).to_not exist('releases')
 				//	  expect(Dir).to_not exist('dev_releases')
@@ -125,87 +196,193 @@ var _ = Describe("create-release command", func() {
 	})
 
 	Context("when finalizing a release that was built in the current release dir", func() {
-		//	let!(:release_file) { Tempfile.new('release.tgz') }
-		//	after { release_file.delete }
+
+		BeforeEach(func() {
+			tmpDir, err := fs.TempDir("bosh-finalize-release-int-test")
+			Expect(err).ToNot(HaveOccurred())
+			releaseDir = tmpDir // to use the releaseDir value in other functions
+
+			DeferCleanup(func() {
+				err = fs.RemoveAll(tmpDir)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			By("running `init-release`, `generate-job`, and `generate-package`", func() {
+				createAndExecCommand(cmdFactory, []string{"init-release", "--git", "--dir", releaseDir})
+				createAndExecCommand(cmdFactory, []string{"generate-job", "job1", "--dir", releaseDir})
+				createAndExecCommand(cmdFactory, []string{"generate-package", "pkg1", "--dir", releaseDir})
+			})
+
+			By("creating a job that depends on `pkg1`", func() {
+				jobSpecPath := filepath.Join(releaseDir, "jobs", "job1", "spec")
+
+				contents, err := fs.ReadFileString(jobSpecPath)
+				Expect(err).ToNot(HaveOccurred())
+
+				err = fs.WriteFileString(jobSpecPath, strings.Replace(contents, "packages: []", "packages: [pkg1]", -1))
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			By("adding some content", func() {
+				err := fs.WriteFileString(filepath.Join(releaseDir, "src", "in-src"), "in-src")
+				Expect(err).ToNot(HaveOccurred())
+
+				pkg1SpecPath := filepath.Join(releaseDir, "packages", "pkg1", "spec")
+
+				contents, err := fs.ReadFileString(pkg1SpecPath)
+				Expect(err).ToNot(HaveOccurred())
+
+				err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "files: []", "files:\n- in-src", -1))
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			By("creating a release with local blobstore", func() {
+				blobstoreDir := filepath.Join(releaseDir, ".blobstore")
+
+				err := fs.MkdirAll(blobstoreDir, 0777)
+				Expect(err).ToNot(HaveOccurred())
+
+				finalYaml := "name: " + releaseName + `
+blobstore:
+  provider: local
+  options:
+    blobstore_path: ` + blobstoreDir
+
+				err = fs.WriteFileString(filepath.Join(releaseDir, "config", "final.yml"), finalYaml)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			err = fs.WriteFileString(filepath.Join(releaseDir, "LICENSE"), "")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString(filepath.Join(releaseDir, "NOTICE"), "")
+			Expect(err).ToNot(HaveOccurred())
+		})
 
 		It("can finalize the dev release tarball", func() {
-			//	Dir.chdir(IntegrationSupport::ClientSandbox.test_release_dir) do
-			//	  File.delete('LICENSE')
-			//	  expect(File).to_not exist('NOTICE')
-			//	  bosh_runner.run_in_current_dir("create-release --force --tarball=#{release_file.path} --name=test-release")
-			//	  out = bosh_runner.run_in_current_dir("finalize-release #{release_file.path} --force", json: true)
-			//	end
+			err := os.Chdir(releaseDir)
+			Expect(err).ToNot(HaveOccurred())
+
+			os.Remove("LICENSE")
+			Expect(fs.FileExists("LICENSE")).To(Equal(false))
+			os.Remove("NOTICE")
+			Expect(fs.FileExists("NOTICE")).To(Equal(false))
+
+			createAndExecCommand(cmdFactory, []string{"create-release", "--name", "test-release", fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--force"})
+
+			createAndExecCommand(cmdFactory, []string{"finalize-release", fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
 		})
 
 		It("works without a NOTICE or LICENSE present", func() {
-			//	Dir.chdir(IntegrationSupport::ClientSandbox.test_release_dir) do
-			//	  File.delete('LICENSE')
-			//	  expect(File).to_not exist('NOTICE')
-			//	  bosh_runner.run_in_current_dir("create-release --force --tarball=#{release_file.path} --name=test-release")
-			//	  out = bosh_runner.run_in_current_dir("finalize-release #{release_file.path} --force", json: true)
-			//	  expect(out).to_not match(/Added license/)
-			//	end
+			err := os.Chdir(releaseDir)
+			Expect(err).ToNot(HaveOccurred())
+
+			os.Remove("LICENSE")
+			Expect(fs.FileExists("LICENSE")).To(Equal(false))
+			os.Remove("NOTICE")
+			Expect(fs.FileExists("NOTICE")).To(Equal(false))
+
+			createAndExecCommand(cmdFactory, []string{"create-release", "--name", "test-release", fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--force"})
+
+			createAndExecCommand(cmdFactory, []string{"finalize-release", fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
+			output := strings.Join(ui.Said, " ")
+			Expect(output).ToNot(ContainSubstring("Added license"))
 		})
 
 		It("includes the LICENSE file", func() {
-			//	Dir.chdir(IntegrationSupport::ClientSandbox.test_release_dir) do
-			//	  expect(File).to_not exist('NOTICE')
-			//	  File.open('LICENSE', 'w') do |f|
-			//	    f.write('This is an example license file')
-			//	  end
-			//	  bosh_runner.run_in_current_dir("create-release --force --tarball=#{release_file.path} --name=test-release")
-			//	  out = bosh_runner.run_in_current_dir("finalize-release #{release_file.path} --force", json: true)
-			//
-			//	  expected_license_version = '24f59b89c3a9f4eed2f4b9b07bc754891fadc49d8ec0dda25c562d90e568b375'
-			//	  expect(out).to match(%r{Added license 'license/#{expected_license_version}'})
-			//	  expect(blobstore_tarball_listing(expected_license_version)).to eq %w[./ ./LICENSE]
-			//
-			//	  actual_digest = sha_generator.create(
-			//	    [Bosh::Director::BoshDigest::MultiDigest::SHA256],
-			//	    blobstore_license_file_path(expected_license_version),
-			//	  )
-			//	  expect(actual_digest).to eq manifest_sha1_of_license(expected_license_version)
-			//	end
+			err := os.Chdir(releaseDir)
+			Expect(err).ToNot(HaveOccurred())
+
+			os.Remove("NOTICE")
+			Expect(fs.FileExists("NOTICE")).To(Equal(false))
+			err = fs.WriteFileString(filepath.Join(releaseDir, "LICENSE"), "This is an example license file")
+			Expect(err).ToNot(HaveOccurred())
+
+			createAndExecCommand(cmdFactory, []string{"create-release", "--name", "test-release", fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--force"})
+
+			createAndExecCommand(cmdFactory, []string{"finalize-release", fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
+			output := strings.Join(ui.Said, " ")
+			expectedLicenseVersion := "24f59b89c3a9f4eed2f4b9b07bc754891fadc49d8ec0dda25c562d90e568b375"
+			Expect(output).To(ContainSubstring("Added license 'license/24f59b89c3a9f4eed2f4b9b07bc754891fadc49d8ec0dda25c562d90e568b375"))
+
+			fs.FileExists(releaseDir + expectedLicenseVersion)
+			releaseTarball := listTarballContents(fmt.Sprintf("%s/release.tgz", releaseDir))
+			Expect(releaseTarball).To(ContainElement("LICENSE"))
+
+			verifyDigest(releaseDir, expectedLicenseVersion)
 		})
 
 		It("includes the NOTICE file if no LICENSE was present", func() {
-			//	Dir.chdir(IntegrationSupport::ClientSandbox.test_release_dir) do
-			//	  File.delete('LICENSE')
-			//	  File.open('NOTICE', 'w') do |f|
-			//	    f.write('This is an example license file called NOTICE')
-			//	  end
-			//	  bosh_runner.run_in_current_dir("create-release --force --tarball=#{release_file.path} --name=test-release")
-			//	  out = bosh_runner.run_in_current_dir("finalize-release #{release_file.path} --force", json: true)
-			//
-			//	  expected_license_version = 'eb70cb1dcc90b1d1b1271bfa26a57e62240e46a38a87c64fbde94e2b65fe0c37'
-			//	  expect(out).to match(%r{Added license 'license/#{expected_license_version}'})
-			//	  expect(blobstore_tarball_listing(expected_license_version)).to eq %w[./ ./NOTICE]
-			//	  actual_digest = sha_generator.create(
-			//	    [Bosh::Director::BoshDigest::MultiDigest::SHA256],
-			//	    blobstore_license_file_path(expected_license_version),
-			//	  )
-			//	  expect(actual_digest).to eq manifest_sha1_of_license(expected_license_version)
-			//	end
+			err := os.Chdir(releaseDir)
+			Expect(err).ToNot(HaveOccurred())
+
+			os.Remove("LICENSE")
+			Expect(fs.FileExists("LICENSE")).To(Equal(false))
+			err = fs.WriteFileString(filepath.Join(releaseDir, "NOTICE"), "This is an example license file called NOTICE")
+			Expect(err).ToNot(HaveOccurred())
+
+			createAndExecCommand(cmdFactory, []string{"create-release", "--name", "test-release", fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--force"})
+
+			createAndExecCommand(cmdFactory, []string{"finalize-release", fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
+			output := strings.Join(ui.Said, " ")
+			expectedLicenseVersion := "eb70cb1dcc90b1d1b1271bfa26a57e62240e46a38a87c64fbde94e2b65fe0c37"
+			Expect(output).To(ContainSubstring("Added license 'license/eb70cb1dcc90b1d1b1271bfa26a57e62240e46a38a87c64fbde94e2b65fe0c37"))
+
+			fs.FileExists(releaseDir + expectedLicenseVersion)
+			releaseTarball := listTarballContents(fmt.Sprintf("%s/release.tgz", releaseDir))
+			Expect(releaseTarball).To(ContainElement("NOTICE"))
+
+			verifyDigest(releaseDir, expectedLicenseVersion)
 		})
 
 		It("includes both NOTICE and LICENSE files when present", func() {
-			//	Dir.chdir(IntegrationSupport::ClientSandbox.test_release_dir) do
-			//	  File.open('NOTICE', 'w') do |f|
-			//	    f.write('This is an example license file called NOTICE')
-			//	  end
-			//	  bosh_runner.run_in_current_dir("create-release --force --tarball=#{release_file.path} --name=test-release")
-			//	  out = bosh_runner.run_in_current_dir("finalize-release #{release_file.path} --force", json: true)
-			//
-			//	  # an artifact's version and fingerprint are set identical in recent BOSH versions
-			//	  expected_license_version = '28b1b5c589a8e798e4859f32e9e610ef66cd272edc9698a9e036906e63416dbb'
-			//	  expect(out).to match(%r{Added license 'license/#{expected_license_version}'})
-			//	  expect(blobstore_tarball_listing(expected_license_version)).to eq %w[./ ./LICENSE ./NOTICE]
-			//	  actual_digest = sha_generator.create(
-			//	    [Bosh::Director::BoshDigest::MultiDigest::SHA256],
-			//	    blobstore_license_file_path(expected_license_version),
-			//	  )
-			//	  expect(actual_digest).to eq manifest_sha1_of_license(expected_license_version)
-			//	end
+			err := os.Chdir(releaseDir)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString(filepath.Join(releaseDir, "NOTICE"), "This is an example license file called NOTICE")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(filepath.Join(releaseDir, "LICENSE"), "This is an example license file")
+			Expect(err).ToNot(HaveOccurred())
+
+			createAndExecCommand(cmdFactory, []string{"create-release", "--name", "test-release", fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--force"})
+
+			createAndExecCommand(cmdFactory, []string{"finalize-release", fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
+			output := strings.Join(ui.Said, " ")
+			expectedLicenseVersion := "9f6d8d782d57bcca93b645a0cbd0a95b943c72bf61093e1874aff6b8b54c371e"
+			Expect(output).To(ContainSubstring("Added license 'license/9f6d8d782d57bcca93b645a0cbd0a95b943c72bf61093e1874aff6b8b54c371e"))
+
+			fs.FileExists(releaseDir + expectedLicenseVersion)
+			releaseTarball := listTarballContents(fmt.Sprintf("%s/release.tgz", releaseDir))
+			Expect(releaseTarball).To(ContainElement("NOTICE"))
+			Expect(releaseTarball).To(ContainElement("LICENSE"))
+
+			verifyDigest(releaseDir, expectedLicenseVersion)
 		})
 	})
 })
+
+func verifyDigest(releasedir, expectedLicenseVersion string) {
+	type LicenseIndex struct {
+		Builds map[string]struct {
+			BlobstoreID string `yaml:"blobstore_id"`
+			Sha1        string `yaml:"sha1"`
+		} `yaml:"builds"`
+	}
+	finalBuildsLicenseFile, err := os.ReadFile(fmt.Sprintf("%s/.final_builds/license/index.yml", releasedir))
+	Expect(err).ToNot(HaveOccurred())
+
+	var licenseIndex LicenseIndex
+	err = yaml.Unmarshal(finalBuildsLicenseFile, &licenseIndex)
+	Expect(err).ToNot(HaveOccurred())
+	blobstoreID := licenseIndex.Builds[expectedLicenseVersion].BlobstoreID
+
+	licenseFile, err := os.Open(fmt.Sprintf("%s/.blobstore/%s", releasedir, blobstoreID))
+	Expect(err).ToNot(HaveOccurred())
+	hash := sha256.New()
+	_, err = io.Copy(hash, licenseFile)
+	Expect(err).ToNot(HaveOccurred())
+	actualDigest := fmt.Sprintf("%x", hash.Sum(nil))
+
+	expectedDigest := licenseIndex.Builds[expectedLicenseVersion].Sha1
+	Expect(actualDigest).To(Equal(strings.Split(expectedDigest, ":")[1]))
+}

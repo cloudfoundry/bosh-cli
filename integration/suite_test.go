@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"crypto/tls"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -97,6 +98,20 @@ func removeSHA1s(contents string) string {
 func removeSHA256s(contents string) string {
 	matchSHA256s := regexp.MustCompile("sha1: sha256:[a-z0-9]{64}\n")
 	return matchSHA256s.ReplaceAllString(contents, "sha1: replaced\n")
+}
+
+func listTarballContents(tarballPath string) []string {
+	contents := []string{}
+	cmd := exec.Command("tar", "ztf", tarballPath)
+	output, err := cmd.Output()
+	Expect(err).ToNot(HaveOccurred())
+	files := strings.Split(string(output), "\n")
+	for _, file := range files {
+		if file != "" {
+			contents = append(contents, file)
+		}
+	}
+	return contents
 }
 
 func createSimpleRelease() string {
