@@ -102,6 +102,8 @@ jobs:
       - task: tests
         privileged: true
         input_mapping:
+          bosh: bosh-src
+          bosh-ci: bosh-src
           bosh-cli: compiled-linux-amd64
         file: bosh-src/ci/tasks/test-integration.yml
         params:
