@@ -33,6 +33,30 @@ func (s AllOrInstanceGroupOrInstanceSlug) InstanceSlug() (InstanceSlug, bool) {
 	return InstanceSlug{}, false
 }
 
+func (s AllOrInstanceGroupOrInstanceSlug) ContainsOrEquals(other AllOrInstanceGroupOrInstanceSlug) bool {
+	// If the names/instance groups are different, there is no overlap
+	if s.name != other.name {
+		return false
+	}
+
+	// If the indexOrID matches, the slugs are equal
+	if s.indexOrID == other.indexOrID {
+		return true
+	}
+
+	// An instance group/empty slug contains all instances
+	if s.indexOrID == "" {
+		return true
+	}
+
+	// If the other instance is empty, it cannot be contained in the current instance
+	if other.indexOrID == "" {
+		return false
+	}
+
+	return s.ip != "" && other.ip != "" && s.ip == other.ip
+}
+
 func (s AllOrInstanceGroupOrInstanceSlug) String() string {
 	if len(s.indexOrID) > 0 {
 		return fmt.Sprintf("%s/%s", s.name, s.indexOrID)
@@ -49,6 +73,27 @@ func (s *AllOrInstanceGroupOrInstanceSlug) UnmarshalFlag(data string) error {
 	*s = slug
 
 	return nil
+}
+
+func DeduplicateSlugs(slugs []AllOrInstanceGroupOrInstanceSlug) []AllOrInstanceGroupOrInstanceSlug {
+	var result []AllOrInstanceGroupOrInstanceSlug
+
+	for _, slug1 := range slugs {
+		duplicate := false
+
+		for _, slug2 := range result {
+			if slug1.ContainsOrEquals(slug2) || slug2.ContainsOrEquals(slug1) {
+				duplicate = true
+				break
+			}
+		}
+
+		if !duplicate {
+			result = append(result, slug1)
+		}
+	}
+
+	return result
 }
 
 func parseAllOrInstanceGroupOrInstanceSlug(str string) (AllOrInstanceGroupOrInstanceSlug, error) {

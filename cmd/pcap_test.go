@@ -30,7 +30,7 @@ var _ = Describe("pcap", func() {
 			deployment = &fakedir.FakeDeployment{}
 			uuidGen = &fakeuuid.FakeGenerator{}
 			pcapRunner = &fakepcap.FakePcapRunner{}
-			command = cmd.NewPcapCmd(deployment, pcapRunner)
+			command = cmd.NewPcapCmd(deployment, pcapRunner, 5)
 		})
 
 		Describe("Run", func() {
@@ -56,11 +56,11 @@ var _ = Describe("pcap", func() {
 
 			Context("when valid pcap args are provided", func() {
 				BeforeEach(func() {
-					pcapOpts.Args.Slug = boshdir.AllOrInstanceGroupOrInstanceSlug{}
+					pcapOpts.Args.Slugs = []boshdir.AllOrInstanceGroupOrInstanceSlug{{}}
 				})
 
 				It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
-					pcapRunner.RunStub = func(result boshdir.SSHResult, username string, argv string, pcapOpts opts.PcapOpts, privateKey string) error {
+					pcapRunner.RunStub = func(result boshdir.SSHResult, username string, argv string, pcapOpts opts.PcapOpts, privateKey string, parallel int) error {
 						Expect(argv).To(Equal("sudo tcpdump -w - -i eth0 -s 65535"))
 						return nil
 					}
@@ -87,7 +87,7 @@ var _ = Describe("pcap", func() {
 				It("provides custom opts, sets up SSH access, runs SSH command and later cleans up SSH access", func() {
 					pcapOpts.SnapLength = 300
 					pcapOpts.Interface = "any"
-					pcapRunner.RunStub = func(result boshdir.SSHResult, username string, argv string, pcapOpts opts.PcapOpts, privateKey string) error {
+					pcapRunner.RunStub = func(result boshdir.SSHResult, username string, argv string, pcapOpts opts.PcapOpts, privateKey string, parallel int) error {
 						Expect(argv).To(Equal("sudo tcpdump -w - -i any -s 300"))
 						Expect(deployment.CleanUpSSHCallCount()).To(Equal(0))
 						return nil

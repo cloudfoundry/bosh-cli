@@ -13,6 +13,9 @@ import (
 	"syscall"
 	"time"
 
+	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/fatih/color"
+
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gopacket/gopacket"
 	"github.com/gopacket/gopacket/layers"
@@ -36,7 +39,7 @@ var (
 
 //counterfeiter:generate . PcapRunner
 type PcapRunner interface {
-	Run(boshdir.SSHResult, string, string, PcapOpts, string) error
+	Run(boshdir.SSHResult, string, string, PcapOpts, string, int) error
 }
 
 func NewPcapRunner(ui boshui.UI, logger boshlog.Logger) PcapRunner {
@@ -48,8 +51,9 @@ type PcapRunnerImpl struct {
 	logger boshlog.Logger
 }
 
-func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv string, opts PcapOpts, privateKey string) error {
+func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv string, opts PcapOpts, privateKey string, parallel int) error {
 	var packetCs []<-chan gopacket.Packet
+	var mu sync.Mutex
 
 	done := make(chan struct{})
 
@@ -71,23 +75,56 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 
 	runningCaptures := 0
 
+	// Print the table of instances that will be captured, and ask for confirmation
+	p.ui.PrintTable(sshResultTable(result))
+	err = p.ui.AskForConfirmation()
+	if err != nil {
+		return err
+	}
+
+	// Set upper and lower boundaries for parallel connection establishment
+	if parallel == 0 {
+		parallel = 1
+	}
+	workSize := len(result.Hosts)
+	if parallel > workSize {
+		parallel = workSize
+	}
+
+	workChan := make(chan boshdir.Host, len(result.Hosts))
+	resultChan := make(chan error, len(result.Hosts))
+
+	for i := 0; i < parallel; i++ {
+		go func() {
+			for host := range workChan {
+				clientOpts.Host = host.Host
+				boshSSHClient := clientFactory.New(clientOpts)
+				var packets <-chan gopacket.Packet
+				packets, err = captureSSH(argv, opts.Filter, host, boshSSHClient, opts.StopTimeout, wg, done, p.ui, ctx, cancel)
+				if err != nil {
+					p.ui.ErrorLinef("Capture cannot be started on the instance %s/%s due to error: %s. \nContinue on other instances", host.Job, host.IndexOrID, err.Error())
+					resultChan <- err
+					continue
+				}
+
+				mu.Lock()
+				runningCaptures++
+				packetCs = append(packetCs, packets)
+				mu.Unlock()
+				resultChan <- nil
+			}
+		}()
+	}
+
 	for _, host := range result.Hosts {
-		clientOpts.Host = host.Host
-		boshSSHClient := clientFactory.New(clientOpts)
+		workChan <- host
+	}
+	close(workChan)
 
-		p.ui.BeginLinef("Start capture on %s/%s\n", host.Job, host.IndexOrID)
-
-		packets, err := captureSSH(argv, opts.Filter, host, boshSSHClient, opts.StopTimeout, wg, done, p.ui, ctx, cancel)
-		if err != nil {
-			// c.ui.ErrorLinef writes error message to stdout/sdterr but does not stop the workflow
-			p.ui.ErrorLinef("Capture cannot be started on the instance %s/%s due to error: %s. \nContinue on other instances", host.Job, host.IndexOrID, err.Error())
-
-			continue
+	for i := 0; i < workSize; i++ {
+		if err = <-resultChan; err != nil {
+			return err
 		}
-
-		runningCaptures++
-
-		packetCs = append(packetCs, packets)
 	}
 
 	if runningCaptures == 0 {
@@ -178,7 +215,6 @@ func captureSSH(tcpdumpCmd, filter string, host boshdir.Host, boshSSHClient bosh
 	}
 
 	tcpdump := addFilterToCmd(tcpdumpCmd, filter, clientSSHAddr.IP.String(), clientSSHAddr.Port)
-	ui.ErrorLinef(tcpdump)
 
 	packets, err := openPcapHandle(tcpdump, session, wg, cancel)
 	if err != nil {
@@ -197,8 +233,6 @@ func captureSSH(tcpdumpCmd, filter string, host boshdir.Host, boshSSHClient bosh
 			_ = boshSSHClient.Stop()
 		}()
 		defer wg.Done()
-
-		ui.BeginLinef("\nRunning on %s/%s. To stop capturing traffic and generate a pcap file, press CTRL-C during the capture\n", host.Job, host.IndexOrID)
 
 		select {
 		case <-ctx.Done():
@@ -325,4 +359,34 @@ func mergePackets(packetCs []<-chan gopacket.Packet) <-chan gopacket.Packet {
 	}()
 
 	return out
+}
+
+func sshResultTable(result boshdir.SSHResult) boshtbl.Table {
+	var rows [][]boshtbl.Value
+
+	for _, host := range result.Hosts {
+		row := []boshtbl.Value{
+			boshtbl.NewValueString(host.Job),
+			boshtbl.NewValueString(host.IndexOrID),
+			boshtbl.NewValueString(host.Host),
+		}
+		rows = append(rows, row)
+	}
+
+	notes := []string{fmt.Sprintf("Traffic on %d VM(s) will be captured.", len(rows))}
+	if len(rows) > 5 {
+		notes = append(notes, "\nWarning: This could cause significant load for various components and could result in a very large capture file. Use at your own discretion.")
+	}
+
+	return boshtbl.Table{
+		Title: color.New(color.Bold).Sprint("Expected VMs for SSH capture"),
+		Notes: notes,
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Instance Group"),
+			boshtbl.NewHeader("ID"),
+			boshtbl.NewHeader("IP"),
+		},
+		Rows:      rows,
+		Transpose: false,
+	}
 }
