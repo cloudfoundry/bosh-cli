@@ -188,7 +188,7 @@ github.com/cloudfoundry/config-server/types/typesfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee
 ## explicit; go 1.21.0
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.133
+# github.com/cloudfoundry/socks5-proxy v0.2.134
 ## explicit; go 1.22.0
 github.com/cloudfoundry/socks5-proxy
 # github.com/cncf/xds/go v0.0.0-20240905190251-b4127c9b8d78
