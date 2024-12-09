@@ -126,4 +126,22 @@ var _ = Describe("AllInstanceGroupOrInstanceSlug", func() {
 			Expect(err).To(Equal(errors.New("Expected instance 'name/' to specify non-empty ID or index")))
 		})
 	})
+
+	Describe("DeduplicateSlugs", func() {
+		It("deduplicates slugs", func() {
+			slugs := []AllOrInstanceGroupOrInstanceSlug{
+				NewAllOrInstanceGroupOrInstanceSlug("name1", ""),
+				NewAllOrInstanceGroupOrInstanceSlug("name1", "id2"),
+				NewAllOrInstanceGroupOrInstanceSlug("name2", "id1"),
+				NewAllOrInstanceGroupOrInstanceSlug("name2", "id2"),
+				NewAllOrInstanceGroupOrInstanceSlug("name1", ""),
+			}
+			Expect(DeduplicateSlugs(slugs)).To(Equal([]AllOrInstanceGroupOrInstanceSlug{
+				NewAllOrInstanceGroupOrInstanceSlug("name1", ""),
+				NewAllOrInstanceGroupOrInstanceSlug("name2", "id1"),
+				NewAllOrInstanceGroupOrInstanceSlug("name2", "id2"),
+			}))
+		})
+
+	})
 })

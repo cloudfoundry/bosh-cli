@@ -17,15 +17,18 @@ const (
 type PcapCmd struct {
 	deployment boshdir.Deployment
 	pcapRunner pcap.PcapRunner
+	parallel   int
 }
 
 func NewPcapCmd(
 	deployment boshdir.Deployment,
 	pcapRunner pcap.PcapRunner,
+	parallel int,
 ) PcapCmd {
 	return PcapCmd{
 		deployment: deployment,
 		pcapRunner: pcapRunner,
+		parallel:   parallel,
 	}
 }
 
@@ -35,13 +38,30 @@ func (c PcapCmd) Run(opts PcapOpts) error {
 		return err
 	}
 
-	result, err := c.deployment.SetUpSSH(opts.Args.Slug, sshOpts)
-	if err != nil {
-		return err
+	var result boshdir.SSHResult
+
+	// If no slugs are provided, default to capturing all instances by using an empty slug.
+	slugs := []boshdir.AllOrInstanceGroupOrInstanceSlug{{}}
+
+	if len(opts.Args.Slugs) > 0 {
+		slugs = opts.Args.Slugs
+	}
+
+	slugs = boshdir.DeduplicateSlugs(slugs)
+
+	for _, slug := range slugs {
+		res, err := c.deployment.SetUpSSH(slug, sshOpts)
+		if err != nil {
+			return err
+		}
+
+		result.Hosts = append(result.Hosts, res.Hosts...)
 	}
 
 	defer func() {
-		_ = c.deployment.CleanUpSSH(opts.Args.Slug, sshOpts)
+		for _, slug := range slugs {
+			_ = c.deployment.CleanUpSSH(slug, sshOpts)
+		}
 	}()
 
 	argv, err := buildPcapCmd(opts)
@@ -49,7 +69,7 @@ func (c PcapCmd) Run(opts PcapOpts) error {
 		return fmt.Errorf("invalid pcap cmd options: %w", err)
 	}
 
-	return c.pcapRunner.Run(result, sshOpts.Username, argv, opts, connOpts.PrivateKey)
+	return c.pcapRunner.Run(result, sshOpts.Username, argv, opts, connOpts.PrivateKey, c.parallel)
 }
 
 func buildPcapCmd(opts PcapOpts) (string, error) {
