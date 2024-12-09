@@ -26,6 +26,7 @@ type compiler struct {
 	blobExtractor       blobextract.Extractor
 	logger              boshlog.Logger
 	logTag              string
+	useIsolatedEnv      bool
 }
 
 func NewPackageCompiler(
@@ -37,6 +38,7 @@ func NewPackageCompiler(
 	compiledPackageRepo bistatepkg.CompiledPackageRepo,
 	blobExtractor blobextract.Extractor,
 	logger boshlog.Logger,
+	useIsolatedEnv bool,
 ) bistatepkg.Compiler {
 	return &compiler{
 		runner:              runner,
@@ -48,6 +50,7 @@ func NewPackageCompiler(
 		blobExtractor:       blobExtractor,
 		logger:              logger,
 		logTag:              "packageCompiler",
+		useIsolatedEnv:      useIsolatedEnv,
 	}
 }
 
@@ -105,7 +108,7 @@ func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageR
 				"PATH":                os.Getenv("PATH"),
 				"LD_LIBRARY_PATH":     os.Getenv("LD_LIBRARY_PATH"),
 			},
-			UseIsolatedEnv: true,
+			UseIsolatedEnv: c.useIsolatedEnv,
 			WorkingDir:     packageSrcDir,
 		}
 
