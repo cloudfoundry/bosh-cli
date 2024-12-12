@@ -15,11 +15,21 @@ import (
 
 var _ = Describe("finalize-release command", func() {
 	var releaseDir string
-
+	var testRootDir string
 	releaseName := "test-release"
 
-	Context("when finalizing a release that was built elsewhere", func() {
+	BeforeEach(func() {
+		dir, err := os.Getwd()
+		Expect(err).ToNot(HaveOccurred())
+		testRootDir = dir
 
+		DeferCleanup(func() {
+			err = os.Chdir(testRootDir)
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+
+	Context("when finalizing a release that was built elsewhere", func() {
 		BeforeEach(func() {
 			tmpDir, err := fs.TempDir("bosh-finalize-release-int-test")
 			Expect(err).ToNot(HaveOccurred())
@@ -33,7 +43,6 @@ var _ = Describe("finalize-release command", func() {
 			setupReleaseDir(releaseDir, releaseName)
 
 			createAndExecCommand(cmdFactory, []string{"create-release", "--dir", releaseDir, fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--force"})
-
 		})
 
 		It("updates the .final_builds index for each job and package", func() {
