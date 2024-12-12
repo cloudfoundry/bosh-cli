@@ -2,13 +2,16 @@ package integration_test
 
 import (
 	"fmt"
+	iofs "io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/cloudfoundry/bosh-utils/uuid"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"gopkg.in/yaml.v2"
 
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshrelman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
@@ -254,3 +257,356 @@ license:
 		})
 	})
 })
+
+var _ = Describe("release creation", func() {
+	var releaseDir string
+	var testRootDir string
+	releaseName := "test-release"
+	type Index struct {
+		FormatVersion string `yaml:"format-version"`
+		Builds        map[string]struct {
+			Version string `yaml:"version"`
+		} `yaml:"builds"`
+	}
+
+	BeforeEach(func() {
+		dir, err := os.Getwd()
+		Expect(err).ToNot(HaveOccurred())
+		testRootDir = dir
+
+		DeferCleanup(func() {
+			err = os.Chdir(testRootDir)
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+
+	Context("creating a final release", func() {
+		BeforeEach(func() {
+			tmpDir, err := fs.TempDir("bosh-finalize-release-int-test")
+			Expect(err).ToNot(HaveOccurred())
+			releaseDir = tmpDir // to use the releaseDir value in other functions
+
+			DeferCleanup(func() {
+				err = fs.RemoveAll(tmpDir)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			setupReleaseDir(releaseDir, releaseName)
+
+			err = fs.WriteFileString(filepath.Join(releaseDir, "LICENSE"), "This is a license")
+			Expect(err).ToNot(HaveOccurred())
+
+			commitChangesToGit(releaseDir)
+
+			createAndExecCommand(cmdFactory, []string{"create-release", fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--final", "--force"})
+		})
+
+		It("stashes release artifacts in a tarball", func() {
+			err := os.Chdir(releaseDir)
+			Expect(err).ToNot(HaveOccurred())
+
+			releaseTarball := listTarballContents(fmt.Sprintf("%s/release.tgz", releaseDir))
+
+			expected := []string{"release.MF", "jobs", "jobs/job1.tgz", "packages", "packages/pkg1.tgz", "license.tgz", "LICENSE"}
+			Expect(releaseTarball).To(Equal(expected))
+		})
+
+		It("updates the .final_builds index for each job, package and license", func() {
+			err := os.Chdir(releaseDir)
+			Expect(err).ToNot(HaveOccurred())
+
+			packagesContents, err := listFilesRecursively(fmt.Sprintf("%s/packages/", releaseDir))
+			Expect(err).ToNot(HaveOccurred())
+			expectedPackagesDir := []string{"pkg1", "pkg1/packaging", "pkg1/spec"}
+			Expect(packagesContents).To(Equal(expectedPackagesDir))
+
+			jobsContents, err := listFilesRecursively(fmt.Sprintf("%s/jobs/", releaseDir))
+			Expect(err).ToNot(HaveOccurred())
+			expectedJobsDir := []string{"job1", "job1/monit", "job1/spec", "job1/templates"}
+			Expect(jobsContents).To(Equal(expectedJobsDir))
+
+			Expect(fs.FileExists(fmt.Sprintf("%s/LICENSE", releaseDir))).To(Equal(true))
+		})
+
+		It("creates a release manifest", func() {
+			err := os.Chdir(releaseDir)
+			Expect(err).ToNot(HaveOccurred())
+
+			type ReleaseManifest struct {
+				Name               string `yaml:"name"`
+				Version            string `yaml:"version"`
+				CommitHash         string `yaml:"commit_hash"`
+				UncommittedChanges bool   `yaml:"uncommitted_changes"`
+				Jobs               []struct {
+					Name        string   `yaml:"name"`
+					Version     string   `yaml:"version"`
+					Fingerprint string   `yaml:"fingerprint"`
+					Sha1        string   `yaml:"sha1"`
+					Packages    []string `yaml:"packages"`
+				} `yaml:"jobs"`
+				Packages []struct {
+					Name         string   `yaml:"name"`
+					Version      string   `yaml:"version"`
+					Fingerprint  string   `yaml:"fingerprint"`
+					Sha1         string   `yaml:"sha1"`
+					Dependencies []string `yaml:"dependencies"`
+				} `yaml:"packages"`
+				License struct {
+					Version     string `yaml:"version"`
+					Fingerprint string `yaml:"fingerprint"`
+					Sha1        string `yaml:"sha1"`
+				} `yaml:"license"`
+			}
+			manifestFile, err := os.ReadFile(fmt.Sprintf("%s/releases/test-release/test-release-1.yml", releaseDir))
+			Expect(err).ToNot(HaveOccurred())
+
+			var manifest ReleaseManifest
+			err = yaml.Unmarshal(manifestFile, &manifest)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(manifest.CommitHash).To(MatchRegexp("[0-9a-f]{7}"))
+			Expect(manifest.Name).To(Equal("test-release"))
+			Expect(manifest.Version).To(Equal("1"))
+			Expect(manifest.License.Version).To(Equal("953db9e6b90f5f4ff81d39f3780ba7b528d07381384a2c6cb40479c043d341b1"))
+			Expect(manifest.License.Fingerprint).To(Equal("953db9e6b90f5f4ff81d39f3780ba7b528d07381384a2c6cb40479c043d341b1"))
+			Expect(manifest.License.Sha1).To(MatchRegexp("^sha256:[0-9a-f]{64}$"))
+		})
+
+		It("updates the index", func() {
+			err := os.Chdir(releaseDir)
+			Expect(err).ToNot(HaveOccurred())
+
+			releasesIndexFile, err := os.ReadFile(fmt.Sprintf("%s/releases/%s/index.yml", releaseDir, releaseName))
+			Expect(err).ToNot(HaveOccurred())
+
+			var index Index
+			err = yaml.Unmarshal(releasesIndexFile, &index)
+			Expect(err).ToNot(HaveOccurred())
+
+			var uuid string
+			for key := range index.Builds {
+				uuid = key
+				break
+			}
+			Expect(index.FormatVersion).To(Equal("2"))
+			Expect(index.Builds[uuid].Version).To(Equal("1"))
+		})
+
+		It("allows creation of new final releases with the same content as the latest final release", func() {
+			err := os.Chdir(releaseDir)
+			Expect(err).ToNot(HaveOccurred())
+
+			type Index struct {
+				FormatVersion string `yaml:"format-version"`
+				Builds        map[string]struct {
+					Version string `yaml:"version"`
+				} `yaml:"builds"`
+			}
+
+			releasesIndexFile, err := os.ReadFile(fmt.Sprintf("%s/releases/%s/index.yml", releaseDir, releaseName))
+			Expect(err).ToNot(HaveOccurred())
+
+			var index Index
+			err = yaml.Unmarshal(releasesIndexFile, &index)
+			Expect(err).ToNot(HaveOccurred())
+
+			versions := []string{}
+			for key := range index.Builds {
+				versions = append(versions, index.Builds[key].Version)
+			}
+			Expect(versions).To(ContainElement("1"))
+
+			createAndExecCommand(cmdFactory, []string{"create-release", "--final", "--force"})
+
+			releasesIndexFile, err = os.ReadFile(fmt.Sprintf("%s/releases/%s/index.yml", releaseDir, releaseName))
+			Expect(err).ToNot(HaveOccurred())
+
+			err = yaml.Unmarshal(releasesIndexFile, &index)
+			Expect(err).ToNot(HaveOccurred())
+
+			versions = []string{}
+			for key := range index.Builds {
+				versions = append(versions, index.Builds[key].Version)
+			}
+			Expect(versions).To(ContainElement("2"))
+
+			createAndExecCommand(cmdFactory, []string{"create-release", "--final", "--force"})
+
+			releasesIndexFile, err = os.ReadFile(fmt.Sprintf("%s/releases/%s/index.yml", releaseDir, releaseName))
+			Expect(err).ToNot(HaveOccurred())
+
+			err = yaml.Unmarshal(releasesIndexFile, &index)
+			Expect(err).ToNot(HaveOccurred())
+
+			versions = []string{}
+			for key := range index.Builds {
+				versions = append(versions, index.Builds[key].Version)
+			}
+			Expect(versions).To(ContainElement("3"))
+		})
+	})
+
+	Context("creating a dev release", func() {
+		BeforeEach(func() {
+			tmpDir, err := fs.TempDir("bosh-finalize-release-int-test")
+			Expect(err).ToNot(HaveOccurred())
+			releaseDir = tmpDir // to use the releaseDir value in other functions
+
+			DeferCleanup(func() {
+				err = fs.RemoveAll(tmpDir)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			setupReleaseDir(releaseDir, releaseName)
+
+			err = fs.WriteFileString(filepath.Join(releaseDir, "LICENSE"), "This is a license")
+			Expect(err).ToNot(HaveOccurred())
+
+			commitChangesToGit(releaseDir)
+
+			createAndExecCommand(cmdFactory, []string{"create-release", fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--force"})
+		})
+
+		It("allows creation of new dev releases with the same content as the latest dev release", func() {
+			err := os.Chdir(releaseDir)
+			Expect(err).ToNot(HaveOccurred())
+
+			releasesIndexFile, err := os.ReadFile(fmt.Sprintf("%s/dev_releases/%s/index.yml", releaseDir, releaseName))
+			Expect(err).ToNot(HaveOccurred())
+
+			var index Index
+			err = yaml.Unmarshal(releasesIndexFile, &index)
+			Expect(err).ToNot(HaveOccurred())
+
+			versions := []string{}
+			for key := range index.Builds {
+				versions = append(versions, index.Builds[key].Version)
+			}
+			Expect(versions).To(ContainElement("0+dev.1"))
+
+			createAndExecCommand(cmdFactory, []string{"create-release", "--force"})
+
+			releasesIndexFile, err = os.ReadFile(fmt.Sprintf("%s/dev_releases/%s/index.yml", releaseDir, releaseName))
+			Expect(err).ToNot(HaveOccurred())
+
+			err = yaml.Unmarshal(releasesIndexFile, &index)
+			Expect(err).ToNot(HaveOccurred())
+
+			versions = []string{}
+			for key := range index.Builds {
+				versions = append(versions, index.Builds[key].Version)
+			}
+			Expect(versions).To(ContainElement("0+dev.2"))
+
+			createAndExecCommand(cmdFactory, []string{"create-release", "--force"})
+
+			releasesIndexFile, err = os.ReadFile(fmt.Sprintf("%s/dev_releases/%s/index.yml", releaseDir, releaseName))
+			Expect(err).ToNot(HaveOccurred())
+
+			err = yaml.Unmarshal(releasesIndexFile, &index)
+			Expect(err).ToNot(HaveOccurred())
+
+			versions = []string{}
+			for key := range index.Builds {
+				versions = append(versions, index.Builds[key].Version)
+			}
+			Expect(versions).To(ContainElement("0+dev.3"))
+		})
+	})
+
+	Context("when no previous releases have been made", func() {
+		BeforeEach(func() {
+			tmpDir, err := fs.TempDir("bosh-finalize-release-int-test")
+			Expect(err).ToNot(HaveOccurred())
+			releaseDir = tmpDir // to use the releaseDir value in other functions
+
+			DeferCleanup(func() {
+				err = fs.RemoveAll(tmpDir)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			setupReleaseDir(releaseDir, releaseName)
+			commitChangesToGit(releaseDir)
+		})
+
+		It("final release uploads the job & package blobs", func() {
+			err := os.Chdir(releaseDir)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(fs.FileExists(fmt.Sprintf("%s/releases/%s/%s-0.yml", releaseDir, releaseName, releaseName))).To(Equal(false))
+
+			createAndExecCommand(cmdFactory, []string{"create-release", "--final", "--force"})
+			output := strings.Join(ui.Said, " ")
+			Expect(output).To(ContainSubstring("Finished uploading"))
+		})
+
+		It("release tarball does not include excluded files", func() {
+			err := os.Chdir(releaseDir)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString(filepath.Join(releaseDir, "src", "excluded_file"), "excluded")
+			Expect(err).ToNot(HaveOccurred())
+
+			createAndExecCommand(cmdFactory, []string{"create-release", fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--final", "--force"})
+
+			releaseTarball := listTarballContents(fmt.Sprintf("%s/release.tgz", releaseDir))
+			Expect(releaseTarball).ToNot(ContainElement("excluded_file"))
+		})
+	})
+})
+
+func listFilesRecursively(dirPath string) ([]string, error) {
+	var files []string
+
+	err := filepath.WalkDir(dirPath, func(path string, d iofs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		relativePath := strings.TrimPrefix(path, dirPath)
+		if relativePath != "" {
+			files = append(files, relativePath)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return files, nil
+}
+
+func commitChangesToGit(dirPath string) {
+	err := os.Chdir(dirPath)
+	Expect(err).ToNot(HaveOccurred())
+	ignore := []string{
+		"blobs",
+		"dev-releases",
+		"config/dev.yml",
+		"config/private.yml",
+		"releases/*.tgz",
+		"dev_releases",
+		".dev_builds",
+		".final_builds/jobs/**/*.tgz",
+		".final_builds/packages/**/*.tgz",
+		"blobs",
+		".blobs",
+		".DS_Store",
+	}
+	for _, s := range ignore {
+		err = fs.WriteFileString(".gitignore", s)
+		Expect(err).ToNot(HaveOccurred())
+	}
+
+	commands := [][]string{
+		{"git", "init"},
+		{"git", "config", "user.name", "John Doe"},
+		{"git", "config", "user.email", "john.doe@example.org"},
+		{"git", "add", "."},
+		{"git", "commit", "-m", "Initial Test Commit"},
+	}
+
+	for _, cmd := range commands {
+		cm := exec.Command(cmd[0], cmd[1:]...)
+		err := cm.Run()
+		Expect(err).ToNot(HaveOccurred())
+	}
+}
