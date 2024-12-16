@@ -2,10 +2,9 @@ package director
 
 import (
 	"archive/tar"
+	"compress/gzip"
 	"io"
 	"os"
-
-	"github.com/klauspost/pgzip"
 
 	"gopkg.in/yaml.v2"
 
@@ -49,7 +48,7 @@ func (a ReleaseArchiveWithMetadata) readMFBytes() ([]byte, error) {
 
 	defer file.Close()
 
-	gr, err := pgzip.NewReader(file)
+	gr, err := gzip.NewReader(file)
 	if err != nil {
 		return nil, err
 	}

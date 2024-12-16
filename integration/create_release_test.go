@@ -308,13 +308,13 @@ var _ = Describe("release creation", func() {
 			releaseTarball := listTarballContents(fmt.Sprintf("%s/release.tgz", releaseDir))
 
 			expected := []string{
-				"./release.MF",
-				"./jobs/",
-				"./jobs/job1.tgz",
-				"./packages/",
-				"./packages/pkg1.tgz",
-				"./license.tgz",
-				"./LICENSE",
+				"release.MF",
+				"jobs/",
+				"jobs/job1.tgz",
+				"packages/",
+				"packages/pkg1.tgz",
+				"license.tgz",
+				"LICENSE",
 			}
 			Expect(releaseTarball).To(Equal(expected))
 		})

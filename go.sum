@@ -58,8 +58,8 @@ github.com/cloudfoundry/bosh-gcscli v0.0.266 h1:/xugLzeTvld6V1FLFUT3vOdqkT4B309D
 github.com/cloudfoundry/bosh-gcscli v0.0.266/go.mod h1:eMe1TkdKX2X0bwJFIs8nNxSy79KcxO8drfH8SyR063E=
 github.com/cloudfoundry/bosh-s3cli v0.0.336 h1:KdkYBCSEa7NSUL0kIX7I2IDusvKo07YD/zXP8uHk6sk=
 github.com/cloudfoundry/bosh-s3cli v0.0.336/go.mod h1:T29octY8qlNT2S+VQHDVNpCEpOwyyEnaBziX+S3P+DE=
-github.com/cloudfoundry/bosh-utils v0.0.514 h1:mnBcLVDQsxkEUzaPJ2qMWZfBl5Jxrtj3ewV0PjVKfjg=
-github.com/cloudfoundry/bosh-utils v0.0.514/go.mod h1:FRe708iuH+DTFgFhA42ylHKZqQbyAkNuodi+2V/2BRc=
+github.com/cloudfoundry/bosh-utils v0.0.515 h1:hAQlg5mGVjHf3f4DKTyIA/wT4l91q7FOb3uIlj+KM3o=
+github.com/cloudfoundry/bosh-utils v0.0.515/go.mod h1:Yl7mT/Fy99deXXwaZZVUTf9VC878kUuoTS3h1F9Dzho=
 github.com/cloudfoundry/config-server v0.1.224 h1:FJFRDWIa+VJ23u8goO0iNf5GDGI8enmgmFeIvoVuLGU=
 github.com/cloudfoundry/config-server v0.1.224/go.mod h1:5+DZnqFi6sDyQ635PRUiym1C3gshl5oOr0Lvaui3bN4=
 github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee h1:88ruSYvCUKX2YcF2CMYVTmPGITvNdRbzaBRk2c/iMds=
@@ -150,10 +150,6 @@ github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGw
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
 github.com/jpillora/backoff v1.0.0 h1:uvFg412JmmHBHw7iwprIxkPMI+sGQ4kzOWsMeHnm2EA=
 github.com/jpillora/backoff v1.0.0/go.mod h1:J/6gKK9jxlEcS3zixgDgUAsiuZ7yrSoa/FX5e0EB2j4=
-github.com/klauspost/compress v1.17.11 h1:In6xLpyWOi1+C7tXUUWv2ot1QvBjxevKAaI6IXrJmUc=
-github.com/klauspost/compress v1.17.11/go.mod h1:pMDklpSncoRMuLFrf1W9Ss9KT+0rH90U12bZKk7uwG0=
-github.com/klauspost/pgzip v1.2.6 h1:8RXeL5crjEUFnR2/Sn6GJNWtSQ3Dk8pq4CL3jvdDyjU=
-github.com/klauspost/pgzip v1.2.6/go.mod h1:Ch1tH69qFZu15pkjo5kYi6mth2Zzwzt50oCQKQE9RUs=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
 github.com/kr/pty v1.1.8 h1:AkaSdXYQOWeaO3neb8EM634ahkXXe3jYbVh/F9lq+GI=

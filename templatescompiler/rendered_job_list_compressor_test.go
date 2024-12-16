@@ -45,12 +45,14 @@ var _ = Describe("RenderedJobListCompressor", func() {
 		Context("with a real fs & compressor", func() {
 			var (
 				fs         boshsys.FileSystem
+				cmdRunner  boshsys.CmdRunner
 				compressor boshcmd.Compressor
 			)
 
 			BeforeEach(func() {
 				fs = boshsys.NewOsFileSystem(logger)
-				compressor = boshcmd.NewTarballCompressor(fs)
+				cmdRunner = boshsys.NewExecCmdRunner(logger)
+				compressor = boshcmd.NewTarballCompressor(cmdRunner, fs)
 
 				renderedJobListCompressor = NewRenderedJobListCompressor(fs, compressor, fakeSHA1Calculator, logger)
 			})
