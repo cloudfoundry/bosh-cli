@@ -240,7 +240,7 @@ blobstore:
 
 			fs.FileExists(releaseDir + expectedLicenseVersion)
 			releaseTarball := listTarballContents(fmt.Sprintf("%s/release.tgz", releaseDir))
-			Expect(releaseTarball).To(ContainElement("./LICENSE"))
+			Expect(releaseTarball).To(ContainElement("LICENSE"))
 
 			verifyDigest(releaseDir, expectedLicenseVersion)
 		})
@@ -263,7 +263,7 @@ blobstore:
 
 			fs.FileExists(releaseDir + expectedLicenseVersion)
 			releaseTarball := listTarballContents(fmt.Sprintf("%s/release.tgz", releaseDir))
-			Expect(releaseTarball).To(ContainElement("./NOTICE"))
+			Expect(releaseTarball).To(ContainElement("NOTICE"))
 
 			verifyDigest(releaseDir, expectedLicenseVersion)
 		})
@@ -286,8 +286,8 @@ blobstore:
 
 			fs.FileExists(releaseDir + expectedLicenseVersion)
 			releaseTarball := listTarballContents(fmt.Sprintf("%s/release.tgz", releaseDir))
-			Expect(releaseTarball).To(ContainElement("./NOTICE"))
-			Expect(releaseTarball).To(ContainElement("./LICENSE"))
+			Expect(releaseTarball).To(ContainElement("NOTICE"))
+			Expect(releaseTarball).To(ContainElement("LICENSE"))
 
 			verifyDigest(releaseDir, expectedLicenseVersion)
 		})

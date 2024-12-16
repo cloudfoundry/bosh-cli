@@ -10,7 +10,7 @@ require (
 	github.com/cloudfoundry/bosh-davcli v0.0.385
 	github.com/cloudfoundry/bosh-gcscli v0.0.266
 	github.com/cloudfoundry/bosh-s3cli v0.0.336
-	github.com/cloudfoundry/bosh-utils v0.0.514
+	github.com/cloudfoundry/bosh-utils v0.0.515
 	github.com/cloudfoundry/config-server v0.1.224
 	github.com/cloudfoundry/socks5-proxy v0.2.135
 	github.com/cppforlife/go-patch v0.2.0
@@ -21,7 +21,6 @@ require (
 	github.com/gopacket/gopacket v1.3.1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jessevdk/go-flags v1.6.1
-	github.com/klauspost/pgzip v1.2.6
 	github.com/mattn/go-isatty v0.0.20
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.9.0
 	github.com/onsi/ginkgo/v2 v2.22.0
@@ -78,7 +77,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
-	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
