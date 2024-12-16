@@ -8,7 +8,7 @@ require (
 	github.com/cheggaaa/pb/v3 v3.1.5
 	github.com/cloudfoundry/bosh-agent v0.0.61-0.20230301011448-4cfe06c13ad7
 	github.com/cloudfoundry/bosh-davcli v0.0.383
-	github.com/cloudfoundry/bosh-gcscli v0.0.265
+	github.com/cloudfoundry/bosh-gcscli v0.0.266
 	github.com/cloudfoundry/bosh-s3cli v0.0.335
 	github.com/cloudfoundry/bosh-utils v0.0.510
 	github.com/cloudfoundry/config-server v0.1.222
@@ -35,6 +35,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
+
+replace google.golang.org/grpc v1.69.0 => google.golang.org/grpc v1.68.1
 
 require (
 	cel.dev/expr v0.19.1 // indirect
