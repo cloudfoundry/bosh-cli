@@ -1,5 +1,10 @@
 # Workpool
 
+[![Go Report
+Card](https://goreportcard.com/badge/code.cloudfoundry.org/workpool)](https://goreportcard.com/report/code.cloudfoundry.org/workpool)
+[![Go
+Reference](https://pkg.go.dev/badge/code.cloudfoundry.org/workpool.svg)](https://pkg.go.dev/code.cloudfoundry.org/workpool)
+
 Use a `WorkPool` to perform units of work concurrently at a maximum
 rate. The worker goroutines will increase to the maximum number of
 workers as work requires it, and gradually decrease to 0 if unused.

@@ -92,3 +92,7 @@ func (r execCmdRunner) buildComplexCommand(cmd Command) *exec.Cmd {
 
 	return execCmd
 }
+
+func newExecCmd(name string, args ...string) *exec.Cmd {
+	return exec.Command(name, args...)
+}
