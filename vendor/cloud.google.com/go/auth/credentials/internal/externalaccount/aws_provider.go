@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -33,7 +32,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/auth/internal"
-	"github.com/googleapis/gax-go/v2/internallog"
 )
 
 var (
@@ -89,7 +87,6 @@ type awsSubjectProvider struct {
 	reqOpts                     *RequestOptions
 
 	Client *http.Client
-	logger *slog.Logger
 }
 
 func (sp *awsSubjectProvider) subjectToken(ctx context.Context) (string, error) {
@@ -195,12 +192,10 @@ func (sp *awsSubjectProvider) getAWSSessionToken(ctx context.Context) (string, e
 	}
 	req.Header.Set(awsIMDSv2SessionTTLHeader, awsIMDSv2SessionTTL)
 
-	sp.logger.DebugContext(ctx, "aws session token request", "request", internallog.HTTPRequest(req, nil))
 	resp, body, err := internal.DoRequest(sp.Client, req)
 	if err != nil {
 		return "", err
 	}
-	sp.logger.DebugContext(ctx, "aws session token response", "response", internallog.HTTPResponse(resp, body))
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("credentials: unable to retrieve AWS session token: %s", body)
 	}
@@ -230,12 +225,10 @@ func (sp *awsSubjectProvider) getRegion(ctx context.Context, headers map[string]
 	for name, value := range headers {
 		req.Header.Add(name, value)
 	}
-	sp.logger.DebugContext(ctx, "aws region request", "request", internallog.HTTPRequest(req, nil))
 	resp, body, err := internal.DoRequest(sp.Client, req)
 	if err != nil {
 		return "", err
 	}
-	sp.logger.DebugContext(ctx, "aws region response", "response", internallog.HTTPResponse(resp, body))
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("credentials: unable to retrieve AWS region - %s", body)
 	}
@@ -290,12 +283,10 @@ func (sp *awsSubjectProvider) getMetadataSecurityCredentials(ctx context.Context
 	for name, value := range headers {
 		req.Header.Add(name, value)
 	}
-	sp.logger.DebugContext(ctx, "aws security credential request", "request", internallog.HTTPRequest(req, nil))
 	resp, body, err := internal.DoRequest(sp.Client, req)
 	if err != nil {
 		return result, err
 	}
-	sp.logger.DebugContext(ctx, "aws security credential response", "response", internallog.HTTPResponse(resp, body))
 	if resp.StatusCode != http.StatusOK {
 		return result, fmt.Errorf("credentials: unable to retrieve AWS security credentials - %s", body)
 	}
@@ -317,12 +308,10 @@ func (sp *awsSubjectProvider) getMetadataRoleName(ctx context.Context, headers m
 		req.Header.Add(name, value)
 	}
 
-	sp.logger.DebugContext(ctx, "aws metadata role request", "request", internallog.HTTPRequest(req, nil))
 	resp, body, err := internal.DoRequest(sp.Client, req)
 	if err != nil {
 		return "", err
 	}
-	sp.logger.DebugContext(ctx, "aws metadata role response", "response", internallog.HTTPResponse(resp, body))
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("credentials: unable to retrieve AWS role name - %s", body)
 	}

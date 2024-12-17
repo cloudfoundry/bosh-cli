@@ -141,7 +141,6 @@ func handleServiceAccount(f *credsfile.ServiceAccountFile, opts *DetectOptions) 
 		TokenURL:     f.TokenURL,
 		Subject:      opts.Subject,
 		Client:       opts.client(),
-		Logger:       opts.logger(),
 	}
 	if opts2LO.TokenURL == "" {
 		opts2LO.TokenURL = jwtTokenURL
@@ -160,7 +159,6 @@ func handleUserCredential(f *credsfile.UserCredentialsFile, opts *DetectOptions)
 		EarlyTokenExpiry: opts.EarlyTokenRefresh,
 		RefreshToken:     f.RefreshToken,
 		Client:           opts.client(),
-		Logger:           opts.logger(),
 	}
 	return auth.New3LOTokenProvider(opts3LO)
 }
@@ -179,7 +177,6 @@ func handleExternalAccount(f *credsfile.ExternalAccountFile, opts *DetectOptions
 		Scopes:                         opts.scopes(),
 		WorkforcePoolUserProject:       f.WorkforcePoolUserProject,
 		Client:                         opts.client(),
-		Logger:                         opts.logger(),
 		IsDefaultClient:                opts.Client == nil,
 	}
 	if f.ServiceAccountImpersonation != nil {
@@ -198,7 +195,6 @@ func handleExternalAccountAuthorizedUser(f *credsfile.ExternalAccountAuthorizedU
 		ClientSecret: f.ClientSecret,
 		Scopes:       opts.scopes(),
 		Client:       opts.client(),
-		Logger:       opts.logger(),
 	}
 	return externalaccountuser.NewTokenProvider(externalOpts)
 }
@@ -218,7 +214,6 @@ func handleImpersonatedServiceAccount(f *credsfile.ImpersonatedServiceAccountFil
 		Tp:        tp,
 		Delegates: f.Delegates,
 		Client:    opts.client(),
-		Logger:    opts.logger(),
 	})
 }
 
@@ -226,6 +221,5 @@ func handleGDCHServiceAccount(f *credsfile.GDCHServiceAccountFile, opts *DetectO
 	return gdch.NewTokenProvider(f, &gdch.Options{
 		STSAudience: opts.STSAudience,
 		Client:      opts.client(),
-		Logger:      opts.logger(),
 	})
 }

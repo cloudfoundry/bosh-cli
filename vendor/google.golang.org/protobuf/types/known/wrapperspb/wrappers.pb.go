@@ -54,11 +54,12 @@ import (
 //
 // The JSON representation for `DoubleValue` is JSON number.
 type DoubleValue struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The double value.
-	Value         float64 `protobuf:"fixed64,1,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
+	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The double value.
+	Value float64 `protobuf:"fixed64,1,opt,name=value,proto3" json:"value,omitempty"`
 }
 
 // Double stores v in a new DoubleValue and returns a pointer to it.
@@ -107,11 +108,12 @@ func (x *DoubleValue) GetValue() float64 {
 //
 // The JSON representation for `FloatValue` is JSON number.
 type FloatValue struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The float value.
-	Value         float32 `protobuf:"fixed32,1,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
+	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The float value.
+	Value float32 `protobuf:"fixed32,1,opt,name=value,proto3" json:"value,omitempty"`
 }
 
 // Float stores v in a new FloatValue and returns a pointer to it.
@@ -160,11 +162,12 @@ func (x *FloatValue) GetValue() float32 {
 //
 // The JSON representation for `Int64Value` is JSON string.
 type Int64Value struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The int64 value.
-	Value         int64 `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
+	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The int64 value.
+	Value int64 `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
 }
 
 // Int64 stores v in a new Int64Value and returns a pointer to it.
@@ -213,11 +216,12 @@ func (x *Int64Value) GetValue() int64 {
 //
 // The JSON representation for `UInt64Value` is JSON string.
 type UInt64Value struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The uint64 value.
-	Value         uint64 `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
+	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The uint64 value.
+	Value uint64 `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
 }
 
 // UInt64 stores v in a new UInt64Value and returns a pointer to it.
@@ -266,11 +270,12 @@ func (x *UInt64Value) GetValue() uint64 {
 //
 // The JSON representation for `Int32Value` is JSON number.
 type Int32Value struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The int32 value.
-	Value         int32 `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
+	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The int32 value.
+	Value int32 `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
 }
 
 // Int32 stores v in a new Int32Value and returns a pointer to it.
@@ -319,11 +324,12 @@ func (x *Int32Value) GetValue() int32 {
 //
 // The JSON representation for `UInt32Value` is JSON number.
 type UInt32Value struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The uint32 value.
-	Value         uint32 `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
+	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The uint32 value.
+	Value uint32 `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
 }
 
 // UInt32 stores v in a new UInt32Value and returns a pointer to it.
@@ -372,11 +378,12 @@ func (x *UInt32Value) GetValue() uint32 {
 //
 // The JSON representation for `BoolValue` is JSON `true` and `false`.
 type BoolValue struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The bool value.
-	Value         bool `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
+	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The bool value.
+	Value bool `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
 }
 
 // Bool stores v in a new BoolValue and returns a pointer to it.
@@ -425,11 +432,12 @@ func (x *BoolValue) GetValue() bool {
 //
 // The JSON representation for `StringValue` is JSON string.
 type StringValue struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The string value.
-	Value         string `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
+	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The string value.
+	Value string `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
 }
 
 // String stores v in a new StringValue and returns a pointer to it.
@@ -478,11 +486,12 @@ func (x *StringValue) GetValue() string {
 //
 // The JSON representation for `BytesValue` is JSON string.
 type BytesValue struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The bytes value.
-	Value         []byte `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
+	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The bytes value.
+	Value []byte `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
 }
 
 // Bytes stores v in a new BytesValue and returns a pointer to it.

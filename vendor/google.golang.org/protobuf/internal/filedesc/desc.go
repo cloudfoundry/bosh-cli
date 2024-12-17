@@ -117,9 +117,6 @@ type (
 		// GenerateLegacyUnmarshalJSON determines if the plugin generates the
 		// UnmarshalJSON([]byte) error method for enums.
 		GenerateLegacyUnmarshalJSON bool
-		// APILevel controls which API (Open, Hybrid or Opaque) should be used
-		// for generated code (.pb.go files).
-		APILevel int
 	}
 )
 

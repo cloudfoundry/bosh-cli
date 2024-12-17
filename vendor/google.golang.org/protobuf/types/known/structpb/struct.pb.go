@@ -187,11 +187,12 @@ func (NullValue) EnumDescriptor() ([]byte, []int) {
 //
 // The JSON representation for `Struct` is JSON object.
 type Struct struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Unordered map of dynamically typed values.
-	Fields        map[string]*Value `protobuf:"bytes,1,rep,name=fields,proto3" json:"fields,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
+	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Unordered map of dynamically typed values.
+	Fields map[string]*Value `protobuf:"bytes,1,rep,name=fields,proto3" json:"fields,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 // NewStruct constructs a Struct from a general-purpose Go map.
@@ -275,10 +276,13 @@ func (x *Struct) GetFields() map[string]*Value {
 //
 // The JSON representation for `Value` is JSON value.
 type Value struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
 	// The kind of value.
 	//
-	// Types that are valid to be assigned to Kind:
+	// Types that are assignable to Kind:
 	//
 	//	*Value_NullValue
 	//	*Value_NumberValue
@@ -286,9 +290,7 @@ type Value struct {
 	//	*Value_BoolValue
 	//	*Value_StructValue
 	//	*Value_ListValue
-	Kind          isValue_Kind `protobuf_oneof:"kind"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Kind isValue_Kind `protobuf_oneof:"kind"`
 }
 
 // NewValue constructs a Value from a general-purpose Go interface.
@@ -481,63 +483,51 @@ func (*Value) Descriptor() ([]byte, []int) {
 	return file_google_protobuf_struct_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *Value) GetKind() isValue_Kind {
-	if x != nil {
-		return x.Kind
+func (m *Value) GetKind() isValue_Kind {
+	if m != nil {
+		return m.Kind
 	}
 	return nil
 }
 
 func (x *Value) GetNullValue() NullValue {
-	if x != nil {
-		if x, ok := x.Kind.(*Value_NullValue); ok {
-			return x.NullValue
-		}
+	if x, ok := x.GetKind().(*Value_NullValue); ok {
+		return x.NullValue
 	}
 	return NullValue_NULL_VALUE
 }
 
 func (x *Value) GetNumberValue() float64 {
-	if x != nil {
-		if x, ok := x.Kind.(*Value_NumberValue); ok {
-			return x.NumberValue
-		}
+	if x, ok := x.GetKind().(*Value_NumberValue); ok {
+		return x.NumberValue
 	}
 	return 0
 }
 
 func (x *Value) GetStringValue() string {
-	if x != nil {
-		if x, ok := x.Kind.(*Value_StringValue); ok {
-			return x.StringValue
-		}
+	if x, ok := x.GetKind().(*Value_StringValue); ok {
+		return x.StringValue
 	}
 	return ""
 }
 
 func (x *Value) GetBoolValue() bool {
-	if x != nil {
-		if x, ok := x.Kind.(*Value_BoolValue); ok {
-			return x.BoolValue
-		}
+	if x, ok := x.GetKind().(*Value_BoolValue); ok {
+		return x.BoolValue
 	}
 	return false
 }
 
 func (x *Value) GetStructValue() *Struct {
-	if x != nil {
-		if x, ok := x.Kind.(*Value_StructValue); ok {
-			return x.StructValue
-		}
+	if x, ok := x.GetKind().(*Value_StructValue); ok {
+		return x.StructValue
 	}
 	return nil
 }
 
 func (x *Value) GetListValue() *ListValue {
-	if x != nil {
-		if x, ok := x.Kind.(*Value_ListValue); ok {
-			return x.ListValue
-		}
+	if x, ok := x.GetKind().(*Value_ListValue); ok {
+		return x.ListValue
 	}
 	return nil
 }
@@ -592,11 +582,12 @@ func (*Value_ListValue) isValue_Kind() {}
 //
 // The JSON representation for `ListValue` is JSON array.
 type ListValue struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Repeated field of dynamically typed values.
-	Values        []*Value `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
-	unknownFields protoimpl.UnknownFields
+	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Repeated field of dynamically typed values.
+	Values []*Value `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
 }
 
 // NewList constructs a ListValue from a general-purpose Go slice.

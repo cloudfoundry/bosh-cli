@@ -139,7 +139,6 @@ func detectDefaultFromDialSettings(settings *DialSettings) (*auth.Credentials, e
 		CredentialsFile:  settings.CredentialsFile,
 		CredentialsJSON:  settings.CredentialsJSON,
 		UseSelfSignedJWT: useSelfSignedJWT,
-		Logger:           settings.Logger,
 	})
 }
 

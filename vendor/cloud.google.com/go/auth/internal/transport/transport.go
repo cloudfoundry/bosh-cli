@@ -49,7 +49,6 @@ func CloneDetectOptions(oldDo *credentials.DetectOptions) *credentials.DetectOpt
 		// These fields are are pointer types that we just want to use exactly
 		// as the user set, copy the ref
 		Client:             oldDo.Client,
-		Logger:             oldDo.Logger,
 		AuthHandlerOptions: oldDo.AuthHandlerOptions,
 	}
 
