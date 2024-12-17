@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
+	bihttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/cppforlife/go-patch/patch"

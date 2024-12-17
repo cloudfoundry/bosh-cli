@@ -1,7 +1,7 @@
 package state_test
 
 import (
-	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	biagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

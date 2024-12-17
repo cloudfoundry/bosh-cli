@@ -3,7 +3,7 @@ package state
 import (
 	"strconv"
 
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	bias "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
 )
 
 type State interface {

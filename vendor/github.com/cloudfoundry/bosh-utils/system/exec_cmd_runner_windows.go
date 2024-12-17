@@ -1,14 +1,9 @@
 package system
 
 import (
-	"os/exec"
 	"sort"
 	"strings"
 )
-
-func newExecCmd(name string, args ...string) *exec.Cmd {
-	return exec.Command(name, args...)
-}
 
 // mergeEnv case-insensitive merge of system and command environments variables.
 // Command variables override any system variable with the same key.

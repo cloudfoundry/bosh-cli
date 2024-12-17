@@ -7,8 +7,8 @@ package mocks
 import (
 	reflect "reflect"
 
-	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	applyspec "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	agentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	applyspec "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
 	gomock "github.com/golang/mock/gomock"
 )
 

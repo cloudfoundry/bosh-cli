@@ -4,9 +4,9 @@ import (
 	"errors"
 	"time"
 
-	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	fakebiagentclient "github.com/cloudfoundry/bosh-agent/agentclient/fakes"
+	biagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	bias "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
+	fakebiagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient/fakes"
 	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/clock"
-	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	biagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -136,7 +136,7 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 	if err != nil {
 		cloudErr, ok := err.(bicloud.Error)
 		if ok && cloudErr.Type() == bicloud.NotImplementedError {
-			//ignore it
+			// ignore it
 		} else {
 			return nil, bosherr.WrapErrorf(err, "Setting VM metadata to %s", metadata)
 		}

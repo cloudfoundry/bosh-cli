@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
+	mockhttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"

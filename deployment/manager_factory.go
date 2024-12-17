@@ -1,7 +1,7 @@
 package deployment
 
 import (
-	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	biagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
 
 	biblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"

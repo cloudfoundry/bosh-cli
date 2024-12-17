@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
+	bihttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -197,7 +197,7 @@ func (c *deploymentDeleter) findCurrentDeploymentAndDelete(skipDrain bool, stage
 
 	return stage.PerformComplex("deleting deployment", func(deleteStage biui.Stage) error {
 		if !found {
-			//TODO: skip? would require adding skip support to PerformComplex
+			// TODO: skip? would require adding skip support to PerformComplex
 			c.logger.Debug(c.logTag, "No current deployment found...")
 			return nil
 		}

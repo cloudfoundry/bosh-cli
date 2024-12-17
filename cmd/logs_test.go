@@ -8,8 +8,8 @@ import (
 
 	"code.cloudfoundry.org/clock"
 	"code.cloudfoundry.org/clock/fakeclock"
-	"github.com/cloudfoundry/bosh-agent/agentclient"
-	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
+	"github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	mockhttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
