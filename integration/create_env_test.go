@@ -7,9 +7,9 @@ import (
 	"text/template"
 	"time"
 
-	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
+	biagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	bias "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
+	mockhttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -371,7 +371,7 @@ cloud_provider:
 				ConfigurationHash:        "",
 			}
 
-			//TODO: use a real state builder
+			// TODO: use a real state builder
 
 			mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
 			mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any(), gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
@@ -490,7 +490,7 @@ cloud_provider:
 			diskCID := "fake-disk-cid-1"
 			diskSize := 1024
 
-			//TODO: use a real StateBuilder and test mockBlobstore.Add & mockAgentClient.CompilePackage
+			// TODO: use a real StateBuilder and test mockBlobstore.Add & mockAgentClient.CompilePackage
 
 			gomock.InOrder(
 				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}, nil).AnyTimes(),

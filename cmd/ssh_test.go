@@ -3,8 +3,8 @@ package cmd_test
 import (
 	"errors"
 
-	"github.com/cloudfoundry/bosh-agent/agentclient"
-	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
+	"github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	mockhttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"

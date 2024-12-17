@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/clock"
-	fakebiagentclient "github.com/cloudfoundry/bosh-agent/agentclient/fakes"
+	fakebiagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"

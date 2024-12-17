@@ -1,6 +1,6 @@
 package agentclient
 
-import "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+import "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/fake_agent_client.go . AgentClient
 

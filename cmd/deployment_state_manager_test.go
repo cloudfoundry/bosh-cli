@@ -3,7 +3,7 @@ package cmd_test
 import (
 	"path/filepath"
 
-	mockhttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
+	mockhttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"

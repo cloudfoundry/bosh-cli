@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
-	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
+	bihttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http"
 	"github.com/cloudfoundry/bosh-utils/httpclient"
 	"github.com/cppforlife/go-patch/patch"
 

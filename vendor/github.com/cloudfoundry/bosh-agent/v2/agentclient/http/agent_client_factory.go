@@ -5,7 +5,7 @@ package http
 import (
 	"time"
 
-	"github.com/cloudfoundry/bosh-agent/agentclient"
+	"github.com/cloudfoundry/bosh-agent/v2/agentclient"
 	"github.com/cloudfoundry/bosh-utils/crypto"
 	"github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"

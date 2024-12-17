@@ -9,8 +9,8 @@ import (
 
 	"code.cloudfoundry.org/clock"
 
-	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
+	biagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	bihttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"

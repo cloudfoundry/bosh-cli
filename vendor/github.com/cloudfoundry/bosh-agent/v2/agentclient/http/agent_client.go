@@ -10,8 +10,8 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshretry "github.com/cloudfoundry/bosh-utils/retrystrategy"
 
-	"github.com/cloudfoundry/bosh-agent/agentclient"
-	"github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	"github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	"github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
 )
 
 type AgentClient struct {

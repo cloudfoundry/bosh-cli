@@ -3,9 +3,9 @@ package deployment_test
 import (
 	"time"
 
-	"github.com/cloudfoundry/bosh-agent/agentclient"
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
-	mock_httpagent "github.com/cloudfoundry/bosh-agent/agentclient/http/mocks"
+	"github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	bias "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
+	mock_httpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"

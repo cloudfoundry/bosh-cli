@@ -1,7 +1,7 @@
 package state
 
 import (
-	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
+	biagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	biblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"

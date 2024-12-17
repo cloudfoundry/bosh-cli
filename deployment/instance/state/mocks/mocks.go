@@ -7,8 +7,8 @@ package mocks
 import (
 	reflect "reflect"
 
-	agentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	applyspec "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	agentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	applyspec "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
 	blobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"
 	state "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state"
 	manifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"

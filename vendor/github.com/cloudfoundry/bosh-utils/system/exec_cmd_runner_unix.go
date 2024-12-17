@@ -1,15 +1,11 @@
+//go:build !windows
 // +build !windows
 
 package system
 
 import (
-	"os/exec"
 	"strings"
 )
-
-func newExecCmd(name string, args ...string) *exec.Cmd {
-	return exec.Command(name, args...)
-}
 
 // mergeEnv merges system and command environments variables.  Command variables
 // override any system variable with the same key.

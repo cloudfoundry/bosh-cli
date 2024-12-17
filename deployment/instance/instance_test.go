@@ -3,8 +3,8 @@ package instance_test
 import (
 	"time"
 
-	"github.com/cloudfoundry/bosh-agent/agentclient"
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	"github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	bias "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
 	"github.com/golang/mock/gomock"

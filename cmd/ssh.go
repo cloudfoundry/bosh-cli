@@ -3,7 +3,7 @@ package cmd
 import (
 	"errors"
 
-	bihttpagent "github.com/cloudfoundry/bosh-agent/agentclient/http"
+	bihttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"

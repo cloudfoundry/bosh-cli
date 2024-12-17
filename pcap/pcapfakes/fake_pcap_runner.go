@@ -66,11 +66,11 @@ func (fake *FakePcapRunner) RunCalls(stub func(director.SSHResult, string, strin
 	fake.RunStub = stub
 }
 
-func (fake *FakePcapRunner) RunArgsForCall(i int) (director.SSHResult, string, string, opts.PcapOpts, string) {
+func (fake *FakePcapRunner) RunArgsForCall(i int) (director.SSHResult, string, string, opts.PcapOpts, string, int) {
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
 	argsForCall := fake.runArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6
 }
 
 func (fake *FakePcapRunner) RunReturns(result1 error) {

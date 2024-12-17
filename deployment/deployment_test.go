@@ -3,8 +3,8 @@ package deployment_test
 import (
 	"time"
 
-	biagentclient "github.com/cloudfoundry/bosh-agent/agentclient"
-	bias "github.com/cloudfoundry/bosh-agent/agentclient/applyspec"
+	biagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	bias "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -140,7 +140,7 @@ var _ = Describe("Deployment", func() {
 		var err error
 		deployment, _, err = deploymentManager.FindCurrent()
 		Expect(err).ToNot(HaveOccurred())
-		//Note: deployment will be nil if the config has no vms, disks, or stemcells
+		// Note: deployment will be nil if the config has no vms, disks, or stemcells
 	})
 
 	AfterEach(func() {
@@ -267,7 +267,7 @@ var _ = Describe("Deployment", func() {
 				Expect(stemcellRecords).To(BeEmpty(), "expected no stemcell records")
 			})
 
-			//TODO: It'd be nice to test recovering after agent was responsive, before timeout (hard to do with gomock)
+			// TODO: It'd be nice to test recovering after agent was responsive, before timeout (hard to do with gomock)
 			Context("when agent is unresponsive", func() {
 				BeforeEach(func() {
 					// reduce timout & delay to reduce test duration
