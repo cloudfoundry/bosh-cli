@@ -8,7 +8,7 @@ require (
 	github.com/cheggaaa/pb/v3 v3.1.5
 	github.com/cloudfoundry/bosh-agent/v2 v2.704.1-0.20241217153539-fa24471a8f6e
 	github.com/cloudfoundry/bosh-davcli v0.0.385
-	github.com/cloudfoundry/bosh-gcscli v0.0.266
+	github.com/cloudfoundry/bosh-gcscli v0.0.265
 	github.com/cloudfoundry/bosh-s3cli v0.0.336
 	github.com/cloudfoundry/bosh-utils v0.0.515
 	github.com/cloudfoundry/config-server v0.1.224

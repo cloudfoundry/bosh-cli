@@ -58,8 +58,8 @@ github.com/cloudfoundry/bosh-agent/v2 v2.704.1-0.20241217153539-fa24471a8f6e h1:
 github.com/cloudfoundry/bosh-agent/v2 v2.704.1-0.20241217153539-fa24471a8f6e/go.mod h1:RSd1x3nJH6gAWumgJfBmbrKyjt/t4WBw0yOiBH32oBI=
 github.com/cloudfoundry/bosh-davcli v0.0.385 h1:T3V+MsZ2yNIkuUnfDPzS7mDq8lb5iY47wzZhZFLpfkQ=
 github.com/cloudfoundry/bosh-davcli v0.0.385/go.mod h1:c2djKUcLtZwJZtnWWxUQdP5UgUfhUXw14dKxI/QeTTA=
-github.com/cloudfoundry/bosh-gcscli v0.0.266 h1:/xugLzeTvld6V1FLFUT3vOdqkT4B309DOSMmadphrCc=
-github.com/cloudfoundry/bosh-gcscli v0.0.266/go.mod h1:eMe1TkdKX2X0bwJFIs8nNxSy79KcxO8drfH8SyR063E=
+github.com/cloudfoundry/bosh-gcscli v0.0.265 h1:z5xQbl0MJV6IdkVygdSZQ+iVd+k+ygaQD32jR6OzTY8=
+github.com/cloudfoundry/bosh-gcscli v0.0.265/go.mod h1:D8C/Yx9IQCejET0mpCNofi1Mnk2Qv5AU3r3Yz1aaZlQ=
 github.com/cloudfoundry/bosh-s3cli v0.0.336 h1:KdkYBCSEa7NSUL0kIX7I2IDusvKo07YD/zXP8uHk6sk=
 github.com/cloudfoundry/bosh-s3cli v0.0.336/go.mod h1:T29octY8qlNT2S+VQHDVNpCEpOwyyEnaBziX+S3P+DE=
 github.com/cloudfoundry/bosh-utils v0.0.515 h1:hAQlg5mGVjHf3f4DKTyIA/wT4l91q7FOb3uIlj+KM3o=
