@@ -30,6 +30,7 @@ type installerFactory struct {
 	releaseJobResolver     bideplrel.JobResolver
 	uuidGenerator          boshuuid.Generator
 	logger                 boshlog.Logger
+	useIsolatedEnv         bool
 	logTag                 string
 	fs                     boshsys.FileSystem
 	digestCreateAlgorithms []boshcrypto.Algorithm
@@ -42,6 +43,7 @@ func NewInstallerFactory(
 	releaseJobResolver bideplrel.JobResolver,
 	uuidGenerator boshuuid.Generator,
 	logger boshlog.Logger,
+	useIsolatedEnv bool,
 	fs boshsys.FileSystem,
 	digestCreateAlgorithms []boshcrypto.Algorithm,
 ) InstallerFactory {
@@ -52,6 +54,7 @@ func NewInstallerFactory(
 		releaseJobResolver:     releaseJobResolver,
 		uuidGenerator:          uuidGenerator,
 		logger:                 logger,
+		useIsolatedEnv:         useIsolatedEnv,
 		logTag:                 "installer",
 		fs:                     fs,
 		digestCreateAlgorithms: digestCreateAlgorithms,
@@ -63,6 +66,7 @@ func (f *installerFactory) NewInstaller(target Target) Installer {
 		target:                 target,
 		runner:                 f.runner,
 		logger:                 f.logger,
+		useIsolatedEnv:         f.useIsolatedEnv,
 		extractor:              f.extractor,
 		uuidGenerator:          f.uuidGenerator,
 		releaseJobResolver:     f.releaseJobResolver,
@@ -85,6 +89,7 @@ type installerFactoryContext struct {
 	fs                 boshsys.FileSystem
 	runner             boshsys.CmdRunner
 	logger             boshlog.Logger
+	useIsolatedEnv     bool
 	extractor          boshcmd.Compressor
 	uuidGenerator      boshuuid.Generator
 	releaseJobResolver bideplrel.JobResolver
@@ -148,6 +153,7 @@ func (c *installerFactoryContext) InstallationStatePackageCompiler() bistatepkg.
 		c.CompiledPackageRepo(),
 		c.BlobExtractor(),
 		c.logger,
+		c.useIsolatedEnv,
 	)
 
 	return c.packageCompiler
