@@ -209,6 +209,15 @@ var _ = Describe("DeployCmd", func() {
 			Expect(bytes).To(Equal([]byte("after-upload-manifest-with-fix")))
 		})
 
+		It("skips the upload of all releases in the corresponding deployment", func() {
+			deployOpts.SkipDownloadReleases = true
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(releaseUploader.UploadReleasesWithFixCallCount()).To(Equal(0))
+			Expect(releaseUploader.UploadReleasesCallCount()).To(Equal(0))
+		})
+
 		It("returns error and does not deploy if uploading releases fails", func() {
 			deployOpts.Args.Manifest = opts.FileBytesArg{
 				Bytes: []byte(`
