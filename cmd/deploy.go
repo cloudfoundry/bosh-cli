@@ -79,7 +79,7 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 
 	if opts.FixReleases {
 		bytes, err = c.releaseUploader.UploadReleasesWithFix(bytes)
-	} else {
+	} else if !opts.SkipDownloadReleases {
 		bytes, err = c.releaseUploader.UploadReleases(bytes)
 	}
 	if err != nil {
@@ -125,6 +125,8 @@ func setFlags(flags []string, opts DeployOpts) DeployOpts {
 			opts.Recreate = true
 		case "recreate-persistent-disks":
 			opts.RecreatePersistentDisks = true
+		case "skip-download-release":
+			opts.SkipDownloadReleases = true
 		}
 	}
 
