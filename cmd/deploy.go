@@ -85,7 +85,7 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 			return err
 		}
 		for _, release := range releases {
-			c.ui.PrintLinef("Release '%s/%s' already exists.", release.Name(), release.Version())
+			c.ui.PrintLinef("Release-Check for '%s/%s' has been disabled.", release.Name(), release.Version())
 		}
 	} else {
 		bytes, err = c.releaseUploader.UploadReleases(bytes)
