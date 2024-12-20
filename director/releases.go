@@ -241,7 +241,7 @@ func (d DirectorImpl) ReleaseHasSource(releaseSlug ReleaseSlug) (bool, error) {
 	}
 
 	for _, pkg := range pkgs {
-		if pkg.BlobstoreID == "" && len(pkg.CompiledPackages) == 0 {
+		if pkg.BlobstoreID == "" {
 			return false, nil
 		}
 	}
