@@ -79,7 +79,15 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 
 	if opts.FixReleases {
 		bytes, err = c.releaseUploader.UploadReleasesWithFix(bytes)
-	} else if !opts.SkipDownloadReleases {
+	} else if opts.SkipDownloadReleases {
+		releases, err := c.deployment.Releases()
+		if err != nil {
+			return err
+		}
+		for _, release := range releases {
+			c.ui.PrintLinef("Release '%s/%s' already exists.", release.Name(), release.Version())
+		}
+	} else {
 		bytes, err = c.releaseUploader.UploadReleases(bytes)
 	}
 	if err != nil {

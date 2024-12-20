@@ -2,8 +2,8 @@ package cmd_test
 
 import (
 	"errors"
-
 	"github.com/cppforlife/go-patch/patch"
+	"github.com/cppforlife/go-semi-semantic/version"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -23,6 +23,7 @@ var _ = Describe("DeployCmd", func() {
 		releaseUploader *fakecmd.FakeReleaseUploader
 		director        *fakedir.FakeDirector
 		command         cmd.DeployCmd
+		release         *fakedir.FakeRelease
 	)
 
 	BeforeEach(func() {
@@ -38,6 +39,13 @@ var _ = Describe("DeployCmd", func() {
 		director = &fakedir.FakeDirector{}
 
 		command = cmd.NewDeployCmd(ui, deployment, releaseUploader, director)
+
+		release = &fakedir.FakeRelease{
+			NameStub: func() string { return "ReleaseName" },
+			VersionStub: func() version.Version {
+				return version.MustNewVersionFromString("1")
+			},
+		}
 	})
 
 	Describe("Run", func() {
@@ -210,12 +218,17 @@ var _ = Describe("DeployCmd", func() {
 		})
 
 		It("skips the upload of all releases in the corresponding deployment", func() {
+			var releases = []boshdir.Release{release}
+
+			deployment.ReleasesReturns(releases, nil)
+
 			deployOpts.SkipDownloadReleases = true
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(releaseUploader.UploadReleasesWithFixCallCount()).To(Equal(0))
 			Expect(releaseUploader.UploadReleasesCallCount()).To(Equal(0))
+			Expect(ui.Said).To(ContainElement("Release 'ReleaseName/1' already exists."))
 		})
 
 		It("returns error and does not deploy if uploading releases fails", func() {
