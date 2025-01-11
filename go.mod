@@ -8,11 +8,11 @@ require (
 	github.com/cheggaaa/pb/v3 v3.1.5
 	github.com/cloudfoundry/bosh-agent/v2 v2.718.0
 	github.com/cloudfoundry/bosh-davcli v0.0.388
-	github.com/cloudfoundry/bosh-gcscli v0.0.269
+	github.com/cloudfoundry/bosh-gcscli v0.0.270
 	github.com/cloudfoundry/bosh-s3cli v0.0.341
-	github.com/cloudfoundry/bosh-utils v0.0.519
+	github.com/cloudfoundry/bosh-utils v0.0.520
 	github.com/cloudfoundry/config-server v0.1.228
-	github.com/cloudfoundry/socks5-proxy v0.2.137
+	github.com/cloudfoundry/socks5-proxy v0.2.138
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.1

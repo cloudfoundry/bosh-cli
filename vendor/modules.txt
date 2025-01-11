@@ -149,7 +149,7 @@ github.com/cloudfoundry/bosh-davcli/client
 github.com/cloudfoundry/bosh-davcli/client/fakes
 github.com/cloudfoundry/bosh-davcli/config
 github.com/cloudfoundry/bosh-davcli/signer
-# github.com/cloudfoundry/bosh-gcscli v0.0.269
+# github.com/cloudfoundry/bosh-gcscli v0.0.270
 ## explicit; go 1.22.0
 github.com/cloudfoundry/bosh-gcscli/client
 github.com/cloudfoundry/bosh-gcscli/config
@@ -157,7 +157,7 @@ github.com/cloudfoundry/bosh-gcscli/config
 ## explicit; go 1.22.0
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.519
+# github.com/cloudfoundry/bosh-utils v0.0.520
 ## explicit; go 1.22.0
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/fakes
@@ -184,7 +184,7 @@ github.com/cloudfoundry/config-server/types/typesfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee
 ## explicit; go 1.21.0
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.137
+# github.com/cloudfoundry/socks5-proxy v0.2.138
 ## explicit; go 1.22.0
 github.com/cloudfoundry/socks5-proxy
 # github.com/cncf/xds/go v0.0.0-20241223141626-cff3c89139a3
