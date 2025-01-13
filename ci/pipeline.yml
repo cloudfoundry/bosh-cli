@@ -84,7 +84,8 @@ jobs:
     build_logs_to_retain: 250
     plan:
       - in_parallel:
-        - get: bosh-src
+        - get: bosh-ci
+          resource: bosh-src
           trigger: true
         - get: version-semver
           params: {bump: patch}
@@ -95,6 +96,7 @@ jobs:
           trigger: true
         - get: integration-tests-parallel-runtime
         - get: config-server
+        - get: integration-postgres-15-image
 
       - task: build-linux-amd64
         file: bosh-cli/ci/tasks/build-linux-amd64.yml
@@ -102,14 +104,14 @@ jobs:
       - task: tests
         privileged: true
         input_mapping:
-          bosh: bosh-src
-          bosh-ci: bosh-src
+          bosh: bosh-ci
           bosh-cli: compiled-linux-amd64
-        file: bosh-src/ci/tasks/test-integration.yml
+        file: bosh-ci/ci/tasks/test-rake-task.yml
+        image: integration-postgres-15-image
         params:
           DB: postgresql
-          DB_VERSION: 15
-          DB_TLS: true
+          RAKE_TASK: "spec:integration"
+          COVERAGE: false
 
   - name: pre-release-fan-in
     public: true
@@ -441,6 +443,14 @@ resources:
       repository: bosh/security-scanner
       username: ((bosh-dockerhub.username))
       password: ((bosh-dockerhub.password))
+
+  - name: integration-postgres-15-image
+    type: docker-image
+    source:
+      password: ((dockerhub_password))
+      repository: bosh/main-postgres-15
+      tag: main
+      username: ((dockerhub_username))
 
   - name: release-bucket-linux
     type: gcs-resource
