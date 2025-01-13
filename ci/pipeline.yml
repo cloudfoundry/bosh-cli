@@ -445,12 +445,12 @@ resources:
       password: ((bosh-dockerhub.password))
 
   - name: integration-postgres-15-image
-    type: docker-image
+    type: registry-image
     source:
-      password: ((dockerhub_password))
       repository: bosh/main-postgres-15
       tag: main
       username: ((dockerhub_username))
+      password: ((dockerhub_password))
 
   - name: release-bucket-linux
     type: gcs-resource
@@ -569,12 +569,11 @@ resources:
       password: ((bosh-dockerhub.password))
 
   - name: ubuntu-image
-    type: docker-image
+    type: registry-image
     source:
       repository: ubuntu
       username: ((bosh-dockerhub.username))
       password: ((bosh-dockerhub.password))
-      email: foo@bar.com
 
   - name: weekly
     type: time
@@ -601,18 +600,18 @@ resources:
 
 resource_types:
   - name: gcs-resource
-    type: docker-image
+    type: registry-image
     source:
       repository: frodenas/gcs-resource
       username: ((bosh-dockerhub.username))
       password: ((bosh-dockerhub.password))
   - name: github-status
-    type: docker-image
+    type: registry-image
     source:
       repository: dpb587/github-status-resource
       tag: master
   - name: semver
-    type: docker-image
+    type: registry-image
     source:
       repository: concourse/semver-resource
-      tag: 1.6
+      tag: "1.6"
