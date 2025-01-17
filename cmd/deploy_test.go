@@ -216,7 +216,7 @@ var _ = Describe("DeployCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(releaseUploader.UploadReleasesWithFixCallCount()).To(Equal(0))
 			Expect(releaseUploader.UploadReleasesCallCount()).To(Equal(0))
-			Expect(ui.Said).To(ContainElement("Release-Checkasdfasf skipped."))
+			Expect(ui.Said).To(ContainElement("Release-Check skipped."))
 		})
 
 		It("returns error and does not deploy if uploading releases fails", func() {
