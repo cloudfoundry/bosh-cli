@@ -508,7 +508,7 @@ type DeployOpts struct {
 	Fix                     bool                `long:"fix"                                     description:"Recreate an instance with an unresponsive agent instead of erroring"`
 	FixReleases             bool                `long:"fix-releases"                            description:"Reupload releases in manifest and replace corrupt or missing jobs/packages"`
 	SkipDrain               []boshdir.SkipDrain `long:"skip-drain" value-name:"[INSTANCE-GROUP[/INSTANCE-ID]]"  description:"Skip running drain and pre-stop scripts for specific instance groups" optional:"true" optional-value:"*"`
-	SkipUploadReleases      bool                `long:"skip-upload-releases"                  description:"Skips the download procedure for releases"`
+	SkipUploadReleases      bool                `long:"skip-upload-releases"                  description:"Skips the upload procedure for releases"`
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`
