@@ -15,6 +15,8 @@ export BOSH_INIT_STEMCELL_PATH
 
 cd bosh-cli
 
-start-garden 1>/dev/null
+/var/vcap/jobs/garden/bin/pre-start
+/var/vcap/jobs/garden/bin/garden_ctl start &
+/var/vcap/jobs/garden/bin/post-start
 
 bin/test-acceptance-with-garden

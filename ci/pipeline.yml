@@ -63,7 +63,7 @@ jobs:
         file: bosh-cli/ci/tasks/test-integration.yml
         privileged: true
 
-  - name: test-acceptance-xenial
+  - name: test-acceptance
     public: true
     plan:
       - in_parallel:
@@ -72,10 +72,13 @@ jobs:
           trigger: true
         - get: bosh-warden-cpi-release
           trigger: true
-        - get: bosh-warden-stemcell-xenial
+        - get: stemcell
+          resource: bosh-warden-stemcell-jammy
+        - get: warden-cpi-image
       - in_parallel:
         - task: test-acceptance
           file: bosh-cli/ci/tasks/test-acceptance.yml
+          image: warden-cpi-image
           privileged: true
 
   - name: integration-postgres
@@ -120,7 +123,7 @@ jobs:
       - get: bosh-cli
         trigger: true
         passed:
-        - test-acceptance-xenial
+        - test-acceptance
         - integration-postgres
 
   - name: release-new-patch
@@ -409,10 +412,10 @@ resources:
       branch: develop
       private_key: ((github_deploy_key_config-server.private_key))
 
-  - name: bosh-warden-stemcell-xenial
+  - name: bosh-warden-stemcell-jammy
     type: bosh-io-stemcell
     source:
-      name: bosh-warden-boshlite-ubuntu-xenial-go_agent
+      name: bosh-warden-boshlite-ubuntu-jammy-go_agent
 
   - name: bosh-warden-cpi-release
     type: bosh-io-release
@@ -441,6 +444,13 @@ resources:
     type: registry-image
     source:
       repository: bosh/security-scanner
+      username: ((bosh-dockerhub.username))
+      password: ((bosh-dockerhub.password))
+
+  - name: warden-cpi-image
+    type: registry-image
+    source:
+      repository: bosh/warden-cpi
       username: ((bosh-dockerhub.username))
       password: ((bosh-dockerhub.password))
 

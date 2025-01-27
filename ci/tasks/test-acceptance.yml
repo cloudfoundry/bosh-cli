@@ -2,17 +2,15 @@
 platform: linux
 
 image_resource:
-  type: docker-image
+  type: registry-image
   source:
-    repository: bosh/docker-cpi
-    tag: 'main'
+    repository: bosh/warden-cpi
 
 inputs:
 - name: bosh-cli
 - name: bosh-warden-cpi-release
   path: cpi-release
-- name: bosh-warden-stemcell-xenial
-  path: stemcell
+- name: stemcell
 
 run:
   path: bosh-cli/ci/tasks/test-acceptance.sh
