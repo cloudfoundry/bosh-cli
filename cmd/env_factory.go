@@ -72,7 +72,6 @@ func NewEnvFactory(
 	manifestOp patch.Op,
 	recreatePersistentDisks bool,
 	packageDir string,
-	useIsolatedEnv bool,
 ) *envFactory {
 	f := envFactory{
 		deps:         deps,
@@ -118,7 +117,7 @@ func NewEnvFactory(
 	{
 		installerFactory := boshinst.NewInstallerFactory(
 			deps.UI, deps.CmdRunner, deps.Compressor, releaseJobResolver,
-			deps.UUIDGen, deps.Logger, useIsolatedEnv, deps.FS, deps.DigestCreationAlgorithms)
+			deps.UUIDGen, deps.Logger, deps.FS, deps.DigestCreationAlgorithms)
 
 		f.cpiInstaller = bicpirel.CpiInstaller{
 			ReleaseManager:   f.releaseManager,
@@ -150,7 +149,7 @@ func NewEnvFactory(
 		f.blobstoreFactory = biblobstore.NewBlobstoreFactory(deps.UUIDGen, deps.FS, deps.Logger)
 		f.deploymentFactory = bidepl.NewFactory(10*time.Second, 500*time.Millisecond)
 		f.agentClientFactory = bihttpagent.NewAgentClientFactory(1*time.Second, deps.Logger)
-		f.cloudFactory = bicloud.NewFactory(deps.FS, deps.CmdRunner, deps.Logger, useIsolatedEnv)
+		f.cloudFactory = bicloud.NewFactory(deps.FS, deps.CmdRunner, deps.Logger)
 	}
 
 	{

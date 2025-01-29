@@ -13,23 +13,20 @@ type Factory interface {
 }
 
 type factory struct {
-	fs             boshsys.FileSystem
-	cmdRunner      boshsys.CmdRunner
-	logger         boshlog.Logger
-	useIsolatedEnv bool
+	fs        boshsys.FileSystem
+	cmdRunner boshsys.CmdRunner
+	logger    boshlog.Logger
 }
 
 func NewFactory(
 	fs boshsys.FileSystem,
 	cmdRunner boshsys.CmdRunner,
 	logger boshlog.Logger,
-	useIsolatedEnv bool,
 ) Factory {
 	return &factory{
-		fs:             fs,
-		cmdRunner:      cmdRunner,
-		logger:         logger,
-		useIsolatedEnv: useIsolatedEnv,
+		fs:        fs,
+		cmdRunner: cmdRunner,
+		logger:    logger,
 	}
 }
 
@@ -56,6 +53,6 @@ func (f *factory) NewCloud(installation biinstall.Installation, directorID strin
 		return nil, bosherr.Errorf("Found %d Jobs with a 'bin/cpi' binary. Expected 1.", numberCpiBinariesFound)
 	}
 
-	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, foundCPI, f.logger, f.useIsolatedEnv)
+	cpiCmdRunner := NewCPICmdRunner(f.cmdRunner, foundCPI, f.logger)
 	return NewCloud(cpiCmdRunner, directorID, stemcellApiVersion, f.logger), nil
 }

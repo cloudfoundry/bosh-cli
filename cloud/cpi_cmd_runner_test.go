@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"os"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -21,7 +20,6 @@ var _ = Describe("CpiCmdRunner", func() {
 		cmdRunner    *fakesys.FakeCmdRunner
 		cpi          CPI
 		apiVersion   int
-		logger       boshlog.Logger
 	)
 
 	BeforeEach(func() {
@@ -36,8 +34,8 @@ var _ = Describe("CpiCmdRunner", func() {
 		}
 
 		cmdRunner = fakesys.NewFakeCmdRunner()
-		logger = boshlog.NewLogger(boshlog.LevelNone)
-		cpiCmdRunner = NewCPICmdRunner(cmdRunner, cpi, logger, true)
+		logger := boshlog.NewLogger(boshlog.LevelNone)
+		cpiCmdRunner = NewCPICmdRunner(cmdRunner, cpi, logger)
 
 		apiVersion = 1
 	})
@@ -64,9 +62,7 @@ var _ = Describe("CpiCmdRunner", func() {
 			Expect(actualCmd.Env).To(Equal(map[string]string{
 				"BOSH_PACKAGES_DIR": cpi.PackagesDir,
 				"BOSH_JOBS_DIR":     cpi.JobsDir,
-				"PATH":              os.Getenv("PATH"),
 			}))
-			Expect(actualCmd.UseIsolatedEnv).To(BeTrue())
 			bytes, err := io.ReadAll(actualCmd.Stdin)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(bytes)).To(Equal(
@@ -90,23 +86,6 @@ var _ = Describe("CpiCmdRunner", func() {
 				apiVersion = 2
 			})
 
-			It("creates correct command with UseIsolatedEnv false if NewCPICmdRunner is initialized with false", func() {
-				cpiCmdRunner = NewCPICmdRunner(cmdRunner, cpi, logger, false)
-				cmdOutput := CmdOutput{}
-				outputBytes, err := json.Marshal(cmdOutput)
-				Expect(err).NotTo(HaveOccurred())
-
-				result := fakesys.FakeCmdResult{
-					Stdout:     string(outputBytes),
-					ExitStatus: 0,
-				}
-				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
-				_, err = cpiCmdRunner.Run(context, "fake-method", apiVersion, "fake-argument-1", "fake-argument-2")
-				Expect(err).NotTo(HaveOccurred())
-				actualCmd := cmdRunner.RunComplexCommands[0]
-				Expect(actualCmd.UseIsolatedEnv).To(BeFalse())
-
-			})
 			It("creates correct command with stemcell api_version in context", func() {
 				cmdOutput := CmdOutput{}
 				outputBytes, err := json.Marshal(cmdOutput)
@@ -128,9 +107,7 @@ var _ = Describe("CpiCmdRunner", func() {
 				Expect(actualCmd.Env).To(Equal(map[string]string{
 					"BOSH_PACKAGES_DIR": cpi.PackagesDir,
 					"BOSH_JOBS_DIR":     cpi.JobsDir,
-					"PATH":              os.Getenv("PATH"),
 				}))
-				Expect(actualCmd.UseIsolatedEnv).To(BeTrue())
 				bytes, err := io.ReadAll(actualCmd.Stdin)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(string(bytes)).To(Equal(

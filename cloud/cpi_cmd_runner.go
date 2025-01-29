@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"os"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -66,25 +65,22 @@ type CPICmdRunner interface {
 }
 
 type cpiCmdRunner struct {
-	cmdRunner      boshsys.CmdRunner
-	cpi            CPI
-	logger         boshlog.Logger
-	logTag         string
-	useIsolatedEnv bool
+	cmdRunner boshsys.CmdRunner
+	cpi       CPI
+	logger    boshlog.Logger
+	logTag    string
 }
 
 func NewCPICmdRunner(
 	cmdRunner boshsys.CmdRunner,
 	cpi CPI,
 	logger boshlog.Logger,
-	useIsolatedEnv bool,
 ) CPICmdRunner {
 	return &cpiCmdRunner{
-		cmdRunner:      cmdRunner,
-		cpi:            cpi,
-		logger:         logger,
-		logTag:         "cpiCmdRunner",
-		useIsolatedEnv: useIsolatedEnv,
+		cmdRunner: cmdRunner,
+		cpi:       cpi,
+		logger:    logger,
+		logTag:    "cpiCmdRunner",
 	}
 }
 
@@ -109,10 +105,8 @@ func (r *cpiCmdRunner) Run(context CmdContext, method string, apiVersion int, ar
 		Env: map[string]string{
 			"BOSH_PACKAGES_DIR": r.cpi.PackagesDir,
 			"BOSH_JOBS_DIR":     r.cpi.JobsDir,
-			"PATH":              os.Getenv("PATH"),
 		},
-		UseIsolatedEnv: r.useIsolatedEnv,
-		Stdin:          bytes.NewReader(inputBytes),
+		Stdin: bytes.NewReader(inputBytes),
 	}
 
 	stdout, stderr, exitCode, err := r.cmdRunner.RunComplexCommand(cmd)
