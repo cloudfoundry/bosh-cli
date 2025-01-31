@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"os"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -63,9 +62,7 @@ var _ = Describe("CpiCmdRunner", func() {
 			Expect(actualCmd.Env).To(Equal(map[string]string{
 				"BOSH_PACKAGES_DIR": cpi.PackagesDir,
 				"BOSH_JOBS_DIR":     cpi.JobsDir,
-				"PATH":              "/usr/local/bin:/usr/bin:/bin:/sbin",
 			}))
-			Expect(actualCmd.UseIsolatedEnv).To(BeTrue())
 			bytes, err := io.ReadAll(actualCmd.Stdin)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(bytes)).To(Equal(
@@ -89,41 +86,6 @@ var _ = Describe("CpiCmdRunner", func() {
 				apiVersion = 2
 			})
 
-			AfterEach(func() {
-				os.Unsetenv("BOSH_CPI_USE_ISOLATED_ENV")
-			})
-			It("creates correct command with UseIsolatedEnv false if BOSH_CPI_USE_ISOLATED_ENV is set", func() {
-				os.Setenv("BOSH_CPI_USE_ISOLATED_ENV", "false")
-				cmdOutput := CmdOutput{}
-				outputBytes, err := json.Marshal(cmdOutput)
-				Expect(err).NotTo(HaveOccurred())
-
-				result := fakesys.FakeCmdResult{
-					Stdout:     string(outputBytes),
-					ExitStatus: 0,
-				}
-				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
-				_, err = cpiCmdRunner.Run(context, "fake-method", apiVersion, "fake-argument-1", "fake-argument-2")
-				Expect(err).NotTo(HaveOccurred())
-				actualCmd := cmdRunner.RunComplexCommands[0]
-				Expect(actualCmd.UseIsolatedEnv).To(BeFalse())
-
-			})
-			It("throws helpful error if the value of BOSH_CPI_USE_ISOLATED_ENV cannot be parsed into a bool", func() {
-				os.Setenv("BOSH_CPI_USE_ISOLATED_ENV", "falasdse")
-				cmdOutput := CmdOutput{}
-				outputBytes, err := json.Marshal(cmdOutput)
-				Expect(err).NotTo(HaveOccurred())
-
-				result := fakesys.FakeCmdResult{
-					Stdout:     string(outputBytes),
-					ExitStatus: 0,
-				}
-				cmdRunner.AddCmdResult("/jobs/cpi/bin/cpi", result)
-				_, err = cpiCmdRunner.Run(context, "fake-method", apiVersion, "fake-argument-1", "fake-argument-2")
-				Expect(err).To(HaveOccurred())
-				Expect(MatchRegexp("BOSH_CPI_USE_ISOLATED_ENV cannot be parsed", err))
-			})
 			It("creates correct command with stemcell api_version in context", func() {
 				cmdOutput := CmdOutput{}
 				outputBytes, err := json.Marshal(cmdOutput)
@@ -145,9 +107,7 @@ var _ = Describe("CpiCmdRunner", func() {
 				Expect(actualCmd.Env).To(Equal(map[string]string{
 					"BOSH_PACKAGES_DIR": cpi.PackagesDir,
 					"BOSH_JOBS_DIR":     cpi.JobsDir,
-					"PATH":              "/usr/local/bin:/usr/bin:/bin:/sbin",
 				}))
-				Expect(actualCmd.UseIsolatedEnv).To(BeTrue())
 				bytes, err := io.ReadAll(actualCmd.Stdin)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(string(bytes)).To(Equal(

@@ -102,11 +102,8 @@ func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageR
 				"BOSH_INSTALL_TARGET": installDir,
 				"BOSH_PACKAGE_NAME":   pkg.Name(),
 				"BOSH_PACKAGES_DIR":   c.packagesDir,
-				"PATH":                os.Getenv("PATH"),
-				"LD_LIBRARY_PATH":     os.Getenv("LD_LIBRARY_PATH"),
 			},
-			UseIsolatedEnv: true,
-			WorkingDir:     packageSrcDir,
+			WorkingDir: packageSrcDir,
 		}
 
 		_, _, _, err = c.runner.RunComplexCommand(cmd)
