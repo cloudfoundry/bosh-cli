@@ -197,7 +197,6 @@ type CreateEnvOpts struct {
 	StatePath               string `long:"state" value-name:"PATH" description:"State file path"`
 	Recreate                bool   `long:"recreate" description:"Recreate VM in deployment"`
 	RecreatePersistentDisks bool   `long:"recreate-persistent-disks" description:"Recreate persistent disks in the deployment"`
-	AvoidIsolatedEnv        bool   `long:"avoid-isolated-environment" short:"I" description:"Compile and run cpi-commands in a clean environment or not"`
 	PackageDir              string `long:"package-dir" value-name:"DIR" description:"Package cache location override"`
 	cmd
 }
