@@ -52,6 +52,9 @@ properties:
 
 			err = fs.WriteFileString(filepath.Join("/", "my-job", "monit"), "monit-content")
 			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(filepath.Join("/", "my-job", "properties_schema.json"), "properties-schema-content")
+			Expect(err).ToNot(HaveOccurred())
+
 			err = fs.WriteFileString(filepath.Join("/", "my-job", "templates", "src"), "tpl-content")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -67,6 +70,7 @@ properties:
 			Expect(collectedFiles).To(Equal([]File{
 				{Path: filepath.Join("/", "my-job", "spec"), DirPath: filepath.Join("/", "my-job"), RelativePath: "job.MF"},
 				{Path: filepath.Join("/", "my-job", "monit"), DirPath: filepath.Join("/", "my-job"), RelativePath: "monit"},
+				{Path: filepath.Join("/", "my-job", "properties_schema.json"), DirPath: filepath.Join("/", "my-job"), RelativePath: "properties_schema.json"},
 				{Path: filepath.Join("/", "my-job", "templates", "src"), DirPath: filepath.Join("/", "my-job"), RelativePath: filepath.Join("templates", "src")},
 			}))
 
