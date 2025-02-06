@@ -72,6 +72,12 @@ func (r DirReaderImpl) collectFiles(path string) (boshjobman.Manifest, []File, e
 		files = append(files, NewFile(monitPath, path))
 	}
 
+	propertiesSchemaPath := filepath.Join(path, "properties_schema.json")
+
+	if r.fs.FileExists(propertiesSchemaPath) {
+		files = append(files, NewFile(propertiesSchemaPath, path))
+	}
+
 	for src := range manifest.Templates {
 		srcPath := filepath.Join(path, "templates", src)
 		files = append(files, NewFile(srcPath, path))
