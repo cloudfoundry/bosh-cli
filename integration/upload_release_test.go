@@ -69,10 +69,9 @@ blobstore:
 
 			execGit := func(args []string) {
 				cmd := boshsys.Command{
-					Name:           "git",
-					Args:           args,
-					UseIsolatedEnv: true,
-					WorkingDir:     tmpDir, // --git-dir/--work-tree/etc. dont work great
+					Name:       "git",
+					Args:       args,
+					WorkingDir: tmpDir, // --git-dir/--work-tree/etc. dont work great
 				}
 				_, _, _, err := deps.CmdRunner.RunComplexCommand(cmd)
 				Expect(err).ToNot(HaveOccurred())
