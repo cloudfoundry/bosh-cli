@@ -3,7 +3,6 @@ package system
 import (
 	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -80,15 +79,7 @@ func (r execCmdRunner) buildComplexCommand(cmd Command) *exec.Cmd {
 
 	execCmd.Dir = cmd.WorkingDir
 
-	var env []string
-	if !cmd.UseIsolatedEnv {
-		env = os.Environ()
-	}
-	if cmd.UseIsolatedEnv && runtime.GOOS == "windows" {
-		panic("UseIsolatedEnv is not supported on Windows")
-	}
-
-	execCmd.Env = mergeEnv(env, cmd.Env)
+	execCmd.Env = mergeEnv(os.Environ(), cmd.Env)
 
 	return execCmd
 }

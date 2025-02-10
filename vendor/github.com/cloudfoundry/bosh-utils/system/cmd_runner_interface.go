@@ -6,10 +6,9 @@ import (
 )
 
 type Command struct {
-	Name           string
-	Args           []string
-	Env            map[string]string
-	UseIsolatedEnv bool
+	Name string
+	Args []string
+	Env  map[string]string
 
 	WorkingDir string
 
