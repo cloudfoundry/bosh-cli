@@ -117,8 +117,7 @@ func (a ArchiveImpl) runPrepScripts(stagingDir string) error {
 			Name: "bash",
 			Args: []string{"-x", prepFile.Path},
 
-			WorkingDir:     stagingDir,
-			UseIsolatedEnv: false,
+			WorkingDir: stagingDir,
 
 			Env: map[string]string{
 				"BUILD_DIR":   stagingDir,
