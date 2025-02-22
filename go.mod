@@ -6,13 +6,13 @@ require (
 	code.cloudfoundry.org/clock v1.28.0
 	code.cloudfoundry.org/workpool v0.0.0-20241210013132-62cbb12e809b
 	github.com/cheggaaa/pb/v3 v3.1.6
-	github.com/cloudfoundry/bosh-agent/v2 v2.731.0
-	github.com/cloudfoundry/bosh-davcli v0.0.398
-	github.com/cloudfoundry/bosh-gcscli v0.0.279
-	github.com/cloudfoundry/bosh-s3cli v0.0.351
-	github.com/cloudfoundry/bosh-utils v0.0.530
-	github.com/cloudfoundry/config-server v0.1.233
-	github.com/cloudfoundry/socks5-proxy v0.2.142
+	github.com/cloudfoundry/bosh-agent/v2 v2.733.0
+	github.com/cloudfoundry/bosh-davcli v0.0.399
+	github.com/cloudfoundry/bosh-gcscli v0.0.280
+	github.com/cloudfoundry/bosh-s3cli v0.0.352
+	github.com/cloudfoundry/bosh-utils v0.0.531
+	github.com/cloudfoundry/config-server v0.1.234
+	github.com/cloudfoundry/socks5-proxy v0.2.143
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.1
@@ -26,9 +26,9 @@ require (
 	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
 	github.com/peterbourgon/diskv v2.0.1+incompatible
-	github.com/spf13/cobra v1.8.1
+	github.com/spf13/cobra v1.9.1
 	github.com/vito/go-interact v1.0.1
-	golang.org/x/crypto v0.33.0
+	golang.org/x/crypto v0.34.0
 	golang.org/x/text v0.22.0
 	golang.org/x/tools v0.30.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -36,9 +36,9 @@ require (
 )
 
 require (
-	cel.dev/expr v0.20.0 // indirect
-	cloud.google.com/go v0.118.2 // indirect
-	cloud.google.com/go/auth v0.14.1 // indirect
+	cel.dev/expr v0.21.2 // indirect
+	cloud.google.com/go v0.118.3 // indirect
+	cloud.google.com/go/auth v0.15.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.7 // indirect
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
 	cloud.google.com/go/iam v1.4.0 // indirect
@@ -63,7 +63,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/btree v1.1.3 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20250208200701-d0013a598941 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -96,10 +96,10 @@ require (
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/term v0.29.0 // indirect
 	golang.org/x/time v0.10.0 // indirect
-	google.golang.org/api v0.221.0 // indirect
-	google.golang.org/genproto v0.0.0-20250212204824-5a70512c5d8b // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250212204824-5a70512c5d8b // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250212204824-5a70512c5d8b // indirect
+	google.golang.org/api v0.222.0 // indirect
+	google.golang.org/genproto v0.0.0-20250219182151-9fdb1cabc7b2 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250219182151-9fdb1cabc7b2 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250219182151-9fdb1cabc7b2 // indirect
 	google.golang.org/grpc v1.70.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 )
