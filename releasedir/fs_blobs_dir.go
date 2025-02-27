@@ -107,6 +107,7 @@ func (d FSBlobsDir) Blobs() ([]Blob, error) {
 			Size:        rec.Size,
 			BlobstoreID: rec.BlobstoreID,
 			SHA1:        rec.SHA1,
+			HREF:        rec.HREF,
 		})
 	}
 

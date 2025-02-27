@@ -29,6 +29,7 @@ func (c BlobsCmd) Run() error {
 			boshtbl.NewHeader("Size"),
 			boshtbl.NewHeader("Blobstore ID"),
 			boshtbl.NewHeader("Digest"),
+			boshtbl.NewHeader("HREF"),
 		},
 
 		SortBy: []boshtbl.ColumnSort{
@@ -48,6 +49,7 @@ func (c BlobsCmd) Run() error {
 			boshtbl.NewValueBytes(uint64(blob.Size)),
 			boshtbl.NewValueString(blobID),
 			boshtbl.NewValueString(blob.SHA1),
+			boshtbl.NewValueString(blob.HREF),
 		})
 	}
 
