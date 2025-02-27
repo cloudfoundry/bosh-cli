@@ -490,7 +490,7 @@ bad-sha-blob.tgz:
 	Describe("TrackBlob", func() {
 		act := func() (Blob, error) {
 			content := io.NopCloser(strings.NewReader("content"))
-			return blobsDir.TrackBlob(filepath.Join("dir", "file.tgz"), content)
+			return blobsDir.TrackBlob(filepath.Join("dir", "file.tgz"), content, "")
 		}
 
 		BeforeEach(func() {
