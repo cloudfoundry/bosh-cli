@@ -48,7 +48,7 @@ type fsBlobsDirSchema_Blob struct {
 
 	BlobstoreID string `yaml:"object_id,omitempty"`
 	SHA1        string `yaml:"sha"`
-	HREF        string `yaml:"href"`
+	HREF        string `yaml:"href,omitempty"`
 }
 
 func NewFSBlobsDir(
