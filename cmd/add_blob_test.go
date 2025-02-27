@@ -55,8 +55,9 @@ var _ = Describe("AddBlobCmd", func() {
 
 			Expect(blobsDir.TrackBlobCallCount()).To(Equal(1))
 
-			blobsPath, src := blobsDir.TrackBlobArgsForCall(0)
+			blobsPath, src, href := blobsDir.TrackBlobArgsForCall(0)
 			Expect(blobsPath).To(Equal("my-blob.tgz"))
+			Expect(href).To(BeEmpty())
 
 			file := src.(*fakesys.FakeFile)
 			Expect(file.Name()).To(Equal("/path/to/blob.tgz"))

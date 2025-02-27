@@ -42,11 +42,12 @@ type FakeBlobsDir struct {
 	syncBlobsReturnsOnCall map[int]struct {
 		result1 error
 	}
-	TrackBlobStub        func(string, io.ReadCloser) (releasedir.Blob, error)
+	TrackBlobStub        func(string, io.ReadCloser, string) (releasedir.Blob, error)
 	trackBlobMutex       sync.RWMutex
 	trackBlobArgsForCall []struct {
 		arg1 string
 		arg2 io.ReadCloser
+		arg3 string
 	}
 	trackBlobReturns struct {
 		result1 releasedir.Blob
@@ -251,19 +252,20 @@ func (fake *FakeBlobsDir) SyncBlobsReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeBlobsDir) TrackBlob(arg1 string, arg2 io.ReadCloser) (releasedir.Blob, error) {
+func (fake *FakeBlobsDir) TrackBlob(arg1 string, arg2 io.ReadCloser, arg3 string) (releasedir.Blob, error) {
 	fake.trackBlobMutex.Lock()
 	ret, specificReturn := fake.trackBlobReturnsOnCall[len(fake.trackBlobArgsForCall)]
 	fake.trackBlobArgsForCall = append(fake.trackBlobArgsForCall, struct {
 		arg1 string
 		arg2 io.ReadCloser
-	}{arg1, arg2})
+		arg3 string
+	}{arg1, arg2, arg3})
 	stub := fake.TrackBlobStub
 	fakeReturns := fake.trackBlobReturns
-	fake.recordInvocation("TrackBlob", []interface{}{arg1, arg2})
+	fake.recordInvocation("TrackBlob", []interface{}{arg1, arg2, arg3})
 	fake.trackBlobMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -277,17 +279,17 @@ func (fake *FakeBlobsDir) TrackBlobCallCount() int {
 	return len(fake.trackBlobArgsForCall)
 }
 
-func (fake *FakeBlobsDir) TrackBlobCalls(stub func(string, io.ReadCloser) (releasedir.Blob, error)) {
+func (fake *FakeBlobsDir) TrackBlobCalls(stub func(string, io.ReadCloser, string) (releasedir.Blob, error)) {
 	fake.trackBlobMutex.Lock()
 	defer fake.trackBlobMutex.Unlock()
 	fake.TrackBlobStub = stub
 }
 
-func (fake *FakeBlobsDir) TrackBlobArgsForCall(i int) (string, io.ReadCloser) {
+func (fake *FakeBlobsDir) TrackBlobArgsForCall(i int) (string, io.ReadCloser, string) {
 	fake.trackBlobMutex.RLock()
 	defer fake.trackBlobMutex.RUnlock()
 	argsForCall := fake.trackBlobArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeBlobsDir) TrackBlobReturns(result1 releasedir.Blob, result2 error) {

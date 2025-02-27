@@ -47,6 +47,7 @@ type fsBlobsDirSchema_Blob struct {
 
 	BlobstoreID string `yaml:"object_id,omitempty"`
 	SHA1        string `yaml:"sha"`
+	HREF        string `yaml:"href"`
 }
 
 func NewFSBlobsDir(
@@ -192,7 +193,7 @@ func (d FSBlobsDir) removeUnknownBlobs(blobs []Blob) error {
 	return nil
 }
 
-func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser) (Blob, error) {
+func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser, href string) (Blob, error) {
 	tempFile, err := d.fs.TempFile("track-blob")
 	if err != nil {
 		return Blob{}, bosherr.WrapErrorf(err, "Creating temp blob")
@@ -235,7 +236,7 @@ func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser) (Blob, error) {
 		idx = len(blobs) - 1
 	}
 
-	blobs[idx] = Blob{Path: path, Size: fileInfo.Size(), SHA1: sha1}
+	blobs[idx] = Blob{Path: path, Size: fileInfo.Size(), SHA1: sha1, HREF: href}
 
 	tempFile.Close()
 
@@ -395,6 +396,7 @@ func (d FSBlobsDir) save(blobs []Blob) error {
 			Size:        blob.Size,
 			BlobstoreID: blob.BlobstoreID,
 			SHA1:        blob.SHA1,
+			HREF:        blob.HREF,
 		}
 	}
 

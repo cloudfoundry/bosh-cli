@@ -77,7 +77,7 @@ type BlobsDir interface {
 	SyncBlobs(numOfParallelWorkers int) error
 	UploadBlobs() error
 
-	TrackBlob(string, io.ReadCloser) (Blob, error)
+	TrackBlob(string, io.ReadCloser, string) (Blob, error)
 	UntrackBlob(string) error
 }
 
@@ -97,6 +97,8 @@ type Blob struct {
 
 	BlobstoreID string
 	SHA1        string
+
+	HREF string
 }
 
 //counterfeiter:generate . ReleaseIndex
