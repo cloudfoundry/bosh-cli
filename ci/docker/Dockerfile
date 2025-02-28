@@ -8,6 +8,7 @@ RUN \
     libsqlite3-dev \
     lsof \
     ruby \
+    ruby-bundler \
     openssh-server \
     psmisc \
     sshpass \
