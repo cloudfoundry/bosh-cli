@@ -50,19 +50,19 @@ cloud.google.com/go/storage/internal/apiv2/storagepb
 ## explicit; go 1.22.0
 code.cloudfoundry.org/clock
 code.cloudfoundry.org/clock/fakeclock
-# code.cloudfoundry.org/tlsconfig v0.18.0
-## explicit; go 1.22
+# code.cloudfoundry.org/tlsconfig v0.19.0
+## explicit; go 1.23.0
 code.cloudfoundry.org/tlsconfig
 # code.cloudfoundry.org/workpool v0.0.0-20241210013132-62cbb12e809b
 ## explicit
 code.cloudfoundry.org/workpool
-# github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.26.0
+# github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.27.0
 ## explicit; go 1.22
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp
-# github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.50.0
+# github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.51.0
 ## explicit; go 1.22
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric
-# github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.50.0
+# github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.51.0
 ## explicit; go 1.22
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping
 # github.com/VividCortex/ewma v1.2.0
@@ -132,32 +132,32 @@ github.com/cespare/xxhash/v2
 # github.com/charlievieth/fs v0.0.3
 ## explicit; go 1.18
 github.com/charlievieth/fs
-# github.com/cheggaaa/pb/v3 v3.1.6
-## explicit; go 1.17
+# github.com/cheggaaa/pb/v3 v3.1.7
+## explicit; go 1.18
 github.com/cheggaaa/pb/v3
 github.com/cheggaaa/pb/v3/termutil
-# github.com/cloudfoundry/bosh-agent/v2 v2.733.0
+# github.com/cloudfoundry/bosh-agent/v2 v2.735.0
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-agent/v2/agentclient
 github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec
 github.com/cloudfoundry/bosh-agent/v2/agentclient/fakes
 github.com/cloudfoundry/bosh-agent/v2/agentclient/http
 github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks
-# github.com/cloudfoundry/bosh-davcli v0.0.399
+# github.com/cloudfoundry/bosh-davcli v0.0.400
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-davcli/client
 github.com/cloudfoundry/bosh-davcli/client/fakes
 github.com/cloudfoundry/bosh-davcli/config
 github.com/cloudfoundry/bosh-davcli/signer
-# github.com/cloudfoundry/bosh-gcscli v0.0.280
+# github.com/cloudfoundry/bosh-gcscli v0.0.281
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-gcscli/client
 github.com/cloudfoundry/bosh-gcscli/config
-# github.com/cloudfoundry/bosh-s3cli v0.0.352
+# github.com/cloudfoundry/bosh-s3cli v0.0.353
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.531
+# github.com/cloudfoundry/bosh-utils v0.0.532
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/fakes
@@ -177,14 +177,14 @@ github.com/cloudfoundry/bosh-utils/system/fakes
 github.com/cloudfoundry/bosh-utils/uuid
 github.com/cloudfoundry/bosh-utils/uuid/fakes
 github.com/cloudfoundry/bosh-utils/work
-# github.com/cloudfoundry/config-server v0.1.234
+# github.com/cloudfoundry/config-server v0.1.235
 ## explicit; go 1.23.0
 github.com/cloudfoundry/config-server/types
 github.com/cloudfoundry/config-server/types/typesfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee
 ## explicit; go 1.21.0
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.143
+# github.com/cloudfoundry/socks5-proxy v0.2.144
 ## explicit; go 1.23.0
 github.com/cloudfoundry/socks5-proxy
 # github.com/cncf/xds/go v0.0.0-20250121191232-2f005788dc42
@@ -310,8 +310,8 @@ github.com/google/s2a-go/stream
 # github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
-# github.com/googleapis/enterprise-certificate-proxy v0.3.4
-## explicit; go 1.19
+# github.com/googleapis/enterprise-certificate-proxy v0.3.5
+## explicit; go 1.23.0
 github.com/googleapis/enterprise-certificate-proxy/client
 github.com/googleapis/enterprise-certificate-proxy/client/util
 # github.com/googleapis/gax-go/v2 v2.14.1
@@ -488,7 +488,7 @@ go.opentelemetry.io/otel/sdk/metric/metricdata
 go.opentelemetry.io/otel/trace
 go.opentelemetry.io/otel/trace/embedded
 go.opentelemetry.io/otel/trace/noop
-# golang.org/x/crypto v0.34.0
+# golang.org/x/crypto v0.35.0
 ## explicit; go 1.23.0
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/chacha20
@@ -522,8 +522,8 @@ golang.org/x/net/internal/socks
 golang.org/x/net/internal/timeseries
 golang.org/x/net/proxy
 golang.org/x/net/trace
-# golang.org/x/oauth2 v0.26.0
-## explicit; go 1.18
+# golang.org/x/oauth2 v0.27.0
+## explicit; go 1.23.0
 golang.org/x/oauth2
 golang.org/x/oauth2/authhandler
 golang.org/x/oauth2/google
@@ -603,7 +603,7 @@ golang.org/x/tools/internal/stdlib
 golang.org/x/tools/internal/typeparams
 golang.org/x/tools/internal/typesinternal
 golang.org/x/tools/internal/versions
-# google.golang.org/api v0.222.0
+# google.golang.org/api v0.223.0
 ## explicit; go 1.23.0
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
@@ -620,13 +620,13 @@ google.golang.org/api/storage/v1
 google.golang.org/api/transport
 google.golang.org/api/transport/grpc
 google.golang.org/api/transport/http
-# google.golang.org/genproto v0.0.0-20250219182151-9fdb1cabc7b2
+# google.golang.org/genproto v0.0.0-20250227231956-55c901821b1e
 ## explicit; go 1.23.0
 google.golang.org/genproto/googleapis/type/calendarperiod
 google.golang.org/genproto/googleapis/type/date
 google.golang.org/genproto/googleapis/type/expr
 google.golang.org/genproto/googleapis/type/timeofday
-# google.golang.org/genproto/googleapis/api v0.0.0-20250219182151-9fdb1cabc7b2
+# google.golang.org/genproto/googleapis/api v0.0.0-20250227231956-55c901821b1e
 ## explicit; go 1.23.0
 google.golang.org/genproto/googleapis/api
 google.golang.org/genproto/googleapis/api/annotations
@@ -635,7 +635,7 @@ google.golang.org/genproto/googleapis/api/expr/v1alpha1
 google.golang.org/genproto/googleapis/api/label
 google.golang.org/genproto/googleapis/api/metric
 google.golang.org/genproto/googleapis/api/monitoredres
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20250219182151-9fdb1cabc7b2
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20250227231956-55c901821b1e
 ## explicit; go 1.23.0
 google.golang.org/genproto/googleapis/rpc/code
 google.golang.org/genproto/googleapis/rpc/errdetails
