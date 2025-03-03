@@ -5,9 +5,17 @@ run:
 linters:
   disable-all: true
   enable:
+#    - bodyclose
+#    - dogsled
+#    - dupl
     - errcheck
     - errchkjson
     - errorlint
+#    - funlen
+#    - gocognit
+    - goconst
+#    - gocritic
+#    - gocyclo
     - goimports
     - goprintffuncname
     - gosec
