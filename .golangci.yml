@@ -9,18 +9,27 @@ linters:
     - errchkjson
     - errorlint
     - goimports
+    - goprintffuncname
     - gosec
+    - gosimple
     - govet
+    - ineffassign
+    - makezero
+#    - misspell
+#    - musttag
 
 linters-settings:
   gosec:
     excludes:
       - G115 #Potential integer overflow when converting between integer types
+#  misspell:
+#    locale: US
 
 issues:
   exclude-dirs:
     - test/
-    - fakes/
+    - ".*fakes.*"
+    - ".*mocks.*"
     - integration/
   exclude-files:
     - ".*_test\\.go"
