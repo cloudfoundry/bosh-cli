@@ -5,6 +5,9 @@ run:
 linters:
   disable-all: true
   enable:
+    - errcheck
+    - errchkjson
+    - errorlint
     - goimports
     - gosec
     - govet
