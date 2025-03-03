@@ -3,8 +3,24 @@ run:
   timeout: 5m # 1m default times out on github-action runners
 
 linters:
+  disable-all: true
   enable:
     - goimports
+    - gosec
+    - govet
+
+linters-settings:
+  gosec:
+    excludes:
+      - G115 #Potential integer overflow when converting between integer types
+
+issues:
+  exclude-dirs:
+    - test/
+    - fakes/
+    - integration/
+  exclude-files:
+    - ".*_test\\.go"
 
 output:
   # Sort results by: filepath, line and column.
