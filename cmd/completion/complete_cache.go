@@ -1,7 +1,7 @@
 package completion
 
 import (
-	"crypto/md5"
+	"crypto/md5" //nolint:gosec
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -61,7 +61,7 @@ func (c *CompleteCache) configure(cmdContext *CmdContext, group string) {
 func (c *CompleteCache) normalizeString(str string) string {
 	matched, _ := regexp.MatchString("^[a-zA-Z0-9_-]+$", str)
 	if matched {
-		hash := md5.Sum([]byte(str))
+		hash := md5.Sum([]byte(str)) //nolint:gosec
 		return hex.EncodeToString(hash[:])
 	} else {
 		return str

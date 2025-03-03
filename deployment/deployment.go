@@ -1,6 +1,7 @@
 package deployment
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -114,7 +115,8 @@ func (d *deployment) deleteDisk(deleteStage biui.Stage, disk bidisk.Disk) error 
 	stepName := fmt.Sprintf("Deleting disk '%s'", disk.CID())
 	return deleteStage.Perform(stepName, func() error {
 		err := disk.Delete()
-		cloudErr, ok := err.(bicloud.Error)
+		var cloudErr bicloud.Error
+		ok := errors.As(err, &cloudErr)
 		if ok && cloudErr.Type() == bicloud.DiskNotFoundError {
 			return biui.NewSkipStageError(cloudErr, "Disk not found")
 		}
@@ -126,7 +128,8 @@ func (d *deployment) deleteStemcell(deleteStage biui.Stage, stemcell bistemcell.
 	stepName := fmt.Sprintf("Deleting stemcell '%s'", stemcell.CID())
 	return deleteStage.Perform(stepName, func() error {
 		err := stemcell.Delete()
-		cloudErr, ok := err.(bicloud.Error)
+		var cloudErr bicloud.Error
+		ok := errors.As(err, &cloudErr)
 		if ok && cloudErr.Type() == bicloud.StemcellNotFoundError {
 			return biui.NewSkipStageError(cloudErr, "Stemcell not found")
 		}

@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -134,7 +135,8 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 
 	err = m.cloud.SetVMMetadata(cid, metadata)
 	if err != nil {
-		cloudErr, ok := err.(bicloud.Error)
+		var cloudErr bicloud.Error
+		ok := errors.As(err, &cloudErr)
 		if ok && cloudErr.Type() == bicloud.NotImplementedError {
 			// ignore it
 		} else {

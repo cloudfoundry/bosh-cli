@@ -1,6 +1,8 @@
 package fakes
 
 import (
+	"errors"
+
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
@@ -28,13 +30,14 @@ func (s *FakeStage) Perform(name string, closure func() error) error {
 	if s.PerformCalls == nil {
 		s.PerformCalls = []*PerformCall{}
 	}
-	s.PerformCalls = append(s.PerformCalls, call) //We want to record the calls in the same order as the real implementation would print them
+	s.PerformCalls = append(s.PerformCalls, call) // We want to record the calls in the same order as the real implementation would print them
 
 	err := closure()
 
 	call.Error = err
 	if err != nil {
-		if skipErr, isSkipError := err.(biui.SkipStageError); isSkipError {
+		var skipErr biui.SkipStageError
+		if errors.As(err, &skipErr) {
 			call.SkipError = skipErr
 			err = nil
 		}
@@ -57,7 +60,8 @@ func (s *FakeStage) PerformComplex(name string, closure func(biui.Stage) error) 
 	call := &PerformCall{Name: name, Error: err, Stage: subStage}
 
 	if err != nil {
-		if skipErr, isSkipError := err.(biui.SkipStageError); isSkipError {
+		var skipErr biui.SkipStageError
+		if errors.As(err, &skipErr) {
 			call.SkipError = skipErr
 			err = nil
 		}

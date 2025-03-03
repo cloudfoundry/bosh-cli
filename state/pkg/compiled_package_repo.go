@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -44,7 +45,7 @@ func (cpr *compiledPackageRepo) Find(pkg birelpkg.Compilable) (CompiledPackageRe
 
 	err := cpr.index.Find(cpr.pkgKey(pkg), &record)
 	if err != nil {
-		if err == biindex.ErrNotFound {
+		if errors.Is(err, biindex.ErrNotFound) {
 			return record, false, nil
 		}
 

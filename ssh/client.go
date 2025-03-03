@@ -67,7 +67,7 @@ func (s *ClientImpl) Start() error {
 	sshConfig := &ssh.ClientConfig{
 		User:            s.opts.User,
 		Auth:            authMethods,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
 	}
 
 	s.logger.Debug(s.logTag, "Dialing remote server at %s:%d", s.opts.Host, s.opts.Port)

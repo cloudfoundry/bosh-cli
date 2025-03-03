@@ -97,7 +97,7 @@ func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, erro
 	packagingPath := filepath.Join(path, "packaging")
 	files, err = r.checkAndFilterDir(packagingPath, path)
 	if err != nil {
-		if err == fileNotFoundError {
+		if errors.Is(err, fileNotFoundError) {
 			return manifest, nil, nil, bosherr.Errorf(
 				"Expected to find '%s' for package '%s'", packagingPath, manifest.Name)
 		}
@@ -106,8 +106,8 @@ func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, erro
 	}
 
 	prePackagingPath := filepath.Join(path, "pre_packaging")
-	prepFiles, err = r.checkAndFilterDir(prePackagingPath, path) //can proceed if there is no pre_packaging
-	if err != nil && err != fileNotFoundError {
+	prepFiles, err = r.checkAndFilterDir(prePackagingPath, path) // can proceed if there is no pre_packaging
+	if err != nil && !errors.Is(err, fileNotFoundError) {
 		return manifest, nil, nil, bosherr.Errorf("Unexpected error occurred: %s", err)
 	}
 
