@@ -1,7 +1,7 @@
 package tarball
 
 import (
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec
 	"fmt"
 	"os"
 	"path/filepath"
@@ -60,7 +60,7 @@ func (c *cache) Save(sourcePath string, source Source) error {
 }
 
 func (c *cache) Path(source Source) string {
-	urlSHA1 := sha1.Sum([]byte(source.GetURL()))
+	urlSHA1 := sha1.Sum([]byte(source.GetURL())) //nolint:gosec
 	filename := fmt.Sprintf("%x-%s", string(urlSHA1[:]), source.GetSHA1())
 	return filepath.Join(c.basePath, filename)
 }

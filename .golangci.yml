@@ -3,8 +3,60 @@ run:
   timeout: 5m # 1m default times out on github-action runners
 
 linters:
+  disable-all: true
   enable:
+#    - bodyclose
+#    - dogsled
+#    - dupl
+    - errcheck
+    - errchkjson
+    - errorlint
+#    - funlen
+#    - gocognit
+    - goconst
+#    - gocritic
+#    - gocyclo
     - goimports
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - makezero
+#    - misspell
+#    - musttag
+    - nakedret
+    - noctx
+    - nolintlint
+    - reassign
+#    - revive
+    - staticcheck
+#    - stylecheck
+    - typecheck
+    - unconvert
+#    - unparam
+    - unused
+#    - whitespace
+
+linters-settings:
+  gosec:
+    excludes:
+      - G115 #Potential integer overflow when converting between integer types
+#  misspell:
+#    locale: US
+  nolintlint:
+    allow-unused: true # report any unused nolint directives
+    require-explanation: false # don't require an explanation for nolint directives
+    require-specific: true # require nolint directives to be specific about which linter is being skipped
+
+issues:
+  exclude-dirs:
+    - test/
+    - ".*fakes.*"
+    - ".*mocks.*"
+    - integration/
+  exclude-files:
+    - ".*_test\\.go"
 
 output:
   # Sort results by: filepath, line and column.

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -104,8 +105,9 @@ func (f Factory) New(args []string) (Cmd, error) {
 	_, err := parser.ParseArgs(args)
 
 	// --help and --version result in errors; turn them into successful output cmds
-	if typedErr, ok := err.(*goflags.Error); ok {
-		if typedErr.Type == goflags.ErrHelp {
+	var typedErr *goflags.Error
+	if errors.As(err, &typedErr) {
+		if errors.Is(typedErr.Type, goflags.ErrHelp) {
 			cmdOpts = &MessageOpts{Message: typedErr.Message}
 			err = nil
 		}
