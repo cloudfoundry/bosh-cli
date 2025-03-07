@@ -218,7 +218,7 @@ func (i *instance) Stop(
 	stage biui.Stage,
 ) error {
 
-	return i.shutdown(pingTimeout, pingDelay, skipDrain, true, stage) // ; err != nil {
+	return i.shutdown(pingTimeout, pingDelay, skipDrain, true, stage)
 }
 
 func (i *instance) Start(
