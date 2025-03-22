@@ -164,7 +164,7 @@ func (client *GCSBlobstore) Delete(dest string) error {
 	}
 
 	err := client.getObjectHandle(client.authenticatedGCS, dest).Delete(context.Background())
-	if err == storage.ErrObjectNotExist {
+	if errors.Is(err, storage.ErrObjectNotExist) {
 		return nil
 	}
 	return err
@@ -189,7 +189,7 @@ func (client *GCSBlobstore) exists(gcs *storage.Client, dest string) (bool, erro
 	if err == nil {
 		log.Printf("File '%s' exists in bucket '%s'\n", dest, client.config.BucketName)
 		return true, nil
-	} else if err == storage.ErrObjectNotExist {
+	} else if errors.Is(err, storage.ErrObjectNotExist) {
 		log.Printf("File '%s' does not exist in bucket '%s'\n", dest, client.config.BucketName)
 		return false, nil
 	}
