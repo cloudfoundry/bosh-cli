@@ -1114,9 +1114,10 @@ type CreateReleaseOpts struct {
 	Version          VersionArg `long:"version"            description:"Custom release version (e.g.: 1.0.0, 1.0-beta.2+dev.10)"`
 	TimestampVersion bool       `long:"timestamp-version"  description:"Create release with the timestamp as the dev version (e.g.: 1+dev.TIMESTAMP)"`
 
-	Final   bool    `long:"final"   description:"Make it a final release"`
-	Tarball FileArg `long:"tarball" description:"Create release tarball at path (e.g. /tmp/release.tgz)"`
-	Force   bool    `long:"force"   description:"Ignore Git dirty state check"`
+	Final              bool    `long:"final"                description:"Make it a final release"`
+	Tarball            FileArg `long:"tarball"              description:"Create release tarball at path (e.g. /tmp/release.tgz)"`
+	Force              bool    `long:"force"                description:"Ignore Git dirty state check"`
+	ValidateBlobOrigin bool    `long:"validate-blob-origin" description:"Validate blob SHA with origin"`
 
 	cmd
 }

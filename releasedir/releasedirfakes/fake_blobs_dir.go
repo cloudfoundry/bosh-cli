@@ -191,6 +191,11 @@ func (fake *FakeBlobsDir) InitReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeBlobsDir) ValidateBlobsFromOrigin() error {
+	// not tested at this time
+	return nil
+}
+
 func (fake *FakeBlobsDir) SyncBlobs(arg1 int) error {
 	fake.syncBlobsMutex.Lock()
 	ret, specificReturn := fake.syncBlobsReturnsOnCall[len(fake.syncBlobsArgsForCall)]

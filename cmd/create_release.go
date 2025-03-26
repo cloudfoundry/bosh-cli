@@ -43,6 +43,13 @@ func (c CreateReleaseCmd) Run(opts CreateReleaseOpts) (boshrel.Release, error) {
 			return nil, err
 		}
 	} else {
+		if opts.ValidateBlobOrigin {
+			err := releaseDir.ValidateBlobsFromOrigin()
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		release, err = c.buildRelease(releaseDir, opts)
 		if err != nil {
 			return nil, err

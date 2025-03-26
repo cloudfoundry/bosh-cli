@@ -42,6 +42,9 @@ type ReleaseDir interface {
 
 	// FinalizeRelease adds the Release to the final list so that it's consumable by others.
 	FinalizeRelease(release boshrel.Release, force bool) error
+
+	// Validate blob SHA's that have a remote reference to confirm source matches
+	ValidateBlobsFromOrigin() error
 }
 
 //counterfeiter:generate . Config
@@ -76,6 +79,7 @@ type BlobsDir interface {
 
 	SyncBlobs(numOfParallelWorkers int) error
 	UploadBlobs() error
+	ValidateBlobsFromOrigin() error
 
 	TrackBlob(string, io.ReadCloser, string) (Blob, error)
 	UntrackBlob(string) error
