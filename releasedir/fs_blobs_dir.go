@@ -202,8 +202,7 @@ func (d FSBlobsDir) ValidateBlobsFromOrigin() error {
 
 			d.reporter.BlobDownloadFinished(blob.Path, blobID, nil)
 		} else {
-			err = fmt.Errorf("Blob '%s' does not have HREF, unable to validate", blob.Path)
-			d.reporter.BlobDownloadFinished(blob.Path, blobID, err)
+			d.reporter.BlobDownloadMessage(blob.Path, blobID, "skipped")
 		}
 	}
 	return nil

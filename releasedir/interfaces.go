@@ -90,6 +90,7 @@ type BlobsDir interface {
 type BlobsDirReporter interface {
 	BlobDownloadStarted(path string, size int64, blobID, sha1 string)
 	BlobDownloadFinished(path, blobID string, err error)
+	BlobDownloadMessage(path, blobId, message string)
 
 	BlobUploadStarted(path string, size int64, sha1 string)
 	BlobUploadFinished(path, blobID string, err error)

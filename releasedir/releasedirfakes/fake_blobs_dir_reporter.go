@@ -144,6 +144,10 @@ func (fake *FakeBlobsDirReporter) BlobUploadFinishedArgsForCall(i int) (string, 
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
+func (fake *FakeBlobsDirReporter) BlobDownloadMessage(path, blobId, message string) {
+	// not tested
+}
+
 func (fake *FakeBlobsDirReporter) BlobUploadStarted(arg1 string, arg2 int64, arg3 string) {
 	fake.blobUploadStartedMutex.Lock()
 	fake.blobUploadStartedArgsForCall = append(fake.blobUploadStartedArgsForCall, struct {
