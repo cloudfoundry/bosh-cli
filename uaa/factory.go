@@ -3,6 +3,7 @@ package uaa
 import (
 	"fmt"
 	"net"
+	"net/http"
 	"net/url"
 	"time"
 
@@ -39,18 +40,24 @@ func (f Factory) New(config Config) (UAA, error) {
 }
 
 func (f Factory) httpClient(config Config) (Client, error) {
-	certPool, err := config.CACertPool()
-	if err != nil {
-		return Client{}, err
-	}
-
-	if certPool == nil {
-		f.logger.Debug(f.logTag, "Using default root CAs")
+	var rawClient *http.Client
+	if config.InsecureSkipVerify {
+		f.logger.Debug(f.logTag, "Using insecure SSL connection (skipping server certificate verification)")
+		rawClient = httpclient.CreateDefaultClientInsecureSkipVerify()
 	} else {
-		f.logger.Debug(f.logTag, "Using custom root CAs")
+		certPool, err := config.CACertPool()
+		if err != nil {
+			return Client{}, err
+		}
+
+		if certPool == nil {
+			f.logger.Debug(f.logTag, "Using default root CAs")
+		} else {
+			f.logger.Debug(f.logTag, "Using custom root CAs")
+		}
+		rawClient = httpclient.CreateDefaultClient(certPool)
 	}
 
-	rawClient := httpclient.CreateDefaultClient(certPool)
 	retryClient := httpclient.NewNetworkSafeRetryClient(rawClient, 5, 500*time.Millisecond, f.logger)
 
 	httpClient := httpclient.NewHTTPClient(retryClient, f.logger)

@@ -41,18 +41,23 @@ func (f Factory) New(factoryConfig FactoryConfig, taskReporter TaskReporter, fil
 }
 
 func (f Factory) httpClient(factoryConfig FactoryConfig, taskReporter TaskReporter, fileReporter FileReporter) (Client, error) {
-	certPool, err := factoryConfig.CACertPool()
-	if err != nil {
-		return Client{}, err
-	}
-
-	if certPool == nil {
-		f.logger.Debug(f.logTag, "Using default root CAs")
+	var rawClient *http.Client
+	if factoryConfig.InsecureSkipVerify {
+		f.logger.Debug(f.logTag, "Using insecure SSL connection (skipping server certificate verification)")
+		rawClient = httpclient.CreateDefaultClientInsecureSkipVerify()
 	} else {
-		f.logger.Debug(f.logTag, "Using custom root CAs")
-	}
+		certPool, err := factoryConfig.CACertPool()
+		if err != nil {
+			return Client{}, err
+		}
 
-	rawClient := httpclient.CreateDefaultClient(certPool)
+		if certPool == nil {
+			f.logger.Debug(f.logTag, "Using default root CAs")
+		} else {
+			f.logger.Debug(f.logTag, "Using custom root CAs")
+		}
+		rawClient = httpclient.CreateDefaultClient(certPool)
+	}
 	authAdjustment := NewAuthRequestAdjustment(
 		factoryConfig.TokenFunc,
 		factoryConfig.Client,
