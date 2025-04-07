@@ -11,7 +11,7 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/vito/go-interact/interact"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type WriterUI struct {
@@ -91,14 +91,14 @@ func (ui *WriterUI) PrintErrorBlock(block string) {
 	}
 }
 
-func (ui *WriterUI) PrintTable(table Table) {
+func (ui *WriterUI) PrintTable(table table.Table) {
 	err := table.Print(ui.outWriter)
 	if err != nil {
 		ui.logger.Error(ui.logTag, "UI.PrintTable failed: %s", err)
 	}
 }
 
-func (ui *WriterUI) PrintTableFiltered(table Table, filterHeader []Header) {
+func (ui *WriterUI) PrintTableFiltered(table table.Table, filterHeader []table.Header) {
 	err := table.Print(ui.outWriter)
 	if err != nil {
 		ui.logger.Error(ui.logTag, "UI.PrintTable failed: %s", err)

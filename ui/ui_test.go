@@ -46,7 +46,7 @@ var _ = Describe("UI", func() {
 			BeforeEach(func() {
 				reader, writer := io.Pipe()
 				uiErr = writer
-				reader.Close()
+				reader.Close() //nolint:errcheck
 			})
 
 			It("logs an error", func() {
@@ -69,7 +69,7 @@ var _ = Describe("UI", func() {
 			BeforeEach(func() {
 				reader, writer := io.Pipe()
 				uiOut = writer
-				reader.Close()
+				reader.Close() //nolint:errcheck
 			})
 
 			It("logs an error", func() {
@@ -92,7 +92,7 @@ var _ = Describe("UI", func() {
 			BeforeEach(func() {
 				reader, writer := io.Pipe()
 				uiOut = writer
-				reader.Close()
+				reader.Close() //nolint:errcheck
 			})
 
 			It("logs an error", func() {
@@ -115,7 +115,7 @@ var _ = Describe("UI", func() {
 			BeforeEach(func() {
 				reader, writer := io.Pipe()
 				uiOut = writer
-				reader.Close()
+				reader.Close() //nolint:errcheck
 			})
 
 			It("logs an error", func() {
@@ -139,7 +139,7 @@ var _ = Describe("UI", func() {
 			BeforeEach(func() {
 				reader, writer := io.Pipe()
 				uiOut = writer
-				reader.Close()
+				reader.Close() //nolint:errcheck
 			})
 
 			It("logs an error", func() {
@@ -162,7 +162,7 @@ var _ = Describe("UI", func() {
 			BeforeEach(func() {
 				reader, writer := io.Pipe()
 				uiOut = writer
-				reader.Close()
+				reader.Close() //nolint:errcheck
 			})
 
 			It("logs an error", func() {

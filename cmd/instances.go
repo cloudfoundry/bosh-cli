@@ -6,7 +6,7 @@ import (
 	"code.cloudfoundry.org/workpool"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"

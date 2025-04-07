@@ -9,7 +9,7 @@ import (
 	boshlic "github.com/cloudfoundry/bosh-cli/v7/release/license"
 	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
-	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 type ManifestReader struct {
@@ -91,9 +91,9 @@ func (r ManifestReader) newJobs(refs []boshman.JobRef) ([]*boshjob.Job, error) {
 	var errs []error
 
 	for _, ref := range refs {
-		resource := NewExistingResource(ref.Name, ref.Fingerprint, ref.SHA1)
+		existingResource := resource.NewExistingResource(ref.Name, ref.Fingerprint, ref.SHA1)
 
-		job := boshjob.NewJob(resource)
+		job := boshjob.NewJob(existingResource)
 
 		jobs = append(jobs, job)
 	}
@@ -110,9 +110,9 @@ func (r ManifestReader) newPackages(refs []boshman.PackageRef) ([]*boshpkg.Packa
 	var errs []error
 
 	for _, ref := range refs {
-		resource := NewExistingResource(ref.Name, ref.Fingerprint, ref.SHA1)
+		existingResource := resource.NewExistingResource(ref.Name, ref.Fingerprint, ref.SHA1)
 
-		pkg := boshpkg.NewPackage(resource, ref.Dependencies)
+		pkg := boshpkg.NewPackage(existingResource, ref.Dependencies)
 
 		packages = append(packages, pkg)
 	}
@@ -158,9 +158,9 @@ func (r ManifestReader) newCompiledPackages(refs []boshman.CompiledPackageRef) (
 
 func (r ManifestReader) newLicense(ref *boshman.LicenseRef) (*boshlic.License, error) {
 	if ref != nil {
-		resource := NewExistingResource("license", ref.Fingerprint, ref.SHA1)
+		existingResource := resource.NewExistingResource("license", ref.Fingerprint, ref.SHA1)
 
-		license := boshlic.NewLicense(resource)
+		license := boshlic.NewLicense(existingResource)
 
 		return license, nil
 	}

@@ -17,11 +17,10 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 )
 
 type LogsCmd struct {
@@ -53,7 +52,7 @@ func (c LogsCmd) Run(opts LogsOpts) error {
 }
 
 func (c LogsCmd) tail(opts LogsOpts) error {
-	sshOpts, connOpts, err := opts.GatewayFlags.AsSSHOpts()
+	sshOpts, connOpts, err := opts.GatewayFlags.AsSSHOpts() //nolint:staticcheck
 	if err != nil {
 		return err
 	}
@@ -63,9 +62,7 @@ func (c LogsCmd) tail(opts LogsOpts) error {
 		return err
 	}
 
-	defer func() {
-		_ = c.deployment.CleanUpSSH(opts.Args.Slug, sshOpts)
-	}()
+	defer c.deployment.CleanUpSSH(opts.Args.Slug, sshOpts) //nolint:errcheck
 
 	err = c.nonIntSSHRunner.Run(connOpts, result, buildTailCmd(opts))
 	if err != nil {
@@ -216,7 +213,7 @@ func (c EnvLogsCmd) Run(opts LogsOpts) error {
 		return err
 	}
 
-	sshOpts, connOpts, err := opts.GatewayFlags.AsSSHOpts()
+	sshOpts, connOpts, err := opts.GatewayFlags.AsSSHOpts() //nolint:staticcheck
 	if err != nil {
 		return err
 	}
@@ -238,7 +235,7 @@ func (c EnvLogsCmd) Run(opts LogsOpts) error {
 	}
 
 	defer func() {
-		_, _ = agentClient.CleanUpSSH(sshOpts.Username)
+		_, _ = agentClient.CleanUpSSH(sshOpts.Username) //nolint:errcheck
 	}()
 
 	if opts.Follow || opts.Num > 0 {
@@ -265,11 +262,11 @@ func (c EnvLogsCmd) fetch(opts LogsOpts, connOpts boshssh.ConnectionOpts, sshRes
 		return err
 	}
 	defer func() {
-		_ = agentClient.RemoveFile(bundleLogsResult.LogsTarPath)
+		_ = agentClient.RemoveFile(bundleLogsResult.LogsTarPath) //nolint:errcheck
 	}()
 
 	// This is section is lifted from Downloader.Download, an opportunity for refactor in the future?
-	tsSuffix := strings.Replace(c.timeService.Now().Format("20060102-150405.999999999"), ".", "-", -1)
+	tsSuffix := strings.Replace(c.timeService.Now().Format("20060102-150405.999999999"), ".", "-", -1) //nolint:staticcheck
 	dstFileName := fmt.Sprintf("%s-%s.tgz", "create-env-vm-logs", tsSuffix)
 	dstFilePath := filepath.Join(opts.Directory.Path, dstFileName)
 

@@ -3,7 +3,7 @@ package cmd
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
@@ -21,7 +21,7 @@ func NewUpdateCPIConfigCmd(ui boshui.UI, director boshdir.Director) UpdateCPICon
 func (c UpdateCPIConfigCmd) Run(opts UpdateCPIConfigOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.CPIConfig.Bytes)
 
-	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp(), boshtpl.EvaluateOpts{})
+	bytes, err := tpl.Evaluate(opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp(), boshtpl.EvaluateOpts{}) //nolint:staticcheck
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Evaluating cpi config")
 	}

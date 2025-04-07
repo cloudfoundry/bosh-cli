@@ -9,7 +9,7 @@ import (
 	// Should only be imported here to avoid leaking use of goflags through project
 	goflags "github.com/jessevdk/go-flags"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 )
 
 type Factory struct {
@@ -86,7 +86,7 @@ func (f Factory) New(args []string) (Cmd, error) {
 
 		if len(extraArgs) > 0 {
 			errMsg := "Command '%T' does not support extra arguments: %s"
-			return fmt.Errorf(errMsg, command, strings.Join(extraArgs, ", "))
+			return fmt.Errorf(errMsg, command, strings.Join(extraArgs, ", ")) //nolint:staticcheck
 		}
 
 		cmdOpts = command
@@ -94,10 +94,10 @@ func (f Factory) New(args []string) (Cmd, error) {
 		return nil
 	}
 
-	boshOpts.SSH.GatewayFlags.UUIDGen = f.deps.UUIDGen
-	boshOpts.SCP.GatewayFlags.UUIDGen = f.deps.UUIDGen
-	boshOpts.Logs.GatewayFlags.UUIDGen = f.deps.UUIDGen
-	boshOpts.Pcap.GatewayFlags.UUIDGen = f.deps.UUIDGen
+	boshOpts.SSH.GatewayFlags.UUIDGen = f.deps.UUIDGen  //nolint:staticcheck
+	boshOpts.SCP.GatewayFlags.UUIDGen = f.deps.UUIDGen  //nolint:staticcheck
+	boshOpts.Logs.GatewayFlags.UUIDGen = f.deps.UUIDGen //nolint:staticcheck
+	boshOpts.Pcap.GatewayFlags.UUIDGen = f.deps.UUIDGen //nolint:staticcheck
 
 	helpText := bytes.NewBufferString("")
 	parser.WriteHelp(helpText)

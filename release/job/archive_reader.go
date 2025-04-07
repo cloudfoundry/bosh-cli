@@ -10,7 +10,7 @@ import (
 
 	boshjobman "github.com/cloudfoundry/bosh-cli/v7/release/job/manifest"
 	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
-	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 type ArchiveReaderImpl struct {
@@ -32,7 +32,7 @@ func NewArchiveReaderImpl(
 }
 
 func (r ArchiveReaderImpl) Read(ref boshman.JobRef, path string) (*Job, error) {
-	job := NewJob(NewResourceWithBuiltArchive(ref.Name, ref.Fingerprint, path, ref.SHA1))
+	job := NewJob(resource.NewResourceWithBuiltArchive(ref.Name, ref.Fingerprint, path, ref.SHA1))
 
 	if !r.extract {
 		job.PackageNames = ref.Packages

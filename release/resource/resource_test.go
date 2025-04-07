@@ -190,7 +190,7 @@ var _ = Describe("NewResource", func() {
 		})
 
 		It("panics without building", func() {
-			Expect(func() { _ = resource.Finalize(finalIndex) }).To(Panic())
+			Expect(func() { _ = resource.Finalize(finalIndex) }).To(Panic()) //nolint:errcheck
 		})
 
 		buildBeforeFinalizing := func() {
@@ -357,7 +357,7 @@ var _ = Describe("NewExistingResource", func() {
 		})
 
 		It("panics without building", func() {
-			Expect(func() { _ = resource.Finalize(finalIndex) }).To(Panic())
+			Expect(func() { _ = resource.Finalize(finalIndex) }).To(Panic()) //nolint:errcheck
 		})
 
 		buildBeforeFinalizing := func() {

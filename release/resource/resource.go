@@ -139,7 +139,7 @@ func (r *ResourceImpl) RehashWithCalculator(calculator crypto.DigestCalculator, 
 	if err != nil {
 		return &ResourceImpl{}, err
 	}
-	defer archiveFile.Close()
+	defer archiveFile.Close() //nolint:errcheck
 
 	digest, err := crypto2.ParseMultipleDigest(r.archiveDigest)
 	if err != nil {

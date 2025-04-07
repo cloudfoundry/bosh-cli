@@ -46,14 +46,14 @@ func (a ReleaseArchiveWithMetadata) readMFBytes() ([]byte, error) {
 		return nil, bosherr.WrapErrorf(err, "Opening archive")
 	}
 
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	gr, err := gzip.NewReader(file)
 	if err != nil {
 		return nil, err
 	}
 
-	defer gr.Close()
+	defer gr.Close() //nolint:errcheck
 
 	tr := tar.NewReader(gr)
 

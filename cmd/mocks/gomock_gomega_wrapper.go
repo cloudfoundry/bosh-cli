@@ -16,7 +16,7 @@ type matcher struct {
 
 func (m matcher) Matches(x interface{}) bool {
 	m.x = x
-	result, _ := m.Match(x)
+	result, _ := m.Match(x) //nolint:errcheck
 	return result
 }
 

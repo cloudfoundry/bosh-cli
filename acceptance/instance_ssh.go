@@ -46,7 +46,7 @@ func (s *instanceSSH) setupSSH() (boshsys.File, error) {
 	success := false
 	defer func() {
 		if !success {
-			_ = s.fileSystem.RemoveAll(sshConfigFile.Name())
+			_ = s.fileSystem.RemoveAll(sshConfigFile.Name()) //nolint:errcheck
 		}
 	}()
 

@@ -13,8 +13,9 @@ import (
 	"syscall"
 	"time"
 
-	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 	"github.com/fatih/color"
+
+	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/gopacket/gopacket"
@@ -22,7 +23,7 @@ import (
 	"github.com/gopacket/gopacket/pcapgo"
 	"golang.org/x/crypto/ssh"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
@@ -31,7 +32,7 @@ import (
 var (
 	ErrValidationFailed = fmt.Errorf("validation failed")
 	ErrIllegalCharacter = fmt.Errorf("illegal character: %w", ErrValidationFailed)
-	openHandleError     = fmt.Errorf("unable to open pcap handle")
+	openHandleError     = fmt.Errorf("unable to open pcap handle") //nolint:staticcheck
 )
 
 // You only need **one** of these per package!
@@ -70,7 +71,7 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 		User:         username,
 		Password:     "",
 		PrivateKey:   privateKey,
-		DisableSOCKS: opts.GatewayFlags.Disable,
+		DisableSOCKS: opts.GatewayFlags.Disable, //nolint:staticcheck
 	}
 
 	runningCaptures := 0
@@ -176,8 +177,8 @@ func writePacketsToFile(snapLength uint32, outputFile string, packetCs []<-chan 
 				ui.ErrorLinef("Writing packet to file failed due to error: %s/n", err.Error())
 			}
 		}
-		_ = packetFile.Sync()
-		_ = packetFile.Close()
+		_ = packetFile.Sync()  //nolint:errcheck
+		_ = packetFile.Close() //nolint:errcheck
 	}()
 	return nil
 }
@@ -201,7 +202,7 @@ func captureSSH(tcpdumpCmd, filter string, host boshdir.Host, boshSSHClient bosh
 	clientSSHAddr, err := getSSHClientIP(boshSSHClient)
 	if err != nil {
 		// ignore error as after the function returns due to error, the underlying process finishes
-		_ = boshSSHClient.Stop()
+		_ = boshSSHClient.Stop() //nolint:errcheck
 
 		return nil, fmt.Errorf("outbound IP not found %w", err)
 	}
@@ -209,7 +210,7 @@ func captureSSH(tcpdumpCmd, filter string, host boshdir.Host, boshSSHClient bosh
 	session, err := boshSSHClient.NewSession()
 	if err != nil {
 		// ignore error as after the function returns due to error, the underlying process finishes
-		_ = boshSSHClient.Stop()
+		_ = boshSSHClient.Stop() //nolint:errcheck
 
 		return nil, fmt.Errorf("ssh: new session: %w", err)
 	}
@@ -218,10 +219,10 @@ func captureSSH(tcpdumpCmd, filter string, host boshdir.Host, boshSSHClient bosh
 
 	packets, err := openPcapHandle(tcpdump, session, wg, cancel)
 	if err != nil {
-		session.Close()
+		session.Close() //nolint:errcheck
 
 		// ignore error as after the function returns due to error, the underlying process finishes
-		_ = boshSSHClient.Stop()
+		_ = boshSSHClient.Stop() //nolint:errcheck
 
 		return nil, err
 	}
@@ -230,7 +231,7 @@ func captureSSH(tcpdumpCmd, filter string, host boshdir.Host, boshSSHClient bosh
 	go func() {
 		defer func() {
 			// ignore error as after the function returns due to error, the underlying process finishes
-			_ = boshSSHClient.Stop()
+			_ = boshSSHClient.Stop() //nolint:errcheck
 		}()
 		defer wg.Done()
 
@@ -254,7 +255,7 @@ func captureSSH(tcpdumpCmd, filter string, host boshdir.Host, boshSSHClient bosh
 
 		time.Sleep(stopTimeout)
 
-		_ = session.Close()
+		_ = session.Close() //nolint:errcheck
 	}()
 
 	return packets, nil
@@ -266,7 +267,7 @@ func getSSHClientIP(boshSSHClient boshssh.Client) (*net.TCPAddr, error) {
 		return nil, fmt.Errorf("ssh: new session: %w", err)
 	}
 
-	defer session.Close()
+	defer session.Close() //nolint:errcheck
 
 	output, err := session.Output("bash -c 'declare -a SSH; SSH=( $SSH_CONNECTION ); echo ${SSH[0]}:${SSH[1]}'")
 	if err != nil {
@@ -293,7 +294,7 @@ func openPcapHandle(tcpdumpCmd string, session *ssh.Session, wg *sync.WaitGroup,
 		return nil, err
 	}
 	go func() {
-		_, _ = io.Copy(os.Stderr, stderr)
+		_, _ = io.Copy(os.Stderr, stderr) //nolint:errcheck
 	}()
 
 	// The session must start before we open the handle, otherwise opening the
@@ -313,8 +314,8 @@ func openPcapHandle(tcpdumpCmd string, session *ssh.Session, wg *sync.WaitGroup,
 			fmt.Println("ssh session died:", err.Error())
 			cancel(err)
 
-			writeable.Close()
-			readable.Close()
+			writeable.Close() //nolint:errcheck
+			readable.Close()  //nolint:errcheck
 		}
 	}()
 

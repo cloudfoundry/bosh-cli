@@ -13,7 +13,6 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("StartEnvCmd", func() {
@@ -32,7 +31,7 @@ var _ = Describe("StartEnvCmd", func() {
 			mockDeploymentStateManager *mockcmd.MockDeploymentStateManager
 			fs                         *fakesys.FakeFileSystem
 
-			fakeUI                 *fakeui.FakeUI
+			fakeUI                 *fakebiui.FakeUI
 			fakeStage              *fakebiui.FakeStage
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			statePath              string
@@ -59,7 +58,7 @@ var _ = Describe("StartEnvCmd", func() {
 			mockDeploymentStateManager = mockcmd.NewMockDeploymentStateManager(mockCtrl)
 			fs = fakesys.NewFakeFileSystem()
 			fs.EnableStrictTempRootBehavior()
-			fakeUI = &fakeui.FakeUI{}
+			fakeUI = &fakebiui.FakeUI{}
 			writeDeploymentManifest()
 		})
 

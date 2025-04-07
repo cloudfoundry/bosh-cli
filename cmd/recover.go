@@ -11,7 +11,7 @@ import (
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 )
 
 type RecoverCmd struct {

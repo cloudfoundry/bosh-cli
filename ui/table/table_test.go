@@ -35,8 +35,9 @@ var _ = Describe("Table", func() {
 
 				Notes: []string{"note1", "note2"},
 			}
-			table.Print(buf)
-			Expect("\n" + buf.String()).To(Equal(strings.Replace(`
+			table.Print(buf)                                      //nolint:errcheck
+			Expect("\n" + buf.String()).To(Equal(strings.Replace( //nolint:staticcheck
+				`
 Header1  Header2  +
 r1c1     r1c2  +
 r2c1     r2c2  +
@@ -65,7 +66,7 @@ note2
 				BackgroundStr: ".",
 				BorderStr:     "|",
 			}
-			table.Print(buf)
+			table.Print(buf) //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 Header1|Header2|
 r1c1...|r1c2|
@@ -95,7 +96,7 @@ note2
 				BackgroundStr: ".",
 				BorderStr:     "|",
 			}
-			table.Print(buf)
+			table.Print(buf) //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 Header1|Header2|
 r1c1...|r1c2|
@@ -121,7 +122,7 @@ note2
 				BackgroundStr: ".",
 				BorderStr:     "|",
 			}
-			table.Print(buf)
+			table.Print(buf) //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 d|100|
 c|20|
@@ -143,7 +144,7 @@ a|-1|
 				BackgroundStr: ".",
 				BorderStr:     "|",
 			}
-			table.Print(buf)
+			table.Print(buf) //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 r1c1|r1c2|
 r2c1|r2c2|
@@ -168,7 +169,7 @@ r2c1|r2c2|
 				BackgroundStr: ".",
 				BorderStr:     "|",
 			}
-			table.Print(buf)
+			table.Print(buf) //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 Title
 
@@ -202,7 +203,7 @@ note2
 					BackgroundStr: ".",
 					BorderStr:     "|",
 				}
-				table.Print(buf)
+				table.Print(buf) //nolint:errcheck
 				Expect("\n" + buf.String()).To(Equal(`
 r1c1|r1c2|
 r2c1|r2c2|
@@ -230,7 +231,7 @@ r2c1|r2c2|
 					BackgroundStr: ".",
 					BorderStr:     "|",
 				}
-				table.Print(buf)
+				table.Print(buf) //nolint:errcheck
 				Expect("\n" + buf.String()).To(Equal(`
 r1c1|r1c2|
 ~...|r2c2|
@@ -267,7 +268,7 @@ r3c1|r3c2|
 					BackgroundStr:   ".",
 					BorderStr:       "|",
 				}
-				table.Print(buf)
+				table.Print(buf) //nolint:errcheck
 				Expect("\n" + buf.String()).To(Equal(`
 r1c1|r1c2|
 r1c1|r2c2|
@@ -306,7 +307,7 @@ r4c1|r6c2|
 					BackgroundStr:   ".",
 					BorderStr:       "|",
 				}
-				table.Print(buf)
+				table.Print(buf) //nolint:errcheck
 				Expect("\n" + buf.String()).To(Equal(`
 Header1|Header2|
 s1c1...|s1r1c2|
@@ -331,7 +332,7 @@ r4c1...|r4c2|
 				BackgroundStr: ".",
 				BorderStr:     "|",
 			}
-			table.Print(buf)
+			table.Print(buf) //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 r1c1|r1c2.1|
 ....|r1c2.2|
@@ -354,7 +355,7 @@ r2c1|r2c2|
 				BackgroundStr: ".",
 				BorderStr:     "|",
 			}
-			table.Print(buf)
+			table.Print(buf) //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 dup..|dup|
 ~....|dup|
@@ -380,7 +381,7 @@ other|dup|
 				BackgroundStr:   ".",
 				BorderStr:       "|",
 			}
-			table.Print(buf)
+			table.Print(buf) //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 dup..|dup|
 dup..|dup|
@@ -414,7 +415,7 @@ other|dup|
 				BackgroundStr: ".",
 				BorderStr:     "|",
 			}
-			table.Print(buf)
+			table.Print(buf) //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 dup.|dup|
 ~...|dup|
@@ -440,7 +441,7 @@ dup2|dup|
 				BackgroundStr: ".",
 				BorderStr:     "|",
 			}
-			table.Print(buf)
+			table.Print(buf) //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 dup..|1|
 ~....|2|
@@ -460,7 +461,7 @@ other|5|
 				BackgroundStr: ".",
 				BorderStr:     "|",
 			}
-			table.Print(buf)
+			table.Print(buf) //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 -|-|
 ~|-|
@@ -477,7 +478,7 @@ other|5|
 				BackgroundStr: ".",
 				BorderStr:     "|",
 			}
-			table.Print(buf)
+			table.Print(buf) //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 Header1|Header2|
 
@@ -502,7 +503,7 @@ Header1|Header2|
 					BorderStr:     "|",
 					Transpose:     true,
 				}
-				table.Print(buf)
+				table.Print(buf) //nolint:errcheck
 				Expect("\n" + buf.String()).To(Equal(`
 Header1.....|r1c1|
 OtherHeader2|longr1c2|
@@ -534,7 +535,7 @@ Header3.....|r2c3|
 					BorderStr: "|",
 					Transpose: true,
 				}
-				table.Print(buf)
+				table.Print(buf) //nolint:errcheck
 				Expect("\n" + buf.String()).To(Equal(`
 Header1|v1|
 Header2|v2|
@@ -563,7 +564,7 @@ Header2|v2|
 						BorderStr:     "|",
 						Transpose:     true,
 					}
-					table.Print(buf)
+					table.Print(buf) //nolint:errcheck
 					Expect("\n" + buf.String()).To(Equal(`
 Header1.....|r1c1|
 OtherHeader2|longr1c2|
@@ -597,7 +598,7 @@ Header3.....|r2c3|
 					},
 					BorderStr: "|",
 				}
-				table.Print(buf)
+				table.Print(buf) //nolint:errcheck
 				Expect("\n" + buf.String()).To(Equal(`
 Header1|Header2|
 v1     |v2|

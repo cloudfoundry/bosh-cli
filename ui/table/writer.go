@@ -54,7 +54,7 @@ func (w *Writer) Write(headers []Header, vals []Value) {
 
 		var rowsInCol []writerCell
 
-		cleanStr := strings.Replace(val.String(), "\r", "", -1)
+		cleanStr := strings.Replace(val.String(), "\r", "", -1) //nolint:staticcheck
 		lines := strings.Split(cleanStr, "\n")
 
 		if len(lines) == 1 && lines[0] == "" {

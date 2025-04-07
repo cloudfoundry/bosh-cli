@@ -9,7 +9,6 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-	"github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
 	fakecrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
@@ -29,7 +28,7 @@ var _ = Describe("RedigestRelease", func() {
 		releaseWriter                *fakerel.FakeWriter
 		command                      cmd.RedigestReleaseCmd
 		args                         opts.RedigestReleaseArgs
-		fakeDigestCalculator         *fakes.FakeDigestCalculator
+		fakeDigestCalculator         *fakecrypto.FakeDigestCalculator
 		releaseWriterTempDestination string
 		fakeSha128Release            *fakerel.FakeRelease
 		fs                           *fakes2.FakeFileSystem
@@ -48,7 +47,7 @@ var _ = Describe("RedigestRelease", func() {
 		fmv = &fakefu.FakeMover{}
 		fs = fakes2.NewFakeFileSystem()
 
-		fakeDigestCalculator = fakes.NewFakeDigestCalculator()
+		fakeDigestCalculator = fakecrypto.NewFakeDigestCalculator()
 		command = cmd.NewRedigestReleaseCmd(releaseReader, releaseWriter, fakeDigestCalculator, fmv, fs, ui)
 		args = opts.RedigestReleaseArgs{
 			Path:        "/some/release_128.tgz",

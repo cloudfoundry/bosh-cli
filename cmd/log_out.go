@@ -19,7 +19,7 @@ func NewLogOutCmd(environment string, config cmdconf.Config, ui biui.UI) LogOutC
 
 func (c LogOutCmd) Run() error {
 	if c.environment == "" {
-		return errors.New("Expected non-empty Director URL")
+		return errors.New("Expected non-empty Director URL") //nolint:staticcheck
 	}
 
 	updatedConfig := c.config.UnsetCredentials(c.environment)
@@ -29,7 +29,7 @@ func (c LogOutCmd) Run() error {
 		return err
 	}
 
-	c.ui.PrintLinef("Logged out from '%s'", c.environment)
+	c.ui.PrintLinef("Logged out from '%s'", c.environment) //nolint:staticcheck
 
 	return nil
 }

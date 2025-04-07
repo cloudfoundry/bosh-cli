@@ -9,11 +9,10 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
-
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 )
 
 type InstanceGroupPlan struct {

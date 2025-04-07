@@ -8,7 +8,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
@@ -64,8 +64,8 @@ func (c CreateReleaseCmd) Run(opts CreateReleaseOpts) (boshrel.Release, error) {
 			return nil, err
 		}
 
-		dstPath = strings.Replace(dstPath, "((name))", release.Name(), -1)
-		dstPath = strings.Replace(dstPath, "((version))", release.Version(), -1)
+		dstPath = strings.Replace(dstPath, "((name))", release.Name(), -1)       //nolint:staticcheck
+		dstPath = strings.Replace(dstPath, "((version))", release.Version(), -1) //nolint:staticcheck
 
 		err = boshfu.NewFileMover(c.fs).Move(path, dstPath)
 		if err != nil {

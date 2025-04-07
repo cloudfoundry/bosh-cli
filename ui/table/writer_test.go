@@ -29,14 +29,14 @@ var _ = Describe("Writer", func() {
 	Describe("Write/Flush", func() {
 		It("writes single row", func() {
 			writer.Write(visibleHeaders, []Value{ValueString{S: "c0r0"}, ValueString{S: "c1r0"}})
-			writer.Flush()
+			writer.Flush() //nolint:errcheck
 			Expect(buf.String()).To(Equal("c0r0||c1r0||\n"))
 		})
 
 		It("writes multiple rows", func() {
 			writer.Write(visibleHeaders, []Value{ValueString{S: "c0r0"}, ValueString{S: "c1r0"}})
 			writer.Write(visibleHeaders, []Value{ValueString{S: "c0r1"}, ValueString{S: "c1r1"}})
-			writer.Flush()
+			writer.Flush() //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 c0r0||c1r0||
 c0r1||c1r1||
@@ -46,7 +46,7 @@ c0r1||c1r1||
 		It("writes multiple rows that are not filtered out", func() {
 			writer.Write(lastHeaderNotVisible, []Value{ValueString{S: "c0r0"}, ValueString{S: "c1r0"}, ValueString{S: "c2r0"}})
 			writer.Write(lastHeaderNotVisible, []Value{ValueString{S: "c0r1"}, ValueString{S: "c1r1"}, ValueString{S: "c2r1"}})
-			writer.Flush()
+			writer.Flush() //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 c0r0||c1r0||
 c0r1||c1r1||
@@ -56,7 +56,7 @@ c0r1||c1r1||
 		It("writes every row if not given any headers", func() {
 			writer.Write(nil, []Value{ValueString{S: "c0r0"}, ValueString{S: "c1r0"}, ValueString{S: "c1r0"}})
 			writer.Write(nil, []Value{ValueString{S: "c0r1"}, ValueString{S: "c1r1"}, ValueString{S: "c2r1"}})
-			writer.Flush()
+			writer.Flush() //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 c0r0||c1r0||c1r0||
 c0r1||c1r1||c2r1||
@@ -67,7 +67,7 @@ c0r1||c1r1||c2r1||
 			writer.Write(visibleHeaders, []Value{ValueString{S: "c0r0-extra"}, ValueString{S: "c1r0"}})
 			writer.Write(visibleHeaders, []Value{ValueString{S: "c0r1"}, ValueString{S: "c1r1-extra"}})
 			writer.Write(visibleHeaders, []Value{ValueString{S: "c0r2-extra-extra"}, ValueString{S: "c1r2"}})
-			writer.Flush()
+			writer.Flush() //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 c0r0-extra......||c1r0||
 c0r1............||c1r1-extra||
@@ -79,7 +79,7 @@ c0r2-extra-extra||c1r2||
 			writer.Write(visibleHeaders, []Value{ValueString{S: "c0r0-extra"}, ValueString{S: "c1r0"}})
 			writer.Write(visibleHeaders, []Value{ValueString{S: "c0r1\nnext-line"}, ValueString{S: "c1r1-extra"}})
 			writer.Write(visibleHeaders, []Value{ValueString{S: "c0r2-extra-extra"}, ValueString{S: "c1r2\n\nother\nanother"}})
-			writer.Flush()
+			writer.Flush() //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 c0r0-extra......||c1r0||
 c0r1............||c1r1-extra||
@@ -94,7 +94,7 @@ c0r2-extra-extra||c1r2||
 		It("writes empty special value if values are empty", func() {
 			writer.Write(visibleHeaders, []Value{ValueString{S: ""}, ValueNone{}})
 			writer.Write(visibleHeaders, []Value{ValueString{S: "c0r1"}, ValueString{S: "c1r1"}})
-			writer.Flush()
+			writer.Flush() //nolint:errcheck
 			Expect("\n" + buf.String()).To(Equal(`
 empty||empty||
 c0r1.||c1r1||
@@ -118,7 +118,7 @@ c0r1.||c1r1||
 
 			writer.Write(visibleHeaders, []Value{formattedRegVal, ValueString{S: "c1r0"}})
 			writer.Write(visibleHeaders, []Value{ValueString{S: "c0r1"}, formattedMutliVal})
-			writer.Flush()
+			writer.Flush() //nolint:errcheck
 
 			// Maintains original width for values -- useful for colors since they are not visible
 			Expect("\n" + buf.String()).To(Equal(`

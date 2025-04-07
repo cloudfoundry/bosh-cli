@@ -41,7 +41,7 @@ func (b S3Blobstore) Get(blobID string) (string, error) {
 		return "", bosherr.WrapError(err, "Creating destination file")
 	}
 
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	err = client.Get(blobID, file)
 	if err != nil {
@@ -67,7 +67,7 @@ func (b S3Blobstore) Create(path string) (string, error) {
 		return "", bosherr.WrapError(err, "Opening source file")
 	}
 
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	err = client.Put(file, blobID)
 	if err != nil {

@@ -1,7 +1,7 @@
 package ui
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type NonTTYUI struct {
@@ -23,12 +23,12 @@ func (ui *NonTTYUI) EndLinef(pattern string, args ...interface{})   {}
 func (ui *NonTTYUI) PrintBlock(block []byte)      { ui.parent.PrintBlock(block) }
 func (ui *NonTTYUI) PrintErrorBlock(block string) { ui.parent.PrintErrorBlock(block) }
 
-func (ui *NonTTYUI) PrintTable(table Table) {
+func (ui *NonTTYUI) PrintTable(table table.Table) {
 	ui.printTableHeader(&table)
 	ui.parent.PrintTable(table)
 }
 
-func (ui *NonTTYUI) PrintTableFiltered(table Table, filterHeader []Header) {
+func (ui *NonTTYUI) PrintTableFiltered(table table.Table, filterHeader []table.Header) {
 	ui.printTableHeader(&table)
 	ui.parent.PrintTableFiltered(table, filterHeader)
 }
@@ -65,7 +65,7 @@ func (ui *NonTTYUI) Flush() {
 	ui.parent.Flush()
 }
 
-func (ui *NonTTYUI) printTableHeader(table *Table) {
+func (ui *NonTTYUI) printTableHeader(table *table.Table) {
 	// hide decorations
 	table.Title = ""
 	table.Notes = nil

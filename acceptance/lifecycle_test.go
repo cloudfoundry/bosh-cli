@@ -109,7 +109,7 @@ var _ = Describe("bosh", func() {
 	}
 
 	var deploy = func(manifestFile string, args ...string) string {
-		fmt.Fprintf(GinkgoWriter, "\n--- DEPLOY ---\n")
+		fmt.Fprintf(GinkgoWriter, "\n--- DEPLOY ---\n") //nolint:errcheck
 
 		stdout := &bytes.Buffer{}
 		multiWriter := io.MultiWriter(stdout, GinkgoWriter)
@@ -126,7 +126,7 @@ var _ = Describe("bosh", func() {
 	}
 
 	var deleteDeployment = func(manifest string, extraDeployArgs ...string) string {
-		fmt.Fprintf(GinkgoWriter, "\n--- DELETE DEPLOYMENT ---\n")
+		fmt.Fprintf(GinkgoWriter, "\n--- DELETE DEPLOYMENT ---\n") //nolint:errcheck
 
 		stdout := &bytes.Buffer{}
 		multiWriter := io.MultiWriter(stdout, GinkgoWriter)
@@ -349,7 +349,7 @@ var _ = Describe("bosh", func() {
 
 		It("fails pinging the agent", func() {
 			By("deploying with a bogus CA cert")
-			fmt.Fprintf(GinkgoWriter, "\n--- DEPLOY ---\n")
+			fmt.Fprintf(GinkgoWriter, "\n--- DEPLOY ---\n") //nolint:errcheck
 
 			stdoutBuffer := &bytes.Buffer{}
 			multiWriter := io.MultiWriter(stdoutBuffer, GinkgoWriter)

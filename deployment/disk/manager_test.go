@@ -12,7 +12,6 @@ import (
 
 	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
-	. "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -20,7 +19,7 @@ import (
 
 var _ = Describe("Manager", func() {
 	var (
-		manager           Manager
+		manager           bidisk.Manager
 		fakeCloud         *fakebicloud.FakeCloud
 		fakeFs            *fakesys.FakeFileSystem
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
@@ -33,7 +32,7 @@ var _ = Describe("Manager", func() {
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 		deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fakeFs, fakeUUIDGenerator, logger, "/fake/path")
 		diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeUUIDGenerator)
-		managerFactory := NewManagerFactory(diskRepo, logger)
+		managerFactory := bidisk.NewManagerFactory(diskRepo, logger)
 		fakeCloud = fakebicloud.NewFakeCloud()
 		manager = managerFactory.NewManager(fakeCloud)
 		fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
@@ -161,7 +160,7 @@ var _ = Describe("Manager", func() {
 			fakeUUIDGenerator.GeneratedUUID = "fake-guid-1"
 			firstDiskRecord, err := diskRepo.Save("fake-disk-cid-1", 1024, biproperty.Map{})
 			Expect(err).ToNot(HaveOccurred())
-			firstDisk = NewDisk(firstDiskRecord, fakeCloud, diskRepo)
+			firstDisk = bidisk.NewDisk(firstDiskRecord, fakeCloud, diskRepo)
 
 			fakeUUIDGenerator.GeneratedUUID = "fake-guid-2"
 			_, err = diskRepo.Save("fake-disk-cid-2", 1024, biproperty.Map{})
@@ -172,7 +171,7 @@ var _ = Describe("Manager", func() {
 			fakeUUIDGenerator.GeneratedUUID = "fake-guid-3"
 			thirdDiskRecord, err := diskRepo.Save("fake-disk-cid-3", 1024, biproperty.Map{})
 			Expect(err).ToNot(HaveOccurred())
-			thirdDisk = NewDisk(thirdDiskRecord, fakeCloud, diskRepo)
+			thirdDisk = bidisk.NewDisk(thirdDiskRecord, fakeCloud, diskRepo)
 		})
 
 		It("returns unused disks from repo", func() {

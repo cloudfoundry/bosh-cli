@@ -106,11 +106,11 @@ var _ = Describe("SCP", func() {
 					result := boshdir.SSHResult{Hosts: []boshdir.Host{{Host: "ip1"}}}
 					deployment.SetUpSSHReturns(result, nil)
 
-					scpOpts.GatewayFlags.Disable = true
-					scpOpts.GatewayFlags.Username = "gw-username"
-					scpOpts.GatewayFlags.Host = "gw-host"
-					scpOpts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-					scpOpts.GatewayFlags.SOCKS5Proxy = "some-proxy"
+					scpOpts.GatewayFlags.Disable = true                    //nolint:staticcheck
+					scpOpts.GatewayFlags.Username = "gw-username"          //nolint:staticcheck
+					scpOpts.GatewayFlags.Host = "gw-host"                  //nolint:staticcheck
+					scpOpts.GatewayFlags.PrivateKeyPath = "gw-private-key" //nolint:staticcheck
+					scpOpts.GatewayFlags.SOCKS5Proxy = "some-proxy"        //nolint:staticcheck
 
 					Expect(act()).ToNot(HaveOccurred())
 
@@ -173,7 +173,7 @@ var _ = Describe("SCP", func() {
 					Expect(hostBuilder.BuildHostCallCount()).To(Equal(1))
 					slug, username, _ := hostBuilder.BuildHostArgsForCall(0)
 
-					expectedSlug, _ := boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("1.2.3.4")
+					expectedSlug, _ := boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("1.2.3.4") //nolint:errcheck
 					Expect(slug).To(Equal(expectedSlug))
 					Expect(username).To(Equal(scpOpts.Username))
 
@@ -381,11 +381,11 @@ var _ = Describe("SCP", func() {
 							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
 								Times(1)
 
-							scpOpts.GatewayFlags.Disable = true
-							scpOpts.GatewayFlags.Username = "gw-username"
-							scpOpts.GatewayFlags.Host = "gw-host"
-							scpOpts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-							scpOpts.GatewayFlags.SOCKS5Proxy = "some-proxy"
+							scpOpts.GatewayFlags.Disable = true                    //nolint:staticcheck
+							scpOpts.GatewayFlags.Username = "gw-username"          //nolint:staticcheck
+							scpOpts.GatewayFlags.Host = "gw-host"                  //nolint:staticcheck
+							scpOpts.GatewayFlags.PrivateKeyPath = "gw-private-key" //nolint:staticcheck
+							scpOpts.GatewayFlags.SOCKS5Proxy = "some-proxy"        //nolint:staticcheck
 
 							Expect(command.Run(scpOpts)).ToNot(HaveOccurred())
 

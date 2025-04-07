@@ -191,7 +191,7 @@ var _ = Describe("Logs", func() {
 
 				BeforeEach(func() {
 					logsOpts.Follow = true
-					logsOpts.GatewayFlags.UUIDGen = uuidGen
+					logsOpts.GatewayFlags.UUIDGen = uuidGen //nolint:staticcheck
 					uuidGen.GeneratedUUID = UUID
 				})
 
@@ -248,11 +248,11 @@ var _ = Describe("Logs", func() {
 					result := boshdir.SSHResult{Hosts: []boshdir.Host{{Host: "ip1"}}}
 					deployment.SetUpSSHReturns(result, nil)
 
-					logsOpts.GatewayFlags.Disable = true
-					logsOpts.GatewayFlags.Username = "gw-username"
-					logsOpts.GatewayFlags.Host = "gw-host"
-					logsOpts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-					logsOpts.GatewayFlags.SOCKS5Proxy = "some-proxy"
+					logsOpts.GatewayFlags.Disable = true                    //nolint:staticcheck
+					logsOpts.GatewayFlags.Username = "gw-username"          //nolint:staticcheck
+					logsOpts.GatewayFlags.Host = "gw-host"                  //nolint:staticcheck
+					logsOpts.GatewayFlags.PrivateKeyPath = "gw-private-key" //nolint:staticcheck
+					logsOpts.GatewayFlags.SOCKS5Proxy = "some-proxy"        //nolint:staticcheck
 
 					Expect(act()).ToNot(HaveOccurred())
 
@@ -508,11 +508,11 @@ var _ = Describe("Logs", func() {
 						agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).Return(result, nil)
 						agentClient.EXPECT().CleanUpSSH(gomock.Any()).Times(1)
 
-						logsOpts.GatewayFlags.Disable = true
-						logsOpts.GatewayFlags.Username = "gw-username"
-						logsOpts.GatewayFlags.Host = "gw-host"
-						logsOpts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-						logsOpts.GatewayFlags.SOCKS5Proxy = "some-proxy"
+						logsOpts.GatewayFlags.Disable = true                    //nolint:staticcheck
+						logsOpts.GatewayFlags.Username = "gw-username"          //nolint:staticcheck
+						logsOpts.GatewayFlags.Host = "gw-host"                  //nolint:staticcheck
+						logsOpts.GatewayFlags.PrivateKeyPath = "gw-private-key" //nolint:staticcheck
+						logsOpts.GatewayFlags.SOCKS5Proxy = "some-proxy"        //nolint:staticcheck
 
 						Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
 

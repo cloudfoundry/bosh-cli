@@ -11,11 +11,11 @@ import (
 	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	boshlic "github.com/cloudfoundry/bosh-cli/v7/release/license"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
-	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 type Provider struct {
-	fingerprinterFactory func(bool) Fingerprinter
+	fingerprinterFactory func(bool) resource.Fingerprinter
 
 	cmdRunner        boshsys.CmdRunner
 	compressor       boshcmd.Compressor
@@ -32,8 +32,8 @@ func NewProvider(
 	logger boshlog.Logger,
 ) Provider {
 	return Provider{
-		fingerprinterFactory: func(followSymlinks bool) Fingerprinter {
-			return NewFingerprinterImpl(digestCalculator, fs, followSymlinks)
+		fingerprinterFactory: func(followSymlinks bool) resource.Fingerprinter {
+			return resource.NewFingerprinterImpl(digestCalculator, fs, followSymlinks)
 		},
 		cmdRunner:        cmdRunner,
 		compressor:       compressor,
@@ -62,8 +62,8 @@ func (p Provider) archiveReader(extracting bool) ArchiveReader {
 }
 
 func (p Provider) NewDirReader(dirPath string) DirReader {
-	archiveFactory := func(args ArchiveFactoryArgs) Archive {
-		return NewArchiveImpl(
+	archiveFactory := func(args resource.ArchiveFactoryArgs) resource.Archive {
+		return resource.NewArchiveImpl(
 			args, dirPath, p.fingerprinterFactory(args.FollowSymlinks), p.compressor, p.digestCalculator, p.cmdRunner, p.fs)
 	}
 

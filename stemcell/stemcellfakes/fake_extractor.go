@@ -34,7 +34,7 @@ func (e *FakeExtractor) Extract(tarballPath string) (bistemcell.ExtractedStemcel
 	e.ExtractInputs = append(e.ExtractInputs, input)
 	output, found := e.extractBehavior[input]
 	if !found {
-		return nil, fmt.Errorf("Unsupported Upload Input: %s", tarballPath)
+		return nil, fmt.Errorf("Unsupported Upload Input: %s", tarballPath) //nolint:staticcheck
 	}
 
 	return output.stemcell, output.err

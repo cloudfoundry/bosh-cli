@@ -25,7 +25,7 @@ func captureOutputs(f func()) (stderr []byte) {
 	errC := make(chan []byte)
 
 	go func() {
-		bytes, _ := io.ReadAll(rErr)
+		bytes, _ := io.ReadAll(rErr) //nolint:errcheck
 		errC <- bytes
 	}()
 

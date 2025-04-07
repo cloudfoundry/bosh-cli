@@ -17,7 +17,6 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	. "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
 	"github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
-	bierbrenderer "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
 )
 
 var _ = Describe("JobEvaluationContext", func() {
@@ -27,7 +26,7 @@ var _ = Describe("JobEvaluationContext", func() {
 		instanceGroupProperties biproperty.Map
 		deploymentProperties    biproperty.Map
 		erbRenderer             erbrenderer.ERBRenderer
-		jobEvaluationContext    bierbrenderer.TemplateEvaluationContext
+		jobEvaluationContext    erbrenderer.TemplateEvaluationContext
 		uuidGen                 *fakeuuid.FakeGenerator
 	)
 
@@ -119,7 +118,7 @@ var _ = Describe("JobEvaluationContext", func() {
 
 		srcFile, err := os.CreateTemp("", "source.txt.erb")
 		Expect(err).ToNot(HaveOccurred())
-		defer os.Remove(srcFile.Name())
+		defer os.Remove(srcFile.Name()) //nolint:errcheck
 
 		erbContents := fmt.Sprintf("<%%= p('%s') %%>", key)
 		_, err = srcFile.WriteString(erbContents)
@@ -129,7 +128,7 @@ var _ = Describe("JobEvaluationContext", func() {
 		Expect(err).ToNot(HaveOccurred())
 		err = destFile.Close()
 		Expect(err).ToNot(HaveOccurred())
-		defer os.Remove(destFile.Name())
+		defer os.Remove(destFile.Name()) //nolint:errcheck
 
 		jobEvaluationContext := NewJobEvaluationContext(
 			*releaseJob,

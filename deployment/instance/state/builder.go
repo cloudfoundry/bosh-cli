@@ -226,7 +226,7 @@ func (b *builder) renderJobTemplates(
 func (b *builder) defaultAddress(networkRefs []NetworkRef, agentState agentclient.AgentState) (string, error) {
 
 	if (networkRefs == nil) || (len(networkRefs) == 0) {
-		return "", errors.New("Must specify network")
+		return "", errors.New("Must specify network") //nolint:staticcheck
 	}
 
 	if len(networkRefs) == 1 {
@@ -245,11 +245,11 @@ func (b *builder) defaultAddress(networkRefs []NetworkRef, agentState agentclien
 		}
 	}
 
-	return "", errors.New("Must specify default network")
+	return "", errors.New("Must specify default network") //nolint:staticcheck
 }
 
 func networkIp(networkRef NetworkRef, agentState agentclient.AgentState) string {
-	if "dynamic" == networkRef.Interface["type"].(string) {
+	if "dynamic" == networkRef.Interface["type"].(string) { //nolint:staticcheck
 		return agentState.NetworkSpecs[networkRef.Name].IP
 	}
 

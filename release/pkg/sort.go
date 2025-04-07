@@ -32,7 +32,7 @@ func Sort(releasePackages []Compilable) ([]Compilable, error) {
 	}
 	for _, edges := range incomingEdges {
 		if len(edges) > 0 {
-			return nil, errors.New("Circular dependency detected while sorting packages")
+			return nil, errors.New("Circular dependency detected while sorting packages") //nolint:staticcheck
 		}
 	}
 	return sortedPackages, nil

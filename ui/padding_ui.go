@@ -1,7 +1,7 @@
 package ui
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type paddingUIMode int
@@ -52,12 +52,12 @@ func (ui *paddingUI) PrintErrorBlock(block string) {
 	ui.parent.PrintErrorBlock(block)
 }
 
-func (ui *paddingUI) PrintTable(table Table) {
+func (ui *paddingUI) PrintTable(table table.Table) {
 	ui.padBefore(paddingUIModeAuto)
 	ui.parent.PrintTable(table)
 }
 
-func (ui *paddingUI) PrintTableFiltered(table Table, filterHeader []Header) {
+func (ui *paddingUI) PrintTableFiltered(table table.Table, filterHeader []table.Header) {
 	ui.padBefore(paddingUIModeAuto)
 	ui.parent.PrintTableFiltered(table, filterHeader)
 }

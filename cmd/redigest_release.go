@@ -4,7 +4,7 @@ import (
 	crypto2 "github.com/cloudfoundry/bosh-utils/crypto"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	"github.com/cloudfoundry/bosh-cli/v7/crypto"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"

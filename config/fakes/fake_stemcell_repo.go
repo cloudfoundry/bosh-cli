@@ -107,7 +107,7 @@ func (fr *FakeStemcellRepo) Save(name, version, cid string, apiVersion int) (bic
 
 	output, found := fr.SaveBehavior[inputString]
 	if !found {
-		return biconfig.StemcellRecord{}, fmt.Errorf("Unsupported Save Input: %s", inputString)
+		return biconfig.StemcellRecord{}, fmt.Errorf("Unsupported Save Input: %s", inputString) //nolint:staticcheck
 	}
 
 	return output.stemcellRecord, output.err
@@ -147,7 +147,7 @@ func (fr *FakeStemcellRepo) Find(name, version string) (biconfig.StemcellRecord,
 
 	output, found := fr.FindBehavior[inputString]
 	if !found {
-		return biconfig.StemcellRecord{}, false, fmt.Errorf("Unsupported Find Input: %s", inputString)
+		return biconfig.StemcellRecord{}, false, fmt.Errorf("Unsupported Find Input: %s", inputString) //nolint:staticcheck
 	}
 
 	return output.stemcellRecord, output.found, output.err

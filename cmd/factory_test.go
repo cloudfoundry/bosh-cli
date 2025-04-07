@@ -174,7 +174,7 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"ssh", "group", "cmd", "extra", "args", "--", "--gw-disable"})
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = cmd.Opts.(*opts.SSHOpts).GatewayFlags.AsSSHOpts()
+			_, _, err = cmd.Opts.(*opts.SSHOpts).GatewayFlags.AsSSHOpts() //nolint:staticcheck
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -182,7 +182,7 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"scp", "group", "cmd", "extra", "args", "--", "--gw-disable"})
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = cmd.Opts.(*opts.SCPOpts).GatewayFlags.AsSSHOpts()
+			_, _, err = cmd.Opts.(*opts.SCPOpts).GatewayFlags.AsSSHOpts() //nolint:staticcheck
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -190,7 +190,7 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"logs", "-f", "cmd"})
 			Expect(err).ToNot(HaveOccurred())
 
-			_, _, err = cmd.Opts.(*opts.LogsOpts).GatewayFlags.AsSSHOpts()
+			_, _, err = cmd.Opts.(*opts.LogsOpts).GatewayFlags.AsSSHOpts() //nolint:staticcheck
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
@@ -200,8 +200,8 @@ var _ = Describe("Factory", func() {
 			cmd, err := factory.New([]string{"deploy", "--skip-drain=job1", "--skip-drain=job2", tmpFile})
 			Expect(err).ToNot(HaveOccurred())
 
-			slug1, _ := boshdir.NewInstanceGroupOrInstanceSlugFromString("job1")
-			slug2, _ := boshdir.NewInstanceGroupOrInstanceSlugFromString("job2")
+			slug1, _ := boshdir.NewInstanceGroupOrInstanceSlugFromString("job1") //nolint:errcheck
+			slug2, _ := boshdir.NewInstanceGroupOrInstanceSlugFromString("job2") //nolint:errcheck
 
 			deployOpts := cmd.Opts.(*opts.DeployOpts)
 			Expect(deployOpts.SkipDrain).To(Equal([]boshdir.SkipDrain{
@@ -239,7 +239,7 @@ var _ = Describe("Factory", func() {
 		})
 
 		It("returns *nice error from FileBytesArg* error if it cannot read manifest", func() {
-			_, err := factory.New([]string{"create-env", tmpFile})
+			_, err := factory.New([]string{"create-env", tmpFile}) //nolint:staticcheck
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("open %s: no such file or directory", tmpFile)))
 		})

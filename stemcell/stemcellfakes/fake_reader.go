@@ -36,7 +36,7 @@ func (fr *FakeStemcellReader) Read(stemcellTarballPath, destPath string) (bistem
 	fr.ReadInputs = append(fr.ReadInputs, input)
 	output, found := fr.ReadBehavior[input]
 	if !found {
-		return nil, fmt.Errorf("Unsupported Input: Read('%#v', '%#v')", stemcellTarballPath, destPath)
+		return nil, fmt.Errorf("Unsupported Input: Read('%#v', '%#v')", stemcellTarballPath, destPath) //nolint:staticcheck
 	}
 
 	return output.stemcell, output.err

@@ -3,7 +3,7 @@ package cmd
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )

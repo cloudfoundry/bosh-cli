@@ -5,7 +5,7 @@ import (
 
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
@@ -37,5 +37,5 @@ func (c VendorPackageCmd) Run(opts VendorPackageOpts) error {
 		}
 	}
 
-	return fmt.Errorf("Expected to find package '%s'", opts.Args.PackageName)
+	return fmt.Errorf("Expected to find package '%s'", opts.Args.PackageName) //nolint:staticcheck
 }

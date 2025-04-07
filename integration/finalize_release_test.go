@@ -196,9 +196,9 @@ blobstore:
 			err := os.Chdir(releaseDir)
 			Expect(err).ToNot(HaveOccurred())
 
-			os.Remove("LICENSE")
+			os.Remove("LICENSE") //nolint:errcheck
 			Expect(fs.FileExists("LICENSE")).To(Equal(false))
-			os.Remove("NOTICE")
+			os.Remove("NOTICE") //nolint:errcheck
 			Expect(fs.FileExists("NOTICE")).To(Equal(false))
 
 			createAndExecCommand(cmdFactory, []string{"create-release", "--name", "test-release", fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--force"})
@@ -210,9 +210,9 @@ blobstore:
 			err := os.Chdir(releaseDir)
 			Expect(err).ToNot(HaveOccurred())
 
-			os.Remove("LICENSE")
+			os.Remove("LICENSE") //nolint:errcheck
 			Expect(fs.FileExists("LICENSE")).To(Equal(false))
-			os.Remove("NOTICE")
+			os.Remove("NOTICE") //nolint:errcheck
 			Expect(fs.FileExists("NOTICE")).To(Equal(false))
 
 			createAndExecCommand(cmdFactory, []string{"create-release", "--name", "test-release", fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--force"})
@@ -226,7 +226,7 @@ blobstore:
 			err := os.Chdir(releaseDir)
 			Expect(err).ToNot(HaveOccurred())
 
-			os.Remove("NOTICE")
+			os.Remove("NOTICE") //nolint:errcheck
 			Expect(fs.FileExists("NOTICE")).To(Equal(false))
 			err = fs.WriteFileString(filepath.Join(releaseDir, "LICENSE"), "This is an example license file")
 			Expect(err).ToNot(HaveOccurred())
@@ -249,7 +249,7 @@ blobstore:
 			err := os.Chdir(releaseDir)
 			Expect(err).ToNot(HaveOccurred())
 
-			os.Remove("LICENSE")
+			os.Remove("LICENSE") //nolint:errcheck
 			Expect(fs.FileExists("LICENSE")).To(Equal(false))
 			err = fs.WriteFileString(filepath.Join(releaseDir, "NOTICE"), "This is an example license file called NOTICE")
 			Expect(err).ToNot(HaveOccurred())

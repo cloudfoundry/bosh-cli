@@ -73,7 +73,7 @@ var _ = Describe("create-release command", func() {
 			contents, err := fs.ReadFileString(pkg1SpecPath)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "dependencies: []", "dependencies: [pkg2]", -1))
+			err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "dependencies: []", "dependencies: [pkg2]", -1)) //nolint:staticcheck
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -83,7 +83,7 @@ var _ = Describe("create-release command", func() {
 			contents, err := fs.ReadFileString(jobSpecPath)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = fs.WriteFileString(jobSpecPath, strings.Replace(contents, "packages: []", "packages: [pkg1, pkg2]", -1))
+			err = fs.WriteFileString(jobSpecPath, strings.Replace(contents, "packages: []", "packages: [pkg1, pkg2]", -1)) //nolint:staticcheck
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -141,7 +141,7 @@ license:
 			contents, err := fs.ReadFileString(pkg1SpecPath)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "files: []", "files:\n- in-src\n- in-blobs", -1))
+			err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "files: []", "files:\n- in-src\n- in-blobs", -1)) //nolint:staticcheck
 			Expect(err).ToNot(HaveOccurred())
 		})
 

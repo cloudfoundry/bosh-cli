@@ -53,7 +53,7 @@ func (m *FakeManager) Upload(stemcell bistemcell.ExtractedStemcell, stage biui.S
 	m.UploadInputs = append(m.UploadInputs, input)
 	output, found := m.uploadBehavior[input]
 	if !found {
-		return nil, fmt.Errorf("Unsupported Upload Input: %#v", stemcell)
+		return nil, fmt.Errorf("Unsupported Upload Input: %#v", stemcell) //nolint:staticcheck
 	}
 
 	return output.stemcell, output.err

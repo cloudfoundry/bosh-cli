@@ -57,13 +57,13 @@ func (e cpiError) OkToRetry() bool {
 }
 
 func mapsToNotImplementedError(method string, cmdError CmdError) bool {
-	matched, _ := regexp.MatchString("^Invalid Method:", cmdError.Message)
+	matched, _ := regexp.MatchString("^Invalid Method:", cmdError.Message) //nolint:errcheck
 
 	if cmdError.Type == "Bosh::Clouds::CloudError" && matched {
 		return true
 	}
 
-	matched, _ = regexp.MatchString("^Method is not known, got", cmdError.Message)
+	matched, _ = regexp.MatchString("^Method is not known, got", cmdError.Message) //nolint:errcheck
 
 	if cmdError.Type == "InvalidCall" && matched {
 		return true

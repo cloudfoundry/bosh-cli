@@ -3,7 +3,7 @@ package ui
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type nonInteractiveUI struct {
@@ -38,11 +38,11 @@ func (ui *nonInteractiveUI) PrintErrorBlock(block string) {
 	ui.parent.PrintErrorBlock(block)
 }
 
-func (ui *nonInteractiveUI) PrintTable(table Table) {
+func (ui *nonInteractiveUI) PrintTable(table table.Table) {
 	ui.parent.PrintTable(table)
 }
 
-func (ui *nonInteractiveUI) PrintTableFiltered(table Table, filterHeader []Header) {
+func (ui *nonInteractiveUI) PrintTableFiltered(table table.Table, filterHeader []table.Header) {
 	ui.parent.PrintTableFiltered(table, filterHeader)
 }
 

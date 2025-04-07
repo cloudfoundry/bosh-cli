@@ -181,7 +181,7 @@ Started Complex stage 1
   Finished Complex stage B (00:02:00)
 Finished Complex stage 1 (00:03:00)
 `
-			Expect(uiOut.String()).To(Equal(strings.Replace(expectedOutput, "#", "", -1)))
+			Expect(uiOut.String()).To(Equal(strings.Replace(expectedOutput, "#", "", -1))) //nolint:staticcheck
 			Expect(actionsPerformed).To(Equal([]string{"A", "X", "Y"}))
 		})
 
