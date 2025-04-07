@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("Record is not found")
+	ErrNotFound = errors.New("Record is not found") //nolint:staticcheck
 )
 
 type Index interface {

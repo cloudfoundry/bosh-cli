@@ -3,7 +3,7 @@ package completion
 import (
 	"fmt"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type BlindUI struct{}
@@ -26,10 +26,10 @@ func (ui *BlindUI) PrintBlock(_ []byte) {
 func (ui *BlindUI) PrintErrorBlock(_ string) {
 }
 
-func (ui *BlindUI) PrintTable(_ Table) {
+func (ui *BlindUI) PrintTable(_ table.Table) {
 }
 
-func (ui *BlindUI) PrintTableFiltered(_ Table, _ []Header) {
+func (ui *BlindUI) PrintTableFiltered(_ table.Table, _ []table.Header) {
 }
 
 func (ui *BlindUI) AskForText(_ string) (string, error) {

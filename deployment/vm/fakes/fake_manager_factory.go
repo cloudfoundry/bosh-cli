@@ -45,7 +45,7 @@ func (f *FakeManagerFactory) NewManager(cloud bicloud.Cloud, mbusURL string) biv
 
 	output, found := f.newManagerBehavior[inputString]
 	if !found {
-		panic(fmt.Errorf("Unsupported NewManager Input: %#v\nExpected Behavior: %#v", input, f.newManagerBehavior))
+		panic(fmt.Errorf("Unsupported NewManager Input: %#v\nExpected Behavior: %#v", input, f.newManagerBehavior)) //nolint:staticcheck
 	}
 
 	return output.manager

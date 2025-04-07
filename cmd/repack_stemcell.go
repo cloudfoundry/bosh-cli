@@ -4,7 +4,7 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	"gopkg.in/yaml.v2"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	"github.com/cloudfoundry/bosh-cli/v7/stemcell"
 )
 

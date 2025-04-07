@@ -45,5 +45,5 @@ func prefixingMultilineError(err error, prefix string, bullet string) string {
 }
 
 func prefixEachLine(str string, prefix string) string {
-	return prefix + strings.Replace(str, "\n", "\n"+prefix, -1)
+	return prefix + strings.Replace(str, "\n", "\n"+prefix, -1) //nolint:staticcheck
 }

@@ -115,7 +115,7 @@ format-version: "2"`)
 			Expect(err).ToNot(HaveOccurred())
 
 			blobs.GetStub = func(name string, blobID string, sha1 string) (string, error) {
-				switch {
+				switch { //nolint:staticcheck
 				case name == "name/fp":
 					Expect(blobID).To(Equal("fp-blob-id"))
 					Expect(sha1).To(Equal("fp-sha1"))

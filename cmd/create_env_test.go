@@ -31,7 +31,6 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/deployment"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	fakebideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest/manifestfakes"
-	fakebideplval "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest/manifestfakes"
 	mockdeployment "github.com/cloudfoundry/bosh-cli/v7/deployment/mocks"
 	bidepltpl "github.com/cloudfoundry/bosh-cli/v7/deployment/template"
 	fakebidepltpl "github.com/cloudfoundry/bosh-cli/v7/deployment/template/templatefakes"
@@ -47,7 +46,6 @@ import (
 	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	birelmanifest "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 	fakebirel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
-	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
 	fakebirelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest/fakes"
@@ -89,7 +87,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			mockDeployer         *mockdeployment.MockDeployer
 			mockInstaller        *mockinstall.MockInstaller
 			mockInstallerFactory *mockinstall.MockInstallerFactory
-			releaseReader        *fakerel.FakeReader
+			releaseReader        *fakebirel.FakeReader
 			releaseManager       biinstall.ReleaseManager
 
 			mockAgentClient        *mockagentclient.MockAgentClient
@@ -115,7 +113,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			fakeDeploymentTemplateFactory     *fakebidepltpl.FakeDeploymentTemplateFactory
 			mockLegacyDeploymentStateMigrator *mockconfig.MockLegacyDeploymentStateMigrator
 			setupDeploymentStateService       biconfig.DeploymentStateService
-			fakeDeploymentValidator           *fakebideplval.FakeValidator
+			fakeDeploymentValidator           *fakebideplmanifest.FakeValidator
 
 			fakeUUIDGenerator   *fakeuuid.FakeGenerator
 			configUUIDGenerator *fakeuuid.FakeGenerator
@@ -174,7 +172,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			mockInstaller = mockinstall.NewMockInstaller(mockCtrl)
 			mockInstallerFactory = mockinstall.NewMockInstallerFactory(mockCtrl)
 
-			releaseReader = &fakerel.FakeReader{}
+			releaseReader = &fakebirel.FakeReader{}
 			releaseManager = biinstall.NewReleaseManager(logger)
 
 			mockAgentClientFactory = mockhttpagent.NewMockAgentClientFactory(mockCtrl)
@@ -206,7 +204,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			configUUIDGenerator.GeneratedUUID = directorID
 			setupDeploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, configUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, ""))
 
-			fakeDeploymentValidator = fakebideplval.NewFakeValidator()
+			fakeDeploymentValidator = fakebideplmanifest.NewFakeValidator()
 
 			fakeStage = fakeui.NewFakeStage()
 
@@ -230,10 +228,10 @@ var _ = Describe("CreateEnvCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			// deployment is valid
-			fakeDeploymentValidator.SetValidateBehavior([]fakebideplval.ValidateOutput{
+			fakeDeploymentValidator.SetValidateBehavior([]fakebideplmanifest.ValidateOutput{
 				{Err: nil},
 			})
-			fakeDeploymentValidator.SetValidateReleaseJobsBehavior([]fakebideplval.ValidateReleaseJobsOutput{
+			fakeDeploymentValidator.SetValidateReleaseJobsBehavior([]fakebideplmanifest.ValidateReleaseJobsOutput{
 				{Err: nil},
 			})
 
@@ -545,7 +543,7 @@ var _ = Describe("CreateEnvCmd", func() {
 		It("validates bosh deployment manifest", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeDeploymentValidator.ValidateInputs).To(Equal([]fakebideplval.ValidateInput{
+			Expect(fakeDeploymentValidator.ValidateInputs).To(Equal([]fakebideplmanifest.ValidateInput{
 				{Manifest: boshDeploymentManifest, ReleaseSetManifest: releaseSetManifest},
 			}))
 		})
@@ -553,7 +551,7 @@ var _ = Describe("CreateEnvCmd", func() {
 		It("validates jobs in manifest refer to job in releases", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeDeploymentValidator.ValidateReleaseJobsInputs).To(Equal([]fakebideplval.ValidateReleaseJobsInput{
+			Expect(fakeDeploymentValidator.ValidateReleaseJobsInputs).To(Equal([]fakebideplmanifest.ValidateReleaseJobsInput{
 				{Manifest: boshDeploymentManifest, ReleaseManager: releaseManager},
 			}))
 		})
@@ -747,8 +745,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			It("returns error", func() {
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).To(HaveOccurred())
-				//nolint:gosimple
-				Expect(err.Error()).To(Equal(fmt.Sprintf("Found 0 releases containing a template that renders to target 'bin/cpi'. Expected to find 1. Releases inspected: [fake-cpi-release-name]\nrelease 'fake-cpi-release-name' must contain specified job 'fake-cpi-release-job-name'")))
+				Expect(err.Error()).To(Equal("Found 0 releases containing a template that renders to target 'bin/cpi'. Expected to find 1. Releases inspected: [fake-cpi-release-name]\nrelease 'fake-cpi-release-name' must contain specified job 'fake-cpi-release-job-name'"))
 			})
 		})
 
@@ -999,7 +996,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 		Context("when the deployment manifest is invalid", func() {
 			BeforeEach(func() {
-				fakeDeploymentValidator.SetValidateBehavior([]fakebideplval.ValidateOutput{
+				fakeDeploymentValidator.SetValidateBehavior([]fakebideplmanifest.ValidateOutput{
 					{Err: bosherr.Error("fake-deployment-validation-error")},
 				})
 			})
@@ -1022,7 +1019,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 		Context("when validating jobs fails", func() {
 			BeforeEach(func() {
-				fakeDeploymentValidator.SetValidateReleaseJobsBehavior([]fakebideplval.ValidateReleaseJobsOutput{
+				fakeDeploymentValidator.SetValidateReleaseJobsBehavior([]fakebideplmanifest.ValidateReleaseJobsOutput{
 					{Err: bosherr.Error("fake-jobs-validation-error")},
 				})
 			})

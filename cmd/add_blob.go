@@ -6,7 +6,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
@@ -27,7 +27,7 @@ func (c AddBlobCmd) Run(opts AddBlobOpts) error {
 		return bosherr.WrapErrorf(err, "Opening blob")
 	}
 
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	blob, err := c.blobsDir.TrackBlob(opts.Args.BlobsPath, file)
 	if err != nil {

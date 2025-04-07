@@ -12,7 +12,7 @@ import (
 	boshlic "github.com/cloudfoundry/bosh-cli/v7/release/license"
 	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
-	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 type ArchiveReader struct {
@@ -228,10 +228,10 @@ func (r ArchiveReader) newLicense(ref *boshman.LicenseRef, extractPath string) *
 		archivePath := filepath.Join(extractPath, "license.tgz")
 
 		if r.fs.FileExists(archivePath) {
-			resource := NewResourceWithBuiltArchive(
+			resourceWithBuiltArchive := resource.NewResourceWithBuiltArchive(
 				"license", ref.Fingerprint, archivePath, ref.SHA1)
 
-			return boshlic.NewLicense(resource)
+			return boshlic.NewLicense(resourceWithBuiltArchive)
 		}
 	}
 

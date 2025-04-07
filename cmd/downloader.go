@@ -43,7 +43,7 @@ func NewUIDownloader(
 }
 
 func (d UIDownloader) Download(blobstoreID, sha1, prefix, dstDirPath string) error {
-	tsSuffix := strings.Replace(d.timeService.Now().Format("20060102-150405.999999999"), ".", "-", -1)
+	tsSuffix := strings.Replace(d.timeService.Now().Format("20060102-150405.999999999"), ".", "-", -1) //nolint:staticcheck
 
 	dstFileName := fmt.Sprintf("%s-%s.tgz", prefix, tsSuffix)
 

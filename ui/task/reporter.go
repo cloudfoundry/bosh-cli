@@ -129,7 +129,7 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 	prefix := fmt.Sprintf("\nTask %d | %s | ", id, event.TimeAsHoursStr())
 
 	if r.lastGlobalEvent != nil && r.lastGlobalEvent.IsSame(event) {
-		switch {
+		switch { //nolint:staticcheck
 		case event.State == EventStateStarted:
 			// does not make sense
 

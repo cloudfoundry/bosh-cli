@@ -125,12 +125,12 @@ var _ = Describe("SSH", func() {
 						result := boshdir.SSHResult{Hosts: []boshdir.Host{{Host: "ip1"}}}
 						deployment.SetUpSSHReturns(result, nil)
 
-						sshOpts.RawOpts = opts.TrimmedSpaceArgs([]string{"raw1", "raw2"})
-						sshOpts.GatewayFlags.Disable = true
-						sshOpts.GatewayFlags.Username = "gw-username"
-						sshOpts.GatewayFlags.Host = "gw-host"
-						sshOpts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-						sshOpts.GatewayFlags.SOCKS5Proxy = "socks5"
+						sshOpts.RawOpts = []string{"raw1", "raw2"}
+						sshOpts.GatewayFlags.Disable = true                    //nolint:staticcheck
+						sshOpts.GatewayFlags.Username = "gw-username"          //nolint:staticcheck
+						sshOpts.GatewayFlags.Host = "gw-host"                  //nolint:staticcheck
+						sshOpts.GatewayFlags.PrivateKeyPath = "gw-private-key" //nolint:staticcheck
+						sshOpts.GatewayFlags.SOCKS5Proxy = "socks5"            //nolint:staticcheck
 
 						Expect(act()).ToNot(HaveOccurred())
 
@@ -204,11 +204,11 @@ var _ = Describe("SSH", func() {
 						result := boshdir.SSHResult{Hosts: []boshdir.Host{{Host: "ip1"}}}
 						deployment.SetUpSSHReturns(result, nil)
 
-						sshOpts.RawOpts = opts.TrimmedSpaceArgs([]string{"raw1", "raw2"})
-						sshOpts.GatewayFlags.Disable = true
-						sshOpts.GatewayFlags.Username = "gw-username"
-						sshOpts.GatewayFlags.Host = "gw-host"
-						sshOpts.GatewayFlags.PrivateKeyPath = "gw-private-key"
+						sshOpts.RawOpts = []string{"raw1", "raw2"}
+						sshOpts.GatewayFlags.Disable = true                    //nolint:staticcheck
+						sshOpts.GatewayFlags.Username = "gw-username"          //nolint:staticcheck
+						sshOpts.GatewayFlags.Host = "gw-host"                  //nolint:staticcheck
+						sshOpts.GatewayFlags.PrivateKeyPath = "gw-private-key" //nolint:staticcheck
 
 						Expect(act()).ToNot(HaveOccurred())
 
@@ -290,7 +290,7 @@ var _ = Describe("SSH", func() {
 
 					sshOpts.PrivateKey.Bytes = []byte("topsecret")
 					sshOpts.Username = "vcap"
-					sshOpts.Args.Slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("1.2.3.4")
+					sshOpts.Args.Slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("1.2.3.4") //nolint:errcheck
 
 					hostBuilder.BuildHostReturns(expectedHost, nil)
 				})
@@ -534,12 +534,12 @@ var _ = Describe("SSH", func() {
 								agentClient.EXPECT().CleanUpSSH(gomock.Any()).
 									Times(1)
 
-								sshOpts.RawOpts = opts.TrimmedSpaceArgs([]string{"raw1", "raw2"})
-								sshOpts.GatewayFlags.Disable = true
-								sshOpts.GatewayFlags.Username = "gw-username"
-								sshOpts.GatewayFlags.Host = "gw-host"
-								sshOpts.GatewayFlags.PrivateKeyPath = "gw-private-key"
-								sshOpts.GatewayFlags.SOCKS5Proxy = "socks5"
+								sshOpts.RawOpts = []string{"raw1", "raw2"}
+								sshOpts.GatewayFlags.Disable = true                    //nolint:staticcheck
+								sshOpts.GatewayFlags.Username = "gw-username"          //nolint:staticcheck
+								sshOpts.GatewayFlags.Host = "gw-host"                  //nolint:staticcheck
+								sshOpts.GatewayFlags.PrivateKeyPath = "gw-private-key" //nolint:staticcheck
+								sshOpts.GatewayFlags.SOCKS5Proxy = "socks5"            //nolint:staticcheck
 
 								Expect(command.Run(sshOpts)).ToNot(HaveOccurred())
 

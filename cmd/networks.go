@@ -3,7 +3,7 @@ package cmd
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
@@ -20,7 +20,7 @@ func NewNetworksCmd(ui boshui.UI, director boshdir.Director) NetworksCmd {
 
 func (c NetworksCmd) Run(opts NetworksOpts) error {
 	if !opts.Orphaned {
-		return errors.New("Only --orphaned is supported")
+		return errors.New("Only --orphaned is supported") //nolint:staticcheck
 	}
 
 	networks, err := c.director.OrphanNetworks()

@@ -5,7 +5,7 @@ import (
 
 	"fmt"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
@@ -30,7 +30,7 @@ func (c RunErrandCmd) Run(opts RunErrandOpts) error {
 		opts.Args.Name,
 		opts.KeepAlive,
 		opts.WhenChanged,
-		opts.InstanceGroupOrInstanceSlugFlags.Slugs,
+		opts.InstanceGroupOrInstanceSlugFlags.Slugs, //nolint:staticcheck
 	)
 	if err != nil {
 		return err

@@ -41,7 +41,7 @@ var _ = Describe("VarsEnvArg", func() {
 		})
 
 		It("uses native os.Environ if EnvironFunc is not given", func() {
-			os.Setenv("bosh_var_env_arg_test_key", "val")
+			os.Setenv("bosh_var_env_arg_test_key", "val") //nolint:errcheck
 
 			err := (&arg).UnmarshalFlag("bosh_var_env_arg_test")
 			Expect(err).ToNot(HaveOccurred())

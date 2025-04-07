@@ -8,7 +8,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/crypto"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
-	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 type ByName []*Job
@@ -18,7 +18,7 @@ func (a ByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByName) Less(i, j int) bool { return a[i].Name() < a[j].Name() }
 
 type Job struct {
-	resource Resource
+	resource resource.Resource
 
 	Templates    map[string]string
 	PackageNames []string
@@ -34,12 +34,12 @@ type PropertyDefinition struct {
 	Default     biproperty.Property
 }
 
-func NewJob(resource Resource) *Job {
-	return &Job{resource: resource}
+func NewJob(jobResource resource.Resource) *Job {
+	return &Job{resource: jobResource}
 }
 
-func NewExtractedJob(resource Resource, extractedPath string, fs boshsys.FileSystem) *Job {
-	return &Job{resource: resource, extractedPath: extractedPath, fs: fs}
+func NewExtractedJob(jobResource resource.Resource, extractedPath string, fs boshsys.FileSystem) *Job {
+	return &Job{resource: jobResource, extractedPath: extractedPath, fs: fs}
 }
 
 func (j Job) Name() string        { return j.resource.Name() }
@@ -48,8 +48,8 @@ func (j Job) Fingerprint() string { return j.resource.Fingerprint() }
 func (j *Job) ArchivePath() string   { return j.resource.ArchivePath() }
 func (j *Job) ArchiveDigest() string { return j.resource.ArchiveDigest() }
 
-func (j *Job) Build(dev, final ArchiveIndex) error { return j.resource.Build(dev, final) }
-func (j *Job) Finalize(final ArchiveIndex) error   { return j.resource.Finalize(final) }
+func (j *Job) Build(dev, final resource.ArchiveIndex) error { return j.resource.Build(dev, final) }
+func (j *Job) Finalize(final resource.ArchiveIndex) error   { return j.resource.Finalize(final) }
 
 func (j Job) FindTemplateByValue(value string) (string, bool) {
 	for template, templateTarget := range j.Templates {

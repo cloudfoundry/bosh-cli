@@ -199,7 +199,7 @@ type ShouldTrackDownload interface {
 }
 
 func (r ClientRequest) readResponse(resp *http.Response, out io.Writer) ([]byte, *http.Response, error) {
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	logTag := "director.clientRequest"
 
@@ -208,7 +208,7 @@ func (r ClientRequest) readResponse(resp *http.Response, out io.Writer) ([]byte,
 	if out == nil {
 		if resp.Request != nil {
 			sanitizer := RequestSanitizer{Request: (*resp.Request)}
-			sanitizedRequest, _ := sanitizer.SanitizeRequest()
+			sanitizedRequest, _ := sanitizer.SanitizeRequest() //nolint:errcheck
 			b, err := httputil.DumpRequest(&sanitizedRequest, false)
 			if err == nil {
 				r.logger.Debug(logTag, "Dumping Director client request:\n%s", string(b))

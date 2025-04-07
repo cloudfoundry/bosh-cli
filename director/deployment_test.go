@@ -826,7 +826,7 @@ var _ = Describe("Deployment", func() {
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"application/json"},
 					}),
-					ghttp.VerifyBody([]byte(strings.Replace(reqBody, "\n", "", -1))),
+					ghttp.VerifyBody([]byte(strings.Replace(reqBody, "\n", "", -1))), //nolint:staticcheck
 				),
 				`{"blobstore_id":"release-blob-id","sha1":"release-sha1"}`,
 				server,

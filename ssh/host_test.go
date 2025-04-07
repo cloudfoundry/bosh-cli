@@ -42,7 +42,7 @@ var _ = Describe("SSHHostBuilder", func() {
 
 		Context("host is provided", func() {
 			BeforeEach(func() {
-				slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("1.2.3.4")
+				slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("1.2.3.4") //nolint:errcheck
 			})
 			AfterEach(func() {
 				Expect(deployment.VMInfosCallCount()).To(Equal(0))
@@ -77,7 +77,7 @@ var _ = Describe("SSHHostBuilder", func() {
 
 			Context("instance ID is provided", func() {
 				BeforeEach(func() {
-					slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("group/id")
+					slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("group/id") //nolint:errcheck
 				})
 
 				It("Connects to first IP", func() {
@@ -94,7 +94,7 @@ var _ = Describe("SSHHostBuilder", func() {
 
 			Context("instance index is provided", func() {
 				BeforeEach(func() {
-					slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("group/1")
+					slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("group/1") //nolint:errcheck
 				})
 
 				It("Connects to first IP", func() {
@@ -111,7 +111,7 @@ var _ = Describe("SSHHostBuilder", func() {
 
 			Context("instance group is provided", func() {
 				BeforeEach(func() {
-					slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("group")
+					slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("group") //nolint:errcheck
 				})
 
 				Context("group has single VM", func() {
@@ -176,7 +176,7 @@ var _ = Describe("SSHHostBuilder", func() {
 						VMID:    "cid",
 					},
 				}, nil)
-				slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("group/id")
+				slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("group/id") //nolint:errcheck
 			})
 
 			It("Returns error", func() {
@@ -200,7 +200,7 @@ var _ = Describe("SSHHostBuilder", func() {
 						VMID:    "cid",
 					},
 				}, nil)
-				slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("group/id")
+				slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("group/id") //nolint:errcheck
 			})
 
 			It("Returns error", func() {
@@ -213,7 +213,7 @@ var _ = Describe("SSHHostBuilder", func() {
 		Context("VM lookup fails", func() {
 			BeforeEach(func() {
 				deployment.VMInfosReturns(nil, errors.New("oops"))
-				slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("group/id")
+				slug, _ = boshdir.NewAllOrInstanceGroupOrInstanceSlugFromString("group/id") //nolint:errcheck
 			})
 
 			It("Returns error", func() {

@@ -473,7 +473,7 @@ var _ = Describe("FSConfig", func() {
 			config := readConfig()
 			err := config.Save()
 			Expect(err).ToNot(HaveOccurred())
-			fileInfo, _ := fs.Stat("/dir/sub-dir/config")
+			fileInfo, _ := fs.Stat("/dir/sub-dir/config") //nolint:errcheck
 			Expect(fileInfo.Mode()).To(Equal(os.FileMode(0600)))
 		})
 

@@ -3,7 +3,7 @@ package cmd
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
@@ -44,23 +44,23 @@ func newRecreateOpts(opts RecreateOpts) (boshdir.RecreateOpts, error) {
 	}
 
 	if opts.Converge {
-		return boshdir.RecreateOpts{}, errors.New("Can't set converge and no-converge")
+		return boshdir.RecreateOpts{}, errors.New("Can't set converge and no-converge") //nolint:staticcheck
 	}
 
 	if opts.Canaries != "" {
-		return boshdir.RecreateOpts{}, errors.New("Can't set canaries and no-converge")
+		return boshdir.RecreateOpts{}, errors.New("Can't set canaries and no-converge") //nolint:staticcheck
 	}
 
 	if opts.MaxInFlight != "" {
-		return boshdir.RecreateOpts{}, errors.New("Can't set max-in-flight and no-converge")
+		return boshdir.RecreateOpts{}, errors.New("Can't set max-in-flight and no-converge") //nolint:staticcheck
 	}
 
 	if opts.DryRun {
-		return boshdir.RecreateOpts{}, errors.New("Can't set dry-run and no-converge")
+		return boshdir.RecreateOpts{}, errors.New("Can't set dry-run and no-converge") //nolint:staticcheck
 	}
 
 	if _, ok := opts.Args.Slug.InstanceSlug(); !ok {
-		return boshdir.RecreateOpts{}, errors.New("You are trying to run recreate with --no-converge on an entire instance group. This operation is not allowed. Trying using the --converge flag or running it against a specific instance.")
+		return boshdir.RecreateOpts{}, errors.New("You are trying to run recreate with --no-converge on an entire instance group. This operation is not allowed. Trying using the --converge flag or running it against a specific instance.") //nolint:staticcheck
 	}
 
 	return boshdir.RecreateOpts{

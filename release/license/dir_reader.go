@@ -6,15 +6,15 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 type DirReaderImpl struct {
-	archiveFactory ArchiveFunc
+	archiveFactory resource.ArchiveFunc
 	fs             boshsys.FileSystem
 }
 
-func NewDirReaderImpl(archiveFactory ArchiveFunc, fs boshsys.FileSystem) DirReaderImpl {
+func NewDirReaderImpl(archiveFactory resource.ArchiveFunc, fs boshsys.FileSystem) DirReaderImpl {
 	return DirReaderImpl{archiveFactory: archiveFactory, fs: fs}
 }
 
@@ -28,18 +28,18 @@ func (r DirReaderImpl) Read(path string) (*License, error) {
 		return nil, nil
 	}
 
-	archive := r.archiveFactory(ArchiveFactoryArgs{Files: files})
+	archive := r.archiveFactory(resource.ArchiveFactoryArgs{Files: files})
 
 	fp, err := archive.Fingerprint()
 	if err != nil {
 		return nil, err
 	}
 
-	return NewLicense(NewResource("license", fp, archive)), nil
+	return NewLicense(resource.NewResource("license", fp, archive)), nil
 }
 
-func (r DirReaderImpl) collectFiles(path string) ([]File, error) {
-	var files []File
+func (r DirReaderImpl) collectFiles(path string) ([]resource.File, error) {
+	var files []resource.File
 
 	licenseMatches, err := r.fs.Glob(filepath.Join(path, "LICENSE*"))
 	if err != nil {
@@ -52,7 +52,7 @@ func (r DirReaderImpl) collectFiles(path string) ([]File, error) {
 	}
 
 	for _, filePath := range append(licenseMatches, noticeMatches...) {
-		file := NewFile(filePath, path)
+		file := resource.NewFile(filePath, path)
 		file.UseBasename = true
 		file.ExcludeMode = true
 		files = append(files, file)

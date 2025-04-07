@@ -130,7 +130,7 @@ func (s *extractedStemcell) GetExtractedPath() string {
 
 func (s *extractedStemcell) save() error {
 	stemcellMfPath := filepath.Join(s.extractedPath, "stemcell.MF")
-	contents, _ := yaml.Marshal(s.manifest)
+	contents, _ := yaml.Marshal(s.manifest) //nolint:errcheck
 	err := s.fs.WriteFile(stemcellMfPath, contents)
 	if err != nil {
 		return err

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type FakeUI struct {
@@ -13,8 +13,8 @@ type FakeUI struct {
 
 	Blocks []string // keep as string to make ginkgo err msgs easier
 
-	Table  Table
-	Tables []Table
+	Table  table.Table
+	Tables []table.Table
 
 	AskedTextLabels []string
 	AskedText       []Answer
@@ -85,7 +85,7 @@ func (ui *FakeUI) PrintErrorBlock(block string) {
 	ui.Blocks = append(ui.Blocks, block)
 }
 
-func (ui *FakeUI) PrintTable(table Table) {
+func (ui *FakeUI) PrintTable(table table.Table) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
@@ -93,7 +93,7 @@ func (ui *FakeUI) PrintTable(table Table) {
 	ui.Tables = append(ui.Tables, table)
 }
 
-func (ui *FakeUI) PrintTableFiltered(table Table, filterHeader []Header) {
+func (ui *FakeUI) PrintTableFiltered(table table.Table, filterHeader []table.Header) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 

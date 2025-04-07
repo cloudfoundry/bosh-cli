@@ -11,7 +11,6 @@ import (
 	biinstallation "github.com/cloudfoundry/bosh-cli/v7/installation"
 	biinstallationmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	"github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
-	mock_install "github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
 	"github.com/cloudfoundry/bosh-cli/v7/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -21,7 +20,7 @@ var _ = Describe("Installer", func() {
 		var (
 			mockCtrl             *gomock.Controller
 			mockInstaller        *mocks.MockInstaller
-			mockInstallerFactory *mock_install.MockInstallerFactory
+			mockInstallerFactory *mocks.MockInstallerFactory
 			installationManifest biinstallationmanifest.Manifest
 			installStage         *fakeui.FakeStage
 			installation         *mocks.MockInstallation
@@ -40,7 +39,7 @@ var _ = Describe("Installer", func() {
 
 		BeforeEach(func() {
 			mockInstaller = mocks.NewMockInstaller(mockCtrl)
-			mockInstallerFactory = mock_install.NewMockInstallerFactory(mockCtrl)
+			mockInstallerFactory = mocks.NewMockInstallerFactory(mockCtrl)
 
 			installationManifest = biinstallationmanifest.Manifest{}
 			installStage = fakeui.NewFakeStage()

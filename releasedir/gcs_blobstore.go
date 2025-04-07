@@ -42,7 +42,7 @@ func (b GCSBlobstore) Get(blobID string) (string, error) {
 	if err != nil {
 		return "", bosherr.WrapError(err, "Creating destination file")
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	if err := client.Get(blobID, file); err != nil {
 		return "", err
@@ -66,7 +66,7 @@ func (b GCSBlobstore) Create(path string) (string, error) {
 	if err != nil {
 		return "", bosherr.WrapError(err, "Opening source file")
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	if err := client.Put(file, blobID); err != nil {
 		return "", err

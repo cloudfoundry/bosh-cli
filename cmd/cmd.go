@@ -9,22 +9,21 @@ import (
 	"github.com/cppforlife/go-patch/patch"
 
 	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	"github.com/cloudfoundry/bosh-cli/v7/crypto"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
+	"github.com/cloudfoundry/bosh-cli/v7/pcap"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
+	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 	boshuit "github.com/cloudfoundry/bosh-cli/v7/ui/task"
 
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
-
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-	"github.com/cloudfoundry/bosh-cli/v7/pcap"
-	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type Cmd struct {
@@ -503,7 +502,7 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewVariablesCmd(deps.UI, c.deployment()).Run(*opts)
 
 	default:
-		return fmt.Errorf("Unhandled command: %#v", c.Opts)
+		return fmt.Errorf("Unhandled command: %#v", c.Opts) //nolint:staticcheck
 	}
 }
 func (c Cmd) configureUI() {

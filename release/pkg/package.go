@@ -6,7 +6,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	"github.com/cloudfoundry/bosh-cli/v7/crypto"
-	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 type ByName []*Package
@@ -16,7 +16,7 @@ func (a ByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByName) Less(i, j int) bool { return a[i].Name() < a[j].Name() }
 
 type Package struct {
-	resource Resource
+	resource resource.Resource
 	prefix   string
 
 	Dependencies    []*Package
@@ -26,18 +26,18 @@ type Package struct {
 	fs            boshsys.FileSystem
 }
 
-func NewPackage(resource Resource, dependencyNames []string) *Package {
+func NewPackage(pkgResource resource.Resource, dependencyNames []string) *Package {
 	return &Package{
-		resource: resource,
+		resource: pkgResource,
 
 		Dependencies:    []*Package{},
 		dependencyNames: dependencyNames,
 	}
 }
 
-func NewExtractedPackage(resource Resource, dependencyNames []string, extractedPath string, fs boshsys.FileSystem) *Package {
+func NewExtractedPackage(pkgResource resource.Resource, dependencyNames []string, extractedPath string, fs boshsys.FileSystem) *Package {
 	return &Package{
-		resource: resource,
+		resource: pkgResource,
 
 		Dependencies:    []*Package{},
 		dependencyNames: dependencyNames,
@@ -63,8 +63,8 @@ func (p *Package) RehashWithCalculator(calculator crypto.DigestCalculator, archi
 	return &newPkg, err
 }
 
-func (p *Package) Build(dev, final ArchiveIndex) error { return p.resource.Build(dev, final) }
-func (p *Package) Finalize(final ArchiveIndex) error {
+func (p *Package) Build(dev, final resource.ArchiveIndex) error { return p.resource.Build(dev, final) }
+func (p *Package) Finalize(final resource.ArchiveIndex) error {
 	p.resource.Prefix(p.prefix)
 	return p.resource.Finalize(final)
 }

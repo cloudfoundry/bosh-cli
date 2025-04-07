@@ -16,7 +16,6 @@ import (
 	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	biinstall "github.com/cloudfoundry/bosh-cli/v7/installation"
-	boshinst "github.com/cloudfoundry/bosh-cli/v7/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
@@ -29,7 +28,7 @@ func NewDeploymentPreparer(
 	logTag string,
 	deploymentStateService biconfig.DeploymentStateService,
 	legacyDeploymentStateMigrator biconfig.LegacyDeploymentStateMigrator,
-	releaseManager boshinst.ReleaseManager,
+	releaseManager biinstall.ReleaseManager,
 	deploymentRecord bidepl.Record,
 	cloudFactory bicloud.Factory,
 	stemcellManagerFactory bistemcell.ManagerFactory,
@@ -41,7 +40,7 @@ func NewDeploymentPreparer(
 	deploymentVars boshtpl.Variables,
 	deploymentOp patch.Op,
 	cpiInstaller bicpirel.CpiInstaller,
-	releaseFetcher boshinst.ReleaseFetcher,
+	releaseFetcher biinstall.ReleaseFetcher,
 	stemcellFetcher bistemcell.Fetcher,
 	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser,
 	deploymentManifestParser DeploymentManifestParser,
@@ -81,7 +80,7 @@ type DeploymentPreparer struct {
 	logTag                                  string
 	deploymentStateService                  biconfig.DeploymentStateService
 	legacyDeploymentStateMigrator           biconfig.LegacyDeploymentStateMigrator
-	releaseManager                          boshinst.ReleaseManager
+	releaseManager                          biinstall.ReleaseManager
 	deploymentRecord                        bidepl.Record
 	cloudFactory                            bicloud.Factory
 	stemcellManagerFactory                  bistemcell.ManagerFactory
@@ -93,7 +92,7 @@ type DeploymentPreparer struct {
 	deploymentVars                          boshtpl.Variables
 	deploymentOp                            patch.Op
 	cpiInstaller                            bicpirel.CpiInstaller
-	releaseFetcher                          boshinst.ReleaseFetcher
+	releaseFetcher                          biinstall.ReleaseFetcher
 	stemcellFetcher                         bistemcell.Fetcher
 	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser
 	deploymentManifestParser                DeploymentManifestParser

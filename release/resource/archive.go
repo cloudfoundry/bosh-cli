@@ -65,7 +65,7 @@ func (a ArchiveImpl) Build(expectedFp string) (string, string, error) {
 	}
 
 	defer func() {
-		_ = a.fs.RemoveAll(stagingDir)
+		_ = a.fs.RemoveAll(stagingDir) //nolint:errcheck
 	}()
 
 	for _, file := range a.files {

@@ -30,7 +30,7 @@ func NewSSHOpts(uuidGen boshuuid.Generator) (SSHOpts, string, error) {
 	}
 
 	// username must be <= 20 for Windows
-	nameSuffix = strings.Replace(nameSuffix, "-", "", -1)[0:15]
+	nameSuffix = strings.Replace(nameSuffix, "-", "", -1)[0:15] //nolint:staticcheck
 
 	sshOpts := SSHOpts{
 		Username:  "bosh_" + nameSuffix,

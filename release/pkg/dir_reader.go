@@ -8,12 +8,12 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/release/pkg/manifest"
-	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	"github.com/cloudfoundry/bosh-cli/v7/release/pkg/manifest"
+	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 type DirReaderImpl struct {
-	archiveFactory ArchiveFunc
+	archiveFactory resource.ArchiveFunc
 
 	srcDirPath   string
 	blobsDirPath string
@@ -22,11 +22,11 @@ type DirReaderImpl struct {
 }
 
 var (
-	fileNotFoundError = errors.New("File Not Found")
+	fileNotFoundError = errors.New("File Not Found") //nolint:staticcheck
 )
 
 func NewDirReaderImpl(
-	archiveFactory ArchiveFunc,
+	archiveFactory resource.ArchiveFunc,
 	srcDirPath string,
 	blobsDirPath string,
 	fs boshsys.FileSystem,
@@ -46,34 +46,34 @@ func (r DirReaderImpl) Read(path string) (*Package, error) {
 	}
 
 	if manifestLock != nil {
-		resource := NewExistingResource(manifestLock.Name, manifestLock.Fingerprint, "")
-		return NewPackage(resource, manifestLock.Dependencies), nil
+		existingResource := resource.NewExistingResource(manifestLock.Name, manifestLock.Fingerprint, "")
+		return NewPackage(existingResource, manifestLock.Dependencies), nil
 	}
 
-	manifest, files, prepFiles, err := r.collectFiles(path)
+	manifestFromCollectFiles, files, prepFiles, err := r.collectFiles(path)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Collecting package files")
 	}
 
 	// Note that files do not include package's spec file,
 	// but rather specify dependencies as additional chunks for the fingerprint.
-	archive := r.archiveFactory(ArchiveFactoryArgs{Files: files, PrepFiles: prepFiles, Chunks: manifest.Dependencies})
+	archive := r.archiveFactory(resource.ArchiveFactoryArgs{Files: files, PrepFiles: prepFiles, Chunks: manifestFromCollectFiles.Dependencies})
 
 	fp, err := archive.Fingerprint()
 	if err != nil {
 		return nil, err
 	}
 
-	resource := NewResource(manifest.Name, fp, archive)
+	newResource := resource.NewResource(manifestFromCollectFiles.Name, fp, archive)
 
-	return NewPackage(resource, manifest.Dependencies), nil
+	return NewPackage(newResource, manifestFromCollectFiles.Dependencies), nil
 }
 
-func (r DirReaderImpl) collectLock(path string) (*ManifestLock, error) {
+func (r DirReaderImpl) collectLock(path string) (*manifest.ManifestLock, error) {
 	path = filepath.Join(path, "spec.lock")
 
 	if r.fs.FileExists(path) {
-		manifestLock, err := NewManifestLockFromPath(path, r.fs)
+		manifestLock, err := manifest.NewManifestLockFromPath(path, r.fs)
 		if err != nil {
 			return nil, err
 		}
@@ -84,43 +84,43 @@ func (r DirReaderImpl) collectLock(path string) (*ManifestLock, error) {
 	return nil, nil
 }
 
-func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, error) {
-	var files, prepFiles []File
+func (r DirReaderImpl) collectFiles(path string) (manifest.Manifest, []resource.File, []resource.File, error) {
+	var files, prepFiles []resource.File
 
 	specPath := filepath.Join(path, "spec")
 
-	manifest, err := NewManifestFromPath(specPath, r.fs)
+	manifestFromPath, err := manifest.NewManifestFromPath(specPath, r.fs)
 	if err != nil {
-		return Manifest{}, nil, nil, err
+		return manifest.Manifest{}, nil, nil, err
 	}
 
 	packagingPath := filepath.Join(path, "packaging")
 	files, err = r.checkAndFilterDir(packagingPath, path)
 	if err != nil {
 		if errors.Is(err, fileNotFoundError) {
-			return manifest, nil, nil, bosherr.Errorf(
-				"Expected to find '%s' for package '%s'", packagingPath, manifest.Name)
+			return manifestFromPath, nil, nil, bosherr.Errorf(
+				"Expected to find '%s' for package '%s'", packagingPath, manifestFromPath.Name)
 		}
 
-		return manifest, nil, nil, bosherr.Errorf("Unexpected error occurred: %s", err)
+		return manifestFromPath, nil, nil, bosherr.Errorf("Unexpected error occurred: %s", err)
 	}
 
 	prePackagingPath := filepath.Join(path, "pre_packaging")
 	prepFiles, err = r.checkAndFilterDir(prePackagingPath, path) // can proceed if there is no pre_packaging
 	if err != nil && !errors.Is(err, fileNotFoundError) {
-		return manifest, nil, nil, bosherr.Errorf("Unexpected error occurred: %s", err)
+		return manifestFromPath, nil, nil, bosherr.Errorf("Unexpected error occurred: %s", err)
 	}
 
 	files = append(files, prepFiles...)
 
-	filesByRelPath, err := r.applyFilesPattern(manifest)
+	filesByRelPath, err := r.applyFilesPattern(manifestFromPath)
 	if err != nil {
-		return manifest, nil, nil, err
+		return manifestFromPath, nil, nil, err
 	}
 
-	excludedFiles, err := r.applyExcludedFilesPattern(manifest)
+	excludedFiles, err := r.applyExcludedFilesPattern(manifestFromPath)
 	if err != nil {
-		return manifest, nil, nil, err
+		return manifestFromPath, nil, nil, err
 	}
 
 	for _, excludedFile := range excludedFiles {
@@ -130,7 +130,7 @@ func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, erro
 	for _, specialFileName := range []string{"packaging", "pre_packaging"} {
 		if _, ok := filesByRelPath[specialFileName]; ok {
 			errMsg := "Expected special '%s' file to not be included via 'files' key for package '%s'"
-			return manifest, nil, nil, bosherr.Errorf(errMsg, specialFileName, manifest.Name)
+			return manifestFromPath, nil, nil, bosherr.Errorf(errMsg, specialFileName, manifestFromPath.Name)
 		}
 	}
 
@@ -138,29 +138,29 @@ func (r DirReaderImpl) collectFiles(path string) (Manifest, []File, []File, erro
 		files = append(files, file)
 	}
 
-	return manifest, files, prepFiles, nil
+	return manifestFromPath, files, prepFiles, nil
 }
 
-func (r DirReaderImpl) applyFilesPattern(manifest Manifest) (map[string]File, error) {
-	filesByRelPath := map[string]File{}
+func (r DirReaderImpl) applyFilesPattern(manifest manifest.Manifest) (map[string]resource.File, error) {
+	filesByRelPath := map[string]resource.File{}
 
 	for _, glob := range manifest.Files {
 		matchingFilesFound := false
 
 		srcDirMatches, err := r.fs.RecursiveGlob(filepath.Join(r.srcDirPath, glob))
 		if err != nil {
-			return map[string]File{}, bosherr.WrapErrorf(err, "Listing package files in src")
+			return map[string]resource.File{}, bosherr.WrapErrorf(err, "Listing package files in src")
 		}
 
 		for _, path := range srcDirMatches {
 			isPackageableFile, err := r.isPackageableFile(path)
 			if err != nil {
-				return map[string]File{}, bosherr.WrapErrorf(err, "Checking file packageability")
+				return map[string]resource.File{}, bosherr.WrapErrorf(err, "Checking file packageability")
 			}
 
 			if isPackageableFile {
 				matchingFilesFound = true
-				file := NewFile(path, r.srcDirPath)
+				file := resource.NewFile(path, r.srcDirPath)
 				if _, found := filesByRelPath[file.RelativePath]; !found {
 					filesByRelPath[file.RelativePath] = file
 				}
@@ -169,18 +169,18 @@ func (r DirReaderImpl) applyFilesPattern(manifest Manifest) (map[string]File, er
 
 		blobsDirMatches, err := r.fs.RecursiveGlob(filepath.Join(r.blobsDirPath, glob))
 		if err != nil {
-			return map[string]File{}, bosherr.WrapErrorf(err, "Listing package files in blobs")
+			return map[string]resource.File{}, bosherr.WrapErrorf(err, "Listing package files in blobs")
 		}
 
 		for _, path := range blobsDirMatches {
 			isPackageableFile, err := r.isPackageableFile(path)
 			if err != nil {
-				return map[string]File{}, bosherr.WrapErrorf(err, "Checking file packageability")
+				return map[string]resource.File{}, bosherr.WrapErrorf(err, "Checking file packageability")
 			}
 
 			if isPackageableFile {
 				matchingFilesFound = true
-				file := NewFile(path, r.blobsDirPath)
+				file := resource.NewFile(path, r.blobsDirPath)
 				if _, found := filesByRelPath[file.RelativePath]; !found {
 					filesByRelPath[file.RelativePath] = file
 				}
@@ -195,27 +195,27 @@ func (r DirReaderImpl) applyFilesPattern(manifest Manifest) (map[string]File, er
 	return filesByRelPath, nil
 }
 
-func (r DirReaderImpl) applyExcludedFilesPattern(manifest Manifest) ([]File, error) {
-	var excludedFiles []File
+func (r DirReaderImpl) applyExcludedFilesPattern(inputManifest manifest.Manifest) ([]resource.File, error) {
+	var excludedFiles []resource.File
 
-	for _, glob := range manifest.ExcludedFiles {
+	for _, glob := range inputManifest.ExcludedFiles {
 		srcDirMatches, err := r.fs.RecursiveGlob(filepath.Join(r.srcDirPath, glob))
 		if err != nil {
-			return []File{}, bosherr.WrapErrorf(err, "Listing package excluded files in src")
+			return []resource.File{}, bosherr.WrapErrorf(err, "Listing package excluded files in src")
 		}
 
 		for _, path := range srcDirMatches {
-			file := NewFile(path, r.srcDirPath)
+			file := resource.NewFile(path, r.srcDirPath)
 			excludedFiles = append(excludedFiles, file)
 		}
 
 		blobsDirMatches, err := r.fs.RecursiveGlob(filepath.Join(r.blobsDirPath, glob))
 		if err != nil {
-			return []File{}, bosherr.WrapErrorf(err, "Listing package excluded files in blobs")
+			return []resource.File{}, bosherr.WrapErrorf(err, "Listing package excluded files in blobs")
 		}
 
 		for _, path := range blobsDirMatches {
-			file := NewFile(path, r.blobsDirPath)
+			file := resource.NewFile(path, r.blobsDirPath)
 			excludedFiles = append(excludedFiles, file)
 		}
 	}
@@ -223,8 +223,8 @@ func (r DirReaderImpl) applyExcludedFilesPattern(manifest Manifest) ([]File, err
 	return excludedFiles, nil
 }
 
-func (r DirReaderImpl) checkAndFilterDir(packagePath, path string) ([]File, error) {
-	var files []File
+func (r DirReaderImpl) checkAndFilterDir(packagePath, path string) ([]resource.File, error) {
+	var files []resource.File
 
 	if r.fs.FileExists(packagePath) {
 		isPackageableFile, err := r.isPackageableFile(packagePath)
@@ -233,14 +233,14 @@ func (r DirReaderImpl) checkAndFilterDir(packagePath, path string) ([]File, erro
 		}
 
 		if isPackageableFile {
-			file := NewFile(packagePath, path)
+			file := resource.NewFile(packagePath, path)
 			file.ExcludeMode = true
 			files = append(files, file)
 		}
 		return files, nil
 	}
 
-	return []File{}, fileNotFoundError
+	return []resource.File{}, fileNotFoundError
 }
 
 func (r DirReaderImpl) isPackageableFile(path string) (bool, error) {

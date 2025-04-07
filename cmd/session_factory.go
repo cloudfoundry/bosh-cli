@@ -5,7 +5,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 

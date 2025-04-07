@@ -111,7 +111,7 @@ func (c *DirectorQuery) listDirectorApiEndpoints(prefix string) ([]string, error
 
 func (c *DirectorQuery) readFromCache(group string) (cache *CompleteCache, values []string, valid bool) {
 	cache = NewCompleteCache(c.logger, c.cmdContext, group)
-	if values, valid, _ = cache.GetValues(); valid {
+	if values, valid, _ = cache.GetValues(); valid { //nolint:errcheck
 		c.logger.Debug(c.logTag, "'%' read from cache %s", group, cache)
 		return cache, values, valid
 	} else {

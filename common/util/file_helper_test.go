@@ -44,7 +44,7 @@ var _ = Describe("AbsolutifyPath", func() {
 			Context("file path starts with ~", func() {
 				It("expands the file path", func() {
 					fakeFilePath = "~/fake/absolute/path/file.tgz"
-					currentUserHome, _ := realfs.HomeDir("")
+					currentUserHome, _ := realfs.HomeDir("") //nolint:errcheck
 
 					result, err := util.AbsolutifyPath(fakeManifestPath, fakeFilePath, realfs)
 					Expect(result).To(Equal(currentUserHome + filepath.Join("/", "fake", "absolute", "path", "file.tgz")))

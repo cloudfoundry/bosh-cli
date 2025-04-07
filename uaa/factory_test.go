@@ -117,8 +117,8 @@ var _ = Describe("Factory", func() {
 		// prematurely closing the connection. The goal of this slightly-hacky
 		// method is to test the retry behavior of the lower-level http client.
 		terminateHTTPConnection := func(w http.ResponseWriter, req *http.Request) {
-			conn, _, _ := w.(http.Hijacker).Hijack()
-			conn.Close()
+			conn, _, _ := w.(http.Hijacker).Hijack() //nolint:errcheck
+			conn.Close()                             //nolint:errcheck
 		}
 
 		It("retries request 3 times if server cannot be reached", func() {

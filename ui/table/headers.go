@@ -42,7 +42,7 @@ func (t *Table) SetColumnVisibility(headers []Header) error {
 
 		if !foundHeader {
 			// key may be empty; if title is present
-			return fmt.Errorf("Failed to find header: %s", header.Key)
+			return fmt.Errorf("Failed to find header: %s", header.Key) //nolint:staticcheck
 		}
 	}
 
@@ -78,7 +78,7 @@ func (t *Table) SetColumnVisibilityFiltered(headers []Header, filterHeaders []He
 
 		if !foundHeader {
 			// key may be empty; if title is present
-			return fmt.Errorf("Failed to find header: %s", header.Key)
+			return fmt.Errorf("Failed to find header: %s", header.Key) //nolint:staticcheck
 		}
 	}
 

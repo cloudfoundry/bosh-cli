@@ -40,7 +40,7 @@ func (e testEnvironment) Path(name string) string {
 
 func (e testEnvironment) Copy(destName, srcPath string) error {
 	if srcPath == "" {
-		return fmt.Errorf("Cannot use an empty source file path '' for destination file '%s'", destName)
+		return fmt.Errorf("Cannot use an empty source file path '' for destination file '%s'", destName) //nolint:staticcheck
 	}
 
 	_, _, exitCode, err := e.cmdRunner.RunCommand(

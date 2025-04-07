@@ -15,7 +15,7 @@ export PATH=${go_bin_path}:${PATH}
 
 golangci-lint version
 
-linted_os_list=(linux)
+linted_os_list=(linux darwin)
 
 for os in "${linted_os_list[@]}"; do
   echo "lint-ing with GOOS=${os}..."
