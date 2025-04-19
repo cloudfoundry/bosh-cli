@@ -21,13 +21,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"time"
 
 	"golang.org/x/oauth2/google"
 
-	"log"
-
 	"cloud.google.com/go/storage"
+
 	"github.com/cloudfoundry/bosh-gcscli/config"
 )
 
@@ -144,8 +144,8 @@ func (client *GCSBlobstore) Put(src io.ReadSeeker, dest string) error {
 }
 
 func (client *GCSBlobstore) putOnce(src io.ReadSeeker, dest string) error {
-	remoteWriter := client.getObjectHandle(client.authenticatedGCS, dest).NewWriter(context.Background())
-	remoteWriter.ObjectAttrs.StorageClass = client.config.StorageClass
+	remoteWriter := client.getObjectHandle(client.authenticatedGCS, dest).NewWriter(context.Background()) //nolint:staticcheck
+	remoteWriter.ObjectAttrs.StorageClass = client.config.StorageClass                                    //nolint:staticcheck
 
 	if _, err := io.Copy(remoteWriter, src); err != nil {
 		remoteWriter.CloseWithError(err) //nolint:errcheck,staticcheck
