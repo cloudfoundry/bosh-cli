@@ -51,7 +51,7 @@ func (a SCPArgs) ForHost(host boshdir.Host) []string {
 		}
 
 		for i := range pieces {
-			pieces[i] = strings.Replace(pieces[i], "((instance_id))", host.IndexOrID, -1)
+			pieces[i] = strings.Replace(pieces[i], "((instance_id))", host.IndexOrID, -1) //nolint:staticcheck
 		}
 
 		args = append(args, strings.Join(pieces, ":"))

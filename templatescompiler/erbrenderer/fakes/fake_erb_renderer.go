@@ -49,7 +49,7 @@ func (f *FakeERBRenderer) Render(srcPath, dstPath string, context bierbrenderer.
 		return output.err
 	}
 
-	return fmt.Errorf("Unsupported Input: Render('%s', '%s', '%s')", srcPath, dstPath, context)
+	return fmt.Errorf("Unsupported Input: Render('%s', '%s', '%s')", srcPath, dstPath, context) //nolint:staticcheck
 }
 
 func (f *FakeERBRenderer) SetRenderBehavior(srcPath, dstPath string, context bierbrenderer.TemplateEvaluationContext, err error) error {

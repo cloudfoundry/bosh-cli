@@ -17,7 +17,7 @@ type Config struct {
 func NewConfig(fs boshsys.FileSystem) (*Config, error) {
 	path := os.Getenv("BOSH_INIT_CONFIG_PATH")
 	if path == "" {
-		return &Config{}, errors.New("Must provide config file via BOSH_INIT_CONFIG_PATH environment variable")
+		return &Config{}, errors.New("Must provide config file via BOSH_INIT_CONFIG_PATH environment variable") //nolint:staticcheck
 	}
 
 	configContents, err := fs.ReadFile(path)
@@ -36,15 +36,15 @@ func NewConfig(fs boshsys.FileSystem) (*Config, error) {
 
 func (c *Config) Validate() error {
 	if c.StemcellPath == "" {
-		return errors.New("Must provide 'stemcell_path' in config")
+		return errors.New("Must provide 'stemcell_path' in config") //nolint:staticcheck
 	}
 
 	if c.CPIReleasePath == "" {
-		return errors.New("Must provide 'cpi_release_path' in config")
+		return errors.New("Must provide 'cpi_release_path' in config") //nolint:staticcheck
 	}
 
 	if c.DummyCompiledReleasePath == "" {
-		return errors.New("Must provide 'dummy_compiled_release_path' in config")
+		return errors.New("Must provide 'dummy_compiled_release_path' in config") //nolint:staticcheck
 	}
 
 	return nil

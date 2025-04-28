@@ -249,7 +249,7 @@ func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser, href string) (Blob
 		return Blob{}, bosherr.WrapErrorf(err, "Creating temp blob")
 	}
 
-	defer tempFile.Close()
+	defer tempFile.Close() //nolint:errcheck
 
 	_, err = io.Copy(tempFile, src)
 	if err != nil {
@@ -288,7 +288,7 @@ func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser, href string) (Blob
 
 	blobs[idx] = Blob{Path: path, Size: fileInfo.Size(), SHA1: sha1, HREF: href}
 
-	tempFile.Close()
+	tempFile.Close() //nolint:errcheck
 
 	err = d.moveBlobLocally(tempFile.Name(), filepath.Join(d.dirPath, path))
 	if err != nil {

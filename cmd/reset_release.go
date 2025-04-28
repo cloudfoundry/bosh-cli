@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 )
 

@@ -1,6 +1,7 @@
 package instance
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -201,7 +202,8 @@ func (i *instance) Delete(
 	stepName := fmt.Sprintf("Deleting VM '%s'", i.vm.CID())
 	return stage.Perform(stepName, func() error {
 		err := i.vm.Delete()
-		cloudErr, ok := err.(bicloud.Error)
+		var cloudErr bicloud.Error
+		ok := errors.As(err, &cloudErr)
 		if ok && cloudErr.Type() == bicloud.VMNotFoundError {
 			return biui.NewSkipStageError(cloudErr, "VM not found")
 		}
@@ -216,7 +218,7 @@ func (i *instance) Stop(
 	stage biui.Stage,
 ) error {
 
-	return i.shutdown(pingTimeout, pingDelay, skipDrain, true, stage) //; err != nil {
+	return i.shutdown(pingTimeout, pingDelay, skipDrain, true, stage)
 }
 
 func (i *instance) Start(

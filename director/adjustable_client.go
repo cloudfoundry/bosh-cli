@@ -40,7 +40,7 @@ func (c AdjustableClient) Do(req *http.Request) (*http.Response, error) {
 
 	originalBody, err := httpclient.MakeReplayable(req)
 	if originalBody != nil {
-		defer originalBody.Close()
+		defer originalBody.Close() //nolint:errcheck
 	}
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Making the request retryable")
@@ -52,7 +52,7 @@ func (c AdjustableClient) Do(req *http.Request) (*http.Response, error) {
 	}
 
 	if c.adjustment.NeedsReadjustment(resp) {
-		resp.Body.Close()
+		resp.Body.Close() //nolint:errcheck
 
 		if req.GetBody != nil {
 			req.Body, err = req.GetBody()

@@ -13,7 +13,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-cli/v7/cloud"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
@@ -166,7 +165,7 @@ var _ = Describe("Manager", func() {
 			_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeCloud.SetVMMetadataCid).To(Equal("fake-vm-cid"))
-			Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
+			Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(bicloud.VMMetadata{
 				"deployment":     "fake-deployment",
 				"job":            "fake-job",
 				"instance_group": "fake-job",
@@ -208,7 +207,7 @@ var _ = Describe("Manager", func() {
 					},
 				))
 
-				Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
+				Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(bicloud.VMMetadata{
 					"deployment":     "fake-deployment",
 					"job":            "fake-job",
 					"name":           "fake-job/0",
@@ -235,7 +234,7 @@ var _ = Describe("Manager", func() {
 					_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(cloud.VMMetadata{
+					Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(bicloud.VMMetadata{
 						"deployment":     "manifest-deployment",
 						"job":            "manifest-job",
 						"name":           "awesome-name",
@@ -273,7 +272,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("ignores not implemented error", func() {
-				notImplementedCloudError := cloud.NewCPIError("set_vm_metadata", cloud.CmdError{
+				notImplementedCloudError := bicloud.NewCPIError("set_vm_metadata", bicloud.CmdError{
 					Type:      "Bosh::Clouds::NotImplemented",
 					Message:   "set_vm_metadata is not implemented by VCloudCloud::Cloud",
 					OkToRetry: false,

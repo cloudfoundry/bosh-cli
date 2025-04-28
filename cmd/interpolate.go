@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/cppforlife/go-patch/patch"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
@@ -19,8 +19,8 @@ func NewInterpolateCmd(ui boshui.UI) InterpolateCmd {
 func (c InterpolateCmd) Run(opts InterpolateOpts) error {
 	tpl := boshtpl.NewTemplate(opts.Args.Manifest.Bytes)
 
-	vars := opts.VarFlags.AsVariables()
-	op := opts.OpsFlags.AsOp()
+	vars := opts.VarFlags.AsVariables() //nolint:staticcheck
+	op := opts.OpsFlags.AsOp()          //nolint:staticcheck
 	evalOpts := boshtpl.EvaluateOpts{
 		ExpectAllKeys:     opts.VarErrors,
 		ExpectAllVarsUsed: opts.VarErrorsUnused,

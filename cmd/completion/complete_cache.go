@@ -1,7 +1,7 @@
 package completion
 
 import (
-	"crypto/md5"
+	"crypto/md5" //nolint:gosec
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -59,16 +59,16 @@ func (c *CompleteCache) configure(cmdContext *CmdContext, group string) {
 }
 
 func (c *CompleteCache) normalizeString(str string) string {
-	matched, _ := regexp.MatchString("^[a-zA-Z0-9_-]+$", str)
+	matched, _ := regexp.MatchString("^[a-zA-Z0-9_-]+$", str) //nolint:errcheck
 	if matched {
-		hash := md5.Sum([]byte(str))
+		hash := md5.Sum([]byte(str)) //nolint:gosec
 		return hex.EncodeToString(hash[:])
 	} else {
 		return str
 	}
 }
 func (c *CompleteCache) prepareCacheDir(cmdContext *CmdContext) string {
-	basePath, _ := c.normalizeDirPath(cmdContext.ConfigPath)
+	basePath, _ := c.normalizeDirPath(cmdContext.ConfigPath) //nolint:errcheck
 	basePath = filepath.Join(filepath.Dir(basePath), "completion-cache")
 	c.logger.Debug(c.logTag, "cache directory '%s', config directory '%s'", basePath, cmdContext.ConfigPath)
 	if err := c.ensureDirExists(basePath); err != nil {
@@ -141,7 +141,7 @@ func (c *CompleteCache) GetValues() (values []string, valid bool, err error) {
 	}
 	valid = time.Since(item.Timestamp) < c.expirationPeriod
 	if !valid {
-		_ = c.store.Erase(c.cacheKey)
+		_ = c.store.Erase(c.cacheKey) //nolint:errcheck
 	}
 	return item.Values, valid, nil
 }

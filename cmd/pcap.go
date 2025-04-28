@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"unicode"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	"github.com/cloudfoundry/bosh-cli/v7/pcap"
 )
@@ -33,7 +33,7 @@ func NewPcapCmd(
 }
 
 func (c PcapCmd) Run(opts PcapOpts) error {
-	sshOpts, connOpts, err := opts.GatewayFlags.AsSSHOpts()
+	sshOpts, connOpts, err := opts.GatewayFlags.AsSSHOpts() //nolint:staticcheck
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func (c PcapCmd) Run(opts PcapOpts) error {
 
 	defer func() {
 		for _, slug := range slugs {
-			_ = c.deployment.CleanUpSSH(slug, sshOpts)
+			_ = c.deployment.CleanUpSSH(slug, sshOpts) //nolint:errcheck
 		}
 	}()
 

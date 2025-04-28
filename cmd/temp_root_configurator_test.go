@@ -38,7 +38,7 @@ var _ = Describe("TempRootConfigurator", func() {
 		var expectTempFileToBeCreatedUnderRoot = func(root, prefix string, fs boshsys.FileSystem) {
 			file, err := fs.TempFile(prefix)
 			Expect(err).ToNot(HaveOccurred())
-			defer os.Remove(file.Name())
+			defer os.Remove(file.Name()) //nolint:errcheck
 
 			Expect(file.Name()).To(HavePrefix(filepath.Join(root, prefix)))
 		}

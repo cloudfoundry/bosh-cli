@@ -38,7 +38,8 @@ var _ = Describe("Instances", func() {
 					ghttp.VerifyRequest("GET", "/deployments/dep/instances", "format=full"),
 					ghttp.VerifyBasicAuth("username", "password"),
 				),
-				strings.Replace(`{
+				strings.Replace( //nolint:staticcheck
+					`{
 	"agent_id": "agent-id",
 	"job_name": "job",
 	"id": "id",
@@ -183,7 +184,8 @@ var _ = Describe("Instances", func() {
 			server.AppendHandlers(ghttp.CombineHandlers(
 				ghttp.VerifyRequest("GET", "/deployments/dep/instances"),
 				ghttp.VerifyBasicAuth("username", "password"),
-				ghttp.RespondWith(http.StatusOK, strings.Replace(`[
+				ghttp.RespondWith(http.StatusOK, strings.Replace( //nolint:staticcheck
+					`[
     {
         "agent_id": "agent-id",
         "cid": "vm-cid",

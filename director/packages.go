@@ -11,9 +11,9 @@ func (d DirectorImpl) MatchPackages(manifest interface{}, compiled bool) ([]stri
 	var matches []string
 
 	if compiled {
-		matches, _ = d.client.MatchCompiledPackages(manifest)
+		matches, _ = d.client.MatchCompiledPackages(manifest) //nolint:errcheck
 	} else {
-		matches, _ = d.client.MatchPackages(manifest)
+		matches, _ = d.client.MatchPackages(manifest) //nolint:errcheck
 	}
 
 	return matches, nil

@@ -3,7 +3,7 @@ package ui
 import (
 	"fmt"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type indentingUI struct {
@@ -38,11 +38,11 @@ func (ui *indentingUI) PrintErrorBlock(block string) {
 	ui.parent.PrintErrorBlock(block)
 }
 
-func (ui *indentingUI) PrintTable(table Table) {
+func (ui *indentingUI) PrintTable(table table.Table) {
 	ui.parent.PrintTable(table)
 }
 
-func (ui *indentingUI) PrintTableFiltered(table Table, filterHeader []Header) {
+func (ui *indentingUI) PrintTableFiltered(table table.Table, filterHeader []table.Header) {
 	ui.parent.PrintTableFiltered(table, filterHeader)
 }
 

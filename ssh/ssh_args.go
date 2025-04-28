@@ -94,7 +94,7 @@ func (a SSHArgs) OptsForHost(host boshdir.Host) []string {
 		proxyString := a.ConnOpts.SOCKS5Proxy
 		if strings.HasPrefix(proxyString, "ssh+") {
 			a.Socks5Proxy.StartWithDialer(a.dialer) //nolint:errcheck
-			proxyString, _ = a.Socks5Proxy.Addr()
+			proxyString, _ = a.Socks5Proxy.Addr()   //nolint:errcheck
 		}
 
 		proxyOpt := formProxyOpt(a.CmdExistenceChecker, strings.TrimPrefix(proxyString, "socks5://"))

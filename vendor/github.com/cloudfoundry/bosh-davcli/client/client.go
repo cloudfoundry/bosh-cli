@@ -12,10 +12,11 @@ import (
 
 	URLsigner "github.com/cloudfoundry/bosh-davcli/signer"
 
-	davconf "github.com/cloudfoundry/bosh-davcli/config"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+
+	davconf "github.com/cloudfoundry/bosh-davcli/config"
 )
 
 type Client interface {
@@ -63,7 +64,7 @@ func (c client) Get(path string) (io.ReadCloser, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Getting dav blob %s: Wrong response code: %d; body: %s", path, resp.StatusCode, c.readAndTruncateBody(resp))
+		return nil, fmt.Errorf("Getting dav blob %s: Wrong response code: %d; body: %s", path, resp.StatusCode, c.readAndTruncateBody(resp)) //nolint:staticcheck
 	}
 
 	return resp.Body, nil
@@ -74,7 +75,7 @@ func (c client) Put(path string, content io.ReadCloser, contentLength int64) err
 	if err != nil {
 		return err
 	}
-	defer content.Close()
+	defer content.Close() //nolint:errcheck
 
 	req.ContentLength = contentLength
 	resp, err := c.httpClient.Do(req)
@@ -83,7 +84,7 @@ func (c client) Put(path string, content io.ReadCloser, contentLength int64) err
 	}
 
 	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("Putting dav blob %s: Wrong response code: %d; body: %s", path, resp.StatusCode, c.readAndTruncateBody(resp))
+		return fmt.Errorf("Putting dav blob %s: Wrong response code: %d; body: %s", path, resp.StatusCode, c.readAndTruncateBody(resp)) //nolint:staticcheck
 	}
 
 	return nil

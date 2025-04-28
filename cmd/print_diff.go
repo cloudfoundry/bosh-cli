@@ -20,7 +20,7 @@ func (d Diff) Print(ui boshui.UI) {
 	for _, line := range d.lines {
 		lineMod, _ := line[1].(string)
 
-		if lineMod == "added" {
+		if lineMod == "added" { //nolint:staticcheck
 			ui.BeginLinef("+ %s\n", line[0])
 		} else if lineMod == "removed" {
 			ui.BeginLinef("- %s\n", line[0])
@@ -35,7 +35,7 @@ func (d Diff) String() string {
 	for _, line := range d.lines {
 		lineMod, _ := line[1].(string)
 
-		if lineMod == "added" {
+		if lineMod == "added" { //nolint:staticcheck
 			result += fmt.Sprintf("+ %s\n", line[0])
 		} else if lineMod == "removed" {
 			result += fmt.Sprintf("- %s\n", line[0])

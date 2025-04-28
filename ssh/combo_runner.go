@@ -58,9 +58,7 @@ func (r ComboRunner) Run(connOpts ConnectionOpts, result boshdir.SSHResult, cmdF
 		return bosherr.WrapErrorf(err, "Setting up SSH session")
 	}
 
-	defer func() {
-		_ = sess.Finish()
-	}()
+	defer sess.Finish() //nolint:errcheck
 
 	cancelCh := make(chan struct{}, 1)
 
@@ -111,7 +109,7 @@ func (r ComboRunner) runCmds(cmds []comboRunnerCmd) ([]boshsys.Process, chan []b
 		process, err := r.cmdRunner.RunComplexCommandAsync(cmd.Command)
 		if err != nil {
 			r.logger.Error(r.logTag, "Process immediately failed")
-			cmd.InstanceWriter.End(0, err)
+			cmd.InstanceWriter.End(0, err) //nolint:staticcheck
 			allResultsCh <- boshsys.Result{Error: err}
 			continue
 		}
@@ -196,7 +194,7 @@ func (r ComboRunner) setUpInterrupt(cancelCh chan<- struct{}, sess Session) {
 		r.ui.PrintLinef("\nReceived a signal, exiting...\n")
 
 		// Aggressively clear session, even though it may be cleared later
-		_ = sess.Finish()
+		_ = sess.Finish() //nolint:errcheck
 
 		cancelCh <- struct{}{}
 	}

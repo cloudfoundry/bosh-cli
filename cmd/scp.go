@@ -6,10 +6,9 @@ import (
 	bihttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
-
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 )
 
 type SCPCmd struct {
@@ -36,7 +35,7 @@ func (c SCPCmd) Run(opts SCPOpts, deploymentFetcher boshssh.DeploymentFetcher) e
 		return err
 	}
 
-	sshOpts, connOpts, err := opts.GatewayFlags.AsSSHOpts()
+	sshOpts, connOpts, err := opts.GatewayFlags.AsSSHOpts() //nolint:staticcheck
 	if err != nil {
 		return err
 	}
@@ -57,7 +56,7 @@ func (c SCPCmd) Run(opts SCPOpts, deploymentFetcher boshssh.DeploymentFetcher) e
 		}
 
 		defer func() {
-			_ = c.deployment.CleanUpSSH(slug, sshOpts)
+			_ = c.deployment.CleanUpSSH(slug, sshOpts) //nolint:errcheck
 		}()
 	} else {
 		// no automatic source of host key
@@ -117,7 +116,7 @@ func (c EnvSCPCmd) Run(opts SCPOpts) error {
 
 	scpArgs := boshssh.NewSCPArgs(opts.Args.Paths, opts.Recursive)
 
-	sshOpts, connOpts, err := opts.GatewayFlags.AsSSHOpts()
+	sshOpts, connOpts, err := opts.GatewayFlags.AsSSHOpts() //nolint:staticcheck
 	if err != nil {
 		return err
 	}
@@ -139,7 +138,7 @@ func (c EnvSCPCmd) Run(opts SCPOpts) error {
 	}
 
 	defer func() {
-		_, _ = agentClient.CleanUpSSH(sshOpts.Username)
+		_, _ = agentClient.CleanUpSSH(sshOpts.Username) //nolint:errcheck
 	}()
 
 	// host key will be returned by agent over HTTPS

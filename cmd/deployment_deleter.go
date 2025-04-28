@@ -14,7 +14,6 @@ import (
 	bidepl "github.com/cloudfoundry/bosh-cli/v7/deployment"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	biinstall "github.com/cloudfoundry/bosh-cli/v7/installation"
-	boshinst "github.com/cloudfoundry/bosh-cli/v7/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
@@ -29,7 +28,7 @@ func NewDeploymentDeleter(
 	logTag string,
 	logger boshlog.Logger,
 	deploymentStateService biconfig.DeploymentStateService,
-	releaseManager boshinst.ReleaseManager,
+	releaseManager biinstall.ReleaseManager,
 	cloudFactory bicloud.Factory,
 	agentClientFactory bihttpagent.AgentClientFactory,
 	blobstoreFactory biblobstore.Factory,
@@ -39,7 +38,7 @@ func NewDeploymentDeleter(
 	deploymentOp patch.Op,
 	cpiInstaller bicpirel.CpiInstaller,
 	cpiUninstaller biinstall.Uninstaller,
-	releaseFetcher boshinst.ReleaseFetcher,
+	releaseFetcher biinstall.ReleaseFetcher,
 	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser,
 	tempRootConfigurator TempRootConfigurator,
 	targetProvider biinstall.TargetProvider,
@@ -71,7 +70,7 @@ type deploymentDeleter struct {
 	logTag                                  string
 	logger                                  boshlog.Logger
 	deploymentStateService                  biconfig.DeploymentStateService
-	releaseManager                          boshinst.ReleaseManager
+	releaseManager                          biinstall.ReleaseManager
 	cloudFactory                            bicloud.Factory
 	agentClientFactory                      bihttpagent.AgentClientFactory
 	blobstoreFactory                        biblobstore.Factory
@@ -81,7 +80,7 @@ type deploymentDeleter struct {
 	deploymentOp                            patch.Op
 	cpiInstaller                            bicpirel.CpiInstaller
 	cpiUninstaller                          biinstall.Uninstaller
-	releaseFetcher                          boshinst.ReleaseFetcher
+	releaseFetcher                          biinstall.ReleaseFetcher
 	releaseSetAndInstallationManifestParser ReleaseSetAndInstallationManifestParser
 	tempRootConfigurator                    TempRootConfigurator
 	targetProvider                          biinstall.TargetProvider
@@ -227,7 +226,7 @@ func (c *deploymentDeleter) deploymentManager(installation biinstall.Installatio
 
 	c.logger.Debug(c.logTag, "Creating agent client...")
 
-	agentClient, _ := c.agentClientFactory.NewAgentClient(directorID, installationMbus, caCert)
+	agentClient, _ := c.agentClientFactory.NewAgentClient(directorID, installationMbus, caCert) //nolint:errcheck
 
 	c.logger.Debug(c.logTag, "Creating blobstore client...")
 

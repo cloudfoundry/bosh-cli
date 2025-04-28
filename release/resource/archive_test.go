@@ -226,7 +226,7 @@ var _ = Describe("Archive", func() {
 
 		AfterEach(func() {
 			if fs != nil {
-				_ = fs.RemoveAll(uniqueDir)
+				_ = fs.RemoveAll(uniqueDir) //nolint:errcheck
 			}
 			syscall.Umask(existingUmask)
 		})

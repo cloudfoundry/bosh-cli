@@ -20,7 +20,7 @@ func prefixingMultilineError(err error, prefix string, bullet string) string {
 	currPrefix := prefix + bullet
 	prefix = prefix + strings.Repeat(" ", len(bullet))
 
-	switch specificErr := err.(type) {
+	switch specificErr := err.(type) { //nolint:errorlint
 	case bosherr.ComplexError:
 		return currPrefix + specificErr.Err.Error() + ":\n" + prefixingMultilineError(specificErr.Cause, prefix+Indent, "")
 	case bosherr.MultiError:
@@ -45,5 +45,5 @@ func prefixingMultilineError(err error, prefix string, bullet string) string {
 }
 
 func prefixEachLine(str string, prefix string) string {
-	return prefix + strings.Replace(str, "\n", "\n"+prefix, -1)
+	return prefix + strings.Replace(str, "\n", "\n"+prefix, -1) //nolint:staticcheck
 }

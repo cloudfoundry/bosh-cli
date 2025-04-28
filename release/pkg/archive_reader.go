@@ -6,7 +6,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
 	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
-	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
+	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 type ArchiveReaderImpl struct {
@@ -28,7 +28,7 @@ func NewArchiveReaderImpl(
 }
 
 func (r ArchiveReaderImpl) Read(ref boshman.PackageRef, path string) (*Package, error) {
-	resource := NewResourceWithBuiltArchive(ref.Name, ref.Fingerprint, path, ref.SHA1)
+	resource := resource.NewResourceWithBuiltArchive(ref.Name, ref.Fingerprint, path, ref.SHA1)
 
 	pkg := NewPackage(resource, ref.Dependencies)
 

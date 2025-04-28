@@ -63,14 +63,14 @@ var _ = Describe("JobRenderer", func() {
 		fs = fakesys.NewFakeFileSystem()
 		jobRenderer = NewJobRenderer(fakeERBRenderer, fs, nil, logger)
 
-		_ = fakeERBRenderer.SetRenderBehavior(
+		_ = fakeERBRenderer.SetRenderBehavior( //nolint:errcheck
 			filepath.Join(srcPath, "templates/director.yml.erb"),
 			filepath.Join(dstPath, "config/director.yml"),
 			context,
 			nil,
 		)
 
-		_ = fakeERBRenderer.SetRenderBehavior(
+		_ = fakeERBRenderer.SetRenderBehavior( //nolint:errcheck
 			filepath.Join(srcPath, "monit"),
 			filepath.Join(dstPath, "monit"),
 			context,
@@ -106,7 +106,7 @@ var _ = Describe("JobRenderer", func() {
 
 		Context("when rendering fails", func() {
 			BeforeEach(func() {
-				_ = fakeERBRenderer.SetRenderBehavior(
+				_ = fakeERBRenderer.SetRenderBehavior( //nolint:errcheck
 					filepath.Join(srcPath, "templates/director.yml.erb"),
 					filepath.Join(dstPath, "config/director.yml"),
 					context,
@@ -115,7 +115,7 @@ var _ = Describe("JobRenderer", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := jobRenderer.Render(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
+				_, err := jobRenderer.Render(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4") //nolint:errcheck
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-template-render-error"))
 			})

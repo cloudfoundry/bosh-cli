@@ -104,7 +104,7 @@ func (b *jobRenderer) compressAndUpload(renderedJob bitemplate.RenderedJob) (Ren
 	}
 
 	defer func() {
-		_ = b.compressor.CleanUp(tarballPath)
+		_ = b.compressor.CleanUp(tarballPath) //nolint:errcheck
 	}()
 
 	blobID, digest, err := b.blobstore.Create(tarballPath)

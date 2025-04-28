@@ -3,7 +3,7 @@ package cmd
 import (
 	"errors"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	boshuit "github.com/cloudfoundry/bosh-cli/v7/ui/task"
 )
@@ -42,7 +42,7 @@ func (c TaskCmd) Run(opts TaskOpts) error {
 		}
 
 		if len(tasks) == 0 {
-			return errors.New("No task found")
+			return errors.New("No task found") //nolint:staticcheck
 		}
 
 		task = tasks[0]

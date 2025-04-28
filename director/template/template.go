@@ -135,11 +135,11 @@ func (i interpolator) Interpolate(node interface{}, varsLookup varsLookup) (inte
 				switch foundVal.(type) {
 				case string, int, int16, int32, int64, uint, uint16, uint32, uint64:
 					foundValStr := fmt.Sprintf("%v", foundVal)
-					typedNode = strings.Replace(typedNode, fmt.Sprintf("((%s))", name), foundValStr, -1)
-					typedNode = strings.Replace(typedNode, fmt.Sprintf("((!%s))", name), foundValStr, -1)
+					typedNode = strings.Replace(typedNode, fmt.Sprintf("((%s))", name), foundValStr, -1)  //nolint:staticcheck
+					typedNode = strings.Replace(typedNode, fmt.Sprintf("((!%s))", name), foundValStr, -1) //nolint:staticcheck
 				default:
 					errMsg := "Invalid type '%T' for value '%v' and variable '%s'. Supported types for interpolation within a string are integers and strings."
-					return nil, fmt.Errorf(errMsg, foundVal, foundVal, name)
+					return nil, fmt.Errorf(errMsg, foundVal, foundVal, name) //nolint:staticcheck
 				}
 			}
 		}

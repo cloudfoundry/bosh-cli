@@ -45,7 +45,6 @@ import (
 	mockinstall "github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
 	bitarball "github.com/cloudfoundry/bosh-cli/v7/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-cli/v7/release"
-	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	birelpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
@@ -282,7 +281,7 @@ cloud_provider:
 				"fake-cpi-extracted-dir",
 				fs,
 			)
-			releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
+			releaseReader.ReadStub = func(path string) (birel.Release, error) {
 				Expect(path).To(Equal("/fake-cpi-release.tgz"))
 				err := fs.MkdirAll("fake-cpi-extracted-dir", os.ModePerm)
 				Expect(err).ToNot(HaveOccurred())
@@ -853,7 +852,7 @@ cloud_provider:
 					"fake-other-extracted-dir",
 					fs,
 				)
-				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
+				releaseReader.ReadStub = func(path string) (birel.Release, error) {
 					Expect(path).To(Equal(otherReleaseTarballPath))
 					err := fs.MkdirAll("fake-other-extracted-dir", os.ModePerm)
 					Expect(err).ToNot(HaveOccurred())

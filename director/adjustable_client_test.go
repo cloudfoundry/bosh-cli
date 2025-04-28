@@ -98,7 +98,7 @@ var _ = Describe("AdjustableClient", func() {
 				}
 				resp, err := client.Do(req)
 				if err == nil {
-					resp.Body.Close()
+					resp.Body.Close() //nolint:errcheck
 				}
 			})
 
@@ -128,7 +128,7 @@ var _ = Describe("AdjustableClient", func() {
 
 					resp, err := client.Do(req)
 					if err == nil {
-						resp.Body.Close()
+						resp.Body.Close() //nolint:errcheck
 					}
 
 					Expect(innerClient.DoCallCount()).To(Equal(2))
@@ -151,7 +151,7 @@ var _ = Describe("AdjustableClient", func() {
 
 			resp, err := client.Do(req)
 			if err == nil {
-				resp.Body.Close()
+				resp.Body.Close() //nolint:errcheck
 			}
 			Expect(err).ToNot(HaveOccurred())
 
@@ -164,7 +164,7 @@ var _ = Describe("AdjustableClient", func() {
 
 			resp, err := client.Do(req)
 			if err == nil {
-				resp.Body.Close()
+				resp.Body.Close() //nolint:errcheck
 			}
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
@@ -181,7 +181,7 @@ var _ = Describe("AdjustableClient", func() {
 
 			resp, err := client.Do(req)
 			if err == nil {
-				resp.Body.Close()
+				resp.Body.Close() //nolint:errcheck
 			}
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
@@ -228,7 +228,7 @@ var _ = Describe("AdjustableClient", func() {
 
 			resp, err := client.Do(req)
 			if err == nil {
-				resp.Body.Close()
+				resp.Body.Close() //nolint:errcheck
 			}
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp).To(Equal(secondResp))
@@ -265,7 +265,7 @@ var _ = Describe("AdjustableClient", func() {
 
 			resp, err := client.Do(req)
 			if err == nil {
-				resp.Body.Close()
+				resp.Body.Close() //nolint:errcheck
 			}
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp).To(Equal(firstResp))
@@ -292,7 +292,7 @@ var _ = Describe("AdjustableClient", func() {
 
 			resp, err := client.Do(req)
 			if err == nil {
-				resp.Body.Close()
+				resp.Body.Close() //nolint:errcheck
 			}
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
@@ -316,7 +316,7 @@ var _ = Describe("AdjustableClient", func() {
 
 			resp, err := client.Do(req)
 			if err == nil {
-				resp.Body.Close()
+				resp.Body.Close() //nolint:errcheck
 			}
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))

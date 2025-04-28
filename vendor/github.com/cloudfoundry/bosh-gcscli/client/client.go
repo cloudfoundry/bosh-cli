@@ -21,13 +21,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"time"
 
 	"golang.org/x/oauth2/google"
 
-	"log"
-
 	"cloud.google.com/go/storage"
+
 	"github.com/cloudfoundry/bosh-gcscli/config"
 )
 
@@ -144,8 +144,8 @@ func (client *GCSBlobstore) Put(src io.ReadSeeker, dest string) error {
 }
 
 func (client *GCSBlobstore) putOnce(src io.ReadSeeker, dest string) error {
-	remoteWriter := client.getObjectHandle(client.authenticatedGCS, dest).NewWriter(context.Background())
-	remoteWriter.ObjectAttrs.StorageClass = client.config.StorageClass
+	remoteWriter := client.getObjectHandle(client.authenticatedGCS, dest).NewWriter(context.Background()) //nolint:staticcheck
+	remoteWriter.ObjectAttrs.StorageClass = client.config.StorageClass                                    //nolint:staticcheck
 
 	if _, err := io.Copy(remoteWriter, src); err != nil {
 		remoteWriter.CloseWithError(err) //nolint:errcheck,staticcheck
@@ -164,7 +164,7 @@ func (client *GCSBlobstore) Delete(dest string) error {
 	}
 
 	err := client.getObjectHandle(client.authenticatedGCS, dest).Delete(context.Background())
-	if err == storage.ErrObjectNotExist {
+	if errors.Is(err, storage.ErrObjectNotExist) {
 		return nil
 	}
 	return err
@@ -189,7 +189,7 @@ func (client *GCSBlobstore) exists(gcs *storage.Client, dest string) (bool, erro
 	if err == nil {
 		log.Printf("File '%s' exists in bucket '%s'\n", dest, client.config.BucketName)
 		return true, nil
-	} else if err == storage.ErrObjectNotExist {
+	} else if errors.Is(err, storage.ErrObjectNotExist) {
 		log.Printf("File '%s' does not exist in bucket '%s'\n", dest, client.config.BucketName)
 		return false, nil
 	}

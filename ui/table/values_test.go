@@ -198,13 +198,13 @@ var _ = Describe("ValueFmt", func() {
 
 	It("writes out value using custom Fprintf", func() {
 		buf := bytes.NewBufferString("")
-		ValueFmt{V: ValueInt{I: 1}, Func: fmtFunc}.Fprintf(buf, "%s,%s", "val1", "val2")
+		ValueFmt{V: ValueInt{I: 1}, Func: fmtFunc}.Fprintf(buf, "%s,%s", "val1", "val2") //nolint:errcheck
 		Expect(buf.String()).To(Equal(">val1,val2<"))
 	})
 
 	It("uses fmt.Fprintf if fmt func is not set", func() {
 		buf := bytes.NewBufferString("")
-		ValueFmt{V: ValueInt{I: 1}}.Fprintf(buf, "%s,%s", "val1", "val2")
+		ValueFmt{V: ValueInt{I: 1}}.Fprintf(buf, "%s,%s", "val1", "val2") //nolint:errcheck
 		Expect(buf.String()).To(Equal("val1,val2"))
 	})
 })

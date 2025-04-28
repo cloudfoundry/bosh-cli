@@ -25,7 +25,7 @@ func (l VarsCertLoader) LoadCerts(name string) (*x509.Certificate, *rsa.PrivateK
 	if err != nil {
 		return nil, nil, err
 	} else if !found {
-		return nil, nil, fmt.Errorf("Expected to find variable '%s' with a certificate", name)
+		return nil, nil, fmt.Errorf("Expected to find variable '%s' with a certificate", name) //nolint:staticcheck
 	}
 
 	// Convert to YAML for easier struct parsing

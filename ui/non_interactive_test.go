@@ -91,25 +91,25 @@ var _ = Describe("NonInteractiveUI", func() {
 
 	Describe("AskForText", func() {
 		It("panics", func() {
-			Expect(func() { _, _ = ui.AskForText("") }).To(Panic())
+			Expect(func() { _, _ = ui.AskForText("") }).To(Panic()) //nolint:errcheck
 		})
 	})
 
 	Describe("AskForTextWithDefaultValue", func() {
 		It("panics", func() {
-			Expect(func() { _, _ = ui.AskForTextWithDefaultValue("", "") }).To(Panic())
+			Expect(func() { _, _ = ui.AskForTextWithDefaultValue("", "") }).To(Panic()) //nolint:errcheck
 		})
 	})
 
 	Describe("AskForPassword", func() {
 		It("panics", func() {
-			Expect(func() { _, _ = ui.AskForPassword("") }).To(Panic())
+			Expect(func() { _, _ = ui.AskForPassword("") }).To(Panic()) //nolint:errcheck
 		})
 	})
 
 	Describe("AskForChoice", func() {
 		It("panics", func() {
-			Expect(func() { _, _ = ui.AskForChoice("", nil) }).To(Panic())
+			Expect(func() { _, _ = ui.AskForChoice("", nil) }).To(Panic()) //nolint:errcheck
 		})
 	})
 

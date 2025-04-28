@@ -1,7 +1,7 @@
 package ui
 
 import (
-	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
 type UI interface {
@@ -14,8 +14,8 @@ type UI interface {
 	PrintBlock([]byte) // takes []byte to avoid string copy
 	PrintErrorBlock(string)
 
-	PrintTable(Table)
-	PrintTableFiltered(Table, []Header)
+	PrintTable(table.Table)
+	PrintTableFiltered(table.Table, []table.Header)
 
 	AskForText(label string) (string, error)
 	AskForTextWithDefaultValue(label, defaultValue string) (string, error)

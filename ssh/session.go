@@ -44,7 +44,7 @@ func (r *SessionImpl) Start() (SSHArgs, error) {
 
 	r.knownHostsFile, err = r.makeKnownHostsFile()
 	if err != nil {
-		_ = r.fs.RemoveAll(r.privKeyFile.Name())
+		_ = r.fs.RemoveAll(r.privKeyFile.Name()) //nolint:errcheck
 		return SSHArgs{}, err
 	}
 
@@ -83,7 +83,7 @@ func (r SessionImpl) makePrivKeyFile() (boshsys.File, error) {
 
 	_, err = file.Write([]byte(r.connOpts.PrivateKey))
 	if err != nil {
-		_ = r.fs.RemoveAll(file.Name())
+		_ = r.fs.RemoveAll(file.Name()) //nolint:errcheck
 		return nil, bosherr.WrapErrorf(err, "Writing SSH private key")
 	}
 
@@ -113,7 +113,7 @@ func (r SessionImpl) makeKnownHostsFile() (boshsys.File, error) {
 	if len(content) > 0 {
 		_, err := file.Write([]byte(content))
 		if err != nil {
-			_ = r.fs.RemoveAll(file.Name())
+			_ = r.fs.RemoveAll(file.Name()) //nolint:errcheck
 			return nil, bosherr.WrapErrorf(err, "Writing SSH known hosts")
 		}
 	}

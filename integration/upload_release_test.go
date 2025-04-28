@@ -35,7 +35,7 @@ var _ = Describe("upload-release command", func() {
 			contents, err := fs.ReadFileString(jobSpecPath)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = fs.WriteFileString(jobSpecPath, strings.Replace(contents, "packages: []", "packages: [pkg1]", -1))
+			err = fs.WriteFileString(jobSpecPath, strings.Replace(contents, "packages: []", "packages: [pkg1]", -1)) //nolint:staticcheck
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -48,7 +48,7 @@ var _ = Describe("upload-release command", func() {
 			contents, err := fs.ReadFileString(pkg1SpecPath)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "files: []", "files:\n- in-src", -1))
+			err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "files: []", "files:\n- in-src", -1)) //nolint:staticcheck
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -172,7 +172,7 @@ blobstore:
 			contents, err := fs.ReadFileString(jobSpecPath)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = fs.WriteFileString(jobSpecPath, strings.Replace(contents, "packages: []", "packages: [pkg1]", -1))
+			err = fs.WriteFileString(jobSpecPath, strings.Replace(contents, "packages: []", "packages: [pkg1]", -1)) //nolint:staticcheck
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -185,7 +185,7 @@ blobstore:
 			contents, err := fs.ReadFileString(pkg1SpecPath)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "files: []", "files:\n- in-src", -1))
+			err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "files: []", "files:\n- in-src", -1)) //nolint:staticcheck
 			Expect(err).ToNot(HaveOccurred())
 		})
 

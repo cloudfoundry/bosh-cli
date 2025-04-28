@@ -7,7 +7,7 @@ ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
   cd "${ROOT_DIR}"
   if ! command -v golangci-lint &> /dev/null; then
     echo "Installing golangci-lint@latest..."
-    go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+    go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
   fi
 )
 go_bin_path="$(go env GOPATH)/bin" # TODO this should be handled in the docker container
@@ -15,7 +15,7 @@ export PATH=${go_bin_path}:${PATH}
 
 golangci-lint version
 
-linted_os_list=(linux)
+linted_os_list=(linux darwin)
 
 for os in "${linted_os_list[@]}"; do
   echo "lint-ing with GOOS=${os}..."
