@@ -2,7 +2,7 @@
 platform: linux
 image_resource:
   type: docker-image
-  source: {repository: bosh/cli}
+  source: {repository: ghcr.io/cloudfoundry/bosh-cli}
 run:
   path: /bin/bash
   args:
