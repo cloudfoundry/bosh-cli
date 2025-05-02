@@ -436,9 +436,9 @@ resources:
   - name: golang-release-image
     type: registry-image
     source:
-      repository: bosh/golang-release
-      username: ((bosh-dockerhub.username))
-      password: ((bosh-dockerhub.password))
+      repository: ghcr.io/cloudfoundry/golang-release
+      username: ((github_read_write_packages.username))
+      password: ((github_read_write_packages.password))
 
   - name: security-scanner-image
     type: registry-image
@@ -566,17 +566,17 @@ resources:
   - name: final-docker
     type: docker-image
     source:
-      repository: bosh/cli2
-      username: ((bosh-dockerhub.username))
-      password: ((bosh-dockerhub.password))
+      repository: ghcr.io/cloudfoundry/bosh-cli2
+      username: ((github_read_write_packages.username))
+      password: ((github_read_write_packages.password))
       email: foo@bar.com
 
   - name: bosh-cli-docker-image
     type: docker-image
     source:
-      repository: bosh/cli
-      username: ((bosh-dockerhub.username))
-      password: ((bosh-dockerhub.password))
+      repository: ghcr.io/cloudfoundry/bosh-cli
+      username: ((github_read_write_packages.username))
+      password: ((github_read_write_packages.password))
 
   - name: ubuntu-image
     type: registry-image

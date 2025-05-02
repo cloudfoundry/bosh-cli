@@ -1,4 +1,4 @@
-FROM bosh/golang-release
+FROM ghcr.io/cloudfoundry/golang-release
 
 RUN \
   apt-get update \
