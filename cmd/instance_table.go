@@ -18,6 +18,7 @@ type InstanceTableValues struct {
 	VMType       boshtbl.Value
 	Active       boshtbl.Value
 	IPs          boshtbl.Value
+	Prefix       boshtbl.Value
 	Deployment   boshtbl.Value
 
 	// Details
@@ -58,6 +59,7 @@ var InstanceTableHeader = InstanceTableValues{
 	VMType:       boshtbl.NewValueString("VM Type"),
 	Active:       boshtbl.NewValueString("Active"),
 	IPs:          boshtbl.NewValueString("IPs"),
+	Prefix:       boshtbl.NewValueString("Prefix"),
 	Deployment:   boshtbl.NewValueString("Deployment"),
 
 	// Details
@@ -105,6 +107,8 @@ func (t InstanceTable) Headers() []boshtbl.Header {
 
 func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 
+	fmt.Println(i.IPs)
+
 	var vmInfoIndex boshtbl.ValueInt
 
 	if i.Index != nil {
@@ -134,6 +138,7 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 		VMType:     boshtbl.NewValueString(i.VMType),
 		Active:     boshtbl.NewValueString(activeStatus),
 		IPs:        boshtbl.NewValueStrings(i.IPs),
+		Prefix:     boshtbl.NewValueStrings(i.Prefix),
 		Deployment: boshtbl.NewValueString(i.Deployment),
 
 		// Details
@@ -212,7 +217,7 @@ func (t InstanceTable) AsValues(v InstanceTableValues) []boshtbl.Value {
 		result = append(result, v.Process)
 	}
 
-	result = append(result, []boshtbl.Value{v.ProcessState, v.AZ, v.IPs}...)
+	result = append(result, []boshtbl.Value{v.ProcessState, v.AZ, v.IPs, v.Prefix}...)
 
 	if t.DeploymentDetails {
 		result = append(result, v.Deployment)

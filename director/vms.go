@@ -22,6 +22,7 @@ type VMInfo struct {
 	Bootstrap    bool
 
 	IPs        []string `json:"ips"`
+	Prefix     []string `json:"prefix"`
 	Deployment string   `json:"deployment_name"`
 
 	AZ              string      `json:"az"`
