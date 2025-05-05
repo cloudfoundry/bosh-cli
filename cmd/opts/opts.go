@@ -807,6 +807,7 @@ type InstancesOpts struct {
 	Vitals     bool `long:"vitals"            description:"Show vitals"`
 	Processes  bool `long:"ps"      short:"p" description:"Show processes"`
 	Failing    bool `long:"failing" short:"f" description:"Only show failing instances"`
+	Cidr       bool `long:"cidr" description:"CIDR of the network to filter VMs by"`
 	Deployment string
 	cmd
 }

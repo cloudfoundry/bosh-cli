@@ -28,6 +28,7 @@ func (c InstancesCmd) Run(opts InstancesOpts) error {
 		Processes:         opts.Processes,
 		Details:           opts.Details,
 		Vitals:            opts.Vitals,
+		Cidr:              opts.Cidr,
 	}
 
 	if len(opts.Deployment) > 0 {

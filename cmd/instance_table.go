@@ -18,6 +18,7 @@ type InstanceTableValues struct {
 	VMType       boshtbl.Value
 	Active       boshtbl.Value
 	IPs          boshtbl.Value
+	IPs_cidr     boshtbl.Value
 	Prefix       boshtbl.Value
 	Deployment   boshtbl.Value
 
@@ -59,6 +60,7 @@ var InstanceTableHeader = InstanceTableValues{
 	VMType:       boshtbl.NewValueString("VM Type"),
 	Active:       boshtbl.NewValueString("Active"),
 	IPs:          boshtbl.NewValueString("IPs"),
+	IPs_cidr:     boshtbl.NewValueString("IPs"),
 	Prefix:       boshtbl.NewValueString("Prefix"),
 	Deployment:   boshtbl.NewValueString("Deployment"),
 
@@ -93,7 +95,7 @@ var InstanceTableHeader = InstanceTableValues{
 }
 
 type InstanceTable struct {
-	Processes, VMDetails, DeploymentDetails, Details, Stemcell, Vitals, CloudProperties bool
+	Processes, VMDetails, DeploymentDetails, Details, Stemcell, Vitals, CloudProperties, Cidr bool
 }
 
 func (t InstanceTable) Headers() []boshtbl.Header {
@@ -108,6 +110,7 @@ func (t InstanceTable) Headers() []boshtbl.Header {
 func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 
 	fmt.Println(i.IPs)
+	fmt.Println(i.IPs_cidr)
 
 	var vmInfoIndex boshtbl.ValueInt
 
@@ -138,6 +141,7 @@ func (t InstanceTable) ForVMInfo(i boshdir.VMInfo) InstanceTableValues {
 		VMType:     boshtbl.NewValueString(i.VMType),
 		Active:     boshtbl.NewValueString(activeStatus),
 		IPs:        boshtbl.NewValueStrings(i.IPs),
+		IPs_cidr:   boshtbl.NewValueStrings(i.IPs_cidr),
 		Prefix:     boshtbl.NewValueStrings(i.Prefix),
 		Deployment: boshtbl.NewValueString(i.Deployment),
 
@@ -216,8 +220,11 @@ func (t InstanceTable) AsValues(v InstanceTableValues) []boshtbl.Value {
 	if t.Processes {
 		result = append(result, v.Process)
 	}
-
-	result = append(result, []boshtbl.Value{v.ProcessState, v.AZ, v.IPs, v.Prefix}...)
+	if t.Cidr {
+		result = append(result, []boshtbl.Value{v.ProcessState, v.AZ, v.IPs_cidr, v.Prefix}...)
+	} else {
+		result = append(result, []boshtbl.Value{v.ProcessState, v.AZ, v.IPs, v.Prefix}...)
+	}
 
 	if t.DeploymentDetails {
 		result = append(result, v.Deployment)
