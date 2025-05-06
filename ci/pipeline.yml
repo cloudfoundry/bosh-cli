@@ -436,7 +436,7 @@ resources:
   - name: golang-release-image
     type: registry-image
     source:
-      repository: ghcr.io/cloudfoundry/golang-release
+      repository: ghcr.io/cloudfoundry/bosh/golang-release
       username: ((github_read_write_packages.username))
       password: ((github_read_write_packages.password))
 
@@ -566,7 +566,7 @@ resources:
   - name: final-docker
     type: docker-image
     source:
-      repository: ghcr.io/cloudfoundry/bosh-cli2
+      repository: ghcr.io/cloudfoundry/bosh/cli2
       username: ((github_read_write_packages.username))
       password: ((github_read_write_packages.password))
       email: foo@bar.com
@@ -574,7 +574,7 @@ resources:
   - name: bosh-cli-docker-image
     type: docker-image
     source:
-      repository: ghcr.io/cloudfoundry/bosh-cli
+      repository: ghcr.io/cloudfoundry/bosh/cli
       username: ((github_read_write_packages.username))
       password: ((github_read_write_packages.password))
 
