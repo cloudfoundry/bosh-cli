@@ -4,7 +4,8 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: bosh/cli
+    repository: ubuntu
+    tag: jammy
 
 inputs:
   - name: bosh-cli-docker-src
