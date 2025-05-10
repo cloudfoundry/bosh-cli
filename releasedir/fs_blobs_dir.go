@@ -3,6 +3,7 @@ package releasedir
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
@@ -47,6 +48,7 @@ type fsBlobsDirSchema_Blob struct {
 
 	BlobstoreID string `yaml:"object_id,omitempty"`
 	SHA1        string `yaml:"sha"`
+	HREF        string `yaml:"href,omitempty"`
 }
 
 func NewFSBlobsDir(
@@ -106,6 +108,7 @@ func (d FSBlobsDir) Blobs() ([]Blob, error) {
 			Size:        rec.Size,
 			BlobstoreID: rec.BlobstoreID,
 			SHA1:        rec.SHA1,
+			HREF:        rec.HREF,
 		})
 	}
 
@@ -139,10 +142,11 @@ func (d FSBlobsDir) SyncBlobs(parallel int) error {
 
 	var tasks []func() error
 	for _, blob := range blobs {
-		blob := blob
 		tasks = append(tasks, func() error {
 			if len(blob.BlobstoreID) > 0 {
 				return d.downloadBlob(blob)
+			} else if len(blob.HREF) > 0 {
+				return d.downloadBlobFromHref(blob)
 			}
 
 			return nil
@@ -154,6 +158,53 @@ func (d FSBlobsDir) SyncBlobs(parallel int) error {
 		return err
 	}
 
+	return nil
+}
+
+func (d FSBlobsDir) ValidateBlobsFromOrigin() error {
+	blobs, err := d.Blobs()
+	if err != nil {
+		return err
+	}
+
+	for _, blob := range blobs {
+		blobID := blob.BlobstoreID
+		if blobID == "" {
+			blobID = "-"
+		}
+
+		if len(blob.HREF) > 0 {
+			digest, err := boshcrypto.ParseMultipleDigest(blob.SHA1)
+			if err != nil {
+				return bosherr.WrapErrorf(
+					err, "Generating multi digest for blob with path '%s' with digest string '%s'", blob.Path, blob.SHA1)
+			}
+
+			d.reporter.BlobDownloadStarted(blob.Path, blob.Size, blobID, blob.SHA1)
+
+			tempFile, err := d.downloadBlobHrefToTempFile(blob)
+			if err != nil {
+				d.reporter.BlobDownloadFinished(blob.Path, blobID, err)
+				return bosherr.WrapErrorf(err, "Downloading blob from '%s'", blob.HREF)
+			}
+
+			file, err := d.fs.OpenFile(tempFile.Name(), os.O_RDONLY, 0)
+			if err != nil {
+				d.reporter.BlobDownloadFinished(blob.Path, blobID, err)
+				return err
+			}
+			defer file.Close()
+
+			if err := digest.Verify(file); err != nil {
+				d.reporter.BlobDownloadFinished(blob.Path, blobID, err)
+				return bosherr.WrapErrorf(err, "Validating SHA for '%s'", blob.HREF)
+			}
+
+			d.reporter.BlobDownloadFinished(blob.Path, blobID, nil)
+		} else {
+			d.reporter.BlobDownloadMessage(blob.Path, blobID, "skipped")
+		}
+	}
 	return nil
 }
 
@@ -192,7 +243,7 @@ func (d FSBlobsDir) removeUnknownBlobs(blobs []Blob) error {
 	return nil
 }
 
-func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser) (Blob, error) {
+func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser, href string) (Blob, error) {
 	tempFile, err := d.fs.TempFile("track-blob")
 	if err != nil {
 		return Blob{}, bosherr.WrapErrorf(err, "Creating temp blob")
@@ -235,7 +286,7 @@ func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser) (Blob, error) {
 		idx = len(blobs) - 1
 	}
 
-	blobs[idx] = Blob{Path: path, Size: fileInfo.Size(), SHA1: sha1}
+	blobs[idx] = Blob{Path: path, Size: fileInfo.Size(), SHA1: sha1, HREF: href}
 
 	tempFile.Close() //nolint:errcheck
 
@@ -355,6 +406,64 @@ func (d FSBlobsDir) downloadBlob(blob Blob) error {
 	return d.moveBlobLocally(path, dstPath)
 }
 
+func (d FSBlobsDir) downloadBlobFromHref(blob Blob) error {
+	dstPath := filepath.Join(d.dirPath, blob.Path)
+
+	digest, err := boshcrypto.ParseMultipleDigest(blob.SHA1)
+	if err != nil {
+		return bosherr.WrapErrorf(
+			err, "Generating multi digest for blob with path '%s' with digest string '%s'", blob.Path, blob.SHA1)
+	}
+
+	if d.checkBlobExistence(dstPath, digest) {
+		return nil
+	}
+
+	blobID := blob.BlobstoreID
+	if blobID == "" {
+		blobID = "-"
+	}
+
+	d.reporter.BlobDownloadStarted(blob.Path, blob.Size, blobID, blob.SHA1)
+
+	tempFile, err := d.downloadBlobHrefToTempFile(blob)
+	if err != nil {
+		d.reporter.BlobDownloadFinished(blob.Path, "-", err)
+		return bosherr.WrapErrorf(err, "Downloading blob from '%s'", blob.HREF)
+	}
+
+	d.reporter.BlobDownloadFinished(blob.Path, blobID, nil)
+
+	return d.moveBlobLocally(tempFile.Name(), dstPath)
+}
+
+func (d FSBlobsDir) downloadBlobHrefToTempFile(blob Blob) (boshsys.File, error) {
+	resp, err := http.Get(blob.HREF)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	tempFile, err := d.fs.TempFile("track-blob")
+	if err != nil {
+		return nil, err
+	}
+	defer tempFile.Close()
+
+	_, err = io.Copy(tempFile, resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := d.fs.OpenFile(tempFile.Name(), os.O_RDONLY, 0)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	return tempFile, nil
+}
+
 func (d FSBlobsDir) uploadBlob(blob Blob) (string, error) {
 	var blobID string
 
@@ -395,6 +504,7 @@ func (d FSBlobsDir) save(blobs []Blob) error {
 			Size:        blob.Size,
 			BlobstoreID: blob.BlobstoreID,
 			SHA1:        blob.SHA1,
+			HREF:        blob.HREF,
 		}
 	}
 

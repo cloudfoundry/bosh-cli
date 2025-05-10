@@ -334,6 +334,11 @@ func (fake *FakeReleaseDir) FinalizeReleaseReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeReleaseDir) ValidateBlobsFromOrigin() error {
+	// Not tested at this time
+	return nil
+}
+
 func (fake *FakeReleaseDir) FindRelease(arg1 string, arg2 version.Version) (release.Release, error) {
 	fake.findReleaseMutex.Lock()
 	ret, specificReturn := fake.findReleaseReturnsOnCall[len(fake.findReleaseArgsForCall)]
