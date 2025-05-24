@@ -33,7 +33,7 @@ func (c AddBlobCmd) Run(opts AddBlobOpts) error {
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Downloading blob")
 		}
-		defer resp.Body.Close()
+		defer resp.Body.Close() //nolint:errcheck
 		file = resp.Body
 		href = opts.Args.Path
 	} else {
@@ -41,7 +41,7 @@ func (c AddBlobCmd) Run(opts AddBlobOpts) error {
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Opening blob")
 		}
-		defer file.Close()
+		defer file.Close() //nolint:errcheck
 	}
 
 	defer file.Close() //nolint:errcheck

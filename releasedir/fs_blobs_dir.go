@@ -193,7 +193,7 @@ func (d FSBlobsDir) ValidateBlobsFromOrigin() error {
 				d.reporter.BlobDownloadFinished(blob.Path, blobID, err)
 				return err
 			}
-			defer file.Close()
+			defer file.Close() //nolint:errcheck
 
 			if err := digest.Verify(file); err != nil {
 				d.reporter.BlobDownloadFinished(blob.Path, blobID, err)
@@ -442,13 +442,13 @@ func (d FSBlobsDir) downloadBlobHrefToTempFile(blob Blob) (boshsys.File, error) 
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	tempFile, err := d.fs.TempFile("track-blob")
 	if err != nil {
 		return nil, err
 	}
-	defer tempFile.Close()
+	defer tempFile.Close() //nolint:errcheck
 
 	_, err = io.Copy(tempFile, resp.Body)
 	if err != nil {
@@ -459,7 +459,7 @@ func (d FSBlobsDir) downloadBlobHrefToTempFile(blob Blob) (boshsys.File, error) 
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	return tempFile, nil
 }
