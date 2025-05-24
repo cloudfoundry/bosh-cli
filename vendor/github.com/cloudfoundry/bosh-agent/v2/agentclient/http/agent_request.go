@@ -41,7 +41,7 @@ func (r agentRequest) Send(method string, arguments []interface{}, response Resp
 		return bosherr.WrapErrorf(err, "Performing request to agent")
 	}
 	defer func() {
-		_ = httpResponse.Body.Close()
+		_ = httpResponse.Body.Close() //nolint:errcheck
 	}()
 
 	if httpResponse.StatusCode != http.StatusOK {
