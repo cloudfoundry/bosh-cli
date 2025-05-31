@@ -6,13 +6,13 @@ require (
 	code.cloudfoundry.org/clock v1.38.0
 	code.cloudfoundry.org/workpool v0.0.0-20241210013132-62cbb12e809b
 	github.com/cheggaaa/pb/v3 v3.1.7
-	github.com/cloudfoundry/bosh-agent/v2 v2.745.0
-	github.com/cloudfoundry/bosh-davcli v0.0.419
+	github.com/cloudfoundry/bosh-agent/v2 v2.747.0
+	github.com/cloudfoundry/bosh-davcli v0.0.420
 	github.com/cloudfoundry/bosh-gcscli v0.0.304
 	github.com/cloudfoundry/bosh-s3cli v0.0.366
 	github.com/cloudfoundry/bosh-utils v0.0.543
 	github.com/cloudfoundry/config-server v0.1.247
-	github.com/cloudfoundry/socks5-proxy v0.2.151
+	github.com/cloudfoundry/socks5-proxy v0.2.152
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.1
@@ -43,7 +43,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.7.0 // indirect
 	cloud.google.com/go/iam v1.5.2 // indirect
 	cloud.google.com/go/monitoring v1.24.2 // indirect
-	cloud.google.com/go/storage v1.54.0 // indirect
+	cloud.google.com/go/storage v1.55.0 // indirect
 	code.cloudfoundry.org/tlsconfig v0.27.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.27.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.51.0 // indirect
@@ -59,7 +59,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
-	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/btree v1.1.3 // indirect
@@ -99,10 +99,10 @@ require (
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/term v0.32.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
-	google.golang.org/api v0.234.0 // indirect
-	google.golang.org/genproto v0.0.0-20250519155744-55703ea1f237 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250519155744-55703ea1f237 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250519155744-55703ea1f237 // indirect
-	google.golang.org/grpc v1.72.1 // indirect
+	google.golang.org/api v0.235.0 // indirect
+	google.golang.org/genproto v0.0.0-20250528174236-200df99c418a // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250528174236-200df99c418a // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a // indirect
+	google.golang.org/grpc v1.72.2 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 )
