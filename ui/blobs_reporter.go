@@ -25,6 +25,10 @@ func (r BlobsReporter) BlobDownloadFinished(path, blobID string, err error) {
 	}
 }
 
+func (r BlobsReporter) BlobDownloadMessage(path, blobID, message string) {
+	r.ui.PrintLinef("Blob download '%s' (id: %s) %s", path, blobID, message)
+}
+
 func (r BlobsReporter) BlobUploadStarted(path string, size int64, sha1 string) {
 	r.ui.BeginLinef("Blob upload '%s' (%s) (sha1: %s) started\n",
 		path, humanize.Bytes(uint64(size)), sha1)
