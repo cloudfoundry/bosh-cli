@@ -42,6 +42,9 @@ type ReleaseDir interface {
 
 	// FinalizeRelease adds the Release to the final list so that it's consumable by others.
 	FinalizeRelease(release boshrel.Release, force bool) error
+
+	// Validate blob SHA's that have a remote reference to confirm source matches
+	ValidateBlobsFromOrigin() error
 }
 
 //counterfeiter:generate . Config
@@ -76,8 +79,9 @@ type BlobsDir interface {
 
 	SyncBlobs(numOfParallelWorkers int) error
 	UploadBlobs() error
+	ValidateBlobsFromOrigin() error
 
-	TrackBlob(string, io.ReadCloser) (Blob, error)
+	TrackBlob(string, io.ReadCloser, string) (Blob, error)
 	UntrackBlob(string) error
 }
 
@@ -86,6 +90,7 @@ type BlobsDir interface {
 type BlobsDirReporter interface {
 	BlobDownloadStarted(path string, size int64, blobID, sha1 string)
 	BlobDownloadFinished(path, blobID string, err error)
+	BlobDownloadMessage(path, blobId, message string)
 
 	BlobUploadStarted(path string, size int64, sha1 string)
 	BlobUploadFinished(path, blobID string, err error)
@@ -97,6 +102,8 @@ type Blob struct {
 
 	BlobstoreID string
 	SHA1        string
+
+	HREF string
 }
 
 //counterfeiter:generate . ReleaseIndex

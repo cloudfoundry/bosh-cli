@@ -346,3 +346,7 @@ func (d FSReleaseDir) lastDevOrFinalVersion(name string) (*semver.Version, Relea
 		return nil, nil, nil
 	}
 }
+
+func (d FSReleaseDir) ValidateBlobsFromOrigin() error {
+	return d.blobsDir.ValidateBlobsFromOrigin()
+}

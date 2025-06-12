@@ -44,6 +44,8 @@ var _ = Describe("BlobsCmd", func() {
 
 					BlobstoreID: "",
 					SHA1:        "fake-sha2",
+
+					HREF: "https://somewebsite/path/to/package.tar.gz",
 				},
 			}
 
@@ -60,6 +62,7 @@ var _ = Describe("BlobsCmd", func() {
 					boshtbl.NewHeader("Size"),
 					boshtbl.NewHeader("Blobstore ID"),
 					boshtbl.NewHeader("Digest"),
+					boshtbl.NewHeader("HREF"),
 				},
 
 				SortBy: []boshtbl.ColumnSort{{Column: 0, Asc: true}},
@@ -70,12 +73,14 @@ var _ = Describe("BlobsCmd", func() {
 						boshtbl.NewValueBytes(100),
 						boshtbl.NewValueString("fake-blob-id"),
 						boshtbl.NewValueString("fake-sha1"),
+						boshtbl.NewValueString(""),
 					},
 					{
 						boshtbl.NewValueString("dir/fake-path"),
 						boshtbl.NewValueBytes(1000),
 						boshtbl.NewValueString("(local)"),
 						boshtbl.NewValueString("fake-sha2"),
+						boshtbl.NewValueString("https://somewebsite/path/to/package.tar.gz"),
 					},
 				},
 			}))
