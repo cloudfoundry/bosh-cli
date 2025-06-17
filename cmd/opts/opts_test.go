@@ -2629,7 +2629,7 @@ var _ = Describe("Opts", func() {
 		Describe("Jobs", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Jobs", opts)).To(Equal(
-					`long:"job" description:"Limit to only specific jobs"`,
+					`long:"job" description:"Limit to only specific jobs (can only be used in combination with --follow)"`,
 				))
 			})
 		})
@@ -2637,7 +2637,7 @@ var _ = Describe("Opts", func() {
 		Describe("Filters", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Filters", opts)).To(Equal(
-					`long:"only" description:"Filter logs (comma-separated)"`,
+					`long:"only" description:"Filter logs to specific jobs (comma-separated). Like --jobs, but for when --follow is not being used"`,
 				))
 			})
 		})
