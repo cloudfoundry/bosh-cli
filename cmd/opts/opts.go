@@ -877,8 +877,8 @@ type LogsOpts struct {
 	Num    int  `long:"num"              description:"Last number of lines"`
 	Quiet  bool `long:"quiet"  short:"q" description:"Suppresses printing of headers when multiple files are being examined"`
 
-	Jobs    []string `long:"job"   description:"Limit to only specific jobs"`
-	Filters []string `long:"only"  description:"Filter logs (comma-separated)"`
+	Jobs    []string `long:"job"   description:"Limit to only specific jobs (can only be used in combination with --follow)"`
+	Filters []string `long:"only"  description:"Filter logs to specific jobs (comma-separated). Like --jobs, but for when --follow is not being used"`
 	Agent   bool     `long:"agent" description:"Include only agent logs"`
 	System  bool     `long:"system" description:"Include only system logs"`
 	All     bool     `long:"all-logs" description:"Include all logs (agent, system, and job logs)"`
