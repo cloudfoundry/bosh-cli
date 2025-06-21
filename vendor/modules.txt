@@ -56,14 +56,14 @@ code.cloudfoundry.org/tlsconfig
 # code.cloudfoundry.org/workpool v0.0.0-20241210013132-62cbb12e809b
 ## explicit
 code.cloudfoundry.org/workpool
-# github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.27.0
-## explicit; go 1.22
+# github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.29.0
+## explicit; go 1.23.0
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp
-# github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.51.0
-## explicit; go 1.22
+# github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.53.0
+## explicit; go 1.23.0
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric
-# github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.51.0
-## explicit; go 1.22
+# github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.53.0
+## explicit; go 1.23.0
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping
 # github.com/VividCortex/ewma v1.2.0
 ## explicit; go 1.12
@@ -136,24 +136,24 @@ github.com/charlievieth/fs
 ## explicit; go 1.18
 github.com/cheggaaa/pb/v3
 github.com/cheggaaa/pb/v3/termutil
-# github.com/cloudfoundry/bosh-agent/v2 v2.751.0
+# github.com/cloudfoundry/bosh-agent/v2 v2.753.0
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-agent/v2/agentclient
 github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec
 github.com/cloudfoundry/bosh-agent/v2/agentclient/fakes
 github.com/cloudfoundry/bosh-agent/v2/agentclient/http
 github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks
-# github.com/cloudfoundry/bosh-davcli v0.0.422
+# github.com/cloudfoundry/bosh-davcli v0.0.423
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-davcli/client
 github.com/cloudfoundry/bosh-davcli/client/fakes
 github.com/cloudfoundry/bosh-davcli/config
 github.com/cloudfoundry/bosh-davcli/signer
-# github.com/cloudfoundry/bosh-gcscli v0.0.305
+# github.com/cloudfoundry/bosh-gcscli v0.0.307
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-gcscli/client
 github.com/cloudfoundry/bosh-gcscli/config
-# github.com/cloudfoundry/bosh-s3cli v0.0.366
+# github.com/cloudfoundry/bosh-s3cli v0.0.367
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
@@ -626,7 +626,7 @@ golang.org/x/tools/internal/stdlib
 golang.org/x/tools/internal/typeparams
 golang.org/x/tools/internal/typesinternal
 golang.org/x/tools/internal/versions
-# google.golang.org/api v0.237.0
+# google.golang.org/api v0.238.0
 ## explicit; go 1.23.0
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
