@@ -57,7 +57,11 @@ func (c tarballCompressor) DecompressFileToDir(tarballPath string, dir string, o
 		sameOwnerOption = "--same-owner"
 	}
 
-	args := []string{sameOwnerOption, "-xzf", tarballPath, "-C", dir}
+	resolvedTarballPath, err := c.fs.ReadAndFollowLink(tarballPath)
+	if err != nil {
+		return bosherr.WrapError(err, "Resolving tarball path")
+	}
+	args := []string{sameOwnerOption, "-xzf", resolvedTarballPath, "-C", dir}
 	if options.StripComponents != 0 {
 		args = append(args, fmt.Sprintf("--strip-components=%d", options.StripComponents))
 	}
@@ -65,7 +69,7 @@ func (c tarballCompressor) DecompressFileToDir(tarballPath string, dir string, o
 	if options.PathInArchive != "" {
 		args = append(args, options.PathInArchive)
 	}
-	_, _, _, err := c.cmdRunner.RunCommand("tar", args...)
+	_, _, _, err = c.cmdRunner.RunCommand("tar", args...)
 	if err != nil {
 		return bosherr.WrapError(err, "Shelling out to tar")
 	}
