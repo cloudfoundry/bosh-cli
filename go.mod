@@ -3,16 +3,16 @@ module github.com/cloudfoundry/bosh-cli/v7
 go 1.23.0
 
 require (
-	code.cloudfoundry.org/clock v1.40.0
+	code.cloudfoundry.org/clock v1.41.0
 	code.cloudfoundry.org/workpool v0.0.0-20241210013132-62cbb12e809b
 	github.com/cheggaaa/pb/v3 v3.1.7
-	github.com/cloudfoundry/bosh-agent/v2 v2.754.0
-	github.com/cloudfoundry/bosh-davcli v0.0.423
-	github.com/cloudfoundry/bosh-gcscli v0.0.308
-	github.com/cloudfoundry/bosh-s3cli v0.0.367
+	github.com/cloudfoundry/bosh-agent/v2 v2.755.0
+	github.com/cloudfoundry/bosh-davcli v0.0.424
+	github.com/cloudfoundry/bosh-gcscli v0.0.309
+	github.com/cloudfoundry/bosh-s3cli v0.0.368
 	github.com/cloudfoundry/bosh-utils v0.0.547
 	github.com/cloudfoundry/config-server v0.1.248
-	github.com/cloudfoundry/socks5-proxy v0.2.154
+	github.com/cloudfoundry/socks5-proxy v0.2.155
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.1
@@ -64,7 +64,7 @@ require (
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20250607225305-033d6d78b36a // indirect
+	github.com/google/pprof v0.0.0-20250630185457-6e76a2b096b5 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
@@ -99,7 +99,7 @@ require (
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/term v0.32.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
-	google.golang.org/api v0.239.0 // indirect
+	google.golang.org/api v0.240.0 // indirect
 	google.golang.org/genproto v0.0.0-20250603155806-513f23925822 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822 // indirect
