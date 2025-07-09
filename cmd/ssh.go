@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 
 	bihttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
@@ -113,6 +115,7 @@ type EnvSSHCmd struct {
 	nonIntSSHRunner    boshssh.Runner
 	resultsSSHRunner   boshssh.Runner
 	ui                 boshui.UI
+	logger             boshlog.Logger
 }
 
 func NewEnvSSHCmd(
@@ -121,6 +124,7 @@ func NewEnvSSHCmd(
 	nonIntSSHRunner boshssh.Runner,
 	resultsSSHRunner boshssh.Runner,
 	ui boshui.UI,
+	logger boshlog.Logger,
 ) EnvSSHCmd {
 	return EnvSSHCmd{
 		agentClientFactory: agentClientFactory,
@@ -128,6 +132,7 @@ func NewEnvSSHCmd(
 		nonIntSSHRunner:    nonIntSSHRunner,
 		resultsSSHRunner:   resultsSSHRunner,
 		ui:                 ui,
+		logger:             logger,
 	}
 }
 
@@ -167,7 +172,10 @@ func (c EnvSSHCmd) Run(opts SSHOpts) error {
 	}
 
 	defer func() {
-		_, _ = agentClient.CleanUpSSH(sshOpts.Username) //nolint:errcheck
+		_, err1 := agentClient.CleanUpSSH(sshOpts.Username)
+		if err1 != nil {
+			c.logger.Warn("SSH", fmt.Sprintf("SSH cleanup failed for user %s. Artifacts may be left over on the VM: %v", sshOpts.Username, err1))
+		}
 	}()
 
 	// host key will be returned by agent over HTTPS

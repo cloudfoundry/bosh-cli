@@ -5,6 +5,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-agent/v2/agentclient"
 	mockhttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
@@ -352,6 +353,7 @@ var _ = Describe("SSH", func() {
 			nonIntSSHRunner    *fakessh.FakeRunner
 			resultsSSHRunner   *fakessh.FakeRunner
 			ui                 *fakeui.FakeUI
+			logger             boshlog.Logger
 
 			uuidGen *fakeuuid.FakeGenerator
 
@@ -367,10 +369,11 @@ var _ = Describe("SSH", func() {
 			nonIntSSHRunner = &fakessh.FakeRunner{}
 			resultsSSHRunner = &fakessh.FakeRunner{}
 			ui = &fakeui.FakeUI{}
+			logger = boshlog.NewLogger(boshlog.LevelNone)
 
 			uuidGen = &fakeuuid.FakeGenerator{}
 
-			command = cmd.NewEnvSSHCmd(agentClientFactory, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, ui)
+			command = cmd.NewEnvSSHCmd(agentClientFactory, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, ui, logger)
 		})
 
 		AfterEach(func() {
