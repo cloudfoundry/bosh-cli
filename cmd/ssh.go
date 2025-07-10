@@ -14,6 +14,8 @@ import (
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
+const logTag = "ssh"
+
 type SSHCmd struct {
 	deployment       boshdir.Deployment
 	intSSHRunner     boshssh.Runner
@@ -172,9 +174,9 @@ func (c EnvSSHCmd) Run(opts SSHOpts) error {
 	}
 
 	defer func() {
-		_, err1 := agentClient.CleanUpSSH(sshOpts.Username)
-		if err1 != nil {
-			c.logger.Warn("SSH", fmt.Sprintf("SSH cleanup failed for user %s. Artifacts may be left over on the VM: %v", sshOpts.Username, err1))
+		_, cleanupErr := agentClient.CleanUpSSH(sshOpts.Username)
+		if cleanupErr != nil {
+			c.logger.Warn(logTag, fmt.Sprintf("SSH cleanup failed for user %s. Artifacts may be left over on the VM: %v", sshOpts.Username, cleanupErr))
 		}
 	}()
 
