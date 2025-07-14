@@ -16,8 +16,9 @@ type Config struct {
 	Port int
 	Path string
 
-	Client       string
-	ClientSecret string
+	InsecureSkipVerify bool
+	Client             string
+	ClientSecret       string
 
 	CACert string
 }
@@ -61,7 +62,7 @@ func NewConfigFromURL(url string) (Config, error) {
 		return Config{}, bosherr.Errorf("Expected to extract host from URL '%s'", url)
 	}
 
-	return Config{Host: host, Port: port, Path: path}, nil
+	return Config{Host: host, Port: port, Path: path, InsecureSkipVerify: false}, nil
 }
 
 func (c Config) Validate() error {

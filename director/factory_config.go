@@ -15,6 +15,7 @@ type FactoryConfig struct {
 	Host string
 	Port int
 
+	InsecureSkipVerify bool
 	// CA certificate is not required
 	CACert string
 
@@ -61,7 +62,7 @@ func NewConfigFromURL(url string) (FactoryConfig, error) {
 		return FactoryConfig{}, bosherr.Errorf("Expected to extract host from URL '%s'", url)
 	}
 
-	return FactoryConfig{Host: host, Port: port}, nil
+	return FactoryConfig{Host: host, Port: port, InsecureSkipVerify: false}, nil
 }
 
 func (c FactoryConfig) Validate() error {
