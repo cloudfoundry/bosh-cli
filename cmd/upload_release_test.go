@@ -253,26 +253,13 @@ var _ = Describe("UploadReleaseCmd", func() {
 					return release, nil
 				}
 
-				director.MatchPackagesStub = func(manifest interface{}, compiled bool) ([]string, error) {
-					Expect(manifest).To(Equal(boshman.Manifest{Name: "rel"}))
-					Expect(compiled).To(BeFalse())
-					return []string{"skip-pkg1-fp"}, nil
-				}
-
-				releaseWriter.WriteStub = func(rel boshrel.Release, pkgFpsToSkip []string) (string, error) {
-					Expect(rel).To(Equal(release))
-					Expect(pkgFpsToSkip).To(Equal([]string{"skip-pkg1-fp"}))
-					return "/archive-path", nil
-				}
-
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(director.MatchPackagesCallCount()).To(Equal(1))
 				Expect(director.UploadReleaseFileCallCount()).To(Equal(1))
 
 				file, rebase, fix := director.UploadReleaseFileArgsForCall(0)
-				Expect(file.(*fakesys.FakeFile).Name()).To(Equal("/archive-path"))
+				Expect(file.(*fakesys.FakeFile).Name()).To(Equal("./some-file.tgz"))
 				Expect(rebase).To(BeFalse())
 				Expect(fix).To(BeFalse())
 			})
@@ -333,43 +320,12 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(director.UploadReleaseFileCallCount()).To(Equal(1))
 			})
 
-			It("clean up release", func() {
-				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
-					Expect(path).To(Equal("./some-file.tgz"))
-					return release, nil
-				}
-
-				releaseWriter.WriteStub = func(rel boshrel.Release, _ []string) (string, error) {
-					Expect(rel).To(Equal(release))
-					return "/archive-path", nil
-				}
-
-				removedFiles := []string{}
-
-				fs.RemoveAllStub = func(path string) error {
-					removedFiles = append(removedFiles, path)
-					return nil
-				}
-
-				err := act()
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(release.CleanUpCallCount()).To(Equal(1))
-				Expect(removedFiles).To(Equal([]string{"/archive-path"}))
-			})
-
 			It("uploads given release with a fix flag hence does not filter out any packages", func() {
 				uploadReleaseOpts.Fix = true
 
 				releaseReader.ReadStub = func(path string) (boshrel.Release, error) {
 					Expect(path).To(Equal("./some-file.tgz"))
 					return release, nil
-				}
-
-				releaseWriter.WriteStub = func(rel boshrel.Release, pkgFpsToSkip []string) (string, error) {
-					Expect(rel).To(Equal(release))
-					Expect(pkgFpsToSkip).To(BeEmpty())
-					return "/archive-path", nil
 				}
 
 				err := act()
@@ -379,7 +335,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(director.UploadReleaseFileCallCount()).To(Equal(1))
 
 				file, rebase, fix := director.UploadReleaseFileArgsForCall(0)
-				Expect(file.(*fakesys.FakeFile).Name()).To(Equal("/archive-path"))
+				Expect(file.(*fakesys.FakeFile).Name()).To(Equal("./some-file.tgz"))
 				Expect(rebase).To(BeFalse())
 				Expect(fix).To(BeTrue())
 			})
@@ -465,9 +421,17 @@ var _ = Describe("UploadReleaseCmd", func() {
 					return "/archive-path", nil
 				}
 
+				removedFiles := []string{}
+
+				fs.RemoveAllStub = func(path string) error {
+					removedFiles = append(removedFiles, path)
+					return nil
+				}
+
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
+				Expect(release.CleanUpCallCount()).To(Equal(1))
 				Expect(director.MatchPackagesCallCount()).To(Equal(1))
 				Expect(director.UploadReleaseFileCallCount()).To(Equal(1))
 
