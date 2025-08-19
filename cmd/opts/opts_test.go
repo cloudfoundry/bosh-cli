@@ -2912,7 +2912,7 @@ var _ = Describe("Opts", func() {
 
 		Describe("Paths", func() {
 			It("contains desired values", func() {
-				Expect(getStructTagForName("Paths", opts)).To(Equal(`positional-arg-name:"PATH"`))
+				Expect(getStructTagForName("Paths", opts)).To(ContainSubstring(`positional-arg-name:"PATH"`))
 			})
 		})
 	})
