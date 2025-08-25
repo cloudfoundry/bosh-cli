@@ -1019,7 +1019,7 @@ type SCPOpts struct {
 }
 
 type SCPArgs struct {
-	Paths []string `positional-arg-name:"PATH"`
+	Paths []string `positional-arg-name:"PATH" description:"Strings referencing remote (e.g. \":/some/remote/path\" -- \"user@host\" may be omitted) or local paths (e.g. \"./some/local/path\"). See CLI documentation for more examples."`
 }
 
 type GatewayFlags struct {
