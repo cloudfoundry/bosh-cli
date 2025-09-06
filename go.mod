@@ -7,11 +7,11 @@ require (
 	code.cloudfoundry.org/workpool v0.0.0-20241210013132-62cbb12e809b
 	github.com/cheggaaa/pb/v3 v3.1.7
 	github.com/cloudfoundry/bosh-agent/v2 v2.759.0
-	github.com/cloudfoundry/bosh-davcli v0.0.434
+	github.com/cloudfoundry/bosh-davcli v0.0.435
 	github.com/cloudfoundry/bosh-gcscli v0.0.322
-	github.com/cloudfoundry/bosh-s3cli v0.0.380
-	github.com/cloudfoundry/bosh-utils v0.0.554
-	github.com/cloudfoundry/config-server v0.1.252
+	github.com/cloudfoundry/bosh-s3cli v0.0.382
+	github.com/cloudfoundry/bosh-utils v0.0.555
+	github.com/cloudfoundry/config-server v0.1.253
 	github.com/cloudfoundry/socks5-proxy v0.2.156
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
@@ -23,10 +23,10 @@ require (
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/mattn/go-isatty v0.0.20
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.3
-	github.com/onsi/ginkgo/v2 v2.25.2
+	github.com/onsi/ginkgo/v2 v2.25.3
 	github.com/onsi/gomega v1.38.2
 	github.com/peterbourgon/diskv v2.0.1+incompatible
-	github.com/spf13/cobra v1.9.1
+	github.com/spf13/cobra v1.10.1
 	github.com/vito/go-interact v1.0.2
 	golang.org/x/crypto v0.41.0
 	golang.org/x/text v0.28.0
@@ -80,7 +80,7 @@ require (
 	github.com/pivotal-cf/paraphernalia v0.0.0-20180203224945-a64ae2051c20 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/spf13/pflag v1.0.7 // indirect
+	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.5.0 // indirect
 	github.com/zeebo/errs v1.4.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
