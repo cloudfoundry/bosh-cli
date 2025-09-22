@@ -58,8 +58,6 @@ github.com/cloudfoundry/bosh-gcscli v0.0.322 h1:M4xGSj7x17tHoX062SU2k+KCbIkFp7oi
 github.com/cloudfoundry/bosh-gcscli v0.0.322/go.mod h1:jnUj6GGMwjtlyBNBH6EjaTBL79lZxlTfTsbzN39W67k=
 github.com/cloudfoundry/bosh-s3cli v0.0.382 h1:qGgBRE7GKhKJNgjM5qTn+zH5Zprqd7pjIhLFOl4aLd0=
 github.com/cloudfoundry/bosh-s3cli v0.0.382/go.mod h1:ppC4WZ6VBM+T4Ao35avr5mivSYontZudwfQ2B+T1v4Y=
-github.com/cloudfoundry/bosh-utils v0.0.555 h1:tISTfz5Yb3El48lCtj/C663vyAlqVOdn1ByFdPfMIbM=
-github.com/cloudfoundry/bosh-utils v0.0.555/go.mod h1:pqiwKNIx0KMUafC4lXeuq0FEK2zTU3jqbGcBXzHp/DY=
 github.com/cloudfoundry/config-server v0.1.254 h1:I0cT0C60zUyuJ999Sb8Z3Ayi+vQgZy3uf32mxhwby0A=
 github.com/cloudfoundry/config-server v0.1.254/go.mod h1:UoAJCJ+Q/NFkB9xsBQvvfbeSdmfXyZYSdC7nlhKInAI=
 github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 h1:oy59UYcspoP44ggE8DM3kjxl1+sTFd802bbZlBBhBMk=
@@ -154,6 +152,8 @@ github.com/mattn/go-runewidth v0.0.16 h1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6T
 github.com/mattn/go-runewidth v0.0.16/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=
 github.com/maxbrunsfeld/counterfeiter/v6 v6.11.3 h1:Eaq36EIyJNp7b3qDhjV7jmDVq/yPeW2v4pTqzGbOGB4=
 github.com/maxbrunsfeld/counterfeiter/v6 v6.11.3/go.mod h1:6KKUoQBZBW6PDXJtNfqeEjPXMj/ITTk+cWK9t9uS5+E=
+github.com/mdzhigarov/bosh-utils v0.0.0-20250920040931-791f4db5c713 h1:njrrmUue5YbvhwZ+/2qqIHpK+bNIn+JyiP7u+S64k5A=
+github.com/mdzhigarov/bosh-utils v0.0.0-20250920040931-791f4db5c713/go.mod h1:pqiwKNIx0KMUafC4lXeuq0FEK2zTU3jqbGcBXzHp/DY=
 github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d h1:VhgPp6v9qf9Agr/56bj7Y/xa04UccTW04VP0Qed4vnQ=
 github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d/go.mod h1:YUTz3bUH2ZwIWBy3CJBeOBEugqcmXREj14T+iG/4k4U=
 github.com/nxadm/tail v1.4.11 h1:8feyoE3OzPrcshW5/MJ4sGESc5cqmGkGCWlco4l0bqY=

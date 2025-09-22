@@ -63,7 +63,7 @@ func (c *renderedJobListCompressor) Compress(list RenderedJobList) (RenderedJobL
 		}
 	}
 
-	archivePath, err := c.compressor.CompressFilesInDir(renderedJobListDir)
+	archivePath, err := c.compressor.CompressFilesInDir(renderedJobListDir, boshcmd.CompressorOptions{})
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Compressing rendered job templates")
 	}

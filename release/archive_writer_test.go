@@ -35,7 +35,7 @@ var _ = Describe("ArchiveWriter", func() {
 		fs = fakesys.NewFakeFileSystem()
 		fs.TempDirDir = filepath.Join("/", "staging-release")
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		writer = NewArchiveWriter(compressor, fs, logger)
+		writer = NewArchiveWriter(compressor, fs, logger, false)
 
 		release = &fakerel.FakeRelease{}
 		pkgFpsToSkip = nil

@@ -108,3 +108,5 @@ require (
 	google.golang.org/grpc v1.75.1 // indirect
 	google.golang.org/protobuf v1.36.9 // indirect
 )
+
+replace github.com/cloudfoundry/bosh-utils => github.com/mdzhigarov/bosh-utils v0.0.0-20250920040931-791f4db5c713
