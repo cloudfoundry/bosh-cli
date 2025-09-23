@@ -81,6 +81,6 @@ func (p Provider) NewManifestReader() ManifestReader {
 	return NewManifestReader(p.fs, p.logger)
 }
 
-func (p Provider) NewArchiveWriter() ArchiveWriter {
-	return NewArchiveWriter(p.compressor, p.fs, p.logger)
+func (p Provider) NewArchiveWriter(noCompression bool) ArchiveWriter {
+	return NewArchiveWriter(p.compressor, p.fs, p.logger, noCompression)
 }

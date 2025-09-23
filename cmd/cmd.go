@@ -170,7 +170,7 @@ func (c Cmd) Execute() (cmdErr error) {
 			return releaseReader, releaseDir
 		}
 
-		releaseWriter := relProv.NewArchiveWriter()
+		releaseWriter := relProv.NewArchiveWriter(false)
 
 		releaseArchiveFactory := func(path string) boshdir.ReleaseArchive {
 			return boshdir.NewFSReleaseArchive(path, deps.FS)
@@ -446,7 +446,7 @@ func (c Cmd) Execute() (cmdErr error) {
 
 		_, err := NewCreateReleaseCmd(
 			releaseDirFactory,
-			relProv.NewArchiveWriter(),
+			relProv.NewArchiveWriter(opts.NoCompression),
 			c.deps.FS,
 			c.deps.UI,
 		).Run(*opts)
@@ -457,7 +457,7 @@ func (c Cmd) Execute() (cmdErr error) {
 
 		return NewRedigestReleaseCmd(
 			relProv.NewArchiveReader(),
-			relProv.NewArchiveWriter(),
+			relProv.NewArchiveWriter(false),
 			crypto.NewDigestCalculator(c.deps.FS, []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA1}),
 			boshfu.NewFileMover(c.deps.FS),
 			c.deps.FS,
@@ -469,7 +469,7 @@ func (c Cmd) Execute() (cmdErr error) {
 
 		return NewRedigestReleaseCmd(
 			relProv.NewArchiveReader(),
-			relProv.NewArchiveWriter(),
+			relProv.NewArchiveWriter(false),
 			crypto.NewDigestCalculator(c.deps.FS, []boshcrypto.Algorithm{boshcrypto.DigestAlgorithmSHA256}),
 			boshfu.NewFileMover(c.deps.FS),
 			c.deps.FS,
@@ -599,7 +599,7 @@ func (c Cmd) releaseManager(director boshdir.Director) ReleaseManager {
 		return releaseReader, releaseDir
 	}
 
-	releaseWriter := relProv.NewArchiveWriter()
+	releaseWriter := relProv.NewArchiveWriter(false)
 
 	createReleaseCmd := NewCreateReleaseCmd(
 		releaseDirFactory,

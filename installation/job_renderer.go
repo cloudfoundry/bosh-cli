@@ -98,7 +98,7 @@ func (b *jobRenderer) renderJobTemplates(
 }
 
 func (b *jobRenderer) compressAndUpload(renderedJob bitemplate.RenderedJob) (RenderedJobRef, error) {
-	tarballPath, err := b.compressor.CompressFilesInDir(renderedJob.Path())
+	tarballPath, err := b.compressor.CompressFilesInDir(renderedJob.Path(), boshcmd.CompressorOptions{})
 	if err != nil {
 		return RenderedJobRef{}, bosherr.WrapError(err, "Compressing rendered job templates")
 	}

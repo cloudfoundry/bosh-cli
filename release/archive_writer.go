@@ -19,13 +19,14 @@ type ArchiveWriter struct {
 	compressor     boshcmd.Compressor
 	fs             boshsys.FileSystem
 	filesToInclude []string
+	noCompression  bool
 
 	logTag string
 	logger boshlog.Logger
 }
 
-func NewArchiveWriter(compressor boshcmd.Compressor, fs boshsys.FileSystem, logger boshlog.Logger) ArchiveWriter {
-	return ArchiveWriter{compressor: compressor, fs: fs, logTag: "release.ArchiveWriter", logger: logger}
+func NewArchiveWriter(compressor boshcmd.Compressor, fs boshsys.FileSystem, logger boshlog.Logger, noCompression bool) ArchiveWriter {
+	return ArchiveWriter{compressor: compressor, fs: fs, logTag: "release.ArchiveWriter", logger: logger, noCompression: noCompression}
 }
 
 func (w ArchiveWriter) Write(release Release, pkgFpsToSkip []string) (string, error) {
@@ -81,7 +82,7 @@ func (w ArchiveWriter) Write(release Release, pkgFpsToSkip []string) (string, er
 	w.filesToInclude = w.appendFiles(licenseFiles)
 
 	files := w.filesToInclude
-	path, err := w.compressor.CompressSpecificFilesInDir(stagingDir, files)
+	path, err := w.compressor.CompressSpecificFilesInDir(stagingDir, files, boshcmd.CompressorOptions{NoCompression: w.noCompression})
 
 	if err != nil {
 		return "", bosherr.WrapError(err, "Compressing release")

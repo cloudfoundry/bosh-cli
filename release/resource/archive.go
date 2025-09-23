@@ -90,7 +90,7 @@ func (a ArchiveImpl) Build(expectedFp string) (string, string, error) {
 		return "", "", bosherr.WrapError(err, "Running prep scripts")
 	}
 
-	archivePath, err := a.compressor.CompressFilesInDir(stagingDir)
+	archivePath, err := a.compressor.CompressFilesInDir(stagingDir, boshcmd.CompressorOptions{})
 	if err != nil {
 		return "", "", bosherr.WrapError(err, "Compressing staging directory")
 	}
