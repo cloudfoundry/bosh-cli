@@ -29,7 +29,7 @@ func NewCompleteFunctionsMap(logger boshlog.Logger, directorQuery DirectorQueryI
 		"--var-file":   c.listFiles,
 		"--vars-file":  c.listFiles,
 		"--vars-store": c.listFiles,
-		reflect.TypeOf(opts.AddBlobArgs{}).Name():                          c.noFile,
+		reflect.TypeOf(opts.AddBlobArgs{}).Name():                          c.listFiles,
 		reflect.TypeOf(opts.AliasEnvArgs{}).Name():                         c.listEnvAliases,
 		reflect.TypeOf(opts.AllOrInstanceGroupOrInstanceSlugArgs{}).Name(): c.listInstanceGroupsOrSlugs,
 		reflect.TypeOf(opts.AttachDiskArgs{}).Name():                       c.listDiskCIDs,
@@ -75,7 +75,7 @@ func NewCompleteFunctionsMap(logger boshlog.Logger, directorQuery DirectorQueryI
 		reflect.TypeOf(opts.UpdateRuntimeConfigArgs{}).Name():              c.listFiles,
 		reflect.TypeOf(opts.UploadReleaseArgs{}).Name():                    c.listFiles,
 		reflect.TypeOf(opts.UploadStemcellArgs{}).Name():                   c.listFiles,
-		reflect.TypeOf(opts.VendorPackageArgs{}).Name():                    c.noFile,
+		reflect.TypeOf(opts.VendorPackageArgs{}).Name():                    c.listFiles,
 	}
 	return cfm
 }
