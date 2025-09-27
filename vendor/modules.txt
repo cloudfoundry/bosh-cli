@@ -146,7 +146,7 @@ github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec
 github.com/cloudfoundry/bosh-agent/v2/agentclient/fakes
 github.com/cloudfoundry/bosh-agent/v2/agentclient/http
 github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks
-# github.com/cloudfoundry/bosh-davcli v0.0.436
+# github.com/cloudfoundry/bosh-davcli v0.0.437
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-davcli/client
 github.com/cloudfoundry/bosh-davcli/client/fakes
@@ -180,7 +180,7 @@ github.com/cloudfoundry/bosh-utils/system/fakes
 github.com/cloudfoundry/bosh-utils/uuid
 github.com/cloudfoundry/bosh-utils/uuid/fakes
 github.com/cloudfoundry/bosh-utils/work
-# github.com/cloudfoundry/config-server v0.1.254
+# github.com/cloudfoundry/config-server v0.1.255
 ## explicit; go 1.23.0
 github.com/cloudfoundry/config-server/types
 github.com/cloudfoundry/config-server/types/typesfakes
@@ -361,7 +361,7 @@ github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.20
 ## explicit; go 1.15
 github.com/mattn/go-isatty
-# github.com/mattn/go-runewidth v0.0.16
+# github.com/mattn/go-runewidth v0.0.17
 ## explicit; go 1.9
 github.com/mattn/go-runewidth
 # github.com/maxbrunsfeld/counterfeiter/v6 v6.11.3
