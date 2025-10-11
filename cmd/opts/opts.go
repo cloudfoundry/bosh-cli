@@ -1019,7 +1019,7 @@ type SCPOpts struct {
 }
 
 type SCPArgs struct {
-	Paths []string `positional-arg-name:"PATH"`
+	Paths []string `positional-arg-name:"PATH" description:"Strings referencing remote (e.g. \":/some/remote/path\" -- \"user@host\" may be omitted) or local paths (e.g. \"./some/local/path\"). To target specific instances, a bosh instance selector (instance-group/id, e.g. router/1) can be used in place of host, e.g. 'bosh scp router/1:/path/on/instance /tmp/local/path'. See CLI documentation for more examples."`
 }
 
 type GatewayFlags struct {
