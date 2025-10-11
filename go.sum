@@ -62,8 +62,8 @@ github.com/cloudfoundry/bosh-s3cli v0.0.382 h1:qGgBRE7GKhKJNgjM5qTn+zH5Zprqd7pjI
 github.com/cloudfoundry/bosh-s3cli v0.0.382/go.mod h1:ppC4WZ6VBM+T4Ao35avr5mivSYontZudwfQ2B+T1v4Y=
 github.com/cloudfoundry/bosh-utils v0.0.555 h1:tISTfz5Yb3El48lCtj/C663vyAlqVOdn1ByFdPfMIbM=
 github.com/cloudfoundry/bosh-utils v0.0.555/go.mod h1:pqiwKNIx0KMUafC4lXeuq0FEK2zTU3jqbGcBXzHp/DY=
-github.com/cloudfoundry/config-server v0.1.255 h1:wxA9+N7jZjtvYuotkbQSwmkN55JRxrtATyTmS+9v7HU=
-github.com/cloudfoundry/config-server v0.1.255/go.mod h1:UoAJCJ+Q/NFkB9xsBQvvfbeSdmfXyZYSdC7nlhKInAI=
+github.com/cloudfoundry/config-server v0.1.256 h1:CFbtoHS5XEIGI8piuIcwIx0eK3Qm6oqMY2f4nAeUlH4=
+github.com/cloudfoundry/config-server v0.1.256/go.mod h1:ljfIXbUwAGxFrma+UhNAiMfZhOJUbBwDHwPdYDfpUOo=
 github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 h1:oy59UYcspoP44ggE8DM3kjxl1+sTFd802bbZlBBhBMk=
 github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851/go.mod h1:72EEm1oq5oXqGfu9XGtaRPWEcAFYd/P10cMNln0QhA8=
 github.com/cloudfoundry/socks5-proxy v0.2.156 h1:O0sqgbNlNzhUDU6B+Q1vAA0KdsHGViGYdKHSI1tYInc=
@@ -308,8 +308,8 @@ google.golang.org/genproto/googleapis/api v0.0.0-20250818200422-3122310a409c h1:
 google.golang.org/genproto/googleapis/api v0.0.0-20250818200422-3122310a409c/go.mod h1:ea2MjsO70ssTfCjiwHgI0ZFqcw45Ksuk2ckf9G468GA=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20250825161204-c5933d9347a5 h1:eaY8u2EuxbRv7c3NiGK0/NedzVsCcV6hDuU5qPX5EGE=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20250825161204-c5933d9347a5/go.mod h1:M4/wBTSeyLxupu3W3tJtOgB14jILAS/XWPSSa3TAlJc=
-google.golang.org/grpc v1.75.1 h1:/ODCNEuf9VghjgO3rqLcfg8fiOP0nSluljWFlDxELLI=
-google.golang.org/grpc v1.75.1/go.mod h1:JtPAzKiq4v1xcAB2hydNlWI2RnF85XXcV0mhKXr2ecQ=
+google.golang.org/grpc v1.76.0-dev h1:05+HaIn8J5RPD81WKQB02JOqHNUlZz4LMf44sj62JuU=
+google.golang.org/grpc v1.76.0-dev/go.mod h1:JtPAzKiq4v1xcAB2hydNlWI2RnF85XXcV0mhKXr2ecQ=
 google.golang.org/protobuf v1.36.10 h1:AYd7cD/uASjIL6Q9LiTjz8JLcrh/88q5UObnmY3aOOE=
 google.golang.org/protobuf v1.36.10/go.mod h1:HTf+CrKn2C3g5S8VImy6tdcUvCska2kB7j23XfzDpco=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=

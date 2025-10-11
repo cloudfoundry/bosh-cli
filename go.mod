@@ -11,7 +11,7 @@ require (
 	github.com/cloudfoundry/bosh-gcscli v0.0.322
 	github.com/cloudfoundry/bosh-s3cli v0.0.382
 	github.com/cloudfoundry/bosh-utils v0.0.555
-	github.com/cloudfoundry/config-server v0.1.255
+	github.com/cloudfoundry/config-server v0.1.256
 	github.com/cloudfoundry/socks5-proxy v0.2.156
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
@@ -105,6 +105,6 @@ require (
 	google.golang.org/genproto v0.0.0-20250818200422-3122310a409c // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250818200422-3122310a409c // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250825161204-c5933d9347a5 // indirect
-	google.golang.org/grpc v1.75.1 // indirect
+	google.golang.org/grpc v1.76.0-dev // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 )
