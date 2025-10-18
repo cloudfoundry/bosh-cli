@@ -6,13 +6,13 @@ require (
 	code.cloudfoundry.org/clock v1.44.0
 	code.cloudfoundry.org/workpool v0.0.0-20250911194158-1489753f182e
 	github.com/cheggaaa/pb/v3 v3.1.7
-	github.com/cloudfoundry/bosh-agent/v2 v2.759.0
+	github.com/cloudfoundry/bosh-agent/v2 v2.769.0
 	github.com/cloudfoundry/bosh-davcli v0.0.437
 	github.com/cloudfoundry/bosh-gcscli v0.0.322
 	github.com/cloudfoundry/bosh-s3cli v0.0.382
 	github.com/cloudfoundry/bosh-utils v0.0.555
 	github.com/cloudfoundry/config-server v0.1.256
-	github.com/cloudfoundry/socks5-proxy v0.2.156
+	github.com/cloudfoundry/socks5-proxy v0.2.157
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.1
@@ -43,7 +43,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.8.0 // indirect
 	cloud.google.com/go/iam v1.5.2 // indirect
 	cloud.google.com/go/monitoring v1.24.2 // indirect
-	cloud.google.com/go/storage v1.56.2 // indirect
+	cloud.google.com/go/storage v1.56.3 // indirect
 	code.cloudfoundry.org/tlsconfig v0.34.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.29.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.53.0 // indirect

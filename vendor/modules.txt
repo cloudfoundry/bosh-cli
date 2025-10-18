@@ -39,7 +39,7 @@ cloud.google.com/go/iam/apiv1/iampb
 cloud.google.com/go/monitoring/apiv3/v2
 cloud.google.com/go/monitoring/apiv3/v2/monitoringpb
 cloud.google.com/go/monitoring/internal
-# cloud.google.com/go/storage v1.56.2
+# cloud.google.com/go/storage v1.56.3
 ## explicit; go 1.23.0
 cloud.google.com/go/storage
 cloud.google.com/go/storage/experimental
@@ -143,7 +143,7 @@ github.com/cheggaaa/pb/v3/termutil
 ## explicit; go 1.18
 github.com/clipperhouse/uax29/v2/graphemes
 github.com/clipperhouse/uax29/v2/internal/iterators
-# github.com/cloudfoundry/bosh-agent/v2 v2.759.0
+# github.com/cloudfoundry/bosh-agent/v2 v2.769.0
 ## explicit; go 1.23.0
 github.com/cloudfoundry/bosh-agent/v2/agentclient
 github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec
@@ -191,7 +191,7 @@ github.com/cloudfoundry/config-server/types/typesfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851
 ## explicit; go 1.21.0
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.156
+# github.com/cloudfoundry/socks5-proxy v0.2.157
 ## explicit; go 1.23.0
 github.com/cloudfoundry/socks5-proxy
 # github.com/cncf/xds/go v0.0.0-20250501225837-2ac532fd4443
