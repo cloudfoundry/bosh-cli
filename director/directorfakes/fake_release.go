@@ -562,22 +562,6 @@ func (fake *FakeRelease) VersionMarkReturnsOnCall(i int, result1 string) {
 func (fake *FakeRelease) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.commitHashWithMarkMutex.RLock()
-	defer fake.commitHashWithMarkMutex.RUnlock()
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
-	fake.existsMutex.RLock()
-	defer fake.existsMutex.RUnlock()
-	fake.jobsMutex.RLock()
-	defer fake.jobsMutex.RUnlock()
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
-	fake.packagesMutex.RLock()
-	defer fake.packagesMutex.RUnlock()
-	fake.versionMutex.RLock()
-	defer fake.versionMutex.RUnlock()
-	fake.versionMarkMutex.RLock()
-	defer fake.versionMarkMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

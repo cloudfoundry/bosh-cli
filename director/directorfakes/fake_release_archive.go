@@ -151,10 +151,6 @@ func (fake *FakeReleaseArchive) InfoReturnsOnCall(i int, result1 director.Releas
 func (fake *FakeReleaseArchive) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.fileMutex.RLock()
-	defer fake.fileMutex.RUnlock()
-	fake.infoMutex.RLock()
-	defer fake.infoMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

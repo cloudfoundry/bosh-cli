@@ -97,8 +97,6 @@ func (fake *FakeHostBuilder) BuildHostReturnsOnCall(i int, result1 director.Host
 func (fake *FakeHostBuilder) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.buildHostMutex.RLock()
-	defer fake.buildHostMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

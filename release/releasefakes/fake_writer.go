@@ -99,8 +99,6 @@ func (fake *FakeWriter) WriteReturnsOnCall(i int, result1 string, result2 error)
 func (fake *FakeWriter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.writeMutex.RLock()
-	defer fake.writeMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

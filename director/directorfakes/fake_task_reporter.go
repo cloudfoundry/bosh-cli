@@ -135,12 +135,6 @@ func (fake *FakeTaskReporter) TaskStartedArgsForCall(i int) int {
 func (fake *FakeTaskReporter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.taskFinishedMutex.RLock()
-	defer fake.taskFinishedMutex.RUnlock()
-	fake.taskOutputChunkMutex.RLock()
-	defer fake.taskOutputChunkMutex.RUnlock()
-	fake.taskStartedMutex.RLock()
-	defer fake.taskStartedMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

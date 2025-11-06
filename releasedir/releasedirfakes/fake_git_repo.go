@@ -223,12 +223,6 @@ func (fake *FakeGitRepo) MustNotBeDirtyReturnsOnCall(i int, result1 bool, result
 func (fake *FakeGitRepo) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.initMutex.RLock()
-	defer fake.initMutex.RUnlock()
-	fake.lastCommitSHAMutex.RLock()
-	defer fake.lastCommitSHAMutex.RUnlock()
-	fake.mustNotBeDirtyMutex.RLock()
-	defer fake.mustNotBeDirtyMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

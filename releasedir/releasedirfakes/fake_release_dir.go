@@ -829,28 +829,6 @@ func (fake *FakeReleaseDir) VendorPackageReturnsOnCall(i int, result1 error) {
 func (fake *FakeReleaseDir) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.buildReleaseMutex.RLock()
-	defer fake.buildReleaseMutex.RUnlock()
-	fake.defaultNameMutex.RLock()
-	defer fake.defaultNameMutex.RUnlock()
-	fake.finalizeReleaseMutex.RLock()
-	defer fake.finalizeReleaseMutex.RUnlock()
-	fake.findReleaseMutex.RLock()
-	defer fake.findReleaseMutex.RUnlock()
-	fake.generateJobMutex.RLock()
-	defer fake.generateJobMutex.RUnlock()
-	fake.generatePackageMutex.RLock()
-	defer fake.generatePackageMutex.RUnlock()
-	fake.initMutex.RLock()
-	defer fake.initMutex.RUnlock()
-	fake.nextDevVersionMutex.RLock()
-	defer fake.nextDevVersionMutex.RUnlock()
-	fake.nextFinalVersionMutex.RLock()
-	defer fake.nextFinalVersionMutex.RUnlock()
-	fake.resetMutex.RLock()
-	defer fake.resetMutex.RUnlock()
-	fake.vendorPackageMutex.RLock()
-	defer fake.vendorPackageMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -146,10 +146,6 @@ func (fake *FakeSession) StartReturnsOnCall(i int, result1 ssh.SSHArgs, result2 
 func (fake *FakeSession) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.finishMutex.RLock()
-	defer fake.finishMutex.RUnlock()
-	fake.startMutex.RLock()
-	defer fake.startMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

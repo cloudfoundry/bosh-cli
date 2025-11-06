@@ -78,8 +78,6 @@ func (fake *FakeLoginStrategy) TryReturnsOnCall(i int, result1 error) {
 func (fake *FakeLoginStrategy) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.tryMutex.RLock()
-	defer fake.tryMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -162,10 +162,6 @@ func (fake *FakeAdjustment) NeedsReadjustmentReturnsOnCall(i int, result1 bool) 
 func (fake *FakeAdjustment) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.adjustMutex.RLock()
-	defer fake.adjustMutex.RUnlock()
-	fake.needsReadjustmentMutex.RLock()
-	defer fake.needsReadjustmentMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

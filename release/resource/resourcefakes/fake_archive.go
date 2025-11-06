@@ -202,12 +202,6 @@ func (fake *FakeArchive) FingerprintReturnsOnCall(i int, result1 string, result2
 func (fake *FakeArchive) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.buildMutex.RLock()
-	defer fake.buildMutex.RUnlock()
-	fake.cleanUpMutex.RLock()
-	defer fake.cleanUpMutex.RUnlock()
-	fake.fingerprintMutex.RLock()
-	defer fake.fingerprintMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

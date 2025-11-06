@@ -159,10 +159,6 @@ func (fake *FakeGenerator) GeneratePackageReturnsOnCall(i int, result1 error) {
 func (fake *FakeGenerator) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.generateJobMutex.RLock()
-	defer fake.generateJobMutex.RUnlock()
-	fake.generatePackageMutex.RLock()
-	defer fake.generatePackageMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

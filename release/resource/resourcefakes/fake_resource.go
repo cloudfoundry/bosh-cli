@@ -531,22 +531,6 @@ func (fake *FakeResource) RehashWithCalculatorReturnsOnCall(i int, result1 resou
 func (fake *FakeResource) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.archiveDigestMutex.RLock()
-	defer fake.archiveDigestMutex.RUnlock()
-	fake.archivePathMutex.RLock()
-	defer fake.archivePathMutex.RUnlock()
-	fake.buildMutex.RLock()
-	defer fake.buildMutex.RUnlock()
-	fake.finalizeMutex.RLock()
-	defer fake.finalizeMutex.RUnlock()
-	fake.fingerprintMutex.RLock()
-	defer fake.fingerprintMutex.RUnlock()
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
-	fake.prefixMutex.RLock()
-	defer fake.prefixMutex.RUnlock()
-	fake.rehashWithCalculatorMutex.RLock()
-	defer fake.rehashWithCalculatorMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

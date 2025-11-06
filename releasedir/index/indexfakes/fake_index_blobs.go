@@ -182,10 +182,6 @@ func (fake *FakeIndexBlobs) GetReturnsOnCall(i int, result1 string, result2 erro
 func (fake *FakeIndexBlobs) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.addMutex.RLock()
-	defer fake.addMutex.RUnlock()
-	fake.getMutex.RLock()
-	defer fake.getMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

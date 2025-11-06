@@ -475,20 +475,6 @@ func (fake *FakeStemcell) VersionMarkReturnsOnCall(i int, result1 string) {
 func (fake *FakeStemcell) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.cIDMutex.RLock()
-	defer fake.cIDMutex.RUnlock()
-	fake.cPIMutex.RLock()
-	defer fake.cPIMutex.RUnlock()
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
-	fake.oSNameMutex.RLock()
-	defer fake.oSNameMutex.RUnlock()
-	fake.versionMutex.RLock()
-	defer fake.versionMutex.RUnlock()
-	fake.versionMarkMutex.RLock()
-	defer fake.versionMarkMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

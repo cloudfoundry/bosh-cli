@@ -181,14 +181,6 @@ func (fake *FakeBlobsDirReporter) BlobUploadStartedArgsForCall(i int) (string, i
 func (fake *FakeBlobsDirReporter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.blobDownloadFinishedMutex.RLock()
-	defer fake.blobDownloadFinishedMutex.RUnlock()
-	fake.blobDownloadStartedMutex.RLock()
-	defer fake.blobDownloadStartedMutex.RUnlock()
-	fake.blobUploadFinishedMutex.RLock()
-	defer fake.blobUploadFinishedMutex.RUnlock()
-	fake.blobUploadStartedMutex.RLock()
-	defer fake.blobUploadStartedMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
