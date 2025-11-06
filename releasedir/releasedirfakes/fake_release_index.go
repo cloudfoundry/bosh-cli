@@ -318,14 +318,6 @@ func (fake *FakeReleaseIndex) ManifestPathReturnsOnCall(i int, result1 string) {
 func (fake *FakeReleaseIndex) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.addMutex.RLock()
-	defer fake.addMutex.RUnlock()
-	fake.containsMutex.RLock()
-	defer fake.containsMutex.RUnlock()
-	fake.lastVersionMutex.RLock()
-	defer fake.lastVersionMutex.RUnlock()
-	fake.manifestPathMutex.RLock()
-	defer fake.manifestPathMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

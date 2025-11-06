@@ -237,12 +237,6 @@ func (fake *FakeExtractor) ExtractReturnsOnCall(i int, result1 error) {
 func (fake *FakeExtractor) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.chmodExecutablesMutex.RLock()
-	defer fake.chmodExecutablesMutex.RUnlock()
-	fake.cleanupMutex.RLock()
-	defer fake.cleanupMutex.RUnlock()
-	fake.extractMutex.RLock()
-	defer fake.extractMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -433,18 +433,6 @@ func (fake *FakeBlobsDir) UploadBlobsReturnsOnCall(i int, result1 error) {
 func (fake *FakeBlobsDir) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.blobsMutex.RLock()
-	defer fake.blobsMutex.RUnlock()
-	fake.initMutex.RLock()
-	defer fake.initMutex.RUnlock()
-	fake.syncBlobsMutex.RLock()
-	defer fake.syncBlobsMutex.RUnlock()
-	fake.trackBlobMutex.RLock()
-	defer fake.trackBlobMutex.RUnlock()
-	fake.untrackBlobMutex.RLock()
-	defer fake.untrackBlobMutex.RUnlock()
-	fake.uploadBlobsMutex.RLock()
-	defer fake.uploadBlobsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

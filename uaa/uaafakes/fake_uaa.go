@@ -310,14 +310,6 @@ func (fake *FakeUAA) RefreshTokenGrantReturnsOnCall(i int, result1 uaa.AccessTok
 func (fake *FakeUAA) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.clientCredentialsGrantMutex.RLock()
-	defer fake.clientCredentialsGrantMutex.RUnlock()
-	fake.ownerPasswordCredentialsGrantMutex.RLock()
-	defer fake.ownerPasswordCredentialsGrantMutex.RUnlock()
-	fake.promptsMutex.RLock()
-	defer fake.promptsMutex.RUnlock()
-	fake.refreshTokenGrantMutex.RLock()
-	defer fake.refreshTokenGrantMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

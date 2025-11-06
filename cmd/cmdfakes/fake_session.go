@@ -416,18 +416,6 @@ func (fake *FakeSession) UAAReturnsOnCall(i int, result1 uaa.UAA, result2 error)
 func (fake *FakeSession) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.anonymousDirectorMutex.RLock()
-	defer fake.anonymousDirectorMutex.RUnlock()
-	fake.credentialsMutex.RLock()
-	defer fake.credentialsMutex.RUnlock()
-	fake.deploymentMutex.RLock()
-	defer fake.deploymentMutex.RUnlock()
-	fake.directorMutex.RLock()
-	defer fake.directorMutex.RUnlock()
-	fake.environmentMutex.RLock()
-	defer fake.environmentMutex.RUnlock()
-	fake.uAAMutex.RLock()
-	defer fake.uAAMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

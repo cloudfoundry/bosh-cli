@@ -104,8 +104,6 @@ func (fake *FakeFingerprinter) CalculateReturnsOnCall(i int, result1 string, res
 func (fake *FakeFingerprinter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.calculateMutex.RLock()
-	defer fake.calculateMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

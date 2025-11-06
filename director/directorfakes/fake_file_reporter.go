@@ -165,10 +165,6 @@ func (fake *FakeFileReporter) TrackUploadReturnsOnCall(i int, result1 ioa.ReadSe
 func (fake *FakeFileReporter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.trackDownloadMutex.RLock()
-	defer fake.trackDownloadMutex.RUnlock()
-	fake.trackUploadMutex.RLock()
-	defer fake.trackUploadMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

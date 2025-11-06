@@ -255,18 +255,6 @@ func (fake *FakeReporter) IndexEntryUploadStartedArgsForCall(i int) (string, str
 func (fake *FakeReporter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.indexEntryDownloadFinishedMutex.RLock()
-	defer fake.indexEntryDownloadFinishedMutex.RUnlock()
-	fake.indexEntryDownloadStartedMutex.RLock()
-	defer fake.indexEntryDownloadStartedMutex.RUnlock()
-	fake.indexEntryFinishedAddingMutex.RLock()
-	defer fake.indexEntryFinishedAddingMutex.RUnlock()
-	fake.indexEntryStartedAddingMutex.RLock()
-	defer fake.indexEntryStartedAddingMutex.RUnlock()
-	fake.indexEntryUploadFinishedMutex.RLock()
-	defer fake.indexEntryUploadFinishedMutex.RUnlock()
-	fake.indexEntryUploadStartedMutex.RLock()
-	defer fake.indexEntryUploadStartedMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

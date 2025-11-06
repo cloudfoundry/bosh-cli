@@ -331,16 +331,6 @@ func (fake *FakeSessionContext) EnvironmentReturnsOnCall(i int, result1 string) 
 func (fake *FakeSessionContext) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.cACertMutex.RLock()
-	defer fake.cACertMutex.RUnlock()
-	fake.configMutex.RLock()
-	defer fake.configMutex.RUnlock()
-	fake.credentialsMutex.RLock()
-	defer fake.credentialsMutex.RUnlock()
-	fake.deploymentMutex.RLock()
-	defer fake.deploymentMutex.RUnlock()
-	fake.environmentMutex.RLock()
-	defer fake.environmentMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

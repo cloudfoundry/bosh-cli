@@ -95,8 +95,6 @@ func (fake *FakeArchiveReader) ReadReturnsOnCall(i int, result1 *job.Job, result
 func (fake *FakeArchiveReader) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.readMutex.RLock()
-	defer fake.readMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

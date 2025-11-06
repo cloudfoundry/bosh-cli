@@ -393,18 +393,6 @@ func (fake *FakeCompilable) NameReturnsOnCall(i int, result1 string) {
 func (fake *FakeCompilable) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.archiveDigestMutex.RLock()
-	defer fake.archiveDigestMutex.RUnlock()
-	fake.archivePathMutex.RLock()
-	defer fake.archivePathMutex.RUnlock()
-	fake.depsMutex.RLock()
-	defer fake.depsMutex.RUnlock()
-	fake.fingerprintMutex.RLock()
-	defer fake.fingerprintMutex.RUnlock()
-	fake.isCompiledMutex.RLock()
-	defer fake.isCompiledMutex.RUnlock()
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

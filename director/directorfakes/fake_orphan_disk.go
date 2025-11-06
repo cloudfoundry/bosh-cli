@@ -457,20 +457,6 @@ func (fake *FakeOrphanDisk) SizeReturnsOnCall(i int, result1 uint64) {
 func (fake *FakeOrphanDisk) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.aZNameMutex.RLock()
-	defer fake.aZNameMutex.RUnlock()
-	fake.cIDMutex.RLock()
-	defer fake.cIDMutex.RUnlock()
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
-	fake.deploymentMutex.RLock()
-	defer fake.deploymentMutex.RUnlock()
-	fake.instanceNameMutex.RLock()
-	defer fake.instanceNameMutex.RUnlock()
-	fake.orphanedAtMutex.RLock()
-	defer fake.orphanedAtMutex.RUnlock()
-	fake.sizeMutex.RLock()
-	defer fake.sizeMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
