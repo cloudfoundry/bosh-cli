@@ -20,11 +20,11 @@ func NewTarballCompressor(
 	return tarballCompressor{cmdRunner: cmdRunner, fs: fs}
 }
 
-func (c tarballCompressor) CompressFilesInDir(dir string) (string, error) {
-	return c.CompressSpecificFilesInDir(dir, []string{"."})
+func (c tarballCompressor) CompressFilesInDir(dir string, options CompressorOptions) (string, error) {
+	return c.CompressSpecificFilesInDir(dir, []string{"."}, options)
 }
 
-func (c tarballCompressor) CompressSpecificFilesInDir(dir string, files []string) (string, error) {
+func (c tarballCompressor) CompressSpecificFilesInDir(dir string, files []string, options CompressorOptions) (string, error) {
 	tarball, err := c.fs.TempFile("bosh-platform-disk-TarballCompressor-CompressSpecificFilesInDir")
 	if err != nil {
 		return "", bosherr.WrapError(err, "Creating temporary file for tarball")
@@ -34,7 +34,10 @@ func (c tarballCompressor) CompressSpecificFilesInDir(dir string, files []string
 
 	tarballPath := tarball.Name()
 
-	args := []string{"-czf", tarballPath, "-C", dir}
+	args := []string{"-cf", tarballPath, "-C", dir}
+	if !options.NoCompression {
+		args = append(args, "-z")
+	}
 	if runtime.GOOS == "darwin" {
 		args = append([]string{"--no-mac-metadata"}, args...)
 	}
@@ -61,7 +64,7 @@ func (c tarballCompressor) DecompressFileToDir(tarballPath string, dir string, o
 	if err != nil {
 		return bosherr.WrapError(err, "Resolving tarball path")
 	}
-	args := []string{sameOwnerOption, "-xzf", resolvedTarballPath, "-C", dir}
+	args := []string{sameOwnerOption, "-xf", resolvedTarballPath, "-C", dir}
 	if options.StripComponents != 0 {
 		args = append(args, fmt.Sprintf("--strip-components=%d", options.StripComponents))
 	}

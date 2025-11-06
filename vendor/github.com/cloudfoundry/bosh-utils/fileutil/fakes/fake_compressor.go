@@ -6,12 +6,14 @@ import (
 
 type FakeCompressor struct {
 	CompressFilesInDirDir         string
+	CompressFilesInDirOptions     boshcmd.CompressorOptions
 	CompressFilesInDirTarballPath string
 	CompressFilesInDirErr         error
 	CompressFilesInDirCallBack    func()
 
 	CompressSpecificFilesInDirDir         string
 	CompressSpecificFilesInDirFiles       []string
+	CompressSpecificFilesInDirOptions     boshcmd.CompressorOptions
 	CompressSpecificFilesInDirTarballPath string
 	CompressSpecificFilesInDirErr         error
 	CompressSpecificFilesInDirCallBack    func()
@@ -30,9 +32,9 @@ func NewFakeCompressor() *FakeCompressor {
 	return &FakeCompressor{}
 }
 
-func (fc *FakeCompressor) CompressFilesInDir(dir string) (string, error) {
+func (fc *FakeCompressor) CompressFilesInDir(dir string, options boshcmd.CompressorOptions) (string, error) {
 	fc.CompressFilesInDirDir = dir
-
+	fc.CompressFilesInDirOptions = options
 	if fc.CompressFilesInDirCallBack != nil {
 		fc.CompressFilesInDirCallBack()
 	}
@@ -40,10 +42,10 @@ func (fc *FakeCompressor) CompressFilesInDir(dir string) (string, error) {
 	return fc.CompressFilesInDirTarballPath, fc.CompressFilesInDirErr
 }
 
-func (fc *FakeCompressor) CompressSpecificFilesInDir(dir string, files []string) (string, error) {
+func (fc *FakeCompressor) CompressSpecificFilesInDir(dir string, files []string, options boshcmd.CompressorOptions) (string, error) {
 	fc.CompressSpecificFilesInDirDir = dir
 	fc.CompressSpecificFilesInDirFiles = files
-
+	fc.CompressSpecificFilesInDirOptions = options
 	if fc.CompressSpecificFilesInDirCallBack != nil {
 		fc.CompressSpecificFilesInDirCallBack()
 	}

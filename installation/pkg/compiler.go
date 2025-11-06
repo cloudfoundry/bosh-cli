@@ -111,7 +111,7 @@ func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageR
 			return record, isCompiledPackage, bosherr.WrapError(err, "Compiling package")
 		}
 
-		tarball, err = c.compressor.CompressFilesInDir(installDir)
+		tarball, err = c.compressor.CompressFilesInDir(installDir, boshcmd.CompressorOptions{})
 		if err != nil {
 			return record, isCompiledPackage, bosherr.WrapError(err, "Compressing compiled package")
 		}

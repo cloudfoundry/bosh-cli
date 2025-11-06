@@ -107,7 +107,7 @@ func (s *extractedStemcell) Pack(destinationPath string) error {
 		filenames = append(filenames, filepath.Base(p))
 	}
 
-	intermediateStemcellPath, err := s.compressor.CompressSpecificFilesInDir(s.extractedPath, filenames)
+	intermediateStemcellPath, err := s.compressor.CompressSpecificFilesInDir(s.extractedPath, filenames, boshfu.CompressorOptions{})
 	if err != nil {
 		return err
 	}
