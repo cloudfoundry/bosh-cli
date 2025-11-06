@@ -81,7 +81,7 @@ func (w ArchiveWriter) Write(release Release, pkgFpsToSkip []string) (string, er
 	w.filesToInclude = w.appendFiles(licenseFiles)
 
 	files := w.filesToInclude
-	path, err := w.compressor.CompressSpecificFilesInDir(stagingDir, files)
+	path, err := w.compressor.CompressSpecificFilesInDir(stagingDir, files, boshcmd.CompressorOptions{})
 
 	if err != nil {
 		return "", bosherr.WrapError(err, "Compressing release")

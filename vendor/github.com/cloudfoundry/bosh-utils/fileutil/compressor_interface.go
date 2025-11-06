@@ -4,13 +4,14 @@ type CompressorOptions struct {
 	SameOwner       bool
 	PathInArchive   string
 	StripComponents int
+	NoCompression   bool
 }
 
 type Compressor interface {
 	// CompressFilesInDir returns path to a compressed file
-	CompressFilesInDir(dir string) (path string, err error)
+	CompressFilesInDir(dir string, options CompressorOptions) (path string, err error)
 
-	CompressSpecificFilesInDir(dir string, files []string) (path string, err error)
+	CompressSpecificFilesInDir(dir string, files []string, options CompressorOptions) (path string, err error)
 
 	DecompressFileToDir(path string, dir string, options CompressorOptions) (err error)
 
