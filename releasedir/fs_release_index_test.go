@@ -205,6 +205,7 @@ format-version: "2"`)
 version: ver1
 commit_hash: ""
 uncommitted_changes: false
+no_compression: false
 `))
 
 			Expect(fs.ReadFileString(filepath.Join("/", "dir", "name", "index.yml"))).To(Equal(`builds:
@@ -234,6 +235,7 @@ format-version: "2"
 version: ver1
 commit_hash: ""
 uncommitted_changes: false
+no_compression: false
 `))
 
 			Expect(fs.ReadFileString(filepath.Join("/", "dir", "name", "index.yml"))).To(Equal(`builds:

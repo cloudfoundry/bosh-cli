@@ -23,6 +23,7 @@ var _ = Describe("DirReaderImpl", func() {
 		collectedPrepFiles      []File
 		collectedChunks         []string
 		collectedFollowSymlinks bool
+		collectedNoCompression  bool
 		archive                 *fakeres.FakeArchive
 		fs                      *fakesys.FakeFileSystem
 		reader                  DirReaderImpl
@@ -35,6 +36,7 @@ var _ = Describe("DirReaderImpl", func() {
 			collectedPrepFiles = args.PrepFiles
 			collectedChunks = args.Chunks
 			collectedFollowSymlinks = args.FollowSymlinks
+			collectedNoCompression = args.NoCompression
 			return archive
 		}
 		fs = fakesys.NewFakeFileSystem()
@@ -77,6 +79,52 @@ excluded_files: [ex-file1, ex-file2]
 			Expect(collectedPrepFiles).To(BeEmpty())
 			Expect(collectedChunks).To(Equal([]string{"pkg1", "pkg2"}))
 			Expect(collectedFollowSymlinks).To(BeFalse())
+			Expect(collectedNoCompression).To(BeFalse())
+		})
+
+		It("creates archive factory with no_compression false when package spec does not contain no_compression", func() {
+			err := fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), `---
+name: name
+dependencies: [pkg1]
+files: [in-file1]
+`)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(filepath.Join(srcDirPath, "in-file1"), "")
+			Expect(err).ToNot(HaveOccurred())
+			fs.SetGlob(filepath.Join(srcDirPath, "in-file1"), []string{filepath.Join(srcDirPath, "in-file1")})
+
+			archive.FingerprintReturns("fp", nil)
+
+			_, err = reader.Read(filepath.Join(srcDirPath, "dir"))
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(collectedNoCompression).To(BeFalse())
+		})
+
+		It("creates archive factory with no_compression true when package spec contains no_compression: true", func() {
+			err := fs.WriteFileString(filepath.Join(srcDirPath, "dir", "spec"), `---
+name: name
+dependencies: [pkg1]
+files: [in-file1]
+no_compression: true
+`)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString(filepath.Join(srcDirPath, "dir", "packaging"), "")
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString(filepath.Join(srcDirPath, "in-file1"), "")
+			Expect(err).ToNot(HaveOccurred())
+			fs.SetGlob(filepath.Join(srcDirPath, "in-file1"), []string{filepath.Join(srcDirPath, "in-file1")})
+
+			archive.FingerprintReturns("fp", nil)
+
+			_, err = reader.Read(filepath.Join(srcDirPath, "dir"))
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(collectedNoCompression).To(BeTrue())
 		})
 
 		It("returns a package with the details with pre_packaging file", func() {

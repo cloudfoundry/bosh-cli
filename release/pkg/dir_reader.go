@@ -57,7 +57,7 @@ func (r DirReaderImpl) Read(path string) (*Package, error) {
 
 	// Note that files do not include package's spec file,
 	// but rather specify dependencies as additional chunks for the fingerprint.
-	archive := r.archiveFactory(resource.ArchiveFactoryArgs{Files: files, PrepFiles: prepFiles, Chunks: manifestFromCollectFiles.Dependencies})
+	archive := r.archiveFactory(resource.ArchiveFactoryArgs{Files: files, PrepFiles: prepFiles, Chunks: manifestFromCollectFiles.Dependencies, NoCompression: manifestFromCollectFiles.NoCompression})
 
 	fp, err := archive.Fingerprint()
 	if err != nil {

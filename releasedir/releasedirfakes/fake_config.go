@@ -34,6 +34,16 @@ type FakeConfig struct {
 		result1 string
 		result2 error
 	}
+	NoCompressionStub        func() bool
+	noCompressionMutex       sync.RWMutex
+	noCompressionArgsForCall []struct {
+	}
+	noCompressionReturns struct {
+		result1 bool
+	}
+	noCompressionReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	SaveNameStub        func(string) error
 	saveNameMutex       sync.RWMutex
 	saveNameArgsForCall []struct {
@@ -162,6 +172,59 @@ func (fake *FakeConfig) NameReturnsOnCall(i int, result1 string, result2 error) 
 		result1 string
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeConfig) NoCompression() bool {
+	fake.noCompressionMutex.Lock()
+	ret, specificReturn := fake.noCompressionReturnsOnCall[len(fake.noCompressionArgsForCall)]
+	fake.noCompressionArgsForCall = append(fake.noCompressionArgsForCall, struct {
+	}{})
+	stub := fake.NoCompressionStub
+	fakeReturns := fake.noCompressionReturns
+	fake.recordInvocation("NoCompression", []interface{}{})
+	fake.noCompressionMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeConfig) NoCompressionCallCount() int {
+	fake.noCompressionMutex.RLock()
+	defer fake.noCompressionMutex.RUnlock()
+	return len(fake.noCompressionArgsForCall)
+}
+
+func (fake *FakeConfig) NoCompressionCalls(stub func() bool) {
+	fake.noCompressionMutex.Lock()
+	defer fake.noCompressionMutex.Unlock()
+	fake.NoCompressionStub = stub
+}
+
+func (fake *FakeConfig) NoCompressionReturns(result1 bool) {
+	fake.noCompressionMutex.Lock()
+	defer fake.noCompressionMutex.Unlock()
+	fake.NoCompressionStub = nil
+	fake.noCompressionReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeConfig) NoCompressionReturnsOnCall(i int, result1 bool) {
+	fake.noCompressionMutex.Lock()
+	defer fake.noCompressionMutex.Unlock()
+	fake.NoCompressionStub = nil
+	if fake.noCompressionReturnsOnCall == nil {
+		fake.noCompressionReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.noCompressionReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
 }
 
 func (fake *FakeConfig) SaveName(arg1 string) error {

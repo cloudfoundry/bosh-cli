@@ -17,6 +17,7 @@ type ArchiveImpl struct {
 	additionalChunks []string
 	releaseDirPath   string
 	followSymlinks   bool
+	noCompression    bool
 
 	fingerprinter    Fingerprinter
 	compressor       boshcmd.Compressor
@@ -40,7 +41,7 @@ func NewArchiveImpl(
 		additionalChunks: args.Chunks,
 		followSymlinks:   args.FollowSymlinks,
 		releaseDirPath:   releaseDirPath,
-
+		noCompression:    args.NoCompression,
 		fingerprinter:    fingerprinter,
 		compressor:       compressor,
 		digestCalculator: digestCalculator,
@@ -90,7 +91,7 @@ func (a ArchiveImpl) Build(expectedFp string) (string, string, error) {
 		return "", "", bosherr.WrapError(err, "Running prep scripts")
 	}
 
-	archivePath, err := a.compressor.CompressFilesInDir(stagingDir, boshcmd.CompressorOptions{})
+	archivePath, err := a.compressor.CompressFilesInDir(stagingDir, boshcmd.CompressorOptions{NoCompression: a.noCompression})
 	if err != nil {
 		return "", "", bosherr.WrapError(err, "Compressing staging directory")
 	}

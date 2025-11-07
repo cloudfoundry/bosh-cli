@@ -11,12 +11,13 @@ import (
 )
 
 type FakeReleaseDir struct {
-	BuildReleaseStub        func(string, version.Version, bool) (release.Release, error)
+	BuildReleaseStub        func(string, version.Version, bool, bool) (release.Release, error)
 	buildReleaseMutex       sync.RWMutex
 	buildReleaseArgsForCall []struct {
 		arg1 string
 		arg2 version.Version
 		arg3 bool
+		arg4 bool
 	}
 	buildReleaseReturns struct {
 		result1 release.Release
@@ -124,6 +125,16 @@ type FakeReleaseDir struct {
 		result1 version.Version
 		result2 error
 	}
+	NoCompressionStub        func() bool
+	noCompressionMutex       sync.RWMutex
+	noCompressionArgsForCall []struct {
+	}
+	noCompressionReturns struct {
+		result1 bool
+	}
+	noCompressionReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	ResetStub        func() error
 	resetMutex       sync.RWMutex
 	resetArgsForCall []struct {
@@ -150,20 +161,21 @@ type FakeReleaseDir struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeReleaseDir) BuildRelease(arg1 string, arg2 version.Version, arg3 bool) (release.Release, error) {
+func (fake *FakeReleaseDir) BuildRelease(arg1 string, arg2 version.Version, arg3 bool, arg4 bool) (release.Release, error) {
 	fake.buildReleaseMutex.Lock()
 	ret, specificReturn := fake.buildReleaseReturnsOnCall[len(fake.buildReleaseArgsForCall)]
 	fake.buildReleaseArgsForCall = append(fake.buildReleaseArgsForCall, struct {
 		arg1 string
 		arg2 version.Version
 		arg3 bool
-	}{arg1, arg2, arg3})
+		arg4 bool
+	}{arg1, arg2, arg3, arg4})
 	stub := fake.BuildReleaseStub
 	fakeReturns := fake.buildReleaseReturns
-	fake.recordInvocation("BuildRelease", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("BuildRelease", []interface{}{arg1, arg2, arg3, arg4})
 	fake.buildReleaseMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -177,17 +189,17 @@ func (fake *FakeReleaseDir) BuildReleaseCallCount() int {
 	return len(fake.buildReleaseArgsForCall)
 }
 
-func (fake *FakeReleaseDir) BuildReleaseCalls(stub func(string, version.Version, bool) (release.Release, error)) {
+func (fake *FakeReleaseDir) BuildReleaseCalls(stub func(string, version.Version, bool, bool) (release.Release, error)) {
 	fake.buildReleaseMutex.Lock()
 	defer fake.buildReleaseMutex.Unlock()
 	fake.BuildReleaseStub = stub
 }
 
-func (fake *FakeReleaseDir) BuildReleaseArgsForCall(i int) (string, version.Version, bool) {
+func (fake *FakeReleaseDir) BuildReleaseArgsForCall(i int) (string, version.Version, bool, bool) {
 	fake.buildReleaseMutex.RLock()
 	defer fake.buildReleaseMutex.RUnlock()
 	argsForCall := fake.buildReleaseArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
 func (fake *FakeReleaseDir) BuildReleaseReturns(result1 release.Release, result2 error) {
@@ -709,6 +721,59 @@ func (fake *FakeReleaseDir) NextFinalVersionReturnsOnCall(i int, result1 version
 		result1 version.Version
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeReleaseDir) NoCompression() bool {
+	fake.noCompressionMutex.Lock()
+	ret, specificReturn := fake.noCompressionReturnsOnCall[len(fake.noCompressionArgsForCall)]
+	fake.noCompressionArgsForCall = append(fake.noCompressionArgsForCall, struct {
+	}{})
+	stub := fake.NoCompressionStub
+	fakeReturns := fake.noCompressionReturns
+	fake.recordInvocation("NoCompression", []interface{}{})
+	fake.noCompressionMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeReleaseDir) NoCompressionCallCount() int {
+	fake.noCompressionMutex.RLock()
+	defer fake.noCompressionMutex.RUnlock()
+	return len(fake.noCompressionArgsForCall)
+}
+
+func (fake *FakeReleaseDir) NoCompressionCalls(stub func() bool) {
+	fake.noCompressionMutex.Lock()
+	defer fake.noCompressionMutex.Unlock()
+	fake.NoCompressionStub = stub
+}
+
+func (fake *FakeReleaseDir) NoCompressionReturns(result1 bool) {
+	fake.noCompressionMutex.Lock()
+	defer fake.noCompressionMutex.Unlock()
+	fake.NoCompressionStub = nil
+	fake.noCompressionReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeReleaseDir) NoCompressionReturnsOnCall(i int, result1 bool) {
+	fake.noCompressionMutex.Lock()
+	defer fake.noCompressionMutex.Unlock()
+	fake.NoCompressionStub = nil
+	if fake.noCompressionReturnsOnCall == nil {
+		fake.noCompressionReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.noCompressionReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
 }
 
 func (fake *FakeReleaseDir) Reset() error {

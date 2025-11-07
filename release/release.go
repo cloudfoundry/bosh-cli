@@ -17,10 +17,11 @@ type release struct {
 	commitHash         string
 	uncommittedChanges bool
 
-	jobs         []*bireljob.Job
-	packages     []*birelpkg.Package
-	compiledPkgs []*birelpkg.CompiledPackage
-	license      *birellic.License
+	jobs          []*bireljob.Job
+	packages      []*birelpkg.Package
+	compiledPkgs  []*birelpkg.CompiledPackage
+	license       *birellic.License
+	noCompression bool
 
 	extractedPath string
 	fs            boshsys.FileSystem
@@ -35,6 +36,7 @@ func NewRelease(
 	packages []*birelpkg.Package,
 	compiledPkgs []*birelpkg.CompiledPackage,
 	license *birellic.License,
+	noCompression bool,
 	extractedPath string,
 	fs boshsys.FileSystem,
 ) Release {
@@ -45,11 +47,11 @@ func NewRelease(
 		commitHash:         commitHash,
 		uncommittedChanges: uncommittedChanges,
 
-		jobs:         jobs,
-		packages:     packages,
-		compiledPkgs: compiledPkgs,
-		license:      license,
-
+		jobs:          jobs,
+		packages:      packages,
+		compiledPkgs:  compiledPkgs,
+		license:       license,
+		noCompression: noCompression,
 		extractedPath: extractedPath,
 		fs:            fs,
 	}
@@ -61,8 +63,9 @@ func (r *release) SetName(name string) { r.name = name }
 func (r *release) Version() string           { return r.version }
 func (r *release) SetVersion(version string) { r.version = version }
 
-func (r *release) SetCommitHash(commitHash string)    { r.commitHash = commitHash }
-func (r *release) SetUncommittedChanges(changes bool) { r.uncommittedChanges = changes }
+func (r *release) SetCommitHash(commitHash string)     { r.commitHash = commitHash }
+func (r *release) SetUncommittedChanges(changes bool)  { r.uncommittedChanges = changes }
+func (r *release) SetNoCompression(noCompression bool) { r.noCompression = noCompression }
 
 func (r *release) CommitHashWithMark(suffix string) string {
 	if r.uncommittedChanges {
@@ -75,6 +78,7 @@ func (r *release) Jobs() []*bireljob.Job                         { return r.jobs
 func (r *release) Packages() []*birelpkg.Package                 { return r.packages }
 func (r *release) CompiledPackages() []*birelpkg.CompiledPackage { return r.compiledPkgs }
 func (r *release) License() *birellic.License                    { return r.license }
+func (r *release) NoCompression() bool                           { return r.noCompression }
 
 func (r *release) IsCompiled() bool { return len(r.compiledPkgs) > 0 }
 
@@ -144,10 +148,11 @@ func (r *release) Manifest() birelman.Manifest {
 		CommitHash:         r.commitHash,
 		UncommittedChanges: r.uncommittedChanges,
 
-		Jobs:         jobRefs,
-		Packages:     packageRefs,
-		CompiledPkgs: compiledPkgRefs,
-		License:      licenseRef,
+		Jobs:          jobRefs,
+		Packages:      packageRefs,
+		CompiledPkgs:  compiledPkgRefs,
+		License:       licenseRef,
+		NoCompression: r.noCompression,
 	}
 }
 
@@ -231,10 +236,11 @@ func (r *release) CopyWith(jobs []*bireljob.Job, packages []*birelpkg.Package, l
 		commitHash:         r.commitHash,
 		uncommittedChanges: r.uncommittedChanges,
 
-		jobs:         jobs,
-		packages:     packages,
-		compiledPkgs: compiledPkgs,
-		license:      license,
+		jobs:          jobs,
+		packages:      packages,
+		compiledPkgs:  compiledPkgs,
+		license:       license,
+		noCompression: r.noCompression,
 
 		extractedPath: r.extractedPath,
 		fs:            r.fs,

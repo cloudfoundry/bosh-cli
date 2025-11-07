@@ -145,6 +145,16 @@ type FakeRelease struct {
 	nameReturnsOnCall map[int]struct {
 		result1 string
 	}
+	NoCompressionStub        func() bool
+	noCompressionMutex       sync.RWMutex
+	noCompressionArgsForCall []struct {
+	}
+	noCompressionReturns struct {
+		result1 bool
+	}
+	noCompressionReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	PackagesStub        func() []*pkg.Package
 	packagesMutex       sync.RWMutex
 	packagesArgsForCall []struct {
@@ -164,6 +174,11 @@ type FakeRelease struct {
 	setNameMutex       sync.RWMutex
 	setNameArgsForCall []struct {
 		arg1 string
+	}
+	SetNoCompressionStub        func(bool)
+	setNoCompressionMutex       sync.RWMutex
+	setNoCompressionArgsForCall []struct {
+		arg1 bool
 	}
 	SetUncommittedChangesStub        func(bool)
 	setUncommittedChangesMutex       sync.RWMutex
@@ -889,6 +904,59 @@ func (fake *FakeRelease) NameReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
+func (fake *FakeRelease) NoCompression() bool {
+	fake.noCompressionMutex.Lock()
+	ret, specificReturn := fake.noCompressionReturnsOnCall[len(fake.noCompressionArgsForCall)]
+	fake.noCompressionArgsForCall = append(fake.noCompressionArgsForCall, struct {
+	}{})
+	stub := fake.NoCompressionStub
+	fakeReturns := fake.noCompressionReturns
+	fake.recordInvocation("NoCompression", []interface{}{})
+	fake.noCompressionMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeRelease) NoCompressionCallCount() int {
+	fake.noCompressionMutex.RLock()
+	defer fake.noCompressionMutex.RUnlock()
+	return len(fake.noCompressionArgsForCall)
+}
+
+func (fake *FakeRelease) NoCompressionCalls(stub func() bool) {
+	fake.noCompressionMutex.Lock()
+	defer fake.noCompressionMutex.Unlock()
+	fake.NoCompressionStub = stub
+}
+
+func (fake *FakeRelease) NoCompressionReturns(result1 bool) {
+	fake.noCompressionMutex.Lock()
+	defer fake.noCompressionMutex.Unlock()
+	fake.NoCompressionStub = nil
+	fake.noCompressionReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeRelease) NoCompressionReturnsOnCall(i int, result1 bool) {
+	fake.noCompressionMutex.Lock()
+	defer fake.noCompressionMutex.Unlock()
+	fake.NoCompressionStub = nil
+	if fake.noCompressionReturnsOnCall == nil {
+		fake.noCompressionReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.noCompressionReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *FakeRelease) Packages() []*pkg.Package {
 	fake.packagesMutex.Lock()
 	ret, specificReturn := fake.packagesReturnsOnCall[len(fake.packagesArgsForCall)]
@@ -1003,6 +1071,38 @@ func (fake *FakeRelease) SetNameArgsForCall(i int) string {
 	fake.setNameMutex.RLock()
 	defer fake.setNameMutex.RUnlock()
 	argsForCall := fake.setNameArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeRelease) SetNoCompression(arg1 bool) {
+	fake.setNoCompressionMutex.Lock()
+	fake.setNoCompressionArgsForCall = append(fake.setNoCompressionArgsForCall, struct {
+		arg1 bool
+	}{arg1})
+	stub := fake.SetNoCompressionStub
+	fake.recordInvocation("SetNoCompression", []interface{}{arg1})
+	fake.setNoCompressionMutex.Unlock()
+	if stub != nil {
+		fake.SetNoCompressionStub(arg1)
+	}
+}
+
+func (fake *FakeRelease) SetNoCompressionCallCount() int {
+	fake.setNoCompressionMutex.RLock()
+	defer fake.setNoCompressionMutex.RUnlock()
+	return len(fake.setNoCompressionArgsForCall)
+}
+
+func (fake *FakeRelease) SetNoCompressionCalls(stub func(bool)) {
+	fake.setNoCompressionMutex.Lock()
+	defer fake.setNoCompressionMutex.Unlock()
+	fake.SetNoCompressionStub = stub
+}
+
+func (fake *FakeRelease) SetNoCompressionArgsForCall(i int) bool {
+	fake.setNoCompressionMutex.RLock()
+	defer fake.setNoCompressionMutex.RUnlock()
+	argsForCall := fake.setNoCompressionArgsForCall[i]
 	return argsForCall.arg1
 }
 

@@ -26,6 +26,9 @@ type ReleaseDir interface {
 	// DefaultName returns a string for the release.
 	DefaultName() (string, error)
 
+	// NoCompression returns a boolean indicating whether the release should be built with compression disabled.
+	NoCompression() bool
+
 	// NextDevVersion and NextFinalVersion returns a next version for the that name.
 	// It does not account for gaps and just plainly increments.
 	NextDevVersion(name string, timestamp bool) (semver.Version, error)
@@ -37,7 +40,7 @@ type ReleaseDir interface {
 
 	// BuildRelease builds a new version of the Release
 	// from the release directory by looking at jobs, packages, etc. directories.
-	BuildRelease(name string, version semver.Version, force bool) (boshrel.Release, error)
+	BuildRelease(name string, version semver.Version, force, noCompression bool) (boshrel.Release, error)
 	VendorPackage(pkg *boshpkg.Package, prefix string) error
 
 	// FinalizeRelease adds the Release to the final list so that it's consumable by others.
@@ -51,6 +54,7 @@ type Config interface {
 	SaveName(string) error
 
 	Blobstore() (string, map[string]interface{}, error)
+	NoCompression() bool
 }
 
 //counterfeiter:generate . Generator

@@ -377,7 +377,8 @@ var _ = Describe("FSGenerator", func() {
 
 		BeforeEach(func() {
 			expectedRelease = &fakerel.FakeRelease{
-				NameStub: func() string { return "rel1" },
+				NameStub:          func() string { return "rel1" },
+				NoCompressionStub: func() bool { return false },
 			}
 		})
 
@@ -555,6 +556,7 @@ var _ = Describe("FSGenerator", func() {
 				ManifestStub: func() boshman.Manifest {
 					return boshman.Manifest{Name: "rel1"}
 				},
+				NoCompressionStub: func() bool { return false },
 			}
 		})
 
@@ -585,7 +587,7 @@ var _ = Describe("FSGenerator", func() {
 				return nil
 			}
 
-			release, err := releaseDir.BuildRelease("rel1", ver, false)
+			release, err := releaseDir.BuildRelease("rel1", ver, false, false)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(release).To(Equal(expectedRelease))
 
@@ -600,21 +602,21 @@ var _ = Describe("FSGenerator", func() {
 		It("returns error if git is dirty and force is not set", func() {
 			gitRepo.MustNotBeDirtyReturns(true, errors.New("dirty"))
 
-			_, err := releaseDir.BuildRelease("rel1", ver, false)
+			_, err := releaseDir.BuildRelease("rel1", ver, false, false)
 			Expect(err).To(Equal(errors.New("dirty")))
 		})
 
 		It("returns error if last commit cannot be retrieved", func() {
 			gitRepo.LastCommitSHAReturns("", errors.New("fake-err"))
 
-			_, err := releaseDir.BuildRelease("rel1", ver, false)
+			_, err := releaseDir.BuildRelease("rel1", ver, false, false)
 			Expect(err).To(Equal(errors.New("fake-err")))
 		})
 
 		It("returns error if reading release", func() {
 			reader.ReadReturns(nil, errors.New("fake-err"))
 
-			_, err := releaseDir.BuildRelease("rel1", ver, false)
+			_, err := releaseDir.BuildRelease("rel1", ver, false, false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
@@ -623,8 +625,46 @@ var _ = Describe("FSGenerator", func() {
 			reader.ReadReturns(expectedRelease, nil)
 			devReleases.AddReturns(errors.New("fake-err"))
 
-			_, err := releaseDir.BuildRelease("rel1", ver, false)
+			_, err := releaseDir.BuildRelease("rel1", ver, false, false)
 			Expect(err).To(Equal(errors.New("fake-err")))
+		})
+
+		It("sets no_compression to false in manifest when noCompression is false", func() {
+			gitRepo.MustNotBeDirtyReturns(true, nil)
+			gitRepo.LastCommitSHAReturns("commit", nil)
+			blobsDir.SyncBlobsReturns(nil)
+			reader.ReadReturns(expectedRelease, nil)
+
+			var capturedManifest boshman.Manifest
+			devReleases.AddStub = func(manifest boshman.Manifest) error {
+				capturedManifest = manifest
+				return nil
+			}
+
+			_, err := releaseDir.BuildRelease("rel1", ver, false, false)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(capturedManifest.NoCompression).To(BeFalse())
+			Expect(expectedRelease.SetNoCompressionArgsForCall(0)).To(BeFalse())
+		})
+
+		It("sets no_compression to true in manifest when noCompression is true", func() {
+			gitRepo.MustNotBeDirtyReturns(true, nil)
+			gitRepo.LastCommitSHAReturns("commit", nil)
+			blobsDir.SyncBlobsReturns(nil)
+			reader.ReadReturns(expectedRelease, nil)
+
+			var capturedManifest boshman.Manifest
+			devReleases.AddStub = func(manifest boshman.Manifest) error {
+				capturedManifest = manifest
+				return nil
+			}
+
+			_, err := releaseDir.BuildRelease("rel1", ver, false, true)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(capturedManifest.NoCompression).To(BeTrue())
+			Expect(expectedRelease.SetNoCompressionArgsForCall(0)).To(BeTrue())
 		})
 	})
 
@@ -811,6 +851,7 @@ fingerprint: pkg1-fp
 				ManifestStub: func() boshman.Manifest {
 					return boshman.Manifest{Name: "rel1"}
 				},
+				NoCompressionStub: func() bool { return false },
 			}
 		})
 

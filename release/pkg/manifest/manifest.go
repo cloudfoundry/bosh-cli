@@ -11,6 +11,7 @@ type Manifest struct {
 	Dependencies  []string `yaml:"dependencies"`
 	Files         []string `yaml:"files"`
 	ExcludedFiles []string `yaml:"excluded_files"`
+	NoCompression bool     `yaml:"no_compression"`
 }
 
 func NewManifestFromPath(path string, fs boshsys.FileSystem) (Manifest, error) {

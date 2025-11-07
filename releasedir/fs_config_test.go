@@ -267,4 +267,30 @@ var _ = Describe("FSConfig", func() {
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 	})
+
+	Describe("NoCompression", func() {
+		It("returns false when no_compression is not present in final.yml", func() {
+			err := fs.WriteFileString("/dir/public.yml", "name: test-release")
+			Expect(err).ToNot(HaveOccurred())
+
+			noCompression := config.NoCompression()
+			Expect(noCompression).To(BeFalse())
+		})
+
+		It("returns false when no_compression is explicitly false in final.yml", func() {
+			err := fs.WriteFileString("/dir/public.yml", "name: test-release\nno_compression: false")
+			Expect(err).ToNot(HaveOccurred())
+
+			noCompression := config.NoCompression()
+			Expect(noCompression).To(BeFalse())
+		})
+
+		It("returns true when no_compression is true in final.yml", func() {
+			err := fs.WriteFileString("/dir/public.yml", "name: test-release\nno_compression: true")
+			Expect(err).ToNot(HaveOccurred())
+
+			noCompression := config.NoCompression()
+			Expect(noCompression).To(BeTrue())
+		})
+	})
 })

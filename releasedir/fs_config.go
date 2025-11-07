@@ -28,9 +28,10 @@ type FSConfig struct {
 }
 
 type fsConfigPublicSchema struct {
-	Name      string                   `yaml:"name"`
-	FinalName string                   `yaml:"final_name,omitempty"`
-	Blobstore fsConfigSchema_Blobstore `yaml:"blobstore,omitempty"`
+	Name          string                   `yaml:"name"`
+	FinalName     string                   `yaml:"final_name,omitempty"`
+	Blobstore     fsConfigSchema_Blobstore `yaml:"blobstore,omitempty"`
+	NoCompression bool                     `yaml:"no_compression,omitempty"`
 }
 
 type fsConfigPrivateSchema struct {
@@ -87,6 +88,14 @@ func (c FSConfig) SaveName(name string) error {
 	}
 
 	return nil
+}
+
+func (c FSConfig) NoCompression() bool {
+	publicSchema, _, err := c.read()
+	if err != nil {
+		return false
+	}
+	return publicSchema.NoCompression
 }
 
 func (c FSConfig) Blobstore() (string, map[string]interface{}, error) {

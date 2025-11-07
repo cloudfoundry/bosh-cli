@@ -114,10 +114,11 @@ func (r ArchiveReader) newRelease(manifest boshman.Manifest, extractPath string)
 		commitHash:         manifest.CommitHash,
 		uncommittedChanges: manifest.UncommittedChanges,
 
-		jobs:         jobs,
-		packages:     packages,
-		compiledPkgs: compiledPkgs,
-		license:      license,
+		jobs:          jobs,
+		packages:      packages,
+		compiledPkgs:  compiledPkgs,
+		license:       license,
+		noCompression: manifest.NoCompression,
 
 		extractedPath: extractPath,
 		fs:            r.fs,

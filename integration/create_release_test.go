@@ -122,6 +122,7 @@ license:
   version: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
   fingerprint: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
   sha1: replaced
+no_compression: false
 `))
 		})
 
@@ -183,6 +184,7 @@ license:
   version: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
   fingerprint: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
   sha1: replaced
+no_compression: false
 `,
 			))
 
