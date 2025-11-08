@@ -6,12 +6,12 @@ require (
 	code.cloudfoundry.org/clock v1.44.0
 	code.cloudfoundry.org/workpool v0.0.0-20250911194158-1489753f182e
 	github.com/cheggaaa/pb/v3 v3.1.7
-	github.com/cloudfoundry/bosh-agent/v2 v2.775.0
-	github.com/cloudfoundry/bosh-davcli v0.0.439
+	github.com/cloudfoundry/bosh-agent/v2 v2.777.0
+	github.com/cloudfoundry/bosh-davcli v0.0.440
 	github.com/cloudfoundry/bosh-gcscli v0.0.322
 	github.com/cloudfoundry/bosh-s3cli v0.0.382
-	github.com/cloudfoundry/bosh-utils v0.0.562
-	github.com/cloudfoundry/config-server v0.1.257
+	github.com/cloudfoundry/bosh-utils v0.0.563
+	github.com/cloudfoundry/config-server v0.1.258
 	github.com/cloudfoundry/socks5-proxy v0.2.159
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
@@ -58,7 +58,7 @@ require (
 	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 // indirect
 	github.com/cncf/xds/go v0.0.0-20250501225837-2ac532fd4443 // indirect
-	github.com/envoyproxy/go-control-plane/envoy v1.35.0 // indirect
+	github.com/envoyproxy/go-control-plane/envoy v1.36.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.2 // indirect
@@ -70,7 +70,7 @@ require (
 	github.com/google/pprof v0.0.0-20250630185457-6e76a2b096b5 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.3.7 // indirect
 	github.com/googleapis/gax-go/v2 v2.15.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
