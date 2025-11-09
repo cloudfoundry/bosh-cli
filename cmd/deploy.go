@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"time"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"gopkg.in/yaml.v3"
 
@@ -101,9 +104,18 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 		return err
 	}
 
+	var recreateOlderThan time.Time
+	if len(opts.RecreateOlderThan) > 0 {
+		recreateOlderThan, err = time.Parse(time.RFC3339, opts.RecreateOlderThan)
+		if err != nil {
+			return fmt.Errorf("could not parse recreate timestamp: %v", err)
+		}
+	}
+
 	updateOpts := boshdir.UpdateOpts{
 		RecreatePersistentDisks: opts.RecreatePersistentDisks,
 		Recreate:                opts.Recreate,
+		RecreateOlderThan:       recreateOlderThan,
 		Fix:                     opts.Fix,
 		SkipDrain:               opts.SkipDrain,
 		DryRun:                  opts.DryRun,

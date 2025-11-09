@@ -504,6 +504,7 @@ type DeployOpts struct {
 	NoRedact bool `long:"no-redact" description:"Show non-redacted manifest diff"`
 
 	Recreate                bool                `long:"recreate"                                description:"Recreate all VMs in deployment"`
+	RecreateOlderThan       string              `long:"recreate-older-than"                     description:"Recreate all VMs in deployment older than the specified time"`
 	RecreatePersistentDisks bool                `long:"recreate-persistent-disks"               description:"Recreate all persistent disks in deployment"`
 	Fix                     bool                `long:"fix"                                     description:"Recreate an instance with an unresponsive agent instead of erroring"`
 	FixReleases             bool                `long:"fix-releases"                            description:"Reupload releases in manifest and replace corrupt or missing jobs/packages"`

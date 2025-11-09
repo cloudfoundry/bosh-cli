@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
@@ -519,6 +520,10 @@ func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
 
 	if opts.Recreate {
 		query.Add("recreate", "true")
+	}
+
+	if !opts.RecreateOlderThan.IsZero() {
+		query.Add("recreate_older_than", opts.RecreateOlderThan.Format(time.RFC3339))
 	}
 
 	if opts.RecreatePersistentDisks {

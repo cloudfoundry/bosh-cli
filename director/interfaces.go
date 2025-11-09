@@ -219,6 +219,7 @@ type RecreateOpts struct {
 
 type UpdateOpts struct {
 	Recreate                bool
+	RecreateOlderThan       time.Time
 	RecreatePersistentDisks bool
 	Fix                     bool
 	SkipDrain               SkipDrains
