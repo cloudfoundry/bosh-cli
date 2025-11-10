@@ -206,7 +206,7 @@ func (d FSReleaseDir) FindRelease(name string, version semver.Version) (boshrel.
 	return d.releaseReader.Read(relIndex.ManifestPath(name, version.AsString()))
 }
 
-func (d FSReleaseDir) BuildRelease(name string, version semver.Version, force, noCompression bool) (boshrel.Release, error) {
+func (d FSReleaseDir) BuildRelease(name string, version semver.Version, force bool) (boshrel.Release, error) {
 	dirty, err := d.gitRepo.MustNotBeDirty(force)
 	if err != nil {
 		return nil, err
@@ -231,10 +231,9 @@ func (d FSReleaseDir) BuildRelease(name string, version semver.Version, force, n
 	release.SetVersion(version.AsString())
 	release.SetCommitHash(commitSHA)
 	release.SetUncommittedChanges(dirty)
-	release.SetNoCompression(noCompression)
+	release.SetNoCompression(d.NoCompression())
 
 	manifest := release.Manifest()
-	manifest.NoCompression = noCompression
 
 	err = d.devReleases.Add(manifest)
 	if err != nil {

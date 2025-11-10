@@ -227,7 +227,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 				releaseDir.DefaultNameReturns("default-rel-name", nil)
 				releaseDir.NextDevVersionReturns(semver.MustNewVersionFromString("next-dev+ver"), nil)
 
-				releaseDir.BuildReleaseStub = func(name string, version semver.Version, force, noCompression bool) (boshrel.Release, error) {
+				releaseDir.BuildReleaseStub = func(name string, version semver.Version, force bool) (boshrel.Release, error) {
 					release.SetName(name)
 					release.SetVersion(version.String())
 					Expect(force).To(BeFalse())
@@ -261,7 +261,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 				releaseDir.DefaultNameReturns("default-rel-name", nil)
 				releaseDir.NextDevVersionReturns(semver.MustNewVersionFromString("1.1"), nil)
 
-				releaseDir.BuildReleaseStub = func(name string, version semver.Version, force, noCompression bool) (boshrel.Release, error) {
+				releaseDir.BuildReleaseStub = func(name string, version semver.Version, force bool) (boshrel.Release, error) {
 					release.SetName(name)
 					release.SetVersion(version.String())
 					Expect(force).To(BeFalse())
@@ -300,7 +300,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 					return semver.MustNewVersionFromString("ts-ver"), nil
 				}
 
-				releaseDir.BuildReleaseStub = func(name string, version semver.Version, force, noCompression bool) (boshrel.Release, error) {
+				releaseDir.BuildReleaseStub = func(name string, version semver.Version, force bool) (boshrel.Release, error) {
 					release.SetName(name)
 					release.SetVersion(version.String())
 					Expect(force).To(BeTrue())
@@ -334,7 +334,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 				releaseDir.NextDevVersionReturns(semver.MustNewVersionFromString("next-dev+ver"), nil)
 				releaseDir.NextFinalVersionReturns(semver.MustNewVersionFromString("next-final+ver"), nil)
 
-				releaseDir.BuildReleaseStub = func(name string, version semver.Version, force, noCompression bool) (boshrel.Release, error) {
+				releaseDir.BuildReleaseStub = func(name string, version semver.Version, force bool) (boshrel.Release, error) {
 					release.SetName(name)
 					release.SetVersion(version.String())
 					Expect(force).To(BeFalse())
@@ -376,7 +376,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 				releaseDir.DefaultNameReturns("default-rel-name", nil)
 				releaseDir.NextDevVersionReturns(semver.MustNewVersionFromString("1.1"), nil)
 
-				releaseDir.BuildReleaseStub = func(name string, version semver.Version, force, noCompression bool) (boshrel.Release, error) {
+				releaseDir.BuildReleaseStub = func(name string, version semver.Version, force bool) (boshrel.Release, error) {
 					release.SetName(name)
 					release.SetVersion(version.String())
 					Expect(force).To(BeFalse())
@@ -419,7 +419,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 				releaseDir.NextDevVersionReturns(semver.MustNewVersionFromString("next-dev+ver"), nil)
 				releaseDir.NextFinalVersionReturns(semver.MustNewVersionFromString("next-final+ver"), nil)
 
-				releaseDir.BuildReleaseStub = func(name string, version semver.Version, force, noCompression bool) (boshrel.Release, error) {
+				releaseDir.BuildReleaseStub = func(name string, version semver.Version, force bool) (boshrel.Release, error) {
 					release.SetName(name)
 					release.SetVersion(version.String())
 					Expect(force).To(BeFalse())

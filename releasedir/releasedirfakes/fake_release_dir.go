@@ -11,13 +11,12 @@ import (
 )
 
 type FakeReleaseDir struct {
-	BuildReleaseStub        func(string, version.Version, bool, bool) (release.Release, error)
+	BuildReleaseStub        func(string, version.Version, bool) (release.Release, error)
 	buildReleaseMutex       sync.RWMutex
 	buildReleaseArgsForCall []struct {
 		arg1 string
 		arg2 version.Version
 		arg3 bool
-		arg4 bool
 	}
 	buildReleaseReturns struct {
 		result1 release.Release
@@ -161,21 +160,20 @@ type FakeReleaseDir struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeReleaseDir) BuildRelease(arg1 string, arg2 version.Version, arg3 bool, arg4 bool) (release.Release, error) {
+func (fake *FakeReleaseDir) BuildRelease(arg1 string, arg2 version.Version, arg3 bool) (release.Release, error) {
 	fake.buildReleaseMutex.Lock()
 	ret, specificReturn := fake.buildReleaseReturnsOnCall[len(fake.buildReleaseArgsForCall)]
 	fake.buildReleaseArgsForCall = append(fake.buildReleaseArgsForCall, struct {
 		arg1 string
 		arg2 version.Version
 		arg3 bool
-		arg4 bool
-	}{arg1, arg2, arg3, arg4})
+	}{arg1, arg2, arg3})
 	stub := fake.BuildReleaseStub
 	fakeReturns := fake.buildReleaseReturns
-	fake.recordInvocation("BuildRelease", []interface{}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("BuildRelease", []interface{}{arg1, arg2, arg3})
 	fake.buildReleaseMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -189,17 +187,17 @@ func (fake *FakeReleaseDir) BuildReleaseCallCount() int {
 	return len(fake.buildReleaseArgsForCall)
 }
 
-func (fake *FakeReleaseDir) BuildReleaseCalls(stub func(string, version.Version, bool, bool) (release.Release, error)) {
+func (fake *FakeReleaseDir) BuildReleaseCalls(stub func(string, version.Version, bool) (release.Release, error)) {
 	fake.buildReleaseMutex.Lock()
 	defer fake.buildReleaseMutex.Unlock()
 	fake.BuildReleaseStub = stub
 }
 
-func (fake *FakeReleaseDir) BuildReleaseArgsForCall(i int) (string, version.Version, bool, bool) {
+func (fake *FakeReleaseDir) BuildReleaseArgsForCall(i int) (string, version.Version, bool) {
 	fake.buildReleaseMutex.RLock()
 	defer fake.buildReleaseMutex.RUnlock()
 	argsForCall := fake.buildReleaseArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeReleaseDir) BuildReleaseReturns(result1 release.Release, result2 error) {

@@ -587,7 +587,7 @@ var _ = Describe("FSGenerator", func() {
 				return nil
 			}
 
-			release, err := releaseDir.BuildRelease("rel1", ver, false, false)
+			release, err := releaseDir.BuildRelease("rel1", ver, false)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(release).To(Equal(expectedRelease))
 
@@ -602,21 +602,21 @@ var _ = Describe("FSGenerator", func() {
 		It("returns error if git is dirty and force is not set", func() {
 			gitRepo.MustNotBeDirtyReturns(true, errors.New("dirty"))
 
-			_, err := releaseDir.BuildRelease("rel1", ver, false, false)
+			_, err := releaseDir.BuildRelease("rel1", ver, false)
 			Expect(err).To(Equal(errors.New("dirty")))
 		})
 
 		It("returns error if last commit cannot be retrieved", func() {
 			gitRepo.LastCommitSHAReturns("", errors.New("fake-err"))
 
-			_, err := releaseDir.BuildRelease("rel1", ver, false, false)
+			_, err := releaseDir.BuildRelease("rel1", ver, false)
 			Expect(err).To(Equal(errors.New("fake-err")))
 		})
 
 		It("returns error if reading release", func() {
 			reader.ReadReturns(nil, errors.New("fake-err"))
 
-			_, err := releaseDir.BuildRelease("rel1", ver, false, false)
+			_, err := releaseDir.BuildRelease("rel1", ver, false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
@@ -625,7 +625,7 @@ var _ = Describe("FSGenerator", func() {
 			reader.ReadReturns(expectedRelease, nil)
 			devReleases.AddReturns(errors.New("fake-err"))
 
-			_, err := releaseDir.BuildRelease("rel1", ver, false, false)
+			_, err := releaseDir.BuildRelease("rel1", ver, false)
 			Expect(err).To(Equal(errors.New("fake-err")))
 		})
 
@@ -641,7 +641,7 @@ var _ = Describe("FSGenerator", func() {
 				return nil
 			}
 
-			_, err := releaseDir.BuildRelease("rel1", ver, false, false)
+			_, err := releaseDir.BuildRelease("rel1", ver, false)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(capturedManifest.NoCompression).To(BeFalse())
@@ -649,6 +649,10 @@ var _ = Describe("FSGenerator", func() {
 		})
 
 		It("sets no_compression to true in manifest when noCompression is true", func() {
+			config.NoCompressionReturns(true)
+			expectedRelease.ManifestStub = func() boshman.Manifest {
+				return boshman.Manifest{Name: "rel1", NoCompression: true}
+			}
 			gitRepo.MustNotBeDirtyReturns(true, nil)
 			gitRepo.LastCommitSHAReturns("commit", nil)
 			blobsDir.SyncBlobsReturns(nil)
@@ -660,7 +664,7 @@ var _ = Describe("FSGenerator", func() {
 				return nil
 			}
 
-			_, err := releaseDir.BuildRelease("rel1", ver, false, true)
+			_, err := releaseDir.BuildRelease("rel1", ver, false)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(capturedManifest.NoCompression).To(BeTrue())

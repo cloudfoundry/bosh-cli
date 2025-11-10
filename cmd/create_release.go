@@ -99,7 +99,7 @@ func (c CreateReleaseCmd) buildRelease(releaseDir boshreldir.ReleaseDir, opts Cr
 		}
 	}
 
-	return releaseDir.BuildRelease(name, version, opts.Force, releaseDir.NoCompression())
+	return releaseDir.BuildRelease(name, version, opts.Force)
 }
 
 func (c CreateReleaseCmd) finalizeRelease(releaseDir boshreldir.ReleaseDir, release boshrel.Release, opts CreateReleaseOpts) error {

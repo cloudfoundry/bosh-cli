@@ -40,7 +40,7 @@ type ReleaseDir interface {
 
 	// BuildRelease builds a new version of the Release
 	// from the release directory by looking at jobs, packages, etc. directories.
-	BuildRelease(name string, version semver.Version, force, noCompression bool) (boshrel.Release, error)
+	BuildRelease(name string, version semver.Version, force bool) (boshrel.Release, error)
 	VendorPackage(pkg *boshpkg.Package, prefix string) error
 
 	// FinalizeRelease adds the Release to the final list so that it's consumable by others.
