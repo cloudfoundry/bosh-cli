@@ -45,6 +45,11 @@ type ReleaseDir interface {
 
 	// FinalizeRelease adds the Release to the final list so that it's consumable by others.
 	FinalizeRelease(release boshrel.Release, force bool) error
+
+	// CheckNoCompressionMismatch checks if any packages have no_compression: true in their spec files
+	// but final.yml does not have no_compression: true. Returns true if there's a mismatch,
+	// along with a list of package names that have no_compression: true.
+	CheckNoCompressionMismatch() (bool, []string, error)
 }
 
 //counterfeiter:generate . Config

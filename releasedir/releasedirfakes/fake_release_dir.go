@@ -26,6 +26,20 @@ type FakeReleaseDir struct {
 		result1 release.Release
 		result2 error
 	}
+	CheckNoCompressionMismatchStub        func() (bool, []string, error)
+	checkNoCompressionMismatchMutex       sync.RWMutex
+	checkNoCompressionMismatchArgsForCall []struct {
+	}
+	checkNoCompressionMismatchReturns struct {
+		result1 bool
+		result2 []string
+		result3 error
+	}
+	checkNoCompressionMismatchReturnsOnCall map[int]struct {
+		result1 bool
+		result2 []string
+		result3 error
+	}
 	DefaultNameStub        func() (string, error)
 	defaultNameMutex       sync.RWMutex
 	defaultNameArgsForCall []struct {
@@ -224,6 +238,65 @@ func (fake *FakeReleaseDir) BuildReleaseReturnsOnCall(i int, result1 release.Rel
 		result1 release.Release
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeReleaseDir) CheckNoCompressionMismatch() (bool, []string, error) {
+	fake.checkNoCompressionMismatchMutex.Lock()
+	ret, specificReturn := fake.checkNoCompressionMismatchReturnsOnCall[len(fake.checkNoCompressionMismatchArgsForCall)]
+	fake.checkNoCompressionMismatchArgsForCall = append(fake.checkNoCompressionMismatchArgsForCall, struct {
+	}{})
+	stub := fake.CheckNoCompressionMismatchStub
+	fakeReturns := fake.checkNoCompressionMismatchReturns
+	fake.recordInvocation("CheckNoCompressionMismatch", []interface{}{})
+	fake.checkNoCompressionMismatchMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
+}
+
+func (fake *FakeReleaseDir) CheckNoCompressionMismatchCallCount() int {
+	fake.checkNoCompressionMismatchMutex.RLock()
+	defer fake.checkNoCompressionMismatchMutex.RUnlock()
+	return len(fake.checkNoCompressionMismatchArgsForCall)
+}
+
+func (fake *FakeReleaseDir) CheckNoCompressionMismatchCalls(stub func() (bool, []string, error)) {
+	fake.checkNoCompressionMismatchMutex.Lock()
+	defer fake.checkNoCompressionMismatchMutex.Unlock()
+	fake.CheckNoCompressionMismatchStub = stub
+}
+
+func (fake *FakeReleaseDir) CheckNoCompressionMismatchReturns(result1 bool, result2 []string, result3 error) {
+	fake.checkNoCompressionMismatchMutex.Lock()
+	defer fake.checkNoCompressionMismatchMutex.Unlock()
+	fake.CheckNoCompressionMismatchStub = nil
+	fake.checkNoCompressionMismatchReturns = struct {
+		result1 bool
+		result2 []string
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeReleaseDir) CheckNoCompressionMismatchReturnsOnCall(i int, result1 bool, result2 []string, result3 error) {
+	fake.checkNoCompressionMismatchMutex.Lock()
+	defer fake.checkNoCompressionMismatchMutex.Unlock()
+	fake.CheckNoCompressionMismatchStub = nil
+	if fake.checkNoCompressionMismatchReturnsOnCall == nil {
+		fake.checkNoCompressionMismatchReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 []string
+			result3 error
+		})
+	}
+	fake.checkNoCompressionMismatchReturnsOnCall[i] = struct {
+		result1 bool
+		result2 []string
+		result3 error
+	}{result1, result2, result3}
 }
 
 func (fake *FakeReleaseDir) DefaultName() (string, error) {

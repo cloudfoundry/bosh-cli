@@ -99,7 +99,19 @@ func (c CreateReleaseCmd) buildRelease(releaseDir boshreldir.ReleaseDir, opts Cr
 		}
 	}
 
-	return releaseDir.BuildRelease(name, version, opts.Force)
+	release, err := releaseDir.BuildRelease(name, version, opts.Force)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check for no_compression mismatch and warn if found
+	hasMismatch, packages, err := releaseDir.CheckNoCompressionMismatch()
+	if err == nil && hasMismatch {
+		packageList := strings.Join(packages, ", ")
+		c.ui.ErrorLinef("Warning: The following packages have no_compression: true in their spec files, but final.yml does not have no_compression: true. Consider setting no_compression: true in final.yml to avoid double compression: %s", packageList)
+	}
+
+	return release, nil
 }
 
 func (c CreateReleaseCmd) finalizeRelease(releaseDir boshreldir.ReleaseDir, release boshrel.Release, opts CreateReleaseOpts) error {

@@ -673,32 +673,40 @@ no_compression: true
 				Expect(manifest.NoCompression).To(BeTrue())
 			})
 
-			By("verifying package with no_compression: true has different SHA than compressed package", func() {
+			By("verifying package with no_compression: true is not compressed", func() {
 				relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
-				archiveReader := relProvider.NewArchiveReader()
+				extractingArchiveReader := relProvider.NewExtractingArchiveReader()
 
-				release, err := archiveReader.Read(releaseTarballPath)
+				release, err := extractingArchiveReader.Read(releaseTarballPath)
 				Expect(err).ToNot(HaveOccurred())
 				defer release.CleanUp() //nolint:errcheck
 
-				manifest := release.Manifest()
-				Expect(len(manifest.Packages)).To(BeNumerically(">=", 2))
+				packages := release.Packages()
+				Expect(len(packages)).To(BeNumerically(">=", 2))
 
-				var pkg1SHA, pkg2SHA string
-				for _, pkg := range manifest.Packages {
-					if pkg.Name == "pkg1" {
-						pkg1SHA = pkg.SHA1
+				var pkg1ArchivePath, pkg2ArchivePath string
+				for _, pkg := range packages {
+					if pkg.Name() == "pkg1" {
+						pkg1ArchivePath = pkg.ArchivePath()
 					}
-					if pkg.Name == "pkg2" {
-						pkg2SHA = pkg.SHA1
+					if pkg.Name() == "pkg2" {
+						pkg2ArchivePath = pkg.ArchivePath()
 					}
 				}
 
-				Expect(pkg1SHA).ToNot(BeEmpty())
-				Expect(pkg2SHA).ToNot(BeEmpty())
-				// The package with no_compression: true should have a different SHA than the compressed one
-				// because compression affects the archive content
-				Expect(pkg1SHA).ToNot(Equal(pkg2SHA))
+				Expect(pkg1ArchivePath).ToNot(BeEmpty())
+				Expect(pkg2ArchivePath).ToNot(BeEmpty())
+
+				// pkg1 has no_compression: true in its spec, so it should not be compressed
+				isPkg1NonCompressed := deps.Compressor.IsNonCompressedTarball(pkg1ArchivePath)
+				Expect(isPkg1NonCompressed).To(BeTrue(), "pkg1 should not be compressed because it has no_compression: true in its spec")
+
+				// pkg2 does not have no_compression: true, so it should be compressed
+				isPkg2NonCompressed := deps.Compressor.IsNonCompressedTarball(pkg2ArchivePath)
+				Expect(isPkg2NonCompressed).To(BeFalse(), "pkg2 should be compressed because the release doesn't have no_compression: true in its spec")
+
+				isReleaseNonCompressed := deps.Compressor.IsNonCompressedTarball(releaseTarballPath)
+				Expect(isReleaseNonCompressed).To(BeTrue(), "release should not be compressed because it has no_compression: true in its final.yml")
 			})
 		})
 	})
