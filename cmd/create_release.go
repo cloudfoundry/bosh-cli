@@ -108,7 +108,7 @@ func (c CreateReleaseCmd) buildRelease(releaseDir boshreldir.ReleaseDir, opts Cr
 	hasMismatch, packages, err := releaseDir.CheckNoCompressionMismatch()
 	if err == nil && hasMismatch {
 		packageList := strings.Join(packages, ", ")
-		c.ui.ErrorLinef("Warning: The following packages have no_compression: true in their spec files, but final.yml does not have no_compression: true. Consider setting no_compression: true in final.yml to avoid double compression: %s", packageList)
+		c.ui.ErrorLinef("Warning: The following packages have no_compression: true in their spec files, but final.yml does not have no_compression: true. Consider setting no_compression: true in final.yml to avoid compression on the outer release tarball: %s", packageList)
 	}
 
 	return release, nil

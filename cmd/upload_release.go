@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"strings"
-
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	semver "github.com/cppforlife/go-semi-semantic/version"
@@ -105,13 +103,6 @@ func (c UploadReleaseCmd) uploadFile(opts UploadReleaseOpts) error {
 			return err
 		}
 	} else {
-		// Check for no_compression mismatch when building from directory
-		hasMismatch, packages, checkErr := releaseDir.CheckNoCompressionMismatch()
-		if checkErr == nil && hasMismatch {
-			packageList := strings.Join(packages, ", ")
-			c.ui.ErrorLinef("Warning: The following packages have no_compression: true in their spec files, but final.yml does not have no_compression: true. Consider setting no_compression: true in final.yml to avoid compressing already uncompressed packages: %s", packageList)
-		}
-
 		release, err = releaseDir.FindRelease(opts.Name, semver.Version(opts.Version))
 		if err != nil {
 			return err
