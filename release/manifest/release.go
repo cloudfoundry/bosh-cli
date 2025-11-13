@@ -15,10 +15,11 @@ type Manifest struct {
 	CommitHash         string `yaml:"commit_hash"`
 	UncommittedChanges bool   `yaml:"uncommitted_changes"`
 
-	Jobs         []JobRef             `yaml:"jobs,omitempty"`
-	Packages     []PackageRef         `yaml:"packages,omitempty"`
-	CompiledPkgs []CompiledPackageRef `yaml:"compiled_packages,omitempty"`
-	License      *LicenseRef          `yaml:"license,omitempty"`
+	Jobs          []JobRef             `yaml:"jobs,omitempty"`
+	Packages      []PackageRef         `yaml:"packages,omitempty"`
+	CompiledPkgs  []CompiledPackageRef `yaml:"compiled_packages,omitempty"`
+	License       *LicenseRef          `yaml:"license,omitempty"`
+	NoCompression bool                 `yaml:"no_compression"`
 }
 
 type JobRef struct {

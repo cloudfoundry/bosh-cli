@@ -59,8 +59,9 @@ var _ = Describe("CreateReleaseCmd", func() {
 				VersionStub:            func() string { return "ver" },
 				CommitHashWithMarkStub: func(string) string { return "commit" },
 
-				SetNameStub:    func(name string) { release.NameReturns(name) },
-				SetVersionStub: func(ver string) { release.VersionReturns(ver) },
+				SetNameStub:       func(name string) { release.NameReturns(name) },
+				SetVersionStub:    func(ver string) { release.VersionReturns(ver) },
+				NoCompressionStub: func() bool { return false },
 			}
 		})
 

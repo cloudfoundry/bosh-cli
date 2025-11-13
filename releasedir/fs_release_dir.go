@@ -131,6 +131,10 @@ func (d FSReleaseDir) DefaultName() (string, error) {
 	return d.config.Name()
 }
 
+func (d FSReleaseDir) NoCompression() bool {
+	return d.config.NoCompression()
+}
+
 func (d FSReleaseDir) NextFinalVersion(name string) (semver.Version, error) {
 	lastVer, err := d.finalReleases.LastVersion(name)
 	if err != nil {
@@ -227,8 +231,11 @@ func (d FSReleaseDir) BuildRelease(name string, version semver.Version, force bo
 	release.SetVersion(version.AsString())
 	release.SetCommitHash(commitSHA)
 	release.SetUncommittedChanges(dirty)
+	release.SetNoCompression(d.NoCompression())
 
-	err = d.devReleases.Add(release.Manifest())
+	manifest := release.Manifest()
+
+	err = d.devReleases.Add(manifest)
 	if err != nil {
 		return nil, err
 	}
@@ -318,6 +325,59 @@ func (d FSReleaseDir) FinalizeRelease(release boshrel.Release, force bool) error
 	}
 
 	return d.finalReleases.Add(release.Manifest())
+}
+
+func (d FSReleaseDir) CheckNoCompressionMismatch() (bool, []string, error) {
+	releaseNoCompression := d.config.NoCompression()
+
+	// If release already has no_compression: true, there's no mismatch
+	if releaseNoCompression {
+		return false, nil, nil
+	}
+
+	// Find all package directories
+	pkgMatches, err := d.fs.Glob(filepath.Join(d.dirPath, "packages", "*"))
+	if err != nil {
+		return false, nil, bosherr.WrapError(err, "Listing packages in directory")
+	}
+
+	var packagesWithNoCompression []string
+
+	// Check each package's spec file
+	for _, pkgMatch := range pkgMatches {
+		info, err := d.fs.Stat(pkgMatch)
+		if err != nil {
+			// Skip if we can't stat the file (might not be a directory)
+			continue
+		}
+
+		if !info.IsDir() {
+			continue
+		}
+
+		specPath := filepath.Join(pkgMatch, "spec")
+		if !d.fs.FileExists(specPath) {
+			// Skip if spec file doesn't exist
+			continue
+		}
+
+		manifest, err := boshpkgman.NewManifestFromPath(specPath, d.fs)
+		if err != nil {
+			// Log error but continue checking other packages
+			// Don't fail the check if one package spec is invalid
+			continue
+		}
+
+		if manifest.NoCompression {
+			packagesWithNoCompression = append(packagesWithNoCompression, manifest.Name)
+		}
+	}
+
+	// There's a mismatch if we found packages with no_compression: true
+	// but the release doesn't have no_compression: true
+	hasMismatch := len(packagesWithNoCompression) > 0
+
+	return hasMismatch, packagesWithNoCompression, nil
 }
 
 func (d FSReleaseDir) lastDevOrFinalVersion(name string) (*semver.Version, ReleaseIndex, error) {

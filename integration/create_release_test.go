@@ -122,6 +122,7 @@ license:
   version: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
   fingerprint: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
   sha1: replaced
+no_compression: false
 `))
 		})
 
@@ -183,6 +184,7 @@ license:
   version: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
   fingerprint: 42a33a7295936a632c8f54e70f2553975ee38a476d6aae93f3676e68c9db2f86
   sha1: replaced
+no_compression: false
 `,
 			))
 
@@ -558,6 +560,154 @@ var _ = Describe("release creation", func() {
 
 			releaseTarball := listTarballContents(fmt.Sprintf("%s/release.tgz", releaseDir))
 			Expect(releaseTarball).ToNot(ContainElement("excluded_file"))
+		})
+	})
+
+	Context("creating a final release with no_compression", func() {
+		var releaseDir string
+		var testRootDir string
+		releaseName := "test-release-no-compression"
+
+		BeforeEach(func() {
+			dir, err := os.Getwd()
+			Expect(err).ToNot(HaveOccurred())
+			testRootDir = dir
+
+			DeferCleanup(func() {
+				err = os.Chdir(testRootDir)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			tmpDir, err := fs.TempDir("bosh-no-compression-int-test")
+			Expect(err).ToNot(HaveOccurred())
+			releaseDir = tmpDir
+
+			DeferCleanup(func() {
+				err = fs.RemoveAll(tmpDir)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			By("setting up release directory", func() {
+				createAndExecCommand(cmdFactory, []string{"init-release", "--git", "--dir", releaseDir})
+				createAndExecCommand(cmdFactory, []string{"generate-job", "job1", "--dir", releaseDir})
+				createAndExecCommand(cmdFactory, []string{"generate-package", "pkg1", "--dir", releaseDir})
+				createAndExecCommand(cmdFactory, []string{"generate-package", "pkg2", "--dir", releaseDir})
+			})
+
+			By("configuring job to depend on packages", func() {
+				jobSpecPath := filepath.Join(releaseDir, "jobs", "job1", "spec")
+				contents, err := fs.ReadFileString(jobSpecPath)
+				Expect(err).ToNot(HaveOccurred())
+				err = fs.WriteFileString(jobSpecPath, strings.Replace(contents, "packages: []", "packages: [pkg1, pkg2]", -1)) //nolint:staticcheck
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			By("adding content to packages", func() {
+				err := fs.WriteFileString(filepath.Join(releaseDir, "src", "pkg1-file"), "pkg1-content")
+				Expect(err).ToNot(HaveOccurred())
+				err = fs.WriteFileString(filepath.Join(releaseDir, "src", "pkg2-file"), "pkg2-content")
+				Expect(err).ToNot(HaveOccurred())
+
+				pkg1SpecPath := filepath.Join(releaseDir, "packages", "pkg1", "spec")
+				contents, err := fs.ReadFileString(pkg1SpecPath)
+				Expect(err).ToNot(HaveOccurred())
+				err = fs.WriteFileString(pkg1SpecPath, strings.Replace(contents, "files: []", "files:\n- pkg1-file", -1)) //nolint:staticcheck
+				Expect(err).ToNot(HaveOccurred())
+
+				pkg2SpecPath := filepath.Join(releaseDir, "packages", "pkg2", "spec")
+				contents, err = fs.ReadFileString(pkg2SpecPath)
+				Expect(err).ToNot(HaveOccurred())
+				err = fs.WriteFileString(pkg2SpecPath, strings.Replace(contents, "files: []", "files:\n- pkg2-file", -1)) //nolint:staticcheck
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			By("setting no_compression: true in pkg1 spec", func() {
+				pkg1SpecPath := filepath.Join(releaseDir, "packages", "pkg1", "spec")
+				contents, err := fs.ReadFileString(pkg1SpecPath)
+				Expect(err).ToNot(HaveOccurred())
+				// Append no_compression: true to the spec file
+				contents = strings.TrimSpace(contents) + "\nno_compression: true\n"
+				err = fs.WriteFileString(pkg1SpecPath, contents)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			By("setting up local blobstore and no_compression in final.yml", func() {
+				blobstoreDir := filepath.Join(releaseDir, ".blobstore")
+				err := fs.MkdirAll(blobstoreDir, 0777)
+				Expect(err).ToNot(HaveOccurred())
+
+				finalYaml := "name: " + releaseName + `
+blobstore:
+  provider: local
+  options:
+    blobstore_path: ` + blobstoreDir + `
+no_compression: true
+`
+
+				err = fs.WriteFileString(filepath.Join(releaseDir, "config", "final.yml"), finalYaml)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			err = fs.WriteFileString(filepath.Join(releaseDir, "LICENSE"), "This is a license")
+			Expect(err).ToNot(HaveOccurred())
+
+			commitChangesToGit(releaseDir)
+		})
+
+		It("creates a final release with no_compression: true in release.MF", func() {
+			err := os.Chdir(releaseDir)
+			Expect(err).ToNot(HaveOccurred())
+
+			releaseTarballPath := filepath.Join(releaseDir, "release.tgz")
+			createAndExecCommand(cmdFactory, []string{"create-release", fmt.Sprintf("--tarball=%s", releaseTarballPath), "--final", "--force"})
+
+			By("verifying release.MF contains no_compression: true", func() {
+				relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
+				archiveReader := relProvider.NewArchiveReader()
+
+				release, err := archiveReader.Read(releaseTarballPath)
+				Expect(err).ToNot(HaveOccurred())
+				defer release.CleanUp() //nolint:errcheck
+
+				manifest := release.Manifest()
+				Expect(manifest.NoCompression).To(BeTrue())
+			})
+
+			By("verifying package with no_compression: true is not compressed", func() {
+				relProvider := boshrel.NewProvider(deps.CmdRunner, deps.Compressor, deps.DigestCalculator, deps.FS, deps.Logger)
+				extractingArchiveReader := relProvider.NewExtractingArchiveReader()
+
+				release, err := extractingArchiveReader.Read(releaseTarballPath)
+				Expect(err).ToNot(HaveOccurred())
+				defer release.CleanUp() //nolint:errcheck
+
+				packages := release.Packages()
+				Expect(len(packages)).To(BeNumerically(">=", 2))
+
+				var pkg1ArchivePath, pkg2ArchivePath string
+				for _, pkg := range packages {
+					if pkg.Name() == "pkg1" {
+						pkg1ArchivePath = pkg.ArchivePath()
+					}
+					if pkg.Name() == "pkg2" {
+						pkg2ArchivePath = pkg.ArchivePath()
+					}
+				}
+
+				Expect(pkg1ArchivePath).ToNot(BeEmpty())
+				Expect(pkg2ArchivePath).ToNot(BeEmpty())
+
+				// pkg1 has no_compression: true in its spec, so it should not be compressed
+				isPkg1NonCompressed := deps.Compressor.IsNonCompressedTarball(pkg1ArchivePath)
+				Expect(isPkg1NonCompressed).To(BeTrue(), "pkg1 should not be compressed because it has no_compression: true in its spec")
+
+				// pkg2 does not have no_compression: true, so it should be compressed
+				isPkg2NonCompressed := deps.Compressor.IsNonCompressedTarball(pkg2ArchivePath)
+				Expect(isPkg2NonCompressed).To(BeFalse(), "pkg2 should be compressed because the release doesn't have no_compression: true in its spec")
+
+				isReleaseNonCompressed := deps.Compressor.IsNonCompressedTarball(releaseTarballPath)
+				Expect(isReleaseNonCompressed).To(BeTrue(), "release should not be compressed because it has no_compression: true in its final.yml")
+			})
 		})
 	})
 })

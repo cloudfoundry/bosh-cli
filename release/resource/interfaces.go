@@ -24,6 +24,7 @@ type ArchiveFactoryArgs struct {
 	PrepFiles      []File
 	Chunks         []string
 	FollowSymlinks bool
+	NoCompression  bool
 }
 
 //counterfeiter:generate . ArchiveIndex

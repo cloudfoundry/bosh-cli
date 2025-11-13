@@ -63,7 +63,9 @@ var _ = Describe("RedigestRelease", func() {
 		err = fs.WriteFileString(licenseResourcePath, "hello world")
 		Expect(err).ToNot(HaveOccurred())
 
-		fakeSha128Release = &fakerel.FakeRelease{}
+		fakeSha128Release = &fakerel.FakeRelease{
+			NoCompressionStub: func() bool { return false },
+		}
 		jobSha128 := boshjob.NewJob(NewResourceWithBuiltArchive("job-resource-1", "job-sha128-fp", job1ResourcePath, fileContentSha1))
 		packageSha128 := boshpkg.NewPackage(NewResourceWithBuiltArchive("pkg-resource-1", "pkg-sha128-fp", pkg1ResourcePath, fileContentSha1), nil)
 		compiledPackageSha128 := boshpkg.NewCompiledPackageWithArchive("compiledpkg-resource-1", "compiledpkg-sha128-fp", "1", compiledPackage1ResourcePath, fileContentSha1, nil)
@@ -74,7 +76,9 @@ var _ = Describe("RedigestRelease", func() {
 		fakeSha128Release.CompiledPackagesReturns([]*boshpkg.CompiledPackage{compiledPackageSha128})
 
 		fakeSha128Release.CopyWithStub = func(jobs []*boshjob.Job, pkgs []*boshpkg.Package, lic *license.License, compiledPackages []*boshpkg.CompiledPackage) boshrel.Release {
-			fakeSha256Release := &fakerel.FakeRelease{}
+			fakeSha256Release := &fakerel.FakeRelease{
+				NoCompressionStub: func() bool { return false },
+			}
 			fakeSha256Release.NameReturns("custom-name")
 			fakeSha256Release.VersionReturns("custom-ver")
 			fakeSha256Release.CommitHashWithMarkReturns("commit")

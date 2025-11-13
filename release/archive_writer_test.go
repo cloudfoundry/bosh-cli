@@ -38,6 +38,7 @@ var _ = Describe("ArchiveWriter", func() {
 		writer = NewArchiveWriter(compressor, fs, logger)
 
 		release = &fakerel.FakeRelease{}
+		release.NoCompressionStub = func() bool { return false }
 		pkgFpsToSkip = nil
 	})
 
@@ -124,6 +125,38 @@ license:
   version: lic-version
   fingerprint: lic-fp
   sha1: lic-sha1
+no_compression: false
+`))
+				compressed = true
+			}
+
+			path, err := act()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(path).To(Equal(filepath.Join("/", "release-archive")))
+
+			Expect(compressed).To(BeTrue())
+			Expect(fs.FileExists(filepath.Join("/", "staging-release"))).To(BeFalse())
+		})
+
+		It("writes out release.MF with no_compression: true when release has no compression enabled", func() {
+			compressed := false
+
+			release.NoCompressionStub = func() bool { return true }
+
+			release.ManifestReturns(boshman.Manifest{
+				Name:               "name",
+				Version:            "ver",
+				CommitHash:         "commit",
+				UncommittedChanges: true,
+				NoCompression:      true,
+			})
+
+			compressor.CompressSpecificFilesInDirCallBack = func() {
+				Expect(fs.ReadFileString(filepath.Join("/", "staging-release", "release.MF"))).To(Equal(`name: name
+version: ver
+commit_hash: commit
+uncommitted_changes: true
+no_compression: true
 `))
 				compressed = true
 			}

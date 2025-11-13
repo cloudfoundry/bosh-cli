@@ -43,11 +43,13 @@ type Release interface {
 	CommitHashWithMark(string) string
 	SetCommitHash(string)
 	SetUncommittedChanges(bool)
+	SetNoCompression(bool)
 
 	Jobs() []*boshjob.Job
 	Packages() []*boshpkg.Package
 	CompiledPackages() []*boshpkg.CompiledPackage
 	License() *boshlic.License
+	NoCompression() bool
 
 	IsCompiled() bool
 

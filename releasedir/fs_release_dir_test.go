@@ -2,6 +2,7 @@ package releasedir_test
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"code.cloudfoundry.org/clock"
@@ -377,7 +378,8 @@ var _ = Describe("FSGenerator", func() {
 
 		BeforeEach(func() {
 			expectedRelease = &fakerel.FakeRelease{
-				NameStub: func() string { return "rel1" },
+				NameStub:          func() string { return "rel1" },
+				NoCompressionStub: func() bool { return false },
 			}
 		})
 
@@ -555,6 +557,7 @@ var _ = Describe("FSGenerator", func() {
 				ManifestStub: func() boshman.Manifest {
 					return boshman.Manifest{Name: "rel1"}
 				},
+				NoCompressionStub: func() bool { return false },
 			}
 		})
 
@@ -625,6 +628,48 @@ var _ = Describe("FSGenerator", func() {
 
 			_, err := releaseDir.BuildRelease("rel1", ver, false)
 			Expect(err).To(Equal(errors.New("fake-err")))
+		})
+
+		It("sets no_compression to false in manifest when noCompression is false", func() {
+			gitRepo.MustNotBeDirtyReturns(true, nil)
+			gitRepo.LastCommitSHAReturns("commit", nil)
+			blobsDir.SyncBlobsReturns(nil)
+			reader.ReadReturns(expectedRelease, nil)
+
+			var capturedManifest boshman.Manifest
+			devReleases.AddStub = func(manifest boshman.Manifest) error {
+				capturedManifest = manifest
+				return nil
+			}
+
+			_, err := releaseDir.BuildRelease("rel1", ver, false)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(capturedManifest.NoCompression).To(BeFalse())
+			Expect(expectedRelease.SetNoCompressionArgsForCall(0)).To(BeFalse())
+		})
+
+		It("sets no_compression to true in manifest when noCompression is true", func() {
+			config.NoCompressionReturns(true)
+			expectedRelease.ManifestStub = func() boshman.Manifest {
+				return boshman.Manifest{Name: "rel1", NoCompression: true}
+			}
+			gitRepo.MustNotBeDirtyReturns(true, nil)
+			gitRepo.LastCommitSHAReturns("commit", nil)
+			blobsDir.SyncBlobsReturns(nil)
+			reader.ReadReturns(expectedRelease, nil)
+
+			var capturedManifest boshman.Manifest
+			devReleases.AddStub = func(manifest boshman.Manifest) error {
+				capturedManifest = manifest
+				return nil
+			}
+
+			_, err := releaseDir.BuildRelease("rel1", ver, false)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(capturedManifest.NoCompression).To(BeTrue())
+			Expect(expectedRelease.SetNoCompressionArgsForCall(0)).To(BeTrue())
 		})
 	})
 
@@ -811,6 +856,7 @@ fingerprint: pkg1-fp
 				ManifestStub: func() boshman.Manifest {
 					return boshman.Manifest{Name: "rel1"}
 				},
+				NoCompressionStub: func() bool { return false },
 			}
 		})
 
@@ -874,6 +920,172 @@ fingerprint: pkg1-fp
 
 			err := releaseDir.FinalizeRelease(release, false)
 			Expect(err).To(Equal(errors.New("fake-err")))
+		})
+	})
+
+	Describe("CheckNoCompressionMismatch", func() {
+		It("returns no mismatch when release has no_compression: true", func() {
+			config.NoCompressionReturns(true)
+
+			hasMismatch, packages, err := releaseDir.CheckNoCompressionMismatch()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(hasMismatch).To(BeFalse())
+			Expect(packages).To(BeEmpty())
+		})
+
+		It("returns no mismatch when no packages have no_compression: true", func() {
+			config.NoCompressionReturns(false)
+
+			err := fs.MkdirAll("/dir/packages/pkg1", os.ModePerm)
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString("/dir/packages/pkg1/spec", `---
+name: pkg1
+dependencies: []
+files: []
+`)
+			Expect(err).ToNot(HaveOccurred())
+
+			fs.SetGlob("/dir/packages/*", []string{"/dir/packages/pkg1"})
+
+			hasMismatch, packages, err := releaseDir.CheckNoCompressionMismatch()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(hasMismatch).To(BeFalse())
+			Expect(packages).To(BeEmpty())
+		})
+
+		It("returns no mismatch when packages have no_compression: true and final.yml also has it", func() {
+			config.NoCompressionReturns(true)
+
+			err := fs.MkdirAll("/dir/packages/pkg1", os.ModePerm)
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString("/dir/packages/pkg1/spec", `---
+name: pkg1
+dependencies: []
+files: []
+no_compression: true
+`)
+			Expect(err).ToNot(HaveOccurred())
+
+			fs.SetGlob("/dir/packages/*", []string{"/dir/packages/pkg1"})
+
+			hasMismatch, packages, err := releaseDir.CheckNoCompressionMismatch()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(hasMismatch).To(BeFalse())
+			Expect(packages).To(BeEmpty())
+		})
+
+		It("returns mismatch when packages have no_compression: true but final.yml doesn't", func() {
+			config.NoCompressionReturns(false)
+
+			err := fs.MkdirAll("/dir/packages/pkg1", os.ModePerm)
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString("/dir/packages/pkg1/spec", `---
+name: pkg1
+dependencies: []
+files: []
+no_compression: true
+`)
+			Expect(err).ToNot(HaveOccurred())
+
+			fs.SetGlob("/dir/packages/*", []string{"/dir/packages/pkg1"})
+
+			hasMismatch, packages, err := releaseDir.CheckNoCompressionMismatch()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(hasMismatch).To(BeTrue())
+			Expect(packages).To(Equal([]string{"pkg1"}))
+		})
+
+		It("returns mismatch with multiple packages having no_compression: true", func() {
+			config.NoCompressionReturns(false)
+
+			err := fs.MkdirAll("/dir/packages/pkg1", os.ModePerm)
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString("/dir/packages/pkg1/spec", `---
+name: pkg1
+dependencies: []
+files: []
+no_compression: true
+`)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.MkdirAll("/dir/packages/pkg2", os.ModePerm)
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString("/dir/packages/pkg2/spec", `---
+name: pkg2
+dependencies: []
+files: []
+no_compression: true
+`)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.MkdirAll("/dir/packages/pkg3", os.ModePerm)
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString("/dir/packages/pkg3/spec", `---
+name: pkg3
+dependencies: []
+files: []
+`)
+			Expect(err).ToNot(HaveOccurred())
+
+			fs.SetGlob("/dir/packages/*", []string{"/dir/packages/pkg1", "/dir/packages/pkg2", "/dir/packages/pkg3"})
+
+			hasMismatch, packages, err := releaseDir.CheckNoCompressionMismatch()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(hasMismatch).To(BeTrue())
+			Expect(packages).To(ConsistOf("pkg1", "pkg2"))
+		})
+
+		It("skips packages without spec files", func() {
+			config.NoCompressionReturns(false)
+
+			err := fs.MkdirAll("/dir/packages/pkg1", os.ModePerm)
+			Expect(err).ToNot(HaveOccurred())
+			// No spec file
+
+			fs.SetGlob("/dir/packages/*", []string{"/dir/packages/pkg1"})
+
+			hasMismatch, packages, err := releaseDir.CheckNoCompressionMismatch()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(hasMismatch).To(BeFalse())
+			Expect(packages).To(BeEmpty())
+		})
+
+		It("skips invalid spec files and continues checking others", func() {
+			config.NoCompressionReturns(false)
+
+			err := fs.MkdirAll("/dir/packages/pkg1", os.ModePerm)
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString("/dir/packages/pkg1/spec", `invalid yaml: [`)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.MkdirAll("/dir/packages/pkg2", os.ModePerm)
+			Expect(err).ToNot(HaveOccurred())
+			err = fs.WriteFileString("/dir/packages/pkg2/spec", `---
+name: pkg2
+dependencies: []
+files: []
+no_compression: true
+`)
+			Expect(err).ToNot(HaveOccurred())
+
+			fs.SetGlob("/dir/packages/*", []string{"/dir/packages/pkg1", "/dir/packages/pkg2"})
+
+			hasMismatch, packages, err := releaseDir.CheckNoCompressionMismatch()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(hasMismatch).To(BeTrue())
+			Expect(packages).To(Equal([]string{"pkg2"}))
+		})
+
+		It("returns error if glob fails", func() {
+			config.NoCompressionReturns(false)
+
+			fs.GlobErr = errors.New("glob-error")
+
+			hasMismatch, packages, err := releaseDir.CheckNoCompressionMismatch()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("glob-error"))
+			Expect(hasMismatch).To(BeFalse())
+			Expect(packages).To(BeNil())
 		})
 	})
 })

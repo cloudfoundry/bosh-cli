@@ -278,6 +278,7 @@ cloud_provider:
 				[]*birelpkg.Package{cpiPackage},
 				nil,
 				nil,
+				false,
 				"fake-cpi-extracted-dir",
 				fs,
 			)
@@ -849,6 +850,7 @@ cloud_provider:
 					[]*birelpkg.Package{},
 					nil,
 					nil,
+					false,
 					"fake-other-extracted-dir",
 					fs,
 				)

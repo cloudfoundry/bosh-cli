@@ -167,6 +167,7 @@ cloud_provider:
 				[]*boshpkg.Package{},
 				[]*boshpkg.CompiledPackage{},
 				nil,
+				false,
 				"fake-cpi-extracted-dir",
 				fs,
 			)
