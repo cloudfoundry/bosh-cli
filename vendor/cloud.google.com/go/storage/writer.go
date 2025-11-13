@@ -22,8 +22,6 @@ import (
 	"sync"
 	"time"
 	"unicode/utf8"
-
-	"cloud.google.com/go/internal/trace"
 )
 
 // Interface internalWriter wraps low-level implementations which may vary
@@ -159,9 +157,9 @@ type Writer struct {
 	donec chan struct{} // closed after err and obj are set.
 	obj   *ObjectAttrs
 
-	mu             sync.Mutex
-	err            error
-	takeoverOffset int64 // offset from which the writer started appending to the object.
+	mu                sync.Mutex
+	err               error
+	setTakeoverOffset func(int64)
 }
 
 // Write appends to w. It implements the io.Writer interface.
@@ -261,13 +259,7 @@ func (w *Writer) Close() error {
 	w.closed = true
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	// In rare cases for gRPC, the write may succeed but the server does not
-	// return a full object resource. This should cause an error to keep the
-	// contract that either w.Attrs or the error should be non-nil.
-	if w.obj == nil && w.err == nil {
-		w.err = errors.New("storage: write succeeded but no object attributes returned from the server")
-	}
-	trace.EndSpan(w.ctx, w.err)
+	endSpan(w.ctx, w.err)
 	return w.err
 }
 
@@ -280,6 +272,8 @@ func (w *Writer) openWriter() (err error) {
 	}
 
 	isIdempotent := w.o.conds != nil && (w.o.conds.GenerationMatch >= 0 || w.o.conds.DoesNotExist)
+	// Append operations that takeover a specific generation are idempotent.
+	isIdempotent = isIdempotent || w.Append && w.o.gen > 0
 	opts := makeStorageOpts(isIdempotent, w.o.retry, w.o.userProject)
 	params := &openWriterParams{
 		ctx:                  w.ctx,
@@ -297,17 +291,13 @@ func (w *Writer) openWriter() (err error) {
 		donec:                w.donec,
 		setError:             w.error,
 		progress:             w.progress,
-		setObj: func(o *ObjectAttrs) {
-			if o != nil {
-				w.obj = o
-			}
-		},
+		setObj:               func(o *ObjectAttrs) { w.obj = o },
 		setSize: func(n int64) {
 			if w.obj != nil {
 				w.obj.Size = n
 			}
 		},
-		setTakeoverOffset:     func(n int64) { w.takeoverOffset = n },
+		setTakeoverOffset:     w.setTakeoverOffset,
 		forceEmptyContentType: w.ForceEmptyContentType,
 	}
 	if err := w.ctx.Err(); err != nil {
