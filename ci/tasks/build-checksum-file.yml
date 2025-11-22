@@ -1,14 +1,6 @@
 ---
 platform: linux
 
-image_resource:
-  type: docker-image
-  source:
-    repository: ghcr.io/cloudfoundry/bosh/cli
-    tag: 'latest'
-    username: ((github_read_write_packages.username))
-    password: ((github_read_write_packages.password))
-
 inputs:
 - name: bosh-cli
 - name: compiled-linux-amd64
