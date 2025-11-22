@@ -3,16 +3,16 @@ module github.com/cloudfoundry/bosh-cli/v7
 go 1.24.0
 
 require (
-	code.cloudfoundry.org/clock v1.54.0
+	code.cloudfoundry.org/clock v1.55.0
 	code.cloudfoundry.org/workpool v0.0.0-20250911194158-1489753f182e
 	github.com/cheggaaa/pb/v3 v3.1.7
-	github.com/cloudfoundry/bosh-agent/v2 v2.778.0
-	github.com/cloudfoundry/bosh-davcli v0.0.443
-	github.com/cloudfoundry/bosh-gcscli v0.0.341
+	github.com/cloudfoundry/bosh-agent/v2 v2.781.0
+	github.com/cloudfoundry/bosh-davcli v0.0.445
+	github.com/cloudfoundry/bosh-gcscli v0.0.344
 	github.com/cloudfoundry/bosh-s3cli v0.0.382
-	github.com/cloudfoundry/bosh-utils v0.0.568
-	github.com/cloudfoundry/config-server v0.1.260
-	github.com/cloudfoundry/socks5-proxy v0.2.160
+	github.com/cloudfoundry/bosh-utils v0.0.570
+	github.com/cloudfoundry/config-server v0.1.261
+	github.com/cloudfoundry/socks5-proxy v0.2.162
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.1
@@ -28,7 +28,7 @@ require (
 	github.com/peterbourgon/diskv v2.0.1+incompatible
 	github.com/spf13/cobra v1.10.1
 	github.com/vito/go-interact v1.0.2
-	golang.org/x/crypto v0.44.0
+	golang.org/x/crypto v0.45.0
 	golang.org/x/text v0.31.0
 	golang.org/x/tools v0.39.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -44,7 +44,7 @@ require (
 	cloud.google.com/go/iam v1.5.3 // indirect
 	cloud.google.com/go/monitoring v1.24.3 // indirect
 	cloud.google.com/go/storage v1.57.2 // indirect
-	code.cloudfoundry.org/tlsconfig v0.39.0 // indirect
+	code.cloudfoundry.org/tlsconfig v0.40.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.30.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.54.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.54.0 // indirect
@@ -98,7 +98,7 @@ require (
 	golang.org/x/oauth2 v0.33.0 // indirect
 	golang.org/x/sync v0.18.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect
-	golang.org/x/telemetry v0.0.0-20251112162317-03ef243c208a // indirect
+	golang.org/x/telemetry v0.0.0-20251121192418-e4876590c019 // indirect
 	golang.org/x/term v0.37.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	google.golang.org/api v0.256.0 // indirect
