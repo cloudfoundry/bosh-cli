@@ -1,17 +1,19 @@
 ---
 jobs:
-  - name: build-bosh-cli-docker-image
+  - name: build-bosh-cli-ci-image
     public: true
     serial: true
     plan:
       - in_parallel:
+          - get: ubuntu-image
           - get: bosh-cli-docker-src
             trigger: true
           - get: golang-release-image
             trigger: true
       - task: write-metadata-file
         file: bosh-cli-docker-src/ci/docker/write-metadata-file.yml
-      - put: bosh-cli-docker-image
+        image: ubuntu-image
+      - put: bosh-cli-ci-docker-image
         params:
           build: docker-files
           tag: docker-files/tag
@@ -21,10 +23,12 @@ jobs:
   - name: bump-deps
     public: true
     plan:
-      - get: weekly
-        trigger: true
-      - get: bosh-cli
-      - get: golang-release
+      - in_parallel:
+          - get: bosh-cli
+          - get: bosh-cli-ci-image
+          - get: golang-release
+          - get: weekly
+            trigger: true
       - task: bump-deps
         file: golang-release/ci/tasks/shared/bump-deps.yml
         input_mapping:
@@ -32,9 +36,10 @@ jobs:
         output_mapping:
           output_repo: bumped-bosh-cli
       - task: test-unit
+        file: bosh-cli/ci/tasks/test-unit.yml
+        image: bosh-cli-ci-image
         input_mapping:
           bosh-cli: bumped-bosh-cli
-        file: bosh-cli/ci/tasks/test-unit.yml
       - put: bosh-cli
         params:
           repository: bumped-bosh-cli
@@ -42,44 +47,54 @@ jobs:
   - name: test-unit
     public: true
     plan:
-      - get: bosh-cli
-        trigger: true
+      - in_parallel:
+          - get: bosh-cli-ci-image
+          - get: bosh-cli
+            trigger: true
       - in_parallel:
           - task: lint
             file: bosh-cli/ci/tasks/lint.yml
+            image: bosh-cli-ci-image
           - task: test-build-docs-example
             file: bosh-cli/ci/tasks/test-build-docs-example.yml
+            image: bosh-cli-ci-image
           - task: test-build
             file: bosh-cli/ci/tasks/test-build.yml
+            image: bosh-cli-ci-image
           - task: test-unit
             file: bosh-cli/ci/tasks/test-unit.yml
+            image: bosh-cli-ci-image
 
   - name: test-integration
     public: true
     plan:
-      - get: bosh-cli
-        trigger: true
+      - in_parallel:
+          - get: warden-cpi-image
+          - get: bosh-cli
+            trigger: true
       - task: test-integration
         file: bosh-cli/ci/tasks/test-integration.yml
+        image: warden-cpi-image
         privileged: true
 
   - name: test-acceptance
     public: true
     plan:
       - in_parallel:
+          - get: warden-cpi-image
           - get: bosh-cli
-            passed: [ test-unit,test-integration ]
+            passed:
+              - test-unit
+              - test-integration
             trigger: true
           - get: bosh-warden-cpi-release
             trigger: true
           - get: stemcell
             resource: bosh-warden-stemcell-jammy
-          - get: warden-cpi-image
-      - in_parallel:
-          - task: test-acceptance
-            file: bosh-cli/ci/tasks/test-acceptance.yml
-            image: warden-cpi-image
-            privileged: true
+      - task: test-acceptance
+        file: bosh-cli/ci/tasks/test-acceptance.yml
+        image: warden-cpi-image
+        privileged: true
 
   - name: integration-postgres
     public: true
@@ -87,6 +102,7 @@ jobs:
     build_logs_to_retain: 250
     plan:
       - in_parallel:
+          - get: bosh-cli-ci-image
           - get: bosh-ci
             resource: bosh-src
             trigger: true
@@ -103,13 +119,14 @@ jobs:
           - get: integration-postgres-15-image
       - task: build-linux-amd64
         file: bosh-cli/ci/tasks/build-linux-amd64.yml
+        image: bosh-cli-ci-image
       - task: tests
+        file: bosh-ci/ci/tasks/test-rake-task.yml
+        image: integration-postgres-15-image
         privileged: true
         input_mapping:
           bosh: bosh-ci
           bosh-cli: compiled-linux-amd64
-        file: bosh-ci/ci/tasks/test-rake-task.yml
-        image: integration-postgres-15-image
         params:
           DB: postgresql
           RAKE_TASK: "spec:integration"
@@ -159,6 +176,7 @@ jobs:
     serial: true
     plan:
       - in_parallel:
+          - get: bosh-cli-ci-image
           - get: bosh-cli
             params:
               fetch_tags: true
@@ -173,6 +191,7 @@ jobs:
           - get: release-bucket-linux
       - task: build-linux-amd64
         file: bosh-cli/ci/tasks/build-linux-amd64.yml
+        image: bosh-cli-ci-image
       - try:
           task: check-for-updated-binary-version
           file: golang-release/ci/tasks/shared/check-for-updated-binary-version.yml
@@ -198,12 +217,9 @@ jobs:
           task-output-folder: patched_cves
       - try:
           task: check-needs-release
+          image: bosh-cli-ci-image
           config:
             platform: linux
-            image_resource:
-              type: docker-image
-              source:
-                repository: alpine
             inputs:
               - name: release-notes
             run:
@@ -232,6 +248,7 @@ jobs:
     public: true
     plan:
       - in_parallel:
+          - get: bosh-cli-ci-image
           - get: bosh-cli
             passed:
               - pre-release-fan-in
@@ -242,18 +259,25 @@ jobs:
       - in_parallel:
           - task: build-linux-amd64
             file: bosh-cli/ci/tasks/build-linux-amd64.yml
+            image: bosh-cli-ci-image
           - task: build-linux-arm64
             file: bosh-cli/ci/tasks/build-linux-arm64.yml
+            image: bosh-cli-ci-image
           - task: build-darwin-amd64
             file: bosh-cli/ci/tasks/build-darwin-amd64.yml
+            image: bosh-cli-ci-image
           - task: build-darwin-arm64
             file: bosh-cli/ci/tasks/build-darwin-arm64.yml
+            image: bosh-cli-ci-image
           - task: build-windows-amd64
             file: bosh-cli/ci/tasks/build-windows-amd64.yml
+            image: bosh-cli-ci-image
       - task: build-checksum-file
         file: bosh-cli/ci/tasks/build-checksum-file.yml
+        image: bosh-cli-ci-image
       - task: create-dockerfile
         file: bosh-cli/ci/tasks/create-dockerfile.yml
+        image: bosh-cli-ci-image
       - put: bosh-cli
         params:
           repository: bosh-cli
@@ -283,12 +307,9 @@ jobs:
               tag_as_latest: true
       - do:
           - task: prepare-version
+            image: bosh-cli-ci-image
             config:
               platform: linux
-              image_resource:
-                type: docker-image
-                source:
-                  repository: alpine
               run:
                 path: /bin/sh
                 args:
@@ -313,6 +334,7 @@ jobs:
               body: checksums/checksums
       - task: update-homebrew-formula
         file: bosh-cli/ci/tasks/update-homebrew-formula.yml
+        image: bosh-cli-ci-image
       - put: homebrew-tap
         params:
           repository: update-brew-formula-output/homebrew-tap
@@ -334,6 +356,7 @@ jobs:
     public: true
     plan:
       - in_parallel:
+          - get: bosh-cli-ci-image
           - get: bosh-cli
             passed:
               - pre-release-fan-in
@@ -346,33 +369,38 @@ jobs:
           file: alpha-version-semver/number
       - in_parallel:
           - task: build-linux-amd64
+            file: bosh-cli/ci/tasks/build-linux-amd64.yml
+            image: bosh-cli-ci-image
             input_mapping:
               version-semver: alpha-version-semver
-            file: bosh-cli/ci/tasks/build-linux-amd64.yml
             params:
               FILENAME_PREFIX: "alpha-"
           - task: build-linux-arm64
+            file: bosh-cli/ci/tasks/build-linux-arm64.yml
+            image: bosh-cli-ci-image
             input_mapping:
               version-semver: alpha-version-semver
-            file: bosh-cli/ci/tasks/build-linux-arm64.yml
             params:
               FILENAME_PREFIX: "alpha-"
           - task: build-darwin-amd64
+            file: bosh-cli/ci/tasks/build-darwin-amd64.yml
+            image: bosh-cli-ci-image
             input_mapping:
               version-semver: alpha-version-semver
-            file: bosh-cli/ci/tasks/build-darwin-amd64.yml
             params:
               FILENAME_PREFIX: "alpha-"
           - task: build-darwin-arm64
+            file: bosh-cli/ci/tasks/build-darwin-arm64.yml
+            image: bosh-cli-ci-image
             input_mapping:
               version-semver: alpha-version-semver
-            file: bosh-cli/ci/tasks/build-darwin-arm64.yml
             params:
               FILENAME_PREFIX: "alpha-"
           - task: build-windows-amd64
+            file: bosh-cli/ci/tasks/build-windows-amd64.yml
+            image: bosh-cli-ci-image
             input_mapping:
               version-semver: alpha-version-semver
-            file: bosh-cli/ci/tasks/build-windows-amd64.yml
             params:
               FILENAME_PREFIX: "alpha-"
       - in_parallel:
@@ -396,12 +424,14 @@ jobs:
     public: true
     plan:
       - in_parallel:
+          - get: bosh-cli-ci-image
           - get: alpha-release-bucket-linux-amd64
             passed: [ build-alpha ]
           - get: bosh-cli
             passed: [ build-alpha ]
       - task: test-helper-urls
         file: bosh-cli/ci/tasks/test-helper-urls.yml
+        image: bosh-cli-ci-image
 
 resources:
   - name: bosh-src
@@ -476,17 +506,17 @@ resources:
   - name: warden-cpi-image
     type: registry-image
     source:
-      repository: bosh/warden-cpi
-      username: ((bosh-dockerhub.username))
-      password: ((bosh-dockerhub.password))
+      repository: ghcr.io/cloudfoundry/bosh/warden-cpi
+      username: ((github_read_write_packages.username))
+      password: ((github_read_write_packages.password))
 
   - name: integration-postgres-15-image
     type: registry-image
     source:
-      repository: bosh/main-postgres-15
+      repository: ghcr.io/cloudfoundry/bosh/main-postgres-15
       tag: main
-      username: ((dockerhub_username))
-      password: ((dockerhub_password))
+      username: ((github_read_write_packages.username))
+      password: ((github_read_write_packages.password))
 
   - name: release-bucket-linux
     type: gcs-resource
@@ -597,7 +627,14 @@ resources:
       password: ((github_read_write_packages.password))
       email: foo@bar.com
 
-  - name: bosh-cli-docker-image
+  - name: bosh-cli-ci-image
+    type: registry-image
+    source:
+      repository: ghcr.io/cloudfoundry/bosh/cli
+      username: ((github_read_write_packages.username))
+      password: ((github_read_write_packages.password))
+
+  - name: bosh-cli-ci-docker-image
     type: docker-image
     source:
       repository: ghcr.io/cloudfoundry/bosh/cli
