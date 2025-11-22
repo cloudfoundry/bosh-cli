@@ -13,8 +13,8 @@ jobs:
         file: bosh-cli-docker-src/ci/docker/write-metadata-file.yml
       - put: bosh-cli-docker-image
         params:
-          build: "docker-files"
-          tag: "docker-files/tag"
+          build: docker-files
+          tag: docker-files/tag
         get_params:
           skip_download: true
 
@@ -45,14 +45,14 @@ jobs:
       - get: bosh-cli
         trigger: true
       - in_parallel:
-        - task: lint
-          file: bosh-cli/ci/tasks/lint.yml
-        - task: test-build-docs-example
-          file: bosh-cli/ci/tasks/test-build-docs-example.yml
-        - task: test-build
-          file: bosh-cli/ci/tasks/test-build.yml
-        - task: test-unit
-          file: bosh-cli/ci/tasks/test-unit.yml
+          - task: lint
+            file: bosh-cli/ci/tasks/lint.yml
+          - task: test-build-docs-example
+            file: bosh-cli/ci/tasks/test-build-docs-example.yml
+          - task: test-build
+            file: bosh-cli/ci/tasks/test-build.yml
+          - task: test-unit
+            file: bosh-cli/ci/tasks/test-unit.yml
 
   - name: test-integration
     public: true
@@ -67,19 +67,19 @@ jobs:
     public: true
     plan:
       - in_parallel:
-        - get: bosh-cli
-          passed: [test-unit,test-integration]
-          trigger: true
-        - get: bosh-warden-cpi-release
-          trigger: true
-        - get: stemcell
-          resource: bosh-warden-stemcell-jammy
-        - get: warden-cpi-image
+          - get: bosh-cli
+            passed: [ test-unit,test-integration ]
+            trigger: true
+          - get: bosh-warden-cpi-release
+            trigger: true
+          - get: stemcell
+            resource: bosh-warden-stemcell-jammy
+          - get: warden-cpi-image
       - in_parallel:
-        - task: test-acceptance
-          file: bosh-cli/ci/tasks/test-acceptance.yml
-          image: warden-cpi-image
-          privileged: true
+          - task: test-acceptance
+            file: bosh-cli/ci/tasks/test-acceptance.yml
+            image: warden-cpi-image
+            privileged: true
 
   - name: integration-postgres
     public: true
@@ -87,23 +87,22 @@ jobs:
     build_logs_to_retain: 250
     plan:
       - in_parallel:
-        - get: bosh-ci
-          resource: bosh-src
-          trigger: true
-        - get: version-semver
-          params: {bump: patch}
-        - get: bosh-cli
-          passed: [test-unit,test-integration]
-          trigger: true
-        - get: bosh-agent
-          trigger: true
-        - get: integration-tests-parallel-runtime
-        - get: config-server
-        - get: integration-postgres-15-image
-
+          - get: bosh-ci
+            resource: bosh-src
+            trigger: true
+          - get: version-semver
+            params:
+              bump: patch
+          - get: bosh-cli
+            passed: [ test-unit,test-integration ]
+            trigger: true
+          - get: bosh-agent
+            trigger: true
+          - get: integration-tests-parallel-runtime
+          - get: config-server
+          - get: integration-postgres-15-image
       - task: build-linux-amd64
         file: bosh-cli/ci/tasks/build-linux-amd64.yml
-
       - task: tests
         privileged: true
         input_mapping:
@@ -123,15 +122,15 @@ jobs:
       - get: bosh-cli
         trigger: true
         passed:
-        - test-acceptance
-        - integration-postgres
+          - test-acceptance
+          - integration-postgres
 
   - name: release-new-patch
     public: true
     plan:
       - get: bosh-cli
         passed:
-        - pre-release-fan-in
+          - pre-release-fan-in
       - put: version-semver
         params:
           bump: patch
@@ -141,7 +140,7 @@ jobs:
     plan:
       - get: bosh-cli
         passed:
-        - pre-release-fan-in
+          - pre-release-fan-in
       - put: version-semver
         params:
           bump: minor
@@ -151,7 +150,7 @@ jobs:
     plan:
       - get: bosh-cli
         passed:
-        - pre-release-fan-in
+          - pre-release-fan-in
       - put: version-semver
         params:
           bump: major
@@ -159,149 +158,159 @@ jobs:
   - name: automatically-release-new-patch
     serial: true
     plan:
-    - in_parallel:
-      - get: bosh-cli
-        params:
-          fetch_tags: true
-        trigger: true
-        passed:
-        - pre-release-fan-in
-      - get: golang-release
-      - get: bosh-shared-ci
-      - get: security-scanner-image
-      - get: version-semver
-      - get: ubuntu-image
-      - get: release-bucket-linux
-    - task: build-linux-amd64
-      file: bosh-cli/ci/tasks/build-linux-amd64.yml
-    - try:
-        task: check-for-updated-binary-version
-        file: golang-release/ci/tasks/shared/check-for-updated-binary-version.yml
-        input_mapping:
-          previous_binary: release-bucket-linux
-          current_binary: compiled-linux-amd64
-        params:
-          PREVIOUS_BINARY_PATTERN: bosh-cli-*-linux-amd64
-          CURRENT_BINARY_PATTERN: bosh-cli-*-linux-amd64
-    - try:
-        task: check-for-patched-cves
-        file: bosh-shared-ci/tasks/release/check-for-patched-cves.yml
-        image: security-scanner-image
-        input_mapping:
-          input_repo: bosh-cli
-          version: version-semver
-        params:
-          SEVERITY: CRITICAL,HIGH
-    - task: ensure-cve-checker-succeeded
-      file: bosh-shared-ci/tasks/release/ensure-task-succeeded.yml
-      image: ubuntu-image
-      input_mapping:
-        task-output-folder: patched_cves
-    - try:
-        task: check-needs-release
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source: {repository: alpine}
-          inputs:
-          - name: release-notes
-          run:
-            path: /bin/sh
-            args:
-            - -c
-            - |
-              if [ -f release-notes/needs-release ]; then
-                echo "## Release Notes"
-                echo "${release-notes/release-notes.md}"
-                exit 0
-              else
-                echo "No release needed"
-                exit 1
-              fi
-        on_success:
-          do:
-          - put: release-notes
+      - in_parallel:
+          - get: bosh-cli
             params:
-              file: release-notes/release-notes.md
-          - put: version-semver
-            params:
-              bump: patch
+              fetch_tags: true
+            trigger: true
+            passed:
+              - pre-release-fan-in
+          - get: golang-release
+          - get: bosh-shared-ci
+          - get: security-scanner-image
+          - get: version-semver
+          - get: ubuntu-image
+          - get: release-bucket-linux
+      - task: build-linux-amd64
+        file: bosh-cli/ci/tasks/build-linux-amd64.yml
+      - try:
+          task: check-for-updated-binary-version
+          file: golang-release/ci/tasks/shared/check-for-updated-binary-version.yml
+          input_mapping:
+            previous_binary: release-bucket-linux
+            current_binary: compiled-linux-amd64
+          params:
+            PREVIOUS_BINARY_PATTERN: bosh-cli-*-linux-amd64
+            CURRENT_BINARY_PATTERN: bosh-cli-*-linux-amd64
+      - try:
+          task: check-for-patched-cves
+          file: bosh-shared-ci/tasks/release/check-for-patched-cves.yml
+          image: security-scanner-image
+          input_mapping:
+            input_repo: bosh-cli
+            version: version-semver
+          params:
+            SEVERITY: CRITICAL,HIGH
+      - task: ensure-cve-checker-succeeded
+        file: bosh-shared-ci/tasks/release/ensure-task-succeeded.yml
+        image: ubuntu-image
+        input_mapping:
+          task-output-folder: patched_cves
+      - try:
+          task: check-needs-release
+          config:
+            platform: linux
+            image_resource:
+              type: docker-image
+              source:
+                repository: alpine
+            inputs:
+              - name: release-notes
+            run:
+              path: /bin/sh
+              args:
+                - -c
+                - |
+                  if [ -f release-notes/needs-release ]; then
+                    echo "## Release Notes"
+                    echo "${release-notes/release-notes.md}"
+                    exit 0
+                  else
+                    echo "No release needed"
+                    exit 1
+                  fi
+          on_success:
+            do:
+              - put: release-notes
+                params:
+                  file: release-notes/release-notes.md
+              - put: version-semver
+                params:
+                  bump: patch
 
   - name: build
     public: true
     plan:
       - in_parallel:
-        - get: bosh-cli
-          passed:
-           - pre-release-fan-in
-        - get: version-semver
-          trigger: true
-        - get: release-notes
-        - get: homebrew-tap
+          - get: bosh-cli
+            passed:
+              - pre-release-fan-in
+          - get: version-semver
+            trigger: true
+          - get: release-notes
+          - get: homebrew-tap
       - in_parallel:
-        - task: build-linux-amd64
-          file: bosh-cli/ci/tasks/build-linux-amd64.yml
-        - task: build-linux-arm64
-          file: bosh-cli/ci/tasks/build-linux-arm64.yml
-        - task: build-darwin-amd64
-          file: bosh-cli/ci/tasks/build-darwin-amd64.yml
-        - task: build-darwin-arm64
-          file: bosh-cli/ci/tasks/build-darwin-arm64.yml
-        - task: build-windows-amd64
-          file: bosh-cli/ci/tasks/build-windows-amd64.yml
-
+          - task: build-linux-amd64
+            file: bosh-cli/ci/tasks/build-linux-amd64.yml
+          - task: build-linux-arm64
+            file: bosh-cli/ci/tasks/build-linux-arm64.yml
+          - task: build-darwin-amd64
+            file: bosh-cli/ci/tasks/build-darwin-amd64.yml
+          - task: build-darwin-arm64
+            file: bosh-cli/ci/tasks/build-darwin-arm64.yml
+          - task: build-windows-amd64
+            file: bosh-cli/ci/tasks/build-windows-amd64.yml
       - task: build-checksum-file
         file: bosh-cli/ci/tasks/build-checksum-file.yml
-
       - task: create-dockerfile
         file: bosh-cli/ci/tasks/create-dockerfile.yml
-
-      - {put: bosh-cli, params: {repository: bosh-cli, tag: version-semver/number, tag_prefix: v, only_tag: true }}
-
+      - put: bosh-cli
+        params:
+          repository: bosh-cli
+          tag: version-semver/number
+          tag_prefix: v
+          only_tag: true
       - in_parallel:
-        - {put: release-bucket-linux, params: {file: compiled-linux-amd64/bosh-cli-*-linux-amd64}}
-        - {put: release-bucket-linux-arm64, params: {file: compiled-linux-arm64/bosh-cli-*-linux-arm64}}
-        - {put: release-bucket-darwin, params: {file: compiled-darwin-amd64/bosh-cli-*-darwin-amd64}}
-        - {put: release-bucket-darwin-arm64, params: {file: compiled-darwin-arm64/bosh-cli-*-darwin-arm64}}
-        - {put: release-bucket-windows, params: {file: compiled-windows-amd64/bosh-cli-*-windows-amd64.exe}}
-
-        - put: final-docker
-          params:
-            build: docker-assets
-            tag: version-semver/number
-            tag_as_latest: true
-
+          - put: release-bucket-linux
+            params:
+              file: compiled-linux-amd64/bosh-cli-*-linux-amd64
+          - put: release-bucket-linux-arm64
+            params:
+              file: compiled-linux-arm64/bosh-cli-*-linux-arm64
+          - put: release-bucket-darwin
+            params:
+              file: compiled-darwin-amd64/bosh-cli-*-darwin-amd64
+          - put: release-bucket-darwin-arm64
+            params:
+              file: compiled-darwin-arm64/bosh-cli-*-darwin-arm64
+          - put: release-bucket-windows
+            params:
+              file: compiled-windows-amd64/bosh-cli-*-windows-amd64.exe
+          - put: final-docker
+            params:
+              build: docker-assets
+              tag: version-semver/number
+              tag_as_latest: true
       - do:
-        - task: prepare-version
-          config:
-            platform: linux
-            image_resource:
-              type: docker-image
-              source: {repository: alpine}
-            run:
-              path: /bin/sh
-              args:
-              - -c
-              - |
-                echo -n "v" >> release-version/version
-                cat version-semver/number >> release-version/version
-            inputs:
-            - name: version-semver
-            outputs:
-            - name: release-version
-        - put: github-release
-          params:
-            name: release-version/version
-            tag: release-version/version
-            globs:
-              - compiled-linux-amd64/bosh-cli-*-linux-amd64
-              - compiled-linux-arm64/bosh-cli-*-linux-arm64
-              - compiled-darwin-amd64/bosh-cli-*-darwin-amd64
-              - compiled-darwin-arm64/bosh-cli-*-darwin-arm64
-              - compiled-windows-amd64/bosh-cli-*-windows-amd64.exe
-            body: checksums/checksums
-
+          - task: prepare-version
+            config:
+              platform: linux
+              image_resource:
+                type: docker-image
+                source:
+                  repository: alpine
+              run:
+                path: /bin/sh
+                args:
+                  - -c
+                  - |
+                    echo -n "v" >> release-version/version
+                    cat version-semver/number >> release-version/version
+              inputs:
+                - name: version-semver
+              outputs:
+                - name: release-version
+          - put: github-release
+            params:
+              name: release-version/version
+              tag: release-version/version
+              globs:
+                - compiled-linux-amd64/bosh-cli-*-linux-amd64
+                - compiled-linux-arm64/bosh-cli-*-linux-arm64
+                - compiled-darwin-amd64/bosh-cli-*-darwin-amd64
+                - compiled-darwin-arm64/bosh-cli-*-darwin-arm64
+                - compiled-windows-amd64/bosh-cli-*-windows-amd64.exe
+              body: checksums/checksums
       - task: update-homebrew-formula
         file: bosh-cli/ci/tasks/update-homebrew-formula.yml
       - put: homebrew-tap
@@ -310,70 +319,87 @@ jobs:
 
   - name: clear-release-notes
     plan:
-    - get: version-semver
-      passed:
-      - build
-      trigger: true
-    - get: golang-release
-    - task: clear-release-notes
-      file: golang-release/ci/tasks/shared/clear-release-notes.yml
-    - put: release-notes
-      params:
-        file: release-notes/release-notes.md
+      - get: version-semver
+        passed:
+          - build
+        trigger: true
+      - get: golang-release
+      - task: clear-release-notes
+        file: golang-release/ci/tasks/shared/clear-release-notes.yml
+      - put: release-notes
+        params:
+          file: release-notes/release-notes.md
 
   - name: build-alpha
     public: true
     plan:
       - in_parallel:
-        - get: bosh-cli
-          passed:
-           - pre-release-fan-in
-          trigger: true
-        - get: alpha-version-semver
-          params: {bump: patch}
-      - {put: alpha-version-semver, params: {file: alpha-version-semver/number}}
+          - get: bosh-cli
+            passed:
+              - pre-release-fan-in
+            trigger: true
+          - get: alpha-version-semver
+            params:
+              bump: patch
+      - put: alpha-version-semver
+        params:
+          file: alpha-version-semver/number
       - in_parallel:
-        - task: build-linux-amd64
-          input_mapping: {version-semver: alpha-version-semver}
-          file: bosh-cli/ci/tasks/build-linux-amd64.yml
-          params:
-            FILENAME_PREFIX: "alpha-"
-        - task: build-linux-arm64
-          input_mapping: {version-semver: alpha-version-semver}
-          file: bosh-cli/ci/tasks/build-linux-arm64.yml
-          params:
-            FILENAME_PREFIX: "alpha-"
-        - task: build-darwin-amd64
-          input_mapping: {version-semver: alpha-version-semver}
-          file: bosh-cli/ci/tasks/build-darwin-amd64.yml
-          params:
-            FILENAME_PREFIX: "alpha-"
-        - task: build-darwin-arm64
-          input_mapping: {version-semver: alpha-version-semver}
-          file: bosh-cli/ci/tasks/build-darwin-arm64.yml
-          params:
-            FILENAME_PREFIX: "alpha-"
-        - task: build-windows-amd64
-          input_mapping: {version-semver: alpha-version-semver}
-          file: bosh-cli/ci/tasks/build-windows-amd64.yml
-          params:
-            FILENAME_PREFIX: "alpha-"
-
+          - task: build-linux-amd64
+            input_mapping:
+              version-semver: alpha-version-semver
+            file: bosh-cli/ci/tasks/build-linux-amd64.yml
+            params:
+              FILENAME_PREFIX: "alpha-"
+          - task: build-linux-arm64
+            input_mapping:
+              version-semver: alpha-version-semver
+            file: bosh-cli/ci/tasks/build-linux-arm64.yml
+            params:
+              FILENAME_PREFIX: "alpha-"
+          - task: build-darwin-amd64
+            input_mapping:
+              version-semver: alpha-version-semver
+            file: bosh-cli/ci/tasks/build-darwin-amd64.yml
+            params:
+              FILENAME_PREFIX: "alpha-"
+          - task: build-darwin-arm64
+            input_mapping:
+              version-semver: alpha-version-semver
+            file: bosh-cli/ci/tasks/build-darwin-arm64.yml
+            params:
+              FILENAME_PREFIX: "alpha-"
+          - task: build-windows-amd64
+            input_mapping:
+              version-semver: alpha-version-semver
+            file: bosh-cli/ci/tasks/build-windows-amd64.yml
+            params:
+              FILENAME_PREFIX: "alpha-"
       - in_parallel:
-        - {put: alpha-release-bucket-linux-amd64, params: {file: compiled-linux-amd64/alpha-bosh-cli-*-linux-amd64}}
-        - {put: alpha-release-bucket-linux-arm64, params: {file: compiled-linux-arm64/alpha-bosh-cli-*-linux-arm64}}
-        - {put: alpha-release-bucket-darwin-amd64, params: {file: compiled-darwin-amd64/alpha-bosh-cli-*-darwin-amd64}}
-        - {put: alpha-release-bucket-darwin-arm64, params: {file: compiled-darwin-arm64/alpha-bosh-cli-*-darwin-arm64}}
-        - {put: alpha-release-bucket-windows-amd64, params: {file: compiled-windows-amd64/alpha-bosh-cli-*-windows-amd64.exe}}
+          - put: alpha-release-bucket-linux-amd64
+            params:
+              file: compiled-linux-amd64/alpha-bosh-cli-*-linux-amd64
+          - put: alpha-release-bucket-linux-arm64
+            params:
+              file: compiled-linux-arm64/alpha-bosh-cli-*-linux-arm64
+          - put: alpha-release-bucket-darwin-amd64
+            params:
+              file: compiled-darwin-amd64/alpha-bosh-cli-*-darwin-amd64
+          - put: alpha-release-bucket-darwin-arm64
+            params:
+              file: compiled-darwin-arm64/alpha-bosh-cli-*-darwin-arm64
+          - put: alpha-release-bucket-windows-amd64
+            params:
+              file: compiled-windows-amd64/alpha-bosh-cli-*-windows-amd64.exe
 
   - name: test-helper-urls
     public: true
     plan:
       - in_parallel:
-        - get: alpha-release-bucket-linux-amd64
-          passed: [build-alpha]
-        - get: bosh-cli
-          passed: [build-alpha]
+          - get: alpha-release-bucket-linux-amd64
+            passed: [ build-alpha ]
+          - get: bosh-cli
+            passed: [ build-alpha ]
       - task: test-helper-urls
         file: bosh-cli/ci/tasks/test-helper-urls.yml
 
@@ -590,7 +616,7 @@ resources:
     source:
       start: 3:00 -0700
       stop: 4:30 -0700
-      days: [Saturday]
+      days: [ Saturday ]
 
   - name: integration-tests-parallel-runtime
     type: gcs-resource
