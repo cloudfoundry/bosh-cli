@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
+	"github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
 	fakebierbrenderer "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer/fakes"
 )
 
@@ -18,7 +18,7 @@ var _ = Describe("ErbRenderer", func() {
 	var (
 		fs          *fakesys.FakeFileSystem
 		runner      *fakesys.FakeCmdRunner
-		erbRenderer ERBRenderer
+		erbRenderer erbrenderer.ERBRenderer
 		context     *fakebierbrenderer.FakeTemplateEvaluationContext
 	)
 
@@ -28,7 +28,7 @@ var _ = Describe("ErbRenderer", func() {
 		runner = fakesys.NewFakeCmdRunner()
 		context = &fakebierbrenderer.FakeTemplateEvaluationContext{}
 
-		erbRenderer = NewERBRenderer(fs, runner, logger)
+		erbRenderer = erbrenderer.NewERBRenderer(fs, runner, logger)
 		fs.TempDirDir = "fake-temp-dir"
 	})
 

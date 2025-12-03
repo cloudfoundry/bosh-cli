@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestErbrenderer(t *testing.T) {
+func TestErbRenderer(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Erbrenderer Suite")
+	RunSpecs(t, "ErbRenderer Suite")
 }
