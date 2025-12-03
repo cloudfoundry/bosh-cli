@@ -1,6 +1,7 @@
 package erbrenderer_test
 
 import (
+	"encoding/json"
 	"errors"
 	"path/filepath"
 
@@ -11,8 +12,26 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
-	fakebierbrenderer "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer/fakes"
 )
+
+type testTemplateEvaluationStruct struct {
+	Index          int                    `json:"index"`
+	ID             string                 `json:"id"`
+	TestProperties map[string]interface{} `json:"test_properties"`
+}
+
+type testTemplateEvaluationContext struct {
+	testStruct testTemplateEvaluationStruct
+}
+
+func (t testTemplateEvaluationContext) MarshalJSON() ([]byte, error) {
+	jsonBytes, err := json.Marshal(t.testStruct)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return jsonBytes, nil
+}
 
 var _ = Describe("ErbRenderer", func() {
 	Describe("Render", func() {
@@ -20,14 +39,14 @@ var _ = Describe("ErbRenderer", func() {
 			fs          *fakesys.FakeFileSystem
 			runner      *fakesys.FakeCmdRunner
 			erbRenderer erbrenderer.ERBRenderer
-			context     *fakebierbrenderer.FakeTemplateEvaluationContext
+			context     erbrenderer.TemplateEvaluationContext
 		)
 
 		BeforeEach(func() {
 			logger := boshlog.NewLogger(boshlog.LevelNone)
 			fs = fakesys.NewFakeFileSystem()
 			runner = fakesys.NewFakeCmdRunner()
-			context = &fakebierbrenderer.FakeTemplateEvaluationContext{}
+			context = &testTemplateEvaluationContext{}
 
 			erbRenderer = erbrenderer.NewERBRenderer(fs, runner, logger)
 			fs.TempDirDir = "fake-temp-dir"
