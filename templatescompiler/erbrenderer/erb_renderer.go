@@ -1,6 +1,7 @@
 package erbrenderer
 
 import (
+	_ "embed"
 	"encoding/json"
 	"path/filepath"
 
@@ -8,6 +9,9 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
+
+//go:embed template_evaluation_context.rb
+var templateEvaluationContextRb string
 
 type ERBRenderer interface {
 	Render(srcPath, dstPath string, context TemplateEvaluationContext) error

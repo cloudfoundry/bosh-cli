@@ -1,6 +1,3 @@
-package erbrenderer
-
-const templateEvaluationContextRb = `
 # Based on common/properties/template_evaluation_context.rb
 require "rubygems"
 require "ostruct"
@@ -201,4 +198,3 @@ if $0 == __FILE__
   renderer = ERBRenderer.new(context)
   renderer.render(src_path, dst_path)
 end
-`
