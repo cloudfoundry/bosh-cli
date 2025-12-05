@@ -1,0 +1,19 @@
+name: Run Specs
+on: [push, pull_request]
+
+jobs:
+  test_embedded_ruby:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        ruby: [ '2.6', '2.7', '3.0', '3.1', '3.2', '3.3', '3.4', head]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+      - run: bundle install
+        working-directory: templatescompiler/erbrenderer/
+      - run: bundle exec rake
+        working-directory: templatescompiler/erbrenderer/
