@@ -171,7 +171,7 @@ class ERBRenderer
   end
 
   def render(src_path, dst_path)
-    erb = ERB.new(File.read(src_path), safe_level = nil, trim_mode = "-")
+    erb = ERB.new(File.read(src_path), trim_mode: "-")
     erb.filename = src_path
 
     context_hash = JSON.load(File.read(@json_context_path))
