@@ -119,7 +119,7 @@ property3: default_value3
 
 			Describe("error handling within Ruby", func() {
 				var (
-					// see template_evaluation_context.rb
+					// see erb_renderer.rb
 					rubyExceptionPrefixTemplate = "Error filling in template '%s' "
 				)
 
@@ -152,7 +152,8 @@ property3: default_value3
 						It("returns an error with a known ruby exception", func() {
 							err := erbRenderer.Render(erbTemplateFilepath, renderedTemplatePath, &testTemplateEvaluationContext{})
 							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(ContainSubstring("undefined method `recursive_merge!'"))
+							Expect(err.Error()).To(ContainSubstring("NoMethodError"))
+							Expect(err.Error()).To(ContainSubstring("recursive_merge!"))
 							Expect(err.Error()).To(ContainSubstring(fmt.Sprintf(rubyExceptionPrefixTemplate, erbTemplateFilepath)))
 						})
 					})
@@ -245,7 +246,7 @@ property3: default_value3
 				Expect(fakeRunner.RunComplexCommandCallCount()).To(Equal(1))
 				command := fakeRunner.RunComplexCommandArgsForCall(0)
 				Expect(command.Name).To(Equal("ruby"))
-				Expect(command.Args[0]).To(MatchRegexp("/erb_render\\.rb$"))
+				Expect(command.Args[0]).To(MatchRegexp("/erb_renderer\\.rb$"))
 				Expect(command.Args[1]).To(MatchRegexp("/erb-context\\.json$"))
 				Expect(command.Args[2]).To(Equal(erbTemplateFilepath))
 				Expect(command.Args[3]).To(Equal(renderedTemplatePath))

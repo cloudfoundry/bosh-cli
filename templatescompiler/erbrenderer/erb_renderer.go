@@ -10,7 +10,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
-//go:embed template_evaluation_context.rb
+//go:embed erb_renderer.rb
 var templateEvaluationContextRb string
 
 type ERBRenderer interface {
@@ -59,7 +59,7 @@ func (r erbRenderer) Render(srcPath, dstPath string, context TemplateEvaluationC
 		}
 	}()
 
-	rendererScriptPath := filepath.Join(tmpDir, "erb_render.rb")
+	rendererScriptPath := filepath.Join(tmpDir, "erb_renderer.rb")
 	err = r.writeRendererScript(rendererScriptPath)
 	if err != nil {
 		return err
