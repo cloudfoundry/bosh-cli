@@ -134,6 +134,16 @@ property3: default_value3
 						Expect(err.Error()).To(ContainSubstring("RuntimeError: test error"))
 						Expect(err.Error()).To(ContainSubstring(rubyExceptionPrefix))
 					})
+
+					Context("with missing ERB template", func() {
+						It("returns an error with a known ruby exception", func() {
+							invalidErbPath := "invalid/template.erb"
+							err := erbRenderer.Render(invalidErbPath, renderedTemplatePath, context)
+							Expect(err).To(HaveOccurred())
+							Expect(err.Error()).To(MatchRegexp(fmt.Sprintf("No such file or directory .* %s", invalidErbPath)))
+							Expect(err.Error()).To(ContainSubstring(rubyExceptionPrefix))
+						})
+					})
 				})
 			})
 		})

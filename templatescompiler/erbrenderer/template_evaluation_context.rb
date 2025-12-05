@@ -181,7 +181,7 @@ class ERBRenderer
   rescue Exception => e
     name = "#{@context.name}/#{@context.index}"
 
-    line_i = e.backtrace.index { |l| l.include?(erb.filename) }
+    line_i = e.backtrace.index { |l| l.include?("#{erb&.filename}") }
     line_num = line_i ? e.backtrace[line_i].split(':')[1] : "unknown"
     location = "(line #{line_num}: #{e.inspect})"
 
