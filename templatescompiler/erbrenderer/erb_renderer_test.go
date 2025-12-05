@@ -118,7 +118,10 @@ property3: default_value3
 			})
 
 			Describe("error handling within Ruby", func() {
-				const rubyExceptionPrefix = "Error filling in template " // see template_evaluation_context.rb
+				var (
+					// see template_evaluation_context.rb
+					rubyExceptionPrefixTemplate = "Error filling in template '%s' "
+				)
 
 				Context("with invalid ERB", func() {
 					BeforeEach(func() {
@@ -132,7 +135,7 @@ property3: default_value3
 						err := erbRenderer.Render(erbTemplateFilepath, renderedTemplatePath, context)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("RuntimeError: test error"))
-						Expect(err.Error()).To(ContainSubstring(rubyExceptionPrefix))
+						Expect(err.Error()).To(ContainSubstring(fmt.Sprintf(rubyExceptionPrefixTemplate, erbTemplateFilepath)))
 					})
 
 					Context("with missing ERB template", func() {
@@ -140,8 +143,17 @@ property3: default_value3
 							invalidErbPath := "invalid/template.erb"
 							err := erbRenderer.Render(invalidErbPath, renderedTemplatePath, context)
 							Expect(err).To(HaveOccurred())
-							Expect(err.Error()).To(MatchRegexp(fmt.Sprintf("No such file or directory .* %s", invalidErbPath)))
-							Expect(err.Error()).To(ContainSubstring(rubyExceptionPrefix))
+							Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("<Errno::ENOENT: No such file or directory @ rb_sysopen - %s>", invalidErbPath)))
+							Expect(err.Error()).To(ContainSubstring(fmt.Sprintf(rubyExceptionPrefixTemplate, invalidErbPath)))
+						})
+					})
+
+					Context("with context JSON which does not have the expected elements", func() {
+						It("returns an error with a known ruby exception", func() {
+							err := erbRenderer.Render(erbTemplateFilepath, renderedTemplatePath, &testTemplateEvaluationContext{})
+							Expect(err).To(HaveOccurred())
+							Expect(err.Error()).To(ContainSubstring("undefined method `recursive_merge!'"))
+							Expect(err.Error()).To(ContainSubstring(fmt.Sprintf(rubyExceptionPrefixTemplate, erbTemplateFilepath)))
 						})
 					})
 				})

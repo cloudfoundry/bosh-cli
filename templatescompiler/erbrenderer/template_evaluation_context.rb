@@ -166,20 +166,23 @@ class << JSON
 end
 
 class ERBRenderer
-  def initialize(context)
-    @context = context
+  def initialize(json_context_path)
+    @json_context_path = json_context_path
   end
 
   def render(src_path, dst_path)
     erb = ERB.new(File.read(src_path), safe_level = nil, trim_mode = "-")
     erb.filename = src_path
 
+    context_hash = JSON.load(File.read(@json_context_path))
+    template_evaluation_context = TemplateEvaluationContext.new(context_hash)
+
     File.open(dst_path, "w") do |f|
-      f.write(erb.result(@context.get_binding))
+      f.write(erb.result(template_evaluation_context.get_binding))
     end
 
   rescue Exception => e
-    name = "#{@context.name}/#{@context.index}"
+    name = "#{template_evaluation_context&.name}/#{template_evaluation_context&.index}"
 
     line_i = e.backtrace.index { |l| l.include?("#{erb&.filename}") }
     line_num = line_i ? e.backtrace[line_i].split(':')[1] : "unknown"
@@ -192,9 +195,6 @@ end
 if $0 == __FILE__
   json_context_path, erb_template_path, rendered_template_path = *ARGV
 
-  context_hash = JSON.load(File.read(json_context_path))
-  context = TemplateEvaluationContext.new(context_hash)
-
-  renderer = ERBRenderer.new(context)
+  renderer = ERBRenderer.new(json_context_path)
   renderer.render(erb_template_path, rendered_template_path)
 end
