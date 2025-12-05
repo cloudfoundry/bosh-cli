@@ -17,6 +17,11 @@ type ERBRenderer interface {
 	Render(srcPath, dstPath string, context TemplateEvaluationContext) error
 }
 
+// You only need **one** of these per package!
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate github.com/cloudfoundry/bosh-utils/system.CmdRunner
+//counterfeiter:generate github.com/cloudfoundry/bosh-utils/system.FileSystem
+
 type erbRenderer struct {
 	fs     boshsys.FileSystem
 	runner boshsys.CmdRunner
@@ -54,7 +59,7 @@ func (r erbRenderer) Render(srcPath, dstPath string, context TemplateEvaluationC
 		}
 	}()
 
-	rendererScriptPath := filepath.Join(tmpDir, "erb-render.rb")
+	rendererScriptPath := filepath.Join(tmpDir, "erb_render.rb")
 	err = r.writeRendererScript(rendererScriptPath)
 	if err != nil {
 		return err

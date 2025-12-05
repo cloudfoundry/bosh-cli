@@ -3,21 +3,25 @@ package erbrenderer_test
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"os"
 	"path/filepath"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
+	"github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer/erbrendererfakes"
 )
 
 type testTemplateEvaluationStruct struct {
-	Index          int                    `json:"index"`
-	ID             string                 `json:"id"`
-	TestProperties map[string]interface{} `json:"test_properties"`
+	Index             int                    `json:"index"`
+	ID                string                 `json:"id"`
+	GlobalProperties  map[string]interface{} `json:"global_properties"`
+	ClusterProperties map[string]interface{} `json:"cluster_properties"`
+	DefaultProperties map[string]interface{} `json:"default_properties"`
 }
 
 type testTemplateEvaluationContext struct {
@@ -36,75 +40,205 @@ func (t testTemplateEvaluationContext) MarshalJSON() ([]byte, error) {
 var _ = Describe("ErbRenderer", func() {
 	Describe("Render", func() {
 		var (
-			fs          *fakesys.FakeFileSystem
-			runner      *fakesys.FakeCmdRunner
+			fs     boshsys.FileSystem
+			runner boshsys.CmdRunner
+			logger boshlog.Logger
+
+			tmpDir                   string
+			erbTemplateFilepath      string
+			renderedTemplatePath     string
+			erbTemplateContent       string
+			expectedTemplateContents string
+
+			context erbrenderer.TemplateEvaluationContext
+
 			erbRenderer erbrenderer.ERBRenderer
-			context     erbrenderer.TemplateEvaluationContext
 		)
 
 		BeforeEach(func() {
-			logger := boshlog.NewLogger(boshlog.LevelNone)
-			fs = fakesys.NewFakeFileSystem()
-			runner = fakesys.NewFakeCmdRunner()
-			context = &testTemplateEvaluationContext{}
+			logger = boshlog.NewLogger(boshlog.LevelNone)
+			fs = boshsys.NewOsFileSystemWithStrictTempRoot(logger)
+			runner = boshsys.NewExecCmdRunner(logger)
 
-			erbRenderer = erbrenderer.NewERBRenderer(fs, runner, logger)
-			fs.TempDirDir = "fake-temp-dir"
-		})
+			tmpDir = GinkgoT().TempDir()
+			Expect(fs.ChangeTempRoot(tmpDir)).To(Succeed())
 
-		It("constructs ruby erb rendering command", func() {
-			err := erbRenderer.Render("fake-src-path", "fake-dst-path", context)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(runner.RunComplexCommands).To(Equal([]boshsys.Command{
-				{
-					Name: "ruby",
-					Args: []string{
-						filepath.Join("fake-temp-dir", "erb-render.rb"),
-						filepath.Join("fake-temp-dir", "erb-context.json"),
-						"fake-src-path",
-						"fake-dst-path",
+			templateName := "test_template.yml"
+			erbTemplateName := fmt.Sprintf("%s.erb", templateName)
+			erbTemplateFilepath = filepath.Join(tmpDir, erbTemplateName)
+			renderedTemplatePath = filepath.Join(tmpDir, templateName)
+
+			context = &testTemplateEvaluationContext{
+				testTemplateEvaluationStruct{
+					Index: 867_5309,
+					GlobalProperties: map[string]interface{}{
+						"property1": "global_value1",
+					},
+					ClusterProperties: map[string]interface{}{
+						"property2": "cluster_value1",
+					},
+					DefaultProperties: map[string]interface{}{
+						"property1": "default_value1",
+						"property2": "default_value2",
+						"property3": "default_value3",
 					},
 				},
-			}))
+			}
 		})
 
-		It("cleans up temporary directory", func() {
-			err := erbRenderer.Render("fake-src-path", "fake-dst-path", context)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(fs.FileExists("fake-temp-dir")).To(BeFalse())
-		})
-
-		Context("when creating temporary directory fails", func() {
-			It("returns an error", func() {
-				fs.TempDirError = errors.New("fake-temp-dir-error")
-				err := erbRenderer.Render("fake-src-path", "fake-dst-path", context)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-temp-dir-error"))
-			})
-		})
-
-		Context("when writing renderer script fails", func() {
-			It("returns an error", func() {
-				fs.WriteFileError = errors.New("fake-write-error")
-				err := erbRenderer.Render("src-path", "dst-path", context)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-write-error"))
-			})
-		})
-
-		Context("when running ruby command fails", func() {
+		Context("when actually executing `ruby`", func() {
 			BeforeEach(func() {
-				runner.AddCmdResult(
-					"ruby fake-temp-dir/erb-render.rb fake-temp-dir/erb-context.json fake-src-path fake-dst-path",
-					fakesys.FakeCmdResult{
-						Error: errors.New("fake-cmd-error"),
-					})
+				erbRenderer = erbrenderer.NewERBRenderer(fs, runner, logger)
 			})
 
-			It("returns an error", func() {
-				err := erbRenderer.Render("fake-src-path", "fake-dst-path", context)
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("fake-cmd-error"))
+			Context("with valid ERB", func() {
+				BeforeEach(func() {
+					erbTemplateContent = `---
+property1: <%= p('property1') %>
+property2: <%= p('property2') %>
+property3: <%= p('property3') %>
+`
+					expectedTemplateContents = `---
+property1: global_value1
+property2: cluster_value1
+property3: default_value3
+`
+					err := os.WriteFile(erbTemplateFilepath, []byte(erbTemplateContent), 0666)
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				It("renders output", func() {
+					err := erbRenderer.Render(erbTemplateFilepath, renderedTemplatePath, context)
+					Expect(err).ToNot(HaveOccurred())
+					templateBytes, err := fs.ReadFile(renderedTemplatePath)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(expectedTemplateContents).To(Equal(string(templateBytes)))
+				})
+			})
+
+			Describe("error handling within Ruby", func() {
+				const rubyExceptionPrefix = "Error filling in template " // see template_evaluation_context.rb
+
+				Context("with invalid ERB", func() {
+					BeforeEach(func() {
+						erbTemplateContent = `<%= raise "test error" %>`
+
+						err := os.WriteFile(erbTemplateFilepath, []byte(erbTemplateContent), 0666)
+						Expect(err).ToNot(HaveOccurred())
+					})
+
+					It("returns an error with a known ruby exception", func() {
+						err := erbRenderer.Render(erbTemplateFilepath, renderedTemplatePath, context)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("RuntimeError: test error"))
+						Expect(err.Error()).To(ContainSubstring(rubyExceptionPrefix))
+					})
+				})
+			})
+		})
+
+		Describe("interactions with FileSystem", func() {
+			var (
+				fakeFs     *erbrendererfakes.FakeFileSystem
+				fakeRunner *erbrendererfakes.FakeCmdRunner
+			)
+
+			BeforeEach(func() {
+				fakeFs = &erbrendererfakes.FakeFileSystem{}
+				fakeRunner = &erbrendererfakes.FakeCmdRunner{}
+
+				erbTemplateContent = ""
+				err := os.WriteFile(erbTemplateFilepath, []byte(erbTemplateContent), 0666)
+				Expect(err).ToNot(HaveOccurred())
+				erbRenderer = erbrenderer.NewERBRenderer(fakeFs, fakeRunner, logger)
+			})
+
+			It("cleans up temporary directory", func() {
+				err := erbRenderer.Render(erbTemplateFilepath, renderedTemplatePath, context)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(fs.FileExists("fake-temp-dir")).To(BeFalse())
+			})
+
+			Context("when creating temporary directory fails", func() {
+				var tempDirErr error
+
+				BeforeEach(func() {
+					tempDirErr = errors.New("fake-temp-dir-err")
+					fakeFs.TempDirReturns("", tempDirErr)
+				})
+
+				It("returns an error", func() {
+					err := erbRenderer.Render(erbTemplateFilepath, renderedTemplatePath, context)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring(tempDirErr.Error()))
+				})
+			})
+
+			Context("when writing renderer script fails", func() {
+				var writerErr error
+
+				BeforeEach(func() {
+					writerErr = errors.New("fake-writer-err")
+					fakeFs.WriteFileStringReturns(writerErr)
+				})
+
+				It("returns an error", func() {
+					err := erbRenderer.Render(erbTemplateFilepath, renderedTemplatePath, context)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("Writing renderer script: fake-writer-err"))
+				})
+			})
+
+			Context("when writing renderer context fails", func() {
+				var writerErr error
+
+				BeforeEach(func() {
+					writerErr = errors.New("fake-writer-err")
+					fakeFs.WriteFileStringReturnsOnCall(0, nil)
+					fakeFs.WriteFileStringReturnsOnCall(1, writerErr)
+				})
+
+				It("returns an error", func() {
+					err := erbRenderer.Render(erbTemplateFilepath, renderedTemplatePath, context)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("Writing context: fake-writer-err"))
+				})
+			})
+		})
+
+		Describe("interactions with CmdRunner", func() {
+			var (
+				fakeRunner *erbrendererfakes.FakeCmdRunner
+			)
+
+			BeforeEach(func() {
+				fakeRunner = &erbrendererfakes.FakeCmdRunner{}
+				erbRenderer = erbrenderer.NewERBRenderer(fs, fakeRunner, logger)
+			})
+
+			It("constructs ruby erb rendering command", func() {
+				err := erbRenderer.Render(erbTemplateFilepath, renderedTemplatePath, context)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(fakeRunner.RunComplexCommandCallCount()).To(Equal(1))
+				command := fakeRunner.RunComplexCommandArgsForCall(0)
+				Expect(command.Name).To(Equal("ruby"))
+				Expect(command.Args[0]).To(MatchRegexp("/erb_render\\.rb$"))
+				Expect(command.Args[1]).To(MatchRegexp("/erb-context\\.json$"))
+				Expect(command.Args[2]).To(Equal(erbTemplateFilepath))
+				Expect(command.Args[3]).To(Equal(renderedTemplatePath))
+			})
+
+			Context("when running ruby command fails", func() {
+				BeforeEach(func() {
+					fakeRunner.RunComplexCommandReturns("", "", 1, errors.New("fake-cmd-error"))
+				})
+
+				It("returns an error", func() {
+					err := erbRenderer.Render(erbTemplateFilepath, renderedTemplatePath, context)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-cmd-error"))
+				})
 			})
 		})
 	})
