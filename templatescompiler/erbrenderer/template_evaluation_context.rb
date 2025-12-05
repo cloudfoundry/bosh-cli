@@ -190,11 +190,11 @@ class ERBRenderer
 end
 
 if $0 == __FILE__
-  context_path, src_path, dst_path = *ARGV
+  json_context_path, erb_template_path, rendered_template_path = *ARGV
 
-  context_hash = JSON.load(File.read(context_path))
+  context_hash = JSON.load(File.read(json_context_path))
   context = TemplateEvaluationContext.new(context_hash)
 
   renderer = ERBRenderer.new(context)
-  renderer.render(src_path, dst_path)
+  renderer.render(erb_template_path, rendered_template_path)
 end
