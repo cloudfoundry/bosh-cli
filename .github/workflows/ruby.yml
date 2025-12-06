@@ -17,3 +17,4 @@ jobs:
         working-directory: templatescompiler/erbrenderer/
       - run: bundle exec rake
         working-directory: templatescompiler/erbrenderer/
+        continue-on-error: ${{ matrix.ruby == 'head' }}
