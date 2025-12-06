@@ -10,6 +10,10 @@ RSpec.describe "erb_renderer" do
       File.write(json_context_path, context_hash.to_json)
     end
 
+    after do
+      File.unlink(json_context_path) if File.exist?(json_context_path)
+    end
+
     describe "#initialize" do
       let(:context_hash) { {} }
 
