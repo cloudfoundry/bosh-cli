@@ -1,9 +1,31 @@
 # Based on common/properties/template_evaluation_context.rb
 require "rubygems"
-require "ostruct"
 require "json"
 require "erb"
 require "yaml"
+
+# Simple struct-like class to replace OpenStruct dependency
+# OpenStruct is being removed from Ruby standard library in Ruby 3.5+
+class PropertyStruct
+  def initialize(hash = {})
+    @table = {}
+    hash.each do |key, value|
+      @table[key.to_sym] = value
+    end
+  end
+
+  def method_missing(method_name, *args)
+    if method_name.to_s.end_with?("=")
+      @table[method_name.to_s.chomp("=").to_sym] = args.first
+    else
+      @table[method_name.to_sym]
+    end
+  end
+
+  def respond_to_missing?(method_name, include_private = false)
+    true
+  end
+end
 
 class Hash
   def recursive_merge!(other)
@@ -99,7 +121,7 @@ class TemplateEvaluationContext
     case object
       when Hash
         mapped = object.inject({}) { |h, (k,v)| h[k] = openstruct(v); h }
-        OpenStruct.new(mapped)
+        PropertyStruct.new(mapped)
       when Array
         object.map { |item| openstruct(item) }
       else
