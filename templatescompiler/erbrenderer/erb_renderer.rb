@@ -177,7 +177,8 @@ class ERBRenderer
     erb = ERB.new(File.read(src_path), trim_mode: "-")
     erb.filename = src_path
 
-    context_hash = JSON.load_file(@json_context_path)
+    # Note: JSON.load_file was added in v2.3.1: https://github.com/ruby/json/blob/v2.3.1/lib/json/common.rb#L286
+    context_hash = JSON.parse(File.read(@json_context_path))
     template_evaluation_context = TemplateEvaluationContext.new(context_hash)
 
     File.write(dst_path, erb.result(template_evaluation_context.get_binding))
