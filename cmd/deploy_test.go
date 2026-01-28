@@ -87,6 +87,23 @@ var _ = Describe("DeployCmd", func() {
 			}))
 		})
 
+		It("deploys manifest allowing to recreate VMs created before a timestamp", func() {
+			deployOpts.Recreate = true
+			deployOpts.RecreateVMsCreatedBefore = "2026-01-01T00:00:00Z"
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			bytes, updateOpts := deployment.UpdateArgsForCall(0)
+			Expect(bytes).To(Equal([]byte("name: dep\n")))
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				Recreate:                 true,
+				RecreateVMsCreatedBefore: "2026-01-01T00:00:00Z",
+			}))
+		})
+
 		It("deploys manifest allowing to dry_run", func() {
 			deployOpts.DryRun = true
 
