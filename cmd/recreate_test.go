@@ -115,6 +115,18 @@ var _ = Describe("RecreateCmd", func() {
 			Expect(recreateOpts.Fix).To(BeTrue())
 		})
 
+		It("can set vms_created_before", func() {
+			recreateOpts.VMsCreatedBefore = "2026-01-01T00:00:00Z"
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.RecreateCallCount()).To(Equal(1))
+
+			_, recreateOpts := deployment.RecreateArgsForCall(0)
+			Expect(recreateOpts.VMsCreatedBefore).To(Equal("2026-01-01T00:00:00Z"))
+		})
+
 		It("does not recreate if confirmation is rejected", func() {
 			ui.AskedConfirmationErr = errors.New("stop")
 
