@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"errors"
+	"time"
 
 	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/ginkgo/v2"
@@ -89,7 +90,7 @@ var _ = Describe("DeployCmd", func() {
 
 		It("deploys manifest allowing to recreate VMs created before a timestamp", func() {
 			deployOpts.Recreate = true
-			deployOpts.RecreateVMsCreatedBefore = "2026-01-01T00:00:00Z"
+			deployOpts.RecreateVMsCreatedBefore = opts.TimeArg{Time: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)}
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
@@ -100,7 +101,7 @@ var _ = Describe("DeployCmd", func() {
 			Expect(bytes).To(Equal([]byte("name: dep\n")))
 			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
 				Recreate:                 true,
-				RecreateVMsCreatedBefore: "2026-01-01T00:00:00Z",
+				RecreateVMsCreatedBefore: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
 			}))
 		})
 
