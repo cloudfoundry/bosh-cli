@@ -215,13 +215,13 @@ type RecreateOpts struct {
 	SkipDrain        bool
 	DryRun           bool
 	Converge         bool
-	VMsCreatedBefore string
+	VMsCreatedBefore time.Time
 }
 
 type UpdateOpts struct {
 	Recreate                 bool
 	RecreatePersistentDisks  bool
-	RecreateVMsCreatedBefore string
+	RecreateVMsCreatedBefore time.Time
 	Fix                      bool
 	SkipDrain                SkipDrains
 	Canaries                 string

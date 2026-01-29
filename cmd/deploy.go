@@ -104,7 +104,7 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 	updateOpts := boshdir.UpdateOpts{
 		RecreatePersistentDisks:  opts.RecreatePersistentDisks,
 		Recreate:                 opts.Recreate,
-		RecreateVMsCreatedBefore: opts.RecreateVMsCreatedBefore,
+		RecreateVMsCreatedBefore: opts.RecreateVMsCreatedBefore.Time,
 		Fix:                      opts.Fix,
 		SkipDrain:                opts.SkipDrain,
 		DryRun:                   opts.DryRun,

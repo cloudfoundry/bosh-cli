@@ -505,7 +505,7 @@ type DeployOpts struct {
 
 	Recreate                 bool                `long:"recreate"                                description:"Recreate all VMs in deployment"`
 	RecreatePersistentDisks  bool                `long:"recreate-persistent-disks"               description:"Recreate all persistent disks in deployment"`
-	RecreateVMsCreatedBefore string              `long:"recreate-vms-created-before"             description:"Only recreate VMs created before the given RFC 3339 timestamp (requires --recreate)"`
+	RecreateVMsCreatedBefore TimeArg             `long:"recreate-vms-created-before"             description:"Only recreate VMs created before the given RFC 3339 timestamp (requires --recreate)"`
 	Fix                      bool                `long:"fix"                                     description:"Recreate an instance with an unresponsive agent instead of erroring"`
 	FixReleases              bool                `long:"fix-releases"                            description:"Reupload releases in manifest and replace corrupt or missing jobs/packages"`
 	SkipDrain                []boshdir.SkipDrain `long:"skip-drain" value-name:"[INSTANCE-GROUP[/INSTANCE-ID]]"  description:"Skip running drain and pre-stop scripts for specific instance groups" optional:"true" optional-value:"*"`
@@ -942,9 +942,9 @@ type RestartOpts struct {
 type RecreateOpts struct {
 	Args AllOrInstanceGroupOrInstanceSlugArgs `positional-args:"true"`
 
-	SkipDrain        bool   `long:"skip-drain" description:"Skip running drain and pre-stop scripts"`
-	Fix              bool   `long:"fix"        description:"Recreate an instance with an unresponsive agent instead of erroring"`
-	VMsCreatedBefore string `long:"vms-created-before" description:"Only recreate VMs created before the given RFC 3339 timestamp"`
+	SkipDrain        bool    `long:"skip-drain" description:"Skip running drain and pre-stop scripts"`
+	Fix              bool    `long:"fix"        description:"Recreate an instance with an unresponsive agent instead of erroring"`
+	VMsCreatedBefore TimeArg `long:"vms-created-before" description:"Only recreate VMs created before the given RFC 3339 timestamp"`
 
 	Canaries    string `long:"canaries" description:"Override manifest values for canaries"`
 	MaxInFlight string `long:"max-in-flight" description:"Override manifest values for max_in_flight"`

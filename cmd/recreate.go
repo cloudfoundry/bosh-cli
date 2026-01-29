@@ -39,7 +39,7 @@ func newRecreateOpts(opts RecreateOpts) (boshdir.RecreateOpts, error) {
 			Canaries:         opts.Canaries,
 			MaxInFlight:      opts.MaxInFlight,
 			Converge:         true,
-			VMsCreatedBefore: opts.VMsCreatedBefore,
+			VMsCreatedBefore: opts.VMsCreatedBefore.Time,
 		}
 		return recreateOpts, nil
 	}
