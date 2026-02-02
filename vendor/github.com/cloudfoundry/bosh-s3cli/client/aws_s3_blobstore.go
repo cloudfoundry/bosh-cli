@@ -8,10 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/cloudfoundry/bosh-s3cli/config"
 )
@@ -21,15 +24,15 @@ var oneTB = int64(1000 * 1024 * 1024 * 1024)
 
 // awsS3Client encapsulates AWS S3 blobstore interactions
 type awsS3Client struct {
-	s3Client    *s3.S3
+	s3Client    *s3.Client
 	s3cliConfig *config.S3Cli
 }
 
 // Get fetches a blob, destination will be overwritten if exists
 func (b *awsS3Client) Get(src string, dest io.WriterAt) error {
-	downloader := s3manager.NewDownloaderWithClient(b.s3Client)
+	downloader := manager.NewDownloader(b.s3Client)
 
-	_, err := downloader.Download(dest, &s3.GetObjectInput{
+	_, err := downloader.Download(context.TODO(), dest, &s3.GetObjectInput{
 		Bucket: aws.String(b.s3cliConfig.BucketName),
 		Key:    b.key(src),
 	})
@@ -48,21 +51,27 @@ func (b *awsS3Client) Put(src io.ReadSeeker, dest string) error {
 		return errorInvalidCredentialsSourceValue
 	}
 
-	uploader := s3manager.NewUploaderWithClient(b.s3Client, func(u *s3manager.Uploader) {
+	uploader := manager.NewUploader(b.s3Client, func(u *manager.Uploader) {
 		u.LeavePartsOnError = false
 
 		if !cfg.MultipartUpload {
 			// disable multipart uploads by way of large PartSize configuration
 			u.PartSize = oneTB
 		}
+
+		if cfg.ShouldDisableUploaderRequestChecksumCalculation() {
+			// Disable checksum calculation for Alicloud OSS (Object Storage Service)
+			// Alicloud doesn't support AWS chunked encoding with checksum calculation
+			u.RequestChecksumCalculation = aws.RequestChecksumCalculationWhenRequired
+		}
 	})
-	uploadInput := &s3manager.UploadInput{
+	uploadInput := &s3.PutObjectInput{
 		Body:   src,
 		Bucket: aws.String(cfg.BucketName),
 		Key:    b.key(dest),
 	}
 	if cfg.ServerSideEncryption != "" {
-		uploadInput.ServerSideEncryption = aws.String(cfg.ServerSideEncryption)
+		uploadInput.ServerSideEncryption = types.ServerSideEncryption(cfg.ServerSideEncryption)
 	}
 	if cfg.SSEKMSKeyID != "" {
 		uploadInput.SSEKMSKeyId = aws.String(cfg.SSEKMSKeyID)
@@ -71,9 +80,9 @@ func (b *awsS3Client) Put(src io.ReadSeeker, dest string) error {
 	retry := 0
 	maxRetries := 3
 	for {
-		putResult, err := uploader.Upload(uploadInput)
+		putResult, err := uploader.Upload(context.TODO(), uploadInput)
 		if err != nil {
-			if _, ok := err.(s3manager.MultiUploadFailure); ok {
+			if _, ok := err.(manager.MultiUploadFailure); ok {
 				if retry == maxRetries {
 					log.Println("Upload retry limit exceeded:", err.Error())
 					return fmt.Errorf("upload retry limit exceeded: %s", err.Error())
@@ -102,16 +111,15 @@ func (b *awsS3Client) Delete(dest string) error {
 		Key:    b.key(dest),
 	}
 
-	_, err := b.s3Client.DeleteObject(deleteParams)
+	_, err := b.s3Client.DeleteObject(context.TODO(), deleteParams)
 
 	if err == nil {
 		return nil
 	}
 
-	if reqErr, ok := err.(awserr.RequestFailure); ok {
-		if reqErr.StatusCode() == 404 {
-			return nil
-		}
+	var apiErr smithy.APIError
+	if errors.As(err, &apiErr) && (apiErr.ErrorCode() == "NotFound" || apiErr.ErrorCode() == "NoSuchKey") {
+		return nil
 	}
 	return err
 }
@@ -123,18 +131,17 @@ func (b *awsS3Client) Exists(dest string) (bool, error) {
 		Key:    b.key(dest),
 	}
 
-	_, err := b.s3Client.HeadObject(existsParams)
+	_, err := b.s3Client.HeadObject(context.TODO(), existsParams)
 
 	if err == nil {
 		log.Printf("File '%s' exists in bucket '%s'\n", dest, b.s3cliConfig.BucketName)
 		return true, nil
 	}
 
-	if reqErr, ok := err.(awserr.RequestFailure); ok {
-		if reqErr.StatusCode() == 404 {
-			log.Printf("File '%s' does not exist in bucket '%s'\n", dest, b.s3cliConfig.BucketName)
-			return false, nil
-		}
+	var apiErr smithy.APIError
+	if errors.As(err, &apiErr) && apiErr.ErrorCode() == "NotFound" {
+		log.Printf("File '%s' does not exist in bucket '%s'\n", dest, b.s3cliConfig.BucketName)
+		return false, nil
 	}
 	return false, err
 }
@@ -162,23 +169,31 @@ func (b *awsS3Client) key(srcOrDest string) *string {
 }
 
 func (b *awsS3Client) getSigned(objectID string, expiration time.Duration) (string, error) {
+	presignClient := s3.NewPresignClient(b.s3Client)
 	signParams := &s3.GetObjectInput{
 		Bucket: aws.String(b.s3cliConfig.BucketName),
 		Key:    b.key(objectID),
 	}
 
-	req, _ := b.s3Client.GetObjectRequest(signParams)
+	req, err := presignClient.PresignGetObject(context.TODO(), signParams, s3.WithPresignExpires(expiration))
+	if err != nil {
+		return "", err
+	}
 
-	return req.Presign(expiration)
+	return req.URL, nil
 }
 
 func (b *awsS3Client) putSigned(objectID string, expiration time.Duration) (string, error) {
+	presignClient := s3.NewPresignClient(b.s3Client)
 	signParams := &s3.PutObjectInput{
 		Bucket: aws.String(b.s3cliConfig.BucketName),
 		Key:    b.key(objectID),
 	}
 
-	req, _ := b.s3Client.PutObjectRequest(signParams)
+	req, err := presignClient.PresignPutObject(context.TODO(), signParams, s3.WithPresignExpires(expiration))
+	if err != nil {
+		return "", err
+	}
 
-	return req.Presign(expiration)
+	return req.URL, nil
 }

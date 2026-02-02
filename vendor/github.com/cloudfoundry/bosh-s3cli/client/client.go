@@ -4,7 +4,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/cloudfoundry/bosh-s3cli/config"
 )
@@ -18,7 +18,7 @@ type S3CompatibleClient interface {
 }
 
 // New returns an S3CompatibleClient
-func New(s3Client *s3.S3, s3cliConfig *config.S3Cli) S3CompatibleClient {
+func New(s3Client *s3.Client, s3cliConfig *config.S3Cli) S3CompatibleClient {
 	return &s3CompatibleClient{
 		s3cliConfig: s3cliConfig,
 		openstackSwiftBlobstore: &openstackSwiftS3Client{

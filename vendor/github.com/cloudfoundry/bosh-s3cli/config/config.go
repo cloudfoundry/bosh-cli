@@ -10,34 +10,28 @@ import (
 
 // The S3Cli represents configuration for the s3cli
 type S3Cli struct {
-	AccessKeyID          string `json:"access_key_id"`
-	SecretAccessKey      string `json:"secret_access_key"`
-	BucketName           string `json:"bucket_name"`
-	FolderName           string `json:"folder_name"`
-	CredentialsSource    string `json:"credentials_source"`
-	Host                 string `json:"host"`
-	Port                 int    `json:"port"` // 0 means no custom port
-	Region               string `json:"region"`
-	SSLVerifyPeer        bool   `json:"ssl_verify_peer"`
-	UseSSL               bool   `json:"use_ssl"`
-	SignatureVersion     int    `json:"signature_version,string"`
-	ServerSideEncryption string `json:"server_side_encryption"`
-	SSEKMSKeyID          string `json:"sse_kms_key_id"`
-	AssumeRoleArn        string `json:"assume_role_arn"`
-	MultipartUpload      bool   `json:"multipart_upload"`
-	UseV2SigningMethod   bool
-	HostStyle            bool   `json:"host_style"`
-	SwiftAuthAccount     string `json:"swift_auth_account"`
-	SwiftTempURLKey      string `json:"swift_temp_url_key"`
+	AccessKeyID                               string `json:"access_key_id"`
+	SecretAccessKey                           string `json:"secret_access_key"`
+	BucketName                                string `json:"bucket_name"`
+	FolderName                                string `json:"folder_name"`
+	CredentialsSource                         string `json:"credentials_source"`
+	Host                                      string `json:"host"`
+	Port                                      int    `json:"port"` // 0 means no custom port
+	Region                                    string `json:"region"`
+	SSLVerifyPeer                             bool   `json:"ssl_verify_peer"`
+	UseSSL                                    bool   `json:"use_ssl"`
+	ServerSideEncryption                      string `json:"server_side_encryption"`
+	SSEKMSKeyID                               string `json:"sse_kms_key_id"`
+	AssumeRoleArn                             string `json:"assume_role_arn"`
+	MultipartUpload                           bool   `json:"multipart_upload"`
+	HostStyle                                 bool   `json:"host_style"`
+	SwiftAuthAccount                          string `json:"swift_auth_account"`
+	SwiftTempURLKey                           string `json:"swift_temp_url_key"`
+	requestChecksumCalculationEnabled         bool
+	uploaderRequestChecksumCalculationEnabled bool
 }
 
-// EmptyRegion is required to allow us to use the AWS SDK against S3 compatible blobstores which do not have
-// the concept of a region
-const EmptyRegion = " "
-
-const (
-	defaultRegion = "us-east-1" //nolint:unused
-)
+const defaultAWSRegion = "us-east-1" //nolint:unused
 
 // StaticCredentialsSource specifies that credentials will be supplied using access_key_id and secret_access_key
 const StaticCredentialsSource = "static"
@@ -73,9 +67,11 @@ func NewFromReader(reader io.Reader) (S3Cli, error) {
 	}
 
 	c := S3Cli{
-		SSLVerifyPeer:   true,
-		UseSSL:          true,
-		MultipartUpload: true,
+		SSLVerifyPeer:                     true,
+		UseSSL:                            true,
+		MultipartUpload:                   true,
+		requestChecksumCalculationEnabled: true,
+		uploaderRequestChecksumCalculationEnabled: true,
 	}
 
 	err = json.Unmarshal(bytes, &c)
@@ -143,53 +139,33 @@ func (c *S3Cli) configureAWS() {
 	c.MultipartUpload = true
 
 	if c.Region == "" {
-		c.Region = AWSHostToRegion(c.Host)
-	}
-
-	switch c.SignatureVersion {
-	case 2:
-		c.UseV2SigningMethod = true
-	case 4:
-		c.UseV2SigningMethod = false
-	default:
-		c.UseV2SigningMethod = false
+		if region := AWSHostToRegion(c.Host); region != "" {
+			c.Region = region
+		} else {
+			c.Region = defaultAWSRegion
+		}
 	}
 }
 
 func (c *S3Cli) configureAlicloud() {
 	c.MultipartUpload = true
-	c.configureDefaultSigningMethod()
 	c.HostStyle = true
 
 	c.Host = strings.Split(c.Host, ":")[0]
 	if c.Region == "" {
 		c.Region = AlicloudHostToRegion(c.Host)
 	}
+	c.requestChecksumCalculationEnabled = false
+	c.uploaderRequestChecksumCalculationEnabled = false
 }
 
 func (c *S3Cli) configureGoogle() {
 	c.MultipartUpload = false
-	c.configureDefaultSigningMethod()
+	c.requestChecksumCalculationEnabled = false
 }
 
 func (c *S3Cli) configureDefault() {
-	c.configureDefaultSigningMethod()
-}
-
-func (c *S3Cli) configureDefaultSigningMethod() {
-	switch c.SignatureVersion {
-	case 2:
-		c.UseV2SigningMethod = true
-	case 4:
-		c.UseV2SigningMethod = false
-	default:
-		c.UseV2SigningMethod = true
-	}
-}
-
-// UseRegion signals to users of the S3Cli whether to use Region information
-func (c *S3Cli) UseRegion() bool {
-	return c.Region != ""
+	// No specific configuration needed for default/unknown providers
 }
 
 // S3Endpoint returns the S3 URI to use if custom host information has been provided
@@ -207,4 +183,16 @@ func (c *S3Cli) S3Endpoint() string {
 		return fmt.Sprintf("%s:%d", c.Host, c.Port)
 	}
 	return c.Host
+}
+
+func (c *S3Cli) IsGoogle() bool {
+	return Provider(c.Host) == "google"
+}
+
+func (c *S3Cli) ShouldDisableRequestChecksumCalculation() bool {
+	return !c.requestChecksumCalculationEnabled
+}
+
+func (c *S3Cli) ShouldDisableUploaderRequestChecksumCalculation() bool {
+	return !c.uploaderRequestChecksumCalculationEnabled
 }
