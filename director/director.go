@@ -14,12 +14,13 @@ type DirectorImpl struct {
 }
 
 type OrphanedVMResponse struct {
-	AZName         string   `json:"az"`
-	CID            string   `json:"cid"`
-	DeploymentName string   `json:"deployment_name"`
-	IPAddresses    []string `json:"ip_addresses"`
-	InstanceName   string   `json:"instance_name"`
-	OrphanedAt     string   `json:"orphaned_at"`
+	AZName          string   `json:"az"`
+	CID             string   `json:"cid"`
+	DeploymentName  string   `json:"deployment_name"`
+	IPAddresses     []string `json:"ip_addresses"`
+	IPAddressesCidr []string `json:"ip_addresses_cidr"`
+	InstanceName    string   `json:"instance_name"`
+	OrphanedAt      string   `json:"orphaned_at"`
 }
 
 func (d DirectorImpl) WithContext(id string) Director {
@@ -47,12 +48,13 @@ func transformOrphanedVMs(resps []OrphanedVMResponse) ([]OrphanedVM, error) {
 		}
 
 		orphanedVMs = append(orphanedVMs, OrphanedVM{
-			CID:            r.CID,
-			DeploymentName: r.DeploymentName,
-			InstanceName:   r.InstanceName,
-			AZName:         r.AZName,
-			IPAddresses:    r.IPAddresses,
-			OrphanedAt:     orphanedAt,
+			CID:             r.CID,
+			DeploymentName:  r.DeploymentName,
+			InstanceName:    r.InstanceName,
+			AZName:          r.AZName,
+			IPAddresses:     r.IPAddresses,
+			IPAddressesCidr: r.IPAddressesCidr,
+			OrphanedAt:      orphanedAt,
 		})
 	}
 	return orphanedVMs, nil
