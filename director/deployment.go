@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
@@ -138,7 +139,7 @@ func (d DeploymentImpl) Start(slug AllOrInstanceGroupOrInstanceSlug, opts StartO
 	if !opts.Converge {
 		return d.nonConvergingJobAction("start", slug, false, false, false)
 	}
-	return d.changeJobState("started", slug, false, false, false, false, opts.Canaries, opts.MaxInFlight)
+	return d.changeJobState("started", slug, false, false, false, false, opts.Canaries, opts.MaxInFlight, time.Time{})
 }
 
 func (d DeploymentImpl) Stop(slug AllOrInstanceGroupOrInstanceSlug, opts StopOpts) error {
@@ -150,7 +151,7 @@ func (d DeploymentImpl) Stop(slug AllOrInstanceGroupOrInstanceSlug, opts StopOpt
 	if opts.Hard {
 		state = "detached"
 	}
-	return d.changeJobState(state, slug, opts.SkipDrain, opts.Force, false, false, opts.Canaries, opts.MaxInFlight)
+	return d.changeJobState(state, slug, opts.SkipDrain, opts.Force, false, false, opts.Canaries, opts.MaxInFlight, time.Time{})
 }
 
 func (d DeploymentImpl) Restart(slug AllOrInstanceGroupOrInstanceSlug, opts RestartOpts) error {
@@ -158,7 +159,7 @@ func (d DeploymentImpl) Restart(slug AllOrInstanceGroupOrInstanceSlug, opts Rest
 		return d.nonConvergingJobAction("restart", slug, opts.SkipDrain, false, false)
 	}
 
-	return d.changeJobState("restart", slug, opts.SkipDrain, opts.Force, false, false, opts.Canaries, opts.MaxInFlight)
+	return d.changeJobState("restart", slug, opts.SkipDrain, opts.Force, false, false, opts.Canaries, opts.MaxInFlight, time.Time{})
 }
 
 func (d DeploymentImpl) Recreate(slug AllOrInstanceGroupOrInstanceSlug, opts RecreateOpts) error {
@@ -166,16 +167,16 @@ func (d DeploymentImpl) Recreate(slug AllOrInstanceGroupOrInstanceSlug, opts Rec
 		return d.nonConvergingJobAction("recreate", slug, opts.SkipDrain, false, opts.Fix)
 	}
 
-	return d.changeJobState("recreate", slug, opts.SkipDrain, opts.Force, opts.Fix, opts.DryRun, opts.Canaries, opts.MaxInFlight)
+	return d.changeJobState("recreate", slug, opts.SkipDrain, opts.Force, opts.Fix, opts.DryRun, opts.Canaries, opts.MaxInFlight, opts.VMsCreatedBefore)
 }
 
 func (d DeploymentImpl) nonConvergingJobAction(action string, slug AllOrInstanceGroupOrInstanceSlug, skipDrain bool, hard bool, ignoreUnresponsiveAgent bool) error {
 	return d.client.NonConvergingJobAction(action, d.name, slug.Name(), slug.IndexOrID(), skipDrain, hard, ignoreUnresponsiveAgent)
 }
 
-func (d DeploymentImpl) changeJobState(state string, slug AllOrInstanceGroupOrInstanceSlug, skipDrain bool, force bool, fix bool, dryRun bool, canaries string, maxInFlight string) error {
+func (d DeploymentImpl) changeJobState(state string, slug AllOrInstanceGroupOrInstanceSlug, skipDrain bool, force bool, fix bool, dryRun bool, canaries string, maxInFlight string, vmsCreatedBefore time.Time) error {
 	return d.client.ChangeJobState(
-		state, d.name, slug.Name(), slug.IndexOrID(), skipDrain, force, fix, dryRun, canaries, maxInFlight)
+		state, d.name, slug.Name(), slug.IndexOrID(), skipDrain, force, fix, dryRun, canaries, maxInFlight, vmsCreatedBefore)
 }
 
 func (d DeploymentImpl) ExportRelease(release ReleaseSlug, os OSVersionSlug, jobs []string) (ExportReleaseResult, error) {
@@ -387,7 +388,7 @@ func (c Client) NonConvergingJobAction(action string, deployment string, instanc
 	return nil
 }
 
-func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, skipDrain bool, force bool, fix bool, dryRun bool, canaries string, maxInFlight string) error {
+func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, skipDrain bool, force bool, fix bool, dryRun bool, canaries string, maxInFlight string, vmsCreatedBefore time.Time) error {
 	if len(state) == 0 {
 		return bosherr.Error("Expected non-empty job state")
 	}
@@ -424,6 +425,10 @@ func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, ski
 
 	if maxInFlight != "" {
 		query.Add("max_in_flight", maxInFlight)
+	}
+
+	if !vmsCreatedBefore.IsZero() {
+		query.Add("recreate_vm_created_before", vmsCreatedBefore.Format(time.RFC3339))
 	}
 
 	path := fmt.Sprintf("/deployments/%s/jobs", deploymentName)
@@ -523,6 +528,10 @@ func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
 
 	if opts.RecreatePersistentDisks {
 		query.Add("recreate_persistent_disks", "true")
+	}
+
+	if !opts.RecreateVMsCreatedBefore.IsZero() {
+		query.Add("recreate_vm_created_before", opts.RecreateVMsCreatedBefore.Format(time.RFC3339))
 	}
 
 	if opts.Fix {

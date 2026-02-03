@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"errors"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -113,6 +114,18 @@ var _ = Describe("RecreateCmd", func() {
 
 			_, recreateOpts := deployment.RecreateArgsForCall(0)
 			Expect(recreateOpts.Fix).To(BeTrue())
+		})
+
+		It("can set vms_created_before", func() {
+			recreateOpts.VMsCreatedBefore = opts.TimeArg{Time: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)}
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.RecreateCallCount()).To(Equal(1))
+
+			_, recreateOpts := deployment.RecreateArgsForCall(0)
+			Expect(recreateOpts.VMsCreatedBefore).To(Equal(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)))
 		})
 
 		It("does not recreate if confirmation is rejected", func() {

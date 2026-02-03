@@ -102,15 +102,16 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 	}
 
 	updateOpts := boshdir.UpdateOpts{
-		RecreatePersistentDisks: opts.RecreatePersistentDisks,
-		Recreate:                opts.Recreate,
-		Fix:                     opts.Fix,
-		SkipDrain:               opts.SkipDrain,
-		DryRun:                  opts.DryRun,
-		Canaries:                opts.Canaries,
-		MaxInFlight:             opts.MaxInFlight,
-		Diff:                    deploymentDiff,
-		ForceLatestVariables:    opts.ForceLatestVariables,
+		RecreatePersistentDisks:  opts.RecreatePersistentDisks,
+		Recreate:                 opts.Recreate,
+		RecreateVMsCreatedBefore: opts.RecreateVMsCreatedBefore.Time,
+		Fix:                      opts.Fix,
+		SkipDrain:                opts.SkipDrain,
+		DryRun:                   opts.DryRun,
+		Canaries:                 opts.Canaries,
+		MaxInFlight:              opts.MaxInFlight,
+		Diff:                     deploymentDiff,
+		ForceLatestVariables:     opts.ForceLatestVariables,
 	}
 
 	return c.deployment.Update(bytes, updateOpts)

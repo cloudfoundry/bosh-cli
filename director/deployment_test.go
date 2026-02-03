@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	semver "github.com/cppforlife/go-semi-semantic/version"
 	. "github.com/onsi/ginkgo/v2"
@@ -550,6 +551,28 @@ var _ = Describe("Deployment", func() {
 						err := stateFunc(deployment)
 						Expect(err).ToNot(HaveOccurred())
 					})
+
+					It("changes state with vms_created_before filter", func() {
+						timestamp := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+						recreateOpts.VMsCreatedBefore = timestamp
+
+						query := fmt.Sprintf("state=%s&recreate_vm_created_before=%s", state, url.QueryEscape(timestamp.Format(time.RFC3339)))
+
+						ConfigureTaskResult(
+							ghttp.CombineHandlers(
+								ghttp.VerifyRequest("PUT", "/deployments/dep/jobs/*", query),
+								ghttp.VerifyBasicAuth("username", "password"),
+								ghttp.VerifyHeader(http.Header{
+									"Content-Type": []string{"text/yaml"},
+								}),
+								ghttp.VerifyBody([]byte{}),
+							),
+							``,
+							server,
+						)
+						err := stateFunc(deployment)
+						Expect(err).ToNot(HaveOccurred())
+					})
 				}
 				if state != "started" {
 					It("changes state with skipping drain and forcing", func() {
@@ -961,6 +984,29 @@ var _ = Describe("Deployment", func() {
 
 			updateOpts := UpdateOpts{
 				ForceLatestVariables: true,
+			}
+			err := deployment.Update([]byte("manifest"), updateOpts)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("succeeds updating deployment with recreate_vm_created_before flag", func() {
+			timestamp := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+			ConfigureTaskResult(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments", "recreate=true&recreate_vm_created_before="+url.QueryEscape(timestamp.Format(time.RFC3339))),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"text/yaml"},
+					}),
+					ghttp.VerifyBody([]byte("manifest")),
+				),
+				``,
+				server,
+			)
+
+			updateOpts := UpdateOpts{
+				Recreate:                 true,
+				RecreateVMsCreatedBefore: timestamp,
 			}
 			err := deployment.Update([]byte("manifest"), updateOpts)
 			Expect(err).ToNot(HaveOccurred())

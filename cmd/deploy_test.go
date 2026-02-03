@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"errors"
+	"time"
 
 	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/ginkgo/v2"
@@ -84,6 +85,23 @@ var _ = Describe("DeployCmd", func() {
 				Recreate:                true,
 				Fix:                     true,
 				SkipDrain:               boshdir.SkipDrains{boshdir.SkipDrain{All: true}},
+			}))
+		})
+
+		It("deploys manifest allowing to recreate VMs created before a timestamp", func() {
+			deployOpts.Recreate = true
+			deployOpts.RecreateVMsCreatedBefore = opts.TimeArg{Time: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)}
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			bytes, updateOpts := deployment.UpdateArgsForCall(0)
+			Expect(bytes).To(Equal([]byte("name: dep\n")))
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				Recreate:                 true,
+				RecreateVMsCreatedBefore: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
 			}))
 		})
 
