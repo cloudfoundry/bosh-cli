@@ -22,6 +22,14 @@ import (
 var errorInvalidCredentialsSourceValue = errors.New("the client operates in read only mode. Change 'credentials_source' parameter value ")
 var oneTB = int64(1000 * 1024 * 1024 * 1024)
 
+// Default settings for transfer concurrency and part size.
+// These values are chosen to align with typical AWS CLI and SDK defaults for efficient S3 uploads and downloads.
+// See: https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/feature/s3/manager#Downloader
+const (
+	defaultTransferConcurrency = 5
+	defaultTransferPartSize    = int64(5 * 1024 * 1024) // 5 MB
+)
+
 // awsS3Client encapsulates AWS S3 blobstore interactions
 type awsS3Client struct {
 	s3Client    *s3.Client
@@ -30,7 +38,19 @@ type awsS3Client struct {
 
 // Get fetches a blob, destination will be overwritten if exists
 func (b *awsS3Client) Get(src string, dest io.WriterAt) error {
-	downloader := manager.NewDownloader(b.s3Client)
+	cfg := b.s3cliConfig
+
+	downloader := manager.NewDownloader(b.s3Client, func(d *manager.Downloader) {
+		d.Concurrency = defaultTransferConcurrency
+		if cfg.DownloadConcurrency > 0 {
+			d.Concurrency = cfg.DownloadConcurrency
+		}
+
+		d.PartSize = defaultTransferPartSize
+		if cfg.DownloadPartSize > 0 {
+			d.PartSize = cfg.DownloadPartSize
+		}
+	})
 
 	_, err := downloader.Download(context.TODO(), dest, &s3.GetObjectInput{
 		Bucket: aws.String(b.s3cliConfig.BucketName),
@@ -54,9 +74,22 @@ func (b *awsS3Client) Put(src io.ReadSeeker, dest string) error {
 	uploader := manager.NewUploader(b.s3Client, func(u *manager.Uploader) {
 		u.LeavePartsOnError = false
 
+		u.Concurrency = defaultTransferConcurrency
+		if cfg.UploadConcurrency > 0 {
+			u.Concurrency = cfg.UploadConcurrency
+		}
+
+		// PartSize: if multipart uploads disabled, force a very large part to avoid multipart.
+		// Otherwise, use configured upload part size if present, otherwise default.
 		if !cfg.MultipartUpload {
 			// disable multipart uploads by way of large PartSize configuration
 			u.PartSize = oneTB
+		} else {
+			if cfg.UploadPartSize > 0 {
+				u.PartSize = cfg.UploadPartSize
+			} else {
+				u.PartSize = defaultTransferPartSize
+			}
 		}
 
 		if cfg.ShouldDisableUploaderRequestChecksumCalculation() {
