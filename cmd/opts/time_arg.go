@@ -35,7 +35,7 @@ func (a TimeArg) IsSet() bool {
 func (a TimeArg) AsString() string {
 	if a.IsSet() {
 		// Always output in UTC with Z suffix for consistency
-		return a.Format(time.RFC3339)
+		return a.UTC().Format(time.RFC3339)
 	}
 	return ""
 }

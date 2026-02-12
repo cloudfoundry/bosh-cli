@@ -98,5 +98,11 @@ var _ = Describe("TimeArg", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(arg.AsString()).To(Equal("2026-06-15T14:30:00Z"))
 		})
+
+		It("returns UTC Z suffix even when TimeArg is constructed programmatically with a non-UTC location", func() {
+			loc := time.FixedZone("IST", 5*60*60+30*60) // UTC+05:30
+			arg := TimeArg{Time: time.Date(2026, 6, 15, 20, 0, 0, 0, loc)}
+			Expect(arg.AsString()).To(Equal("2026-06-15T14:30:00Z"))
+		})
 	})
 })

@@ -217,6 +217,19 @@ var _ = Describe("RecreateCmd", func() {
 				Expect(deployment.RecreateCallCount()).To(Equal(0))
 			})
 
+			It("allows vms-created-before flag with no-converge", func() {
+				recreateOpts.NoConverge = true
+				recreateOpts.VMsCreatedBefore = opts.TimeArg{Time: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)}
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deployment.RecreateCallCount()).To(Equal(1))
+
+				_, directorOpts := deployment.RecreateArgsForCall(0)
+				Expect(directorOpts.Converge).To(BeFalse())
+				Expect(directorOpts.VMsCreatedBefore).To(Equal(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)))
+			})
+
 			Context("with invalid slugs for no-converge on a deployment", func() {
 
 				BeforeEach(func() {

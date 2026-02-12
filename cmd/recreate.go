@@ -65,8 +65,9 @@ func newRecreateOpts(opts RecreateOpts) (boshdir.RecreateOpts, error) {
 	}
 
 	return boshdir.RecreateOpts{
-		Converge:  false,
-		SkipDrain: opts.SkipDrain,
-		Fix:       opts.Fix,
+		Converge:         false,
+		SkipDrain:        opts.SkipDrain,
+		Fix:              opts.Fix,
+		VMsCreatedBefore: opts.VMsCreatedBefore.Time,
 	}, nil
 }
