@@ -6,6 +6,7 @@ ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 default_version='[DEV BUILD]'
 VERSION_LABEL="${VERSION_LABEL:-${default_version}}"
 
+go version
 go build \
   -o "${ROOT_DIR}/out/bosh" \
   -ldflags="-X 'github.com/cloudfoundry/bosh-cli/v7/cmd.VersionLabel=${VERSION_LABEL}' -X 'main.version=${VERSION_LABEL}'" \
