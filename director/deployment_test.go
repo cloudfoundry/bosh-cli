@@ -556,7 +556,7 @@ var _ = Describe("Deployment", func() {
 						timestamp := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 						recreateOpts.VMsCreatedBefore = timestamp
 
-						query := fmt.Sprintf("state=%s&recreate_vm_created_before=%s", state, url.QueryEscape(timestamp.Format(time.RFC3339)))
+						query := fmt.Sprintf("state=%s&recreate_vms_created_before=%s", state, url.QueryEscape(timestamp.Format(time.RFC3339)))
 
 						ConfigureTaskResult(
 							ghttp.CombineHandlers(
@@ -989,11 +989,11 @@ var _ = Describe("Deployment", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("succeeds updating deployment with recreate_vm_created_before flag", func() {
+		It("succeeds updating deployment with recreate_vms_created_before flag", func() {
 			timestamp := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 			ConfigureTaskResult(
 				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("POST", "/deployments", "recreate=true&recreate_vm_created_before="+url.QueryEscape(timestamp.Format(time.RFC3339))),
+					ghttp.VerifyRequest("POST", "/deployments", "recreate=true&recreate_vms_created_before="+url.QueryEscape(timestamp.Format(time.RFC3339))),
 					ghttp.VerifyBasicAuth("username", "password"),
 					ghttp.VerifyHeader(http.Header{
 						"Content-Type": []string{"text/yaml"},

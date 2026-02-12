@@ -428,7 +428,7 @@ func (c Client) ChangeJobState(state, deploymentName, job, indexOrID string, ski
 	}
 
 	if !vmsCreatedBefore.IsZero() {
-		query.Add("recreate_vm_created_before", vmsCreatedBefore.Format(time.RFC3339))
+		query.Add("recreate_vms_created_before", vmsCreatedBefore.Format(time.RFC3339))
 	}
 
 	path := fmt.Sprintf("/deployments/%s/jobs", deploymentName)
@@ -531,7 +531,7 @@ func (c Client) UpdateDeployment(manifest []byte, opts UpdateOpts) error {
 	}
 
 	if !opts.RecreateVMsCreatedBefore.IsZero() {
-		query.Add("recreate_vm_created_before", opts.RecreateVMsCreatedBefore.Format(time.RFC3339))
+		query.Add("recreate_vms_created_before", opts.RecreateVMsCreatedBefore.Format(time.RFC3339))
 	}
 
 	if opts.Fix {
