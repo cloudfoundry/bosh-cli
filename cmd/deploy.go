@@ -101,6 +101,10 @@ func (c DeployCmd) Run(opts DeployOpts) error {
 		return err
 	}
 
+	if opts.RecreateVMsCreatedBefore.IsSet() {
+		opts.Recreate = true
+	}
+
 	updateOpts := boshdir.UpdateOpts{
 		RecreatePersistentDisks:  opts.RecreatePersistentDisks,
 		Recreate:                 opts.Recreate,

@@ -88,7 +88,23 @@ var _ = Describe("DeployCmd", func() {
 			}))
 		})
 
-		It("deploys manifest allowing to recreate VMs created before a timestamp", func() {
+		It("deploys manifest allowing to recreate VMs created before a timestamp and automatically sets recreate", func() {
+			deployOpts.RecreateVMsCreatedBefore = opts.TimeArg{Time: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)}
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.UpdateCallCount()).To(Equal(1))
+
+			bytes, updateOpts := deployment.UpdateArgsForCall(0)
+			Expect(bytes).To(Equal([]byte("name: dep\n")))
+			Expect(updateOpts).To(Equal(boshdir.UpdateOpts{
+				Recreate:                 true,
+				RecreateVMsCreatedBefore: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
+			}))
+		})
+
+		It("deploys manifest with both recreate and recreate-vms-created-before set explicitly", func() {
 			deployOpts.Recreate = true
 			deployOpts.RecreateVMsCreatedBefore = opts.TimeArg{Time: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)}
 
