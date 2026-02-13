@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"errors"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -115,6 +116,18 @@ var _ = Describe("RecreateCmd", func() {
 			Expect(recreateOpts.Fix).To(BeTrue())
 		})
 
+		It("can set vms_created_before", func() {
+			recreateOpts.VMsCreatedBefore = opts.TimeArg{Time: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)}
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.RecreateCallCount()).To(Equal(1))
+
+			_, recreateOpts := deployment.RecreateArgsForCall(0)
+			Expect(recreateOpts.VMsCreatedBefore).To(Equal(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)))
+		})
+
 		It("does not recreate if confirmation is rejected", func() {
 			ui.AskedConfirmationErr = errors.New("stop")
 
@@ -202,6 +215,19 @@ var _ = Describe("RecreateCmd", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Can't set dry-run and no-converge"))
 				Expect(deployment.RecreateCallCount()).To(Equal(0))
+			})
+
+			It("allows vms-created-before flag with no-converge", func() {
+				recreateOpts.NoConverge = true
+				recreateOpts.VMsCreatedBefore = opts.TimeArg{Time: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)}
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(deployment.RecreateCallCount()).To(Equal(1))
+
+				_, directorOpts := deployment.RecreateArgsForCall(0)
+				Expect(directorOpts.Converge).To(BeFalse())
+				Expect(directorOpts.VMsCreatedBefore).To(Equal(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)))
 			})
 
 			Context("with invalid slugs for no-converge on a deployment", func() {

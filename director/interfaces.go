@@ -208,25 +208,27 @@ type RestartOpts struct {
 }
 
 type RecreateOpts struct {
-	Canaries    string
-	MaxInFlight string
-	Force       bool
-	Fix         bool
-	SkipDrain   bool
-	DryRun      bool
-	Converge    bool
+	Canaries         string
+	MaxInFlight      string
+	Force            bool
+	Fix              bool
+	SkipDrain        bool
+	DryRun           bool
+	Converge         bool
+	VMsCreatedBefore time.Time
 }
 
 type UpdateOpts struct {
-	Recreate                bool
-	RecreatePersistentDisks bool
-	Fix                     bool
-	SkipDrain               SkipDrains
-	Canaries                string
-	MaxInFlight             string
-	DryRun                  bool
-	Diff                    DeploymentDiff
-	ForceLatestVariables    bool
+	Recreate                 bool
+	RecreatePersistentDisks  bool
+	RecreateVMsCreatedBefore time.Time
+	Fix                      bool
+	SkipDrain                SkipDrains
+	Canaries                 string
+	MaxInFlight              string
+	DryRun                   bool
+	Diff                     DeploymentDiff
+	ForceLatestVariables     bool
 }
 
 //counterfeiter:generate . ReleaseSeries

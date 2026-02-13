@@ -33,12 +33,13 @@ func (c RecreateCmd) Run(opts RecreateOpts) error {
 func newRecreateOpts(opts RecreateOpts) (boshdir.RecreateOpts, error) {
 	if !opts.NoConverge { // converge is default, no-converge is opt-in
 		recreateOpts := boshdir.RecreateOpts{
-			SkipDrain:   opts.SkipDrain,
-			Fix:         opts.Fix,
-			DryRun:      opts.DryRun,
-			Canaries:    opts.Canaries,
-			MaxInFlight: opts.MaxInFlight,
-			Converge:    true,
+			SkipDrain:        opts.SkipDrain,
+			Fix:              opts.Fix,
+			DryRun:           opts.DryRun,
+			Canaries:         opts.Canaries,
+			MaxInFlight:      opts.MaxInFlight,
+			Converge:         true,
+			VMsCreatedBefore: opts.VMsCreatedBefore.Time,
 		}
 		return recreateOpts, nil
 	}
@@ -64,8 +65,9 @@ func newRecreateOpts(opts RecreateOpts) (boshdir.RecreateOpts, error) {
 	}
 
 	return boshdir.RecreateOpts{
-		Converge:  false,
-		SkipDrain: opts.SkipDrain,
-		Fix:       opts.Fix,
+		Converge:         false,
+		SkipDrain:        opts.SkipDrain,
+		Fix:              opts.Fix,
+		VMsCreatedBefore: opts.VMsCreatedBefore.Time,
 	}, nil
 }
