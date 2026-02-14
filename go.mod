@@ -6,13 +6,13 @@ require (
 	code.cloudfoundry.org/clock v1.61.0
 	code.cloudfoundry.org/workpool v0.0.0-20250911194158-1489753f182e
 	github.com/cheggaaa/pb/v3 v3.1.7
-	github.com/cloudfoundry/bosh-agent/v2 v2.809.0
-	github.com/cloudfoundry/bosh-davcli v0.0.456
+	github.com/cloudfoundry/bosh-agent/v2 v2.813.0
+	github.com/cloudfoundry/bosh-davcli v0.0.459
 	github.com/cloudfoundry/bosh-gcscli v0.0.361
-	github.com/cloudfoundry/bosh-s3cli v0.0.386
-	github.com/cloudfoundry/bosh-utils v0.0.590
-	github.com/cloudfoundry/config-server v0.1.262
-	github.com/cloudfoundry/socks5-proxy v0.2.167
+	github.com/cloudfoundry/bosh-s3cli v0.0.389
+	github.com/cloudfoundry/bosh-utils v0.0.591
+	github.com/cloudfoundry/config-server v0.1.263
+	github.com/cloudfoundry/socks5-proxy v0.2.168
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.1
@@ -38,7 +38,7 @@ require (
 require (
 	cel.dev/expr v0.25.1 // indirect
 	cloud.google.com/go v0.123.0 // indirect
-	cloud.google.com/go/auth v0.18.1 // indirect
+	cloud.google.com/go/auth v0.18.2 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	cloud.google.com/go/iam v1.5.3 // indirect
@@ -115,13 +115,13 @@ require (
 	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
-	golang.org/x/telemetry v0.0.0-20260211191001-d65f0a9c301c // indirect
+	golang.org/x/telemetry v0.0.0-20260213145524-e0ab670178e1 // indirect
 	golang.org/x/term v0.40.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	google.golang.org/api v0.266.0 // indirect
 	google.golang.org/genproto v0.0.0-20260209200024-4cfbd4190f57 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260209200024-4cfbd4190f57 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
-	google.golang.org/grpc v1.78.0 // indirect
+	google.golang.org/grpc v1.79.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )

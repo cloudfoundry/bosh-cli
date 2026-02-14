@@ -40,7 +40,7 @@ type awsS3Client struct {
 func (b *awsS3Client) Get(src string, dest io.WriterAt) error {
 	cfg := b.s3cliConfig
 
-	downloader := manager.NewDownloader(b.s3Client, func(d *manager.Downloader) {
+	downloader := manager.NewDownloader(b.s3Client, func(d *manager.Downloader) { //nolint:staticcheck
 		d.Concurrency = defaultTransferConcurrency
 		if cfg.DownloadConcurrency > 0 {
 			d.Concurrency = cfg.DownloadConcurrency
@@ -52,7 +52,7 @@ func (b *awsS3Client) Get(src string, dest io.WriterAt) error {
 		}
 	})
 
-	_, err := downloader.Download(context.TODO(), dest, &s3.GetObjectInput{
+	_, err := downloader.Download(context.TODO(), dest, &s3.GetObjectInput{ //nolint:staticcheck
 		Bucket: aws.String(b.s3cliConfig.BucketName),
 		Key:    b.key(src),
 	})
@@ -71,7 +71,7 @@ func (b *awsS3Client) Put(src io.ReadSeeker, dest string) error {
 		return errorInvalidCredentialsSourceValue
 	}
 
-	uploader := manager.NewUploader(b.s3Client, func(u *manager.Uploader) {
+	uploader := manager.NewUploader(b.s3Client, func(u *manager.Uploader) { //nolint:staticcheck
 		u.LeavePartsOnError = false
 
 		u.Concurrency = defaultTransferConcurrency
@@ -113,7 +113,7 @@ func (b *awsS3Client) Put(src io.ReadSeeker, dest string) error {
 	retry := 0
 	maxRetries := 3
 	for {
-		putResult, err := uploader.Upload(context.TODO(), uploadInput)
+		putResult, err := uploader.Upload(context.TODO(), uploadInput) //nolint:staticcheck
 		if err != nil {
 			if _, ok := err.(manager.MultiUploadFailure); ok {
 				if retry == maxRetries {
