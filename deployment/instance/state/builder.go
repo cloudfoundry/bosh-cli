@@ -225,7 +225,7 @@ func (b *builder) renderJobTemplates(
 
 func (b *builder) defaultAddress(networkRefs []NetworkRef, agentState agentclient.AgentState) (string, error) {
 
-	if (networkRefs == nil) || (len(networkRefs) == 0) {
+	if len(networkRefs) == 0 {
 		return "", errors.New("Must specify network") //nolint:staticcheck
 	}
 
