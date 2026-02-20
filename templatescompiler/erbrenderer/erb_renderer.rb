@@ -174,8 +174,8 @@ class TemplateEvaluationContext
       yield
     end
 
-    def else_if_p(*names, &block)
-      @context.if_p(*names, &block)
+    def else_if_p(*names, &block) # rubocop:disable Style/ArgumentsForwarding
+      @context.if_p(*names, &block) # rubocop:disable Style/ArgumentsForwarding
     end
   end
 
