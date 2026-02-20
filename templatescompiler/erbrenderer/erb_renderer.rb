@@ -1,8 +1,8 @@
 # Based on common/properties/template_evaluation_context.rb
-require 'rubygems'
-require 'json'
-require 'erb'
-require 'yaml'
+require "rubygems"
+require "json"
+require "erb"
+require "yaml"
 
 # Simple struct-like class to replace OpenStruct dependency
 # OpenStruct is being removed from Ruby standard library in Ruby 3.5+
@@ -15,15 +15,15 @@ class PropertyStruct
   end
 
   def method_missing(method_name, *args)
-    if method_name.to_s.end_with?('=')
-      @table[method_name.to_s.chomp('=').to_sym] = wrap_value(args.first)
+    if method_name.to_s.end_with?("=")
+      @table[method_name.to_s.chomp("=").to_sym] = wrap_value(args.first)
     else
       @table[method_name.to_sym]
     end
   end
 
   def respond_to_missing?(method_name, _include_private = false)
-    @table.key?(method_name.to_sym) || method_name.to_s.end_with?('=')
+    @table.key?(method_name.to_sym) || method_name.to_s.end_with?("=")
   end
 
   private
@@ -57,17 +57,17 @@ class TemplateEvaluationContext
   attr_reader :name, :index, :properties, :raw_properties, :spec
 
   def initialize(spec)
-    @name = spec['job']['name'] if spec['job'].is_a?(Hash)
-    @index = spec['index']
+    @name = spec["job"]["name"] if spec["job"].is_a?(Hash)
+    @index = spec["index"]
 
-    properties1 = if !spec['job_properties'].nil?
-                    spec['job_properties']
-                  else
-                    spec['global_properties'].recursive_merge!(spec['cluster_properties'])
-                  end
+    properties1 = if !spec["job_properties"].nil?
+      spec["job_properties"]
+    else
+      spec["global_properties"].recursive_merge!(spec["cluster_properties"])
+    end
 
     properties = {}
-    spec['default_properties'].each do |name, value|
+    spec["default_properties"].each do |name, value|
       copy_property(properties, properties1, name, value)
     end
 
@@ -112,7 +112,7 @@ class TemplateEvaluationContext
   private
 
   def copy_property(dst, src, name, default = nil)
-    keys = name.split('.')
+    keys = name.split(".")
     src_ref = src
     dst_ref = dst
 
@@ -145,7 +145,7 @@ class TemplateEvaluationContext
   end
 
   def lookup_property(collection, name)
-    keys = name.split('.')
+    keys = name.split(".")
     ref = collection
 
     keys.each do |key|
@@ -180,7 +180,8 @@ class TemplateEvaluationContext
   end
 
   class InactiveElseBlock
-    def else; end
+    def else
+    end
 
     def else_if_p(*_names)
       InactiveElseBlock.new
@@ -190,7 +191,7 @@ end
 
 # TODO: do not use JSON in releases
 class << JSON
-  alias dump_array_or_hash dump
+  alias_method :dump_array_or_hash, :dump
 
   def dump(*args)
     arg = args[0]
@@ -208,7 +209,7 @@ class ERBRenderer
   end
 
   def render(src_path, dst_path)
-    erb = ERB.new(File.read(src_path), trim_mode: '-')
+    erb = ERB.new(File.read(src_path), trim_mode: "-")
     erb.filename = src_path
 
     # NOTE: JSON.load_file was added in v2.3.1: https://github.com/ruby/json/blob/v2.3.1/lib/json/common.rb#L286
@@ -220,7 +221,7 @@ class ERBRenderer
     name = "#{template_evaluation_context&.name}/#{template_evaluation_context&.index}"
 
     line_i = e.backtrace.index { |l| l.include?(erb&.filename.to_s) }
-    line_num = line_i ? e.backtrace[line_i].split(':')[1] : 'unknown'
+    line_num = line_i ? e.backtrace[line_i].split(":")[1] : "unknown"
     location = "(line #{line_num}: #{e.inspect})"
 
     raise("Error filling in template '#{src_path}' for #{name} #{location}")
