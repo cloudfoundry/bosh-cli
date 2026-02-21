@@ -27,9 +27,9 @@ type S3Cli struct {
 	HostStyle                                 bool   `json:"host_style"`
 	SwiftAuthAccount                          string `json:"swift_auth_account"`
 	SwiftTempURLKey                           string `json:"swift_temp_url_key"`
-	RequestChecksumCalculationEnabled         bool
-	ResponseChecksumCalculationEnabled        bool
-	UploaderRequestChecksumCalculationEnabled bool
+	RequestChecksumCalculationEnabled         bool   `json:"request_checksum_calculation_enabled"`
+	ResponseChecksumCalculationEnabled        bool   `json:"response_checksum_calculation_enabled"`
+	UploaderRequestChecksumCalculationEnabled bool   `json:"uploader_request_checksum_calculation_enabled"`
 	// Optional knobs to tune transfer performance.
 	// If zero, the client will apply sensible defaults (handled by the S3 client layer).
 	// Part size values are provided in bytes.
@@ -39,7 +39,8 @@ type S3Cli struct {
 	UploadPartSize      int64 `json:"upload_part_size"`
 }
 
-const defaultAWSRegion = "us-east-1" //nolint:unused
+const defaultAWSRegion = "us-east-1"
+const defaultGoogleRegion = "us-east-1"
 
 // StaticCredentialsSource specifies that credentials will be supplied using access_key_id and secret_access_key
 const StaticCredentialsSource = "static"
@@ -179,6 +180,9 @@ func (c *S3Cli) configureAlicloud() {
 func (c *S3Cli) configureGoogle() {
 	c.MultipartUpload = false
 	c.RequestChecksumCalculationEnabled = false
+	if c.Region == "" {
+		c.Region = defaultGoogleRegion
+	}
 }
 
 func (c *S3Cli) configureGDCH() {
