@@ -1,6 +1,8 @@
 package ssh
 
 import (
+	"context"
+
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
@@ -16,6 +18,10 @@ func NewNonInteractiveRunner(comboRunner ComboRunner) NonInteractiveRunner {
 }
 
 func (r NonInteractiveRunner) Run(connOpts ConnectionOpts, result boshdir.SSHResult, rawCmd []string) error {
+	return r.RunContext(context.Background(), connOpts, result, rawCmd)
+}
+
+func (r NonInteractiveRunner) RunContext(ctx context.Context, connOpts ConnectionOpts, result boshdir.SSHResult, rawCmd []string) error {
 	if len(result.Hosts) == 0 {
 		return bosherr.Errorf("Non-interactive SSH expects at least one host")
 	}
@@ -31,5 +37,5 @@ func (r NonInteractiveRunner) Run(connOpts ConnectionOpts, result boshdir.SSHRes
 		}
 	}
 
-	return r.comboRunner.Run(connOpts, result, cmdFactory)
+	return r.comboRunner.RunContext(ctx, connOpts, result, cmdFactory)
 }

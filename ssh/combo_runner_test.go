@@ -2,6 +2,7 @@ package ssh_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"os"
 	"strings"
@@ -374,6 +375,77 @@ var _ = Describe("ComboRunner", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("term-err"))
 				Expect(session.FinishCallCount()).To(Equal(2))
+			})
+		})
+
+		Describe("context cancellation", func() {
+			It("terminates processes when context is cancelled", func() {
+				result.Hosts = []boshdir.Host{
+					{Host: "127.0.0.1"},
+					{Host: "127.0.0.2"},
+				}
+
+				proc1 := &fakesys.FakeProcess{
+					TerminatedNicelyCallBack: func(p *fakesys.FakeProcess) {
+						p.WaitCh <- boshsys.Result{}
+					},
+				}
+				cmdRunner.AddProcess("cmd 127.0.0.1", proc1)
+
+				proc2 := &fakesys.FakeProcess{
+					TerminatedNicelyCallBack: func(p *fakesys.FakeProcess) {
+						p.WaitCh <- boshsys.Result{Error: errors.New("term-err")}
+					},
+				}
+				cmdRunner.AddProcess("cmd 127.0.0.2", proc2)
+
+				ctx, cancel := context.WithCancel(context.Background())
+
+				errCh := make(chan error)
+				go func() {
+					defer GinkgoRecover()
+					errCh <- comboRunner.RunContext(ctx, connOpts, result, cmdFactory)
+				}()
+
+				cancel()
+
+				var err error
+				Eventually(errCh).Should(Receive(&err))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("term-err"))
+
+				Expect(proc1.TerminatedNicely).To(BeTrue())
+				Expect(proc2.TerminatedNicely).To(BeTrue())
+				Expect(session.FinishCallCount()).To(Equal(1))
+			})
+
+			It("returns without error when context is cancelled and all processes exit cleanly", func() {
+				result.Hosts = []boshdir.Host{
+					{Host: "127.0.0.1"},
+				}
+
+				proc1 := &fakesys.FakeProcess{
+					TerminatedNicelyCallBack: func(p *fakesys.FakeProcess) {
+						p.WaitCh <- boshsys.Result{}
+					},
+				}
+				cmdRunner.AddProcess("cmd 127.0.0.1", proc1)
+
+				ctx, cancel := context.WithCancel(context.Background())
+
+				errCh := make(chan error)
+				go func() {
+					defer GinkgoRecover()
+					errCh <- comboRunner.RunContext(ctx, connOpts, result, cmdFactory)
+				}()
+
+				cancel()
+
+				var err error
+				Eventually(errCh).Should(Receive(&err))
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(proc1.TerminatedNicely).To(BeTrue())
 			})
 		})
 	})
