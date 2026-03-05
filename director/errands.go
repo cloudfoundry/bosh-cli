@@ -54,6 +54,31 @@ func (d DeploymentImpl) RunErrand(name string, keepAlive bool, whenChanged bool,
 		return []ErrandResult{}, err
 	}
 
+	return parseErrandResults(resp), nil
+}
+
+func (d DeploymentImpl) StartErrand(name string, keepAlive bool, whenChanged bool, slugs []InstanceGroupOrInstanceSlug) (int, error) {
+	return d.client.StartErrand(d.name, name, keepAlive, whenChanged, slugs)
+}
+
+func (d DeploymentImpl) FetchTaskOutputChunk(taskID, offset int, type_ string) ([]byte, int, error) {
+	return d.client.FetchTaskOutputChunk(taskID, offset, type_)
+}
+
+func (d DeploymentImpl) TaskState(taskID int) (string, error) {
+	return d.client.TaskState(taskID)
+}
+
+func (d DeploymentImpl) WaitForErrandResult(taskID int) ([]ErrandResult, error) {
+	resp, err := d.client.WaitForErrandResult(taskID)
+	if err != nil {
+		return []ErrandResult{}, err
+	}
+
+	return parseErrandResults(resp), nil
+}
+
+func parseErrandResults(resp []ErrandRunResp) []ErrandResult {
 	var result []ErrandResult
 
 	for _, value := range resp {
@@ -72,7 +97,7 @@ func (d DeploymentImpl) RunErrand(name string, keepAlive bool, whenChanged bool,
 		result = append(result, errandResult)
 	}
 
-	return result, nil
+	return result
 }
 
 func (c Client) Errands(deploymentName string) ([]Errand, error) {
@@ -92,15 +117,13 @@ func (c Client) Errands(deploymentName string) ([]Errand, error) {
 	return errands, nil
 }
 
-func (c Client) RunErrand(deploymentName, name string, keepAlive bool, whenChanged bool, instanceSlugs []InstanceGroupOrInstanceSlug) ([]ErrandRunResp, error) {
-	var resp []ErrandRunResp
-
+func (c Client) errandRequestBody(deploymentName, name string, keepAlive bool, whenChanged bool, instanceSlugs []InstanceGroupOrInstanceSlug) (string, []byte, error) {
 	if len(deploymentName) == 0 {
-		return resp, bosherr.Error("Expected non-empty deployment name")
+		return "", nil, bosherr.Error("Expected non-empty deployment name")
 	}
 
 	if len(name) == 0 {
-		return resp, bosherr.Error("Expected non-empty errand name")
+		return "", nil, bosherr.Error("Expected non-empty errand name")
 	}
 
 	path := fmt.Sprintf("/deployments/%s/errands/%s/runs", deploymentName, name)
@@ -118,7 +141,16 @@ func (c Client) RunErrand(deploymentName, name string, keepAlive bool, whenChang
 
 	reqBody, err := json.Marshal(body)
 	if err != nil {
-		return resp, bosherr.WrapErrorf(err, "Marshaling request body")
+		return "", nil, bosherr.WrapErrorf(err, "Marshaling request body")
+	}
+
+	return path, reqBody, nil
+}
+
+func (c Client) RunErrand(deploymentName, name string, keepAlive bool, whenChanged bool, instanceSlugs []InstanceGroupOrInstanceSlug) ([]ErrandRunResp, error) {
+	path, reqBody, err := c.errandRequestBody(deploymentName, name, keepAlive, whenChanged, instanceSlugs)
+	if err != nil {
+		return nil, err
 	}
 
 	setHeaders := func(req *http.Request) {
@@ -127,8 +159,41 @@ func (c Client) RunErrand(deploymentName, name string, keepAlive bool, whenChang
 
 	resultBytes, err := c.taskClientRequest.PostResult(path, reqBody, setHeaders)
 	if err != nil {
-		return resp, bosherr.WrapErrorf(err, "Running errand '%s'", name)
+		return nil, bosherr.WrapErrorf(err, "Running errand '%s'", name)
 	}
+
+	return parseErrandRunResps(resultBytes)
+}
+
+func (c Client) StartErrand(deploymentName, name string, keepAlive bool, whenChanged bool, instanceSlugs []InstanceGroupOrInstanceSlug) (int, error) {
+	path, reqBody, err := c.errandRequestBody(deploymentName, name, keepAlive, whenChanged, instanceSlugs)
+	if err != nil {
+		return 0, err
+	}
+
+	setHeaders := func(req *http.Request) {
+		req.Header.Add("Content-Type", "application/json")
+	}
+
+	taskID, err := c.taskClientRequest.PostTaskID(path, reqBody, setHeaders)
+	if err != nil {
+		return 0, bosherr.WrapErrorf(err, "Starting errand '%s'", name)
+	}
+
+	return taskID, nil
+}
+
+func (c Client) WaitForErrandResult(taskID int) ([]ErrandRunResp, error) {
+	resultBytes, err := c.taskClientRequest.WaitForTaskResultOnly(taskID)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Waiting for errand task '%d'", taskID)
+	}
+
+	return parseErrandRunResps(resultBytes)
+}
+
+func parseErrandRunResps(resultBytes []byte) ([]ErrandRunResp, error) {
+	var resp []ErrandRunResp
 
 	dec := json.NewDecoder(strings.NewReader(string(resultBytes)))
 

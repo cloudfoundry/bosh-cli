@@ -156,6 +156,23 @@ type FakeDeployment struct {
 		result1 director.LogsResult
 		result2 error
 	}
+	FetchTaskOutputChunkStub        func(int, int, string) ([]byte, int, error)
+	fetchTaskOutputChunkMutex       sync.RWMutex
+	fetchTaskOutputChunkArgsForCall []struct {
+		arg1 int
+		arg2 int
+		arg3 string
+	}
+	fetchTaskOutputChunkReturns struct {
+		result1 []byte
+		result2 int
+		result3 error
+	}
+	fetchTaskOutputChunkReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 int
+		result3 error
+	}
 	IgnoreStub        func(director.InstanceSlug, bool) error
 	ignoreMutex       sync.RWMutex
 	ignoreArgsForCall []struct {
@@ -328,6 +345,22 @@ type FakeDeployment struct {
 	startReturnsOnCall map[int]struct {
 		result1 error
 	}
+	StartErrandStub        func(string, bool, bool, []director.InstanceGroupOrInstanceSlug) (int, error)
+	startErrandMutex       sync.RWMutex
+	startErrandArgsForCall []struct {
+		arg1 string
+		arg2 bool
+		arg3 bool
+		arg4 []director.InstanceGroupOrInstanceSlug
+	}
+	startErrandReturns struct {
+		result1 int
+		result2 error
+	}
+	startErrandReturnsOnCall map[int]struct {
+		result1 int
+		result2 error
+	}
 	StemcellsStub        func() ([]director.Stemcell, error)
 	stemcellsMutex       sync.RWMutex
 	stemcellsArgsForCall []struct {
@@ -372,6 +405,19 @@ type FakeDeployment struct {
 	}
 	takeSnapshotsReturnsOnCall map[int]struct {
 		result1 error
+	}
+	TaskStateStub        func(int) (string, error)
+	taskStateMutex       sync.RWMutex
+	taskStateArgsForCall []struct {
+		arg1 int
+	}
+	taskStateReturns struct {
+		result1 string
+		result2 error
+	}
+	taskStateReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
 	}
 	TeamsStub        func() ([]string, error)
 	teamsMutex       sync.RWMutex
@@ -419,6 +465,19 @@ type FakeDeployment struct {
 	}
 	variablesReturnsOnCall map[int]struct {
 		result1 []director.VariableResult
+		result2 error
+	}
+	WaitForErrandResultStub        func(int) ([]director.ErrandResult, error)
+	waitForErrandResultMutex       sync.RWMutex
+	waitForErrandResultArgsForCall []struct {
+		arg1 int
+	}
+	waitForErrandResultReturns struct {
+		result1 []director.ErrandResult
+		result2 error
+	}
+	waitForErrandResultReturnsOnCall map[int]struct {
+		result1 []director.ErrandResult
 		result2 error
 	}
 	invocations      map[string][][]interface{}
@@ -1170,6 +1229,75 @@ func (fake *FakeDeployment) FetchLogsReturnsOnCall(i int, result1 director.LogsR
 		result1 director.LogsResult
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeDeployment) FetchTaskOutputChunk(arg1 int, arg2 int, arg3 string) ([]byte, int, error) {
+	fake.fetchTaskOutputChunkMutex.Lock()
+	ret, specificReturn := fake.fetchTaskOutputChunkReturnsOnCall[len(fake.fetchTaskOutputChunkArgsForCall)]
+	fake.fetchTaskOutputChunkArgsForCall = append(fake.fetchTaskOutputChunkArgsForCall, struct {
+		arg1 int
+		arg2 int
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.FetchTaskOutputChunkStub
+	fakeReturns := fake.fetchTaskOutputChunkReturns
+	fake.recordInvocation("FetchTaskOutputChunk", []interface{}{arg1, arg2, arg3})
+	fake.fetchTaskOutputChunkMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
+}
+
+func (fake *FakeDeployment) FetchTaskOutputChunkCallCount() int {
+	fake.fetchTaskOutputChunkMutex.RLock()
+	defer fake.fetchTaskOutputChunkMutex.RUnlock()
+	return len(fake.fetchTaskOutputChunkArgsForCall)
+}
+
+func (fake *FakeDeployment) FetchTaskOutputChunkCalls(stub func(int, int, string) ([]byte, int, error)) {
+	fake.fetchTaskOutputChunkMutex.Lock()
+	defer fake.fetchTaskOutputChunkMutex.Unlock()
+	fake.FetchTaskOutputChunkStub = stub
+}
+
+func (fake *FakeDeployment) FetchTaskOutputChunkArgsForCall(i int) (int, int, string) {
+	fake.fetchTaskOutputChunkMutex.RLock()
+	defer fake.fetchTaskOutputChunkMutex.RUnlock()
+	argsForCall := fake.fetchTaskOutputChunkArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeDeployment) FetchTaskOutputChunkReturns(result1 []byte, result2 int, result3 error) {
+	fake.fetchTaskOutputChunkMutex.Lock()
+	defer fake.fetchTaskOutputChunkMutex.Unlock()
+	fake.FetchTaskOutputChunkStub = nil
+	fake.fetchTaskOutputChunkReturns = struct {
+		result1 []byte
+		result2 int
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeDeployment) FetchTaskOutputChunkReturnsOnCall(i int, result1 []byte, result2 int, result3 error) {
+	fake.fetchTaskOutputChunkMutex.Lock()
+	defer fake.fetchTaskOutputChunkMutex.Unlock()
+	fake.FetchTaskOutputChunkStub = nil
+	if fake.fetchTaskOutputChunkReturnsOnCall == nil {
+		fake.fetchTaskOutputChunkReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 int
+			result3 error
+		})
+	}
+	fake.fetchTaskOutputChunkReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 int
+		result3 error
+	}{result1, result2, result3}
 }
 
 func (fake *FakeDeployment) Ignore(arg1 director.InstanceSlug, arg2 bool) error {
@@ -2013,6 +2141,78 @@ func (fake *FakeDeployment) StartReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDeployment) StartErrand(arg1 string, arg2 bool, arg3 bool, arg4 []director.InstanceGroupOrInstanceSlug) (int, error) {
+	var arg4Copy []director.InstanceGroupOrInstanceSlug
+	if arg4 != nil {
+		arg4Copy = make([]director.InstanceGroupOrInstanceSlug, len(arg4))
+		copy(arg4Copy, arg4)
+	}
+	fake.startErrandMutex.Lock()
+	ret, specificReturn := fake.startErrandReturnsOnCall[len(fake.startErrandArgsForCall)]
+	fake.startErrandArgsForCall = append(fake.startErrandArgsForCall, struct {
+		arg1 string
+		arg2 bool
+		arg3 bool
+		arg4 []director.InstanceGroupOrInstanceSlug
+	}{arg1, arg2, arg3, arg4Copy})
+	stub := fake.StartErrandStub
+	fakeReturns := fake.startErrandReturns
+	fake.recordInvocation("StartErrand", []interface{}{arg1, arg2, arg3, arg4Copy})
+	fake.startErrandMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDeployment) StartErrandCallCount() int {
+	fake.startErrandMutex.RLock()
+	defer fake.startErrandMutex.RUnlock()
+	return len(fake.startErrandArgsForCall)
+}
+
+func (fake *FakeDeployment) StartErrandCalls(stub func(string, bool, bool, []director.InstanceGroupOrInstanceSlug) (int, error)) {
+	fake.startErrandMutex.Lock()
+	defer fake.startErrandMutex.Unlock()
+	fake.StartErrandStub = stub
+}
+
+func (fake *FakeDeployment) StartErrandArgsForCall(i int) (string, bool, bool, []director.InstanceGroupOrInstanceSlug) {
+	fake.startErrandMutex.RLock()
+	defer fake.startErrandMutex.RUnlock()
+	argsForCall := fake.startErrandArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeDeployment) StartErrandReturns(result1 int, result2 error) {
+	fake.startErrandMutex.Lock()
+	defer fake.startErrandMutex.Unlock()
+	fake.StartErrandStub = nil
+	fake.startErrandReturns = struct {
+		result1 int
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) StartErrandReturnsOnCall(i int, result1 int, result2 error) {
+	fake.startErrandMutex.Lock()
+	defer fake.startErrandMutex.Unlock()
+	fake.StartErrandStub = nil
+	if fake.startErrandReturnsOnCall == nil {
+		fake.startErrandReturnsOnCall = make(map[int]struct {
+			result1 int
+			result2 error
+		})
+	}
+	fake.startErrandReturnsOnCall[i] = struct {
+		result1 int
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDeployment) Stemcells() ([]director.Stemcell, error) {
 	fake.stemcellsMutex.Lock()
 	ret, specificReturn := fake.stemcellsReturnsOnCall[len(fake.stemcellsArgsForCall)]
@@ -2243,6 +2443,70 @@ func (fake *FakeDeployment) TakeSnapshotsReturnsOnCall(i int, result1 error) {
 	fake.takeSnapshotsReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeDeployment) TaskState(arg1 int) (string, error) {
+	fake.taskStateMutex.Lock()
+	ret, specificReturn := fake.taskStateReturnsOnCall[len(fake.taskStateArgsForCall)]
+	fake.taskStateArgsForCall = append(fake.taskStateArgsForCall, struct {
+		arg1 int
+	}{arg1})
+	stub := fake.TaskStateStub
+	fakeReturns := fake.taskStateReturns
+	fake.recordInvocation("TaskState", []interface{}{arg1})
+	fake.taskStateMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDeployment) TaskStateCallCount() int {
+	fake.taskStateMutex.RLock()
+	defer fake.taskStateMutex.RUnlock()
+	return len(fake.taskStateArgsForCall)
+}
+
+func (fake *FakeDeployment) TaskStateCalls(stub func(int) (string, error)) {
+	fake.taskStateMutex.Lock()
+	defer fake.taskStateMutex.Unlock()
+	fake.TaskStateStub = stub
+}
+
+func (fake *FakeDeployment) TaskStateArgsForCall(i int) int {
+	fake.taskStateMutex.RLock()
+	defer fake.taskStateMutex.RUnlock()
+	argsForCall := fake.taskStateArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeDeployment) TaskStateReturns(result1 string, result2 error) {
+	fake.taskStateMutex.Lock()
+	defer fake.taskStateMutex.Unlock()
+	fake.TaskStateStub = nil
+	fake.taskStateReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) TaskStateReturnsOnCall(i int, result1 string, result2 error) {
+	fake.taskStateMutex.Lock()
+	defer fake.taskStateMutex.Unlock()
+	fake.TaskStateStub = nil
+	if fake.taskStateReturnsOnCall == nil {
+		fake.taskStateReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.taskStateReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeDeployment) Teams() ([]string, error) {
@@ -2476,6 +2740,70 @@ func (fake *FakeDeployment) VariablesReturnsOnCall(i int, result1 []director.Var
 	}
 	fake.variablesReturnsOnCall[i] = struct {
 		result1 []director.VariableResult
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) WaitForErrandResult(arg1 int) ([]director.ErrandResult, error) {
+	fake.waitForErrandResultMutex.Lock()
+	ret, specificReturn := fake.waitForErrandResultReturnsOnCall[len(fake.waitForErrandResultArgsForCall)]
+	fake.waitForErrandResultArgsForCall = append(fake.waitForErrandResultArgsForCall, struct {
+		arg1 int
+	}{arg1})
+	stub := fake.WaitForErrandResultStub
+	fakeReturns := fake.waitForErrandResultReturns
+	fake.recordInvocation("WaitForErrandResult", []interface{}{arg1})
+	fake.waitForErrandResultMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDeployment) WaitForErrandResultCallCount() int {
+	fake.waitForErrandResultMutex.RLock()
+	defer fake.waitForErrandResultMutex.RUnlock()
+	return len(fake.waitForErrandResultArgsForCall)
+}
+
+func (fake *FakeDeployment) WaitForErrandResultCalls(stub func(int) ([]director.ErrandResult, error)) {
+	fake.waitForErrandResultMutex.Lock()
+	defer fake.waitForErrandResultMutex.Unlock()
+	fake.WaitForErrandResultStub = stub
+}
+
+func (fake *FakeDeployment) WaitForErrandResultArgsForCall(i int) int {
+	fake.waitForErrandResultMutex.RLock()
+	defer fake.waitForErrandResultMutex.RUnlock()
+	argsForCall := fake.waitForErrandResultArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeDeployment) WaitForErrandResultReturns(result1 []director.ErrandResult, result2 error) {
+	fake.waitForErrandResultMutex.Lock()
+	defer fake.waitForErrandResultMutex.Unlock()
+	fake.WaitForErrandResultStub = nil
+	fake.waitForErrandResultReturns = struct {
+		result1 []director.ErrandResult
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDeployment) WaitForErrandResultReturnsOnCall(i int, result1 []director.ErrandResult, result2 error) {
+	fake.waitForErrandResultMutex.Lock()
+	defer fake.waitForErrandResultMutex.Unlock()
+	fake.WaitForErrandResultStub = nil
+	if fake.waitForErrandResultReturnsOnCall == nil {
+		fake.waitForErrandResultReturnsOnCall = make(map[int]struct {
+			result1 []director.ErrandResult
+			result2 error
+		})
+	}
+	fake.waitForErrandResultReturnsOnCall[i] = struct {
+		result1 []director.ErrandResult
 		result2 error
 	}{result1, result2}
 }

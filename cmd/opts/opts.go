@@ -716,6 +716,11 @@ type RunErrandOpts struct {
 	DownloadLogs  bool        `long:"download-logs" description:"Download logs"`
 	LogsDirectory DirOrCWDArg `long:"logs-dir" description:"Destination directory for logs" default:"."`
 
+	StreamLogs    bool   `long:"stream-logs" description:"Stream errand log files via SSH while errand runs"`
+	StreamLogPath string `long:"stream-log-path" description:"Log file path to tail (default: /var/vcap/sys/log/$ERRAND/$ERRAND.{stdout,stderr}.log)"`
+
+	GatewayFlags
+
 	cmd
 }
 
