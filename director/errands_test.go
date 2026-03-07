@@ -278,4 +278,151 @@ var _ = Describe("Director", func() {
 			Expect(err.Error()).To(ContainSubstring("Unmarshaling errand result"))
 		})
 	})
+
+	Describe("StartErrand", func() {
+		It("posts errand run and returns task ID", func() {
+			redirectHeader := http.Header{}
+			redirectHeader.Add("Location", "/tasks/456")
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments/dep1/errands/errand1/runs"),
+					ghttp.VerifyBasicAuth("username", "password"),
+					ghttp.VerifyHeader(http.Header{
+						"Content-Type": []string{"application/json"},
+					}),
+					ghttp.VerifyBody([]byte(`{"instances":[],"keep-alive":false,"when-changed":false}`)),
+					ghttp.RespondWith(http.StatusFound, nil, redirectHeader),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/456"),
+					ghttp.RespondWith(http.StatusOK, `{"id":456, "state":"queued"}`),
+				),
+			)
+
+			taskID, err := deployment.StartErrand("errand1", false, false, []InstanceGroupOrInstanceSlug{})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(taskID).To(Equal(456))
+		})
+
+		It("returns error if response is non-200", func() {
+			AppendBadRequest(ghttp.VerifyRequest("POST", "/deployments/dep1/errands/errand1/runs"), server)
+
+			_, err := deployment.StartErrand("errand1", false, false, []InstanceGroupOrInstanceSlug{})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Starting errand 'errand1'"))
+		})
+
+		It("returns error if errand name is empty", func() {
+			_, err := deployment.StartErrand("", false, false, []InstanceGroupOrInstanceSlug{})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Expected non-empty errand name"))
+		})
+
+		It("sends keep-alive and when-changed flags", func() {
+			redirectHeader := http.Header{}
+			redirectHeader.Add("Location", "/tasks/456")
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/deployments/dep1/errands/errand1/runs"),
+					ghttp.VerifyBody([]byte(`{"instances":[],"keep-alive":true,"when-changed":true}`)),
+					ghttp.RespondWith(http.StatusFound, nil, redirectHeader),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/456"),
+					ghttp.RespondWith(http.StatusOK, `{"id":456, "state":"queued"}`),
+				),
+			)
+
+			taskID, err := deployment.StartErrand("errand1", true, true, []InstanceGroupOrInstanceSlug{})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(taskID).To(Equal(456))
+		})
+	})
+
+	Describe("WaitForErrand", func() {
+		It("waits for task and returns errand result", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/789"),
+					ghttp.RespondWith(http.StatusOK, `{"id":789, "state":"done"}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/789/output", "type=event"),
+					ghttp.RespondWith(http.StatusOK, ``),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/789/output", "type=result"),
+					ghttp.RespondWith(http.StatusOK, `{"exit_code":0,"stdout":"hello","stderr":""}`),
+				),
+			)
+
+			results, err := deployment.WaitForErrand(789)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(results).To(HaveLen(1))
+			Expect(results[0].ExitCode).To(Equal(0))
+			Expect(results[0].Stdout).To(Equal("hello"))
+		})
+
+		It("returns error when task fails", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/789"),
+					ghttp.RespondWith(http.StatusOK, `{"id":789, "state":"error"}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/789/output", "type=event"),
+					ghttp.RespondWith(http.StatusOK, ``),
+				),
+			)
+
+			_, err := deployment.WaitForErrand(789)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Waiting for errand task 789"))
+		})
+	})
+
+	Describe("WaitForErrandSilently", func() {
+		It("waits for task and returns errand result without reporting events", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/789"),
+					ghttp.RespondWith(http.StatusOK, `{"id":789, "state":"done"}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/789/output", "type=event"),
+					ghttp.RespondWith(http.StatusOK, ``),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/789/output", "type=result"),
+					ghttp.RespondWith(http.StatusOK, `{"exit_code":0,"stdout":"silent-hello","stderr":"silent-err"}`),
+				),
+			)
+
+			results, err := deployment.WaitForErrandSilently(789)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(results).To(HaveLen(1))
+			Expect(results[0].ExitCode).To(Equal(0))
+			Expect(results[0].Stdout).To(Equal("silent-hello"))
+			Expect(results[0].Stderr).To(Equal("silent-err"))
+		})
+
+		It("returns error when task fails", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/789"),
+					ghttp.RespondWith(http.StatusOK, `{"id":789, "state":"error"}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/789/output", "type=event"),
+					ghttp.RespondWith(http.StatusOK, ``),
+				),
+			)
+
+			_, err := deployment.WaitForErrandSilently(789)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Waiting for errand task 789"))
+		})
+	})
 })

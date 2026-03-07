@@ -246,6 +246,67 @@ var _ = Describe("TaskClientRequest", func() {
 		})
 	})
 
+	Describe("PostTaskID", func() {
+		It("posts payload and returns task ID from redirect", func() {
+			redirectHeader := http.Header{}
+			redirectHeader.Add("Location", "/tasks/456")
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("POST", "/path"),
+					ghttp.VerifyBody([]byte("req-body")),
+					ghttp.VerifyHeader(http.Header{"Test": []string{"val"}}),
+					ghttp.RespondWith(http.StatusFound, nil, redirectHeader),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/456"),
+					ghttp.RespondWith(http.StatusOK, `{"id":456, "state":"queued"}`),
+				),
+			)
+
+			setHeaders := func(req *http.Request) {
+				req.Header.Add("Test", "val")
+			}
+			taskID, err := req.PostTaskID("/path", []byte("req-body"), setHeaders)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(taskID).To(Equal(456))
+		})
+
+		It("returns error if request fails", func() {
+			AppendBadRequest(ghttp.VerifyRequest("POST", "/path"), server)
+
+			setHeaders := func(req *http.Request) {}
+			_, err := req.PostTaskID("/path", []byte("req-body"), setHeaders)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(
+				"Director responded with non-successful status code '400' response"))
+		})
+	})
+
+	Describe("GetTaskResult", func() {
+		It("fetches task result output", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/789/output", "type=result"),
+					ghttp.RespondWith(http.StatusOK, `{"exit_code":0,"stdout":"result-data"}`),
+				),
+			)
+
+			result, err := req.GetTaskResult(789)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(string(result)).To(Equal(`{"exit_code":0,"stdout":"result-data"}`))
+		})
+
+		It("returns error if request fails", func() {
+			AppendBadRequest(ghttp.VerifyRequest("GET", "/tasks/789/output"), server)
+
+			_, err := req.GetTaskResult(789)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(
+				"Director responded with non-successful status code '400' response"))
+		})
+	})
+
 	Describe("WaitForCompletion", func() {
 		var (
 			taskReporter *fakedir.FakeTaskReporter

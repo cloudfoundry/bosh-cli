@@ -54,9 +54,34 @@ func (d DeploymentImpl) RunErrand(name string, keepAlive bool, whenChanged bool,
 		return []ErrandResult{}, err
 	}
 
-	var result []ErrandResult
+	return errandRunRespsToResults(resp), nil
+}
 
-	for _, value := range resp {
+func (d DeploymentImpl) StartErrand(name string, keepAlive bool, whenChanged bool, slugs []InstanceGroupOrInstanceSlug) (int, error) {
+	return d.client.StartErrand(d.name, name, keepAlive, whenChanged, slugs)
+}
+
+func (d DeploymentImpl) WaitForErrand(taskID int) ([]ErrandResult, error) {
+	resp, err := d.client.WaitForErrand(taskID)
+	if err != nil {
+		return []ErrandResult{}, err
+	}
+
+	return errandRunRespsToResults(resp), nil
+}
+
+func (d DeploymentImpl) WaitForErrandSilently(taskID int) ([]ErrandResult, error) {
+	resp, err := d.client.WaitForErrandSilently(taskID)
+	if err != nil {
+		return []ErrandResult{}, err
+	}
+
+	return errandRunRespsToResults(resp), nil
+}
+
+func errandRunRespsToResults(resps []ErrandRunResp) []ErrandResult {
+	var result []ErrandResult
+	for _, value := range resps {
 		errandResult := ErrandResult{
 			InstanceGroup: value.Instance.Group,
 			InstanceID:    value.Instance.ID,
@@ -71,8 +96,7 @@ func (d DeploymentImpl) RunErrand(name string, keepAlive bool, whenChanged bool,
 		}
 		result = append(result, errandResult)
 	}
-
-	return result, nil
+	return result
 }
 
 func (c Client) Errands(deploymentName string) ([]Errand, error) {
@@ -144,3 +168,88 @@ func (c Client) RunErrand(deploymentName, name string, keepAlive bool, whenChang
 
 	return resp, nil
 }
+
+func (c Client) errandRequestBody(deploymentName, name string, keepAlive bool, whenChanged bool, instanceSlugs []InstanceGroupOrInstanceSlug) (string, []byte, error) {
+	if len(deploymentName) == 0 {
+		return "", nil, bosherr.Error("Expected non-empty deployment name")
+	}
+
+	if len(name) == 0 {
+		return "", nil, bosherr.Error("Expected non-empty errand name")
+	}
+
+	path := fmt.Sprintf("/deployments/%s/errands/%s/runs", deploymentName, name)
+
+	instances := []InstanceFilter{}
+	for _, slug := range instanceSlugs {
+		instances = append(instances, slug.DirectorHash())
+	}
+
+	body := map[string]interface{}{
+		"keep-alive":   keepAlive,
+		"when-changed": whenChanged,
+		"instances":    instances,
+	}
+
+	reqBody, err := json.Marshal(body)
+	if err != nil {
+		return "", nil, bosherr.WrapErrorf(err, "Marshaling request body")
+	}
+
+	return path, reqBody, nil
+}
+
+func (c Client) StartErrand(deploymentName, name string, keepAlive bool, whenChanged bool, instanceSlugs []InstanceGroupOrInstanceSlug) (int, error) {
+	path, reqBody, err := c.errandRequestBody(deploymentName, name, keepAlive, whenChanged, instanceSlugs)
+	if err != nil {
+		return 0, err
+	}
+
+	setHeaders := func(req *http.Request) {
+		req.Header.Add("Content-Type", "application/json")
+	}
+
+	taskID, err := c.taskClientRequest.PostTaskID(path, reqBody, setHeaders)
+	if err != nil {
+		return 0, bosherr.WrapErrorf(err, "Starting errand '%s'", name)
+	}
+
+	return taskID, nil
+}
+
+func (c Client) WaitForErrand(taskID int) ([]ErrandRunResp, error) {
+	return c.waitForErrandWithReporter(taskID, c.taskClientRequest.taskReporter)
+}
+
+func (c Client) WaitForErrandSilently(taskID int) ([]ErrandRunResp, error) {
+	return c.waitForErrandWithReporter(taskID, NewNoopTaskReporter())
+}
+
+func (c Client) waitForErrandWithReporter(taskID int, reporter TaskReporter) ([]ErrandRunResp, error) {
+	var resp []ErrandRunResp
+
+	err := c.taskClientRequest.WaitForCompletion(taskID, "event", reporter)
+	if err != nil {
+		return resp, bosherr.WrapErrorf(err, "Waiting for errand task %d", taskID)
+	}
+
+	resultBytes, err := c.taskClientRequest.GetTaskResult(taskID)
+	if err != nil {
+		return resp, bosherr.WrapErrorf(err, "Getting errand result for task %d", taskID)
+	}
+
+	dec := json.NewDecoder(strings.NewReader(string(resultBytes)))
+
+	for {
+		var errandRunResponse ErrandRunResp
+		if err := dec.Decode(&errandRunResponse); err == io.EOF {
+			break
+		} else if err != nil {
+			return nil, bosherr.WrapErrorf(err, "Unmarshaling errand result")
+		}
+		resp = append(resp, errandRunResponse)
+	}
+
+	return resp, nil
+}
+

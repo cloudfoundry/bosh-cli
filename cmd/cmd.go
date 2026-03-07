@@ -226,7 +226,8 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *RunErrandOpts:
 		director, deployment := c.directorAndDeployment()
 		downloader := NewUIDownloader(director, deps.Time, deps.FS, deps.UI)
-		return NewRunErrandCmd(deployment, downloader, deps.UI).Run(*opts)
+		quietSCPRunner := boshssh.NewQuietSCPRunner(deps.CmdRunner, deps.FS, deps.Logger)
+		return NewRunErrandCmd(deployment, downloader, deps.UI, quietSCPRunner, deps.FS, deps.Logger).Run(*opts)
 
 	case *AttachDiskOpts:
 		return NewAttachDiskCmd(c.deployment()).Run(*opts)

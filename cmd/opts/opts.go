@@ -716,6 +716,10 @@ type RunErrandOpts struct {
 	DownloadLogs  bool        `long:"download-logs" description:"Download logs"`
 	LogsDirectory DirOrCWDArg `long:"logs-dir" description:"Destination directory for logs" default:"."`
 
+	StreamLogs *int `long:"stream-logs" description:"Stream errand logs (only /var/vcap/sys/log/ERRAND-NAME/errand.log) from the instance during execution. Optionally specify poll interval in seconds" optional:"true" optional-value:"30"`
+
+	GatewayFlags
+
 	cmd
 }
 

@@ -151,6 +151,9 @@ type Deployment interface {
 
 	Errands() ([]Errand, error)
 	RunErrand(string, bool, bool, []InstanceGroupOrInstanceSlug) ([]ErrandResult, error)
+	StartErrand(string, bool, bool, []InstanceGroupOrInstanceSlug) (int, error)
+	WaitForErrand(int) ([]ErrandResult, error)
+	WaitForErrandSilently(int) ([]ErrandResult, error)
 
 	ScanForProblems() ([]Problem, error)
 	ResolveProblems([]ProblemAnswer, map[string]string) error

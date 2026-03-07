@@ -125,6 +125,28 @@ func (r TaskClientRequest) WaitForCompletion(id int, type_ string, taskReporter 
 	}
 }
 
+func (r TaskClientRequest) PostTaskID(path string, payload []byte, f func(*http.Request)) (int, error) {
+	var taskResp taskShortResp
+
+	err := r.clientRequest.Post(path, payload, f, &taskResp)
+	if err != nil {
+		return 0, err
+	}
+
+	return taskResp.ID, nil
+}
+
+func (r TaskClientRequest) GetTaskResult(taskID int) ([]byte, error) {
+	resultPath := fmt.Sprintf("/tasks/%d/output?type=result", taskID)
+
+	respBody, _, err := r.clientRequest.RawGet(resultPath, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return respBody, nil
+}
+
 func (r TaskClientRequest) waitForResult(taskResp taskShortResp) ([]byte, error) {
 	err := r.WaitForCompletion(taskResp.ID, "event", r.taskReporter)
 	if err != nil {

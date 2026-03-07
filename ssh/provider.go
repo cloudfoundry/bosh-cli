@@ -1,6 +1,7 @@
 package ssh
 
 import (
+	"io"
 	"os/signal"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -50,3 +51,15 @@ func (p Provider) NewSSHRunner(interactive bool) Runner {
 }
 
 func (p Provider) NewSCPRunner() SCPRunner { return NewSCPRunner(p.scp) }
+
+func NewQuietSCPRunner(cmdRunner boshsys.CmdRunner, fs boshsys.FileSystem, logger boshlog.Logger) SCPRunner {
+	quietUI := boshui.NewWriterUI(io.Discard, io.Discard, logger)
+	quietWriter := NewStreamingWriter(boshui.NewComboWriter(quietUI))
+
+	scpSessionFactory := func(connOpts ConnectionOpts, result boshdir.SSHResult) Session {
+		return NewSessionImpl(connOpts, SessionImplOpts{}, result, fs)
+	}
+
+	scp := NewComboRunner(cmdRunner, scpSessionFactory, signal.Notify, quietWriter, fs, quietUI, logger)
+	return NewSCPRunner(scp)
+}
