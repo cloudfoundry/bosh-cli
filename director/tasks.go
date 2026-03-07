@@ -241,6 +241,18 @@ func (c Client) TaskOutput(id int, type_ string, taskReporter TaskReporter) erro
 	return nil
 }
 
+func (c Client) FetchTaskOutputChunk(id, offset int, type_ string) ([]byte, int, error) {
+	return c.taskClientRequest.FetchTaskOutputChunk(id, offset, type_)
+}
+
+func (c Client) TaskState(id int) (string, error) {
+	task, err := c.Task(id)
+	if err != nil {
+		return "", err
+	}
+	return task.State, nil
+}
+
 func (c Client) CancelTask(id int) error {
 	path := fmt.Sprintf("/task/%d", id)
 

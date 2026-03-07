@@ -94,10 +94,11 @@ func (f Factory) New(args []string) (Cmd, error) {
 		return nil
 	}
 
-	boshOpts.SSH.GatewayFlags.UUIDGen = f.deps.UUIDGen  //nolint:staticcheck
-	boshOpts.SCP.GatewayFlags.UUIDGen = f.deps.UUIDGen  //nolint:staticcheck
-	boshOpts.Logs.GatewayFlags.UUIDGen = f.deps.UUIDGen //nolint:staticcheck
-	boshOpts.Pcap.GatewayFlags.UUIDGen = f.deps.UUIDGen //nolint:staticcheck
+	boshOpts.SSH.GatewayFlags.UUIDGen = f.deps.UUIDGen       //nolint:staticcheck
+	boshOpts.SCP.GatewayFlags.UUIDGen = f.deps.UUIDGen       //nolint:staticcheck
+	boshOpts.Logs.GatewayFlags.UUIDGen = f.deps.UUIDGen      //nolint:staticcheck
+	boshOpts.Pcap.GatewayFlags.UUIDGen = f.deps.UUIDGen      //nolint:staticcheck
+	boshOpts.RunErrand.GatewayFlags.UUIDGen = f.deps.UUIDGen //nolint:staticcheck
 
 	helpText := bytes.NewBufferString("")
 	parser.WriteHelp(helpText)

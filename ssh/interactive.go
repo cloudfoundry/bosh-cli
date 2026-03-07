@@ -1,6 +1,7 @@
 package ssh
 
 import (
+	"context"
 	"os"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -18,6 +19,10 @@ func NewInteractiveRunner(comboRunner ComboRunner) InteractiveRunner {
 }
 
 func (r InteractiveRunner) Run(connOpts ConnectionOpts, result boshdir.SSHResult, rawCmd []string) error {
+	return r.RunContext(context.Background(), connOpts, result, rawCmd)
+}
+
+func (r InteractiveRunner) RunContext(ctx context.Context, connOpts ConnectionOpts, result boshdir.SSHResult, rawCmd []string) error {
 	if len(result.Hosts) != 1 {
 		return bosherr.Errorf("Interactive SSH only works for a single host at a time")
 	}
@@ -39,5 +44,5 @@ func (r InteractiveRunner) Run(connOpts ConnectionOpts, result boshdir.SSHResult
 		}
 	}
 
-	return r.comboRunner.Run(connOpts, result, cmdFactory)
+	return r.comboRunner.RunContext(ctx, connOpts, result, cmdFactory)
 }

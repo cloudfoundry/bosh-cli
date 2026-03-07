@@ -226,7 +226,14 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *RunErrandOpts:
 		director, deployment := c.directorAndDeployment()
 		downloader := NewUIDownloader(director, deps.Time, deps.FS, deps.UI)
-		return NewRunErrandCmd(deployment, downloader, deps.UI).Run(*opts)
+		var nonIntSSHRunner boshssh.Runner
+		var taskReporter boshdir.TaskReporter
+		if opts.StreamLogs {
+			sshProvider := boshssh.NewProvider(deps.CmdRunner, deps.FS, deps.UI, deps.Logger)
+			nonIntSSHRunner = sshProvider.NewSSHRunner(false)
+			taskReporter = boshuit.NewReporter(deps.UI, true)
+		}
+		return NewRunErrandCmd(deployment, downloader, deps.UI, nonIntSSHRunner, taskReporter, nil).Run(*opts)
 
 	case *AttachDiskOpts:
 		return NewAttachDiskCmd(c.deployment()).Run(*opts)

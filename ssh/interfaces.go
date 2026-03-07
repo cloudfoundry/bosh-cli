@@ -1,6 +1,7 @@
 package ssh
 
 import (
+	"context"
 	"io"
 
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
@@ -13,12 +14,14 @@ import (
 
 type Runner interface {
 	Run(ConnectionOpts, boshdir.SSHResult, []string) error
+	RunContext(ctx context.Context, connOpts ConnectionOpts, result boshdir.SSHResult, cmd []string) error
 }
 
 //counterfeiter:generate . SCPRunner
 
 type SCPRunner interface {
 	Run(ConnectionOpts, boshdir.SSHResult, SCPArgs) error
+	RunContext(ctx context.Context, connOpts ConnectionOpts, result boshdir.SSHResult, scpArgs SCPArgs) error
 }
 
 type ConnectionOpts struct {

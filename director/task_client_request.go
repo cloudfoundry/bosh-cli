@@ -63,6 +63,52 @@ func (r TaskClientRequest) PostResult(path string, payload []byte, f func(*http.
 	return r.waitForResult(taskResp)
 }
 
+func (r TaskClientRequest) PostTaskID(path string, payload []byte, f func(*http.Request)) (int, error) {
+	var taskResp taskShortResp
+
+	err := r.clientRequest.Post(path, payload, f, &taskResp)
+	if err != nil {
+		return 0, err
+	}
+
+	return taskResp.ID, nil
+}
+
+// WaitForTaskResultOnly waits for a task to complete (without reporting events)
+// and fetches the result. Use this when events have already been consumed
+// separately (e.g. by an event watcher).
+func (r TaskClientRequest) WaitForTaskResultOnly(taskID int) ([]byte, error) {
+	taskPath := fmt.Sprintf("/tasks/%d", taskID)
+
+	for {
+		var taskResp taskShortResp
+		err := r.clientRequest.Get(taskPath, &taskResp)
+		if err != nil {
+			return nil, bosherr.WrapError(err, "Getting task state")
+		}
+
+		if taskResp.IsRunning() {
+			time.Sleep(r.taskCheckStepDuration)
+			continue
+		}
+
+		resultPath := fmt.Sprintf("/tasks/%d/output?type=result", taskID)
+		respBody, _, fetchErr := r.clientRequest.RawGet(resultPath, nil, nil)
+
+		if !taskResp.IsSuccessfullyDone() {
+			if fetchErr == nil && len(respBody) > 0 {
+				return respBody, nil
+			}
+			return nil, bosherr.Errorf("Expected task '%d' to succeed but state is '%s'", taskResp.ID, taskResp.State)
+		}
+
+		if fetchErr != nil {
+			return nil, fetchErr
+		}
+		return respBody, nil
+	}
+}
+
 func (r TaskClientRequest) PutResult(path string, payload []byte, f func(*http.Request)) ([]byte, error) {
 	var taskResp taskShortResp
 
@@ -159,6 +205,24 @@ func (w *taskReporterWriter) Write(buf []byte) (int, error) {
 }
 
 func (w taskReporterWriter) ShouldTrackDownload() bool { return false }
+
+func (r TaskClientRequest) FetchTaskOutputChunk(id, offset int, type_ string) ([]byte, int, error) {
+	outputPath := fmt.Sprintf("/tasks/%d/output?type=%s", id, type_)
+
+	setHeaders := func(req *http.Request) {
+		req.Header.Add("Range", fmt.Sprintf("bytes=%d-", offset))
+	}
+
+	respBody, resp, err := r.clientRequest.RawGet(outputPath, nil, setHeaders)
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusRequestedRangeNotSatisfiable {
+			return nil, offset, nil
+		}
+		return nil, 0, err
+	}
+
+	return respBody, offset + len(respBody), nil
+}
 
 func (r TaskClientRequest) reportOutputChunk(id, offset int, type_ string, taskReporter TaskReporter) (int, error) {
 	outputPath := fmt.Sprintf("/tasks/%d/output?type=%s", id, type_)

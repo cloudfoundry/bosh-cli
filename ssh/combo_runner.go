@@ -1,6 +1,7 @@
 package ssh
 
 import (
+	"context"
 	"os"
 	"syscall"
 	"time"
@@ -51,6 +52,10 @@ func NewComboRunner(
 }
 
 func (r ComboRunner) Run(connOpts ConnectionOpts, result boshdir.SSHResult, cmdFactory func(boshdir.Host, SSHArgs) boshsys.Command) error {
+	return r.RunContext(context.Background(), connOpts, result, cmdFactory)
+}
+
+func (r ComboRunner) RunContext(ctx context.Context, connOpts ConnectionOpts, result boshdir.SSHResult, cmdFactory func(boshdir.Host, SSHArgs) boshsys.Command) error {
 	sess := r.sessionFactory(connOpts, result)
 
 	sshArgs, err := sess.Start()
@@ -68,7 +73,7 @@ func (r ComboRunner) Run(connOpts ConnectionOpts, result boshdir.SSHResult, cmdF
 
 	ps, doneCh := r.runCmds(cmds)
 
-	return r.waitProcs(ps, doneCh, cancelCh)
+	return r.waitProcs(ctx, ps, doneCh, cancelCh)
 }
 
 type comboRunnerCmd struct {
@@ -147,8 +152,10 @@ func (r ComboRunner) runCmds(cmds []comboRunnerCmd) ([]boshsys.Process, chan []b
 	return processes, doneCh
 }
 
-func (r ComboRunner) waitProcs(ps []boshsys.Process, doneCh chan []boshsys.Result, cancelCh chan struct{}) error {
+func (r ComboRunner) waitProcs(ctx context.Context, ps []boshsys.Process, doneCh chan []boshsys.Result, cancelCh chan struct{}) error {
 	r.logger.Debug(r.logTag, "Waiting for all processes or cancel signal")
+
+	ctxDone := ctx.Done()
 
 	for {
 		select {
@@ -169,16 +176,22 @@ func (r ComboRunner) waitProcs(ps []boshsys.Process, doneCh chan []boshsys.Resul
 
 		case <-cancelCh:
 			r.logger.Debug(r.logTag, "Received cancel signal")
+			r.terminateAll(ps)
+			// After terminating, doneCh will eventually fire.
 
-			for _, p := range ps {
-				err := p.TerminateNicely(10 * time.Second)
-				if err != nil {
-					r.logger.Error(r.logTag, "Failed to terminate with error '%s'", err.Error())
-				}
-			}
+		case <-ctxDone:
+			r.logger.Debug(r.logTag, "Context cancelled")
+			r.terminateAll(ps)
+			// Nil out so we don't re-enter this case while waiting for doneCh.
+			ctxDone = nil
+		}
+	}
+}
 
-			// Expecting that after terminating all processes
-			// doneCh will be signaled at some point.
+func (r ComboRunner) terminateAll(ps []boshsys.Process) {
+	for _, p := range ps {
+		if err := p.TerminateNicely(10 * time.Second); err != nil {
+			r.logger.Error(r.logTag, "Failed to terminate with error '%s'", err)
 		}
 	}
 }

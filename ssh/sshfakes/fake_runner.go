@@ -2,6 +2,7 @@
 package sshfakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/v7/director"
@@ -20,6 +21,20 @@ type FakeRunner struct {
 		result1 error
 	}
 	runReturnsOnCall map[int]struct {
+		result1 error
+	}
+	RunContextStub        func(context.Context, ssh.ConnectionOpts, director.SSHResult, []string) error
+	runContextMutex       sync.RWMutex
+	runContextArgsForCall []struct {
+		arg1 context.Context
+		arg2 ssh.ConnectionOpts
+		arg3 director.SSHResult
+		arg4 []string
+	}
+	runContextReturns struct {
+		result1 error
+	}
+	runContextReturnsOnCall map[int]struct {
 		result1 error
 	}
 	invocations      map[string][][]interface{}
@@ -90,6 +105,75 @@ func (fake *FakeRunner) RunReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.runReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeRunner) RunContext(arg1 context.Context, arg2 ssh.ConnectionOpts, arg3 director.SSHResult, arg4 []string) error {
+	var arg4Copy []string
+	if arg4 != nil {
+		arg4Copy = make([]string, len(arg4))
+		copy(arg4Copy, arg4)
+	}
+	fake.runContextMutex.Lock()
+	ret, specificReturn := fake.runContextReturnsOnCall[len(fake.runContextArgsForCall)]
+	fake.runContextArgsForCall = append(fake.runContextArgsForCall, struct {
+		arg1 context.Context
+		arg2 ssh.ConnectionOpts
+		arg3 director.SSHResult
+		arg4 []string
+	}{arg1, arg2, arg3, arg4Copy})
+	stub := fake.RunContextStub
+	fakeReturns := fake.runContextReturns
+	fake.recordInvocation("RunContext", []interface{}{arg1, arg2, arg3, arg4Copy})
+	fake.runContextMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeRunner) RunContextCallCount() int {
+	fake.runContextMutex.RLock()
+	defer fake.runContextMutex.RUnlock()
+	return len(fake.runContextArgsForCall)
+}
+
+func (fake *FakeRunner) RunContextCalls(stub func(context.Context, ssh.ConnectionOpts, director.SSHResult, []string) error) {
+	fake.runContextMutex.Lock()
+	defer fake.runContextMutex.Unlock()
+	fake.RunContextStub = stub
+}
+
+func (fake *FakeRunner) RunContextArgsForCall(i int) (context.Context, ssh.ConnectionOpts, director.SSHResult, []string) {
+	fake.runContextMutex.RLock()
+	defer fake.runContextMutex.RUnlock()
+	argsForCall := fake.runContextArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeRunner) RunContextReturns(result1 error) {
+	fake.runContextMutex.Lock()
+	defer fake.runContextMutex.Unlock()
+	fake.RunContextStub = nil
+	fake.runContextReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeRunner) RunContextReturnsOnCall(i int, result1 error) {
+	fake.runContextMutex.Lock()
+	defer fake.runContextMutex.Unlock()
+	fake.RunContextStub = nil
+	if fake.runContextReturnsOnCall == nil {
+		fake.runContextReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.runContextReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
