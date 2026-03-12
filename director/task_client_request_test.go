@@ -246,6 +246,61 @@ var _ = Describe("TaskClientRequest", func() {
 		})
 	})
 
+	Describe("WaitForCompletion heartbeat", func() {
+		It("emits a heartbeat for a processing task", func() {
+			hbReporter := &fakedir.FakeTaskReporter{}
+			hbReq := buildReq(hbReporter)
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42"),
+					ghttp.RespondWith(http.StatusOK, `{"id":42,"state":"processing","description":"run errand 'smoke'","started_at":1700000000}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42/output", "type=event"),
+					ghttp.RespondWith(http.StatusOK, ""),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42"),
+					ghttp.RespondWith(http.StatusOK, `{"id":42,"state":"done"}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42/output", "type=event"),
+					ghttp.RespondWith(http.StatusOK, ""),
+				),
+			)
+
+			err := hbReq.WaitForCompletion(42, "event", hbReporter)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(hbReporter.TaskHeartbeatCallCount()).To(BeNumerically(">=", 1))
+			id, state, startedAt := hbReporter.TaskHeartbeatArgsForCall(0)
+			Expect(id).To(Equal(42))
+			Expect(state).To(Equal("processing"))
+			Expect(startedAt).To(Equal(int64(1700000000)))
+		})
+
+		It("does not emit heartbeats for tasks that immediately finish", func() {
+			hbReporter := &fakedir.FakeTaskReporter{}
+			hbReq := buildReq(hbReporter)
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42"),
+					ghttp.RespondWith(http.StatusOK, `{"id":42,"state":"done"}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42/output", "type=event"),
+					ghttp.RespondWith(http.StatusOK, ""),
+				),
+			)
+
+			err := hbReq.WaitForCompletion(42, "event", hbReporter)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(hbReporter.TaskHeartbeatCallCount()).To(Equal(0))
+		})
+	})
+
 	Describe("WaitForCompletion", func() {
 		var (
 			taskReporter *fakedir.FakeTaskReporter

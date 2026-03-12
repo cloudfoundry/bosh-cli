@@ -22,6 +22,7 @@ type SessionImpl struct {
 
 	// Memoized
 	director        boshdir.Director
+	taskReporter    *boshuit.ReporterImpl
 	directorInfo    boshdir.Info
 	directorInfoSet bool
 }
@@ -118,10 +119,10 @@ func (c *SessionImpl) Director() (boshdir.Director, error) {
 		c.ui.PrintLinef("Using environment '%s' as %s", c.Environment(), creds.Description())
 	}
 
-	taskReporter := boshuit.NewReporter(c.ui, true)
+	c.taskReporter = boshuit.NewReporter(c.ui, true)
 	fileReporter := boshui.NewFileReporter(c.ui)
 
-	director, err := boshdir.NewFactory(c.logger).New(dirConfig, taskReporter, fileReporter)
+	director, err := boshdir.NewFactory(c.logger).New(dirConfig, c.taskReporter, fileReporter)
 	if err != nil {
 		return nil, err
 	}
