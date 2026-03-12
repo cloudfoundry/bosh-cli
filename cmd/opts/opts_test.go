@@ -2150,6 +2150,14 @@ var _ = Describe("Opts", func() {
 			})
 		})
 
+		Describe("WithHeartbeat", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("WithHeartbeat", opts)).To(Equal(
+					`long:"with-heartbeat" description:"Print task state every N seconds while waiting. Use '=' to specify interval" optional:"true" optional-value:"30"`,
+				))
+			})
+		})
+
 		Describe("DownloadLogs", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("DownloadLogs", opts)).To(Equal(
