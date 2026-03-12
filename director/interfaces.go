@@ -332,12 +332,13 @@ type OrphanNetwork interface {
 }
 
 type OrphanedVM struct {
-	CID            string
-	DeploymentName string
-	InstanceName   string
-	AZName         string
-	IPAddresses    []string
-	OrphanedAt     time.Time
+	CID             string
+	DeploymentName  string
+	InstanceName    string
+	AZName          string
+	IPAddresses     []string
+	IPAddressesCidr []string
+	OrphanedAt      time.Time
 }
 
 type EventsFilter struct {
