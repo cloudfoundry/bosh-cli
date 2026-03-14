@@ -306,6 +306,13 @@ type TaskReporter interface {
 	TaskOutputChunk(int, []byte)
 }
 
+// HeartbeatReporter is an optional extension of TaskReporter. Implementations
+// that also satisfy this interface will receive periodic heartbeat calls while
+// a task is being polled, keeping CI/CD systems alive and informing users.
+type HeartbeatReporter interface {
+	TaskHeartbeat(id int, state string, startedAt int64)
+}
+
 //counterfeiter:generate . OrphanDisk
 
 type OrphanDisk interface {

@@ -224,7 +224,16 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewErrandsCmd(deps.UI, c.deployment()).Run()
 
 	case *RunErrandOpts:
-		director, deployment := c.directorAndDeployment()
+		sess := c.sessionImpl()
+		director, err := sess.Director()
+		c.panicIfErr(err)
+		deployment, err := sess.Deployment()
+		c.panicIfErr(err)
+
+		if opts.WithHeartbeat != nil && sess.taskReporter != nil {
+			sess.taskReporter.EnableHeartbeat(time.Duration(*opts.WithHeartbeat) * time.Second)
+		}
+
 		downloader := NewUIDownloader(director, deps.Time, deps.FS, deps.UI)
 		return NewRunErrandCmd(deployment, downloader, deps.UI).Run(*opts)
 
@@ -546,7 +555,14 @@ func (c Cmd) config() cmdconf.Config {
 }
 
 func (c Cmd) session() Session {
-	return NewSessionFromOpts(c.BoshOpts, c.config(), c.deps.UI, true, true, c.deps.FS, c.deps.Logger)
+	return c.sessionImpl()
+}
+
+func (c Cmd) sessionImpl() *SessionImpl {
+	return NewSessionImpl(
+		NewSessionContextImpl(c.BoshOpts, c.config(), c.deps.FS),
+		c.deps.UI, true, true, c.deps.Logger,
+	)
 }
 
 func (c Cmd) director() boshdir.Director {

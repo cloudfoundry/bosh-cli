@@ -15,6 +15,21 @@ import (
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 )
 
+type heartbeatCall struct {
+	id        int
+	state     string
+	startedAt int64
+}
+
+type fakeHeartbeatReporter struct {
+	fakedir.FakeTaskReporter
+	heartbeats []heartbeatCall
+}
+
+func (f *fakeHeartbeatReporter) TaskHeartbeat(id int, state string, startedAt int64) {
+	f.heartbeats = append(f.heartbeats, heartbeatCall{id, state, startedAt})
+}
+
 var _ = Describe("TaskClientRequest", func() {
 	var (
 		server *ghttp.Server
@@ -243,6 +258,88 @@ var _ = Describe("TaskClientRequest", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(
 				"Director responded with non-successful status code '400' response"))
+		})
+	})
+
+	Describe("WaitForCompletion heartbeat", func() {
+		It("emits a heartbeat for a processing task when the reporter implements HeartbeatReporter", func() {
+			hbReporter := &fakeHeartbeatReporter{}
+			hbReq := buildReq(hbReporter)
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42"),
+					ghttp.RespondWith(http.StatusOK, `{"id":42,"state":"processing","description":"run errand 'smoke'","started_at":1700000000}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42/output", "type=event"),
+					ghttp.RespondWith(http.StatusOK, ""),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42"),
+					ghttp.RespondWith(http.StatusOK, `{"id":42,"state":"done"}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42/output", "type=event"),
+					ghttp.RespondWith(http.StatusOK, ""),
+				),
+			)
+
+			err := hbReq.WaitForCompletion(42, "event", hbReporter)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(len(hbReporter.heartbeats)).To(BeNumerically(">=", 1))
+			hb := hbReporter.heartbeats[0]
+			Expect(hb.id).To(Equal(42))
+			Expect(hb.state).To(Equal("processing"))
+			Expect(hb.startedAt).To(Equal(int64(1700000000)))
+		})
+
+		It("does not emit heartbeats when the reporter does not implement HeartbeatReporter", func() {
+			plainReporter := &fakedir.FakeTaskReporter{}
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42"),
+					ghttp.RespondWith(http.StatusOK, `{"id":42,"state":"processing","description":"run errand"}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42/output", "type=event"),
+					ghttp.RespondWith(http.StatusOK, ""),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42"),
+					ghttp.RespondWith(http.StatusOK, `{"id":42,"state":"done"}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42/output", "type=event"),
+					ghttp.RespondWith(http.StatusOK, ""),
+				),
+			)
+
+			err := req.WaitForCompletion(42, "event", plainReporter)
+			Expect(err).ToNot(HaveOccurred())
+			// No panic, no heartbeat — plain reporter doesn't implement HeartbeatReporter
+		})
+
+		It("does not emit heartbeats for tasks that immediately finish", func() {
+			hbReporter := &fakeHeartbeatReporter{}
+			hbReq := buildReq(hbReporter)
+
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42"),
+					ghttp.RespondWith(http.StatusOK, `{"id":42,"state":"done"}`),
+				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/tasks/42/output", "type=event"),
+					ghttp.RespondWith(http.StatusOK, ""),
+				),
+			)
+
+			err := hbReq.WaitForCompletion(42, "event", hbReporter)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(hbReporter.heartbeats).To(BeEmpty())
 		})
 	})
 

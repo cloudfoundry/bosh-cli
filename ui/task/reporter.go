@@ -5,16 +5,21 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
+	boshuifmt "github.com/cloudfoundry/bosh-cli/v7/ui/fmt"
 )
 
 type ReporterImpl struct {
 	ui          boshui.UI
 	isForEvents bool
+
+	heartbeatInterval time.Duration
+	lastHeartbeat     time.Time
 
 	events          map[int][]*Event
 	eventMarkers    []eventMarker
@@ -43,6 +48,12 @@ func NewReporter(ui boshui.UI, isForEvents bool) *ReporterImpl {
 		eventMarkers: []eventMarker{},
 		outputRest:   map[int]string{},
 	}
+}
+
+func (r *ReporterImpl) EnableHeartbeat(interval time.Duration) {
+	r.Lock()
+	defer r.Unlock()
+	r.heartbeatInterval = interval
 }
 
 func (r *ReporterImpl) TaskStarted(id int) {
@@ -109,6 +120,30 @@ func (r *ReporterImpl) TaskOutputChunk(id int, chunk []byte) {
 	}
 
 	r.eventMarkers = append(r.eventMarkers, eventMarker{TaskID: id, Type: taskOutput})
+}
+
+func (r *ReporterImpl) TaskHeartbeat(id int, state string, startedAt int64) {
+	r.Lock()
+	defer r.Unlock()
+
+	if r.heartbeatInterval <= 0 {
+		return
+	}
+
+	now := time.Now()
+	if !r.lastHeartbeat.IsZero() && now.Sub(r.lastHeartbeat) < r.heartbeatInterval {
+		return
+	}
+	r.lastHeartbeat = now
+
+	msg := "Task state: " + state
+	if state != "queued" && startedAt > 0 {
+		elapsed := time.Since(time.Unix(startedAt, 0)).Truncate(time.Second)
+		msg += fmt.Sprintf(" (%s elapsed)", elapsed)
+	}
+
+	r.printBlock(fmt.Sprintf("\nTask %d | %s | ", id, now.UTC().Format(boshuifmt.TimeHoursFmt)))
+	r.printBlock(msg)
 }
 
 func (r *ReporterImpl) showEvent(id int, str string) {
