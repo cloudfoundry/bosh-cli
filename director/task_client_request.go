@@ -27,8 +27,9 @@ func NewTaskClientRequest(
 }
 
 type taskShortResp struct {
-	ID    int    // 165
-	State string // e.g. "queued", "processing", "done", "error", "cancelled"
+	ID        int    `json:"id"`
+	State     string `json:"state"`      // e.g. "queued", "processing", "done", "error", "cancelled"
+	StartedAt int64  `json:"started_at"` // 1440318199
 }
 
 func (r taskShortResp) IsRunning() bool {
@@ -111,6 +112,7 @@ func (r TaskClientRequest) WaitForCompletion(id int, type_ string, taskReporter 
 		}
 
 		if taskResp.IsRunning() {
+			taskReporter.TaskHeartbeat(taskResp.ID, taskResp.State, taskResp.StartedAt)
 			time.Sleep(r.taskCheckStepDuration)
 			continue
 		}

@@ -14,6 +14,13 @@ type FakeTaskReporter struct {
 		arg1 int
 		arg2 string
 	}
+	TaskHeartbeatStub        func(int, string, int64)
+	taskHeartbeatMutex       sync.RWMutex
+	taskHeartbeatArgsForCall []struct {
+		arg1 int
+		arg2 string
+		arg3 int64
+	}
 	TaskOutputChunkStub        func(int, []byte)
 	taskOutputChunkMutex       sync.RWMutex
 	taskOutputChunkArgsForCall []struct {
@@ -60,6 +67,40 @@ func (fake *FakeTaskReporter) TaskFinishedArgsForCall(i int) (int, string) {
 	defer fake.taskFinishedMutex.RUnlock()
 	argsForCall := fake.taskFinishedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeTaskReporter) TaskHeartbeat(arg1 int, arg2 string, arg3 int64) {
+	fake.taskHeartbeatMutex.Lock()
+	fake.taskHeartbeatArgsForCall = append(fake.taskHeartbeatArgsForCall, struct {
+		arg1 int
+		arg2 string
+		arg3 int64
+	}{arg1, arg2, arg3})
+	stub := fake.TaskHeartbeatStub
+	fake.recordInvocation("TaskHeartbeat", []interface{}{arg1, arg2, arg3})
+	fake.taskHeartbeatMutex.Unlock()
+	if stub != nil {
+		fake.TaskHeartbeatStub(arg1, arg2, arg3)
+	}
+}
+
+func (fake *FakeTaskReporter) TaskHeartbeatCallCount() int {
+	fake.taskHeartbeatMutex.RLock()
+	defer fake.taskHeartbeatMutex.RUnlock()
+	return len(fake.taskHeartbeatArgsForCall)
+}
+
+func (fake *FakeTaskReporter) TaskHeartbeatCalls(stub func(int, string, int64)) {
+	fake.taskHeartbeatMutex.Lock()
+	defer fake.taskHeartbeatMutex.Unlock()
+	fake.TaskHeartbeatStub = stub
+}
+
+func (fake *FakeTaskReporter) TaskHeartbeatArgsForCall(i int) (int, string, int64) {
+	fake.taskHeartbeatMutex.RLock()
+	defer fake.taskHeartbeatMutex.RUnlock()
+	argsForCall := fake.taskHeartbeatArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeTaskReporter) TaskOutputChunk(arg1 int, arg2 []byte) {

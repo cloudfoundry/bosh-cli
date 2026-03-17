@@ -14,6 +14,13 @@ type FakeReporter struct {
 		arg1 int
 		arg2 string
 	}
+	TaskHeartbeatStub        func(int, string, int64)
+	taskHeartbeatMutex       sync.RWMutex
+	taskHeartbeatArgsForCall []struct {
+		arg1 int
+		arg2 string
+		arg3 int64
+	}
 	TaskOutputChunkStub        func(int, []byte)
 	taskOutputChunkMutex       sync.RWMutex
 	taskOutputChunkArgsForCall []struct {
@@ -60,6 +67,40 @@ func (fake *FakeReporter) TaskFinishedArgsForCall(i int) (int, string) {
 	defer fake.taskFinishedMutex.RUnlock()
 	argsForCall := fake.taskFinishedArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeReporter) TaskHeartbeat(arg1 int, arg2 string, arg3 int64) {
+	fake.taskHeartbeatMutex.Lock()
+	fake.taskHeartbeatArgsForCall = append(fake.taskHeartbeatArgsForCall, struct {
+		arg1 int
+		arg2 string
+		arg3 int64
+	}{arg1, arg2, arg3})
+	stub := fake.TaskHeartbeatStub
+	fake.recordInvocation("TaskHeartbeat", []interface{}{arg1, arg2, arg3})
+	fake.taskHeartbeatMutex.Unlock()
+	if stub != nil {
+		fake.TaskHeartbeatStub(arg1, arg2, arg3)
+	}
+}
+
+func (fake *FakeReporter) TaskHeartbeatCallCount() int {
+	fake.taskHeartbeatMutex.RLock()
+	defer fake.taskHeartbeatMutex.RUnlock()
+	return len(fake.taskHeartbeatArgsForCall)
+}
+
+func (fake *FakeReporter) TaskHeartbeatCalls(stub func(int, string, int64)) {
+	fake.taskHeartbeatMutex.Lock()
+	defer fake.taskHeartbeatMutex.Unlock()
+	fake.TaskHeartbeatStub = stub
+}
+
+func (fake *FakeReporter) TaskHeartbeatArgsForCall(i int) (int, string, int64) {
+	fake.taskHeartbeatMutex.RLock()
+	defer fake.taskHeartbeatMutex.RUnlock()
+	argsForCall := fake.taskHeartbeatArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeReporter) TaskOutputChunk(arg1 int, arg2 []byte) {
@@ -135,12 +176,6 @@ func (fake *FakeReporter) TaskStartedArgsForCall(i int) int {
 func (fake *FakeReporter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.taskFinishedMutex.RLock()
-	defer fake.taskFinishedMutex.RUnlock()
-	fake.taskOutputChunkMutex.RLock()
-	defer fake.taskOutputChunkMutex.RUnlock()
-	fake.taskStartedMutex.RLock()
-	defer fake.taskStartedMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

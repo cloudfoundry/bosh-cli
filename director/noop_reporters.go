@@ -43,6 +43,7 @@ func NewNoopTaskReporter() NoopTaskReporter {
 	return NoopTaskReporter{}
 }
 
-func (r NoopTaskReporter) TaskStarted(id int)                   {}
-func (r NoopTaskReporter) TaskFinished(id int, state string)    {}
-func (r NoopTaskReporter) TaskOutputChunk(id int, chunk []byte) {}
+func (r NoopTaskReporter) TaskStarted(id int)                                  {}
+func (r NoopTaskReporter) TaskFinished(id int, state string)                   {}
+func (r NoopTaskReporter) TaskOutputChunk(id int, chunk []byte)                {}
+func (r NoopTaskReporter) TaskHeartbeat(id int, state string, startedAt int64) {}

@@ -2,6 +2,9 @@ package task_test
 
 import (
 	"bytes"
+	"fmt"
+	"strings"
+	"time"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo/v2"
@@ -333,6 +336,55 @@ Task 101 Finished Tue Nov  8 00:26:38 UTC 2016
 Task 101 Duration 00:00:00
 Task 101 done
 `))
+		})
+	})
+
+	Describe("TaskHeartbeat", func() {
+		It("does not print when heartbeat is not enabled", func() {
+			impl := boshuit.NewReporter(fakeUI, true)
+			impl.TaskHeartbeat(42, "processing", int64(1700000000))
+			Expect(fakeUI.Blocks).To(BeNil())
+		})
+
+		It("prints state for a queued task when heartbeat is enabled", func() {
+			impl := boshuit.NewReporter(fakeUI, true)
+			impl.EnableWithHeartbeat(10 * time.Second)
+			impl.TaskHeartbeat(42, "queued", int64(0))
+			Expect(len(fakeUI.Blocks)).To(BeNumerically(">=", 1))
+			combined := fmt.Sprintf("%v", fakeUI.Blocks)
+			Expect(combined).To(ContainSubstring("Task state: queued"))
+			Expect(combined).NotTo(ContainSubstring("elapsed"))
+		})
+
+		It("prints state with elapsed time for a processing task with startedAt", func() {
+			impl := boshuit.NewReporter(fakeUI, true)
+			impl.EnableWithHeartbeat(10 * time.Second)
+			impl.TaskHeartbeat(42, "processing", int64(1700000000))
+			Expect(len(fakeUI.Blocks)).To(BeNumerically(">=", 1))
+			combined := fmt.Sprintf("%v", fakeUI.Blocks)
+			Expect(combined).To(ContainSubstring("Task state: processing"))
+			Expect(combined).To(ContainSubstring("elapsed"))
+		})
+
+		It("prints state without elapsed time when processing but startedAt is 0", func() {
+			impl := boshuit.NewReporter(fakeUI, true)
+			impl.EnableWithHeartbeat(10 * time.Second)
+			impl.TaskHeartbeat(42, "processing", int64(0))
+			Expect(len(fakeUI.Blocks)).To(BeNumerically(">=", 1))
+			combined := fmt.Sprintf("%v", fakeUI.Blocks)
+			Expect(combined).To(ContainSubstring("Task state: processing"))
+			Expect(combined).NotTo(ContainSubstring("elapsed"))
+			Expect(combined).NotTo(ContainSubstring("queued"))
+		})
+
+		It("throttles heartbeat output based on the configured interval", func() {
+			impl := boshuit.NewReporter(fakeUI, true)
+			impl.EnableWithHeartbeat(1 * time.Hour)
+			impl.TaskHeartbeat(42, "processing", int64(1700000000))
+			impl.TaskHeartbeat(42, "processing", int64(1700000000))
+			impl.TaskHeartbeat(42, "processing", int64(1700000000))
+			combined := fmt.Sprintf("%v", fakeUI.Blocks)
+			Expect(strings.Count(combined, "Task state")).To(Equal(1))
 		})
 	})
 })
