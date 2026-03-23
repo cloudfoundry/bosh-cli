@@ -1,4 +1,5 @@
-//+build !windows
+//go:build !windows
+// +build !windows
 
 package system
 
@@ -23,7 +24,7 @@ func (fs *osFileSystem) homeDir(username string) (string, error) {
 
 func (fs *osFileSystem) chown(path, owner string) error {
 	if owner == "" {
-		return errors.New("Failed to lookup user ''")
+		return errors.New("failed to lookup user ''")
 	}
 
 	var group string
@@ -35,7 +36,7 @@ func (fs *osFileSystem) chown(path, owner string) error {
 	if len(ownerSplit) <= 1 {
 		group, err = fs.runCommand(fmt.Sprintf("id -g %s", user))
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Failed to lookup user '%s'", user)
+			return bosherr.WrapErrorf(err, "failed to lookup user '%s'", user)
 		}
 	} else {
 		group = ownerSplit[1]
@@ -43,7 +44,7 @@ func (fs *osFileSystem) chown(path, owner string) error {
 
 	_, err = fs.runCommand(fmt.Sprintf("chown '%s:%s' '%s'", user, group, path))
 	if err != nil {
-		return bosherr.WrapError(err, "Failed to chown")
+		return bosherr.WrapError(err, "failed to chown")
 	}
 
 	return nil

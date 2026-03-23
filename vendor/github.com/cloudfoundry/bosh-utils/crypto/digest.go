@@ -49,7 +49,7 @@ func (c digestImpl) Verify(reader io.Reader) error {
 func (m digestImpl) VerifyFilePath(filePath string, fs boshsys.FileSystem) error {
 	file, err := fs.OpenFile(filePath, os.O_RDONLY, 0)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Calculating digest of '%s'", filePath)
+		return bosherr.WrapErrorf(err, "calculating digest of '%s'", filePath)
 	}
 	defer func() {
 		_ = file.Close()

@@ -171,7 +171,7 @@ func scrubEndpointQuery(endpoint string) string {
 	}
 
 	query := parsedURL.Query()
-	for key, _ := range query { //nolint:gosimple
+	for key := range query {
 		query[key] = []string{"<redacted>"}
 	}
 

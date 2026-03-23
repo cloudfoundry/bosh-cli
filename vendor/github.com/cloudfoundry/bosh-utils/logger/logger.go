@@ -39,7 +39,7 @@ func Levelify(levelString string) (LogLevel, error) {
 	level, ok := levels[upperLevelString]
 	if !ok {
 		expected := strings.Join(levelKeys, ", ")
-		return level, fmt.Errorf("Unknown LogLevel string '%s', expected one of [%s]", levelString, expected)
+		return level, fmt.Errorf("unknown LogLevel string '%s', expected one of [%s]", levelString, expected)
 	}
 	return level, nil
 }

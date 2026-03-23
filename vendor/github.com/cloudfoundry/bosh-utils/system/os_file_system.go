@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/bmatcuk/doublestar"
-	fsWrapper "github.com/charlievieth/fs"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
@@ -61,7 +60,7 @@ func (fs *osFileSystem) ExpandPath(path string) (string, error) {
 
 func (fs *osFileSystem) MkdirAll(path string, perm os.FileMode) (err error) {
 	fs.logger.Debug(fs.logTag, "Making dir %s with perm %#o", path, perm)
-	return fsWrapper.MkdirAll(path, perm)
+	return os.MkdirAll(path, perm)
 }
 
 func (fs *osFileSystem) Chown(path, username string) error {
@@ -71,11 +70,11 @@ func (fs *osFileSystem) Chown(path, username string) error {
 
 func (fs *osFileSystem) Chmod(path string, perm os.FileMode) (err error) {
 	fs.logger.Debug(fs.logTag, "Chmod %s to %d", path, perm)
-	return fsWrapper.Chmod(path, perm)
+	return os.Chmod(path, perm)
 }
 
 func (fs *osFileSystem) openFile(path string, flag int, perm os.FileMode) (*os.File, error) {
-	return fsWrapper.OpenFile(path, flag, perm)
+	return os.OpenFile(path, flag, perm)
 }
 
 func (fs *osFileSystem) OpenFile(path string, flag int, perm os.FileMode) (File, error) {
@@ -90,7 +89,7 @@ func (fs *osFileSystem) StatWithOpts(path string, opts StatOpts) (os.FileInfo, e
 	if !opts.Quiet {
 		fs.logger.Debug(fs.logTag, "Stat '%s'", path)
 	}
-	return fsWrapper.Stat(path)
+	return os.Stat(path)
 }
 
 func (fs *osFileSystem) Stat(path string) (os.FileInfo, error) {
@@ -99,7 +98,7 @@ func (fs *osFileSystem) Stat(path string) (os.FileInfo, error) {
 
 func (fs *osFileSystem) Lstat(path string) (os.FileInfo, error) {
 	fs.logger.Debug(fs.logTag, "Lstat '%s'", path)
-	return fsWrapper.Lstat(path)
+	return os.Lstat(path)
 }
 
 func (fs *osFileSystem) WriteFileString(path, content string) (err error) {
@@ -244,7 +243,7 @@ func (fs *osFileSystem) Rename(oldPath, newPath string) (err error) {
 	fs.logger.Debug(fs.logTag, "Renaming %s to %s", oldPath, newPath)
 
 	fs.RemoveAll(newPath) //nolint:errcheck
-	return fsWrapper.Rename(oldPath, newPath)
+	return os.Rename(oldPath, newPath)
 }
 
 func (fs *osFileSystem) Symlink(oldPath, newPath string) error {
@@ -275,7 +274,7 @@ func (fs *osFileSystem) Symlink(oldPath, newPath string) error {
 		fs.MkdirAll(containingDir, os.FileMode(0700)) //nolint:errcheck
 	}
 
-	return fsWrapper.Symlink(source, target)
+	return os.Symlink(source, target)
 }
 
 func (fs *osFileSystem) ReadAndFollowLink(symlinkPath string) (targetPath string, err error) {
@@ -283,7 +282,7 @@ func (fs *osFileSystem) ReadAndFollowLink(symlinkPath string) (targetPath string
 }
 
 func (fs *osFileSystem) Readlink(symlinkPath string) (targetPath string, err error) {
-	return fsWrapper.Readlink(symlinkPath)
+	return os.Readlink(symlinkPath)
 }
 
 func (fs *osFileSystem) CopyFile(srcPath, dstPath string) error {
@@ -372,7 +371,7 @@ func (fs *osFileSystem) listDirContents(dirPath string) ([]os.FileInfo, error) {
 func (fs *osFileSystem) TempFile(prefix string) (file File, err error) {
 	fs.logger.Debug(fs.logTag, "Creating temp file with prefix %s", prefix)
 	if fs.tempRoot == "" && fs.requiresTempRoot {
-		return nil, errors.New("Set a temp directory root with ChangeTempRoot before making temp files")
+		return nil, errors.New("set a temp directory root with ChangeTempRoot before making temp files")
 	}
 	return os.CreateTemp(fs.tempRoot, prefix)
 }
@@ -380,7 +379,7 @@ func (fs *osFileSystem) TempFile(prefix string) (file File, err error) {
 func (fs *osFileSystem) TempDir(prefix string) (path string, err error) {
 	fs.logger.Debug(fs.logTag, "Creating temp dir with prefix %s", prefix)
 	if fs.tempRoot == "" && fs.requiresTempRoot {
-		return "", errors.New("Set a temp directory root with ChangeTempRoot before making temp directories")
+		return "", errors.New("set a temp directory root with ChangeTempRoot before making temp directories")
 	}
 	return os.MkdirTemp(fs.tempRoot, prefix)
 }
@@ -396,7 +395,7 @@ func (fs *osFileSystem) ChangeTempRoot(tempRootPath string) error {
 
 func (fs *osFileSystem) RemoveAll(fileOrDir string) (err error) {
 	fs.logger.Debug(fs.logTag, "Remove all %s", fileOrDir)
-	err = fsWrapper.RemoveAll(fileOrDir)
+	err = os.RemoveAll(fileOrDir)
 	return
 }
 

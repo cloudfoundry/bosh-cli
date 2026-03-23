@@ -9,12 +9,12 @@ import (
 func CalculateNetworkAndBroadcast(ipAddress, netmask string) (string, string, int, error) {
 	ip := net.ParseIP(ipAddress)
 	if ip == nil {
-		return "", "", 0, fmt.Errorf("Invalid IP '%s'", ipAddress)
+		return "", "", 0, fmt.Errorf("invalid IP '%s'", ipAddress)
 	}
 
 	mask := net.ParseIP(netmask)
 	if mask == nil {
-		return "", "", 0, fmt.Errorf("Invalid netmask '%s'", netmask)
+		return "", "", 0, fmt.Errorf("invalid netmask '%s'", netmask)
 	}
 
 	ip = ip.To4()
