@@ -2,6 +2,7 @@ package resource_test
 
 import (
 	"errors"
+	"strings"
 
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakesfs "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -483,7 +484,7 @@ var _ = Describe("NewResourceWithBuiltArchive", func() {
 				It("should return an error", func() {
 					_, err := resource.RehashWithCalculator(fakeDigestCalculator, boshcrypto.ArchiveDigestFilePathReader(fakeFs))
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("No digest algorithm found. Supported algorithms"))
+					Expect(strings.ToLower(err.Error())).To(ContainSubstring("no digest algorithm found. supported algorithms"))
 				})
 			})
 		})

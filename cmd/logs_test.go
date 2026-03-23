@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"code.cloudfoundry.org/clock"
@@ -750,7 +751,7 @@ var _ = Describe("Logs", func() {
 
 						err := command.Run(logsOpts)
 						Expect(err).To(HaveOccurred())
-						Expect(err.Error()).To(ContainSubstring("Unable to parse digest string"))
+						Expect(strings.ToLower(err.Error())).To(ContainSubstring("unable to parse digest string"))
 					})
 
 					It("returns error if verifying the log file sha fails", func() {

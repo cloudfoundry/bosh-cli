@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"syscall"
 
 	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
@@ -163,8 +164,8 @@ var _ = Describe("FSIndexBlobs", func() {
 				//currently, the only way to cause a digest parse failure is with an empty string
 				_, err := blobs.Get("name", "blob-id", "")
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(
-					"No digest algorithm found. Supported algorithms: sha1, sha256, sha512"))
+				Expect(strings.ToLower(err.Error())).To(ContainSubstring(
+					"no digest algorithm found. supported algorithms: sha1, sha256, sha512"))
 			})
 
 			Context("when downloading blob fails", func() {

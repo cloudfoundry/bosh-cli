@@ -309,7 +309,7 @@ bad-sha-blob.tgz:
 
 			It("returns descriptive error", func() {
 				err := act(1)
-				Expect(err).To(MatchError(ContainSubstring("No digest algorithm found. Supported algorithms: sha1, sha256, sha512")))
+				Expect(strings.ToLower(err.Error())).To(ContainSubstring("no digest algorithm found. supported algorithms: sha1, sha256, sha512"))
 			})
 		})
 
