@@ -2,6 +2,7 @@ package pkg_test
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/cloudfoundry/bosh-utils/crypto/cryptofakes"
 	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -188,7 +189,7 @@ var _ = Describe("NewCompiledPackageWithArchive", func() {
 			It("returns an error parsing the current digest", func() {
 				_, err := compiledPkg.RehashWithCalculator(fakeDigestCalculator, fakeArchiveReader)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("No digest algorithm found. Supported algorithms"))
+				Expect(strings.ToLower(err.Error())).To(ContainSubstring("no digest algorithm found. supported algorithms"))
 			})
 		})
 	})
