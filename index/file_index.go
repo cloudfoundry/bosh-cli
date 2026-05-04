@@ -161,7 +161,7 @@ var kindToStrMap = map[reflect.Kind]string{
 	reflect.Func:          "Func",
 	reflect.Interface:     "Interface",
 	reflect.Map:           "Map",
-	reflect.Ptr:           "Ptr", //nolint:govet
+	reflect.Pointer:       "Ptr",
 	reflect.Slice:         "Slice",
 	reflect.String:        "String",
 	reflect.Struct:        "Struct",
