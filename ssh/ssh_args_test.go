@@ -44,13 +44,13 @@ var _ = Describe("SSHArgs", func() {
 			return SSHArgs{}.LoginForHost(host)
 		}
 
-		It("returns login details with IPv4", func() {
-			Expect(act()).To(Equal([]string{"127.0.0.1", "-l", "user"}))
+		It("returns login details with IPv4, placing '--' before host to stop option parsing", func() {
+			Expect(act()).To(Equal([]string{"-l", "user", "--", "127.0.0.1"}))
 		})
 
-		It("returns login details with IPv6 non-bracketed", func() {
+		It("returns login details with IPv6, placing '--' before host to stop option parsing", func() {
 			host.Host = "::1"
-			Expect(act()).To(Equal([]string{"::1", "-l", "user"}))
+			Expect(act()).To(Equal([]string{"-l", "user", "--", "::1"}))
 		})
 	})
 
@@ -118,7 +118,7 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
-				"-o", "ProxyCommand=ssh -tt -W %h:%p -l gw-user gw-host -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
+				"-o", "ProxyCommand=ssh -tt -W %h:%p -l 'gw-user' 'gw-host' -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
 			}))
 		})
 
@@ -135,7 +135,7 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
-				"-o", "ProxyCommand=ssh -tt -W %h:%p -l gw-user gw-host -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PasswordAuthentication=no -o IdentitiesOnly=yes -o IdentityFile=/tmp/gw-priv-key",
+				"-o", "ProxyCommand=ssh -tt -W %h:%p -l 'gw-user' 'gw-host' -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PasswordAuthentication=no -o IdentitiesOnly=yes -o IdentityFile=/tmp/gw-priv-key",
 			}))
 		})
 
@@ -153,7 +153,7 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
-				"-o", "ProxyCommand=ssh -tt -W %h:%p -l user-gw-user user-gw-host -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
+				"-o", "ProxyCommand=ssh -tt -W %h:%p -l 'user-gw-user' 'user-gw-host' -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
 			}))
 		})
 
@@ -249,7 +249,7 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
-				"-o", "ProxyCommand=ssh -tt -W [%h]:%p -l gw-user gw-host -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
+				"-o", "ProxyCommand=ssh -tt -W [%h]:%p -l 'gw-user' 'gw-host' -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
 			}))
 		})
 
@@ -264,7 +264,7 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
-				"-o", "ProxyCommand=ssh -tt -W %h:%p -l gw-user ::1 -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
+				"-o", "ProxyCommand=ssh -tt -W %h:%p -l 'gw-user' '::1' -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
 			}))
 		})
 
@@ -280,8 +280,35 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "IdentitiesOnly=yes",
 				"-o", "IdentityFile=/tmp/priv-key",
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
-				"-o", "ProxyCommand=ssh -tt -W [%h]:%p -l gw-user ::1 -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
+				"-o", "ProxyCommand=ssh -tt -W [%h]:%p -l 'gw-user' '::1' -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
 			}))
+		})
+
+		It("single-quotes gateway username", func() {
+			result.GatewayUsername = "vcap; exit 1"
+			result.GatewayHost = "gw-host"
+
+			Expect(act()).To(ContainElement(
+				"ProxyCommand=ssh -tt -W %h:%p -l 'vcap; exit 1' 'gw-host' -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
+			))
+		})
+
+		It("single-quotes gateway host", func() {
+			result.GatewayUsername = "gw-user"
+			result.GatewayHost = "x; exit 1 #"
+
+			Expect(act()).To(ContainElement(
+				"ProxyCommand=ssh -tt -W %h:%p -l 'gw-user' 'x; exit 1 #' -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
+			))
+		})
+
+		It("escapes embedded single-quotes in gateway fields using the POSIX '\\'' idiom", func() {
+			result.GatewayUsername = "gw-user"
+			result.GatewayHost = "host'with'quotes"
+
+			Expect(act()).To(ContainElement(
+				"ProxyCommand=ssh -tt -W %h:%p -l 'gw-user' 'host'\\''with'\\''quotes' -o ServerAliveInterval=30 -o ForwardAgent=no -o ClearAllForwardings=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
+			))
 		})
 
 		It("returns ssh options non-bracketed if host is IPv6 and SOCKS5Proxy is set", func() {
@@ -297,6 +324,69 @@ var _ = Describe("SSHArgs", func() {
 				"-o", "UserKnownHostsFile=/tmp/known-hosts",
 				"-o", "ProxyCommand=nc -x some-proxy %h %p",
 			}))
+		})
+	})
+
+	Describe("combined OptsForHost + LoginForHost assembly", func() {
+		buildArgs := func() []string {
+			args := SSHArgs{
+				ConnOpts:            connOpts,
+				Result:              result,
+				ForceTTY:            forceTTY,
+				PrivKeyFile:         privKeyFile,
+				KnownHostsFile:      knownHostsFile,
+				CmdExistenceChecker: connectProxyCmdRunner,
+				Socks5Proxy:         proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(io.Discard, "", log.LstdFlags), 1*time.Minute),
+			}
+			return append(args.OptsForHost(host), args.LoginForHost(host)...)
+		}
+
+		It("places '--' immediately before the host in the combined argument slice", func() {
+			combined := buildArgs()
+
+			separatorIdx := -1
+			for i, arg := range combined {
+				if arg == "--" {
+					separatorIdx = i
+					break
+				}
+			}
+
+			Expect(separatorIdx).To(BeNumerically(">", 0), "\"--\" must be present in the combined argument slice")
+			Expect(combined[separatorIdx+1]).To(Equal(host.Host), "host must be the element immediately after \"--\"")
+		})
+
+		It("places all -o flags before '--'", func() {
+			combined := buildArgs()
+
+			separatorIdx := -1
+			for i, arg := range combined {
+				if arg == "--" {
+					separatorIdx = i
+					break
+				}
+			}
+			Expect(separatorIdx).To(BeNumerically(">", 0))
+
+			for i, arg := range combined[:separatorIdx] {
+				if arg == "-o" {
+					Expect(i).To(BeNumerically("<", separatorIdx),
+						"\"-o\" at index %d must appear before \"--\" at index %d", i, separatorIdx)
+				}
+			}
+		})
+
+		It("ensures '--' does not appear anywhere in OptsForHost output", func() {
+			args := SSHArgs{
+				ConnOpts:            connOpts,
+				Result:              result,
+				ForceTTY:            forceTTY,
+				PrivKeyFile:         privKeyFile,
+				KnownHostsFile:      knownHostsFile,
+				CmdExistenceChecker: connectProxyCmdRunner,
+				Socks5Proxy:         proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(io.Discard, "", log.LstdFlags), 1*time.Minute),
+			}
+			Expect(args.OptsForHost(host)).NotTo(ContainElement("--"))
 		})
 	})
 })
