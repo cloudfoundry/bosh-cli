@@ -183,7 +183,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			mockBlobstoreFactory = mockblobstore.NewMockFactory(mockCtrl)
 			mockBlobstore = mockblobstore.NewMockBlobstore(mockCtrl)
-			mockBlobstoreFactory.EXPECT().Create(mbusURL, gomock.Any()).Return(mockBlobstore, nil).AnyTimes()
+			mockBlobstoreFactory.EXPECT().Create(mbusURL, SecureTLSClientMatcher()).Return(mockBlobstore, nil).AnyTimes()
 
 			mockVMManagerFactory = mockvm.NewMockManagerFactory(mockCtrl)
 			fakeVMManager = fakebivm.NewFakeManager()
@@ -254,6 +254,9 @@ var _ = Describe("CreateEnvCmd", func() {
 					{Name: "fake-cpi-release-job-name", Release: "fake-cpi-release-name"},
 				},
 				Mbus: mbusURL,
+				Cert: biinstallmanifest.Certificate{
+					CA: validCACert,
+				},
 			}
 
 			// parsed BOSH deployment manifest
