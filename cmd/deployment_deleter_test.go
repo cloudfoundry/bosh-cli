@@ -339,7 +339,7 @@ cloud_provider:
 
 			mockBlobstoreFactory = mockblobstore.NewMockFactory(mockCtrl)
 			mockBlobstore = mockblobstore.NewMockBlobstore(mockCtrl)
-			mockBlobstoreFactory.EXPECT().Create(mbusURL, gomock.Any()).Return(mockBlobstore, nil).AnyTimes()
+			mockBlobstoreFactory.EXPECT().Create(mbusURL, SecureTLSClientMatcher()).Return(mockBlobstore, nil).AnyTimes()
 
 			mockDeploymentManagerFactory = mockdeployment.NewMockManagerFactory(mockCtrl)
 			mockDeploymentManager = mockdeployment.NewMockManager(mockCtrl)

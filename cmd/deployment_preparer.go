@@ -250,7 +250,11 @@ func (c *DeploymentPreparer) deploy(
 	}
 	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
 
-	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus, bihttpclient.CreateDefaultClientInsecureSkipVerify())
+	certPool, err := installationManifest.Cert.CACertPool()
+	if err != nil {
+		return bosherr.WrapError(err, "Parsing CA certificate for blobstore client")
+	}
+	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus, bihttpclient.CreateDefaultClient(certPool))
 	if err != nil {
 		return bosherr.WrapError(err, "Creating blobstore client")
 	}

@@ -230,7 +230,11 @@ func (c *deploymentDeleter) deploymentManager(installation biinstall.Installatio
 
 	c.logger.Debug(c.logTag, "Creating blobstore client...")
 
-	blobstore, err := c.blobstoreFactory.Create(installationMbus, bihttpclient.CreateDefaultClientInsecureSkipVerify())
+	certPool, err := biinstallmanifest.Certificate{CA: caCert}.CACertPool()
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Parsing CA certificate for blobstore client")
+	}
+	blobstore, err := c.blobstoreFactory.Create(installationMbus, bihttpclient.CreateDefaultClient(certPool))
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Creating blobstore client")
 	}
