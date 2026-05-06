@@ -7,6 +7,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
+	util "github.com/cloudfoundry/bosh-cli/v7/common/util"
 	"github.com/cloudfoundry/bosh-cli/v7/installation/blobextract"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
@@ -117,8 +118,11 @@ func (i *installer) Cleanup(installation Installation) error {
 
 func (i *installer) installPackages(compiledPackages []CompiledPackageRef) error {
 	for _, pkg := range compiledPackages {
-		err := i.blobExtractor.Extract(pkg.BlobstoreID, pkg.SHA1, filepath.Join(i.target.PackagesPath(), pkg.Name))
+		targetDir, err := util.SafeJoinPath(i.target.PackagesPath(), pkg.Name)
 		if err != nil {
+			return bosherr.Errorf("Invalid package name '%s': must be a safe local path", pkg.Name)
+		}
+		if err = i.blobExtractor.Extract(pkg.BlobstoreID, pkg.SHA1, targetDir); err != nil {
 			return bosherr.WrapErrorf(err, "Installing package '%s'", pkg.Name)
 		}
 	}
@@ -127,17 +131,17 @@ func (i *installer) installPackages(compiledPackages []CompiledPackageRef) error
 
 func (i *installer) installJob(renderedJobRef RenderedJobRef, stage biui.Stage) (installedJob InstalledJob, err error) {
 	err = stage.Perform(fmt.Sprintf("Installing job '%s'", renderedJobRef.Name), func() error {
-		var stageErr error
-		jobDir := filepath.Join(i.target.JobsPath(), renderedJobRef.Name)
-
-		stageErr = i.blobExtractor.Extract(renderedJobRef.BlobstoreID, renderedJobRef.SHA1, jobDir)
-		if stageErr != nil {
-			return bosherr.WrapErrorf(stageErr, "Extracting blob with ID '%s'", renderedJobRef.BlobstoreID)
+		jobDir, err := util.SafeJoinPath(i.target.JobsPath(), renderedJobRef.Name)
+		if err != nil {
+			return bosherr.Errorf("Invalid job name '%s': must be a safe local path", renderedJobRef.Name)
 		}
 
-		stageErr = i.blobExtractor.ChmodExecutables(filepath.Join(jobDir, "bin", "*"))
-		if stageErr != nil {
-			return bosherr.WrapErrorf(stageErr, "Chmoding binaries for '%s'", jobDir)
+		if err = i.blobExtractor.Extract(renderedJobRef.BlobstoreID, renderedJobRef.SHA1, jobDir); err != nil {
+			return bosherr.WrapErrorf(err, "Extracting blob with ID '%s'", renderedJobRef.BlobstoreID)
+		}
+
+		if err = i.blobExtractor.ChmodExecutables(filepath.Join(jobDir, "bin", "*")); err != nil {
+			return bosherr.WrapErrorf(err, "Chmoding binaries for '%s'", jobDir)
 		}
 
 		installedJob = NewInstalledJob(renderedJobRef, jobDir)

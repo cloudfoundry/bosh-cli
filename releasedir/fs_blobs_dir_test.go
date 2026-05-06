@@ -106,6 +106,34 @@ file2.tgz:
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Unmarshalling blobs index"))
 		})
+
+		It("returns error for a blob path that escapes the blobs directory via ..", func() {
+			err := fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), `
+../../../../home/file:
+  size: 100
+  object_id: id
+  sha: sha
+`)
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = act()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("safe local path"))
+		})
+
+		It("returns error for an absolute blob path", func() {
+			err := fs.WriteFileString(filepath.Join("/", "dir", "config", "blobs.yml"), `
+/etc/file:
+  size: 100
+  object_id: id
+  sha: sha
+`)
+			Expect(err).ToNot(HaveOccurred())
+
+			_, err = act()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("safe local path"))
+		})
 	})
 
 	Describe("SyncBlobs", func() {
@@ -600,6 +628,20 @@ file2.tgz:
 
 			Expect(blobsDir.Blobs()).To(BeEmpty())
 		})
+
+		It("returns error for a blob path that escapes the blobs directory via ..", func() {
+			content := io.NopCloser(strings.NewReader("content"))
+			_, err := blobsDir.TrackBlob("../../etc/file", content)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("safe local path"))
+		})
+
+		It("returns error for an absolute blob path", func() {
+			content := io.NopCloser(strings.NewReader("content"))
+			_, err := blobsDir.TrackBlob("/etc/file", content)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("safe local path"))
+		})
 	})
 
 	Describe("UntrackBlob", func() {
@@ -713,6 +755,18 @@ bosh-116.tgz:
 			Expect(blobsDir.Blobs()).To(Equal([]Blob{
 				{Path: filepath.Join("dir", "file.tgz"), Size: 133, SHA1: "13e"},
 			}))
+		})
+
+		It("returns error for a blob path that escapes the blobs directory via ..", func() {
+			err := blobsDir.UntrackBlob("../../etc/file")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("safe local path"))
+		})
+
+		It("returns error for an absolute blob path", func() {
+			err := blobsDir.UntrackBlob("/etc/file")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("safe local path"))
 		})
 	})
 

@@ -3,7 +3,6 @@ package index
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -12,6 +11,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
+
+	util "github.com/cloudfoundry/bosh-cli/v7/common/util"
 )
 
 type FSIndexBlobs struct {
@@ -141,5 +142,10 @@ func (c FSIndexBlobs) blobPath(sha1 string) (string, error) {
 	if runtime.GOOS == "windows" {
 		sha1 = strings.ReplaceAll(sha1, ":", "_")
 	}
-	return filepath.Join(absDirPath, sha1), nil
+
+	candidatePath, err := util.SafeJoinPath(absDirPath, sha1)
+	if err != nil {
+		return "", bosherr.Errorf("Invalid blob SHA1 '%s': must be a safe local path", sha1)
+	}
+	return candidatePath, nil
 }

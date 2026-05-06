@@ -104,6 +104,24 @@ var _ = Describe("JobRenderer", func() {
 			}))
 		})
 
+		It("returns error if a template dst path is not local", func() {
+			job.Templates = map[string]string{
+				"template.erb": "../../../../home/user/file",
+			}
+			_, err := jobRenderer.Render(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("safe local path"))
+		})
+
+		It("returns error if a template src path escapes the templates directory", func() {
+			job.Templates = map[string]string{
+				"../../../../etc/file": "config/out.yml",
+			}
+			_, err := jobRenderer.Render(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("safe local path"))
+		})
+
 		Context("when rendering fails", func() {
 			BeforeEach(func() {
 				_ = fakeERBRenderer.SetRenderBehavior( //nolint:errcheck

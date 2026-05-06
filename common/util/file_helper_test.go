@@ -11,6 +11,38 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/common/util"
 )
 
+var _ = Describe("SafeJoinPath", func() {
+	It("returns the joined path for a normal relative path", func() {
+		result, err := util.SafeJoinPath(filepath.Join("/", "base"), filepath.Join("subdir", "file.tgz"))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(result).To(Equal(filepath.Join("/", "base", "subdir", "file.tgz")))
+	})
+
+	It("rejects a single .. component", func() {
+		_, err := util.SafeJoinPath(filepath.Join("/", "base"), "../file")
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("safe local path"))
+	})
+
+	It("rejects a deeply nested path traversal", func() {
+		_, err := util.SafeJoinPath(filepath.Join("/", "base"), "../../etc/file")
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("safe local path"))
+	})
+
+	It("rejects an absolute path", func() {
+		_, err := util.SafeJoinPath(filepath.Join("/", "base"), "/etc/file")
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("safe local path"))
+	})
+
+	It("rejects an empty path", func() {
+		_, err := util.SafeJoinPath(filepath.Join("/", "base"), "")
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("safe local path"))
+	})
+})
+
 var _ = Describe("AbsolutifyPath", func() {
 	var realfs boshsys.FileSystem
 	var fakeManifestPath, fakeFilePath string

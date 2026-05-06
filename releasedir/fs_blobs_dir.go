@@ -16,6 +16,7 @@ import (
 	"github.com/cloudfoundry/bosh-utils/work"
 	"gopkg.in/yaml.v2"
 
+	util "github.com/cloudfoundry/bosh-cli/v7/common/util"
 	bicrypto "github.com/cloudfoundry/bosh-cli/v7/crypto"
 )
 
@@ -101,6 +102,9 @@ func (d FSBlobsDir) Blobs() ([]Blob, error) {
 	var blobs []Blob
 
 	for recPath, rec := range schema {
+		if _, err := util.SafeJoinPath(d.dirPath, recPath); err != nil {
+			return nil, bosherr.Errorf("Invalid blob path '%s': must be a safe local path", recPath)
+		}
 		blobs = append(blobs, Blob{
 			Path:        recPath,
 			Size:        rec.Size,
@@ -193,6 +197,11 @@ func (d FSBlobsDir) removeUnknownBlobs(blobs []Blob) error {
 }
 
 func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser) (Blob, error) {
+	safePath, err := util.SafeJoinPath(d.dirPath, path)
+	if err != nil {
+		return Blob{}, bosherr.Errorf("Invalid blob path '%s': must be a safe local path", path)
+	}
+
 	tempFile, err := d.fs.TempFile("track-blob")
 	if err != nil {
 		return Blob{}, bosherr.WrapErrorf(err, "Creating temp blob")
@@ -239,7 +248,7 @@ func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser) (Blob, error) {
 
 	tempFile.Close() //nolint:errcheck
 
-	err = d.moveBlobLocally(tempFile.Name(), filepath.Join(d.dirPath, path))
+	err = d.moveBlobLocally(tempFile.Name(), safePath)
 	if err != nil {
 		return Blob{}, err
 	}
@@ -248,12 +257,17 @@ func (d FSBlobsDir) TrackBlob(path string, src io.ReadCloser) (Blob, error) {
 }
 
 func (d FSBlobsDir) UntrackBlob(path string) error {
+	safePath, err := util.SafeJoinPath(d.dirPath, path)
+	if err != nil {
+		return bosherr.Errorf("Invalid blob path '%s': must be a safe local path", path)
+	}
+
 	blobs, err := d.Blobs()
 	if err != nil {
 		return err
 	}
 
-	err = d.fs.RemoveAll(filepath.Join(d.dirPath, path))
+	err = d.fs.RemoveAll(safePath)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Removing blob from blobs/")
 	}

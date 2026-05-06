@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	gopath "path"
 	"path/filepath"
 	"strings"
@@ -36,4 +37,13 @@ func AbsolutifyPath(pathToManifest string, pathToFile string, fs boshsys.FileSys
 	}
 
 	return absPath, nil
+}
+
+// SafeJoinPath returns filepath.Join(base, untrusted), or an error if
+// untrusted is not a local path.
+func SafeJoinPath(base, untrusted string) (string, error) {
+	if !filepath.IsLocal(untrusted) {
+		return "", fmt.Errorf("path '%s' is not a safe local path", untrusted)
+	}
+	return filepath.Join(base, untrusted), nil
 }

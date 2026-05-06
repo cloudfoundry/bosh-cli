@@ -140,6 +140,43 @@ var _ = Describe("Installer", func() {
 		})
 	})
 
+	Describe("Install path traversal protection", func() {
+		var fakeStage *fakebiui.FakeStage
+
+		BeforeEach(func() {
+			fakeStage = fakebiui.NewFakeStage()
+		})
+
+		It("returns error when a compiled package name contains path traversal", func() {
+			maliciousRef := CompiledPackageRef{
+				Name:        "../../path",
+				Version:     "v1",
+				BlobstoreID: "bid",
+				SHA1:        "sha",
+			}
+			releaseJobs := []bireljob.Job{}
+			mockJobResolver.EXPECT().From(installationManifest).Return(releaseJobs, nil)
+			mockPackageCompiler.EXPECT().For(releaseJobs, fakeStage).Return([]CompiledPackageRef{maliciousRef}, nil)
+
+			_, err := installer.Install(installationManifest, fakeStage)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("safe local path"))
+		})
+
+		It("returns error when a rendered job name contains path traversal", func() {
+			releaseJobs := []bireljob.Job{}
+			compiledPackages := []CompiledPackageRef{}
+			jobRef := NewRenderedJobRef("../../path", "fp", "blob-id", "sha")
+			mockJobResolver.EXPECT().From(installationManifest).Return(releaseJobs, nil)
+			mockPackageCompiler.EXPECT().For(releaseJobs, fakeStage).Return(compiledPackages, nil)
+			mockJobRenderer.EXPECT().RenderAndUploadFrom(installationManifest, releaseJobs, fakeStage).Return([]RenderedJobRef{jobRef}, nil)
+
+			_, err := installer.Install(installationManifest, fakeStage)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("safe local path"))
+		})
+	})
+
 	Describe("Cleanup", func() {
 		var installation Installation
 
