@@ -341,12 +341,14 @@ jobs:
 
   - name: clear-release-notes
     plan:
+      - get: bosh-cli-ci-image
       - get: version-semver
         passed:
           - build
         trigger: true
       - get: golang-release
       - task: clear-release-notes
+        image: bosh-cli-ci-image
         file: golang-release/ci/tasks/shared/clear-release-notes.yml
       - put: release-notes
         params:
