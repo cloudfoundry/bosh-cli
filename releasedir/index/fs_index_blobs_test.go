@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"strings"
 	"syscall"
 
 	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
@@ -115,6 +114,12 @@ var _ = Describe("FSIndexBlobs", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("Cannot find blob named 'name' with SHA1 'sha1'"))
 			})
+
+			It("returns error if sha1 is a path", func() {
+				_, err := blobs.Get("name", "blob-id", "../../file")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("safe local path"))
+			})
 		})
 
 		Context("when configured with a blobstore", func() {
@@ -160,12 +165,10 @@ var _ = Describe("FSIndexBlobs", func() {
 				Expect(reporter.IndexEntryDownloadFinishedCallCount()).To(Equal(1))
 			})
 
-			It("returns error if parsing digest string fails", func() {
-				//currently, the only way to cause a digest parse failure is with an empty string
+			It("returns error if sha1 is empty", func() {
 				_, err := blobs.Get("name", "blob-id", "")
 				Expect(err).To(HaveOccurred())
-				Expect(strings.ToLower(err.Error())).To(ContainSubstring(
-					"no digest algorithm found. supported algorithms: sha1, sha256, sha512"))
+				Expect(err.Error()).To(ContainSubstring("safe local path"))
 			})
 
 			Context("when downloading blob fails", func() {
@@ -282,6 +285,24 @@ var _ = Describe("FSIndexBlobs", func() {
 		BeforeEach(func() {
 			err := fs.WriteFileString(filepath.Join("/", "tmp", "sha1"), "file")
 			Expect(err).ToNot(HaveOccurred())
+		})
+
+		Context("when sha1 is a path", func() {
+			BeforeEach(func() {
+				blobs = boshidx.NewFSIndexBlobs(filepath.Join("/", "dir", "sub-dir"), reporter, nil, fs)
+			})
+
+			It("returns error for a path with ..", func() {
+				_, _, err := blobs.Add("name", filepath.Join("/", "tmp", "payload"), "../../.file")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("safe local path"))
+			})
+
+			It("returns error for an absolute path sha1", func() {
+				_, _, err := blobs.Add("name", filepath.Join("/", "tmp", "payload"), "/etc/file")
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("safe local path"))
+			})
 		})
 
 		itCopiesFileIntoDir := func() {
