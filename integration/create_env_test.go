@@ -401,7 +401,7 @@ cloud_provider:
 			doGet := func(deploymentManifestPath string, statePath string, deploymentVars boshtpl.Variables, deploymentOp patch.Op) cmd.DeploymentPreparer {
 				// todo: figure this out?
 				deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, biconfig.DeploymentStatePath(deploymentManifestPath, statePath))
-				vmRepo = biconfig.NewVMRepo(deploymentStateService)
+				vmRepo = biconfig.NewVMRepo(deploymentStateService, fakeRepoUUIDGenerator)
 				diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeRepoUUIDGenerator)
 				stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeRepoUUIDGenerator)
 				deploymentRepo = biconfig.NewDeploymentRepo(deploymentStateService)
@@ -989,10 +989,10 @@ cloud_provider:
 						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 						Expect(err).ToNot(HaveOccurred())
 
-						diskRecord, found, err := diskRepo.FindCurrent()
-						Expect(err).ToNot(HaveOccurred())
-						Expect(found).To(BeTrue())
-						Expect(diskRecord.CID).To(Equal("fake-disk-cid-3"))
+					diskRecord, found, err := diskRepo.FindCurrentForVM("fake-vm-cid-3")
+					Expect(err).ToNot(HaveOccurred())
+					Expect(found).To(BeTrue())
+					Expect(diskRecord.CID).To(Equal("fake-disk-cid-3"))
 
 						diskRecords, err := diskRepo.All()
 						Expect(err).ToNot(HaveOccurred())

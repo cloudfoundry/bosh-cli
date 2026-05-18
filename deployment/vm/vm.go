@@ -30,6 +30,7 @@ type Clock interface {
 
 type VM interface {
 	CID() string
+	MbusURL() string
 	Exists() (bool, error)
 	AgentClient() biagentclient.AgentClient
 	WaitUntilReady(timeout time.Duration, delay time.Duration) error
@@ -51,6 +52,7 @@ type VM interface {
 
 type vm struct {
 	cid          string
+	mbusURL      string
 	vmRepo       biconfig.VMRepo
 	stemcellRepo biconfig.StemcellRepo
 	diskDeployer DiskDeployer
@@ -65,6 +67,7 @@ type vm struct {
 
 func NewVM(
 	cid string,
+	mbusURL string,
 	vmRepo biconfig.VMRepo,
 	stemcellRepo biconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
@@ -76,6 +79,7 @@ func NewVM(
 ) VM {
 	return &vm{
 		cid:          cid,
+		mbusURL:      mbusURL,
 		vmRepo:       vmRepo,
 		stemcellRepo: stemcellRepo,
 		diskDeployer: diskDeployer,
@@ -90,6 +94,7 @@ func NewVM(
 
 func NewVMWithMetadata(
 	cid string,
+	mbusURL string,
 	vmRepo biconfig.VMRepo,
 	stemcellRepo biconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
@@ -102,6 +107,7 @@ func NewVMWithMetadata(
 ) VM {
 	return &vm{
 		cid:          cid,
+		mbusURL:      mbusURL,
 		vmRepo:       vmRepo,
 		stemcellRepo: stemcellRepo,
 		diskDeployer: diskDeployer,
@@ -117,6 +123,10 @@ func NewVMWithMetadata(
 
 func (vm *vm) CID() string {
 	return vm.cid
+}
+
+func (vm *vm) MbusURL() string {
+	return vm.mbusURL
 }
 
 func (vm *vm) Exists() (bool, error) {
@@ -296,7 +306,7 @@ func (vm *vm) Delete() error {
 		}
 	}
 
-	err := vm.vmRepo.ClearCurrent()
+	err := vm.vmRepo.Delete(vm.cid)
 	if err != nil {
 		return bosherr.WrapError(err, "Deleting vm from vm repo")
 	}

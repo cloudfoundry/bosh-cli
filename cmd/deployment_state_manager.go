@@ -155,12 +155,6 @@ func (c *deploymentStateManager) findCurrentDeploymen(deploymentManager bidepl.M
 }
 
 func (c *deploymentStateManager) deploymentManager(directorID, installationMbus, caCert string) (bidepl.Manager, error) {
-
-	c.logger.Debug(c.logTag, "Creating agent client...")
-
-	agentClient, err := c.agentClientFactory.NewAgentClient(directorID, installationMbus, caCert)
-
 	c.logger.Debug(c.logTag, "Creating deployment manager...")
-
-	return c.deploymentManagerFactory.NewManager(nil, agentClient, nil), err
+	return c.deploymentManagerFactory.NewManager(nil, c.agentClientFactory, directorID, installationMbus, caCert, nil, nil), nil
 }

@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	mock_agentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
+	mock_httpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	mock_blobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	mock_cloud "github.com/cloudfoundry/bosh-cli/v7/cloud/mocks"
@@ -70,7 +70,7 @@ var _ = Describe("Manager", func() {
 
 		JustBeforeEach(func() {
 			mockInstanceManager.EXPECT().FindCurrent().Return(expectedInstances, nil)
-			mockDiskManager.EXPECT().FindCurrent().Return(expectedDisks, nil)
+			mockDiskManager.EXPECT().FindAllCurrent().Return(expectedDisks, nil)
 			mockStemcellManager.EXPECT().FindCurrent().Return(expectedStemcells, nil)
 
 			expectNewDeployment = mockDeploymentFactory.EXPECT().NewDeployment(expectedInstances, expectedDisks, expectedStemcells).Return(mockDeployment).AnyTimes()
@@ -150,11 +150,11 @@ var _ = Describe("Manager", func() {
 			fakeRepoUUIDGenerator  *fakeuuid.FakeGenerator
 			deploymentStateService biconfig.DeploymentStateService
 			vmRepo                 biconfig.VMRepo
+			mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
 			diskRepo               biconfig.DiskRepo
 			stemcellRepo           biconfig.StemcellRepo
 
-			mockCloud       *mock_cloud.MockCloud
-			mockAgentClient *mock_agentclient.MockAgentClient
+			mockCloud *mock_cloud.MockCloud
 
 			fakeStage *fakebiui.FakeStage
 
@@ -172,12 +172,12 @@ var _ = Describe("Manager", func() {
 			deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/deployment.json")
 
 			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
-			vmRepo = biconfig.NewVMRepo(deploymentStateService)
+			vmRepo = biconfig.NewVMRepo(deploymentStateService, fakeRepoUUIDGenerator)
 			diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeRepoUUIDGenerator)
+			mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
 			stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeRepoUUIDGenerator)
 
 			mockCloud = mock_cloud.NewMockCloud(mockCtrl)
-			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
 
 			fakeStage = fakebiui.NewFakeStage()
 		})
@@ -196,9 +196,11 @@ var _ = Describe("Manager", func() {
 			stemcellManagerFactory := bistemcell.NewManagerFactory(stemcellRepo)
 
 			mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+			mockBlobstoreFactory := mock_blobstore.NewMockFactory(mockCtrl)
+			mockBlobstoreFactory.EXPECT().Create(gomock.Any(), gomock.Any()).Return(mockBlobstore, nil).AnyTimes()
 
 			deploymentManagerFactory := NewManagerFactory(vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory, mockDeploymentFactory)
-			deploymentManager = deploymentManagerFactory.NewManager(mockCloud, mockAgentClient, mockBlobstore)
+			deploymentManager = deploymentManagerFactory.NewManager(mockCloud, mockAgentClientFactory, "", "", "", mockBlobstoreFactory, nil)
 		})
 
 		Context("no orphan disk or stemcell records exist", func() {
@@ -211,7 +213,10 @@ var _ = Describe("Manager", func() {
 				var err error
 				currentDiskRecord, err = diskRepo.Save("fake-disk-cid", 100, nil)
 				Expect(err).ToNot(HaveOccurred())
-				err = diskRepo.UpdateCurrent(currentDiskRecord.ID)
+				// Create a VM record and associate the disk with it so it is not unused.
+				_, err = vmRepo.Save("fake-job", 0, "fake-vm-cid", "")
+				Expect(err).ToNot(HaveOccurred())
+				err = diskRepo.UpdateCurrentForVM("fake-vm-cid", currentDiskRecord.ID)
 				Expect(err).ToNot(HaveOccurred())
 
 				currentStemcellRecord, err = stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid", stemcellApiVersion)
@@ -224,7 +229,7 @@ var _ = Describe("Manager", func() {
 				err := deploymentManager.Cleanup(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				diskRecord, found, err := diskRepo.FindCurrent()
+				diskRecord, found, err := diskRepo.FindCurrentForVM("fake-vm-cid")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeTrue())
 				Expect(diskRecord).To(Equal(currentDiskRecord))

@@ -256,7 +256,7 @@ cloud_provider:
 		}
 
 		var expectDeleteAndCleanup = func(skipDrain, defaultUninstallerUsed bool) {
-			mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, mockBlobstore).Return(mockDeploymentManager)
+			mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClientFactory, gomock.Any(), gomock.Any(), gomock.Any(), mockBlobstoreFactory, gomock.Any()).Return(mockDeploymentManager)
 			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
 
 			gomock.InOrder(
@@ -271,7 +271,7 @@ cloud_provider:
 		}
 
 		var expectCleanup = func() {
-			mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, mockBlobstore).Return(mockDeploymentManager).AnyTimes()
+			mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClientFactory, gomock.Any(), gomock.Any(), gomock.Any(), mockBlobstoreFactory, gomock.Any()).Return(mockDeploymentManager).AnyTimes()
 			mockDeploymentManager.EXPECT().FindCurrent().Return(nil, false, nil).AnyTimes()
 
 			mockDeploymentManager.EXPECT().Cleanup(fakeStage)
@@ -550,10 +550,10 @@ cloud_provider:
 
 			Context("when the call to delete the deployment returns an error", func() {
 				It("returns the error", func() {
-					mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, mockBlobstore).Return(mockDeploymentManager)
-					mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
+				mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClientFactory, gomock.Any(), gomock.Any(), gomock.Any(), mockBlobstoreFactory, gomock.Any()).Return(mockDeploymentManager)
+				mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
 
-					deleteError := bosherr.Error("delete error")
+				deleteError := bosherr.Error("delete error")
 
 					mockDeployment.EXPECT().Delete(skipDrain, gomock.Any()).Return(deleteError)
 

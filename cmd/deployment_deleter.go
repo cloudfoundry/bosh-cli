@@ -224,22 +224,13 @@ func (c *deploymentDeleter) deploymentManager(installation biinstall.Installatio
 		return nil, bosherr.WrapError(err, "Creating CPI client from CPI installation")
 	}
 
-	c.logger.Debug(c.logTag, "Creating agent client...")
-
-	agentClient, _ := c.agentClientFactory.NewAgentClient(directorID, installationMbus, caCert) //nolint:errcheck
-
-	c.logger.Debug(c.logTag, "Creating blobstore client...")
+	c.logger.Debug(c.logTag, "Creating deployment manager...")
 
 	certPool, err := biinstallmanifest.Certificate{CA: caCert}.CACertPool()
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Parsing CA certificate for blobstore client")
 	}
-	blobstore, err := c.blobstoreFactory.Create(installationMbus, bihttpclient.CreateDefaultClient(certPool))
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Creating blobstore client")
-	}
+	blobstoreHTTPClient := bihttpclient.CreateDefaultClient(certPool)
 
-	c.logger.Debug(c.logTag, "Creating deployment manager...")
-
-	return c.deploymentManagerFactory.NewManager(cloud, agentClient, blobstore), nil
+	return c.deploymentManagerFactory.NewManager(cloud, c.agentClientFactory, directorID, installationMbus, caCert, c.blobstoreFactory, blobstoreHTTPClient), nil
 }

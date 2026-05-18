@@ -23,66 +23,170 @@ var _ = Describe("VMRepo", func() {
 		fs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 		deploymentStateService = NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
-		repo = NewVMRepo(deploymentStateService)
+		repo = NewVMRepo(deploymentStateService, fakeUUIDGenerator)
 	})
 
-	Describe("FindCurrent", func() {
-		Context("when a current vm cid is set", func() {
+	Describe("FindAll", func() {
+		Context("when no VMs have been saved", func() {
+			It("returns an empty slice", func() {
+				records, err := repo.FindAll()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(records).To(BeEmpty())
+			})
+		})
+
+		Context("when VMs have been saved", func() {
 			BeforeEach(func() {
-				err := repo.UpdateCurrent("fake-vm-cid")
+				_, err := repo.Save("nats", 0, "vm-cid-0", "https://user:pass@10.0.0.1:6868")
+				Expect(err).ToNot(HaveOccurred())
+				_, err = repo.Save("nats", 1, "vm-cid-1", "https://user:pass@10.0.0.2:6868")
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("returns current manifest sha1", func() {
-				record, found, err := repo.FindCurrent()
+			It("returns all active VM records", func() {
+				records, err := repo.FindAll()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeTrue())
-				Expect(record).To(Equal("fake-vm-cid"))
+				Expect(records).To(HaveLen(2))
+				Expect(records[0].CID).To(Equal("vm-cid-0"))
+				Expect(records[0].JobName).To(Equal("nats"))
+				Expect(records[0].InstanceID).To(Equal(0))
+				Expect(records[0].MbusURL).To(Equal("https://user:pass@10.0.0.1:6868"))
+				Expect(records[1].CID).To(Equal("vm-cid-1"))
+				Expect(records[1].InstanceID).To(Equal(1))
 			})
 		})
+	})
 
-		Context("when a current vm cid is not set", func() {
-			It("returns false", func() {
-				_, found, err := repo.FindCurrent()
+	Describe("Save", func() {
+		It("saves a new VM record", func() {
+			record, err := repo.Save("nats", 0, "vm-cid-0", "https://user:pass@10.0.0.1:6868")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(record.CID).To(Equal("vm-cid-0"))
+			Expect(record.JobName).To(Equal("nats"))
+			Expect(record.InstanceID).To(Equal(0))
+			Expect(record.ID).ToNot(BeEmpty())
+
+			deploymentState, err := deploymentStateService.Load()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deploymentState.CurrentVMs).To(HaveLen(1))
+		})
+
+		Context("when a pending record (no CID) exists for the same instance", func() {
+			BeforeEach(func() {
+				// Save then delete to leave a pending record with disk.
+				_, err := repo.Save("nats", 0, "vm-cid-0", "https://user:pass@10.0.0.1:6868")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeFalse())
+				err = repo.UpdateCurrentDisk("vm-cid-0", "disk-uuid-1")
+				Expect(err).ToNot(HaveOccurred())
+				err = repo.Delete("vm-cid-0")
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("reuses the existing record, preserving CurrentDiskID", func() {
+				deploymentState, err := deploymentStateService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(deploymentState.CurrentVMs).To(HaveLen(1))
+				Expect(deploymentState.CurrentVMs[0].CID).To(BeEmpty())
+				Expect(deploymentState.CurrentVMs[0].CurrentDiskID).To(Equal("disk-uuid-1"))
+
+				record, err := repo.Save("nats", 0, "vm-cid-new", "https://user:pass@10.0.0.1:6868")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(record.CID).To(Equal("vm-cid-new"))
+				Expect(record.CurrentDiskID).To(Equal("disk-uuid-1"))
+
+				// Should not create a new record.
+				deploymentState, err = deploymentStateService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(deploymentState.CurrentVMs).To(HaveLen(1))
 			})
 		})
 	})
 
-	Describe("UpdateCurrent", func() {
-		It("updates vm cid", func() {
-			err := repo.UpdateCurrent("fake-vm-cid")
+	Describe("UpdateCurrentDisk", func() {
+		BeforeEach(func() {
+			_, err := repo.Save("nats", 0, "vm-cid-0", "")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("sets the CurrentDiskID on the VMRecord", func() {
+			err := repo.UpdateCurrentDisk("vm-cid-0", "disk-uuid-1")
 			Expect(err).ToNot(HaveOccurred())
 
 			deploymentState, err := deploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
+			Expect(deploymentState.CurrentVMs[0].CurrentDiskID).To(Equal("disk-uuid-1"))
+		})
 
-			expectedConfig := DeploymentState{
-				DirectorID:   "fake-uuid-0",
-				CurrentVMCID: "fake-vm-cid",
-			}
-			Expect(deploymentState).To(Equal(expectedConfig))
+		It("returns an error when VM is not found", func() {
+			err := repo.UpdateCurrentDisk("unknown-cid", "disk-uuid-1")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("VM record with CID 'unknown-cid' not found"))
 		})
 	})
 
-	Describe("ClearCurrent", func() {
-		It("updates vm cid", func() {
-			err := repo.ClearCurrent()
+	Describe("Delete", func() {
+		Context("when the VM has no associated disk", func() {
+			BeforeEach(func() {
+				_, err := repo.Save("nats", 0, "vm-cid-0", "")
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("removes the record entirely", func() {
+				err := repo.Delete("vm-cid-0")
+				Expect(err).ToNot(HaveOccurred())
+
+				deploymentState, err := deploymentStateService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(deploymentState.CurrentVMs).To(BeEmpty())
+			})
+		})
+
+		Context("when the VM has an associated disk", func() {
+			BeforeEach(func() {
+				_, err := repo.Save("nats", 0, "vm-cid-0", "https://user:pass@10.0.0.1:6868")
+				Expect(err).ToNot(HaveOccurred())
+				err = repo.UpdateCurrentDisk("vm-cid-0", "disk-uuid-1")
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("keeps the record (with disk) but clears CID and MbusURL", func() {
+				err := repo.Delete("vm-cid-0")
+				Expect(err).ToNot(HaveOccurred())
+
+				deploymentState, err := deploymentStateService.Load()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(deploymentState.CurrentVMs).To(HaveLen(1))
+				Expect(deploymentState.CurrentVMs[0].CID).To(BeEmpty())
+				Expect(deploymentState.CurrentVMs[0].MbusURL).To(BeEmpty())
+				Expect(deploymentState.CurrentVMs[0].CurrentDiskID).To(Equal("disk-uuid-1"))
+			})
+
+			It("does not return the (pending) record from FindAll", func() {
+				err := repo.Delete("vm-cid-0")
+				Expect(err).ToNot(HaveOccurred())
+
+				records, err := repo.FindAll()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(records).To(BeEmpty())
+			})
+		})
+	})
+
+	Describe("ClearAll", func() {
+		BeforeEach(func() {
+			_, err := repo.Save("nats", 0, "vm-cid-0", "")
+			Expect(err).ToNot(HaveOccurred())
+			_, err = repo.Save("nats", 1, "vm-cid-1", "")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("removes all VM records", func() {
+			err := repo.ClearAll()
 			Expect(err).ToNot(HaveOccurred())
 
 			deploymentState, err := deploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
-
-			expectedConfig := DeploymentState{
-				DirectorID:   "fake-uuid-0",
-				CurrentVMCID: "",
-			}
-			Expect(deploymentState).To(Equal(expectedConfig))
-
-			_, found, err := repo.FindCurrent()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(found).To(BeFalse())
+			Expect(deploymentState.CurrentVMs).To(BeNil())
 		})
 	})
 })

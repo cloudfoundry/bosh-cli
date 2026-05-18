@@ -23,6 +23,7 @@ import (
 	mock_instance_state "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/mocks"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/fakes"
+	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
 	mock_vm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/mocks"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
@@ -64,7 +65,8 @@ var _ = Describe("Deployer", func() {
 		mockStateBuilder        *mock_instance_state.MockBuilder
 		mockState               *mock_instance_state.MockState
 
-		mockBlobstore *mock_blobstore.MockBlobstore
+		mockBlobstore        *mock_blobstore.MockBlobstore
+		mockBlobstoreFactory *mock_blobstore.MockFactory
 	)
 
 	BeforeEach(func() {
@@ -104,7 +106,7 @@ var _ = Describe("Deployer", func() {
 
 		mockVMManagerFactory = mock_vm.NewMockManagerFactory(mockCtrl)
 		fakeVMManager = fakebivm.NewFakeManager()
-		mockVMManagerFactory.EXPECT().NewManager(cloud, mockAgentClient).Return(fakeVMManager).AnyTimes()
+		mockVMManagerFactory.EXPECT().NewManager(cloud, mockAgentClientFactory, gomock.Any(), gomock.Any(), gomock.Any()).Return(fakeVMManager).AnyTimes()
 
 		fakeSSHTunnelFactory = fakebisshtunnel.NewFakeFactory()
 		fakeSSHTunnel = fakebisshtunnel.NewFakeTunnel()
@@ -139,6 +141,8 @@ var _ = Describe("Deployer", func() {
 		instanceManagerFactory := biinstance.NewManagerFactory(fakeSSHTunnelFactory, instanceFactory, logger)
 
 		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+		mockBlobstoreFactory = mock_blobstore.NewMockFactory(mockCtrl)
+		mockBlobstoreFactory.EXPECT().Create(gomock.Any(), gomock.Any()).Return(mockBlobstore, nil).AnyTimes()
 
 		pingTimeout := 10 * time.Second
 		pingDelay := 500 * time.Millisecond
@@ -175,12 +179,12 @@ var _ = Describe("Deployer", func() {
 
 		BeforeEach(func() {
 			fakeExistingVM = fakebivm.NewFakeVM("existing-vm-cid")
-			fakeVMManager.SetFindCurrentBehavior(fakeExistingVM, true, nil)
+			fakeVMManager.SetFindAllBehavior([]bivm.ExistingVM{{VM: fakeExistingVM, JobName: "unknown", InstanceID: 0}}, nil)
 			fakeExistingVM.AgentClientReturn = mockAgentClient
 		})
 
 		It("deletes existing vm", func() {
-			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
+			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeExistingVM.DeleteCalled).To(Equal(1))
@@ -198,7 +202,7 @@ var _ = Describe("Deployer", func() {
 		Context("when skip-drain is specified", func() {
 			It("skips draining", func() {
 				skipDrain = true
-				_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
+				_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeExistingVM.DeleteCalled).To(Equal(1))
@@ -215,18 +219,20 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("creates a vm", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
+		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeVMManager.CreateInput).To(Equal(fakebivm.CreateInput{
-			Stemcell: cloudStemcell,
-			Manifest: deploymentManifest,
-			DiskCIDs: diskCIDs,
+			JobName:    "fake-job-name",
+			InstanceID: 0,
+			Stemcell:   cloudStemcell,
+			Manifest:   deploymentManifest,
+			DiskCIDs:   diskCIDs,
 		}))
 	})
 
 	It("waits for the vm", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
+		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebivm.WaitUntilReadyInput{
 			Timeout: 10 * time.Minute,
@@ -235,7 +241,7 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("logs start and stop events to the eventLogger", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
+		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeStage.PerformCalls[1]).To(Equal(&fakebiui.PerformCall{
@@ -253,7 +259,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
+			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-wait-error"))
 
@@ -265,7 +271,7 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("updates the vm", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
+		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeVM.ApplyInputs).To(Equal([]fakebivm.ApplyInput{
@@ -275,14 +281,14 @@ var _ = Describe("Deployer", func() {
 	})
 
 	It("starts the agent", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
+		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeVM.StartCalled).To(Equal(1))
 	})
 
 	It("waits until agent reports state as running", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
+		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebivm.WaitInput{
@@ -297,13 +303,13 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("returns an error", func() {
-			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
+			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 			Expect(err).To(HaveOccurred())
 		})
 	})
 
 	It("logs instance update ui stages", func() {
-		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
+		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeStage.PerformCalls[2:4]).To(Equal([]*fakebiui.PerformCall{
@@ -318,7 +324,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("fails with descriptive error", func() {
-			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
+			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Applying the initial agent state: fake-apply-error"))
 		})
@@ -330,7 +336,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
+			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-start-error"))
 
@@ -350,7 +356,7 @@ var _ = Describe("Deployer", func() {
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
-			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
+			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 

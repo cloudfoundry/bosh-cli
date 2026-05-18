@@ -15,6 +15,18 @@ type DeploymentState struct {
 	Disks              []DiskRecord     `json:"disks"`
 	Stemcells          []StemcellRecord `json:"stemcells"`
 	Releases           []ReleaseRecord  `json:"releases"`
+	CurrentVMs         []VMRecord       `json:"current_vms,omitempty"`
+}
+
+// VMRecord stores per-instance VM state: cloud identity, disk association, and
+// the per-instance mbus URL used to reach the agent.
+type VMRecord struct {
+	ID            string `json:"id"`
+	JobName       string `json:"job_name"`
+	InstanceID    int    `json:"instance_id"`
+	CID           string `json:"cid,omitempty"`
+	CurrentDiskID string `json:"current_disk_id,omitempty"`
+	MbusURL       string `json:"mbus_url,omitempty"`
 }
 
 type StemcellRecord struct {

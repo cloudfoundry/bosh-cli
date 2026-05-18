@@ -7,7 +7,7 @@ package mocks
 import (
 	reflect "reflect"
 
-	agentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	http "github.com/cloudfoundry/bosh-agent/v2/agentclient/http"
 	cloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	vm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	gomock "github.com/golang/mock/gomock"
@@ -37,15 +37,15 @@ func (m *MockManagerFactory) EXPECT() *MockManagerFactoryMockRecorder {
 }
 
 // NewManager mocks base method.
-func (m *MockManagerFactory) NewManager(arg0 cloud.Cloud, arg1 agentclient.AgentClient) vm.Manager {
+func (m *MockManagerFactory) NewManager(arg0 cloud.Cloud, arg1 http.AgentClientFactory, arg2, arg3, arg4 string) vm.Manager {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewManager", arg0, arg1)
+	ret := m.ctrl.Call(m, "NewManager", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(vm.Manager)
 	return ret0
 }
 
 // NewManager indicates an expected call of NewManager.
-func (mr *MockManagerFactoryMockRecorder) NewManager(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockManagerFactoryMockRecorder) NewManager(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewManager", reflect.TypeOf((*MockManagerFactory)(nil).NewManager), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewManager", reflect.TypeOf((*MockManagerFactory)(nil).NewManager), arg0, arg1, arg2, arg3, arg4)
 }

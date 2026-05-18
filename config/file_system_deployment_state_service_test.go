@@ -101,8 +101,13 @@ var _ = Describe("fileSystemDeploymentStateService", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deploymentState.DirectorID).To(Equal("fake-director-id"))
 			Expect(deploymentState.Stemcells).To(Equal(stemcells))
-			Expect(deploymentState.CurrentVMCID).To(Equal("fake-vm-cid"))
-			Expect(deploymentState.CurrentDiskID).To(Equal("fake-disk-id"))
+			// Legacy current_vm_cid and current_disk_id are migrated into CurrentVMs on load.
+			Expect(deploymentState.CurrentVMCID).To(BeEmpty())
+			Expect(deploymentState.CurrentDiskID).To(BeEmpty())
+			Expect(deploymentState.CurrentVMs).To(HaveLen(1))
+			Expect(deploymentState.CurrentVMs[0].CID).To(Equal("fake-vm-cid"))
+			Expect(deploymentState.CurrentVMs[0].CurrentDiskID).To(Equal("fake-disk-id"))
+			Expect(deploymentState.CurrentVMs[0].JobName).To(Equal("unknown"))
 			Expect(deploymentState.Disks).To(Equal(disks))
 		})
 

@@ -1,0 +1,116 @@
+---
+name: multi-instance-nats
+
+releases:
+- name: nats
+  url: file:///bosh-test/nats.tgz
+- name: bpm
+  url: file:///bosh-test/bpm.tgz
+- name: bosh-docker-cpi
+  url: file:///bosh-test/docker-cpi.tgz
+
+resource_pools:
+- name: default
+  network: default
+  stemcell:
+    url: file:///bosh-test/stemcell.tgz
+  cloud_properties:
+    ports:
+    - 6868/tcp
+    - 4222/tcp
+  env:
+    bosh:
+      blobstores:
+      - provider: local
+        options:
+          blobstore_path: /var/vcap/micro_bosh/data/cache
+      mbus:
+        cert: ((mbus_bootstrap_ssl))
+
+networks:
+- name: default
+  type: manual
+  subnets:
+  - range: 10.244.0.0/24
+    gateway: 10.244.0.1
+    static:
+    - 10.244.0.10
+    - 10.244.0.11
+    dns: [8.8.8.8]
+    cloud_properties:
+      name: bosh
+
+jobs:
+- name: nats
+  instances: 2
+  resource_pool: default
+  networks:
+  - name: default
+    static_ips:
+    - 10.244.0.10
+    - 10.244.0.11
+  templates:
+  - name: bpm
+    release: bpm
+  - name: nats
+    release: nats
+  properties:
+    nats:
+      user: nats
+      password: ((nats_password))
+      machines:
+      - 10.244.0.10
+      - 10.244.0.11
+      internal:
+        tls:
+          enabled: true
+          ca: ((nats_internal_tls.ca))
+          certificate: ((nats_internal_tls.certificate))
+          private_key: ((nats_internal_tls.private_key))
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  canary_watch_time: 30000-120000
+  update_watch_time: 30000-120000
+
+variables:
+- name: default_ca
+  type: certificate
+  options:
+    is_ca: true
+    common_name: default
+- name: mbus_bootstrap_ssl
+  type: certificate
+  options:
+    ca: default_ca
+    common_name: 10.244.0.10
+    alternative_names:
+    - 10.244.0.10
+    - 10.244.0.11
+- name: nats_internal_tls
+  type: certificate
+  options:
+    ca: default_ca
+    common_name: nats
+    alternative_names:
+    - 10.244.0.10
+    - 10.244.0.11
+
+cloud_provider:
+  template:
+    name: docker_cpi
+    release: bosh-docker-cpi
+  # CLI uses the CA to verify the agent's TLS certificate.
+  cert:
+    ca: ((mbus_bootstrap_ssl.ca))
+  # The CLI derives per-instance mbus URLs from static_ips[i] at runtime.
+  # The 0.0.0.0 placeholder is replaced with 10.244.0.10 for instance 0
+  # and 10.244.0.11 for instance 1.
+  mbus: https://mbus:((mbus_password))@0.0.0.0:6868
+  properties:
+    docker_cpi:
+      docker:
+        host: unix:///var/run/docker.sock
+      agent:
+        mbus: https://mbus:((mbus_password))@0.0.0.0:6868

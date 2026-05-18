@@ -187,7 +187,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			mockVMManagerFactory = mockvm.NewMockManagerFactory(mockCtrl)
 			fakeVMManager = fakebivm.NewFakeManager()
-			mockVMManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClient).Return(fakeVMManager).AnyTimes()
+			mockVMManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClientFactory, gomock.Any(), gomock.Any(), gomock.Any()).Return(fakeVMManager).AnyTimes()
 
 			fakeStemcellExtractor = fakebistemcell.NewFakeExtractor()
 			mockStemcellManager = mockstemcell.NewMockManager(mockCtrl)
@@ -443,11 +443,12 @@ var _ = Describe("CreateEnvCmd", func() {
 				boshDeploymentManifest,
 				cloudStemcell,
 				fakeVMManager,
-				mockBlobstore,
+				mockBlobstoreFactory,
+				gomock.Any(),
 				expectedSkipDrain,
 				gomock.Any(),
 				gomock.Any(),
-			).Do(func(_, _, _, _, _, _ interface{}, _ interface{}, stage boshui.Stage) {
+			).Do(func(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, stage interface{}) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
 			}).Return(nil, expectedDeployError).AnyTimes()
 
@@ -1064,7 +1065,8 @@ var _ = Describe("CreateEnvCmd", func() {
 					boshDeploymentManifest,
 					cloudStemcell,
 					fakeVMManager,
-					mockBlobstore,
+					mockBlobstoreFactory,
+					gomock.Any(),
 					expectedSkipDrain,
 					gomock.Any(),
 					gomock.Any(),
@@ -1139,7 +1141,7 @@ var _ = Describe("CreateEnvCmd", func() {
 				}`)
 				Expect(err).ToNot(HaveOccurred())
 
-				expectDeploy.Do(func(_, _, _, _, _, _ interface{}, diskCIDs []string, _ interface{}) {
+				expectDeploy.Do(func(_, _, _, _, _, _, _ interface{}, diskCIDs []string, _ interface{}) {
 					Expect(diskCIDs).To(ConsistOf("disk-cid-from-state"))
 				})
 				err = command.Run(fakeStage, defaultCreateEnvOpts)
@@ -1153,7 +1155,7 @@ var _ = Describe("CreateEnvCmd", func() {
 				}`)
 				Expect(err).ToNot(HaveOccurred())
 
-				expectDeploy.Do(func(_, _, _, _, _, _ interface{}, diskCIDs []string, _ interface{}) {
+				expectDeploy.Do(func(_, _, _, _, _, _, _ interface{}, diskCIDs []string, _ interface{}) {
 					jsonMarshalOfDisks, err := json.Marshal(diskCIDs)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(jsonMarshalOfDisks)).To(Equal("[]"))

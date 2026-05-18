@@ -5,11 +5,13 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/clock"
+	mock_httpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	fakebiagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -25,6 +27,7 @@ import (
 
 var _ = Describe("Manager", func() {
 	var (
+		mockCtrl                  *gomock.Controller
 		fakeCloud                 *fakebicloud.FakeCloud
 		manager                   Manager
 		logger                    boshlog.Logger
@@ -36,6 +39,7 @@ var _ = Describe("Manager", func() {
 		stemcellRepo              biconfig.StemcellRepo
 		fakeDiskDeployer          *fakebivm.FakeDiskDeployer
 		fakeAgentClient           *fakebiagentclient.FakeAgentClient
+		mockAgentClientFactory    *mock_httpagent.MockAgentClientFactory
 		stemcell                  bistemcell.CloudStemcell
 		diskCIDs                  []string
 		fs                        *fakesys.FakeFileSystem
@@ -43,11 +47,16 @@ var _ = Describe("Manager", func() {
 	)
 
 	BeforeEach(func() {
+		mockCtrl = gomock.NewController(GinkgoT())
+
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
 		fakeCloud = fakebicloud.NewFakeCloud()
 		fakeAgentClient = &fakebiagentclient.FakeAgentClient{}
 		fakeVMRepo = fakebiconfig.NewFakeVMRepo()
+
+		mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
+		mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any(), gomock.Any()).Return(fakeAgentClient, nil).AnyTimes()
 
 		fakeUUIDGenerator := &fakeuuid.FakeGenerator{}
 		deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
@@ -62,7 +71,10 @@ var _ = Describe("Manager", func() {
 			fakeVMRepo,
 			stemcellRepo,
 			fakeDiskDeployer,
-			fakeAgentClient,
+			mockAgentClientFactory,
+			"fake-director-id",
+			"https://fake-mbus-user:fake-mbus-pass@0.0.0.0:6868",
+			"",
 			fakeCloud,
 			fakeUUIDGenerator,
 			fs,
@@ -123,12 +135,17 @@ var _ = Describe("Manager", func() {
 		stemcell = bistemcell.NewCloudStemcell(stemcellRecord, stemcellRepo, fakeCloud)
 	})
 
+	AfterEach(func() {
+		mockCtrl.Finish()
+	})
+
 	Describe("Create", func() {
 		It("creates a VM", func() {
-			vm, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
+			vm, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
 			Expect(err).ToNot(HaveOccurred())
 			expectedVM := NewVMWithMetadata(
 				"fake-vm-cid",
+				"https://fake-mbus-user:fake-mbus-pass@fake-ip:6868",
 				fakeVMRepo,
 				stemcellRepo,
 				fakeDiskDeployer,
@@ -162,7 +179,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("sets the vm metadata", func() {
-			_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
+			_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeCloud.SetVMMetadataCid).To(Equal("fake-vm-cid"))
 			Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(bicloud.VMMetadata{
@@ -193,7 +210,7 @@ var _ = Describe("Manager", func() {
 					},
 				}
 
-				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
+				_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeCloud.CreateVMInput).To(Equal(
@@ -231,7 +248,7 @@ var _ = Describe("Manager", func() {
 						"name":           "awesome-name",
 					}
 
-					_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
+					_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(bicloud.VMMetadata{
@@ -247,11 +264,14 @@ var _ = Describe("Manager", func() {
 			})
 		})
 
-		It("updates the current vm record", func() {
-			_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
+		It("saves the vm record with the correct CID", func() {
+			_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeVMRepo.UpdateCurrentCID).To(Equal("fake-vm-cid"))
+			Expect(fakeVMRepo.SaveInputs).To(HaveLen(1))
+			Expect(fakeVMRepo.SaveInputs[0].CID).To(Equal("fake-vm-cid"))
+			Expect(fakeVMRepo.SaveInputs[0].JobName).To(Equal("fake-job"))
+			Expect(fakeVMRepo.SaveInputs[0].InstanceID).To(Equal(0))
 		})
 
 		Context("when setting vm metadata fails", func() {
@@ -260,15 +280,15 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
+				_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-set-metadata-error"))
 			})
 
-			It("still updates the current vm record", func() {
-				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
+			It("still saves the vm record with the correct CID", func() {
+				_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
 				Expect(err).To(HaveOccurred())
-				Expect(fakeVMRepo.UpdateCurrentCID).To(Equal("fake-vm-cid"))
+				Expect(fakeVMRepo.SaveInputs[0].CID).To(Equal("fake-vm-cid"))
 			})
 
 			It("ignores not implemented error", func() {
@@ -279,7 +299,7 @@ var _ = Describe("Manager", func() {
 				})
 				fakeCloud.SetVMMetadataError = notImplementedCloudError
 
-				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
+				_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -290,7 +310,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
+				_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-create-error"))
 			})

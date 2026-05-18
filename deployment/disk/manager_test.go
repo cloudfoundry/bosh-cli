@@ -19,23 +19,29 @@ import (
 
 var _ = Describe("Manager", func() {
 	var (
-		manager           bidisk.Manager
-		fakeCloud         *fakebicloud.FakeCloud
-		fakeFs            *fakesys.FakeFileSystem
-		fakeUUIDGenerator *fakeuuid.FakeGenerator
-		diskRepo          biconfig.DiskRepo
+		manager              bidisk.Manager
+		fakeCloud            *fakebicloud.FakeCloud
+		fakeFs               *fakesys.FakeFileSystem
+		fakeUUIDGenerator    *fakeuuid.FakeGenerator
+		fakeVMUUIDGenerator  *fakeuuid.FakeGenerator
+		diskRepo             biconfig.DiskRepo
+		vmRepo               biconfig.VMRepo
+		deploymentStateService biconfig.DeploymentStateService
 	)
 
 	BeforeEach(func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeFs = fakesys.NewFakeFileSystem()
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fakeFs, fakeUUIDGenerator, logger, "/fake/path")
+		fakeVMUUIDGenerator = &fakeuuid.FakeGenerator{}
+		deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fakeFs, fakeUUIDGenerator, logger, "/fake/path")
 		diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeUUIDGenerator)
+		vmRepo = biconfig.NewVMRepo(deploymentStateService, fakeVMUUIDGenerator)
 		managerFactory := bidisk.NewManagerFactory(diskRepo, logger)
 		fakeCloud = fakebicloud.NewFakeCloud()
 		manager = managerFactory.NewManager(fakeCloud)
 		fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
+		fakeVMUUIDGenerator.GeneratedUUID = "fake-vm-record-uuid"
 	})
 
 	Describe("Create", func() {
@@ -109,27 +115,30 @@ var _ = Describe("Manager", func() {
 		})
 	})
 
-	Describe("FindCurrent", func() {
-		Context("when disk already exists in disk repo", func() {
+	Describe("FindAllCurrent", func() {
+		Context("when disk already exists in disk repo and is associated with a VM", func() {
 			BeforeEach(func() {
 				diskRecord, err := diskRepo.Save("fake-existing-disk-cid", 1024, biproperty.Map{})
 				Expect(err).ToNot(HaveOccurred())
 
-				err = diskRepo.UpdateCurrent(diskRecord.ID)
+				// Create a VM record and associate the disk with it.
+				_, err = vmRepo.Save("fake-job", 0, "fake-vm-cid", "")
+				Expect(err).ToNot(HaveOccurred())
+				err = diskRepo.UpdateCurrentForVM("fake-vm-cid", diskRecord.ID)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("returns the existing disk", func() {
-				disks, err := manager.FindCurrent()
+				disks, err := manager.FindAllCurrent()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(disks).To(HaveLen(1))
 				Expect(disks[0].CID()).To(Equal("fake-existing-disk-cid"))
 			})
 		})
 
-		Context("when disk does not exists in disk repo", func() {
+		Context("when no disk is associated with any VM", func() {
 			It("returns an empty array", func() {
-				disks, err := manager.FindCurrent()
+				disks, err := manager.FindAllCurrent()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(disks).To(BeEmpty())
 			})
@@ -143,7 +152,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := manager.FindCurrent()
+				_, err := manager.FindAllCurrent()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-read-error"))
 			})
@@ -165,7 +174,11 @@ var _ = Describe("Manager", func() {
 			fakeUUIDGenerator.GeneratedUUID = "fake-guid-2"
 			_, err = diskRepo.Save("fake-disk-cid-2", 1024, biproperty.Map{})
 			Expect(err).ToNot(HaveOccurred())
-			err = diskRepo.UpdateCurrent("fake-guid-2")
+			// Mark disk-2 as current for a VM so it is not unused.
+			fakeVMUUIDGenerator.GeneratedUUID = "fake-vm-record-uuid-2"
+			_, err = vmRepo.Save("fake-job", 0, "fake-vm-cid", "")
+			Expect(err).ToNot(HaveOccurred())
+			err = diskRepo.UpdateCurrentForVM("fake-vm-cid", "fake-guid-2")
 			Expect(err).ToNot(HaveOccurred())
 
 			fakeUUIDGenerator.GeneratedUUID = "fake-guid-3"
@@ -200,7 +213,11 @@ var _ = Describe("Manager", func() {
 			fakeUUIDGenerator.GeneratedUUID = "fake-disk-id-2"
 			secondDiskRecord, err = diskRepo.Save("fake-disk-cid-2", 100, nil)
 			Expect(err).ToNot(HaveOccurred())
-			err = diskRepo.UpdateCurrent(secondDiskRecord.ID)
+			// Mark disk-2 as current for a VM so it is not deleted as unused.
+			fakeVMUUIDGenerator.GeneratedUUID = "fake-vm-record-uuid"
+			_, err = vmRepo.Save("fake-job", 0, "fake-vm-cid", "")
+			Expect(err).ToNot(HaveOccurred())
+			err = diskRepo.UpdateCurrentForVM("fake-vm-cid", secondDiskRecord.ID)
 			Expect(err).ToNot(HaveOccurred())
 
 			fakeUUIDGenerator.GeneratedUUID = "fake-disk-id-3"
@@ -222,7 +239,7 @@ var _ = Describe("Manager", func() {
 				{Name: "Deleting unused disk 'fake-disk-cid-3'"},
 			}))
 
-			currentRecord, found, err := diskRepo.FindCurrent()
+			currentRecord, found, err := diskRepo.FindCurrentForVM("fake-vm-cid")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(found).To(BeTrue())
 			Expect(currentRecord).To(Equal(secondDiskRecord))

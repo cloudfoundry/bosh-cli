@@ -1,6 +1,8 @@
 package instance
 
 import (
+	"net/http"
+
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	biblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"
@@ -10,7 +12,7 @@ import (
 )
 
 type ManagerFactory interface {
-	NewManager(bicloud.Cloud, bivm.Manager, biblobstore.Blobstore) Manager
+	NewManager(bicloud.Cloud, bivm.Manager, biblobstore.Factory, *http.Client) Manager
 }
 
 type managerFactory struct {
@@ -31,11 +33,12 @@ func NewManagerFactory(
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bicloud.Cloud, vmManager bivm.Manager, blobstore biblobstore.Blobstore) Manager {
+func (f *managerFactory) NewManager(cloud bicloud.Cloud, vmManager bivm.Manager, blobstoreFactory biblobstore.Factory, blobstoreHTTPClient *http.Client) Manager {
 	return NewManager(
 		cloud,
 		vmManager,
-		blobstore,
+		blobstoreFactory,
+		blobstoreHTTPClient,
 		f.sshTunnelFactory,
 		f.instanceFactory,
 		f.logger,

@@ -1,7 +1,9 @@
 package deployment
 
 import (
-	biagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	"net/http"
+
+	bihttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http"
 
 	biblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
@@ -12,7 +14,7 @@ import (
 )
 
 type ManagerFactory interface {
-	NewManager(bicloud.Cloud, biagentclient.AgentClient, biblobstore.Blobstore) Manager
+	NewManager(cloud bicloud.Cloud, agentClientFactory bihttpagent.AgentClientFactory, directorID, mbusURL, caCert string, blobstoreFactory biblobstore.Factory, blobstoreHTTPClient *http.Client) Manager
 }
 
 type managerFactory struct {
@@ -39,9 +41,9 @@ func NewManagerFactory(
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bicloud.Cloud, agentClient biagentclient.AgentClient, blobstore biblobstore.Blobstore) Manager {
-	vmManager := f.vmManagerFactory.NewManager(cloud, agentClient)
-	instanceManager := f.instanceManagerFactory.NewManager(cloud, vmManager, blobstore)
+func (f *managerFactory) NewManager(cloud bicloud.Cloud, agentClientFactory bihttpagent.AgentClientFactory, directorID, mbusURL, caCert string, blobstoreFactory biblobstore.Factory, blobstoreHTTPClient *http.Client) Manager {
+	vmManager := f.vmManagerFactory.NewManager(cloud, agentClientFactory, directorID, mbusURL, caCert)
+	instanceManager := f.instanceManagerFactory.NewManager(cloud, vmManager, blobstoreFactory, blobstoreHTTPClient)
 	diskManager := f.diskManagerFactory.NewManager(cloud)
 	stemcellManager := f.stemcellManagerFactory.NewManager(cloud)
 

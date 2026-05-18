@@ -2,7 +2,7 @@ package vm
 
 import (
 	"code.cloudfoundry.org/clock"
-	biagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	bihttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
@@ -12,7 +12,7 @@ import (
 )
 
 type ManagerFactory interface {
-	NewManager(cloud bicloud.Cloud, agentClient biagentclient.AgentClient) Manager
+	NewManager(cloud bicloud.Cloud, agentClientFactory bihttpagent.AgentClientFactory, directorID, mbusURL, caCert string) Manager
 }
 
 type managerFactory struct {
@@ -42,12 +42,15 @@ func NewManagerFactory(
 	}
 }
 
-func (f *managerFactory) NewManager(cloud bicloud.Cloud, agentClient biagentclient.AgentClient) Manager {
+func (f *managerFactory) NewManager(cloud bicloud.Cloud, agentClientFactory bihttpagent.AgentClientFactory, directorID, mbusURL, caCert string) Manager {
 	return NewManager(
 		f.vmRepo,
 		f.stemcellRepo,
 		f.diskDeployer,
-		agentClient,
+		agentClientFactory,
+		directorID,
+		mbusURL,
+		caCert,
 		cloud,
 		f.uuidGenerator,
 		f.fs,

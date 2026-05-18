@@ -5,9 +5,10 @@
 package mocks
 
 import (
+	nethttp "net/http"
 	reflect "reflect"
 
-	agentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	http "github.com/cloudfoundry/bosh-agent/v2/agentclient/http"
 	blobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"
 	cloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	deployment "github.com/cloudfoundry/bosh-cli/v7/deployment"
@@ -146,18 +147,18 @@ func (m *MockDeployer) EXPECT() *MockDeployerMockRecorder {
 }
 
 // Deploy mocks base method.
-func (m *MockDeployer) Deploy(arg0 cloud.Cloud, arg1 manifest.Manifest, arg2 stemcell.CloudStemcell, arg3 vm.Manager, arg4 blobstore.Blobstore, arg5 bool, arg6 []string, arg7 ui.Stage) (deployment.Deployment, error) {
+func (m *MockDeployer) Deploy(arg0 cloud.Cloud, arg1 manifest.Manifest, arg2 stemcell.CloudStemcell, arg3 vm.Manager, arg4 blobstore.Factory, arg5 *nethttp.Client, arg6 bool, arg7 []string, arg8 ui.Stage) (deployment.Deployment, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Deploy", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+	ret := m.ctrl.Call(m, "Deploy", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 	ret0, _ := ret[0].(deployment.Deployment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Deploy indicates an expected call of Deploy.
-func (mr *MockDeployerMockRecorder) Deploy(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7 interface{}) *gomock.Call {
+func (mr *MockDeployerMockRecorder) Deploy(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Deploy", reflect.TypeOf((*MockDeployer)(nil).Deploy), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Deploy", reflect.TypeOf((*MockDeployer)(nil).Deploy), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 }
 
 // MockManager is a mock of Manager interface.
@@ -237,15 +238,15 @@ func (m *MockManagerFactory) EXPECT() *MockManagerFactoryMockRecorder {
 }
 
 // NewManager mocks base method.
-func (m *MockManagerFactory) NewManager(arg0 cloud.Cloud, arg1 agentclient.AgentClient, arg2 blobstore.Blobstore) deployment.Manager {
+func (m *MockManagerFactory) NewManager(arg0 cloud.Cloud, arg1 http.AgentClientFactory, arg2, arg3, arg4 string, arg5 blobstore.Factory, arg6 *nethttp.Client) deployment.Manager {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewManager", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "NewManager", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 	ret0, _ := ret[0].(deployment.Manager)
 	return ret0
 }
 
 // NewManager indicates an expected call of NewManager.
-func (mr *MockManagerFactoryMockRecorder) NewManager(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockManagerFactoryMockRecorder) NewManager(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewManager", reflect.TypeOf((*MockManagerFactory)(nil).NewManager), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewManager", reflect.TypeOf((*MockManagerFactory)(nil).NewManager), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }

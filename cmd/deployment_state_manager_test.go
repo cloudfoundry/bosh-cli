@@ -190,7 +190,7 @@ cloud_provider:
 
 	Describe("StopDeployment", func() {
 		var expectStop = func(skipDrain bool) {
-			mockDeploymentManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClient, gomock.Any()).AnyTimes().Return(mockDeploymentManager)
+			mockDeploymentManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClientFactory, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(mockDeploymentManager)
 			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
 
 			gomock.InOrder(
@@ -292,7 +292,7 @@ cloud_provider:
 	Describe("StartDeployment", func() {
 
 		var expectStart = func() {
-			mockDeploymentManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClient, gomock.Any()).AnyTimes().Return(mockDeploymentManager)
+			mockDeploymentManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClientFactory, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(mockDeploymentManager)
 			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
 
 			gomock.InOrder(

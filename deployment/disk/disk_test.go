@@ -22,7 +22,9 @@ var _ = Describe("Disk", func() {
 		diskCloudProperties biproperty.Map
 		fakeCloud           *fakebicloud.FakeCloud
 		diskRepo            biconfig.DiskRepo
+		vmRepo              biconfig.VMRepo
 		fakeUUIDGenerator   *fakeuuid.FakeGenerator
+		fakeVMUUIDGenerator *fakeuuid.FakeGenerator
 	)
 
 	BeforeEach(func() {
@@ -41,9 +43,10 @@ var _ = Describe("Disk", func() {
 		fs := fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
-		//		todo: come back to this?
+		fakeVMUUIDGenerator = &fakeuuid.FakeGenerator{}
 		deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
 		diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeUUIDGenerator)
+		vmRepo = biconfig.NewVMRepo(deploymentStateService, fakeVMUUIDGenerator)
 
 		disk = NewDisk(diskRecord, fakeCloud, diskRepo)
 	})
@@ -112,20 +115,28 @@ var _ = Describe("Disk", func() {
 			Expect(diskRecords).To(BeEmpty())
 		})
 
-		Context("when deleted disk is the current disk", func() {
+		Context("when deleted disk is associated with a VM as current disk", func() {
+			const testVMCID = "fake-vm-cid-for-disk-test"
+
 			BeforeEach(func() {
+				fakeUUIDGenerator.GeneratedUUID = "fake-disk-id"
+				fakeVMUUIDGenerator.GeneratedUUID = "fake-vm-record-id"
+
 				diskRecord, err := diskRepo.Save("fake-disk-cid", 1024, diskCloudProperties)
 				Expect(err).ToNot(HaveOccurred())
 
-				err = diskRepo.UpdateCurrent(diskRecord.ID)
+				// Create a VM record first, then associate the disk with it.
+				_, err = vmRepo.Save("fake-job", 0, testVMCID, "")
+				Expect(err).ToNot(HaveOccurred())
+				err = diskRepo.UpdateCurrentForVM(testVMCID, diskRecord.ID)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("clears current disk in the disk repo", func() {
+			It("clears current disk association in the disk repo", func() {
 				err := disk.Delete()
 				Expect(err).ToNot(HaveOccurred())
 
-				_, found, err := diskRepo.FindCurrent()
+				_, found, err := diskRepo.FindCurrentForVM(testVMCID)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeFalse())
 			})
@@ -149,11 +160,18 @@ var _ = Describe("Disk", func() {
 				Message: "fake-disk-not-found-message",
 			})
 
+			const testVMCID = "fake-vm-cid-for-notfound-test"
+
 			BeforeEach(func() {
+				fakeUUIDGenerator.GeneratedUUID = "fake-disk-id-notfound"
+				fakeVMUUIDGenerator.GeneratedUUID = "fake-vm-record-id-notfound"
+
 				diskRecord, err := diskRepo.Save("fake-disk-cid", 1024, diskCloudProperties)
 				Expect(err).ToNot(HaveOccurred())
 
-				err = diskRepo.UpdateCurrent(diskRecord.ID)
+				_, err = vmRepo.Save("fake-job", 0, testVMCID, "")
+				Expect(err).ToNot(HaveOccurred())
+				err = diskRepo.UpdateCurrentForVM(testVMCID, diskRecord.ID)
 				Expect(err).ToNot(HaveOccurred())
 
 				fakeCloud.DeleteDiskErr = deleteErr
@@ -181,12 +199,12 @@ var _ = Describe("Disk", func() {
 				Expect(diskRecords).To(BeEmpty())
 			})
 
-			It("clears current disk in the disk repo", func() {
+			It("clears current disk association in the disk repo", func() {
 				err := disk.Delete()
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(Equal(deleteErr))
 
-				_, found, err := diskRepo.FindCurrent()
+				_, found, err := diskRepo.FindCurrentForVM(testVMCID)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(found).To(BeFalse())
 			})

@@ -131,7 +131,7 @@ func NewEnvFactory(
 	{
 		diskRepo := biconfig.NewDiskRepo(f.deploymentStateService, deps.UUIDGen)
 		stemcellRepo := biconfig.NewStemcellRepo(f.deploymentStateService, deps.UUIDGen)
-		vmRepo := biconfig.NewVMRepo(f.deploymentStateService)
+		vmRepo := biconfig.NewVMRepo(f.deploymentStateService, deps.UUIDGen)
 
 		f.diskManagerFactory = bidisk.NewManagerFactory(diskRepo, deps.Logger)
 		diskDeployer := bivm.NewDiskDeployer(f.diskManagerFactory, diskRepo, deps.Logger, recreatePersistentDisks)

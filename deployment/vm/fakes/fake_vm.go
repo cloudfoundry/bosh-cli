@@ -12,7 +12,8 @@ import (
 )
 
 type FakeVM struct {
-	cid string
+	cid     string
+	mbusURL string
 
 	ExistsCalled int
 	ExistsFound  bool
@@ -100,7 +101,12 @@ type UnmountDiskInput struct {
 }
 
 func NewFakeVM(cid string) *FakeVM {
+	return NewFakeVMWithMbusURL(cid, "")
+}
+
+func NewFakeVMWithMbusURL(cid, mbusURL string) *FakeVM {
 	return &FakeVM{
+		mbusURL: mbusURL,
 		ExistsFound:           true,
 		ApplyInputs:           []ApplyInput{},
 		WaitUntilReadyInputs:  []WaitUntilReadyInput{},
@@ -113,6 +119,10 @@ func NewFakeVM(cid string) *FakeVM {
 		cid:                   cid,
 		RunScriptErrors:       map[string]error{},
 	}
+}
+
+func (vm *FakeVM) MbusURL() string {
+	return vm.mbusURL
 }
 
 func (vm *FakeVM) CID() string {

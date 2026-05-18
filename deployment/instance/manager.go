@@ -2,6 +2,7 @@ package instance
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -36,55 +37,64 @@ type Manager interface {
 }
 
 type manager struct {
-	cloud            bicloud.Cloud
-	vmManager        bivm.Manager
-	blobstore        biblobstore.Blobstore
-	sshTunnelFactory bisshtunnel.Factory
-	instanceFactory  Factory
-	logger           boshlog.Logger
-	logTag           string
+	cloud                bicloud.Cloud
+	vmManager            bivm.Manager
+	blobstoreFactory     biblobstore.Factory
+	blobstoreHTTPClient  *http.Client
+	sshTunnelFactory     bisshtunnel.Factory
+	instanceFactory      Factory
+	logger               boshlog.Logger
+	logTag               string
 }
 
 func NewManager(
 	cloud bicloud.Cloud,
 	vmManager bivm.Manager,
-	blobstore biblobstore.Blobstore,
+	blobstoreFactory biblobstore.Factory,
+	blobstoreHTTPClient *http.Client,
 	sshTunnelFactory bisshtunnel.Factory,
 	instanceFactory Factory,
 	logger boshlog.Logger,
 ) Manager {
 	return &manager{
-		cloud:            cloud,
-		vmManager:        vmManager,
-		blobstore:        blobstore,
-		sshTunnelFactory: sshTunnelFactory,
-		instanceFactory:  instanceFactory,
-		logger:           logger,
-		logTag:           "vmDeployer",
+		cloud:               cloud,
+		vmManager:           vmManager,
+		blobstoreFactory:    blobstoreFactory,
+		blobstoreHTTPClient: blobstoreHTTPClient,
+		sshTunnelFactory:    sshTunnelFactory,
+		instanceFactory:     instanceFactory,
+		logger:              logger,
+		logTag:              "vmDeployer",
 	}
 }
 
 func (m *manager) FindCurrent() ([]Instance, error) {
 	instances := []Instance{}
 
-	// Only one current instance will exist (for now)
-	vm, found, err := m.vmManager.FindCurrent()
+	existingVMs, err := m.vmManager.FindAll()
 	if err != nil {
 		return instances, bosherr.WrapError(err, "Finding currently deployed instances")
 	}
 
-	if found {
-		// TODO: store the name of the job for each instance in the repo, so that we can print it when deleting
-		jobName := "unknown"
-		instanceID := 0
-
+	for _, existing := range existingVMs {
+		// For delete-only operations the stateBuilder inside the instance never
+		// uses the blobstore, so a nil blobstore is acceptable when no factory
+		// is available.
+		var blobstore biblobstore.Blobstore
+		if m.blobstoreFactory != nil {
+			var err error
+			blobstore, err = m.blobstoreFactory.Create(existing.VM.MbusURL(), m.blobstoreHTTPClient)
+			if err != nil {
+				return instances, bosherr.WrapErrorf(err, "Creating blobstore for instance '%s/%d'", existing.JobName, existing.InstanceID)
+			}
+		}
 		instance := m.instanceFactory.NewInstance(
-			jobName,
-			instanceID,
-			vm,
+			existing.JobName,
+			existing.InstanceID,
+			existing.VM,
 			m.vmManager,
 			m.sshTunnelFactory,
-			m.blobstore,
+			blobstore,
 			m.logger,
 		)
 		instances = append(instances, instance)
@@ -105,7 +115,7 @@ func (m *manager) Create(
 	stepName := fmt.Sprintf("Creating VM for instance '%s/%d' from stemcell '%s'", jobName, id, cloudStemcell.CID())
 	err := eventLoggerStage.Perform(stepName, func() error {
 		var err error
-		vm, err = m.vmManager.Create(cloudStemcell, deploymentManifest, diskCIDs)
+		vm, err = m.vmManager.Create(jobName, id, cloudStemcell, deploymentManifest, diskCIDs)
 		if err != nil {
 			return bosherr.WrapError(err, "Creating VM")
 		}
@@ -120,7 +130,13 @@ func (m *manager) Create(
 		return nil, []bidisk.Disk{}, err
 	}
 
-	instance := m.instanceFactory.NewInstance(jobName, id, vm, m.vmManager, m.sshTunnelFactory, m.blobstore, m.logger)
+	// Create a per-instance blobstore pointing to this VM's agent endpoint.
+	blobstore, err := m.blobstoreFactory.Create(vm.MbusURL(), m.blobstoreHTTPClient)
+	if err != nil {
+		return nil, []bidisk.Disk{}, bosherr.WrapErrorf(err, "Creating blobstore for instance '%s/%d'", jobName, id)
+	}
+
+	instance := m.instanceFactory.NewInstance(jobName, id, vm, m.vmManager, m.sshTunnelFactory, blobstore, m.logger)
 
 	if err := instance.WaitUntilReady(eventLoggerStage); err != nil {
 		return instance, []bidisk.Disk{}, bosherr.WrapError(err, "Waiting until instance is ready")

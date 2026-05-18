@@ -7,9 +7,11 @@ import (
 )
 
 type CreateInput struct {
-	Stemcell bistemcell.CloudStemcell
-	Manifest bideplmanifest.Manifest
-	DiskCIDs []string
+	JobName    string
+	InstanceID int
+	Stemcell   bistemcell.CloudStemcell
+	Manifest   bideplmanifest.Manifest
+	DiskCIDs   []string
 }
 
 type FakeManager struct {
@@ -17,38 +19,37 @@ type FakeManager struct {
 	CreateVM    bivm.VM
 	CreateErr   error
 
-	findCurrentBehaviour findCurrentOutput
+	findAllBehaviour findAllOutput
 }
 
-type findCurrentOutput struct {
-	vm    bivm.VM
-	found bool
-	err   error
+type findAllOutput struct {
+	vms []bivm.ExistingVM
+	err error
 }
 
 func NewFakeManager() *FakeManager {
 	return &FakeManager{}
 }
 
-func (m *FakeManager) FindCurrent() (bivm.VM, bool, error) {
-	return m.findCurrentBehaviour.vm, m.findCurrentBehaviour.found, m.findCurrentBehaviour.err
+func (m *FakeManager) FindAll() ([]bivm.ExistingVM, error) {
+	return m.findAllBehaviour.vms, m.findAllBehaviour.err
 }
 
-func (m *FakeManager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest, diskCIDs []string) (bivm.VM, error) {
-	input := CreateInput{
-		Stemcell: stemcell,
-		Manifest: deploymentManifest,
-		DiskCIDs: diskCIDs,
+func (m *FakeManager) Create(jobName string, instanceID int, stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest, diskCIDs []string) (bivm.VM, error) {
+	m.CreateInput = CreateInput{
+		JobName:    jobName,
+		InstanceID: instanceID,
+		Stemcell:   stemcell,
+		Manifest:   deploymentManifest,
+		DiskCIDs:   diskCIDs,
 	}
-	m.CreateInput = input
 
 	return m.CreateVM, m.CreateErr
 }
 
-func (m *FakeManager) SetFindCurrentBehavior(vm bivm.VM, found bool, err error) {
-	m.findCurrentBehaviour = findCurrentOutput{
-		vm:    vm,
-		found: found,
-		err:   err,
+func (m *FakeManager) SetFindAllBehavior(vms []bivm.ExistingVM, err error) {
+	m.findAllBehaviour = findAllOutput{
+		vms: vms,
+		err: err,
 	}
 }

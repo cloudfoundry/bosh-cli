@@ -111,6 +111,32 @@ func (s *fileSystemDeploymentStateService) initDefaults(deploymentState *Deploym
 		}
 	}
 
+	// Migrate legacy single-instance state: if CurrentVMCID is set but
+	// CurrentVMs is empty, synthesise a VMRecord so downstream code has a
+	// uniform view of VM state.
+	if deploymentState.CurrentVMCID != "" && len(deploymentState.CurrentVMs) == 0 {
+		id, err := s.uuidGenerator.Generate()
+		if err != nil {
+			return bosherr.WrapError(err, "Generating VM record ID during migration")
+		}
+		deploymentState.CurrentVMs = []VMRecord{
+			{
+				ID:            id,
+				JobName:       "unknown",
+				InstanceID:    0,
+				CID:           deploymentState.CurrentVMCID,
+				CurrentDiskID: deploymentState.CurrentDiskID,
+			},
+		}
+		deploymentState.CurrentVMCID = ""
+		deploymentState.CurrentDiskID = ""
+
+		err = s.Save(*deploymentState)
+		if err != nil {
+			return bosherr.WrapError(err, "Saving migrated deployment state")
+		}
+	}
+
 	return nil
 }
 

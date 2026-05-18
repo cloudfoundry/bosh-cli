@@ -244,20 +244,19 @@ func (c *DeploymentPreparer) deploy(
 		return err
 	}
 
-	agentClient, err := c.agentClientFactory.NewAgentClient(deploymentState.DirectorID, installationManifest.Mbus, installationManifest.Cert.CA)
-	if err != nil {
-		return err
-	}
-	vmManager := c.vmManagerFactory.NewManager(cloud, agentClient)
+	vmManager := c.vmManagerFactory.NewManager(
+		cloud,
+		c.agentClientFactory,
+		deploymentState.DirectorID,
+		installationManifest.Mbus,
+		installationManifest.Cert.CA,
+	)
 
 	certPool, err := installationManifest.Cert.CACertPool()
 	if err != nil {
 		return bosherr.WrapError(err, "Parsing CA certificate for blobstore client")
 	}
-	blobstore, err := c.blobstoreFactory.Create(installationManifest.Mbus, bihttpclient.CreateDefaultClient(certPool))
-	if err != nil {
-		return bosherr.WrapError(err, "Creating blobstore client")
-	}
+	blobstoreHTTPClient := bihttpclient.CreateDefaultClient(certPool)
 
 	err = stage.PerformComplex("deploying", func(deployStage biui.Stage) error {
 		err = c.deploymentRecord.Clear()
@@ -270,7 +269,8 @@ func (c *DeploymentPreparer) deploy(
 			deploymentManifest,
 			cloudStemcell,
 			vmManager,
-			blobstore,
+			c.blobstoreFactory,
+			blobstoreHTTPClient,
 			skipDrain,
 			c.extractDiskCIDsFromState(deploymentState),
 			deployStage,
@@ -308,12 +308,16 @@ func (c *DeploymentPreparer) stemcellApiVersion(stemcell bistemcell.ExtractedSte
 	return stemcellApiVersion
 }
 
-// These disk CIDs get passed all the way to the create_vm cpi call
+// extractDiskCIDsFromState returns the CIDs of all disks in state.
+// These are passed to the CPI's create_vm call as placement hints so the
+// hypervisor can co-locate the new VM near its existing disks.
+// All disks are included (both VM-associated and orphaned) so that failed
+// disk-migration scenarios (where an unattached disk is still in state) are
+// handled correctly.
 func (c *DeploymentPreparer) extractDiskCIDsFromState(deploymentState biconfig.DeploymentState) []string {
-	diskCIDs := make([]string, 0)
+	diskCIDs := make([]string, 0, len(deploymentState.Disks))
 	for _, disk := range deploymentState.Disks {
 		diskCIDs = append(diskCIDs, disk.CID)
 	}
-
 	return diskCIDs
 }

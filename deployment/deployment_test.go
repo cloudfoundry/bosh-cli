@@ -5,6 +5,7 @@ import (
 
 	biagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
 	bias "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
+	mock_httpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -44,14 +45,16 @@ var _ = Describe("Deployment", func() {
 		diskRepo               biconfig.DiskRepo
 		stemcellRepo           biconfig.StemcellRepo
 
-		mockCloud       *mockcloud.MockCloud
-		mockAgentClient *mockagentclient.MockAgentClient
+		mockCloud              *mockcloud.MockCloud
+		mockAgentClient        *mockagentclient.MockAgentClient
+		mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
 
 		mockStateBuilderFactory *mockinstancestate.MockBuilderFactory
 		mockStateBuilder        *mockinstancestate.MockBuilder
 		mockState               *mockinstancestate.MockState
 
-		mockBlobstore *mockblobstore.MockBlobstore
+		mockBlobstore        *mockblobstore.MockBlobstore
+		mockBlobstoreFactory *mockblobstore.MockFactory
 
 		fakeStage *fakebiui.FakeStage
 
@@ -98,12 +101,14 @@ var _ = Describe("Deployment", func() {
 		deploymentStateService = biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/deployment.json")
 
 		fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
-		vmRepo = biconfig.NewVMRepo(deploymentStateService)
+		vmRepo = biconfig.NewVMRepo(deploymentStateService, fakeRepoUUIDGenerator)
 		diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeRepoUUIDGenerator)
 		stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeRepoUUIDGenerator)
 
 		mockCloud = mockcloud.NewMockCloud(mockCtrl)
 		mockAgentClient = mockagentclient.NewMockAgentClient(mockCtrl)
+		mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
+		mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any(), gomock.Any()).Return(mockAgentClient, nil).AnyTimes()
 
 		fakeStage = fakebiui.NewFakeStage()
 
@@ -131,9 +136,11 @@ var _ = Describe("Deployment", func() {
 		stemcellManagerFactory := bistemcell.NewManagerFactory(stemcellRepo)
 
 		mockBlobstore = mockblobstore.NewMockBlobstore(mockCtrl)
+		mockBlobstoreFactory = mockblobstore.NewMockFactory(mockCtrl)
+		mockBlobstoreFactory.EXPECT().Create(gomock.Any(), gomock.Any()).Return(mockBlobstore, nil).AnyTimes()
 
 		deploymentManagerFactory := NewManagerFactory(vmManagerFactory, instanceManagerFactory, diskManagerFactory, stemcellManagerFactory, deploymentFactory)
-		deploymentManager := deploymentManagerFactory.NewManager(mockCloud, mockAgentClient, mockBlobstore)
+		deploymentManager := deploymentManagerFactory.NewManager(mockCloud, mockAgentClientFactory, "fake-director-id", "", "", mockBlobstoreFactory, nil)
 
 		allowApplySpecToBeCreated()
 
@@ -246,13 +253,13 @@ var _ = Describe("Deployment", func() {
 				err := deployment.Delete(skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				_, found, err := vmRepo.FindCurrent()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeFalse(), "should be no current VM")
+			activeVMs, err := vmRepo.FindAll()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(activeVMs).To(BeEmpty(), "should be no current VM")
 
-				_, found, err = diskRepo.FindCurrent()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(found).To(BeFalse(), "should be no current disk")
+			_, found, err := diskRepo.FindCurrentForVM("fake-vm-cid")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeFalse(), "should be no current disk")
 
 				diskRecords, err := diskRepo.All()
 				Expect(err).ToNot(HaveOccurred())
@@ -338,7 +345,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				err := deploymentStateService.Save(biconfig.DeploymentState{})
 				Expect(err).ToNot(HaveOccurred())
-				err = vmRepo.UpdateCurrent("fake-vm-cid")
+				_, err = vmRepo.Save("unknown", 0, "fake-vm-cid", "")
 				Expect(err).ToNot(HaveOccurred())
 
 				expectHasVM = mockCloud.EXPECT().HasVM("fake-vm-cid").Return(true, nil)
@@ -390,7 +397,13 @@ var _ = Describe("Deployment", func() {
 				Expect(err).ToNot(HaveOccurred())
 				diskRecord, err := diskRepo.Save("fake-disk-cid", 100, nil)
 				Expect(err).ToNot(HaveOccurred())
-				err = diskRepo.UpdateCurrent(diskRecord.ID)
+				// Create a VM record so we can associate the disk with it,
+				// then delete the VM CID to simulate "disk exists without active VM".
+				_, err = vmRepo.Save("unknown", 0, "temp-vm-for-disk-test", "")
+				Expect(err).ToNot(HaveOccurred())
+				err = diskRepo.UpdateCurrentForVM("temp-vm-for-disk-test", diskRecord.ID)
+				Expect(err).ToNot(HaveOccurred())
+				err = vmRepo.Delete("temp-vm-for-disk-test")
 				Expect(err).ToNot(HaveOccurred())
 			})
 

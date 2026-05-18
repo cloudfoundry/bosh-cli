@@ -1,6 +1,7 @@
 package deployment
 
 import (
+	"net/http"
 	"time"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
@@ -22,7 +23,8 @@ type Deployer interface {
 		deploymentManifest bideplmanifest.Manifest,
 		cloudStemcell bistemcell.CloudStemcell,
 		vmManager bivm.Manager,
-		blobstore biblobstore.Blobstore,
+		blobstoreFactory biblobstore.Factory,
+		blobstoreHTTPClient *http.Client,
 		skipDrain bool,
 		diskCIDs []string,
 		deployStage biui.Stage,
@@ -57,12 +59,13 @@ func (d *deployer) Deploy(
 	deploymentManifest bideplmanifest.Manifest,
 	cloudStemcell bistemcell.CloudStemcell,
 	vmManager bivm.Manager,
-	blobstore biblobstore.Blobstore,
+	blobstoreFactory biblobstore.Factory,
+	blobstoreHTTPClient *http.Client,
 	skipDrain bool,
 	diskCIDs []string,
 	deployStage biui.Stage,
 ) (Deployment, error) {
-	instanceManager := d.instanceManagerFactory.NewManager(cloud, vmManager, blobstore)
+	instanceManager := d.instanceManagerFactory.NewManager(cloud, vmManager, blobstoreFactory, blobstoreHTTPClient)
 
 	pingTimeout := 10 * time.Second
 	pingDelay := 500 * time.Millisecond
@@ -94,9 +97,6 @@ func (d *deployer) createAllInstances(
 	}
 
 	for _, jobSpec := range deploymentManifest.Jobs {
-		if jobSpec.Instances != 1 {
-			return instances, disks, bosherr.Errorf("Job '%s' must have only one instance, found %d", jobSpec.Name, jobSpec.Instances)
-		}
 		for instanceID := 0; instanceID < jobSpec.Instances; instanceID++ {
 			instance, instanceDisks, err := instanceManager.Create(jobSpec.Name, instanceID, deploymentManifest, cloudStemcell, diskCIDs, deployStage)
 			if err != nil {

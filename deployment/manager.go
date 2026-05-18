@@ -41,7 +41,7 @@ func (m *manager) FindCurrent() (deployment Deployment, found bool, err error) {
 		return nil, false, bosherr.WrapError(err, "Finding current deployment instances")
 	}
 
-	disks, err := m.diskManager.FindCurrent()
+	disks, err := m.diskManager.FindAllCurrent()
 	if err != nil {
 		return nil, false, bosherr.WrapError(err, "Finding current deployment disks")
 	}

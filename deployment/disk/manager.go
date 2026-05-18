@@ -14,7 +14,12 @@ import (
 )
 
 type Manager interface {
-	FindCurrent() ([]Disk, error)
+	// FindAllCurrent returns all disks currently associated with any VM in state.
+	// Used by the deployment-level manager when collecting resources to delete.
+	FindAllCurrent() ([]Disk, error)
+	// FindCurrentForVM returns the disk currently associated with a specific VM.
+	// Used by the disk deployer when deploying/attaching disks.
+	FindCurrentForVM(vmCID string) ([]Disk, error)
 	Create(bideplmanifest.DiskPool, string) (Disk, error)
 	FindUnused() ([]Disk, error)
 	DeleteUnused(biui.Stage) error
@@ -40,10 +45,35 @@ type manager struct {
 	logTag   string
 }
 
-func (m *manager) FindCurrent() ([]Disk, error) {
+func (m *manager) FindAllCurrent() ([]Disk, error) {
+	allRecords, err := m.diskRepo.All()
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Getting all disk records")
+	}
+
+	unusedRecords, err := m.diskRepo.FindUnused()
+	if err != nil {
+		return nil, bosherr.WrapError(err, "Getting unused disk records")
+	}
+
+	unusedIDs := map[string]bool{}
+	for _, r := range unusedRecords {
+		unusedIDs[r.ID] = true
+	}
+
+	var disks []Disk
+	for _, r := range allRecords {
+		if !unusedIDs[r.ID] {
+			disks = append(disks, NewDisk(r, m.cloud, m.diskRepo))
+		}
+	}
+	return disks, nil
+}
+
+func (m *manager) FindCurrentForVM(vmCID string) ([]Disk, error) {
 	disks := []Disk{}
 
-	diskRecord, found, err := m.diskRepo.FindCurrent()
+	diskRecord, found, err := m.diskRepo.FindCurrentForVM(vmCID)
 	if err != nil {
 		return disks, bosherr.WrapError(err, "Reading disk record")
 	}
@@ -82,20 +112,13 @@ func (m *manager) Create(diskPool bideplmanifest.DiskPool, vmCID string) (Disk, 
 func (m *manager) FindUnused() ([]Disk, error) {
 	disks := []Disk{}
 
-	diskRecords, err := m.diskRepo.All()
+	diskRecords, err := m.diskRepo.FindUnused()
 	if err != nil {
-		return disks, bosherr.WrapError(err, "Getting all disk records")
-	}
-
-	currentDiskRecord, found, err := m.diskRepo.FindCurrent()
-	if err != nil {
-		return disks, bosherr.WrapError(err, "Finding current disk record")
+		return disks, bosherr.WrapError(err, "Getting unused disk records")
 	}
 
 	for _, diskRecord := range diskRecords {
-		if !found || diskRecord.ID != currentDiskRecord.ID {
-			disks = append(disks, NewDisk(diskRecord, m.cloud, m.diskRepo))
-		}
+		disks = append(disks, NewDisk(diskRecord, m.cloud, m.diskRepo))
 	}
 
 	return disks, nil

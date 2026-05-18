@@ -47,7 +47,8 @@ var _ = Describe("Manager", func() {
 		mockStateBuilder        *mock_instance_state.MockBuilder
 		mockState               *mock_instance_state.MockState
 
-		mockBlobstore *mock_blobstore.MockBlobstore
+		mockBlobstore        *mock_blobstore.MockBlobstore
+		mockBlobstoreFactory *mock_blobstore.MockFactory
 
 		fakeVMManager        *fakebivm.FakeManager
 		fakeSSHTunnelFactory *fakebisshtunnel.FakeFactory
@@ -76,6 +77,8 @@ var _ = Describe("Manager", func() {
 		instanceFactory = NewFactory(mockStateBuilderFactory)
 
 		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+		mockBlobstoreFactory = mock_blobstore.NewMockFactory(mockCtrl)
+		mockBlobstoreFactory.EXPECT().Create(gomock.Any(), gomock.Any()).Return(mockBlobstore, nil).AnyTimes()
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
@@ -84,7 +87,8 @@ var _ = Describe("Manager", func() {
 		manager = NewManager(
 			fakeCloud,
 			fakeVMManager,
-			mockBlobstore,
+			mockBlobstoreFactory,
+			nil,
 			fakeSSHTunnelFactory,
 			instanceFactory,
 			logger,
@@ -203,11 +207,13 @@ var _ = Describe("Manager", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(instance).To(Equal(expectedInstance))
 
-			Expect(fakeVMManager.CreateInput).To(Equal(fakebivm.CreateInput{
-				Stemcell: fakeCloudStemcell,
-				Manifest: deploymentManifest,
-				DiskCIDs: diskCIDs,
-			}))
+		Expect(fakeVMManager.CreateInput).To(Equal(fakebivm.CreateInput{
+			JobName:    "fake-job-name",
+			InstanceID: 0,
+			Stemcell:   fakeCloudStemcell,
+			Manifest:   deploymentManifest,
+			DiskCIDs:   diskCIDs,
+		}))
 		})
 
 		It("updates the current stemcell", func() {

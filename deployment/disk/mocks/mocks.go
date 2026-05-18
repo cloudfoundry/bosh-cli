@@ -132,19 +132,34 @@ func (mr *MockManagerMockRecorder) DeleteUnused(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUnused", reflect.TypeOf((*MockManager)(nil).DeleteUnused), arg0)
 }
 
-// FindCurrent mocks base method.
-func (m *MockManager) FindCurrent() ([]disk.Disk, error) {
+// FindAllCurrent mocks base method.
+func (m *MockManager) FindAllCurrent() ([]disk.Disk, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindCurrent")
+	ret := m.ctrl.Call(m, "FindAllCurrent")
 	ret0, _ := ret[0].([]disk.Disk)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindCurrent indicates an expected call of FindCurrent.
-func (mr *MockManagerMockRecorder) FindCurrent() *gomock.Call {
+// FindAllCurrent indicates an expected call of FindAllCurrent.
+func (mr *MockManagerMockRecorder) FindAllCurrent() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindCurrent", reflect.TypeOf((*MockManager)(nil).FindCurrent))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllCurrent", reflect.TypeOf((*MockManager)(nil).FindAllCurrent))
+}
+
+// FindCurrentForVM mocks base method.
+func (m *MockManager) FindCurrentForVM(arg0 string) ([]disk.Disk, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindCurrentForVM", arg0)
+	ret0, _ := ret[0].([]disk.Disk)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindCurrentForVM indicates an expected call of FindCurrentForVM.
+func (mr *MockManagerMockRecorder) FindCurrentForVM(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindCurrentForVM", reflect.TypeOf((*MockManager)(nil).FindCurrentForVM), arg0)
 }
 
 // FindUnused mocks base method.

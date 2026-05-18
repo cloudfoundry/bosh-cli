@@ -43,7 +43,7 @@ func (d *diskDeployer) Deploy(diskPool bideplmanifest.DiskPool, cloud bicloud.Cl
 	}
 
 	d.diskManager = d.diskManagerFactory.NewManager(cloud)
-	disks, err := d.diskManager.FindCurrent()
+	disks, err := d.diskManager.FindCurrentForVM(vm.CID())
 	if err != nil {
 		return disks, bosherr.WrapError(err, "Finding existing disk")
 	}
@@ -117,7 +117,7 @@ func (d *diskDeployer) deployNewDisk(diskPool bideplmanifest.DiskPool, vm VM, st
 	// once attached, the disk is part of the deployment
 	disks = append(disks, disk)
 
-	err = d.updateCurrentDiskRecord(disk)
+	err = d.updateCurrentDiskRecord(vm.CID(), disk)
 	if err != nil {
 		return disks, err
 	}
@@ -157,7 +157,7 @@ func (d *diskDeployer) migrateDisk(
 		return newDisk, err
 	}
 
-	err = d.updateCurrentDiskRecord(newDisk)
+	err = d.updateCurrentDiskRecord(vm.CID(), newDisk)
 	if err != nil {
 		return newDisk, err
 	}
@@ -181,7 +181,7 @@ func (d *diskDeployer) migrateDisk(
 	return newDisk, nil
 }
 
-func (d *diskDeployer) updateCurrentDiskRecord(disk bidisk.Disk) error {
+func (d *diskDeployer) updateCurrentDiskRecord(vmCID string, disk bidisk.Disk) error {
 	savedDiskRecord, found, err := d.diskRepo.Find(disk.CID())
 	if err != nil {
 		return bosherr.WrapError(err, "Finding disk record")
@@ -191,7 +191,7 @@ func (d *diskDeployer) updateCurrentDiskRecord(disk bidisk.Disk) error {
 		return bosherr.Error("Failed to find disk record for new disk")
 	}
 
-	err = d.diskRepo.UpdateCurrent(savedDiskRecord.ID)
+	err = d.diskRepo.UpdateCurrentForVM(vmCID, savedDiskRecord.ID)
 	if err != nil {
 		return bosherr.WrapError(err, "Updating current disk record")
 	}

@@ -65,6 +65,7 @@ var _ = Describe("VM", func() {
 		fakeDiskDeployer = fakebivm.NewFakeDiskDeployer()
 		vm = NewVM(
 			"fake-vm-cid",
+			"",
 			fakeVMRepo,
 			fakeStemcellRepo,
 			fakeDiskDeployer,
@@ -287,6 +288,7 @@ var _ = Describe("VM", func() {
 			}
 			vm = NewVMWithMetadata(
 				"fake-vm-cid",
+				"",
 				fakeVMRepo,
 				fakeStemcellRepo,
 				fakeDiskDeployer,
@@ -587,7 +589,7 @@ var _ = Describe("VM", func() {
 		It("deletes VM in the vm repo", func() {
 			err := vm.Delete()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeVMRepo.ClearCurrentCalled).To(BeTrue())
+			Expect(fakeVMRepo.DeleteInputs).To(ContainElement("fake-vm-cid"))
 		})
 
 		It("clears current stemcell in the stemcell repo", func() {
@@ -631,7 +633,7 @@ var _ = Describe("VM", func() {
 				err := vm.Delete()
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(Equal(deleteErr))
-				Expect(fakeVMRepo.ClearCurrentCalled).To(BeTrue())
+				Expect(fakeVMRepo.DeleteInputs).To(ContainElement("fake-vm-cid"))
 			})
 
 			It("clears current stemcell in the stemcell repo", func() {

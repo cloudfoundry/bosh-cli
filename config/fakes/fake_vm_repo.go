@@ -1,43 +1,83 @@
 package fakes
 
+import (
+	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
+)
+
 type FakeVMRepo struct {
-	UpdateCurrentCID string
-	UpdateCurrentErr error
+	SaveInputs  []VMRepoSaveInput
+	SaveOutput  VMRepoSaveOutput
+	SaveErr     error
 
-	ClearCurrentCalled bool
-	ClearCurrentErr    error
+	UpdateCurrentDiskInputs []VMRepoUpdateCurrentDiskInput
+	UpdateCurrentDiskErr    error
 
-	findCurrentOutput vmRepoFindCurrentOutput
+	DeleteInputs []string
+	DeleteErr    error
+
+	ClearAllCalled bool
+	ClearAllErr    error
+
+	findAllOutput vmRepoFindAllOutput
 }
 
-type vmRepoFindCurrentOutput struct {
-	cid   string
-	found bool
-	err   error
+type VMRepoSaveInput struct {
+	JobName    string
+	InstanceID int
+	CID        string
+	MbusURL    string
+}
+
+type VMRepoSaveOutput struct {
+	Record biconfig.VMRecord
+}
+
+type VMRepoUpdateCurrentDiskInput struct {
+	VMCID  string
+	DiskID string
+}
+
+type vmRepoFindAllOutput struct {
+	records []biconfig.VMRecord
+	err     error
 }
 
 func NewFakeVMRepo() *FakeVMRepo {
 	return &FakeVMRepo{}
 }
 
-func (r *FakeVMRepo) FindCurrent() (cid string, found bool, err error) {
-	return r.findCurrentOutput.cid, r.findCurrentOutput.found, r.findCurrentOutput.err
+func (r *FakeVMRepo) FindAll() ([]biconfig.VMRecord, error) {
+	return r.findAllOutput.records, r.findAllOutput.err
 }
 
-func (r *FakeVMRepo) SetFindCurrentBehavior(cid string, found bool, err error) {
-	r.findCurrentOutput = vmRepoFindCurrentOutput{
-		cid:   cid,
-		found: found,
-		err:   err,
-	}
+func (r *FakeVMRepo) SetFindAllBehavior(records []biconfig.VMRecord, err error) {
+	r.findAllOutput = vmRepoFindAllOutput{records: records, err: err}
 }
 
-func (r *FakeVMRepo) UpdateCurrent(cid string) error {
-	r.UpdateCurrentCID = cid
-	return r.UpdateCurrentErr
+func (r *FakeVMRepo) Save(jobName string, instanceID int, cid string, mbusURL string) (biconfig.VMRecord, error) {
+	r.SaveInputs = append(r.SaveInputs, VMRepoSaveInput{
+		JobName:    jobName,
+		InstanceID: instanceID,
+		CID:        cid,
+		MbusURL:    mbusURL,
+	})
+	return r.SaveOutput.Record, r.SaveErr
 }
 
-func (r *FakeVMRepo) ClearCurrent() error {
-	r.ClearCurrentCalled = true
-	return r.ClearCurrentErr
+func (r *FakeVMRepo) UpdateCurrentDisk(vmCID string, diskID string) error {
+	r.UpdateCurrentDiskInputs = append(r.UpdateCurrentDiskInputs, VMRepoUpdateCurrentDiskInput{
+		VMCID:  vmCID,
+		DiskID: diskID,
+	})
+	return r.UpdateCurrentDiskErr
+}
+
+func (r *FakeVMRepo) Delete(vmCID string) error {
+	r.DeleteInputs = append(r.DeleteInputs, vmCID)
+	return r.DeleteErr
+}
+
+func (r *FakeVMRepo) ClearAll() error {
+	r.ClearAllCalled = true
+	return r.ClearAllErr
 }
