@@ -37,9 +37,9 @@ var _ = Describe("VMRepo", func() {
 
 		Context("when VMs have been saved", func() {
 			BeforeEach(func() {
-				_, err := repo.Save("nats", 0, "vm-cid-0", "https://user:pass@10.0.0.1:6868")
+				_, err := repo.Save("nats", 0, "vm-cid-0", "10.0.0.1")
 				Expect(err).ToNot(HaveOccurred())
-				_, err = repo.Save("nats", 1, "vm-cid-1", "https://user:pass@10.0.0.2:6868")
+				_, err = repo.Save("nats", 1, "vm-cid-1", "10.0.0.2")
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -50,7 +50,7 @@ var _ = Describe("VMRepo", func() {
 				Expect(records[0].CID).To(Equal("vm-cid-0"))
 				Expect(records[0].JobName).To(Equal("nats"))
 				Expect(records[0].InstanceID).To(Equal(0))
-				Expect(records[0].MbusURL).To(Equal("https://user:pass@10.0.0.1:6868"))
+				Expect(records[0].StaticIP).To(Equal("10.0.0.1"))
 				Expect(records[1].CID).To(Equal("vm-cid-1"))
 				Expect(records[1].InstanceID).To(Equal(1))
 			})
@@ -59,7 +59,7 @@ var _ = Describe("VMRepo", func() {
 
 	Describe("Save", func() {
 		It("saves a new VM record", func() {
-			record, err := repo.Save("nats", 0, "vm-cid-0", "https://user:pass@10.0.0.1:6868")
+			record, err := repo.Save("nats", 0, "vm-cid-0", "10.0.0.1")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(record.CID).To(Equal("vm-cid-0"))
 			Expect(record.JobName).To(Equal("nats"))
@@ -74,7 +74,7 @@ var _ = Describe("VMRepo", func() {
 		Context("when a pending record (no CID) exists for the same instance", func() {
 			BeforeEach(func() {
 				// Save then delete to leave a pending record with disk.
-				_, err := repo.Save("nats", 0, "vm-cid-0", "https://user:pass@10.0.0.1:6868")
+				_, err := repo.Save("nats", 0, "vm-cid-0", "10.0.0.1")
 				Expect(err).ToNot(HaveOccurred())
 				err = repo.UpdateCurrentDisk("vm-cid-0", "disk-uuid-1")
 				Expect(err).ToNot(HaveOccurred())
@@ -89,7 +89,7 @@ var _ = Describe("VMRepo", func() {
 				Expect(deploymentState.CurrentVMs[0].CID).To(BeEmpty())
 				Expect(deploymentState.CurrentVMs[0].CurrentDiskID).To(Equal("disk-uuid-1"))
 
-				record, err := repo.Save("nats", 0, "vm-cid-new", "https://user:pass@10.0.0.1:6868")
+				record, err := repo.Save("nats", 0, "vm-cid-new", "10.0.0.1")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(record.CID).To(Equal("vm-cid-new"))
 				Expect(record.CurrentDiskID).To(Equal("disk-uuid-1"))
@@ -143,13 +143,13 @@ var _ = Describe("VMRepo", func() {
 
 		Context("when the VM has an associated disk", func() {
 			BeforeEach(func() {
-				_, err := repo.Save("nats", 0, "vm-cid-0", "https://user:pass@10.0.0.1:6868")
+				_, err := repo.Save("nats", 0, "vm-cid-0", "10.0.0.1")
 				Expect(err).ToNot(HaveOccurred())
 				err = repo.UpdateCurrentDisk("vm-cid-0", "disk-uuid-1")
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("keeps the record (with disk) but clears CID and MbusURL", func() {
+			It("keeps the record (with disk) but clears CID and StaticIP", func() {
 				err := repo.Delete("vm-cid-0")
 				Expect(err).ToNot(HaveOccurred())
 
@@ -157,7 +157,7 @@ var _ = Describe("VMRepo", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(deploymentState.CurrentVMs).To(HaveLen(1))
 				Expect(deploymentState.CurrentVMs[0].CID).To(BeEmpty())
-				Expect(deploymentState.CurrentVMs[0].MbusURL).To(BeEmpty())
+				Expect(deploymentState.CurrentVMs[0].StaticIP).To(BeEmpty())
 				Expect(deploymentState.CurrentVMs[0].CurrentDiskID).To(Equal("disk-uuid-1"))
 			})
 

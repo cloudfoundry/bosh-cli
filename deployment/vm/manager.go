@@ -89,8 +89,16 @@ func (m *manager) FindAll() ([]ExistingVM, error) {
 
 	var existingVMs []ExistingVM
 	for _, record := range records {
-		mbusURL := record.MbusURL
-		if mbusURL == "" {
+		// Reconstruct the per-instance mbus URL from the stored static IP. When
+		// no static IP is present (dynamic networking / single-instance), the base
+		// URL is used unchanged.
+		var mbusURL string
+		if record.StaticIP != "" {
+			mbusURL, err = replaceHost(m.mbusURL, record.StaticIP)
+			if err != nil {
+				return nil, bosherr.WrapErrorf(err, "Reconstructing mbus URL for VM '%s'", record.CID)
+			}
+		} else {
 			mbusURL = m.mbusURL
 		}
 		agentClient, err := m.agentClientFactory.NewAgentClient(m.directorID, mbusURL, m.caCert)
@@ -146,9 +154,16 @@ func (m *manager) Create(jobName string, instanceID int, stemcell bistemcell.Clo
 	}
 
 	// Derive the per-instance mbus URL from the static IP for this instance.
-	instanceMbusURL, err := m.agentMbusForInstance(jobName, instanceID, deploymentManifest)
-	if err != nil {
-		return nil, bosherr.WrapError(err, "Deriving per-instance mbus URL")
+	// When no static IP is configured (dynamic networking), the base URL is used.
+	staticIP := m.staticIPForInstance(jobName, instanceID, deploymentManifest)
+	var instanceMbusURL string
+	if staticIP != "" {
+		instanceMbusURL, err = replaceHost(m.mbusURL, staticIP)
+		if err != nil {
+			return nil, bosherr.WrapError(err, "Deriving per-instance mbus URL")
+		}
+	} else {
+		instanceMbusURL = m.mbusURL
 	}
 
 	agentClient, err := m.agentClientFactory.NewAgentClient(m.directorID, instanceMbusURL, m.caCert)
@@ -156,7 +171,7 @@ func (m *manager) Create(jobName string, instanceID int, stemcell bistemcell.Clo
 		return nil, bosherr.WrapErrorf(err, "Creating agent client for instance '%s/%d'", jobName, instanceID)
 	}
 
-	cid, err := m.createAndRecordVM(agentID, stemcell, resourcePool, diskCIDs, networkInterfaces, jobName, instanceID, instanceMbusURL)
+	cid, err := m.createAndRecordVM(agentID, stemcell, resourcePool, diskCIDs, networkInterfaces, jobName, instanceID, staticIP)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +226,7 @@ func (m *manager) createAndRecordVM(
 	networkInterfaces map[string]biproperty.Map,
 	jobName string,
 	instanceID int,
-	mbusURL string,
+	staticIP string,
 ) (string, error) {
 	cid, err := m.cloud.CreateVM(agentID, stemcell.CID(), resourcePool.CloudProperties, diskCIDs, networkInterfaces, resourcePool.Env)
 	if err != nil {
@@ -219,24 +234,12 @@ func (m *manager) createAndRecordVM(
 	}
 
 	// Record vm info immediately so we don't leak it.
-	_, err = m.vmRepo.Save(jobName, instanceID, cid, mbusURL)
+	_, err = m.vmRepo.Save(jobName, instanceID, cid, staticIP)
 	if err != nil {
 		return "", bosherr.WrapError(err, "Saving vm record")
 	}
 
 	return cid, nil
-}
-
-// agentMbusForInstance derives the per-instance agent mbus URL.
-// It substitutes the instance's static IP (at index instanceID) into the base
-// mbus URL from cloud_provider. When no static IPs are configured (dynamic
-// networking), the base mbus URL is returned unchanged for backward compatibility.
-func (m *manager) agentMbusForInstance(jobName string, instanceID int, deploymentManifest bideplmanifest.Manifest) (string, error) {
-	staticIP := m.staticIPForInstance(jobName, instanceID, deploymentManifest)
-	if staticIP == "" {
-		return m.mbusURL, nil
-	}
-	return replaceHost(m.mbusURL, staticIP)
 }
 
 func (m *manager) staticIPForInstance(jobName string, instanceID int, deploymentManifest bideplmanifest.Manifest) string {

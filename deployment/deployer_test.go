@@ -174,7 +174,7 @@ var _ = Describe("Deployer", func() {
 		mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 	})
 
-	Context("when a previous instance exists", func() {
+	Context("when a stale instance exists (different job name, not in manifest)", func() {
 		var fakeExistingVM *fakebivm.FakeVM
 
 		BeforeEach(func() {
@@ -183,13 +183,18 @@ var _ = Describe("Deployer", func() {
 			fakeExistingVM.AgentClientReturn = mockAgentClient
 		})
 
-		It("deletes existing vm", func() {
+		It("creates the new instance first, then deletes the stale instance", func() {
 			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeExistingVM.DeleteCalled).To(Equal(1))
 
-			Expect(fakeStage.PerformCalls[:6]).To(Equal([]*fakebiui.PerformCall{
+			// New instance is created and configured before the stale instance is removed.
+			Expect(fakeStage.PerformCalls[0].Name).To(Equal("Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'"))
+
+			// Stale deletion comes after the new VM is up.
+			staleDeleteCalls := fakeStage.PerformCalls[5:]
+			Expect(staleDeleteCalls[:6]).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Waiting for the agent on VM 'existing-vm-cid'"},
 				{Name: "Running the pre-stop scripts 'unknown/0'"},
 				{Name: "Draining jobs on instance 'unknown/0'"},
@@ -200,14 +205,15 @@ var _ = Describe("Deployer", func() {
 		})
 
 		Context("when skip-drain is specified", func() {
-			It("skips draining", func() {
+			It("skips draining of the stale instance", func() {
 				skipDrain = true
 				_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeExistingVM.DeleteCalled).To(Equal(1))
 
-				Expect(fakeStage.PerformCalls[:5]).To(Equal([]*fakebiui.PerformCall{
+				staleDeleteCalls := fakeStage.PerformCalls[5:]
+				Expect(staleDeleteCalls[:5]).To(Equal([]*fakebiui.PerformCall{
 					{Name: "Waiting for the agent on VM 'existing-vm-cid'"},
 					{Name: "Running the pre-stop scripts 'unknown/0'"},
 					{Name: "Stopping jobs on instance 'unknown/0'"},
@@ -215,6 +221,37 @@ var _ = Describe("Deployer", func() {
 					{Name: "Deleting VM 'existing-vm-cid'"},
 				}))
 			})
+		})
+	})
+
+	Context("when an existing instance matches the desired job/id (in-place rolling update)", func() {
+		var fakeExistingVM *fakebivm.FakeVM
+
+		BeforeEach(func() {
+			fakeExistingVM = fakebivm.NewFakeVM("existing-vm-cid")
+			// Same job name and instance ID as what the manifest will deploy.
+			fakeVMManager.SetFindAllBehavior([]bivm.ExistingVM{{VM: fakeExistingVM, JobName: "fake-job-name", InstanceID: 0}}, nil)
+			fakeExistingVM.AgentClientReturn = mockAgentClient
+		})
+
+		It("deletes the old instance before creating the new one", func() {
+			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeExistingVM.DeleteCalled).To(Equal(1))
+
+			// Old instance shutdown/delete comes first.
+			Expect(fakeStage.PerformCalls[:6]).To(Equal([]*fakebiui.PerformCall{
+				{Name: "Waiting for the agent on VM 'existing-vm-cid'"},
+				{Name: "Running the pre-stop scripts 'fake-job-name/0'"},
+				{Name: "Draining jobs on instance 'fake-job-name/0'"},
+				{Name: "Stopping jobs on instance 'fake-job-name/0'"},
+				{Name: "Running the post-stop scripts 'fake-job-name/0'"},
+				{Name: "Deleting VM 'existing-vm-cid'"},
+			}))
+
+			// New instance creation follows.
+			Expect(fakeStage.PerformCalls[6].Name).To(Equal("Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'"))
 		})
 	})
 

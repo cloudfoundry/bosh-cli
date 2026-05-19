@@ -264,7 +264,7 @@ var _ = Describe("Manager", func() {
 			})
 		})
 
-		It("saves the vm record with the correct CID", func() {
+		It("saves the vm record with the correct CID and static IP", func() {
 			_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -272,6 +272,7 @@ var _ = Describe("Manager", func() {
 			Expect(fakeVMRepo.SaveInputs[0].CID).To(Equal("fake-vm-cid"))
 			Expect(fakeVMRepo.SaveInputs[0].JobName).To(Equal("fake-job"))
 			Expect(fakeVMRepo.SaveInputs[0].InstanceID).To(Equal(0))
+			Expect(fakeVMRepo.SaveInputs[0].StaticIP).To(Equal("fake-ip"))
 		})
 
 		Context("when setting vm metadata fails", func() {

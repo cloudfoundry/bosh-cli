@@ -19,14 +19,14 @@ type DeploymentState struct {
 }
 
 // VMRecord stores per-instance VM state: cloud identity, disk association, and
-// the per-instance mbus URL used to reach the agent.
+// the static IP used to reconstruct the per-instance agent mbus URL at runtime.
 type VMRecord struct {
 	ID            string `json:"id"`
 	JobName       string `json:"job_name"`
 	InstanceID    int    `json:"instance_id"`
 	CID           string `json:"cid,omitempty"`
 	CurrentDiskID string `json:"current_disk_id,omitempty"`
-	MbusURL       string `json:"mbus_url,omitempty"`
+	StaticIP      string `json:"static_ip,omitempty"`
 }
 
 type StemcellRecord struct {

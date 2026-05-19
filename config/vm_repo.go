@@ -12,7 +12,7 @@ type VMRepo interface {
 	// Save records a newly-created VM. If a pending record (CID == "") with the
 	// same JobName+InstanceID already exists (left by a previous deletion that
 	// preserved disk association), it is reused; otherwise a new record is appended.
-	Save(jobName string, instanceID int, cid string, mbusURL string) (VMRecord, error)
+	Save(jobName string, instanceID int, cid string, staticIP string) (VMRecord, error)
 	UpdateCurrentDisk(vmCID string, diskID string) error
 	// Delete removes the VMRecord for vmCID.  When the record holds a
 	// CurrentDiskID the disk association is preserved: the record's CID and
@@ -49,7 +49,7 @@ func (r vMRepo) FindAll() ([]VMRecord, error) {
 	return active, nil
 }
 
-func (r vMRepo) Save(jobName string, instanceID int, cid string, mbusURL string) (VMRecord, error) {
+func (r vMRepo) Save(jobName string, instanceID int, cid string, staticIP string) (VMRecord, error) {
 	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return VMRecord{}, bosherr.WrapError(err, "Loading existing config")
@@ -59,7 +59,7 @@ func (r vMRepo) Save(jobName string, instanceID int, cid string, mbusURL string)
 	for i, rec := range deploymentState.CurrentVMs {
 		if rec.JobName == jobName && rec.InstanceID == instanceID && rec.CID == "" {
 			deploymentState.CurrentVMs[i].CID = cid
-			deploymentState.CurrentVMs[i].MbusURL = mbusURL
+			deploymentState.CurrentVMs[i].StaticIP = staticIP
 			if err = r.deploymentStateService.Save(deploymentState); err != nil {
 				return VMRecord{}, bosherr.WrapError(err, "Saving new config")
 			}
@@ -77,7 +77,7 @@ func (r vMRepo) Save(jobName string, instanceID int, cid string, mbusURL string)
 		JobName:    jobName,
 		InstanceID: instanceID,
 		CID:        cid,
-		MbusURL:    mbusURL,
+		StaticIP:   staticIP,
 	}
 	deploymentState.CurrentVMs = append(deploymentState.CurrentVMs, record)
 	if err = r.deploymentStateService.Save(deploymentState); err != nil {
@@ -112,7 +112,7 @@ func (r vMRepo) Delete(vmCID string) error {
 			if rec.CurrentDiskID != "" {
 				// Keep the record so the disk association survives recreation.
 				deploymentState.CurrentVMs[i].CID = ""
-				deploymentState.CurrentVMs[i].MbusURL = ""
+				deploymentState.CurrentVMs[i].StaticIP = ""
 			} else {
 				deploymentState.CurrentVMs = append(
 					deploymentState.CurrentVMs[:i],
