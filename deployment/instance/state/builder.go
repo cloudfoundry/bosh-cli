@@ -83,7 +83,9 @@ func (b *builder) Build(jobName string, instanceID int, az string, deploymentMan
 		return nil, err
 	}
 
-	renderedJobTemplates, err := b.renderJobTemplates(releaseJobs, releaseJobProperties, deploymentJob.Properties, deploymentManifest.Properties, deploymentManifest.Name, defaultAddress, stage)
+	instanceSpec := buildInstanceSpec(jobName, instanceID, az, deploymentJob, initialState.NetworkInterfaces(), defaultAddress)
+
+	renderedJobTemplates, err := b.renderJobTemplates(releaseJobs, releaseJobProperties, deploymentJob.Properties, deploymentManifest.Properties, deploymentManifest.Name, instanceSpec, stage)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Rendering job templates for instance '%s/%d'", jobName, instanceID)
 	}
@@ -186,7 +188,7 @@ func (b *builder) renderJobTemplates(
 	jobProperties biproperty.Map,
 	globalProperties biproperty.Map,
 	deploymentName string,
-	address string,
+	spec bitemplate.InstanceSpec,
 	stage biui.Stage,
 ) (renderedJobs, error) {
 	var (
@@ -194,7 +196,7 @@ func (b *builder) renderJobTemplates(
 		blobID                 string
 	)
 	err := stage.Perform("Rendering job templates", func() error {
-		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, address)
+		renderedJobList, err := b.jobListRenderer.Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, spec)
 		if err != nil {
 			return err
 		}
@@ -221,6 +223,50 @@ func (b *builder) renderJobTemplates(
 		BlobstoreID: blobID,
 		Archive:     renderedJobListArchive,
 	}, nil
+}
+
+// buildInstanceSpec constructs the InstanceSpec that populates spec.* in ERB templates.
+func buildInstanceSpec(
+	jobName string,
+	instanceID int,
+	az string,
+	deploymentJob bideplmanifest.Job,
+	networkRefs []NetworkRef,
+	address string,
+) bitemplate.InstanceSpec {
+	networks := make(map[string]bitemplate.NetworkSpecContext, len(networkRefs))
+	for _, ref := range networkRefs {
+		ctx := bitemplate.NetworkSpecContext{}
+		if ip, ok := ref.Interface["ip"].(string); ok {
+			ctx.IP = ip
+		}
+		if netmask, ok := ref.Interface["netmask"].(string); ok {
+			ctx.Netmask = netmask
+		}
+		if gw, ok := ref.Interface["gateway"].(string); ok {
+			ctx.Gateway = gw
+		}
+		if dns, ok := ref.Interface["dns"].([]string); ok {
+			ctx.DNS = dns
+		}
+		networks[ref.Name] = ctx
+	}
+
+	releaseNamesByJob := make(map[string]string, len(deploymentJob.Templates))
+	for _, tmpl := range deploymentJob.Templates {
+		releaseNamesByJob[tmpl.Name] = tmpl.Release
+	}
+
+	return bitemplate.InstanceSpec{
+		Name:              jobName,
+		Index:             instanceID,
+		AZ:                az,
+		Bootstrap:         instanceID == 0,
+		Address:           address,
+		Networks:          networks,
+		PersistentDisk:    deploymentJob.PersistentDisk,
+		ReleaseNamesByJob: releaseNamesByJob,
+	}
 }
 
 func (b *builder) defaultAddress(networkRefs []NetworkRef, agentState agentclient.AgentState) (string, error) {

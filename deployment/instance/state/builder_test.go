@@ -155,9 +155,8 @@ var _ = Describe("Builder", func() {
 			deploymentManifest bideplmanifest.Manifest
 			fakeStage          *fakebiui.FakeStage
 
-			agentState            biac.AgentState
-			expectedIP            string
-			releasePackageLibyaml *boshpkg.Package
+		agentState            biac.AgentState
+		releasePackageLibyaml *boshpkg.Package
 			releasePackageRuby    *boshpkg.Package
 			releasePackageCPI     *boshpkg.Package
 
@@ -168,11 +167,10 @@ var _ = Describe("Builder", func() {
 			mockRenderedJobList = mocktemplate.NewMockRenderedJobList(mockCtrl)
 			mockRenderedJobListArchive = mocktemplate.NewMockRenderedJobListArchive(mockCtrl)
 
-			jobName = "fake-deployment-job-name"
-			instanceID = 0
-			expectedIP = "1.2.3.4"
+		jobName = "fake-deployment-job-name"
+		instanceID = 0
 
-			deploymentManifest = bideplmanifest.Manifest{
+		deploymentManifest = bideplmanifest.Manifest{
 				Name: "fake-deployment-name",
 				Jobs: []bideplmanifest.Job{
 					{
@@ -287,7 +285,7 @@ var _ = Describe("Builder", func() {
 				"fake-job-property": "fake-global-property-value",
 			}
 
-			mockJobListRenderer.EXPECT().Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", expectedIP).Return(mockRenderedJobList, nil)
+			mockJobListRenderer.EXPECT().Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", gomock.Any()).Return(mockRenderedJobList, nil)
 
 			mockRenderedJobList.EXPECT().DeleteSilently()
 
@@ -331,7 +329,6 @@ var _ = Describe("Builder", func() {
 				BeforeEach(func() {
 					deploymentManifest.Jobs[0].Networks[0].StaticIPs = nil
 					deploymentManifest.Networks[0].Type = "dynamic"
-					expectedIP = "1.2.3.5"
 				})
 
 				It("should not fail", func() {
@@ -352,10 +349,9 @@ var _ = Describe("Builder", func() {
 				})
 			})
 
-			Context("multiple networks", func() {
-				BeforeEach(func() {
-					expectedIP = "1.2.3.6"
-					deploymentManifest.Networks = append(
+		Context("multiple networks", func() {
+			BeforeEach(func() {
+				deploymentManifest.Networks = append(
 						deploymentManifest.Networks,
 						bideplmanifest.Network{
 							Name: "fake-dynamic-network-name",

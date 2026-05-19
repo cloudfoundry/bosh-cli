@@ -102,12 +102,11 @@ var _ = Describe("JobRenderer", func() {
 		}
 		globalProperties := biproperty.Map{}
 		deploymentName := "fake-installation-name"
-		address := ""
 
 		renderedJobList = bitemplate.NewRenderedJobList()
 		renderedJobList.Add(bitemplate.NewRenderedJob(releaseJob, "/fake-rendered-job-cpi", fs, logger))
 
-		mockJobListRenderer.EXPECT().Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, address).Return(renderedJobList, nil).AnyTimes()
+		mockJobListRenderer.EXPECT().Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, bitemplate.InstanceSpec{}).Return(renderedJobList, nil).AnyTimes()
 
 		fakeCompressor.CompressFilesInDirTarballPath = "/fake-rendered-job-tarball-cpi.tgz"
 		multiDigest := boshcrypto.MustParseMultipleDigest("fakerenderedjobtarballsha1cpi")

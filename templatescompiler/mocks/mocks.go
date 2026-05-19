@@ -37,7 +37,7 @@ func (m *MockJobRenderer) EXPECT() *MockJobRendererMockRecorder {
 }
 
 // Render mocks base method.
-func (m *MockJobRenderer) Render(arg0 job.Job, arg1 *property.Map, arg2, arg3 property.Map, arg4, arg5 string) (templatescompiler.RenderedJob, error) {
+func (m *MockJobRenderer) Render(arg0 job.Job, arg1 *property.Map, arg2, arg3 property.Map, arg4 string, arg5 templatescompiler.InstanceSpec) (templatescompiler.RenderedJob, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Render", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(templatescompiler.RenderedJob)
@@ -75,7 +75,7 @@ func (m *MockJobListRenderer) EXPECT() *MockJobListRendererMockRecorder {
 }
 
 // Render mocks base method.
-func (m *MockJobListRenderer) Render(arg0 []job.Job, arg1 map[string]*property.Map, arg2, arg3 property.Map, arg4, arg5 string) (templatescompiler.RenderedJobList, error) {
+func (m *MockJobListRenderer) Render(arg0 []job.Job, arg1 map[string]*property.Map, arg2, arg3 property.Map, arg4 string, arg5 templatescompiler.InstanceSpec) (templatescompiler.RenderedJobList, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Render", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(templatescompiler.RenderedJobList)

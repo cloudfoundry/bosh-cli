@@ -56,7 +56,7 @@ var _ = Describe("JobRenderer", func() {
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 
-		context = NewJobEvaluationContext(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4", nil, logger)
+		context = NewJobEvaluationContext(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", InstanceSpec{Address: "1.2.3.4"}, nil, logger)
 
 		fakeERBRenderer = fakebirender.NewFakeERBRender()
 
@@ -87,7 +87,7 @@ var _ = Describe("JobRenderer", func() {
 
 	Describe("Render", func() {
 		It("renders job templates", func() {
-			renderedjob, err := jobRenderer.Render(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
+			renderedjob, err := jobRenderer.Render(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", InstanceSpec{Address: "1.2.3.4"})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeERBRenderer.RenderInputs).To(Equal([]fakebirender.RenderInput{
@@ -108,7 +108,7 @@ var _ = Describe("JobRenderer", func() {
 			job.Templates = map[string]string{
 				"template.erb": "../../../../home/user/file",
 			}
-			_, err := jobRenderer.Render(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
+			_, err := jobRenderer.Render(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", InstanceSpec{Address: "1.2.3.4"})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("safe local path"))
 		})
@@ -117,7 +117,7 @@ var _ = Describe("JobRenderer", func() {
 			job.Templates = map[string]string{
 				"../../../../etc/file": "config/out.yml",
 			}
-			_, err := jobRenderer.Render(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4")
+			_, err := jobRenderer.Render(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", InstanceSpec{Address: "1.2.3.4"})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("safe local path"))
 		})
@@ -133,7 +133,7 @@ var _ = Describe("JobRenderer", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := jobRenderer.Render(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", "1.2.3.4") //nolint:errcheck
+				_, err := jobRenderer.Render(*job, &releaseJobProperties, jobProperties, globalProperties, "fake-deployment-name", InstanceSpec{Address: "1.2.3.4"}) //nolint:errcheck
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-template-render-error"))
 			})

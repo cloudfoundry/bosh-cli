@@ -28,10 +28,11 @@ var _ = Describe("JobEvaluationContext", func() {
 		erbRenderer             erbrenderer.ERBRenderer
 		jobEvaluationContext    erbrenderer.TemplateEvaluationContext
 		uuidGen                 *fakeuuid.FakeGenerator
+		instanceSpec            InstanceSpec
 	)
 
 	BeforeEach(func() {
-		releaseJob = boshreljob.NewJob(NewResource("fake-job-name", "", nil))
+		releaseJob = boshreljob.NewJob(NewResource("fake-job-name", "fake-job-fp", nil))
 		releaseJob.Properties = map[string]boshreljob.PropertyDefinition{
 			"property1.subproperty1": boshreljob.PropertyDefinition{
 				Default: "spec-default",
@@ -42,11 +43,24 @@ var _ = Describe("JobEvaluationContext", func() {
 		}
 
 		deploymentProperties = biproperty.Map{}
-
 		instanceGroupProperties = biproperty.Map{}
-
 		uuidGen = fakeuuid.NewFakeGenerator()
 		jobProperties = nil
+
+		instanceSpec = InstanceSpec{
+			Name:           "fake-instance-group",
+			Index:          2,
+			AZ:             "z1",
+			Bootstrap:      false,
+			Address:        "1.2.3.4",
+			PersistentDisk: 10240,
+			Networks: map[string]NetworkSpecContext{
+				"default": {IP: "1.2.3.4", Netmask: "255.255.255.0", Gateway: "1.2.3.1"},
+			},
+			ReleaseNamesByJob: map[string]string{
+				"fake-job-name": "fake-release",
+			},
+		}
 	})
 
 	JustBeforeEach(func() {
@@ -58,7 +72,7 @@ var _ = Describe("JobEvaluationContext", func() {
 			instanceGroupProperties,
 			deploymentProperties,
 			"fake-deployment-name",
-			"1.2.3.4",
+			instanceSpec,
 			uuidGen,
 			logger,
 		)
@@ -76,14 +90,78 @@ var _ = Describe("JobEvaluationContext", func() {
 		return generatedContext
 	}
 
-	It("it has a network context section with empty IP", func() {
+	It("exposes spec.name as the instance group name", func() {
 		generatedContext := act()
-		Expect(generatedContext.NetworkContexts["default"].IP).To(Equal(""))
+		Expect(generatedContext.Name).To(Equal("fake-instance-group"))
 	})
 
-	It("it has address available in the spec", func() {
+	It("exposes spec.index as the instance index", func() {
+		generatedContext := act()
+		Expect(generatedContext.Index).To(Equal(2))
+	})
+
+	It("exposes spec.az as the availability zone", func() {
+		generatedContext := act()
+		Expect(generatedContext.AZ).To(Equal("z1"))
+	})
+
+	It("exposes spec.bootstrap correctly", func() {
+		generatedContext := act()
+		Expect(generatedContext.Bootstrap).To(BeFalse())
+	})
+
+	Context("when instance is the first (index 0)", func() {
+		BeforeEach(func() {
+			instanceSpec.Index = 0
+			instanceSpec.Bootstrap = true
+		})
+
+		It("sets spec.bootstrap to true", func() {
+			generatedContext := act()
+			Expect(generatedContext.Bootstrap).To(BeTrue())
+		})
+	})
+
+	It("exposes spec.address", func() {
 		generatedContext := act()
 		Expect(generatedContext.Address).To(Equal("1.2.3.4"))
+	})
+
+	It("exposes spec.ip from the default network address", func() {
+		generatedContext := act()
+		Expect(generatedContext.IP).To(Equal("1.2.3.4"))
+	})
+
+	It("exposes spec.networks with real network data", func() {
+		generatedContext := act()
+		Expect(generatedContext.NetworkContexts["default"].IP).To(Equal("1.2.3.4"))
+		Expect(generatedContext.NetworkContexts["default"].Netmask).To(Equal("255.255.255.0"))
+		Expect(generatedContext.NetworkContexts["default"].Gateway).To(Equal("1.2.3.1"))
+	})
+
+	It("exposes spec.persistent_disk", func() {
+		generatedContext := act()
+		Expect(generatedContext.PersistentDisk).To(Equal(10240))
+	})
+
+	It("exposes spec.dns_domain_name as 'bosh'", func() {
+		generatedContext := act()
+		Expect(generatedContext.DnsDomainName).To(Equal("bosh"))
+	})
+
+	It("exposes spec.release.name from the release names map", func() {
+		generatedContext := act()
+		Expect(generatedContext.ReleaseContext.Name).To(Equal("fake-release"))
+	})
+
+	It("exposes spec.release.version as the job fingerprint", func() {
+		generatedContext := act()
+		Expect(generatedContext.ReleaseContext.Version).To(Equal("fake-job-fp"))
+	})
+
+	It("exposes spec.job.name as the instance group name", func() {
+		generatedContext := act()
+		Expect(generatedContext.JobContext.Name).To(Equal("fake-instance-group"))
 	})
 
 	It("it has id available in the spec", func() {
@@ -92,21 +170,23 @@ var _ = Describe("JobEvaluationContext", func() {
 		Expect(generatedContext.ID).To(Equal("fake-uuid"))
 	})
 
-	It("it has az available in the spec", func() {
-		generatedContext := act()
-		Expect(generatedContext.AZ).To(Equal("unknown"))
-	})
-
-	It("it has bootstrap available in the spec", func() {
-		generatedContext := act()
-		Expect(generatedContext.Bootstrap).To(Equal(true))
-	})
-	Context("when the UUID generator raise an error", func() {
+	Context("when the UUID generator raises an error", func() {
 		It("it raises an error", func() {
 			uuidGen.GenerateError = errors.Error("boom")
 			_, err := jobEvaluationContext.MarshalJSON()
 			Expect(err).To(HaveOccurred())
 			Ω(err.Error()).Should(ContainSubstring("Setting job eval context's ID to UUID"))
+		})
+	})
+
+	Context("when no networks are set in InstanceSpec", func() {
+		BeforeEach(func() {
+			instanceSpec.Networks = nil
+		})
+
+		It("returns an empty map for spec.networks", func() {
+			generatedContext := act()
+			Expect(generatedContext.NetworkContexts).To(Equal(map[string]NetworkSpecContext{}))
 		})
 	})
 
@@ -136,7 +216,7 @@ var _ = Describe("JobEvaluationContext", func() {
 			instanceGroupProperties,
 			deploymentProperties,
 			"fake-deployment-name",
-			"1.2.3.4",
+			InstanceSpec{Address: "1.2.3.4"},
 			uuidGen,
 			logger,
 		)

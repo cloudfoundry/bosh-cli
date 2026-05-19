@@ -81,13 +81,14 @@ var _ = Describe("JobListRenderer", func() {
 	})
 
 	JustBeforeEach(func() {
-		mockJobRenderer.EXPECT().Render(releaseJobs[0], releaseJobProperties[releaseJobs[0].Name()], jobProperties, globalProperties, deploymentName, address).Return(renderedJobs[0], nil)
-		expectRender1 = mockJobRenderer.EXPECT().Render(releaseJobs[1], releaseJobProperties[releaseJobs[1].Name()], jobProperties, globalProperties, deploymentName, address).Return(renderedJobs[1], nil)
+		spec := InstanceSpec{Address: address}
+		mockJobRenderer.EXPECT().Render(releaseJobs[0], releaseJobProperties[releaseJobs[0].Name()], jobProperties, globalProperties, deploymentName, spec).Return(renderedJobs[0], nil)
+		expectRender1 = mockJobRenderer.EXPECT().Render(releaseJobs[1], releaseJobProperties[releaseJobs[1].Name()], jobProperties, globalProperties, deploymentName, spec).Return(renderedJobs[1], nil)
 	})
 
 	Describe("Render", func() {
 		It("returns a new RenderedJobList with all the RenderedJobs", func() {
-			renderedJobList, err := jobListRenderer.Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, address)
+			renderedJobList, err := jobListRenderer.Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, InstanceSpec{Address: address})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(renderedJobList.All()).To(Equal([]RenderedJob{
 				renderedJobs[0],
@@ -103,7 +104,7 @@ var _ = Describe("JobListRenderer", func() {
 			It("returns an error and cleans up any sucessfully rendered jobs", func() {
 				renderedJobs[0].EXPECT().DeleteSilently()
 
-				_, err := jobListRenderer.Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, address)
+				_, err := jobListRenderer.Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, InstanceSpec{Address: address})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-render-error"))
 			})
