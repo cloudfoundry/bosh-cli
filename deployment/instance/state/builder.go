@@ -18,8 +18,8 @@ import (
 )
 
 type Builder interface {
-	Build(jobName string, instanceID int, deploymentManifest bideplmanifest.Manifest, stage biui.Stage, agentState agentclient.AgentState) (State, error)
-	BuildInitialState(jobName string, instanceID int, deploymentManifest bideplmanifest.Manifest) (State, error)
+	Build(jobName string, instanceID int, az string, deploymentManifest bideplmanifest.Manifest, stage biui.Stage, agentState agentclient.AgentState) (State, error)
+	BuildInitialState(jobName string, instanceID int, az string, deploymentManifest bideplmanifest.Manifest) (State, error)
 }
 
 type builder struct {
@@ -56,9 +56,9 @@ type renderedJobs struct {
 	Archive     bitemplate.RenderedJobListArchive
 }
 
-func (b *builder) Build(jobName string, instanceID int, deploymentManifest bideplmanifest.Manifest, stage biui.Stage, agentState agentclient.AgentState) (State, error) {
+func (b *builder) Build(jobName string, instanceID int, az string, deploymentManifest bideplmanifest.Manifest, stage biui.Stage, agentState agentclient.AgentState) (State, error) {
 
-	initialState, err := b.BuildInitialState(jobName, instanceID, deploymentManifest)
+	initialState, err := b.BuildInitialState(jobName, instanceID, az, deploymentManifest)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Building initial state '%s", jobName)
 	}
@@ -132,13 +132,13 @@ func (b *builder) Build(jobName string, instanceID int, deploymentManifest bidep
 	}, nil
 }
 
-func (b *builder) BuildInitialState(jobName string, instanceID int, deploymentManifest bideplmanifest.Manifest) (State, error) {
+func (b *builder) BuildInitialState(jobName string, instanceID int, az string, deploymentManifest bideplmanifest.Manifest) (State, error) {
 	deploymentJob, found := deploymentManifest.FindJobByName(jobName)
 	if !found {
 		return nil, bosherr.Errorf("Job '%s' not found in deployment manifest", jobName)
 	}
 
-	networkInterfaces, err := deploymentManifest.NetworkInterfaces(deploymentJob.Name, instanceID)
+	networkInterfaces, err := deploymentManifest.NetworkInterfaces(deploymentJob.Name, instanceID, az)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Finding networks for job '%s", jobName)
 	}

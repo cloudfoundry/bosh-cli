@@ -27,11 +27,12 @@ type ExistingVM struct {
 	VM         VM
 	JobName    string
 	InstanceID int
+	AZ         string
 }
 
 type Manager interface {
 	FindAll() ([]ExistingVM, error)
-	Create(jobName string, instanceID int, stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest, diskCIDs []string) (VM, error)
+	Create(jobName string, instanceID int, az string, stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest, diskCIDs []string) (VM, error)
 }
 
 type manager struct {
@@ -121,13 +122,14 @@ func (m *manager) FindAll() ([]ExistingVM, error) {
 			VM:         vm,
 			JobName:    record.JobName,
 			InstanceID: record.InstanceID,
+			AZ:         record.AZ,
 		})
 	}
 	return existingVMs, nil
 }
 
-func (m *manager) Create(jobName string, instanceID int, stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest, diskCIDs []string) (VM, error) {
-	networkInterfaces, err := deploymentManifest.NetworkInterfaces(jobName, instanceID)
+func (m *manager) Create(jobName string, instanceID int, az string, stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest, diskCIDs []string) (VM, error) {
+	networkInterfaces, err := deploymentManifest.NetworkInterfaces(jobName, instanceID, az)
 	m.logger.Debug(m.logTag, "Creating VM with network interfaces: %#v", networkInterfaces)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Getting network spec")
@@ -136,6 +138,20 @@ func (m *manager) Create(jobName string, instanceID int, stemcell bistemcell.Clo
 	resourcePool, err := deploymentManifest.ResourcePool(jobName)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Getting resource pool for job '%s'", jobName)
+	}
+
+	// Merge AZ cloud_properties (base) with resource pool cloud_properties (override),
+	// matching the BOSH director MergedCloudProperties behaviour.
+	azCloudProps := deploymentManifest.AZCloudProperties(az)
+	if len(azCloudProps) > 0 {
+		merged := biproperty.Map{}
+		for k, v := range azCloudProps {
+			merged[k] = v
+		}
+		for k, v := range resourcePool.CloudProperties {
+			merged[k] = v
+		}
+		resourcePool.CloudProperties = merged
 	}
 
 	agentID, err := m.uuidGenerator.Generate()
@@ -171,7 +187,7 @@ func (m *manager) Create(jobName string, instanceID int, stemcell bistemcell.Clo
 		return nil, bosherr.WrapErrorf(err, "Creating agent client for instance '%s/%d'", jobName, instanceID)
 	}
 
-	cid, err := m.createAndRecordVM(agentID, stemcell, resourcePool, diskCIDs, networkInterfaces, jobName, instanceID, staticIP)
+	cid, err := m.createAndRecordVM(agentID, stemcell, resourcePool, diskCIDs, networkInterfaces, jobName, instanceID, staticIP, az)
 	if err != nil {
 		return nil, err
 	}
@@ -227,6 +243,7 @@ func (m *manager) createAndRecordVM(
 	jobName string,
 	instanceID int,
 	staticIP string,
+	az string,
 ) (string, error) {
 	cid, err := m.cloud.CreateVM(agentID, stemcell.CID(), resourcePool.CloudProperties, diskCIDs, networkInterfaces, resourcePool.Env)
 	if err != nil {
@@ -234,7 +251,7 @@ func (m *manager) createAndRecordVM(
 	}
 
 	// Record vm info immediately so we don't leak it.
-	_, err = m.vmRepo.Save(jobName, instanceID, cid, staticIP)
+	_, err = m.vmRepo.Save(jobName, instanceID, cid, staticIP, az)
 	if err != nil {
 		return "", bosherr.WrapError(err, "Saving vm record")
 	}

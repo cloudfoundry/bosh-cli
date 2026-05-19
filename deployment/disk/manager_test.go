@@ -122,7 +122,7 @@ var _ = Describe("Manager", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				// Create a VM record and associate the disk with it.
-				_, err = vmRepo.Save("fake-job", 0, "fake-vm-cid", "")
+				_, err = vmRepo.Save("fake-job", 0, "fake-vm-cid", "", "")
 				Expect(err).ToNot(HaveOccurred())
 				err = diskRepo.UpdateCurrentForVM("fake-vm-cid", diskRecord.ID)
 				Expect(err).ToNot(HaveOccurred())
@@ -176,7 +176,7 @@ var _ = Describe("Manager", func() {
 			Expect(err).ToNot(HaveOccurred())
 			// Mark disk-2 as current for a VM so it is not unused.
 			fakeVMUUIDGenerator.GeneratedUUID = "fake-vm-record-uuid-2"
-			_, err = vmRepo.Save("fake-job", 0, "fake-vm-cid", "")
+			_, err = vmRepo.Save("fake-job", 0, "fake-vm-cid", "", "")
 			Expect(err).ToNot(HaveOccurred())
 			err = diskRepo.UpdateCurrentForVM("fake-vm-cid", "fake-guid-2")
 			Expect(err).ToNot(HaveOccurred())
@@ -215,7 +215,7 @@ var _ = Describe("Manager", func() {
 			Expect(err).ToNot(HaveOccurred())
 			// Mark disk-2 as current for a VM so it is not deleted as unused.
 			fakeVMUUIDGenerator.GeneratedUUID = "fake-vm-record-uuid"
-			_, err = vmRepo.Save("fake-job", 0, "fake-vm-cid", "")
+			_, err = vmRepo.Save("fake-job", 0, "fake-vm-cid", "", "")
 			Expect(err).ToNot(HaveOccurred())
 			err = diskRepo.UpdateCurrentForVM("fake-vm-cid", secondDiskRecord.ID)
 			Expect(err).ToNot(HaveOccurred())

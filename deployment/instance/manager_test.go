@@ -135,7 +135,7 @@ var _ = Describe("Manager", func() {
 			fakeVM.GetStateResult = fakeAgentState
 
 			mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
-			mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage, fakeAgentState).Return(mockState, nil).AnyTimes()
+			mockStateBuilder.EXPECT().Build(jobName, jobIndex, "", deploymentManifest, fakeStage, fakeAgentState).Return(mockState, nil).AnyTimes()
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		}
 
@@ -180,6 +180,7 @@ var _ = Describe("Manager", func() {
 			expectedInstance = NewInstance(
 				"fake-job-name",
 				0,
+				"",
 				fakeVM,
 				fakeVMManager,
 				fakeSSHTunnelFactory,
@@ -199,6 +200,7 @@ var _ = Describe("Manager", func() {
 			instance, _, err := manager.Create(
 				"fake-job-name",
 				0,
+				"",
 				deploymentManifest,
 				fakeCloudStemcell,
 				diskCIDs,
@@ -210,6 +212,7 @@ var _ = Describe("Manager", func() {
 		Expect(fakeVMManager.CreateInput).To(Equal(fakebivm.CreateInput{
 			JobName:    "fake-job-name",
 			InstanceID: 0,
+			AZ:         "",
 			Stemcell:   fakeCloudStemcell,
 			Manifest:   deploymentManifest,
 			DiskCIDs:   diskCIDs,
@@ -220,6 +223,7 @@ var _ = Describe("Manager", func() {
 			_, _, err := manager.Create(
 				"fake-job-name",
 				0,
+				"",
 				deploymentManifest,
 				fakeCloudStemcell,
 				diskCIDs,
@@ -234,6 +238,7 @@ var _ = Describe("Manager", func() {
 			_, _, err := manager.Create(
 				"fake-job-name",
 				0,
+				"",
 				deploymentManifest,
 				fakeCloudStemcell,
 				diskCIDs,
@@ -251,6 +256,7 @@ var _ = Describe("Manager", func() {
 			_, _, err := manager.Create(
 				"fake-job-name",
 				0,
+				"",
 				deploymentManifest,
 				fakeCloudStemcell,
 				diskCIDs,
@@ -274,6 +280,7 @@ var _ = Describe("Manager", func() {
 			_, disks, err := manager.Create(
 				"fake-job-name",
 				0,
+				"",
 				deploymentManifest,
 				fakeCloudStemcell,
 				diskCIDs,
@@ -299,6 +306,7 @@ var _ = Describe("Manager", func() {
 				_, _, err := manager.Create(
 					"fake-job-name",
 					0,
+					"",
 					deploymentManifest,
 					fakeCloudStemcell,
 					diskCIDs,
@@ -312,6 +320,7 @@ var _ = Describe("Manager", func() {
 				_, _, err := manager.Create(
 					"fake-job-name",
 					0,
+					"",
 					deploymentManifest,
 					fakeCloudStemcell,
 					diskCIDs,

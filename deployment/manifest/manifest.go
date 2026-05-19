@@ -6,14 +6,15 @@ import (
 )
 
 type Manifest struct {
-	Name          string
-	Properties    biproperty.Map
-	Jobs          []Job
-	Networks      []Network
-	DiskPools     []DiskPool
-	ResourcePools []ResourcePool
-	Update        Update
-	Tags          map[string]string
+	Name              string
+	Properties        biproperty.Map
+	Jobs              []Job
+	Networks          []Network
+	DiskPools         []DiskPool
+	ResourcePools     []ResourcePool
+	Update            Update
+	Tags              map[string]string
+	AvailabilityZones []AvailabilityZone
 }
 
 type Update struct {
@@ -21,14 +22,18 @@ type Update struct {
 }
 
 // NetworkInterfaces returns a map of network names to network interfaces for
-// the given instance (identified by instanceID).
+// the given instance (identified by instanceID and az).
 //
 // When a job network lists multiple static IPs (one per instance), only the IP
 // at position instanceID is included in the returned interface map. This ensures
 // that each instance receives its own IP rather than the first IP in the list.
 //
+// When az is non-empty and the network has subnets with AZ labels, the subnet
+// whose AZ set includes az is used for gateway/range/cloud_properties. Otherwise
+// the first subnet is used (backward compatible).
+//
 // We can't use map[string]NetworkInterface, because it's impossible to down-cast to what the cloud client requires.
-func (d Manifest) NetworkInterfaces(jobName string, instanceID int) (map[string]biproperty.Map, error) {
+func (d Manifest) NetworkInterfaces(jobName string, instanceID int, az string) (map[string]biproperty.Map, error) {
 	job, found := d.FindJobByName(jobName)
 	if !found {
 		return map[string]biproperty.Map{}, bosherr.Errorf("Could not find job with name: %s", jobName)
@@ -49,7 +54,7 @@ func (d Manifest) NetworkInterfaces(jobName string, instanceID int) (map[string]
 			// even if only one static IP was listed.
 			staticIPs = staticIPs[:1]
 		}
-		ifaceMap[jobNetwork.Name], err = network.Interface(staticIPs, jobNetwork.Defaults)
+		ifaceMap[jobNetwork.Name], err = network.InterfaceForAZ(staticIPs, jobNetwork.Defaults, az)
 		if err != nil {
 			return map[string]biproperty.Map{}, bosherr.WrapError(err, "Building network interface")
 		}
@@ -59,6 +64,29 @@ func (d Manifest) NetworkInterfaces(jobName string, instanceID int) (map[string]
 	}
 
 	return ifaceMap, nil
+}
+
+// FindAZ returns the AvailabilityZone with the given name, or (zero, false) if not found.
+func (d Manifest) FindAZ(name string) (AvailabilityZone, bool) {
+	for _, az := range d.AvailabilityZones {
+		if az.Name == name {
+			return az, true
+		}
+	}
+	return AvailabilityZone{}, false
+}
+
+// AZCloudProperties returns the cloud_properties for the named AZ, or an empty
+// map when the AZ is not declared (or the name is empty).
+func (d Manifest) AZCloudProperties(azName string) biproperty.Map {
+	if azName == "" {
+		return biproperty.Map{}
+	}
+	az, found := d.FindAZ(azName)
+	if !found {
+		return biproperty.Map{}
+	}
+	return az.CloudProperties
 }
 
 func (d Manifest) JobName() string {

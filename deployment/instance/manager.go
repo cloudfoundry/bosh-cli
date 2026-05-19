@@ -23,6 +23,7 @@ type Manager interface {
 	Create(
 		jobName string,
 		id int,
+		az string,
 		deploymentManifest bideplmanifest.Manifest,
 		cloudStemcell bistemcell.CloudStemcell,
 		diskCIDs []string,
@@ -91,6 +92,7 @@ func (m *manager) FindCurrent() ([]Instance, error) {
 		instance := m.instanceFactory.NewInstance(
 			existing.JobName,
 			existing.InstanceID,
+			existing.AZ,
 			existing.VM,
 			m.vmManager,
 			m.sshTunnelFactory,
@@ -106,6 +108,7 @@ func (m *manager) FindCurrent() ([]Instance, error) {
 func (m *manager) Create(
 	jobName string,
 	id int,
+	az string,
 	deploymentManifest bideplmanifest.Manifest,
 	cloudStemcell bistemcell.CloudStemcell,
 	diskCIDs []string,
@@ -115,7 +118,7 @@ func (m *manager) Create(
 	stepName := fmt.Sprintf("Creating VM for instance '%s/%d' from stemcell '%s'", jobName, id, cloudStemcell.CID())
 	err := eventLoggerStage.Perform(stepName, func() error {
 		var err error
-		vm, err = m.vmManager.Create(jobName, id, cloudStemcell, deploymentManifest, diskCIDs)
+		vm, err = m.vmManager.Create(jobName, id, az, cloudStemcell, deploymentManifest, diskCIDs)
 		if err != nil {
 			return bosherr.WrapError(err, "Creating VM")
 		}
@@ -136,7 +139,7 @@ func (m *manager) Create(
 		return nil, []bidisk.Disk{}, bosherr.WrapErrorf(err, "Creating blobstore for instance '%s/%d'", jobName, id)
 	}
 
-	instance := m.instanceFactory.NewInstance(jobName, id, vm, m.vmManager, m.sshTunnelFactory, blobstore, m.logger)
+	instance := m.instanceFactory.NewInstance(jobName, id, az, vm, m.vmManager, m.sshTunnelFactory, blobstore, m.logger)
 
 	if err := instance.WaitUntilReady(eventLoggerStage); err != nil {
 		return instance, []bidisk.Disk{}, bosherr.WrapError(err, "Waiting until instance is ready")

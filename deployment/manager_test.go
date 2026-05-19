@@ -214,7 +214,7 @@ var _ = Describe("Manager", func() {
 				currentDiskRecord, err = diskRepo.Save("fake-disk-cid", 100, nil)
 				Expect(err).ToNot(HaveOccurred())
 				// Create a VM record and associate the disk with it so it is not unused.
-				_, err = vmRepo.Save("fake-job", 0, "fake-vm-cid", "")
+				_, err = vmRepo.Save("fake-job", 0, "fake-vm-cid", "", "")
 				Expect(err).ToNot(HaveOccurred())
 				err = diskRepo.UpdateCurrentForVM("fake-vm-cid", currentDiskRecord.ID)
 				Expect(err).ToNot(HaveOccurred())

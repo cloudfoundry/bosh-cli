@@ -107,6 +107,12 @@ func (v *validator) Validate(deploymentManifest Manifest, releaseSetManifest bir
 			errs = append(errs, bosherr.Errorf("jobs[%d].lifecycle must be 'service' ('%s' not supported)", idx, job.Lifecycle))
 		}
 
+		for azIdx, azName := range job.AZs {
+			if _, ok := v.azNames(deploymentManifest)[azName]; !ok {
+				errs = append(errs, bosherr.Errorf("jobs[%d].azs[%d] '%s' must refer to an az defined in the azs block", idx, azIdx, azName))
+			}
+		}
+
 		templateNames := map[string]struct{}{}
 		for templateIdx, template := range job.Templates {
 			if v.isBlank(template.Name) {
@@ -187,6 +193,14 @@ func (v *validator) resourcePoolNames(deploymentManifest Manifest) map[string]st
 	return names
 }
 
+func (v *validator) azNames(deploymentManifest Manifest) map[string]struct{} {
+	names := make(map[string]struct{})
+	for _, az := range deploymentManifest.AvailabilityZones {
+		names[az.Name] = struct{}{}
+	}
+	return names
+}
+
 func (v *validator) isValidIP(ip string) bool {
 	parsedIP := net.ParseIP(ip)
 	return parsedIP != nil
@@ -246,9 +260,9 @@ func (v *validator) validateNetwork(network Network, networkIdx int) []error {
 	}
 
 	if network.Type == Manual {
-		if len(network.Subnets) != 1 {
-			errs = append(errs, bosherr.Errorf("networks[%d].subnets must be of size 1", networkIdx))
-		} else {
+		if len(network.Subnets) == 0 {
+			errs = append(errs, bosherr.Errorf("networks[%d].subnets must be a non-empty array", networkIdx))
+		} else if len(network.Subnets) == 1 {
 			ipRange := network.Subnets[0].Range
 			rangeErrors, maybeIpNet := v.validateRange(networkIdx, ipRange)
 			errs = append(errs, rangeErrors...)
@@ -256,6 +270,20 @@ func (v *validator) validateNetwork(network Network, networkIdx int) []error {
 			gateway := network.Subnets[0].Gateway
 			gatewayErrors := v.validateGateway(networkIdx, gateway, maybeIpNet)
 			errs = append(errs, gatewayErrors...)
+		} else {
+			// Multiple subnets are allowed when each subnet has at least one AZ label.
+			for subnetIdx, subnet := range network.Subnets {
+				if len(subnet.AZs) == 0 {
+					errs = append(errs, bosherr.Errorf("networks[%d].subnets[%d] must specify 'az' or 'azs' when multiple subnets are defined", networkIdx, subnetIdx))
+				}
+				ipRange := subnet.Range
+				rangeErrors, maybeIpNet := v.validateRange(networkIdx, ipRange)
+				errs = append(errs, rangeErrors...)
+
+				gateway := subnet.Gateway
+				gatewayErrors := v.validateGateway(networkIdx, gateway, maybeIpNet)
+				errs = append(errs, gatewayErrors...)
+			}
 		}
 	}
 

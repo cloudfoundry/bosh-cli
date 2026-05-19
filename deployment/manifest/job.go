@@ -14,6 +14,7 @@ type Job struct {
 	PersistentDiskPool string
 	ResourcePool       string
 	Properties         biproperty.Map
+	AZs                []string
 }
 
 type JobLifecycle string

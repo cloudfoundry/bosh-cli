@@ -12,11 +12,11 @@ type VMRepo interface {
 	// Save records a newly-created VM. If a pending record (CID == "") with the
 	// same JobName+InstanceID already exists (left by a previous deletion that
 	// preserved disk association), it is reused; otherwise a new record is appended.
-	Save(jobName string, instanceID int, cid string, staticIP string) (VMRecord, error)
+	Save(jobName string, instanceID int, cid string, staticIP string, az string) (VMRecord, error)
 	UpdateCurrentDisk(vmCID string, diskID string) error
 	// Delete removes the VMRecord for vmCID.  When the record holds a
 	// CurrentDiskID the disk association is preserved: the record's CID and
-	// MbusURL are cleared but the record itself remains so that the next
+	// StaticIP/AZ are cleared but the record itself remains so that the next
 	// deployment of the same instance can re-attach its disk.
 	Delete(vmCID string) error
 	ClearAll() error
@@ -49,7 +49,7 @@ func (r vMRepo) FindAll() ([]VMRecord, error) {
 	return active, nil
 }
 
-func (r vMRepo) Save(jobName string, instanceID int, cid string, staticIP string) (VMRecord, error) {
+func (r vMRepo) Save(jobName string, instanceID int, cid string, staticIP string, az string) (VMRecord, error) {
 	deploymentState, err := r.deploymentStateService.Load()
 	if err != nil {
 		return VMRecord{}, bosherr.WrapError(err, "Loading existing config")
@@ -60,6 +60,7 @@ func (r vMRepo) Save(jobName string, instanceID int, cid string, staticIP string
 		if rec.JobName == jobName && rec.InstanceID == instanceID && rec.CID == "" {
 			deploymentState.CurrentVMs[i].CID = cid
 			deploymentState.CurrentVMs[i].StaticIP = staticIP
+			deploymentState.CurrentVMs[i].AZ = az
 			if err = r.deploymentStateService.Save(deploymentState); err != nil {
 				return VMRecord{}, bosherr.WrapError(err, "Saving new config")
 			}
@@ -78,6 +79,7 @@ func (r vMRepo) Save(jobName string, instanceID int, cid string, staticIP string
 		InstanceID: instanceID,
 		CID:        cid,
 		StaticIP:   staticIP,
+		AZ:         az,
 	}
 	deploymentState.CurrentVMs = append(deploymentState.CurrentVMs, record)
 	if err = r.deploymentStateService.Save(deploymentState); err != nil {
@@ -113,6 +115,7 @@ func (r vMRepo) Delete(vmCID string) error {
 				// Keep the record so the disk association survives recreation.
 				deploymentState.CurrentVMs[i].CID = ""
 				deploymentState.CurrentVMs[i].StaticIP = ""
+				deploymentState.CurrentVMs[i].AZ = ""
 			} else {
 				deploymentState.CurrentVMs = append(
 					deploymentState.CurrentVMs[:i],

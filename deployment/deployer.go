@@ -87,14 +87,40 @@ func (d *deployer) Deploy(
 	var disks []bidisk.Disk
 
 	for _, jobSpec := range deploymentManifest.Jobs {
+		// Track how many instances have been assigned to each AZ so far during
+		// this deployment pass (used for round-robin placement of new instances).
+		azCounts := make(map[string]int)
+		for _, az := range jobSpec.AZs {
+			azCounts[az] = 0
+		}
+		// Seed counts from existing instances that will be kept (sticky AZ).
+		for _, existing := range existingInstances {
+			if existing.JobName() == jobSpec.Name {
+				if az := existing.AZ(); az != "" {
+					azCounts[az]++
+				}
+			}
+		}
+
 		for instanceID := 0; instanceID < jobSpec.Instances; instanceID++ {
+			// Determine AZ: sticky for existing instances, round-robin for new.
+			az := ""
+			if len(jobSpec.AZs) > 0 {
+				if old := findExistingInstance(existingInstances, jobSpec.Name, instanceID); old != nil && old.AZ() != "" {
+					az = old.AZ()
+				} else {
+					az = pickLeastLoadedAZ(jobSpec.AZs, azCounts)
+					azCounts[az]++
+				}
+			}
+
 			if old := findExistingInstance(existingInstances, jobSpec.Name, instanceID); old != nil {
 				if err := old.Delete(pingTimeout, pingDelay, skipDrain, deployStage); err != nil {
 					return nil, bosherr.WrapErrorf(err, "Deleting existing instance '%s/%d'", jobSpec.Name, instanceID)
 				}
 			}
 
-			instance, instanceDisks, err := instanceManager.Create(jobSpec.Name, instanceID, deploymentManifest, cloudStemcell, diskCIDs, deployStage)
+			instance, instanceDisks, err := instanceManager.Create(jobSpec.Name, instanceID, az, deploymentManifest, cloudStemcell, diskCIDs, deployStage)
 			if err != nil {
 				return nil, bosherr.WrapErrorf(err, "Creating instance '%s/%d'", jobSpec.Name, instanceID)
 			}
@@ -139,4 +165,17 @@ func instanceIsDesired(manifest bideplmanifest.Manifest, inst biinstance.Instanc
 		}
 	}
 	return false
+}
+
+// pickLeastLoadedAZ returns the AZ from azs with the lowest count in counts.
+// Ties are broken by the order the AZs appear in azs (manifest order), giving
+// round-robin behaviour for fresh deployments.
+func pickLeastLoadedAZ(azs []string, counts map[string]int) string {
+	best := azs[0]
+	for _, az := range azs[1:] {
+		if counts[az] < counts[best] {
+			best = az
+		}
+	}
+	return best
 }

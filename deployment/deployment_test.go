@@ -345,7 +345,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				err := deploymentStateService.Save(biconfig.DeploymentState{})
 				Expect(err).ToNot(HaveOccurred())
-				_, err = vmRepo.Save("unknown", 0, "fake-vm-cid", "")
+				_, err = vmRepo.Save("unknown", 0, "fake-vm-cid", "", "")
 				Expect(err).ToNot(HaveOccurred())
 
 				expectHasVM = mockCloud.EXPECT().HasVM("fake-vm-cid").Return(true, nil)
@@ -399,7 +399,7 @@ var _ = Describe("Deployment", func() {
 				Expect(err).ToNot(HaveOccurred())
 				// Create a VM record so we can associate the disk with it,
 				// then delete the VM CID to simulate "disk exists without active VM".
-				_, err = vmRepo.Save("unknown", 0, "temp-vm-for-disk-test", "")
+				_, err = vmRepo.Save("unknown", 0, "temp-vm-for-disk-test", "", "")
 				Expect(err).ToNot(HaveOccurred())
 				err = diskRepo.UpdateCurrentForVM("temp-vm-for-disk-test", diskRecord.ID)
 				Expect(err).ToNot(HaveOccurred())

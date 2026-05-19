@@ -77,33 +77,33 @@ func (m *MockBuilder) EXPECT() *MockBuilderMockRecorder {
 }
 
 // Build mocks base method.
-func (m *MockBuilder) Build(arg0 string, arg1 int, arg2 manifest.Manifest, arg3 ui.Stage, arg4 agentclient.AgentState) (state.State, error) {
+func (m *MockBuilder) Build(arg0 string, arg1 int, arg2 string, arg3 manifest.Manifest, arg4 ui.Stage, arg5 agentclient.AgentState) (state.State, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Build", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "Build", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(state.State)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Build indicates an expected call of Build.
-func (mr *MockBuilderMockRecorder) Build(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+func (mr *MockBuilderMockRecorder) Build(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Build", reflect.TypeOf((*MockBuilder)(nil).Build), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Build", reflect.TypeOf((*MockBuilder)(nil).Build), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 // BuildInitialState mocks base method.
-func (m *MockBuilder) BuildInitialState(arg0 string, arg1 int, arg2 manifest.Manifest) (state.State, error) {
+func (m *MockBuilder) BuildInitialState(arg0 string, arg1 int, arg2 string, arg3 manifest.Manifest) (state.State, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BuildInitialState", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "BuildInitialState", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(state.State)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BuildInitialState indicates an expected call of BuildInitialState.
-func (mr *MockBuilderMockRecorder) BuildInitialState(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockBuilderMockRecorder) BuildInitialState(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildInitialState", reflect.TypeOf((*MockBuilder)(nil).BuildInitialState), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildInitialState", reflect.TypeOf((*MockBuilder)(nil).BuildInitialState), arg0, arg1, arg2, arg3)
 }
 
 // MockState is a mock of State interface.

@@ -116,7 +116,7 @@ var _ = Describe("Builder", func() {
 		})
 
 		It("generates an initial apply spec", func() {
-			state, err := stateBuilder.BuildInitialState(jobName, instanceID, deploymentManifest)
+			state, err := stateBuilder.BuildInitialState(jobName, instanceID, "", deploymentManifest)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.ToApplySpec()).To(Equal(bias.ApplySpec{
@@ -304,12 +304,12 @@ var _ = Describe("Builder", func() {
 		It("compiles the dependencies of the jobs", func() {
 			expectCompile.Times(1)
 
-			_, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
+			_, err := stateBuilder.Build(jobName, instanceID, "", deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("builds a new instance state with zero-to-many networks", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
+			state, err := stateBuilder.Build(jobName, instanceID, "", deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.NetworkInterfaces()).To(ContainElement(NetworkRef{
@@ -335,7 +335,7 @@ var _ = Describe("Builder", func() {
 				})
 
 				It("should not fail", func() {
-					state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
+					state, err := stateBuilder.Build(jobName, instanceID, "", deploymentManifest, fakeStage, agentState)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(state.NetworkInterfaces()).To(ContainElement(NetworkRef{
@@ -378,7 +378,7 @@ var _ = Describe("Builder", func() {
 				})
 
 				It("should not fail", func() {
-					state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
+					state, err := stateBuilder.Build(jobName, instanceID, "", deploymentManifest, fakeStage, agentState)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(state.NetworkInterfaces()).To(ContainElement(NetworkRef{
@@ -397,7 +397,7 @@ var _ = Describe("Builder", func() {
 		})
 
 		It("builds a new instance state with zero-to-many rendered jobs from one or more releases", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
+			state, err := stateBuilder.Build(jobName, instanceID, "", deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.RenderedJobs()).To(ContainElement(JobRef{
@@ -414,7 +414,7 @@ var _ = Describe("Builder", func() {
 		})
 
 		It("prints ui stages for compiling packages and rendering job templates", func() {
-			_, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
+			_, err := stateBuilder.Build(jobName, instanceID, "", deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
@@ -424,7 +424,7 @@ var _ = Describe("Builder", func() {
 		})
 
 		It("builds a new instance state with the compiled packages required by the release jobs", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
+			state, err := stateBuilder.Build(jobName, instanceID, "", deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
@@ -446,7 +446,7 @@ var _ = Describe("Builder", func() {
 		})
 
 		It("builds a new instance state that includes transitively dependent compiled packages", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
+			state, err := stateBuilder.Build(jobName, instanceID, "", deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
@@ -482,7 +482,7 @@ var _ = Describe("Builder", func() {
 			})
 
 			It("does not recompile dependant packages", func() {
-				state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
+				state, err := stateBuilder.Build(jobName, instanceID, "", deploymentManifest, fakeStage, agentState)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(state.CompiledPackages()).To(ContainElement(PackageRef{
@@ -514,7 +514,7 @@ var _ = Describe("Builder", func() {
 		})
 
 		It("builds an instance state that can be converted to an ApplySpec", func() {
-			state, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
+			state, err := stateBuilder.Build(jobName, instanceID, "", deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(state.ToApplySpec()).To(Equal(bias.ApplySpec{

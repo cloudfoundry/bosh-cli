@@ -22,15 +22,21 @@ type parser struct {
 }
 
 type manifest struct {
-	Name           string
-	Update         UpdateSpec
-	Networks       []network
-	ResourcePools  []resourcePool `yaml:"resource_pools"`
-	DiskPools      []diskPool     `yaml:"disk_pools"`
-	Jobs           []job
-	InstanceGroups []job `yaml:"instance_groups"`
-	Properties     map[interface{}]interface{}
-	Tags           map[string]string
+	Name              string
+	Update            UpdateSpec
+	Networks          []network
+	ResourcePools     []resourcePool `yaml:"resource_pools"`
+	DiskPools         []diskPool     `yaml:"disk_pools"`
+	Jobs              []job
+	InstanceGroups    []job              `yaml:"instance_groups"`
+	AZs               []availabilityZone `yaml:"azs"`
+	Properties        map[interface{}]interface{}
+	Tags              map[string]string
+}
+
+type availabilityZone struct {
+	Name            string                      `yaml:"name"`
+	CloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
 }
 
 type UpdateSpec struct {
@@ -53,6 +59,8 @@ type subnet struct {
 	Gateway         string                      `yaml:"gateway"`
 	DNS             []string                    `yaml:"dns"`
 	CloudProperties map[interface{}]interface{} `yaml:"cloud_properties"`
+	AZ              string                      `yaml:"az"`
+	AZs             []string                    `yaml:"azs"`
 }
 
 type resourcePool struct {
@@ -76,9 +84,10 @@ type job struct {
 	Templates          []releaseJobRef
 	Jobs               []releaseJobRef `yaml:"jobs"`
 	Networks           []jobNetwork
-	PersistentDisk     int    `yaml:"persistent_disk"`
-	PersistentDiskPool string `yaml:"persistent_disk_pool"`
-	ResourcePool       string `yaml:"resource_pool"`
+	PersistentDisk     int      `yaml:"persistent_disk"`
+	PersistentDiskPool string   `yaml:"persistent_disk_pool"`
+	ResourcePool       string   `yaml:"resource_pool"`
+	AZs                []string `yaml:"azs"`
 	Properties         map[interface{}]interface{}
 }
 
@@ -144,6 +153,12 @@ func (p *parser) parseDeploymentManifest(depManifest manifest, path string) (Man
 	deployment.Name = depManifest.Name
 	deployment.Tags = depManifest.Tags
 
+	azs, err := p.parseAZManifests(depManifest.AZs)
+	if err != nil {
+		return Manifest{}, bosherr.WrapErrorf(err, "Parsing azs: %#v", depManifest.AZs)
+	}
+	deployment.AvailabilityZones = azs
+
 	networks, err := p.parseNetworkManifests(depManifest.Networks)
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Parsing networks: %#v", depManifest.Networks)
@@ -197,6 +212,24 @@ func (p *parser) parseDeploymentManifest(depManifest manifest, path string) (Man
 	return deployment, nil
 }
 
+func (p *parser) parseAZManifests(rawAZs []availabilityZone) ([]AvailabilityZone, error) {
+	if len(rawAZs) == 0 {
+		return nil, nil
+	}
+	azs := make([]AvailabilityZone, len(rawAZs))
+	for i, rawAZ := range rawAZs {
+		cloudProperties, err := biproperty.BuildMap(rawAZ.CloudProperties)
+		if err != nil {
+			return azs, bosherr.WrapErrorf(err, "Parsing az '%s' cloud_properties: %#v", rawAZ.Name, rawAZ.CloudProperties)
+		}
+		azs[i] = AvailabilityZone{
+			Name:            rawAZ.Name,
+			CloudProperties: cloudProperties,
+		}
+	}
+	return azs, nil
+}
+
 func (p *parser) parseJobManifests(rawJobs []job) ([]Job, error) {
 	jobs := make([]Job, len(rawJobs))
 	for i, rawJob := range rawJobs {
@@ -207,6 +240,7 @@ func (p *parser) parseJobManifests(rawJobs []job) ([]Job, error) {
 			PersistentDisk:     rawJob.PersistentDisk,
 			PersistentDiskPool: rawJob.PersistentDiskPool,
 			ResourcePool:       rawJob.ResourcePool,
+			AZs:                rawJob.AZs,
 		}
 
 		if len(rawJob.Templates) > 0 && len(rawJob.Jobs) > 0 {
@@ -290,17 +324,29 @@ func (p *parser) parseNetworkManifests(rawNetworks []network) ([]Network, error)
 		}
 		network.CloudProperties = cloudProperties
 
-		for _, subnet := range rawNetwork.Subnets {
-			cloudProperties, err := biproperty.BuildMap(subnet.CloudProperties)
+		for _, rawSubnet := range rawNetwork.Subnets {
+			cloudProperties, err := biproperty.BuildMap(rawSubnet.CloudProperties)
 			if err != nil {
-				return networks, bosherr.WrapErrorf(err, "Parsing network subnet '%s' cloud_properties: %#v", rawNetwork.Name, subnet.CloudProperties)
+				return networks, bosherr.WrapErrorf(err, "Parsing network subnet '%s' cloud_properties: %#v", rawNetwork.Name, rawSubnet.CloudProperties)
+			}
+
+			if rawSubnet.AZ != "" && len(rawSubnet.AZs) > 0 {
+				return networks, bosherr.Errorf("Subnet in network '%s' specifies both 'az' and 'azs'; use one or the other", rawNetwork.Name)
+			}
+
+			var subnetAZs []string
+			if rawSubnet.AZ != "" {
+				subnetAZs = []string{rawSubnet.AZ}
+			} else if len(rawSubnet.AZs) > 0 {
+				subnetAZs = rawSubnet.AZs
 			}
 
 			network.Subnets = append(network.Subnets, Subnet{
-				Range:           subnet.Range,
-				Gateway:         subnet.Gateway,
-				DNS:             subnet.DNS,
+				Range:           rawSubnet.Range,
+				Gateway:         rawSubnet.Gateway,
+				DNS:             rawSubnet.DNS,
 				CloudProperties: cloudProperties,
+				AZs:             subnetAZs,
 			})
 		}
 

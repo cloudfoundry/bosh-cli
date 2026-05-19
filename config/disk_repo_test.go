@@ -81,7 +81,7 @@ var _ = Describe("DiskRepo", func() {
 		var vmCID = "vm-cid-1"
 
 		BeforeEach(func() {
-			_, err := vmRepo.Save("nats", 0, vmCID, "")
+			_, err := vmRepo.Save("nats", 0, vmCID, "", "")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -119,7 +119,7 @@ var _ = Describe("DiskRepo", func() {
 		var vmCID = "vm-cid-1"
 
 		BeforeEach(func() {
-			_, err := vmRepo.Save("nats", 0, vmCID, "")
+			_, err := vmRepo.Save("nats", 0, vmCID, "", "")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -168,7 +168,7 @@ var _ = Describe("DiskRepo", func() {
 		var vmCID = "vm-cid-1"
 
 		BeforeEach(func() {
-			_, err := vmRepo.Save("nats", 0, vmCID, "")
+			_, err := vmRepo.Save("nats", 0, vmCID, "", "")
 			Expect(err).ToNot(HaveOccurred())
 			record, err := repo.Save("fake-cid", 1024, cloudProperties)
 			Expect(err).ToNot(HaveOccurred())
@@ -190,7 +190,7 @@ var _ = Describe("DiskRepo", func() {
 		var vmCID = "vm-cid-1"
 
 		BeforeEach(func() {
-			_, err := vmRepo.Save("nats", 0, vmCID, "")
+			_, err := vmRepo.Save("nats", 0, vmCID, "", "")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -253,7 +253,7 @@ var _ = Describe("DiskRepo", func() {
 		)
 
 		BeforeEach(func() {
-			_, err := vmRepo.Save("nats", 0, vmCID, "")
+			_, err := vmRepo.Save("nats", 0, vmCID, "", "")
 			Expect(err).ToNot(HaveOccurred())
 
 			var e error

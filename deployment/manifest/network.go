@@ -33,29 +33,56 @@ type Subnet struct {
 	Gateway         string
 	DNS             []string
 	CloudProperties biproperty.Map
+	AZs             []string
+}
+
+// ContainsAZ reports whether this subnet is associated with the given AZ name.
+// A subnet with no AZ labels is considered to match any AZ (backward compatible).
+func (s Subnet) ContainsAZ(az string) bool {
+	if len(s.AZs) == 0 {
+		return true
+	}
+	for _, a := range s.AZs {
+		if a == az {
+			return true
+		}
+	}
+	return false
 }
 
 // Interface returns a property map representing a generic network interface.
 // Expected Keys: ip, type, cloud properties.
 // Optional Keys: netmask, gateway, dns
+//
+// Deprecated: prefer InterfaceForAZ which selects the correct subnet when AZs
+// are configured.
 func (n Network) Interface(staticIPs []string, networkDefaults []NetworkDefault) (biproperty.Map, error) {
+	return n.InterfaceForAZ(staticIPs, networkDefaults, "")
+}
+
+// InterfaceForAZ returns a property map for the network interface to be used by
+// an instance in the given AZ. When az is non-empty and the network has subnets
+// with AZ labels, the first matching subnet is selected; otherwise the first
+// subnet is used (backward-compatible behaviour).
+func (n Network) InterfaceForAZ(staticIPs []string, networkDefaults []NetworkDefault, az string) (biproperty.Map, error) {
 	networkInterface := biproperty.Map{
 		"type": n.Type.String(),
 	}
 
 	if n.Type == Manual {
-		networkInterface["gateway"] = n.Subnets[0].Gateway
-		if len(n.Subnets[0].DNS) > 0 {
-			networkInterface["dns"] = n.Subnets[0].DNS
+		subnet := n.subnetForAZ(az)
+		networkInterface["gateway"] = subnet.Gateway
+		if len(subnet.DNS) > 0 {
+			networkInterface["dns"] = subnet.DNS
 		}
 
-		_, ipNet, err := net.ParseCIDR(n.Subnets[0].Range)
+		_, ipNet, err := net.ParseCIDR(subnet.Range)
 		if err != nil {
 			return biproperty.Map{}, bosherr.WrapError(err, "Failed to parse subnet range")
 		}
 
 		networkInterface["netmask"] = ipMaskString(ipNet.Mask)
-		networkInterface["cloud_properties"] = n.Subnets[0].CloudProperties
+		networkInterface["cloud_properties"] = subnet.CloudProperties
 	} else {
 		networkInterface["cloud_properties"] = n.CloudProperties
 	}
@@ -73,6 +100,19 @@ func (n Network) Interface(staticIPs []string, networkDefaults []NetworkDefault)
 	}
 
 	return networkInterface, nil
+}
+
+// subnetForAZ returns the first subnet whose AZ set contains az.
+// If no labelled subnet matches (or az is empty), the first subnet is returned.
+func (n Network) subnetForAZ(az string) Subnet {
+	if az != "" {
+		for _, s := range n.Subnets {
+			if len(s.AZs) > 0 && s.ContainsAZ(az) {
+				return s
+			}
+		}
+	}
+	return n.Subnets[0]
 }
 
 func ipMaskString(ipMask net.IPMask) string {

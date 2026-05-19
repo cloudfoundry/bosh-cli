@@ -81,7 +81,7 @@ var _ = Describe("Manifest", func() {
 			})
 
 		It("is a map of the network names to network interfaces", func() {
-			Expect(deploymentManifest.NetworkInterfaces("fake-job-name", 0)).To(Equal(map[string]biproperty.Map{
+			Expect(deploymentManifest.NetworkInterfaces("fake-job-name", 0, "")).To(Equal(map[string]biproperty.Map{
 					"fake-network-name": biproperty.Map{
 						"type":             "dynamic",
 						"ip":               "5.6.7.8",
@@ -109,7 +109,7 @@ var _ = Describe("Manifest", func() {
 				})
 
 			It("sets network defaults for both dns and gateway when none are specified", func() {
-				Expect(deploymentManifest.NetworkInterfaces("job-with-single-network", 0)).To(Equal(map[string]biproperty.Map{
+				Expect(deploymentManifest.NetworkInterfaces("job-with-single-network", 0, "")).To(Equal(map[string]biproperty.Map{
 						"vip": biproperty.Map{
 							"type":             "vip",
 							"ip":               "1.2.3.4",
@@ -121,7 +121,7 @@ var _ = Describe("Manifest", func() {
 
 				It("sets network defaults for both dns and gateway when only dns specified", func() {
 					singleNetworkJob.Networks[0].Defaults = []NetworkDefault{NetworkDefaultDNS}
-					Expect(deploymentManifest.NetworkInterfaces("job-with-single-network", 0)).To(Equal(map[string]biproperty.Map{
+					Expect(deploymentManifest.NetworkInterfaces("job-with-single-network", 0, "")).To(Equal(map[string]biproperty.Map{
 						"vip": biproperty.Map{
 							"type":             "vip",
 							"ip":               "1.2.3.4",
@@ -133,7 +133,7 @@ var _ = Describe("Manifest", func() {
 
 				It("sets network defaults for both dns and gateway when only gateway specified", func() {
 					singleNetworkJob.Networks[0].Defaults = []NetworkDefault{NetworkDefaultGateway}
-					Expect(deploymentManifest.NetworkInterfaces("job-with-single-network", 0)).To(Equal(map[string]biproperty.Map{
+					Expect(deploymentManifest.NetworkInterfaces("job-with-single-network", 0, "")).To(Equal(map[string]biproperty.Map{
 						"vip": biproperty.Map{
 							"type":             "vip",
 							"ip":               "1.2.3.4",
@@ -145,7 +145,7 @@ var _ = Describe("Manifest", func() {
 
 				It("sets network defaults for both dns and gateway when both gateway and dns specified", func() {
 					singleNetworkJob.Networks[0].Defaults = []NetworkDefault{NetworkDefaultDNS, NetworkDefaultGateway}
-					Expect(deploymentManifest.NetworkInterfaces("job-with-single-network", 0)).To(Equal(map[string]biproperty.Map{
+					Expect(deploymentManifest.NetworkInterfaces("job-with-single-network", 0, "")).To(Equal(map[string]biproperty.Map{
 						"vip": biproperty.Map{
 							"type":             "vip",
 							"ip":               "1.2.3.4",
@@ -157,14 +157,14 @@ var _ = Describe("Manifest", func() {
 			})
 
 		It("returns an error when the deployment does not have a job with requested name", func() {
-			networkInterfaces, err := deploymentManifest.NetworkInterfaces("non-existant-job", 0)
+			networkInterfaces, err := deploymentManifest.NetworkInterfaces("non-existant-job", 0, "")
 				Expect(networkInterfaces).To(Equal(map[string]biproperty.Map{}))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("Could not find job with name: non-existant-job"))
 			})
 
 		It("returns an empty map when job does not specify networks", func() {
-			Expect(deploymentManifest.NetworkInterfaces("job-without-networks", 0)).To(Equal(map[string]biproperty.Map{}))
+			Expect(deploymentManifest.NetworkInterfaces("job-without-networks", 0, "")).To(Equal(map[string]biproperty.Map{}))
 			})
 
 			Context("when the deployment does not have networks", func() {
@@ -180,7 +180,7 @@ var _ = Describe("Manifest", func() {
 				})
 
 			It("is an empty map", func() {
-				Expect(deploymentManifest.NetworkInterfaces("fake-job-name", 0)).To(Equal(map[string]biproperty.Map{}))
+				Expect(deploymentManifest.NetworkInterfaces("fake-job-name", 0, "")).To(Equal(map[string]biproperty.Map{}))
 				})
 			})
 		})

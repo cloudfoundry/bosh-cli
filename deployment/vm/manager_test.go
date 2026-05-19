@@ -141,7 +141,7 @@ var _ = Describe("Manager", func() {
 
 	Describe("Create", func() {
 		It("creates a VM", func() {
-			vm, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
+			vm, err := manager.Create("fake-job", 0, "", stemcell, deploymentManifest, diskCIDs)
 			Expect(err).ToNot(HaveOccurred())
 			expectedVM := NewVMWithMetadata(
 				"fake-vm-cid",
@@ -179,7 +179,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("sets the vm metadata", func() {
-			_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
+			_, err := manager.Create("fake-job", 0, "", stemcell, deploymentManifest, diskCIDs)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(fakeCloud.SetVMMetadataCid).To(Equal("fake-vm-cid"))
 			Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(bicloud.VMMetadata{
@@ -210,7 +210,7 @@ var _ = Describe("Manager", func() {
 					},
 				}
 
-				_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
+				_, err := manager.Create("fake-job", 0, "", stemcell, deploymentManifest, diskCIDs)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeCloud.CreateVMInput).To(Equal(
@@ -248,7 +248,7 @@ var _ = Describe("Manager", func() {
 						"name":           "awesome-name",
 					}
 
-					_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
+					_, err := manager.Create("fake-job", 0, "", stemcell, deploymentManifest, diskCIDs)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(bicloud.VMMetadata{
@@ -265,7 +265,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("saves the vm record with the correct CID and static IP", func() {
-			_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
+			_, err := manager.Create("fake-job", 0, "", stemcell, deploymentManifest, diskCIDs)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeVMRepo.SaveInputs).To(HaveLen(1))
@@ -275,19 +275,66 @@ var _ = Describe("Manager", func() {
 			Expect(fakeVMRepo.SaveInputs[0].StaticIP).To(Equal("fake-ip"))
 		})
 
+		It("saves the az in the vm record", func() {
+			_, err := manager.Create("fake-job", 0, "z1", stemcell, deploymentManifest, diskCIDs)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fakeVMRepo.SaveInputs).To(HaveLen(1))
+			Expect(fakeVMRepo.SaveInputs[0].AZ).To(Equal("z1"))
+		})
+
+		Context("when the manifest declares AZs", func() {
+			BeforeEach(func() {
+				deploymentManifest.AvailabilityZones = []bideplmanifest.AvailabilityZone{
+					{
+						Name: "z1",
+						CloudProperties: biproperty.Map{
+							"zone":         "us-east-1a",
+							"az-only-prop": "az-value",
+						},
+					},
+				}
+				deploymentManifest.Jobs[0].AZs = []string{"z1"}
+			})
+
+			It("merges AZ cloud_properties (base) with resource pool cloud_properties (override)", func() {
+				_, err := manager.Create("fake-job", 0, "z1", stemcell, deploymentManifest, diskCIDs)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeCloud.CreateVMInput.CloudProperties).To(Equal(biproperty.Map{
+					"fake-cloud-property-key": "fake-cloud-property-value",
+					"zone":                   "us-east-1a",
+					"az-only-prop":           "az-value",
+				}))
+			})
+
+			It("resource pool cloud_properties overrides AZ cloud_properties on conflict", func() {
+				deploymentManifest.AvailabilityZones[0].CloudProperties["fake-cloud-property-key"] = "az-value-that-should-be-overridden"
+
+				_, err := manager.Create("fake-job", 0, "z1", stemcell, deploymentManifest, diskCIDs)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeCloud.CreateVMInput.CloudProperties).To(Equal(biproperty.Map{
+					"fake-cloud-property-key": "fake-cloud-property-value",
+					"zone":                   "us-east-1a",
+					"az-only-prop":           "az-value",
+				}))
+			})
+		})
+
 		Context("when setting vm metadata fails", func() {
 			BeforeEach(func() {
 				fakeCloud.SetVMMetadataError = errors.New("fake-set-metadata-error")
 			})
 
 			It("returns an error", func() {
-				_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
+				_, err := manager.Create("fake-job", 0, "", stemcell, deploymentManifest, diskCIDs)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-set-metadata-error"))
 			})
 
 			It("still saves the vm record with the correct CID", func() {
-				_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
+				_, err := manager.Create("fake-job", 0, "", stemcell, deploymentManifest, diskCIDs)
 				Expect(err).To(HaveOccurred())
 				Expect(fakeVMRepo.SaveInputs[0].CID).To(Equal("fake-vm-cid"))
 			})
@@ -300,7 +347,7 @@ var _ = Describe("Manager", func() {
 				})
 				fakeCloud.SetVMMetadataError = notImplementedCloudError
 
-				_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
+				_, err := manager.Create("fake-job", 0, "", stemcell, deploymentManifest, diskCIDs)
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -311,7 +358,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := manager.Create("fake-job", 0, stemcell, deploymentManifest, diskCIDs)
+				_, err := manager.Create("fake-job", 0, "", stemcell, deploymentManifest, diskCIDs)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-create-error"))
 			})

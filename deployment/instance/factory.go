@@ -13,6 +13,7 @@ type Factory interface {
 	NewInstance(
 		jobName string,
 		id int,
+		az string,
 		vm bivm.VM,
 		vmManager bivm.Manager,
 		sshTunnelFactory bisshtunnel.Factory,
@@ -36,6 +37,7 @@ func NewFactory(
 func (f *factory) NewInstance(
 	jobName string,
 	id int,
+	az string,
 	vm bivm.VM,
 	vmManager bivm.Manager,
 	sshTunnelFactory bisshtunnel.Factory,
@@ -47,6 +49,7 @@ func (f *factory) NewInstance(
 	return NewInstance(
 		jobName,
 		id,
+		az,
 		vm,
 		vmManager,
 		sshTunnelFactory,

@@ -39,6 +39,20 @@ func (m *MockInstance) EXPECT() *MockInstanceMockRecorder {
 	return m.recorder
 }
 
+// AZ mocks base method.
+func (m *MockInstance) AZ() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AZ")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// AZ indicates an expected call of AZ.
+func (mr *MockInstanceMockRecorder) AZ() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AZ", reflect.TypeOf((*MockInstance)(nil).AZ))
+}
+
 // Delete mocks base method.
 func (m *MockInstance) Delete(arg0, arg1 time.Duration, arg2 bool, arg3 ui.Stage) error {
 	m.ctrl.T.Helper()
@@ -191,9 +205,9 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockManager) Create(arg0 string, arg1 int, arg2 manifest.Manifest, arg3 stemcell.CloudStemcell, arg4 []string, arg5 ui.Stage) (instance.Instance, []disk.Disk, error) {
+func (m *MockManager) Create(arg0 string, arg1 int, arg2 string, arg3 manifest.Manifest, arg4 stemcell.CloudStemcell, arg5 []string, arg6 ui.Stage) (instance.Instance, []disk.Disk, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret := m.ctrl.Call(m, "Create", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 	ret0, _ := ret[0].(instance.Instance)
 	ret1, _ := ret[1].([]disk.Disk)
 	ret2, _ := ret[2].(error)
@@ -201,9 +215,9 @@ func (m *MockManager) Create(arg0 string, arg1 int, arg2 manifest.Manifest, arg3
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockManagerMockRecorder) Create(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+func (mr *MockManagerMockRecorder) Create(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockManager)(nil).Create), arg0, arg1, arg2, arg3, arg4, arg5)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockManager)(nil).Create), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
 // DeleteAll mocks base method.

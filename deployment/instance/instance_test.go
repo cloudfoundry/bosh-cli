@@ -75,6 +75,7 @@ var _ = Describe("Instance", func() {
 		instance = NewInstance(
 			jobName,
 			jobIndex,
+			"",
 			fakeVM,
 			fakeVMManager,
 			fakeSSHTunnelFactory,
@@ -322,8 +323,8 @@ var _ = Describe("Instance", func() {
 			fakeAgentState := agentclient.AgentState{JobState: "testing"}
 			fakeVM.GetStateResult = fakeAgentState
 
-			expectStateBuild = mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage, fakeAgentState).Return(mockState, nil).AnyTimes()
-			expectStateBuildInitialState = mockStateBuilder.EXPECT().BuildInitialState(jobName, jobIndex, deploymentManifest).Return(mockState, nil).AnyTimes()
+			expectStateBuild = mockStateBuilder.EXPECT().Build(jobName, jobIndex, "", deploymentManifest, fakeStage, fakeAgentState).Return(mockState, nil).AnyTimes()
+			expectStateBuildInitialState = mockStateBuilder.EXPECT().BuildInitialState(jobName, jobIndex, "", deploymentManifest).Return(mockState, nil).AnyTimes()
 			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 		})
 

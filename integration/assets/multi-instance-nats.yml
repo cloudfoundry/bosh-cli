@@ -9,6 +9,14 @@ releases:
 - name: bosh-docker-cpi
   url: file:///bosh-test/docker-cpi.tgz
 
+azs:
+- name: z1
+  cloud_properties:
+    zone: docker-az1
+- name: z2
+  cloud_properties:
+    zone: docker-az2
+
 resource_pools:
 - name: default
   network: default
@@ -33,22 +41,30 @@ networks:
   subnets:
   - range: 10.244.0.0/24
     gateway: 10.244.0.1
+    azs: [z1, z2]
     static:
     - 10.244.0.10
     - 10.244.0.11
+    - 10.244.0.12
+    - 10.244.0.13
+    - 10.244.0.14
     dns: [8.8.8.8]
     cloud_properties:
       name: bosh
 
 jobs:
 - name: nats
-  instances: 2
+  instances: 5
+  azs: [z1, z2]
   resource_pool: default
   networks:
   - name: default
     static_ips:
     - 10.244.0.10
     - 10.244.0.11
+    - 10.244.0.12
+    - 10.244.0.13
+    - 10.244.0.14
   templates:
   - name: bpm
     release: bpm
@@ -61,6 +77,9 @@ jobs:
       machines:
       - 10.244.0.10
       - 10.244.0.11
+      - 10.244.0.12
+      - 10.244.0.13
+      - 10.244.0.14
       internal:
         tls:
           enabled: true
@@ -88,6 +107,9 @@ variables:
     alternative_names:
     - 10.244.0.10
     - 10.244.0.11
+    - 10.244.0.12
+    - 10.244.0.13
+    - 10.244.0.14
 - name: nats_internal_tls
   type: certificate
   options:
@@ -96,6 +118,9 @@ variables:
     alternative_names:
     - 10.244.0.10
     - 10.244.0.11
+    - 10.244.0.12
+    - 10.244.0.13
+    - 10.244.0.14
 
 cloud_provider:
   template:

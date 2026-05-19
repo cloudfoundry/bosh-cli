@@ -361,7 +361,7 @@ var _ = Describe("Validator", func() {
 			})
 
 			Context("manual networks", func() {
-				It("validates that there is exactly 1 subnet", func() {
+				It("validates that there is at least 1 subnet", func() {
 					deploymentManifest := Manifest{
 						Networks: []Network{
 							{
@@ -373,7 +373,7 @@ var _ = Describe("Validator", func() {
 
 					err := validator.Validate(deploymentManifest, validReleaseSetManifest)
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("networks[0].subnets must be of size 1"))
+					Expect(err.Error()).To(ContainSubstring("networks[0].subnets must be a non-empty array"))
 				})
 
 				It("validates that range is present", func() {

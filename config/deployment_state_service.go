@@ -18,8 +18,9 @@ type DeploymentState struct {
 	CurrentVMs         []VMRecord       `json:"current_vms,omitempty"`
 }
 
-// VMRecord stores per-instance VM state: cloud identity, disk association, and
-// the static IP used to reconstruct the per-instance agent mbus URL at runtime.
+// VMRecord stores per-instance VM state: cloud identity, disk association,
+// the static IP used to reconstruct the per-instance agent mbus URL at runtime,
+// and the availability zone the VM was placed in (for sticky re-deployment).
 type VMRecord struct {
 	ID            string `json:"id"`
 	JobName       string `json:"job_name"`
@@ -27,6 +28,7 @@ type VMRecord struct {
 	CID           string `json:"cid,omitempty"`
 	CurrentDiskID string `json:"current_disk_id,omitempty"`
 	StaticIP      string `json:"static_ip,omitempty"`
+	AZ            string `json:"az,omitempty"`
 }
 
 type StemcellRecord struct {

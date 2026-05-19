@@ -169,8 +169,8 @@ var _ = Describe("Deployer", func() {
 		fakeVM.GetStateResult = fakeAgentState
 
 		mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
-		mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage, fakeAgentState).Return(mockState, nil).AnyTimes()
-		mockStateBuilder.EXPECT().BuildInitialState(jobName, jobIndex, deploymentManifest).Return(mockState, nil).AnyTimes()
+		mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
+		mockStateBuilder.EXPECT().BuildInitialState(jobName, jobIndex, gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
 		mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
 	})
 
@@ -401,6 +401,76 @@ var _ = Describe("Deployer", func() {
 				Name:  "Waiting for instance 'fake-job-name/0' to be running",
 				Error: waitError,
 			}))
+		})
+	})
+
+	Context("AZ placement", func() {
+		BeforeEach(func() {
+			fakeVMManager.SetFindAllBehavior([]bivm.ExistingVM{}, nil)
+		})
+
+		Context("round-robin on a fresh deploy with 2 AZs and 2 instances", func() {
+			BeforeEach(func() {
+				deploymentManifest.AvailabilityZones = []bideplmanifest.AvailabilityZone{
+					{Name: "z1"},
+					{Name: "z2"},
+				}
+				deploymentManifest.Jobs = []bideplmanifest.Job{
+					{
+						Name:      "fake-job-name",
+						Instances: 2,
+						AZs:       []string{"z1", "z2"},
+					},
+				}
+			})
+
+			JustBeforeEach(func() {
+				// Additional mock expectations for the second instance (index 1).
+				fakeAgentState := agentclient.AgentState{}
+				mockStateBuilder.EXPECT().Build("fake-job-name", 1, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
+				mockStateBuilder.EXPECT().BuildInitialState("fake-job-name", 1, gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
+				fakeVM.GetStateResult = fakeAgentState
+			})
+
+			It("assigns AZs in round-robin order", func() {
+				_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
+				Expect(err).NotTo(HaveOccurred())
+
+				// First VM created for instance 0 gets z1, second for instance 1 gets z2.
+				Expect(fakeVMManager.CreateInput.AZ).To(Equal("z2"))
+			})
+		})
+
+		Context("sticky AZ on redeploy", func() {
+			BeforeEach(func() {
+				deploymentManifest.AvailabilityZones = []bideplmanifest.AvailabilityZone{
+					{Name: "z1"},
+					{Name: "z2"},
+				}
+				deploymentManifest.Jobs = []bideplmanifest.Job{
+					{
+						Name:      "fake-job-name",
+						Instances: 1,
+						AZs:       []string{"z1", "z2"},
+					},
+				}
+
+				// Existing instance was previously placed in z2.
+				fakeExistingVM := fakebivm.NewFakeVM("existing-vm-cid")
+				fakeExistingVM.AgentClientReturn = mockAgentClient
+				fakeVMManager.SetFindAllBehavior([]bivm.ExistingVM{
+					{VM: fakeExistingVM, JobName: "fake-job-name", InstanceID: 0, AZ: "z2"},
+				}, nil)
+			})
+
+			It("reuses the stored AZ rather than picking a new one", func() {
+				_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstoreFactory, nil, skipDrain, diskCIDs, fakeStage)
+				Expect(err).NotTo(HaveOccurred())
+
+				// Even though z1 would have been picked by round-robin, the existing
+				// instance in z2 is sticky so z2 is used.
+				Expect(fakeVMManager.CreateInput.AZ).To(Equal("z2"))
+			})
 		})
 	})
 })

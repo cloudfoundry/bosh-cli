@@ -20,6 +20,7 @@ import (
 type Instance interface {
 	JobName() string
 	ID() int
+	AZ() string
 	Disks() ([]bidisk.Disk, error)
 	WaitUntilReady(biui.Stage) error
 	UpdateDisks(bideplmanifest.Manifest, biui.Stage) ([]bidisk.Disk, error)
@@ -47,6 +48,7 @@ type Instance interface {
 type instance struct {
 	jobName          string
 	id               int
+	az               string
 	vm               bivm.VM
 	vmManager        bivm.Manager
 	sshTunnelFactory bisshtunnel.Factory
@@ -58,6 +60,7 @@ type instance struct {
 func NewInstance(
 	jobName string,
 	id int,
+	az string,
 	vm bivm.VM,
 	vmManager bivm.Manager,
 	sshTunnelFactory bisshtunnel.Factory,
@@ -67,6 +70,7 @@ func NewInstance(
 	return &instance{
 		jobName:          jobName,
 		id:               id,
+		az:               az,
 		vm:               vm,
 		vmManager:        vmManager,
 		sshTunnelFactory: sshTunnelFactory,
@@ -82,6 +86,10 @@ func (i *instance) JobName() string {
 
 func (i *instance) ID() int {
 	return i.id
+}
+
+func (i *instance) AZ() string {
+	return i.az
 }
 
 func (i *instance) Disks() ([]bidisk.Disk, error) {
@@ -122,7 +130,7 @@ func (i *instance) UpdateJobs(
 	deploymentManifest bideplmanifest.Manifest,
 	stage biui.Stage,
 ) error {
-	initialAgentState, err := i.stateBuilder.BuildInitialState(i.jobName, i.id, deploymentManifest)
+	initialAgentState, err := i.stateBuilder.BuildInitialState(i.jobName, i.id, i.az, deploymentManifest)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Building initial state for instance '%s/%d'", i.jobName, i.id)
 	}
@@ -139,7 +147,7 @@ func (i *instance) UpdateJobs(
 		return bosherr.WrapErrorf(err, "Getting state for instance '%s/%d'", i.jobName, i.id)
 	}
 
-	newAgentState, err := i.stateBuilder.Build(i.jobName, i.id, deploymentManifest, stage, resolvedAgentState)
+	newAgentState, err := i.stateBuilder.Build(i.jobName, i.id, i.az, deploymentManifest, stage, resolvedAgentState)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Building state for instance '%s/%d'", i.jobName, i.id)
 	}

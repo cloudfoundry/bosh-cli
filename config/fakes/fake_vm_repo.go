@@ -26,6 +26,7 @@ type VMRepoSaveInput struct {
 	InstanceID int
 	CID        string
 	StaticIP   string
+	AZ         string
 }
 
 type VMRepoSaveOutput struct {
@@ -54,12 +55,13 @@ func (r *FakeVMRepo) SetFindAllBehavior(records []biconfig.VMRecord, err error) 
 	r.findAllOutput = vmRepoFindAllOutput{records: records, err: err}
 }
 
-func (r *FakeVMRepo) Save(jobName string, instanceID int, cid string, staticIP string) (biconfig.VMRecord, error) {
+func (r *FakeVMRepo) Save(jobName string, instanceID int, cid string, staticIP string, az string) (biconfig.VMRecord, error) {
 	r.SaveInputs = append(r.SaveInputs, VMRepoSaveInput{
 		JobName:    jobName,
 		InstanceID: instanceID,
 		CID:        cid,
 		StaticIP:   staticIP,
+		AZ:         az,
 	})
 	return r.SaveOutput.Record, r.SaveErr
 }

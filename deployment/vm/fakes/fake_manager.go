@@ -9,6 +9,7 @@ import (
 type CreateInput struct {
 	JobName    string
 	InstanceID int
+	AZ         string
 	Stemcell   bistemcell.CloudStemcell
 	Manifest   bideplmanifest.Manifest
 	DiskCIDs   []string
@@ -35,10 +36,11 @@ func (m *FakeManager) FindAll() ([]bivm.ExistingVM, error) {
 	return m.findAllBehaviour.vms, m.findAllBehaviour.err
 }
 
-func (m *FakeManager) Create(jobName string, instanceID int, stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest, diskCIDs []string) (bivm.VM, error) {
+func (m *FakeManager) Create(jobName string, instanceID int, az string, stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest, diskCIDs []string) (bivm.VM, error) {
 	m.CreateInput = CreateInput{
 		JobName:    jobName,
 		InstanceID: instanceID,
+		AZ:         az,
 		Stemcell:   stemcell,
 		Manifest:   deploymentManifest,
 		DiskCIDs:   diskCIDs,

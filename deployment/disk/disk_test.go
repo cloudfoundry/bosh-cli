@@ -126,7 +126,7 @@ var _ = Describe("Disk", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				// Create a VM record first, then associate the disk with it.
-				_, err = vmRepo.Save("fake-job", 0, testVMCID, "")
+				_, err = vmRepo.Save("fake-job", 0, testVMCID, "", "")
 				Expect(err).ToNot(HaveOccurred())
 				err = diskRepo.UpdateCurrentForVM(testVMCID, diskRecord.ID)
 				Expect(err).ToNot(HaveOccurred())
@@ -169,7 +169,7 @@ var _ = Describe("Disk", func() {
 				diskRecord, err := diskRepo.Save("fake-disk-cid", 1024, diskCloudProperties)
 				Expect(err).ToNot(HaveOccurred())
 
-				_, err = vmRepo.Save("fake-job", 0, testVMCID, "")
+				_, err = vmRepo.Save("fake-job", 0, testVMCID, "", "")
 				Expect(err).ToNot(HaveOccurred())
 				err = diskRepo.UpdateCurrentForVM(testVMCID, diskRecord.ID)
 				Expect(err).ToNot(HaveOccurred())
