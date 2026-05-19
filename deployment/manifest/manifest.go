@@ -20,10 +20,15 @@ type Update struct {
 	UpdateWatchTime WatchTime
 }
 
-// NetworkInterfaces returns a map of network names to network interfaces.
+// NetworkInterfaces returns a map of network names to network interfaces for
+// the given instance (identified by instanceID).
+//
+// When a job network lists multiple static IPs (one per instance), only the IP
+// at position instanceID is included in the returned interface map. This ensures
+// that each instance receives its own IP rather than the first IP in the list.
+//
 // We can't use map[string]NetworkInterface, because it's impossible to down-cast to what the cloud client requires.
-// TODO: refactor to NetworkInterfaces(Job) and use FindJobByName before using (then remove error)
-func (d Manifest) NetworkInterfaces(jobName string) (map[string]biproperty.Map, error) {
+func (d Manifest) NetworkInterfaces(jobName string, instanceID int) (map[string]biproperty.Map, error) {
 	job, found := d.FindJobByName(jobName)
 	if !found {
 		return map[string]biproperty.Map{}, bosherr.Errorf("Could not find job with name: %s", jobName)
@@ -35,7 +40,16 @@ func (d Manifest) NetworkInterfaces(jobName string) (map[string]biproperty.Map, 
 	var err error
 	for _, jobNetwork := range job.Networks {
 		network := networkMap[jobNetwork.Name]
-		ifaceMap[jobNetwork.Name], err = network.Interface(jobNetwork.StaticIPs, jobNetwork.Defaults)
+		staticIPs := jobNetwork.StaticIPs
+		if instanceID < len(staticIPs) {
+			staticIPs = staticIPs[instanceID : instanceID+1]
+		} else if len(staticIPs) > 0 {
+			// instanceID is out of range – fall back to the first IP so
+			// single-instance deployments (instanceID=0) continue to work
+			// even if only one static IP was listed.
+			staticIPs = staticIPs[:1]
+		}
+		ifaceMap[jobNetwork.Name], err = network.Interface(staticIPs, jobNetwork.Defaults)
 		if err != nil {
 			return map[string]biproperty.Map{}, bosherr.WrapError(err, "Building network interface")
 		}

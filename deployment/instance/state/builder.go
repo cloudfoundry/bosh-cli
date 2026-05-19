@@ -138,7 +138,7 @@ func (b *builder) BuildInitialState(jobName string, instanceID int, deploymentMa
 		return nil, bosherr.Errorf("Job '%s' not found in deployment manifest", jobName)
 	}
 
-	networkInterfaces, err := deploymentManifest.NetworkInterfaces(deploymentJob.Name)
+	networkInterfaces, err := deploymentManifest.NetworkInterfaces(deploymentJob.Name, instanceID)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Finding networks for job '%s", jobName)
 	}

@@ -119,7 +119,7 @@ func (m *manager) FindAll() ([]ExistingVM, error) {
 }
 
 func (m *manager) Create(jobName string, instanceID int, stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest, diskCIDs []string) (VM, error) {
-	networkInterfaces, err := deploymentManifest.NetworkInterfaces(jobName)
+	networkInterfaces, err := deploymentManifest.NetworkInterfaces(jobName, instanceID)
 	m.logger.Debug(m.logTag, "Creating VM with network interfaces: %#v", networkInterfaces)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Getting network spec")
