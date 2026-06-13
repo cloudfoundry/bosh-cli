@@ -24,6 +24,10 @@ func (r execCmdRunner) RunComplexCommand(cmd Command) (string, string, int, erro
 		return "", "", -1, err
 	}
 
+	if cmd.SpawnWithLowerPriority {
+		r.lowerProcessPriority(cmd.Name, process.cmd.Process.Pid) //nolint:errcheck
+	}
+
 	result := <-process.Wait()
 
 	return result.Stdout, result.Stderr, result.ExitStatus, result.Error
@@ -35,6 +39,10 @@ func (r execCmdRunner) RunComplexCommandAsync(cmd Command) (Process, error) {
 	err := process.Start()
 	if err != nil {
 		return nil, err
+	}
+
+	if cmd.SpawnWithLowerPriority {
+		r.lowerProcessPriority(cmd.Name, process.cmd.Process.Pid) //nolint:errcheck
 	}
 
 	return process, nil
