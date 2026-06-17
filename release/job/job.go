@@ -24,6 +24,8 @@ type Job struct {
 	PackageNames []string
 	Packages     []boshpkg.Compilable
 	Properties   map[string]PropertyDefinition
+	Consumes     []LinkDef
+	Provides     []LinkDef
 
 	extractedPath string
 	fs            boshsys.FileSystem
@@ -31,7 +33,15 @@ type Job struct {
 
 type PropertyDefinition struct {
 	Description string
-	Default     biproperty.Property
+	Default      biproperty.Property
+}
+
+// LinkDef mirrors the consumes/provides entry from a release job's spec file.
+type LinkDef struct {
+	Name       string
+	Type       string
+	Optional   bool
+	Properties []string // exposed property names (only meaningful on provides)
 }
 
 func NewJob(jobResource resource.Resource) *Job {
@@ -80,6 +90,8 @@ func (j *Job) RehashWithCalculator(calculator crypto.DigestCalculator, archiveFi
 		PackageNames: j.PackageNames,
 		Packages:     j.Packages,
 		Properties:   j.Properties,
+		Consumes:     j.Consumes,
+		Provides:     j.Provides,
 
 		extractedPath: j.extractedPath,
 		fs:            j.fs,

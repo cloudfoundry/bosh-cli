@@ -98,6 +98,13 @@ type releaseJobRef struct {
 	// This is a pointer so we can differentiate between `properties: {}`
 	// and not specifying the key at all.
 	Properties *map[interface{}]interface{}
+
+	// Consumes is a map from link name to the raw YAML value.
+	// The value may be:
+	//   - nil / the string "nil" → link is blocked
+	//   - a map with keys "instances", "properties", "address" → manual link
+	//   - a map with key "from" → alias/redirect
+	Consumes map[string]interface{} `yaml:"consumes"`
 }
 
 type stemcellRef struct {
@@ -269,6 +276,17 @@ func (p *parser) parseJobManifests(rawJobs []job) ([]Job, error) {
 					ref.Properties = &properties
 				}
 
+				if len(rawJobRef.Consumes) > 0 {
+					ref.Consumes = make(map[string]ManifestConsumesEntry, len(rawJobRef.Consumes))
+					for linkName, rawVal := range rawJobRef.Consumes {
+						entry, err := parseManifestConsumesEntry(rawVal)
+						if err != nil {
+							return []Job{}, bosherr.WrapErrorf(err, "Parsing consumes '%s' for job '%s'", linkName, rawJobRef.Name)
+						}
+						ref.Consumes[linkName] = entry
+					}
+				}
+
 				releaseJobRefs[i] = ref
 			}
 			job.Templates = releaseJobRefs
@@ -406,4 +424,73 @@ func (p *parser) parseDiskPoolManifests(rawDiskPools []diskPool) ([]DiskPool, er
 	}
 
 	return diskPools, nil
+}
+
+// parseManifestConsumesEntry converts the raw YAML value for a single link's
+// consumes entry into a strongly-typed ManifestConsumesEntry.
+//
+// Supported forms in the manifest:
+//
+//	consumes:
+//	  db: nil                         # blocked
+//	  db:                             # blocked (YAML null)
+//	  db: {from: other-provider}      # alias
+//	  db: {instances: [...], properties: {...}, address: "..."} # manual
+func parseManifestConsumesEntry(raw interface{}) (ManifestConsumesEntry, error) {
+	// nil or the string "nil" → blocked
+	if raw == nil {
+		return ManifestConsumesEntry{IsBlocked: true}, nil
+	}
+	if s, ok := raw.(string); ok && s == "nil" {
+		return ManifestConsumesEntry{IsBlocked: true}, nil
+	}
+
+	rawMap, ok := raw.(map[interface{}]interface{})
+	if !ok {
+		return ManifestConsumesEntry{}, bosherr.Errorf("unexpected consumes value type %T", raw)
+	}
+
+	entry := ManifestConsumesEntry{}
+
+	// "from" alias
+	if fromVal, ok := rawMap["from"]; ok {
+		if fromStr, ok := fromVal.(string); ok {
+			entry.From = fromStr
+		}
+	}
+
+	// manual link fields
+	if instVal, ok := rawMap["instances"]; ok {
+		entry.IsManual = true
+		if instList, ok := instVal.([]interface{}); ok {
+			for _, item := range instList {
+				if itemMap, ok := item.(map[interface{}]interface{}); ok {
+					var addr string
+					if a, ok := itemMap["address"]; ok {
+						addr, _ = a.(string)
+					}
+					entry.Instances = append(entry.Instances, ManualLinkInstance{Address: addr})
+				}
+			}
+		}
+	}
+
+	if propsVal, ok := rawMap["properties"]; ok {
+		entry.IsManual = true
+		props, err := biproperty.BuildMap(propsVal.(map[interface{}]interface{}))
+		if err != nil {
+			return ManifestConsumesEntry{}, bosherr.WrapError(err, "Parsing manual link properties")
+		}
+		entry.Properties = make(map[string]interface{}, len(props))
+		for k, v := range props {
+			entry.Properties[k] = v
+		}
+	}
+
+	if addrVal, ok := rawMap["address"]; ok {
+		entry.IsManual = true
+		entry.Address, _ = addrVal.(string)
+	}
+
+	return entry, nil
 }

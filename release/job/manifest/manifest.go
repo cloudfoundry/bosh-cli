@@ -11,11 +11,21 @@ type Manifest struct {
 	Templates  map[string]string             `yaml:"templates"`
 	Packages   []string                      `yaml:"packages"`
 	Properties map[string]PropertyDefinition `yaml:"properties"`
+	Consumes   []LinkDef                     `yaml:"consumes"`
+	Provides   []LinkDef                     `yaml:"provides"`
 }
 
 type PropertyDefinition struct {
 	Description string      `yaml:"description"`
 	Default     interface{} `yaml:"default"`
+}
+
+// LinkDef represents a consumes or provides entry in a release job's spec file.
+type LinkDef struct {
+	Name       string   `yaml:"name"`
+	Type       string   `yaml:"type"`
+	Optional   bool     `yaml:"optional"`
+	Properties []string `yaml:"properties"` // only meaningful on provides
 }
 
 func NewManifestFromPath(path string, fs boshsys.FileSystem) (Manifest, error) {

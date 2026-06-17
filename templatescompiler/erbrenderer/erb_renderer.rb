@@ -1,3 +1,8 @@
+# @AI-Generated
+# Modified with AI assistance
+# Description:
+# 2026-05-22: Add full BOSH link support (link, if_link, EvaluationLink, EvaluationLinkInstance, ManualLinkDnsEncoder, UnknownLink) matching bosh-common interface - Cursor: Claude Sonnet 4.6
+
 # Based on common/properties/template_evaluation_context.rb
 require "rubygems"
 require "json"
@@ -53,11 +58,204 @@ class Hash
   end
 end
 
+# Shared dotted-path property lookup used by TemplateEvaluationContext,
+# EvaluationLink, and EvaluationLinkInstance.
+module PropertyLookup
+  def lookup_property(collection, name)
+    keys = name.split(".")
+    ref = collection
+    keys.each do |key|
+      ref = ref[key]
+      return nil if ref.nil?
+    end
+    ref
+  end
+end
+
+# Raised when a required link is not available.
+# Matches bosh-common's UnknownLink error.
+class UnknownLink < StandardError
+  def initialize(name)
+    super("Can't find link '#{name}'")
+  end
+end
+
+# Raised when a required property is not available.
+# Matches bosh-common's UnknownProperty error.
+class UnknownProperty < StandardError
+  attr_reader :name
+
+  def initialize(names)
+    @names = names
+    super("Can't find property '#{names.join("', or '")}'")
+  end
+end
+
+# Returned by if_p / if_link when the value/link was NOT found.
+# Provides .else { } and .else_if_p / .else_if_link chaining.
+# Matches bosh-common's ActiveElseBlock.
+class ActiveElseBlock
+  def initialize(context)
+    @context = context
+  end
+
+  def else
+    yield
+  end
+
+  def else_if_p(*names, &block) # rubocop:disable Style/ArgumentsForwarding
+    @context.if_p(*names, &block) # rubocop:disable Style/ArgumentsForwarding
+  end
+
+  def else_if_link(name, &block) # rubocop:disable Style/ArgumentsForwarding
+    @context.if_link(name, &block) # rubocop:disable Style/ArgumentsForwarding
+  end
+end
+
+# Returned by if_p / if_link when the value/link WAS found.
+# .else { } is a no-op; all else_if_* return InactiveElseBlock.
+# Matches bosh-common's InactiveElseBlock.
+class InactiveElseBlock
+  def else
+  end
+
+  def else_if_p(*_names)
+    InactiveElseBlock.new
+  end
+
+  def else_if_link(_name)
+    InactiveElseBlock.new
+  end
+end
+
+# Handles link.address() calls for manual links.
+# When a manifest-level 'consumes' entry has an 'address' field, the resolver
+# sets LinkSpec.Address so the ERB renderer knows to use this encoder.
+# Matches bosh-common's ManualLinkDnsEncoder interface.
+class ManualLinkDnsEncoder
+  def initialize(address)
+    @address = address
+  end
+
+  def encode_query(_criteria, _use_short_dns_addresses, _use_link_dns_names)
+    @address
+  end
+end
+
+# Represents a single instance within a resolved BOSH link.
+# Wraps the per-instance hash from the LinkSpec's 'instances' array.
+# Matches bosh-common's EvaluationLinkInstance interface.
+class EvaluationLinkInstance
+  include PropertyLookup
+
+  attr_reader :name, :index, :id, :az, :address, :bootstrap, :properties
+
+  def initialize(instance_spec)
+    @name       = instance_spec["name"]
+    @index      = instance_spec["index"]
+    @id         = instance_spec["id"]
+    @az         = instance_spec["az"]
+    @address    = instance_spec["address"]
+    @bootstrap  = instance_spec["bootstrap"]
+    @properties = instance_spec["properties"] || {}
+  end
+
+  def p(*args)
+    names = Array(args[0])
+    names.each do |name|
+      result = lookup_property(@properties, name)
+      return result unless result.nil?
+    end
+    return args[1] if args.length == 2
+
+    raise UnknownProperty.new(names)
+  end
+
+  def if_p(*names)
+    values = names.map do |name|
+      value = lookup_property(@properties, name)
+      return ActiveElseBlock.new(self) if value.nil?
+
+      value
+    end
+    yield(*values)
+    InactiveElseBlock.new
+  end
+
+  # EvaluationLinkInstance does not have its own links; return InactiveElseBlock
+  # so that else_if_link chaining from if_p blocks does not raise.
+  def if_link(_name)
+    InactiveElseBlock.new
+  end
+end
+
+# Represents a resolved BOSH link exposed to ERB templates via link('name').
+# Matches bosh-common's EvaluationLink interface exactly.
+class EvaluationLink
+  include PropertyLookup
+
+  attr_reader :instances, :properties
+
+  def initialize(link_spec, dns_encoder)
+    raw_instances = link_spec["instances"] || []
+    @instances   = raw_instances.map { |i| EvaluationLinkInstance.new(i) }
+    @properties  = link_spec["properties"] || {}
+    @dns_encoder = dns_encoder
+
+    # Used by address() when use_link_dns_names is true.
+    @group_name            = link_spec["group_name"]
+    @use_link_dns_names    = link_spec["use_link_dns_names"] || false
+    @use_short_dns_addresses = link_spec["use_short_dns_addresses"] || false
+  end
+
+  def p(*args)
+    names = Array(args[0])
+    names.each do |name|
+      result = lookup_property(@properties, name)
+      return result unless result.nil?
+    end
+    return args[1] if args.length == 2
+
+    raise UnknownProperty.new(names)
+  end
+
+  def if_p(*names)
+    values = names.map do |name|
+      value = lookup_property(@properties, name)
+      return ActiveElseBlock.new(self) if value.nil?
+
+      value
+    end
+    yield(*values)
+    InactiveElseBlock.new
+  end
+
+  # EvaluationLink does not contain other links.
+  def if_link(_name)
+    InactiveElseBlock.new
+  end
+
+  # Calls dns_encoder to resolve a group address (e.g. for VIP or LB).
+  # For manual links the ManualLinkDnsEncoder returns the configured address.
+  # For regular links in create-env (no BOSH DNS), this raises NotImplementedError
+  # because the dns_encoder is nil.  Templates that only call link.instances.map(&:address)
+  # never reach this code path.
+  def address(criteria = {})
+    raise NotImplementedError, "link.address() requires BOSH DNS which is not available in create-env; use link.instances.map(&:address) instead" if @dns_encoder.nil?
+
+    use_short = criteria["use_short_dns_addresses"] || criteria[:use_short_dns_addresses] || @use_short_dns_addresses
+    use_link_dns = criteria["use_link_dns_names"] || criteria[:use_link_dns_names] || @use_link_dns_names
+    @dns_encoder.encode_query(criteria, use_short, use_link_dns)
+  end
+end
+
 class TemplateEvaluationContext
+  include PropertyLookup
+
   attr_reader :name, :index, :properties, :raw_properties, :spec
 
   def initialize(spec)
-    @name = spec["job"]["name"] if spec["job"].is_a?(Hash)
+    @name  = spec["job"]["name"] if spec["job"].is_a?(Hash)
     @index = spec["index"]
 
     properties1 = if !spec["job_properties"].nil?
@@ -71,9 +269,15 @@ class TemplateEvaluationContext
       copy_property(properties, properties1, name, value)
     end
 
-    @properties = openstruct(properties)
+    @properties     = openstruct(properties)
     @raw_properties = properties
-    @spec = openstruct(spec)
+    @spec           = openstruct(spec)
+
+    # Initialise link support.  The full links map is keyed by job template name;
+    # we select the slice for the current template so lookup is by link name only.
+    all_links        = spec["links"] || {}
+    job_template_name = spec["job_template_name"]
+    @links = job_template_name ? (all_links[job_template_name] || {}) : {}
   end
 
   def get_binding
@@ -105,11 +309,41 @@ class TemplateEvaluationContext
     InactiveElseBlock.new
   end
 
-  def if_link(_name)
-    false
+  # Raises UnknownLink when the link was not resolved (required link absent).
+  # Matches bosh-common's EvaluationContext#link exactly.
+  def link(name)
+    link_spec = @links[name]
+    raise UnknownLink.new(name) if link_spec.nil?
+    raise UnknownLink.new(name) unless link_spec.key?("instances")
+
+    create_evaluation_link(link_spec)
+  end
+
+  # Yields the EvaluationLink if resolved; otherwise returns ActiveElseBlock.
+  # Matches bosh-common's EvaluationContext#if_link exactly.
+  def if_link(name)
+    link_spec = @links[name]
+    if link_spec.nil? || !link_spec.key?("instances")
+      return ActiveElseBlock.new(self)
+    end
+
+    yield create_evaluation_link(link_spec)
+    InactiveElseBlock.new
   end
 
   private
+
+  # Builds an EvaluationLink from the resolved LinkSpec hash.
+  # Selects ManualLinkDnsEncoder when the spec has a top-level "address" (manual link).
+  # Matches bosh-common's EvaluationContext#create_evaluation_link.
+  def create_evaluation_link(link_spec)
+    dns_encoder = if link_spec["address"] && !link_spec["address"].empty?
+      ManualLinkDnsEncoder.new(link_spec["address"])
+    else
+      nil # create-env has no BOSH DNS; link.address() will raise NotImplementedError
+    end
+    EvaluationLink.new(link_spec, dns_encoder)
+  end
 
   def copy_property(dst, src, name, default = nil)
     keys = name.split(".")
@@ -141,50 +375,6 @@ class TemplateEvaluationContext
       object.map { |item| openstruct(item) }
     else
       object
-    end
-  end
-
-  def lookup_property(collection, name)
-    keys = name.split(".")
-    ref = collection
-
-    keys.each do |key|
-      ref = ref[key]
-      return nil if ref.nil?
-    end
-
-    ref
-  end
-
-  class UnknownProperty < StandardError
-    attr_reader :name
-
-    def initialize(names)
-      @names = names
-      super("Can't find property '#{names.join("', or '")}'")
-    end
-  end
-
-  class ActiveElseBlock
-    def initialize(template)
-      @context = template
-    end
-
-    def else
-      yield
-    end
-
-    def else_if_p(*names, &block) # rubocop:disable Style/ArgumentsForwarding
-      @context.if_p(*names, &block) # rubocop:disable Style/ArgumentsForwarding
-    end
-  end
-
-  class InactiveElseBlock
-    def else
-    end
-
-    def else_if_p(*_names)
-      InactiveElseBlock.new
     end
   end
 end

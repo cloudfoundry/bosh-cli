@@ -83,7 +83,25 @@ func (b *builder) Build(jobName string, instanceID int, az string, deploymentMan
 		return nil, err
 	}
 
-	instanceSpec := buildInstanceSpec(jobName, instanceID, az, deploymentJob, initialState.NetworkInterfaces(), defaultAddress)
+	defaultNetworkName := defaultNetworkNameFor(initialState.NetworkInterfaces())
+
+	allInstances := AllInstanceSpecs(deploymentJob, defaultNetworkName)
+
+	resolvedLinks, err := ResolveLinks(
+		releaseJobs,
+		deploymentJob.Templates,
+		deploymentManifest.Name,
+		jobName,
+		defaultNetworkName,
+		allInstances,
+		deploymentJob.Properties,
+		deploymentManifest.Properties,
+	)
+	if err != nil {
+		return nil, bosherr.WrapErrorf(err, "Resolving links for instance '%s/%d'", jobName, instanceID)
+	}
+
+	instanceSpec := buildInstanceSpec(jobName, instanceID, az, deploymentJob, initialState.NetworkInterfaces(), defaultAddress, resolvedLinks)
 
 	renderedJobTemplates, err := b.renderJobTemplates(releaseJobs, releaseJobProperties, deploymentJob.Properties, deploymentManifest.Properties, deploymentManifest.Name, instanceSpec, stage)
 	if err != nil {
@@ -233,6 +251,7 @@ func buildInstanceSpec(
 	deploymentJob bideplmanifest.Job,
 	networkRefs []NetworkRef,
 	address string,
+	resolvedLinks map[string]map[string]bitemplate.LinkSpec,
 ) bitemplate.InstanceSpec {
 	networks := make(map[string]bitemplate.NetworkSpecContext, len(networkRefs))
 	for _, ref := range networkRefs {
@@ -266,7 +285,26 @@ func buildInstanceSpec(
 		Networks:          networks,
 		PersistentDisk:    deploymentJob.PersistentDisk,
 		ReleaseNamesByJob: releaseNamesByJob,
+		Links:             resolvedLinks,
 	}
+}
+
+// defaultNetworkNameFor returns the name of the network to use for link addressing.
+// It picks the first network with a "gateway" default, falling back to the first network.
+func defaultNetworkNameFor(networkRefs []NetworkRef) string {
+	if len(networkRefs) == 0 {
+		return ""
+	}
+	for _, ref := range networkRefs {
+		if defaults, ok := ref.Interface["default"].([]bideplmanifest.NetworkDefault); ok {
+			for _, d := range defaults {
+				if d == bideplmanifest.NetworkDefaultGateway {
+					return ref.Name
+				}
+			}
+		}
+	}
+	return networkRefs[0].Name
 }
 
 func (b *builder) defaultAddress(networkRefs []NetworkRef, agentState agentclient.AgentState) (string, error) {

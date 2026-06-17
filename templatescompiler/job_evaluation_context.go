@@ -12,6 +12,40 @@ import (
 	bierbrenderer "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
 )
 
+// LinkInstanceSpec matches the per-instance fields whitelisted by the BOSH director's
+// instance_spec.rb when serialising link data for ERB rendering.
+type LinkInstanceSpec struct {
+	Name      string `json:"name"`
+	ID        string `json:"id"`
+	Index     int    `json:"index"`
+	Bootstrap bool   `json:"bootstrap"`
+	AZ        string `json:"az"`
+	Address   string `json:"address"`
+}
+
+// LinkSpec is the full link object exposed to ERB templates.
+// Field names match the whitelisted keys from the BOSH director's instance_spec.rb:
+//
+//	address, default_network, deployment_name, domain, group_name,
+//	instance_group, instances, properties, use_link_dns_names, use_short_dns_addresses
+//
+// The optional Address field is only set for manual links; its presence signals
+// erb_renderer.rb to use ManualLinkDnsEncoder so that link.address() returns the
+// fixed address string instead of raising NotImplementedError.
+type LinkSpec struct {
+	DeploymentName       string                 `json:"deployment_name"`
+	Domain               string                 `json:"domain"`
+	InstanceGroup        string                 `json:"instance_group"`
+	DefaultNetwork       string                 `json:"default_network"`
+	GroupName            string                 `json:"group_name"`
+	Instances            []LinkInstanceSpec     `json:"instances"`
+	Properties           map[string]interface{} `json:"properties"`
+	UseLinkDNSNames      bool                   `json:"use_link_dns_names"`
+	UseShortDNSAddresses bool                   `json:"use_short_dns_addresses"`
+	// Address is only set for manual links.
+	Address string `json:"address,omitempty"`
+}
+
 // InstanceSpec carries per-instance data exposed to ERB templates through the spec object.
 // It should be built by the state builder for each instance being rendered.
 type InstanceSpec struct {
@@ -31,6 +65,10 @@ type InstanceSpec struct {
 	PersistentDisk int
 	// ReleaseNamesByJob maps release job name → release name (for spec.release.name lookup).
 	ReleaseNamesByJob map[string]string
+	// Links holds the resolved links for every release job in this instance group,
+	// keyed first by job template name then by link name.
+	// This mirrors the director's namespace_links_to_current_job pattern.
+	Links map[string]map[string]LinkSpec
 }
 
 // NetworkSpecContext holds per-network data exposed through spec.networks.<name>.
@@ -82,6 +120,14 @@ type RootContext struct {
 	ClusterProperties biproperty.Map  `json:"cluster_properties"` // values from instance group (deployment job) properties
 	JobProperties     *biproperty.Map `json:"job_properties"`     // values from release job (aka template) properties
 	DefaultProperties biproperty.Map  `json:"default_properties"` // values from release's job's spec
+
+	// JobTemplateName is the name of the release job being rendered.
+	// erb_renderer.rb uses it to select the correct slice of Links.
+	JobTemplateName string `json:"job_template_name"`
+	// Links holds the resolved links for all release jobs in this instance group,
+	// keyed by job template name then by link name. This matches the BOSH director's
+	// namespace_links_to_current_job pattern.
+	Links map[string]map[string]LinkSpec `json:"links"`
 }
 
 type jobContext struct {
@@ -127,6 +173,11 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 
 	releaseName := ec.spec.ReleaseNamesByJob[ec.releaseJob.Name()]
 
+	links := ec.spec.Links
+	if links == nil {
+		links = map[string]map[string]LinkSpec{}
+	}
+
 	context := RootContext{
 		Index:             ec.spec.Index,
 		AZ:                ec.spec.AZ,
@@ -143,6 +194,8 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 		ClusterProperties: ec.jobProperties,
 		JobProperties:     ec.releaseJobProperties,
 		DefaultProperties: defaultProperties,
+		JobTemplateName:   ec.releaseJob.Name(),
+		Links:             links,
 	}
 
 	if ec.spec.Address != "" {

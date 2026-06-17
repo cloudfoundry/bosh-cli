@@ -37,7 +37,22 @@ func (r DirReaderImpl) Read(path string) (*Job, error) {
 
 	job := NewJob(resource.NewResource(manifest.Name, fp, archive))
 	job.PackageNames = manifest.Packages
-	// Does not read all manifest values...
+
+	for _, c := range manifest.Consumes {
+		job.Consumes = append(job.Consumes, LinkDef{
+			Name:     c.Name,
+			Type:     c.Type,
+			Optional: c.Optional,
+		})
+	}
+	for _, p := range manifest.Provides {
+		job.Provides = append(job.Provides, LinkDef{
+			Name:       p.Name,
+			Type:       p.Type,
+			Optional:   p.Optional,
+			Properties: p.Properties,
+		})
+	}
 
 	return job, nil
 }

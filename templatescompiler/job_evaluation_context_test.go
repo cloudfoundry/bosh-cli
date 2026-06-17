@@ -341,4 +341,96 @@ var _ = Describe("JobEvaluationContext", func() {
 			})
 		})
 	})
+
+	Describe("link support in RootContext JSON", func() {
+		var linkSpec LinkSpec
+
+		BeforeEach(func() {
+			linkSpec = LinkSpec{
+				DeploymentName: "fake-deployment-name",
+				Domain:         "bosh",
+				InstanceGroup:  "fake-instance-group",
+				DefaultNetwork: "default",
+				GroupName:      "mysql.bosh.fake-deployment-name.bosh",
+				Instances: []LinkInstanceSpec{
+					{Name: "fake-instance-group", ID: "inst-0", Index: 0, Bootstrap: true, AZ: "z1", Address: "10.0.0.1"},
+				},
+				Properties:           map[string]interface{}{"port": float64(13306)},
+				UseLinkDNSNames:      false,
+				UseShortDNSAddresses: false,
+			}
+
+			instanceSpec.Links = map[string]map[string]LinkSpec{
+				"fake-job-name": {
+					"mysql": linkSpec,
+				},
+			}
+		})
+
+		It("includes job_template_name in the rendered JSON", func() {
+			generatedContext := act()
+			Expect(generatedContext.JobTemplateName).To(Equal("fake-job-name"))
+		})
+
+		It("includes the resolved links in the rendered JSON", func() {
+			generatedContext := act()
+			Expect(generatedContext.Links).To(HaveKey("fake-job-name"))
+			jobLinks := generatedContext.Links["fake-job-name"]
+			Expect(jobLinks).To(HaveKey("mysql"))
+			mysql := jobLinks["mysql"]
+			Expect(mysql.DeploymentName).To(Equal("fake-deployment-name"))
+			Expect(mysql.InstanceGroup).To(Equal("fake-instance-group"))
+			Expect(mysql.Instances).To(HaveLen(1))
+			Expect(mysql.Instances[0].Address).To(Equal("10.0.0.1"))
+			Expect(mysql.Instances[0].Bootstrap).To(BeTrue())
+		})
+
+		It("renders link() in ERB templates using the resolved links", func() {
+			logger := boshlog.NewLogger(boshlog.LevelNone)
+			fs := boshsys.NewOsFileSystem(logger)
+			commandRunner := boshsys.NewExecCmdRunner(logger)
+			erbRenderer = erbrenderer.NewERBRenderer(fs, commandRunner, logger)
+
+			srcFile, err := os.CreateTemp("", "source.txt.erb")
+			Expect(err).ToNot(HaveOccurred())
+			defer os.Remove(srcFile.Name()) //nolint:errcheck
+
+			_, err = srcFile.WriteString(`<%= link("mysql").instances.map(&:address).join(",") %>`)
+			Expect(err).ToNot(HaveOccurred())
+
+			destFile, err := fs.TempFile("dest.txt")
+			Expect(err).ToNot(HaveOccurred())
+			err = destFile.Close()
+			Expect(err).ToNot(HaveOccurred())
+			defer os.Remove(destFile.Name()) //nolint:errcheck
+
+			ctx := NewJobEvaluationContext(
+				*releaseJob,
+				jobProperties,
+				instanceGroupProperties,
+				deploymentProperties,
+				"fake-deployment-name",
+				instanceSpec,
+				uuidGen,
+				logger,
+			)
+
+			err = erbRenderer.Render(srcFile.Name(), destFile.Name(), ctx)
+			Expect(err).ToNot(HaveOccurred())
+			contents, err := os.ReadFile(destFile.Name())
+			Expect(err).ToNot(HaveOccurred())
+			Expect(string(contents)).To(Equal("10.0.0.1"))
+		})
+
+		Context("when InstanceSpec.Links is nil", func() {
+			BeforeEach(func() {
+				instanceSpec.Links = nil
+			})
+
+			It("returns an empty links map", func() {
+				generatedContext := act()
+				Expect(generatedContext.Links).To(Equal(map[string]map[string]LinkSpec{}))
+			})
+		})
+	})
 })
