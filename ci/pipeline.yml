@@ -5,20 +5,30 @@ jobs:
     serial: true
     plan:
       - in_parallel:
-          - get: ubuntu-image
           - get: bosh-cli-docker-src
             trigger: true
           - get: golang-release-image
             trigger: true
-      - task: write-metadata-file
-        file: bosh-cli-docker-src/ci/docker/write-metadata-file.yml
-        image: ubuntu-image
-      - put: bosh-cli-ci-docker-image
+      - task: build-image
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: bosh-cli-docker-src
+          outputs:
+            - name: image
+          params:
+            CONTEXT: bosh-cli-docker-src/ci/docker
+          run:
+            path: build
+      - put: bosh-cli-ci-image
+        no_get: true
         params:
-          build: docker-files
-          tag: docker-files/tag
-        get_params:
-          skip_download: true
+          image: image/image.tar
 
   - name: bump-deps
     public: true
@@ -99,7 +109,8 @@ jobs:
   - name: integration-postgres
     public: true
     serial: true
-    build_logs_to_retain: 250
+    build_log_retention:
+      builds: 250
     plan:
       - in_parallel:
           - get: bosh-cli-ci-image
@@ -300,11 +311,27 @@ jobs:
           - put: release-bucket-windows
             params:
               file: compiled-windows-amd64/bosh-cli-*-windows-amd64.exe
-          - put: final-docker
-            params:
-              build: docker-assets
-              tag: version-semver/number
-              tag_as_latest: true
+      - task: build-image
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: docker-assets
+          outputs:
+            - name: image
+          params:
+            CONTEXT: docker-assets
+          run:
+            path: build
+      - put: final-docker
+        no_get: true
+        params:
+          image: image/image.tar
+          additional_tags: version-semver/number
       - do:
           - task: prepare-version
             image: bosh-cli-ci-image
@@ -622,24 +649,18 @@ resources:
       access_token: ((github_public_repo_token))
 
   - name: final-docker
-    type: docker-image
+    type: registry-image
     source:
       repository: ghcr.io/cloudfoundry/bosh/cli2
+      tag: latest
       username: ((github_read_write_packages.username))
       password: ((github_read_write_packages.password))
-      email: foo@bar.com
 
   - name: bosh-cli-ci-image
     type: registry-image
     source:
       repository: ghcr.io/cloudfoundry/bosh/cli
-      username: ((github_read_write_packages.username))
-      password: ((github_read_write_packages.password))
-
-  - name: bosh-cli-ci-docker-image
-    type: docker-image
-    source:
-      repository: ghcr.io/cloudfoundry/bosh/cli
+      tag: latest
       username: ((github_read_write_packages.username))
       password: ((github_read_write_packages.password))
 
