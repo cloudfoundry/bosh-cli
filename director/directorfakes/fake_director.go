@@ -9,6 +9,18 @@ import (
 )
 
 type FakeDirector struct {
+	AttachDynamicDiskStub        func(string, string) error
+	attachDynamicDiskMutex       sync.RWMutex
+	attachDynamicDiskArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	attachDynamicDiskReturns struct {
+		result1 error
+	}
+	attachDynamicDiskReturnsOnCall map[int]struct {
+		result1 error
+	}
 	CancelTasksStub        func(director.TasksFilter) error
 	cancelTasksMutex       sync.RWMutex
 	cancelTasksArgsForCall []struct {
@@ -45,6 +57,22 @@ type FakeDirector struct {
 	}
 	cleanUpReturnsOnCall map[int]struct {
 		result1 director.CleanUp
+		result2 error
+	}
+	CreateDynamicDiskStub        func(string, string, int, map[string]interface{}) (string, error)
+	createDynamicDiskMutex       sync.RWMutex
+	createDynamicDiskArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 int
+		arg4 map[string]interface{}
+	}
+	createDynamicDiskReturns struct {
+		result1 string
+		result2 error
+	}
+	createDynamicDiskReturnsOnCall map[int]struct {
+		result1 string
 		result2 error
 	}
 	CurrentTasksStub        func(director.TasksFilter) ([]director.Task, error)
@@ -87,6 +115,17 @@ type FakeDirector struct {
 		result1 bool
 		result2 error
 	}
+	DeleteDynamicDiskStub        func(string) error
+	deleteDynamicDiskMutex       sync.RWMutex
+	deleteDynamicDiskArgsForCall []struct {
+		arg1 string
+	}
+	deleteDynamicDiskReturns struct {
+		result1 error
+	}
+	deleteDynamicDiskReturnsOnCall map[int]struct {
+		result1 error
+	}
 	DeploymentsStub        func() ([]director.Deployment, error)
 	deploymentsMutex       sync.RWMutex
 	deploymentsArgsForCall []struct {
@@ -98,6 +137,17 @@ type FakeDirector struct {
 	deploymentsReturnsOnCall map[int]struct {
 		result1 []director.Deployment
 		result2 error
+	}
+	DetachDynamicDiskStub        func(string) error
+	detachDynamicDiskMutex       sync.RWMutex
+	detachDynamicDiskArgsForCall []struct {
+		arg1 string
+	}
+	detachDynamicDiskReturns struct {
+		result1 error
+	}
+	detachDynamicDiskReturnsOnCall map[int]struct {
+		result1 error
 	}
 	DiffCPIConfigStub        func([]byte, bool) (director.ConfigDiff, error)
 	diffCPIConfigMutex       sync.RWMutex
@@ -184,6 +234,18 @@ type FakeDirector struct {
 	}
 	downloadResourceUncheckedReturnsOnCall map[int]struct {
 		result1 error
+	}
+	DynamicDisksStub        func() ([]director.DynamicDisk, error)
+	dynamicDisksMutex       sync.RWMutex
+	dynamicDisksArgsForCall []struct {
+	}
+	dynamicDisksReturns struct {
+		result1 []director.DynamicDisk
+		result2 error
+	}
+	dynamicDisksReturnsOnCall map[int]struct {
+		result1 []director.DynamicDisk
+		result2 error
 	}
 	EnableResurrectionStub        func(bool) error
 	enableResurrectionMutex       sync.RWMutex
@@ -542,6 +604,23 @@ type FakeDirector struct {
 		result1 []director.OrphanedVM
 		result2 error
 	}
+	ProvideDynamicDiskStub        func(string, string, string, int, map[string]interface{}) (string, error)
+	provideDynamicDiskMutex       sync.RWMutex
+	provideDynamicDiskArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 int
+		arg5 map[string]interface{}
+	}
+	provideDynamicDiskReturns struct {
+		result1 string
+		result2 error
+	}
+	provideDynamicDiskReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	RecentTasksStub        func(int, director.TasksFilter) ([]director.Task, error)
 	recentTasksMutex       sync.RWMutex
 	recentTasksArgsForCall []struct {
@@ -725,6 +804,68 @@ type FakeDirector struct {
 	invocationsMutex sync.RWMutex
 }
 
+func (fake *FakeDirector) AttachDynamicDisk(arg1 string, arg2 string) error {
+	fake.attachDynamicDiskMutex.Lock()
+	ret, specificReturn := fake.attachDynamicDiskReturnsOnCall[len(fake.attachDynamicDiskArgsForCall)]
+	fake.attachDynamicDiskArgsForCall = append(fake.attachDynamicDiskArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.AttachDynamicDiskStub
+	fakeReturns := fake.attachDynamicDiskReturns
+	fake.recordInvocation("AttachDynamicDisk", []interface{}{arg1, arg2})
+	fake.attachDynamicDiskMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeDirector) AttachDynamicDiskCallCount() int {
+	fake.attachDynamicDiskMutex.RLock()
+	defer fake.attachDynamicDiskMutex.RUnlock()
+	return len(fake.attachDynamicDiskArgsForCall)
+}
+
+func (fake *FakeDirector) AttachDynamicDiskCalls(stub func(string, string) error) {
+	fake.attachDynamicDiskMutex.Lock()
+	defer fake.attachDynamicDiskMutex.Unlock()
+	fake.AttachDynamicDiskStub = stub
+}
+
+func (fake *FakeDirector) AttachDynamicDiskArgsForCall(i int) (string, string) {
+	fake.attachDynamicDiskMutex.RLock()
+	defer fake.attachDynamicDiskMutex.RUnlock()
+	argsForCall := fake.attachDynamicDiskArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeDirector) AttachDynamicDiskReturns(result1 error) {
+	fake.attachDynamicDiskMutex.Lock()
+	defer fake.attachDynamicDiskMutex.Unlock()
+	fake.AttachDynamicDiskStub = nil
+	fake.attachDynamicDiskReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDirector) AttachDynamicDiskReturnsOnCall(i int, result1 error) {
+	fake.attachDynamicDiskMutex.Lock()
+	defer fake.attachDynamicDiskMutex.Unlock()
+	fake.AttachDynamicDiskStub = nil
+	if fake.attachDynamicDiskReturnsOnCall == nil {
+		fake.attachDynamicDiskReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.attachDynamicDiskReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDirector) CancelTasks(arg1 director.TasksFilter) error {
 	fake.cancelTasksMutex.Lock()
 	ret, specificReturn := fake.cancelTasksReturnsOnCall[len(fake.cancelTasksArgsForCall)]
@@ -904,6 +1045,73 @@ func (fake *FakeDirector) CleanUpReturnsOnCall(i int, result1 director.CleanUp, 
 	}
 	fake.cleanUpReturnsOnCall[i] = struct {
 		result1 director.CleanUp
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) CreateDynamicDisk(arg1 string, arg2 string, arg3 int, arg4 map[string]interface{}) (string, error) {
+	fake.createDynamicDiskMutex.Lock()
+	ret, specificReturn := fake.createDynamicDiskReturnsOnCall[len(fake.createDynamicDiskArgsForCall)]
+	fake.createDynamicDiskArgsForCall = append(fake.createDynamicDiskArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 int
+		arg4 map[string]interface{}
+	}{arg1, arg2, arg3, arg4})
+	stub := fake.CreateDynamicDiskStub
+	fakeReturns := fake.createDynamicDiskReturns
+	fake.recordInvocation("CreateDynamicDisk", []interface{}{arg1, arg2, arg3, arg4})
+	fake.createDynamicDiskMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDirector) CreateDynamicDiskCallCount() int {
+	fake.createDynamicDiskMutex.RLock()
+	defer fake.createDynamicDiskMutex.RUnlock()
+	return len(fake.createDynamicDiskArgsForCall)
+}
+
+func (fake *FakeDirector) CreateDynamicDiskCalls(stub func(string, string, int, map[string]interface{}) (string, error)) {
+	fake.createDynamicDiskMutex.Lock()
+	defer fake.createDynamicDiskMutex.Unlock()
+	fake.CreateDynamicDiskStub = stub
+}
+
+func (fake *FakeDirector) CreateDynamicDiskArgsForCall(i int) (string, string, int, map[string]interface{}) {
+	fake.createDynamicDiskMutex.RLock()
+	defer fake.createDynamicDiskMutex.RUnlock()
+	argsForCall := fake.createDynamicDiskArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeDirector) CreateDynamicDiskReturns(result1 string, result2 error) {
+	fake.createDynamicDiskMutex.Lock()
+	defer fake.createDynamicDiskMutex.Unlock()
+	fake.CreateDynamicDiskStub = nil
+	fake.createDynamicDiskReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) CreateDynamicDiskReturnsOnCall(i int, result1 string, result2 error) {
+	fake.createDynamicDiskMutex.Lock()
+	defer fake.createDynamicDiskMutex.Unlock()
+	fake.CreateDynamicDiskStub = nil
+	if fake.createDynamicDiskReturnsOnCall == nil {
+		fake.createDynamicDiskReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.createDynamicDiskReturnsOnCall[i] = struct {
+		result1 string
 		result2 error
 	}{result1, result2}
 }
@@ -1101,6 +1309,67 @@ func (fake *FakeDirector) DeleteConfigByIDReturnsOnCall(i int, result1 bool, res
 	}{result1, result2}
 }
 
+func (fake *FakeDirector) DeleteDynamicDisk(arg1 string) error {
+	fake.deleteDynamicDiskMutex.Lock()
+	ret, specificReturn := fake.deleteDynamicDiskReturnsOnCall[len(fake.deleteDynamicDiskArgsForCall)]
+	fake.deleteDynamicDiskArgsForCall = append(fake.deleteDynamicDiskArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.DeleteDynamicDiskStub
+	fakeReturns := fake.deleteDynamicDiskReturns
+	fake.recordInvocation("DeleteDynamicDisk", []interface{}{arg1})
+	fake.deleteDynamicDiskMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeDirector) DeleteDynamicDiskCallCount() int {
+	fake.deleteDynamicDiskMutex.RLock()
+	defer fake.deleteDynamicDiskMutex.RUnlock()
+	return len(fake.deleteDynamicDiskArgsForCall)
+}
+
+func (fake *FakeDirector) DeleteDynamicDiskCalls(stub func(string) error) {
+	fake.deleteDynamicDiskMutex.Lock()
+	defer fake.deleteDynamicDiskMutex.Unlock()
+	fake.DeleteDynamicDiskStub = stub
+}
+
+func (fake *FakeDirector) DeleteDynamicDiskArgsForCall(i int) string {
+	fake.deleteDynamicDiskMutex.RLock()
+	defer fake.deleteDynamicDiskMutex.RUnlock()
+	argsForCall := fake.deleteDynamicDiskArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeDirector) DeleteDynamicDiskReturns(result1 error) {
+	fake.deleteDynamicDiskMutex.Lock()
+	defer fake.deleteDynamicDiskMutex.Unlock()
+	fake.DeleteDynamicDiskStub = nil
+	fake.deleteDynamicDiskReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDirector) DeleteDynamicDiskReturnsOnCall(i int, result1 error) {
+	fake.deleteDynamicDiskMutex.Lock()
+	defer fake.deleteDynamicDiskMutex.Unlock()
+	fake.DeleteDynamicDiskStub = nil
+	if fake.deleteDynamicDiskReturnsOnCall == nil {
+		fake.deleteDynamicDiskReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.deleteDynamicDiskReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDirector) Deployments() ([]director.Deployment, error) {
 	fake.deploymentsMutex.Lock()
 	ret, specificReturn := fake.deploymentsReturnsOnCall[len(fake.deploymentsArgsForCall)]
@@ -1155,6 +1424,67 @@ func (fake *FakeDirector) DeploymentsReturnsOnCall(i int, result1 []director.Dep
 		result1 []director.Deployment
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeDirector) DetachDynamicDisk(arg1 string) error {
+	fake.detachDynamicDiskMutex.Lock()
+	ret, specificReturn := fake.detachDynamicDiskReturnsOnCall[len(fake.detachDynamicDiskArgsForCall)]
+	fake.detachDynamicDiskArgsForCall = append(fake.detachDynamicDiskArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.DetachDynamicDiskStub
+	fakeReturns := fake.detachDynamicDiskReturns
+	fake.recordInvocation("DetachDynamicDisk", []interface{}{arg1})
+	fake.detachDynamicDiskMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeDirector) DetachDynamicDiskCallCount() int {
+	fake.detachDynamicDiskMutex.RLock()
+	defer fake.detachDynamicDiskMutex.RUnlock()
+	return len(fake.detachDynamicDiskArgsForCall)
+}
+
+func (fake *FakeDirector) DetachDynamicDiskCalls(stub func(string) error) {
+	fake.detachDynamicDiskMutex.Lock()
+	defer fake.detachDynamicDiskMutex.Unlock()
+	fake.DetachDynamicDiskStub = stub
+}
+
+func (fake *FakeDirector) DetachDynamicDiskArgsForCall(i int) string {
+	fake.detachDynamicDiskMutex.RLock()
+	defer fake.detachDynamicDiskMutex.RUnlock()
+	argsForCall := fake.detachDynamicDiskArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeDirector) DetachDynamicDiskReturns(result1 error) {
+	fake.detachDynamicDiskMutex.Lock()
+	defer fake.detachDynamicDiskMutex.Unlock()
+	fake.DetachDynamicDiskStub = nil
+	fake.detachDynamicDiskReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDirector) DetachDynamicDiskReturnsOnCall(i int, result1 error) {
+	fake.detachDynamicDiskMutex.Lock()
+	defer fake.detachDynamicDiskMutex.Unlock()
+	fake.DetachDynamicDiskStub = nil
+	if fake.detachDynamicDiskReturnsOnCall == nil {
+		fake.detachDynamicDiskReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.detachDynamicDiskReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeDirector) DiffCPIConfig(arg1 []byte, arg2 bool) (director.ConfigDiff, error) {
@@ -1576,6 +1906,62 @@ func (fake *FakeDirector) DownloadResourceUncheckedReturnsOnCall(i int, result1 
 	fake.downloadResourceUncheckedReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeDirector) DynamicDisks() ([]director.DynamicDisk, error) {
+	fake.dynamicDisksMutex.Lock()
+	ret, specificReturn := fake.dynamicDisksReturnsOnCall[len(fake.dynamicDisksArgsForCall)]
+	fake.dynamicDisksArgsForCall = append(fake.dynamicDisksArgsForCall, struct {
+	}{})
+	stub := fake.DynamicDisksStub
+	fakeReturns := fake.dynamicDisksReturns
+	fake.recordInvocation("DynamicDisks", []interface{}{})
+	fake.dynamicDisksMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDirector) DynamicDisksCallCount() int {
+	fake.dynamicDisksMutex.RLock()
+	defer fake.dynamicDisksMutex.RUnlock()
+	return len(fake.dynamicDisksArgsForCall)
+}
+
+func (fake *FakeDirector) DynamicDisksCalls(stub func() ([]director.DynamicDisk, error)) {
+	fake.dynamicDisksMutex.Lock()
+	defer fake.dynamicDisksMutex.Unlock()
+	fake.DynamicDisksStub = stub
+}
+
+func (fake *FakeDirector) DynamicDisksReturns(result1 []director.DynamicDisk, result2 error) {
+	fake.dynamicDisksMutex.Lock()
+	defer fake.dynamicDisksMutex.Unlock()
+	fake.DynamicDisksStub = nil
+	fake.dynamicDisksReturns = struct {
+		result1 []director.DynamicDisk
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) DynamicDisksReturnsOnCall(i int, result1 []director.DynamicDisk, result2 error) {
+	fake.dynamicDisksMutex.Lock()
+	defer fake.dynamicDisksMutex.Unlock()
+	fake.DynamicDisksStub = nil
+	if fake.dynamicDisksReturnsOnCall == nil {
+		fake.dynamicDisksReturnsOnCall = make(map[int]struct {
+			result1 []director.DynamicDisk
+			result2 error
+		})
+	}
+	fake.dynamicDisksReturnsOnCall[i] = struct {
+		result1 []director.DynamicDisk
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeDirector) EnableResurrection(arg1 bool) error {
@@ -3301,6 +3687,74 @@ func (fake *FakeDirector) OrphanedVMsReturnsOnCall(i int, result1 []director.Orp
 	}
 	fake.orphanedVMsReturnsOnCall[i] = struct {
 		result1 []director.OrphanedVM
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) ProvideDynamicDisk(arg1 string, arg2 string, arg3 string, arg4 int, arg5 map[string]interface{}) (string, error) {
+	fake.provideDynamicDiskMutex.Lock()
+	ret, specificReturn := fake.provideDynamicDiskReturnsOnCall[len(fake.provideDynamicDiskArgsForCall)]
+	fake.provideDynamicDiskArgsForCall = append(fake.provideDynamicDiskArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 int
+		arg5 map[string]interface{}
+	}{arg1, arg2, arg3, arg4, arg5})
+	stub := fake.ProvideDynamicDiskStub
+	fakeReturns := fake.provideDynamicDiskReturns
+	fake.recordInvocation("ProvideDynamicDisk", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.provideDynamicDiskMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDirector) ProvideDynamicDiskCallCount() int {
+	fake.provideDynamicDiskMutex.RLock()
+	defer fake.provideDynamicDiskMutex.RUnlock()
+	return len(fake.provideDynamicDiskArgsForCall)
+}
+
+func (fake *FakeDirector) ProvideDynamicDiskCalls(stub func(string, string, string, int, map[string]interface{}) (string, error)) {
+	fake.provideDynamicDiskMutex.Lock()
+	defer fake.provideDynamicDiskMutex.Unlock()
+	fake.ProvideDynamicDiskStub = stub
+}
+
+func (fake *FakeDirector) ProvideDynamicDiskArgsForCall(i int) (string, string, string, int, map[string]interface{}) {
+	fake.provideDynamicDiskMutex.RLock()
+	defer fake.provideDynamicDiskMutex.RUnlock()
+	argsForCall := fake.provideDynamicDiskArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+}
+
+func (fake *FakeDirector) ProvideDynamicDiskReturns(result1 string, result2 error) {
+	fake.provideDynamicDiskMutex.Lock()
+	defer fake.provideDynamicDiskMutex.Unlock()
+	fake.ProvideDynamicDiskStub = nil
+	fake.provideDynamicDiskReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDirector) ProvideDynamicDiskReturnsOnCall(i int, result1 string, result2 error) {
+	fake.provideDynamicDiskMutex.Lock()
+	defer fake.provideDynamicDiskMutex.Unlock()
+	fake.ProvideDynamicDiskStub = nil
+	if fake.provideDynamicDiskReturnsOnCall == nil {
+		fake.provideDynamicDiskReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.provideDynamicDiskReturnsOnCall[i] = struct {
+		result1 string
 		result2 error
 	}{result1, result2}
 }

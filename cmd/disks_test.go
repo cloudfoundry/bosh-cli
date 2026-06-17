@@ -106,7 +106,68 @@ var _ = Describe("DisksCmd", func() {
 		})
 
 		It("returns error if orphaned disks were not requested", func() {
-			Expect(act()).To(Equal(errors.New("Only --orphaned is supported")))
+			Expect(act()).To(Equal(errors.New("Only --orphaned or --dynamic is supported")))
+		})
+
+		Context("when dynamic disks requested", func() {
+			BeforeEach(func() {
+				disksOpts.Dynamic = true
+			})
+
+			It("lists dynamic disks", func() {
+				disks := []boshdir.DynamicDisk{
+					&fakedir.FakeDynamicDisk{
+						NameStub:             func() string { return "my-disk" },
+						DiskCIDStub:          func() string { return "disk-cid-1" },
+						SizeStub:             func() uint64 { return 2048 },
+						DeploymentNameStub:   func() string { return "my-deployment" },
+						InstanceNameStub:     func() string { return "api/abc123" },
+						AvailabilityZoneStub: func() string { return "z1" },
+						CPIStub:              func() string { return "aws_cpi" },
+					},
+				}
+
+				director.DynamicDisksReturns(disks, nil)
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(ui.Table).To(Equal(boshtbl.Table{
+					Content: "dynamic disks",
+
+					Header: []boshtbl.Header{
+						boshtbl.NewHeader("Name"),
+						boshtbl.NewHeader("Disk CID"),
+						boshtbl.NewHeader("Size"),
+						boshtbl.NewHeader("Deployment"),
+						boshtbl.NewHeader("Instance"),
+						boshtbl.NewHeader("AZ"),
+						boshtbl.NewHeader("CPI"),
+					},
+
+					SortBy: []boshtbl.ColumnSort{{Column: 0}},
+
+					Rows: [][]boshtbl.Value{
+						{
+							boshtbl.NewValueString("my-disk"),
+							boshtbl.NewValueString("disk-cid-1"),
+							boshtbl.NewValueMegaBytes(2048),
+							boshtbl.NewValueString("my-deployment"),
+							boshtbl.NewValueString("api/abc123"),
+							boshtbl.NewValueString("z1"),
+							boshtbl.NewValueString("aws_cpi"),
+						},
+					},
+				}))
+			})
+
+			It("returns error if dynamic disks cannot be retrieved", func() {
+				director.DynamicDisksReturns(nil, errors.New("fake-err"))
+
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
 		})
 	})
 })

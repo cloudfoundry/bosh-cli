@@ -19,8 +19,12 @@ func NewDisksCmd(ui boshui.UI, director boshdir.Director) DisksCmd {
 }
 
 func (c DisksCmd) Run(opts DisksOpts) error {
+	if opts.Dynamic {
+		return c.runDynamic()
+	}
+
 	if !opts.Orphaned {
-		return errors.New("Only --orphaned is supported") //nolint:staticcheck
+		return errors.New("Only --orphaned or --dynamic is supported") //nolint:staticcheck
 	}
 
 	disks, err := c.director.OrphanDisks()
@@ -49,6 +53,43 @@ func (c DisksCmd) Run(opts DisksOpts) error {
 			boshtbl.NewValueString(d.InstanceName()),
 			boshtbl.NewValueString(d.AZName()),
 			boshtbl.NewValueTime(d.OrphanedAt()),
+		})
+	}
+
+	c.ui.PrintTable(table)
+
+	return nil
+}
+
+func (c DisksCmd) runDynamic() error {
+	disks, err := c.director.DynamicDisks()
+	if err != nil {
+		return err
+	}
+
+	table := boshtbl.Table{
+		Content: "dynamic disks",
+		Header: []boshtbl.Header{
+			boshtbl.NewHeader("Name"),
+			boshtbl.NewHeader("Disk CID"),
+			boshtbl.NewHeader("Size"),
+			boshtbl.NewHeader("Deployment"),
+			boshtbl.NewHeader("Instance"),
+			boshtbl.NewHeader("AZ"),
+			boshtbl.NewHeader("CPI"),
+		},
+		SortBy: []boshtbl.ColumnSort{{Column: 0}},
+	}
+
+	for _, d := range disks {
+		table.Rows = append(table.Rows, []boshtbl.Value{
+			boshtbl.NewValueString(d.Name()),
+			boshtbl.NewValueString(d.DiskCID()),
+			boshtbl.NewValueMegaBytes(d.Size()),
+			boshtbl.NewValueString(d.DeploymentName()),
+			boshtbl.NewValueString(d.InstanceName()),
+			boshtbl.NewValueString(d.AvailabilityZone()),
+			boshtbl.NewValueString(d.CPI()),
 		})
 	}
 
