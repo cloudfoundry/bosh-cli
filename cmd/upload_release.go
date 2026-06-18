@@ -90,7 +90,7 @@ func (c UploadReleaseCmd) uploadFile(opts UploadReleaseOpts) error {
 		return bosherr.Errorf("Cannot upload non-remote release")
 	}
 
-	releaseReader, releaseDir := c.releaseDirFactory(opts.Directory)
+	_, releaseDir := c.releaseDirFactory(opts.Directory)
 
 	var release boshrel.Release
 	var err error
@@ -98,10 +98,7 @@ func (c UploadReleaseCmd) uploadFile(opts UploadReleaseOpts) error {
 	path := opts.Args.URL.FilePath()
 
 	if len(path) > 0 {
-		release, err = releaseReader.Read(path)
-		if err != nil {
-			return err
-		}
+		return c.uploadReleaseFile(path, opts)
 	} else {
 		release, err = releaseDir.FindRelease(opts.Name, semver.Version(opts.Version))
 		if err != nil {
@@ -132,6 +129,10 @@ func (c UploadReleaseCmd) uploadRelease(release boshrel.Release, opts UploadRele
 
 	defer c.fs.RemoveAll(path) //nolint:errcheck
 
+	return c.uploadReleaseFile(path, opts)
+}
+
+func (c UploadReleaseCmd) uploadReleaseFile(path string, opts UploadReleaseOpts) error {
 	file, err := c.releaseArchiveFactory(path).File()
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Opening release")
