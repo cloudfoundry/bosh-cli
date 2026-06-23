@@ -17,6 +17,7 @@ type DynamicDiskImpl struct {
 	instanceName     string
 	availabilityZone string
 	size             uint64
+	diskPoolName     string
 	cpi              string
 }
 
@@ -26,6 +27,7 @@ func (d DynamicDiskImpl) DeploymentName() string   { return d.deploymentName }
 func (d DynamicDiskImpl) InstanceName() string     { return d.instanceName }
 func (d DynamicDiskImpl) AvailabilityZone() string { return d.availabilityZone }
 func (d DynamicDiskImpl) Size() uint64             { return d.size }
+func (d DynamicDiskImpl) DiskPoolName() string     { return d.diskPoolName }
 func (d DynamicDiskImpl) CPI() string              { return d.cpi }
 
 type DynamicDiskResp struct {
@@ -35,6 +37,7 @@ type DynamicDiskResp struct {
 	Instance         string `json:"instance"`
 	AvailabilityZone string `json:"availability_zone"`
 	Size             uint64 `json:"size"`
+	DiskPoolName     string `json:"disk_pool_name"`
 	CPI              string `json:"cpi"`
 }
 
@@ -134,6 +137,7 @@ func (c Client) DynamicDisks() ([]DynamicDisk, error) {
 			instanceName:     r.Instance,
 			availabilityZone: r.AvailabilityZone,
 			size:             r.Size,
+			diskPoolName:     r.DiskPoolName,
 			cpi:              r.CPI,
 		})
 	}

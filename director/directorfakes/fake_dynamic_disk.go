@@ -48,6 +48,16 @@ type FakeDynamicDisk struct {
 	diskCIDReturnsOnCall map[int]struct {
 		result1 string
 	}
+	DiskPoolNameStub        func() string
+	diskPoolNameMutex       sync.RWMutex
+	diskPoolNameArgsForCall []struct {
+	}
+	diskPoolNameReturns struct {
+		result1 string
+	}
+	diskPoolNameReturnsOnCall map[int]struct {
+		result1 string
+	}
 	InstanceNameStub        func() string
 	instanceNameMutex       sync.RWMutex
 	instanceNameArgsForCall []struct {
@@ -290,6 +300,59 @@ func (fake *FakeDynamicDisk) DiskCIDReturnsOnCall(i int, result1 string) {
 		})
 	}
 	fake.diskCIDReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeDynamicDisk) DiskPoolName() string {
+	fake.diskPoolNameMutex.Lock()
+	ret, specificReturn := fake.diskPoolNameReturnsOnCall[len(fake.diskPoolNameArgsForCall)]
+	fake.diskPoolNameArgsForCall = append(fake.diskPoolNameArgsForCall, struct {
+	}{})
+	stub := fake.DiskPoolNameStub
+	fakeReturns := fake.diskPoolNameReturns
+	fake.recordInvocation("DiskPoolName", []interface{}{})
+	fake.diskPoolNameMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeDynamicDisk) DiskPoolNameCallCount() int {
+	fake.diskPoolNameMutex.RLock()
+	defer fake.diskPoolNameMutex.RUnlock()
+	return len(fake.diskPoolNameArgsForCall)
+}
+
+func (fake *FakeDynamicDisk) DiskPoolNameCalls(stub func() string) {
+	fake.diskPoolNameMutex.Lock()
+	defer fake.diskPoolNameMutex.Unlock()
+	fake.DiskPoolNameStub = stub
+}
+
+func (fake *FakeDynamicDisk) DiskPoolNameReturns(result1 string) {
+	fake.diskPoolNameMutex.Lock()
+	defer fake.diskPoolNameMutex.Unlock()
+	fake.DiskPoolNameStub = nil
+	fake.diskPoolNameReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeDynamicDisk) DiskPoolNameReturnsOnCall(i int, result1 string) {
+	fake.diskPoolNameMutex.Lock()
+	defer fake.diskPoolNameMutex.Unlock()
+	fake.DiskPoolNameStub = nil
+	if fake.diskPoolNameReturnsOnCall == nil {
+		fake.diskPoolNameReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.diskPoolNameReturnsOnCall[i] = struct {
 		result1 string
 	}{result1}
 }

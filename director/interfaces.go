@@ -339,6 +339,7 @@ type DynamicDisk interface {
 	InstanceName() string
 	AvailabilityZone() string
 	Size() uint64
+	DiskPoolName() string
 	CPI() string
 }
 
