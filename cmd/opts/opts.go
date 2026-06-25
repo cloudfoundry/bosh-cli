@@ -745,11 +745,13 @@ type DeleteNetworkArgs struct {
 
 type DisksOpts struct {
 	Orphaned bool `long:"orphaned" short:"o" description:"List orphaned disks"`
+	Dynamic  bool `long:"dynamic" description:"List dynamic disks"`
 	cmd
 }
 
 type DeleteDiskOpts struct {
-	Args DeleteDiskArgs `positional-args:"true" required:"true"`
+	Args    DeleteDiskArgs `positional-args:"true" required:"true"`
+	Dynamic bool           `long:"dynamic" description:"Delete a dynamic disk by name"`
 	cmd
 }
 
