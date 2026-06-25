@@ -123,13 +123,6 @@ type BoshOpts struct {
 	DeleteDisk DeleteDiskOpts `command:"delete-disk" description:"Delete disk"`
 	OrphanDisk OrphanDiskOpts `command:"orphan-disk" description:"Orphan disk"`
 
-	// Dynamic Disks
-	ProvideDisk         ProvideDiskOpts         `command:"provide-disk"          description:"Provide (create+attach) a dynamic disk to a VM"`
-	DetachDynamicDisk   DetachDynamicDiskOpts   `command:"detach-dynamic-disk"   description:"Detach a dynamic disk from its VM"`
-	DeleteDynamicDisk   DeleteDynamicDiskOpts   `command:"delete-dynamic-disk"   description:"Delete a dynamic disk"`
-	CreateDynamicDisk   CreateDynamicDiskOpts   `command:"create-dynamic-disk"   description:"Create a dynamic disk without attaching it"`
-	AttachDynamicDisk   AttachDynamicDiskOpts   `command:"attach-dynamic-disk"   description:"Attach an existing dynamic disk to a VM"`
-
 	// Networks
 	Networks      NetworksOpts      `command:"networks"       description:"List networks"`
 	DeleteNetwork DeleteNetworkOpts `command:"delete-network" description:"Delete network"`
@@ -752,12 +745,13 @@ type DeleteNetworkArgs struct {
 
 type DisksOpts struct {
 	Orphaned bool `long:"orphaned" short:"o" description:"List orphaned disks"`
-	Dynamic  bool `long:"dynamic"  short:"d" description:"List dynamic disks"`
+	Dynamic  bool `long:"dynamic" description:"List dynamic disks"`
 	cmd
 }
 
 type DeleteDiskOpts struct {
-	Args DeleteDiskArgs `positional-args:"true" required:"true"`
+	Args    DeleteDiskArgs `positional-args:"true" required:"true"`
+	Dynamic bool           `long:"dynamic" description:"Delete a dynamic disk by name"`
 	cmd
 }
 
@@ -771,63 +765,6 @@ type OrphanDiskOpts struct {
 }
 type OrphanDiskArgs struct {
 	CID string `positional-arg-name:"CID"`
-}
-
-// Dynamic Disks
-
-type ProvideDiskOpts struct {
-	Args ProvideDiskArgs `positional-args:"true" required:"true"`
-
-	DiskPool string `long:"disk-pool" short:"p" description:"Disk pool / type name to use when creating the disk" required:"true"`
-	Size     int    `long:"size"      short:"s" description:"Disk size in MB" required:"true"`
-
-	cmd
-}
-
-type ProvideDiskArgs struct {
-	DiskName   string               `positional-arg-name:"DISK-NAME"`
-	InstanceID boshdir.InstanceSlug `positional-arg-name:"INSTANCE-GROUP/INSTANCE-ID"`
-}
-
-type DetachDynamicDiskOpts struct {
-	Args DetachDynamicDiskArgs `positional-args:"true" required:"true"`
-	cmd
-}
-
-type DetachDynamicDiskArgs struct {
-	DiskName string `positional-arg-name:"DISK-NAME"`
-}
-
-type DeleteDynamicDiskOpts struct {
-	Args DeleteDynamicDiskArgs `positional-args:"true" required:"true"`
-	cmd
-}
-
-type DeleteDynamicDiskArgs struct {
-	DiskName string `positional-arg-name:"DISK-NAME"`
-}
-
-type CreateDynamicDiskOpts struct {
-	Args CreateDynamicDiskArgs `positional-args:"true" required:"true"`
-
-	DiskPool string `long:"disk-pool" short:"p" description:"Disk pool / type name to use when creating the disk" required:"true"`
-	Size     int    `long:"size"      short:"s" description:"Disk size in MB" required:"true"`
-
-	cmd
-}
-
-type CreateDynamicDiskArgs struct {
-	DiskName string `positional-arg-name:"DISK-NAME"`
-}
-
-type AttachDynamicDiskOpts struct {
-	Args AttachDynamicDiskArgs `positional-args:"true" required:"true"`
-	cmd
-}
-
-type AttachDynamicDiskArgs struct {
-	DiskName   string               `positional-arg-name:"DISK-NAME"`
-	InstanceID boshdir.InstanceSlug `positional-arg-name:"INSTANCE-GROUP/INSTANCE-ID"`
 }
 
 // Snapshots

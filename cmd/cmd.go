@@ -252,21 +252,6 @@ func (c Cmd) Execute() (cmdErr error) {
 	case *OrphanDiskOpts:
 		return NewOrphanDiskCmd(deps.UI, c.director()).Run(*opts)
 
-	case *ProvideDiskOpts:
-		return NewProvideDiskCmd(deps.UI, c.director()).Run(*opts)
-
-	case *DetachDynamicDiskOpts:
-		return NewDetachDynamicDiskCmd(deps.UI, c.director()).Run(*opts)
-
-	case *DeleteDynamicDiskOpts:
-		return NewDeleteDynamicDiskCmd(deps.UI, c.director()).Run(*opts)
-
-	case *CreateDynamicDiskOpts:
-		return NewCreateDynamicDiskCmd(deps.UI, c.director()).Run(*opts)
-
-	case *AttachDynamicDiskOpts:
-		return NewAttachDynamicDiskCmd(deps.UI, c.director()).Run(*opts)
-
 	case *NetworksOpts:
 		return NewNetworksCmd(deps.UI, c.director()).Run(*opts)
 
