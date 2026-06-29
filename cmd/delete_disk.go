@@ -21,6 +21,10 @@ func (c DeleteDiskCmd) Run(opts DeleteDiskOpts) error {
 		return err
 	}
 
+	if opts.Dynamic {
+		return c.director.DeleteDynamicDisk(opts.Args.CID)
+	}
+
 	disk, err := c.director.FindOrphanDisk(opts.Args.CID)
 	if err != nil {
 		return err
