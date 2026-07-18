@@ -192,7 +192,9 @@ func (c *S3Cli) configureGDCH() {
 }
 
 func (c *S3Cli) configureDefault() {
-	// No specific configuration needed for default/unknown providers
+	if c.Region == "" {
+		c.Region = defaultAWSRegion
+	}
 }
 
 // S3Endpoint returns the S3 URI to use if custom host information has been provided
