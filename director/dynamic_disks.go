@@ -1,7 +1,6 @@
 package director
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/url"
 
@@ -41,19 +40,7 @@ type DynamicDiskResp struct {
 	CPI              string `json:"cpi"`
 }
 
-type ProvideDynamicDiskResult struct {
-	DiskCID string `json:"disk_cid"`
-}
-
 // --- DirectorImpl delegation ---
-
-func (d DirectorImpl) ProvideDynamicDisk(instanceID, diskName, diskPool string, sizeInMB int, metadata map[string]interface{}) (string, error) {
-	return d.client.ProvideDynamicDisk(instanceID, diskName, diskPool, sizeInMB, metadata)
-}
-
-func (d DirectorImpl) DetachDynamicDisk(diskName string) error {
-	return d.client.DetachDynamicDisk(diskName)
-}
 
 func (d DirectorImpl) DeleteDynamicDisk(diskName string) error {
 	return d.client.DeleteDynamicDisk(diskName)
@@ -63,56 +50,13 @@ func (d DirectorImpl) DynamicDisks() ([]DynamicDisk, error) {
 	return d.client.DynamicDisks()
 }
 
-func (d DirectorImpl) CreateDynamicDisk(diskName, diskPool string, sizeInMB int, metadata map[string]interface{}) (string, error) {
-	return d.client.CreateDynamicDisk(diskName, diskPool, sizeInMB, metadata)
-}
-
-func (d DirectorImpl) AttachDynamicDisk(diskName, instanceID string) error {
-	return d.client.AttachDynamicDisk(diskName, instanceID)
-}
-
 // --- HTTP Client methods ---
 
-func (c Client) ProvideDynamicDisk(instanceID, diskName, diskPool string, sizeInMB int, metadata map[string]interface{}) (string, error) {
-	reqBody := map[string]interface{}{
-		"instance_id":    instanceID,
-		"disk_name":      diskName,
-		"disk_pool_name": diskPool,
-		"disk_size":      sizeInMB,
-	}
-	if metadata != nil {
-		reqBody["metadata"] = metadata
-	}
-
-	bodyBytes, err := json.Marshal(reqBody)
-	if err != nil {
-		return "", bosherr.WrapError(err, "Marshaling provide dynamic disk request")
-	}
-
-	resultBytes, err := c.taskClientRequest.PostResult("/dynamic_disks/provide", bodyBytes, nil)
-	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Providing dynamic disk '%s'", diskName)
-	}
-
-	var result ProvideDynamicDiskResult
-	if len(resultBytes) > 0 {
-		if parseErr := json.Unmarshal(resultBytes, &result); parseErr != nil {
-			return "", bosherr.WrapErrorf(parseErr, "Unmarshaling provide disk result")
-		}
-	}
-	return result.DiskCID, nil
-}
-
-func (c Client) DetachDynamicDisk(diskName string) error {
-	path := fmt.Sprintf("/dynamic_disks/%s/detach", url.PathEscape(diskName))
-	_, err := c.taskClientRequest.PostResult(path, nil, nil)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Detaching dynamic disk '%s'", diskName)
-	}
-	return nil
-}
-
 func (c Client) DeleteDynamicDisk(diskName string) error {
+	if len(diskName) == 0 {
+		return bosherr.Error("Expected non-empty dynamic disk name")
+	}
+
 	path := fmt.Sprintf("/dynamic_disks/%s", url.PathEscape(diskName))
 	_, err := c.taskClientRequest.DeleteResult(path)
 	if err != nil {
@@ -142,50 +86,4 @@ func (c Client) DynamicDisks() ([]DynamicDisk, error) {
 		})
 	}
 	return disks, nil
-}
-
-func (c Client) CreateDynamicDisk(diskName, diskPool string, sizeInMB int, metadata map[string]interface{}) (string, error) {
-	reqBody := map[string]interface{}{
-		"disk_name":      diskName,
-		"disk_pool_name": diskPool,
-		"disk_size":      sizeInMB,
-	}
-	if metadata != nil {
-		reqBody["metadata"] = metadata
-	}
-
-	bodyBytes, err := json.Marshal(reqBody)
-	if err != nil {
-		return "", bosherr.WrapError(err, "Marshaling create dynamic disk request")
-	}
-
-	resultBytes, err := c.taskClientRequest.PostResult("/dynamic_disks", bodyBytes, nil)
-	if err != nil {
-		return "", bosherr.WrapErrorf(err, "Creating dynamic disk '%s'", diskName)
-	}
-
-	var result ProvideDynamicDiskResult
-	if len(resultBytes) > 0 {
-		if parseErr := json.Unmarshal(resultBytes, &result); parseErr != nil {
-			return "", bosherr.WrapErrorf(parseErr, "Unmarshaling create disk result")
-		}
-	}
-	return result.DiskCID, nil
-}
-
-func (c Client) AttachDynamicDisk(diskName, instanceID string) error {
-	reqBody := map[string]interface{}{
-		"instance_id": instanceID,
-	}
-	bodyBytes, err := json.Marshal(reqBody)
-	if err != nil {
-		return bosherr.WrapError(err, "Marshaling attach dynamic disk request")
-	}
-
-	path := fmt.Sprintf("/dynamic_disks/%s/attach", url.PathEscape(diskName))
-	_, err = c.taskClientRequest.PostResult(path, bodyBytes, nil)
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Attaching dynamic disk '%s' to instance '%s'", diskName, instanceID)
-	}
-	return nil
 }

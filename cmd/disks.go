@@ -19,6 +19,10 @@ func NewDisksCmd(ui boshui.UI, director boshdir.Director) DisksCmd {
 }
 
 func (c DisksCmd) Run(opts DisksOpts) error {
+	if opts.Orphaned && opts.Dynamic {
+		return errors.New("Only one of --orphaned or --dynamic is supported") //nolint:staticcheck
+	}
+
 	if opts.Dynamic {
 		return c.runDynamic()
 	}

@@ -109,6 +109,12 @@ var _ = Describe("DisksCmd", func() {
 			Expect(act()).To(Equal(errors.New("Only --orphaned or --dynamic is supported")))
 		})
 
+		It("returns error if both --orphaned and --dynamic are requested", func() {
+			disksOpts.Orphaned = true
+			disksOpts.Dynamic = true
+			Expect(act()).To(Equal(errors.New("Only one of --orphaned or --dynamic is supported")))
+		})
+
 		Context("when dynamic disks requested", func() {
 			BeforeEach(func() {
 				disksOpts.Dynamic = true

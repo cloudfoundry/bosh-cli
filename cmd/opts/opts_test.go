@@ -2239,7 +2239,7 @@ var _ = Describe("Opts", func() {
 		Describe("CID", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("CID", opts)).To(Equal(
-					`positional-arg-name:"CID"`,
+					`positional-arg-name:"CID-OR-NAME"`,
 				))
 			})
 		})

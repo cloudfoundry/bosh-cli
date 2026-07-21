@@ -78,12 +78,8 @@ type Director interface {
 	OrphanDisk(string) error
 
 	// Dynamic disk operations (TNZ-99509, TNZ-109499)
-	ProvideDynamicDisk(instanceID, diskName, diskPool string, sizeInMB int, metadata map[string]interface{}) (string, error)
-	DetachDynamicDisk(diskName string) error
 	DeleteDynamicDisk(diskName string) error
 	DynamicDisks() ([]DynamicDisk, error)
-	CreateDynamicDisk(diskName, diskPool string, sizeInMB int, metadata map[string]interface{}) (string, error)
-	AttachDynamicDisk(diskName, instanceID string) error
 
 	FindOrphanNetwork(string) (OrphanNetwork, error)
 	OrphanNetworks() ([]OrphanNetwork, error)

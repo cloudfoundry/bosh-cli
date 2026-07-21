@@ -756,7 +756,7 @@ type DeleteDiskOpts struct {
 }
 
 type DeleteDiskArgs struct {
-	CID string `positional-arg-name:"CID"`
+	CID string `positional-arg-name:"CID-OR-NAME"`
 }
 
 type OrphanDiskOpts struct {
