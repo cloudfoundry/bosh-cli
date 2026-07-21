@@ -77,6 +77,10 @@ type Director interface {
 	OrphanDisks() ([]OrphanDisk, error)
 	OrphanDisk(string) error
 
+	// Dynamic disk operations (TNZ-99509, TNZ-109499)
+	DeleteDynamicDisk(diskName string) error
+	DynamicDisks() ([]DynamicDisk, error)
+
 	FindOrphanNetwork(string) (OrphanNetwork, error)
 	OrphanNetworks() ([]OrphanNetwork, error)
 
@@ -320,6 +324,19 @@ type OrphanDisk interface {
 	OrphanedAt() time.Time
 
 	Delete() error
+}
+
+//counterfeiter:generate . DynamicDisk
+
+type DynamicDisk interface {
+	Name() string
+	DiskCID() string
+	DeploymentName() string
+	InstanceName() string
+	AvailabilityZone() string
+	Size() uint64
+	DiskPoolName() string
+	CPI() string
 }
 
 //counterfeiter:generate . OrphanNetwork

@@ -80,5 +80,39 @@ var _ = Describe("DeleteDiskCmd", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
+
+		Context("when --dynamic", func() {
+			BeforeEach(func() {
+				deleteDiskOpts = opts.DeleteDiskOpts{
+					Args:    opts.DeleteDiskArgs{CID: "my-disk"},
+					Dynamic: true,
+				}
+			})
+
+			It("deletes the dynamic disk", func() {
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(director.DeleteDynamicDiskArgsForCall(0)).To(Equal("my-disk"))
+			})
+
+			It("returns error if deletion fails", func() {
+				director.DeleteDynamicDiskReturns(errors.New("fake-err"))
+
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("fake-err"))
+			})
+
+			It("does not delete if confirmation is rejected", func() {
+				ui.AskedConfirmationErr = errors.New("stop")
+
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("stop"))
+
+				Expect(director.DeleteDynamicDiskCallCount()).To(Equal(0))
+			})
+		})
 	})
 })

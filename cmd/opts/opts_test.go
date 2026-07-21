@@ -2205,6 +2205,14 @@ var _ = Describe("Opts", func() {
 				))
 			})
 		})
+
+		Describe("Dynamic", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Dynamic", opts)).To(Equal(
+					`long:"dynamic" description:"List dynamic disks"`,
+				))
+			})
+		})
 	})
 
 	Describe("DeleteDiskOpts", func() {
@@ -2219,6 +2227,14 @@ var _ = Describe("Opts", func() {
 				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true" required:"true"`))
 			})
 		})
+
+		Describe("Dynamic", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Dynamic", opts)).To(Equal(
+					`long:"dynamic" description:"Delete a dynamic disk by name"`,
+				))
+			})
+		})
 	})
 
 	Describe("DeleteDiskArgs", func() {
@@ -2231,7 +2247,7 @@ var _ = Describe("Opts", func() {
 		Describe("CID", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("CID", opts)).To(Equal(
-					`positional-arg-name:"CID"`,
+					`positional-arg-name:"CID-OR-NAME"`,
 				))
 			})
 		})
