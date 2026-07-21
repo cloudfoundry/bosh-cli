@@ -2205,6 +2205,14 @@ var _ = Describe("Opts", func() {
 				))
 			})
 		})
+
+		Describe("Dynamic", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Dynamic", opts)).To(Equal(
+					`long:"dynamic" description:"List dynamic disks"`,
+				))
+			})
+		})
 	})
 
 	Describe("DeleteDiskOpts", func() {

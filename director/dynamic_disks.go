@@ -8,8 +8,6 @@ import (
 )
 
 type DynamicDiskImpl struct {
-	client Client
-
 	name             string
 	diskCID          string
 	deploymentName   string
@@ -74,7 +72,6 @@ func (c Client) DynamicDisks() ([]DynamicDisk, error) {
 	var disks []DynamicDisk
 	for _, r := range resps {
 		disks = append(disks, DynamicDiskImpl{
-			client:           c,
 			name:             r.Name,
 			diskCID:          r.DiskCID,
 			deploymentName:   r.Deployment,
