@@ -132,8 +132,6 @@ func NewFromReader(reader io.Reader) (S3Cli, error) {
 		c.configureAlicloud()
 	case "google":
 		c.configureGoogle()
-	case "gdch":
-		c.configureGDCH()
 	default:
 		c.configureDefault()
 	}
@@ -183,12 +181,6 @@ func (c *S3Cli) configureGoogle() {
 	if c.Region == "" {
 		c.Region = defaultGoogleRegion
 	}
-}
-
-func (c *S3Cli) configureGDCH() {
-	c.RequestChecksumCalculationEnabled = false
-	c.ResponseChecksumCalculationEnabled = false
-	c.UploaderRequestChecksumCalculationEnabled = false
 }
 
 func (c *S3Cli) configureDefault() {
