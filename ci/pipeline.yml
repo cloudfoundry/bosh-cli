@@ -79,13 +79,12 @@ jobs:
     public: true
     plan:
       - in_parallel:
-          - get: warden-cpi-image
+          - get: bosh-cli-ci-image
           - get: bosh-cli
             trigger: true
       - task: test-integration
         file: bosh-cli/ci/tasks/test-integration.yml
-        image: warden-cpi-image
-        privileged: true
+        image: bosh-cli-ci-image
 
   - name: test-acceptance
     public: true

@@ -221,9 +221,7 @@ cloud_provider:
       -----END CERTIFICATE-----
 `
 		type manifestContext struct {
-			DiskSize            int
-			SSHTunnelUser       string
-			SSHTunnelPrivateKey string
+			DiskSize int
 		}
 
 		var updateManifest = func(context manifestContext) {
