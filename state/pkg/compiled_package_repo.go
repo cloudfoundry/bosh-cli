@@ -17,6 +17,8 @@ type CompiledPackageRecord struct {
 	BlobSHA1 string
 }
 
+//counterfeiter:generate . CompiledPackageRepo
+
 type CompiledPackageRepo interface {
 	Save(birelpkg.Compilable, CompiledPackageRecord) error
 	Find(birelpkg.Compilable) (CompiledPackageRecord, bool, error)

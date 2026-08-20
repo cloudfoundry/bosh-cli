@@ -16,6 +16,8 @@ type CompiledPackageRef struct {
 	SHA1        string
 }
 
+//counterfeiter:generate . PackageCompiler
+
 type PackageCompiler interface {
 	For([]bireljob.Job, biui.Stage) ([]CompiledPackageRef, error)
 }

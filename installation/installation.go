@@ -4,6 +4,10 @@ import (
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . Installation
+
 type Installation interface {
 	Target() Target
 	Jobs() []InstalledJob

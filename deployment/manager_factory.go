@@ -11,6 +11,8 @@ import (
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 )
 
+//counterfeiter:generate . ManagerFactory
+
 type ManagerFactory interface {
 	NewManager(bicloud.Cloud, biagentclient.AgentClient, biblobstore.Blobstore) Manager
 }

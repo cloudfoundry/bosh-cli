@@ -5,29 +5,27 @@ import (
 	"os"
 	"path/filepath"
 
-	mockhttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	"github.com/cppforlife/go-patch/patch"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
-	mockblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
-	mockcloud "github.com/cloudfoundry/bosh-cli/v7/cloud/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/agentclient/agentclientfakes"
+	"github.com/cloudfoundry/bosh-cli/v7/blobstore/blobstorefakes"
+	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
+	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	bicpirel "github.com/cloudfoundry/bosh-cli/v7/cpi/release"
-	mockdeployment "github.com/cloudfoundry/bosh-cli/v7/deployment/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/deploymentfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	biinstall "github.com/cloudfoundry/bosh-cli/v7/installation"
+	"github.com/cloudfoundry/bosh-cli/v7/installation/installationfakes"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
-	mockinstall "github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
 	bitarball "github.com/cloudfoundry/bosh-cli/v7/installation/tarball"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
@@ -40,42 +38,32 @@ import (
 )
 
 var _ = Describe("DeploymentDeleter", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	Describe("DeleteDeployment", func() {
 		var (
 			fs                          *fakesys.FakeFileSystem
 			logger                      boshlog.Logger
 			releaseReader               *fakerel.FakeReader
 			releaseManager              boshrel.Manager
-			mockCpiInstaller            *mockinstall.MockInstaller
-			mockCpiUninstaller          *mockinstall.MockUninstaller
-			mockInstallerFactory        *mockinstall.MockInstallerFactory
-			mockCloudFactory            *mockcloud.MockFactory
+			mockCpiInstaller            *installationfakes.FakeInstaller
+			mockCpiUninstaller          *installationfakes.FakeUninstaller
+			mockInstallerFactory        *installationfakes.FakeInstallerFactory
+			mockCloudFactory            *cloudfakes.FakeFactory
 			fakeUUIDGenerator           *fakeuuid.FakeGenerator
 			setupDeploymentStateService biconfig.DeploymentStateService
 			fakeInstallation            *fakecmd.FakeInstallation
 
 			fakeUI *fakeui.FakeUI
 
-			mockBlobstoreFactory *mockblobstore.MockFactory
-			mockBlobstore        *mockblobstore.MockBlobstore
+			mockBlobstoreFactory *blobstorefakes.FakeFactory
+			mockBlobstore        *blobstorefakes.FakeBlobstore
 
-			mockDeploymentManagerFactory *mockdeployment.MockManagerFactory
-			mockDeploymentManager        *mockdeployment.MockManager
-			mockDeployment               *mockdeployment.MockDeployment
+			mockDeploymentManagerFactory *deploymentfakes.FakeManagerFactory
+			mockDeploymentManager        *deploymentfakes.FakeManager
+			mockDeployment               *deploymentfakes.FakeDeployment
 
-			mockAgentClient        *mockagentclient.MockAgentClient
-			mockAgentClientFactory *mockhttpagent.MockAgentClientFactory
-			mockCloud              *mockcloud.MockCloud
+			mockAgentClient        *agentclientfakes.FakeAgentClient
+			mockAgentClientFactory *fakecmd.FakeAgentClientFactory
+			mockCloud              *cloudfakes.FakeCloud
 
 			fakeStage *fakeui.FakeStage
 
@@ -84,8 +72,9 @@ var _ = Describe("DeploymentDeleter", func() {
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			deploymentStatePath    string
 
-			expectCPIInstall *gomock.Call
-			expectNewCloud   *gomock.Call
+			// callOrder records, in invocation order, calls to Install/NewCloud/Delete/Cleanup
+			// made during a test -- the counterfeiter equivalent of gomock.InOrder().
+			callOrder []string
 
 			mbusURL                     = "http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"
 			stemcellApiVersionForDelete = 1
@@ -181,27 +170,19 @@ cloud_provider:
 		}
 
 		var allowCPIToBeInstalled = func() {
-			installationManifest := biinstallmanifest.Manifest{
-				Name: "test-release",
-				Templates: []biinstallmanifest.ReleaseJobRef{
-					{Name: "fake-cpi-release-job-name", Release: "fake-cpi-release-name"},
-				},
-				Mbus:       mbusURL,
-				Properties: biproperty.Map{},
-				Cert: biinstallmanifest.Certificate{
-					CA: certificate,
-				},
-			}
+			mockInstallerFactory.NewInstallerReturns(mockCpiInstaller)
 
-			target := biinstall.NewTarget(filepath.Join("fake-install-dir", "fake-installation-id"), "")
-			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockCpiInstaller).AnyTimes()
-
-			expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage boshui.Stage) {
+			mockCpiInstaller.InstallStub = func(manifest biinstallmanifest.Manifest, stage boshui.Stage) (biinstall.Installation, error) {
+				callOrder = append(callOrder, "Install")
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
-			}).Return(fakeInstallation, nil).AnyTimes()
-			mockCpiInstaller.EXPECT().Cleanup(fakeInstallation).AnyTimes()
+				return fakeInstallation, nil
+			}
+			mockCpiInstaller.CleanupReturns(nil)
 
-			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID, stemcellApiVersionForDelete).Return(mockCloud, nil).AnyTimes()
+			mockCloudFactory.NewCloudStub = func(installation biinstall.Installation, directorID string, stemcellApiVersion int) (bicloud.Cloud, error) {
+				callOrder = append(callOrder, "NewCloud")
+				return mockCloud, nil
+			}
 		}
 
 		var newDeploymentDeleter = func() cmd.DeploymentDeleter {
@@ -256,26 +237,29 @@ cloud_provider:
 		}
 
 		var expectDeleteAndCleanup = func(skipDrain, defaultUninstallerUsed bool) {
-			mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, mockBlobstore).Return(mockDeploymentManager)
-			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
+			mockDeploymentManagerFactory.NewManagerReturns(mockDeploymentManager)
+			mockDeploymentManager.FindCurrentReturns(mockDeployment, true, nil)
 
-			gomock.InOrder(
-				mockDeployment.EXPECT().Delete(skipDrain, gomock.Any()).Do(func(_ bool, stage boshui.Stage) {
-					Expect(fakeStage.SubStages).To(ContainElement(stage))
-				}),
-				mockDeploymentManager.EXPECT().Cleanup(fakeStage),
-			)
+			mockDeployment.DeleteStub = func(_ bool, stage boshui.Stage) error {
+				callOrder = append(callOrder, "Delete")
+				Expect(fakeStage.SubStages).To(ContainElement(stage))
+				return nil
+			}
+			mockDeploymentManager.CleanupStub = func(stage boshui.Stage) error {
+				callOrder = append(callOrder, "Cleanup")
+				return nil
+			}
 			if defaultUninstallerUsed {
-				mockCpiUninstaller.EXPECT().Uninstall(gomock.Any()).Return(nil)
+				mockCpiUninstaller.UninstallReturns(nil)
 			}
 		}
 
 		var expectCleanup = func() {
-			mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, mockBlobstore).Return(mockDeploymentManager).AnyTimes()
-			mockDeploymentManager.EXPECT().FindCurrent().Return(nil, false, nil).AnyTimes()
+			mockDeploymentManagerFactory.NewManagerReturns(mockDeploymentManager)
+			mockDeploymentManager.FindCurrentReturns(nil, false, nil)
 
-			mockDeploymentManager.EXPECT().Cleanup(fakeStage)
-			mockCpiUninstaller.EXPECT().Uninstall(gomock.Any()).Return(nil)
+			mockDeploymentManager.CleanupReturns(nil)
+			mockCpiUninstaller.UninstallReturns(nil)
 		}
 
 		var expectValidationInstallationDeletionEvents = func() {
@@ -328,37 +312,35 @@ cloud_provider:
 
 			fakeStage = fakeui.NewFakeStage()
 
-			mockCloud = mockcloud.NewMockCloud(mockCtrl)
-			mockCloudFactory = mockcloud.NewMockFactory(mockCtrl)
+			callOrder = nil
 
-			mockCpiInstaller = mockinstall.NewMockInstaller(mockCtrl)
-			mockCpiUninstaller = mockinstall.NewMockUninstaller(mockCtrl)
-			mockInstallerFactory = mockinstall.NewMockInstallerFactory(mockCtrl)
+			mockCloud = &cloudfakes.FakeCloud{}
+			mockCloudFactory = &cloudfakes.FakeFactory{}
+
+			mockCpiInstaller = &installationfakes.FakeInstaller{}
+			mockCpiUninstaller = &installationfakes.FakeUninstaller{}
+			mockInstallerFactory = &installationfakes.FakeInstallerFactory{}
 
 			fakeInstallation = &fakecmd.FakeInstallation{}
 
-			mockBlobstoreFactory = mockblobstore.NewMockFactory(mockCtrl)
-			mockBlobstore = mockblobstore.NewMockBlobstore(mockCtrl)
-			mockBlobstoreFactory.EXPECT().Create(mbusURL, SecureTLSClientMatcher()).Return(mockBlobstore, nil).AnyTimes()
+			mockBlobstoreFactory = &blobstorefakes.FakeFactory{}
+			mockBlobstore = &blobstorefakes.FakeBlobstore{}
+			mockBlobstoreFactory.CreateReturns(mockBlobstore, nil)
 
-			mockDeploymentManagerFactory = mockdeployment.NewMockManagerFactory(mockCtrl)
-			mockDeploymentManager = mockdeployment.NewMockManager(mockCtrl)
-			mockDeployment = mockdeployment.NewMockDeployment(mockCtrl)
+			mockDeploymentManagerFactory = &deploymentfakes.FakeManagerFactory{}
+			mockDeploymentManager = &deploymentfakes.FakeManager{}
+			mockDeployment = &deploymentfakes.FakeDeployment{}
 
 			releaseReader = &fakerel.FakeReader{}
 			releaseManager = biinstall.NewReleaseManager(logger)
 
-			mockAgentClientFactory = mockhttpagent.NewMockAgentClientFactory(mockCtrl)
-			mockAgentClient = mockagentclient.NewMockAgentClient(mockCtrl)
+			mockAgentClientFactory = &fakecmd.FakeAgentClientFactory{}
+			mockAgentClient = &agentclientfakes.FakeAgentClient{}
 
 			directorID = "fake-uuid-0"
 			skipDrain = false
 
-			mockAgentClientFactory.EXPECT().NewAgentClient(
-				directorID,
-				"http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
-				certificate,
-			).Return(mockAgentClient, nil).AnyTimes()
+			mockAgentClientFactory.NewAgentClientReturns(mockAgentClient, nil)
 
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
@@ -423,6 +405,11 @@ cloud_provider:
 						expectDeleteAndCleanup(true, true)
 						err := newDeploymentDeleter().DeleteDeployment(true, fakeStage)
 						Expect(err).ToNot(HaveOccurred())
+
+						Expect(mockCloudFactory.NewCloudCallCount()).To(Equal(1))
+						_, gotDirectorID, gotStemcellApiVersion := mockCloudFactory.NewCloudArgsForCall(0)
+						Expect(gotDirectorID).To(Equal(directorID))
+						Expect(gotStemcellApiVersion).To(Equal(stemcellApiVersionForDelete))
 					})
 				})
 
@@ -445,13 +432,21 @@ cloud_provider:
 				It("extracts & install CPI release tarball", func() {
 					expectDeleteAndCleanup(skipDrain, true)
 
-					gomock.InOrder(
-						expectCPIInstall.Times(1),
-						expectNewCloud.Times(1),
-					)
-
 					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).NotTo(HaveOccurred())
+
+					installIndex := -1
+					newCloudIndex := -1
+					for i, name := range callOrder {
+						switch name {
+						case "Install":
+							installIndex = i
+						case "NewCloud":
+							newCloudIndex = i
+						}
+					}
+					Expect(installIndex).To(BeNumerically(">=", 0), "Install should have been called")
+					Expect(newCloudIndex).To(BeNumerically(">", installIndex), "NewCloud should have been called after Install")
 				})
 
 				It("deletes the extracted CPI release", func() {
@@ -468,11 +463,22 @@ cloud_provider:
 					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(fakeUI.Errors).To(BeEmpty())
+
+					Expect(mockBlobstoreFactory.CreateCallCount()).To(Equal(1))
+					gotURL, gotClient := mockBlobstoreFactory.CreateArgsForCall(0)
+					Expect(gotURL).To(Equal(mbusURL))
+					Expect(gotClient).To(SecureTLSClientMatcher())
+
+					Expect(mockAgentClientFactory.NewAgentClientCallCount()).To(Equal(1))
+					gotDirectorID, gotMbusURL, gotCert := mockAgentClientFactory.NewAgentClientArgsForCall(0)
+					Expect(gotDirectorID).To(Equal(directorID))
+					Expect(gotMbusURL).To(Equal(mbusURL))
+					Expect(gotCert).To(Equal(certificate))
 				})
 
 				It("deletes the local CPI installation", func() {
 					expectDeleteAndCleanup(skipDrain, false)
-					mockCpiUninstaller.EXPECT().Uninstall(gomock.Any()).Return(nil)
+					mockCpiUninstaller.UninstallReturns(nil)
 
 					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
@@ -523,39 +529,27 @@ cloud_provider:
 
 		Context("when the CPI fails to Delete", func() {
 			JustBeforeEach(func() {
-				installationManifest := biinstallmanifest.Manifest{
-					Name: "test-release",
-					Templates: []biinstallmanifest.ReleaseJobRef{
-						{Name: "fake-cpi-release-job-name", Release: "fake-cpi-release-name"},
-					},
-					Mbus:       mbusURL,
-					Properties: biproperty.Map{},
-					Cert: biinstallmanifest.Certificate{
-						CA: certificate,
-					},
-				}
-
-				target := biinstall.NewTarget(filepath.Join("fake-install-dir", "fake-installation-id"), "")
-				mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockCpiInstaller).AnyTimes()
+				mockInstallerFactory.NewInstallerReturns(mockCpiInstaller)
 
 				fakeInstallation := &fakecmd.FakeInstallation{}
 
-				expectCPIInstall = mockCpiInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ biinstallmanifest.Manifest, stage boshui.Stage) {
+				mockCpiInstaller.InstallStub = func(manifest biinstallmanifest.Manifest, stage boshui.Stage) (biinstall.Installation, error) {
 					Expect(fakeStage.SubStages).To(ContainElement(stage))
-				}).Return(fakeInstallation, nil).AnyTimes()
-				mockCpiInstaller.EXPECT().Cleanup(fakeInstallation).AnyTimes()
+					return fakeInstallation, nil
+				}
+				mockCpiInstaller.CleanupReturns(nil)
 
-				expectNewCloud = mockCloudFactory.EXPECT().NewCloud(fakeInstallation, directorID, stemcellApiVersionForDelete).Return(mockCloud, nil).AnyTimes()
+				mockCloudFactory.NewCloudReturns(mockCloud, nil)
 			})
 
 			Context("when the call to delete the deployment returns an error", func() {
 				It("returns the error", func() {
-					mockDeploymentManagerFactory.EXPECT().NewManager(mockCloud, mockAgentClient, mockBlobstore).Return(mockDeploymentManager)
-					mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
+					mockDeploymentManagerFactory.NewManagerReturns(mockDeploymentManager)
+					mockDeploymentManager.FindCurrentReturns(mockDeployment, true, nil)
 
 					deleteError := bosherr.Error("delete error")
 
-					mockDeployment.EXPECT().Delete(skipDrain, gomock.Any()).Return(deleteError)
+					mockDeployment.DeleteReturns(deleteError)
 
 					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 

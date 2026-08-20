@@ -20,6 +20,10 @@ type CompiledPackageRef struct {
 	SHA1        string
 }
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . DependencyCompiler
+
 type DependencyCompiler interface {
 	Compile([]bireljob.Job, biui.Stage) ([]CompiledPackageRef, error)
 }

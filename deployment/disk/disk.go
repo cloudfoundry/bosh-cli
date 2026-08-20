@@ -11,6 +11,10 @@ import (
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . Disk
+
 type Disk interface {
 	CID() string
 	NeedsMigration(newSize int, newCloudProperties biproperty.Map) (bool, error)

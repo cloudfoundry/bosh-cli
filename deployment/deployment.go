@@ -13,6 +13,10 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . Deployment
+
 type Deployment interface {
 	Delete(bool, biui.Stage) error
 	Stop(bool, biui.Stage) error

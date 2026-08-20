@@ -3,7 +3,6 @@ package installation_test
 import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -11,35 +10,24 @@ import (
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	bistatejob "github.com/cloudfoundry/bosh-cli/v7/state/job"
-	mock_state_job "github.com/cloudfoundry/bosh-cli/v7/state/job/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/state/job/jobfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("PackageCompiler", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
-		mockDependencyCompiler *mock_state_job.MockDependencyCompiler
+		mockDependencyCompiler *jobfakes.FakeDependencyCompiler
 
 		fs       *fakeboshsys.FakeFileSystem
 		compiler installation.PackageCompiler
 
-		releaseJob    bireljob.Job
-		releaseJobs   []bireljob.Job
-		stage         *fakebiui.FakeStage
-		expectCompile *gomock.Call
+		releaseJob  bireljob.Job
+		releaseJobs []bireljob.Job
+		stage       *fakebiui.FakeStage
 	)
 
 	BeforeEach(func() {
-		mockDependencyCompiler = mock_state_job.NewMockDependencyCompiler(mockCtrl)
+		mockDependencyCompiler = &jobfakes.FakeDependencyCompiler{}
 		fs = fakeboshsys.NewFakeFileSystem()
 		stage = fakebiui.NewFakeStage()
 
@@ -65,7 +53,7 @@ var _ = Describe("PackageCompiler", func() {
 				SHA1:        "fake-compiled-package-sha1-2",
 			},
 		}
-		expectCompile = mockDependencyCompiler.EXPECT().Compile(releaseJobs, stage).Return(compiledPackageRefs, nil).AnyTimes()
+		mockDependencyCompiler.CompileReturns(compiledPackageRefs, nil)
 	})
 
 	Describe("From", func() {
@@ -87,11 +75,15 @@ var _ = Describe("PackageCompiler", func() {
 					SHA1:        "fake-compiled-package-sha1-2",
 				},
 			}))
+
+			jobs, gotStage := mockDependencyCompiler.CompileArgsForCall(0)
+			Expect(jobs).To(Equal(releaseJobs))
+			Expect(gotStage).To(Equal(stage))
 		})
 
 		Context("when package compilation fails", func() {
 			JustBeforeEach(func() {
-				expectCompile.Return([]bistatejob.CompiledPackageRef{}, bosherr.Error("fake-compile-package-2-error")).Times(1)
+				mockDependencyCompiler.CompileReturns([]bistatejob.CompiledPackageRef{}, bosherr.Error("fake-compile-package-2-error"))
 			})
 
 			It("returns an error", func() {

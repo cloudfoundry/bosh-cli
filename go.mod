@@ -17,7 +17,6 @@ require (
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.19.0
-	github.com/golang/mock v1.6.0
 	github.com/gopacket/gopacket v1.7.1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jessevdk/go-flags v1.6.1

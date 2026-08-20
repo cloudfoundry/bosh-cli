@@ -4,31 +4,20 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	boshreljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	. "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
-	mock_template "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/templatescompiler/templatescompilerfakes"
 )
 
 var _ = Describe("JobListRenderer", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
 		logger boshlog.Logger
 
-		mockJobRenderer *mock_template.MockJobRenderer
+		mockJobRenderer *templatescompilerfakes.FakeJobRenderer
 
 		releaseJobs          []boshreljob.Job
 		releaseJobProperties map[string]*biproperty.Map
@@ -37,16 +26,14 @@ var _ = Describe("JobListRenderer", func() {
 		deploymentName       string
 		address              string
 
-		renderedJobs []*mock_template.MockRenderedJob
+		renderedJobs []*templatescompilerfakes.FakeRenderedJob
 
 		jobListRenderer JobListRenderer
-
-		expectRender1 *gomock.Call
 	)
 
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		mockJobRenderer = mock_template.NewMockJobRenderer(mockCtrl)
+		mockJobRenderer = &templatescompilerfakes.FakeJobRenderer{}
 
 		// release jobs are just passed through to JobRenderer.Render, so they do not need real contents
 		releaseJobs = []boshreljob.Job{
@@ -72,17 +59,17 @@ var _ = Describe("JobListRenderer", func() {
 		deploymentName = "fake-deployment-name"
 		address = "1.2.3.4"
 
-		renderedJobs = []*mock_template.MockRenderedJob{
-			mock_template.NewMockRenderedJob(mockCtrl),
-			mock_template.NewMockRenderedJob(mockCtrl),
+		renderedJobs = []*templatescompilerfakes.FakeRenderedJob{
+			{},
+			{},
 		}
 
 		jobListRenderer = NewJobListRenderer(mockJobRenderer, logger)
 	})
 
 	JustBeforeEach(func() {
-		mockJobRenderer.EXPECT().Render(releaseJobs[0], releaseJobProperties[releaseJobs[0].Name()], jobProperties, globalProperties, deploymentName, address).Return(renderedJobs[0], nil)
-		expectRender1 = mockJobRenderer.EXPECT().Render(releaseJobs[1], releaseJobProperties[releaseJobs[1].Name()], jobProperties, globalProperties, deploymentName, address).Return(renderedJobs[1], nil)
+		mockJobRenderer.RenderReturnsOnCall(0, renderedJobs[0], nil)
+		mockJobRenderer.RenderReturnsOnCall(1, renderedJobs[1], nil)
 	})
 
 	Describe("Render", func() {
@@ -93,19 +80,36 @@ var _ = Describe("JobListRenderer", func() {
 				renderedJobs[0],
 				renderedJobs[1],
 			}))
+
+			Expect(mockJobRenderer.RenderCallCount()).To(Equal(2))
+
+			actualJob0, actualProps0, actualJobProperties0, actualGlobalProperties0, actualDeploymentName0, actualAddress0 := mockJobRenderer.RenderArgsForCall(0)
+			Expect(actualJob0).To(Equal(releaseJobs[0]))
+			Expect(actualProps0).To(Equal(releaseJobProperties[releaseJobs[0].Name()]))
+			Expect(actualJobProperties0).To(Equal(jobProperties))
+			Expect(actualGlobalProperties0).To(Equal(globalProperties))
+			Expect(actualDeploymentName0).To(Equal(deploymentName))
+			Expect(actualAddress0).To(Equal(address))
+
+			actualJob1, actualProps1, actualJobProperties1, actualGlobalProperties1, actualDeploymentName1, actualAddress1 := mockJobRenderer.RenderArgsForCall(1)
+			Expect(actualJob1).To(Equal(releaseJobs[1]))
+			Expect(actualProps1).To(Equal(releaseJobProperties[releaseJobs[1].Name()]))
+			Expect(actualJobProperties1).To(Equal(jobProperties))
+			Expect(actualGlobalProperties1).To(Equal(globalProperties))
+			Expect(actualDeploymentName1).To(Equal(deploymentName))
+			Expect(actualAddress1).To(Equal(address))
 		})
 
 		Context("when rendering a job fails", func() {
 			JustBeforeEach(func() {
-				expectRender1.Return(nil, bosherr.Error("fake-render-error"))
+				mockJobRenderer.RenderReturnsOnCall(1, nil, bosherr.Error("fake-render-error"))
 			})
 
 			It("returns an error and cleans up any sucessfully rendered jobs", func() {
-				renderedJobs[0].EXPECT().DeleteSilently()
-
 				_, err := jobListRenderer.Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, address)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-render-error"))
+				Expect(renderedJobs[0].DeleteSilentlyCallCount()).To(Equal(1))
 			})
 		})
 	})

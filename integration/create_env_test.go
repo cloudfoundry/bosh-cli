@@ -9,7 +9,6 @@ import (
 
 	biagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
 	bias "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
-	mockhttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -17,16 +16,16 @@ import (
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	"github.com/cppforlife/go-patch/patch"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
-	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
-	mockblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/agentclient/agentclientfakes"
+	"github.com/cloudfoundry/bosh-cli/v7/blobstore/blobstorefakes"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
-	mockcloud "github.com/cloudfoundry/bosh-cli/v7/cloud/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	bicpirel "github.com/cloudfoundry/bosh-cli/v7/cpi/release"
@@ -34,15 +33,15 @@ import (
 	bidepl "github.com/cloudfoundry/bosh-cli/v7/deployment"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	biinstance "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
-	mockinstancestate "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/statefakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	bisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel"
 	bidepltpl "github.com/cloudfoundry/bosh-cli/v7/deployment/template"
 	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	biinstall "github.com/cloudfoundry/bosh-cli/v7/installation"
+	"github.com/cloudfoundry/bosh-cli/v7/installation/installationfakes"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
-	mockinstall "github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
 	bitarball "github.com/cloudfoundry/bosh-cli/v7/installation/tarball"
 	birel "github.com/cloudfoundry/bosh-cli/v7/release"
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
@@ -57,16 +56,6 @@ import (
 )
 
 var _ = Describe("bosh", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	Describe("Deploy", func() {
 		var (
 			fs     *fakesys.FakeFileSystem
@@ -74,20 +63,24 @@ var _ = Describe("bosh", func() {
 
 			releaseManager birel.Manager
 
-			mockInstaller          *mockinstall.MockInstaller
-			mockInstallerFactory   *mockinstall.MockInstallerFactory
-			mockCloudFactory       *mockcloud.MockFactory
-			mockCloud              *mockcloud.MockCloud
-			mockAgentClient        *mockagentclient.MockAgentClient
-			mockAgentClientFactory *mockhttpagent.MockAgentClientFactory
+			mockInstaller          *installationfakes.FakeInstaller
+			mockInstallerFactory   *installationfakes.FakeInstallerFactory
+			mockCloudFactory       *cloudfakes.FakeFactory
+			mockCloud              *cloudfakes.FakeCloud
+			mockAgentClient        *agentclientfakes.FakeAgentClient
+			mockAgentClientFactory *fakecmd.FakeAgentClientFactory
 			releaseReader          *fakerel.FakeReader
 
-			mockStateBuilderFactory *mockinstancestate.MockBuilderFactory
-			mockStateBuilder        *mockinstancestate.MockBuilder
-			mockState               *mockinstancestate.MockState
+			mockStateBuilderFactory *statefakes.FakeBuilderFactory
+			mockStateBuilder        *statefakes.FakeBuilder
+			mockState               *statefakes.FakeState
 
-			mockBlobstoreFactory *mockblobstore.MockFactory
-			mockBlobstore        *mockblobstore.MockBlobstore
+			mockBlobstoreFactory *blobstorefakes.FakeFactory
+			mockBlobstore        *blobstorefakes.FakeBlobstore
+
+			// callOrder records, in invocation order, calls to mockCloud/mockAgentClient
+			// methods made during a deploy run -- the counterfeiter equivalent of gomock.InOrder().
+			callOrder []string
 
 			fakeStemcellExtractor         *fakebistemcell.FakeExtractor
 			fakeUUIDGenerator             *fakeuuid.FakeGenerator
@@ -162,8 +155,7 @@ nH9ttalAwSLBsobVaK8mmiAdtAdx+CmHWrB4UNxCPYasrt5A6a9A9SiQ2dLd
 -----END CERTIFICATE-----
 `
 
-			expectHasVM1    *gomock.Call
-			expectDeleteVM1 *gomock.Call
+			deleteOldVM1Err error
 		)
 
 		var manifestTemplate = `---
@@ -308,13 +300,14 @@ cloud_provider:
 			installation := biinstall.NewInstallation(target, []biinstall.InstalledJob{installedJob},
 				installationManifest)
 
-			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockInstaller).AnyTimes()
+			mockInstallerFactory.NewInstallerReturns(mockInstaller)
 
-			mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ interface{}, stage biui.Stage) {
+			mockInstaller.InstallStub = func(_ biinstallmanifest.Manifest, stage biui.Stage) (biinstall.Installation, error) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
-			}).Return(installation, nil).AnyTimes()
-			mockInstaller.EXPECT().Cleanup(installation).AnyTimes()
-			mockCloudFactory.EXPECT().NewCloud(installation, directorID, stemcellApiVersion).Return(mockCloud, nil).AnyTimes()
+				return installation, nil
+			}
+			mockInstaller.CleanupReturns(nil)
+			mockCloudFactory.NewCloudReturns(mockCloud, nil)
 		}
 
 		var writeStemcellReleaseTarball = func() {
@@ -371,10 +364,10 @@ cloud_provider:
 
 			// TODO: use a real state builder
 
-			mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
-			mockStateBuilder.EXPECT().Build(jobName, jobIndex, gomock.Any(), gomock.Any(), gomock.Any()).Return(mockState, nil).AnyTimes()
-			mockStateBuilder.EXPECT().BuildInitialState(jobName, jobIndex, gomock.Any()).Return(mockState, nil).AnyTimes()
-			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
+			mockStateBuilderFactory.NewBuilderReturns(mockStateBuilder)
+			mockStateBuilder.BuildReturns(mockState, nil)
+			mockStateBuilder.BuildInitialStateReturns(mockState, nil)
+			mockState.ToApplySpecReturns(applySpec)
 		}
 
 		var newCreateEnvCmd = func() *cmd.CreateEnvCmd {
@@ -482,6 +475,82 @@ cloud_provider:
 			return cmd.NewCreateEnvCmd(ui, doGet)
 		}
 
+		var wireCommonStubs = func() {
+			mockCloud.InfoReturns(bicloud.CpiInfo{ApiVersion: cpiApiVersion}, nil)
+
+			mockCloud.SetVMMetadataStub = func(string, bicloud.VMMetadata) error {
+				callOrder = append(callOrder, "SetVMMetadata")
+				return nil
+			}
+			mockCloud.SetDiskMetadataStub = func(string, bicloud.DiskMetadata) error {
+				callOrder = append(callOrder, "SetDiskMetadata")
+				return nil
+			}
+			mockCloud.DeleteDiskStub = func(string) error {
+				callOrder = append(callOrder, "DeleteDisk")
+				return nil
+			}
+			mockCloud.DetachDiskStub = func(string, string) error {
+				callOrder = append(callOrder, "DetachDisk")
+				return nil
+			}
+
+			mockAgentClient.PingStub = func() (string, error) {
+				callOrder = append(callOrder, "Ping")
+				return "any-state", nil
+			}
+			mockAgentClient.RunScriptStub = func(name string, _ map[string]interface{}) error {
+				callOrder = append(callOrder, "RunScript:"+name)
+				return nil
+			}
+			mockAgentClient.DrainStub = func(string) (int64, error) {
+				callOrder = append(callOrder, "Drain")
+				return 0, nil
+			}
+			mockAgentClient.StopStub = func() error {
+				callOrder = append(callOrder, "Stop")
+				return nil
+			}
+			mockAgentClient.StartStub = func() error {
+				callOrder = append(callOrder, "Start")
+				return nil
+			}
+			mockAgentClient.ApplyStub = func(bias.ApplySpec) error {
+				callOrder = append(callOrder, "Apply")
+				return nil
+			}
+			mockAgentClient.UnmountDiskStub = func(string) error {
+				callOrder = append(callOrder, "UnmountDisk")
+				return nil
+			}
+			mockAgentClient.AddPersistentDiskStub = func(string, interface{}) error {
+				callOrder = append(callOrder, "AddPersistentDisk")
+				return nil
+			}
+			mockAgentClient.MountDiskStub = func(string) error {
+				callOrder = append(callOrder, "MountDisk")
+				return nil
+			}
+			mockAgentClient.RemovePersistentDiskStub = func(string) error {
+				callOrder = append(callOrder, "RemovePersistentDisk")
+				return nil
+			}
+			mockAgentClient.MigrateDiskStub = func() error {
+				callOrder = append(callOrder, "MigrateDisk")
+				return nil
+			}
+
+			getStateCallCount := 0
+			mockAgentClient.GetStateStub = func() (biagentclient.AgentState, error) {
+				callOrder = append(callOrder, "GetState")
+				getStateCallCount++
+				if getStateCallCount >= 2 {
+					return agentRunningState, nil
+				}
+				return biagentclient.AgentState{}, nil
+			}
+		}
+
 		var expectDeployFlow = func() {
 			agentID := "fake-uuid-0"
 			vmCID := "fake-vm-cid-1"
@@ -490,29 +559,37 @@ cloud_provider:
 
 			// TODO: use a real StateBuilder and test mockBlobstore.Add & mockAgentClient.CompilePackage
 
-			gomock.InOrder(
-				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}, nil).AnyTimes(),
-				mockCloud.EXPECT().CreateStemcell(filepath.Join("fake-stemcell-extracted-dir", "image"), stemcellCloudProperties).Return(stemcellCID, nil),
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, gomock.Any(), networkInterfaces, vmEnv).Return(vmCID, nil),
-				mockCloud.EXPECT().SetVMMetadata(vmCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
+			callOrder = nil
+			wireCommonStubs()
 
-				mockCloud.EXPECT().CreateDisk(diskSize, diskCloudProperties, vmCID).Return(diskCID, nil),
-				mockCloud.EXPECT().AttachDisk(vmCID, diskCID).Return("/dev/xyz", nil),
-				mockCloud.EXPECT().SetDiskMetadata(diskCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockAgentClient.EXPECT().AddPersistentDisk(diskCID, "/dev/xyz"),
-				mockAgentClient.EXPECT().MountDisk(diskCID),
-
-				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().GetState(),
-				mockAgentClient.EXPECT().Stop(),
-				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
-				mockAgentClient.EXPECT().Start(),
-				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
-				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
-			)
+			mockCloud.CreateStemcellStub = func(imagePath string, cloudProperties biproperty.Map) (string, error) {
+				callOrder = append(callOrder, "CreateStemcell")
+				Expect(imagePath).To(Equal(filepath.Join("fake-stemcell-extracted-dir", "image")))
+				Expect(cloudProperties).To(Equal(stemcellCloudProperties))
+				return stemcellCID, nil
+			}
+			mockCloud.CreateVMStub = func(gotAgentID, gotStemcellCID string, cloudProperties biproperty.Map, diskCIDs []string, networks map[string]biproperty.Map, env biproperty.Map) (string, error) {
+				callOrder = append(callOrder, "CreateVM")
+				Expect(gotAgentID).To(Equal(agentID))
+				Expect(gotStemcellCID).To(Equal(stemcellCID))
+				Expect(cloudProperties).To(Equal(vmCloudProperties))
+				Expect(networks).To(Equal(networkInterfaces))
+				Expect(env).To(Equal(vmEnv))
+				return vmCID, nil
+			}
+			mockCloud.CreateDiskStub = func(size int, cloudProperties biproperty.Map, gotVMCID string) (string, error) {
+				callOrder = append(callOrder, "CreateDisk")
+				Expect(size).To(Equal(diskSize))
+				Expect(cloudProperties).To(Equal(diskCloudProperties))
+				Expect(gotVMCID).To(Equal(vmCID))
+				return diskCID, nil
+			}
+			mockCloud.AttachDiskStub = func(gotVMCID, gotDiskCID string) (interface{}, error) {
+				callOrder = append(callOrder, "AttachDisk")
+				Expect(gotVMCID).To(Equal(vmCID))
+				Expect(gotDiskCID).To(Equal(diskCID))
+				return "/dev/xyz", nil
+			}
 		}
 
 		var expectDeployWithDiskMigration = func() {
@@ -523,55 +600,48 @@ cloud_provider:
 			newDiskCID := "fake-disk-cid-2"
 			newDiskSize := 2048
 
-			expectHasVM1 = mockCloud.EXPECT().HasVM(oldVMCID).Return(true, nil)
+			callOrder = nil
+			wireCommonStubs()
 
-			gomock.InOrder(
-				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}, nil),
-				expectHasVM1,
-
-				// shutdown old vm
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockAgentClient.EXPECT().RunScript("pre-stop", map[string]interface{}{}),
-				mockAgentClient.EXPECT().Drain("shutdown"),
-				mockAgentClient.EXPECT().Stop(),
-				mockAgentClient.EXPECT().RunScript("post-stop", map[string]interface{}{}),
-				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
-				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
-				mockCloud.EXPECT().DeleteVM(oldVMCID),
-
-				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
-				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-
-				// attach both disks and migrate
-				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID).Return("/dev/xyz", nil),
-				mockCloud.EXPECT().SetDiskMetadata(oldDiskCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockAgentClient.EXPECT().AddPersistentDisk(oldDiskCID, "/dev/xyz"),
-				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
-				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
-				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID).Return("/dev/abc", nil),
-				mockCloud.EXPECT().SetDiskMetadata(newDiskCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockAgentClient.EXPECT().AddPersistentDisk(newDiskCID, "/dev/abc"),
-				mockAgentClient.EXPECT().MountDisk(newDiskCID),
-				mockAgentClient.EXPECT().MigrateDisk(),
-				mockAgentClient.EXPECT().RemovePersistentDisk(oldDiskCID),
-				mockCloud.EXPECT().DetachDisk(newVMCID, oldDiskCID),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockCloud.EXPECT().DeleteDisk(oldDiskCID),
-
-				// start jobs & wait for running
-				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().GetState(),
-				mockAgentClient.EXPECT().Stop(),
-				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
-				mockAgentClient.EXPECT().Start(),
-				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
-				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
-			)
+			mockCloud.HasVMStub = func(vmCID string) (bool, error) {
+				callOrder = append(callOrder, "HasVM")
+				Expect(vmCID).To(Equal(oldVMCID))
+				return true, nil
+			}
+			mockCloud.DeleteVMStub = func(vmCID string) error {
+				callOrder = append(callOrder, "DeleteVM")
+				Expect(vmCID).To(Equal(oldVMCID))
+				return nil
+			}
+			mockAgentClient.ListDiskStub = func() ([]string, error) {
+				callOrder = append(callOrder, "ListDisk")
+				return []string{oldDiskCID}, nil
+			}
+			mockCloud.CreateVMStub = func(gotAgentID, gotStemcellCID string, cloudProperties biproperty.Map, diskCIDs []string, networks map[string]biproperty.Map, env biproperty.Map) (string, error) {
+				callOrder = append(callOrder, "CreateVM")
+				Expect(gotAgentID).To(Equal(agentID))
+				Expect(gotStemcellCID).To(Equal(stemcellCID))
+				Expect(diskCIDs).To(Equal([]string{oldDiskCID}))
+				return newVMCID, nil
+			}
+			mockCloud.CreateDiskStub = func(size int, cloudProperties biproperty.Map, vmCID string) (string, error) {
+				callOrder = append(callOrder, "CreateDisk")
+				Expect(size).To(Equal(newDiskSize))
+				Expect(vmCID).To(Equal(newVMCID))
+				return newDiskCID, nil
+			}
+			attachDiskCallCount := 0
+			mockCloud.AttachDiskStub = func(vmCID, diskCID string) (interface{}, error) {
+				callOrder = append(callOrder, "AttachDisk")
+				attachDiskCallCount++
+				Expect(vmCID).To(Equal(newVMCID))
+				if attachDiskCallCount == 1 {
+					Expect(diskCID).To(Equal(oldDiskCID))
+					return "/dev/xyz", nil
+				}
+				Expect(diskCID).To(Equal(newDiskCID))
+				return "/dev/abc", nil
+			}
 		}
 
 		var expectDeployWithDiskMigrationMissingVM = func() {
@@ -582,48 +652,46 @@ cloud_provider:
 			newDiskCID := "fake-disk-cid-2"
 			newDiskSize := 2048
 
-			expectDeleteVM1 = mockCloud.EXPECT().DeleteVM(oldVMCID)
+			callOrder = nil
+			wireCommonStubs()
+			deleteOldVM1Err = nil
 
-			gomock.InOrder(
-				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}, nil),
-				mockCloud.EXPECT().HasVM(oldVMCID).Return(false, nil),
-
-				// delete old vm (without talking to agent) so that the cpi can clean up related resources
-				expectDeleteVM1,
-
-				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
-				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-
-				// attach both disks and migrate
-				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID).Return("/dev/xyz", nil),
-				mockCloud.EXPECT().SetDiskMetadata(oldDiskCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockAgentClient.EXPECT().AddPersistentDisk(oldDiskCID, "/dev/xyz"),
-				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
-				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
-				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID).Return("/dev/abc", nil),
-				mockCloud.EXPECT().SetDiskMetadata(newDiskCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockAgentClient.EXPECT().AddPersistentDisk(newDiskCID, "/dev/abc"),
-				mockAgentClient.EXPECT().MountDisk(newDiskCID),
-				mockAgentClient.EXPECT().MigrateDisk(),
-				mockAgentClient.EXPECT().RemovePersistentDisk(oldDiskCID),
-				mockCloud.EXPECT().DetachDisk(newVMCID, oldDiskCID),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockCloud.EXPECT().DeleteDisk(oldDiskCID),
-
-				// start jobs & wait for running
-				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().GetState(),
-				mockAgentClient.EXPECT().Stop(),
-				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
-				mockAgentClient.EXPECT().Start(),
-				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
-				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
-			)
+			mockCloud.HasVMStub = func(vmCID string) (bool, error) {
+				callOrder = append(callOrder, "HasVM")
+				Expect(vmCID).To(Equal(oldVMCID))
+				return false, nil
+			}
+			// delete old vm (without talking to agent) so that the cpi can clean up related resources
+			mockCloud.DeleteVMStub = func(vmCID string) error {
+				callOrder = append(callOrder, "DeleteVM")
+				Expect(vmCID).To(Equal(oldVMCID))
+				return deleteOldVM1Err
+			}
+			mockCloud.CreateVMStub = func(gotAgentID, gotStemcellCID string, cloudProperties biproperty.Map, diskCIDs []string, networks map[string]biproperty.Map, env biproperty.Map) (string, error) {
+				callOrder = append(callOrder, "CreateVM")
+				Expect(gotAgentID).To(Equal(agentID))
+				Expect(gotStemcellCID).To(Equal(stemcellCID))
+				Expect(diskCIDs).To(Equal([]string{oldDiskCID}))
+				return newVMCID, nil
+			}
+			mockCloud.CreateDiskStub = func(size int, cloudProperties biproperty.Map, vmCID string) (string, error) {
+				callOrder = append(callOrder, "CreateDisk")
+				Expect(size).To(Equal(newDiskSize))
+				Expect(vmCID).To(Equal(newVMCID))
+				return newDiskCID, nil
+			}
+			attachDiskCallCount := 0
+			mockCloud.AttachDiskStub = func(vmCID, diskCID string) (interface{}, error) {
+				callOrder = append(callOrder, "AttachDisk")
+				attachDiskCallCount++
+				Expect(vmCID).To(Equal(newVMCID))
+				if attachDiskCallCount == 1 {
+					Expect(diskCID).To(Equal(oldDiskCID))
+					return "/dev/xyz", nil
+				}
+				Expect(diskCID).To(Equal(newDiskCID))
+				return "/dev/abc", nil
+			}
 		}
 
 		var expectDeployWithNoDiskToMigrate = func() {
@@ -632,34 +700,40 @@ cloud_provider:
 			newVMCID := "fake-vm-cid-2"
 			oldDiskCID := "fake-disk-cid-1"
 
-			gomock.InOrder(
-				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}, nil),
-				mockCloud.EXPECT().HasVM(oldVMCID).Return(true, nil),
+			callOrder = nil
+			wireCommonStubs()
 
-				// shutdown old vm
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockAgentClient.EXPECT().RunScript("pre-stop", map[string]interface{}{}),
-				mockAgentClient.EXPECT().Drain("shutdown"),
-				mockAgentClient.EXPECT().Stop(),
-				mockAgentClient.EXPECT().RunScript("post-stop", map[string]interface{}{}),
-				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
-				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
-				mockCloud.EXPECT().DeleteVM(oldVMCID),
-
-				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
-				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-
-				// attaching a missing disk will fail
-				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID).Return(
-					"",
-					bicloud.NewCPIError("attach_disk", bicloud.CmdError{
-						Type:    bicloud.DiskNotFoundError,
-						Message: "fake-disk-not-found-message",
-					}),
-				),
-			)
+			mockCloud.HasVMStub = func(vmCID string) (bool, error) {
+				callOrder = append(callOrder, "HasVM")
+				Expect(vmCID).To(Equal(oldVMCID))
+				return true, nil
+			}
+			mockCloud.DeleteVMStub = func(vmCID string) error {
+				callOrder = append(callOrder, "DeleteVM")
+				Expect(vmCID).To(Equal(oldVMCID))
+				return nil
+			}
+			mockAgentClient.ListDiskStub = func() ([]string, error) {
+				callOrder = append(callOrder, "ListDisk")
+				return []string{oldDiskCID}, nil
+			}
+			mockCloud.CreateVMStub = func(gotAgentID, gotStemcellCID string, cloudProperties biproperty.Map, diskCIDs []string, networks map[string]biproperty.Map, env biproperty.Map) (string, error) {
+				callOrder = append(callOrder, "CreateVM")
+				Expect(gotAgentID).To(Equal(agentID))
+				Expect(gotStemcellCID).To(Equal(stemcellCID))
+				Expect(diskCIDs).To(Equal([]string{oldDiskCID}))
+				return newVMCID, nil
+			}
+			// attaching a missing disk will fail
+			mockCloud.AttachDiskStub = func(vmCID, diskCID string) (interface{}, error) {
+				callOrder = append(callOrder, "AttachDisk")
+				Expect(vmCID).To(Equal(newVMCID))
+				Expect(diskCID).To(Equal(oldDiskCID))
+				return "", bicloud.NewCPIError("attach_disk", bicloud.CmdError{
+					Type:    bicloud.DiskNotFoundError,
+					Message: "fake-disk-not-found-message",
+				})
+			}
 		}
 
 		var expectDeployWithDiskMigrationFailure = func() {
@@ -670,41 +744,53 @@ cloud_provider:
 			newDiskCID := "fake-disk-cid-2"
 			newDiskSize := 2048
 
-			gomock.InOrder(
-				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}, nil),
-				mockCloud.EXPECT().HasVM(oldVMCID).Return(true, nil),
+			callOrder = nil
+			wireCommonStubs()
 
-				// shutdown old vm
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockAgentClient.EXPECT().RunScript("pre-stop", map[string]interface{}{}),
-				mockAgentClient.EXPECT().Drain("shutdown"),
-				mockAgentClient.EXPECT().Stop(),
-				mockAgentClient.EXPECT().RunScript("post-stop", map[string]interface{}{}),
-				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
-				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
-				mockCloud.EXPECT().DeleteVM(oldVMCID),
-
-				// create new vm
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
-				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-
-				// attach both disks and migrate (with error)
-				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID).Return("/dev/xyz", nil),
-				mockCloud.EXPECT().SetDiskMetadata(oldDiskCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockAgentClient.EXPECT().AddPersistentDisk(oldDiskCID, "/dev/xyz"),
-				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
-				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
-				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID).Return("/dev/abc", nil),
-				mockCloud.EXPECT().SetDiskMetadata(newDiskCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockAgentClient.EXPECT().AddPersistentDisk(newDiskCID, "/dev/abc"),
-				mockAgentClient.EXPECT().MountDisk(newDiskCID),
-				mockAgentClient.EXPECT().MigrateDisk().Return(
-					bosherr.Error("fake-migration-error"),
-				),
-			)
+			mockCloud.HasVMStub = func(vmCID string) (bool, error) {
+				callOrder = append(callOrder, "HasVM")
+				Expect(vmCID).To(Equal(oldVMCID))
+				return true, nil
+			}
+			mockCloud.DeleteVMStub = func(vmCID string) error {
+				callOrder = append(callOrder, "DeleteVM")
+				Expect(vmCID).To(Equal(oldVMCID))
+				return nil
+			}
+			mockAgentClient.ListDiskStub = func() ([]string, error) {
+				callOrder = append(callOrder, "ListDisk")
+				return []string{oldDiskCID}, nil
+			}
+			mockCloud.CreateVMStub = func(gotAgentID, gotStemcellCID string, cloudProperties biproperty.Map, diskCIDs []string, networks map[string]biproperty.Map, env biproperty.Map) (string, error) {
+				callOrder = append(callOrder, "CreateVM")
+				Expect(gotAgentID).To(Equal(agentID))
+				Expect(gotStemcellCID).To(Equal(stemcellCID))
+				Expect(diskCIDs).To(Equal([]string{oldDiskCID}))
+				return newVMCID, nil
+			}
+			mockCloud.CreateDiskStub = func(size int, cloudProperties biproperty.Map, vmCID string) (string, error) {
+				callOrder = append(callOrder, "CreateDisk")
+				Expect(size).To(Equal(newDiskSize))
+				Expect(vmCID).To(Equal(newVMCID))
+				return newDiskCID, nil
+			}
+			attachDiskCallCount := 0
+			mockCloud.AttachDiskStub = func(vmCID, diskCID string) (interface{}, error) {
+				callOrder = append(callOrder, "AttachDisk")
+				attachDiskCallCount++
+				Expect(vmCID).To(Equal(newVMCID))
+				if attachDiskCallCount == 1 {
+					Expect(diskCID).To(Equal(oldDiskCID))
+					return "/dev/xyz", nil
+				}
+				Expect(diskCID).To(Equal(newDiskCID))
+				return "/dev/abc", nil
+			}
+			// migrate fails
+			mockAgentClient.MigrateDiskStub = func() error {
+				callOrder = append(callOrder, "MigrateDisk")
+				return bosherr.Error("fake-migration-error")
+			}
 		}
 
 		var expectDeployWithDiskMigrationRepair = func(failedMigrationDiskCID string) {
@@ -715,52 +801,48 @@ cloud_provider:
 			newDiskCID := "fake-disk-cid-3"
 			newDiskSize := 2048
 
-			gomock.InOrder(
-				mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}, nil),
-				mockCloud.EXPECT().HasVM(oldVMCID).Return(true, nil),
+			callOrder = nil
+			wireCommonStubs()
 
-				// shutdown old vm
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockAgentClient.EXPECT().RunScript("pre-stop", map[string]interface{}{}),
-				mockAgentClient.EXPECT().Drain("shutdown"),
-				mockAgentClient.EXPECT().Stop(),
-				mockAgentClient.EXPECT().RunScript("post-stop", map[string]interface{}{}),
-				mockAgentClient.EXPECT().ListDisk().Return([]string{oldDiskCID}, nil),
-				mockAgentClient.EXPECT().UnmountDisk(oldDiskCID),
-				mockCloud.EXPECT().DeleteVM(oldVMCID),
-
-				mockCloud.EXPECT().CreateVM(agentID, stemcellCID, vmCloudProperties, []string{oldDiskCID, failedMigrationDiskCID}, networkInterfaces, vmEnv).Return(newVMCID, nil),
-				mockCloud.EXPECT().SetVMMetadata(newVMCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-
-				// attach both disks and migrate
-				mockCloud.EXPECT().AttachDisk(newVMCID, oldDiskCID).Return("/dev/xyz", nil),
-				mockCloud.EXPECT().SetDiskMetadata(oldDiskCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockAgentClient.EXPECT().AddPersistentDisk(oldDiskCID, "/dev/xyz"),
-				mockAgentClient.EXPECT().MountDisk(oldDiskCID),
-				mockCloud.EXPECT().CreateDisk(newDiskSize, diskCloudProperties, newVMCID).Return(newDiskCID, nil),
-				mockCloud.EXPECT().AttachDisk(newVMCID, newDiskCID).Return("/dev/abc", nil),
-				mockCloud.EXPECT().SetDiskMetadata(newDiskCID, gomock.Any()).Return(nil),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockAgentClient.EXPECT().AddPersistentDisk(newDiskCID, "/dev/abc"),
-				mockAgentClient.EXPECT().MountDisk(newDiskCID),
-				mockAgentClient.EXPECT().MigrateDisk(),
-				mockAgentClient.EXPECT().RemovePersistentDisk(oldDiskCID),
-				mockCloud.EXPECT().DetachDisk(newVMCID, oldDiskCID),
-				mockAgentClient.EXPECT().Ping().Return("any-state", nil),
-				mockCloud.EXPECT().DeleteDisk(oldDiskCID),
-
-				// start jobs & wait for running
-				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().GetState(),
-				mockAgentClient.EXPECT().Stop(),
-				mockAgentClient.EXPECT().Apply(applySpec),
-				mockAgentClient.EXPECT().RunScript("pre-start", map[string]interface{}{}),
-				mockAgentClient.EXPECT().Start(),
-				mockAgentClient.EXPECT().GetState().Return(agentRunningState, nil),
-				mockAgentClient.EXPECT().RunScript("post-start", map[string]interface{}{}),
-			)
+			mockCloud.HasVMStub = func(vmCID string) (bool, error) {
+				callOrder = append(callOrder, "HasVM")
+				Expect(vmCID).To(Equal(oldVMCID))
+				return true, nil
+			}
+			mockCloud.DeleteVMStub = func(vmCID string) error {
+				callOrder = append(callOrder, "DeleteVM")
+				Expect(vmCID).To(Equal(oldVMCID))
+				return nil
+			}
+			mockAgentClient.ListDiskStub = func() ([]string, error) {
+				callOrder = append(callOrder, "ListDisk")
+				return []string{oldDiskCID}, nil
+			}
+			mockCloud.CreateVMStub = func(gotAgentID, gotStemcellCID string, cloudProperties biproperty.Map, diskCIDs []string, networks map[string]biproperty.Map, env biproperty.Map) (string, error) {
+				callOrder = append(callOrder, "CreateVM")
+				Expect(gotAgentID).To(Equal(agentID))
+				Expect(gotStemcellCID).To(Equal(stemcellCID))
+				Expect(diskCIDs).To(Equal([]string{oldDiskCID, failedMigrationDiskCID}))
+				return newVMCID, nil
+			}
+			mockCloud.CreateDiskStub = func(size int, cloudProperties biproperty.Map, vmCID string) (string, error) {
+				callOrder = append(callOrder, "CreateDisk")
+				Expect(size).To(Equal(newDiskSize))
+				Expect(vmCID).To(Equal(newVMCID))
+				return newDiskCID, nil
+			}
+			attachDiskCallCount := 0
+			mockCloud.AttachDiskStub = func(vmCID, diskCID string) (interface{}, error) {
+				callOrder = append(callOrder, "AttachDisk")
+				attachDiskCallCount++
+				Expect(vmCID).To(Equal(newVMCID))
+				if attachDiskCallCount == 1 {
+					Expect(diskCID).To(Equal(oldDiskCID))
+					return "/dev/xyz", nil
+				}
+				Expect(diskCID).To(Equal(newDiskCID))
+				return "/dev/abc", nil
+			}
 		}
 
 		BeforeEach(func() {
@@ -778,26 +860,26 @@ cloud_provider:
 
 			fakeDigestCalculator = fakebicrypto.NewFakeDigestCalculator()
 
-			mockInstaller = mockinstall.NewMockInstaller(mockCtrl)
-			mockInstallerFactory = mockinstall.NewMockInstallerFactory(mockCtrl)
-			mockCloudFactory = mockcloud.NewMockFactory(mockCtrl)
+			mockInstaller = &installationfakes.FakeInstaller{}
+			mockInstallerFactory = &installationfakes.FakeInstallerFactory{}
+			mockCloudFactory = &cloudfakes.FakeFactory{}
 
 			sshTunnelFactory = bisshtunnel.NewFactory(logger)
 
 			fakeRepoUUIDGenerator = fakeuuid.NewFakeGenerator()
 
-			mockCloud = mockcloud.NewMockCloud(mockCtrl)
+			mockCloud = &cloudfakes.FakeCloud{}
 
 			releaseReader = &fakerel.FakeReader{}
 			releaseManager = biinstall.NewReleaseManager(logger)
 
-			mockStateBuilderFactory = mockinstancestate.NewMockBuilderFactory(mockCtrl)
-			mockStateBuilder = mockinstancestate.NewMockBuilder(mockCtrl)
-			mockState = mockinstancestate.NewMockState(mockCtrl)
+			mockStateBuilderFactory = &statefakes.FakeBuilderFactory{}
+			mockStateBuilder = &statefakes.FakeBuilder{}
+			mockState = &statefakes.FakeState{}
 
-			mockBlobstoreFactory = mockblobstore.NewMockFactory(mockCtrl)
-			mockBlobstore = mockblobstore.NewMockBlobstore(mockCtrl)
-			mockBlobstoreFactory.EXPECT().Create(mbusURL, gomock.Any()).Return(mockBlobstore, nil).AnyTimes()
+			mockBlobstoreFactory = &blobstorefakes.FakeFactory{}
+			mockBlobstore = &blobstorefakes.FakeBlobstore{}
+			mockBlobstoreFactory.CreateReturns(mockBlobstore, nil)
 
 			fakeStemcellExtractor = fakebistemcell.NewFakeExtractor()
 
@@ -805,10 +887,10 @@ cloud_provider:
 			stdErr = gbytes.NewBuffer()
 			fakeStage = fakebiui.NewFakeStage()
 
-			mockAgentClientFactory = mockhttpagent.NewMockAgentClientFactory(mockCtrl)
-			mockAgentClient = mockagentclient.NewMockAgentClient(mockCtrl)
+			mockAgentClientFactory = &fakecmd.FakeAgentClientFactory{}
+			mockAgentClient = &agentclientfakes.FakeAgentClient{}
 
-			mockAgentClientFactory.EXPECT().NewAgentClient(directorID, mbusURL, caCert).Return(mockAgentClient, nil).AnyTimes()
+			mockAgentClientFactory.NewAgentClientReturns(mockAgentClient, nil)
 
 			writeDeploymentManifest()
 			writeCPIReleaseTarball()
@@ -826,6 +908,12 @@ cloud_provider:
 
 			err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 			Expect(err).ToNot(HaveOccurred())
+
+			Expect(callOrder).To(Equal([]string{
+				"CreateStemcell", "CreateVM", "SetVMMetadata", "Ping",
+				"CreateDisk", "AttachDisk", "SetDiskMetadata", "Ping", "AddPersistentDisk", "MountDisk",
+				"Apply", "GetState", "Stop", "Apply", "RunScript:pre-start", "Start", "GetState", "RunScript:post-start",
+			}))
 		})
 
 		Context("when multiple releases are provided", func() {
@@ -872,8 +960,8 @@ cloud_provider:
 			createsStatePath := func(statePath string, createdStatePath string) {
 				expectDeployFlow()
 
-				// new directorID will be generated
-				mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), mbusURL, caCert).Return(mockAgentClient, nil)
+				// a new directorID will be generated; mockAgentClientFactory.NewAgentClientReturns
+				// (set in the outer BeforeEach) already covers whatever directorID is passed in.
 
 				err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, statePath))
 				Expect(err).ToNot(HaveOccurred())
@@ -930,6 +1018,15 @@ cloud_provider:
 
 					err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 					Expect(err).ToNot(HaveOccurred())
+
+					Expect(callOrder).To(Equal([]string{
+						"HasVM", "Ping", "RunScript:pre-stop", "Drain", "Stop", "RunScript:post-stop", "ListDisk", "UnmountDisk", "DeleteVM",
+						"CreateVM", "SetVMMetadata", "Ping",
+						"AttachDisk", "SetDiskMetadata", "Ping", "AddPersistentDisk", "MountDisk",
+						"CreateDisk", "AttachDisk", "SetDiskMetadata", "Ping", "AddPersistentDisk", "MountDisk",
+						"MigrateDisk", "RemovePersistentDisk", "DetachDisk", "Ping", "DeleteDisk",
+						"Apply", "GetState", "Stop", "Apply", "RunScript:pre-start", "Start", "GetState", "RunScript:post-start",
+					}))
 				})
 
 				Context("when current VM has been deleted manually (outside of bosh)", func() {
@@ -938,15 +1035,24 @@ cloud_provider:
 
 						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 						Expect(err).ToNot(HaveOccurred())
+
+						Expect(callOrder).To(Equal([]string{
+							"HasVM", "DeleteVM",
+							"CreateVM", "SetVMMetadata", "Ping",
+							"AttachDisk", "SetDiskMetadata", "Ping", "AddPersistentDisk", "MountDisk",
+							"CreateDisk", "AttachDisk", "SetDiskMetadata", "Ping", "AddPersistentDisk", "MountDisk",
+							"MigrateDisk", "RemovePersistentDisk", "DetachDisk", "Ping", "DeleteDisk",
+							"Apply", "GetState", "Stop", "Apply", "RunScript:pre-start", "Start", "GetState", "RunScript:post-start",
+						}))
 					})
 
 					It("ignores DiskNotFound errors", func() {
 						expectDeployWithDiskMigrationMissingVM()
 
-						expectDeleteVM1.Return(bicloud.NewCPIError("delete_vm", bicloud.CmdError{
+						deleteOldVM1Err = bicloud.NewCPIError("delete_vm", bicloud.CmdError{
 							Type:    bicloud.VMNotFoundError,
 							Message: "fake-vm-not-found-message",
-						}))
+						})
 
 						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 						Expect(err).ToNot(HaveOccurred())
@@ -982,10 +1088,14 @@ cloud_provider:
 						failedMigrationDiskCID := "fake-disk-cid-2"
 						expectDeployWithDiskMigrationRepair(failedMigrationDiskCID)
 
-						mockCloud.EXPECT().DeleteDisk(failedMigrationDiskCID)
-
 						err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 						Expect(err).ToNot(HaveOccurred())
+
+						deletedDiskCIDs := []string{}
+						for i := 0; i < mockCloud.DeleteDiskCallCount(); i++ {
+							deletedDiskCIDs = append(deletedDiskCIDs, mockCloud.DeleteDiskArgsForCall(i))
+						}
+						Expect(deletedDiskCIDs).To(ContainElement(failedMigrationDiskCID))
 
 						diskRecord, found, err := diskRepo.FindCurrent()
 						Expect(err).ToNot(HaveOccurred())
@@ -1000,24 +1110,22 @@ cloud_provider:
 			})
 
 			var expectNoDeployHappened = func() {
-				expectDeleteVM := mockCloud.EXPECT().DeleteVM(gomock.Any())
-				expectDeleteVM.Times(0)
-				expectCreateVM := mockCloud.EXPECT().CreateVM(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any())
-				expectCreateVM.Times(0)
-
-				mockCloud.EXPECT().HasVM(gomock.Any()).Return(true, nil).AnyTimes()
-				mockAgentClient.EXPECT().Ping().AnyTimes()
-				mockAgentClient.EXPECT().Stop().AnyTimes()
-				mockAgentClient.EXPECT().ListDisk().AnyTimes()
+				mockCloud.HasVMReturns(true, nil)
 			}
 
 			Context("and the same deployment is attempted again", func() {
 				It("skips the deploy", func() {
+					deleteVMCountBefore := mockCloud.DeleteVMCallCount()
+					createVMCountBefore := mockCloud.CreateVMCallCount()
+
 					expectNoDeployHappened()
 
 					err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, ""))
 					Expect(err).ToNot(HaveOccurred())
 					Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
+
+					Expect(mockCloud.DeleteVMCallCount()).To(Equal(deleteVMCountBefore))
+					Expect(mockCloud.CreateVMCallCount()).To(Equal(createVMCountBefore))
 				})
 			})
 		})
@@ -1053,9 +1161,8 @@ cloud_provider:
 			It("uses the version with the cpi api calls", func() {
 				expectDeployFlow()
 
-				// new directorID will be generated
-				mockCloudFactory.EXPECT().NewCloud(gomock.Any(), directorID, stemcellApiVersion).Return(mockCloud, nil).AnyTimes()
-				mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), mbusURL, caCert).Return(mockAgentClient, nil)
+				// a new directorID will be generated; mockCloudFactory.NewCloudReturns and
+				// mockAgentClientFactory.NewAgentClientReturns already cover any directorID passed in.
 
 				err := newCreateEnvCmd().Run(fakeStage, newDeployOpts(deploymentManifestPath, stateFilePath))
 				Expect(err).ToNot(HaveOccurred())

@@ -15,6 +15,10 @@ import (
 	bierbrenderer "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/erbrenderer"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . JobRenderer
+
 type JobRenderer interface {
 	Render(releaseJob bireljob.Job, releaseJobProperties *biproperty.Map, jobProperties biproperty.Map, globalProperties biproperty.Map, deploymentName string, address string) (RenderedJob, error)
 }

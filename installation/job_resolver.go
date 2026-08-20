@@ -8,6 +8,8 @@ import (
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 )
 
+//counterfeiter:generate . JobResolver
+
 type JobResolver interface {
 	From(biinstallmanifest.Manifest) ([]bireljob.Job, error)
 }

@@ -6,6 +6,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
+//counterfeiter:generate . RenderedJobList
+
 type RenderedJobList interface {
 	Add(RenderedJob)
 	All() []RenderedJob

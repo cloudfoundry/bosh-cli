@@ -7,7 +7,6 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -17,23 +16,13 @@ import (
 	birelpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	bitemplate "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
-	mocktemplate "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/templatescompiler/templatescompilerfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("JobRenderer", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
-		mockJobListRenderer *mocktemplate.MockJobListRenderer
+		mockJobListRenderer *templatescompilerfakes.FakeJobListRenderer
 		fakeCompressor      *fakeboshcmd.FakeCompressor
 		fakeBlobstore       *fakeboshblob.FakeDigestBlobstore
 
@@ -53,7 +42,7 @@ var _ = Describe("JobRenderer", func() {
 	)
 
 	BeforeEach(func() {
-		mockJobListRenderer = mocktemplate.NewMockJobListRenderer(mockCtrl)
+		mockJobListRenderer = &templatescompilerfakes.FakeJobListRenderer{}
 		fakeCompressor = fakeboshcmd.NewFakeCompressor()
 		fakeBlobstore = &fakeboshblob.FakeDigestBlobstore{}
 
@@ -94,20 +83,10 @@ var _ = Describe("JobRenderer", func() {
 			fakeBlobstore,
 		)
 
-		releaseJobs := []bireljob.Job{releaseJob}
-
-		releaseJobProperties := map[string]*biproperty.Map{}
-		jobProperties := biproperty.Map{
-			"fake-installation-property": "fake-installation-property-value",
-		}
-		globalProperties := biproperty.Map{}
-		deploymentName := "fake-installation-name"
-		address := ""
-
 		renderedJobList = bitemplate.NewRenderedJobList()
 		renderedJobList.Add(bitemplate.NewRenderedJob(releaseJob, "/fake-rendered-job-cpi", fs, logger))
 
-		mockJobListRenderer.EXPECT().Render(releaseJobs, releaseJobProperties, jobProperties, globalProperties, deploymentName, address).Return(renderedJobList, nil).AnyTimes()
+		mockJobListRenderer.RenderReturns(renderedJobList, nil)
 
 		fakeCompressor.CompressFilesInDirTarballPath = "/fake-rendered-job-tarball-cpi.tgz"
 		multiDigest := boshcrypto.MustParseMultipleDigest("fakerenderedjobtarballsha1cpi")
@@ -123,6 +102,15 @@ var _ = Describe("JobRenderer", func() {
 				// compile stages not produced by mockDependencyCompiler
 				{Name: "Rendering job templates"},
 			}))
+
+			Expect(mockJobListRenderer.RenderCallCount()).To(Equal(1))
+			actualReleaseJobs, actualReleaseJobProperties, actualJobProperties, actualGlobalProperties, actualDeploymentName, actualAddress := mockJobListRenderer.RenderArgsForCall(0)
+			Expect(actualReleaseJobs).To(Equal(releaseJobs))
+			Expect(actualReleaseJobProperties).To(Equal(map[string]*biproperty.Map{}))
+			Expect(actualJobProperties).To(Equal(manifest.Properties))
+			Expect(actualGlobalProperties).To(Equal(biproperty.Map{}))
+			Expect(actualDeploymentName).To(Equal(manifest.Name))
+			Expect(actualAddress).To(Equal(""))
 		})
 
 		It("compresses and uploads the rendered cpi job, deleting the local tarball afterward", func() {

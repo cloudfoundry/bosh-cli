@@ -5,34 +5,23 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/installation"
 	"github.com/cloudfoundry/bosh-cli/v7/installation/blobextract/blobextractfakes"
+	"github.com/cloudfoundry/bosh-cli/v7/installation/installationfakes"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
-	mock_install "github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("Installer", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
 		installationManifest biinstallmanifest.Manifest
-		mockJobRenderer      *mock_install.MockJobRenderer
-		mockJobResolver      *mock_install.MockJobResolver
-		mockPackageCompiler  *mock_install.MockPackageCompiler
+		mockJobRenderer      *installationfakes.FakeJobRenderer
+		mockJobResolver      *installationfakes.FakeJobResolver
+		mockPackageCompiler  *installationfakes.FakePackageCompiler
 		fakeExtractor        *blobextractfakes.FakeExtractor
 
 		logger boshlog.Logger
@@ -45,9 +34,9 @@ var _ = Describe("Installer", func() {
 	BeforeEach(func() {
 		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter)
 
-		mockJobRenderer = mock_install.NewMockJobRenderer(mockCtrl)
-		mockJobResolver = mock_install.NewMockJobResolver(mockCtrl)
-		mockPackageCompiler = mock_install.NewMockPackageCompiler(mockCtrl)
+		mockJobRenderer = &installationfakes.FakeJobRenderer{}
+		mockJobResolver = &installationfakes.FakeJobResolver{}
+		mockPackageCompiler = &installationfakes.FakePackageCompiler{}
 		fakeExtractor = &blobextractfakes.FakeExtractor{}
 
 		target = NewTarget("fake-installation-path", "")
@@ -102,18 +91,32 @@ var _ = Describe("Installer", func() {
 			for _, installedJob := range installedJobs {
 				renderedJobRefs = append(renderedJobRefs, installedJob.RenderedJobRef)
 			}
-			mockJobResolver.EXPECT().From(installationManifest).Return(releaseJobs, nil).AnyTimes()
-			mockPackageCompiler.EXPECT().For(releaseJobs, fakeStage).Return(compiledPackages, nil).AnyTimes()
+			mockJobResolver.FromReturns(releaseJobs, nil)
+			mockPackageCompiler.ForReturns(compiledPackages, nil)
 		})
 
 		Context("success", func() {
 			JustBeforeEach(func() {
-				mockJobRenderer.EXPECT().RenderAndUploadFrom(installationManifest, releaseJobs, fakeStage).Return(renderedJobRefs, nil).AnyTimes()
+				mockJobRenderer.RenderAndUploadFromReturns(renderedJobRefs, nil)
 			})
 
 			It("compiles and installs the jobs' packages", func() {
 				_, err := installer.Install(installationManifest, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
+
+				Expect(mockJobResolver.FromCallCount()).To(Equal(1))
+				Expect(mockJobResolver.FromArgsForCall(0)).To(Equal(installationManifest))
+
+				Expect(mockPackageCompiler.ForCallCount()).To(Equal(1))
+				actualJobs, actualStage := mockPackageCompiler.ForArgsForCall(0)
+				Expect(actualJobs).To(Equal(releaseJobs))
+				Expect(actualStage).To(Equal(fakeStage))
+
+				Expect(mockJobRenderer.RenderAndUploadFromCallCount()).To(Equal(1))
+				actualManifest, actualRenderJobs, actualRenderStage := mockJobRenderer.RenderAndUploadFromArgsForCall(0)
+				Expect(actualManifest).To(Equal(installationManifest))
+				Expect(actualRenderJobs).To(Equal(releaseJobs))
+				Expect(actualRenderStage).To(Equal(fakeStage))
 			})
 
 			It("installs the rendered jobs", func() {
@@ -131,7 +134,7 @@ var _ = Describe("Installer", func() {
 		Context("when rendering jobs errors", func() {
 			JustBeforeEach(func() {
 				err := errors.New("OMG - no ruby found!!")
-				mockJobRenderer.EXPECT().RenderAndUploadFrom(installationManifest, releaseJobs, fakeStage).Return([]RenderedJobRef{}, err).AnyTimes()
+				mockJobRenderer.RenderAndUploadFromReturns([]RenderedJobRef{}, err)
 			})
 			It("should return an error", func() {
 				_, err := installer.Install(installationManifest, fakeStage)
@@ -155,8 +158,8 @@ var _ = Describe("Installer", func() {
 				SHA1:        "sha",
 			}
 			releaseJobs := []bireljob.Job{}
-			mockJobResolver.EXPECT().From(installationManifest).Return(releaseJobs, nil)
-			mockPackageCompiler.EXPECT().For(releaseJobs, fakeStage).Return([]CompiledPackageRef{maliciousRef}, nil)
+			mockJobResolver.FromReturns(releaseJobs, nil)
+			mockPackageCompiler.ForReturns([]CompiledPackageRef{maliciousRef}, nil)
 
 			_, err := installer.Install(installationManifest, fakeStage)
 			Expect(err).To(HaveOccurred())
@@ -167,9 +170,9 @@ var _ = Describe("Installer", func() {
 			releaseJobs := []bireljob.Job{}
 			compiledPackages := []CompiledPackageRef{}
 			jobRef := NewRenderedJobRef("../../path", "fp", "blob-id", "sha")
-			mockJobResolver.EXPECT().From(installationManifest).Return(releaseJobs, nil)
-			mockPackageCompiler.EXPECT().For(releaseJobs, fakeStage).Return(compiledPackages, nil)
-			mockJobRenderer.EXPECT().RenderAndUploadFrom(installationManifest, releaseJobs, fakeStage).Return([]RenderedJobRef{jobRef}, nil)
+			mockJobResolver.FromReturns(releaseJobs, nil)
+			mockPackageCompiler.ForReturns(compiledPackages, nil)
+			mockJobRenderer.RenderAndUploadFromReturns([]RenderedJobRef{jobRef}, nil)
 
 			_, err := installer.Install(installationManifest, fakeStage)
 			Expect(err).To(HaveOccurred())

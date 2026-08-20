@@ -7,31 +7,20 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakeboshsys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
-	mock_template "github.com/cloudfoundry/bosh-cli/v7/templatescompiler/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/templatescompiler/templatescompilerfakes"
 )
 
 var _ = Describe("RenderedJobListArchive", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
 		outBuffer *bytes.Buffer
 		logger    boshlog.Logger
 		fs        *fakeboshsys.FakeFileSystem
 
-		mockRenderedJobList *mock_template.MockRenderedJobList
+		mockRenderedJobList *templatescompilerfakes.FakeRenderedJobList
 
 		renderedJobListArchivePath   string
 		renderedJobListArchiveDigest string
@@ -45,7 +34,7 @@ var _ = Describe("RenderedJobListArchive", func() {
 
 		fs = fakeboshsys.NewFakeFileSystem()
 
-		mockRenderedJobList = mock_template.NewMockRenderedJobList(mockCtrl)
+		mockRenderedJobList = &templatescompilerfakes.FakeRenderedJobList{}
 
 		renderedJobListArchivePath = "fake-archive-path"
 		renderedJobListArchiveDigest = "fake-sha1"

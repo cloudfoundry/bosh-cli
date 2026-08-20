@@ -11,6 +11,8 @@ import (
 	bicrypto "github.com/cloudfoundry/bosh-cli/v7/crypto"
 )
 
+//counterfeiter:generate . RenderedJobListCompressor
+
 type RenderedJobListCompressor interface {
 	Compress(RenderedJobList) (RenderedJobListArchive, error)
 }

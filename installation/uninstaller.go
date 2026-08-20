@@ -5,6 +5,8 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
+//counterfeiter:generate . Uninstaller
+
 type Uninstaller interface {
 	Uninstall(Target) error
 }

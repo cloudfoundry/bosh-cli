@@ -2,6 +2,7 @@ package pkg_test
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 
 	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
@@ -10,7 +11,6 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -20,20 +20,10 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/release/pkg/pkgfakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	bistatepkg "github.com/cloudfoundry/bosh-cli/v7/state/pkg"
-	mockstatepackage "github.com/cloudfoundry/bosh-cli/v7/state/pkg/mocks"
+	statepkgfakes "github.com/cloudfoundry/bosh-cli/v7/state/pkg/pkgfakes"
 )
 
 var _ = Describe("PackageCompiler", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
 		logger                  boshlog.Logger
 		compiler                bistatepkg.Compiler
@@ -43,7 +33,7 @@ var _ = Describe("PackageCompiler", func() {
 		compressor              *fakecmd.FakeCompressor
 		packagesDir             string
 		blobstore               *fakeblobstore.FakeDigestBlobstore
-		mockCompiledPackageRepo *mockstatepackage.MockCompiledPackageRepo
+		mockCompiledPackageRepo *statepkgfakes.FakeCompiledPackageRepo
 
 		fakeExtractor *blobextractfakes.FakeExtractor
 
@@ -65,7 +55,7 @@ var _ = Describe("PackageCompiler", func() {
 
 		blobstore.CreateReturns("fake-blob-id", digest, nil)
 
-		mockCompiledPackageRepo = mockstatepackage.NewMockCompiledPackageRepo(mockCtrl)
+		mockCompiledPackageRepo = &statepkgfakes.FakeCompiledPackageRepo{}
 
 		dependency1 = birelpkg.NewPackage(NewResource("pkg-dep1-name", "", nil), nil)
 		dependency2 = birelpkg.NewPackage(NewResource("pkg-dep2-name", "", nil), nil)
@@ -93,8 +83,10 @@ var _ = Describe("PackageCompiler", func() {
 			dep1 bistatepkg.CompiledPackageRecord
 			dep2 bistatepkg.CompiledPackageRecord
 
-			expectFind *gomock.Call
-			expectSave *gomock.Call
+			findPkgRecord bistatepkg.CompiledPackageRecord
+			findPkgFound  bool
+			findPkgErr    error
+			saveErr       error
 		)
 
 		BeforeEach(func() {
@@ -104,19 +96,32 @@ var _ = Describe("PackageCompiler", func() {
 		Context("when the package is NOT pre-compiled", func() {
 
 			JustBeforeEach(func() {
-				expectFind = mockCompiledPackageRepo.EXPECT().Find(pkg).Return(bistatepkg.CompiledPackageRecord{}, false, nil).AnyTimes()
+				findPkgRecord = bistatepkg.CompiledPackageRecord{}
+				findPkgFound = false
+				findPkgErr = nil
+				saveErr = nil
 
 				dep1 = bistatepkg.CompiledPackageRecord{
 					BlobID:   "fake-dependency-blobstore-id-1",
 					BlobSHA1: "fake-dependency-sha1-1",
 				}
-				mockCompiledPackageRepo.EXPECT().Find(dependency1).Return(dep1, true, nil).AnyTimes()
 
 				dep2 = bistatepkg.CompiledPackageRecord{
 					BlobID:   "fake-dependency-blobstore-id-2",
 					BlobSHA1: "fake-dependency-sha1-2",
 				}
-				mockCompiledPackageRepo.EXPECT().Find(dependency2).Return(dep2, true, nil).AnyTimes()
+
+				mockCompiledPackageRepo.FindStub = func(p birelpkg.Compilable) (bistatepkg.CompiledPackageRecord, bool, error) {
+					switch p {
+					case pkg:
+						return findPkgRecord, findPkgFound, findPkgErr
+					case dependency1:
+						return dep1, true, nil
+					case dependency2:
+						return dep2, true, nil
+					}
+					return bistatepkg.CompiledPackageRecord{}, false, fmt.Errorf("unexpected package passed to Find: %#v", p)
+				}
 
 				// packaging file created when source is extracted
 				err := fs.WriteFileString("/pkg-dir/packaging", "")
@@ -124,19 +129,17 @@ var _ = Describe("PackageCompiler", func() {
 
 				compressor.CompressFilesInDirTarballPath = compiledPackageTarballPath
 
-				record := bistatepkg.CompiledPackageRecord{
-					BlobID:   "fake-blob-id",
-					BlobSHA1: "fakefingerprint",
+				mockCompiledPackageRepo.SaveStub = func(p birelpkg.Compilable, r bistatepkg.CompiledPackageRecord) error {
+					return saveErr
 				}
-				expectSave = mockCompiledPackageRepo.EXPECT().Save(pkg, record).AnyTimes()
 			})
 
 			Context("when the compiled package repo already has the package", func() {
 				JustBeforeEach(func() {
-					compiledPkgRecord := bistatepkg.CompiledPackageRecord{
+					findPkgRecord = bistatepkg.CompiledPackageRecord{
 						BlobSHA1: "fakefingerprint",
 					}
-					expectFind.Return(compiledPkgRecord, true, nil).Times(1)
+					findPkgFound = true
 				})
 
 				It("skips the compilation", func() {
@@ -198,10 +201,16 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("stores the compiled package blobID and fingerprint into the compile package repo", func() {
-				expectSave.Times(1)
-
 				_, _, err := compiler.Compile(pkg)
 				Expect(err).ToNot(HaveOccurred())
+
+				Expect(mockCompiledPackageRepo.SaveCallCount()).To(Equal(1))
+				savedPkg, savedRecord := mockCompiledPackageRepo.SaveArgsForCall(0)
+				Expect(savedPkg).To(Equal(pkg))
+				Expect(savedRecord).To(Equal(bistatepkg.CompiledPackageRecord{
+					BlobID:   "fake-blob-id",
+					BlobSHA1: "fakefingerprint",
+				}))
 			})
 
 			It("returns the repo record", func() {
@@ -296,7 +305,7 @@ var _ = Describe("PackageCompiler", func() {
 
 			Context("when saving to the compiled package repo fails", func() {
 				JustBeforeEach(func() {
-					expectSave.Return(errors.New("fake-error")).Times(1)
+					saveErr = errors.New("fake-error")
 				})
 
 				It("returns error", func() {
@@ -322,7 +331,7 @@ var _ = Describe("PackageCompiler", func() {
 
 			Context("when finding compiled package in the repo fails", func() {
 				JustBeforeEach(func() {
-					expectFind.Return(bistatepkg.CompiledPackageRecord{}, false, errors.New("fake-error")).Times(1)
+					findPkgErr = errors.New("fake-error")
 				})
 
 				It("returns an error", func() {
@@ -344,8 +353,10 @@ var _ = Describe("PackageCompiler", func() {
 				dependency1 *birelpkg.CompiledPackage
 				dependency2 *birelpkg.CompiledPackage
 
-				expectFind *gomock.Call
-				expectSave *gomock.Call
+				findPkgRecord bistatepkg.CompiledPackageRecord
+				findPkgFound  bool
+				findPkgErr    error
+				saveErr       error
 			)
 
 			BeforeEach(func() {
@@ -379,25 +390,35 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			JustBeforeEach(func() {
-				expectFind = mockCompiledPackageRepo.EXPECT().Find(compiledPkg).Return(bistatepkg.CompiledPackageRecord{}, false, nil).AnyTimes()
+				findPkgRecord = bistatepkg.CompiledPackageRecord{}
+				findPkgFound = false
+				findPkgErr = nil
+				saveErr = nil
 
 				dep1 = bistatepkg.CompiledPackageRecord{
 					BlobID:   "fake-dependency-blobstore-id-1",
 					BlobSHA1: "fake-dependency-sha1-1",
 				}
-				mockCompiledPackageRepo.EXPECT().Find(dependency1).Return(dep1, true, nil).AnyTimes()
-
 				dep2 = bistatepkg.CompiledPackageRecord{
 					BlobID:   "fake-dependency-blobstore-id-2",
 					BlobSHA1: "fake-dependency-sha1-2",
 				}
-				mockCompiledPackageRepo.EXPECT().Find(dependency2).Return(dep2, true, nil).AnyTimes()
 
-				record := bistatepkg.CompiledPackageRecord{
-					BlobID:   "fake-blob-id",
-					BlobSHA1: "fakefingerprint",
+				mockCompiledPackageRepo.FindStub = func(p birelpkg.Compilable) (bistatepkg.CompiledPackageRecord, bool, error) {
+					switch p {
+					case compiledPkg:
+						return findPkgRecord, findPkgFound, findPkgErr
+					case dependency1:
+						return dep1, true, nil
+					case dependency2:
+						return dep2, true, nil
+					}
+					return bistatepkg.CompiledPackageRecord{}, false, fmt.Errorf("unexpected package passed to Find: %#v", p)
 				}
-				expectSave = mockCompiledPackageRepo.EXPECT().Save(compiledPkg, record).AnyTimes()
+
+				mockCompiledPackageRepo.SaveStub = func(p birelpkg.Compilable, r bistatepkg.CompiledPackageRecord) error {
+					return saveErr
+				}
 			})
 
 			It("installs all the dependencies for the package", func() {
@@ -429,10 +450,10 @@ var _ = Describe("PackageCompiler", func() {
 			})
 
 			It("stores the compiled package blobID and fingerprint into the compile package repo", func() {
-				expectSave.Times(1)
-
 				_, _, err := compiler.Compile(compiledPkg)
 				Expect(err).ToNot(HaveOccurred())
+
+				Expect(mockCompiledPackageRepo.SaveCallCount()).To(Equal(1))
 			})
 
 			It("returns the repo record", func() {
@@ -454,10 +475,10 @@ var _ = Describe("PackageCompiler", func() {
 
 			Context("when the compiled package repo already has the package", func() {
 				JustBeforeEach(func() {
-					compiledPkgRecord := bistatepkg.CompiledPackageRecord{
+					findPkgRecord = bistatepkg.CompiledPackageRecord{
 						BlobSHA1: "fakefingerprint",
 					}
-					expectFind.Return(compiledPkgRecord, true, nil).Times(1)
+					findPkgFound = true
 				})
 
 				It("skips the compilation", func() {
@@ -483,7 +504,7 @@ var _ = Describe("PackageCompiler", func() {
 
 			Context("when finding compiled package in the repo fails", func() {
 				JustBeforeEach(func() {
-					expectFind.Return(bistatepkg.CompiledPackageRecord{}, false, errors.New("fake-error")).Times(1)
+					findPkgErr = errors.New("fake-error")
 				})
 
 				It("returns an error", func() {
@@ -496,7 +517,7 @@ var _ = Describe("PackageCompiler", func() {
 
 			Context("when saving to the compiled package repo fails", func() {
 				JustBeforeEach(func() {
-					expectSave.Return(errors.New("fake-error")).Times(1)
+					saveErr = errors.New("fake-error")
 				})
 
 				It("returns error", func() {
@@ -523,7 +544,7 @@ var _ = Describe("PackageCompiler", func() {
 		Context("when the package is of an unknown type", func() {
 			It("panics", func() {
 				fakePkg := &pkgfakes.FakeCompilable{}
-				mockCompiledPackageRepo.EXPECT().Find(fakePkg).Return(bistatepkg.CompiledPackageRecord{}, false, nil).AnyTimes()
+				mockCompiledPackageRepo.FindReturns(bistatepkg.CompiledPackageRecord{}, false, nil)
 
 				Expect(func() { compiler.Compile(fakePkg) }).To(Panic()) //nolint:errcheck
 			})

@@ -19,6 +19,8 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
+//counterfeiter:generate . InstallerFactory
+
 type InstallerFactory interface {
 	NewInstaller(Target) Installer
 }

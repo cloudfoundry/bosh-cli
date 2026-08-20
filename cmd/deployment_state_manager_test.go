@@ -3,40 +3,28 @@ package cmd_test
 import (
 	"path/filepath"
 
-	mockhttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	"github.com/cppforlife/go-patch/patch"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/agentclient/agentclientfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/deploymentfakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
-	mockdeployment "github.com/cloudfoundry/bosh-cli/v7/deployment/mocks"
 	bidepltpl "github.com/cloudfoundry/bosh-cli/v7/deployment/template"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	biinstall "github.com/cloudfoundry/bosh-cli/v7/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
-	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("DeploymentStateManager", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
 		fs                          *fakesys.FakeFileSystem
 		logger                      boshlog.Logger
@@ -45,12 +33,12 @@ var _ = Describe("DeploymentStateManager", func() {
 
 		fakeUI *fakeui.FakeUI
 
-		mockDeploymentManagerFactory *mockdeployment.MockManagerFactory
-		mockDeploymentManager        *mockdeployment.MockManager
-		mockDeployment               *mockdeployment.MockDeployment
+		mockDeploymentManagerFactory *deploymentfakes.FakeManagerFactory
+		mockDeploymentManager        *deploymentfakes.FakeManager
+		mockDeployment               *deploymentfakes.FakeDeployment
 
-		mockAgentClient        *mockagentclient.MockAgentClient
-		mockAgentClientFactory *mockhttpagent.MockAgentClientFactory
+		mockAgentClient        *agentclientfakes.FakeAgentClient
+		mockAgentClientFactory *cmdfakes.FakeAgentClientFactory
 
 		fakeStage *fakeui.FakeStage
 
@@ -169,35 +157,39 @@ cloud_provider:
 
 		fakeStage = fakeui.NewFakeStage()
 
-		mockDeploymentManagerFactory = mockdeployment.NewMockManagerFactory(mockCtrl)
-		mockDeploymentManager = mockdeployment.NewMockManager(mockCtrl)
-		mockDeployment = mockdeployment.NewMockDeployment(mockCtrl)
+		mockDeploymentManagerFactory = &deploymentfakes.FakeManagerFactory{}
+		mockDeploymentManager = &deploymentfakes.FakeManager{}
+		mockDeployment = &deploymentfakes.FakeDeployment{}
 
-		mockAgentClientFactory = mockhttpagent.NewMockAgentClientFactory(mockCtrl)
-		mockAgentClient = mockagentclient.NewMockAgentClient(mockCtrl)
+		mockAgentClientFactory = &cmdfakes.FakeAgentClientFactory{}
+		mockAgentClient = &agentclientfakes.FakeAgentClient{}
 
 		directorID = "fake-uuid-0"
 		skipDrain = false
 
-		mockAgentClientFactory.EXPECT().NewAgentClient(
-			directorID,
-			"http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint",
-			certificate,
-		).Return(mockAgentClient, nil).AnyTimes()
+		mockAgentClientFactory.NewAgentClientReturns(mockAgentClient, nil)
 
 		writeDeploymentManifest()
 	})
 
 	Describe("StopDeployment", func() {
 		var expectStop = func(skipDrain bool) {
-			mockDeploymentManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClient, gomock.Any()).AnyTimes().Return(mockDeploymentManager)
-			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
+			mockDeploymentManagerFactory.NewManagerReturns(mockDeploymentManager)
+			mockDeploymentManager.FindCurrentReturns(mockDeployment, true, nil)
+			mockDeployment.StopReturns(nil)
+		}
 
-			gomock.InOrder(
-				mockDeployment.EXPECT().Stop(skipDrain, gomock.Any()).Do(func(_ bool, stage boshui.Stage) {
-					Expect(fakeStage.SubStages).To(ContainElement(stage))
-				}),
-			)
+		var assertStopArgs = func(skipDrain bool) {
+			Expect(mockDeployment.StopCallCount()).To(Equal(1))
+			gotSkipDrain, stage := mockDeployment.StopArgsForCall(0)
+			Expect(gotSkipDrain).To(Equal(skipDrain))
+			Expect(fakeStage.SubStages).To(ContainElement(stage))
+
+			Expect(mockAgentClientFactory.NewAgentClientCallCount()).To(Equal(1))
+			gotDirectorID, gotMbusURL, gotCert := mockAgentClientFactory.NewAgentClientArgsForCall(0)
+			Expect(gotDirectorID).To(Equal(directorID))
+			Expect(gotMbusURL).To(Equal("http://fake-mbus-user:fake-mbus-password@fake-mbus-endpoint"))
+			Expect(gotCert).To(Equal(certificate))
 		}
 
 		var expectValidationStopEvents = func() {
@@ -253,6 +245,7 @@ cloud_provider:
 				err := newDeploymentStateManager().StopDeployment(skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fakeUI.Errors).To(BeEmpty())
+				assertStopArgs(skipDrain)
 			})
 
 			It("logs validating & stop stages", func() {
@@ -270,6 +263,7 @@ cloud_provider:
 
 				err := newDeploymentStateManager().StopDeployment(skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
+				assertStopArgs(skipDrain)
 			})
 		})
 
@@ -292,15 +286,16 @@ cloud_provider:
 	Describe("StartDeployment", func() {
 
 		var expectStart = func() {
-			mockDeploymentManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClient, gomock.Any()).AnyTimes().Return(mockDeploymentManager)
-			mockDeploymentManager.EXPECT().FindCurrent().Return(mockDeployment, true, nil)
+			mockDeploymentManagerFactory.NewManagerReturns(mockDeploymentManager)
+			mockDeploymentManager.FindCurrentReturns(mockDeployment, true, nil)
+			mockDeployment.StartReturns(nil)
+		}
 
-			gomock.InOrder(
-				mockDeployment.EXPECT().Start(gomock.Any(), gomock.Any()).Do(func(stage boshui.Stage, update bideplmanifest.Update) {
-					Expect(fakeStage.SubStages).To(ContainElement(stage))
-					Expect(update).ToNot(BeNil())
-				}),
-			)
+		var assertStartArgs = func() {
+			Expect(mockDeployment.StartCallCount()).To(Equal(1))
+			stage, update := mockDeployment.StartArgsForCall(0)
+			Expect(fakeStage.SubStages).To(ContainElement(stage))
+			Expect(update).ToNot(BeNil())
 		}
 
 		var expectValidationStartEvents = func() {
@@ -356,6 +351,7 @@ cloud_provider:
 				err := newDeploymentStateManager().StartDeployment(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fakeUI.Errors).To(BeEmpty())
+				assertStartArgs()
 			})
 
 			It("logs validating & starting stages", func() {

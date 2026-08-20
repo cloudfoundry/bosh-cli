@@ -1,13 +1,12 @@
 package state_test
 
 import (
-	biagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	mock_agentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
-	mock_blobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
+	biagentclient "github.com/cloudfoundry/bosh-agent/v2/agentclient"
+	"github.com/cloudfoundry/bosh-cli/v7/agentclient/agentclientfakes"
+	"github.com/cloudfoundry/bosh-cli/v7/blobstore/blobstorefakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state"
 	biindex "github.com/cloudfoundry/bosh-cli/v7/index"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
@@ -16,33 +15,20 @@ import (
 )
 
 var _ = Describe("RemotePackageCompiler", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
 		packageRepo bistatepkg.CompiledPackageRepo
 
-		mockBlobstore   *mock_blobstore.MockBlobstore
-		mockAgentClient *mock_agentclient.MockAgentClient
+		mockBlobstore   *blobstorefakes.FakeBlobstore
+		mockAgentClient *agentclientfakes.FakeAgentClient
 
 		archivePath = "fake-archive-path"
 
 		remotePackageCompiler bistatepkg.Compiler
-
-		expectBlobstoreAdd *gomock.Call
-		expectAgentCompile *gomock.Call
 	)
 
 	BeforeEach(func() {
-		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
-		mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
+		mockBlobstore = &blobstorefakes.FakeBlobstore{}
+		mockAgentClient = &agentclientfakes.FakeAgentClient{}
 
 		index := biindex.NewInMemoryIndex()
 		packageRepo = bistatepkg.NewCompiledPackageRepo(index)
@@ -84,20 +70,6 @@ var _ = Describe("RemotePackageCompiler", func() {
 					Expect(err).ToNot(HaveOccurred())
 				}
 
-				packageSource := biagentclient.BlobRef{
-					Name:        "fake-package-name",
-					Version:     "fake-package-fingerprint",
-					BlobstoreID: "fake-source-package-blob-id",
-					SHA1:        "fake-source-package-sha1",
-				}
-				packageDependencies := []biagentclient.BlobRef{
-					{
-						Name:        "fake-package-name-dep",
-						Version:     "fake-package-fingerprint-dep",
-						BlobstoreID: "fake-compiled-package-blob-id-dep",
-						SHA1:        "fake-compiled-package-sha1-dep",
-					},
-				}
 				compiledPackageRef := biagentclient.BlobRef{
 					Name:        "fake-package-name",
 					Version:     "fake-package-version",
@@ -105,17 +77,28 @@ var _ = Describe("RemotePackageCompiler", func() {
 					SHA1:        "fake-compiled-package-sha1",
 				}
 
-				expectBlobstoreAdd = mockBlobstore.EXPECT().Add(archivePath).Return("fake-source-package-blob-id", nil).AnyTimes()
-				expectAgentCompile = mockAgentClient.EXPECT().CompilePackage(packageSource, packageDependencies).Return(compiledPackageRef, nil).AnyTimes()
+				mockBlobstore.AddReturns("fake-source-package-blob-id", nil)
+				mockAgentClient.CompilePackageReturns(compiledPackageRef, nil)
 			})
 
 			It("uploads the package archive to the blobstore and then compiles the package with the agent", func() {
-				gomock.InOrder(
-					expectBlobstoreAdd.Times(1),
-					expectAgentCompile.Times(1),
-				)
+				var order []string
+				mockBlobstore.AddStub = func(path string) (string, error) {
+					order = append(order, "Add")
+					return "fake-source-package-blob-id", nil
+				}
+				mockAgentClient.CompilePackageStub = func(source biagentclient.BlobRef, deps []biagentclient.BlobRef) (biagentclient.BlobRef, error) {
+					order = append(order, "CompilePackage")
+					return biagentclient.BlobRef{
+						Name:        "fake-package-name",
+						Version:     "fake-package-version",
+						BlobstoreID: "fake-compiled-package-blob-id",
+						SHA1:        "fake-compiled-package-sha1",
+					}, nil
+				}
 
 				compiledPackageRecord, _, err := remotePackageCompiler.Compile(pkg)
+				Expect(order).To(Equal([]string{"Add", "CompilePackage"}))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(compiledPackageRecord).To(Equal(bistatepkg.CompiledPackageRecord{
 					BlobID:   "fake-compiled-package-blob-id",
@@ -169,8 +152,7 @@ var _ = Describe("RemotePackageCompiler", func() {
 				})
 				Expect(err).ToNot(HaveOccurred())
 
-				expectBlobstoreAdd = mockBlobstore.EXPECT().Add(archivePath).Return("fake-source-package-blob-id", nil).AnyTimes()
-				expectAgentCompile = mockAgentClient.EXPECT().CompilePackage(gomock.Any(), gomock.Any()).AnyTimes()
+				mockBlobstore.AddReturns("fake-source-package-blob-id", nil)
 
 				compiledPackageRecord, isAlreadyCompiled, err := remotePackageCompiler.Compile(pkg)
 				Expect(err).ToNot(HaveOccurred())
@@ -180,7 +162,7 @@ var _ = Describe("RemotePackageCompiler", func() {
 					BlobSHA1: "fake-source-package-sha1",
 				}))
 
-				expectAgentCompile.Times(0)
+				Expect(mockAgentClient.CompilePackageCallCount()).To(Equal(0))
 			})
 		})
 	})

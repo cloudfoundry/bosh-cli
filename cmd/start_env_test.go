@@ -4,31 +4,20 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	"github.com/cppforlife/go-patch/patch"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
-	mockcmd "github.com/cloudfoundry/bosh-cli/v7/cmd/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("StartEnvCmd", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	Describe("Run", func() {
 		var (
-			mockDeploymentStateManager *mockcmd.MockDeploymentStateManager
+			mockDeploymentStateManager *cmdfakes.FakeDeploymentStateManager
 			fs                         *fakesys.FakeFileSystem
 
 			fakeUI                 *fakebiui.FakeUI
@@ -55,7 +44,7 @@ var _ = Describe("StartEnvCmd", func() {
 		}
 
 		BeforeEach(func() {
-			mockDeploymentStateManager = mockcmd.NewMockDeploymentStateManager(mockCtrl)
+			mockDeploymentStateManager = &cmdfakes.FakeDeploymentStateManager{}
 			fs = fakesys.NewFakeFileSystem()
 			fs.EnableStrictTempRootBehavior()
 			fakeUI = &fakebiui.FakeUI{}
@@ -64,7 +53,7 @@ var _ = Describe("StartEnvCmd", func() {
 
 		Context("state path is NOT specified", func() {
 			It("sends the manifest on to the StartDeployment", func() {
-				mockDeploymentStateManager.EXPECT().StartDeployment(fakeStage).Return(nil)
+				mockDeploymentStateManager.StartDeploymentReturns(nil)
 				err := newStartEnvCmd().Run(fakeStage, opts.StartEnvOpts{
 					Args: opts.StartStopEnvArgs{
 						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},
@@ -81,12 +70,15 @@ var _ = Describe("StartEnvCmd", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(statePath).To(Equal(""))
+
+				Expect(mockDeploymentStateManager.StartDeploymentCallCount()).To(Equal(1))
+				Expect(mockDeploymentStateManager.StartDeploymentArgsForCall(0)).To(Equal(fakeStage))
 			})
 		})
 
 		Context("state path is specified", func() {
 			It("sends the manifest on to the StartDeployment", func() {
-				mockDeploymentStateManager.EXPECT().StartDeployment(fakeStage).Return(nil)
+				mockDeploymentStateManager.StartDeploymentReturns(nil)
 				err := newStartEnvCmd().Run(fakeStage, opts.StartEnvOpts{
 					StatePath: "/new/state/file/path/state.json",
 					Args: opts.StartStopEnvArgs{
@@ -110,7 +102,7 @@ var _ = Describe("StartEnvCmd", func() {
 		Context("when the deployment state changer returns an error", func() {
 			It("sends the manifest on to the StartDeployment", func() {
 				err := bosherr.Error("boom")
-				mockDeploymentStateManager.EXPECT().StartDeployment(fakeStage).Return(err)
+				mockDeploymentStateManager.StartDeploymentReturns(err)
 				returnedErr := newStartEnvCmd().Run(fakeStage, opts.StartEnvOpts{
 					Args: opts.StartStopEnvArgs{
 						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},

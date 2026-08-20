@@ -17,6 +17,8 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
+//counterfeiter:generate . Builder
+
 type Builder interface {
 	Build(jobName string, instanceID int, deploymentManifest bideplmanifest.Manifest, stage biui.Stage, agentState agentclient.AgentState) (State, error)
 	BuildInitialState(jobName string, instanceID int, deploymentManifest bideplmanifest.Manifest) (State, error)

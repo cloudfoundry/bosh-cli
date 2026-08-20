@@ -16,6 +16,8 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
+//counterfeiter:generate . Deployer
+
 type Deployer interface {
 	Deploy(
 		cloud bicloud.Cloud,

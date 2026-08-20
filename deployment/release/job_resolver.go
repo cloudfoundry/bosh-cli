@@ -7,6 +7,10 @@ import (
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . JobResolver
+
 type JobResolver interface {
 	Resolve(jobName, releaseName string) (bireljob.Job, error)
 }

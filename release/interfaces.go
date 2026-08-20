@@ -11,6 +11,8 @@ import (
 // You only need **one** of these per package!
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
+//counterfeiter:generate . Extractor
+
 type Extractor interface {
 	Extract(string) (Release, error)
 }
@@ -72,6 +74,8 @@ type ArchiveIndicies struct {
 	Packages boshres.ArchiveIndex
 	Licenses boshres.ArchiveIndex
 }
+
+//counterfeiter:generate . Manager
 
 type Manager interface {
 	Add(Release)

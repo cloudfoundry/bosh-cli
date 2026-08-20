@@ -13,6 +13,8 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
+//counterfeiter:generate . Manager
+
 type Manager interface {
 	FindCurrent() ([]Disk, error)
 	Create(bideplmanifest.DiskPool, string) (Disk, error)

@@ -12,6 +12,12 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+// stemcellfakes already contains a hand-written FakeManager used elsewhere, so this
+// counterfeiter-generated one for full mock coverage lives in a separate package.
+//counterfeiter:generate -o mockfakes/fake_manager.go . Manager
+
 type Manager interface {
 	FindCurrent() ([]CloudStemcell, error)
 	Upload(ExtractedStemcell, biui.Stage) (CloudStemcell, error)

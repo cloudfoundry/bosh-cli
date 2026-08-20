@@ -6,6 +6,8 @@ import (
 	bias "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
 )
 
+//counterfeiter:generate . State
+
 type State interface {
 	NetworkInterfaces() []NetworkRef
 	RenderedJobs() []JobRef
