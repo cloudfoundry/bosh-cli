@@ -51,7 +51,7 @@ func (s *instanceSSH) setupSSH() (boshsys.File, error) {
 	}()
 
 	sshConfigTemplate := `
-Host warden-vm
+Host docker-vm
 	Hostname %s
 	User %s
 	StrictHostKeyChecking no
@@ -82,7 +82,7 @@ func (s *instanceSSH) RunCommand(cmd string) (stdout, stderr string, exitCode in
 
 	return s.runner.RunCommand(
 		"ssh",
-		"warden-vm",
+		"docker-vm",
 		"-F",
 		sshConfigFile.Name(),
 		cmd,
@@ -98,7 +98,7 @@ func (s *instanceSSH) RunCommandWithSudo(cmd string) (stdout, stderr string, exi
 
 	return s.runner.RunCommand(
 		"ssh",
-		"warden-vm",
+		"docker-vm",
 		"-F",
 		sshConfigFile.Name(),
 		fmt.Sprintf("echo %s | sudo -p '' -S %s", s.instancePassword, cmd),

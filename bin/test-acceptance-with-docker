@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -eu -o pipefail
+
+ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+
+config_file="$(mktemp -t bosh-init-config-XXXXXXXX)"
+
+default_compiled_release_path="${ROOT_DIR}/acceptance/assets/sample-release-compiled.tgz"
+
+# The manifests resolve ((docker_host))/((docker_tls)) from this file. It has to
+# be a file rather than -v flags: the tests shell out via `bash -c`, which would
+# mangle the multi-line TLS blob. JSON is valid YAML, so bosh reads it as-is.
+docker_vars_file="$(mktemp -t bosh-init-docker-vars-XXXXXXXX)"
+cat > "${docker_vars_file}" <<EOF
+{
+  "docker_host": "${DOCKER_HOST}",
+  "docker_tls": $(cat "${DOCKER_TLS_JSON}")
+}
+EOF
+
+cat > "${config_file}" <<EOF
+{
+  "stemcell_path": "${BOSH_INIT_STEMCELL_PATH}",
+  "cpi_release_path": "${BOSH_INIT_CPI_RELEASE_PATH}",
+  "dummy_compiled_release_path": "${BOSH_INIT_DUMMY_COMPILED_RELEASE_PATH:-${default_compiled_release_path}}",
+  "docker_vars_path": "${docker_vars_file}"
+}
+EOF
+cat "${config_file}"
+
+export BOSH_INIT_CONFIG_PATH="${config_file}"
+
+"${ROOT_DIR}/bin/test-acceptance"

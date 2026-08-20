@@ -12,6 +12,10 @@ type Config struct {
 	StemcellPath             string `json:"stemcell_path"`
 	CPIReleasePath           string `json:"cpi_release_path"`
 	DummyCompiledReleasePath string `json:"dummy_compiled_release_path"`
+
+	// Vars file supplying docker_host/docker_tls to the manifests; written by
+	// bin/test-acceptance-with-docker.
+	DockerVarsPath string `json:"docker_vars_path"`
 }
 
 func NewConfig(fs boshsys.FileSystem) (*Config, error) {
@@ -45,6 +49,10 @@ func (c *Config) Validate() error {
 
 	if c.DummyCompiledReleasePath == "" {
 		return errors.New("Must provide 'dummy_compiled_release_path' in config") //nolint:staticcheck
+	}
+
+	if c.DockerVarsPath == "" {
+		return errors.New("Must provide 'docker_vars_path' in config") //nolint:staticcheck
 	}
 
 	return nil
