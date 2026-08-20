@@ -8,6 +8,8 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
+//counterfeiter:generate . RenderedJobListArchive
+
 type RenderedJobListArchive interface {
 	List() RenderedJobList
 	Path() string

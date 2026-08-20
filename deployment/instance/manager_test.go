@@ -8,17 +8,16 @@ import (
 	bias "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	mock_agentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
-	mock_blobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/agentclient/agentclientfakes"
+	"github.com/cloudfoundry/bosh-cli/v7/blobstore/blobstorefakes"
 	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	fakebidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk/fakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
-	mock_instance_state "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/statefakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
@@ -28,26 +27,17 @@ import (
 
 var _ = Describe("Manager", func() {
 	var (
-		mockCtrl   *gomock.Controller
 		apiVersion = 2
 	)
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
 
 	var (
 		fakeCloud *fakebicloud.FakeCloud
 
-		mockStateBuilderFactory *mock_instance_state.MockBuilderFactory
-		mockStateBuilder        *mock_instance_state.MockBuilder
-		mockState               *mock_instance_state.MockState
+		mockStateBuilderFactory *statefakes.FakeBuilderFactory
+		mockStateBuilder        *statefakes.FakeBuilder
+		mockState               *statefakes.FakeState
 
-		mockBlobstore *mock_blobstore.MockBlobstore
+		mockBlobstore *blobstorefakes.FakeBlobstore
 
 		fakeVMManager        *fakebivm.FakeManager
 		fakeSSHTunnelFactory *fakebisshtunnel.FakeFactory
@@ -69,13 +59,13 @@ var _ = Describe("Manager", func() {
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
 
-		mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
-		mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
-		mockState = mock_instance_state.NewMockState(mockCtrl)
+		mockStateBuilderFactory = &statefakes.FakeBuilderFactory{}
+		mockStateBuilder = &statefakes.FakeBuilder{}
+		mockState = &statefakes.FakeState{}
 
 		instanceFactory = NewFactory(mockStateBuilderFactory)
 
-		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+		mockBlobstore = &blobstorefakes.FakeBlobstore{}
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
@@ -93,7 +83,7 @@ var _ = Describe("Manager", func() {
 
 	Describe("Create", func() {
 		var (
-			mockAgentClient    *mock_agentclient.MockAgentClient
+			mockAgentClient    *agentclientfakes.FakeAgentClient
 			fakeVM             *fakebivm.FakeVM
 			diskPool           bideplmanifest.DiskPool
 			deploymentManifest bideplmanifest.Manifest
@@ -130,9 +120,9 @@ var _ = Describe("Manager", func() {
 			fakeAgentState := agentclient.AgentState{}
 			fakeVM.GetStateResult = fakeAgentState
 
-			mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
-			mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage, fakeAgentState).Return(mockState, nil).AnyTimes()
-			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
+			mockStateBuilderFactory.NewBuilderReturns(mockStateBuilder)
+			mockStateBuilder.BuildReturns(mockState, nil)
+			mockState.ToApplySpecReturns(applySpec)
 		}
 
 		BeforeEach(func() {
@@ -170,7 +160,7 @@ var _ = Describe("Manager", func() {
 			fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
 			fakeVMManager.CreateVM = fakeVM
 
-			mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
+			mockAgentClient = &agentclientfakes.FakeAgentClient{}
 			fakeVM.AgentClientReturn = mockAgentClient
 
 			expectedInstance = NewInstance(

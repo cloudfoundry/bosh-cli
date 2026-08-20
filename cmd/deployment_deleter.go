@@ -19,6 +19,8 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
+//counterfeiter:generate . DeploymentDeleter
+
 type DeploymentDeleter interface {
 	DeleteDeployment(skipDrain bool, stage biui.Stage) (err error)
 }

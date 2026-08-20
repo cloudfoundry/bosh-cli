@@ -4,31 +4,20 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	"github.com/cppforlife/go-patch/patch"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
-	mockcmd "github.com/cloudfoundry/bosh-cli/v7/cmd/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("StopEnvCmd", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	Describe("Run", func() {
 		var (
-			mockDeploymentStateManager *mockcmd.MockDeploymentStateManager
+			mockDeploymentStateManager *cmdfakes.FakeDeploymentStateManager
 			fs                         *fakesys.FakeFileSystem
 
 			fakeUI                 *fakeui.FakeUI
@@ -56,7 +45,7 @@ var _ = Describe("StopEnvCmd", func() {
 		}
 
 		BeforeEach(func() {
-			mockDeploymentStateManager = mockcmd.NewMockDeploymentStateManager(mockCtrl)
+			mockDeploymentStateManager = &cmdfakes.FakeDeploymentStateManager{}
 			fs = fakesys.NewFakeFileSystem()
 			fs.EnableStrictTempRootBehavior()
 			fakeUI = &fakeui.FakeUI{}
@@ -67,7 +56,7 @@ var _ = Describe("StopEnvCmd", func() {
 		Context("when skip drain is specified", func() {
 			It("gets passed to StopDeployment", func() {
 				skipDrain = true
-				mockDeploymentStateManager.EXPECT().StopDeployment(skipDrain, fakeStage).Return(nil)
+				mockDeploymentStateManager.StopDeploymentReturns(nil)
 				err := newStopEnvCmd().Run(fakeStage, opts.StopEnvOpts{
 					Args: opts.StartStopEnvArgs{
 						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},
@@ -83,12 +72,17 @@ var _ = Describe("StopEnvCmd", func() {
 					},
 				})
 				Expect(err).ToNot(HaveOccurred())
+
+				Expect(mockDeploymentStateManager.StopDeploymentCallCount()).To(Equal(1))
+				actualSkipDrain, actualStage := mockDeploymentStateManager.StopDeploymentArgsForCall(0)
+				Expect(actualSkipDrain).To(BeTrue())
+				Expect(actualStage).To(Equal(fakeStage))
 			})
 		})
 
 		Context("state path is NOT specified", func() {
 			It("sends the manifest on to the StopDeployment", func() {
-				mockDeploymentStateManager.EXPECT().StopDeployment(skipDrain, fakeStage).Return(nil)
+				mockDeploymentStateManager.StopDeploymentReturns(nil)
 				err := newStopEnvCmd().Run(fakeStage, opts.StopEnvOpts{
 					Args: opts.StartStopEnvArgs{
 						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},
@@ -111,7 +105,7 @@ var _ = Describe("StopEnvCmd", func() {
 
 		Context("state path is specified", func() {
 			It("sends the manifest on to the StopDeployment", func() {
-				mockDeploymentStateManager.EXPECT().StopDeployment(skipDrain, fakeStage).Return(nil)
+				mockDeploymentStateManager.StopDeploymentReturns(nil)
 				err := newStopEnvCmd().Run(fakeStage, opts.StopEnvOpts{
 					StatePath: "/new/state/file/path/state.json",
 					SkipDrain: skipDrain,
@@ -136,7 +130,7 @@ var _ = Describe("StopEnvCmd", func() {
 		Context("when the deployment state changer returns an error", func() {
 			It("sends the manifest on to the StopDeployment", func() {
 				err := bosherr.Error("boom")
-				mockDeploymentStateManager.EXPECT().StopDeployment(skipDrain, fakeStage).Return(err)
+				mockDeploymentStateManager.StopDeploymentReturns(err)
 				returnedErr := newStopEnvCmd().Run(fakeStage, opts.StopEnvOpts{
 					Args: opts.StartStopEnvArgs{
 						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},

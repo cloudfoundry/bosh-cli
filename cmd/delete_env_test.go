@@ -4,31 +4,20 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	"github.com/cppforlife/go-patch/patch"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
-	mockcmd "github.com/cloudfoundry/bosh-cli/v7/cmd/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("DeleteEnvCmd", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	Describe("Run", func() {
 		var (
-			mockDeploymentDeleter *mockcmd.MockDeploymentDeleter
+			mockDeploymentDeleter *cmdfakes.FakeDeploymentDeleter
 			fs                    *fakesys.FakeFileSystem
 
 			fakeUI                 *fakeui.FakeUI
@@ -56,7 +45,7 @@ var _ = Describe("DeleteEnvCmd", func() {
 		}
 
 		BeforeEach(func() {
-			mockDeploymentDeleter = mockcmd.NewMockDeploymentDeleter(mockCtrl)
+			mockDeploymentDeleter = &cmdfakes.FakeDeploymentDeleter{}
 			fs = fakesys.NewFakeFileSystem()
 			fs.EnableStrictTempRootBehavior()
 			fakeUI = &fakeui.FakeUI{}
@@ -67,7 +56,7 @@ var _ = Describe("DeleteEnvCmd", func() {
 		Context("when skip drain is specified", func() {
 			It("gets passed to DeleteDeployment", func() {
 				skipDrain = true
-				mockDeploymentDeleter.EXPECT().DeleteDeployment(skipDrain, fakeStage).Return(nil)
+				mockDeploymentDeleter.DeleteDeploymentReturns(nil)
 				err := newDeleteEnvCmd().Run(fakeStage, opts.DeleteEnvOpts{
 					Args: opts.DeleteEnvArgs{
 						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},
@@ -83,12 +72,17 @@ var _ = Describe("DeleteEnvCmd", func() {
 					},
 				})
 				Expect(err).ToNot(HaveOccurred())
+
+				Expect(mockDeploymentDeleter.DeleteDeploymentCallCount()).To(Equal(1))
+				actualSkipDrain, actualStage := mockDeploymentDeleter.DeleteDeploymentArgsForCall(0)
+				Expect(actualSkipDrain).To(BeTrue())
+				Expect(actualStage).To(Equal(fakeStage))
 			})
 		})
 
 		Context("state path is NOT specified", func() {
 			It("sends the manifest on to the deleter", func() {
-				mockDeploymentDeleter.EXPECT().DeleteDeployment(skipDrain, fakeStage).Return(nil)
+				mockDeploymentDeleter.DeleteDeploymentReturns(nil)
 				err := newDeleteEnvCmd().Run(fakeStage, opts.DeleteEnvOpts{
 					Args: opts.DeleteEnvArgs{
 						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},
@@ -111,7 +105,7 @@ var _ = Describe("DeleteEnvCmd", func() {
 
 		Context("state path is specified", func() {
 			It("sends the manifest on to the deleter", func() {
-				mockDeploymentDeleter.EXPECT().DeleteDeployment(skipDrain, fakeStage).Return(nil)
+				mockDeploymentDeleter.DeleteDeploymentReturns(nil)
 				err := newDeleteEnvCmd().Run(fakeStage, opts.DeleteEnvOpts{
 					StatePath: "/new/state/file/path/state.json",
 					SkipDrain: skipDrain,
@@ -136,7 +130,7 @@ var _ = Describe("DeleteEnvCmd", func() {
 		Context("when the deployment deleter returns an error", func() {
 			It("sends the manifest on to the deleter", func() {
 				err := bosherr.Error("boom")
-				mockDeploymentDeleter.EXPECT().DeleteDeployment(skipDrain, fakeStage).Return(err)
+				mockDeploymentDeleter.DeleteDeploymentReturns(err)
 				returnedErr := newDeleteEnvCmd().Run(fakeStage, opts.DeleteEnvOpts{
 					Args: opts.DeleteEnvArgs{
 						Manifest: opts.FileBytesWithPathArg{Path: deploymentManifestPath},

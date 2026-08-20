@@ -1,36 +1,24 @@
 package release_test
 
 import (
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/release"
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
-	mock_release "github.com/cloudfoundry/bosh-cli/v7/release/mocks"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 var _ = Describe("JobResolver", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
-		mockReleaseManager *mock_release.MockManager
+		mockReleaseManager *fakerel.FakeManager
 		release            *fakerel.FakeRelease
 		jobResolver        JobResolver
 	)
 
 	BeforeEach(func() {
-		mockReleaseManager = mock_release.NewMockManager(mockCtrl)
+		mockReleaseManager = &fakerel.FakeManager{}
 
 		release = &fakerel.FakeRelease{
 			NameStub:    func() string { return "rel-name" },
@@ -43,7 +31,7 @@ var _ = Describe("JobResolver", func() {
 	Describe("Resolve", func() {
 		It("Returns the matching release job", func() {
 			job0 := bireljob.NewJob(NewResource("job0", "job0-fp", nil))
-			mockReleaseManager.EXPECT().Find("rel-name").Return(release, true)
+			mockReleaseManager.FindReturns(release, true)
 			release.FindJobByNameStub = func(name string) (bireljob.Job, bool) {
 				Expect(name).To(Equal("job0"))
 				return *job0, true
@@ -52,10 +40,13 @@ var _ = Describe("JobResolver", func() {
 			releaseJob, err := jobResolver.Resolve("job0", "rel-name")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(releaseJob).To(Equal(*job0))
+
+			Expect(mockReleaseManager.FindCallCount()).To(Equal(1))
+			Expect(mockReleaseManager.FindArgsForCall(0)).To(Equal("rel-name"))
 		})
 
 		It("Returns an error, when the job is not in the release", func() {
-			mockReleaseManager.EXPECT().Find("rel-name").Return(release, true)
+			mockReleaseManager.FindReturns(release, true)
 			release.FindJobByNameReturns(bireljob.Job{}, false)
 
 			_, err := jobResolver.Resolve("fake-missing-release-job-name", "rel-name")
@@ -64,7 +55,7 @@ var _ = Describe("JobResolver", func() {
 		})
 
 		It("Returns an error, when the release is not in resolvable", func() {
-			mockReleaseManager.EXPECT().Find("fake-missing-release-name").Return(nil, false)
+			mockReleaseManager.FindReturns(nil, false)
 
 			_, err := jobResolver.Resolve("job0", "fake-missing-release-name")
 			Expect(err).To(HaveOccurred())

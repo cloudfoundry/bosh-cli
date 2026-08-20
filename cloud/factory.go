@@ -8,6 +8,8 @@ import (
 	biinstall "github.com/cloudfoundry/bosh-cli/v7/installation"
 )
 
+//counterfeiter:generate . Factory
+
 type Factory interface {
 	NewCloud(installation biinstall.Installation, directorID string, stemcellApiVersion int) (Cloud, error)
 }

@@ -17,6 +17,10 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . Instance
+
 type Instance interface {
 	JobName() string
 	ID() int

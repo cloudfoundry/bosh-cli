@@ -22,6 +22,8 @@ func NewInstalledJob(ref RenderedJobRef, path string) InstalledJob {
 	return InstalledJob{RenderedJobRef: ref, Path: path}
 }
 
+//counterfeiter:generate . Installer
+
 type Installer interface {
 	Install(biinstallmanifest.Manifest, biui.Stage) (Installation, error)
 	Cleanup(Installation) error

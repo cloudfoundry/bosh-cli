@@ -11,6 +11,10 @@ import (
 	bitemplate "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . BuilderFactory
+
 type BuilderFactory interface {
 	NewBuilder(biblobstore.Blobstore, biagentclient.AgentClient) Builder
 }

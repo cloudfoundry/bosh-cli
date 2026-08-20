@@ -8,6 +8,8 @@ import (
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 )
 
+//counterfeiter:generate . Factory
+
 type Factory interface {
 	NewDeployment(
 		[]biinstance.Instance,

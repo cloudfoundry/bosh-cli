@@ -3,11 +3,8 @@ package stemcellfakes
 import (
 	"fmt"
 
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
-	bitestutils "github.com/cloudfoundry/bosh-cli/v7/testutils"
 )
 
 type NewManagerInput struct {
@@ -20,13 +17,13 @@ type newManagerOutput struct {
 
 type FakeManagerFactory struct {
 	NewManagerInputs   []NewManagerInput
-	newManagerBehavior map[string]newManagerOutput
+	newManagerBehavior map[bicloud.Cloud]newManagerOutput
 }
 
 func NewFakeManagerFactory() *FakeManagerFactory {
 	return &FakeManagerFactory{
 		NewManagerInputs:   []NewManagerInput{},
-		newManagerBehavior: map[string]newManagerOutput{},
+		newManagerBehavior: map[bicloud.Cloud]newManagerOutput{},
 	}
 }
 
@@ -36,12 +33,7 @@ func (f *FakeManagerFactory) NewManager(cloud bicloud.Cloud) bistemcell.Manager 
 	}
 	f.NewManagerInputs = append(f.NewManagerInputs, input)
 
-	inputString, marshalErr := bitestutils.MarshalToString(input)
-	if marshalErr != nil {
-		panic(bosherr.WrapError(marshalErr, "Marshaling NewManager input"))
-	}
-
-	output, found := f.newManagerBehavior[inputString]
+	output, found := f.newManagerBehavior[cloud]
 	if !found {
 		panic(fmt.Errorf("Unsupported NewManager Input: %#v\nExpected Behavior: %#v", input, f.newManagerBehavior)) //nolint:staticcheck
 	}
@@ -50,14 +42,5 @@ func (f *FakeManagerFactory) NewManager(cloud bicloud.Cloud) bistemcell.Manager 
 }
 
 func (f *FakeManagerFactory) SetNewManagerBehavior(cloud bicloud.Cloud, manager bistemcell.Manager) {
-	input := NewManagerInput{
-		Cloud: cloud,
-	}
-
-	inputString, marshalErr := bitestutils.MarshalToString(input)
-	if marshalErr != nil {
-		panic(bosherr.WrapError(marshalErr, "Marshaling NewManager input"))
-	}
-
-	f.newManagerBehavior[inputString] = newManagerOutput{manager: manager}
+	f.newManagerBehavior[cloud] = newManagerOutput{manager: manager}
 }

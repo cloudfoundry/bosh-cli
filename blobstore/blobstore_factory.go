@@ -13,6 +13,8 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
+//counterfeiter:generate . Factory
+
 type Factory interface {
 	Create(string, *http.Client) (Blobstore, error)
 }

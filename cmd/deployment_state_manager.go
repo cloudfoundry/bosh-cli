@@ -15,6 +15,8 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
+//counterfeiter:generate . DeploymentStateManager
+
 type DeploymentStateManager interface {
 	StopDeployment(skipDrain bool, stage biui.Stage) (err error)
 	StartDeployment(stage biui.Stage) (err error)

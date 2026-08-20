@@ -24,6 +24,10 @@ type Source interface {
 	Description() string
 }
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . Provider
+
 type Provider interface {
 	Get(Source, biui.Stage) (path string, err error)
 }

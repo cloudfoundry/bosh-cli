@@ -9,6 +9,8 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
+//counterfeiter:generate . Manager
+
 type Manager interface {
 	FindCurrent() (deployment Deployment, found bool, err error)
 	Cleanup(biui.Stage) error

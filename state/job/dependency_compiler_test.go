@@ -1,8 +1,9 @@
 package job_test
 
 import (
+	"fmt"
+
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -11,23 +12,13 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	. "github.com/cloudfoundry/bosh-cli/v7/state/job"
 	bistatepkg "github.com/cloudfoundry/bosh-cli/v7/state/pkg"
-	mockstatepackage "github.com/cloudfoundry/bosh-cli/v7/state/pkg/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/state/pkg/pkgfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("DependencyCompiler", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
-		mockPackageCompiler *mockstatepackage.MockCompiler
+		mockPackageCompiler *pkgfakes.FakeCompiler
 		logger              boshlog.Logger
 
 		dependencyCompiler DependencyCompiler
@@ -39,12 +30,15 @@ var _ = Describe("DependencyCompiler", func() {
 		job  *boshreljob.Job
 		jobs []boshreljob.Job
 
-		expectCompilePkg1 *gomock.Call
-		expectCompilePkg2 *gomock.Call
+		order []string
+
+		pkg1AlreadyCompiled bool
+		pkg2AlreadyCompiled bool
 	)
 
 	BeforeEach(func() {
-		mockPackageCompiler = mockstatepackage.NewMockCompiler(mockCtrl)
+		mockPackageCompiler = &pkgfakes.FakeCompiler{}
+		order = nil
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		dependencyCompiler = NewDependencyCompiler(mockPackageCompiler, logger)
@@ -60,6 +54,9 @@ var _ = Describe("DependencyCompiler", func() {
 		err = job.AttachPackages([]*boshrelpkg.Package{pkg2})
 		Expect(err).ToNot(HaveOccurred())
 		jobs = []boshreljob.Job{*job}
+
+		pkg1AlreadyCompiled = false
+		pkg2AlreadyCompiled = false
 	})
 
 	JustBeforeEach(func() {
@@ -67,23 +64,28 @@ var _ = Describe("DependencyCompiler", func() {
 			BlobID:   "fake-compiled-package-blobstore-id-1",
 			BlobSHA1: "fake-compiled-package-sha1-1",
 		}
-		expectCompilePkg1 = mockPackageCompiler.EXPECT().Compile(pkg1).Return(compiledPackageRecord1, false, nil).AnyTimes()
-
 		compiledPackageRecord2 := bistatepkg.CompiledPackageRecord{
 			BlobID:   "fake-compiled-package-blobstore-id-2",
 			BlobSHA1: "fake-compiled-package-sha1-2",
 		}
-		expectCompilePkg2 = mockPackageCompiler.EXPECT().Compile(pkg2).Return(compiledPackageRecord2, false, nil).AnyTimes()
+
+		mockPackageCompiler.CompileStub = func(pkg boshrelpkg.Compilable) (bistatepkg.CompiledPackageRecord, bool, error) {
+			switch pkg {
+			case pkg1:
+				order = append(order, "pkg1-name")
+				return compiledPackageRecord1, pkg1AlreadyCompiled, nil
+			case pkg2:
+				order = append(order, "pkg2-name")
+				return compiledPackageRecord2, pkg2AlreadyCompiled, nil
+			}
+			return bistatepkg.CompiledPackageRecord{}, false, fmt.Errorf("unexpected package passed to Compile: %#v", pkg)
+		}
 	})
 
 	It("compiles all the job dependencies (packages) such that no package is compiled before its dependencies", func() {
-		gomock.InOrder(
-			expectCompilePkg1.Times(1),
-			expectCompilePkg2.Times(1),
-		)
-
 		_, err := dependencyCompiler.Compile(jobs, stage)
 		Expect(err).ToNot(HaveOccurred())
+		Expect(order).To(Equal([]string{"pkg1-name", "pkg2-name"}))
 	})
 
 	It("returns references to the compiled packages", func() {
@@ -147,17 +149,8 @@ var _ = Describe("DependencyCompiler", func() {
 
 	Context("when a compiled releases is provided", func() {
 		BeforeEach(func() {
-			compiledPackageRecord1 := bistatepkg.CompiledPackageRecord{
-				BlobID:   "fake-compiled-package-blobstore-id-1",
-				BlobSHA1: "fake-compiled-package-sha1-1",
-			}
-			expectCompilePkg1 = mockPackageCompiler.EXPECT().Compile(pkg1).Return(compiledPackageRecord1, true, nil).AnyTimes()
-
-			compiledPackageRecord2 := bistatepkg.CompiledPackageRecord{
-				BlobID:   "fake-compiled-package-blobstore-id-2",
-				BlobSHA1: "fake-compiled-package-sha1-2",
-			}
-			expectCompilePkg2 = mockPackageCompiler.EXPECT().Compile(pkg2).Return(compiledPackageRecord2, true, nil).AnyTimes()
+			pkg1AlreadyCompiled = true
+			pkg2AlreadyCompiled = true
 		})
 
 		It("skips compiling the packages in the release", func() {
@@ -181,20 +174,15 @@ var _ = Describe("DependencyCompiler", func() {
 		})
 
 		It("only compiles each package once", func() {
-			gomock.InOrder(
-				expectCompilePkg1.Times(1),
-				expectCompilePkg2.Times(1),
-			)
-
 			_, err := dependencyCompiler.Compile(jobs, stage)
 			Expect(err).ToNot(HaveOccurred())
+			Expect(order).To(Equal([]string{"pkg1-name", "pkg2-name"}))
 		})
 	})
 
 	Context("when multiple packages depend on the same package", func() {
 		var (
-			pkg3              *boshrelpkg.Package
-			expectCompilePkg3 *gomock.Call
+			pkg3 *boshrelpkg.Package
 		)
 
 		BeforeEach(func() {
@@ -212,16 +200,43 @@ var _ = Describe("DependencyCompiler", func() {
 				BlobID:   "fake-compiled-package-blobstore-id-3",
 				BlobSHA1: "fake-compiled-package-sha1-3",
 			}
-			expectCompilePkg3 = mockPackageCompiler.EXPECT().Compile(pkg3).Return(compiledPackageRecord3, false, nil).AnyTimes()
+
+			mockPackageCompiler.CompileStub = func(pkg boshrelpkg.Compilable) (bistatepkg.CompiledPackageRecord, bool, error) {
+				switch pkg {
+				case pkg1:
+					order = append(order, "pkg1-name")
+					return bistatepkg.CompiledPackageRecord{
+						BlobID:   "fake-compiled-package-blobstore-id-1",
+						BlobSHA1: "fake-compiled-package-sha1-1",
+					}, false, nil
+				case pkg2:
+					order = append(order, "pkg2-name")
+					return bistatepkg.CompiledPackageRecord{
+						BlobID:   "fake-compiled-package-blobstore-id-2",
+						BlobSHA1: "fake-compiled-package-sha1-2",
+					}, false, nil
+				case pkg3:
+					order = append(order, "pkg3-name")
+					return compiledPackageRecord3, false, nil
+				}
+				return bistatepkg.CompiledPackageRecord{}, false, fmt.Errorf("unexpected package passed to Compile: %#v", pkg)
+			}
 		})
 
 		It("only compiles each package once", func() {
-			expectCompilePkg1.Times(1)
-			expectCompilePkg2.After(expectCompilePkg1)
-			expectCompilePkg3.After(expectCompilePkg1)
-
 			_, err := dependencyCompiler.Compile(jobs, stage)
 			Expect(err).ToNot(HaveOccurred())
+
+			// pkg1 must be compiled exactly once, and before anything else (pkg2/pkg3 depend on it)
+			Expect(order).ToNot(BeEmpty())
+			Expect(order[0]).To(Equal("pkg1-name"))
+			pkg1Count := 0
+			for _, name := range order {
+				if name == "pkg1-name" {
+					pkg1Count++
+				}
+			}
+			Expect(pkg1Count).To(Equal(1))
 		})
 	})
 })

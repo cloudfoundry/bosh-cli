@@ -8,6 +8,8 @@ import (
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 )
 
+//counterfeiter:generate . JobListRenderer
+
 type JobListRenderer interface {
 	Render(
 		releaseJobs []bireljob.Job,

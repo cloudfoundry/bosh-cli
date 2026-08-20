@@ -10,6 +10,10 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . Blobstore
+
 type Blobstore interface {
 	Get(blobID string) (LocalBlob, error)
 	Add(sourcePath string) (blobID string, err error)

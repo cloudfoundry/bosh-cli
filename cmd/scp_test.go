@@ -4,15 +4,13 @@ import (
 	"errors"
 
 	"github.com/cloudfoundry/bosh-agent/v2/agentclient"
-	mockhttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/agentclient/agentclientfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
-	"github.com/cloudfoundry/bosh-cli/v7/cmd/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
@@ -221,28 +219,20 @@ var _ = Describe("SCP", func() {
 
 	Describe("EnvSCPCmd", func() {
 		var (
-			mockCtrl *gomock.Controller
-
-			agentClientFactory *mockhttpagent.MockAgentClientFactory
-			agentClient        *mockagentclient.MockAgentClient
+			agentClientFactory *cmdfakes.FakeAgentClientFactory
+			agentClient        *agentclientfakes.FakeAgentClient
 			uuidGen            *fakeuuid.FakeGenerator
 			scpRunner          *fakessh.FakeSCPRunner
 			command            cmd.EnvSCPCmd
 		)
 
 		BeforeEach(func() {
-			mockCtrl = gomock.NewController(GinkgoT())
-
-			agentClient = mockagentclient.NewMockAgentClient(mockCtrl)
-			agentClientFactory = mockhttpagent.NewMockAgentClientFactory(mockCtrl)
+			agentClient = &agentclientfakes.FakeAgentClient{}
+			agentClientFactory = &cmdfakes.FakeAgentClientFactory{}
 
 			uuidGen = &fakeuuid.FakeGenerator{}
 			scpRunner = &fakessh.FakeSCPRunner{}
 			command = cmd.NewEnvSCPCmd(agentClientFactory, scpRunner)
-		})
-
-		AfterEach(func() {
-			mockCtrl.Finish()
 		})
 
 		Describe("Run", func() {
@@ -321,11 +311,7 @@ var _ = Describe("SCP", func() {
 						}
 						uuidGen.GeneratedUUID = UUID
 
-						agentClientFactory.EXPECT().NewAgentClient(
-							gomock.Eq("bosh-cli"),
-							gomock.Eq("https:///foo:bar@10.0.0.5"),
-							gomock.Eq("some-cert"),
-						).Return(agentClient, nil).Times(1)
+						agentClientFactory.NewAgentClientReturns(agentClient, nil)
 					})
 
 					Context("when valid SCP args are provided", func() {
@@ -335,23 +321,26 @@ var _ = Describe("SCP", func() {
 
 						It("sets up SSH access, runs SSH command and later cleans up SSH access", func() {
 							scpRunner.RunStub = func(boshssh.ConnectionOpts, boshdir.SSHResult, boshssh.SCPArgs) error {
-								agentClient.EXPECT().CleanUpSSH(gomock.Any()).Times(0)
+								Expect(agentClient.CleanUpSSHCallCount()).To(Equal(0))
 								return nil
 							}
-							agentClient.EXPECT().SetUpSSH(gomock.Eq(ExpUsername), mocks.GomegaMock(ContainSubstring("ssh-rsa AAAA"))).
-								Times(1)
-							agentClient.EXPECT().CleanUpSSH(gomock.Eq(ExpUsername)).
-								Times(1)
 
 							Expect(command.Run(scpOpts)).ToNot(HaveOccurred())
 
 							Expect(scpRunner.RunCallCount()).To(Equal(1))
+
+							Expect(agentClient.SetUpSSHCallCount()).To(Equal(1))
+							username, publicKey := agentClient.SetUpSSHArgsForCall(0)
+							Expect(username).To(Equal(ExpUsername))
+							Expect(publicKey).To(ContainSubstring("ssh-rsa AAAA"))
+
+							Expect(agentClient.CleanUpSSHCallCount()).To(Equal(1))
+							cleanUpUsername := agentClient.CleanUpSSHArgsForCall(0)
+							Expect(cleanUpUsername).To(Equal(ExpUsername))
 						})
 
 						It("returns an error if setting up SSH access fails", func() {
-							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
-								Return(agentclient.SSHResult{}, errors.New("fake-ssh-err")).
-								Times(1)
+							agentClient.SetUpSSHReturns(agentclient.SSHResult{}, errors.New("fake-ssh-err"))
 
 							err := command.Run(scpOpts)
 
@@ -375,11 +364,7 @@ var _ = Describe("SCP", func() {
 								Ip:            "10.0.0.5",
 								HostPublicKey: "some-public-key",
 							}
-							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
-								Return(result, nil).
-								Times(1)
-							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
-								Times(1)
+							agentClient.SetUpSSHReturns(result, nil)
 
 							scpOpts.GatewayFlags.Disable = true                    //nolint:staticcheck
 							scpOpts.GatewayFlags.Username = "gw-username"          //nolint:staticcheck
@@ -404,23 +389,17 @@ var _ = Describe("SCP", func() {
 
 						It("sets up SCP to be recursive if recursive flag is set", func() {
 							scpOpts.Recursive = true
-							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
-								Times(1)
-							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
-								Times(1)
 
 							Expect(command.Run(scpOpts)).ToNot(HaveOccurred())
 							Expect(scpRunner.RunCallCount()).To(Equal(1))
+							Expect(agentClient.SetUpSSHCallCount()).To(Equal(1))
+							Expect(agentClient.CleanUpSSHCallCount()).To(Equal(1))
 
 							_, _, runCommand := scpRunner.RunArgsForCall(0)
 							Expect(runCommand).To(Equal(boshssh.NewSCPArgs([]string{"from:file", "/something"}, true)))
 						})
 
 						It("returns error if SCP errors", func() {
-							agentClient.EXPECT().SetUpSSH(gomock.Any(), gomock.Any()).
-								Times(1)
-							agentClient.EXPECT().CleanUpSSH(gomock.Any()).
-								Times(1)
 							scpRunner.RunReturns(errors.New("fake-scp-err"))
 
 							err := command.Run(scpOpts)

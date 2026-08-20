@@ -13,6 +13,10 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . LegacyDeploymentStateMigrator
+
 type LegacyDeploymentStateMigrator interface {
 	MigrateIfExists(configPath string) (migrated bool, err error)
 }

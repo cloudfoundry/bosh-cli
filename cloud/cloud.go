@@ -15,6 +15,10 @@ const MaxCpiApiVersionSupported = 2
 const StemcellNoRegistryAsOfVersion = 2
 const DefaultCPIVersion = 1
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . Cloud
+
 type Cloud interface {
 	CreateStemcell(imagePath string, cloudProperties biproperty.Map) (stemcellCID string, err error)
 	DeleteStemcell(stemcellCID string) error

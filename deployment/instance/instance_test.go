@@ -7,7 +7,6 @@ import (
 	bias "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -15,7 +14,7 @@ import (
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	fakebidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk/fakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
-	mock_instance_state "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/statefakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
@@ -24,19 +23,9 @@ import (
 
 var _ = Describe("Instance", func() {
 
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
-		mockStateBuilder *mock_instance_state.MockBuilder
-		mockState        *mock_instance_state.MockState
+		mockStateBuilder *statefakes.FakeBuilder
+		mockState        *statefakes.FakeState
 
 		fakeVMManager        *fakebivm.FakeManager
 		fakeVM               *fakebivm.FakeVM
@@ -65,8 +54,8 @@ var _ = Describe("Instance", func() {
 		fakeSSHTunnel.SetStartBehavior(nil, nil)
 		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
 
-		mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
-		mockState = mock_instance_state.NewMockState(mockCtrl)
+		mockStateBuilder = &statefakes.FakeBuilder{}
+		mockState = &statefakes.FakeState{}
 
 		logger = &loggerfakes.FakeLogger{}
 
@@ -294,10 +283,6 @@ var _ = Describe("Instance", func() {
 			deploymentManifest bideplmanifest.Manifest
 
 			applySpec bias.ApplySpec
-
-			expectStateBuild *gomock.Call
-
-			expectStateBuildInitialState *gomock.Call
 		)
 
 		BeforeEach(func() {
@@ -322,17 +307,28 @@ var _ = Describe("Instance", func() {
 			fakeAgentState := agentclient.AgentState{JobState: "testing"}
 			fakeVM.GetStateResult = fakeAgentState
 
-			expectStateBuild = mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage, fakeAgentState).Return(mockState, nil).AnyTimes()
-			expectStateBuildInitialState = mockStateBuilder.EXPECT().BuildInitialState(jobName, jobIndex, deploymentManifest).Return(mockState, nil).AnyTimes()
-			mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
+			mockStateBuilder.BuildReturns(mockState, nil)
+			mockStateBuilder.BuildInitialStateReturns(mockState, nil)
+			mockState.ToApplySpecReturns(applySpec)
 		})
 
 		It("builds a new instance state", func() {
-			expectStateBuild.Times(1)
-			expectStateBuildInitialState.Times(1)
-
 			err := instance.UpdateJobs(deploymentManifest, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
+
+			Expect(mockStateBuilder.BuildCallCount()).To(Equal(1))
+			buildJobName, buildJobIndex, buildManifest, buildStage, buildAgentState := mockStateBuilder.BuildArgsForCall(0)
+			Expect(buildJobName).To(Equal(jobName))
+			Expect(buildJobIndex).To(Equal(jobIndex))
+			Expect(buildManifest).To(Equal(deploymentManifest))
+			Expect(buildStage).To(Equal(fakeStage))
+			Expect(buildAgentState).To(Equal(agentclient.AgentState{JobState: "testing"}))
+
+			Expect(mockStateBuilder.BuildInitialStateCallCount()).To(Equal(1))
+			initJobName, initJobIndex, initManifest := mockStateBuilder.BuildInitialStateArgsForCall(0)
+			Expect(initJobName).To(Equal(jobName))
+			Expect(initJobIndex).To(Equal(jobIndex))
+			Expect(initManifest).To(Equal(deploymentManifest))
 		})
 
 		It("tells agent to stop jobs, apply a new spec (with new rendered jobs templates), and start jobs", func() {
@@ -371,7 +367,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when instance state building fails", func() {
 			JustBeforeEach(func() {
-				expectStateBuild.Return(nil, bosherr.Error("fake-template-err")).Times(1)
+				mockStateBuilder.BuildReturns(nil, bosherr.Error("fake-template-err"))
 			})
 
 			It("returns an error", func() {

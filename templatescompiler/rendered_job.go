@@ -10,6 +10,8 @@ import (
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 )
 
+//counterfeiter:generate . RenderedJob
+
 type RenderedJob interface {
 	Job() bireljob.Job
 	Path() string // dir of multiple rendered files

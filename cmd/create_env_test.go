@@ -7,40 +7,41 @@ import (
 	"path/filepath"
 	"regexp"
 
-	mockhttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	fakeuuid "github.com/cloudfoundry/bosh-utils/uuid/fakes"
 	"github.com/cppforlife/go-patch/patch"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
-	mockagentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
-	mockblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/agentclient/agentclientfakes"
+	biblobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore"
+	"github.com/cloudfoundry/bosh-cli/v7/blobstore/blobstorefakes"
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
-	mockcloud "github.com/cloudfoundry/bosh-cli/v7/cloud/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
-	mockconfig "github.com/cloudfoundry/bosh-cli/v7/config/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/config/configfakes"
 	bicpirel "github.com/cloudfoundry/bosh-cli/v7/cpi/release"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/deploymentfakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	fakebideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest/manifestfakes"
-	mockdeployment "github.com/cloudfoundry/bosh-cli/v7/deployment/mocks"
 	bidepltpl "github.com/cloudfoundry/bosh-cli/v7/deployment/template"
 	fakebidepltpl "github.com/cloudfoundry/bosh-cli/v7/deployment/template/templatefakes"
+	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
-	mockvm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/vm/vmfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	biinstall "github.com/cloudfoundry/bosh-cli/v7/installation"
+	"github.com/cloudfoundry/bosh-cli/v7/installation/installationfakes"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	fakebiinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest/fakes"
-	mockinstall "github.com/cloudfoundry/bosh-cli/v7/installation/mocks"
 	bitarball "github.com/cloudfoundry/bosh-cli/v7/installation/tarball"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
@@ -50,26 +51,13 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
 	fakebirelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest/fakes"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
-	mockstemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/stemcell/mockfakes"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("CreateEnvCmd", func() {
-	var mockCtrl *gomock.Controller
-	var mockCloudCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-		mockCloudCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-		mockCloudCtrl.Finish()
-	})
-
 	Describe("Run", func() {
 		const (
 			directorID = "generated-director-uuid"
@@ -84,34 +72,34 @@ var _ = Describe("CreateEnvCmd", func() {
 			userInterface boshui.UI
 			manifestSHA   string
 
-			mockDeployer         *mockdeployment.MockDeployer
-			mockInstaller        *mockinstall.MockInstaller
-			mockInstallerFactory *mockinstall.MockInstallerFactory
+			mockDeployer         *deploymentfakes.FakeDeployer
+			mockInstaller        *installationfakes.FakeInstaller
+			mockInstallerFactory *installationfakes.FakeInstallerFactory
 			releaseReader        *fakebirel.FakeReader
 			releaseManager       biinstall.ReleaseManager
 
-			mockAgentClient        *mockagentclient.MockAgentClient
-			mockAgentClientFactory *mockhttpagent.MockAgentClientFactory
-			mockCloudFactory       *mockcloud.MockFactory
-			mockCloud              *mockcloud.MockCloud
+			mockAgentClient        *agentclientfakes.FakeAgentClient
+			mockAgentClientFactory *cmdfakes.FakeAgentClientFactory
+			mockCloudFactory       *cloudfakes.FakeFactory
+			mockCloud              *cloudfakes.FakeCloud
 
 			cpiRelease *fakebirel.FakeRelease
 			logger     boshlog.Logger
 
-			mockBlobstoreFactory *mockblobstore.MockFactory
-			mockBlobstore        *mockblobstore.MockBlobstore
+			mockBlobstoreFactory *blobstorefakes.FakeFactory
+			mockBlobstore        *blobstorefakes.FakeBlobstore
 
-			mockVMManagerFactory       *mockvm.MockManagerFactory
+			mockVMManagerFactory       *vmfakes.FakeManagerFactory
 			fakeVMManager              *fakebivm.FakeManager
 			fakeStemcellExtractor      *fakebistemcell.FakeExtractor
-			mockStemcellManager        *mockstemcell.MockManager
+			mockStemcellManager        *mockfakes.FakeManager
 			fakeStemcellManagerFactory *fakebistemcell.FakeManagerFactory
 
 			fakeReleaseSetParser              *fakebirelsetmanifest.FakeParser
 			fakeInstallationParser            *fakebiinstallmanifest.FakeParser
 			fakeDeploymentParser              *fakebideplmanifest.FakeParser
 			fakeDeploymentTemplateFactory     *fakebidepltpl.FakeDeploymentTemplateFactory
-			mockLegacyDeploymentStateMigrator *mockconfig.MockLegacyDeploymentStateMigrator
+			mockLegacyDeploymentStateMigrator *configfakes.FakeLegacyDeploymentStateMigrator
 			setupDeploymentStateService       biconfig.DeploymentStateService
 			fakeDeploymentValidator           *fakebideplmanifest.FakeValidator
 
@@ -128,8 +116,6 @@ var _ = Describe("CreateEnvCmd", func() {
 			cpiApiVersion          int
 			extractedStemcell      bistemcell.ExtractedStemcell
 
-			expectDeploy *gomock.Call
-
 			releaseSetManifest     birelsetmanifest.Manifest
 			template               bidepltpl.DeploymentTemplate
 			boshDeploymentManifest bideplmanifest.Manifest
@@ -140,12 +126,6 @@ var _ = Describe("CreateEnvCmd", func() {
 			defaultCreateEnvOpts opts.CreateEnvOpts
 
 			expectedSkipDrain bool
-
-			expectLegacyMigrate        *gomock.Call
-			expectStemcellUpload       *gomock.Call
-			expectStemcellDeleteUnused *gomock.Call
-			expectInstall              *gomock.Call
-			expectNewCloud             *gomock.Call
 
 			expectedDeployError error
 		)
@@ -168,29 +148,29 @@ var _ = Describe("CreateEnvCmd", func() {
 			err := fs.WriteFileString(deploymentManifestPath, "")
 			Expect(err).ToNot(HaveOccurred())
 
-			mockDeployer = mockdeployment.NewMockDeployer(mockCtrl)
-			mockInstaller = mockinstall.NewMockInstaller(mockCtrl)
-			mockInstallerFactory = mockinstall.NewMockInstallerFactory(mockCtrl)
+			mockDeployer = &deploymentfakes.FakeDeployer{}
+			mockInstaller = &installationfakes.FakeInstaller{}
+			mockInstallerFactory = &installationfakes.FakeInstallerFactory{}
 
 			releaseReader = &fakebirel.FakeReader{}
 			releaseManager = biinstall.NewReleaseManager(logger)
 
-			mockAgentClientFactory = mockhttpagent.NewMockAgentClientFactory(mockCtrl)
-			mockAgentClient = mockagentclient.NewMockAgentClient(mockCtrl)
-			mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any(), gomock.Any()).Return(mockAgentClient, nil).AnyTimes()
+			mockAgentClientFactory = &cmdfakes.FakeAgentClientFactory{}
+			mockAgentClient = &agentclientfakes.FakeAgentClient{}
+			mockAgentClientFactory.NewAgentClientReturns(mockAgentClient, nil)
 
-			mockCloudFactory = mockcloud.NewMockFactory(mockCtrl)
+			mockCloudFactory = &cloudfakes.FakeFactory{}
 
-			mockBlobstoreFactory = mockblobstore.NewMockFactory(mockCtrl)
-			mockBlobstore = mockblobstore.NewMockBlobstore(mockCtrl)
-			mockBlobstoreFactory.EXPECT().Create(mbusURL, SecureTLSClientMatcher()).Return(mockBlobstore, nil).AnyTimes()
+			mockBlobstoreFactory = &blobstorefakes.FakeFactory{}
+			mockBlobstore = &blobstorefakes.FakeBlobstore{}
+			mockBlobstoreFactory.CreateReturns(mockBlobstore, nil)
 
-			mockVMManagerFactory = mockvm.NewMockManagerFactory(mockCtrl)
+			mockVMManagerFactory = &vmfakes.FakeManagerFactory{}
 			fakeVMManager = fakebivm.NewFakeManager()
-			mockVMManagerFactory.EXPECT().NewManager(gomock.Any(), mockAgentClient).Return(fakeVMManager).AnyTimes()
+			mockVMManagerFactory.NewManagerReturns(fakeVMManager)
 
 			fakeStemcellExtractor = fakebistemcell.NewFakeExtractor()
-			mockStemcellManager = mockstemcell.NewMockManager(mockCtrl)
+			mockStemcellManager = &mockfakes.FakeManager{}
 			fakeStemcellManagerFactory = fakebistemcell.NewFakeManagerFactory()
 
 			fakeReleaseSetParser = fakebirelsetmanifest.NewFakeParser()
@@ -198,7 +178,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			fakeDeploymentParser = &fakebideplmanifest.FakeParser{}
 			fakeDeploymentTemplateFactory = &fakebidepltpl.FakeDeploymentTemplateFactory{}
 
-			mockLegacyDeploymentStateMigrator = mockconfig.NewMockLegacyDeploymentStateMigrator(mockCtrl)
+			mockLegacyDeploymentStateMigrator = &configfakes.FakeLegacyDeploymentStateMigrator{}
 
 			configUUIDGenerator = &fakeuuid.FakeGenerator{}
 			configUUIDGenerator.GeneratedUUID = directorID
@@ -380,7 +360,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			command = cmd.NewCreateEnvCmd(userInterface, doGet)
 
-			expectLegacyMigrate = mockLegacyDeploymentStateMigrator.EXPECT().MigrateIfExists(filepath.Join("/", "path", "to", "bosh-deployments.yml")).AnyTimes()
+			mockLegacyDeploymentStateMigrator.MigrateIfExistsReturns(false, nil)
 
 			extractedStemcell = bistemcell.NewExtractedStemcell(
 				bistemcell.Manifest{
@@ -400,17 +380,17 @@ var _ = Describe("CreateEnvCmd", func() {
 			cloudStemcell = fakebistemcell.NewFakeCloudStemcell(
 				"fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version", stemcellApiVersion)
 
-			mockCloud = mockcloud.NewMockCloud(mockCloudCtrl)
-			mockCloud.EXPECT().Info().Return(bicloud.CpiInfo{ApiVersion: cpiApiVersion}, nil).AnyTimes()
-			mockCloud.EXPECT().String().AnyTimes()
+			mockCloud = &cloudfakes.FakeCloud{}
+			mockCloud.InfoReturns(bicloud.CpiInfo{ApiVersion: cpiApiVersion}, nil)
+			mockCloud.StringReturns("")
 
 			fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, extractedStemcell, nil)
 
 			fakeStemcellManagerFactory.SetNewManagerBehavior(mockCloud, mockStemcellManager)
 
-			expectStemcellUpload = mockStemcellManager.EXPECT().Upload(extractedStemcell, fakeStage).Return(cloudStemcell, nil).AnyTimes()
+			mockStemcellManager.UploadReturns(cloudStemcell, nil)
 
-			expectStemcellDeleteUnused = mockStemcellManager.EXPECT().DeleteUnused(fakeStage).AnyTimes()
+			mockStemcellManager.DeleteUnusedReturns(nil)
 
 			fakeReleaseSetParser.ParseManifest = releaseSetManifest
 			template := bidepltpl.NewDeploymentTemplate([]byte("--- {\"test\":true}"))
@@ -428,30 +408,23 @@ var _ = Describe("CreateEnvCmd", func() {
 				filepath.Join(target.JobsPath(), "fake-cpi-release-job-name"),
 			)
 
-			mockInstallerFactory.EXPECT().NewInstaller(target).Return(mockInstaller).AnyTimes()
+			mockInstallerFactory.NewInstallerReturns(mockInstaller)
 
 			installation := biinstall.NewInstallation(target, []biinstall.InstalledJob{installedJob},
 				installationManifest)
 
-			expectInstall = mockInstaller.EXPECT().Install(installationManifest, gomock.Any()).Do(func(_ interface{}, stage boshui.Stage) {
+			mockInstaller.InstallStub = func(_ biinstallmanifest.Manifest, stage boshui.Stage) (biinstall.Installation, error) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
-			}).Return(installation, nil).AnyTimes()
-			mockInstaller.EXPECT().Cleanup(installation).AnyTimes()
+				return installation, nil
+			}
+			mockInstaller.CleanupReturns(nil)
 
-			expectDeploy = mockDeployer.EXPECT().Deploy(
-				mockCloud,
-				boshDeploymentManifest,
-				cloudStemcell,
-				fakeVMManager,
-				mockBlobstore,
-				expectedSkipDrain,
-				gomock.Any(),
-				gomock.Any(),
-			).Do(func(_, _, _, _, _, _ interface{}, _ interface{}, stage boshui.Stage) {
+			mockDeployer.DeployStub = func(_ bicloud.Cloud, _ bideplmanifest.Manifest, _ bistemcell.CloudStemcell, _ bivm.Manager, _ biblobstore.Blobstore, _ bool, _ []string, stage boshui.Stage) (deployment.Deployment, error) {
 				Expect(fakeStage.SubStages).To(ContainElement(stage))
-			}).Return(nil, expectedDeployError).AnyTimes()
+				return nil, expectedDeployError
+			}
 
-			expectNewCloud = mockCloudFactory.EXPECT().NewCloud(installation, directorID, stemcellApiVersion).Return(mockCloud, nil).AnyTimes()
+			mockCloudFactory.NewCloudReturns(mockCloud, nil)
 		})
 
 		Describe("prints the deployment manifest and state file", func() {
@@ -489,22 +462,22 @@ var _ = Describe("CreateEnvCmd", func() {
 			err := fs.WriteFileString(deploymentStatePath, "{}")
 			Expect(err).ToNot(HaveOccurred())
 
-			expectLegacyMigrate.Times(0)
-
 			err = command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
+			Expect(mockLegacyDeploymentStateMigrator.MigrateIfExistsCallCount()).To(Equal(0))
 		})
 
 		It("migrates the legacy bosh-deployments.yml if manifest-state.json does not exist", func() {
 			err := fs.RemoveAll(deploymentStatePath)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectLegacyMigrate.Return(true, nil).Times(1)
+			mockLegacyDeploymentStateMigrator.MigrateIfExistsReturns(true, nil)
 
 			err = command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
+			Expect(mockLegacyDeploymentStateMigrator.MigrateIfExistsCallCount()).To(Equal(1))
 
 			Expect(stdOut).To(gbytes.Say("Deployment manifest: '" + regexp.QuoteMeta(filepath.Join("/", "path", "to", "manifest.yml")) + "'"))
 			Expect(stdOut).To(gbytes.Say("Deployment state: '" + regexp.QuoteMeta(filepath.Join("/", "path", "to", "manifest-state.json")) + "'"))
@@ -577,11 +550,10 @@ var _ = Describe("CreateEnvCmd", func() {
 		})
 
 		It("installs the CPI locally", func() {
-			expectInstall.Times(1)
-			expectNewCloud.Times(1)
-
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(mockInstaller.InstallCallCount()).To(Equal(1))
+			Expect(mockCloudFactory.NewCloudCallCount()).To(Equal(1))
 		})
 
 		It("adds a new 'installing CPI' event logger stage", func() {
@@ -609,10 +581,9 @@ var _ = Describe("CreateEnvCmd", func() {
 		})
 
 		It("uploads the stemcell", func() {
-			expectStemcellUpload.Times(1)
-
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).ToNot(HaveOccurred())
+			Expect(mockStemcellManager.UploadCallCount()).To(Equal(1))
 		})
 
 		It("adds a new 'deploying' event logger stage", func() {
@@ -626,10 +597,9 @@ var _ = Describe("CreateEnvCmd", func() {
 		})
 
 		It("deploys", func() {
-			expectDeploy.Times(1)
-
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(mockDeployer.DeployCallCount()).To(Equal(1))
 		})
 
 		It("updates the deployment record", func() {
@@ -650,10 +620,9 @@ var _ = Describe("CreateEnvCmd", func() {
 		})
 
 		It("deletes unused stemcells", func() {
-			expectStemcellDeleteUnused.Times(1)
-
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(mockStemcellManager.DeleteUnusedCallCount()).To(Equal(1))
 		})
 
 		Context("when SkipDrain is specified", func() {
@@ -662,12 +631,14 @@ var _ = Describe("CreateEnvCmd", func() {
 			})
 
 			It("passes it through", func() {
-				expectDeploy.Times(1)
-
 				defaultCreateEnvOpts.SkipDrain = true
 
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
+
+				Expect(mockDeployer.DeployCallCount()).To(Equal(1))
+				_, _, _, _, _, gotSkipDrain, _, _ := mockDeployer.DeployArgsForCall(0)
+				Expect(gotSkipDrain).To(Equal(expectedSkipDrain))
 			})
 		})
 
@@ -695,29 +666,26 @@ var _ = Describe("CreateEnvCmd", func() {
 			})
 
 			It("skips deploy", func() {
-				expectDeploy.Times(0)
-
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
+				Expect(mockDeployer.DeployCallCount()).To(Equal(0))
 			})
 
 			It("deploys if `recreate` flag is specified", func() {
-				expectDeploy.Times(1)
-
 				defaultCreateEnvOpts.Recreate = true
 
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
+				Expect(mockDeployer.DeployCallCount()).To(Equal(1))
 			})
 
 			It("deploys if `recreate-persistent-disks` flag is specified", func() {
-				expectDeploy.Times(1)
-
 				defaultCreateEnvOpts.RecreatePersistentDisks = true
 
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
+				Expect(mockDeployer.DeployCallCount()).To(Equal(1))
 			})
 		})
 
@@ -796,11 +764,10 @@ var _ = Describe("CreateEnvCmd", func() {
 			})
 
 			It("installs the CPI release locally", func() {
-				expectInstall.Times(1)
-				expectNewCloud.Times(1)
-
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
+				Expect(mockInstaller.InstallCallCount()).To(Equal(1))
+				Expect(mockCloudFactory.NewCloudCallCount()).To(Equal(1))
 			})
 
 			It("updates the deployment record", func() {
@@ -910,20 +877,18 @@ var _ = Describe("CreateEnvCmd", func() {
 				})
 
 				It("skips deploy", func() {
-					expectDeploy.Times(0)
-
 					err := command.Run(fakeStage, defaultCreateEnvOpts)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(stdOut).To(gbytes.Say("No deployment, stemcell or release changes. Skipping deploy."))
+					Expect(mockDeployer.DeployCallCount()).To(Equal(0))
 				})
 
 				It("deploys if recreate flag is specified", func() {
-					expectDeploy.Times(1)
-
 					defaultCreateEnvOpts.Recreate = true
 
 					err := command.Run(fakeStage, defaultCreateEnvOpts)
 					Expect(err).NotTo(HaveOccurred())
+					Expect(mockDeployer.DeployCallCount()).To(Equal(1))
 				})
 			})
 		})
@@ -1045,7 +1010,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 		Context("when uploading stemcell fails", func() {
 			JustBeforeEach(func() {
-				expectStemcellUpload.Return(nil, bosherr.Error("fake-upload-error"))
+				mockStemcellManager.UploadReturns(nil, bosherr.Error("fake-upload-error"))
 			})
 
 			It("returns an error", func() {
@@ -1058,17 +1023,6 @@ var _ = Describe("CreateEnvCmd", func() {
 		Context("when deploy fails", func() {
 			BeforeEach(func() {
 				expectedDeployError = errors.New("fake-deploy-error")
-
-				mockDeployer.EXPECT().Deploy(
-					mockCloud,
-					boshDeploymentManifest,
-					cloudStemcell,
-					fakeVMManager,
-					mockBlobstore,
-					expectedSkipDrain,
-					gomock.Any(),
-					gomock.Any(),
-				).Return(nil, expectedDeployError).AnyTimes()
 
 				previousDeploymentState := biconfig.DeploymentState{
 					CurrentReleaseIDs: []string{"my-release-id-1"},
@@ -1139,11 +1093,11 @@ var _ = Describe("CreateEnvCmd", func() {
 				}`)
 				Expect(err).ToNot(HaveOccurred())
 
-				expectDeploy.Do(func(_, _, _, _, _, _ interface{}, diskCIDs []string, _ interface{}) {
-					Expect(diskCIDs).To(ConsistOf("disk-cid-from-state"))
-				})
 				err = command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
+
+				_, _, _, _, _, _, diskCIDs, _ := mockDeployer.DeployArgsForCall(0)
+				Expect(diskCIDs).To(ConsistOf("disk-cid-from-state"))
 			})
 
 			It("constructs and empty array of disks using make, due to odd behavior in golang where empty var []string marshals as null", func() {
@@ -1153,13 +1107,13 @@ var _ = Describe("CreateEnvCmd", func() {
 				}`)
 				Expect(err).ToNot(HaveOccurred())
 
-				expectDeploy.Do(func(_, _, _, _, _, _ interface{}, diskCIDs []string, _ interface{}) {
-					jsonMarshalOfDisks, err := json.Marshal(diskCIDs)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(string(jsonMarshalOfDisks)).To(Equal("[]"))
-				})
 				err = command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
+
+				_, _, _, _, _, _, diskCIDs, _ := mockDeployer.DeployArgsForCall(0)
+				jsonMarshalOfDisks, err := json.Marshal(diskCIDs)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(jsonMarshalOfDisks)).To(Equal("[]"))
 			})
 		})
 	})

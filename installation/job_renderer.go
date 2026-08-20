@@ -12,6 +12,8 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
+//counterfeiter:generate . JobRenderer
+
 type JobRenderer interface {
 	RenderAndUploadFrom(biinstallmanifest.Manifest, []bireljob.Job, biui.Stage) ([]RenderedJobRef, error)
 }

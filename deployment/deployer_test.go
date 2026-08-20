@@ -5,47 +5,36 @@ import (
 
 	"github.com/cloudfoundry/bosh-agent/v2/agentclient"
 	bias "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
-	mock_httpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http/mocks"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	mock_agentclient "github.com/cloudfoundry/bosh-cli/v7/agentclient/mocks"
-	mock_blobstore "github.com/cloudfoundry/bosh-cli/v7/blobstore/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/agentclient/agentclientfakes"
+	"github.com/cloudfoundry/bosh-cli/v7/blobstore/blobstorefakes"
 	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	fakebiconfig "github.com/cloudfoundry/bosh-cli/v7/config/fakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment"
 	biinstance "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
-	mock_instance_state "github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/statefakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/fakes"
 	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
-	mock_vm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/mocks"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/vm/vmfakes"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
 var _ = Describe("Deployer", func() {
-	var mockCtrl *gomock.Controller
-
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
-	})
-
 	var (
 		deployer               Deployer
-		mockVMManagerFactory   *mock_vm.MockManagerFactory
+		mockVMManagerFactory   *vmfakes.FakeManagerFactory
 		fakeVMManager          *fakebivm.FakeManager
-		mockAgentClient        *mock_agentclient.MockAgentClient
-		mockAgentClientFactory *mock_httpagent.MockAgentClientFactory
+		mockAgentClient        *agentclientfakes.FakeAgentClient
+		mockAgentClientFactory *cmdfakes.FakeAgentClientFactory
 		fakeSSHTunnelFactory   *fakebisshtunnel.FakeFactory
 		fakeSSHTunnel          *fakebisshtunnel.FakeTunnel
 		cloud                  *fakebicloud.FakeCloud
@@ -60,11 +49,11 @@ var _ = Describe("Deployer", func() {
 
 		applySpec bias.ApplySpec
 
-		mockStateBuilderFactory *mock_instance_state.MockBuilderFactory
-		mockStateBuilder        *mock_instance_state.MockBuilder
-		mockState               *mock_instance_state.MockState
+		mockStateBuilderFactory *statefakes.FakeBuilderFactory
+		mockStateBuilder        *statefakes.FakeBuilder
+		mockState               *statefakes.FakeState
 
-		mockBlobstore *mock_blobstore.MockBlobstore
+		mockBlobstore *blobstorefakes.FakeBlobstore
 	)
 
 	BeforeEach(func() {
@@ -98,13 +87,13 @@ var _ = Describe("Deployer", func() {
 		diskCIDs = []string{"fake-disk-cid-1"}
 		cloud = fakebicloud.NewFakeCloud()
 
-		mockAgentClientFactory = mock_httpagent.NewMockAgentClientFactory(mockCtrl)
-		mockAgentClient = mock_agentclient.NewMockAgentClient(mockCtrl)
-		mockAgentClientFactory.EXPECT().NewAgentClient(gomock.Any(), gomock.Any(), gomock.Any()).Return(mockAgentClient, nil).AnyTimes()
+		mockAgentClientFactory = &cmdfakes.FakeAgentClientFactory{}
+		mockAgentClient = &agentclientfakes.FakeAgentClient{}
+		mockAgentClientFactory.NewAgentClientReturns(mockAgentClient, nil)
 
-		mockVMManagerFactory = mock_vm.NewMockManagerFactory(mockCtrl)
+		mockVMManagerFactory = &vmfakes.FakeManagerFactory{}
 		fakeVMManager = fakebivm.NewFakeManager()
-		mockVMManagerFactory.EXPECT().NewManager(cloud, mockAgentClient).Return(fakeVMManager).AnyTimes()
+		mockVMManagerFactory.NewManagerReturns(fakeVMManager)
 
 		fakeSSHTunnelFactory = fakebisshtunnel.NewFakeFactory()
 		fakeSSHTunnel = fakebisshtunnel.NewFakeTunnel()
@@ -131,14 +120,14 @@ var _ = Describe("Deployer", func() {
 
 		cloudStemcell = bistemcell.NewCloudStemcell(stemcellRecord, fakeStemcellRepo, cloud)
 
-		mockStateBuilderFactory = mock_instance_state.NewMockBuilderFactory(mockCtrl)
-		mockStateBuilder = mock_instance_state.NewMockBuilder(mockCtrl)
-		mockState = mock_instance_state.NewMockState(mockCtrl)
+		mockStateBuilderFactory = &statefakes.FakeBuilderFactory{}
+		mockStateBuilder = &statefakes.FakeBuilder{}
+		mockState = &statefakes.FakeState{}
 
 		instanceFactory := biinstance.NewFactory(mockStateBuilderFactory)
 		instanceManagerFactory := biinstance.NewManagerFactory(fakeSSHTunnelFactory, instanceFactory, logger)
 
-		mockBlobstore = mock_blobstore.NewMockBlobstore(mockCtrl)
+		mockBlobstore = &blobstorefakes.FakeBlobstore{}
 
 		pingTimeout := 10 * time.Second
 		pingDelay := 500 * time.Millisecond
@@ -153,9 +142,6 @@ var _ = Describe("Deployer", func() {
 	})
 
 	JustBeforeEach(func() {
-		jobName := "fake-job-name"
-		jobIndex := 0
-
 		// since we're just passing this from State.ToApplySpec() to VM.Apply(), it doesn't need to be filled out
 		applySpec = bias.ApplySpec{
 			Deployment: "fake-deployment-name",
@@ -164,10 +150,10 @@ var _ = Describe("Deployer", func() {
 		fakeAgentState := agentclient.AgentState{}
 		fakeVM.GetStateResult = fakeAgentState
 
-		mockStateBuilderFactory.EXPECT().NewBuilder(mockBlobstore, mockAgentClient).Return(mockStateBuilder).AnyTimes()
-		mockStateBuilder.EXPECT().Build(jobName, jobIndex, deploymentManifest, fakeStage, fakeAgentState).Return(mockState, nil).AnyTimes()
-		mockStateBuilder.EXPECT().BuildInitialState(jobName, jobIndex, deploymentManifest).Return(mockState, nil).AnyTimes()
-		mockState.EXPECT().ToApplySpec().Return(applySpec).AnyTimes()
+		mockStateBuilderFactory.NewBuilderReturns(mockStateBuilder)
+		mockStateBuilder.BuildReturns(mockState, nil)
+		mockStateBuilder.BuildInitialStateReturns(mockState, nil)
+		mockState.ToApplySpecReturns(applySpec)
 	})
 
 	Context("when a previous instance exists", func() {
