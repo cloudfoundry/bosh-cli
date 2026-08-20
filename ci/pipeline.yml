@@ -90,19 +90,19 @@ jobs:
     public: true
     plan:
       - in_parallel:
-          - get: warden-cpi-image
+          - get: docker-cpi-image
           - get: bosh-cli
             passed:
               - test-unit
               - test-integration
             trigger: true
-          - get: bosh-warden-cpi-release
+          - get: bosh-docker-cpi-release
             trigger: true
           - get: stemcell
-            resource: bosh-warden-stemcell-jammy
+            resource: bosh-stemcell-noble
       - task: test-acceptance
         file: bosh-cli/ci/tasks/test-acceptance.yml
-        image: warden-cpi-image
+        image: docker-cpi-image
         privileged: true
 
   - name: integration-postgres
@@ -496,15 +496,16 @@ resources:
       branch: main
       private_key: ((github_deploy_key_config-server.private_key))
 
-  - name: bosh-warden-stemcell-jammy
+  # The docker CPI consumes warden-boshlite stemcells.
+  - name: bosh-stemcell-noble
     type: bosh-io-stemcell
     source:
-      name: bosh-warden-boshlite-ubuntu-jammy-go_agent
+      name: bosh-warden-boshlite-ubuntu-noble
 
-  - name: bosh-warden-cpi-release
+  - name: bosh-docker-cpi-release
     type: bosh-io-release
     source:
-      repository: cppforlife/bosh-warden-cpi-release
+      repository: cloudfoundry/bosh-docker-cpi-release
 
   - name: golang-release
     type: git
@@ -531,10 +532,11 @@ resources:
       username: ((bosh-dockerhub.username))
       password: ((bosh-dockerhub.password))
 
-  - name: warden-cpi-image
+  - name: docker-cpi-image
     type: registry-image
     source:
-      repository: ghcr.io/cloudfoundry/bosh/warden-cpi
+      repository: ghcr.io/cloudfoundry/bosh/docker-cpi
+      tag: main
       username: ((github_read_write_packages.username))
       password: ((github_read_write_packages.password))
 

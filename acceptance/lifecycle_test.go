@@ -42,7 +42,7 @@ var _ = Describe("bosh", func() {
 		instanceSSH      InstanceSSH
 		instanceUsername = "vcap"
 		instancePassword = "sshpassword" // encrypted value must be in the manifest: resource_pool.env.bosh.password
-		instanceIP       = "10.244.0.42"
+		instanceIP       = "10.245.0.42"
 	)
 
 	var readLogFile = func(logPath string) (stdout string) {
@@ -197,7 +197,10 @@ var _ = Describe("bosh", func() {
 			logger,
 		)
 
-		extraDeployArgs = []string{"--vars-store", testEnv.Path("vars.yml")}
+		extraDeployArgs = []string{
+			"--vars-store", testEnv.Path("vars.yml"),
+			"--vars-file", config.DockerVarsPath,
+		}
 
 		cmdRunner = NewCmdRunner(logger)
 
@@ -258,7 +261,7 @@ var _ = Describe("bosh", func() {
 			nextStep := func() int { stepIndex++; return stepIndex }
 
 			validatingSteps, doneIndex := findStage(outputLines, "validating", doneIndex)
-			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'bosh-warden-cpi'" + stageFinishedPattern))
+			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'bosh-docker-cpi'" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating release 'sample-release'" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating cpi release" + stageFinishedPattern))
 			Expect(validatingSteps[nextStep()]).To(MatchRegexp("^  Validating deployment manifest" + stageFinishedPattern))
@@ -271,7 +274,7 @@ var _ = Describe("bosh", func() {
 			}
 			Expect(installingSteps[numInstallingSteps-3]).To(MatchRegexp("^  Installing packages" + stageFinishedPattern))
 			Expect(installingSteps[numInstallingSteps-2]).To(MatchRegexp("^  Rendering job templates" + stageFinishedPattern))
-			Expect(installingSteps[numInstallingSteps-1]).To(MatchRegexp("^  Installing job 'warden_cpi'" + stageFinishedPattern))
+			Expect(installingSteps[numInstallingSteps-1]).To(MatchRegexp("^  Installing job 'docker_cpi'" + stageFinishedPattern))
 
 			deployingSteps, _ := findStage(outputLines, "deploying", doneIndex+1)
 			numDeployingSteps := len(deployingSteps)

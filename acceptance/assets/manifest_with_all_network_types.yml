@@ -2,7 +2,7 @@
 name: test-release
 
 releases:
-- name: bosh-warden-cpi
+- name: bosh-docker-cpi
   url: {{ .CPIReleaseURL }}
 - name: sample-release
   url: file://{{ .DummyCompiledReleasePath }}
@@ -17,8 +17,16 @@ resource_pools:
         cert: ((mbus))
       authorized_keys:
       - ((ssh_tunnel.public_key))
+      blobstores:
+      - provider: local
+        options:
+          blobstore_path: /var/vcap/micro_bosh/data/cache
   stemcell:
     url: {{ .StemcellURL }}
+  cloud_properties:
+    ports:
+    - 22/tcp   # ssh_tunnel
+    - 6868/tcp # agent mbus
 
 disk_pools:
 - name: persistent
@@ -28,43 +36,41 @@ networks:
 - name: fake-network-name
   type: manual
   subnets:
-  - range: 10.244.0.40/30
-    gateway: 10.244.0.41
+  # Carved out of the docker network created by start-docker (10.245.0.0/16).
+  - range: 10.245.0.40/30
+    gateway: 10.245.0.41
     dns: [8.8.8.8]
     cloud_properties:
-      subnet: fake-subnet
+      name: director_network
 - name: dynamic-network
   type: dynamic
+  cloud_properties:
+    name: dynamic_network
 - name: vip-network
   type: vip
+  cloud_properties:
+    name: vip_network
 
 cloud_provider:
   template:
-    name: warden_cpi
-    release: bosh-warden-cpi
+    name: docker_cpi
+    release: bosh-docker-cpi
   ssh_tunnel:
-    host: 10.244.0.42
+    host: 10.245.0.42
     port: 22
     user: vcap
     private_key: ((ssh_tunnel.private_key))
-  mbus: https://admin:admin@10.244.0.42:6868
+  mbus: https://admin:admin@10.245.0.42:6868
   cert:
     ca: ((mbus.ca))
   properties:
-    warden_cpi: &warden_cpi
-      actions:
-        expand_stemcell_tarball: false
-      warden:
-        connect_network: tcp
-        connect_address: 0.0.0.0:7777
-        network_pool: 10.244.0.0/16
-        host_ip: 192.168.54.4
+    docker_cpi: &docker_cpi
+      docker:
+        host: ((docker_host))
+        tls: ((docker_tls))
       agent:
         mbus: https://admin:admin@0.0.0.0:6868
-        blobstore:
-          provider: local
-          options:
-            blobstore_path: /var/vcap/micro_bosh/data/cache
+      start_containers_with_systemd: true
 
 instance_groups:
 - name: dummy_instance_group
@@ -75,13 +81,13 @@ instance_groups:
   resource_pool: fake-resource-pool-name
   networks:
   - name: fake-network-name
-    static_ips: [10.244.0.42]
+    static_ips: [10.245.0.42]
     default: [dns, gateway]
   - name: dynamic-network
   - name: vip-network
   persistent_disk_pool: persistent
   properties:
-    cpi: *warden_cpi
+    cpi: *docker_cpi
     dummy_with_properties:
       echo_value: "hi"
     ntp: []
@@ -95,7 +101,7 @@ variables:
   type: certificate
   options:
     common_name: bosh.integration.test
-    alternative_names: [10.244.0.42]
+    alternative_names: [10.245.0.42]
     ca: default_ca
 - name: ssh_tunnel
   type: ssh

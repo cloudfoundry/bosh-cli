@@ -3,7 +3,7 @@ platform: linux
 
 inputs:
 - name: bosh-cli
-- name: bosh-warden-cpi-release
+- name: bosh-docker-cpi-release
   path: cpi-release
 - name: stemcell
 
