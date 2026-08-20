@@ -145,7 +145,8 @@ var _ = Describe("bosh", func() {
 	}
 
 	var shutdownAgent = func() {
-		_, _, exitCode, err := instanceSSH.RunCommandWithSudo("sv stop agent")
+		// noble stemcells supervise the agent with systemd; earlier ones used runit ('sv stop agent')
+		_, _, exitCode, err := instanceSSH.RunCommandWithSudo("systemctl stop agent")
 		Expect(err).ToNot(HaveOccurred())
 		Expect(exitCode).To(Equal(0))
 	}
