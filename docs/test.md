@@ -19,7 +19,7 @@ build on the pipeline's `test-acceptance` job to pick up its image, CPI release
 and stemcell, and override only the source under test:
 
 ```bash
-./fly -t bosh execute -p \
+fly -t bosh execute -p \
   -c ci/tasks/test-acceptance.yml \
   --inputs-from bosh-cli/test-acceptance \
   --image docker-cpi-image \

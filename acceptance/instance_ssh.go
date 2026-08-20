@@ -55,6 +55,8 @@ Host docker-vm
 	Hostname %s
 	User %s
 	StrictHostKeyChecking no
+	UserKnownHostsFile /dev/null
+	GlobalKnownHostsFile /dev/null
     IdentityFile %s
 `
 	sshConfig := fmt.Sprintf(
