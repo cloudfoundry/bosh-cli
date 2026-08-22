@@ -58,7 +58,7 @@ type CmdOutput struct {
 	Log    string      `json:"log"`
 }
 
-//#go:generate counterfeiter -o fakes/fake_cpi_cmd_runner.go . CPICmdRunner
+//counterfeiter:generate . CPICmdRunner
 
 type CPICmdRunner interface {
 	Run(context CmdContext, method string, apiVersion int, args ...interface{}) (CmdOutput, error)

@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
@@ -20,7 +20,7 @@ import (
 var _ = Describe("Manager", func() {
 	var (
 		manager           bidisk.Manager
-		fakeCloud         *fakebicloud.FakeCloud
+		fakeCloud         *cloudfakes.FakeCloud
 		fakeFs            *fakesys.FakeFileSystem
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
 		diskRepo          biconfig.DiskRepo
@@ -33,7 +33,7 @@ var _ = Describe("Manager", func() {
 		deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fakeFs, fakeUUIDGenerator, logger, "/fake/path")
 		diskRepo = biconfig.NewDiskRepo(deploymentStateService, fakeUUIDGenerator)
 		managerFactory := bidisk.NewManagerFactory(diskRepo, logger)
-		fakeCloud = fakebicloud.NewFakeCloud()
+		fakeCloud = &cloudfakes.FakeCloud{}
 		manager = managerFactory.NewManager(fakeCloud)
 		fakeUUIDGenerator.GeneratedUUID = "fake-uuid"
 	})
@@ -44,7 +44,6 @@ var _ = Describe("Manager", func() {
 		)
 
 		BeforeEach(func() {
-
 			diskPool = bideplmanifest.DiskPool{
 				Name:     "fake-disk-pool-name",
 				DiskSize: 1024,
@@ -56,7 +55,7 @@ var _ = Describe("Manager", func() {
 
 		Context("when creating disk succeeds", func() {
 			BeforeEach(func() {
-				fakeCloud.CreateDiskCID = "fake-disk-cid"
+				fakeCloud.CreateDiskReturns("fake-disk-cid", nil)
 			})
 
 			It("returns a disk", func() {
@@ -86,7 +85,7 @@ var _ = Describe("Manager", func() {
 
 		Context("when creating disk fails", func() {
 			BeforeEach(func() {
-				fakeCloud.CreateDiskErr = errors.New("fake-create-error")
+				fakeCloud.CreateDiskReturns("", errors.New("fake-create-error"))
 			})
 
 			It("returns an error", func() {
@@ -212,10 +211,9 @@ var _ = Describe("Manager", func() {
 			err := manager.DeleteUnused(fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeCloud.DeleteDiskInputs).To(Equal([]fakebicloud.DeleteDiskInput{
-				{DiskCID: "fake-disk-cid-1"},
-				{DiskCID: "fake-disk-cid-3"},
-			}))
+			Expect(fakeCloud.DeleteDiskCallCount()).To(Equal(2))
+			Expect(fakeCloud.DeleteDiskArgsForCall(0)).To(Equal("fake-disk-cid-1"))
+			Expect(fakeCloud.DeleteDiskArgsForCall(1)).To(Equal("fake-disk-cid-3"))
 
 			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Deleting unused disk 'fake-disk-cid-1'"},

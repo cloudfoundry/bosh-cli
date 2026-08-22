@@ -13,7 +13,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/agentclient/agentclientfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/blobstore/blobstorefakes"
-	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	fakebidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk/fakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
@@ -31,7 +31,7 @@ var _ = Describe("Manager", func() {
 	)
 
 	var (
-		fakeCloud *fakebicloud.FakeCloud
+		fakeCloud *cloudfakes.FakeCloud
 
 		mockStateBuilderFactory *statefakes.FakeBuilderFactory
 		mockStateBuilder        *statefakes.FakeBuilder
@@ -50,8 +50,7 @@ var _ = Describe("Manager", func() {
 	)
 
 	BeforeEach(func() {
-		fakeCloud = fakebicloud.NewFakeCloud()
-
+		fakeCloud = &cloudfakes.FakeCloud{}
 		fakeVMManager = fakebivm.NewFakeManager()
 
 		fakeSSHTunnelFactory = fakebisshtunnel.NewFakeFactory()

@@ -13,7 +13,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/agentclient/agentclientfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/blobstore/blobstorefakes"
-	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	fakebiconfig "github.com/cloudfoundry/bosh-cli/v7/config/fakes"
@@ -37,7 +37,7 @@ var _ = Describe("Deployer", func() {
 		mockAgentClientFactory *cmdfakes.FakeAgentClientFactory
 		fakeSSHTunnelFactory   *fakebisshtunnel.FakeFactory
 		fakeSSHTunnel          *fakebisshtunnel.FakeTunnel
-		cloud                  *fakebicloud.FakeCloud
+		cloud                  *cloudfakes.FakeCloud
 		deploymentManifest     bideplmanifest.Manifest
 		diskPool               bideplmanifest.DiskPool
 		fakeStage              *fakebiui.FakeStage
@@ -85,7 +85,7 @@ var _ = Describe("Deployer", func() {
 
 		skipDrain = false
 		diskCIDs = []string{"fake-disk-cid-1"}
-		cloud = fakebicloud.NewFakeCloud()
+		cloud = &cloudfakes.FakeCloud{}
 
 		mockAgentClientFactory = &cmdfakes.FakeAgentClientFactory{}
 		mockAgentClient = &agentclientfakes.FakeAgentClient{}
