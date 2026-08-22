@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
-	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 )
@@ -20,7 +20,7 @@ var _ = Describe("Disk", func() {
 	var (
 		disk                Disk
 		diskCloudProperties biproperty.Map
-		fakeCloud           *fakebicloud.FakeCloud
+		fakeCloud           *cloudfakes.FakeCloud
 		diskRepo            biconfig.DiskRepo
 		fakeUUIDGenerator   *fakeuuid.FakeGenerator
 	)
@@ -30,7 +30,7 @@ var _ = Describe("Disk", func() {
 			"fake-cloud-property-key": "fake-cloud-property-value",
 			"list-property":           []interface{}{"list-item"},
 		}
-		fakeCloud = fakebicloud.NewFakeCloud()
+		fakeCloud = &cloudfakes.FakeCloud{}
 
 		diskRecord := biconfig.DiskRecord{
 			CID:             "fake-disk-cid",
@@ -94,11 +94,8 @@ var _ = Describe("Disk", func() {
 		It("deletes disk from cloud", func() {
 			err := disk.Delete()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeCloud.DeleteDiskInputs).To(Equal([]fakebicloud.DeleteDiskInput{
-				{
-					DiskCID: "fake-disk-cid",
-				},
-			}))
+			Expect(fakeCloud.DeleteDiskCallCount()).To(Equal(1))
+			Expect(fakeCloud.DeleteDiskArgsForCall(0)).To(Equal("fake-disk-cid"))
 		})
 
 		It("deletes disk from repo", func() {
@@ -133,7 +130,7 @@ var _ = Describe("Disk", func() {
 
 		Context("when deleting disk in the cloud fails", func() {
 			BeforeEach(func() {
-				fakeCloud.DeleteDiskErr = errors.New("fake-delete-disk-error")
+				fakeCloud.DeleteDiskReturns(errors.New("fake-delete-disk-error"))
 			})
 
 			It("returns an error", func() {
@@ -156,7 +153,7 @@ var _ = Describe("Disk", func() {
 				err = diskRepo.UpdateCurrent(diskRecord.ID)
 				Expect(err).ToNot(HaveOccurred())
 
-				fakeCloud.DeleteDiskErr = deleteErr
+				fakeCloud.DeleteDiskReturns(deleteErr)
 			})
 
 			It("deletes disk in the cloud", func() {
@@ -164,11 +161,8 @@ var _ = Describe("Disk", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(Equal(deleteErr))
 
-				Expect(fakeCloud.DeleteDiskInputs).To(Equal([]fakebicloud.DeleteDiskInput{
-					{
-						DiskCID: "fake-disk-cid",
-					},
-				}))
+				Expect(fakeCloud.DeleteDiskCallCount()).To(Equal(1))
+				Expect(fakeCloud.DeleteDiskArgsForCall(0)).To(Equal("fake-disk-cid"))
 			})
 
 			It("deletes disk in the disk repo", func() {

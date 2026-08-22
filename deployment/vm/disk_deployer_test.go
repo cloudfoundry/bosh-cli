@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	fakebiconfig "github.com/cloudfoundry/bosh-cli/v7/config/fakes"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
@@ -23,7 +23,7 @@ var _ = Describe("DiskDeployer", func() {
 		diskDeployer           DiskDeployer
 		fakeDiskManager        *fakebidisk.FakeManager
 		diskPool               bideplmanifest.DiskPool
-		cloud                  *fakebicloud.FakeCloud
+		cloud                  *cloudfakes.FakeCloud
 		fakeStage              *fakebiui.FakeStage
 		fakeVM                 *fakebivm.FakeVM
 		fakeDisk               *fakebidisk.FakeDisk
@@ -33,7 +33,7 @@ var _ = Describe("DiskDeployer", func() {
 	)
 
 	BeforeEach(func() {
-		cloud = fakebicloud.NewFakeCloud()
+		cloud = &cloudfakes.FakeCloud{}
 		fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
 
 		fakeDiskManagerFactory = fakebidisk.NewFakeManagerFactory()

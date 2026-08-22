@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
-	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	fakebiconfig "github.com/cloudfoundry/bosh-cli/v7/config/fakes"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
@@ -32,7 +32,7 @@ var _ = Describe("VM", func() {
 		fakeStemcellRepo *fakebiconfig.FakeStemcellRepo
 		fakeDiskDeployer *fakebivm.FakeDiskDeployer
 		fakeAgentClient  *fakebiagentclient.FakeAgentClient
-		fakeCloud        *fakebicloud.FakeCloud
+		fakeCloud        *cloudfakes.FakeCloud
 		applySpec        bias.ApplySpec
 		diskPool         bideplmanifest.DiskPool
 		timeService      *FakeClock
@@ -59,7 +59,7 @@ var _ = Describe("VM", func() {
 
 		logger = &loggerfakes.FakeLogger{}
 		fs = fakesys.NewFakeFileSystem()
-		fakeCloud = fakebicloud.NewFakeCloud()
+		fakeCloud = &cloudfakes.FakeCloud{}
 		fakeVMRepo = fakebiconfig.NewFakeVMRepo()
 		fakeStemcellRepo = fakebiconfig.NewFakeStemcellRepo()
 		fakeDiskDeployer = fakebivm.NewFakeDiskDeployer()
@@ -78,7 +78,7 @@ var _ = Describe("VM", func() {
 
 	Describe("Exists", func() {
 		It("returns true when the vm exists", func() {
-			fakeCloud.HasVMFound = true
+			fakeCloud.HasVMReturns(true, nil)
 
 			exists, err := vm.Exists()
 			Expect(err).ToNot(HaveOccurred())
@@ -86,7 +86,7 @@ var _ = Describe("VM", func() {
 		})
 
 		It("returns false when the vm does not exist", func() {
-			fakeCloud.HasVMFound = false
+			fakeCloud.HasVMReturns(false, nil)
 
 			exists, err := vm.Exists()
 			Expect(err).ToNot(HaveOccurred())
@@ -94,7 +94,7 @@ var _ = Describe("VM", func() {
 		})
 
 		It("returns error when checking fails", func() {
-			fakeCloud.HasVMErr = errors.New("fake-has-vm-error")
+			fakeCloud.HasVMReturns(false, errors.New("fake-has-vm-error"))
 
 			_, err := vm.Exists()
 			Expect(err).To(HaveOccurred())
@@ -302,14 +302,14 @@ var _ = Describe("VM", func() {
 		It("attaches disk to vm in the cloud", func() {
 			err := vm.AttachDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeCloud.AttachDiskInput).To(Equal(fakebicloud.AttachDiskInput{
-				VMCID:   "fake-vm-cid",
-				DiskCID: "fake-disk-cid",
-			}))
+			Expect(fakeCloud.AttachDiskCallCount()).To(Equal(1))
+			vmCid, diskCid := fakeCloud.AttachDiskArgsForCall(0)
+			Expect(vmCid).To(Equal("fake-vm-cid"))
+			Expect(diskCid).To(Equal("fake-disk-cid"))
 		})
 
 		It("does not call agent AddPersistentDisk when diskHints are nil", func() {
-			fakeCloud.AttachDiskHints = nil
+			fakeCloud.AttachDiskReturns(nil, nil)
 
 			err := vm.AttachDisk(disk)
 
@@ -318,7 +318,7 @@ var _ = Describe("VM", func() {
 		})
 
 		It("adds the persistent disk to the agent", func() {
-			fakeCloud.AttachDiskHints = "/dev/sdb"
+			fakeCloud.AttachDiskReturns("/dev/sdb", nil)
 
 			err := vm.AttachDisk(disk)
 
@@ -351,8 +351,10 @@ var _ = Describe("VM", func() {
 				err := vm.AttachDisk(disk)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeCloud.SetDiskMetadataCid).To(Equal("fake-disk-cid"))
-				Expect(fakeCloud.SetDiskMetadataMetadata).To(Equal(expectedDiskMetadata))
+				Expect(fakeCloud.SetDiskMetadataCallCount()).To(Equal(1))
+				diskCid, diskMetadata := fakeCloud.SetDiskMetadataArgsForCall(0)
+				Expect(diskCid).To(Equal("fake-disk-cid"))
+				Expect(diskMetadata).To(Equal(expectedDiskMetadata))
 			})
 
 			Context("when setting metadata is not supported by the CPI", func() {
@@ -360,7 +362,7 @@ var _ = Describe("VM", func() {
 					cmdError := bicloud.CmdError{
 						Type: bicloud.NotImplementedError,
 					}
-					fakeCloud.SetDiskMetadataError = bicloud.NewCPIError("set_disk_metadata", cmdError)
+					fakeCloud.SetDiskMetadataReturns(bicloud.NewCPIError("set_disk_metadata", cmdError))
 				})
 
 				It("logs a warning", func() {
@@ -379,7 +381,7 @@ var _ = Describe("VM", func() {
 					cmdError := bicloud.CmdError{
 						Message: "some error",
 					}
-					fakeCloud.SetDiskMetadataError = bicloud.NewCPIError("set_disk_metadata", cmdError)
+					fakeCloud.SetDiskMetadataReturns(bicloud.NewCPIError("set_disk_metadata", cmdError))
 				})
 
 				It("returns an error", func() {
@@ -393,7 +395,7 @@ var _ = Describe("VM", func() {
 
 		Context("when AddPersistentDisk returns 'unknown message add_persistent_disk'", func() {
 			BeforeEach(func() {
-				fakeCloud.AttachDiskHints = "/dev/sdb"
+				fakeCloud.AttachDiskReturns("/dev/sdb", nil)
 				fakeAgentClient.AddPersistentDiskReturns(errors.New("Agent responded with error: unknown message add_persistent_disk"))
 			})
 
@@ -405,7 +407,7 @@ var _ = Describe("VM", func() {
 
 		Context("when AddPersistentDisk returns anything other than 'unknown message add_persistent_disk'", func() {
 			BeforeEach(func() {
-				fakeCloud.AttachDiskHints = "/dev/sdb"
+				fakeCloud.AttachDiskReturns("/dev/sdb", nil)
 				fakeAgentClient.AddPersistentDiskReturns(errors.New("fake-agent-error"))
 			})
 
@@ -418,7 +420,7 @@ var _ = Describe("VM", func() {
 
 		Context("when attaching disk to cloud fails", func() {
 			BeforeEach(func() {
-				fakeCloud.AttachDiskErr = errors.New("fake-attach-error")
+				fakeCloud.AttachDiskReturns(nil, errors.New("fake-attach-error"))
 			})
 
 			It("returns an error", func() {
@@ -470,10 +472,10 @@ var _ = Describe("VM", func() {
 		It("detaches disk from vm in the cloud", func() {
 			err := vm.DetachDisk(disk)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeCloud.DetachDiskInput).To(Equal(fakebicloud.DetachDiskInput{
-				VMCID:   "fake-vm-cid",
-				DiskCID: "fake-disk-cid",
-			}))
+			Expect(fakeCloud.DetachDiskCallCount()).To(Equal(1))
+			vmCid, diskCid := fakeCloud.DetachDiskArgsForCall(0)
+			Expect(vmCid).To(Equal("fake-vm-cid"))
+			Expect(diskCid).To(Equal("fake-disk-cid"))
 			Expect(fakeAgentClient.PingCallCount()).To(Equal(1))
 		})
 
@@ -502,7 +504,7 @@ var _ = Describe("VM", func() {
 
 		Context("when detaching disk to cloud fails", func() {
 			BeforeEach(func() {
-				fakeCloud.DetachDiskErr = errors.New("fake-detach-error")
+				fakeCloud.DetachDiskReturns(errors.New("fake-detach-error"))
 			})
 
 			It("returns an error", func() {
@@ -579,9 +581,8 @@ var _ = Describe("VM", func() {
 		It("deletes vm in the cloud", func() {
 			err := vm.Delete()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeCloud.DeleteVMInput).To(Equal(fakebicloud.DeleteVMInput{
-				VMCID: "fake-vm-cid",
-			}))
+			Expect(fakeCloud.DeleteVMCallCount()).To(Equal(1))
+			Expect(fakeCloud.DeleteVMArgsForCall(0)).To(Equal("fake-vm-cid"))
 		})
 
 		It("deletes VM in the vm repo", func() {
@@ -598,7 +599,7 @@ var _ = Describe("VM", func() {
 
 		Context("when deleting vm in the cloud fails", func() {
 			BeforeEach(func() {
-				fakeCloud.DeleteVMErr = errors.New("fake-delete-vm-error")
+				fakeCloud.DeleteVMReturns(errors.New("fake-delete-vm-error"))
 			})
 
 			It("returns an error", func() {
@@ -615,16 +616,14 @@ var _ = Describe("VM", func() {
 			})
 
 			BeforeEach(func() {
-				fakeCloud.DeleteVMErr = deleteErr
+				fakeCloud.DeleteVMReturns(deleteErr)
 			})
 
 			It("deletes vm in the cloud", func() {
 				err := vm.Delete()
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(Equal(deleteErr))
-				Expect(fakeCloud.DeleteVMInput).To(Equal(fakebicloud.DeleteVMInput{
-					VMCID: "fake-vm-cid",
-				}))
+				Expect(fakeCloud.DeleteVMArgsForCall(0)).To(Equal("fake-vm-cid"))
 			})
 
 			It("deletes VM in the vm repo", func() {

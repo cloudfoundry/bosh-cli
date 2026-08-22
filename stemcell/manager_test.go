@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	. "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
@@ -25,7 +25,7 @@ var _ = Describe("Manager", func() {
 		manager             Manager
 		fs                  *fakesys.FakeFileSystem
 		reader              *fakebistemcell.FakeStemcellReader
-		fakeCloud           *fakebicloud.FakeCloud
+		fakeCloud           *cloudfakes.FakeCloud
 		fakeStage           *fakebiui.FakeStage
 		stemcellTarballPath string
 		tempExtractionDir   string
@@ -43,7 +43,7 @@ var _ = Describe("Manager", func() {
 		fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-1"
 		stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
 		fakeStage = fakebiui.NewFakeStage()
-		fakeCloud = fakebicloud.NewFakeCloud()
+		fakeCloud = &cloudfakes.FakeCloud{}
 		manager = NewManager(stemcellRepo, fakeCloud)
 		stemcellTarballPath = filepath.Join("/", "stemcell", "tarball", "path")
 		tempExtractionDir = filepath.Join("/", "path", "to", "dest")
@@ -70,7 +70,7 @@ var _ = Describe("Manager", func() {
 		)
 
 		BeforeEach(func() {
-			fakeCloud.CreateStemcellCID = "fake-stemcell-cid"
+			fakeCloud.CreateStemcellReturns("fake-stemcell-cid", nil)
 			stemcellRecord := biconfig.StemcellRecord{
 				CID:     "fake-stemcell-cid",
 				Name:    "fake-stemcell-name",
@@ -84,14 +84,10 @@ var _ = Describe("Manager", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cloudStemcell).To(Equal(expectedCloudStemcell))
 
-			Expect(fakeCloud.CreateStemcellInputs).To(Equal([]fakebicloud.CreateStemcellInput{
-				{
-					ImagePath: filepath.Join(tempExtractionDir, "image"),
-					CloudProperties: biproperty.Map{
-						"fake-prop-key": "fake-prop-value",
-					},
-				},
-			}))
+			Expect(fakeCloud.CreateStemcellCallCount()).To(Equal(1))
+			imagePath, cloudProperties := fakeCloud.CreateStemcellArgsForCall(0)
+			Expect(imagePath).To(Equal(filepath.Join(tempExtractionDir, "image")))
+			Expect(cloudProperties).To(Equal(biproperty.Map{"fake-prop-key": "fake-prop-value"}))
 		})
 
 		It("saves the stemcell record in the stemcellRepo", func() {
@@ -121,7 +117,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("when the upload fails, prints failed uploading ui stage", func() {
-			fakeCloud.CreateStemcellErr = errors.New("fake-create-error")
+			fakeCloud.CreateStemcellReturns("", errors.New("fake-create-error"))
 			_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-create-error"))
@@ -163,7 +159,7 @@ var _ = Describe("Manager", func() {
 			It("does not re-upload the stemcell to the infrastructure", func() {
 				_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(fakeCloud.CreateStemcellInputs).To(HaveLen(0))
+				Expect(fakeCloud.CreateStemcellCallCount()).To(Equal(0))
 			})
 
 			It("logs skipping uploading events to the eventLogger", func() {
@@ -276,10 +272,9 @@ var _ = Describe("Manager", func() {
 			err := manager.DeleteUnused(fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeCloud.DeleteStemcellInputs).To(Equal([]fakebicloud.DeleteStemcellInput{
-				{StemcellCID: "fake-stemcell-cid-1"},
-				{StemcellCID: "fake-stemcell-cid-3"},
-			}))
+			Expect(fakeCloud.DeleteStemcellCallCount()).To(Equal(2))
+			Expect(fakeCloud.DeleteStemcellArgsForCall(0)).To(Equal("fake-stemcell-cid-1"))
+			Expect(fakeCloud.DeleteStemcellArgsForCall(1)).To(Equal("fake-stemcell-cid-3"))
 
 			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Deleting unused stemcell 'fake-stemcell-cid-1'"},

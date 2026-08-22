@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
-	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	. "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 )
@@ -19,7 +19,7 @@ var _ = Describe("CloudStemcell", func() {
 	var (
 		stemcellRepo       biconfig.StemcellRepo
 		fakeUUIDGenerator  *fakeuuid.FakeGenerator
-		fakeCloud          *fakebicloud.FakeCloud
+		fakeCloud          *cloudfakes.FakeCloud
 		cloudStemcell      CloudStemcell
 		stemcellApiVersion = 2
 	)
@@ -35,7 +35,7 @@ var _ = Describe("CloudStemcell", func() {
 		fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 		deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
 		stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
-		fakeCloud = fakebicloud.NewFakeCloud()
+		fakeCloud = &cloudfakes.FakeCloud{}
 		cloudStemcell = NewCloudStemcell(stemcellRecord, stemcellRepo, fakeCloud)
 	})
 
@@ -77,11 +77,8 @@ var _ = Describe("CloudStemcell", func() {
 		It("deletes stemcell from cloud", func() {
 			err := cloudStemcell.Delete()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeCloud.DeleteStemcellInputs).To(Equal([]fakebicloud.DeleteStemcellInput{
-				{
-					StemcellCID: "fake-stemcell-cid",
-				},
-			}))
+			Expect(fakeCloud.DeleteStemcellCallCount()).To(Equal(1))
+			Expect(fakeCloud.DeleteStemcellArgsForCall(0)).To(Equal("fake-stemcell-cid"))
 		})
 
 		It("deletes stemcell from repo", func() {
@@ -116,7 +113,7 @@ var _ = Describe("CloudStemcell", func() {
 
 		Context("when deleting stemcell in the cloud fails", func() {
 			BeforeEach(func() {
-				fakeCloud.DeleteStemcellErr = errors.New("fake-delete-stemcell-error")
+				fakeCloud.DeleteStemcellReturns(errors.New("fake-delete-stemcell-error"))
 			})
 
 			It("returns an error", func() {
@@ -139,7 +136,7 @@ var _ = Describe("CloudStemcell", func() {
 				err = stemcellRepo.UpdateCurrent(stemcellRecord.ID)
 				Expect(err).ToNot(HaveOccurred())
 
-				fakeCloud.DeleteStemcellErr = deleteErr
+				fakeCloud.DeleteStemcellReturns(deleteErr)
 			})
 
 			It("deletes stemcell in the cloud", func() {
@@ -147,11 +144,8 @@ var _ = Describe("CloudStemcell", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(Equal(deleteErr))
 
-				Expect(fakeCloud.DeleteStemcellInputs).To(Equal([]fakebicloud.DeleteStemcellInput{
-					{
-						StemcellCID: "fake-stemcell-cid",
-					},
-				}))
+				Expect(fakeCloud.DeleteStemcellCallCount()).To(Equal(1))
+				Expect(fakeCloud.DeleteStemcellArgsForCall(0)).To(Equal("fake-stemcell-cid"))
 			})
 
 			It("deletes stemcell in the disk repo", func() {

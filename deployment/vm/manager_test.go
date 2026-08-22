@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
-	fakebicloud "github.com/cloudfoundry/bosh-cli/v7/cloud/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	fakebiconfig "github.com/cloudfoundry/bosh-cli/v7/config/fakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
@@ -25,7 +25,7 @@ import (
 
 var _ = Describe("Manager", func() {
 	var (
-		fakeCloud                 *fakebicloud.FakeCloud
+		fakeCloud                 *cloudfakes.FakeCloud
 		manager                   Manager
 		logger                    boshlog.Logger
 		expectedNetworkInterfaces map[string]biproperty.Map
@@ -45,7 +45,7 @@ var _ = Describe("Manager", func() {
 	BeforeEach(func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fs = fakesys.NewFakeFileSystem()
-		fakeCloud = fakebicloud.NewFakeCloud()
+		fakeCloud = &cloudfakes.FakeCloud{}
 		fakeAgentClient = &fakebiagentclient.FakeAgentClient{}
 		fakeVMRepo = fakebiconfig.NewFakeVMRepo()
 
@@ -70,7 +70,7 @@ var _ = Describe("Manager", func() {
 			fakeTimeService,
 		)
 
-		fakeCloud.CreateVMCID = "fake-vm-cid"
+		fakeCloud.CreateVMReturns("fake-vm-cid", nil)
 		expectedNetworkInterfaces = map[string]biproperty.Map{
 			"fake-network-name": biproperty.Map{
 				"type":             "dynamic",
@@ -149,23 +149,25 @@ var _ = Describe("Manager", func() {
 			)
 			Expect(vm).To(Equal(expectedVM))
 
-			Expect(fakeCloud.CreateVMInput).To(Equal(
-				fakebicloud.CreateVMInput{
-					AgentID:            "fake-uuid-0",
-					StemcellCID:        "fake-stemcell-cid",
-					CloudProperties:    expectedCloudProperties,
-					DiskCIDs:           diskCIDs,
-					NetworksInterfaces: expectedNetworkInterfaces,
-					Env:                expectedEnv,
-				},
-			))
+			Expect(fakeCloud.CreateVMCallCount()).To(Equal(1))
+			agentID, stemcellCID, cloudProperties, diskCIDS, networksInterfaces, env :=
+				fakeCloud.CreateVMArgsForCall(0)
+			Expect(agentID).To(Equal("fake-uuid-0"))
+			Expect(stemcellCID).To(Equal("fake-stemcell-cid"))
+			Expect(cloudProperties).To(Equal(expectedCloudProperties))
+			Expect(diskCIDS).To(Equal(diskCIDs))
+			Expect(networksInterfaces).To(Equal(expectedNetworkInterfaces))
+			Expect(env).To(Equal(expectedEnv))
 		})
 
 		It("sets the vm metadata", func() {
 			_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeCloud.SetVMMetadataCid).To(Equal("fake-vm-cid"))
-			Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(bicloud.VMMetadata{
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeCloud.SetVMMetadataCallCount()).To(Equal(1))
+			vmCid, metadata := fakeCloud.SetVMMetadataArgsForCall(0)
+			Expect(vmCid).To(Equal("fake-vm-cid"))
+			Expect(metadata).To(Equal(bicloud.VMMetadata{
 				"deployment":     "fake-deployment",
 				"job":            "fake-job",
 				"instance_group": "fake-job",
@@ -196,18 +198,20 @@ var _ = Describe("Manager", func() {
 				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeCloud.CreateVMInput).To(Equal(
-					fakebicloud.CreateVMInput{
-						AgentID:            "fake-uuid-0",
-						StemcellCID:        "fake-stemcell-cid",
-						CloudProperties:    expectedCloudProperties,
-						DiskCIDs:           diskCIDs,
-						NetworksInterfaces: expectedNetworkInterfaces,
-						Env:                expectedEnv,
-					},
-				))
+				Expect(fakeCloud.CreateVMCallCount()).To(Equal(1))
+				agentID, stemcellCID, cloudProperties, diskCIDS, networksInterfaces, env :=
+					fakeCloud.CreateVMArgsForCall(0)
+				Expect(agentID).To(Equal("fake-uuid-0"))
+				Expect(stemcellCID).To(Equal("fake-stemcell-cid"))
+				Expect(cloudProperties).To(Equal(expectedCloudProperties))
+				Expect(diskCIDS).To(Equal(diskCIDs))
+				Expect(networksInterfaces).To(Equal(expectedNetworkInterfaces))
+				Expect(env).To(Equal(expectedEnv))
 
-				Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(bicloud.VMMetadata{
+				Expect(fakeCloud.SetVMMetadataCallCount()).To(Equal(1))
+				vmCid, metadata := fakeCloud.SetVMMetadataArgsForCall(0)
+				Expect(vmCid).To(Equal("fake-vm-cid"))
+				Expect(metadata).To(Equal(bicloud.VMMetadata{
 					"deployment":     "fake-deployment",
 					"job":            "fake-job",
 					"name":           "fake-job/0",
@@ -234,7 +238,10 @@ var _ = Describe("Manager", func() {
 					_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(fakeCloud.SetVMMetadataMetadata).To(Equal(bicloud.VMMetadata{
+					Expect(fakeCloud.SetVMMetadataCallCount()).To(Equal(1))
+					vmCid, metadata := fakeCloud.SetVMMetadataArgsForCall(0)
+					Expect(vmCid).To(Equal("fake-vm-cid"))
+					Expect(metadata).To(Equal(bicloud.VMMetadata{
 						"deployment":     "manifest-deployment",
 						"job":            "manifest-job",
 						"name":           "awesome-name",
@@ -255,17 +262,16 @@ var _ = Describe("Manager", func() {
 		})
 
 		Context("when setting vm metadata fails", func() {
-			BeforeEach(func() {
-				fakeCloud.SetVMMetadataError = errors.New("fake-set-metadata-error")
-			})
-
 			It("returns an error", func() {
+				fakeCloud.SetVMMetadataReturns(errors.New("fake-set-metadata-error"))
+
 				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-set-metadata-error"))
 			})
 
 			It("still updates the current vm record", func() {
+				fakeCloud.SetVMMetadataReturns(errors.New("fake-set-metadata-error"))
 				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 				Expect(err).To(HaveOccurred())
 				Expect(fakeVMRepo.UpdateCurrentCID).To(Equal("fake-vm-cid"))
@@ -277,7 +283,7 @@ var _ = Describe("Manager", func() {
 					Message:   "set_vm_metadata is not implemented by VCloudCloud::Cloud",
 					OkToRetry: false,
 				})
-				fakeCloud.SetVMMetadataError = notImplementedCloudError
+				fakeCloud.SetVMMetadataReturns(notImplementedCloudError)
 
 				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 				Expect(err).ToNot(HaveOccurred())
@@ -286,7 +292,7 @@ var _ = Describe("Manager", func() {
 
 		Context("when creating the vm fails", func() {
 			BeforeEach(func() {
-				fakeCloud.CreateVMErr = errors.New("fake-create-error")
+				fakeCloud.CreateVMReturns("", errors.New("fake-create-error"))
 			})
 
 			It("returns an error", func() {
