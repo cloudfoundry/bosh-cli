@@ -19,7 +19,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/statefakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
-	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/sshtunnelfakes"
 	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -40,8 +40,8 @@ var _ = Describe("Manager", func() {
 		mockBlobstore *blobstorefakes.FakeBlobstore
 
 		fakeVMManager        *fakebivm.FakeManager
-		fakeSSHTunnelFactory *fakebisshtunnel.FakeFactory
-		fakeSSHTunnel        *fakebisshtunnel.FakeTunnel
+		fakeSSHTunnelFactory *sshtunnelfakes.FakeFactory
+		fakeSSHTunnel        *sshtunnelfakes.FakeSSHTunnel
 		instanceFactory      Factory
 		logger               boshlog.Logger
 		fakeStage            *fakebiui.FakeStage
@@ -53,10 +53,14 @@ var _ = Describe("Manager", func() {
 		fakeCloud = &cloudfakes.FakeCloud{}
 		fakeVMManager = fakebivm.NewFakeManager()
 
-		fakeSSHTunnelFactory = fakebisshtunnel.NewFakeFactory()
-		fakeSSHTunnel = fakebisshtunnel.NewFakeTunnel()
-		fakeSSHTunnel.SetStartBehavior(nil, nil)
-		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
+		fakeSSHTunnel = &sshtunnelfakes.FakeSSHTunnel{
+			StartStub: func(readyErrCh chan<- error, errCh chan<- error) {
+				readyErrCh <- nil
+				errCh <- nil
+			},
+		}
+		fakeSSHTunnelFactory = &sshtunnelfakes.FakeFactory{}
+		fakeSSHTunnelFactory.NewSSHTunnelReturns(fakeSSHTunnel)
 
 		mockStateBuilderFactory = &statefakes.FakeBuilderFactory{}
 		mockStateBuilder = &statefakes.FakeBuilder{}

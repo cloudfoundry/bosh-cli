@@ -21,7 +21,7 @@ import (
 	biinstance "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/statefakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
-	fakebisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/sshtunnelfakes"
 	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/vm/vmfakes"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
@@ -35,8 +35,8 @@ var _ = Describe("Deployer", func() {
 		fakeVMManager          *fakebivm.FakeManager
 		mockAgentClient        *agentclientfakes.FakeAgentClient
 		mockAgentClientFactory *cmdfakes.FakeAgentClientFactory
-		fakeSSHTunnelFactory   *fakebisshtunnel.FakeFactory
-		fakeSSHTunnel          *fakebisshtunnel.FakeTunnel
+		fakeSSHTunnelFactory   *sshtunnelfakes.FakeFactory
+		fakeSSHTunnel          *sshtunnelfakes.FakeSSHTunnel
 		cloud                  *cloudfakes.FakeCloud
 		deploymentManifest     bideplmanifest.Manifest
 		diskPool               bideplmanifest.DiskPool
@@ -95,10 +95,14 @@ var _ = Describe("Deployer", func() {
 		fakeVMManager = fakebivm.NewFakeManager()
 		mockVMManagerFactory.NewManagerReturns(fakeVMManager)
 
-		fakeSSHTunnelFactory = fakebisshtunnel.NewFakeFactory()
-		fakeSSHTunnel = fakebisshtunnel.NewFakeTunnel()
-		fakeSSHTunnelFactory.SSHTunnel = fakeSSHTunnel
-		fakeSSHTunnel.SetStartBehavior(nil, nil)
+		fakeSSHTunnel = &sshtunnelfakes.FakeSSHTunnel{
+			StartStub: func(readyErrCh chan<- error, errCh chan<- error) {
+				readyErrCh <- nil
+				errCh <- nil
+			},
+		}
+		fakeSSHTunnelFactory = &sshtunnelfakes.FakeFactory{}
+		fakeSSHTunnelFactory.NewSSHTunnelReturns(fakeSSHTunnel)
 
 		fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
 		fakeVMManager.CreateVM = fakeVM

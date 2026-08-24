@@ -11,6 +11,10 @@ import (
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . SSHTunnel
+
 type SSHTunnel interface {
 	Start(chan<- error, chan<- error)
 }
