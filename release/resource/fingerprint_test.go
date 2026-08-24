@@ -2,6 +2,7 @@ package resource_test
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,20 +11,20 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	fakecrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/crypto/cryptofakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
 
 var _ = Describe("FingerprinterImpl", func() {
 	var (
-		digestCalculator *fakecrypto.FakeDigestCalculator
+		digestCalculator *cryptofakes.FakeDigestCalculator
 		fs               *fakesys.FakeFileSystem
 		fingerprinter    FingerprinterImpl
 		followSymlinks   bool
 	)
 
 	BeforeEach(func() {
-		digestCalculator = fakecrypto.NewFakeDigestCalculator()
+		digestCalculator = &cryptofakes.FakeDigestCalculator{}
 		fs = fakesys.NewFakeFileSystem()
 	})
 
@@ -80,14 +81,25 @@ var _ = Describe("FingerprinterImpl", func() {
 				Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
 			})
 
-			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
+			digestCalculator.CalculateStub = func(path string) (string, error) {
+				switch path {
 				// file1 directory is not sha1-ed
-				filepath.Join("/", "tmp", "file2"):        {DigestStr: "file2-sha1"},
-				filepath.Join("/", "tmp", "file3"):        {DigestStr: "file3-sha1"},
-				filepath.Join("/", "tmp", "rel", "file4"): {DigestStr: "file4-sha1"},
-				filepath.Join("/", "tmp", "file5"):        {DigestStr: "file5-sha1"},
-				filepath.Join("/", "tmp", "rel", "file6"): {DigestStr: "file6-sha1"},
-			})
+				case filepath.Join("/", "tmp", "file1"):
+					return "", nil
+				case filepath.Join("/", "tmp", "file2"):
+					return "file2-sha1", nil
+				case filepath.Join("/", "tmp", "file3"):
+					return "file3-sha1", nil
+				case filepath.Join("/", "tmp", "rel", "file4"):
+					return "file4-sha1", nil
+				case filepath.Join("/", "tmp", "file5"):
+					return "file5-sha1", nil
+				case filepath.Join("/", "tmp", "rel", "file6"):
+					return "file6-sha1", nil
+				default:
+					return "", fmt.Errorf("unexpected input '%s'", path)
+				}
+			}
 
 			chunks = []string{
 				"v2",             // version
@@ -102,8 +114,13 @@ var _ = Describe("FingerprinterImpl", func() {
 		})
 
 		It("fingerprints all files", func() {
-			digestCalculator.CalculateStringInputs = map[string]string{
-				strings.Join(chunks, ""): "fp",
+			digestCalculator.CalculateStringStub = func(input string) string {
+				switch input {
+				case strings.Join(chunks, ""):
+					return "fp"
+				default:
+					panic(fmt.Sprintf("unexpected input: '%s'", input))
+				}
 			}
 
 			fp, err := fingerprinter.Calculate(files, []string{"chunk2", "chunk1"})
@@ -112,8 +129,13 @@ var _ = Describe("FingerprinterImpl", func() {
 		})
 
 		It("trims `sha256` algorithm info from resulting fingerprint string", func() {
-			digestCalculator.CalculateStringInputs = map[string]string{
-				strings.Join(chunks, ""): "sha256:asdfasdfasdfasdf",
+			digestCalculator.CalculateStringStub = func(input string) string {
+				switch input {
+				case strings.Join(chunks, ""):
+					return "sha256:asdfasdfasdfasdf"
+				default:
+					panic(fmt.Sprintf("unexpected input: '%s'", input))
+				}
 			}
 
 			fp, err := fingerprinter.Calculate(files, []string{"chunk2", "chunk1"})
@@ -127,8 +149,13 @@ var _ = Describe("FingerprinterImpl", func() {
 		err := fs.WriteFileString(filepath.Join("/", "tmp", "file"), "stuff")
 		Expect(err).ToNot(HaveOccurred())
 
-		digestCalculator.CalculateStringInputs = map[string]string{
-			strings.Join([]string{"v2", "file", "100644"}, ""): "whatTheAlgorithmIsThat!:asdfasdfasdfasdf",
+		digestCalculator.CalculateStringStub = func(input string) string {
+			switch input {
+			case strings.Join([]string{"v2", "file", "100644"}, ""):
+				return "whatTheAlgorithmIsThat!:asdfasdfasdfasdf"
+			default:
+				panic(fmt.Sprintf("unexpected input: '%s'", input))
+			}
 		}
 
 		_, err = fingerprinter.Calculate(files, []string{})
@@ -153,9 +180,14 @@ var _ = Describe("FingerprinterImpl", func() {
 			err = fs.Symlink(filepath.Join("/", "tmp", "regular"), filepath.Join("/", "tmp", "symlink"))
 			Expect(err).ToNot(HaveOccurred())
 
-			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-				filepath.Join("/", "tmp", "regular"): {DigestStr: "regular-sha1"},
-			})
+			digestCalculator.CalculateStub = func(path string) (string, error) {
+				switch path {
+				case filepath.Join("/", "tmp", "regular"):
+					return "regular-sha1", nil
+				default:
+					return "", fmt.Errorf("unexpected input '%s'", path)
+				}
+			}
 
 			chunks := []string{
 				"v2", // version
@@ -164,8 +196,13 @@ var _ = Describe("FingerprinterImpl", func() {
 				"chunk1", ",chunk2", // sorted chunks
 			}
 
-			digestCalculator.CalculateStringInputs = map[string]string{
-				strings.Join(chunks, ""): "fp",
+			digestCalculator.CalculateStringStub = func(input string) string {
+				switch input {
+				case strings.Join(chunks, ""):
+					return "fp"
+				default:
+					panic(fmt.Sprintf("unexpected input: '%s'", input))
+				}
 			}
 
 			fp, err := fingerprinter.Calculate(files, []string{"chunk2", "chunk1"})
@@ -190,9 +227,14 @@ var _ = Describe("FingerprinterImpl", func() {
 			err = fs.Symlink("nothing", filepath.Join("/", "tmp", "symlink"))
 			Expect(err).ToNot(HaveOccurred())
 
-			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-				filepath.Join("/", "tmp", "regular"): {DigestStr: "regular-sha1"},
-			})
+			digestCalculator.CalculateStub = func(path string) (string, error) {
+				switch path {
+				case filepath.Join("/", "tmp", "regular"):
+					return "regular-sha1", nil
+				default:
+					return "", fmt.Errorf("unexpected input '%s'", path)
+				}
+			}
 
 			chunks := []string{
 				"v2", // version
@@ -201,9 +243,15 @@ var _ = Describe("FingerprinterImpl", func() {
 				"chunk1", ",chunk2", // sorted chunks
 			}
 
-			digestCalculator.CalculateStringInputs = map[string]string{
-				"nothing":                "symlink-target-sha1",
-				strings.Join(chunks, ""): "fp",
+			digestCalculator.CalculateStringStub = func(input string) string {
+				switch input {
+				case "nothing":
+					return "symlink-target-sha1"
+				case strings.Join(chunks, ""):
+					return "fp"
+				default:
+					panic(fmt.Sprintf("unexpected input: '%s'", input))
+				}
 			}
 
 			fp, err := fingerprinter.Calculate(files, []string{"chunk2", "chunk1"})
@@ -227,9 +275,14 @@ var _ = Describe("FingerprinterImpl", func() {
 			Stats: &fakesys.FakeFileStats{FileType: fakesys.FakeFileTypeFile},
 		})
 
-		digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-			filepath.Join("/", "tmp", "file2"): {Err: errors.New("fake-err")},
-		})
+		digestCalculator.CalculateStub = func(path string) (string, error) {
+			switch path {
+			case filepath.Join("/", "tmp", "file2"):
+				return "", errors.New("fake-err")
+			default:
+				return "", fmt.Errorf("unexpected input '%s'", path)
+			}
+		}
 
 		_, err := fingerprinter.Calculate([]File{NewFile(filepath.Join("/", "tmp", "file2"), filepath.Join("/", "tmp"))}, nil)
 		Expect(err).To(HaveOccurred())

@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	fakecrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/crypto/cryptofakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
 )
@@ -25,7 +25,7 @@ var _ = Describe("FSBlobsDir", func() {
 		fs               *fakesys.FakeFileSystem
 		reporter         *fakereldir.FakeBlobsDirReporter
 		blobstore        *fakereldir.FakeDigestBlobstore
-		digestCalculator *fakecrypto.FakeDigestCalculator
+		digestCalculator *cryptofakes.FakeDigestCalculator
 		blobsDir         FSBlobsDir
 		logger           *fakelogger.FakeLogger
 	)
@@ -34,7 +34,7 @@ var _ = Describe("FSBlobsDir", func() {
 		fs = fakesys.NewFakeFileSystem()
 		reporter = &fakereldir.FakeBlobsDirReporter{}
 		blobstore = &fakereldir.FakeDigestBlobstore{}
-		digestCalculator = fakecrypto.NewFakeDigestCalculator()
+		digestCalculator = &cryptofakes.FakeDigestCalculator{}
 		logger = &fakelogger.FakeLogger{}
 		blobsDir = NewFSBlobsDir(filepath.Join("/", "dir"), reporter, blobstore, digestCalculator, fs, logger)
 	})
@@ -526,9 +526,14 @@ bad-sha-blob.tgz:
 			Expect(err).ToNot(HaveOccurred())
 			fs.ReturnTempFile = fakesys.NewFakeFile(filepath.Join("/", "tmp-file"), fs)
 
-			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-				filepath.Join("/", "tmp-file"): {DigestStr: "contentsha1"},
-			})
+			digestCalculator.CalculateStub = func(path string) (string, error) {
+				switch path {
+				case filepath.Join("/", "tmp-file"):
+					return "contentsha1", nil
+				default:
+					return "", fmt.Errorf("unexpected input '%s'", path)
+				}
+			}
 		})
 
 		It("adds a blob to the list if it's not already tracked", func() {
@@ -618,9 +623,14 @@ file2.tgz:
 		})
 
 		It("returns error and does not update blobs.yml if calculating sha1 fails", func() {
-			digestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-				filepath.Join("/", "tmp-file"): {Err: errors.New("fake-err")},
-			})
+			digestCalculator.CalculateStub = func(path string) (string, error) {
+				switch path {
+				case filepath.Join("/", "tmp-file"):
+					return "", errors.New("fake-err")
+				default:
+					return "", fmt.Errorf("unexpected input '%s'", path)
+				}
+			}
 
 			_, err := act()
 			Expect(err).To(HaveOccurred())

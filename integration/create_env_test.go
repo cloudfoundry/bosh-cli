@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"text/template"
@@ -29,7 +30,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	bicpirel "github.com/cloudfoundry/bosh-cli/v7/cpi/release"
-	fakebicrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/crypto/cryptofakes"
 	bidepl "github.com/cloudfoundry/bosh-cli/v7/deployment"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	biinstance "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
@@ -86,7 +87,7 @@ var _ = Describe("bosh", func() {
 			fakeUUIDGenerator             *fakeuuid.FakeGenerator
 			fakeRepoUUIDGenerator         *fakeuuid.FakeGenerator
 			fakeAgentIDGenerator          *fakeuuid.FakeGenerator
-			fakeDigestCalculator          *fakebicrypto.FakeDigestCalculator
+			fakeDigestCalculator          *cryptofakes.FakeDigestCalculator
 			legacyDeploymentStateMigrator biconfig.LegacyDeploymentStateMigrator
 			deploymentStateService        biconfig.DeploymentStateService
 			vmRepo                        biconfig.VMRepo
@@ -231,9 +232,14 @@ cloud_provider:
 			}
 			updateManifest(context)
 
-			fakeDigestCalculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
-				deploymentManifestPath: {DigestStr: "fake-deployment-sha1-1"},
-			})
+			fakeDigestCalculator.CalculateStub = func(path string) (string, error) {
+				switch path {
+				case deploymentManifestPath:
+					return "fake-deployment-sha1-1", nil
+				default:
+					return "", fmt.Errorf("unexpected input '%s'", path)
+				}
+			}
 		}
 
 		var writeDeploymentManifestWithLargerDisk = func() {
@@ -242,9 +248,14 @@ cloud_provider:
 			}
 			updateManifest(context)
 
-			fakeDigestCalculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
-				deploymentManifestPath: {DigestStr: "fake-deployment-sha1-2"},
-			})
+			fakeDigestCalculator.CalculateStub = func(path string) (string, error) {
+				switch path {
+				case deploymentManifestPath:
+					return "fake-deployment-sha1-2", nil
+				default:
+					return "", fmt.Errorf("unexpected input '%s'", path)
+				}
+			}
 		}
 
 		var writeCPIReleaseTarball = func() {
@@ -858,7 +869,7 @@ cloud_provider:
 
 			fakeAgentIDGenerator = fakeuuid.NewFakeGenerator()
 
-			fakeDigestCalculator = fakebicrypto.NewFakeDigestCalculator()
+			fakeDigestCalculator = &cryptofakes.FakeDigestCalculator{}
 
 			mockInstaller = &installationfakes.FakeInstaller{}
 			mockInstallerFactory = &installationfakes.FakeInstallerFactory{}

@@ -2,6 +2,7 @@ package templatescompiler_test
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -13,7 +14,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	fakebicrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/crypto/cryptofakes"
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	. "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
@@ -24,7 +25,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 		outBuffer *bytes.Buffer
 		logger    boshlog.Logger
 
-		fakeSHA1Calculator *fakebicrypto.FakeDigestCalculator
+		fakeSHA1Calculator *cryptofakes.FakeDigestCalculator
 
 		renderedJobList RenderedJobList
 
@@ -35,7 +36,7 @@ var _ = Describe("RenderedJobListCompressor", func() {
 		outBuffer = bytes.NewBufferString("")
 		logger = boshlog.NewWriterLogger(boshlog.LevelDebug, outBuffer)
 
-		fakeSHA1Calculator = fakebicrypto.NewFakeDigestCalculator()
+		fakeSHA1Calculator = &cryptofakes.FakeDigestCalculator{}
 
 		renderedJobList = NewRenderedJobList()
 	})
@@ -124,9 +125,14 @@ var _ = Describe("RenderedJobListCompressor", func() {
 			It("calculates the SHA1 of the archive", func() {
 				fakeCompressor.CompressFilesInDirTarballPath = "fake-archive-path"
 
-				fakeSHA1Calculator.SetCalculateBehavior(map[string]fakebicrypto.CalculateInput{
-					"fake-archive-path": fakebicrypto.CalculateInput{DigestStr: "fake-sha1"},
-				})
+				fakeSHA1Calculator.CalculateStub = func(path string) (string, error) {
+					switch path {
+					case "fake-archive-path":
+						return "fake-sha1", nil
+					default:
+						return "", fmt.Errorf("unexpected input '%s'", path)
+					}
+				}
 
 				archive, err := renderedJobListCompressor.Compress(renderedJobList)
 				Expect(err).ToNot(HaveOccurred())

@@ -1,6 +1,8 @@
 package cmd_test
 
 import (
+	"fmt"
+
 	"github.com/cloudfoundry/bosh-utils/errors"
 	fakefu "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -9,7 +11,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-	fakecrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/crypto/cryptofakes"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	"github.com/cloudfoundry/bosh-cli/v7/release/license"
@@ -28,7 +30,7 @@ var _ = Describe("RedigestRelease", func() {
 		releaseWriter                *fakerel.FakeWriter
 		command                      cmd.RedigestReleaseCmd
 		args                         opts.RedigestReleaseArgs
-		fakeDigestCalculator         *fakecrypto.FakeDigestCalculator
+		fakeDigestCalculator         *cryptofakes.FakeDigestCalculator
 		releaseWriterTempDestination string
 		fakeSha128Release            *fakerel.FakeRelease
 		fs                           *fakes2.FakeFileSystem
@@ -47,7 +49,7 @@ var _ = Describe("RedigestRelease", func() {
 		fmv = &fakefu.FakeMover{}
 		fs = fakes2.NewFakeFileSystem()
 
-		fakeDigestCalculator = fakecrypto.NewFakeDigestCalculator()
+		fakeDigestCalculator = &cryptofakes.FakeDigestCalculator{}
 		command = cmd.NewRedigestReleaseCmd(releaseReader, releaseWriter, fakeDigestCalculator, fmv, fs, ui)
 		args = opts.RedigestReleaseArgs{
 			Path:        "/some/release_128.tgz",
@@ -89,12 +91,20 @@ var _ = Describe("RedigestRelease", func() {
 			return fakeSha256Release
 		}
 
-		fakeDigestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-			job1ResourcePath:             {DigestStr: "sha256:jobsha256"},
-			pkg1ResourcePath:             {DigestStr: "sha256:pkgsha256"},
-			licenseResourcePath:          {DigestStr: "sha256:licsha256"},
-			compiledPackage1ResourcePath: {DigestStr: "sha256:compiledpkgsha256"},
-		})
+		fakeDigestCalculator.CalculateStub = func(path string) (string, error) {
+			switch path {
+			case job1ResourcePath:
+				return "sha256:jobsha256", nil
+			case pkg1ResourcePath:
+				return "sha256:pkgsha256", nil
+			case licenseResourcePath:
+				return "sha256:licsha256", nil
+			case compiledPackage1ResourcePath:
+				return "sha256:compiledpkgsha256", nil
+			default:
+				return "", fmt.Errorf("unexpected input '%s'", path)
+			}
+		}
 
 		releaseReader.ReadReturns(fakeSha128Release, nil)
 		releaseWriterTempDestination = "/some/temp/release_256.tgz"
@@ -167,12 +177,20 @@ var _ = Describe("RedigestRelease", func() {
 
 		Context("when rehashing a licence fails", func() {
 			BeforeEach(func() {
-				fakeDigestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-					job1ResourcePath:             {DigestStr: "sha256:jobsha256"},
-					pkg1ResourcePath:             {DigestStr: "sha256:pkgsha256"},
-					compiledPackage1ResourcePath: {DigestStr: "sha256:compiledpkgsha256"},
-					licenseResourcePath:          {Err: errors.Error("Unknown algorithm")},
-				})
+				fakeDigestCalculator.CalculateStub = func(path string) (string, error) {
+					switch path {
+					case job1ResourcePath:
+						return "sha256:jobsha256", nil
+					case pkg1ResourcePath:
+						return "sha256:pkgsha256", nil
+					case licenseResourcePath:
+						return "", errors.Error("Unknown algorithm")
+					case compiledPackage1ResourcePath:
+						return "sha256:compiledpkgsha256", nil
+					default:
+						return "", fmt.Errorf("unexpected input '%s'", path)
+					}
+				}
 			})
 
 			It("should return an error", func() {
@@ -184,12 +202,20 @@ var _ = Describe("RedigestRelease", func() {
 
 		Context("when rehashing compiled packages fails", func() {
 			BeforeEach(func() {
-				fakeDigestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-					job1ResourcePath:             {DigestStr: "sha256:jobsha256"},
-					pkg1ResourcePath:             {DigestStr: "sha256:pkgsha256"},
-					compiledPackage1ResourcePath: {Err: errors.Error("Unknown algorithm")},
-					licenseResourcePath:          {DigestStr: "sha256:licsha256"},
-				})
+				fakeDigestCalculator.CalculateStub = func(path string) (string, error) {
+					switch path {
+					case job1ResourcePath:
+						return "sha256:jobsha256", nil
+					case pkg1ResourcePath:
+						return "sha256:pkgsha256", nil
+					case licenseResourcePath:
+						return "sha256:licsha256", nil
+					case compiledPackage1ResourcePath:
+						return "", errors.Error("Unknown algorithm")
+					default:
+						return "", fmt.Errorf("unexpected input '%s'", path)
+					}
+				}
 			})
 
 			It("should return an error", func() {
@@ -201,12 +227,20 @@ var _ = Describe("RedigestRelease", func() {
 
 		Context("when rehashing packages fails", func() {
 			BeforeEach(func() {
-				fakeDigestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-					job1ResourcePath:             {DigestStr: "sha256:jobsha256"},
-					pkg1ResourcePath:             {Err: errors.Error("Unknown algorithm")},
-					compiledPackage1ResourcePath: {DigestStr: "sha256:compiledpkgsha256"},
-					licenseResourcePath:          {DigestStr: "sha256:licsha256"},
-				})
+				fakeDigestCalculator.CalculateStub = func(path string) (string, error) {
+					switch path {
+					case job1ResourcePath:
+						return "sha256:jobsha256", nil
+					case pkg1ResourcePath:
+						return "", errors.Error("Unknown algorithm")
+					case licenseResourcePath:
+						return "sha256:licsha256", nil
+					case compiledPackage1ResourcePath:
+						return "sha256:compiledpkgsha256", nil
+					default:
+						return "", fmt.Errorf("unexpected input '%s'", path)
+					}
+				}
 			})
 
 			It("should return an error", func() {
@@ -218,12 +252,20 @@ var _ = Describe("RedigestRelease", func() {
 
 		Context("when rehashing jobs fails", func() {
 			BeforeEach(func() {
-				fakeDigestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-					job1ResourcePath:             {Err: errors.Error("Unknown algorithm")},
-					pkg1ResourcePath:             {DigestStr: "sha256:pkgsha256"},
-					compiledPackage1ResourcePath: {DigestStr: "sha256:compiledpkgsha256"},
-					licenseResourcePath:          {DigestStr: "sha256:licsha256"},
-				})
+				fakeDigestCalculator.CalculateStub = func(path string) (string, error) {
+					switch path {
+					case job1ResourcePath:
+						return "", errors.Error("Unknown algorithm")
+					case pkg1ResourcePath:
+						return "sha256:pkgsha256", nil
+					case licenseResourcePath:
+						return "sha256:licsha256", nil
+					case compiledPackage1ResourcePath:
+						return "sha256:compiledpkgsha256", nil
+					default:
+						return "", fmt.Errorf("unexpected input '%s'", path)
+					}
+				}
 			})
 
 			It("should return an error", func() {
@@ -236,11 +278,18 @@ var _ = Describe("RedigestRelease", func() {
 		Context("when no licence is provided", func() {
 			BeforeEach(func() {
 				fakeSha128Release.LicenseReturns(nil)
-				fakeDigestCalculator.SetCalculateBehavior(map[string]fakecrypto.CalculateInput{
-					job1ResourcePath:             {DigestStr: "sha256:jobsha256"},
-					pkg1ResourcePath:             {DigestStr: "sha256:pkgsha256"},
-					compiledPackage1ResourcePath: {DigestStr: "sha256:compiledpkgsha256"},
-				})
+				fakeDigestCalculator.CalculateStub = func(path string) (string, error) {
+					switch path {
+					case job1ResourcePath:
+						return "sha256:jobsha256", nil
+					case pkg1ResourcePath:
+						return "sha256:pkgsha256", nil
+					case compiledPackage1ResourcePath:
+						return "sha256:compiledpkgsha256", nil
+					default:
+						return "", fmt.Errorf("unexpected input '%s'", path)
+					}
+				}
 			})
 
 			It("should not return an error", func() {

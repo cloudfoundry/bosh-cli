@@ -8,6 +8,10 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . DigestCalculator
+
 type DigestCalculator interface {
 	Calculate(string) (string, error)
 	CalculateString(string) string

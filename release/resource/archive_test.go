@@ -18,7 +18,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	bicrypto "github.com/cloudfoundry/bosh-cli/v7/crypto"
-	fakecrypto "github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/crypto/cryptofakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	fakeres "github.com/cloudfoundry/bosh-cli/v7/release/resource/resourcefakes"
 )
@@ -35,7 +35,7 @@ var _ = Describe("Archive", func() {
 	Describe("Fingerprint", func() {
 		var (
 			fingerprinter    *fakeres.FakeFingerprinter
-			digestCalculator *fakecrypto.FakeDigestCalculator
+			digestCalculator *cryptofakes.FakeDigestCalculator
 			compressor       *fakecmd.FakeCompressor
 			cmdRunner        *fakesys.FakeCmdRunner
 			fs               *fakesys.FakeFileSystem
@@ -44,7 +44,7 @@ var _ = Describe("Archive", func() {
 		BeforeEach(func() {
 			releaseDirPath := filepath.Join("/", "tmp", "release")
 			fingerprinter = &fakeres.FakeFingerprinter{}
-			digestCalculator = fakecrypto.NewFakeDigestCalculator()
+			digestCalculator = &cryptofakes.FakeDigestCalculator{}
 			compressor = fakecmd.NewFakeCompressor()
 			cmdRunner = fakesys.NewFakeCmdRunner()
 			fs = fakesys.NewFakeFileSystem()
