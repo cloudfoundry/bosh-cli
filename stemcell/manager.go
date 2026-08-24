@@ -14,9 +14,7 @@ import (
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
-// stemcellfakes already contains a hand-written FakeManager used elsewhere, so this
-// counterfeiter-generated one for full mock coverage lives in a separate package.
-//counterfeiter:generate -o mockfakes/fake_manager.go . Manager
+//counterfeiter:generate . Manager
 
 type Manager interface {
 	FindCurrent() ([]CloudStemcell, error)
