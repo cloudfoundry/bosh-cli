@@ -8,6 +8,8 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
+//counterfeiter:generate . Validator
+
 type Validator interface {
 	Validate(Manifest) error
 }
