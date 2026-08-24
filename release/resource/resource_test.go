@@ -2,6 +2,7 @@ package resource_test
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
@@ -9,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/crypto/cryptofakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	fakeres "github.com/cloudfoundry/bosh-cli/v7/release/resource/resourcefakes"
 )
@@ -446,13 +447,18 @@ var _ = Describe("NewResourceWithBuiltArchive", func() {
 
 	Describe("RehashWithCalculator", func() {
 		Context("Given a sha256 calculator", func() {
-			var fakeDigestCalculator *fakes.FakeDigestCalculator
+			var fakeDigestCalculator *cryptofakes.FakeDigestCalculator
 
 			BeforeEach(func() {
-				fakeDigestCalculator = fakes.NewFakeDigestCalculator()
-				fakeDigestCalculator.SetCalculateBehavior(map[string]fakes.CalculateInput{
-					filePathName: {DigestStr: "sha256:new_resource_sha"},
-				})
+				fakeDigestCalculator = &cryptofakes.FakeDigestCalculator{}
+				fakeDigestCalculator.CalculateStub = func(path string) (string, error) {
+					switch path {
+					case filePathName:
+						return "sha256:new_resource_sha", nil
+					default:
+						return "", fmt.Errorf("unexpected input '%s'", path)
+					}
+				}
 			})
 
 			Context("Given a resource with a valid sha128", func() {

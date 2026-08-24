@@ -2,14 +2,15 @@ package pkg_test
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
-	"github.com/cloudfoundry/bosh-utils/crypto/cryptofakes"
-	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
+	fakecrypto "github.com/cloudfoundry/bosh-utils/crypto/cryptofakes"
+	fakessys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-cli/v7/crypto/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/crypto/cryptofakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 )
 
@@ -61,9 +62,9 @@ var _ = Describe("NewCompiledPackageWithoutArchive", func() {
 var _ = Describe("NewCompiledPackageWithArchive", func() {
 	var (
 		compiledPkg          *CompiledPackage
-		fakeDigestCalculator *fakes.FakeDigestCalculator
-		fakeArchiveReader    *cryptofakes.FakeArchiveDigestFilePathReader
-		fakeFile             *fakes2.FakeFile
+		fakeDigestCalculator *cryptofakes.FakeDigestCalculator
+		fakeArchiveReader    *fakecrypto.FakeArchiveDigestFilePathReader
+		fakeFile             *fakessys.FakeFile
 		fakeFileContentSha1  string
 	)
 
@@ -109,17 +110,22 @@ var _ = Describe("NewCompiledPackageWithArchive", func() {
 
 	Describe("RehashWithCalculator", func() {
 		BeforeEach(func() {
-			fakeDigestCalculator = fakes.NewFakeDigestCalculator()
-			fakeArchiveReader = &cryptofakes.FakeArchiveDigestFilePathReader{}
-			fakeFile = &fakes2.FakeFile{Contents: []byte("hello world")}
+			fakeDigestCalculator = &cryptofakes.FakeDigestCalculator{}
+			fakeArchiveReader = &fakecrypto.FakeArchiveDigestFilePathReader{}
+			fakeFile = &fakessys.FakeFile{Contents: []byte("hello world")}
 			fakeFileContentSha1 = "2aae6c35c94fcfb415dbe95f408b9ce91ee846ed"
 		})
 
 		Context("When compiled package can be rehashed", func() {
 			BeforeEach(func() {
-				fakeDigestCalculator.SetCalculateBehavior(map[string]fakes.CalculateInput{
-					"path": {DigestStr: "sha256:compiledpkgsha256"},
-				})
+				fakeDigestCalculator.CalculateStub = func(path string) (string, error) {
+					switch path {
+					case "path":
+						return "sha256:compiledpkgsha256", nil
+					default:
+						return "", fmt.Errorf("unexpected input '%s'", path)
+					}
+				}
 
 				fakeArchiveReader.OpenFileReturns(fakeFile, nil)
 
@@ -165,9 +171,15 @@ var _ = Describe("NewCompiledPackageWithArchive", func() {
 						"name", "fp", "os-slug", "path", fakeFileContentSha1, []string{"pkg1", "pkg2"})
 
 					fakeArchiveReader.OpenFileReturns(fakeFile, nil)
-					fakeDigestCalculator.SetCalculateBehavior(map[string]fakes.CalculateInput{
-						"path": {Err: errors.New("fake-digest-calculator-error")},
-					})
+
+					fakeDigestCalculator.CalculateStub = func(path string) (string, error) {
+						switch path {
+						case "path":
+							return "", errors.New("fake-digest-calculator-error")
+						default:
+							return "", fmt.Errorf("unexpected input '%s'", path)
+						}
+					}
 				})
 
 				It("returns an error calculating the sha 256 digest", func() {
