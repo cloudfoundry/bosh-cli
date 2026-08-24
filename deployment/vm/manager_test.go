@@ -19,7 +19,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/config/configfakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
-	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/vm/vmfakes"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 )
 
@@ -34,7 +34,7 @@ var _ = Describe("Manager", func() {
 		deploymentManifest        bideplmanifest.Manifest
 		fakeVMRepo                *configfakes.FakeVMRepo
 		stemcellRepo              biconfig.StemcellRepo
-		fakeDiskDeployer          *fakebivm.FakeDiskDeployer
+		fakeDiskDeployer          *vmfakes.FakeDiskDeployer
 		fakeAgentClient           *fakebiagentclient.FakeAgentClient
 		stemcell                  bistemcell.CloudStemcell
 		diskCIDs                  []string
@@ -53,7 +53,7 @@ var _ = Describe("Manager", func() {
 		deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
 		stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
 
-		fakeDiskDeployer = fakebivm.NewFakeDiskDeployer()
+		fakeDiskDeployer = &vmfakes.FakeDiskDeployer{}
 		fakeTime := time.Date(2016, time.November, 10, 23, 0, 0, 0, time.UTC)
 		fakeTimeService = &FakeClock{Times: []time.Time{fakeTime, time.Now().Add(10 * time.Minute)}}
 		diskCIDs = []string{"fake-disk-cid-1"}

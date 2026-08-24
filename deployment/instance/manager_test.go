@@ -20,7 +20,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/statefakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/sshtunnelfakes"
-	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/vm/vmfakes"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -39,7 +39,7 @@ var _ = Describe("Manager", func() {
 
 		mockBlobstore *blobstorefakes.FakeBlobstore
 
-		fakeVMManager        *fakebivm.FakeManager
+		fakeVMManager        *vmfakes.FakeManager
 		fakeSSHTunnelFactory *sshtunnelfakes.FakeFactory
 		fakeSSHTunnel        *sshtunnelfakes.FakeSSHTunnel
 		instanceFactory      Factory
@@ -51,7 +51,7 @@ var _ = Describe("Manager", func() {
 
 	BeforeEach(func() {
 		fakeCloud = &cloudfakes.FakeCloud{}
-		fakeVMManager = fakebivm.NewFakeManager()
+		fakeVMManager = &vmfakes.FakeManager{}
 
 		fakeSSHTunnel = &sshtunnelfakes.FakeSSHTunnel{
 			StartStub: func(readyErrCh chan<- error, errCh chan<- error) {
@@ -87,7 +87,7 @@ var _ = Describe("Manager", func() {
 	Describe("Create", func() {
 		var (
 			mockAgentClient    *agentclientfakes.FakeAgentClient
-			fakeVM             *fakebivm.FakeVM
+			fakeVM             *vmfakes.FakeVM
 			diskPool           bideplmanifest.DiskPool
 			deploymentManifest bideplmanifest.Manifest
 			fakeCloudStemcell  *fakebistemcell.FakeCloudStemcell
@@ -121,7 +121,7 @@ var _ = Describe("Manager", func() {
 			}
 
 			fakeAgentState := agentclient.AgentState{}
-			fakeVM.GetStateResult = fakeAgentState
+			fakeVM.GetStateReturns(fakeAgentState, nil)
 
 			mockStateBuilderFactory.NewBuilderReturns(mockStateBuilder)
 			mockStateBuilder.BuildReturns(mockState, nil)
@@ -160,11 +160,11 @@ var _ = Describe("Manager", func() {
 
 			diskCIDs = []string{"fake-disk-cid"}
 
-			fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
-			fakeVMManager.CreateVM = fakeVM
+			fakeVM = &vmfakes.FakeVM{CIDStub: func() string { return "fake-vm-cid" }}
+			fakeVMManager.CreateReturns(fakeVM, nil)
 
 			mockAgentClient = &agentclientfakes.FakeAgentClient{}
-			fakeVM.AgentClientReturn = mockAgentClient
+			fakeVM.AgentClientReturns(mockAgentClient)
 
 			expectedInstance = NewInstance(
 				"fake-job-name",
@@ -177,7 +177,7 @@ var _ = Describe("Manager", func() {
 			)
 
 			expectedDisk = &diskfakes.FakeDisk{}
-			fakeVM.UpdateDisksDisks = []bidisk.Disk{expectedDisk}
+			fakeVM.UpdateDisksReturns([]bidisk.Disk{expectedDisk}, nil)
 		})
 
 		JustBeforeEach(func() {
@@ -196,11 +196,11 @@ var _ = Describe("Manager", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(instance).To(Equal(expectedInstance))
 
-			Expect(fakeVMManager.CreateInput).To(Equal(fakebivm.CreateInput{
-				Stemcell: fakeCloudStemcell,
-				Manifest: deploymentManifest,
-				DiskCIDs: diskCIDs,
-			}))
+			stemcell, manifest, diskCids := fakeVMManager.CreateArgsForCall(0)
+
+			Expect(stemcell).To(Equal(fakeCloudStemcell))
+			Expect(manifest).To(Equal(deploymentManifest))
+			Expect(diskCids).To(Equal(diskCIDs))
 		})
 
 		It("updates the current stemcell", func() {
@@ -244,12 +244,10 @@ var _ = Describe("Manager", func() {
 				fakeStage,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeVM.WaitUntilReadyInputs).To(Equal([]fakebivm.WaitUntilReadyInput{
-				{
-					Timeout: 10 * time.Minute,
-					Delay:   500 * time.Millisecond,
-				},
-			}))
+
+			timeout, delay := fakeVM.WaitUntilReadyArgsForCall(0)
+			Expect(timeout).To(Equal(10 * time.Minute))
+			Expect(delay).To(Equal(500 * time.Millisecond))
 
 			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'"},
@@ -269,17 +267,14 @@ var _ = Describe("Manager", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(disks).To(Equal([]bidisk.Disk{expectedDisk}))
 
-			Expect(fakeVM.UpdateDisksInputs).To(Equal([]fakebivm.UpdateDisksInput{
-				{
-					DiskPool: diskPool,
-					Stage:    fakeStage,
-				},
-			}))
+			pool, stage := fakeVM.UpdateDisksArgsForCall(0)
+			Expect(pool).To(Equal(diskPool))
+			Expect(stage).To(Equal(fakeStage))
 		})
 
 		Context("when creating VM fails", func() {
 			BeforeEach(func() {
-				fakeVMManager.CreateErr = errors.New("fake-create-vm-error")
+				fakeVMManager.CreateReturns(nil, errors.New("fake-create-vm-error"))
 			})
 
 			It("returns an error", func() {

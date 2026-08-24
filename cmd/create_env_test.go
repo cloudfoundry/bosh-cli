@@ -35,7 +35,6 @@ import (
 	bidepltpl "github.com/cloudfoundry/bosh-cli/v7/deployment/template"
 	fakebidepltpl "github.com/cloudfoundry/bosh-cli/v7/deployment/template/templatefakes"
 	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
-	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/vm/vmfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	biinstall "github.com/cloudfoundry/bosh-cli/v7/installation"
@@ -90,7 +89,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			mockBlobstore        *blobstorefakes.FakeBlobstore
 
 			mockVMManagerFactory       *vmfakes.FakeManagerFactory
-			fakeVMManager              *fakebivm.FakeManager
+			fakeVMManager              *vmfakes.FakeManager
 			fakeStemcellExtractor      *fakebistemcell.FakeExtractor
 			mockStemcellManager        *mockfakes.FakeManager
 			fakeStemcellManagerFactory *fakebistemcell.FakeManagerFactory
@@ -166,7 +165,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			mockBlobstoreFactory.CreateReturns(mockBlobstore, nil)
 
 			mockVMManagerFactory = &vmfakes.FakeManagerFactory{}
-			fakeVMManager = fakebivm.NewFakeManager()
+			fakeVMManager = &vmfakes.FakeManager{}
 			mockVMManagerFactory.NewManagerReturns(fakeVMManager)
 
 			fakeStemcellExtractor = fakebistemcell.NewFakeExtractor()

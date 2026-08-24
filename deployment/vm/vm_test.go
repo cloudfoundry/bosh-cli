@@ -21,7 +21,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/disk/diskfakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
-	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/vm/vmfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
@@ -30,7 +30,7 @@ var _ = Describe("VM", func() {
 		vm               VM
 		fakeVMRepo       *configfakes.FakeVMRepo
 		fakeStemcellRepo *configfakes.FakeStemcellRepo
-		fakeDiskDeployer *fakebivm.FakeDiskDeployer
+		fakeDiskDeployer *vmfakes.FakeDiskDeployer
 		fakeAgentClient  *fakebiagentclient.FakeAgentClient
 		fakeCloud        *cloudfakes.FakeCloud
 		applySpec        bias.ApplySpec
@@ -62,7 +62,7 @@ var _ = Describe("VM", func() {
 		fakeCloud = &cloudfakes.FakeCloud{}
 		fakeVMRepo = &configfakes.FakeVMRepo{}
 		fakeStemcellRepo = &configfakes.FakeStemcellRepo{}
-		fakeDiskDeployer = fakebivm.NewFakeDiskDeployer()
+		fakeDiskDeployer = &vmfakes.FakeDiskDeployer{}
 		vm = NewVM(
 			"fake-vm-cid",
 			fakeVMRepo,
@@ -108,7 +108,7 @@ var _ = Describe("VM", func() {
 		BeforeEach(func() {
 			fakeDisk := &diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk-cid" }}
 			expectedDisks = []bidisk.Disk{fakeDisk}
-			fakeDiskDeployer.SetDeployBehavior(expectedDisks, nil)
+			fakeDiskDeployer.DeployReturns(expectedDisks, nil)
 		})
 
 		It("delegates to DiskDeployer.Deploy", func() {
@@ -118,14 +118,11 @@ var _ = Describe("VM", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(disks).To(Equal(expectedDisks))
 
-			Expect(fakeDiskDeployer.DeployInputs).To(Equal([]fakebivm.DeployInput{
-				{
-					DiskPool:         diskPool,
-					Cloud:            fakeCloud,
-					VM:               vm,
-					EventLoggerStage: fakeStage,
-				},
-			}))
+			diskPoolArg, cloudArg, vmArg, stageArg := fakeDiskDeployer.DeployArgsForCall(0)
+			Expect(diskPoolArg).To(Equal(diskPool))
+			Expect(cloudArg).To(Equal(fakeCloud))
+			Expect(vmArg).To(Equal(vm))
+			Expect(stageArg).To(Equal(fakeStage))
 		})
 	})
 

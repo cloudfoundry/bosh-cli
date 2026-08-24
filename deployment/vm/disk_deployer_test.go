@@ -15,7 +15,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/disk/diskfakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
-	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/vm/vmfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
@@ -26,7 +26,7 @@ var _ = Describe("DiskDeployer", func() {
 		diskPool               bideplmanifest.DiskPool
 		cloud                  *cloudfakes.FakeCloud
 		fakeStage              *fakebiui.FakeStage
-		fakeVM                 *fakebivm.FakeVM
+		fakeVM                 *vmfakes.FakeVM
 		fakeDisk               *diskfakes.FakeDisk
 		fakeDiskRepo           *configfakes.FakeDiskRepo
 		fakeDiskManagerFactory *diskfakes.FakeManagerFactory
@@ -35,7 +35,7 @@ var _ = Describe("DiskDeployer", func() {
 
 	BeforeEach(func() {
 		cloud = &cloudfakes.FakeCloud{}
-		fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
+		fakeVM = &vmfakes.FakeVM{CIDStub: func() string { return "fake-vm-cid" }}
 
 		fakeDiskManagerFactory = &diskfakes.FakeManagerFactory{
 			NewManagerStub: func(cloud bicloud.Cloud) bidisk.Manager {
@@ -62,7 +62,7 @@ var _ = Describe("DiskDeployer", func() {
 		)
 
 		fakeDiskManager.FindCurrentReturns([]bidisk.Disk{}, nil)
-		fakeVM.SetAttachDiskBehavior(fakeDisk, nil)
+		fakeVM.AttachDiskReturns(nil)
 		newDiskRecord := biconfig.DiskRecord{
 			ID: "fake-new-disk-id",
 		}
@@ -82,13 +82,17 @@ var _ = Describe("DiskDeployer", func() {
 
 		Context("when primary disk already exists", func() {
 			var existingDisk *diskfakes.FakeDisk
+			var attachDiskResponses = map[bidisk.Disk]error{}
 
 			BeforeEach(func() {
 				existingDisk = &diskfakes.FakeDisk{CIDStub: func() string {
 					return "fake-existing-disk-cid"
 				}}
 				fakeDiskManager.FindCurrentReturns([]bidisk.Disk{existingDisk}, nil)
-				fakeVM.SetAttachDiskBehavior(existingDisk, nil)
+				attachDiskResponses[existingDisk] = nil
+				fakeVM.AttachDiskStub = func(disk bidisk.Disk) error {
+					return attachDiskResponses[disk]
+				}
 				existingDiskRecord := biconfig.DiskRecord{
 					ID: "fake-existing-disk-id",
 				}
@@ -159,10 +163,8 @@ var _ = Describe("DiskDeployer", func() {
 				It("attaches secondary disk", func() {
 					_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
-					Expect(fakeVM.AttachDiskInputs).To(Equal([]fakebivm.AttachDiskInput{
-						{Disk: existingDisk},
-						{Disk: secondaryDisk},
-					}))
+					Expect(fakeVM.AttachDiskArgsForCall(0)).To(Equal(existingDisk))
+					Expect(fakeVM.AttachDiskArgsForCall(1)).To(Equal(secondaryDisk))
 
 					Expect(fakeStage.PerformCalls[2]).To(Equal(&fakebiui.PerformCall{
 						Name: "Attaching disk 'fake-secondary-disk-cid' to VM 'fake-vm-cid'",
@@ -172,7 +174,7 @@ var _ = Describe("DiskDeployer", func() {
 				It("migrates from primary to secondary disk", func() {
 					_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
-					Expect(fakeVM.MigrateDiskCalledTimes).To(Equal(1))
+					Expect(fakeVM.MigrateDiskCallCount()).To(Equal(1))
 
 					Expect(fakeStage.PerformCalls[3]).To(Equal(&fakebiui.PerformCall{
 						Name: "Migrating disk content from 'fake-existing-disk-cid' to 'fake-secondary-disk-cid'",
@@ -182,9 +184,7 @@ var _ = Describe("DiskDeployer", func() {
 				It("detaches primary disk", func() {
 					_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(fakeVM.DetachDiskInputs).To(Equal([]fakebivm.DetachDiskInput{
-						{Disk: existingDisk},
-					}))
+					Expect(fakeVM.DetachDiskArgsForCall(0)).To(Equal(existingDisk))
 
 					Expect(fakeStage.PerformCalls[4]).To(Equal(&fakebiui.PerformCall{
 						Name: "Detaching disk 'fake-existing-disk-cid'",
@@ -208,7 +208,7 @@ var _ = Describe("DiskDeployer", func() {
 						_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-create-disk-error"))
-						Expect(fakeVM.DetachDiskInputs).To(Equal([]fakebivm.DetachDiskInput{}))
+						Expect(fakeVM.DetachDiskCallCount()).To(Equal(0))
 					})
 				})
 
@@ -218,14 +218,14 @@ var _ = Describe("DiskDeployer", func() {
 					)
 
 					BeforeEach(func() {
-						fakeVM.SetAttachDiskBehavior(secondaryDisk, attachError)
+						attachDiskResponses[secondaryDisk] = attachError
 					})
 
 					It("returns error and leaves the existing disk attached", func() {
 						_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-attach-disk-error"))
-						Expect(fakeVM.DetachDiskInputs).To(Equal([]fakebivm.DetachDiskInput{}))
+						Expect(fakeVM.DetachDiskCallCount()).To(Equal(0))
 
 						Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 							{Name: "Attaching disk 'fake-existing-disk-cid' to VM 'fake-vm-cid'"},
@@ -244,7 +244,14 @@ var _ = Describe("DiskDeployer", func() {
 					)
 
 					BeforeEach(func() {
-						fakeVM.SetDetachDiskBehavior(existingDisk, detachError)
+						fakeVM.DetachDiskStub = func(disk bidisk.Disk) error {
+							switch disk {
+							case existingDisk:
+								return detachError
+							default:
+								return nil
+							}
+						}
 					})
 
 					It("returns error", func() {
@@ -271,14 +278,14 @@ var _ = Describe("DiskDeployer", func() {
 					)
 
 					BeforeEach(func() {
-						fakeVM.MigrateDiskErr = migrateError
+						fakeVM.MigrateDiskReturns(migrateError)
 					})
 
 					It("returns error and leaves the existing disk attached", func() {
 						_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-migrate-disk-error"))
-						Expect(fakeVM.DetachDiskInputs).To(Equal([]fakebivm.DetachDiskInput{}))
+						Expect(fakeVM.DetachDiskCallCount()).To(Equal(0))
 
 						Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 							{Name: "Attaching disk 'fake-existing-disk-cid' to VM 'fake-vm-cid'"},
@@ -327,10 +334,8 @@ var _ = Describe("DiskDeployer", func() {
 				It("attaches secondary disk", func() {
 					_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
-					Expect(fakeVM.AttachDiskInputs).To(Equal([]fakebivm.AttachDiskInput{
-						{Disk: existingDisk},
-						{Disk: secondaryDisk},
-					}))
+					Expect(fakeVM.AttachDiskArgsForCall(0)).To(Equal(existingDisk))
+					Expect(fakeVM.AttachDiskArgsForCall(1)).To(Equal(secondaryDisk))
 
 					Expect(fakeStage.PerformCalls[2]).To(Equal(&fakebiui.PerformCall{
 						Name: "Attaching disk 'fake-secondary-disk-cid' to VM 'fake-vm-cid'",
@@ -340,7 +345,7 @@ var _ = Describe("DiskDeployer", func() {
 				It("migrates from primary to secondary disk", func() {
 					_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
-					Expect(fakeVM.MigrateDiskCalledTimes).To(Equal(1))
+					Expect(fakeVM.MigrateDiskCallCount()).To(Equal(1))
 
 					Expect(fakeStage.PerformCalls[3]).To(Equal(&fakebiui.PerformCall{
 						Name: "Migrating disk content from 'fake-existing-disk-cid' to 'fake-secondary-disk-cid'",
@@ -350,9 +355,7 @@ var _ = Describe("DiskDeployer", func() {
 				It("detaches primary disk", func() {
 					_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(fakeVM.DetachDiskInputs).To(Equal([]fakebivm.DetachDiskInput{
-						{Disk: existingDisk},
-					}))
+					Expect(fakeVM.DetachDiskArgsForCall(0)).To(Equal(existingDisk))
 
 					Expect(fakeStage.PerformCalls[4]).To(Equal(&fakebiui.PerformCall{
 						Name: "Detaching disk 'fake-existing-disk-cid'",
@@ -376,7 +379,7 @@ var _ = Describe("DiskDeployer", func() {
 						_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-create-disk-error"))
-						Expect(fakeVM.DetachDiskInputs).To(Equal([]fakebivm.DetachDiskInput{}))
+						Expect(fakeVM.DetachDiskCallCount()).To(Equal(0))
 					})
 				})
 
@@ -386,14 +389,21 @@ var _ = Describe("DiskDeployer", func() {
 					)
 
 					BeforeEach(func() {
-						fakeVM.SetAttachDiskBehavior(secondaryDisk, attachError)
+						fakeVM.AttachDiskStub = func(disk bidisk.Disk) error {
+							switch disk {
+							case secondaryDisk:
+								return attachError
+							default:
+								return nil
+							}
+						}
 					})
 
 					It("returns error and leaves the existing disk attached", func() {
 						_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-attach-disk-error"))
-						Expect(fakeVM.DetachDiskInputs).To(Equal([]fakebivm.DetachDiskInput{}))
+						Expect(fakeVM.DetachDiskCallCount()).To(Equal(0))
 
 						Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 							{Name: "Attaching disk 'fake-existing-disk-cid' to VM 'fake-vm-cid'"},
@@ -412,7 +422,7 @@ var _ = Describe("DiskDeployer", func() {
 					)
 
 					BeforeEach(func() {
-						fakeVM.SetDetachDiskBehavior(existingDisk, detachError)
+						fakeVM.DetachDiskReturns(detachError)
 					})
 
 					It("returns error", func() {
@@ -439,14 +449,14 @@ var _ = Describe("DiskDeployer", func() {
 					)
 
 					BeforeEach(func() {
-						fakeVM.MigrateDiskErr = migrateError
+						fakeVM.MigrateDiskReturns(migrateError)
 					})
 
 					It("returns error and leaves the existing disk attached", func() {
 						_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 						Expect(err).To(HaveOccurred())
 						Expect(err.Error()).To(ContainSubstring("fake-migrate-disk-error"))
-						Expect(fakeVM.DetachDiskInputs).To(Equal([]fakebivm.DetachDiskInput{}))
+						Expect(fakeVM.DetachDiskCallCount()).To(Equal(0))
 
 						Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
 							{Name: "Attaching disk 'fake-existing-disk-cid' to VM 'fake-vm-cid'"},
@@ -493,11 +503,7 @@ var _ = Describe("DiskDeployer", func() {
 		It("attaches the primary disk", func() {
 			_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeVM.AttachDiskInputs).To(Equal([]fakebivm.AttachDiskInput{
-				{
-					Disk: fakeDisk,
-				},
-			}))
+			Expect(fakeVM.AttachDiskArgsForCall(0)).To(Equal(fakeDisk))
 		})
 
 		It("logs attaching primary disk event", func() {
@@ -563,7 +569,7 @@ var _ = Describe("DiskDeployer", func() {
 			)
 
 			BeforeEach(func() {
-				fakeVM.SetAttachDiskBehavior(fakeDisk, attachDiskError)
+				fakeVM.AttachDiskReturns(attachDiskError)
 			})
 
 			It("return an error", func() {

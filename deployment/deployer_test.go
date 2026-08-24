@@ -22,7 +22,6 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/statefakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/sshtunnelfakes"
-	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/vm/vmfakes"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -32,7 +31,7 @@ var _ = Describe("Deployer", func() {
 	var (
 		deployer               Deployer
 		mockVMManagerFactory   *vmfakes.FakeManagerFactory
-		fakeVMManager          *fakebivm.FakeManager
+		fakeVMManager          *vmfakes.FakeManager
 		mockAgentClient        *agentclientfakes.FakeAgentClient
 		mockAgentClientFactory *cmdfakes.FakeAgentClientFactory
 		fakeSSHTunnelFactory   *sshtunnelfakes.FakeFactory
@@ -41,7 +40,7 @@ var _ = Describe("Deployer", func() {
 		deploymentManifest     bideplmanifest.Manifest
 		diskPool               bideplmanifest.DiskPool
 		fakeStage              *fakebiui.FakeStage
-		fakeVM                 *fakebivm.FakeVM
+		fakeVM                 *vmfakes.FakeVM
 		skipDrain              bool
 		diskCIDs               []string
 
@@ -92,7 +91,7 @@ var _ = Describe("Deployer", func() {
 		mockAgentClientFactory.NewAgentClientReturns(mockAgentClient, nil)
 
 		mockVMManagerFactory = &vmfakes.FakeManagerFactory{}
-		fakeVMManager = fakebivm.NewFakeManager()
+		fakeVMManager = &vmfakes.FakeManager{}
 		mockVMManagerFactory.NewManagerReturns(fakeVMManager)
 
 		fakeSSHTunnel = &sshtunnelfakes.FakeSSHTunnel{
@@ -104,10 +103,10 @@ var _ = Describe("Deployer", func() {
 		fakeSSHTunnelFactory = &sshtunnelfakes.FakeFactory{}
 		fakeSSHTunnelFactory.NewSSHTunnelReturns(fakeSSHTunnel)
 
-		fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
-		fakeVMManager.CreateVM = fakeVM
+		fakeVM = &vmfakes.FakeVM{CIDStub: func() string { return "fake-vm-cid" }}
+		fakeVMManager.CreateReturns(fakeVM, nil)
 
-		fakeVM.AgentClientReturn = mockAgentClient
+		fakeVM.AgentClientReturns(mockAgentClient)
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeStage = fakebiui.NewFakeStage()
@@ -151,7 +150,7 @@ var _ = Describe("Deployer", func() {
 		}
 
 		fakeAgentState := agentclient.AgentState{}
-		fakeVM.GetStateResult = fakeAgentState
+		fakeVM.GetStateReturns(fakeAgentState, nil)
 
 		mockStateBuilderFactory.NewBuilderReturns(mockStateBuilder)
 		mockStateBuilder.BuildReturns(mockState, nil)
@@ -160,19 +159,22 @@ var _ = Describe("Deployer", func() {
 	})
 
 	Context("when a previous instance exists", func() {
-		var fakeExistingVM *fakebivm.FakeVM
+		var fakeExistingVM *vmfakes.FakeVM
 
 		BeforeEach(func() {
-			fakeExistingVM = fakebivm.NewFakeVM("existing-vm-cid")
-			fakeVMManager.SetFindCurrentBehavior(fakeExistingVM, true, nil)
-			fakeExistingVM.AgentClientReturn = mockAgentClient
+			fakeExistingVM = &vmfakes.FakeVM{
+				CIDStub:    func() string { return "existing-vm-cid" },
+				ExistsStub: func() (bool, error) { return true, nil },
+			}
+			fakeVMManager.FindCurrentReturns(fakeExistingVM, true, nil)
+			fakeExistingVM.AgentClientReturns(mockAgentClient)
 		})
 
 		It("deletes existing vm", func() {
 			_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeExistingVM.DeleteCalled).To(Equal(1))
+			Expect(fakeExistingVM.DeleteCallCount()).To(Equal(1))
 
 			Expect(fakeStage.PerformCalls[:6]).To(Equal([]*fakebiui.PerformCall{
 				{Name: "Waiting for the agent on VM 'existing-vm-cid'"},
@@ -190,7 +192,7 @@ var _ = Describe("Deployer", func() {
 				_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(fakeExistingVM.DeleteCalled).To(Equal(1))
+				Expect(fakeExistingVM.DeleteCallCount()).To(Equal(1))
 
 				Expect(fakeStage.PerformCalls[:5]).To(Equal([]*fakebiui.PerformCall{
 					{Name: "Waiting for the agent on VM 'existing-vm-cid'"},
@@ -207,20 +209,19 @@ var _ = Describe("Deployer", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeVMManager.CreateInput).To(Equal(fakebivm.CreateInput{
-			Stemcell: cloudStemcell,
-			Manifest: deploymentManifest,
-			DiskCIDs: diskCIDs,
-		}))
+		stemcellArg, manifestArg, diskCIDsArg := fakeVMManager.CreateArgsForCall(0)
+		Expect(stemcellArg).To(Equal(cloudStemcell))
+		Expect(manifestArg).To(Equal(deploymentManifest))
+		Expect(diskCIDsArg).To(Equal(diskCIDs))
+
 	})
 
 	It("waits for the vm", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebivm.WaitUntilReadyInput{
-			Timeout: 10 * time.Minute,
-			Delay:   500 * time.Millisecond,
-		}))
+		timeout, delay := fakeVM.WaitUntilReadyArgsForCall(0)
+		Expect(timeout).To(Equal(10 * time.Minute))
+		Expect(delay).To(Equal(500 * time.Millisecond))
 	})
 
 	It("logs start and stop events to the eventLogger", func() {
@@ -238,7 +239,7 @@ var _ = Describe("Deployer", func() {
 		)
 
 		BeforeEach(func() {
-			fakeVM.WaitUntilReadyErr = waitError
+			fakeVM.WaitUntilReadyReturns(waitError)
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
@@ -257,27 +258,24 @@ var _ = Describe("Deployer", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeVM.ApplyInputs).To(Equal([]fakebivm.ApplyInput{
-			{ApplySpec: applySpec},
-			{ApplySpec: applySpec},
-		}))
+		Expect(fakeVM.ApplyArgsForCall(0)).To(Equal(applySpec))
+		Expect(fakeVM.ApplyArgsForCall(1)).To(Equal(applySpec))
 	})
 
 	It("starts the agent", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeVM.StartCalled).To(Equal(1))
+		Expect(fakeVM.StartCallCount()).To(Equal(1))
 	})
 
 	It("waits until agent reports state as running", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebivm.WaitInput{
-			MaxAttempts: 5,
-			Delay:       1 * time.Second,
-		}))
+		attemptsArg, delayArg := fakeVM.WaitToBeRunningArgsForCall(0)
+		Expect(attemptsArg).To(Equal(5))
+		Expect(delayArg).To(Equal(1 * time.Second))
 	})
 
 	Context("when the deployment has an invalid disk pool specification", func() {
@@ -303,7 +301,7 @@ var _ = Describe("Deployer", func() {
 
 	Context("when applying instance spec fails", func() {
 		BeforeEach(func() {
-			fakeVM.ApplyErr = bosherr.Error("fake-apply-error")
+			fakeVM.ApplyReturns(bosherr.Error("fake-apply-error"))
 		})
 
 		It("fails with descriptive error", func() {
@@ -315,7 +313,7 @@ var _ = Describe("Deployer", func() {
 
 	Context("when starting agent services fails", func() {
 		BeforeEach(func() {
-			fakeVM.StartErr = bosherr.Error("fake-start-error")
+			fakeVM.StartReturns(bosherr.Error("fake-start-error"))
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
@@ -335,7 +333,7 @@ var _ = Describe("Deployer", func() {
 		)
 
 		BeforeEach(func() {
-			fakeVM.WaitToBeRunningErr = waitError
+			fakeVM.WaitToBeRunningReturns(waitError)
 		})
 
 		It("logs start and stop events to the eventLogger", func() {

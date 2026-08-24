@@ -5,11 +5,6 @@ import (
 
 	"github.com/cloudfoundry/bosh-agent/v2/agentclient"
 	bias "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/disk/diskfakes"
@@ -17,8 +12,12 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/statefakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/sshtunnelfakes"
-	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/vm/vmfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Instance", func() {
@@ -27,8 +26,8 @@ var _ = Describe("Instance", func() {
 		mockStateBuilder *statefakes.FakeBuilder
 		mockState        *statefakes.FakeState
 
-		fakeVMManager        *fakebivm.FakeManager
-		fakeVM               *fakebivm.FakeVM
+		fakeVMManager        *vmfakes.FakeManager
+		fakeVM               *vmfakes.FakeVM
 		fakeSSHTunnelFactory *sshtunnelfakes.FakeFactory
 		fakeSSHTunnel        *sshtunnelfakes.FakeSSHTunnel
 		fakeStage            *fakebiui.FakeStage
@@ -46,8 +45,11 @@ var _ = Describe("Instance", func() {
 	)
 
 	BeforeEach(func() {
-		fakeVMManager = fakebivm.NewFakeManager()
-		fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
+		fakeVMManager = &vmfakes.FakeManager{}
+		fakeVM = &vmfakes.FakeVM{
+			CIDStub:    func() string { return "fake-vm-cid" },
+			ExistsStub: func() (bool, error) { return true, nil },
+		}
 
 		fakeSSHTunnel = &sshtunnelfakes.FakeSSHTunnel{
 			StartStub: func(readyErrCh chan<- error, errCh chan<- error) {
@@ -83,17 +85,16 @@ var _ = Describe("Instance", func() {
 			err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebivm.WaitUntilReadyInput{
-				Timeout: pingTimeout,
-				Delay:   pingDelay,
-			}))
+			timeout, delay := fakeVM.WaitUntilReadyArgsForCall(0)
+			Expect(timeout).To(Equal(pingTimeout))
+			Expect(delay).To(Equal(pingDelay))
 		})
 
 		It("deletes existing vm", func() {
 			err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeVM.DeleteCalled).To(Equal(1))
+			Expect(fakeVM.DeleteCallCount()).To(Equal(1))
 		})
 
 		It("logs start and stop events", func() {
@@ -124,7 +125,7 @@ var _ = Describe("Instance", func() {
 				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeVM.DrainCalled).To(Equal(1))
+				Expect(fakeVM.DrainCallCount()).To(Equal(1))
 			})
 
 			It("can skip draining", func() {
@@ -132,28 +133,26 @@ var _ = Describe("Instance", func() {
 				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeVM.DrainCalled).To(Equal(0))
+				Expect(fakeVM.DrainCallCount()).To(Equal(0))
 			})
 
 			It("stops vm", func() {
 				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeVM.StopCalled).To(Equal(1))
+				Expect(fakeVM.StopCallCount()).To(Equal(1))
 			})
 
 			It("unmounts vm disks", func() {
 				firstDisk := &diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk-1" }}
 				secondDisk := &diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk-2" }}
-				fakeVM.ListDisksDisks = []bidisk.Disk{firstDisk, secondDisk}
+				fakeVM.DisksReturns([]bidisk.Disk{firstDisk, secondDisk}, nil)
 
 				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeVM.UnmountDiskInputs).To(Equal([]fakebivm.UnmountDiskInput{
-					{Disk: firstDisk},
-					{Disk: secondDisk},
-				}))
+				Expect(fakeVM.UnmountDiskArgsForCall(0)).To(Equal(firstDisk))
+				Expect(fakeVM.UnmountDiskArgsForCall(1)).To(Equal(secondDisk))
 
 				Expect(fakeStage.PerformCalls[5:7]).To(Equal([]*fakebiui.PerformCall{
 					{Name: "Unmounting disk 'fake-disk-1'"},
@@ -167,7 +166,7 @@ var _ = Describe("Instance", func() {
 				)
 
 				BeforeEach(func() {
-					fakeVM.StopErr = stopError
+					fakeVM.StopReturns(stopError)
 				})
 
 				It("returns an error", func() {
@@ -189,8 +188,8 @@ var _ = Describe("Instance", func() {
 
 			Context("when unmounting disk fails", func() {
 				BeforeEach(func() {
-					fakeVM.ListDisksDisks = []bidisk.Disk{&diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk" }}}
-					fakeVM.UnmountDiskErr = bosherr.Error("fake-unmount-error")
+					fakeVM.DisksReturns([]bidisk.Disk{&diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk" }}}, nil)
+					fakeVM.UnmountDiskReturns(bosherr.Error("fake-unmount-error"))
 				})
 
 				It("returns an error", func() {
@@ -207,7 +206,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when agent fails to respond", func() {
 			BeforeEach(func() {
-				fakeVM.WaitUntilReadyErr = bosherr.Error("fake-wait-error")
+				fakeVM.WaitUntilReadyReturns(bosherr.Error("fake-wait-error"))
 			})
 
 			It("logs failed event", func() {
@@ -225,7 +224,7 @@ var _ = Describe("Instance", func() {
 				deleteError = bosherr.Error("fake-delete-error")
 			)
 			BeforeEach(func() {
-				fakeVM.DeleteErr = deleteError
+				fakeVM.DeleteReturns(deleteError)
 			})
 
 			It("returns an error", func() {
@@ -249,27 +248,27 @@ var _ = Describe("Instance", func() {
 
 		Context("when VM does not exist (deleted manually)", func() {
 			BeforeEach(func() {
-				fakeVM.ExistsFound = false
-				fakeVM.DeleteErr = bicloud.NewCPIError("delete_vm", bicloud.CmdError{
+				fakeVM.ExistsReturns(false, nil)
+				fakeVM.DeleteReturns(bicloud.NewCPIError("delete_vm", bicloud.CmdError{
 					Type:    bicloud.VMNotFoundError,
 					Message: "fake-vm-not-found-message",
-				})
+				}))
 			})
 
 			It("deletes existing vm", func() {
 				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(fakeVM.DeleteCalled).To(Equal(1))
+				Expect(fakeVM.DeleteCallCount()).To(Equal(1))
 			})
 
 			It("does not contact the agent", func() {
 				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(fakeVM.WaitUntilReadyInputs).To(HaveLen(0))
-				Expect(fakeVM.StopCalled).To(Equal(0))
-				Expect(fakeVM.UnmountDiskInputs).To(HaveLen(0))
+				Expect(fakeVM.WaitUntilReadyCallCount()).To(Equal(0))
+				Expect(fakeVM.StopCallCount()).To(Equal(0))
+				Expect(fakeVM.UnmountDiskCallCount()).To(Equal(0))
 			})
 
 			It("logs vm delete as skipped", func() {
@@ -309,7 +308,7 @@ var _ = Describe("Instance", func() {
 
 		JustBeforeEach(func() {
 			fakeAgentState := agentclient.AgentState{JobState: "testing"}
-			fakeVM.GetStateResult = fakeAgentState
+			fakeVM.GetStateReturns(fakeAgentState, nil)
 
 			mockStateBuilder.BuildReturns(mockState, nil)
 			mockStateBuilder.BuildInitialStateReturns(mockState, nil)
@@ -339,23 +338,24 @@ var _ = Describe("Instance", func() {
 			err := instance.UpdateJobs(deploymentManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeVM.StopCalled).To(Equal(1))
-			Expect(fakeVM.ApplyInputs).To(Equal([]fakebivm.ApplyInput{
-				{ApplySpec: applySpec},
-				{ApplySpec: applySpec},
-			}))
-			Expect(fakeVM.RunScriptInputs).To(Equal([]string{"pre-start", "post-start"}))
-			Expect(fakeVM.StartCalled).To(Equal(1))
+			Expect(fakeVM.StopCallCount()).To(Equal(1))
+
+			Expect(fakeVM.ApplyArgsForCall(0)).To(Equal(applySpec))
+			Expect(fakeVM.ApplyArgsForCall(1)).To(Equal(applySpec))
+			script1, _ := fakeVM.RunScriptArgsForCall(0)
+			Expect(script1).To(Equal("pre-start"))
+			script2, _ := fakeVM.RunScriptArgsForCall(1)
+			Expect(script2).To(Equal("post-start"))
+			Expect(fakeVM.StartCallCount()).To(Equal(1))
 		})
 
 		It("waits until agent reports state as running", func() {
 			err := instance.UpdateJobs(deploymentManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebivm.WaitInput{
-				MaxAttempts: 5,
-				Delay:       1 * time.Second,
-			}))
+			maxAttempts, delay := fakeVM.WaitToBeRunningArgsForCall(0)
+			Expect(maxAttempts).To(Equal(5))
+			Expect(delay).To(Equal(1 * time.Second))
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
@@ -383,7 +383,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when stopping vm fails", func() {
 			BeforeEach(func() {
-				fakeVM.StopErr = bosherr.Error("fake-stop-error")
+				fakeVM.StopReturns(bosherr.Error("fake-stop-error"))
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
@@ -399,7 +399,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when applying a new vm state fails", func() {
 			BeforeEach(func() {
-				fakeVM.ApplyErr = bosherr.Error("fake-apply-error")
+				fakeVM.ApplyReturns(bosherr.Error("fake-apply-error"))
 			})
 
 			It("fails with descriptive error", func() {
@@ -411,7 +411,14 @@ var _ = Describe("Instance", func() {
 
 		Context("when running the pre-start script fails", func() {
 			BeforeEach(func() {
-				fakeVM.RunScriptErrors["pre-start"] = bosherr.Error("fake-run-script-error")
+				fakeVM.RunScriptStub = func(script string, _ map[string]interface{}) error {
+					switch script {
+					case "pre-start":
+						return bosherr.Error("fake-run-script-error")
+					default:
+						return nil
+					}
+				}
 			})
 
 			It("returns the error", func() {
@@ -423,7 +430,14 @@ var _ = Describe("Instance", func() {
 
 		Context("when running the post-start script fails", func() {
 			BeforeEach(func() {
-				fakeVM.RunScriptErrors["post-start"] = bosherr.Error("fake-run-script-error-poststart")
+				fakeVM.RunScriptStub = func(script string, _ map[string]interface{}) error {
+					switch script {
+					case "post-start":
+						return bosherr.Error("fake-run-script-error-poststart")
+					default:
+						return nil
+					}
+				}
 			})
 
 			It("returns the error", func() {
@@ -435,7 +449,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when starting vm fails", func() {
 			BeforeEach(func() {
-				fakeVM.StartErr = bosherr.Error("fake-start-error")
+				fakeVM.StartReturns(bosherr.Error("fake-start-error"))
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
@@ -455,7 +469,7 @@ var _ = Describe("Instance", func() {
 			)
 
 			BeforeEach(func() {
-				fakeVM.WaitToBeRunningErr = waitError
+				fakeVM.WaitToBeRunningReturns(waitError)
 			})
 
 			It("logs instance update stages", func() {
@@ -478,10 +492,10 @@ var _ = Describe("Instance", func() {
 		It("waits for the vm", func() {
 			err := instance.WaitUntilReady(fakeStage)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebivm.WaitUntilReadyInput{
-				Timeout: 10 * time.Minute,
-				Delay:   500 * time.Millisecond,
-			}))
+
+			timeout, delay := fakeVM.WaitUntilReadyArgsForCall(0)
+			Expect(timeout).To(Equal(10 * time.Minute))
+			Expect(delay).To(Equal(500 * time.Millisecond))
 		})
 
 		It("logs start and stop events to the eventLogger", func() {
@@ -498,7 +512,7 @@ var _ = Describe("Instance", func() {
 				waitError = bosherr.Error("fake-wait-error")
 			)
 			BeforeEach(func() {
-				fakeVM.WaitUntilReadyErr = waitError
+				fakeVM.WaitUntilReadyReturns(waitError)
 			})
 
 			It("logs start and stop events to the eventLogger", func() {
@@ -514,7 +528,6 @@ var _ = Describe("Instance", func() {
 				}))
 			})
 		})
-
 	})
 
 	Describe("Stop", func() {
@@ -522,10 +535,9 @@ var _ = Describe("Instance", func() {
 			err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebivm.WaitUntilReadyInput{
-				Timeout: pingTimeout,
-				Delay:   pingDelay,
-			}))
+			timeout, delay := fakeVM.WaitUntilReadyArgsForCall(0)
+			Expect(timeout).To(Equal(pingTimeout))
+			Expect(delay).To(Equal(pingDelay))
 		})
 
 		It("logs start and stop events", func() {
@@ -555,7 +567,7 @@ var _ = Describe("Instance", func() {
 				err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeVM.DrainCalled).To(Equal(1))
+				Expect(fakeVM.DrainCallCount()).To(Equal(1))
 			})
 
 			It("can skip draining", func() {
@@ -563,31 +575,31 @@ var _ = Describe("Instance", func() {
 				err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeVM.DrainCalled).To(Equal(0))
+				Expect(fakeVM.DrainCallCount()).To(Equal(0))
 			})
 
 			It("stops all jobs", func() {
 				err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeVM.StopCalled).To(Equal(1))
+				Expect(fakeVM.StopCallCount()).To(Equal(1))
 			})
 
 			It("does not unmount vm disks", func() {
 				firstDisk := &diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk-1" }}
 				secondDisk := &diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk-2" }}
-				fakeVM.ListDisksDisks = []bidisk.Disk{firstDisk, secondDisk}
+				fakeVM.DisksReturns([]bidisk.Disk{firstDisk, secondDisk}, nil)
 
 				err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeVM.UnmountDiskInputs).To(Equal([]fakebivm.UnmountDiskInput{}))
+				Expect(fakeVM.UnmountDiskCallCount()).To(Equal(0))
 			})
 		})
 
 		Context("when agent fails to respond", func() {
 			BeforeEach(func() {
-				fakeVM.WaitUntilReadyErr = bosherr.Error("fake-wait-error")
+				fakeVM.WaitUntilReadyReturns(bosherr.Error("fake-wait-error"))
 			})
 
 			It("logs failed event", func() {
@@ -620,10 +632,9 @@ var _ = Describe("Instance", func() {
 			err := instance.Start(update, pingTimeout, pingDelay, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeVM.WaitUntilReadyInputs).To(ContainElement(fakebivm.WaitUntilReadyInput{
-				Timeout: pingTimeout,
-				Delay:   pingDelay,
-			}))
+			timeout, delay := fakeVM.WaitUntilReadyArgsForCall(0)
+			Expect(timeout).To(Equal(pingTimeout))
+			Expect(delay).To(Equal(pingDelay))
 		})
 
 		It("logs start and stop events", func() {
@@ -653,16 +664,15 @@ var _ = Describe("Instance", func() {
 				err := instance.Start(update, pingTimeout, pingDelay, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(fakeVM.WaitToBeRunningInputs).To(ContainElement(fakebivm.WaitInput{
-					MaxAttempts: 5,
-					Delay:       1 * time.Second,
-				}))
+				maxAttempts, delay := fakeVM.WaitToBeRunningArgsForCall(0)
+				Expect(maxAttempts).To(Equal(5))
+				Expect(delay).To(Equal(1 * time.Second))
 			})
 		})
 
 		Context("when agent fails to respond", func() {
 			BeforeEach(func() {
-				fakeVM.WaitUntilReadyErr = bosherr.Error("fake-wait-error")
+				fakeVM.WaitUntilReadyReturns(bosherr.Error("fake-wait-error"))
 			})
 
 			It("logs failed event", func() {
