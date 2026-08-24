@@ -1,6 +1,7 @@
 package deployment_test
 
 import (
+	"github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -23,8 +24,6 @@ import (
 	bisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel"
 	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
-	"github.com/cloudfoundry/bosh-cli/v7/stemcell/mockfakes"
-	"github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
 
@@ -33,7 +32,7 @@ var _ = Describe("Manager", func() {
 		var (
 			mockInstanceManager   *instancefakes.FakeManager
 			mockDiskManager       *diskfakes.FakeManager
-			mockStemcellManager   *mockfakes.FakeManager
+			mockStemcellManager   *stemcellfakes.FakeManager
 			mockDeploymentFactory *deploymentfakes.FakeFactory
 			mockDeployment        *deploymentfakes.FakeDeployment
 
@@ -47,7 +46,7 @@ var _ = Describe("Manager", func() {
 		BeforeEach(func() {
 			mockInstanceManager = &instancefakes.FakeManager{}
 			mockDiskManager = &diskfakes.FakeManager{}
-			mockStemcellManager = &mockfakes.FakeManager{}
+			mockStemcellManager = &stemcellfakes.FakeManager{}
 			mockDeploymentFactory = &deploymentfakes.FakeFactory{}
 			mockDeployment = &deploymentfakes.FakeDeployment{}
 

@@ -50,8 +50,7 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
 	setmanifestfakes "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest/manifestfakes"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
-	"github.com/cloudfoundry/bosh-cli/v7/stemcell/mockfakes"
-	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
+	"github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 )
@@ -90,9 +89,9 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			mockVMManagerFactory       *vmfakes.FakeManagerFactory
 			fakeVMManager              *vmfakes.FakeManager
-			fakeStemcellExtractor      *fakebistemcell.FakeExtractor
-			mockStemcellManager        *mockfakes.FakeManager
-			fakeStemcellManagerFactory *fakebistemcell.FakeManagerFactory
+			fakeStemcellExtractor      *stemcellfakes.FakeExtractor
+			mockStemcellManager        *stemcellfakes.FakeManager
+			fakeStemcellManagerFactory *stemcellfakes.FakeManagerFactory
 
 			fakeReleaseSetParser              *setmanifestfakes.FakeParser
 			fakeInstallationParser            *manifestfakes.FakeParser
@@ -168,9 +167,9 @@ var _ = Describe("CreateEnvCmd", func() {
 			fakeVMManager = &vmfakes.FakeManager{}
 			mockVMManagerFactory.NewManagerReturns(fakeVMManager)
 
-			fakeStemcellExtractor = fakebistemcell.NewFakeExtractor()
-			mockStemcellManager = &mockfakes.FakeManager{}
-			fakeStemcellManagerFactory = fakebistemcell.NewFakeManagerFactory()
+			fakeStemcellExtractor = stemcellfakes.NewFakeExtractor()
+			mockStemcellManager = &stemcellfakes.FakeManager{}
+			fakeStemcellManagerFactory = stemcellfakes.NewFakeManagerFactory()
 
 			fakeReleaseSetParser = &setmanifestfakes.FakeParser{}
 			fakeInstallationParser = &manifestfakes.FakeParser{}
@@ -376,7 +375,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			stemcellTarballPath = filepath.Join("/", "stemcell", "tarball", "path")
 
-			cloudStemcell = fakebistemcell.NewFakeCloudStemcell(
+			cloudStemcell = stemcellfakes.NewFakeCloudStemcell(
 				"fake-stemcell-cid", "fake-stemcell-name", "fake-stemcell-version", stemcellApiVersion)
 
 			mockCloud = &cloudfakes.FakeCloud{}
@@ -577,7 +576,7 @@ var _ = Describe("CreateEnvCmd", func() {
 		It("extracts the stemcell", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeStemcellExtractor.ExtractInputs).To(Equal([]fakebistemcell.ExtractInput{
+			Expect(fakeStemcellExtractor.ExtractInputs).To(Equal([]stemcellfakes.ExtractInput{
 				{TarballPath: stemcellTarballPath},
 			}))
 		})
