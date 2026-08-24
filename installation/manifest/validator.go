@@ -10,6 +10,8 @@ import (
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
 )
 
+//counterfeiter:generate . Validator
+
 type Validator interface {
 	Validate(Manifest, birelsetmanifest.Manifest) error
 }

@@ -40,7 +40,7 @@ import (
 	biinstall "github.com/cloudfoundry/bosh-cli/v7/installation"
 	"github.com/cloudfoundry/bosh-cli/v7/installation/installationfakes"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
-	fakebiinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/installation/manifest/manifestfakes"
 	bitarball "github.com/cloudfoundry/bosh-cli/v7/installation/tarball"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
@@ -95,7 +95,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			fakeStemcellManagerFactory *fakebistemcell.FakeManagerFactory
 
 			fakeReleaseSetParser              *fakebirelsetmanifest.FakeParser
-			fakeInstallationParser            *fakebiinstallmanifest.FakeParser
+			fakeInstallationParser            *manifestfakes.FakeParser
 			fakeDeploymentParser              *fakebideplmanifest.FakeParser
 			fakeDeploymentTemplateFactory     *fakebidepltpl.FakeDeploymentTemplateFactory
 			mockLegacyDeploymentStateMigrator *configfakes.FakeLegacyDeploymentStateMigrator
@@ -173,7 +173,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			fakeStemcellManagerFactory = fakebistemcell.NewFakeManagerFactory()
 
 			fakeReleaseSetParser = fakebirelsetmanifest.NewFakeParser()
-			fakeInstallationParser = fakebiinstallmanifest.NewFakeParser()
+			fakeInstallationParser = &manifestfakes.FakeParser{}
 			fakeDeploymentParser = &fakebideplmanifest.FakeParser{}
 			fakeDeploymentTemplateFactory = &fakebidepltpl.FakeDeploymentTemplateFactory{}
 
@@ -395,7 +395,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			template := bidepltpl.NewDeploymentTemplate([]byte("--- {\"test\":true}"))
 			fakeDeploymentTemplateFactory.NewDeploymentTemplateFromPathReturns(template, nil)
 			fakeDeploymentParser.ParseReturns(boshDeploymentManifest, nil)
-			fakeInstallationParser.ParseManifest = installationManifest
+			fakeInstallationParser.ParseReturns(installationManifest, nil)
 
 			installationPath := filepath.Join("fake-install-dir", "fake-installation-id")
 			target := biinstall.NewTarget(installationPath, "")
@@ -463,7 +463,8 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			err = command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
+			pathArg, _, _, _ := fakeInstallationParser.ParseArgsForCall(0)
+			Expect(pathArg).To(Equal(deploymentManifestPath))
 			Expect(mockLegacyDeploymentStateMigrator.MigrateIfExistsCallCount()).To(Equal(0))
 		})
 
@@ -475,7 +476,8 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			err = command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
+			pathArg, _, _, _ := fakeInstallationParser.ParseArgsForCall(0)
+			Expect(pathArg).To(Equal(deploymentManifestPath))
 			Expect(mockLegacyDeploymentStateMigrator.MigrateIfExistsCallCount()).To(Equal(1))
 
 			Expect(stdOut).To(gbytes.Say("Deployment manifest: '" + regexp.QuoteMeta(filepath.Join("/", "path", "to", "manifest.yml")) + "'"))
@@ -501,7 +503,8 @@ var _ = Describe("CreateEnvCmd", func() {
 		It("parses the installation manifest", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeInstallationParser.ParsePath).To(Equal(deploymentManifestPath))
+			pathArg, _, _, _ := fakeInstallationParser.ParseArgsForCall(0)
+			Expect(pathArg).To(Equal(deploymentManifestPath))
 		})
 
 		It("parses the deployment manifest", func() {

@@ -13,7 +13,7 @@ import (
 
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	"github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
-	"github.com/cloudfoundry/bosh-cli/v7/installation/manifest/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/installation/manifest/manifestfakes"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
 )
 
@@ -30,14 +30,12 @@ var _ = Describe("Parser", func() {
 		fakeUUIDGenerator *fakeuuid.FakeGenerator
 		parser            manifest.Parser
 		logger            boshlog.Logger
-		fakeValidator     *fakes.FakeValidator
+		fakeValidator     *manifestfakes.FakeValidator
 		fixtures          manifestFixtures
 	)
 	BeforeEach(func() {
-		fakeValidator = fakes.NewFakeValidator()
-		fakeValidator.SetValidateBehavior([]fakes.ValidateOutput{
-			{Err: nil},
-		})
+		fakeValidator = &manifestfakes.FakeValidator{}
+		fakeValidator.ValidateReturns(nil)
 		fakeFs = fakesys.NewFakeFileSystem()
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fakeUUIDGenerator = fakeuuid.NewFakeGenerator()
@@ -115,6 +113,8 @@ cloud_provider:
 					},
 					Mbus: "http://fake-mbus-user:fake-mbus-password@0.0.0.0:6868",
 				}))
+
+				Expect(fakeValidator.ValidateCallCount()).To(Equal(1))
 			})
 		})
 
@@ -450,9 +450,7 @@ cloud_provider:
 			err := fakeFs.WriteFileString(comboManifestPath, fixtures.validManifest)
 			Expect(err).ToNot(HaveOccurred())
 
-			fakeValidator.SetValidateBehavior([]fakes.ValidateOutput{
-				{Err: errors.New("nope")},
-			})
+			fakeValidator.ValidateReturns(errors.New("nope"))
 
 			_, err = parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{}, releaseSetManifest)
 			Expect(err).To(HaveOccurred())
