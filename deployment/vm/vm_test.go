@@ -16,7 +16,7 @@ import (
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
-	fakebiconfig "github.com/cloudfoundry/bosh-cli/v7/config/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/config/configfakes"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	fakebidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk/fakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
@@ -28,8 +28,8 @@ import (
 var _ = Describe("VM", func() {
 	var (
 		vm               VM
-		fakeVMRepo       *fakebiconfig.FakeVMRepo
-		fakeStemcellRepo *fakebiconfig.FakeStemcellRepo
+		fakeVMRepo       *configfakes.FakeVMRepo
+		fakeStemcellRepo *configfakes.FakeStemcellRepo
 		fakeDiskDeployer *fakebivm.FakeDiskDeployer
 		fakeAgentClient  *fakebiagentclient.FakeAgentClient
 		fakeCloud        *cloudfakes.FakeCloud
@@ -60,8 +60,8 @@ var _ = Describe("VM", func() {
 		logger = &loggerfakes.FakeLogger{}
 		fs = fakesys.NewFakeFileSystem()
 		fakeCloud = &cloudfakes.FakeCloud{}
-		fakeVMRepo = fakebiconfig.NewFakeVMRepo()
-		fakeStemcellRepo = fakebiconfig.NewFakeStemcellRepo()
+		fakeVMRepo = &configfakes.FakeVMRepo{}
+		fakeStemcellRepo = &configfakes.FakeStemcellRepo{}
 		fakeDiskDeployer = fakebivm.NewFakeDiskDeployer()
 		vm = NewVM(
 			"fake-vm-cid",
@@ -588,13 +588,13 @@ var _ = Describe("VM", func() {
 		It("deletes VM in the vm repo", func() {
 			err := vm.Delete()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeVMRepo.ClearCurrentCalled).To(BeTrue())
+			Expect(fakeVMRepo.ClearCurrentCallCount()).To(Equal(1))
 		})
 
 		It("clears current stemcell in the stemcell repo", func() {
 			err := vm.Delete()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeStemcellRepo.ClearCurrentCalled).To(BeTrue())
+			Expect(fakeVMRepo.ClearCurrentCallCount()).To(Equal(1))
 		})
 
 		Context("when deleting vm in the cloud fails", func() {
@@ -630,14 +630,14 @@ var _ = Describe("VM", func() {
 				err := vm.Delete()
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(Equal(deleteErr))
-				Expect(fakeVMRepo.ClearCurrentCalled).To(BeTrue())
+				Expect(fakeVMRepo.ClearCurrentCallCount()).To(Equal(1))
 			})
 
 			It("clears current stemcell in the stemcell repo", func() {
 				err := vm.Delete()
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(Equal(deleteErr))
-				Expect(fakeStemcellRepo.ClearCurrentCalled).To(BeTrue())
+				Expect(fakeVMRepo.ClearCurrentCallCount()).To(Equal(1))
 			})
 		})
 	})

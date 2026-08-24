@@ -9,7 +9,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
-	fakebiconfig "github.com/cloudfoundry/bosh-cli/v7/config/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/config/configfakes"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	fakebidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk/fakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
@@ -27,7 +27,7 @@ var _ = Describe("DiskDeployer", func() {
 		fakeStage              *fakebiui.FakeStage
 		fakeVM                 *fakebivm.FakeVM
 		fakeDisk               *fakebidisk.FakeDisk
-		fakeDiskRepo           *fakebiconfig.FakeDiskRepo
+		fakeDiskRepo           *configfakes.FakeDiskRepo
 		fakeDiskManagerFactory *fakebidisk.FakeManagerFactory
 		logger                 boshlog.Logger
 	)
@@ -44,7 +44,7 @@ var _ = Describe("DiskDeployer", func() {
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fakeStage = fakebiui.NewFakeStage()
-		fakeDiskRepo = fakebiconfig.NewFakeDiskRepo()
+		fakeDiskRepo = &configfakes.FakeDiskRepo{}
 		diskDeployer = NewDiskDeployer(
 			fakeDiskManagerFactory,
 			fakeDiskRepo,
@@ -57,7 +57,7 @@ var _ = Describe("DiskDeployer", func() {
 		newDiskRecord := biconfig.DiskRecord{
 			ID: "fake-new-disk-id",
 		}
-		fakeDiskRepo.SetFindBehavior("fake-new-disk-cid", newDiskRecord, true, nil)
+		fakeDiskRepo.FindReturnsOnCall(0, newDiskRecord, true, nil)
 	})
 
 	Context("when the disk pool size is > 0", func() {
@@ -81,7 +81,7 @@ var _ = Describe("DiskDeployer", func() {
 				existingDiskRecord := biconfig.DiskRecord{
 					ID: "fake-existing-disk-id",
 				}
-				fakeDiskRepo.SetFindBehavior("fake-existing-disk-cid", existingDiskRecord, true, nil)
+				fakeDiskRepo.FindReturnsOnCall(1, existingDiskRecord, true, nil)
 			})
 
 			It("does not create primary disk", func() {
@@ -126,7 +126,7 @@ var _ = Describe("DiskDeployer", func() {
 						ID: "fake-secondary-disk-id",
 					}
 
-					fakeDiskRepo.SetFindBehavior("fake-secondary-disk-cid", secondaryDiskRecord, true, nil)
+					fakeDiskRepo.FindReturnsOnCall(0, secondaryDiskRecord, true, nil)
 				})
 
 				It("creates secondary disk", func() {
@@ -186,10 +186,7 @@ var _ = Describe("DiskDeployer", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// existing disk must be current until after migration
-					Expect(fakeDiskRepo.UpdateCurrentInputs).To(Equal([]fakebiconfig.DiskRepoUpdateCurrentInput{
-						//						{ DiskID: "fake-existing-disk-id" },
-						{DiskID: "fake-secondary-disk-id"},
-					}))
+					Expect(fakeDiskRepo.UpdateCurrentArgsForCall(0)).To(Equal("fake-secondary-disk-id"))
 				})
 
 				Context("when disk creation fails", func() {
@@ -298,7 +295,7 @@ var _ = Describe("DiskDeployer", func() {
 						ID: "fake-secondary-disk-id",
 					}
 
-					fakeDiskRepo.SetFindBehavior("fake-secondary-disk-cid", secondaryDiskRecord, true, nil)
+					fakeDiskRepo.FindReturnsOnCall(0, secondaryDiskRecord, true, nil)
 				})
 
 				It("creates secondary disk", func() {
@@ -358,10 +355,7 @@ var _ = Describe("DiskDeployer", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// existing disk must be current until after migration
-					Expect(fakeDiskRepo.UpdateCurrentInputs).To(Equal([]fakebiconfig.DiskRepoUpdateCurrentInput{
-						//						{ DiskID: "fake-existing-disk-id" },
-						{DiskID: "fake-secondary-disk-id"},
-					}))
+					Expect(fakeDiskRepo.UpdateCurrentArgsForCall(0)).To(Equal("fake-secondary-disk-id"))
 				})
 
 				Context("when disk creation fails", func() {
@@ -477,9 +471,7 @@ var _ = Describe("DiskDeployer", func() {
 				_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(fakeDiskRepo.UpdateCurrentInputs).To(Equal([]fakebiconfig.DiskRepoUpdateCurrentInput{
-					{DiskID: "fake-new-disk-id"},
-				}))
+				Expect(fakeDiskRepo.UpdateCurrentArgsForCall(0)).To(Equal("fake-new-disk-id"))
 			})
 
 			It("logs the create disk event", func() {

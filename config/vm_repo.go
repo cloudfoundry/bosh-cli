@@ -4,6 +4,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
+//counterfeiter:generate . VMRepo
+
 type VMRepo interface {
 	FindCurrent() (cid string, found bool, err error)
 	UpdateCurrent(cid string) error

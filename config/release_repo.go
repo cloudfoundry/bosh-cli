@@ -7,6 +7,8 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/release"
 )
 
+//counterfeiter:generate . ReleaseRepo
+
 // ReleaseRepo persists releases metadata
 type ReleaseRepo interface {
 	List() ([]ReleaseRecord, error)

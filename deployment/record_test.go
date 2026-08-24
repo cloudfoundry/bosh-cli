@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
-	fakebiconfig "github.com/cloudfoundry/bosh-cli/v7/config/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/config/configfakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
@@ -19,9 +19,9 @@ var _ = Describe("Record", func() {
 	var (
 		release          *fakerel.FakeRelease
 		stemcell         bistemcell.ExtractedStemcell
-		deploymentRepo   *fakebiconfig.FakeDeploymentRepo
-		releaseRepo      *fakebiconfig.FakeReleaseRepo
-		stemcellRepo     *fakebiconfig.FakeStemcellRepo
+		deploymentRepo   *configfakes.FakeDeploymentRepo
+		releaseRepo      *configfakes.FakeReleaseRepo
+		stemcellRepo     *configfakes.FakeStemcellRepo
 		deploymentRecord Record
 		releases         []boshrel.Release
 	)
@@ -42,9 +42,9 @@ var _ = Describe("Record", func() {
 			nil,
 			fakeFS,
 		)
-		deploymentRepo = fakebiconfig.NewFakeDeploymentRepo()
-		releaseRepo = &fakebiconfig.FakeReleaseRepo{}
-		stemcellRepo = fakebiconfig.NewFakeStemcellRepo()
+		deploymentRepo = &configfakes.FakeDeploymentRepo{}
+		releaseRepo = &configfakes.FakeReleaseRepo{}
+		stemcellRepo = &configfakes.FakeStemcellRepo{}
 		deploymentRecord = NewRecord(deploymentRepo, releaseRepo, stemcellRepo)
 	})
 
@@ -56,10 +56,8 @@ var _ = Describe("Record", func() {
 				Version: "fake-stemcell-version",
 				CID:     "fake-stemcell-cid",
 			}
-			err := stemcellRepo.SetFindCurrentBehavior(stemcellRecord, true, nil)
-			Expect(err).ToNot(HaveOccurred())
-
-			deploymentRepo.SetFindCurrentBehavior("fake-manifest-sha1", true, nil)
+			stemcellRepo.FindCurrentReturns(stemcellRecord, true, nil)
+			deploymentRepo.FindCurrentReturns("fake-manifest-sha1", true, nil)
 		})
 
 		Context("when the stemcell and manifest do not change", func() {
@@ -201,7 +199,7 @@ var _ = Describe("Record", func() {
 
 		Context("when no deployment is set", func() {
 			BeforeEach(func() {
-				deploymentRepo.SetFindCurrentBehavior("", false, nil)
+				deploymentRepo.FindCurrentReturns("", false, nil)
 			})
 
 			It("returns false", func() {
@@ -213,7 +211,7 @@ var _ = Describe("Record", func() {
 
 		Context("when a different deployment manifest is currently deployed", func() {
 			BeforeEach(func() {
-				deploymentRepo.SetFindCurrentBehavior("fake-manifest-sha1-2", true, nil)
+				deploymentRepo.FindCurrentReturns("fake-manifest-sha1-2", true, nil)
 			})
 
 			It("returns false", func() {
@@ -225,8 +223,7 @@ var _ = Describe("Record", func() {
 
 		Context("when finding the currently deployed stemcell fails", func() {
 			BeforeEach(func() {
-				err := stemcellRepo.SetFindCurrentBehavior(biconfig.StemcellRecord{}, false, errors.New("fake-find-error"))
-				Expect(err).ToNot(HaveOccurred())
+				stemcellRepo.FindCurrentReturns(biconfig.StemcellRecord{}, false, errors.New("fake-find-error"))
 			})
 
 			It("returns an error", func() {
@@ -238,8 +235,7 @@ var _ = Describe("Record", func() {
 
 		Context("when no stemcell is currently deployed", func() {
 			BeforeEach(func() {
-				err := stemcellRepo.SetFindCurrentBehavior(biconfig.StemcellRecord{}, false, nil)
-				Expect(err).ToNot(HaveOccurred())
+				stemcellRepo.FindCurrentReturns(biconfig.StemcellRecord{}, false, nil)
 			})
 
 			It("returns false", func() {
@@ -257,8 +253,7 @@ var _ = Describe("Record", func() {
 					Version: "fake-stemcell-version-2",
 					CID:     "fake-stemcell-cid-2",
 				}
-				err := stemcellRepo.SetFindCurrentBehavior(stemcellRecord, true, nil)
-				Expect(err).ToNot(HaveOccurred())
+				stemcellRepo.FindReturns(stemcellRecord, true, nil)
 			})
 
 			It("returns false", func() {
@@ -285,7 +280,7 @@ var _ = Describe("Record", func() {
 		It("calculates and updates sha1 of currently deployed manifest", func() {
 			err := deploymentRecord.Update("fake-manifest-sha1", releases)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(deploymentRepo.UpdateCurrentManifestSHA).To(Equal("fake-manifest-sha1"))
+			Expect(deploymentRepo.UpdateCurrentArgsForCall(0)).To(Equal("fake-manifest-sha1"))
 		})
 
 		It("passes the releases to the release repo", func() {
@@ -297,7 +292,7 @@ var _ = Describe("Record", func() {
 
 		Context("when updating currently deployed manifest sha1 fails", func() {
 			BeforeEach(func() {
-				deploymentRepo.UpdateCurrentErr = errors.New("fake-update-error")
+				deploymentRepo.UpdateCurrentReturns(errors.New("fake-update-error"))
 			})
 
 			It("returns an error", func() {
@@ -328,11 +323,9 @@ var _ = Describe("Record", func() {
 
 	Describe("Clear", func() {
 		It("clears manifest hash", func() {
-			deploymentRepo.UpdateCurrentManifestSHA = "initial-sha"
-
 			err := deploymentRecord.Clear()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(deploymentRepo.UpdateCurrentManifestSHA).To(Equal(""))
+			Expect(deploymentRepo.UpdateCurrentArgsForCall(0)).To(Equal(""))
 		})
 
 		It("clears releases list", func() {
@@ -344,7 +337,7 @@ var _ = Describe("Record", func() {
 
 		Context("when clearing manifest hash fails", func() {
 			BeforeEach(func() {
-				deploymentRepo.UpdateCurrentErr = errors.New("fake-update-error")
+				deploymentRepo.UpdateCurrentReturns(errors.New("fake-update-error"))
 			})
 
 			It("returns an error", func() {
