@@ -15,7 +15,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/blobstore/blobstorefakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
-	fakebidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/disk/diskfakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/statefakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
@@ -90,7 +90,7 @@ var _ = Describe("Manager", func() {
 			diskCIDs           []string
 
 			expectedInstance Instance
-			expectedDisk     *fakebidisk.FakeDisk
+			expectedDisk     *diskfakes.FakeDisk
 		)
 
 		var allowApplySpecToBeCreated = func() {
@@ -172,7 +172,7 @@ var _ = Describe("Manager", func() {
 				logger,
 			)
 
-			expectedDisk = fakebidisk.NewFakeDisk("fake-disk-cid")
+			expectedDisk = &diskfakes.FakeDisk{}
 			fakeVM.UpdateDisksDisks = []bidisk.Disk{expectedDisk}
 		})
 
