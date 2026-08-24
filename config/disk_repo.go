@@ -6,6 +6,8 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
+//counterfeiter:generate . DiskRepo
+
 type DiskRepo interface {
 	UpdateCurrent(diskID string) error
 	FindCurrent() (DiskRecord, bool, error)

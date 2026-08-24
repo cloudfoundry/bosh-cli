@@ -16,7 +16,7 @@ import (
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
-	fakebiconfig "github.com/cloudfoundry/bosh-cli/v7/config/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/config/configfakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
@@ -32,7 +32,7 @@ var _ = Describe("Manager", func() {
 		expectedCloudProperties   biproperty.Map
 		expectedEnv               biproperty.Map
 		deploymentManifest        bideplmanifest.Manifest
-		fakeVMRepo                *fakebiconfig.FakeVMRepo
+		fakeVMRepo                *configfakes.FakeVMRepo
 		stemcellRepo              biconfig.StemcellRepo
 		fakeDiskDeployer          *fakebivm.FakeDiskDeployer
 		fakeAgentClient           *fakebiagentclient.FakeAgentClient
@@ -47,7 +47,7 @@ var _ = Describe("Manager", func() {
 		fs = fakesys.NewFakeFileSystem()
 		fakeCloud = &cloudfakes.FakeCloud{}
 		fakeAgentClient = &fakebiagentclient.FakeAgentClient{}
-		fakeVMRepo = fakebiconfig.NewFakeVMRepo()
+		fakeVMRepo = &configfakes.FakeVMRepo{}
 
 		fakeUUIDGenerator := &fakeuuid.FakeGenerator{}
 		deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, "/fake/path")
@@ -258,7 +258,7 @@ var _ = Describe("Manager", func() {
 			_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeVMRepo.UpdateCurrentCID).To(Equal("fake-vm-cid"))
+			Expect(fakeVMRepo.UpdateCurrentArgsForCall(0)).To(Equal("fake-vm-cid"))
 		})
 
 		Context("when setting vm metadata fails", func() {
@@ -274,7 +274,7 @@ var _ = Describe("Manager", func() {
 				fakeCloud.SetVMMetadataReturns(errors.New("fake-set-metadata-error"))
 				_, err := manager.Create(stemcell, deploymentManifest, diskCIDs)
 				Expect(err).To(HaveOccurred())
-				Expect(fakeVMRepo.UpdateCurrentCID).To(Equal("fake-vm-cid"))
+				Expect(fakeVMRepo.UpdateCurrentArgsForCall(0)).To(Equal("fake-vm-cid"))
 			})
 
 			It("ignores not implemented error", func() {

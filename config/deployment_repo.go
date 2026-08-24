@@ -4,6 +4,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 )
 
+//counterfeiter:generate . DeploymentRepo
+
 type DeploymentRepo interface {
 	UpdateCurrent(manifestSHA string) error
 	FindCurrent() (manifestSHA string, found bool, err error)

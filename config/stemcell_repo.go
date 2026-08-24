@@ -5,6 +5,8 @@ import (
 	boshuuid "github.com/cloudfoundry/bosh-utils/uuid"
 )
 
+//counterfeiter:generate . StemcellRepo
+
 type StemcellRepo interface // StemcellRepo persists stemcells metadata
 {
 	UpdateCurrent(recordID string) error

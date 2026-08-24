@@ -16,7 +16,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
-	fakebiconfig "github.com/cloudfoundry/bosh-cli/v7/config/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/config/configfakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment"
 	biinstance "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/statefakes"
@@ -108,15 +108,14 @@ var _ = Describe("Deployer", func() {
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		fakeStage = fakebiui.NewFakeStage()
 
-		fakeStemcellRepo := fakebiconfig.NewFakeStemcellRepo()
+		fakeStemcellRepo := &configfakes.FakeStemcellRepo{}
 		stemcellRecord := biconfig.StemcellRecord{
 			ID:      "fake-stemcell-id",
 			Name:    "fake-stemcell-name",
 			Version: "fake-stemcell-version",
 			CID:     "fake-stemcell-cid",
 		}
-		err := fakeStemcellRepo.SetFindBehavior("fake-stemcell-name", "fake-stemcell-version", stemcellRecord, true, nil)
-		Expect(err).ToNot(HaveOccurred())
+		fakeStemcellRepo.FindReturns(stemcellRecord, true, nil)
 
 		cloudStemcell = bistemcell.NewCloudStemcell(stemcellRecord, fakeStemcellRepo, cloud)
 
