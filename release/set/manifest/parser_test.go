@@ -12,25 +12,25 @@ import (
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 	"github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
-	"github.com/cloudfoundry/bosh-cli/v7/release/set/manifest/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/release/set/manifest/manifestfakes"
 )
 
 var _ = Describe("Parser", func() {
 	var (
-		fs        *fakesys.FakeFileSystem
-		validator *fakes.FakeValidator
-		parser    manifest.Parser
+		fs            *fakesys.FakeFileSystem
+		fakeValidator *manifestfakes.FakeValidator
+		parser        manifest.Parser
 	)
 
 	comboManifestPath := "/path/to/manifest/fake-deployment-manifest"
 
 	BeforeEach(func() {
-		validator = fakes.NewFakeValidator()
-		validator.SetValidateBehavior([]fakes.ValidateOutput{{Err: nil}})
+		fakeValidator = &manifestfakes.FakeValidator{}
+		fakeValidator.ValidateReturns(nil)
 
 		fs = fakesys.NewFakeFileSystem()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		parser = manifest.NewParser(fs, logger, validator)
+		parser = manifest.NewParser(fs, logger, fakeValidator)
 
 		err := fs.WriteFileString(comboManifestPath, `
 ---
@@ -197,6 +197,8 @@ releases:
 				},
 			},
 		}))
+
+		Expect(fakeValidator.ValidateCallCount()).To(Equal(1))
 	})
 
 	It("interpolates variables and later resolves their values", func() {
@@ -245,9 +247,7 @@ releases:
 	})
 
 	It("handles errors validating the release set manifest", func() {
-		validator.SetValidateBehavior([]fakes.ValidateOutput{
-			{Err: errors.New("couldn't validate that")},
-		})
+		fakeValidator.ValidateReturns(errors.New("couldn't validate that"))
 
 		_, err := parser.Parse(comboManifestPath, boshtpl.StaticVariables{}, patch.Ops{})
 		Expect(err).To(HaveOccurred())

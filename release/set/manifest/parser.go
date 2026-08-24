@@ -12,6 +12,10 @@ import (
 	birelmanifest "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . Parser
+
 type Parser interface {
 	Parse(string, boshtpl.Variables, patch.Op) (Manifest, error)
 }

@@ -48,7 +48,7 @@ import (
 	fakebirel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
-	fakebirelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest/fakes"
+	setmanifestfakes "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest/manifestfakes"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	"github.com/cloudfoundry/bosh-cli/v7/stemcell/mockfakes"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
@@ -94,7 +94,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			mockStemcellManager        *mockfakes.FakeManager
 			fakeStemcellManagerFactory *fakebistemcell.FakeManagerFactory
 
-			fakeReleaseSetParser              *fakebirelsetmanifest.FakeParser
+			fakeReleaseSetParser              *setmanifestfakes.FakeParser
 			fakeInstallationParser            *manifestfakes.FakeParser
 			fakeDeploymentParser              *fakebideplmanifest.FakeParser
 			fakeDeploymentTemplateFactory     *fakebidepltpl.FakeDeploymentTemplateFactory
@@ -172,7 +172,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			mockStemcellManager = &mockfakes.FakeManager{}
 			fakeStemcellManagerFactory = fakebistemcell.NewFakeManagerFactory()
 
-			fakeReleaseSetParser = fakebirelsetmanifest.NewFakeParser()
+			fakeReleaseSetParser = &setmanifestfakes.FakeParser{}
 			fakeInstallationParser = &manifestfakes.FakeParser{}
 			fakeDeploymentParser = &fakebideplmanifest.FakeParser{}
 			fakeDeploymentTemplateFactory = &fakebidepltpl.FakeDeploymentTemplateFactory{}
@@ -391,7 +391,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			mockStemcellManager.DeleteUnusedReturns(nil)
 
-			fakeReleaseSetParser.ParseManifest = releaseSetManifest
+			fakeReleaseSetParser.ParseReturns(releaseSetManifest, nil)
 			template := bidepltpl.NewDeploymentTemplate([]byte("--- {\"test\":true}"))
 			fakeDeploymentTemplateFactory.NewDeploymentTemplateFromPathReturns(template, nil)
 			fakeDeploymentParser.ParseReturns(boshDeploymentManifest, nil)
