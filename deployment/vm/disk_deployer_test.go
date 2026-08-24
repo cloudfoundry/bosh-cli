@@ -1,6 +1,7 @@
 package vm_test
 
 import (
+	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -11,7 +12,7 @@ import (
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	"github.com/cloudfoundry/bosh-cli/v7/config/configfakes"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
-	fakebidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/disk/diskfakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
@@ -21,14 +22,14 @@ import (
 var _ = Describe("DiskDeployer", func() {
 	var (
 		diskDeployer           DiskDeployer
-		fakeDiskManager        *fakebidisk.FakeManager
+		fakeDiskManager        *diskfakes.FakeManager
 		diskPool               bideplmanifest.DiskPool
 		cloud                  *cloudfakes.FakeCloud
 		fakeStage              *fakebiui.FakeStage
 		fakeVM                 *fakebivm.FakeVM
-		fakeDisk               *fakebidisk.FakeDisk
+		fakeDisk               *diskfakes.FakeDisk
 		fakeDiskRepo           *configfakes.FakeDiskRepo
-		fakeDiskManagerFactory *fakebidisk.FakeManagerFactory
+		fakeDiskManagerFactory *diskfakes.FakeManagerFactory
 		logger                 boshlog.Logger
 	)
 
@@ -36,11 +37,19 @@ var _ = Describe("DiskDeployer", func() {
 		cloud = &cloudfakes.FakeCloud{}
 		fakeVM = fakebivm.NewFakeVM("fake-vm-cid")
 
-		fakeDiskManagerFactory = fakebidisk.NewFakeManagerFactory()
-		fakeDiskManager = fakebidisk.NewFakeManager()
-		fakeDisk = fakebidisk.NewFakeDisk("fake-new-disk-cid")
-		fakeDiskManager.CreateDisk = fakeDisk
-		fakeDiskManagerFactory.NewManagerManager = fakeDiskManager
+		fakeDiskManagerFactory = &diskfakes.FakeManagerFactory{
+			NewManagerStub: func(cloud bicloud.Cloud) bidisk.Manager {
+				return fakeDiskManager
+			},
+		}
+		fakeDiskManager = &diskfakes.FakeManager{
+			CreateStub: func(pool bideplmanifest.DiskPool, s string) (bidisk.Disk, error) {
+				return fakeDisk, nil
+			},
+		}
+		fakeDisk = &diskfakes.FakeDisk{
+			CIDStub: func() string { return "fake-new-disk-cid" },
+		}
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		fakeStage = fakebiui.NewFakeStage()
@@ -52,7 +61,7 @@ var _ = Describe("DiskDeployer", func() {
 			false,
 		)
 
-		fakeDiskManager.SetFindCurrentBehavior([]bidisk.Disk{}, nil)
+		fakeDiskManager.FindCurrentReturns([]bidisk.Disk{}, nil)
 		fakeVM.SetAttachDiskBehavior(fakeDisk, nil)
 		newDiskRecord := biconfig.DiskRecord{
 			ID: "fake-new-disk-id",
@@ -72,11 +81,13 @@ var _ = Describe("DiskDeployer", func() {
 		})
 
 		Context("when primary disk already exists", func() {
-			var existingDisk *fakebidisk.FakeDisk
+			var existingDisk *diskfakes.FakeDisk
 
 			BeforeEach(func() {
-				existingDisk = fakebidisk.NewFakeDisk("fake-existing-disk-cid")
-				fakeDiskManager.SetFindCurrentBehavior([]bidisk.Disk{existingDisk}, nil)
+				existingDisk = &diskfakes.FakeDisk{CIDStub: func() string {
+					return "fake-existing-disk-cid"
+				}}
+				fakeDiskManager.FindCurrentReturns([]bidisk.Disk{existingDisk}, nil)
 				fakeVM.SetAttachDiskBehavior(existingDisk, nil)
 				existingDiskRecord := biconfig.DiskRecord{
 					ID: "fake-existing-disk-id",
@@ -88,13 +99,13 @@ var _ = Describe("DiskDeployer", func() {
 				disks, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(fakeDiskManager.CreateInputs).To(BeEmpty())
+				Expect(fakeDiskManager.CreateCallCount()).To(Equal(0))
 				Expect(disks).To(Equal([]bidisk.Disk{existingDisk}))
 			})
 
 			Context("when disk does not need migration", func() {
 				BeforeEach(func() {
-					existingDisk.SetNeedsMigrationBehavior(false)
+					existingDisk.NeedsMigrationReturns(false, nil)
 				})
 
 				It("does not log the create disk event", func() {
@@ -109,7 +120,7 @@ var _ = Describe("DiskDeployer", func() {
 			})
 
 			Context("when disk is forced to be recreated", func() {
-				var secondaryDisk *fakebidisk.FakeDisk
+				var secondaryDisk *diskfakes.FakeDisk
 
 				BeforeEach(func() {
 					diskDeployer = NewDiskDeployer(
@@ -118,10 +129,12 @@ var _ = Describe("DiskDeployer", func() {
 						logger,
 						true,
 					)
-					existingDisk.SetNeedsMigrationBehavior(false)
+					existingDisk.NeedsMigrationReturns(false, nil)
 
-					secondaryDisk = fakebidisk.NewFakeDisk("fake-secondary-disk-cid")
-					fakeDiskManager.CreateDisk = secondaryDisk
+					secondaryDisk = &diskfakes.FakeDisk{CIDStub: func() string {
+						return "fake-secondary-disk-cid"
+					}}
+					fakeDiskManager.CreateReturns(secondaryDisk, nil)
 					secondaryDiskRecord := biconfig.DiskRecord{
 						ID: "fake-secondary-disk-id",
 					}
@@ -134,12 +147,9 @@ var _ = Describe("DiskDeployer", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(disks).To(Equal([]bidisk.Disk{secondaryDisk}))
 
-					Expect(fakeDiskManager.CreateInputs).To(Equal([]fakebidisk.CreateInput{
-						{
-							DiskPool:   diskPool,
-							InstanceID: "fake-vm-cid",
-						},
-					}))
+					pool, diskCid := fakeDiskManager.CreateArgsForCall(0)
+					Expect(pool).To(Equal(diskPool))
+					Expect(diskCid).To(Equal("fake-vm-cid"))
 
 					Expect(fakeStage.PerformCalls[1]).To(Equal(&fakebiui.PerformCall{
 						Name: "Creating disk",
@@ -191,7 +201,7 @@ var _ = Describe("DiskDeployer", func() {
 
 				Context("when disk creation fails", func() {
 					BeforeEach(func() {
-						fakeDiskManager.CreateErr = bosherr.Error("fake-create-disk-error")
+						fakeDiskManager.CreateReturns(nil, bosherr.Error("fake-create-disk-error"))
 					})
 
 					It("returns error and leaves the existing disk attached", func() {
@@ -284,13 +294,15 @@ var _ = Describe("DiskDeployer", func() {
 			})
 
 			Context("when disk needs migration", func() {
-				var secondaryDisk *fakebidisk.FakeDisk
+				var secondaryDisk *diskfakes.FakeDisk
 
 				BeforeEach(func() {
-					existingDisk.SetNeedsMigrationBehavior(true)
+					existingDisk.NeedsMigrationReturns(true, nil)
 
-					secondaryDisk = fakebidisk.NewFakeDisk("fake-secondary-disk-cid")
-					fakeDiskManager.CreateDisk = secondaryDisk
+					secondaryDisk = &diskfakes.FakeDisk{CIDStub: func() string {
+						return "fake-secondary-disk-cid"
+					}}
+					fakeDiskManager.CreateReturns(secondaryDisk, nil)
 					secondaryDiskRecord := biconfig.DiskRecord{
 						ID: "fake-secondary-disk-id",
 					}
@@ -303,12 +315,9 @@ var _ = Describe("DiskDeployer", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(disks).To(Equal([]bidisk.Disk{secondaryDisk}))
 
-					Expect(fakeDiskManager.CreateInputs).To(Equal([]fakebidisk.CreateInput{
-						{
-							DiskPool:   diskPool,
-							InstanceID: "fake-vm-cid",
-						},
-					}))
+					pool, diskCid := fakeDiskManager.CreateArgsForCall(0)
+					Expect(pool).To(Equal(diskPool))
+					Expect(diskCid).To(Equal("fake-vm-cid"))
 
 					Expect(fakeStage.PerformCalls[1]).To(Equal(&fakebiui.PerformCall{
 						Name: "Creating disk",
@@ -360,7 +369,7 @@ var _ = Describe("DiskDeployer", func() {
 
 				Context("when disk creation fails", func() {
 					BeforeEach(func() {
-						fakeDiskManager.CreateErr = bosherr.Error("fake-create-disk-error")
+						fakeDiskManager.CreateReturns(nil, bosherr.Error("fake-create-disk-error"))
 					})
 
 					It("returns error and leaves the existing disk attached", func() {
@@ -459,12 +468,9 @@ var _ = Describe("DiskDeployer", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(disks).To(Equal([]bidisk.Disk{fakeDisk}))
 
-				Expect(fakeDiskManager.CreateInputs).To(Equal([]fakebidisk.CreateInput{
-					{
-						DiskPool:   diskPool,
-						InstanceID: "fake-vm-cid",
-					},
-				}))
+				pool, diskCid := fakeDiskManager.CreateArgsForCall(0)
+				Expect(pool).To(Equal(diskPool))
+				Expect(diskCid).To(Equal("fake-vm-cid"))
 			})
 
 			It("sets the new disk as current", func() {
@@ -508,12 +514,12 @@ var _ = Describe("DiskDeployer", func() {
 			_, err := diskDeployer.Deploy(diskPool, cloud, fakeVM, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeDiskManager.DeleteUnusedCalledTimes).To(Equal(1))
+			Expect(fakeDiskManager.DeleteUnusedCallCount()).To(Equal(1))
 		})
 
 		Context("when removing unused disk fails", func() {
 			BeforeEach(func() {
-				fakeDiskManager.DeleteUnusedErr = bosherr.Error("fake-delete-error")
+				fakeDiskManager.DeleteUnusedReturns(bosherr.Error("fake-delete-error"))
 			})
 
 			It("returns an error", func() {
@@ -529,7 +535,7 @@ var _ = Describe("DiskDeployer", func() {
 			)
 
 			BeforeEach(func() {
-				fakeDiskManager.CreateErr = createDiskError
+				fakeDiskManager.CreateReturns(nil, createDiskError)
 			})
 
 			It("return an error", func() {
@@ -591,7 +597,7 @@ var _ = Describe("DiskDeployer", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(disks).To(Equal([]bidisk.Disk{}))
 
-			Expect(fakeDiskManager.CreateInputs).To(BeEmpty())
+			Expect(fakeDiskManager.CreateCallCount()).To(Equal(0))
 		})
 	})
 })

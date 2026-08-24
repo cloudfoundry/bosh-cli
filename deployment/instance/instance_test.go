@@ -12,7 +12,7 @@ import (
 
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
-	fakebidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/disk/diskfakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/instance"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/instance/state/statefakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
@@ -139,8 +139,8 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("unmounts vm disks", func() {
-				firstDisk := fakebidisk.NewFakeDisk("fake-disk-1")
-				secondDisk := fakebidisk.NewFakeDisk("fake-disk-2")
+				firstDisk := &diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk-1" }}
+				secondDisk := &diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk-2" }}
 				fakeVM.ListDisksDisks = []bidisk.Disk{firstDisk, secondDisk}
 
 				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
@@ -185,7 +185,7 @@ var _ = Describe("Instance", func() {
 
 			Context("when unmounting disk fails", func() {
 				BeforeEach(func() {
-					fakeVM.ListDisksDisks = []bidisk.Disk{fakebidisk.NewFakeDisk("fake-disk")}
+					fakeVM.ListDisksDisks = []bidisk.Disk{&diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk" }}}
 					fakeVM.UnmountDiskErr = bosherr.Error("fake-unmount-error")
 				})
 
@@ -570,8 +570,8 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("does not unmount vm disks", func() {
-				firstDisk := fakebidisk.NewFakeDisk("fake-disk-1")
-				secondDisk := fakebidisk.NewFakeDisk("fake-disk-2")
+				firstDisk := &diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk-1" }}
+				secondDisk := &diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk-2" }}
 				fakeVM.ListDisksDisks = []bidisk.Disk{firstDisk, secondDisk}
 
 				err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)

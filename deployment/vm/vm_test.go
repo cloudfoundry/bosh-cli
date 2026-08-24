@@ -18,7 +18,7 @@ import (
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	"github.com/cloudfoundry/bosh-cli/v7/config/configfakes"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
-	fakebidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/deployment/disk/diskfakes"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	fakebivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm/fakes"
@@ -106,7 +106,7 @@ var _ = Describe("VM", func() {
 		var expectedDisks []bidisk.Disk
 
 		BeforeEach(func() {
-			fakeDisk := fakebidisk.NewFakeDisk("fake-disk-cid")
+			fakeDisk := &diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk-cid" }}
 			expectedDisks = []bidisk.Disk{fakeDisk}
 			fakeDiskDeployer.SetDeployBehavior(expectedDisks, nil)
 		})
@@ -268,12 +268,12 @@ var _ = Describe("VM", func() {
 	})
 
 	Describe("AttachDisk", func() {
-		var disk *fakebidisk.FakeDisk
+		var disk *diskfakes.FakeDisk
 
 		BeforeEach(func() {
 			fakeTime := time.Date(2016, time.November, 10, 23, 0, 0, 0, time.UTC)
 			timeService = &FakeClock{Times: []time.Time{fakeTime, time.Now(), time.Now().Add(10 * time.Minute)}}
-			disk = fakebidisk.NewFakeDisk("fake-disk-cid")
+			disk = &diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk-cid" }}
 
 			metadata := bicloud.VMMetadata{
 				"director":       "bosh-init",
@@ -456,10 +456,10 @@ var _ = Describe("VM", func() {
 	})
 
 	Describe("DetachDisk", func() {
-		var disk *fakebidisk.FakeDisk
+		var disk *diskfakes.FakeDisk
 
 		BeforeEach(func() {
-			disk = fakebidisk.NewFakeDisk("fake-disk-cid")
+			disk = &diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk-cid" }}
 		})
 
 		It("removes the disk from the vm", func() {
@@ -526,10 +526,10 @@ var _ = Describe("VM", func() {
 	})
 
 	Describe("UnmountDisk", func() {
-		var disk *fakebidisk.FakeDisk
+		var disk *diskfakes.FakeDisk
 
 		BeforeEach(func() {
-			disk = fakebidisk.NewFakeDisk("fake-disk-cid")
+			disk = &diskfakes.FakeDisk{CIDStub: func() string { return "fake-disk-cid" }}
 		})
 
 		It("sends unmount disk to the agent", func() {

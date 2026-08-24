@@ -7,6 +7,8 @@ import (
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 )
 
+//counterfeiter:generate . ManagerFactory
+
 type ManagerFactory interface {
 	NewManager(bicloud.Cloud) Manager
 }
