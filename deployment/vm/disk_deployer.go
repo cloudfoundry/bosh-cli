@@ -13,6 +13,8 @@ import (
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
 )
 
+//counterfeiter:generate . DiskDeployer
+
 // DiskDeployer is in the vm package to avoid a [disk -> vm -> disk] dependency cycle
 type DiskDeployer interface {
 	Deploy(diskPool bideplmanifest.DiskPool, cloud bicloud.Cloud, vm VM, eventLoggerStage biui.Stage) ([]bidisk.Disk, error)

@@ -19,6 +19,8 @@ import (
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 )
 
+//counterfeiter:generate . Manager
+
 type Manager interface {
 	FindCurrent() (VM, bool, error)
 	Create(stemcell bistemcell.CloudStemcell, deploymentManifest bideplmanifest.Manifest, diskCIDs []string) (VM, error)
