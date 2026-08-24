@@ -22,6 +22,8 @@ func (o Options) IsEmpty() bool {
 	return o == Options{}
 }
 
+//counterfeiter:generate . Factory
+
 type Factory interface {
 	NewSSHTunnel(Options) SSHTunnel
 }
