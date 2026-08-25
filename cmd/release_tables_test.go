@@ -9,17 +9,17 @@ import (
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("ReleaseTables", func() {
 	var (
-		ui *fakeui.FakeUI
+		testUI *testui.Ui
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 	})
 
 	Describe("Print", func() {
@@ -58,9 +58,9 @@ var _ = Describe("ReleaseTables", func() {
 
 		Context("when there are no compiled packages", func() {
 			It("shows info about release with archive path", func() {
-				cmd.ReleaseTables{Release: release, ArchivePath: "/archive-path"}.Print(ui)
+				cmd.ReleaseTables{Release: release, ArchivePath: "/archive-path"}.Print(testUI)
 
-				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
@@ -78,7 +78,7 @@ var _ = Describe("ReleaseTables", func() {
 					Transpose: true,
 				}))
 
-				Expect(ui.Tables[1]).To(Equal(boshtbl.Table{
+				Expect(testUI.Tables[1]).To(Equal(boshtbl.Table{
 					Content: "jobs",
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Job"),
@@ -95,7 +95,7 @@ var _ = Describe("ReleaseTables", func() {
 					},
 				}))
 
-				Expect(ui.Tables[2]).To(Equal(boshtbl.Table{
+				Expect(testUI.Tables[2]).To(Equal(boshtbl.Table{
 					Content: "packages",
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Package"),
@@ -133,9 +133,9 @@ var _ = Describe("ReleaseTables", func() {
 			})
 
 			It("shows info about release with archive path", func() {
-				cmd.ReleaseTables{Release: release, ArchivePath: "/archive-path"}.Print(ui)
+				cmd.ReleaseTables{Release: release, ArchivePath: "/archive-path"}.Print(testUI)
 
-				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
@@ -153,7 +153,7 @@ var _ = Describe("ReleaseTables", func() {
 					Transpose: true,
 				}))
 
-				Expect(ui.Tables[1]).To(Equal(boshtbl.Table{
+				Expect(testUI.Tables[1]).To(Equal(boshtbl.Table{
 					Content: "jobs",
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Job"),
@@ -170,7 +170,7 @@ var _ = Describe("ReleaseTables", func() {
 					},
 				}))
 
-				Expect(ui.Tables[2]).To(Equal(boshtbl.Table{
+				Expect(testUI.Tables[2]).To(Equal(boshtbl.Table{
 					Content: "packages",
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Package"),
@@ -215,9 +215,9 @@ var _ = Describe("ReleaseTables", func() {
 		})
 
 		It("shows info about release without archive path", func() {
-			cmd.ReleaseTables{Release: release}.Print(ui)
+			cmd.ReleaseTables{Release: release}.Print(testUI)
 
-			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+			Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 				Header: []boshtbl.Header{
 					boshtbl.NewHeader("Name"),
 					boshtbl.NewHeader("Version"),

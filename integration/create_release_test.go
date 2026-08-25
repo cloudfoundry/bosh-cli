@@ -545,7 +545,7 @@ var _ = Describe("release creation", func() {
 			Expect(fs.FileExists(fmt.Sprintf("%s/releases/%s/%s-0.yml", releaseDir, releaseName, releaseName))).To(Equal(false))
 
 			createAndExecCommand(cmdFactory, []string{"create-release", "--final", "--force"})
-			output := strings.Join(ui.Said, " ")
+			output := strings.Join(testUI.Said, " ")
 			Expect(output).To(ContainSubstring("Finished uploading"))
 		})
 

@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 type CallTracker struct {
@@ -50,7 +50,7 @@ var _ = Describe("ReadCloserProxy", func() {
 				seekerReader := FakeSeekableReader{
 					callTracker: &CallTracker{},
 				}
-				fileReporter := NewFileReporter(&fakes.FakeUI{})
+				fileReporter := NewFileReporter(&testui.Ui{})
 				readCloserProxy := fileReporter.TrackUpload(0, seekerReader)
 
 				_, err := readCloserProxy.Seek(12, 42)
@@ -62,7 +62,7 @@ var _ = Describe("ReadCloserProxy", func() {
 		Context("when reader is NOT seekable", func() {
 			It("does not complain and returns 0, nil", func() {
 				reader := FakeReaderCloser{}
-				fileReporter := NewFileReporter(&fakes.FakeUI{})
+				fileReporter := NewFileReporter(&testui.Ui{})
 				readCloserProxy := fileReporter.TrackUpload(0, reader)
 
 				bytes, err := readCloserProxy.Seek(12, 42)
@@ -74,19 +74,19 @@ var _ = Describe("ReadCloserProxy", func() {
 
 	Describe("Close", func() {
 		It("closes the reader, uses the ui for bar output, and prints a newline", func() {
-			fakeUI := &fakes.FakeUI{}
+			ui := &testui.Ui{}
 			seekerReader := FakeSeekableReader{
 				callTracker: &CallTracker{},
 			}
-			fileReporter := NewFileReporter(fakeUI)
+			fileReporter := NewFileReporter(ui)
 			readCloserProxy := fileReporter.TrackUpload(0, seekerReader)
 
 			err := readCloserProxy.Close()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(seekerReader.callTracker.Closes).To(Equal(1))
-			uiSaid := fakeUI.Said
-			Expect(len(uiSaid)).To(BeNumerically(">", 0))
-			Expect(uiSaid[0]).To(ContainSubstring("[___"))
+
+			Expect(len(ui.Said)).To(BeNumerically(">", 0))
+			Expect(ui.Said[0]).To(ContainSubstring("[___"))
 		})
 	})
 })

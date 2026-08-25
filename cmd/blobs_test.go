@@ -9,21 +9,21 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("BlobsCmd", func() {
 	var (
 		blobsDir *fakereldir.FakeBlobsDir
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		command  cmd.BlobsCmd
 	)
 
 	BeforeEach(func() {
 		blobsDir = &fakereldir.FakeBlobsDir{}
-		ui = &fakeui.FakeUI{}
-		command = cmd.NewBlobsCmd(blobsDir, ui)
+		testUI = &testui.Ui{}
+		command = cmd.NewBlobsCmd(blobsDir, testUI)
 	})
 
 	Describe("Run", func() {
@@ -52,7 +52,7 @@ var _ = Describe("BlobsCmd", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Table).To(Equal(boshtbl.Table{
+			Expect(testUI.Table).To(Equal(boshtbl.Table{
 				Content: "blobs",
 
 				Header: []boshtbl.Header{

@@ -18,14 +18,14 @@ import (
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("RedigestRelease", func() {
 	var (
 		releaseReader                *fakerel.FakeReader
-		ui                           *fakeui.FakeUI
+		testUI                       *testui.Ui
 		fmv                          *fakefu.FakeMover
 		releaseWriter                *fakerel.FakeWriter
 		command                      cmd.RedigestReleaseCmd
@@ -45,12 +45,12 @@ var _ = Describe("RedigestRelease", func() {
 	BeforeEach(func() {
 		releaseReader = &fakerel.FakeReader{}
 		releaseWriter = &fakerel.FakeWriter{}
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		fmv = &fakefu.FakeMover{}
 		fs = fakes2.NewFakeFileSystem()
 
 		fakeDigestCalculator = &cryptofakes.FakeDigestCalculator{}
-		command = cmd.NewRedigestReleaseCmd(releaseReader, releaseWriter, fakeDigestCalculator, fmv, fs, ui)
+		command = cmd.NewRedigestReleaseCmd(releaseReader, releaseWriter, fakeDigestCalculator, fmv, fs, testUI)
 		args = opts.RedigestReleaseArgs{
 			Path:        "/some/release_128.tgz",
 			Destination: opts.FileArg{ExpandedPath: "/some/release_256.tgz"},
@@ -144,7 +144,7 @@ var _ = Describe("RedigestRelease", func() {
 			Expect(src).To(Equal(releaseWriterTempDestination))
 			Expect(dst).To(Equal(args.Destination.ExpandedPath))
 
-			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+			Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 				Header: []boshtbl.Header{
 					boshtbl.NewHeader("Name"),
 					boshtbl.NewHeader("Version"),

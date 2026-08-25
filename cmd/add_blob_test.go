@@ -11,22 +11,22 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("AddBlobCmd", func() {
 	var (
 		blobsDir *fakereldir.FakeBlobsDir
 		fs       *fakesys.FakeFileSystem
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		command  cmd.AddBlobCmd
 	)
 
 	BeforeEach(func() {
 		blobsDir = &fakereldir.FakeBlobsDir{}
 		fs = fakesys.NewFakeFileSystem()
-		ui = &fakeui.FakeUI{}
-		command = cmd.NewAddBlobCmd(blobsDir, fs, ui)
+		testUI = &testui.Ui{}
+		command = cmd.NewAddBlobCmd(blobsDir, fs, testUI)
 	})
 
 	Describe("Run", func() {
@@ -62,7 +62,7 @@ var _ = Describe("AddBlobCmd", func() {
 			Expect(file.Name()).To(Equal("/path/to/blob.tgz"))
 			Expect(file.Stats.Open).To(BeFalse())
 
-			Expect(ui.Said).To(Equal([]string{"Added blob 'my-blob.tgz'"}))
+			Expect(testUI.Said).To(Equal([]string{"Added blob 'my-blob.tgz'"}))
 		})
 
 		It("returns error if tracking fails", func() {
@@ -72,7 +72,7 @@ var _ = Describe("AddBlobCmd", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 
-			Expect(ui.Said).To(BeEmpty())
+			Expect(testUI.Said).To(BeEmpty())
 		})
 
 		It("returns error if file cannot be open", func() {
@@ -84,7 +84,7 @@ var _ = Describe("AddBlobCmd", func() {
 
 			Expect(blobsDir.TrackBlobCallCount()).To(Equal(0))
 
-			Expect(ui.Said).To(BeEmpty())
+			Expect(testUI.Said).To(BeEmpty())
 		})
 	})
 })

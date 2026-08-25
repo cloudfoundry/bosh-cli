@@ -17,7 +17,7 @@ import (
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("UploadReleaseCmd", func() {
@@ -29,7 +29,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 		cmdRunner     *fakesys.FakeCmdRunner
 		fs            *fakesys.FakeFileSystem
 		archive       *fakedir.FakeReleaseArchive
-		ui            *fakeui.FakeUI
+		testUI        *testui.Ui
 		command       cmd.UploadReleaseCmd
 	)
 
@@ -60,9 +60,9 @@ var _ = Describe("UploadReleaseCmd", func() {
 			return archive
 		}
 
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 
-		command = cmd.NewUploadReleaseCmd(releaseDirFactory, releaseWriter, director, releaseArchiveFactory, cmdRunner, fs, ui)
+		command = cmd.NewUploadReleaseCmd(releaseDirFactory, releaseWriter, director, releaseArchiveFactory, cmdRunner, fs, testUI)
 	})
 
 	Describe("Run", func() {
@@ -97,7 +97,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("uploads given release even if reader is nil", func() {
-				command = cmd.NewUploadReleaseCmd(nil, nil, director, nil, nil, nil, ui)
+				command = cmd.NewUploadReleaseCmd(nil, nil, director, nil, nil, nil, testUI)
 
 				err := command.Run(uploadReleaseOpts)
 				Expect(err).ToNot(HaveOccurred())
@@ -154,7 +154,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(version).To(Equal("existing-ver"))
 				Expect(stemcell).To(Equal(boshdir.OSVersionSlug{}))
 
-				Expect(ui.Said).To(Equal(
+				Expect(testUI.Said).To(Equal(
 					[]string{"Release 'existing-name/existing-ver' already exists."}))
 			})
 
@@ -175,7 +175,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(version).To(Equal("existing-ver"))
 				Expect(stemcell).To(Equal(boshdir.NewOSVersionSlug("ubuntu-trusty", "3421")))
 
-				Expect(ui.Said).To(Equal(
+				Expect(testUI.Said).To(Equal(
 					[]string{"Release 'existing-name/existing-ver' for stemcell 'ubuntu-trusty/3421' already exists."}))
 			})
 
@@ -201,7 +201,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(version).To(Equal("existing-ver"))
 				Expect(stemcell).To(Equal(boshdir.OSVersionSlug{}))
 
-				Expect(ui.Said).To(BeEmpty())
+				Expect(testUI.Said).To(BeEmpty())
 			})
 
 			It("returns error if checking for release existence fails", func() {
@@ -240,7 +240,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("returns an error if reader is nil", func() {
-				command = cmd.NewUploadReleaseCmd(nil, nil, director, nil, nil, nil, ui)
+				command = cmd.NewUploadReleaseCmd(nil, nil, director, nil, nil, nil, testUI)
 
 				err := command.Run(uploadReleaseOpts)
 				Expect(err).To(HaveOccurred())
@@ -292,7 +292,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(version).To(Equal("existing-ver"))
 				Expect(stemcell).To(Equal(boshdir.OSVersionSlug{}))
 				Expect(director.UploadReleaseFileCallCount()).To(Equal(0))
-				Expect(ui.Said).To(Equal(
+				Expect(testUI.Said).To(Equal(
 					[]string{"Release 'existing-name/existing-ver' already exists."}))
 			})
 			It("does upload a release if name and version match but exported from does not", func() {
@@ -430,7 +430,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 			})
 
 			It("returns an error if reader is nil", func() {
-				command = cmd.NewUploadReleaseCmd(nil, nil, director, nil, cmdRunner, fs, ui)
+				command = cmd.NewUploadReleaseCmd(nil, nil, director, nil, cmdRunner, fs, testUI)
 
 				err := command.Run(uploadReleaseOpts)
 				Expect(err).To(HaveOccurred())
@@ -520,7 +520,7 @@ var _ = Describe("UploadReleaseCmd", func() {
 				Expect(version).To(Equal("existing-ver"))
 				Expect(stemcell).To(Equal(boshdir.OSVersionSlug{}))
 
-				Expect(ui.Said).To(Equal(
+				Expect(testUI.Said).To(Equal(
 					[]string{"Release 'existing-name/existing-ver' already exists."}))
 			})
 

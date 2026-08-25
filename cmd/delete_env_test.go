@@ -11,7 +11,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("DeleteEnvCmd", func() {
@@ -20,8 +20,8 @@ var _ = Describe("DeleteEnvCmd", func() {
 			mockDeploymentDeleter *cmdfakes.FakeDeploymentDeleter
 			fs                    *fakesys.FakeFileSystem
 
-			fakeUI                 *fakeui.FakeUI
-			fakeStage              *fakeui.FakeStage
+			TestUI                 *testui.Ui
+			fakeStage              *testui.Stage
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			statePath              string
 			skipDrain              bool
@@ -36,7 +36,7 @@ var _ = Describe("DeleteEnvCmd", func() {
 				return mockDeploymentDeleter
 			}
 
-			return cmd.NewDeleteEnvCmd(fakeUI, doGetFunc)
+			return cmd.NewDeleteEnvCmd(TestUI, doGetFunc)
 		}
 
 		var writeDeploymentManifest = func() {
@@ -48,7 +48,7 @@ var _ = Describe("DeleteEnvCmd", func() {
 			mockDeploymentDeleter = &cmdfakes.FakeDeploymentDeleter{}
 			fs = fakesys.NewFakeFileSystem()
 			fs.EnableStrictTempRootBehavior()
-			fakeUI = &fakeui.FakeUI{}
+			TestUI = &testui.Ui{}
 			writeDeploymentManifest()
 			skipDrain = false
 		})

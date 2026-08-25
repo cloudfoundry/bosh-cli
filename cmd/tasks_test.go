@@ -11,21 +11,21 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("TasksCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.TasksCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewTasksCmd(ui, director)
+		command = cmd.NewTasksCmd(testUI, director)
 	})
 
 	Describe("Run", func() {
@@ -82,7 +82,7 @@ var _ = Describe("TasksCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Content: "tasks",
 
 					Header: []boshtbl.Header{
@@ -202,7 +202,7 @@ var _ = Describe("TasksCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Content: "tasks",
 
 					Header: []boshtbl.Header{

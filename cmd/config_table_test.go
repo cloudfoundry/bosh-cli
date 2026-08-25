@@ -6,24 +6,24 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("ConfigTable", func() {
 	var (
-		ui *fakeui.FakeUI
+		testUI *testui.Ui
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 	})
 
 	Describe("Print", func() {
 		It("shows config info as transposed tabled", func() {
 			config := boshdir.Config{ID: "123", Type: "my-type", Name: "my-name", CreatedAt: "sunday", Content: "some-content"}
-			cmd.ConfigTable{Config: config, UI: ui}.Print()
-			Expect(ui.Table).To(Equal(
+			cmd.ConfigTable{Config: config, UI: testUI}.Print()
+			Expect(testUI.Table).To(Equal(
 				boshtbl.Table{
 					Content: "config",
 

@@ -12,8 +12,8 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("RecoverCmd", func() {
@@ -27,16 +27,16 @@ var _ = Describe("RecoverCmd", func() {
 
 	var (
 		deployment *fakedir.FakeDeployment
-		ui         *fakeui.FakeUI
+		testUI     *testui.Ui
 		fakeFS     *fakesys.FakeFileSystem
 		command    cmd.RecoverCmd
 	)
 
 	BeforeEach(func() {
 		deployment = &fakedir.FakeDeployment{}
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		fakeFS = fakesys.NewFakeFileSystem()
-		command = cmd.NewRecoverCmd(deployment, ui, fakeFS)
+		command = cmd.NewRecoverCmd(deployment, testUI, fakeFS)
 	})
 
 	Describe("Run", func() {
@@ -148,21 +148,21 @@ var _ = Describe("RecoverCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Said).To(ContainElement("No problems found\n"))
+				Expect(testUI.Said).To(ContainElement("No problems found\n"))
 			})
 
 			It("does not ask for confirmation", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.AskedConfirmationCalled).To(BeFalse())
+				Expect(testUI.AskedConfirmationCalled).To(BeFalse())
 			})
 		})
 
 		Context("problems are found", func() {
 			BeforeEach(func() {
 				deployment.ScanForProblemsReturns(severalProbs, nil)
-				ui.AskedConfirmationErr = nil
+				testUI.AskedConfirmationErr = nil
 			})
 
 			It("returns an error if reading recovery plan fails", func() {
@@ -177,7 +177,7 @@ var _ = Describe("RecoverCmd", func() {
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(ui.Tables).To(
+					Expect(testUI.Tables).To(
 						ContainElements(
 							boshtbl.Table{
 								Title: "Instance Group 'diego_cell' plan summary (max_in_flight override: 10)",
@@ -230,12 +230,12 @@ var _ = Describe("RecoverCmd", func() {
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(ui.AskedConfirmationCalled).To(BeTrue())
+					Expect(testUI.AskedConfirmationCalled).To(BeTrue())
 				})
 
 				Context("not confirmed", func() {
 					BeforeEach(func() {
-						ui.AskedConfirmationErr = errors.New("nope")
+						testUI.AskedConfirmationErr = errors.New("nope")
 					})
 
 					It("does not call deployment func", func() {

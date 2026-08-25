@@ -13,7 +13,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/installation/installationfakes"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	bireljob "github.com/cloudfoundry/bosh-cli/v7/release/job"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("Installer", func() {
@@ -66,14 +66,14 @@ var _ = Describe("Installer", func() {
 
 	Describe("Install", func() {
 		var (
-			fakeStage *fakebiui.FakeStage
+			fakeStage *testui.Stage
 
 			renderedJobRefs []RenderedJobRef
 			releaseJobs     []bireljob.Job
 		)
 
 		BeforeEach(func() {
-			fakeStage = fakebiui.NewFakeStage()
+			fakeStage = &testui.Stage{}
 		})
 
 		JustBeforeEach(func() {
@@ -144,10 +144,10 @@ var _ = Describe("Installer", func() {
 	})
 
 	Describe("Install path traversal protection", func() {
-		var fakeStage *fakebiui.FakeStage
+		var fakeStage *testui.Stage
 
 		BeforeEach(func() {
-			fakeStage = fakebiui.NewFakeStage()
+			fakeStage = &testui.Stage{}
 		})
 
 		It("returns error when a compiled package name contains path traversal", func() {

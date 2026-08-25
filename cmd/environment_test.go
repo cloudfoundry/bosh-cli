@@ -11,22 +11,22 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("EnvironmentCmd", func() {
 	var (
-		ui              *fakeui.FakeUI
+		testUI          *testui.Ui
 		director        *fakedir.FakeDirector
 		command         cmd.EnvironmentCmd
 		environmentOpts opts.EnvironmentOpts
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewEnvironmentCmd(ui, director)
+		command = cmd.NewEnvironmentCmd(testUI, director)
 		environmentOpts = opts.EnvironmentOpts{}
 	})
 
@@ -40,7 +40,7 @@ var _ = Describe("EnvironmentCmd", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Table.Transpose).To(Equal(true))
+			Expect(testUI.Table.Transpose).To(Equal(true))
 		})
 
 		Context("when all information is present", func() {
@@ -58,7 +58,7 @@ var _ = Describe("EnvironmentCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("UUID"),
@@ -94,7 +94,7 @@ var _ = Describe("EnvironmentCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("UUID"),
@@ -134,7 +134,7 @@ var _ = Describe("EnvironmentCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("cpi-info")))
+				Expect(testUI.Table.Rows[0]).To(ContainElement(boshtbl.NewValueString("cpi-info")))
 			})
 
 			It("shows Feature information when present", func() {
@@ -146,7 +146,7 @@ var _ = Describe("EnvironmentCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Rows[0]).To(ContainElement(
+				Expect(testUI.Table.Rows[0]).To(ContainElement(
 					boshtbl.NewValueStrings([]string{"feature-1: enabled"}),
 				))
 			})
@@ -177,7 +177,7 @@ var _ = Describe("EnvironmentCmd", func() {
 				director.CertificateExpiryReturns(output, nil)
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Title: color.New(color.Bold, color.FgYellow).Sprint("CERTIFICATE EXPIRY DATE INFORMATION"),
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Certificate"),

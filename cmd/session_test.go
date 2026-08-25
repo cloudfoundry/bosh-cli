@@ -13,13 +13,13 @@ import (
 	fakecmd "github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/config/configfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("SessionImpl", func() {
 	var (
 		context          *fakecmd.FakeSessionContext
-		ui               *fakeui.FakeUI
+		testUI           *testui.Ui
 		printEnvironment bool
 		printDeployment  bool
 		logger           boshlog.Logger
@@ -31,11 +31,11 @@ var _ = Describe("SessionImpl", func() {
 		context = &fakecmd.FakeSessionContext{
 			ConfigStub: func() cmdconf.Config { return fakeConfig },
 		}
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		printEnvironment = false
 		printDeployment = false
 		logger = boshlog.NewLogger(boshlog.LevelNone)
-		sess = cmd.NewSessionImpl(context, ui, printEnvironment, printDeployment, logger)
+		sess = cmd.NewSessionImpl(context, testUI, printEnvironment, printDeployment, logger)
 	})
 
 	Describe("UAA", func() {

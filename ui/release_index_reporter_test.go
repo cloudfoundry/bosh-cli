@@ -7,29 +7,29 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("ReleaseIndexReporter", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		reporter ReleaseIndexReporter
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
-		reporter = NewReleaseIndexReporter(ui)
+		testUI = &testui.Ui{}
+		reporter = NewReleaseIndexReporter(testUI)
 	})
 
 	Describe("ReleaseIndexAdded", func() {
 		It("prints failed msg", func() {
 			reporter.ReleaseIndexAdded("name", "desc", errors.New("err"))
-			Expect(ui.Errors).To(Equal([]string{"Failed adding name release 'desc'"}))
+			Expect(testUI.Errors).To(Equal([]string{"Failed adding name release 'desc'"}))
 		})
 
 		It("prints finished msg", func() {
 			reporter.ReleaseIndexAdded("name", "desc", nil)
-			Expect(ui.Said).To(Equal([]string{"Added name release 'desc'"}))
+			Expect(testUI.Said).To(Equal([]string{"Added name release 'desc'"}))
 		})
 	})
 })

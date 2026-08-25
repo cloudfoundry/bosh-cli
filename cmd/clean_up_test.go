@@ -12,20 +12,20 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("CleanUpCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.CleanUpCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewCleanUpCmd(ui, director)
+		command = cmd.NewCleanUpCmd(testUI, director)
 	})
 
 	Describe("Run", func() {
@@ -58,7 +58,7 @@ var _ = Describe("CleanUpCmd", func() {
 		})
 
 		It("does not clean up if confirmation is rejected", func() {
-			ui.AskedConfirmationErr = errors.New("stop")
+			testUI.AskedConfirmationErr = errors.New("stop")
 
 			err := act()
 			Expect(err).To(HaveOccurred())
@@ -148,35 +148,35 @@ var _ = Describe("CleanUpCmd", func() {
 
 			command.PrintCleanUpTable(stuff)
 
-			Expect(len(ui.Tables)).To(Equal(7))
+			Expect(len(testUI.Tables)).To(Equal(7))
 
-			Expect(ui.Tables[0].Title).To(Equal("Unused Releases"))
-			Expect(len(ui.Tables[0].Header)).To(Equal(2))
-			Expect(len(ui.Tables[0].Rows)).To(Equal(2))
+			Expect(testUI.Tables[0].Title).To(Equal("Unused Releases"))
+			Expect(len(testUI.Tables[0].Header)).To(Equal(2))
+			Expect(len(testUI.Tables[0].Rows)).To(Equal(2))
 
-			Expect(ui.Tables[1].Title).To(Equal("Unused Stemcells"))
-			Expect(len(ui.Tables[1].Header)).To(Equal(2))
-			Expect(len(ui.Tables[1].Rows)).To(Equal(1))
+			Expect(testUI.Tables[1].Title).To(Equal("Unused Stemcells"))
+			Expect(len(testUI.Tables[1].Header)).To(Equal(2))
+			Expect(len(testUI.Tables[1].Rows)).To(Equal(1))
 
-			Expect(ui.Tables[2].Title).To(Equal("Unused Compiled Packages"))
-			Expect(len(ui.Tables[2].Header)).To(Equal(3))
-			Expect(len(ui.Tables[2].Rows)).To(Equal(2))
+			Expect(testUI.Tables[2].Title).To(Equal("Unused Compiled Packages"))
+			Expect(len(testUI.Tables[2].Header)).To(Equal(3))
+			Expect(len(testUI.Tables[2].Rows)).To(Equal(2))
 
-			Expect(ui.Tables[3].Title).To(Equal("Exported Releases"))
-			Expect(len(ui.Tables[3].Header)).To(Equal(1))
-			Expect(len(ui.Tables[3].Rows)).To(Equal(1))
+			Expect(testUI.Tables[3].Title).To(Equal("Exported Releases"))
+			Expect(len(testUI.Tables[3].Header)).To(Equal(1))
+			Expect(len(testUI.Tables[3].Rows)).To(Equal(1))
 
-			Expect(ui.Tables[4].Title).To(Equal("Stale DNS Record Blobs"))
-			Expect(len(ui.Tables[4].Header)).To(Equal(1))
-			Expect(len(ui.Tables[4].Rows)).To(Equal(2))
+			Expect(testUI.Tables[4].Title).To(Equal("Stale DNS Record Blobs"))
+			Expect(len(testUI.Tables[4].Header)).To(Equal(1))
+			Expect(len(testUI.Tables[4].Rows)).To(Equal(2))
 
-			Expect(ui.Tables[5].Title).To(Equal("Orphaned Disks"))
-			Expect(len(ui.Tables[5].Header)).To(Equal(4))
-			Expect(len(ui.Tables[5].Rows)).To(Equal(4))
+			Expect(testUI.Tables[5].Title).To(Equal("Orphaned Disks"))
+			Expect(len(testUI.Tables[5].Header)).To(Equal(4))
+			Expect(len(testUI.Tables[5].Rows)).To(Equal(4))
 
-			Expect(ui.Tables[6].Title).To(Equal("Orphaned VMs"))
-			Expect(len(ui.Tables[6].Header)).To(Equal(3))
-			Expect(len(ui.Tables[6].Rows)).To(Equal(1))
+			Expect(testUI.Tables[6].Title).To(Equal("Orphaned VMs"))
+			Expect(len(testUI.Tables[6].Header)).To(Equal(3))
+			Expect(len(testUI.Tables[6].Rows)).To(Equal(1))
 		})
 	})
 })

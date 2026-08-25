@@ -10,21 +10,21 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("InspectReleaseCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.InspectReleaseCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewInspectReleaseCmd(ui, director)
+		command = cmd.NewInspectReleaseCmd(testUI, director)
 	})
 
 	Describe("Run", func() {
@@ -103,7 +103,7 @@ var _ = Describe("InspectReleaseCmd", func() {
 			Expect(director.FindReleaseArgsForCall(0)).To(Equal(
 				boshdir.NewReleaseSlug("some-name", "some-version")))
 
-			Expect(ui.Tables).To(Equal([]boshtbl.Table{
+			Expect(testUI.Tables).To(Equal([]boshtbl.Table{
 				{
 					Content: "jobs",
 

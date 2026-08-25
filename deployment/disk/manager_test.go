@@ -14,7 +14,7 @@ import (
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("Manager", func() {
@@ -187,10 +187,10 @@ var _ = Describe("Manager", func() {
 	Describe("DeleteUnused", func() {
 		var (
 			secondDiskRecord biconfig.DiskRecord
-			fakeStage        *fakebiui.FakeStage
+			fakeStage        *testui.Stage
 		)
 		BeforeEach(func() {
-			fakeStage = fakebiui.NewFakeStage()
+			fakeStage = &testui.Stage{}
 
 			fakeUUIDGenerator.GeneratedUUID = "fake-disk-id-1"
 			_, err := diskRepo.Save("fake-disk-cid-1", 100, nil)
@@ -215,7 +215,7 @@ var _ = Describe("Manager", func() {
 			Expect(fakeCloud.DeleteDiskArgsForCall(0)).To(Equal("fake-disk-cid-1"))
 			Expect(fakeCloud.DeleteDiskArgsForCall(1)).To(Equal("fake-disk-cid-3"))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				{Name: "Deleting unused disk 'fake-disk-cid-1'"},
 				{Name: "Deleting unused disk 'fake-disk-cid-3'"},
 			}))

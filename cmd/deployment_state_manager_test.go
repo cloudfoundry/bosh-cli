@@ -21,7 +21,7 @@ import (
 	biinstall "github.com/cloudfoundry/bosh-cli/v7/installation"
 	biinstallmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("DeploymentStateManager", func() {
@@ -31,7 +31,7 @@ var _ = Describe("DeploymentStateManager", func() {
 		fakeUUIDGenerator           *fakeuuid.FakeGenerator
 		setupDeploymentStateService biconfig.DeploymentStateService
 
-		fakeUI *fakeui.FakeUI
+		testUI *testui.Ui
 
 		mockDeploymentManagerFactory *deploymentfakes.FakeManagerFactory
 		mockDeploymentManager        *deploymentfakes.FakeManager
@@ -40,7 +40,7 @@ var _ = Describe("DeploymentStateManager", func() {
 		mockAgentClient        *agentclientfakes.FakeAgentClient
 		mockAgentClientFactory *cmdfakes.FakeAgentClientFactory
 
-		fakeStage *fakeui.FakeStage
+		fakeStage *testui.Stage
 
 		directorID string
 
@@ -129,7 +129,7 @@ cloud_provider:
 		)
 
 		return cmd.NewDeploymentStateManager(
-			fakeUI,
+			testUI,
 			"deleteCmd",
 			logger,
 			deploymentStateService,
@@ -153,9 +153,9 @@ cloud_provider:
 		_, err := setupDeploymentStateService.Load()
 		Expect(err).ToNot(HaveOccurred())
 
-		fakeUI = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 
-		fakeStage = fakeui.NewFakeStage()
+		fakeStage = &testui.Stage{}
 
 		mockDeploymentManagerFactory = &deploymentfakes.FakeManagerFactory{}
 		mockDeploymentManager = &deploymentfakes.FakeManager{}
@@ -193,22 +193,22 @@ cloud_provider:
 		}
 
 		var expectValidationStopEvents = func() {
-			Expect(fakeUI.Said).To(Equal([]string{
+			Expect(testUI.Said).To(Equal([]string{
 				"Deployment state: '" + filepath.Join("/", "deployment-dir", "fake-deployment-manifest-state.json") + "'\n",
 			}))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakeui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				{
 					Name: "validating",
-					Stage: &fakeui.FakeStage{
-						PerformCalls: []*fakeui.PerformCall{
+					Stage: &testui.Stage{
+						PerformCalls: []*testui.PerformCall{
 							{Name: "Validating deployment manifest"},
 						},
 					},
 				},
 				{
 					Name:  "stopping deployment",
-					Stage: &fakeui.FakeStage{},
+					Stage: &testui.Stage{},
 				},
 			}))
 		}
@@ -223,7 +223,7 @@ cloud_provider:
 				err := newDeploymentStateManager().StopDeployment(skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeUI.Said).To(Equal([]string{
+				Expect(testUI.Said).To(Equal([]string{
 					"Deployment state: '" + filepath.Join("/", "deployment-dir", "fake-deployment-manifest-state.json") + "'\n",
 					"No deployment state file found.\n",
 				}))
@@ -244,7 +244,7 @@ cloud_provider:
 
 				err := newDeploymentStateManager().StopDeployment(skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(fakeUI.Errors).To(BeEmpty())
+				Expect(testUI.Errors).To(BeEmpty())
 				assertStopArgs(skipDrain)
 			})
 
@@ -278,7 +278,7 @@ cloud_provider:
 
 				err := newDeploymentStateManager().StopDeployment(skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(fakeUI.Errors).To(BeEmpty())
+				Expect(testUI.Errors).To(BeEmpty())
 			})
 		})
 	})
@@ -299,22 +299,22 @@ cloud_provider:
 		}
 
 		var expectValidationStartEvents = func() {
-			Expect(fakeUI.Said).To(Equal([]string{
+			Expect(testUI.Said).To(Equal([]string{
 				"Deployment state: '" + filepath.Join("/", "deployment-dir", "fake-deployment-manifest-state.json") + "'\n",
 			}))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakeui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				{
 					Name: "validating",
-					Stage: &fakeui.FakeStage{
-						PerformCalls: []*fakeui.PerformCall{
+					Stage: &testui.Stage{
+						PerformCalls: []*testui.PerformCall{
 							{Name: "Validating deployment manifest"},
 						},
 					},
 				},
 				{
 					Name:  "starting deployment",
-					Stage: &fakeui.FakeStage{},
+					Stage: &testui.Stage{},
 				},
 			}))
 		}
@@ -329,7 +329,7 @@ cloud_provider:
 				err := newDeploymentStateManager().StartDeployment(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeUI.Said).To(Equal([]string{
+				Expect(testUI.Said).To(Equal([]string{
 					"Deployment state: '" + filepath.Join("/", "deployment-dir", "fake-deployment-manifest-state.json") + "'\n",
 					"No deployment state file found.\n",
 				}))
@@ -350,7 +350,7 @@ cloud_provider:
 
 				err := newDeploymentStateManager().StartDeployment(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(fakeUI.Errors).To(BeEmpty())
+				Expect(testUI.Errors).To(BeEmpty())
 				assertStartArgs()
 			})
 
@@ -375,7 +375,7 @@ cloud_provider:
 
 				err := newDeploymentStateManager().StartDeployment(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(fakeUI.Errors).To(BeEmpty())
+				Expect(testUI.Errors).To(BeEmpty())
 			})
 		})
 	})

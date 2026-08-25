@@ -11,23 +11,23 @@ import (
 	fakecmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config/configfakes"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("DeploymentCmd", func() {
 	var (
 		session *fakecmd.FakeSession
 		config  *fakecmdconf.FakeConfig
-		ui      *fakeui.FakeUI
+		testUI  *testui.Ui
 		command cmd.DeploymentCmd
 	)
 
 	BeforeEach(func() {
 		session = &fakecmd.FakeSession{}
 		config = &fakecmdconf.FakeConfig{}
-		ui = &fakeui.FakeUI{}
-		command = cmd.NewDeploymentCmd(session, config, ui)
+		testUI = &testui.Ui{}
+		command = cmd.NewDeploymentCmd(session, config, testUI)
 	})
 
 	Describe("Run", func() {
@@ -64,7 +64,7 @@ var _ = Describe("DeploymentCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Content: "deployments",
 
 					Header: []boshtbl.Header{
@@ -99,7 +99,7 @@ var _ = Describe("DeploymentCmd", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 
-			Expect(ui.Tables).To(BeEmpty())
+			Expect(testUI.Tables).To(BeEmpty())
 		})
 	})
 })

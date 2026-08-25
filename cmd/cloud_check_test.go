@@ -10,8 +10,8 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("CloudCheckCmd", func() {
@@ -23,14 +23,14 @@ var _ = Describe("CloudCheckCmd", func() {
 
 	var (
 		deployment *fakedir.FakeDeployment
-		ui         *fakeui.FakeUI
+		testUI     *testui.Ui
 		command    cmd.CloudCheckCmd
 	)
 
 	BeforeEach(func() {
 		deployment = &fakedir.FakeDeployment{}
-		ui = &fakeui.FakeUI{}
-		command = cmd.NewCloudCheckCmd(deployment, ui)
+		testUI = &testui.Ui{}
+		command = cmd.NewCloudCheckCmd(deployment, testUI)
 	})
 
 	Describe("Run", func() {
@@ -78,15 +78,15 @@ var _ = Describe("CloudCheckCmd", func() {
 				Context("when several problems were found", func() {
 					BeforeEach(func() {
 						deployment.ScanForProblemsReturns(severalProbs, nil)
-						ui.AskedChoiceChosens = []int{1, 0}
-						ui.AskedChoiceErrs = []error{nil, nil}
+						testUI.AskedChoiceChosens = []int{1, 0}
+						testUI.AskedChoiceErrs = []error{nil, nil}
 					})
 
 					It("shows problems", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(ui.Table).To(Equal(boshtbl.Table{
+						Expect(testUI.Table).To(Equal(boshtbl.Table{
 							Content: "problems",
 
 							Header: []boshtbl.Header{
@@ -113,12 +113,12 @@ var _ = Describe("CloudCheckCmd", func() {
 					})
 
 					It("resolves problems based on asked answers", func() {
-						ui.AskedChoiceChosens = []int{1, 2}
+						testUI.AskedChoiceChosens = []int{1, 2}
 
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(ui.AskedChoiceCalled).To(BeTrue())
+						Expect(testUI.AskedChoiceCalled).To(BeTrue())
 
 						Expect(deployment.ResolveProblemsCallCount()).To(Equal(1))
 
@@ -138,7 +138,7 @@ var _ = Describe("CloudCheckCmd", func() {
 					})
 
 					It("does not resolve problems if confirmation is rejected", func() {
-						ui.AskedConfirmationErr = errors.New("stop")
+						testUI.AskedConfirmationErr = errors.New("stop")
 
 						err := act()
 						Expect(err).To(HaveOccurred())
@@ -148,7 +148,7 @@ var _ = Describe("CloudCheckCmd", func() {
 					})
 
 					It("returns error if failed asking", func() {
-						ui.AskedChoiceErrs = []error{nil, errors.New("fake-err")}
+						testUI.AskedChoiceErrs = []error{nil, errors.New("fake-err")}
 
 						err := act()
 						Expect(err).To(HaveOccurred())
@@ -167,7 +167,7 @@ var _ = Describe("CloudCheckCmd", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(ui.Tables).To(Equal([]boshtbl.Table{
+						Expect(testUI.Tables).To(Equal([]boshtbl.Table{
 							{
 								Content: "problems",
 								Header: []boshtbl.Header{
@@ -186,8 +186,8 @@ var _ = Describe("CloudCheckCmd", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(ui.AskedChoiceCalled).To(BeFalse())
-						Expect(ui.AskedConfirmationCalled).To(BeFalse())
+						Expect(testUI.AskedChoiceCalled).To(BeFalse())
+						Expect(testUI.AskedConfirmationCalled).To(BeFalse())
 					})
 				})
 
@@ -216,7 +216,7 @@ var _ = Describe("CloudCheckCmd", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(ui.Table).To(Equal(boshtbl.Table{
+						Expect(testUI.Table).To(Equal(boshtbl.Table{
 							Content: "problems",
 
 							Header: []boshtbl.Header{
@@ -258,11 +258,11 @@ var _ = Describe("CloudCheckCmd", func() {
 							},
 						}))
 
-						Expect(ui.AskedChoiceCalled).To(BeFalse())
+						Expect(testUI.AskedChoiceCalled).To(BeFalse())
 					})
 
 					It("does not automatically resolve problems if confirmation is rejected", func() {
-						ui.AskedConfirmationErr = errors.New("stop")
+						testUI.AskedConfirmationErr = errors.New("stop")
 
 						err := act()
 						Expect(err).To(HaveOccurred())
@@ -281,7 +281,7 @@ var _ = Describe("CloudCheckCmd", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(ui.Tables).To(Equal([]boshtbl.Table{
+						Expect(testUI.Tables).To(Equal([]boshtbl.Table{
 							{
 								Content: "problems",
 								Header: []boshtbl.Header{
@@ -300,8 +300,8 @@ var _ = Describe("CloudCheckCmd", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(ui.AskedChoiceCalled).To(BeFalse())
-						Expect(ui.AskedConfirmationCalled).To(BeFalse())
+						Expect(testUI.AskedChoiceCalled).To(BeFalse())
+						Expect(testUI.AskedConfirmationCalled).To(BeFalse())
 					})
 				})
 
@@ -349,7 +349,7 @@ var _ = Describe("CloudCheckCmd", func() {
 							},
 						}))
 
-						Expect(ui.AskedChoiceCalled).To(BeFalse())
+						Expect(testUI.AskedChoiceCalled).To(BeFalse())
 					})
 
 				})
@@ -397,11 +397,11 @@ var _ = Describe("CloudCheckCmd", func() {
 							},
 						}))
 
-						Expect(ui.AskedChoiceCalled).To(BeFalse())
+						Expect(testUI.AskedChoiceCalled).To(BeFalse())
 					})
 
 					It("does not automatically resolve problems if confirmation is rejected", func() {
-						ui.AskedConfirmationErr = errors.New("stop")
+						testUI.AskedConfirmationErr = errors.New("stop")
 
 						err := act()
 						Expect(err).To(HaveOccurred())
@@ -420,7 +420,7 @@ var _ = Describe("CloudCheckCmd", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(ui.Tables).To(Equal([]boshtbl.Table{
+						Expect(testUI.Tables).To(Equal([]boshtbl.Table{
 							{
 								Content: "problems",
 								Header: []boshtbl.Header{
@@ -439,8 +439,8 @@ var _ = Describe("CloudCheckCmd", func() {
 						err := act()
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(ui.AskedChoiceCalled).To(BeFalse())
-						Expect(ui.AskedConfirmationCalled).To(BeFalse())
+						Expect(testUI.AskedChoiceCalled).To(BeFalse())
+						Expect(testUI.AskedConfirmationCalled).To(BeFalse())
 					})
 				})
 
@@ -501,7 +501,7 @@ var _ = Describe("CloudCheckCmd", func() {
 
 				Expect(deployment.ResolveProblemsCallCount()).To(Equal(0))
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Content: "problems",
 
 					Header: []boshtbl.Header{
@@ -535,7 +535,7 @@ var _ = Describe("CloudCheckCmd", func() {
 
 				Expect(deployment.ResolveProblemsCallCount()).To(Equal(0))
 
-				Expect(ui.Tables).ToNot(BeEmpty())
+				Expect(testUI.Tables).ToNot(BeEmpty())
 			})
 
 			It("returns error if scannig for problems failed", func() {

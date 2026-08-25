@@ -17,7 +17,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("UIDownloader", func() {
@@ -25,7 +25,7 @@ var _ = Describe("UIDownloader", func() {
 		director    *fakedir.FakeDirector
 		fs          *fakesys.FakeFileSystem
 		timeService clock.Clock
-		ui          *fakeui.FakeUI
+		testUI      *testui.Ui
 		downloader  cmd.UIDownloader
 	)
 
@@ -33,8 +33,8 @@ var _ = Describe("UIDownloader", func() {
 		director = &fakedir.FakeDirector{}
 		timeService = fakeclock.NewFakeClock(time.Date(2009, time.November, 10, 23, 1, 2, 333, time.UTC))
 		fs = fakesys.NewFakeFileSystem()
-		ui = &fakeui.FakeUI{}
-		downloader = cmd.NewUIDownloader(director, timeService, fs, ui)
+		testUI = &testui.Ui{}
+		downloader = cmd.NewUIDownloader(director, timeService, fs, testUI)
 	})
 
 	Describe("Download", func() {
@@ -122,7 +122,7 @@ var _ = Describe("UIDownloader", func() {
 				blobID, _ := director.DownloadResourceUncheckedArgsForCall(0)
 				Expect(blobID).To(Equal("fake-blob-id"))
 
-				Expect(ui.Said).To(Equal([]string{
+				Expect(testUI.Said).To(Equal([]string{
 					fmt.Sprintf("Downloading resource 'fake-blob-id' to '%s'...", expectedPath)}))
 			})
 
@@ -178,7 +178,7 @@ var _ = Describe("UIDownloader", func() {
 				blobID, _ := director.DownloadResourceUncheckedArgsForCall(0)
 				Expect(blobID).To(Equal("fake-blob-id"))
 
-				Expect(ui.Said).To(Equal([]string{
+				Expect(testUI.Said).To(Equal([]string{
 					fmt.Sprintf("Downloading resource 'fake-blob-id' to '%s'...", expectedPath)}))
 			})
 
@@ -213,7 +213,7 @@ var _ = Describe("UIDownloader", func() {
 				blobID, _ := director.DownloadResourceUncheckedArgsForCall(0)
 				Expect(blobID).To(Equal("fake-blob-id"))
 
-				Expect(ui.Said).To(Equal([]string{
+				Expect(testUI.Said).To(Equal([]string{
 					fmt.Sprintf("Downloading resource 'fake-blob-id' to '%s'...", expectedPath)}))
 			})
 

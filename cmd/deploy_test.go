@@ -14,12 +14,12 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("DeployCmd", func() {
 	var (
-		ui              *fakeui.FakeUI
+		testUI          *testui.Ui
 		deployment      *fakedir.FakeDeployment
 		releaseUploader *fakecmd.FakeReleaseUploader
 		director        *fakedir.FakeDirector
@@ -27,7 +27,7 @@ var _ = Describe("DeployCmd", func() {
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		deployment = &fakedir.FakeDeployment{
 			NameStub: func() string { return "dep" },
 		}
@@ -38,7 +38,7 @@ var _ = Describe("DeployCmd", func() {
 
 		director = &fakedir.FakeDirector{}
 
-		command = cmd.NewDeployCmd(ui, deployment, releaseUploader, director)
+		command = cmd.NewDeployCmd(testUI, deployment, releaseUploader, director)
 	})
 
 	Describe("Run", func() {
@@ -250,7 +250,7 @@ var _ = Describe("DeployCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(releaseUploader.UploadReleasesWithFixCallCount()).To(Equal(0))
 			Expect(releaseUploader.UploadReleasesCallCount()).To(Equal(0))
-			Expect(ui.Said).To(ContainElement("Release-Check skipped."))
+			Expect(testUI.Said).To(ContainElement("Release-Check skipped."))
 		})
 
 		It("returns error and does not deploy if uploading releases fails", func() {
@@ -286,7 +286,7 @@ releases:
 `),
 			}
 
-			ui.AskedConfirmationErr = errors.New("stop")
+			testUI.AskedConfirmationErr = errors.New("stop")
 
 			err := act()
 			Expect(err).To(HaveOccurred())
@@ -315,9 +315,9 @@ releases:
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deployment.DiffCallCount()).To(Equal(1))
-			Expect(ui.Said).To(ContainElement("  some line that stayed\n"))
-			Expect(ui.Said).To(ContainElement("+ some line that was added\n"))
-			Expect(ui.Said).To(ContainElement("- some line that was removed\n"))
+			Expect(testUI.Said).To(ContainElement("  some line that stayed\n"))
+			Expect(testUI.Said).To(ContainElement("+ some line that was added\n"))
+			Expect(testUI.Said).To(ContainElement("- some line that was removed\n"))
 		})
 
 		It("deploys manifest with diff context", func() {

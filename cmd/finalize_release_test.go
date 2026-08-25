@@ -12,23 +12,23 @@ import (
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("FinalizeReleaseCmd", func() {
 	var (
 		releaseReader *fakerel.FakeReader
 		releaseDir    *fakereldir.FakeReleaseDir
-		ui            *fakeui.FakeUI
+		testUI        *testui.Ui
 		command       cmd.FinalizeReleaseCmd
 	)
 
 	BeforeEach(func() {
 		releaseReader = &fakerel.FakeReader{}
 		releaseDir = &fakereldir.FakeReleaseDir{}
-		ui = &fakeui.FakeUI{}
-		command = cmd.NewFinalizeReleaseCmd(releaseReader, releaseDir, ui)
+		testUI = &testui.Ui{}
+		command = cmd.NewFinalizeReleaseCmd(releaseReader, releaseDir, testUI)
 	})
 
 	Describe("Run", func() {
@@ -76,7 +76,7 @@ var _ = Describe("FinalizeReleaseCmd", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+			Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 				Header: []boshtbl.Header{boshtbl.NewHeader("Name"), boshtbl.NewHeader("Version"), boshtbl.NewHeader("Commit Hash")},
 				Rows: [][]boshtbl.Value{
 					{
@@ -114,7 +114,7 @@ var _ = Describe("FinalizeReleaseCmd", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+			Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 				Header: []boshtbl.Header{boshtbl.NewHeader("Name"), boshtbl.NewHeader("Version"), boshtbl.NewHeader("Commit Hash")},
 				Rows: [][]boshtbl.Value{
 					{

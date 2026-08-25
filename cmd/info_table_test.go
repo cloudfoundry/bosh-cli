@@ -6,17 +6,17 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("InfoTable", func() {
 	var (
-		ui *fakeui.FakeUI
+		testUI *testui.Ui
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 	})
 
 	Describe("Print", func() {
@@ -38,9 +38,9 @@ var _ = Describe("InfoTable", func() {
 				CPI: "cpi",
 			}
 
-			cmd.InfoTable{Info: info, UI: ui}.Print()
+			cmd.InfoTable{Info: info, UI: testUI}.Print()
 
-			Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
+			Expect(testUI.Table.Header).To(Equal([]boshtbl.Header{
 				boshtbl.NewHeader("Name"),
 				boshtbl.NewHeader("UUID"),
 				boshtbl.NewHeader("Version"),
@@ -49,8 +49,8 @@ var _ = Describe("InfoTable", func() {
 				boshtbl.NewHeader("Features"),
 				boshtbl.NewHeader("User"),
 			}))
-			Expect(ui.Table.Rows).To(HaveLen(1))
-			Expect(ui.Table.Rows[0]).To(Equal([]boshtbl.Value{
+			Expect(testUI.Table.Rows).To(HaveLen(1))
+			Expect(testUI.Table.Rows[0]).To(Equal([]boshtbl.Value{
 				boshtbl.NewValueString("director-name"),
 				boshtbl.NewValueString("director-uuid"),
 				boshtbl.NewValueString("director-version"),
@@ -68,16 +68,16 @@ var _ = Describe("InfoTable", func() {
 				Version: "director-version",
 			}
 
-			cmd.InfoTable{Info: info, UI: ui}.Print()
+			cmd.InfoTable{Info: info, UI: testUI}.Print()
 
-			Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
+			Expect(testUI.Table.Header).To(Equal([]boshtbl.Header{
 				boshtbl.NewHeader("Name"),
 				boshtbl.NewHeader("UUID"),
 				boshtbl.NewHeader("Version"),
 				boshtbl.NewHeader("User"),
 			}))
-			Expect(ui.Table.Rows).To(HaveLen(1))
-			Expect(ui.Table.Rows[0]).To(Equal([]boshtbl.Value{
+			Expect(testUI.Table.Rows).To(HaveLen(1))
+			Expect(testUI.Table.Rows[0]).To(Equal([]boshtbl.Value{
 				boshtbl.NewValueString("director-name"),
 				boshtbl.NewValueString("director-uuid"),
 				boshtbl.NewValueString("director-version"),

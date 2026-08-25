@@ -5,60 +5,60 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("NonInteractiveUI", func() {
 	var (
-		parentUI *fakeui.FakeUI
-		ui       UI
+		testUI *testui.Ui
+		ui     UI
 	)
 
 	BeforeEach(func() {
-		parentUI = &fakeui.FakeUI{}
-		ui = NewNonInteractiveUI(parentUI)
+		testUI = &testui.Ui{}
+		ui = NewNonInteractiveUI(testUI)
 	})
 
 	Describe("ErrorLinef", func() {
 		It("delegates to the parent UI", func() {
 			ui.ErrorLinef("fake-error-line")
-			Expect(parentUI.Errors).To(Equal([]string{"fake-error-line"}))
+			Expect(testUI.Errors).To(Equal([]string{"fake-error-line"}))
 		})
 	})
 
 	Describe("PrintLinef", func() {
 		It("delegates to the parent UI", func() {
 			ui.PrintLinef("fake-line")
-			Expect(parentUI.Said).To(Equal([]string{"fake-line"}))
+			Expect(testUI.Said).To(Equal([]string{"fake-line"}))
 		})
 	})
 
 	Describe("BeginLinef", func() {
 		It("delegates to the parent UI", func() {
 			ui.BeginLinef("fake-start")
-			Expect(parentUI.Said).To(Equal([]string{"fake-start"}))
+			Expect(testUI.Said).To(Equal([]string{"fake-start"}))
 		})
 	})
 
 	Describe("EndLinef", func() {
 		It("delegates to the parent UI", func() {
 			ui.EndLinef("fake-end")
-			Expect(parentUI.Said).To(Equal([]string{"fake-end"}))
+			Expect(testUI.Said).To(Equal([]string{"fake-end"}))
 		})
 	})
 
 	Describe("PrintBlock", func() {
 		It("delegates to the parent UI", func() {
 			ui.PrintBlock([]byte("block"))
-			Expect(parentUI.Blocks).To(Equal([]string{"block"}))
+			Expect(testUI.Blocks).To(Equal([]string{"block"}))
 		})
 	})
 
 	Describe("PrintErrorBlock", func() {
 		It("delegates to the parent UI", func() {
 			ui.PrintErrorBlock("block")
-			Expect(parentUI.Blocks).To(Equal([]string{"block"}))
+			Expect(testUI.Blocks).To(Equal([]string{"block"}))
 		})
 	})
 
@@ -71,7 +71,7 @@ var _ = Describe("NonInteractiveUI", func() {
 
 			ui.PrintTable(table)
 
-			Expect(parentUI.Table).To(Equal(table))
+			Expect(testUI.Table).To(Equal(table))
 		})
 	})
 
@@ -85,7 +85,7 @@ var _ = Describe("NonInteractiveUI", func() {
 
 			ui.PrintTableFiltered(table, filteredHeader)
 
-			Expect(parentUI.Table).To(Equal(table))
+			Expect(testUI.Table).To(Equal(table))
 		})
 	})
 
@@ -134,7 +134,7 @@ var _ = Describe("NonInteractiveUI", func() {
 	Describe("Flush", func() {
 		It("delegates to the parent UI", func() {
 			ui.Flush()
-			Expect(parentUI.Flushed).To(BeTrue())
+			Expect(testUI.Flushed).To(BeTrue())
 		})
 	})
 })

@@ -10,20 +10,20 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("CloudConfigCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.CloudConfigCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewCloudConfigCmd(ui, director)
+		command = cmd.NewCloudConfigCmd(testUI, director)
 	})
 
 	Describe("Run", func() {
@@ -43,7 +43,7 @@ var _ = Describe("CloudConfigCmd", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Blocks).To(Equal([]string{"some-properties"}))
+			Expect(testUI.Blocks).To(Equal([]string{"some-properties"}))
 		})
 
 		It("returns error if cloud config cannot be retrieved", func() {

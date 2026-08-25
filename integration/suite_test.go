@@ -17,7 +17,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/testutils"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var (
@@ -28,7 +28,7 @@ var (
 
 	fs boshsys.FileSystem
 
-	ui         *fakeui.FakeUI
+	testUI     *testui.Ui
 	deps       cmd.BasicDeps
 	cmdFactory cmd.Factory
 )
@@ -56,8 +56,8 @@ var _ = BeforeEach(func() {
 	logger := boshlog.NewWriterLogger(boshlog.LevelNone, GinkgoWriter)
 	fs = boshsys.NewOsFileSystem(logger)
 
-	ui = &fakeui.FakeUI{}
-	deps = cmd.NewBasicDepsWithFS(boshui.NewWrappingConfUI(ui, logger), fs, logger)
+	testUI = &testui.Ui{}
+	deps = cmd.NewBasicDepsWithFS(boshui.NewWrappingConfUI(testUI, logger), fs, logger)
 
 	cmdFactory = cmd.NewFactory(deps)
 })

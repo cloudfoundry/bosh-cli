@@ -12,14 +12,14 @@ import (
 	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
 	fakecmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config/configfakes"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("BasicLoginStrategy", func() {
 	var (
 		sessions map[cmdconf.Config]*fakecmd.FakeSession
 		config   *fakecmdconf.FakeConfig
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		strategy cmd.BasicLoginStrategy
 	)
 
@@ -29,8 +29,8 @@ var _ = Describe("BasicLoginStrategy", func() {
 			return sessions[config]
 		}
 		config = &fakecmdconf.FakeConfig{}
-		ui = &fakeui.FakeUI{}
-		strategy = cmd.NewBasicLoginStrategy(sessionFactory, config, ui)
+		testUI = &testui.Ui{}
+		strategy = cmd.NewBasicLoginStrategy(sessionFactory, config, testUI)
 	})
 
 	Describe("Try", func() {
@@ -74,7 +74,7 @@ var _ = Describe("BasicLoginStrategy", func() {
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(ui.Said).To(Equal([]string{"Using environment 'environment'", fmt.Sprintf("Logged in to '%s'", expectedEnvironment)}))
+					Expect(testUI.Said).To(Equal([]string{"Using environment 'environment'", fmt.Sprintf("Logged in to '%s'", expectedEnvironment)}))
 				})
 
 				It("saves the config with new credentials", func() {
@@ -120,12 +120,12 @@ var _ = Describe("BasicLoginStrategy", func() {
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(ui.Errors).To(Equal([]string{
+					Expect(testUI.Errors).To(Equal([]string{
 						"Failed to login to 'environment'",
 						"Failed to login to 'environment'",
 					}))
 
-					Expect(ui.Said).To(Equal([]string{"Using environment 'environment'", "Logged in to 'environment'"}))
+					Expect(testUI.Said).To(Equal([]string{"Using environment 'environment'", "Logged in to 'environment'"}))
 				})
 
 				It("only saves config upon successful log in", func() {
@@ -152,7 +152,7 @@ var _ = Describe("BasicLoginStrategy", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("Invalid credentials"))
 
-					Expect(ui.Errors).To(Equal([]string{"Failed to login to 'environment'"}))
+					Expect(testUI.Errors).To(Equal([]string{"Failed to login to 'environment'"}))
 				})
 
 				It("does not save config with new credentials", func() {
@@ -166,13 +166,13 @@ var _ = Describe("BasicLoginStrategy", func() {
 
 		Context("when no global flags or config values are set", func() {
 			BeforeEach(func() {
-				ui.AskedText = []fakeui.Answer{
+				testUI.AskedText = []testui.Answer{
 					{Text: "asked-username1"},
 					{Text: "asked-username2"},
 					{Text: "asked-username3"},
 				}
 
-				ui.AskedPasswords = []fakeui.Answer{
+				testUI.AskedPasswords = []testui.Answer{
 					{Text: "asked-password1"},
 					{Text: "asked-password2"},
 					{Text: "asked-password3"},

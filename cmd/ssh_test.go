@@ -17,7 +17,7 @@ import (
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
 	fakessh "github.com/cloudfoundry/bosh-cli/v7/ssh/sshfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("SSH", func() {
@@ -31,7 +31,7 @@ var _ = Describe("SSH", func() {
 			intSSHRunner     *fakessh.FakeRunner
 			nonIntSSHRunner  *fakessh.FakeRunner
 			resultsSSHRunner *fakessh.FakeRunner
-			ui               *fakeui.FakeUI
+			testUI           *testui.Ui
 			hostBuilder      *fakessh.FakeHostBuilder
 			command          cmd.SSHCmd
 		)
@@ -43,8 +43,8 @@ var _ = Describe("SSH", func() {
 			nonIntSSHRunner = &fakessh.FakeRunner{}
 			resultsSSHRunner = &fakessh.FakeRunner{}
 			hostBuilder = &fakessh.FakeHostBuilder{}
-			ui = &fakeui.FakeUI{}
-			command = cmd.NewSSHCmd(intSSHRunner, nonIntSSHRunner, resultsSSHRunner, ui, hostBuilder)
+			testUI = &testui.Ui{}
+			command = cmd.NewSSHCmd(intSSHRunner, nonIntSSHRunner, resultsSSHRunner, testUI, hostBuilder)
 		})
 
 		Describe("Run", func() {
@@ -158,7 +158,7 @@ var _ = Describe("SSH", func() {
 
 			Context("when ui is interactive", func() {
 				BeforeEach(func() {
-					ui.Interactive = true
+					testUI.Interactive = true
 				})
 
 				itRunsNonInteractiveSSHWhenCommandIsGiven(&nonIntSSHRunner)
@@ -235,7 +235,7 @@ var _ = Describe("SSH", func() {
 
 			Context("when ui is not interactive", func() {
 				BeforeEach(func() {
-					ui.Interactive = false
+					testUI.Interactive = false
 				})
 
 				itRunsNonInteractiveSSHWhenCommandIsGiven(&nonIntSSHRunner)
@@ -256,7 +256,7 @@ var _ = Describe("SSH", func() {
 
 			Context("when results are requested", func() {
 				BeforeEach(func() {
-					ui.Interactive = true
+					testUI.Interactive = true
 					sshOpts.Results = true
 				})
 
@@ -284,7 +284,7 @@ var _ = Describe("SSH", func() {
 					Host:      "1.2.3.4",
 				}
 				BeforeEach(func() {
-					ui.Interactive = false
+					testUI.Interactive = false
 					sshOpts.Command = []string{"do", "it"}
 
 					sshOpts.PrivateKey.Bytes = []byte("topsecret")
@@ -348,7 +348,7 @@ var _ = Describe("SSH", func() {
 			intSSHRunner       *fakessh.FakeRunner
 			nonIntSSHRunner    *fakessh.FakeRunner
 			resultsSSHRunner   *fakessh.FakeRunner
-			ui                 *fakeui.FakeUI
+			testUI             *testui.Ui
 			logger             boshlog.Logger
 
 			uuidGen *fakeuuid.FakeGenerator
@@ -362,12 +362,12 @@ var _ = Describe("SSH", func() {
 			intSSHRunner = &fakessh.FakeRunner{}
 			nonIntSSHRunner = &fakessh.FakeRunner{}
 			resultsSSHRunner = &fakessh.FakeRunner{}
-			ui = &fakeui.FakeUI{}
+			testUI = &testui.Ui{}
 			logger = boshlog.NewLogger(boshlog.LevelNone)
 
 			uuidGen = &fakeuuid.FakeGenerator{}
 
-			command = cmd.NewEnvSSHCmd(agentClientFactory, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, ui, logger)
+			command = cmd.NewEnvSSHCmd(agentClientFactory, intSSHRunner, nonIntSSHRunner, resultsSSHRunner, testUI, logger)
 		})
 
 		Describe("Run", func() {
@@ -555,7 +555,7 @@ var _ = Describe("SSH", func() {
 
 					Context("when ui is interactive", func() {
 						BeforeEach(func() {
-							ui.Interactive = true
+							testUI.Interactive = true
 						})
 
 						itRunsSpecifiedRunnerProperlyWhenCommandGiven(&nonIntSSHRunner)
@@ -574,7 +574,7 @@ var _ = Describe("SSH", func() {
 
 					Context("when ui is noninteractive", func() {
 						BeforeEach(func() {
-							ui.Interactive = false
+							testUI.Interactive = false
 						})
 
 						itRunsSpecifiedRunnerProperlyWhenCommandGiven(&nonIntSSHRunner)

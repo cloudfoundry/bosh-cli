@@ -5,6 +5,11 @@ import (
 
 	"github.com/cloudfoundry/bosh-agent/v2/agentclient"
 	bias "github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec"
+	bosherr "github.com/cloudfoundry/bosh-utils/errors"
+	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
 	bicloud "github.com/cloudfoundry/bosh-cli/v7/cloud"
 	bidisk "github.com/cloudfoundry/bosh-cli/v7/deployment/disk"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/disk/diskfakes"
@@ -13,11 +18,7 @@ import (
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/sshtunnelfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/vm/vmfakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
-	bosherr "github.com/cloudfoundry/bosh-utils/errors"
-	"github.com/cloudfoundry/bosh-utils/logger/loggerfakes"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("Instance", func() {
@@ -30,7 +31,7 @@ var _ = Describe("Instance", func() {
 		fakeVM               *vmfakes.FakeVM
 		fakeSSHTunnelFactory *sshtunnelfakes.FakeFactory
 		fakeSSHTunnel        *sshtunnelfakes.FakeSSHTunnel
-		fakeStage            *fakebiui.FakeStage
+		fakeStage            *testui.Stage
 		logger               *loggerfakes.FakeLogger
 
 		instance Instance
@@ -77,7 +78,7 @@ var _ = Describe("Instance", func() {
 			logger,
 		)
 
-		fakeStage = fakebiui.NewFakeStage()
+		fakeStage = &testui.Stage{}
 	})
 
 	Describe("Delete", func() {
@@ -101,7 +102,7 @@ var _ = Describe("Instance", func() {
 			err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
 				{Name: "Running the pre-stop scripts 'fake-job-name/0'"},
 				{Name: "Draining jobs on instance 'fake-job-name/0'"},
@@ -116,7 +117,7 @@ var _ = Describe("Instance", func() {
 				err := instance.Delete(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls[0]).To(Equal(&fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls[0]).To(Equal(&testui.PerformCall{
 					Name: "Waiting for the agent on VM 'fake-vm-cid'",
 				}))
 			})
@@ -154,7 +155,7 @@ var _ = Describe("Instance", func() {
 				Expect(fakeVM.UnmountDiskArgsForCall(0)).To(Equal(firstDisk))
 				Expect(fakeVM.UnmountDiskArgsForCall(1)).To(Equal(secondDisk))
 
-				Expect(fakeStage.PerformCalls[5:7]).To(Equal([]*fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls[5:7]).To(Equal([]*testui.PerformCall{
 					{Name: "Unmounting disk 'fake-disk-1'"},
 					{Name: "Unmounting disk 'fake-disk-2'"},
 				}))
@@ -174,7 +175,7 @@ var _ = Describe("Instance", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("fake-stop-error"))
 
-					Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+					Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 						{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
 						{Name: "Running the pre-stop scripts 'fake-job-name/0'"},
 						{Name: "Draining jobs on instance 'fake-job-name/0'"},
@@ -232,7 +233,7 @@ var _ = Describe("Instance", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-delete-error"))
 
-				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 					{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
 					{Name: "Running the pre-stop scripts 'fake-job-name/0'"},
 					{Name: "Draining jobs on instance 'fake-job-name/0'"},
@@ -362,7 +363,7 @@ var _ = Describe("Instance", func() {
 			err := instance.UpdateJobs(deploymentManifest, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				{Name: "Updating instance 'fake-job-name/0'"},
 				{Name: "Waiting for instance 'fake-job-name/0' to be running"},
 				{Name: "Running the post-start scripts 'fake-job-name/0'"},
@@ -477,7 +478,7 @@ var _ = Describe("Instance", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 
-				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 					{Name: "Updating instance 'fake-job-name/0'"},
 					{
 						Name:  "Waiting for instance 'fake-job-name/0' to be running",
@@ -502,7 +503,7 @@ var _ = Describe("Instance", func() {
 			err := instance.WaitUntilReady(fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				{Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready"},
 			}))
 		})
@@ -520,7 +521,7 @@ var _ = Describe("Instance", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("fake-wait-error"))
 
-				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 					{
 						Name:  "Waiting for the agent on VM 'fake-vm-cid' to be ready",
 						Error: waitError,
@@ -544,7 +545,7 @@ var _ = Describe("Instance", func() {
 			err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
 				{Name: "Running the pre-stop scripts 'fake-job-name/0'"},
 				{Name: "Draining jobs on instance 'fake-job-name/0'"},
@@ -558,7 +559,7 @@ var _ = Describe("Instance", func() {
 				err := instance.Stop(pingTimeout, pingDelay, skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls[0]).To(Equal(&fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls[0]).To(Equal(&testui.PerformCall{
 					Name: "Waiting for the agent on VM 'fake-vm-cid'",
 				}))
 			})
@@ -641,7 +642,7 @@ var _ = Describe("Instance", func() {
 			err := instance.Start(update, pingTimeout, pingDelay, fakeStage)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
 				{Name: "Running the pre-start scripts 'fake-job-name/0'"},
 				{Name: "Starting the agent 'fake-job-name/0'"},
@@ -655,7 +656,7 @@ var _ = Describe("Instance", func() {
 				err := instance.Start(update, pingTimeout, pingDelay, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls[0]).To(Equal(&fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls[0]).To(Equal(&testui.PerformCall{
 					Name: "Waiting for the agent on VM 'fake-vm-cid'",
 				}))
 			})

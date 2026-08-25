@@ -11,22 +11,22 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("Cmd", func() {
 	var (
-		ui      *fakeui.FakeUI
+		testUI  *testui.Ui
 		confUI  *boshui.ConfUI
 		fs      *fakesys.FakeFileSystem
 		boshCmd cmd.Cmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		confUI = boshui.NewWrappingConfUI(ui, logger)
+		confUI = boshui.NewWrappingConfUI(testUI, logger)
 
 		fs = fakesys.NewFakeFileSystem()
 
@@ -43,7 +43,7 @@ var _ = Describe("Cmd", func() {
 			err := boshCmd.Execute()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Blocks).To(Equal([]string{"null\n"}))
+			Expect(testUI.Blocks).To(Equal([]string{"null\n"}))
 		})
 
 		It("prints message if specified", func() {
@@ -52,7 +52,7 @@ var _ = Describe("Cmd", func() {
 			err := boshCmd.Execute()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Blocks).To(Equal([]string{"output"}))
+			Expect(testUI.Blocks).To(Equal([]string{"output"}))
 		})
 
 		It("allows to enable json output", func() {
@@ -64,7 +64,7 @@ var _ = Describe("Cmd", func() {
 
 			confUI.Flush()
 
-			Expect(ui.Blocks[0]).To(ContainSubstring(`Blocks": [`))
+			Expect(testUI.Blocks[0]).To(ContainSubstring(`Blocks": [`))
 		})
 
 		Describe("color", func() {
@@ -83,7 +83,7 @@ var _ = Describe("Cmd", func() {
 				executeCmdAndPrintTable()
 
 				// Expect that header values are bold
-				Expect(ui.Tables[0].HeaderFormatFunc).ToNot(BeNil())
+				Expect(testUI.Tables[0].HeaderFormatFunc).ToNot(BeNil())
 			})
 
 			It("allows to disable color in the output", func() {
@@ -93,7 +93,7 @@ var _ = Describe("Cmd", func() {
 				executeCmdAndPrintTable()
 
 				// Expect that header values are empty because they were not emboldened
-				Expect(ui.Tables[0].HeaderFormatFunc).To(BeNil())
+				Expect(testUI.Tables[0].HeaderFormatFunc).To(BeNil())
 			})
 		})
 

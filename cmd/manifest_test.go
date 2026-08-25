@@ -8,23 +8,23 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("ManifestCmd", func() {
 	var (
-		ui         *fakeui.FakeUI
+		testUI     *testui.Ui
 		deployment *fakedir.FakeDeployment
 		command    cmd.ManifestCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		deployment = &fakedir.FakeDeployment{}
 	})
 
 	JustBeforeEach(func() {
-		command = cmd.NewManifestCmd(ui, deployment)
+		command = cmd.NewManifestCmd(testUI, deployment)
 	})
 
 	Describe("Run", func() {
@@ -36,7 +36,7 @@ var _ = Describe("ManifestCmd", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Blocks).To(Equal([]string{"some-manifest"}))
+			Expect(testUI.Blocks).To(Equal([]string{"some-manifest"}))
 		})
 
 		It("returns error if manifest cannot be retrieved", func() {

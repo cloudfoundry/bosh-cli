@@ -22,7 +22,7 @@ import (
 	bideplmanifest "github.com/cloudfoundry/bosh-cli/v7/deployment/manifest"
 	. "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/vm/vmfakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("VM", func() {
@@ -112,7 +112,7 @@ var _ = Describe("VM", func() {
 		})
 
 		It("delegates to DiskDeployer.Deploy", func() {
-			fakeStage := fakebiui.NewFakeStage()
+			fakeStage := &testui.Stage{}
 
 			disks, err := vm.UpdateDisks(diskPool, fakeStage)
 			Expect(err).NotTo(HaveOccurred())

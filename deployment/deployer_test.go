@@ -24,7 +24,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/sshtunnelfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/vm/vmfakes"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("Deployer", func() {
@@ -39,7 +39,7 @@ var _ = Describe("Deployer", func() {
 		cloud                  *cloudfakes.FakeCloud
 		deploymentManifest     bideplmanifest.Manifest
 		diskPool               bideplmanifest.DiskPool
-		fakeStage              *fakebiui.FakeStage
+		fakeStage              *testui.Stage
 		fakeVM                 *vmfakes.FakeVM
 		skipDrain              bool
 		diskCIDs               []string
@@ -109,7 +109,7 @@ var _ = Describe("Deployer", func() {
 		fakeVM.AgentClientReturns(mockAgentClient)
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		fakeStage = fakebiui.NewFakeStage()
+		fakeStage = &testui.Stage{}
 
 		fakeStemcellRepo := &configfakes.FakeStemcellRepo{}
 		stemcellRecord := biconfig.StemcellRecord{
@@ -176,7 +176,7 @@ var _ = Describe("Deployer", func() {
 
 			Expect(fakeExistingVM.DeleteCallCount()).To(Equal(1))
 
-			Expect(fakeStage.PerformCalls[:6]).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[:6]).To(Equal([]*testui.PerformCall{
 				{Name: "Waiting for the agent on VM 'existing-vm-cid'"},
 				{Name: "Running the pre-stop scripts 'unknown/0'"},
 				{Name: "Draining jobs on instance 'unknown/0'"},
@@ -194,7 +194,7 @@ var _ = Describe("Deployer", func() {
 
 				Expect(fakeExistingVM.DeleteCallCount()).To(Equal(1))
 
-				Expect(fakeStage.PerformCalls[:5]).To(Equal([]*fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls[:5]).To(Equal([]*testui.PerformCall{
 					{Name: "Waiting for the agent on VM 'existing-vm-cid'"},
 					{Name: "Running the pre-stop scripts 'unknown/0'"},
 					{Name: "Stopping jobs on instance 'unknown/0'"},
@@ -228,7 +228,7 @@ var _ = Describe("Deployer", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeStage.PerformCalls[1]).To(Equal(&fakebiui.PerformCall{
+		Expect(fakeStage.PerformCalls[1]).To(Equal(&testui.PerformCall{
 			Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready",
 		}))
 	})
@@ -247,7 +247,7 @@ var _ = Describe("Deployer", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-wait-error"))
 
-			Expect(fakeStage.PerformCalls[1]).To(Equal(&fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[1]).To(Equal(&testui.PerformCall{
 				Name:  "Waiting for the agent on VM 'fake-vm-cid' to be ready",
 				Error: waitError,
 			}))
@@ -293,7 +293,7 @@ var _ = Describe("Deployer", func() {
 		_, err := deployer.Deploy(cloud, deploymentManifest, cloudStemcell, fakeVMManager, mockBlobstore, skipDrain, diskCIDs, fakeStage)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeStage.PerformCalls[2:4]).To(Equal([]*fakebiui.PerformCall{
+		Expect(fakeStage.PerformCalls[2:4]).To(Equal([]*testui.PerformCall{
 			{Name: "Updating instance 'fake-job-name/0'"},
 			{Name: "Waiting for instance 'fake-job-name/0' to be running"},
 		}))
@@ -341,7 +341,7 @@ var _ = Describe("Deployer", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-wait-running-error"))
 
-			Expect(fakeStage.PerformCalls[3]).To(Equal(&fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls[3]).To(Equal(&testui.PerformCall{
 				Name:  "Waiting for instance 'fake-job-name/0' to be running",
 				Error: waitError,
 			}))

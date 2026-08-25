@@ -11,22 +11,22 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("EventsCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.EventsCmd
 		events   []boshdir.Event
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewEventsCmd(ui, director)
+		command = cmd.NewEventsCmd(testUI, director)
 		events = []boshdir.Event{
 			&fakedir.FakeEvent{
 				IDStub:        func() string { return "4" },
@@ -78,7 +78,7 @@ var _ = Describe("EventsCmd", func() {
 
 			Expect(director.EventsArgsForCall(0)).To(Equal(boshdir.EventsFilter{}))
 
-			Expect(ui.Table).To(Equal(boshtbl.Table{
+			Expect(testUI.Table).To(Equal(boshtbl.Table{
 				Content: "events",
 
 				Header: []boshtbl.Header{

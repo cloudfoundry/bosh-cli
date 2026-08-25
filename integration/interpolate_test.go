@@ -31,7 +31,7 @@ var _ = Describe("interpolate command", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "-v", "key=val"})
-		Expect(ui.Blocks).To(Equal([]string{"file: val\n"}))
+		Expect(testUI.Blocks).To(Equal([]string{"file: val\n"}))
 	})
 
 	It("interpolates manifest with variables provided piece by piece via dot notation", func() {
@@ -47,7 +47,7 @@ var _ = Describe("interpolate command", func() {
 			"-v", "key.subkey2=val2",
 			"--var-file", "key.subkey3=" + otherTmpFilePath,
 		})
-		Expect(ui.Blocks).To(Equal([]string{"file:\n  subkey: val\n  subkey2: val2\n  subkey3: file-val-content\nfile2: val2\n"}))
+		Expect(testUI.Blocks).To(Equal([]string{"file:\n  subkey: val\n  subkey2: val2\n  subkey3: file-val-content\nfile2: val2\n"}))
 	})
 
 	It("returns portion of the template when --path flag is provided", func() {
@@ -55,7 +55,7 @@ var _ = Describe("interpolate command", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "-v", `key={"nested": true}`, "--path", "/file/nested"})
-		Expect(ui.Blocks).To(Equal([]string{"true\n"}))
+		Expect(testUI.Blocks).To(Equal([]string{"true\n"}))
 	})
 
 	It("generates and stores missing password variable when --vars-store is provided", func() {
@@ -70,9 +70,9 @@ variables:
 
 		{ // running command first time
 			createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
-			Expect(ui.Blocks).To(HaveLen(1))
+			Expect(testUI.Blocks).To(HaveLen(1))
 
-			genedPass = ui.Blocks[0]
+			genedPass = testUI.Blocks[0]
 			Expect(len(genedPass)).To(BeNumerically(">", 10))
 
 			contents, err := fs.ReadFileString(otherTmpFilePath)
@@ -80,11 +80,11 @@ variables:
 			Expect(contents).To(Equal("key: " + genedPass))
 		}
 
-		ui.Blocks = []string{}
+		testUI.Blocks = []string{}
 
 		{ // running command second time
 			createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
-			Expect(ui.Blocks[0]).To(Equal(genedPass))
+			Expect(testUI.Blocks[0]).To(Equal(genedPass))
 		}
 	})
 
@@ -102,9 +102,9 @@ variables:
 
 		{ // running command first time
 			createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
-			Expect(ui.Blocks).To(HaveLen(1))
+			Expect(testUI.Blocks).To(HaveLen(1))
 
-			genedPass = ui.Blocks[0]
+			genedPass = testUI.Blocks[0]
 			Expect(len(genedPass)).To(Equal(42 + 1))
 
 			contents, err := fs.ReadFileString(otherTmpFilePath)
@@ -112,11 +112,11 @@ variables:
 			Expect(contents).To(Equal("key: " + genedPass))
 		}
 
-		ui.Blocks = []string{}
+		testUI.Blocks = []string{}
 
 		{ // running command second time
 			createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "--path", "/password"})
-			Expect(ui.Blocks[0]).To(Equal(genedPass))
+			Expect(testUI.Blocks[0]).To(Equal(genedPass))
 		}
 	})
 
@@ -143,7 +143,7 @@ variables:
 		Expect(err).ToNot(HaveOccurred())
 
 		createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath, "-v", "common_name=test.com"})
-		Expect(ui.Blocks).To(HaveLen(1))
+		Expect(testUI.Blocks).To(HaveLen(1))
 
 		type expectedCert struct {
 			Certificate string
@@ -164,7 +164,7 @@ variables:
 			err = yaml.Unmarshal([]byte(contents), &store)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = yaml.Unmarshal([]byte(ui.Blocks[0]), &output)
+			err = yaml.Unmarshal([]byte(testUI.Blocks[0]), &output)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(output.CA.Certificate).To(Equal(store.CA.Certificate))
@@ -216,7 +216,7 @@ variables:
 		Expect(err).ToNot(HaveOccurred())
 
 		createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
-		Expect(ui.Blocks).To(HaveLen(1))
+		Expect(testUI.Blocks).To(HaveLen(1))
 
 		type expectedCert struct {
 			Certificate string
@@ -236,7 +236,7 @@ variables:
 			err = yaml.Unmarshal([]byte(contents), &store)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = yaml.Unmarshal([]byte(ui.Blocks[0]), &output)
+			err = yaml.Unmarshal([]byte(testUI.Blocks[0]), &output)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(output.CA.Certificate).To(Equal(store.CA.Certificate))
@@ -273,7 +273,7 @@ variables:
 		Expect(err).ToNot(HaveOccurred())
 
 		createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
-		Expect(ui.Blocks).To(HaveLen(1))
+		Expect(testUI.Blocks).To(HaveLen(1))
 
 		type expectedCert struct {
 			Certificate string
@@ -293,7 +293,7 @@ variables:
 			err = yaml.Unmarshal([]byte(contents), &store)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = yaml.Unmarshal([]byte(ui.Blocks[0]), &output)
+			err = yaml.Unmarshal([]byte(testUI.Blocks[0]), &output)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(output.CA.Certificate).To(Equal(store.CA.Certificate))
@@ -330,7 +330,7 @@ variables:
 		Expect(err).ToNot(HaveOccurred())
 
 		createAndExecCommand(cmdFactory, []string{"interpolate", tmpFilePath, "--vars-store", otherTmpFilePath})
-		Expect(ui.Blocks).To(HaveLen(1))
+		Expect(testUI.Blocks).To(HaveLen(1))
 
 		type expectedCert struct {
 			Certificate string
@@ -350,7 +350,7 @@ variables:
 			err = yaml.Unmarshal([]byte(contents), &store)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = yaml.Unmarshal([]byte(ui.Blocks[0]), &output)
+			err = yaml.Unmarshal([]byte(testUI.Blocks[0]), &output)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(output.CA.Certificate).To(Equal(store.CA.Certificate))

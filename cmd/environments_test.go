@@ -7,21 +7,21 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	cmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config"
 	fakecmdconf "github.com/cloudfoundry/bosh-cli/v7/cmd/config/configfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("EnvironmentsCmd", func() {
 	var (
 		config  *fakecmdconf.FakeConfig
-		ui      *fakeui.FakeUI
+		testUI  *testui.Ui
 		command cmd.EnvironmentsCmd
 	)
 
 	BeforeEach(func() {
 		config = &fakecmdconf.FakeConfig{}
-		ui = &fakeui.FakeUI{}
-		command = cmd.NewEnvironmentsCmd(config, ui)
+		testUI = &testui.Ui{}
+		command = cmd.NewEnvironmentsCmd(config, testUI)
 	})
 
 	Describe("Run", func() {
@@ -36,7 +36,7 @@ var _ = Describe("EnvironmentsCmd", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Table).To(Equal(boshtbl.Table{
+			Expect(testUI.Table).To(Equal(boshtbl.Table{
 				Content: "environments",
 
 				Header: []boshtbl.Header{

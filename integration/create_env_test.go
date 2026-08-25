@@ -53,7 +53,7 @@ import (
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("bosh", func() {
@@ -103,7 +103,7 @@ var _ = Describe("bosh", func() {
 
 			stdOut    *gbytes.Buffer
 			stdErr    *gbytes.Buffer
-			fakeStage *fakebiui.FakeStage
+			fakeStage *testui.Stage
 
 			stemcellManagerFactory bistemcell.ManagerFactory
 			vmManagerFactory       bivm.ManagerFactory
@@ -896,7 +896,7 @@ cloud_provider:
 
 			stdOut = gbytes.NewBuffer()
 			stdErr = gbytes.NewBuffer()
-			fakeStage = fakebiui.NewFakeStage()
+			fakeStage = &testui.Stage{}
 
 			mockAgentClientFactory = &fakecmd.FakeAgentClientFactory{}
 			mockAgentClient = &agentclientfakes.FakeAgentClient{}

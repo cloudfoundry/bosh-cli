@@ -17,7 +17,7 @@ import (
 	"github.com/onsi/gomega/ghttp"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/installation/tarball"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("Provider", func() {
@@ -27,7 +27,7 @@ var _ = Describe("Provider", func() {
 		cache     Cache
 		fs        *fakesys.FakeFileSystem
 		source    *fakeSource
-		fakeStage *fakebiui.FakeStage
+		fakeStage *testui.Stage
 	)
 
 	BeforeEach(func() {
@@ -37,7 +37,7 @@ var _ = Describe("Provider", func() {
 		cache = NewCache(filepath.Join("/", "fake-base-path"), fs, logger)
 		httpClient := httpclient.NewHTTPClient(httpclient.CreateExternalDefaultClient(nil), logger)
 		provider = NewProvider(cache, fs, httpClient, 3, 0, logger)
-		fakeStage = fakebiui.NewFakeStage()
+		fakeStage = &testui.Stage{}
 	})
 
 	Describe("Get", func() {
@@ -155,7 +155,7 @@ var _ = Describe("Provider", func() {
 						_, err := provider.Get(source, fakeStage)
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+						Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 							{Name: "Downloading fake-description"},
 						}))
 					})

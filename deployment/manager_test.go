@@ -24,7 +24,7 @@ import (
 	bisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel"
 	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("Manager", func() {
@@ -147,7 +147,7 @@ var _ = Describe("Manager", func() {
 			mockCloud       *cloudfakes.FakeCloud
 			mockAgentClient *agentclientfakes.FakeAgentClient
 
-			fakeStage *fakebiui.FakeStage
+			fakeStage *testui.Stage
 
 			deploymentManager  Manager
 			stemcellApiVersion = 2
@@ -170,7 +170,7 @@ var _ = Describe("Manager", func() {
 			mockCloud = &cloudfakes.FakeCloud{}
 			mockAgentClient = &agentclientfakes.FakeAgentClient{}
 
-			fakeStage = fakebiui.NewFakeStage()
+			fakeStage = &testui.Stage{}
 		})
 
 		JustBeforeEach(func() {
@@ -257,7 +257,7 @@ var _ = Describe("Manager", func() {
 				err := deploymentManager.Cleanup(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(ContainElement(&fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(ContainElement(&testui.PerformCall{
 					Name: "Deleting unused disk 'orphan-disk-cid'",
 				}))
 			})
@@ -315,7 +315,7 @@ var _ = Describe("Manager", func() {
 				err := deploymentManager.Cleanup(fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(ContainElement(&fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(ContainElement(&testui.PerformCall{
 					Name: "Deleting unused stemcell 'orphan-stemcell-cid'",
 				}))
 			})

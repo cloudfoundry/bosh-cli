@@ -13,7 +13,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/state/job"
 	bistatepkg "github.com/cloudfoundry/bosh-cli/v7/state/pkg"
 	"github.com/cloudfoundry/bosh-cli/v7/state/pkg/pkgfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("DependencyCompiler", func() {
@@ -22,7 +22,7 @@ var _ = Describe("DependencyCompiler", func() {
 		logger              boshlog.Logger
 
 		dependencyCompiler DependencyCompiler
-		stage              *fakeui.FakeStage
+		stage              *testui.Stage
 
 		pkg1 *boshrelpkg.Package
 		pkg2 *boshrelpkg.Package
@@ -43,7 +43,7 @@ var _ = Describe("DependencyCompiler", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 		dependencyCompiler = NewDependencyCompiler(mockPackageCompiler, logger)
 
-		stage = fakeui.NewFakeStage()
+		stage = &testui.Stage{}
 
 		pkg1 = newPkg("pkg1-name", "pkg1-fp", nil)
 		pkg2 = newPkg("pkg2-name", "pkg2-fp", []string{"pkg1-name"})
@@ -112,7 +112,7 @@ var _ = Describe("DependencyCompiler", func() {
 		_, err := dependencyCompiler.Compile(jobs, stage)
 		Expect(err).ToNot(HaveOccurred())
 
-		Expect(stage.PerformCalls).To(Equal([]*fakeui.PerformCall{
+		Expect(stage.PerformCalls).To(Equal([]*testui.PerformCall{
 			{Name: "Compiling package 'pkg1-name/pkg1-fp'"},
 			{Name: "Compiling package 'pkg2-name/pkg2-fp'"},
 		}))

@@ -11,7 +11,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("StartEnvCmd", func() {
@@ -20,8 +20,8 @@ var _ = Describe("StartEnvCmd", func() {
 			mockDeploymentStateManager *cmdfakes.FakeDeploymentStateManager
 			fs                         *fakesys.FakeFileSystem
 
-			fakeUI                 *fakebiui.FakeUI
-			fakeStage              *fakebiui.FakeStage
+			TestUI                 *testui.Ui
+			fakeStage              *testui.Stage
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			statePath              string
 		)
@@ -35,7 +35,7 @@ var _ = Describe("StartEnvCmd", func() {
 				return mockDeploymentStateManager
 			}
 
-			return cmd.NewStartEnvCmd(fakeUI, doGetFunc)
+			return cmd.NewStartEnvCmd(TestUI, doGetFunc)
 		}
 
 		var writeDeploymentManifest = func() {
@@ -47,7 +47,7 @@ var _ = Describe("StartEnvCmd", func() {
 			mockDeploymentStateManager = &cmdfakes.FakeDeploymentStateManager{}
 			fs = fakesys.NewFakeFileSystem()
 			fs.EnableStrictTempRootBehavior()
-			fakeUI = &fakebiui.FakeUI{}
+			TestUI = &testui.Ui{}
 			writeDeploymentManifest()
 		})
 

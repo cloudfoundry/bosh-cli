@@ -17,7 +17,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	bitemplate "github.com/cloudfoundry/bosh-cli/v7/templatescompiler"
 	"github.com/cloudfoundry/bosh-cli/v7/templatescompiler/templatescompilerfakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("JobRenderer", func() {
@@ -36,7 +36,7 @@ var _ = Describe("JobRenderer", func() {
 		releaseJobs []bireljob.Job
 
 		manifest  biinstallmanifest.Manifest
-		fakeStage *fakebiui.FakeStage
+		fakeStage *testui.Stage
 
 		renderedJobList bitemplate.RenderedJobList
 	)
@@ -50,7 +50,7 @@ var _ = Describe("JobRenderer", func() {
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		fakeStage = fakebiui.NewFakeStage()
+		fakeStage = &testui.Stage{}
 
 		manifest = biinstallmanifest.Manifest{
 			Name: "fake-installation-name",
@@ -98,7 +98,7 @@ var _ = Describe("JobRenderer", func() {
 			_, err := renderer.RenderAndUploadFrom(manifest, releaseJobs, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				// compile stages not produced by mockDependencyCompiler
 				{Name: "Rendering job templates"},
 			}))

@@ -11,20 +11,20 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("NetworksCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.NetworksCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewNetworksCmd(ui, director)
+		command = cmd.NewNetworksCmd(testUI, director)
 	})
 
 	Describe("Run", func() {
@@ -62,7 +62,7 @@ var _ = Describe("NetworksCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table.Rows[0][0]).To(ContainSubstring("fake-network"))
+				Expect(testUI.Table.Rows[0][0]).To(ContainSubstring("fake-network"))
 			})
 
 			It("returns error if orphaned networks cannot be retrieved", func() {

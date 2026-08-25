@@ -13,21 +13,21 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("CurlCmd", func() {
 	var (
-		ui      *fakeui.FakeUI
+		testUI  *testui.Ui
 		server  *ghttp.Server
 		command cmd.CurlCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		server = ghttp.NewServer()
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		command = cmd.NewCurlCmd(ui, boshdir.NewClientRequest(
+		command = cmd.NewCurlCmd(testUI, boshdir.NewClientRequest(
 			server.URL(),
 			boshhttp.NewHTTPClient(boshhttp.CreateDefaultClient(nil), logger),
 			boshdir.NewNoopFileReporter(),
@@ -76,7 +76,7 @@ var _ = Describe("CurlCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Blocks).To(Equal([]string{"resp-body"}))
+				Expect(testUI.Blocks).To(Equal([]string{"resp-body"}))
 			})
 
 			It("returns error if client request considers response as failure", func() {
@@ -94,7 +94,7 @@ var _ = Describe("CurlCmd", func() {
 				Expect(err.Error()).To(ContainSubstring(
 					`Executing HTTP request: Director responded with non-successful status code '500' response '{"code":12345,"description":"Some Error"}'`))
 
-				Expect(ui.Blocks).To(Equal([]string{`{"code":12345,"description":"Some Error"}`}))
+				Expect(testUI.Blocks).To(Equal([]string{`{"code":12345,"description":"Some Error"}`}))
 			})
 
 			It("shows response headers if requested", func() {
@@ -117,7 +117,7 @@ var _ = Describe("CurlCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Blocks).To(Equal([]string{
+				Expect(testUI.Blocks).To(Equal([]string{
 					strings.Join([]string{
 						"HTTP/1.1 200 OK\r\n",
 						"Connection: close\r\n",
@@ -160,7 +160,7 @@ var _ = Describe("CurlCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Blocks).To(Equal([]string{"resp-body"}))
+				Expect(testUI.Blocks).To(Equal([]string{"resp-body"}))
 			})
 
 			It("accepts request body", func() {
@@ -180,7 +180,7 @@ var _ = Describe("CurlCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Blocks).To(Equal([]string{"resp-body"}))
+				Expect(testUI.Blocks).To(Equal([]string{"resp-body"}))
 			})
 
 			It("returns error if client request considers response as failure", func() {
@@ -198,7 +198,7 @@ var _ = Describe("CurlCmd", func() {
 				Expect(err.Error()).To(ContainSubstring(
 					`Executing HTTP request: Director responded with non-successful status code '500' response '{"code":12345,"description":"Some Error"}'`))
 
-				Expect(ui.Blocks).To(Equal([]string{`{"code":12345,"description":"Some Error"}`}))
+				Expect(testUI.Blocks).To(Equal([]string{`{"code":12345,"description":"Some Error"}`}))
 			})
 
 			It("shows response headers if requested", func() {
@@ -221,7 +221,7 @@ var _ = Describe("CurlCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Blocks).To(Equal([]string{
+				Expect(testUI.Blocks).To(Equal([]string{
 					strings.Join([]string{
 						"HTTP/1.1 200 OK\r\n",
 						"Connection: close\r\n",
@@ -264,7 +264,7 @@ var _ = Describe("CurlCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Blocks).To(Equal([]string{"resp-body"}))
+				Expect(testUI.Blocks).To(Equal([]string{"resp-body"}))
 			})
 
 			It("accepts request body", func() {
@@ -284,7 +284,7 @@ var _ = Describe("CurlCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Blocks).To(Equal([]string{"resp-body"}))
+				Expect(testUI.Blocks).To(Equal([]string{"resp-body"}))
 			})
 
 			It("returns error if client request considers response as failure", func() {
@@ -302,7 +302,7 @@ var _ = Describe("CurlCmd", func() {
 				Expect(err.Error()).To(ContainSubstring(
 					`Executing HTTP request: Director responded with non-successful status code '500' response '{"code":12345,"description":"Some Error"}'`))
 
-				Expect(ui.Blocks).To(Equal([]string{`{"code":12345,"description":"Some Error"}`}))
+				Expect(testUI.Blocks).To(Equal([]string{`{"code":12345,"description":"Some Error"}`}))
 			})
 
 			It("shows response headers if requested", func() {
@@ -325,7 +325,7 @@ var _ = Describe("CurlCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Blocks).To(Equal([]string{
+				Expect(testUI.Blocks).To(Equal([]string{
 					strings.Join([]string{
 						"HTTP/1.1 200 OK\r\n",
 						"Connection: close\r\n",
@@ -361,7 +361,7 @@ var _ = Describe("CurlCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Blocks).To(Equal([]string{"resp-body"}))
+				Expect(testUI.Blocks).To(Equal([]string{"resp-body"}))
 			})
 
 			It("returns error if any headers are provided (currently no supported)", func() {
@@ -376,7 +376,7 @@ var _ = Describe("CurlCmd", func() {
 
 				Expect(server.ReceivedRequests()).To(BeEmpty())
 
-				Expect(ui.Blocks).To(BeEmpty())
+				Expect(testUI.Blocks).To(BeEmpty())
 			})
 
 			It("returns error if client request considers response as failure", func() {
@@ -394,7 +394,7 @@ var _ = Describe("CurlCmd", func() {
 				Expect(err.Error()).To(ContainSubstring(
 					`Executing HTTP request: Director responded with non-successful status code '500' response '{"code":12345,"description":"Some Error"}'`))
 
-				Expect(ui.Blocks).To(Equal([]string{`{"code":12345,"description":"Some Error"}`}))
+				Expect(testUI.Blocks).To(Equal([]string{`{"code":12345,"description":"Some Error"}`}))
 			})
 
 			It("shows response headers if requested", func() {
@@ -417,7 +417,7 @@ var _ = Describe("CurlCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Blocks).To(Equal([]string{
+				Expect(testUI.Blocks).To(Equal([]string{
 					strings.Join([]string{
 						"HTTP/1.1 200 OK\r\n",
 						"Connection: close\r\n",
@@ -448,7 +448,7 @@ var _ = Describe("CurlCmd", func() {
 
 				Expect(server.ReceivedRequests()).To(BeEmpty())
 
-				Expect(ui.Blocks).To(BeEmpty())
+				Expect(testUI.Blocks).To(BeEmpty())
 			})
 		})
 	})

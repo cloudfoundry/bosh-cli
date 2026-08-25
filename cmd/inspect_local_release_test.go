@@ -12,8 +12,8 @@ import (
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("InspectLocalReleaseCmd", func() {
@@ -21,7 +21,7 @@ var _ = Describe("InspectLocalReleaseCmd", func() {
 		var (
 			fakeRelease             *fakerel.FakeRelease
 			releaseReader           *fakerel.FakeReader
-			ui                      *fakeui.FakeUI
+			testUI                  *testui.Ui
 			inspectLocalReleaseOpts opts.InspectLocalReleaseOpts
 			command                 cmd.InspectLocalReleaseCmd
 		)
@@ -80,16 +80,16 @@ var _ = Describe("InspectLocalReleaseCmd", func() {
 				},
 			}
 
-			ui = &fakeui.FakeUI{}
+			testUI = &testui.Ui{}
 
-			command = cmd.NewInspectLocalReleaseCmd(releaseReader, ui)
+			command = cmd.NewInspectLocalReleaseCmd(releaseReader, testUI)
 		})
 
 		It("prints tables with release, job and package information", func() {
 			err := command.Run(inspectLocalReleaseOpts)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+			Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 				Header: []boshtbl.Header{
 					boshtbl.NewHeader("Name"),
 					boshtbl.NewHeader("Version"),
@@ -108,7 +108,7 @@ var _ = Describe("InspectLocalReleaseCmd", func() {
 				Transpose: true,
 			}))
 
-			Expect(ui.Tables[1]).To(Equal(boshtbl.Table{
+			Expect(testUI.Tables[1]).To(Equal(boshtbl.Table{
 				Content: "jobs",
 				Header: []boshtbl.Header{
 					boshtbl.NewHeader("Job"),
@@ -128,7 +128,7 @@ var _ = Describe("InspectLocalReleaseCmd", func() {
 
 			var emptyNames []string
 
-			Expect(ui.Tables[2]).To(Equal(boshtbl.Table{
+			Expect(testUI.Tables[2]).To(Equal(boshtbl.Table{
 				Content: "packages",
 				Header: []boshtbl.Header{
 					boshtbl.NewHeader("Package"),

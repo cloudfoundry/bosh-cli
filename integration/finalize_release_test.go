@@ -98,7 +98,7 @@ var _ = Describe("finalize-release command", func() {
 
 		It("prints release summary", func() {
 			createAndExecCommand(cmdFactory, []string{"finalize-release", "--dir", releaseDir, fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
-			output := strings.Join(ui.Said, " ")
+			output := strings.Join(testUI.Said, " ")
 			Expect(output).To(ContainSubstring("Added job 'job1/7225651667f52a2c600a4b7271c76b7277268730574d55dae509c0e9ad6c89e7'"))
 			Expect(output).To(ContainSubstring("Added package 'pkg1/074b9ff2fd95d50d32db373ae16bd8cb5d6e098beb7ff35745ea1b5115264710'"))
 			Expect(output).To(ContainSubstring("Added final release 'test-release/1'"))
@@ -218,7 +218,7 @@ blobstore:
 			createAndExecCommand(cmdFactory, []string{"create-release", "--name", "test-release", fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--force"})
 
 			createAndExecCommand(cmdFactory, []string{"finalize-release", fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
-			output := strings.Join(ui.Said, " ")
+			output := strings.Join(testUI.Said, " ")
 			Expect(output).ToNot(ContainSubstring("Added license"))
 		})
 
@@ -234,7 +234,7 @@ blobstore:
 			createAndExecCommand(cmdFactory, []string{"create-release", "--name", "test-release", fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--force"})
 
 			createAndExecCommand(cmdFactory, []string{"finalize-release", fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
-			output := strings.Join(ui.Said, " ")
+			output := strings.Join(testUI.Said, " ")
 			expectedLicenseVersion := "24f59b89c3a9f4eed2f4b9b07bc754891fadc49d8ec0dda25c562d90e568b375"
 			Expect(output).To(ContainSubstring("Added license 'license/24f59b89c3a9f4eed2f4b9b07bc754891fadc49d8ec0dda25c562d90e568b375"))
 
@@ -257,7 +257,7 @@ blobstore:
 			createAndExecCommand(cmdFactory, []string{"create-release", "--name", "test-release", fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--force"})
 
 			createAndExecCommand(cmdFactory, []string{"finalize-release", fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
-			output := strings.Join(ui.Said, " ")
+			output := strings.Join(testUI.Said, " ")
 			expectedLicenseVersion := "eb70cb1dcc90b1d1b1271bfa26a57e62240e46a38a87c64fbde94e2b65fe0c37"
 			Expect(output).To(ContainSubstring("Added license 'license/eb70cb1dcc90b1d1b1271bfa26a57e62240e46a38a87c64fbde94e2b65fe0c37"))
 
@@ -280,7 +280,7 @@ blobstore:
 			createAndExecCommand(cmdFactory, []string{"create-release", "--name", "test-release", fmt.Sprintf("--tarball=%s/release.tgz", releaseDir), "--force"})
 
 			createAndExecCommand(cmdFactory, []string{"finalize-release", fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
-			output := strings.Join(ui.Said, " ")
+			output := strings.Join(testUI.Said, " ")
 			expectedLicenseVersion := "9f6d8d782d57bcca93b645a0cbd0a95b943c72bf61093e1874aff6b8b54c371e"
 			Expect(output).To(ContainSubstring("Added license 'license/9f6d8d782d57bcca93b645a0cbd0a95b943c72bf61093e1874aff6b8b54c371e"))
 

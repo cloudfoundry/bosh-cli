@@ -9,20 +9,20 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("DeleteDiskCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.DeleteDiskCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewDeleteDiskCmd(ui, director)
+		command = cmd.NewDeleteDiskCmd(testUI, director)
 	})
 
 	Describe("Run", func() {
@@ -64,7 +64,7 @@ var _ = Describe("DeleteDiskCmd", func() {
 			disk := &fakedir.FakeOrphanDisk{}
 			director.FindOrphanDiskReturns(disk, nil)
 
-			ui.AskedConfirmationErr = errors.New("stop")
+			testUI.AskedConfirmationErr = errors.New("stop")
 
 			err := act()
 			Expect(err).To(HaveOccurred())
@@ -105,7 +105,7 @@ var _ = Describe("DeleteDiskCmd", func() {
 			})
 
 			It("does not delete if confirmation is rejected", func() {
-				ui.AskedConfirmationErr = errors.New("stop")
+				testUI.AskedConfirmationErr = errors.New("stop")
 
 				err := act()
 				Expect(err).To(HaveOccurred())
