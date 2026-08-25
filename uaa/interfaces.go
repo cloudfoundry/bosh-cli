@@ -1,6 +1,5 @@
 package uaa
 
-// You only need **one** of these per package!
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 //counterfeiter:generate . UAA

@@ -17,7 +17,6 @@ type ERBRenderer interface {
 	Render(srcPath, dstPath string, context TemplateEvaluationContext) error
 }
 
-// You only need **one** of these per package!
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate github.com/cloudfoundry/bosh-utils/system.CmdRunner
 //counterfeiter:generate github.com/cloudfoundry/bosh-utils/system.FileSystem
