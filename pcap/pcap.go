@@ -35,7 +35,6 @@ var (
 	openHandleError     = fmt.Errorf("unable to open pcap handle") //nolint:staticcheck
 )
 
-// You only need **one** of these per package!
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 //counterfeiter:generate . PcapRunner

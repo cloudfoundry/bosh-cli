@@ -11,10 +11,9 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
-// You only need **one** of these per package!
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
-//counterfeiter:generate extractor.go Extractor
+//counterfeiter:generate . Extractor
 type Extractor interface {
 	Extract(blobID, blobSHA1, targetDir string) error
 	Cleanup(blobID string, extractedBlobPath string) error
