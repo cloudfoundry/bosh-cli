@@ -6,19 +6,19 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("DiffConfigTable", func() {
 	var (
-		ui             *fakeui.FakeUI
+		testUI         *testui.Ui
 		diffConfigOpts opts.DiffConfigOpts
 		diff           cmd.Diff
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		diffConfigOpts = opts.DiffConfigOpts{
 			FromID: "1",
 			ToID:   "2",
@@ -33,9 +33,9 @@ var _ = Describe("DiffConfigTable", func() {
 
 	Describe("Print", func() {
 		It("shows diff config as transposed table", func() {
-			cmd.NewConfigDiffTable(diff, diffConfigOpts, ui).Print()
+			cmd.NewConfigDiffTable(diff, diffConfigOpts, testUI).Print()
 
-			Expect(ui.Table).To(Equal(
+			Expect(testUI.Table).To(Equal(
 				boshtbl.Table{
 					Content: "",
 

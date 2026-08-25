@@ -52,7 +52,7 @@ import (
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	"github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("CreateEnvCmd", func() {
@@ -104,7 +104,7 @@ var _ = Describe("CreateEnvCmd", func() {
 			fakeUUIDGenerator   *fakeuuid.FakeGenerator
 			configUUIDGenerator *fakeuuid.FakeGenerator
 
-			fakeStage *fakeui.FakeStage
+			fakeStage *testui.Stage
 
 			deploymentManifestPath string
 			deploymentStatePath    string
@@ -184,7 +184,7 @@ var _ = Describe("CreateEnvCmd", func() {
 
 			fakeDeploymentValidator = fakebideplmanifest.NewFakeValidator()
 
-			fakeStage = fakeui.NewFakeStage()
+			fakeStage = &testui.Stage{}
 
 			fakeUUIDGenerator = &fakeuuid.FakeGenerator{}
 
@@ -537,10 +537,10 @@ var _ = Describe("CreateEnvCmd", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls[0]).To(Equal(&fakeui.PerformCall{
+			Expect(fakeStage.PerformCalls[0]).To(Equal(&testui.PerformCall{
 				Name: "validating",
-				Stage: &fakeui.FakeStage{
-					PerformCalls: []*fakeui.PerformCall{
+				Stage: &testui.Stage{
+					PerformCalls: []*testui.PerformCall{
 						{Name: "Validating release 'fake-cpi-release-name'"},
 						{Name: "Validating cpi release"},
 						{Name: "Validating deployment manifest"},
@@ -561,9 +561,9 @@ var _ = Describe("CreateEnvCmd", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls[1]).To(Equal(&fakeui.PerformCall{
+			Expect(fakeStage.PerformCalls[1]).To(Equal(&testui.PerformCall{
 				Name:  "installing CPI",
-				Stage: &fakeui.FakeStage{}, // mock installer doesn't add sub-stages
+				Stage: &testui.Stage{}, // mock installer doesn't add sub-stages
 			}))
 		})
 
@@ -591,9 +591,9 @@ var _ = Describe("CreateEnvCmd", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls[2]).To(Equal(&fakeui.PerformCall{
+			Expect(fakeStage.PerformCalls[2]).To(Equal(&testui.PerformCall{
 				Name:  "deploying",
-				Stage: &fakeui.FakeStage{}, // mock deployer doesn't add sub-stages
+				Stage: &testui.Stage{}, // mock deployer doesn't add sub-stages
 			}))
 		})
 

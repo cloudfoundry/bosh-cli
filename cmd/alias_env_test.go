@@ -13,15 +13,15 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("AliasEnvCmd", func() {
 	var (
 		sessions map[*fakecmdconf.FakeConfig2]*fakecmd.FakeSession
 		config   *fakecmdconf.FakeConfig2
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		command  cmd.AliasEnvCmd
 	)
 
@@ -50,9 +50,9 @@ var _ = Describe("AliasEnvCmd", func() {
 			},
 		}
 
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 
-		command = cmd.NewAliasEnvCmd(sessionFactory, config, ui)
+		command = cmd.NewAliasEnvCmd(sessionFactory, config, testUI)
 	})
 
 	Describe("Run", func() {
@@ -115,7 +115,7 @@ var _ = Describe("AliasEnvCmd", func() {
 			Expect(config.Saved.EnvironmentAlias).To(Equal("environment-alias"))
 			Expect(config.Saved.EnvironmentCACert).To(Equal("environment-ca-cert"))
 
-			Expect(ui.Table).To(Equal(boshtbl.Table{
+			Expect(testUI.Table).To(Equal(boshtbl.Table{
 				Header: []boshtbl.Header{
 					boshtbl.NewHeader("Name"),
 					boshtbl.NewHeader("UUID"),

@@ -12,8 +12,8 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 func createResolution(name, plan string) boshdir.ProblemResolution {
@@ -34,16 +34,16 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 
 	var (
 		deployment *fakedir.FakeDeployment
-		ui         *fakeui.FakeUI
+		testUI     *testui.Ui
 		fakeFS     *fakesys.FakeFileSystem
 		command    cmd.CreateRecoveryPlanCmd
 	)
 
 	BeforeEach(func() {
 		deployment = &fakedir.FakeDeployment{}
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		fakeFS = fakesys.NewFakeFileSystem()
-		command = cmd.NewCreateRecoveryPlanCmd(deployment, ui, fakeFS)
+		command = cmd.NewCreateRecoveryPlanCmd(deployment, testUI, fakeFS)
 	})
 
 	Describe("Run", func() {
@@ -128,15 +128,15 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Said).To(ContainElement("No problems found\n"))
+				Expect(testUI.Said).To(ContainElement("No problems found\n"))
 			})
 
 			It("does not ask for confirmation or with choices", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.AskedChoiceCalled).To(BeFalse())
-				Expect(ui.AskedConfirmationCalled).To(BeFalse())
+				Expect(testUI.AskedChoiceCalled).To(BeFalse())
+				Expect(testUI.AskedConfirmationCalled).To(BeFalse())
 			})
 
 			It("does not write a file", func() {
@@ -150,10 +150,10 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 		Context("problems are found", func() {
 			BeforeEach(func() {
 				deployment.ScanForProblemsReturns(problems, nil)
-				ui.AskedChoiceChosens = []int{0, 1, 2}
-				ui.AskedChoiceErrs = []error{nil, nil, nil}
-				ui.AskedConfirmationErr = nil
-				ui.AskedText = []fakeui.Answer{
+				testUI.AskedChoiceChosens = []int{0, 1, 2}
+				testUI.AskedChoiceErrs = []error{nil, nil, nil}
+				testUI.AskedConfirmationErr = nil
+				testUI.AskedText = []testui.Answer{
 					{Text: "10", Error: nil},
 					{Text: "50%", Error: nil},
 				}
@@ -163,11 +163,11 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Said).To(ContainElements(
+				Expect(testUI.Said).To(ContainElements(
 					"Instance Group 'router'\n",
 					"Instance Group 'diego_cell'\n",
 				))
-				Expect(ui.Tables).To(
+				Expect(testUI.Tables).To(
 					ContainElements(
 						boshtbl.Table{
 							Title:   "Problem type: unresponsive_agent",
@@ -231,7 +231,7 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.AskedChoiceCalled).To(BeTrue())
+				Expect(testUI.AskedChoiceCalled).To(BeTrue())
 
 				Expect(fakeFS.WriteFileCallCount).To(Equal(1))
 				Expect(fakeFS.FileExists("/tmp/foo.yml")).To(BeTrue())
@@ -256,7 +256,7 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 			})
 
 			It("returns an error if asking fails", func() {
-				ui.AskedChoiceErrs = []error{nil, errors.New("fake-err"), nil}
+				testUI.AskedChoiceErrs = []error{nil, errors.New("fake-err"), nil}
 
 				err := act()
 				Expect(err).To(HaveOccurred())
@@ -264,7 +264,7 @@ var _ = Describe("CreateRecoveryPlanCmd", func() {
 			})
 
 			It("does not override max_in_flight if not confirmed", func() {
-				ui.AskedConfirmationErr = errors.New("fake-err")
+				testUI.AskedConfirmationErr = errors.New("fake-err")
 
 				err := act()
 				Expect(err).ToNot(HaveOccurred())

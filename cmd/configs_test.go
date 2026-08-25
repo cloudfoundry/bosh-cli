@@ -10,22 +10,22 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("ConfigsCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.ConfigsCmd
 		configs  []boshdir.Config
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewConfigsCmd(ui, director)
+		command = cmd.NewConfigsCmd(testUI, director)
 	})
 
 	Describe("Run", func() {
@@ -53,7 +53,7 @@ var _ = Describe("ConfigsCmd", func() {
 			Expect(limit).To(Equal(1))
 			Expect(filter).To(Equal(boshdir.ConfigsFilter{}))
 
-			Expect(ui.Table).To(Equal(boshtbl.Table{
+			Expect(testUI.Table).To(Equal(boshtbl.Table{
 				Content: "configs",
 
 				Header: []boshtbl.Header{
@@ -114,7 +114,7 @@ var _ = Describe("ConfigsCmd", func() {
 				Expect(limit).To(Equal(1))
 				Expect(filter).To(Equal(boshdir.ConfigsFilter{Type: "my-type"}))
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Content: "configs",
 
 					Header: []boshtbl.Header{
@@ -161,7 +161,7 @@ var _ = Describe("ConfigsCmd", func() {
 				Expect(limit).To(Equal(1))
 				Expect(filter).To(Equal(boshdir.ConfigsFilter{Name: "some-name"}))
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Content: "configs",
 
 					Header: []boshtbl.Header{
@@ -209,7 +209,7 @@ var _ = Describe("ConfigsCmd", func() {
 				Expect(limit).To(Equal(1))
 				Expect(filter).To(Equal(boshdir.ConfigsFilter{Name: "some-name", Type: "my-type"}))
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Content: "configs",
 
 					Header: []boshtbl.Header{
@@ -256,7 +256,7 @@ var _ = Describe("ConfigsCmd", func() {
 				Expect(limit).To(Equal(2))
 				Expect(filter).To(Equal(boshdir.ConfigsFilter{}))
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Content: "configs",
 
 					Header: []boshtbl.Header{

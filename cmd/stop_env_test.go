@@ -11,7 +11,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/cmdfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("StopEnvCmd", func() {
@@ -20,24 +20,24 @@ var _ = Describe("StopEnvCmd", func() {
 			mockDeploymentStateManager *cmdfakes.FakeDeploymentStateManager
 			fs                         *fakesys.FakeFileSystem
 
-			fakeUI                 *fakeui.FakeUI
-			fakeStage              *fakeui.FakeStage
+			testUI                 *testui.Ui
+			fakeStage              *testui.Stage
 			deploymentManifestPath = "/deployment-dir/fake-deployment-manifest.yml"
 			statePath              string
 			skipDrain              bool
-		)
 
-		var newStopEnvCmd = func() *cmd.StopEnvCmd {
-			doGetFunc := func(manifestPath string, statePath_ string, vars boshtpl.Variables, op patch.Op) cmd.DeploymentStateManager {
-				Expect(manifestPath).To(Equal(deploymentManifestPath))
-				Expect(vars).To(Equal(boshtpl.NewMultiVars([]boshtpl.Variables{boshtpl.StaticVariables{"key": "value"}})))
-				Expect(op).To(Equal(patch.Ops{patch.ErrOp{}}))
-				statePath = statePath_
-				return mockDeploymentStateManager
+			newStopEnvCmd = func() *cmd.StopEnvCmd {
+				doGetFunc := func(manifestPath string, statePath_ string, vars boshtpl.Variables, op patch.Op) cmd.DeploymentStateManager {
+					Expect(manifestPath).To(Equal(deploymentManifestPath))
+					Expect(vars).To(Equal(boshtpl.NewMultiVars([]boshtpl.Variables{boshtpl.StaticVariables{"key": "value"}})))
+					Expect(op).To(Equal(patch.Ops{patch.ErrOp{}}))
+					statePath = statePath_
+					return mockDeploymentStateManager
+				}
+
+				return cmd.NewStopEnvCmd(testUI, doGetFunc)
 			}
-
-			return cmd.NewStopEnvCmd(fakeUI, doGetFunc)
-		}
+		)
 
 		var writeDeploymentManifest = func() {
 			err := fs.WriteFileString(deploymentManifestPath, `---manifest-content`)
@@ -48,7 +48,7 @@ var _ = Describe("StopEnvCmd", func() {
 			mockDeploymentStateManager = &cmdfakes.FakeDeploymentStateManager{}
 			fs = fakesys.NewFakeFileSystem()
 			fs.EnableStrictTempRootBehavior()
-			fakeUI = &fakeui.FakeUI{}
+			testUI = &testui.Ui{}
 			writeDeploymentManifest()
 			skipDrain = false
 		})

@@ -12,21 +12,21 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("UpdateConfigCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.UpdateConfigCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewUpdateConfigCmd(ui, director)
+		command = cmd.NewUpdateConfigCmd(testUI, director)
 	})
 
 	Describe("Run", func() {
@@ -96,21 +96,21 @@ var _ = Describe("UpdateConfigCmd", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Table.Transpose).To(Equal(true))
+			Expect(testUI.Table.Transpose).To(Equal(true))
 		})
 
 		It("output table contains headers and rows", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Table.Header).To(Equal([]boshtbl.Header{
+			Expect(testUI.Table.Header).To(Equal([]boshtbl.Header{
 				boshtbl.NewHeader("ID"),
 				boshtbl.NewHeader("Type"),
 				boshtbl.NewHeader("Name"),
 				boshtbl.NewHeader("Created At"),
 				boshtbl.NewHeader("Content"),
 			}))
-			Expect(ui.Table.Rows).To(Equal([][]boshtbl.Value{
+			Expect(testUI.Table.Rows).To(Equal([][]boshtbl.Value{
 				{
 					boshtbl.NewValueString(""),
 					boshtbl.NewValueString(""),
@@ -122,7 +122,7 @@ var _ = Describe("UpdateConfigCmd", func() {
 		})
 
 		It("does not update if confirmation is rejected", func() {
-			ui.AskedConfirmationErr = errors.New("stop")
+			testUI.AskedConfirmationErr = errors.New("stop")
 
 			err := act()
 			Expect(err).To(HaveOccurred())
@@ -158,9 +158,9 @@ var _ = Describe("UpdateConfigCmd", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(director.DiffConfigCallCount()).To(Equal(1))
-			Expect(ui.Said).To(ContainElement("  some line that stayed\n"))
-			Expect(ui.Said).To(ContainElement("+ some line that was added\n"))
-			Expect(ui.Said).To(ContainElement("- some line that was removed\n"))
+			Expect(testUI.Said).To(ContainElement("  some line that stayed\n"))
+			Expect(testUI.Said).To(ContainElement("+ some line that was added\n"))
+			Expect(testUI.Said).To(ContainElement("- some line that was removed\n"))
 		})
 
 		Context("when expected-latest-id is specified", func() {

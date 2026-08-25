@@ -1,4 +1,4 @@
-package fakes
+package testui
 
 import (
 	"fmt"
@@ -17,14 +17,14 @@ type beASubstageOfMatcher struct {
 }
 
 func (matcher *beASubstageOfMatcher) Match(child interface{}) (success bool, err error) {
-	substage, ok := child.(*FakeStage)
+	substage, ok := child.(*Stage)
 	if !ok {
-		return false, fmt.Errorf("BeASubstageOf matcher expects an *fakeui.FakeStage")
+		return false, fmt.Errorf("BeASubstageOf matcher expects an *testui.FakeStage")
 	}
 
-	parentStage, ok := matcher.parent.(*FakeStage)
+	parentStage, ok := matcher.parent.(*Stage)
 	if !ok {
-		return false, fmt.Errorf("BeASubstageOf matcher expects an *fakeui.FakeStage for expected value")
+		return false, fmt.Errorf("BeASubstageOf matcher expects an *testui.FakeStage for expected value")
 	}
 
 	for _, currentSubstage := range parentStage.SubStages {

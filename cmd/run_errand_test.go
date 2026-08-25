@@ -11,23 +11,23 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("RunErrandCmd", func() {
 	var (
 		deployment *fakedir.FakeDeployment
 		downloader *fakecmd.FakeDownloader
-		ui         *fakeui.FakeUI
+		testUI     *testui.Ui
 		command    cmd.RunErrandCmd
 	)
 
 	BeforeEach(func() {
 		deployment = &fakedir.FakeDeployment{}
 		downloader = &fakecmd.FakeDownloader{}
-		ui = &fakeui.FakeUI{}
-		command = cmd.NewRunErrandCmd(deployment, downloader, ui)
+		testUI = &testui.Ui{}
+		command = cmd.NewRunErrandCmd(deployment, downloader, testUI)
 	})
 
 	Describe("Run", func() {
@@ -128,7 +128,7 @@ var _ = Describe("RunErrandCmd", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(Equal("Errand 'errand-name' was canceled (exit code 129)"))
 
-					Expect(ui.Table).To(Equal(
+					Expect(testUI.Table).To(Equal(
 						boshtbl.Table{
 							Content: "errand(s)",
 
@@ -238,7 +238,7 @@ var _ = Describe("RunErrandCmd", func() {
 				err := act()
 				Expect(err).To(HaveOccurred())
 
-				Expect(ui.Table).To(Equal(
+				Expect(testUI.Table).To(Equal(
 					boshtbl.Table{
 						Content: "errand(s)",
 

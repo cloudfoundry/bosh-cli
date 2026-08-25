@@ -11,15 +11,16 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshuit "github.com/cloudfoundry/bosh-cli/v7/ui/task"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("Reporter (not for events)", func() {
 	var (
-		outBuf, errBuf               *bytes.Buffer
-		fakeUI                       *fakeui.FakeUI
-		reporter, reporterWithFakeUI boshuit.Reporter
+		outBuf, errBuf     *bytes.Buffer
+		testUI             *testui.Ui
+		reporter           boshuit.Reporter
+		reporterWithTestUI boshuit.Reporter
 	)
 
 	BeforeEach(func() {
@@ -30,8 +31,8 @@ var _ = Describe("Reporter (not for events)", func() {
 		ui := NewPaddingUI(NewWriterUI(outBuf, errBuf, logger))
 		reporter = boshuit.NewReporter(ui, false)
 
-		fakeUI = &fakeui.FakeUI{}
-		reporterWithFakeUI = boshuit.NewReporter(fakeUI, false)
+		testUI = &testui.Ui{}
+		reporterWithTestUI = boshuit.NewReporter(testUI, false)
 	})
 
 	Describe("TaskStarted/TaskFinished/TaskOutputChunk", func() {
@@ -49,19 +50,20 @@ var _ = Describe("Reporter (not for events)", func() {
 		})
 
 		It("only prints task output as a block", func() {
-			reporterWithFakeUI.TaskStarted(123)
-			reporterWithFakeUI.TaskOutputChunk(123, []byte("chunk\n"))
-			reporterWithFakeUI.TaskFinished(123, "state")
-			Expect(fakeUI.Blocks).To(Equal([]string{"chunk\n"}))
+			reporterWithTestUI.TaskStarted(123)
+			reporterWithTestUI.TaskOutputChunk(123, []byte("chunk\n"))
+			reporterWithTestUI.TaskFinished(123, "state")
+			Expect(testUI.Blocks).To(Equal([]string{"chunk\n"}))
 		})
 	})
 })
 
 var _ = Describe("Reporter (for events)", func() {
 	var (
-		outBuf, errBuf               *bytes.Buffer
-		fakeUI                       *fakeui.FakeUI
-		reporter, reporterWithFakeUI boshuit.Reporter
+		outBuf, errBuf     *bytes.Buffer
+		testUI             *testui.Ui
+		reporter           boshuit.Reporter
+		reporterWithTestUI boshuit.Reporter
 	)
 
 	BeforeEach(func() {
@@ -72,8 +74,8 @@ var _ = Describe("Reporter (for events)", func() {
 		ui := NewPaddingUI(NewWriterUI(outBuf, errBuf, logger))
 		reporter = boshuit.NewReporter(ui, true)
 
-		fakeUI = &fakeui.FakeUI{}
-		reporterWithFakeUI = boshuit.NewReporter(fakeUI, true)
+		testUI = &testui.Ui{}
+		reporterWithTestUI = boshuit.NewReporter(testUI, true)
 	})
 
 	Describe("TaskStarted/TaskFinished/TaskOutputChunk", func() {
@@ -98,25 +100,25 @@ Task 123 state
 		})
 
 		It("does not print empty events", func() {
-			reporterWithFakeUI.TaskStarted(123)
-			reporterWithFakeUI.TaskOutputChunk(123, []byte("{}\n"))
-			reporterWithFakeUI.TaskFinished(123, "state")
-			Expect(fakeUI.Blocks).To(BeNil())
+			reporterWithTestUI.TaskStarted(123)
+			reporterWithTestUI.TaskOutputChunk(123, []byte("{}\n"))
+			reporterWithTestUI.TaskFinished(123, "state")
+			Expect(testUI.Blocks).To(BeNil())
 		})
 
 		It("panics if cannot unmarshal event chunk", func() {
-			reporterWithFakeUI.TaskStarted(123)
+			reporterWithTestUI.TaskStarted(123)
 			Expect(func() {
-				reporterWithFakeUI.TaskOutputChunk(123, []byte("-\n"))
+				reporterWithTestUI.TaskOutputChunk(123, []byte("-\n"))
 			}).To(Panic())
 		})
 
 		It("prints content as blocks", func() {
-			reporterWithFakeUI.TaskStarted(123)
-			reporterWithFakeUI.TaskOutputChunk(123, []byte(
+			reporterWithTestUI.TaskStarted(123)
+			reporterWithTestUI.TaskOutputChunk(123, []byte(
 				`{"time":1454193505,"error":{"code":100,"message":"err-msg"}}`+"\n"))
-			reporterWithFakeUI.TaskFinished(123, "state")
-			Expect(fakeUI.Blocks).To(Equal([]string{"\nTask 123 | 22:38:25 | ", "Error: err-msg"}))
+			reporterWithTestUI.TaskFinished(123, "state")
+			Expect(testUI.Blocks).To(Equal([]string{"\nTask 123 | 22:38:25 | ", "Error: err-msg"}))
 		})
 
 		It("renders events", func() {
@@ -341,49 +343,49 @@ Task 101 done
 
 	Describe("TaskHeartbeat", func() {
 		It("does not print when heartbeat is not enabled", func() {
-			impl := boshuit.NewReporter(fakeUI, true)
+			impl := boshuit.NewReporter(testUI, true)
 			impl.TaskHeartbeat(42, "processing", int64(1700000000))
-			Expect(fakeUI.Blocks).To(BeNil())
+			Expect(testUI.Blocks).To(BeNil())
 		})
 
 		It("prints state for a queued task when heartbeat is enabled", func() {
-			impl := boshuit.NewReporter(fakeUI, true)
+			impl := boshuit.NewReporter(testUI, true)
 			impl.EnableWithHeartbeat(10 * time.Second)
 			impl.TaskHeartbeat(42, "queued", int64(0))
-			Expect(len(fakeUI.Blocks)).To(BeNumerically(">=", 1))
-			combined := fmt.Sprintf("%v", fakeUI.Blocks)
+			Expect(len(testUI.Blocks)).To(BeNumerically(">=", 1))
+			combined := fmt.Sprintf("%v", testUI.Blocks)
 			Expect(combined).To(ContainSubstring("Task state: queued"))
 			Expect(combined).NotTo(ContainSubstring("elapsed"))
 		})
 
 		It("prints state with elapsed time for a processing task with startedAt", func() {
-			impl := boshuit.NewReporter(fakeUI, true)
+			impl := boshuit.NewReporter(testUI, true)
 			impl.EnableWithHeartbeat(10 * time.Second)
 			impl.TaskHeartbeat(42, "processing", int64(1700000000))
-			Expect(len(fakeUI.Blocks)).To(BeNumerically(">=", 1))
-			combined := fmt.Sprintf("%v", fakeUI.Blocks)
+			Expect(len(testUI.Blocks)).To(BeNumerically(">=", 1))
+			combined := fmt.Sprintf("%v", testUI.Blocks)
 			Expect(combined).To(ContainSubstring("Task state: processing"))
 			Expect(combined).To(ContainSubstring("elapsed"))
 		})
 
 		It("prints state without elapsed time when processing but startedAt is 0", func() {
-			impl := boshuit.NewReporter(fakeUI, true)
+			impl := boshuit.NewReporter(testUI, true)
 			impl.EnableWithHeartbeat(10 * time.Second)
 			impl.TaskHeartbeat(42, "processing", int64(0))
-			Expect(len(fakeUI.Blocks)).To(BeNumerically(">=", 1))
-			combined := fmt.Sprintf("%v", fakeUI.Blocks)
+			Expect(len(testUI.Blocks)).To(BeNumerically(">=", 1))
+			combined := fmt.Sprintf("%v", testUI.Blocks)
 			Expect(combined).To(ContainSubstring("Task state: processing"))
 			Expect(combined).NotTo(ContainSubstring("elapsed"))
 			Expect(combined).NotTo(ContainSubstring("queued"))
 		})
 
 		It("throttles heartbeat output based on the configured interval", func() {
-			impl := boshuit.NewReporter(fakeUI, true)
+			impl := boshuit.NewReporter(testUI, true)
 			impl.EnableWithHeartbeat(1 * time.Hour)
 			impl.TaskHeartbeat(42, "processing", int64(1700000000))
 			impl.TaskHeartbeat(42, "processing", int64(1700000000))
 			impl.TaskHeartbeat(42, "processing", int64(1700000000))
-			combined := fmt.Sprintf("%v", fakeUI.Blocks)
+			combined := fmt.Sprintf("%v", testUI.Blocks)
 			Expect(strings.Count(combined, "Task state")).To(Equal(1))
 		})
 	})

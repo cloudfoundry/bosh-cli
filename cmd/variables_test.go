@@ -10,22 +10,22 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("VariablesCmd", func() {
 	var (
-		ui            *fakeui.FakeUI
+		testUI        *testui.Ui
 		deployment    *fakedir.FakeDeployment
 		command       cmd.VariablesCmd
 		variablesOpts opts.VariablesOpts
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		deployment = &fakedir.FakeDeployment{}
-		command = cmd.NewVariablesCmd(ui, deployment)
+		command = cmd.NewVariablesCmd(testUI, deployment)
 		variablesOpts = opts.VariablesOpts{}
 	})
 
@@ -44,7 +44,7 @@ var _ = Describe("VariablesCmd", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Table).To(Equal(boshtbl.Table{
+			Expect(testUI.Table).To(Equal(boshtbl.Table{
 				Content: "variables",
 
 				Header: []boshtbl.Header{

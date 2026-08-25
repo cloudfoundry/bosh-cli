@@ -22,7 +22,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel/sshtunnelfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/deployment/vm/vmfakes"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("Manager", func() {
@@ -44,7 +44,7 @@ var _ = Describe("Manager", func() {
 		fakeSSHTunnel        *sshtunnelfakes.FakeSSHTunnel
 		instanceFactory      Factory
 		logger               boshlog.Logger
-		fakeStage            *fakebiui.FakeStage
+		fakeStage            *testui.Stage
 
 		manager Manager
 	)
@@ -72,7 +72,7 @@ var _ = Describe("Manager", func() {
 
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
-		fakeStage = fakebiui.NewFakeStage()
+		fakeStage = &testui.Stage{}
 
 		manager = NewManager(
 			fakeCloud,
@@ -228,7 +228,7 @@ var _ = Describe("Manager", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				{Name: "Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'"},
 				{Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready"},
 			}))
@@ -249,7 +249,7 @@ var _ = Describe("Manager", func() {
 			Expect(timeout).To(Equal(10 * time.Minute))
 			Expect(delay).To(Equal(500 * time.Millisecond))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				{Name: "Creating VM for instance 'fake-job-name/0' from stemcell 'fake-stemcell-cid'"},
 				{Name: "Waiting for the agent on VM 'fake-vm-cid' to be ready"},
 			}))

@@ -34,7 +34,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	birelsetmanifest "github.com/cloudfoundry/bosh-cli/v7/release/set/manifest"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("DeploymentDeleter", func() {
@@ -52,7 +52,7 @@ var _ = Describe("DeploymentDeleter", func() {
 			setupDeploymentStateService biconfig.DeploymentStateService
 			fakeInstallation            *fakecmd.FakeInstallation
 
-			fakeUI *fakeui.FakeUI
+			testUI *testui.Ui
 
 			mockBlobstoreFactory *blobstorefakes.FakeFactory
 			mockBlobstore        *blobstorefakes.FakeBlobstore
@@ -65,7 +65,7 @@ var _ = Describe("DeploymentDeleter", func() {
 			mockAgentClientFactory *fakecmd.FakeAgentClientFactory
 			mockCloud              *cloudfakes.FakeCloud
 
-			fakeStage *fakeui.FakeStage
+			fakeStage *testui.Stage
 
 			directorID string
 
@@ -215,7 +215,7 @@ cloud_provider:
 			tempRootConfigurator := cmd.NewTempRootConfigurator(fs)
 
 			return cmd.NewDeploymentDeleter(
-				fakeUI,
+				testUI,
 				"deleteCmd",
 				logger,
 				deploymentStateService,
@@ -263,15 +263,15 @@ cloud_provider:
 		}
 
 		var expectValidationInstallationDeletionEvents = func() {
-			Expect(fakeUI.Said).To(Equal([]string{
+			Expect(testUI.Said).To(Equal([]string{
 				"Deployment state: '" + filepath.Join("/", "deployment-dir", "fake-deployment-manifest-state.json") + "'\n",
 			}))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakeui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				{
 					Name: "validating",
-					Stage: &fakeui.FakeStage{
-						PerformCalls: []*fakeui.PerformCall{
+					Stage: &testui.Stage{
+						PerformCalls: []*testui.PerformCall{
 							{Name: "Validating release 'fake-cpi-release-name'"},
 							{Name: "Validating cpi release"},
 						},
@@ -279,11 +279,11 @@ cloud_provider:
 				},
 				{
 					Name:  "installing CPI",
-					Stage: &fakeui.FakeStage{},
+					Stage: &testui.Stage{},
 				},
 				{
 					Name:  "deleting deployment",
-					Stage: &fakeui.FakeStage{},
+					Stage: &testui.Stage{},
 				},
 				{
 					Name: "Uninstalling local artifacts for CPI and deployment",
@@ -308,9 +308,9 @@ cloud_provider:
 			_, err := setupDeploymentStateService.Load()
 			Expect(err).ToNot(HaveOccurred())
 
-			fakeUI = &fakeui.FakeUI{}
+			testUI = &testui.Ui{}
 
-			fakeStage = fakeui.NewFakeStage()
+			fakeStage = &testui.Stage{}
 
 			callOrder = nil
 
@@ -368,7 +368,7 @@ cloud_provider:
 					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(fakeUI.Said).To(Equal([]string{
+					Expect(testUI.Said).To(Equal([]string{
 						"Deployment state: '" + filepath.Join("/", "deployment-dir", "fake-deployment-manifest-state.json") + "'\n",
 						"No deployment state file found.\n",
 					}))
@@ -462,7 +462,7 @@ cloud_provider:
 
 					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
-					Expect(fakeUI.Errors).To(BeEmpty())
+					Expect(testUI.Errors).To(BeEmpty())
 
 					Expect(mockBlobstoreFactory.CreateCallCount()).To(Equal(1))
 					gotURL, gotClient := mockBlobstoreFactory.CreateArgsForCall(0)
@@ -522,7 +522,7 @@ cloud_provider:
 
 					err := newDeploymentDeleter().DeleteDeployment(skipDrain, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
-					Expect(fakeUI.Errors).To(BeEmpty())
+					Expect(testUI.Errors).To(BeEmpty())
 				})
 			})
 		})

@@ -9,20 +9,20 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("DeleteNetworkCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.DeleteNetworkCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewDeleteNetworkCmd(ui, director)
+		command = cmd.NewDeleteNetworkCmd(testUI, director)
 	})
 
 	Describe("Run", func() {
@@ -64,7 +64,7 @@ var _ = Describe("DeleteNetworkCmd", func() {
 			network := &fakedir.FakeOrphanNetwork{}
 			director.FindOrphanNetworkReturns(network, nil)
 
-			ui.AskedConfirmationErr = errors.New("stop")
+			testUI.AskedConfirmationErr = errors.New("stop")
 
 			err := act()
 			Expect(err).To(HaveOccurred())

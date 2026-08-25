@@ -14,15 +14,15 @@ import (
 	fakerel "github.com/cloudfoundry/bosh-cli/v7/release/releasefakes"
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("CreateReleaseCmd", func() {
 	var (
 		releaseReader *fakerel.FakeReader
 		releaseDir    *fakereldir.FakeReleaseDir
-		ui            *fakeui.FakeUI
+		testUI        *testui.Ui
 		fakeFS        *fakesys.FakeFileSystem
 		fakeWriter    *fakerel.FakeWriter
 		command       cmd.CreateReleaseCmd
@@ -39,8 +39,8 @@ var _ = Describe("CreateReleaseCmd", func() {
 
 		fakeWriter = &fakerel.FakeWriter{}
 		fakeFS = fakesys.NewFakeFileSystem()
-		ui = &fakeui.FakeUI{}
-		command = cmd.NewCreateReleaseCmd(releaseDirFactory, fakeWriter, fakeFS, ui)
+		testUI = &testui.Ui{}
+		command = cmd.NewCreateReleaseCmd(releaseDirFactory, fakeWriter, fakeFS, testUI)
 	})
 
 	Describe("Run", func() {
@@ -84,7 +84,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
@@ -127,7 +127,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+					Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 						Header: []boshtbl.Header{
 							boshtbl.NewHeader("Name"),
 							boshtbl.NewHeader("Version"),
@@ -167,7 +167,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 					err := act()
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+					Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 						Header: []boshtbl.Header{
 							boshtbl.NewHeader("Name"),
 							boshtbl.NewHeader("Version"),
@@ -237,7 +237,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
@@ -271,7 +271,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
@@ -310,7 +310,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
@@ -352,7 +352,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
@@ -394,7 +394,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),
@@ -437,7 +437,7 @@ var _ = Describe("CreateReleaseCmd", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Tables[0]).To(Equal(boshtbl.Table{
+				Expect(testUI.Tables[0]).To(Equal(boshtbl.Table{
 					Header: []boshtbl.Header{
 						boshtbl.NewHeader("Name"),
 						boshtbl.NewHeader("Version"),

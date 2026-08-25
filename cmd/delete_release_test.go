@@ -10,20 +10,20 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("DeleteReleaseCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.DeleteReleaseCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewDeleteReleaseCmd(ui, director)
+		command = cmd.NewDeleteReleaseCmd(testUI, director)
 	})
 
 	Describe("Run", func() {
@@ -89,7 +89,7 @@ var _ = Describe("DeleteReleaseCmd", func() {
 			})
 
 			It("does not delete release series if confirmation is rejected", func() {
-				ui.AskedConfirmationErr = errors.New("stop")
+				testUI.AskedConfirmationErr = errors.New("stop")
 
 				err := act()
 				Expect(err).To(HaveOccurred())
@@ -180,7 +180,7 @@ var _ = Describe("DeleteReleaseCmd", func() {
 			})
 
 			It("does not delete release if confirmation is rejected", func() {
-				ui.AskedConfirmationErr = errors.New("stop")
+				testUI.AskedConfirmationErr = errors.New("stop")
 
 				err := act()
 				Expect(err).To(HaveOccurred())

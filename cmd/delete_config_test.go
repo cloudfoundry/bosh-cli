@@ -9,20 +9,20 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("DeleteConfigCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.DeleteConfigCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewDeleteConfigCmd(ui, director)
+		command = cmd.NewDeleteConfigCmd(testUI, director)
 	})
 
 	Describe("Run", func() {
@@ -40,7 +40,7 @@ var _ = Describe("DeleteConfigCmd", func() {
 		act := func() error { return command.Run(deleteConfigOpts) }
 
 		It("does stop if confirmation is rejected", func() {
-			ui.AskedConfirmationErr = errors.New("stop")
+			testUI.AskedConfirmationErr = errors.New("stop")
 
 			err := act()
 			Expect(err).To(HaveOccurred())
@@ -83,7 +83,7 @@ var _ = Describe("DeleteConfigCmd", func() {
 
 					err := act()
 					Expect(err).To(Not(HaveOccurred()))
-					Expect(ui.Said[0]).To(ContainSubstring("No configs to delete: no matches for id '123'"))
+					Expect(testUI.Said[0]).To(ContainSubstring("No configs to delete: no matches for id '123'"))
 				})
 			})
 		})
@@ -164,7 +164,7 @@ var _ = Describe("DeleteConfigCmd", func() {
 
 					err := act()
 					Expect(err).To(Not(HaveOccurred()))
-					Expect(ui.Said[0]).To(ContainSubstring("No configs to delete: no matches for type 'my-type' and name 'my-name' found."))
+					Expect(testUI.Said[0]).To(ContainSubstring("No configs to delete: no matches for type 'my-type' and name 'my-name' found."))
 				})
 			})
 

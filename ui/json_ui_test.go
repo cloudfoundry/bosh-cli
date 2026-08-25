@@ -8,20 +8,20 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("JSONUI", func() {
 	var (
-		parentUI *fakeui.FakeUI
-		ui       UI
+		testUI *testui.Ui
+		ui     UI
 	)
 
 	BeforeEach(func() {
-		parentUI = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		logger := boshlog.NewLogger(boshlog.LevelNone)
-		ui = NewJSONUI(parentUI, logger)
+		ui = NewJSONUI(testUI, logger)
 	})
 
 	type tableResp struct {
@@ -42,7 +42,7 @@ var _ = Describe("JSONUI", func() {
 
 		var val uiResp
 
-		err := json.Unmarshal([]byte(parentUI.Blocks[0]), &val)
+		err := json.Unmarshal([]byte(testUI.Blocks[0]), &val)
 		if err != nil {
 			panic("Unmarshaling")
 		}
@@ -375,10 +375,10 @@ var _ = Describe("JSONUI", func() {
 
 	Describe("IsInteractive", func() {
 		It("delegates to the parent UI", func() {
-			parentUI.Interactive = true
+			testUI.Interactive = true
 			Expect(ui.IsInteractive()).To(BeTrue())
 
-			parentUI.Interactive = false
+			testUI.Interactive = false
 			Expect(ui.IsInteractive()).To(BeFalse())
 		})
 	})
@@ -386,13 +386,13 @@ var _ = Describe("JSONUI", func() {
 	Describe("Flush", func() {
 		It("does not output anything when nothing was recorded", func() {
 			ui.Flush()
-			Expect(parentUI.Said).To(BeEmpty())
+			Expect(testUI.Said).To(BeEmpty())
 		})
 
 		It("outputs everything when something was recorded", func() {
 			ui.PrintLinef("fake-line1")
 			ui.Flush()
-			Expect(parentUI.Blocks[0]).To(Equal(`{
+			Expect(testUI.Blocks[0]).To(Equal(`{
     "Tables": null,
     "Blocks": null,
     "Lines": [

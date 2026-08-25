@@ -10,21 +10,21 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("OrphanedVMsCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.OrphanedVMsCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewOrphanedVMsCmd(ui, director)
+		command = cmd.NewOrphanedVMsCmd(testUI, director)
 	})
 
 	Describe("Run", func() {
@@ -59,7 +59,7 @@ var _ = Describe("OrphanedVMsCmd", func() {
 			It("lists VMs for the deployment", func() {
 				Expect(command.Run()).ToNot(HaveOccurred())
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Content: "orphaned_vms",
 
 					Header: []boshtbl.Header{

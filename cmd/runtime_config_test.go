@@ -10,20 +10,20 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("RuntimeConfigCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.RuntimeConfigCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewRuntimeConfigCmd(ui, director)
+		command = cmd.NewRuntimeConfigCmd(testUI, director)
 	})
 
 	Describe("Run", func() {
@@ -49,7 +49,7 @@ var _ = Describe("RuntimeConfigCmd", func() {
 			Expect(director.LatestRuntimeConfigCallCount()).To(Equal(1))
 			Expect(director.LatestRuntimeConfigArgsForCall(0)).To(Equal("some-foo-config"))
 
-			Expect(ui.Blocks).To(Equal([]string{"some-properties"}))
+			Expect(testUI.Blocks).To(Equal([]string{"some-properties"}))
 		})
 
 		It("returns error if runtime config cannot be retrieved", func() {

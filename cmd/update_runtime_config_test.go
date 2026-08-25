@@ -13,24 +13,24 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("UpdateRuntimeConfigCmd", func() {
 	var (
-		ui              *fakeui.FakeUI
+		testUI          *testui.Ui
 		director        *fakedir.FakeDirector
 		releaseUploader *fakecmd.FakeReleaseUploader
 		command         cmd.UpdateRuntimeConfigCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
 		releaseUploader = &fakecmd.FakeReleaseUploader{
 			UploadReleasesStub: func(bytes []byte) ([]byte, error) { return bytes, nil },
 		}
-		command = cmd.NewUpdateRuntimeConfigCmd(ui, director, releaseUploader)
+		command = cmd.NewUpdateRuntimeConfigCmd(testUI, director, releaseUploader)
 	})
 
 	Describe("Run", func() {
@@ -163,7 +163,7 @@ releases:
 		})
 
 		It("does not update if confirmation is rejected", func() {
-			ui.AskedConfirmationErr = errors.New("stop")
+			testUI.AskedConfirmationErr = errors.New("stop")
 
 			err := act()
 			Expect(err).To(HaveOccurred())
@@ -199,9 +199,9 @@ releases:
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(director.DiffRuntimeConfigCallCount()).To(Equal(1))
-			Expect(ui.Said).To(ContainElement("  some line that stayed\n"))
-			Expect(ui.Said).To(ContainElement("+ some line that was added\n"))
-			Expect(ui.Said).To(ContainElement("- some line that was removed\n"))
+			Expect(testUI.Said).To(ContainElement("  some line that stayed\n"))
+			Expect(testUI.Said).To(ContainElement("+ some line that was added\n"))
+			Expect(testUI.Said).To(ContainElement("- some line that was removed\n"))
 		})
 
 		Context("when NoRedact option is passed", func() {

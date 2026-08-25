@@ -10,7 +10,7 @@ import (
 	biinstallation "github.com/cloudfoundry/bosh-cli/v7/installation"
 	"github.com/cloudfoundry/bosh-cli/v7/installation/installationfakes"
 	biinstallationmanifest "github.com/cloudfoundry/bosh-cli/v7/installation/manifest"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("Installer", func() {
@@ -19,7 +19,7 @@ var _ = Describe("Installer", func() {
 			mockInstaller        *installationfakes.FakeInstaller
 			mockInstallerFactory *installationfakes.FakeInstallerFactory
 			installationManifest biinstallationmanifest.Manifest
-			installStage         *fakeui.FakeStage
+			installStage         *testui.Stage
 			installation         *installationfakes.FakeInstallation
 			target               biinstallation.Target
 		)
@@ -29,7 +29,7 @@ var _ = Describe("Installer", func() {
 			mockInstallerFactory = &installationfakes.FakeInstallerFactory{}
 
 			installationManifest = biinstallationmanifest.Manifest{}
-			installStage = fakeui.NewFakeStage()
+			installStage = &testui.Stage{}
 			installation = &installationfakes.FakeInstallation{}
 
 			target = biinstallation.NewTarget("fake-installation-path", "")
@@ -71,12 +71,12 @@ var _ = Describe("Installer", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			_, stageForInstall := mockInstaller.InstallArgsForCall(0)
-			Expect(stageForInstall).To(fakeui.BeASubstageOf(installStage))
+			Expect(stageForInstall).To(testui.BeASubstageOf(installStage))
 
 			Expect(installStage.PerformCalls).To(ContainElement(
-				&fakeui.PerformCall{
+				&testui.PerformCall{
 					Name:  "installing CPI",
-					Stage: fakeui.NewFakeStage(),
+					Stage: &testui.Stage{},
 				},
 			))
 		})
@@ -108,7 +108,7 @@ var _ = Describe("Installer", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(installStage.PerformCalls).To(ContainElement(
-				&fakeui.PerformCall{
+				&testui.PerformCall{
 					Name: "Cleaning up rendered CPI jobs",
 				},
 			))

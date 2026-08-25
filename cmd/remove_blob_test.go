@@ -10,22 +10,22 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("RemoveBlobCmd", func() {
 	var (
 		blobsDir *fakereldir.FakeBlobsDir
 		fs       *fakesys.FakeFileSystem
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		command  cmd.RemoveBlobCmd
 	)
 
 	BeforeEach(func() {
 		blobsDir = &fakereldir.FakeBlobsDir{}
 		fs = fakesys.NewFakeFileSystem()
-		ui = &fakeui.FakeUI{}
-		command = cmd.NewRemoveBlobCmd(blobsDir, ui)
+		testUI = &testui.Ui{}
+		command = cmd.NewRemoveBlobCmd(blobsDir, testUI)
 	})
 
 	Describe("Run", func() {
@@ -52,7 +52,7 @@ var _ = Describe("RemoveBlobCmd", func() {
 			Expect(blobsDir.UntrackBlobCallCount()).To(Equal(1))
 			Expect(blobsDir.UntrackBlobArgsForCall(0)).To(Equal("/path/to/blob.tgz"))
 
-			Expect(ui.Said).To(Equal([]string{"Removed blob '/path/to/blob.tgz'"}))
+			Expect(testUI.Said).To(Equal([]string{"Removed blob '/path/to/blob.tgz'"}))
 		})
 
 		It("returns error if untracking fails", func() {
@@ -62,7 +62,7 @@ var _ = Describe("RemoveBlobCmd", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 
-			Expect(ui.Said).To(BeEmpty())
+			Expect(testUI.Said).To(BeEmpty())
 		})
 	})
 })

@@ -1,4 +1,4 @@
-package fakes
+package testui
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/ui/table"
 )
 
-type FakeUI struct {
+type Ui struct {
 	Said   []string
 	Errors []string
 
@@ -43,49 +43,49 @@ type Answer struct {
 	Error error
 }
 
-func (ui *FakeUI) ErrorLinef(pattern string, args ...interface{}) {
+func (ui *Ui) ErrorLinef(pattern string, args ...interface{}) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
 	ui.Errors = append(ui.Errors, fmt.Sprintf(pattern, args...))
 }
 
-func (ui *FakeUI) PrintLinef(pattern string, args ...interface{}) {
+func (ui *Ui) PrintLinef(pattern string, args ...interface{}) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
 	ui.Said = append(ui.Said, fmt.Sprintf(pattern, args...))
 }
 
-func (ui *FakeUI) BeginLinef(pattern string, args ...interface{}) {
+func (ui *Ui) BeginLinef(pattern string, args ...interface{}) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
 	ui.Said = append(ui.Said, fmt.Sprintf(pattern, args...))
 }
 
-func (ui *FakeUI) EndLinef(pattern string, args ...interface{}) {
+func (ui *Ui) EndLinef(pattern string, args ...interface{}) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
 	ui.Said = append(ui.Said, fmt.Sprintf(pattern, args...))
 }
 
-func (ui *FakeUI) PrintBlock(block []byte) {
+func (ui *Ui) PrintBlock(block []byte) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
 	ui.Blocks = append(ui.Blocks, string(block))
 }
 
-func (ui *FakeUI) PrintErrorBlock(block string) {
+func (ui *Ui) PrintErrorBlock(block string) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
 	ui.Blocks = append(ui.Blocks, block)
 }
 
-func (ui *FakeUI) PrintTable(table table.Table) {
+func (ui *Ui) PrintTable(table table.Table) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
@@ -93,7 +93,7 @@ func (ui *FakeUI) PrintTable(table table.Table) {
 	ui.Tables = append(ui.Tables, table)
 }
 
-func (ui *FakeUI) PrintTableFiltered(table table.Table, filterHeader []table.Header) {
+func (ui *Ui) PrintTableFiltered(table table.Table, filterHeader []table.Header) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
@@ -101,7 +101,7 @@ func (ui *FakeUI) PrintTableFiltered(table table.Table, filterHeader []table.Hea
 	ui.Tables = append(ui.Tables, table)
 }
 
-func (ui *FakeUI) AskForText(label string) (string, error) {
+func (ui *Ui) AskForText(label string) (string, error) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
@@ -111,7 +111,7 @@ func (ui *FakeUI) AskForText(label string) (string, error) {
 	return answer.Text, answer.Error
 }
 
-func (ui *FakeUI) AskForTextWithDefaultValue(label, defaultValue string) (string, error) {
+func (ui *Ui) AskForTextWithDefaultValue(label, defaultValue string) (string, error) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
@@ -127,7 +127,7 @@ func (ui *FakeUI) AskForTextWithDefaultValue(label, defaultValue string) (string
 	return returnText, answer.Error
 }
 
-func (ui *FakeUI) AskForChoice(label string, options []string) (int, error) {
+func (ui *Ui) AskForChoice(label string, options []string) (int, error) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
@@ -145,7 +145,7 @@ func (ui *FakeUI) AskForChoice(label string, options []string) (int, error) {
 	return chosen, err
 }
 
-func (ui *FakeUI) AskForPassword(label string) (string, error) {
+func (ui *Ui) AskForPassword(label string) (string, error) {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
@@ -155,7 +155,7 @@ func (ui *FakeUI) AskForPassword(label string) (string, error) {
 	return answer.Text, answer.Error
 }
 
-func (ui *FakeUI) AskForConfirmation() error {
+func (ui *Ui) AskForConfirmation() error {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
@@ -163,7 +163,7 @@ func (ui *FakeUI) AskForConfirmation() error {
 	return ui.AskedConfirmationErr
 }
 
-func (ui *FakeUI) AskForConfirmationWithLabel(label string) error {
+func (ui *Ui) AskForConfirmationWithLabel(label string) error {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
@@ -172,14 +172,14 @@ func (ui *FakeUI) AskForConfirmationWithLabel(label string) error {
 	return ui.AskedConfirmationErr
 }
 
-func (ui *FakeUI) IsInteractive() bool {
+func (ui *Ui) IsInteractive() bool {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 
 	return ui.Interactive
 }
 
-func (ui *FakeUI) Flush() {
+func (ui *Ui) Flush() {
 	ui.mutex.Lock()
 	defer ui.mutex.Unlock()
 

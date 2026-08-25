@@ -12,20 +12,20 @@ import (
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("UpdateCPIConfigCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.UpdateCPIConfigCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewUpdateCPIConfigCmd(ui, director)
+		command = cmd.NewUpdateCPIConfigCmd(testUI, director)
 	})
 
 	Describe("Run", func() {
@@ -85,7 +85,7 @@ var _ = Describe("UpdateCPIConfigCmd", func() {
 		})
 
 		It("does not stop if confirmation is rejected", func() {
-			ui.AskedConfirmationErr = errors.New("stop")
+			testUI.AskedConfirmationErr = errors.New("stop")
 
 			err := act()
 			Expect(err).To(HaveOccurred())
@@ -121,9 +121,9 @@ var _ = Describe("UpdateCPIConfigCmd", func() {
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(director.DiffCPIConfigCallCount()).To(Equal(1))
-			Expect(ui.Said).To(ContainElement("  some line that stayed\n"))
-			Expect(ui.Said).To(ContainElement("+ some line that was added\n"))
-			Expect(ui.Said).To(ContainElement("- some line that was removed\n"))
+			Expect(testUI.Said).To(ContainElement("  some line that stayed\n"))
+			Expect(testUI.Said).To(ContainElement("+ some line that was added\n"))
+			Expect(testUI.Said).To(ContainElement("- some line that was removed\n"))
 		})
 
 		Context("when NoRedact option is passed", func() {

@@ -9,20 +9,20 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("DeleteSnapshotCmd", func() {
 	var (
-		ui         *fakeui.FakeUI
+		testUI     *testui.Ui
 		deployment *fakedir.FakeDeployment
 		command    cmd.DeleteSnapshotCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		deployment = &fakedir.FakeDeployment{}
-		command = cmd.NewDeleteSnapshotCmd(ui, deployment)
+		command = cmd.NewDeleteSnapshotCmd(testUI, deployment)
 	})
 
 	Describe("Run", func() {
@@ -47,7 +47,7 @@ var _ = Describe("DeleteSnapshotCmd", func() {
 		})
 
 		It("does not delete snapshot if confirmation is rejected", func() {
-			ui.AskedConfirmationErr = errors.New("stop")
+			testUI.AskedConfirmationErr = errors.New("stop")
 
 			err := act()
 			Expect(err).To(HaveOccurred())

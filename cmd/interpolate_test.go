@@ -8,18 +8,18 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("InterpolateCmd", func() {
 	var (
-		ui      *fakeui.FakeUI
+		testUI  *testui.Ui
 		command cmd.InterpolateCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
-		command = cmd.NewInterpolateCmd(ui)
+		testUI = &testui.Ui{}
+		command = cmd.NewInterpolateCmd(testUI)
 	})
 
 	Describe("Run", func() {
@@ -59,7 +59,7 @@ var _ = Describe("InterpolateCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			bytes := "name1: val1-from-kv\nname2: val2-from-file\nxyz: val\n"
-			Expect(ui.Blocks).To(Equal([]string{bytes}))
+			Expect(testUI.Blocks).To(Equal([]string{bytes}))
 		})
 
 		It("returns portion of the template after it's interpolated if path is given", func() {
@@ -91,7 +91,7 @@ var _ = Describe("InterpolateCmd", func() {
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(ui.Blocks).To(Equal([]string{"var-val\n"}))
+			Expect(testUI.Blocks).To(Equal([]string{"var-val\n"}))
 		})
 
 		It("returns portion of the template formatting multiline string without YAML indent", func() {
@@ -103,7 +103,7 @@ var _ = Describe("InterpolateCmd", func() {
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(ui.Blocks).To(Equal([]string{"line1\nline2\n"}))
+			Expect(testUI.Blocks).To(Equal([]string{"line1\nline2\n"}))
 		})
 
 		It("returns portion of the template formatting result as regular YAML", func() {
@@ -115,7 +115,7 @@ var _ = Describe("InterpolateCmd", func() {
 
 			err := act()
 			Expect(err).ToNot(HaveOccurred())
-			Expect(ui.Blocks).To(Equal([]string{"subkey:\n  subsubkey: key\n"}))
+			Expect(testUI.Blocks).To(Equal([]string{"subkey:\n  subsubkey: key\n"}))
 		})
 
 		It("returns error if variables are not found in templated manifest if var-errs flag is set", func() {

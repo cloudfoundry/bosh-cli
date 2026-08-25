@@ -14,14 +14,14 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("VendorPackageCmd", func() {
 	var (
 		srcReleaseDir *fakereldir.FakeReleaseDir
 		dstReleaseDir *fakereldir.FakeReleaseDir
-		ui            *fakeui.FakeUI
+		testUI        *testui.Ui
 		command       cmd.VendorPackageCmd
 	)
 
@@ -40,8 +40,8 @@ var _ = Describe("VendorPackageCmd", func() {
 			}
 		}
 
-		ui = &fakeui.FakeUI{}
-		command = cmd.NewVendorPackageCmd(releaseDirFactory, ui)
+		testUI = &testui.Ui{}
+		command = cmd.NewVendorPackageCmd(releaseDirFactory, testUI)
 	})
 
 	Describe("Run", func() {

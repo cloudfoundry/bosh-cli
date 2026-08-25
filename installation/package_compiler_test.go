@@ -11,7 +11,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/release/resource"
 	bistatejob "github.com/cloudfoundry/bosh-cli/v7/state/job"
 	"github.com/cloudfoundry/bosh-cli/v7/state/job/jobfakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("PackageCompiler", func() {
@@ -23,13 +23,13 @@ var _ = Describe("PackageCompiler", func() {
 
 		releaseJob  bireljob.Job
 		releaseJobs []bireljob.Job
-		stage       *fakebiui.FakeStage
+		stage       *testui.Stage
 	)
 
 	BeforeEach(func() {
 		mockDependencyCompiler = &jobfakes.FakeDependencyCompiler{}
 		fs = fakeboshsys.NewFakeFileSystem()
-		stage = fakebiui.NewFakeStage()
+		stage = &testui.Stage{}
 
 		job := bireljob.NewJob(NewResource("cpi", "fake-release-job-fingerprint", nil))
 		releaseJob = *job

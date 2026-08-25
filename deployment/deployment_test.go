@@ -26,7 +26,7 @@ import (
 	bisshtunnel "github.com/cloudfoundry/bosh-cli/v7/deployment/sshtunnel"
 	bivm "github.com/cloudfoundry/bosh-cli/v7/deployment/vm"
 	bistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("Deployment", func() {
@@ -51,7 +51,7 @@ var _ = Describe("Deployment", func() {
 
 		mockBlobstore *blobstorefakes.FakeBlobstore
 
-		fakeStage *fakebiui.FakeStage
+		fakeStage *testui.Stage
 
 		deploymentFactory Factory
 
@@ -156,7 +156,7 @@ var _ = Describe("Deployment", func() {
 			return biagentclient.AgentState{JobState: "running"}, nil
 		}
 
-		fakeStage = fakebiui.NewFakeStage()
+		fakeStage = &testui.Stage{}
 
 		pingTimeout := 10 * time.Second
 		pingDelay := 500 * time.Millisecond
@@ -249,7 +249,7 @@ var _ = Describe("Deployment", func() {
 				err := deployment.Delete(skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 					{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
 					{Name: "Running the pre-stop scripts 'unknown/0'"},
 					{Name: "Draining jobs on instance 'unknown/0'"},
@@ -313,7 +313,7 @@ var _ = Describe("Deployment", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					// reset event log recording
-					fakeStage = fakebiui.NewFakeStage()
+					fakeStage = &testui.Stage{}
 				})
 
 				It("does not delete anything", func() {
@@ -518,7 +518,7 @@ var _ = Describe("Deployment", func() {
 				err := deployment.Stop(skipDrain, fakeStage)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 					{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
 					{Name: "Running the pre-stop scripts 'unknown/0'"},
 					{Name: "Draining jobs on instance 'unknown/0'"},
@@ -552,7 +552,7 @@ var _ = Describe("Deployment", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					// reset event log recording
-					fakeStage = fakebiui.NewFakeStage()
+					fakeStage = &testui.Stage{}
 				})
 
 				It("does not delete anything", func() {
@@ -632,7 +632,7 @@ var _ = Describe("Deployment", func() {
 				err := deployment.Start(fakeStage, update)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+				Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 					{Name: "Waiting for the agent on VM 'fake-vm-cid'"},
 					{Name: "Running the pre-start scripts 'unknown/0'"},
 					{Name: "Starting the agent 'unknown/0'"},
@@ -666,7 +666,7 @@ var _ = Describe("Deployment", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					// reset event log recording
-					fakeStage = fakebiui.NewFakeStage()
+					fakeStage = &testui.Stage{}
 					callOrder = nil
 				})
 

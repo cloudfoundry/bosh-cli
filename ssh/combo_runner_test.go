@@ -17,7 +17,7 @@ import (
 	. "github.com/cloudfoundry/bosh-cli/v7/ssh"
 	fakessh "github.com/cloudfoundry/bosh-cli/v7/ssh/sshfakes"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("ComboRunner", func() {
@@ -27,7 +27,7 @@ var _ = Describe("ComboRunner", func() {
 		signalCh    chan<- os.Signal
 		writer      Writer
 		fs          *fakesys.FakeFileSystem
-		ui          *fakeui.FakeUI
+		testUI      *testui.Ui
 		logger      boshlog.Logger
 		comboRunner ComboRunner
 	)
@@ -41,9 +41,9 @@ var _ = Describe("ComboRunner", func() {
 		signalCh = nil
 		signalNotifyFunc := func(ch chan<- os.Signal, s ...os.Signal) { signalCh = ch }
 
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 
-		writer = NewStreamingWriter(boshui.NewComboWriter(ui))
+		writer = NewStreamingWriter(boshui.NewComboWriter(testUI))
 
 		fs = fakesys.NewFakeFileSystem()
 		fs.ReturnTempFilesByPrefix = map[string]boshsys.File{
@@ -54,7 +54,7 @@ var _ = Describe("ComboRunner", func() {
 		logger = boshlog.NewLogger(boshlog.LevelNone)
 
 		comboRunner = NewComboRunner(
-			cmdRunner, sessFactory, signalNotifyFunc, writer, fs, ui, logger)
+			cmdRunner, sessFactory, signalNotifyFunc, writer, fs, testUI, logger)
 	})
 
 	Describe("Run", func() {
@@ -167,7 +167,7 @@ var _ = Describe("ComboRunner", func() {
 			_, err = proc2.Stderr.Write([]byte("stderr2\n"))
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Blocks).To(Equal([]string{
+			Expect(testUI.Blocks).To(Equal([]string{
 				"job1/id1: stdout | ", "stdout1", "\n",
 				"job1/id1: stderr | ", "stderr1", "\n",
 				"job2/id2: stdout | ", "stdout2", "\n",
@@ -200,7 +200,7 @@ var _ = Describe("ComboRunner", func() {
 			_, err = proc2.Stderr.Write([]byte("stderr2\n"))
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(ui.Blocks).To(Equal([]string{
+			Expect(testUI.Blocks).To(Equal([]string{
 				"?/id1: stdout | ", "stdout1", "\n",
 				"job2/id2: stdout | ", "stdout2", "\n",
 				"?/id1: stderr | ", "stderr1", "\n",

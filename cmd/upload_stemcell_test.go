@@ -12,7 +12,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("UploadStemcellCmd", func() {
@@ -20,7 +20,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 		director         *fakedir.FakeDirector
 		fs               *fakesys.FakeFileSystem
 		archive          *fakedir.FakeStemcellArchive
-		ui               *fakeui.FakeUI
+		testUI           *testui.Ui
 		command          cmd.UploadStemcellCmd
 		existingInfo     boshdir.StemcellInfo
 		existingMetadata boshdir.StemcellMetadata
@@ -30,7 +30,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 		director = &fakedir.FakeDirector{}
 		fs = fakesys.NewFakeFileSystem()
 		archive = &fakedir.FakeStemcellArchive{}
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		existingInfo = boshdir.StemcellInfo{Name: "existing-name", Version: "existing-ver"}
 		existingMetadata = boshdir.StemcellMetadata{Name: "existing-name", Version: "existing-ver"}
 
@@ -43,7 +43,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 			return archive
 		}
 
-		command = cmd.NewUploadStemcellCmd(director, stemcellArchiveFactory, ui)
+		command = cmd.NewUploadStemcellCmd(director, stemcellArchiveFactory, testUI)
 	})
 
 	Describe("Run", func() {
@@ -130,7 +130,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 				submission := director.StemcellNeedsUploadArgsForCall(0)
 				Expect(submission).To(Equal(existingInfo))
 
-				Expect(ui.Said).To(BeEmpty())
+				Expect(testUI.Said).To(BeEmpty())
 			})
 
 			It("does not upload stemcell if no CPI needs that name and version", func() {
@@ -148,7 +148,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 				submission := director.StemcellNeedsUploadArgsForCall(0)
 				Expect(submission).To(Equal(existingInfo))
 
-				Expect(ui.Said).To(Equal([]string{"Stemcell 'existing-name/existing-ver' already exists."}))
+				Expect(testUI.Said).To(Equal([]string{"Stemcell 'existing-name/existing-ver' already exists."}))
 			})
 
 			It("returns error if checking for stemcell existence fails", func() {
@@ -257,7 +257,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 				submission := director.StemcellNeedsUploadArgsForCall(0)
 				Expect(submission).To(Equal(existingInfo))
 
-				Expect(ui.Said).To(BeEmpty())
+				Expect(testUI.Said).To(BeEmpty())
 			})
 
 			It("does not upload stemcell if no CPI needs that name and version", func() {
@@ -274,7 +274,7 @@ var _ = Describe("UploadStemcellCmd", func() {
 				submission := director.StemcellNeedsUploadArgsForCall(0)
 				Expect(submission).To(Equal(existingInfo))
 
-				Expect(ui.Said).To(Equal([]string{"Stemcell 'existing-name/existing-ver' already exists."}))
+				Expect(testUI.Said).To(Equal([]string{"Stemcell 'existing-name/existing-ver' already exists."}))
 			})
 
 			It("returns error if checking for stemcell existence fails", func() {

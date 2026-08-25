@@ -12,8 +12,8 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("InspectStemcellTarballCmd", func() {
@@ -22,7 +22,7 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 			fs                         *fakesys.FakeFileSystem
 			archive                    *fakedir.FakeStemcellArchive
 			command                    cmd.InspectStemcellTarballCmd
-			ui                         *fakeui.FakeUI
+			testUI                     *testui.Ui
 			inspectStemcellTarballOpts opts.InspectStemcellTarballOpts
 			stemcellMetadata           boshdir.StemcellMetadata
 		)
@@ -50,9 +50,9 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 			}
 
 			inspectStemcellTarballOpts = opts.InspectStemcellTarballOpts{}
-			ui = &fakeui.FakeUI{}
+			testUI = &testui.Ui{}
 
-			command = cmd.NewInspectStemcellTarballCmd(stemcellArchiveFactory, ui)
+			command = cmd.NewInspectStemcellTarballCmd(stemcellArchiveFactory, testUI)
 		})
 
 		Context("when infrastructure is known", func() {
@@ -62,7 +62,7 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 				err := command.Run(inspectStemcellTarballOpts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Content: "stemcell-metadata",
 
 					Header: []boshtbl.Header{
@@ -102,7 +102,7 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 				err := command.Run(inspectStemcellTarballOpts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Content: "stemcell-metadata",
 
 					Header: []boshtbl.Header{
@@ -142,7 +142,7 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 				err := command.Run(inspectStemcellTarballOpts)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Content: "stemcell-metadata",
 
 					Header: []boshtbl.Header{

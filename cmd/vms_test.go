@@ -12,21 +12,21 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	boshtbl "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("VMsCmd", func() {
 	var (
-		ui       *fakeui.FakeUI
+		testUI   *testui.Ui
 		director *fakedir.FakeDirector
 		command  cmd.VMsCmd
 	)
 
 	BeforeEach(func() {
-		ui = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 		director = &fakedir.FakeDirector{}
-		command = cmd.NewVMsCmd(ui, director, 1)
+		command = cmd.NewVMsCmd(testUI, director, 1)
 	})
 
 	Describe("Run", func() {
@@ -144,7 +144,7 @@ var _ = Describe("VMsCmd", func() {
 				It("lists VMs for the deployment", func() {
 					Expect(act()).ToNot(HaveOccurred())
 
-					Expect(ui.Table).To(Equal(boshtbl.Table{
+					Expect(testUI.Table).To(Equal(boshtbl.Table{
 						Title: "Deployment 'dep1'",
 
 						Content: "vms",
@@ -202,7 +202,7 @@ var _ = Describe("VMsCmd", func() {
 
 					Expect(act()).ToNot(HaveOccurred())
 
-					Expect(ui.Table).To(Equal(boshtbl.Table{
+					Expect(testUI.Table).To(Equal(boshtbl.Table{
 						Title: "Deployment 'dep1'",
 
 						Content: "vms",
@@ -308,7 +308,7 @@ var _ = Describe("VMsCmd", func() {
 
 					Expect(act()).ToNot(HaveOccurred())
 
-					Expect(ui.Table).To(Equal(boshtbl.Table{
+					Expect(testUI.Table).To(Equal(boshtbl.Table{
 						Title: "Deployment 'dep1'",
 
 						Content: "vms",
@@ -383,7 +383,7 @@ var _ = Describe("VMsCmd", func() {
 				It("lists VMs for the deployment with Active status '-' for a legacy director", func() {
 					Expect(act()).ToNot(HaveOccurred())
 
-					Expect(ui.Table).To(Equal(boshtbl.Table{
+					Expect(testUI.Table).To(Equal(boshtbl.Table{
 						Title: "Deployment 'dep1'",
 
 						Content: "vms",
@@ -476,7 +476,7 @@ var _ = Describe("VMsCmd", func() {
 
 				Expect(act()).ToNot(HaveOccurred())
 
-				Expect(ui.Table).To(Equal(boshtbl.Table{
+				Expect(testUI.Table).To(Equal(boshtbl.Table{
 					Title: "Deployment 'dep1'",
 
 					Content: "vms",
@@ -553,7 +553,7 @@ var _ = Describe("VMsCmd", func() {
 
 		Context("when listing multiple deployments", func() {
 			BeforeEach(func() {
-				command = cmd.NewVMsCmd(ui, director, 5)
+				command = cmd.NewVMsCmd(testUI, director, 5)
 			})
 
 			It("retrieves deployment vms in parallel", func() {
@@ -609,7 +609,7 @@ var _ = Describe("VMsCmd", func() {
 					director.DeploymentsReturns(deployments, nil)
 					err := act()
 					Expect(err).To(Equal(bosherr.NewMultiError(vmError)))
-					Expect(ui.Table).To(Equal(boshtbl.Table{
+					Expect(testUI.Table).To(Equal(boshtbl.Table{
 						Title: "Deployment 'dep1'",
 
 						Content: "vms",

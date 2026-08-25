@@ -15,7 +15,7 @@ import (
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
 	. "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("Manager", func() {
@@ -26,7 +26,7 @@ var _ = Describe("Manager", func() {
 		fs                  *fakesys.FakeFileSystem
 		reader              *fakebistemcell.FakeStemcellReader
 		fakeCloud           *cloudfakes.FakeCloud
-		fakeStage           *fakebiui.FakeStage
+		fakeStage           *testui.Stage
 		stemcellTarballPath string
 		tempExtractionDir   string
 
@@ -42,7 +42,7 @@ var _ = Describe("Manager", func() {
 		deploymentStateService := biconfig.NewFileSystemDeploymentStateService(fs, fakeUUIDGenerator, logger, filepath.Join("/", "fake", "path"))
 		fakeUUIDGenerator.GeneratedUUID = "fake-stemcell-id-1"
 		stemcellRepo = biconfig.NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
-		fakeStage = fakebiui.NewFakeStage()
+		fakeStage = &testui.Stage{}
 		fakeCloud = &cloudfakes.FakeCloud{}
 		manager = NewManager(stemcellRepo, fakeCloud)
 		stemcellTarballPath = filepath.Join("/", "stemcell", "tarball", "path")
@@ -111,7 +111,7 @@ var _ = Describe("Manager", func() {
 			_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				{Name: "Uploading stemcell 'fake-stemcell-name/fake-stemcell-version'"},
 			}))
 		})
@@ -276,7 +276,7 @@ var _ = Describe("Manager", func() {
 			Expect(fakeCloud.DeleteStemcellArgsForCall(0)).To(Equal("fake-stemcell-cid-1"))
 			Expect(fakeCloud.DeleteStemcellArgsForCall(1)).To(Equal("fake-stemcell-cid-3"))
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				{Name: "Deleting unused stemcell 'fake-stemcell-cid-1'"},
 				{Name: "Deleting unused stemcell 'fake-stemcell-cid-3'"},
 			}))

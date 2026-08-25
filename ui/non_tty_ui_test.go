@@ -5,64 +5,64 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("NonTTYUI", func() {
 	var (
-		parentUI *fakeui.FakeUI
-		ui       UI
+		testUI *testui.Ui
+		ui     UI
 	)
 
 	BeforeEach(func() {
-		parentUI = &fakeui.FakeUI{}
-		ui = NewNonTTYUI(parentUI)
+		testUI = &testui.Ui{}
+		ui = NewNonTTYUI(testUI)
 	})
 
 	Describe("ErrorLinef", func() {
 		It("includes in Lines", func() {
 			ui.ErrorLinef("fake-line1")
-			Expect(parentUI.Said).To(BeEmpty())
-			Expect(parentUI.Errors).To(Equal([]string{"fake-line1"}))
+			Expect(testUI.Said).To(BeEmpty())
+			Expect(testUI.Errors).To(Equal([]string{"fake-line1"}))
 		})
 	})
 
 	Describe("PrintLinef", func() {
 		It("does not include in Lines", func() {
 			ui.PrintLinef("fake-line1")
-			Expect(parentUI.Said).To(BeEmpty())
-			Expect(parentUI.Errors).To(BeEmpty())
+			Expect(testUI.Said).To(BeEmpty())
+			Expect(testUI.Errors).To(BeEmpty())
 		})
 	})
 
 	Describe("BeginLinef", func() {
 		It("does not include in Lines", func() {
 			ui.BeginLinef("fake-line1")
-			Expect(parentUI.Said).To(BeEmpty())
-			Expect(parentUI.Errors).To(BeEmpty())
+			Expect(testUI.Said).To(BeEmpty())
+			Expect(testUI.Errors).To(BeEmpty())
 		})
 	})
 
 	Describe("EndLinef", func() {
 		It("does not include in Lines", func() {
 			ui.EndLinef("fake-line1")
-			Expect(parentUI.Said).To(BeEmpty())
-			Expect(parentUI.Errors).To(BeEmpty())
+			Expect(testUI.Said).To(BeEmpty())
+			Expect(testUI.Errors).To(BeEmpty())
 		})
 	})
 
 	Describe("PrintBlock", func() {
 		It("delegates to the parent UI", func() {
 			ui.PrintBlock([]byte("block"))
-			Expect(parentUI.Blocks).To(Equal([]string{"block"}))
+			Expect(testUI.Blocks).To(Equal([]string{"block"}))
 		})
 	})
 
 	Describe("PrintErrorBlock", func() {
 		It("delegates to the parent UI", func() {
 			ui.PrintBlock([]byte("block"))
-			Expect(parentUI.Blocks).To(Equal([]string{"block"}))
+			Expect(testUI.Blocks).To(Equal([]string{"block"}))
 		})
 	})
 
@@ -91,7 +91,7 @@ var _ = Describe("NonTTYUI", func() {
 				BorderStr:       "",
 			})
 
-			Expect(parentUI.Table).To(Equal(Table{
+			Expect(testUI.Table).To(Equal(Table{
 				Title: "",
 				Header: []Header{
 					{Key: "header1", Title: "header1", Hidden: false},
@@ -122,10 +122,10 @@ var _ = Describe("NonTTYUI", func() {
 
 	Describe("IsInteractive", func() {
 		It("delegates to the parent UI", func() {
-			parentUI.Interactive = true
+			testUI.Interactive = true
 			Expect(ui.IsInteractive()).To(BeTrue())
 
-			parentUI.Interactive = false
+			testUI.Interactive = false
 			Expect(ui.IsInteractive()).To(BeFalse())
 		})
 	})
@@ -133,7 +133,7 @@ var _ = Describe("NonTTYUI", func() {
 	Describe("Flush", func() {
 		It("delegates to the parent UI", func() {
 			ui.Flush()
-			Expect(parentUI.Flushed).To(BeTrue())
+			Expect(testUI.Flushed).To(BeTrue())
 		})
 	})
 })

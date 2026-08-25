@@ -8,14 +8,14 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/ui"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/ui/table"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("IndentingUI", func() {
 	var (
 		uiOut, uiErr *bytes.Buffer
-		parentFakeUI *fakeui.FakeUI
+		testUI       *testui.Ui
 		parentUI     UI
 		ui           UI
 	)
@@ -26,7 +26,7 @@ var _ = Describe("IndentingUI", func() {
 
 		logger := boshlog.NewLogger(boshlog.LevelNone)
 		parentUI = NewWriterUI(uiOut, uiErr, logger)
-		parentFakeUI = &fakeui.FakeUI{}
+		testUI = &testui.Ui{}
 	})
 
 	JustBeforeEach(func() {
@@ -67,29 +67,29 @@ var _ = Describe("IndentingUI", func() {
 
 	Describe("PrintBlock", func() {
 		BeforeEach(func() {
-			parentUI = parentFakeUI
+			parentUI = testUI
 		})
 
 		It("delegates to the parent UI", func() {
 			ui.PrintBlock([]byte("block"))
-			Expect(parentFakeUI.Blocks).To(Equal([]string{"block"}))
+			Expect(testUI.Blocks).To(Equal([]string{"block"}))
 		})
 	})
 
 	Describe("PrintErrorBlock", func() {
 		BeforeEach(func() {
-			parentUI = parentFakeUI
+			parentUI = testUI
 		})
 
 		It("delegates to the parent UI", func() {
 			ui.PrintBlock([]byte("block"))
-			Expect(parentFakeUI.Blocks).To(Equal([]string{"block"}))
+			Expect(testUI.Blocks).To(Equal([]string{"block"}))
 		})
 	})
 
 	Describe("PrintTable", func() {
 		BeforeEach(func() {
-			parentUI = parentFakeUI
+			parentUI = testUI
 		})
 
 		It("delegates to the parent UI", func() {
@@ -100,13 +100,13 @@ var _ = Describe("IndentingUI", func() {
 
 			ui.PrintTable(table)
 
-			Expect(parentFakeUI.Table).To(Equal(table))
+			Expect(testUI.Table).To(Equal(table))
 		})
 	})
 
 	Describe("PrintTableFiltered", func() {
 		BeforeEach(func() {
-			parentUI = parentFakeUI
+			parentUI = testUI
 		})
 
 		It("delegates to the parent UI", func() {
@@ -118,32 +118,32 @@ var _ = Describe("IndentingUI", func() {
 
 			ui.PrintTableFiltered(table, filteredHeader)
 
-			Expect(parentFakeUI.Table).To(Equal(table))
+			Expect(testUI.Table).To(Equal(table))
 		})
 	})
 
 	Describe("IsInteractive", func() {
 		BeforeEach(func() {
-			parentUI = parentFakeUI
+			parentUI = testUI
 		})
 
 		It("delegates to the parent UI", func() {
-			parentFakeUI.Interactive = true
+			testUI.Interactive = true
 			Expect(ui.IsInteractive()).To(BeTrue())
 
-			parentFakeUI.Interactive = false
+			testUI.Interactive = false
 			Expect(ui.IsInteractive()).To(BeFalse())
 		})
 	})
 
 	Describe("Flush", func() {
 		BeforeEach(func() {
-			parentUI = parentFakeUI
+			parentUI = testUI
 		})
 
 		It("delegates to the parent UI", func() {
 			ui.Flush()
-			Expect(parentFakeUI.Flushed).To(BeTrue())
+			Expect(testUI.Flushed).To(BeTrue())
 		})
 	})
 })

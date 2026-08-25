@@ -24,7 +24,7 @@ import (
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshssh "github.com/cloudfoundry/bosh-cli/v7/ssh"
 	fakessh "github.com/cloudfoundry/bosh-cli/v7/ssh/sshfakes"
-	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("Logs", func() {
@@ -361,7 +361,7 @@ var _ = Describe("Logs", func() {
 			scpRunner          *fakessh.FakeSCPRunner
 			fs                 *fakes.FakeFileSystem
 			timeService        clock.Clock
-			ui                 *fakeui.FakeUI
+			testUI             *testui.Ui
 
 			uuidGen *fakeuuid.FakeGenerator
 
@@ -375,11 +375,11 @@ var _ = Describe("Logs", func() {
 			scpRunner = &fakessh.FakeSCPRunner{}
 			fs = fakes.NewFakeFileSystem()
 			timeService = fakeclock.NewFakeClock(time.Date(2009, time.November, 10, 23, 1, 2, 333, time.UTC))
-			ui = &fakeui.FakeUI{}
+			testUI = &testui.Ui{}
 
 			uuidGen = &fakeuuid.FakeGenerator{}
 
-			command = cmd.NewEnvLogsCmd(agentClientFactory, nonIntSSHRunner, scpRunner, fs, timeService, ui)
+			command = cmd.NewEnvLogsCmd(agentClientFactory, nonIntSSHRunner, scpRunner, fs, timeService, testUI)
 		})
 
 		Describe("Run", func() {
@@ -700,7 +700,7 @@ var _ = Describe("Logs", func() {
 						scpHost := boshdir.Host{Username: ExpUsername, Host: "10.0.0.5", Job: "create-env-vm", IndexOrID: "0"}
 						Expect(scpArgs.ForHost(scpHost)).To(HaveExactElements(fmt.Sprintf("%s@10.0.0.5:/foo/bar", ExpUsername), "/tmp/baz"))
 
-						Expect(ui.Said).To(ContainElement("Downloading create-env-vm/0 logs to 'create-env-vm-logs-20091110-230102-000000333.tgz'..."))
+						Expect(testUI.Said).To(ContainElement("Downloading create-env-vm/0 logs to 'create-env-vm-logs-20091110-230102-000000333.tgz'..."))
 					})
 
 					It("returns error if scp fails", func() {
@@ -750,7 +750,7 @@ var _ = Describe("Logs", func() {
 						}
 
 						Expect(command.Run(logsOpts)).ToNot(HaveOccurred())
-						Expect(ui.Said).To(ContainElement("Downloading create-env-vm/0 logs to '/hey/hello/create-env-vm-logs-20091110-230102-000000333.tgz'..."))
+						Expect(testUI.Said).To(ContainElement("Downloading create-env-vm/0 logs to '/hey/hello/create-env-vm-logs-20091110-230102-000000333.tgz'..."))
 					})
 
 					It("returns error if closing temp file fails", func() {

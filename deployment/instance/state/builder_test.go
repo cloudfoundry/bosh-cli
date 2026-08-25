@@ -18,7 +18,7 @@ import (
 	bistatejob "github.com/cloudfoundry/bosh-cli/v7/state/job"
 	"github.com/cloudfoundry/bosh-cli/v7/state/job/jobfakes"
 	"github.com/cloudfoundry/bosh-cli/v7/templatescompiler/templatescompilerfakes"
-	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
+	"github.com/cloudfoundry/bosh-cli/v7/ui/testui"
 )
 
 var _ = Describe("Builder", func() {
@@ -142,7 +142,7 @@ var _ = Describe("Builder", func() {
 			jobName            string
 			instanceID         int
 			deploymentManifest bideplmanifest.Manifest
-			fakeStage          *fakebiui.FakeStage
+			fakeStage          *testui.Stage
 
 			agentState            biac.AgentState
 			expectedIP            string
@@ -206,7 +206,7 @@ var _ = Describe("Builder", func() {
 				},
 			}
 
-			fakeStage = fakebiui.NewFakeStage()
+			fakeStage = &testui.Stage{}
 
 			stateBuilder = NewBuilder(
 				mockReleaseJobResolver,
@@ -395,7 +395,7 @@ var _ = Describe("Builder", func() {
 			_, err := stateBuilder.Build(jobName, instanceID, deploymentManifest, fakeStage, agentState)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
+			Expect(fakeStage.PerformCalls).To(Equal([]*testui.PerformCall{
 				// compile stages not produced by mockDependencyCompiler
 				{Name: "Rendering job templates"},
 			}))
