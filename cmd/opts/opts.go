@@ -812,6 +812,7 @@ type InstancesOpts struct {
 	Vitals     bool `long:"vitals"            description:"Show vitals"`
 	Processes  bool `long:"ps"      short:"p" description:"Show processes"`
 	Failing    bool `long:"failing" short:"f" description:"Only show failing instances"`
+	Cidr       bool `long:"cidr" description:"show the CIDR notation of the network IP Addresses"`
 	Deployment string
 	cmd
 }
@@ -820,6 +821,7 @@ type VMsOpts struct {
 	Vitals          bool `long:"vitals"            description:"Show vitals"`
 	CloudProperties bool `long:"cloud-properties"  description:"Show cloud properties"`
 	Deployment      string
+	Cidr            bool `long:"cidr" description:"show the CIDR notation of the network IP Addresses"`
 	cmd
 }
 
@@ -849,6 +851,7 @@ type RecoverArgs struct {
 }
 
 type OrphanedVMsOpts struct {
+	Cidr bool `long:"cidr" description:"show the CIDR notation of the network IP Addresses"`
 	cmd
 }
 
