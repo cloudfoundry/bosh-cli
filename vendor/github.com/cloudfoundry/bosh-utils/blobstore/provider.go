@@ -39,7 +39,7 @@ func NewProvider(
 	}
 }
 
-func (p Provider) Get(storeType string, options map[string]interface{}) (DigestBlobstore, error) {
+func (p Provider) Get(storeType string, options map[string]any) (DigestBlobstore, error) {
 	var blobstore Blobstore
 
 	switch storeType {

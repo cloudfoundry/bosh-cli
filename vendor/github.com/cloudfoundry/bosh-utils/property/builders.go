@@ -7,7 +7,7 @@ import (
 )
 
 // BuildMap creates a new string keyed map from an interface{}-keyed map, erroring if a key is not a string
-func BuildMap(rawProperties map[interface{}]interface{}) (Map, error) {
+func BuildMap(rawProperties map[any]any) (Map, error) {
 	result := make(Map, len(rawProperties))
 
 	for name, val := range rawProperties {
@@ -27,9 +27,9 @@ func BuildMap(rawProperties map[interface{}]interface{}) (Map, error) {
 	return result, nil
 }
 
-// BuildList creates a new property List from an slice of interface{}, erroring if any elements are maps with non-string keys.
+// BuildList creates a new property List from a slice of any, erroring if any elements are maps with non-string keys.
 // Slices in the property List are converted to property Lists. Maps in the property List are converted to property Maps.
-func BuildList(rawProperties []interface{}) (List, error) {
+func BuildList(rawProperties []any) (List, error) {
 	result := make(List, len(rawProperties))
 
 	for i, val := range rawProperties {
@@ -46,14 +46,14 @@ func BuildList(rawProperties []interface{}) (List, error) {
 
 // Build creates a generic property that may be a Map, List or primitive.
 // If it is a Map or List it will be built using the appropriate builder and constraints.
-func Build(val interface{}) (Property, error) {
+func Build(val any) (Property, error) {
 	if val == nil {
 		return nil, nil
 	}
 
 	switch reflect.TypeOf(val).Kind() {
 	case reflect.Map:
-		valMap, ok := val.(map[interface{}]interface{})
+		valMap, ok := val.(map[any]any)
 		if !ok {
 			return nil, bosherr.Errorf("Converting map %#v", val)
 		}
@@ -61,7 +61,7 @@ func Build(val interface{}) (Property, error) {
 		return BuildMap(valMap)
 
 	case reflect.Slice:
-		valSlice, ok := val.([]interface{})
+		valSlice, ok := val.([]any)
 		if !ok {
 			return nil, bosherr.Errorf("Converting slice %#v", val)
 		}

@@ -24,14 +24,14 @@ type algorithmSHAImpl struct {
 func (a algorithmSHAImpl) Name() string { return a.name }
 
 func (a algorithmSHAImpl) CreateDigest(reader io.Reader) (Digest, error) {
-	hash := a.hashFunc()
+	hashFunc := a.hashFunc()
 
-	_, err := io.Copy(hash, reader)
+	_, err := io.Copy(hashFunc, reader)
 	if err != nil {
 		return nil, bosherr.WrapError(err, "Copying file for digest calculation")
 	}
 
-	return NewDigest(a, fmt.Sprintf("%x", hash.Sum(nil))), nil
+	return NewDigest(a, fmt.Sprintf("%x", hashFunc.Sum(nil))), nil
 }
 
 func (a algorithmSHAImpl) hashFunc() hash.Hash {

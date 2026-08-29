@@ -16,13 +16,13 @@ const (
 type localBlobstore struct {
 	fs      boshsys.FileSystem
 	uuidGen boshuuid.Generator
-	options map[string]interface{}
+	options map[string]any
 }
 
 func NewLocalBlobstore(
 	fs boshsys.FileSystem,
 	uuidGen boshuuid.Generator,
-	options map[string]interface{},
+	options map[string]any,
 ) Blobstore {
 	return localBlobstore{
 		fs:      fs,

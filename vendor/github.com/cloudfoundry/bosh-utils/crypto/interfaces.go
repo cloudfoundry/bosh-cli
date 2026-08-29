@@ -2,9 +2,9 @@ package crypto
 
 import (
 	"io"
+	"os"
 
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
-	"os"
 )
 
 type Digest interface {

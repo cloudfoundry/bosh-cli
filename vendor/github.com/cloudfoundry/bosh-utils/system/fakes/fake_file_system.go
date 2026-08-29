@@ -234,8 +234,8 @@ func (f *FakeFile) Close() error {
 	return f.CloseErr
 }
 
-func (f FakeFile) Stat() (os.FileInfo, error) {
-	return FakeFileInfo{file: f}, f.StatErr
+func (f *FakeFile) Stat() (os.FileInfo, error) {
+	return FakeFileInfo{file: *f}, f.StatErr
 }
 
 func NewFakeFileSystem() *FakeFileSystem {

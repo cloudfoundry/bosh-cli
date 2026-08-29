@@ -167,7 +167,7 @@ var scrubUserinfoRegex = regexp.MustCompile("(https?://.*:).*@")
 func scrubEndpointQuery(endpoint string) string {
 	parsedURL, err := url.Parse(endpoint)
 	if err != nil {
-		return "error occurred parsing endpoing"
+		return "error occurred parsing endpoint"
 	}
 
 	query := parsedURL.Query()

@@ -191,12 +191,12 @@ type ReadOpts struct {
 }
 
 func (fs *osFileSystem) ReadFileString(path string) (content string, err error) {
-	bytes, err := fs.ReadFile(path)
+	fileBytes, err := fs.ReadFile(path)
 	if err != nil {
 		return
 	}
 
-	content = string(bytes)
+	content = string(fileBytes)
 	return
 }
 
@@ -247,7 +247,7 @@ func (fs *osFileSystem) Rename(oldPath, newPath string) (err error) {
 }
 
 func (fs *osFileSystem) Symlink(oldPath, newPath string) error {
-	fs.logger.Debug(fs.logTag, "Symlinking oldPath %s with newPath %s", oldPath, newPath)
+	fs.logger.Debug(fs.logTag, "Symlink-ing oldPath %s with newPath %s", oldPath, newPath)
 
 	source, target, err := fs.symlinkPaths(oldPath, newPath)
 	if err != nil {

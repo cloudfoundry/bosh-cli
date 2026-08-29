@@ -46,9 +46,8 @@ type FileSystem interface {
 
 	Rename(oldPath, newPath string) error
 
-	// After Symlink file at newPath will be pointing to file at oldPath.
-	// Symlink call will remove file at newPath if one exists
-	// to make newPath a symlink to the file at oldPath.
+	// Symlink creates a symlink file at newPath pointing to file at oldPath,
+	// and removes any file that might exist at newPath.
 	Symlink(oldPath, newPath string) error
 
 	ReadAndFollowLink(symlinkPath string) (targetPath string, err error)
@@ -57,7 +56,7 @@ type FileSystem interface {
 	CopyFile(srcPath, dstPath string) error
 	CopyDir(srcPath, dstPath string) error
 
-	// Returns *unique* temporary file/dir with a custom prefix
+	// TempFile returns a unique temporary file with a custom prefix
 	TempFile(prefix string) (file File, err error)
 	TempDir(prefix string) (path string, err error)
 	ChangeTempRoot(path string) error

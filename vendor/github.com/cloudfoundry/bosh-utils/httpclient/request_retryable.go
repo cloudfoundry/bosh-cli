@@ -125,14 +125,6 @@ func formatRequest(req *http.Request) string {
 	return fmt.Sprintf("Request{ Method: '%s', URL: '%s' }", req.Method, req.URL)
 }
 
-func formatResponse(resp *http.Response) string { //nolint:unused
-	if resp == nil {
-		return "Response(nil)"
-	}
-
-	return fmt.Sprintf("Response{ StatusCode: %d, Status: '%s' }", resp.StatusCode, resp.Status)
-}
-
 func MakeReplayable(r *http.Request) (io.ReadCloser, error) {
 	var err error
 

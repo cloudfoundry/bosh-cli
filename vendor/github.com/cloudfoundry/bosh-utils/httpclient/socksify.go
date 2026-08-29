@@ -30,8 +30,8 @@ func SOCKS5DialContextFuncFromEnvironment(origDialer *net.Dialer, socks5Proxy Pr
 		return origDialer.DialContext
 	}
 
-	if strings.HasPrefix(allProxy, "ssh+") {
-		allProxy = strings.TrimPrefix(allProxy, "ssh+")
+	if trimmedAllProxy, ok := strings.CutPrefix(allProxy, "ssh+"); ok {
+		allProxy = trimmedAllProxy
 
 		proxyURL, err := url.Parse(allProxy)
 		if err != nil {
@@ -92,12 +92,12 @@ func SOCKS5DialContextFuncFromEnvironment(origDialer *net.Dialer, socks5Proxy Pr
 		return errorDialFunc(err, "Parsing BOSH_ALL_PROXY url")
 	}
 
-	proxy, err := goproxy.FromURL(proxyURL, origDialer)
+	proxyFromURL, err := goproxy.FromURL(proxyURL, origDialer)
 	if err != nil {
 		return errorDialFunc(err, "Parsing BOSH_ALL_PROXY url")
 	}
 
-	perHost := goproxy.NewPerHost(proxy, origDialer)
+	perHost := goproxy.NewPerHost(proxyFromURL, origDialer)
 
 	noProxy := os.Getenv("NO_PROXY")
 	if len(noProxy) == 0 {

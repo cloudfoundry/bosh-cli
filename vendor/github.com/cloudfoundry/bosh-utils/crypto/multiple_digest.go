@@ -184,9 +184,10 @@ func (m MultipleDigest) parseMultipleDigestString(multipleDigest string) (Multip
 
 	for _, digest := range pieces {
 		parsedDigest, err := m.parseDigestString(digest)
+		var emptyDigestError emptyDigestError
 		if err == nil {
 			digests = append(digests, parsedDigest)
-		} else if _, ok := err.(emptyDigestError); !ok {
+		} else if !errors.As(err, &emptyDigestError) {
 			return MultipleDigest{}, err
 		}
 	}

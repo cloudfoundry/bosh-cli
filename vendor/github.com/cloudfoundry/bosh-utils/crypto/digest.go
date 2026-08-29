@@ -23,30 +23,30 @@ func NewDigest(algorithm Algorithm, digest string) digestImpl {
 	}
 }
 
-func (c digestImpl) Algorithm() Algorithm { return c.algorithm }
+func (d digestImpl) Algorithm() Algorithm { return d.algorithm }
 
-func (c digestImpl) String() string {
-	if c.algorithm.Name() == DigestAlgorithmSHA1.Name() {
-		return c.digest
+func (d digestImpl) String() string {
+	if d.algorithm.Name() == DigestAlgorithmSHA1.Name() {
+		return d.digest
 	}
 
-	return fmt.Sprintf("%s:%s", c.algorithm.Name(), c.digest)
+	return fmt.Sprintf("%s:%s", d.algorithm.Name(), d.digest)
 }
 
-func (c digestImpl) Verify(reader io.Reader) error {
-	computedDigest, err := c.Algorithm().CreateDigest(reader)
+func (d digestImpl) Verify(reader io.Reader) error {
+	computedDigest, err := d.Algorithm().CreateDigest(reader)
 	if err != nil {
 		return bosherr.WrapError(err, "Computing digest from stream")
 	}
 
-	if c.String() != computedDigest.String() {
-		return bosherr.Errorf("Expected stream to have digest '%s' but was '%s'", c.String(), computedDigest.String())
+	if d.String() != computedDigest.String() {
+		return bosherr.Errorf("Expected stream to have digest '%s' but was '%s'", d.String(), computedDigest.String())
 	}
 
 	return nil
 }
 
-func (m digestImpl) VerifyFilePath(filePath string, fs boshsys.FileSystem) error {
+func (d digestImpl) VerifyFilePath(filePath string, fs boshsys.FileSystem) error {
 	file, err := fs.OpenFile(filePath, os.O_RDONLY, 0)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "calculating digest of '%s'", filePath)
@@ -54,5 +54,5 @@ func (m digestImpl) VerifyFilePath(filePath string, fs boshsys.FileSystem) error
 	defer func() {
 		_ = file.Close()
 	}()
-	return m.Verify(file)
+	return d.Verify(file)
 }

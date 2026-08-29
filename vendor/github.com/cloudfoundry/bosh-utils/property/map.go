@@ -2,8 +2,8 @@ package property
 
 type Map map[string]Property
 
-func (m *Map) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	rawMap := map[interface{}]interface{}{}
+func (m *Map) UnmarshalYAML(unmarshal func(any) error) error {
+	rawMap := map[any]any{}
 	err := unmarshal(&rawMap)
 	if err != nil {
 		return err

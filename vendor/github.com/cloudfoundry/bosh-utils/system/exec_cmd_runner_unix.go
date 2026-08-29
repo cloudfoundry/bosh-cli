@@ -1,5 +1,4 @@
 //go:build !windows
-// +build !windows
 
 package system
 
@@ -16,8 +15,8 @@ func mergeEnv(sysEnv []string, cmdEnv map[string]string) []string {
 		env = append(env, k+"="+v)
 	}
 	for _, s := range sysEnv {
-		if n := strings.IndexByte(s, '='); n != -1 {
-			k := s[:n] // key
+		if before, _, ok := strings.Cut(s, "="); ok {
+			k := before // key
 			if _, found := cmdEnv[k]; !found {
 				env = append(env, s)
 			}
