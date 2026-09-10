@@ -29,7 +29,6 @@ var _ = Describe("VM", func() {
 	var (
 		vm               VM
 		fakeVMRepo       *configfakes.FakeVMRepo
-		fakeStemcellRepo *configfakes.FakeStemcellRepo
 		fakeDiskDeployer *vmfakes.FakeDiskDeployer
 		fakeAgentClient  *fakebiagentclient.FakeAgentClient
 		fakeCloud        *cloudfakes.FakeCloud
@@ -61,12 +60,10 @@ var _ = Describe("VM", func() {
 		fs = fakesys.NewFakeFileSystem()
 		fakeCloud = &cloudfakes.FakeCloud{}
 		fakeVMRepo = &configfakes.FakeVMRepo{}
-		fakeStemcellRepo = &configfakes.FakeStemcellRepo{}
 		fakeDiskDeployer = &vmfakes.FakeDiskDeployer{}
 		vm = NewVM(
 			"fake-vm-cid",
 			fakeVMRepo,
-			fakeStemcellRepo,
 			fakeDiskDeployer,
 			fakeAgentClient,
 			fakeCloud,
@@ -285,7 +282,6 @@ var _ = Describe("VM", func() {
 			vm = NewVMWithMetadata(
 				"fake-vm-cid",
 				fakeVMRepo,
-				fakeStemcellRepo,
 				fakeDiskDeployer,
 				fakeAgentClient,
 				fakeCloud,
@@ -588,12 +584,6 @@ var _ = Describe("VM", func() {
 			Expect(fakeVMRepo.ClearCurrentCallCount()).To(Equal(1))
 		})
 
-		It("clears current stemcell in the stemcell repo", func() {
-			err := vm.Delete()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(fakeVMRepo.ClearCurrentCallCount()).To(Equal(1))
-		})
-
 		Context("when deleting vm in the cloud fails", func() {
 			BeforeEach(func() {
 				fakeCloud.DeleteVMReturns(errors.New("fake-delete-vm-error"))
@@ -624,13 +614,6 @@ var _ = Describe("VM", func() {
 			})
 
 			It("deletes VM in the vm repo", func() {
-				err := vm.Delete()
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(Equal(deleteErr))
-				Expect(fakeVMRepo.ClearCurrentCallCount()).To(Equal(1))
-			})
-
-			It("clears current stemcell in the stemcell repo", func() {
 				err := vm.Delete()
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(Equal(deleteErr))

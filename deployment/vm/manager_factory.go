@@ -19,7 +19,6 @@ type ManagerFactory interface {
 
 type managerFactory struct {
 	vmRepo        biconfig.VMRepo
-	stemcellRepo  biconfig.StemcellRepo
 	diskDeployer  DiskDeployer
 	uuidGenerator boshuuid.Generator
 	fs            boshsys.FileSystem
@@ -28,7 +27,6 @@ type managerFactory struct {
 
 func NewManagerFactory(
 	vmRepo biconfig.VMRepo,
-	stemcellRepo biconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
 	uuidGenerator boshuuid.Generator,
 	fs boshsys.FileSystem,
@@ -36,7 +34,6 @@ func NewManagerFactory(
 ) ManagerFactory {
 	return &managerFactory{
 		vmRepo:        vmRepo,
-		stemcellRepo:  stemcellRepo,
 		diskDeployer:  diskDeployer,
 		uuidGenerator: uuidGenerator,
 		fs:            fs,
@@ -47,7 +44,6 @@ func NewManagerFactory(
 func (f *managerFactory) NewManager(cloud bicloud.Cloud, agentClient biagentclient.AgentClient) Manager {
 	return NewManager(
 		f.vmRepo,
-		f.stemcellRepo,
 		f.diskDeployer,
 		agentClient,
 		cloud,
