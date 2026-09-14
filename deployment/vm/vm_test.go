@@ -586,17 +586,27 @@ var _ = Describe("VM", func() {
 		})
 
 		It("does not clear the current stemcell pointer (regression: issue #731)", func() {
-			stemcellFS := fakesys.NewFakeFileSystem()
 			uuidGen := &fakeuuid.FakeGenerator{}
-			deploymentStateService := biconfig.NewFileSystemDeploymentStateService(stemcellFS, uuidGen, logger, "/fake/state.json")
-			stemcellRepo := biconfig.NewStemcellRepo(deploymentStateService, uuidGen)
+			sharedStateService := biconfig.NewFileSystemDeploymentStateService(fs, uuidGen, logger, "/fake/state.json")
+			realVMRepo := biconfig.NewVMRepo(sharedStateService)
+			stemcellRepo := biconfig.NewStemcellRepo(sharedStateService, uuidGen)
 
 			record, err := stemcellRepo.Save("fake-stemcell-name", "fake-stemcell-version", "fake-stemcell-cid", 1)
 			Expect(err).ToNot(HaveOccurred())
 			err = stemcellRepo.UpdateCurrent(record.ID)
 			Expect(err).ToNot(HaveOccurred())
 
-			err = vm.Delete()
+			realVM := NewVM(
+				"fake-vm-cid",
+				realVMRepo,
+				fakeDiskDeployer,
+				fakeAgentClient,
+				fakeCloud,
+				timeService,
+				fs,
+				logger,
+			)
+			err = realVM.Delete()
 			Expect(err).ToNot(HaveOccurred())
 
 			currentRecord, found, err := stemcellRepo.FindCurrent()
