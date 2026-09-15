@@ -137,7 +137,7 @@ func handlePanic() {
 func fail(err error, ui boshui.UI, logger boshlog.Logger) {
 	if err != nil {
 		logger.Error("CLI", err.Error())
-		ui.ErrorLinef(boshuifmt.MultilineError(err))
+		ui.ErrorLinef("%s", boshuifmt.MultilineError(err))
 	}
 	ui.ErrorLinef("Exit code 1")
 	ui.Flush() // todo make sure UI is flushed
