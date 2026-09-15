@@ -15,5 +15,6 @@ RUN \
     strace \
     zlib1g-dev \
     libpcap-dev \
+    gh \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
