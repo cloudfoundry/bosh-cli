@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/blobstorefakes"
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
