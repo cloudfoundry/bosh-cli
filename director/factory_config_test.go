@@ -88,7 +88,7 @@ var _ = Describe("FactoryConfig", func() {
 			Expect(err.Error()).To(Equal("Missing 'Host'"))
 		})
 
-		It("returns error if host is empty", func() {
+		It("returns error if port is empty", func() {
 			err := FactoryConfig{Host: "host"}.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("Missing 'Port'"))
