@@ -59,7 +59,7 @@ var _ = Describe("NewConfigFromURL", func() {
 	It("returns error if port cannot be extracted", func() {
 		_, err := NewConfigFromURL("https://host::")
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("Extracting host/port from URL"))
+		Expect(err.Error()).To(ContainSubstring("invalid port"))
 	})
 
 	It("returns error if port is empty", func() {
@@ -71,7 +71,7 @@ var _ = Describe("NewConfigFromURL", func() {
 	It("returns error if port cannot be parsed as int", func() {
 		_, err := NewConfigFromURL("https://host:abc")
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(MatchRegexp("(Extracting port from URL|Parsing Director URL)")) // go1.12 validates port in Parse
+		Expect(err.Error()).To(ContainSubstring("Parsing Director URL"))
 	})
 })
 
