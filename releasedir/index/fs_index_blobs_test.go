@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/fakes"
+	fakeblob "github.com/cloudfoundry/bosh-utils/blobstore/blobstorefakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

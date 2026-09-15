@@ -1,5 +1,7 @@
 package crypto
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 import (
 	"io"
 	"os"
@@ -14,7 +16,7 @@ type Digest interface {
 	String() string
 }
 
-//go:generate counterfeiter . ArchiveDigestFilePathReader
+//counterfeiter:generate . ArchiveDigestFilePathReader
 type ArchiveDigestFilePathReader interface {
 	OpenFile(path string, flag int, perm os.FileMode) (boshsys.File, error)
 }
