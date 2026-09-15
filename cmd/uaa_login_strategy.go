@@ -59,12 +59,12 @@ func (c UAALoginStrategy) tryClient(uaa boshuaa.UAA) error {
 	_, err := uaa.ClientCredentialsGrant()
 
 	if err == nil {
-		c.ui.PrintLinef(c.successMsg)
+		c.ui.PrintLinef("%s", c.successMsg)
 	} else {
-		c.ui.ErrorLinef(c.failureMsg)
+		c.ui.ErrorLinef("%s", c.failureMsg)
 	}
 
-	// Dont bother saving client token since there is no way to refresh it
+	// Don't bother saving client token since there is no way to refresh it
 	return err
 }
 
@@ -114,7 +114,7 @@ func (c UAALoginStrategy) tryUserOnce(environment string, prompts []boshuaa.Prom
 	accessToken, err := uaa.OwnerPasswordCredentialsGrant(answers)
 	if err != nil {
 		c.logger.Error(c.logTag, "Failed to get access token: %s", err)
-		c.ui.ErrorLinef(c.failureMsg)
+		c.ui.ErrorLinef("%s", c.failureMsg)
 		return false, nil
 	}
 
@@ -134,7 +134,7 @@ func (c UAALoginStrategy) tryUserOnce(environment string, prompts []boshuaa.Prom
 		return false, err
 	}
 
-	c.ui.PrintLinef(c.successMsg)
+	c.ui.PrintLinef("%s", c.successMsg)
 
 	return true, nil
 }
