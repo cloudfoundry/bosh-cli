@@ -414,7 +414,7 @@ cloud_provider:
 				stemcellManagerFactory = bistemcell.NewManagerFactory(stemcellRepo)
 				diskManagerFactory = bidisk.NewManagerFactory(diskRepo, logger)
 				diskDeployer = bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger, false)
-				vmManagerFactory = bivm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeAgentIDGenerator, fs, logger)
+				vmManagerFactory = bivm.NewManagerFactory(vmRepo, diskDeployer, fakeAgentIDGenerator, fs, logger)
 				deployer := bidepl.NewDeployer(
 					vmManagerFactory,
 					instanceManagerFactory,

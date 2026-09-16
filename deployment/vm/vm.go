@@ -53,7 +53,6 @@ type VM interface {
 type vm struct {
 	cid          string
 	vmRepo       biconfig.VMRepo
-	stemcellRepo biconfig.StemcellRepo
 	diskDeployer DiskDeployer
 	agentClient  biagentclient.AgentClient
 	cloud        bicloud.Cloud
@@ -67,7 +66,6 @@ type vm struct {
 func NewVM(
 	cid string,
 	vmRepo biconfig.VMRepo,
-	stemcellRepo biconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
 	agentClient biagentclient.AgentClient,
 	cloud bicloud.Cloud,
@@ -78,7 +76,6 @@ func NewVM(
 	return &vm{
 		cid:          cid,
 		vmRepo:       vmRepo,
-		stemcellRepo: stemcellRepo,
 		diskDeployer: diskDeployer,
 		agentClient:  agentClient,
 		cloud:        cloud,
@@ -92,7 +89,6 @@ func NewVM(
 func NewVMWithMetadata(
 	cid string,
 	vmRepo biconfig.VMRepo,
-	stemcellRepo biconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
 	agentClient biagentclient.AgentClient,
 	cloud bicloud.Cloud,
@@ -104,7 +100,6 @@ func NewVMWithMetadata(
 	return &vm{
 		cid:          cid,
 		vmRepo:       vmRepo,
-		stemcellRepo: stemcellRepo,
 		diskDeployer: diskDeployer,
 		agentClient:  agentClient,
 		cloud:        cloud,
@@ -300,11 +295,6 @@ func (vm *vm) Delete() error {
 	err := vm.vmRepo.ClearCurrent()
 	if err != nil {
 		return bosherr.WrapError(err, "Deleting vm from vm repo")
-	}
-
-	err = vm.stemcellRepo.ClearCurrent()
-	if err != nil {
-		return bosherr.WrapError(err, "Clearing current stemcell from stemcell repo")
 	}
 
 	// returns bicloud.Error only if it is a VMNotFoundError

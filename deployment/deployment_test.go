@@ -170,7 +170,7 @@ var _ = Describe("Deployment", func() {
 		diskManagerFactory := bidisk.NewManagerFactory(diskRepo, logger)
 		diskDeployer := bivm.NewDiskDeployer(diskManagerFactory, diskRepo, logger, false)
 
-		vmManagerFactory := bivm.NewManagerFactory(vmRepo, stemcellRepo, diskDeployer, fakeUUIDGenerator, fs, logger)
+		vmManagerFactory := bivm.NewManagerFactory(vmRepo, diskDeployer, fakeUUIDGenerator, fs, logger)
 		sshTunnelFactory := bisshtunnel.NewFactory(logger)
 
 		mockStateBuilderFactory = &statefakes.FakeBuilderFactory{}

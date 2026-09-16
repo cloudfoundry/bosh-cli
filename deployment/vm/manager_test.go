@@ -60,7 +60,6 @@ var _ = Describe("Manager", func() {
 
 		manager = NewManager(
 			fakeVMRepo,
-			stemcellRepo,
 			fakeDiskDeployer,
 			fakeAgentClient,
 			fakeCloud,
@@ -130,7 +129,6 @@ var _ = Describe("Manager", func() {
 			expectedVM := NewVMWithMetadata(
 				"fake-vm-cid",
 				fakeVMRepo,
-				stemcellRepo,
 				fakeDiskDeployer,
 				fakeAgentClient,
 				fakeCloud,
