@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
+	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	fakedir "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	fakeui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -57,7 +58,7 @@ var _ = Describe("OrphanedVMsCmd", func() {
 			})
 
 			It("lists VMs for the deployment", func() {
-				Expect(command.Run()).ToNot(HaveOccurred())
+				Expect(command.Run(opts.OrphanedVMsOpts{})).ToNot(HaveOccurred())
 
 				Expect(ui.Table).To(Equal(boshtbl.Table{
 					Content: "orphaned_vms",
@@ -101,7 +102,7 @@ var _ = Describe("OrphanedVMsCmd", func() {
 			})
 
 			It("returns an error", func() {
-				err := command.Run()
+				err := command.Run(opts.OrphanedVMsOpts{})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("potato"))
 			})
