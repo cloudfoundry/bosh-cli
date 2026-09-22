@@ -292,8 +292,8 @@ github.com/cppforlife/go-patch/patch
 # github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 ## explicit
 github.com/cppforlife/go-semi-semantic/version
-# github.com/dustin/go-humanize v1.0.1
-## explicit; go 1.16
+# github.com/dustin/go-humanize v1.1.0
+## explicit; go 1.21
 github.com/dustin/go-humanize
 # github.com/envoyproxy/go-control-plane/envoy v1.39.0
 ## explicit; go 1.25.0

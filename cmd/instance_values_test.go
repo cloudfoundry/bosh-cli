@@ -59,7 +59,7 @@ var _ = Describe("ValueMemSize", func() {
 			Expect(cmd.ValueMemSize{Size: size}.String()).To(Equal("10% (77 kB)"))
 
 			size = boshdir.VMInfoVitalsMemSize{KB: "123456", Percent: "10"}
-			Expect(cmd.ValueMemSize{Size: size}.String()).To(Equal("10% (124 MB)"))
+			Expect(cmd.ValueMemSize{Size: size}.String()).To(Equal("10% (123 MB)"))
 		})
 	})
 })
