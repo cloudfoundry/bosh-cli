@@ -187,7 +187,13 @@ func (fs *osFileSystem) ConvergeFileContents(path string, content []byte, opts .
 }
 
 type ReadOpts struct {
+	// Quiet suppresses both the "Reading file" trace and the "Read content" dump.
 	Quiet bool
+	// QuietContent suppresses only the full-content "Read content" dump while
+	// keeping the "Reading file" trace. Use it for files that are read often or
+	// may contain sensitive data (e.g. signed URLs), where dumping the whole
+	// content at DEBUG is noisy or leaks secrets.
+	QuietContent bool
 }
 
 func (fs *osFileSystem) ReadFileString(path string) (content string, err error) {
@@ -219,7 +225,7 @@ func (fs *osFileSystem) ReadFileWithOpts(path string, opts ReadOpts) (content []
 		return
 	}
 
-	if !opts.Quiet {
+	if !opts.Quiet && !opts.QuietContent {
 		fs.logger.DebugWithDetails(fs.logTag, "Read content", content)
 	}
 	return

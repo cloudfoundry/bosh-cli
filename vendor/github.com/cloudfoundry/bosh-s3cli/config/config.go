@@ -76,11 +76,11 @@ func NewFromReader(reader io.Reader) (S3Cli, error) {
 	}
 
 	c := S3Cli{
-		SSLVerifyPeer:                             true,
-		UseSSL:                                    true,
-		MultipartUpload:                           true,
-		RequestChecksumCalculationEnabled:         true,
-		ResponseChecksumCalculationEnabled:        true,
+		SSLVerifyPeer:                      true,
+		UseSSL:                             true,
+		MultipartUpload:                    true,
+		RequestChecksumCalculationEnabled:  true,
+		ResponseChecksumCalculationEnabled: true,
 		UploaderRequestChecksumCalculationEnabled: true,
 	}
 
