@@ -18,7 +18,7 @@ import (
 
 type Manager interface {
 	FindCurrent() ([]CloudStemcell, error)
-	Upload(ExtractedStemcell, biui.Stage) (CloudStemcell, error)
+	Upload(ExtractedStemcell, biui.Stage, bool) (CloudStemcell, error)
 	FindUnused() ([]CloudStemcell, error)
 	DeleteUnused(biui.Stage) error
 }
@@ -54,7 +54,15 @@ func (m *manager) FindCurrent() ([]CloudStemcell, error) {
 // Upload stemcell to an IAAS. It does the following steps:
 // 1) uploads the stemcell to the cloud (if needed),
 // 2) saves a record of the uploaded stemcell in the repo
-func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.Stage) (cloudStemcell CloudStemcell, err error) {
+//
+// The repo records stemcells by name and version only -- it has no notion of
+// which IaaS, or which vCenter, the image was actually materialized in. When
+// the deployment is repointed at different infrastructure the recorded CID
+// names an image that does not exist there, but the name and version still
+// match, so the upload is skipped and the stale CID is handed to create_vm.
+// Passing fix forces a fresh create_stemcell against whatever the CPI is now
+// talking to.
+func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.Stage, fix bool) (cloudStemcell CloudStemcell, err error) {
 	manifest := extractedStemcell.Manifest()
 	stageName := fmt.Sprintf("Uploading stemcell '%s/%s'", manifest.Name, manifest.Version)
 	err = uploadStage.Perform(stageName, func() error {
@@ -63,9 +71,24 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.S
 			return bosherr.WrapError(err, "Finding existing stemcell record in repo")
 		}
 
-		if found {
+		if found && !fix {
 			cloudStemcell = NewCloudStemcell(foundStemcellRecord, m.repo, m.cloud)
 			return biui.NewSkipStageError(bosherr.Errorf("Found stemcell: %#v", foundStemcellRecord), "Stemcell already uploaded")
+		}
+
+		if found {
+			// Drop the stale record before uploading: Save rejects a duplicate
+			// name/version pair, so it would fail after the new image had
+			// already been created.
+			//
+			// Only the record is removed, not the image. CloudStemcell.Delete
+			// would ask the CPI to delete the old CID, which at best is a
+			// no-op against infrastructure that never had it and at worst
+			// destroys the image the deployment can still be rolled back onto.
+			err = m.repo.Delete(foundStemcellRecord)
+			if err != nil {
+				return bosherr.WrapErrorf(err, "Deleting stale stemcell record (name=%s, version=%s, cid=%s)", foundStemcellRecord.Name, foundStemcellRecord.Version, foundStemcellRecord.CID)
+			}
 		}
 
 		cid, err := m.cloud.CreateStemcell(filepath.Join(extractedStemcell.GetExtractedPath(), "image"), manifest.CloudProperties)

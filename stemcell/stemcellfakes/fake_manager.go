@@ -44,11 +44,12 @@ type FakeManager struct {
 		result1 []stemcell.CloudStemcell
 		result2 error
 	}
-	UploadStub        func(stemcell.ExtractedStemcell, ui.Stage) (stemcell.CloudStemcell, error)
+	UploadStub        func(stemcell.ExtractedStemcell, ui.Stage, bool) (stemcell.CloudStemcell, error)
 	uploadMutex       sync.RWMutex
 	uploadArgsForCall []struct {
 		arg1 stemcell.ExtractedStemcell
 		arg2 ui.Stage
+		arg3 bool
 	}
 	uploadReturns struct {
 		result1 stemcell.CloudStemcell
@@ -235,19 +236,20 @@ func (fake *FakeManager) FindUnusedReturnsOnCall(i int, result1 []stemcell.Cloud
 	}{result1, result2}
 }
 
-func (fake *FakeManager) Upload(arg1 stemcell.ExtractedStemcell, arg2 ui.Stage) (stemcell.CloudStemcell, error) {
+func (fake *FakeManager) Upload(arg1 stemcell.ExtractedStemcell, arg2 ui.Stage, arg3 bool) (stemcell.CloudStemcell, error) {
 	fake.uploadMutex.Lock()
 	ret, specificReturn := fake.uploadReturnsOnCall[len(fake.uploadArgsForCall)]
 	fake.uploadArgsForCall = append(fake.uploadArgsForCall, struct {
 		arg1 stemcell.ExtractedStemcell
 		arg2 ui.Stage
-	}{arg1, arg2})
+		arg3 bool
+	}{arg1, arg2, arg3})
 	stub := fake.UploadStub
 	fakeReturns := fake.uploadReturns
-	fake.recordInvocation("Upload", []interface{}{arg1, arg2})
+	fake.recordInvocation("Upload", []interface{}{arg1, arg2, arg3})
 	fake.uploadMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -261,17 +263,17 @@ func (fake *FakeManager) UploadCallCount() int {
 	return len(fake.uploadArgsForCall)
 }
 
-func (fake *FakeManager) UploadCalls(stub func(stemcell.ExtractedStemcell, ui.Stage) (stemcell.CloudStemcell, error)) {
+func (fake *FakeManager) UploadCalls(stub func(stemcell.ExtractedStemcell, ui.Stage, bool) (stemcell.CloudStemcell, error)) {
 	fake.uploadMutex.Lock()
 	defer fake.uploadMutex.Unlock()
 	fake.UploadStub = stub
 }
 
-func (fake *FakeManager) UploadArgsForCall(i int) (stemcell.ExtractedStemcell, ui.Stage) {
+func (fake *FakeManager) UploadArgsForCall(i int) (stemcell.ExtractedStemcell, ui.Stage, bool) {
 	fake.uploadMutex.RLock()
 	defer fake.uploadMutex.RUnlock()
 	argsForCall := fake.uploadArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeManager) UploadReturns(result1 stemcell.CloudStemcell, result2 error) {

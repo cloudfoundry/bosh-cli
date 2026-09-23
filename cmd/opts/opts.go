@@ -197,6 +197,7 @@ type CreateEnvOpts struct {
 	StatePath               string `long:"state" value-name:"PATH" description:"State file path"`
 	Recreate                bool   `long:"recreate" description:"Recreate VM in deployment"`
 	RecreatePersistentDisks bool   `long:"recreate-persistent-disks" description:"Recreate persistent disks in the deployment"`
+	Fix                     bool   `long:"fix" description:"Recreate the stemcell in the IaaS even if the state file already records one"`
 	PackageDir              string `long:"package-dir" value-name:"DIR" description:"Package cache location override"`
 	cmd
 }

@@ -868,6 +868,12 @@ var _ = Describe("Opts", func() {
 				`long:"skip-drain" description:"Skip running drain and pre-stop scripts"`,
 			))
 		})
+
+		It("has --fix", func() {
+			Expect(getStructTagForName("Fix", opts)).To(Equal(
+				`long:"fix" description:"Recreate the stemcell in the IaaS even if the state file already records one"`,
+			))
+		})
 	})
 
 	Describe("CreateEnvArgs", func() {

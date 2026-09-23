@@ -24,5 +24,5 @@ func (c *CreateEnvCmd) Run(stage boshui.Stage, opts CreateEnvOpts) error {
 
 	depPreparer := c.envProvider(opts.Args.Manifest.Path, opts.StatePath, opts.VarFlags.AsVariables(), opts.OpsFlags.AsOp()) //nolint:staticcheck
 
-	return depPreparer.PrepareDeployment(stage, opts.Recreate, opts.RecreatePersistentDisks, opts.SkipDrain)
+	return depPreparer.PrepareDeployment(stage, opts.Recreate, opts.RecreatePersistentDisks, opts.Fix, opts.SkipDrain)
 }
