@@ -98,7 +98,13 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.S
 
 		stemcellRecord, err := m.repo.Save(manifest.Name, manifest.Version, cid, manifest.ApiVersion)
 		if err != nil {
-			// TODO: delete stemcell from cloud when saving fails
+			// The image now exists in the IaaS with nothing recording it, so
+			// neither delete-env nor unused-stemcell cleanup can ever find it,
+			// and a retry would create another one. Remove it, but report the
+			// original save failure rather than the cleanup result.
+			if deleteErr := m.cloud.DeleteStemcell(cid); deleteErr != nil {
+				return bosherr.WrapErrorf(err, "saving stemcell record in repo (cid=%s, stemcell=%s); the orphaned stemcell could not be deleted either: %s", cid, extractedStemcell, deleteErr.Error())
+			}
 			return bosherr.WrapErrorf(err, "saving stemcell record in repo (cid=%s, stemcell=%s)", cid, extractedStemcell)
 		}
 

@@ -13,6 +13,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
+	"github.com/cloudfoundry/bosh-cli/v7/config/configfakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -216,6 +217,48 @@ var _ = Describe("Manager", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeStage.PerformCalls[0].SkipError).ToNot(HaveOccurred())
+				})
+			})
+		})
+
+		// The fs-backed repo fails at Find when writes are broken, so Save
+		// cannot be made to fail independently through it. A fake repo isolates
+		// the path.
+		Context("when saving the stemcell record fails", func() {
+			var (
+				fakeRepo    *configfakes.FakeStemcellRepo
+				fakeManager Manager
+			)
+
+			BeforeEach(func() {
+				fakeRepo = &configfakes.FakeStemcellRepo{}
+				fakeRepo.FindReturns(biconfig.StemcellRecord{}, false, nil)
+				fakeRepo.SaveReturns(biconfig.StemcellRecord{}, errors.New("fake-save-error"))
+				fakeManager = NewManager(fakeRepo, fakeCloud)
+			})
+
+			It("deletes the orphaned stemcell from the cloud", func() {
+				_, err := fakeManager.Upload(expectedExtractedStemcell, fakeStage, false)
+				Expect(err).To(HaveOccurred())
+
+				Expect(fakeCloud.DeleteStemcellCallCount()).To(Equal(1))
+				Expect(fakeCloud.DeleteStemcellArgsForCall(0)).To(Equal("fake-stemcell-cid"))
+			})
+
+			It("reports the save failure, not the cleanup result", func() {
+				_, err := fakeManager.Upload(expectedExtractedStemcell, fakeStage, false)
+				Expect(err.Error()).To(ContainSubstring("fake-save-error"))
+			})
+
+			Context("when deleting the orphaned stemcell also fails", func() {
+				BeforeEach(func() {
+					fakeCloud.DeleteStemcellReturns(errors.New("fake-delete-error"))
+				})
+
+				It("still reports the save failure, mentioning the leak", func() {
+					_, err := fakeManager.Upload(expectedExtractedStemcell, fakeStage, false)
+					Expect(err.Error()).To(ContainSubstring("fake-save-error"))
+					Expect(err.Error()).To(ContainSubstring("fake-delete-error"))
 				})
 			})
 		})
