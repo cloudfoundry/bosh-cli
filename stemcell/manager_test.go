@@ -176,6 +176,11 @@ var _ = Describe("Manager", func() {
 			// from different infrastructure still "matches" even though its CID
 			// names an image that does not exist where the CPI is now pointed.
 			Context("when fix is requested", func() {
+				BeforeEach(func() {
+					err := stemcellRepo.UpdateCurrent(foundStemcellRecord.ID)
+					Expect(err).ToNot(HaveOccurred())
+				})
+
 				It("re-uploads the stemcell to the infrastructure", func() {
 					_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
 					Expect(err).ToNot(HaveOccurred())
@@ -202,6 +207,28 @@ var _ = Describe("Manager", func() {
 					Expect(stemcellRecords[0].CID).To(Equal("fake-stemcell-cid"))
 				})
 
+				// An empty CurrentStemcellID makes FindUnused report every
+				// stemcell as unused, which on AWS deregisters live AMIs (#731),
+				// and makes delete-env fall back to CPI API version 1.
+				It("keeps CurrentStemcellID pointing at the replacement record", func() {
+					_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
+					Expect(err).ToNot(HaveOccurred())
+
+					currentRecord, found, err := stemcellRepo.FindCurrent()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(found).To(BeTrue(), "CurrentStemcellID must never be left empty")
+					Expect(currentRecord.CID).To(Equal("fake-stemcell-cid"))
+				})
+
+				It("reports no unused stemcells afterwards", func() {
+					_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
+					Expect(err).ToNot(HaveOccurred())
+
+					unused, err := manager.FindUnused()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(unused).To(BeEmpty(), "a blanked CurrentStemcellID would mark every stemcell unused")
+				})
+
 				// Deleting it would ask the CPI to remove a CID it does not
 				// have, and would destroy the image the deployment can still be
 				// rolled back onto.
@@ -217,6 +244,35 @@ var _ = Describe("Manager", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeStage.PerformCalls[0].SkipError).ToNot(HaveOccurred())
+				})
+
+				// create_stemcell moves gigabytes over the network and is the
+				// most likely thing to fail or be interrupted. State must be
+				// untouched when it does.
+				Context("when the upload fails", func() {
+					BeforeEach(func() {
+						fakeCloud.CreateStemcellReturns("", errors.New("fake-create-error"))
+					})
+
+					It("leaves the existing record intact", func() {
+						_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
+						Expect(err).To(HaveOccurred())
+
+						records, err := stemcellRepo.All()
+						Expect(err).ToNot(HaveOccurred())
+						Expect(records).To(HaveLen(1))
+						Expect(records[0].CID).To(Equal("fake-existing-cid"))
+					})
+
+					It("leaves CurrentStemcellID intact", func() {
+						_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
+						Expect(err).To(HaveOccurred())
+
+						currentRecord, found, err := stemcellRepo.FindCurrent()
+						Expect(err).ToNot(HaveOccurred())
+						Expect(found).To(BeTrue(), "a failed upload must not blank CurrentStemcellID")
+						Expect(currentRecord.CID).To(Equal("fake-existing-cid"))
+					})
 				})
 			})
 		})

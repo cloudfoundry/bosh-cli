@@ -871,7 +871,7 @@ var _ = Describe("Opts", func() {
 
 		It("has --fix", func() {
 			Expect(getStructTagForName("Fix", opts)).To(Equal(
-				`long:"fix" description:"Recreate the stemcell in the IaaS even if the state file already records one"`,
+				`long:"fix" description:"Re-upload the stemcell even if the state file already records one; also recreates the VM"`,
 			))
 		})
 	})

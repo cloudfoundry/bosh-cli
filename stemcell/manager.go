@@ -76,27 +76,26 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.S
 			return biui.NewSkipStageError(bosherr.Errorf("Found stemcell: %#v", foundStemcellRecord), "Stemcell already uploaded")
 		}
 
-		if found {
-			// Drop the stale record before uploading: Save rejects a duplicate
-			// name/version pair, so it would fail after the new image had
-			// already been created.
-			//
-			// Only the record is removed, not the image. CloudStemcell.Delete
-			// would ask the CPI to delete the old CID, which at best is a
-			// no-op against infrastructure that never had it and at worst
-			// destroys the image the deployment can still be rolled back onto.
-			err = m.repo.Delete(foundStemcellRecord)
-			if err != nil {
-				return bosherr.WrapErrorf(err, "Deleting stale stemcell record (name=%s, version=%s, cid=%s)", foundStemcellRecord.Name, foundStemcellRecord.Version, foundStemcellRecord.CID)
-			}
-		}
-
+		// Upload before touching the state file. create_stemcell moves a
+		// multi-gigabyte image across the network and can fail or be
+		// interrupted; mutating state first would discard the existing record,
+		// and with it the only reference to the image still in use.
 		cid, err := m.cloud.CreateStemcell(filepath.Join(extractedStemcell.GetExtractedPath(), "image"), manifest.CloudProperties)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "creating stemcell (%s %s)", manifest.Name, manifest.Version)
 		}
 
-		stemcellRecord, err := m.repo.Save(manifest.Name, manifest.Version, cid, manifest.ApiVersion)
+		// Replacing in a single write keeps CurrentStemcellID pointed at a real
+		// record throughout. Deleting the old record first would blank it, and
+		// an empty CurrentStemcellID makes FindUnused report every stemcell as
+		// unused -- on AWS that deregisters live AMIs (#731) -- and makes
+		// delete-env silently fall back to CPI API version 1.
+		var stemcellRecord biconfig.StemcellRecord
+		if found {
+			stemcellRecord, err = m.repo.SaveOrUpdate(manifest.Name, manifest.Version, cid, manifest.ApiVersion)
+		} else {
+			stemcellRecord, err = m.repo.Save(manifest.Name, manifest.Version, cid, manifest.ApiVersion)
+		}
 		if err != nil {
 			// The image now exists in the IaaS with nothing recording it, so
 			// neither delete-env nor unused-stemcell cleanup can ever find it,
@@ -107,6 +106,13 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.S
 			}
 			return bosherr.WrapErrorf(err, "saving stemcell record in repo (cid=%s, stemcell=%s)", cid, extractedStemcell)
 		}
+
+		// NOTE: the replaced image is deliberately not deleted. It may live on
+		// infrastructure the CPI is no longer pointed at, where the delete
+		// would fail or target the wrong thing, and it is the rollback target
+		// if the new deployment does not come up. It is no longer tracked in
+		// state, so re-running --fix against the same infrastructure can leave
+		// images behind that need manual cleanup.
 
 		cloudStemcell = NewCloudStemcell(stemcellRecord, m.repo, m.cloud)
 		return nil

@@ -87,6 +87,22 @@ type FakeStemcellRepo struct {
 		result1 config.StemcellRecord
 		result2 error
 	}
+	SaveOrUpdateStub        func(string, string, string, int) (config.StemcellRecord, error)
+	saveOrUpdateMutex       sync.RWMutex
+	saveOrUpdateArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 int
+	}
+	saveOrUpdateReturns struct {
+		result1 config.StemcellRecord
+		result2 error
+	}
+	saveOrUpdateReturnsOnCall map[int]struct {
+		result1 config.StemcellRecord
+		result2 error
+	}
 	UpdateCurrentStub        func(string) error
 	updateCurrentMutex       sync.RWMutex
 	updateCurrentArgsForCall []struct {
@@ -461,6 +477,73 @@ func (fake *FakeStemcellRepo) SaveReturnsOnCall(i int, result1 config.StemcellRe
 		})
 	}
 	fake.saveReturnsOnCall[i] = struct {
+		result1 config.StemcellRecord
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStemcellRepo) SaveOrUpdate(arg1 string, arg2 string, arg3 string, arg4 int) (config.StemcellRecord, error) {
+	fake.saveOrUpdateMutex.Lock()
+	ret, specificReturn := fake.saveOrUpdateReturnsOnCall[len(fake.saveOrUpdateArgsForCall)]
+	fake.saveOrUpdateArgsForCall = append(fake.saveOrUpdateArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 int
+	}{arg1, arg2, arg3, arg4})
+	stub := fake.SaveOrUpdateStub
+	fakeReturns := fake.saveOrUpdateReturns
+	fake.recordInvocation("SaveOrUpdate", []interface{}{arg1, arg2, arg3, arg4})
+	fake.saveOrUpdateMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStemcellRepo) SaveOrUpdateCallCount() int {
+	fake.saveOrUpdateMutex.RLock()
+	defer fake.saveOrUpdateMutex.RUnlock()
+	return len(fake.saveOrUpdateArgsForCall)
+}
+
+func (fake *FakeStemcellRepo) SaveOrUpdateCalls(stub func(string, string, string, int) (config.StemcellRecord, error)) {
+	fake.saveOrUpdateMutex.Lock()
+	defer fake.saveOrUpdateMutex.Unlock()
+	fake.SaveOrUpdateStub = stub
+}
+
+func (fake *FakeStemcellRepo) SaveOrUpdateArgsForCall(i int) (string, string, string, int) {
+	fake.saveOrUpdateMutex.RLock()
+	defer fake.saveOrUpdateMutex.RUnlock()
+	argsForCall := fake.saveOrUpdateArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeStemcellRepo) SaveOrUpdateReturns(result1 config.StemcellRecord, result2 error) {
+	fake.saveOrUpdateMutex.Lock()
+	defer fake.saveOrUpdateMutex.Unlock()
+	fake.SaveOrUpdateStub = nil
+	fake.saveOrUpdateReturns = struct {
+		result1 config.StemcellRecord
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStemcellRepo) SaveOrUpdateReturnsOnCall(i int, result1 config.StemcellRecord, result2 error) {
+	fake.saveOrUpdateMutex.Lock()
+	defer fake.saveOrUpdateMutex.Unlock()
+	fake.SaveOrUpdateStub = nil
+	if fake.saveOrUpdateReturnsOnCall == nil {
+		fake.saveOrUpdateReturnsOnCall = make(map[int]struct {
+			result1 config.StemcellRecord
+			result2 error
+		})
+	}
+	fake.saveOrUpdateReturnsOnCall[i] = struct {
 		result1 config.StemcellRecord
 		result2 error
 	}{result1, result2}

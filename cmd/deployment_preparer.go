@@ -100,7 +100,22 @@ type DeploymentPreparer struct {
 	targetProvider                          biinstall.TargetProvider
 }
 
-func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, recreatePersistentDisks bool, fix bool, skipDrain bool) (err error) {
+// DeploymentOptions carries the per-run switches for PrepareDeployment. A
+// struct rather than a run of consecutive booleans, which are easy to transpose
+// at a call site.
+type DeploymentOptions struct {
+	Recreate                bool
+	RecreatePersistentDisks bool
+	FixStemcell             bool
+	SkipDrain               bool
+}
+
+func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, opts DeploymentOptions) (err error) {
+	recreate := opts.Recreate
+	recreatePersistentDisks := opts.RecreatePersistentDisks
+	fix := opts.FixStemcell
+	skipDrain := opts.SkipDrain
+
 	c.ui.BeginLinef("Deployment state: '%s'\n", c.deploymentStateService.Path())
 
 	if !c.deploymentStateService.Exists() {

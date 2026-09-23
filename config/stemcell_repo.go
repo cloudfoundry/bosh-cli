@@ -13,6 +13,7 @@ type StemcellRepo interface // StemcellRepo persists stemcells metadata
 	FindCurrent() (StemcellRecord, bool, error)
 	ClearCurrent() error
 	Save(name, version, cid string, apiVersion int) (StemcellRecord, error)
+	SaveOrUpdate(name, version, cid string, apiVersion int) (StemcellRecord, error)
 	Find(name, version string) (StemcellRecord, bool, error)
 	All() ([]StemcellRecord, error)
 	Delete(StemcellRecord) error
@@ -60,6 +61,51 @@ func (r stemcellRepo) Save(name, version, cid string, apiVersion int) (StemcellR
 		records = append(records, newRecord)
 		config.Stemcells = records
 
+		stemcellRecord = newRecord
+
+		return nil
+	})
+
+	return stemcellRecord, err
+}
+
+// SaveOrUpdate records a stemcell, replacing any existing record with the same
+// name and version rather than rejecting it as a duplicate.
+//
+// Replacement is done in a single state write, and CurrentStemcellID is
+// repointed at the replacement record in the same operation. Deleting the old
+// record and saving a new one separately would leave CurrentStemcellID empty in
+// between, and an empty CurrentStemcellID makes FindUnused treat every stemcell
+// as unused -- on AWS that deregisters live AMIs (see #731).
+func (r stemcellRepo) SaveOrUpdate(name, version, cid string, apiVersion int) (StemcellRecord, error) {
+	stemcellRecord := StemcellRecord{}
+
+	err := r.updateConfig(func(config *DeploymentState) error {
+		newRecord := StemcellRecord{
+			Name:       name,
+			Version:    version,
+			CID:        cid,
+			ApiVersion: apiVersion,
+		}
+
+		var err error
+		newRecord.ID, err = r.uuidGenerator.Generate()
+		if err != nil {
+			return bosherr.WrapError(err, "Generating stemcell id")
+		}
+
+		keptRecords := []StemcellRecord{}
+		for _, oldRecord := range config.Stemcells {
+			if oldRecord.Name == name && oldRecord.Version == version {
+				if config.CurrentStemcellID == oldRecord.ID {
+					config.CurrentStemcellID = newRecord.ID
+				}
+				continue
+			}
+			keptRecords = append(keptRecords, oldRecord)
+		}
+
+		config.Stemcells = append(keptRecords, newRecord)
 		stemcellRecord = newRecord
 
 		return nil

@@ -29,6 +29,79 @@ var _ = Describe("StemcellRepo", func() {
 		repo = NewStemcellRepo(deploymentStateService, fakeUUIDGenerator)
 	})
 
+	Describe("SaveOrUpdate", func() {
+		It("saves a new record when none matches", func() {
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
+			record, err := repo.SaveOrUpdate("fake-name", "fake-version", "fake-cid", apiVersion)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(record.CID).To(Equal("fake-cid"))
+
+			records, err := repo.All()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(records).To(HaveLen(1))
+		})
+
+		It("replaces an existing record with the same name and version", func() {
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
+			_, err := repo.SaveOrUpdate("fake-name", "fake-version", "old-cid", apiVersion)
+			Expect(err).ToNot(HaveOccurred())
+
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-2"
+			_, err = repo.SaveOrUpdate("fake-name", "fake-version", "new-cid", apiVersion)
+			Expect(err).ToNot(HaveOccurred())
+
+			records, err := repo.All()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(records).To(HaveLen(1))
+			Expect(records[0].CID).To(Equal("new-cid"))
+		})
+
+		It("does not reject a duplicate name and version the way Save does", func() {
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
+			_, err := repo.Save("fake-name", "fake-version", "old-cid", apiVersion)
+			Expect(err).ToNot(HaveOccurred())
+
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-2"
+			_, err = repo.SaveOrUpdate("fake-name", "fake-version", "new-cid", apiVersion)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		// An empty CurrentStemcellID makes FindUnused treat every stemcell as
+		// unused, which on AWS deregisters live AMIs (#731).
+		It("repoints CurrentStemcellID at the replacement record", func() {
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
+			oldRecord, err := repo.SaveOrUpdate("fake-name", "fake-version", "old-cid", apiVersion)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(repo.UpdateCurrent(oldRecord.ID)).To(Succeed())
+
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-2"
+			newRecord, err := repo.SaveOrUpdate("fake-name", "fake-version", "new-cid", apiVersion)
+			Expect(err).ToNot(HaveOccurred())
+
+			current, found, err := repo.FindCurrent()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeTrue(), "CurrentStemcellID must never be left empty")
+			Expect(current.ID).To(Equal(newRecord.ID))
+			Expect(current.CID).To(Equal("new-cid"))
+		})
+
+		It("leaves CurrentStemcellID alone when it points at an unrelated record", func() {
+			fakeUUIDGenerator.GeneratedUUID = "other-uuid"
+			otherRecord, err := repo.Save("other-name", "other-version", "other-cid", apiVersion)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(repo.UpdateCurrent(otherRecord.ID)).To(Succeed())
+
+			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
+			_, err = repo.SaveOrUpdate("fake-name", "fake-version", "new-cid", apiVersion)
+			Expect(err).ToNot(HaveOccurred())
+
+			current, found, err := repo.FindCurrent()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(found).To(BeTrue())
+			Expect(current.ID).To(Equal(otherRecord.ID))
+		})
+	})
+
 	Describe("Save", func() {
 		It("saves the stemcell record using the config service", func() {
 			_, err := repo.Save("fake-name", "fake-version", "fake-cid", apiVersion)
