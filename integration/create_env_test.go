@@ -1162,6 +1162,29 @@ cloud_provider:
 					Expect(mockCloud.CreateStemcellCallCount()).To(Equal(createStemcellCountBefore + 1))
 				})
 
+				// The #731 scenario: #737 stopped VM delete from clearing the
+				// pointer, this PR stops the upload from clearing it. Neither
+				// alone survives a replacement VM that fails before promotion.
+				It("leaves CurrentStemcellID resolving to a real record when the replacement VM fails", func() {
+					mockCloud.CreateVMStub = func(_, _ string, _ biproperty.Map, _ []string, _ map[string]biproperty.Map, _ biproperty.Map) (string, error) {
+						return "", bosherr.Error("fake-create-vm-error")
+					}
+
+					fixOpts := newDeployOpts(deploymentManifestPath, "")
+					fixOpts.Fix = true
+
+					err := newCreateEnvCmd().Run(fakeStage, fixOpts)
+					Expect(err).To(HaveOccurred())
+
+					currentRecord, found, err := stemcellRepo.FindCurrent()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(found).To(BeTrue(), "an empty CurrentStemcellID would make delete-env deregister live images")
+
+					records, err := stemcellRepo.All()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(records).To(ContainElement(currentRecord))
+				})
+
 				It("leaves CurrentStemcellID resolving to a real record", func() {
 					relaxCreateVM()
 
