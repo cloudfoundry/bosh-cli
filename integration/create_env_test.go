@@ -1149,8 +1149,19 @@ cloud_provider:
 					}
 				}
 
-				It("re-uploads the stemcell instead of skipping", func() {
-					relaxCreateVM()
+				It("re-uploads the stemcell and recreates the VM from the replacement CID, not the stale one", func() {
+					const replacementCID = "fake-replacement-stemcell-cid"
+
+					mockCloud.CreateStemcellStub = func(_ string, _ biproperty.Map) (string, error) {
+						return replacementCID, nil
+					}
+
+					var createVMStemcellCID string
+					mockCloud.CreateVMStub = func(_, gotStemcellCID string, _ biproperty.Map, _ []string, _ map[string]biproperty.Map, _ biproperty.Map) (string, error) {
+						createVMStemcellCID = gotStemcellCID
+						return "fake-vm-cid-1", nil
+					}
+
 					createStemcellCountBefore := mockCloud.CreateStemcellCallCount()
 
 					fixOpts := newDeployOpts(deploymentManifestPath, "")
@@ -1160,6 +1171,12 @@ cloud_provider:
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(mockCloud.CreateStemcellCallCount()).To(Equal(createStemcellCountBefore + 1))
+					Expect(createVMStemcellCID).To(Equal(replacementCID))
+
+					currentRecord, found, err := stemcellRepo.FindCurrent()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(found).To(BeTrue())
+					Expect(currentRecord.CID).To(Equal(replacementCID))
 				})
 
 				// The #731 scenario: #737 stopped VM delete from clearing the
