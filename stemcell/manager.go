@@ -18,7 +18,7 @@ import (
 
 type Manager interface {
 	FindCurrent() ([]CloudStemcell, error)
-	Upload(ExtractedStemcell, biui.Stage) (CloudStemcell, error)
+	Upload(ExtractedStemcell, biui.Stage, bool) (CloudStemcell, error)
 	FindUnused() ([]CloudStemcell, error)
 	DeleteUnused(biui.Stage) error
 }
@@ -54,7 +54,10 @@ func (m *manager) FindCurrent() ([]CloudStemcell, error) {
 // Upload stemcell to an IAAS. It does the following steps:
 // 1) uploads the stemcell to the cloud (if needed),
 // 2) saves a record of the uploaded stemcell in the repo
-func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.Stage) (cloudStemcell CloudStemcell, err error) {
+//
+// Records are keyed on name and version alone, so a record left over from other
+// infrastructure still matches. fix forces a fresh create_stemcell.
+func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.Stage, fix bool) (cloudStemcell CloudStemcell, err error) {
 	manifest := extractedStemcell.Manifest()
 	stageName := fmt.Sprintf("Uploading stemcell '%s/%s'", manifest.Name, manifest.Version)
 	err = uploadStage.Perform(stageName, func() error {
@@ -63,21 +66,41 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.S
 			return bosherr.WrapError(err, "Finding existing stemcell record in repo")
 		}
 
-		if found {
+		if found && !fix {
 			cloudStemcell = NewCloudStemcell(foundStemcellRecord, m.repo, m.cloud)
 			return biui.NewSkipStageError(bosherr.Errorf("Found stemcell: %#v", foundStemcellRecord), "Stemcell already uploaded")
 		}
 
+		// Upload first: a failed create_stemcell must leave state untouched.
 		cid, err := m.cloud.CreateStemcell(filepath.Join(extractedStemcell.GetExtractedPath(), "image"), manifest.CloudProperties)
 		if err != nil {
 			return bosherr.WrapErrorf(err, "creating stemcell (%s %s)", manifest.Name, manifest.Version)
 		}
 
-		stemcellRecord, err := m.repo.Save(manifest.Name, manifest.Version, cid, manifest.ApiVersion)
+		// SaveOrUpdate replaces the record without blanking CurrentStemcellID.
+		var stemcellRecord biconfig.StemcellRecord
+		if found {
+			stemcellRecord, err = m.repo.SaveOrUpdate(manifest.Name, manifest.Version, cid, manifest.ApiVersion)
+		} else {
+			stemcellRecord, err = m.repo.Save(manifest.Name, manifest.Version, cid, manifest.ApiVersion)
+		}
 		if err != nil {
-			// TODO: delete stemcell from cloud when saving fails
+			// Only delete from cloud if this CID is not tracked by any record in state
+			tracked, lookupErr := m.isCIDTracked(cid)
+			if lookupErr != nil {
+				return bosherr.WrapErrorf(err, "saving stemcell record in repo (cid=%s, stemcell=%s); could not determine whether the CID is tracked, so the stemcell may be orphaned: %s", cid, extractedStemcell, lookupErr.Error())
+			}
+			if !tracked {
+				if deleteErr := m.cloud.DeleteStemcell(cid); deleteErr != nil {
+					return bosherr.WrapErrorf(err, "saving stemcell record in repo (cid=%s, stemcell=%s); the orphaned stemcell could not be deleted either: %s", cid, extractedStemcell, deleteErr.Error())
+				}
+			}
 			return bosherr.WrapErrorf(err, "saving stemcell record in repo (cid=%s, stemcell=%s)", cid, extractedStemcell)
 		}
+
+		// The replaced image is left alone: it may be on infrastructure the CPI
+		// can no longer reach, and it is the rollback target. It is untracked
+		// from here on and may need manual cleanup.
 
 		cloudStemcell = NewCloudStemcell(stemcellRecord, m.repo, m.cloud)
 		return nil
@@ -135,4 +158,17 @@ func (m *manager) DeleteUnused(deleteStage biui.Stage) error {
 	}
 
 	return nil
+}
+
+func (m *manager) isCIDTracked(cid string) (bool, error) {
+	records, err := m.repo.All()
+	if err != nil {
+		return true, err // Defensively assume tracked if repo lookup fails
+	}
+	for _, record := range records {
+		if record.CID == cid {
+			return true, nil
+		}
+	}
+	return false, nil
 }

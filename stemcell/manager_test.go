@@ -13,6 +13,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/cloud/cloudfakes"
 	biconfig "github.com/cloudfoundry/bosh-cli/v7/config"
+	"github.com/cloudfoundry/bosh-cli/v7/config/configfakes"
 	. "github.com/cloudfoundry/bosh-cli/v7/stemcell"
 	fakebistemcell "github.com/cloudfoundry/bosh-cli/v7/stemcell/stemcellfakes"
 	fakebiui "github.com/cloudfoundry/bosh-cli/v7/ui/fakes"
@@ -80,7 +81,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("uploads the stemcell to the infrastructure and returns the cid", func() {
-			cloudStemcell, err := manager.Upload(expectedExtractedStemcell, fakeStage)
+			cloudStemcell, err := manager.Upload(expectedExtractedStemcell, fakeStage, false)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cloudStemcell).To(Equal(expectedCloudStemcell))
 
@@ -91,7 +92,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("saves the stemcell record in the stemcellRepo", func() {
-			cloudStemcell, err := manager.Upload(expectedExtractedStemcell, fakeStage)
+			cloudStemcell, err := manager.Upload(expectedExtractedStemcell, fakeStage, false)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cloudStemcell).To(Equal(expectedCloudStemcell))
 
@@ -108,7 +109,7 @@ var _ = Describe("Manager", func() {
 		})
 
 		It("prints uploading ui stage", func() {
-			_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
+			_, err := manager.Upload(expectedExtractedStemcell, fakeStage, false)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fakeStage.PerformCalls).To(Equal([]*fakebiui.PerformCall{
@@ -118,7 +119,7 @@ var _ = Describe("Manager", func() {
 
 		It("when the upload fails, prints failed uploading ui stage", func() {
 			fakeCloud.CreateStemcellReturns("", errors.New("fake-create-error"))
-			_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
+			_, err := manager.Upload(expectedExtractedStemcell, fakeStage, false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-create-error"))
 
@@ -129,7 +130,7 @@ var _ = Describe("Manager", func() {
 
 		It("when the stemcellRepo save fails, logs uploading start and failure events to the eventLogger", func() {
 			fs.WriteFileError = errors.New("fake-save-error")
-			_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
+			_, err := manager.Upload(expectedExtractedStemcell, fakeStage, false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-save-error"))
 
@@ -150,25 +151,214 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("returns the existing cloud stemcell", func() {
-				stemcell, err := manager.Upload(expectedExtractedStemcell, fakeStage)
+				stemcell, err := manager.Upload(expectedExtractedStemcell, fakeStage, false)
 				Expect(err).ToNot(HaveOccurred())
 				foundStemcell := NewCloudStemcell(foundStemcellRecord, stemcellRepo, fakeCloud)
 				Expect(stemcell).To(Equal(foundStemcell))
 			})
 
 			It("does not re-upload the stemcell to the infrastructure", func() {
-				_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
+				_, err := manager.Upload(expectedExtractedStemcell, fakeStage, false)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(fakeCloud.CreateStemcellCallCount()).To(Equal(0))
 			})
 
 			It("logs skipping uploading events to the eventLogger", func() {
-				_, err := manager.Upload(expectedExtractedStemcell, fakeStage)
+				_, err := manager.Upload(expectedExtractedStemcell, fakeStage, false)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeStage.PerformCalls[0].Name).To(Equal("Uploading stemcell 'fake-stemcell-name/fake-stemcell-version'"))
 				Expect(fakeStage.PerformCalls[0].SkipError).To(HaveOccurred())
 				Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(MatchRegexp("Stemcell already uploaded: Found stemcell: .*fake-existing-cid.*"))
+			})
+
+			Context("when fix is requested", func() {
+				BeforeEach(func() {
+					err := stemcellRepo.UpdateCurrent(foundStemcellRecord.ID)
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				It("re-uploads the stemcell to the infrastructure", func() {
+					_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fakeCloud.CreateStemcellCallCount()).To(Equal(1))
+					imagePath, cloudProperties := fakeCloud.CreateStemcellArgsForCall(0)
+					Expect(imagePath).To(Equal(filepath.Join(tempExtractionDir, "image")))
+					Expect(cloudProperties).To(Equal(biproperty.Map{"fake-prop-key": "fake-prop-value"}))
+				})
+
+				It("returns the newly created stemcell, not the stale one", func() {
+					cloudStemcell, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(cloudStemcell.CID()).To(Equal("fake-stemcell-cid"))
+				})
+
+				It("replaces the stale record rather than failing on a duplicate", func() {
+					_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
+					Expect(err).ToNot(HaveOccurred())
+
+					stemcellRecords, err := stemcellRepo.All()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(stemcellRecords).To(HaveLen(1))
+					Expect(stemcellRecords[0].CID).To(Equal("fake-stemcell-cid"))
+				})
+
+				It("never leaves CurrentStemcellID empty, which would strand delete-env on CPI api version 1", func() {
+					_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
+					Expect(err).ToNot(HaveOccurred())
+
+					currentRecord, found, err := stemcellRepo.FindCurrent()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(found).To(BeTrue(), "CurrentStemcellID must never be left empty")
+					Expect(currentRecord.CID).To(Equal("fake-stemcell-cid"))
+				})
+
+				It("does not report live stemcells as unused, which on AWS would deregister the AMI", func() {
+					_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
+					Expect(err).ToNot(HaveOccurred())
+
+					unused, err := manager.FindUnused()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(unused).To(BeEmpty(), "a blanked CurrentStemcellID would mark every stemcell unused")
+				})
+
+				It("leaves the replaced image in the cloud as the rollback target", func() {
+					_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fakeCloud.DeleteStemcellCallCount()).To(Equal(0))
+				})
+
+				It("does not skip the upload stage", func() {
+					_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fakeStage.PerformCalls[0].SkipError).ToNot(HaveOccurred())
+				})
+
+				Context("when the upload fails partway, as a long transfer may", func() {
+					BeforeEach(func() {
+						fakeCloud.CreateStemcellReturns("", errors.New("fake-create-error"))
+					})
+
+					It("leaves the existing record intact", func() {
+						_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
+						Expect(err).To(HaveOccurred())
+
+						records, err := stemcellRepo.All()
+						Expect(err).ToNot(HaveOccurred())
+						Expect(records).To(HaveLen(1))
+						Expect(records[0].CID).To(Equal("fake-existing-cid"))
+					})
+
+					It("leaves CurrentStemcellID intact", func() {
+						_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
+						Expect(err).To(HaveOccurred())
+
+						currentRecord, found, err := stemcellRepo.FindCurrent()
+						Expect(err).ToNot(HaveOccurred())
+						Expect(found).To(BeTrue(), "a failed upload must not blank CurrentStemcellID")
+						Expect(currentRecord.CID).To(Equal("fake-existing-cid"))
+					})
+				})
+			})
+		})
+
+		// A fake repo: the fs-backed one fails at Find before Save is reached.
+		Context("when saving the stemcell record fails", func() {
+			var (
+				fakeRepo    *configfakes.FakeStemcellRepo
+				fakeManager Manager
+			)
+
+			BeforeEach(func() {
+				fakeRepo = &configfakes.FakeStemcellRepo{}
+				fakeRepo.FindReturns(biconfig.StemcellRecord{}, false, nil)
+				fakeRepo.SaveReturns(biconfig.StemcellRecord{}, errors.New("fake-save-error"))
+				fakeManager = NewManager(fakeRepo, fakeCloud)
+			})
+
+			It("deletes the orphaned stemcell from the cloud", func() {
+				_, err := fakeManager.Upload(expectedExtractedStemcell, fakeStage, false)
+				Expect(err).To(HaveOccurred())
+
+				Expect(fakeCloud.DeleteStemcellCallCount()).To(Equal(1))
+				Expect(fakeCloud.DeleteStemcellArgsForCall(0)).To(Equal("fake-stemcell-cid"))
+			})
+
+			It("reports the save failure, not the cleanup result", func() {
+				_, err := fakeManager.Upload(expectedExtractedStemcell, fakeStage, false)
+				Expect(err.Error()).To(ContainSubstring("fake-save-error"))
+			})
+
+			Context("when deleting the orphaned stemcell also fails", func() {
+				BeforeEach(func() {
+					fakeCloud.DeleteStemcellReturns(errors.New("fake-delete-error"))
+				})
+
+				It("still reports the save failure, mentioning the leak", func() {
+					_, err := fakeManager.Upload(expectedExtractedStemcell, fakeStage, false)
+					Expect(err.Error()).To(ContainSubstring("fake-save-error"))
+					Expect(err.Error()).To(ContainSubstring("fake-delete-error"))
+				})
+			})
+
+			Context("when checking whether the CID is tracked also fails", func() {
+				BeforeEach(func() {
+					fakeRepo.AllReturns(nil, errors.New("fake-all-error"))
+				})
+
+				It("does not delete the stemcell from the cloud", func() {
+					_, err := fakeManager.Upload(expectedExtractedStemcell, fakeStage, false)
+					Expect(err).To(HaveOccurred())
+					Expect(fakeCloud.DeleteStemcellCallCount()).To(Equal(0))
+				})
+
+				It("still reports the save failure, mentioning the lookup failure and possible orphan", func() {
+					_, err := fakeManager.Upload(expectedExtractedStemcell, fakeStage, false)
+					Expect(err.Error()).To(ContainSubstring("fake-save-error"))
+					Expect(err.Error()).To(ContainSubstring("fake-all-error"))
+					Expect(err.Error()).To(ContainSubstring("may be orphaned"))
+				})
+			})
+
+			Context("when the returned CID is already tracked in the repo", func() {
+				BeforeEach(func() {
+					fakeRepo.AllReturns([]biconfig.StemcellRecord{{CID: "fake-stemcell-cid"}}, nil)
+				})
+
+				Context("by the record being uploaded", func() {
+					BeforeEach(func() {
+						fakeRepo.FindReturns(biconfig.StemcellRecord{CID: "fake-stemcell-cid"}, true, nil)
+						fakeRepo.SaveOrUpdateReturns(biconfig.StemcellRecord{}, errors.New("fake-save-error"))
+					})
+
+					It("does not delete the pre-existing stemcell from the cloud", func() {
+						_, err := fakeManager.Upload(expectedExtractedStemcell, fakeStage, true)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("fake-save-error"))
+						Expect(fakeCloud.DeleteStemcellCallCount()).To(Equal(0))
+					})
+				})
+
+				Context("by a different record", func() {
+					It("does not delete the stemcell from the cloud", func() {
+						_, err := fakeManager.Upload(expectedExtractedStemcell, fakeStage, true)
+						Expect(err).To(HaveOccurred())
+						Expect(err.Error()).To(ContainSubstring("fake-save-error"))
+						Expect(fakeCloud.DeleteStemcellCallCount()).To(Equal(0))
+					})
+				})
+			})
+		})
+
+		Context("when no stemcell record exists and fix is requested", func() {
+			It("uploads the stemcell as usual", func() {
+				cloudStemcell, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(cloudStemcell).To(Equal(expectedCloudStemcell))
+				Expect(fakeCloud.CreateStemcellCallCount()).To(Equal(1))
 			})
 		})
 	})

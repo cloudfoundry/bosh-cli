@@ -100,7 +100,20 @@ type DeploymentPreparer struct {
 	targetProvider                          biinstall.TargetProvider
 }
 
-func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, recreatePersistentDisks bool, skipDrain bool) (err error) {
+// DeploymentOptions carries the per-run switches for PrepareDeployment.
+type DeploymentOptions struct {
+	Recreate                bool
+	RecreatePersistentDisks bool
+	FixStemcell             bool
+	SkipDrain               bool
+}
+
+func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, opts DeploymentOptions) (err error) {
+	recreate := opts.Recreate
+	recreatePersistentDisks := opts.RecreatePersistentDisks
+	fix := opts.FixStemcell
+	skipDrain := opts.SkipDrain
+
 	c.ui.BeginLinef("Deployment state: '%s'\n", c.deploymentStateService.Path())
 
 	if !c.deploymentStateService.Exists() {
@@ -183,7 +196,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, 
 		return bosherr.WrapError(err, "Checking if deployment has changed")
 	}
 
-	if isDeployed && !recreate && !recreatePersistentDisks {
+	if isDeployed && !recreate && !recreatePersistentDisks && !fix {
 		c.ui.BeginLinef("No deployment, stemcell or release changes. Skipping deploy.\n")
 		return nil
 	}
@@ -204,6 +217,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, recreate bool, 
 				deploymentManifest,
 				manifestSHA,
 				skipDrain,
+				fix,
 				stage,
 				cloud,
 			)
@@ -234,12 +248,13 @@ func (c *DeploymentPreparer) deploy(
 	deploymentManifest bideplmanifest.Manifest,
 	manifestSHA string,
 	skipDrain bool,
+	fix bool,
 	stage biui.Stage,
 	cloud bicloud.Cloud,
 ) (err error) {
 	stemcellManager := c.stemcellManagerFactory.NewManager(cloud)
 
-	cloudStemcell, err := stemcellManager.Upload(extractedStemcell, stage)
+	cloudStemcell, err := stemcellManager.Upload(extractedStemcell, stage, fix)
 	if err != nil {
 		return err
 	}

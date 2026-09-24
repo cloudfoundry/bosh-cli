@@ -585,6 +585,8 @@ var _ = Describe("CreateEnvCmd", func() {
 			err := command.Run(fakeStage, defaultCreateEnvOpts)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(mockStemcellManager.UploadCallCount()).To(Equal(1))
+			_, _, gotFix := mockStemcellManager.UploadArgsForCall(0)
+			Expect(gotFix).To(BeFalse())
 		})
 
 		It("adds a new 'deploying' event logger stage", func() {
@@ -687,6 +689,25 @@ var _ = Describe("CreateEnvCmd", func() {
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(mockDeployer.DeployCallCount()).To(Equal(1))
+			})
+
+			It("deploys if `fix-stemcell` flag is specified, even with no manifest or release changes", func() {
+				defaultCreateEnvOpts.FixStemcell = true
+
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(mockDeployer.DeployCallCount()).To(Equal(1))
+			})
+
+			It("passes `fix-stemcell` through to the stemcell upload", func() {
+				defaultCreateEnvOpts.FixStemcell = true
+
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(mockStemcellManager.UploadCallCount()).To(Equal(1))
+				_, _, gotFix := mockStemcellManager.UploadArgsForCall(0)
+				Expect(gotFix).To(BeTrue())
 			})
 		})
 

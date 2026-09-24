@@ -1139,6 +1139,84 @@ cloud_provider:
 					Expect(mockCloud.CreateVMCallCount()).To(Equal(createVMCountBefore))
 				})
 			})
+
+			Context("and the same deployment is attempted again with --fix-stemcell", func() {
+				// A second deploy draws a fresh agent ID, which the shared stub
+				// asserts against a fixed value.
+				relaxCreateVM := func() {
+					mockCloud.CreateVMStub = func(_, _ string, _ biproperty.Map, _ []string, _ map[string]biproperty.Map, _ biproperty.Map) (string, error) {
+						return "fake-vm-cid-1", nil
+					}
+				}
+
+				It("re-uploads the stemcell and recreates the VM from the replacement CID, not the stale one", func() {
+					const replacementCID = "fake-replacement-stemcell-cid"
+
+					mockCloud.CreateStemcellStub = func(_ string, _ biproperty.Map) (string, error) {
+						return replacementCID, nil
+					}
+
+					var createVMStemcellCID string
+					mockCloud.CreateVMStub = func(_, gotStemcellCID string, _ biproperty.Map, _ []string, _ map[string]biproperty.Map, _ biproperty.Map) (string, error) {
+						createVMStemcellCID = gotStemcellCID
+						return "fake-vm-cid-1", nil
+					}
+
+					createStemcellCountBefore := mockCloud.CreateStemcellCallCount()
+
+					fixOpts := newDeployOpts(deploymentManifestPath, "")
+					fixOpts.FixStemcell = true
+
+					err := newCreateEnvCmd().Run(fakeStage, fixOpts)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(mockCloud.CreateStemcellCallCount()).To(Equal(createStemcellCountBefore + 1))
+					Expect(createVMStemcellCID).To(Equal(replacementCID))
+
+					currentRecord, found, err := stemcellRepo.FindCurrent()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(found).To(BeTrue())
+					Expect(currentRecord.CID).To(Equal(replacementCID))
+				})
+
+				It("leaves CurrentStemcellID resolving to a real record when the replacement VM fails", func() {
+					mockCloud.CreateVMStub = func(_, _ string, _ biproperty.Map, _ []string, _ map[string]biproperty.Map, _ biproperty.Map) (string, error) {
+						return "", bosherr.Error("fake-create-vm-error")
+					}
+
+					fixOpts := newDeployOpts(deploymentManifestPath, "")
+					fixOpts.FixStemcell = true
+
+					err := newCreateEnvCmd().Run(fakeStage, fixOpts)
+					Expect(err).To(HaveOccurred())
+
+					currentRecord, found, err := stemcellRepo.FindCurrent()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(found).To(BeTrue(), "an empty CurrentStemcellID would make delete-env deregister live images")
+
+					records, err := stemcellRepo.All()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(records).To(ContainElement(currentRecord))
+				})
+
+				It("leaves CurrentStemcellID resolving to a real record", func() {
+					relaxCreateVM()
+
+					fixOpts := newDeployOpts(deploymentManifestPath, "")
+					fixOpts.FixStemcell = true
+
+					err := newCreateEnvCmd().Run(fakeStage, fixOpts)
+					Expect(err).ToNot(HaveOccurred())
+
+					currentRecord, found, err := stemcellRepo.FindCurrent()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(found).To(BeTrue(), "CurrentStemcellID must never be left empty")
+
+					records, err := stemcellRepo.All()
+					Expect(err).ToNot(HaveOccurred())
+					Expect(records).To(ContainElement(currentRecord))
+				})
+			})
 		})
 
 		Context("when the stemcell supports api_version 2", func() {
