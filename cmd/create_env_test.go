@@ -691,16 +691,16 @@ var _ = Describe("CreateEnvCmd", func() {
 				Expect(mockDeployer.DeployCallCount()).To(Equal(1))
 			})
 
-			It("deploys if `fix` flag is specified, even with no manifest or release changes", func() {
-				defaultCreateEnvOpts.Fix = true
+			It("deploys if `fix-stemcell` flag is specified, even with no manifest or release changes", func() {
+				defaultCreateEnvOpts.FixStemcell = true
 
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(mockDeployer.DeployCallCount()).To(Equal(1))
 			})
 
-			It("passes `fix` through to the stemcell upload", func() {
-				defaultCreateEnvOpts.Fix = true
+			It("passes `fix-stemcell` through to the stemcell upload", func() {
+				defaultCreateEnvOpts.FixStemcell = true
 
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())

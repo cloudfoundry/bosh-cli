@@ -197,7 +197,7 @@ type CreateEnvOpts struct {
 	StatePath               string `long:"state" value-name:"PATH" description:"State file path"`
 	Recreate                bool   `long:"recreate" description:"Recreate VM in deployment"`
 	RecreatePersistentDisks bool   `long:"recreate-persistent-disks" description:"Recreate persistent disks in the deployment"`
-	Fix                     bool   `long:"fix" description:"Forces re-upload of the stemcell; any existing stemcell image is orphaned and the VM is recreated"`
+	FixStemcell             bool   `long:"fix-stemcell" description:"Forces re-upload of the stemcell; any existing stemcell image is orphaned and the VM is recreated"`
 	PackageDir              string `long:"package-dir" value-name:"DIR" description:"Package cache location override"`
 	cmd
 }

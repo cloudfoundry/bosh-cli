@@ -27,7 +27,7 @@ func (c *CreateEnvCmd) Run(stage boshui.Stage, opts CreateEnvOpts) error {
 	return depPreparer.PrepareDeployment(stage, DeploymentOptions{
 		Recreate:                opts.Recreate,
 		RecreatePersistentDisks: opts.RecreatePersistentDisks,
-		FixStemcell:             opts.Fix,
+		FixStemcell:             opts.FixStemcell,
 		SkipDrain:               opts.SkipDrain,
 	})
 }

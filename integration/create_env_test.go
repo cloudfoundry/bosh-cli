@@ -1140,7 +1140,7 @@ cloud_provider:
 				})
 			})
 
-			Context("and the same deployment is attempted again with --fix", func() {
+			Context("and the same deployment is attempted again with --fix-stemcell", func() {
 				// A second deploy draws a fresh agent ID, which the shared stub
 				// asserts against a fixed value.
 				relaxCreateVM := func() {
@@ -1165,7 +1165,7 @@ cloud_provider:
 					createStemcellCountBefore := mockCloud.CreateStemcellCallCount()
 
 					fixOpts := newDeployOpts(deploymentManifestPath, "")
-					fixOpts.Fix = true
+					fixOpts.FixStemcell = true
 
 					err := newCreateEnvCmd().Run(fakeStage, fixOpts)
 					Expect(err).ToNot(HaveOccurred())
@@ -1179,16 +1179,13 @@ cloud_provider:
 					Expect(currentRecord.CID).To(Equal(replacementCID))
 				})
 
-				// The #731 scenario: #737 stopped VM delete from clearing the
-				// pointer, this PR stops the upload from clearing it. Neither
-				// alone survives a replacement VM that fails before promotion.
 				It("leaves CurrentStemcellID resolving to a real record when the replacement VM fails", func() {
 					mockCloud.CreateVMStub = func(_, _ string, _ biproperty.Map, _ []string, _ map[string]biproperty.Map, _ biproperty.Map) (string, error) {
 						return "", bosherr.Error("fake-create-vm-error")
 					}
 
 					fixOpts := newDeployOpts(deploymentManifestPath, "")
-					fixOpts.Fix = true
+					fixOpts.FixStemcell = true
 
 					err := newCreateEnvCmd().Run(fakeStage, fixOpts)
 					Expect(err).To(HaveOccurred())
@@ -1206,7 +1203,7 @@ cloud_provider:
 					relaxCreateVM()
 
 					fixOpts := newDeployOpts(deploymentManifestPath, "")
-					fixOpts.Fix = true
+					fixOpts.FixStemcell = true
 
 					err := newCreateEnvCmd().Run(fakeStage, fixOpts)
 					Expect(err).ToNot(HaveOccurred())
