@@ -85,9 +85,11 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.S
 			stemcellRecord, err = m.repo.Save(manifest.Name, manifest.Version, cid, manifest.ApiVersion)
 		}
 		if err != nil {
-			// Nothing records this image, so no cleanup could ever find it.
-			if deleteErr := m.cloud.DeleteStemcell(cid); deleteErr != nil {
-				return bosherr.WrapErrorf(err, "saving stemcell record in repo (cid=%s, stemcell=%s); the orphaned stemcell could not be deleted either: %s", cid, extractedStemcell, deleteErr.Error())
+			// Only delete from cloud if this CID was newly created
+			if !found || foundStemcellRecord.CID != cid {
+				if deleteErr := m.cloud.DeleteStemcell(cid); deleteErr != nil {
+					return bosherr.WrapErrorf(err, "saving stemcell record in repo (cid=%s, stemcell=%s); the orphaned stemcell could not be deleted either: %s", cid, extractedStemcell, deleteErr.Error())
+				}
 			}
 			return bosherr.WrapErrorf(err, "saving stemcell record in repo (cid=%s, stemcell=%s)", cid, extractedStemcell)
 		}

@@ -303,6 +303,20 @@ var _ = Describe("Manager", func() {
 					Expect(err.Error()).To(ContainSubstring("fake-delete-error"))
 				})
 			})
+
+			Context("when the returned CID was already tracked in the repo", func() {
+				BeforeEach(func() {
+					fakeRepo.FindReturns(biconfig.StemcellRecord{CID: "fake-stemcell-cid"}, true, nil)
+					fakeRepo.SaveOrUpdateReturns(biconfig.StemcellRecord{}, errors.New("fake-save-error"))
+				})
+
+				It("does not delete the pre-existing stemcell from the cloud", func() {
+					_, err := fakeManager.Upload(expectedExtractedStemcell, fakeStage, true)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("fake-save-error"))
+					Expect(fakeCloud.DeleteStemcellCallCount()).To(Equal(0))
+				})
+			})
 		})
 
 		Context("when no stemcell record exists and fix is requested", func() {
