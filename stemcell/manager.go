@@ -86,7 +86,11 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.S
 		}
 		if err != nil {
 			// Only delete from cloud if this CID is not tracked by any record in state
-			if !m.isCIDTracked(cid) {
+			tracked, lookupErr := m.isCIDTracked(cid)
+			if lookupErr != nil {
+				return bosherr.WrapErrorf(err, "saving stemcell record in repo (cid=%s, stemcell=%s); could not determine whether the CID is tracked, so the stemcell may be orphaned: %s", cid, extractedStemcell, lookupErr.Error())
+			}
+			if !tracked {
 				if deleteErr := m.cloud.DeleteStemcell(cid); deleteErr != nil {
 					return bosherr.WrapErrorf(err, "saving stemcell record in repo (cid=%s, stemcell=%s); the orphaned stemcell could not be deleted either: %s", cid, extractedStemcell, deleteErr.Error())
 				}
@@ -156,15 +160,15 @@ func (m *manager) DeleteUnused(deleteStage biui.Stage) error {
 	return nil
 }
 
-func (m *manager) isCIDTracked(cid string) bool {
+func (m *manager) isCIDTracked(cid string) (bool, error) {
 	records, err := m.repo.All()
 	if err != nil {
-		return true // Defensively assume tracked if repo lookup fails
+		return true, err // Defensively assume tracked if repo lookup fails
 	}
 	for _, record := range records {
 		if record.CID == cid {
-			return true
+			return true, nil
 		}
 	}
-	return false
+	return false, nil
 }

@@ -304,6 +304,25 @@ var _ = Describe("Manager", func() {
 				})
 			})
 
+			Context("when checking whether the CID is tracked also fails", func() {
+				BeforeEach(func() {
+					fakeRepo.AllReturns(nil, errors.New("fake-all-error"))
+				})
+
+				It("does not delete the stemcell from the cloud", func() {
+					_, err := fakeManager.Upload(expectedExtractedStemcell, fakeStage, false)
+					Expect(err).To(HaveOccurred())
+					Expect(fakeCloud.DeleteStemcellCallCount()).To(Equal(0))
+				})
+
+				It("still reports the save failure, mentioning the lookup failure and possible orphan", func() {
+					_, err := fakeManager.Upload(expectedExtractedStemcell, fakeStage, false)
+					Expect(err.Error()).To(ContainSubstring("fake-save-error"))
+					Expect(err.Error()).To(ContainSubstring("fake-all-error"))
+					Expect(err.Error()).To(ContainSubstring("may be orphaned"))
+				})
+			})
+
 			Context("when the returned CID is already tracked in the repo", func() {
 				BeforeEach(func() {
 					fakeRepo.AllReturns([]biconfig.StemcellRecord{{CID: "fake-stemcell-cid"}}, nil)
