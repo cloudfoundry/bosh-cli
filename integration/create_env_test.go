@@ -1140,17 +1140,9 @@ cloud_provider:
 				})
 			})
 
-			// --fix exists for the case where the recorded stemcell CID names
-			// an image on infrastructure the CPI is no longer pointed at. It
-			// must force a re-upload even though nothing else changed, and it
-			// must not leave CurrentStemcellID empty: an empty value makes
-			// FindUnused report every stemcell as unused, which on AWS
-			// deregisters live AMIs (#731).
 			Context("and the same deployment is attempted again with --fix", func() {
-				// A second deploy in the same spec draws a fresh agent ID from
-				// the fake generator, which the shared CreateVM stub (installed
-				// by expectDeployFlow) asserts against a fixed value. These
-				// examples are about stemcell handling, so relax that stub.
+				// A second deploy draws a fresh agent ID, which the shared stub
+				// asserts against a fixed value.
 				relaxCreateVM := func() {
 					mockCloud.CreateVMStub = func(_, _ string, _ biproperty.Map, _ []string, _ map[string]biproperty.Map, _ biproperty.Map) (string, error) {
 						return "fake-vm-cid-1", nil
@@ -1170,7 +1162,7 @@ cloud_provider:
 					Expect(mockCloud.CreateStemcellCallCount()).To(Equal(createStemcellCountBefore + 1))
 				})
 
-				It("leaves CurrentStemcellID pointing at a real record", func() {
+				It("leaves CurrentStemcellID resolving to a real record", func() {
 					relaxCreateVM()
 
 					fixOpts := newDeployOpts(deploymentManifestPath, "")

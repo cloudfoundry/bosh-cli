@@ -66,9 +66,7 @@ var _ = Describe("StemcellRepo", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		// An empty CurrentStemcellID makes FindUnused treat every stemcell as
-		// unused, which on AWS deregisters live AMIs (#731).
-		It("repoints CurrentStemcellID at the replacement record", func() {
+		It("repoints CurrentStemcellID at the replacement rather than leaving it empty", func() {
 			fakeUUIDGenerator.GeneratedUUID = "fake-uuid-1"
 			oldRecord, err := repo.SaveOrUpdate("fake-name", "fake-version", "old-cid", apiVersion)
 			Expect(err).ToNot(HaveOccurred())

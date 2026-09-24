@@ -100,9 +100,7 @@ type DeploymentPreparer struct {
 	targetProvider                          biinstall.TargetProvider
 }
 
-// DeploymentOptions carries the per-run switches for PrepareDeployment. A
-// struct rather than a run of consecutive booleans, which are easy to transpose
-// at a call site.
+// DeploymentOptions carries the per-run switches for PrepareDeployment.
 type DeploymentOptions struct {
 	Recreate                bool
 	RecreatePersistentDisks bool

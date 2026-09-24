@@ -691,10 +691,7 @@ var _ = Describe("CreateEnvCmd", func() {
 				Expect(mockDeployer.DeployCallCount()).To(Equal(1))
 			})
 
-			// Repointing at new infrastructure need not change the manifest,
-			// releases or stemcell version, so without this a fix run would be
-			// skipped before it ever reached the stemcell upload.
-			It("deploys if `fix` flag is specified", func() {
+			It("deploys if `fix` flag is specified, even with no manifest or release changes", func() {
 				defaultCreateEnvOpts.Fix = true
 
 				err := command.Run(fakeStage, defaultCreateEnvOpts)

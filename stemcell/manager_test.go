@@ -172,9 +172,6 @@ var _ = Describe("Manager", func() {
 				Expect(fakeStage.PerformCalls[0].SkipError.Error()).To(MatchRegexp("Stemcell already uploaded: Found stemcell: .*fake-existing-cid.*"))
 			})
 
-			// The repo matches on name and version alone, so a record left over
-			// from different infrastructure still "matches" even though its CID
-			// names an image that does not exist where the CPI is now pointed.
 			Context("when fix is requested", func() {
 				BeforeEach(func() {
 					err := stemcellRepo.UpdateCurrent(foundStemcellRecord.ID)
@@ -207,10 +204,7 @@ var _ = Describe("Manager", func() {
 					Expect(stemcellRecords[0].CID).To(Equal("fake-stemcell-cid"))
 				})
 
-				// An empty CurrentStemcellID makes FindUnused report every
-				// stemcell as unused, which on AWS deregisters live AMIs (#731),
-				// and makes delete-env fall back to CPI API version 1.
-				It("keeps CurrentStemcellID pointing at the replacement record", func() {
+				It("never leaves CurrentStemcellID empty, which would strand delete-env on CPI api version 1", func() {
 					_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
 					Expect(err).ToNot(HaveOccurred())
 
@@ -220,7 +214,7 @@ var _ = Describe("Manager", func() {
 					Expect(currentRecord.CID).To(Equal("fake-stemcell-cid"))
 				})
 
-				It("reports no unused stemcells afterwards", func() {
+				It("does not report live stemcells as unused, which on AWS would deregister the AMI", func() {
 					_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
 					Expect(err).ToNot(HaveOccurred())
 
@@ -229,10 +223,7 @@ var _ = Describe("Manager", func() {
 					Expect(unused).To(BeEmpty(), "a blanked CurrentStemcellID would mark every stemcell unused")
 				})
 
-				// Deleting it would ask the CPI to remove a CID it does not
-				// have, and would destroy the image the deployment can still be
-				// rolled back onto.
-				It("does not delete the old stemcell from the cloud", func() {
+				It("leaves the replaced image in the cloud as the rollback target", func() {
 					_, err := manager.Upload(expectedExtractedStemcell, fakeStage, true)
 					Expect(err).ToNot(HaveOccurred())
 
@@ -246,10 +237,7 @@ var _ = Describe("Manager", func() {
 					Expect(fakeStage.PerformCalls[0].SkipError).ToNot(HaveOccurred())
 				})
 
-				// create_stemcell moves gigabytes over the network and is the
-				// most likely thing to fail or be interrupted. State must be
-				// untouched when it does.
-				Context("when the upload fails", func() {
+				Context("when the upload fails partway, as a long transfer may", func() {
 					BeforeEach(func() {
 						fakeCloud.CreateStemcellReturns("", errors.New("fake-create-error"))
 					})
@@ -277,9 +265,7 @@ var _ = Describe("Manager", func() {
 			})
 		})
 
-		// The fs-backed repo fails at Find when writes are broken, so Save
-		// cannot be made to fail independently through it. A fake repo isolates
-		// the path.
+		// A fake repo: the fs-backed one fails at Find before Save is reached.
 		Context("when saving the stemcell record fails", func() {
 			var (
 				fakeRepo    *configfakes.FakeStemcellRepo

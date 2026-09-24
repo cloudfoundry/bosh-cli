@@ -69,14 +69,10 @@ func (r stemcellRepo) Save(name, version, cid string, apiVersion int) (StemcellR
 	return stemcellRecord, err
 }
 
-// SaveOrUpdate records a stemcell, replacing any existing record with the same
-// name and version rather than rejecting it as a duplicate.
-//
-// Replacement is done in a single state write, and CurrentStemcellID is
-// repointed at the replacement record in the same operation. Deleting the old
-// record and saving a new one separately would leave CurrentStemcellID empty in
-// between, and an empty CurrentStemcellID makes FindUnused treat every stemcell
-// as unused -- on AWS that deregisters live AMIs (see #731).
+// SaveOrUpdate replaces any record with the same name and version instead of
+// rejecting it as a duplicate, repointing CurrentStemcellID at the replacement
+// in the same write. An empty CurrentStemcellID makes FindUnused treat every
+// stemcell as unused, which on AWS deregisters live AMIs (#731).
 func (r stemcellRepo) SaveOrUpdate(name, version, cid string, apiVersion int) (StemcellRecord, error) {
 	stemcellRecord := StemcellRecord{}
 
