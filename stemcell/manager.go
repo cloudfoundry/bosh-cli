@@ -85,8 +85,8 @@ func (m *manager) Upload(extractedStemcell ExtractedStemcell, uploadStage biui.S
 			stemcellRecord, err = m.repo.Save(manifest.Name, manifest.Version, cid, manifest.ApiVersion)
 		}
 		if err != nil {
-			// Only delete from cloud if this CID was newly created
-			if !found || foundStemcellRecord.CID != cid {
+			// Only delete from cloud if this CID is not tracked by any record in state
+			if !m.isCIDTracked(cid) {
 				if deleteErr := m.cloud.DeleteStemcell(cid); deleteErr != nil {
 					return bosherr.WrapErrorf(err, "saving stemcell record in repo (cid=%s, stemcell=%s); the orphaned stemcell could not be deleted either: %s", cid, extractedStemcell, deleteErr.Error())
 				}
@@ -154,4 +154,17 @@ func (m *manager) DeleteUnused(deleteStage biui.Stage) error {
 	}
 
 	return nil
+}
+
+func (m *manager) isCIDTracked(cid string) bool {
+	records, err := m.repo.All()
+	if err != nil {
+		return true // Defensively assume tracked if repo lookup fails
+	}
+	for _, record := range records {
+		if record.CID == cid {
+			return true
+		}
+	}
+	return false
 }
