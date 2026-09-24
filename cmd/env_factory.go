@@ -138,7 +138,7 @@ func NewEnvFactory(
 
 		f.stemcellManagerFactory = bistemcell.NewManagerFactory(stemcellRepo)
 		f.vmManagerFactory = bivm.NewManagerFactory(
-			vmRepo, stemcellRepo, diskDeployer, deps.UUIDGen, deps.FS, deps.Logger)
+			vmRepo, diskDeployer, deps.UUIDGen, deps.FS, deps.Logger)
 
 		deploymentRepo := biconfig.NewDeploymentRepo(f.deploymentStateService)
 		releaseRepo := biconfig.NewReleaseRepo(f.deploymentStateService, deps.UUIDGen)

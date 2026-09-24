@@ -28,7 +28,6 @@ type Manager interface {
 
 type manager struct {
 	vmRepo        biconfig.VMRepo
-	stemcellRepo  biconfig.StemcellRepo
 	diskDeployer  DiskDeployer
 	agentClient   biagentclient.AgentClient
 	cloud         bicloud.Cloud
@@ -41,7 +40,6 @@ type manager struct {
 
 func NewManager(
 	vmRepo biconfig.VMRepo,
-	stemcellRepo biconfig.StemcellRepo,
 	diskDeployer DiskDeployer,
 	agentClient biagentclient.AgentClient,
 	cloud bicloud.Cloud,
@@ -54,7 +52,6 @@ func NewManager(
 		cloud:         cloud,
 		agentClient:   agentClient,
 		vmRepo:        vmRepo,
-		stemcellRepo:  stemcellRepo,
 		diskDeployer:  diskDeployer,
 		uuidGenerator: uuidGenerator,
 		fs:            fs,
@@ -77,7 +74,6 @@ func (m *manager) FindCurrent() (VM, bool, error) {
 	vm := NewVM(
 		vmCID,
 		m.vmRepo,
-		m.stemcellRepo,
 		m.diskDeployer,
 		m.agentClient,
 		m.cloud,
@@ -149,7 +145,6 @@ func (m *manager) Create(stemcell bistemcell.CloudStemcell, deploymentManifest b
 	vm := NewVMWithMetadata(
 		cid,
 		m.vmRepo,
-		m.stemcellRepo,
 		m.diskDeployer,
 		m.agentClient,
 		m.cloud,
