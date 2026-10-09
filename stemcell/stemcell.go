@@ -46,7 +46,7 @@ type Manifest struct {
 }
 
 // SupportsAgentFeature reports capabilities advertised for the packaged agent.
-// Missing capabilities retain legacy behavior.
+// Absent capabilities return false.
 func (m Manifest) SupportsAgentFeature(feature string) bool {
 	return slices.Contains(m.AgentFeatures, feature)
 }
