@@ -6,7 +6,7 @@ require (
 	code.cloudfoundry.org/clock v1.91.0
 	code.cloudfoundry.org/workpool v0.0.0-20250911194158-1489753f182e
 	github.com/cheggaaa/pb/v3 v3.2.1
-	github.com/cloudfoundry/bosh-agent/v2 v2.898.0
+	github.com/cloudfoundry/bosh-agent/v2 v2.900.1-0.20261009183247-50adbab21696
 	github.com/cloudfoundry/bosh-davcli v0.0.513
 	github.com/cloudfoundry/bosh-gcscli v0.0.421
 	github.com/cloudfoundry/bosh-s3cli v0.0.442
