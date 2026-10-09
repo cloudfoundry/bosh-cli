@@ -2,6 +2,7 @@ package cmd
 
 import (
 	bihttpagent "github.com/cloudfoundry/bosh-agent/v2/agentclient/http"
+	"github.com/cloudfoundry/bosh-agent/v2/agentpassword"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	bihttpclient "github.com/cloudfoundry/bosh-utils/httpclient"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -199,6 +200,19 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, opts Deployment
 	if isDeployed && !recreate && !recreatePersistentDisks && !fix {
 		c.ui.BeginLinef("No deployment, stemcell or release changes. Skipping deploy.\n")
 		return nil
+	}
+
+	if extractedStemcell.Manifest().SupportsAgentFeature(agentpassword.Feature) {
+		err = hashCPIAgentMbus(installationManifest.Properties)
+		if err != nil {
+			return bosherr.WrapError(err, "Hashing CPI agent HTTP password")
+		}
+		for i := range deploymentManifest.ResourcePools {
+			err = hashResourcePoolMbusURLs(deploymentManifest.ResourcePools[i].Env)
+			if err != nil {
+				return bosherr.WrapError(err, "Hashing resource pool agent HTTP passwords")
+			}
+		}
 	}
 
 	err = c.cpiInstaller.WithInstalledCpiRelease(installationManifest, target, stage, func(installation biinstall.Installation) error {
