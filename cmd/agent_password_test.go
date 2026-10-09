@@ -25,7 +25,7 @@ var _ = Describe("hashCPIAgentMbus", func() {
 		Expect(properties["unrelated"]).To(Equal("preserved"))
 
 		verifierStr := "bosh-hmac-sha256$" + hashed[len("https://vcap:bosh-hmac-sha256$"):len(hashed)-len("@0.0.0.0:6868")]
-		verifier, err := agentpassword.ParseVerifier(verifierStr)
+		verifier, err := agentpassword.ParseHashedPassword(verifierStr)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(verifier.Matches("original-password")).To(BeTrue())
 	})
@@ -88,7 +88,7 @@ var _ = Describe("hashResourcePoolMbusURLs", func() {
 		Expect(env["unrelated"]).To(Equal("preserved"))
 
 		verifierStr := "bosh-hmac-sha256$" + hashed[len("https://vcap:bosh-hmac-sha256$"):len(hashed)-len("@0.0.0.0:6868")]
-		verifier, err := agentpassword.ParseVerifier(verifierStr)
+		verifier, err := agentpassword.ParseHashedPassword(verifierStr)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(verifier.Matches("original-password")).To(BeTrue())
 	})

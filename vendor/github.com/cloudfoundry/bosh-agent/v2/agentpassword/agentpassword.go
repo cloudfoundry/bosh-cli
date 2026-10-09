@@ -7,6 +7,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 )
@@ -14,21 +15,25 @@ import (
 const (
 	Feature = "http-password-hmac-sha256"
 
+	// MaxPasswordLength is the maximum plaintext password length in bytes.
+	MaxPasswordLength = 1024
+
 	prefix     = "bosh-hmac-sha256$"
 	saltLength = 16
 	keyLength  = 32
 )
 
-type Verifier struct {
+type HashedPassword struct {
 	salt []byte
 	key  []byte
 }
 
-func IsVerifier(password string) bool {
+// IsHashedPassword identifies the reserved prefix; ParseHashedPassword validates its contents.
+func IsHashedPassword(password string) bool {
 	return strings.HasPrefix(password, prefix)
 }
 
-func ParseVerifier(s string) (*Verifier, error) {
+func ParseHashedPassword(s string) (*HashedPassword, error) {
 	if !strings.HasPrefix(s, prefix) {
 		return nil, errors.New("malformed HTTP password verifier: missing prefix")
 	}
@@ -44,10 +49,10 @@ func ParseVerifier(s string) (*Verifier, error) {
 	if err != nil || len(key) != keyLength {
 		return nil, errors.New("malformed HTTP password verifier: invalid key")
 	}
-	return &Verifier{salt: salt, key: key}, nil
+	return &HashedPassword{salt: salt, key: key}, nil
 }
 
-func (v *Verifier) Matches(password string) bool {
+func (v *HashedPassword) Matches(password string) bool {
 	if v == nil {
 		return false
 	}
@@ -71,8 +76,11 @@ func HashURL(raw string) (string, error) {
 	if !hasPassword || password == "" {
 		return "", errors.New("URL missing password")
 	}
-	if IsVerifier(password) {
-		return "", errors.New("URL password is already a verifier")
+	if len(password) > MaxPasswordLength {
+		return "", fmt.Errorf("URL password exceeds %d bytes", MaxPasswordLength)
+	}
+	if IsHashedPassword(password) {
+		return "", errors.New("URL password is already hashed; provide the original password")
 	}
 
 	salt := make([]byte, saltLength)

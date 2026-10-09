@@ -223,7 +223,7 @@ github.com/cheggaaa/pb/v3/termutil
 # github.com/clipperhouse/uax29/v2 v2.7.0
 ## explicit; go 1.18
 github.com/clipperhouse/uax29/v2/graphemes
-# github.com/cloudfoundry/bosh-agent/v2 v2.900.1-0.20261009041322-881bed56c8e2
+# github.com/cloudfoundry/bosh-agent/v2 v2.900.1-0.20261009183247-50adbab21696
 ## explicit; go 1.26.0
 github.com/cloudfoundry/bosh-agent/v2/agentclient
 github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec
