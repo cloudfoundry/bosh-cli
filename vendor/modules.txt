@@ -223,27 +223,27 @@ github.com/cheggaaa/pb/v3/termutil
 # github.com/clipperhouse/uax29/v2 v2.7.0
 ## explicit; go 1.18
 github.com/clipperhouse/uax29/v2/graphemes
-# github.com/cloudfoundry/bosh-agent/v2 v2.901.0
+# github.com/cloudfoundry/bosh-agent/v2 v2.902.0
 ## explicit; go 1.26.0
 github.com/cloudfoundry/bosh-agent/v2/agentclient
 github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec
 github.com/cloudfoundry/bosh-agent/v2/agentclient/fakes
 github.com/cloudfoundry/bosh-agent/v2/agentclient/http
-# github.com/cloudfoundry/bosh-davcli v0.0.514
+# github.com/cloudfoundry/bosh-davcli v0.0.515
 ## explicit; go 1.26.0
 github.com/cloudfoundry/bosh-davcli/client
 github.com/cloudfoundry/bosh-davcli/client/fakes
 github.com/cloudfoundry/bosh-davcli/config
 github.com/cloudfoundry/bosh-davcli/signer
-# github.com/cloudfoundry/bosh-gcscli v0.0.422
+# github.com/cloudfoundry/bosh-gcscli v0.0.423
 ## explicit; go 1.26.0
 github.com/cloudfoundry/bosh-gcscli/client
 github.com/cloudfoundry/bosh-gcscli/config
-# github.com/cloudfoundry/bosh-s3cli v0.0.443
+# github.com/cloudfoundry/bosh-s3cli v0.0.444
 ## explicit; go 1.26.0
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.658
+# github.com/cloudfoundry/bosh-utils v0.0.659
 ## explicit; go 1.26.0
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/blobstorefakes
@@ -371,7 +371,7 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/pprof v0.0.0-20261008003335-7bae8d8c4c9e
+# github.com/google/pprof v0.0.0-20261012231050-2af12c3f4d87
 ## explicit; go 1.26.0
 github.com/google/pprof/profile
 # github.com/google/s2a-go v0.1.11
@@ -658,7 +658,7 @@ golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/windows/registry
-# golang.org/x/telemetry v0.0.0-20261009151841-97e8ea77aa2a
+# golang.org/x/telemetry v0.0.0-20261012234344-3c2f9838340e
 ## explicit; go 1.26.0
 golang.org/x/telemetry/counter
 golang.org/x/telemetry/internal/counter
@@ -694,7 +694,7 @@ golang.org/x/text/unicode/norm
 # golang.org/x/time v0.16.0
 ## explicit; go 1.26.0
 golang.org/x/time/rate
-# golang.org/x/tools v0.51.0
+# golang.org/x/tools v0.52.0
 ## explicit; go 1.26.0
 golang.org/x/tools/cmd/goimports
 golang.org/x/tools/cover
@@ -722,7 +722,7 @@ golang.org/x/tools/internal/stdlib
 golang.org/x/tools/internal/typeparams
 golang.org/x/tools/internal/typesinternal
 golang.org/x/tools/internal/versions
-# google.golang.org/api v0.301.0
+# google.golang.org/api v0.302.0
 ## explicit; go 1.26.0
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
@@ -740,13 +740,13 @@ google.golang.org/api/storage/v1
 google.golang.org/api/transport
 google.golang.org/api/transport/grpc
 google.golang.org/api/transport/http
-# google.golang.org/genproto v0.0.0-20261005182115-fad411399dd8
+# google.golang.org/genproto v0.0.0-20261012220534-4341edf3f941
 ## explicit; go 1.26.0
 google.golang.org/genproto/googleapis/type/calendarperiod
 google.golang.org/genproto/googleapis/type/date
 google.golang.org/genproto/googleapis/type/expr
 google.golang.org/genproto/googleapis/type/timeofday
-# google.golang.org/genproto/googleapis/api v0.0.0-20261005182115-fad411399dd8
+# google.golang.org/genproto/googleapis/api v0.0.0-20261012220534-4341edf3f941
 ## explicit; go 1.26.0
 google.golang.org/genproto/googleapis/api
 google.golang.org/genproto/googleapis/api/annotations
@@ -755,7 +755,7 @@ google.golang.org/genproto/googleapis/api/expr/v1alpha1
 google.golang.org/genproto/googleapis/api/label
 google.golang.org/genproto/googleapis/api/metric
 google.golang.org/genproto/googleapis/api/monitoredres
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20261005182115-fad411399dd8
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20261012220534-4341edf3f941
 ## explicit; go 1.26.0
 google.golang.org/genproto/googleapis/rpc/code
 google.golang.org/genproto/googleapis/rpc/errdetails
