@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"path/filepath"
 	"regexp"
 
+	"github.com/cloudfoundry/bosh-agent/v2/agentpassword"
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -555,6 +557,201 @@ var _ = Describe("CreateEnvCmd", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(mockInstaller.InstallCallCount()).To(Equal(1))
 			Expect(mockCloudFactory.NewCloudCallCount()).To(Equal(1))
+		})
+
+		Context("when stemcell advertises http agent password verifiers feature", func() {
+			JustBeforeEach(func() {
+				extractedStemcell = bistemcell.NewExtractedStemcell(
+					bistemcell.Manifest{
+						Name:            "fake-stemcell-name",
+						Version:         "fake-stemcell-version",
+						SHA1:            "fake-stemcell-sha1",
+						ApiVersion:      stemcellApiVersion,
+						CloudProperties: biproperty.Map{},
+						AgentFeatures:   []string{agentpassword.Feature},
+					},
+					"fake-extracted-path",
+					nil,
+					fs,
+				)
+				fakeStemcellExtractor.SetExtractBehavior(stemcellTarballPath, extractedStemcell, nil)
+
+				installationManifest.Properties = biproperty.Map{
+					"agent": biproperty.Map{
+						"mbus": "https://vcap:some-secret-pw@127.0.0.1:6868",
+					},
+				}
+				installationManifest.Mbus = "https://vcap:director-client-pw@127.0.0.1:6868"
+				fakeInstallationParser.ParseReturns(installationManifest, nil)
+
+				boshDeploymentManifest.ResourcePools[0].Env = biproperty.Map{
+					"bosh": biproperty.Map{
+						"mbus": biproperty.Map{
+							"urls": biproperty.List{"https://vcap:rp-secret-pw@127.0.0.1:6868"},
+						},
+					},
+				}
+				fakeDeploymentParser.ParseReturns(boshDeploymentManifest, nil)
+			})
+
+			It("hashes installationManifest agent.mbus before passing to CPI installer, while preserving client mbus", func() {
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(mockInstaller.InstallCallCount()).To(Equal(1))
+				installedManifest, _ := mockInstaller.InstallArgsForCall(0)
+				agentProps := installedManifest.Properties["agent"].(biproperty.Map)
+				Expect(agentProps["mbus"]).To(HavePrefix("https://vcap:bosh-hmac-sha256$"))
+
+				Expect(mockAgentClientFactory.NewAgentClientCallCount()).To(Equal(1))
+				_, agentClientMbus, _ := mockAgentClientFactory.NewAgentClientArgsForCall(0)
+				Expect(agentClientMbus).To(Equal("https://vcap:director-client-pw@127.0.0.1:6868"))
+
+				Expect(mockBlobstoreFactory.CreateCallCount()).To(Equal(1))
+				blobstoreMbus, _ := mockBlobstoreFactory.CreateArgsForCall(0)
+				Expect(blobstoreMbus).To(Equal("https://vcap:director-client-pw@127.0.0.1:6868"))
+			})
+
+			It("hashes every HTTPS mbus URL in every resource pool while preserving client mbus", func() {
+				originalURLs := map[string]biproperty.List{
+					"unused-pool": {
+						"https://vcap:unused-first-password@127.0.0.1:6868",
+						"https://vcap:unused-second-password@127.0.0.2:6868",
+					},
+					"selected-pool": {
+						"https://vcap:selected-first-password@127.0.0.3:6868",
+						"https://vcap:selected-second-password@127.0.0.4:6868",
+					},
+				}
+				poolTemplate := boshDeploymentManifest.ResourcePools[0]
+				boshDeploymentManifest.ResourcePools = nil
+				boshDeploymentManifest.Jobs[0].ResourcePool = "selected-pool"
+				for _, name := range []string{"unused-pool", "selected-pool"} {
+					pool := poolTemplate
+					pool.Name = name
+					pool.Env = biproperty.Map{
+						"bosh": biproperty.Map{
+							"mbus": biproperty.Map{
+								"urls": append(biproperty.List{}, originalURLs[name]...),
+							},
+						},
+					}
+					boshDeploymentManifest.ResourcePools = append(boshDeploymentManifest.ResourcePools, pool)
+				}
+				fakeDeploymentParser.ParseReturns(boshDeploymentManifest, nil)
+
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(mockDeployer.DeployCallCount()).To(Equal(1))
+				_, deployedManifest, _, _, _, _, _, _ := mockDeployer.DeployArgsForCall(0)
+				Expect(deployedManifest.ResourcePools).To(HaveLen(2))
+				for _, pool := range deployedManifest.ResourcePools {
+					mbus := pool.Env["bosh"].(biproperty.Map)["mbus"].(biproperty.Map)
+					urls := mbus["urls"].(biproperty.List)
+					Expect(urls).To(HaveLen(2))
+					for i, raw := range urls {
+						hashedURL, err := url.Parse(raw.(string))
+						Expect(err).NotTo(HaveOccurred())
+						hashedPassword, _ := hashedURL.User.Password()
+						verifier, err := agentpassword.ParseHashedPassword(hashedPassword)
+						Expect(err).NotTo(HaveOccurred())
+						originalURL, err := url.Parse(originalURLs[pool.Name][i].(string))
+						Expect(err).NotTo(HaveOccurred())
+						originalPassword, _ := originalURL.User.Password()
+						Expect(verifier.Matches(originalPassword)).To(BeTrue())
+					}
+				}
+
+				Expect(mockAgentClientFactory.NewAgentClientCallCount()).To(Equal(1))
+				_, agentClientMbus, _ := mockAgentClientFactory.NewAgentClientArgsForCall(0)
+				Expect(agentClientMbus).To(Equal("https://vcap:director-client-pw@127.0.0.1:6868"))
+			})
+
+			Context("when cloud_provider.properties.agent.mbus is an https URL with no password", func() {
+				JustBeforeEach(func() {
+					installationManifest.Properties = biproperty.Map{
+						"agent": biproperty.Map{
+							"mbus": "https://vcap@127.0.0.1:6868",
+						},
+					}
+					fakeInstallationParser.ParseReturns(installationManifest, nil)
+				})
+
+				It("returns an error containing 'URL missing password' and does not install or deploy", func() {
+					err := command.Run(fakeStage, defaultCreateEnvOpts)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("URL missing password"))
+					Expect(mockInstaller.InstallCallCount()).To(Equal(0))
+					Expect(mockDeployer.DeployCallCount()).To(Equal(0))
+				})
+			})
+
+			Context("when a resource pool env.bosh.mbus.urls entry is an https URL with no password", func() {
+				JustBeforeEach(func() {
+					boshDeploymentManifest.ResourcePools[0].Env = biproperty.Map{
+						"bosh": biproperty.Map{
+							"mbus": biproperty.Map{
+								"urls": biproperty.List{"https://vcap@127.0.0.1:6868"},
+							},
+						},
+					}
+					fakeDeploymentParser.ParseReturns(boshDeploymentManifest, nil)
+				})
+
+				It("returns an error containing 'URL missing password' and does not install or deploy", func() {
+					err := command.Run(fakeStage, defaultCreateEnvOpts)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("URL missing password"))
+					Expect(mockInstaller.InstallCallCount()).To(Equal(0))
+					Expect(mockDeployer.DeployCallCount()).To(Equal(0))
+				})
+			})
+		})
+
+		Context("when stemcell does not advertise http agent password verifiers feature", func() {
+			JustBeforeEach(func() {
+				installationManifest.Properties = biproperty.Map{
+					"agent": biproperty.Map{
+						"mbus": "https://vcap:some-secret-pw@127.0.0.1:6868",
+					},
+				}
+				installationManifest.Mbus = "https://vcap:director-client-pw@127.0.0.1:6868"
+				fakeInstallationParser.ParseReturns(installationManifest, nil)
+
+				boshDeploymentManifest.ResourcePools[0].Env = biproperty.Map{
+					"bosh": biproperty.Map{
+						"mbus": biproperty.Map{
+							"urls": biproperty.List{"https://vcap:rp-secret-pw@127.0.0.1:6868"},
+						},
+					},
+				}
+				fakeDeploymentParser.ParseReturns(boshDeploymentManifest, nil)
+			})
+
+			It("leaves installationManifest agent.mbus unchanged", func() {
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(mockInstaller.InstallCallCount()).To(Equal(1))
+				installedManifest, _ := mockInstaller.InstallArgsForCall(0)
+				agentProps := installedManifest.Properties["agent"].(biproperty.Map)
+				Expect(agentProps["mbus"]).To(Equal("https://vcap:some-secret-pw@127.0.0.1:6868"))
+			})
+
+			It("passes resource pool URLs to the deployer unchanged", func() {
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(mockDeployer.DeployCallCount()).To(Equal(1))
+				_, deployedManifest, _, _, _, _, _, _ := mockDeployer.DeployArgsForCall(0)
+				Expect(deployedManifest.ResourcePools).To(HaveLen(1))
+				boshMap := deployedManifest.ResourcePools[0].Env["bosh"].(biproperty.Map)
+				mbusMap := boshMap["mbus"].(biproperty.Map)
+				urls := mbusMap["urls"].(biproperty.List)
+				Expect(urls).To(HaveLen(1))
+				Expect(urls[0].(string)).To(Equal("https://vcap:rp-secret-pw@127.0.0.1:6868"))
+			})
 		})
 
 		It("adds a new 'installing CPI' event logger stage", func() {

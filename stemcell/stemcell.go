@@ -3,6 +3,7 @@ package stemcell
 import (
 	"fmt"
 	"path/filepath"
+	"slices"
 
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -39,8 +40,15 @@ type Manifest struct {
 	SHA1            string         `yaml:"sha1"`
 	BoshProtocol    string         `yaml:"bosh_protocol"`
 	StemcellFormats []string       `yaml:"stemcell_formats,omitempty"`
+	AgentFeatures   []string       `yaml:"agent_features,omitempty"`
 	ApiVersion      int            `yaml:"api_version,omitempty"`
 	CloudProperties biproperty.Map `yaml:"cloud_properties"`
+}
+
+// SupportsAgentFeature reports capabilities advertised for the packaged agent.
+// Absent capabilities return false.
+func (m Manifest) SupportsAgentFeature(feature string) bool {
+	return slices.Contains(m.AgentFeatures, feature)
 }
 
 func NewExtractedStemcell(

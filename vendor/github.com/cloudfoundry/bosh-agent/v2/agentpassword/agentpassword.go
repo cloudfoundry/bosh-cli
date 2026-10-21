@@ -1,0 +1,101 @@
+package agentpassword
+
+import (
+	"crypto/hmac"
+	"crypto/rand"
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/base64"
+	"errors"
+	"fmt"
+	"net/url"
+	"strings"
+)
+
+const (
+	Feature = "http-password-hmac-sha256"
+
+	// MaxPasswordLength is the maximum plaintext password length in bytes.
+	MaxPasswordLength = 1024
+
+	prefix     = "bosh-hmac-sha256$"
+	saltLength = 16
+	keyLength  = 32
+)
+
+type HashedPassword struct {
+	salt []byte
+	key  []byte
+}
+
+// IsHashedPassword identifies the reserved prefix; ParseHashedPassword validates its contents.
+func IsHashedPassword(password string) bool {
+	return strings.HasPrefix(password, prefix)
+}
+
+func ParseHashedPassword(s string) (*HashedPassword, error) {
+	if !strings.HasPrefix(s, prefix) {
+		return nil, errors.New("malformed HTTP password verifier: missing prefix")
+	}
+	parts := strings.Split(s, "$")
+	if len(parts) != 3 {
+		return nil, errors.New("malformed HTTP password verifier: invalid part count")
+	}
+	salt, err := base64.RawURLEncoding.Strict().DecodeString(parts[1])
+	if err != nil || len(salt) != saltLength {
+		return nil, errors.New("malformed HTTP password verifier: invalid salt")
+	}
+	key, err := base64.RawURLEncoding.Strict().DecodeString(parts[2])
+	if err != nil || len(key) != keyLength {
+		return nil, errors.New("malformed HTTP password verifier: invalid key")
+	}
+	return &HashedPassword{salt: salt, key: key}, nil
+}
+
+func (v *HashedPassword) Matches(password string) bool {
+	if v == nil {
+		return false
+	}
+	mac := hmac.New(sha256.New, v.salt)
+	_, _ = mac.Write([]byte(password))
+	return subtle.ConstantTimeCompare(v.key, mac.Sum(nil)) == 1
+}
+
+func HashURL(raw string) (string, error) {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return "", errors.New("invalid URL")
+	}
+	if u.Scheme != "https" {
+		return raw, nil
+	}
+	if u.User == nil {
+		return "", errors.New("URL missing userinfo")
+	}
+	password, hasPassword := u.User.Password()
+	if !hasPassword || password == "" {
+		return "", errors.New("URL missing password")
+	}
+	if len(password) > MaxPasswordLength {
+		return "", fmt.Errorf("URL password exceeds %d bytes", MaxPasswordLength)
+	}
+	if IsHashedPassword(password) {
+		return "", errors.New("URL password is already hashed; provide the original password")
+	}
+
+	salt := make([]byte, saltLength)
+	if _, err := rand.Read(salt); err != nil {
+		return "", errors.New("failed to generate random salt")
+	}
+
+	mac := hmac.New(sha256.New, salt)
+	_, _ = mac.Write([]byte(password))
+	key := mac.Sum(nil)
+
+	encodedSalt := base64.RawURLEncoding.EncodeToString(salt)
+	encodedKey := base64.RawURLEncoding.EncodeToString(key)
+	verifier := prefix + encodedSalt + "$" + encodedKey
+
+	u.User = url.UserPassword(u.User.Username(), verifier)
+	return u.String(), nil
+}
