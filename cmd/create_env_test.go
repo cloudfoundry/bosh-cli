@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"path/filepath"
 	"regexp"
 
@@ -611,19 +612,56 @@ var _ = Describe("CreateEnvCmd", func() {
 				Expect(blobstoreMbus).To(Equal("https://vcap:director-client-pw@127.0.0.1:6868"))
 			})
 
-			It("replaces resource pool env.bosh.mbus.urls https entries with a verifier while preserving client mbus", func() {
+			It("hashes every HTTPS mbus URL in every resource pool while preserving client mbus", func() {
+				originalURLs := map[string]biproperty.List{
+					"unused-pool": {
+						"https://vcap:unused-first-password@127.0.0.1:6868",
+						"https://vcap:unused-second-password@127.0.0.2:6868",
+					},
+					"selected-pool": {
+						"https://vcap:selected-first-password@127.0.0.3:6868",
+						"https://vcap:selected-second-password@127.0.0.4:6868",
+					},
+				}
+				poolTemplate := boshDeploymentManifest.ResourcePools[0]
+				boshDeploymentManifest.ResourcePools = nil
+				boshDeploymentManifest.Jobs[0].ResourcePool = "selected-pool"
+				for _, name := range []string{"unused-pool", "selected-pool"} {
+					pool := poolTemplate
+					pool.Name = name
+					pool.Env = biproperty.Map{
+						"bosh": biproperty.Map{
+							"mbus": biproperty.Map{
+								"urls": append(biproperty.List{}, originalURLs[name]...),
+							},
+						},
+					}
+					boshDeploymentManifest.ResourcePools = append(boshDeploymentManifest.ResourcePools, pool)
+				}
+				fakeDeploymentParser.ParseReturns(boshDeploymentManifest, nil)
+
 				err := command.Run(fakeStage, defaultCreateEnvOpts)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(mockDeployer.DeployCallCount()).To(Equal(1))
 				_, deployedManifest, _, _, _, _, _, _ := mockDeployer.DeployArgsForCall(0)
-				Expect(deployedManifest.ResourcePools).To(HaveLen(1))
-				boshMap := deployedManifest.ResourcePools[0].Env["bosh"].(biproperty.Map)
-				mbusMap := boshMap["mbus"].(biproperty.Map)
-				urls := mbusMap["urls"].(biproperty.List)
-				Expect(urls).To(HaveLen(1))
-				Expect(urls[0].(string)).To(HavePrefix("https://vcap:bosh-hmac-sha256$"))
-				Expect(urls[0].(string)).To(HaveSuffix("@127.0.0.1:6868"))
+				Expect(deployedManifest.ResourcePools).To(HaveLen(2))
+				for _, pool := range deployedManifest.ResourcePools {
+					mbus := pool.Env["bosh"].(biproperty.Map)["mbus"].(biproperty.Map)
+					urls := mbus["urls"].(biproperty.List)
+					Expect(urls).To(HaveLen(2))
+					for i, raw := range urls {
+						hashedURL, err := url.Parse(raw.(string))
+						Expect(err).NotTo(HaveOccurred())
+						hashedPassword, _ := hashedURL.User.Password()
+						verifier, err := agentpassword.ParseHashedPassword(hashedPassword)
+						Expect(err).NotTo(HaveOccurred())
+						originalURL, err := url.Parse(originalURLs[pool.Name][i].(string))
+						Expect(err).NotTo(HaveOccurred())
+						originalPassword, _ := originalURL.User.Password()
+						Expect(verifier.Matches(originalPassword)).To(BeTrue())
+					}
+				}
 
 				Expect(mockAgentClientFactory.NewAgentClientCallCount()).To(Equal(1))
 				_, agentClientMbus, _ := mockAgentClientFactory.NewAgentClientArgsForCall(0)

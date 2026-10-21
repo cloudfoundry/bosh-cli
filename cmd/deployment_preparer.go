@@ -207,6 +207,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, opts Deployment
 		if err != nil {
 			return bosherr.WrapError(err, "Hashing CPI agent HTTP password")
 		}
+		// Hash all pools, including unused ones, so their HTTPS passwords are not left in plaintext.
 		for i := range deploymentManifest.ResourcePools {
 			err = hashResourcePoolMbusURLs(deploymentManifest.ResourcePools[i].Env)
 			if err != nil {
