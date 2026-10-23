@@ -104,11 +104,14 @@ Task 123 state
 			Expect(fakeUI.Blocks).To(BeNil())
 		})
 
-		It("panics if cannot unmarshal event chunk", func() {
+		It("reports malformed event chunks and continues", func() {
 			reporterWithFakeUI.TaskStarted(123)
 			Expect(func() {
 				reporterWithFakeUI.TaskOutputChunk(123, []byte("-\n"))
-			}).To(Panic())
+				reporterWithFakeUI.TaskOutputChunk(123, []byte(`{"time":1454193505,"error":{"code":100,"message":"later event"}}`+"\n"))
+			}).NotTo(Panic())
+			Expect(fakeUI.Blocks).To(ContainElement(ContainSubstring("Unable to parse task event")))
+			Expect(fakeUI.Blocks).To(ContainElement("Error: later event"))
 		})
 
 		It("prints content as blocks", func() {

@@ -55,6 +55,14 @@ var _ = Describe("InspectStemcellTarballCmd", func() {
 			command = cmd.NewInspectStemcellTarballCmd(stemcellArchiveFactory, ui)
 		})
 
+		It("returns errors for non-string cloud properties", func() {
+			for _, key := range []string{"infrastructure", "hypervisor"} {
+				stemcellMetadata.CloudProperties = biproperty.Map{key: []interface{}{"invalid"}}
+				archive.InfoReturns(stemcellMetadata, nil)
+				Expect(command.Run(inspectStemcellTarballOpts)).To(MatchError(ContainSubstring("to be a string")))
+			}
+		})
+
 		Context("when infrastructure is known", func() {
 			It("returns a table with name, os, version, and infrastructure", func() {
 				archive.InfoReturns(stemcellMetadata, nil)

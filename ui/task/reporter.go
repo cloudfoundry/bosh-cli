@@ -151,7 +151,8 @@ func (r *ReporterImpl) showEvent(id int, str string) {
 
 	err := json.Unmarshal([]byte(str), &event)
 	if err != nil {
-		panic(fmt.Sprintf("unmarshal chunk '%s'", str))
+		r.ui.PrintErrorBlock(fmt.Sprintf("Unable to parse task event: %s", err))
+		return
 	}
 
 	for _, ev := range r.events[id] {

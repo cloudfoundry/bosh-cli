@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
 	boshdir "github.com/cloudfoundry/bosh-cli/v7/director"
 	biui "github.com/cloudfoundry/bosh-cli/v7/ui"
@@ -39,6 +41,15 @@ func (c InspectStemcellTarballCmd) Run(opts InspectStemcellTarballOpts) error {
 		hypervisor = "-"
 	}
 
+	infrastructureName, ok := infrastructure.(string)
+	if !ok {
+		return fmt.Errorf("expected stemcell infrastructure to be a string, got %T", infrastructure)
+	}
+	hypervisorName, ok := hypervisor.(string)
+	if !ok {
+		return fmt.Errorf("expected stemcell hypervisor to be a string, got %T", hypervisor)
+	}
+
 	metadataTable := boshtbl.Table{
 		Content: "stemcell-metadata",
 		Header: []boshtbl.Header{
@@ -54,8 +65,8 @@ func (c InspectStemcellTarballCmd) Run(opts InspectStemcellTarballOpts) error {
 				boshtbl.NewValueString(metadata.Name),
 				boshtbl.NewValueString(metadata.OS),
 				boshtbl.NewValueString(metadata.Version),
-				boshtbl.NewValueString(infrastructure.(string)),
-				boshtbl.NewValueString(hypervisor.(string)),
+				boshtbl.NewValueString(infrastructureName),
+				boshtbl.NewValueString(hypervisorName),
 			},
 		},
 	}
