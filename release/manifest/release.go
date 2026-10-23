@@ -6,6 +6,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v3"
+
+	"github.com/cloudfoundry/bosh-cli/v7/common/util"
 )
 
 type Manifest struct {
@@ -77,5 +79,20 @@ func NewManifestFromPath(path string, fs boshsys.FileSystem) (Manifest, error) {
 		return Manifest{}, bosherr.WrapError(err, "Parsing release manifest")
 	}
 
+	components := []string{manifest.Name, manifest.Version}
+	for _, job := range manifest.Jobs {
+		components = append(components, job.Name)
+	}
+	for _, pkg := range manifest.Packages {
+		components = append(components, pkg.Name)
+	}
+	for _, pkg := range manifest.CompiledPkgs {
+		components = append(components, pkg.Name)
+	}
+	for _, component := range components {
+		if component != "" && !util.IsPathComponent(component) {
+			return Manifest{}, bosherr.Error("Invalid release manifest file component")
+		}
+	}
 	return manifest, nil
 }

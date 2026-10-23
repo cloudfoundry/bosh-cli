@@ -9,6 +9,7 @@ import (
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
 	. "github.com/cloudfoundry/bosh-cli/v7/cmd/opts" //nolint:staticcheck
+	"github.com/cloudfoundry/bosh-cli/v7/common/util"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	boshui "github.com/cloudfoundry/bosh-cli/v7/ui"
@@ -59,6 +60,10 @@ func (c CreateReleaseCmd) Run(opts CreateReleaseOpts) (boshrel.Release, error) {
 	dstPath := opts.Tarball.ExpandedPath
 
 	if dstPath != "" {
+		if (strings.Contains(dstPath, "((name))") && !util.IsPathComponent(release.Name())) ||
+			(strings.Contains(dstPath, "((version))") && !util.IsPathComponent(release.Version())) {
+			return nil, bosherr.Error("Invalid release archive filename component")
+		}
 		path, err := c.releaseWriter.Write(release, nil)
 		if err != nil {
 			return nil, err

@@ -8,6 +8,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
+	"github.com/cloudfoundry/bosh-cli/v7/common/util"
 	bicrypto "github.com/cloudfoundry/bosh-cli/v7/crypto"
 )
 
@@ -59,6 +60,9 @@ func (c *renderedJobListCompressor) Compress(list RenderedJobList) (RenderedJobL
 
 	// copy rendered job templates into a sub-dir
 	for _, renderedJob := range list.All() {
+		if !util.IsPathComponent(renderedJob.Job().Name()) {
+			return nil, bosherr.Error("Invalid rendered job name")
+		}
 		err = c.fs.CopyDir(renderedJob.Path(), filepath.Join(renderedJobListDir, renderedJob.Job().Name()))
 		if err != nil {
 			return nil, bosherr.WrapError(err, "Creating rendered job directory")

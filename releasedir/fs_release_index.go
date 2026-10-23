@@ -11,6 +11,7 @@ import (
 	semver "github.com/cppforlife/go-semi-semantic/version"
 	"gopkg.in/yaml.v2"
 
+	"github.com/cloudfoundry/bosh-cli/v7/common/util"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshrelman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 )
@@ -133,6 +134,9 @@ func (i FSReleaseIndex) Contains(release boshrel.Release) (bool, error) {
 }
 
 func (i FSReleaseIndex) Add(manifest boshrelman.Manifest) error {
+	if manifest.Version != "" && !util.IsPathComponent(manifest.Version) {
+		return bosherr.Error("Invalid release version")
+	}
 	if len(manifest.Name) == 0 {
 		return bosherr.Error("Expected non-empty release name")
 	}
@@ -189,6 +193,9 @@ func (i FSReleaseIndex) indexPath(name string) string {
 }
 
 func (i FSReleaseIndex) read(name string) (fsReleaseIndexSchema, error) {
+	if !util.IsPathComponent(name) {
+		return fsReleaseIndexSchema{}, bosherr.Error("Invalid release name")
+	}
 	var schema fsReleaseIndexSchema
 
 	// Default to an empty map

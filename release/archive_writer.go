@@ -10,6 +10,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
 
+	"github.com/cloudfoundry/bosh-cli/v7/common/util"
 	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	boshlic "github.com/cloudfoundry/bosh-cli/v7/release/license"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
@@ -114,6 +115,9 @@ func (w ArchiveWriter) writeJobs(jobs []*boshjob.Job, stagingDir string) ([]stri
 	jobsFiles = append(jobsFiles, "jobs")
 
 	for _, job := range jobs {
+		if !util.IsPathComponent(job.Name()) {
+			return jobsFiles, bosherr.Error("Invalid archive member name")
+		}
 		err := w.fs.CopyFile(job.ArchivePath(), filepath.Join(jobsPath, job.Name()+".tgz"))
 		if err != nil {
 			return jobsFiles, bosherr.WrapErrorf(err, "Copying job '%s' archive into staging dir", job.Name())
@@ -140,6 +144,9 @@ func (w ArchiveWriter) writePackages(packages []*boshpkg.Package, pkgFpsToSkip [
 	packagesFiles = append(packagesFiles, "packages")
 
 	for _, pkg := range packages {
+		if !util.IsPathComponent(pkg.Name()) {
+			return packagesFiles, bosherr.Error("Invalid archive member name")
+		}
 		if w.shouldSkip(pkg.Fingerprint(), pkgFpsToSkip) {
 			w.logger.Debug(w.logTag, "Package '%s' was filtered out", pkg.Name())
 		} else {
@@ -170,6 +177,9 @@ func (w ArchiveWriter) writeCompiledPackages(compiledPkgs []*boshpkg.CompiledPac
 	compiledPackagesFiles = append(compiledPackagesFiles, "compiled_packages")
 
 	for _, compiledPkg := range compiledPkgs {
+		if !util.IsPathComponent(compiledPkg.Name()) {
+			return compiledPackagesFiles, bosherr.Error("Invalid archive member name")
+		}
 		if w.shouldSkip(compiledPkg.Fingerprint(), pkgFpsToSkip) {
 			w.logger.Debug(w.logTag, "Compiled package '%s' was filtered out", compiledPkg.Name())
 		} else {

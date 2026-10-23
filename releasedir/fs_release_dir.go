@@ -11,6 +11,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	semver "github.com/cppforlife/go-semi-semantic/version"
 
+	"github.com/cloudfoundry/bosh-cli/v7/common/util"
 	boshrel "github.com/cloudfoundry/bosh-cli/v7/release"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
 	boshpkgman "github.com/cloudfoundry/bosh-cli/v7/release/pkg/manifest"
@@ -275,6 +276,9 @@ func (d FSReleaseDir) collectDependentPackages(pkg *boshpkg.Package, allInterest
 
 func (d FSReleaseDir) writeVendoredPackage(pkg *boshpkg.Package) error {
 	name := pkg.Name()
+	if !util.IsPathComponent(name) {
+		return bosherr.Error("Invalid package name")
+	}
 	pkgDirPath := filepath.Join(d.dirPath, "packages", name)
 
 	err := d.fs.RemoveAll(pkgDirPath)

@@ -10,6 +10,8 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
+
+	"github.com/cloudfoundry/bosh-cli/v7/common/util"
 )
 
 type FSIndex struct {
@@ -210,6 +212,9 @@ var (
 )
 
 func (i FSIndex) entries(name string) ([]indexEntry, error) {
+	if !util.IsPathComponent(name) {
+		return nil, bosherr.Error("Invalid index entry name")
+	}
 	indexPath := i.indexPath(name)
 
 	if !i.fs.FileExists(indexPath) {
