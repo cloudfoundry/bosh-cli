@@ -60,10 +60,14 @@ func (e *extractor) Extract(blobID string, digestString string, targetDir string
 
 	existed := e.fs.FileExists(targetDir)
 	if !existed {
-		err = e.fs.MkdirAll(targetDir, os.ModePerm)
+		err = e.fs.MkdirAll(targetDir, os.FileMode(0750))
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Creating target dir: %s", targetDir)
 		}
+	}
+
+	if err := e.fs.Chmod(targetDir, os.FileMode(0750)); err != nil {
+		return bosherr.WrapError(err, "Setting target directory permissions")
 	}
 
 	err = e.compressor.DecompressFileToDir(filePath, targetDir, boshcmd.CompressorOptions{})

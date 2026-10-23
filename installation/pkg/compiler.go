@@ -83,7 +83,7 @@ func (c *compiler) Compile(pkg birelpkg.Compilable) (bistatepkg.CompiledPackageR
 
 		installDir := filepath.Join(c.packagesDir, pkg.Name())
 
-		err = c.fileSystem.MkdirAll(installDir, os.ModePerm)
+		err = c.fileSystem.MkdirAll(installDir, os.FileMode(0750))
 		if err != nil {
 			return record, isCompiledPackage, bosherr.WrapError(err, "Creating package install dir")
 		}

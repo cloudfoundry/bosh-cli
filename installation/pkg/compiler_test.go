@@ -3,6 +3,7 @@ package pkg_test
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	fakeblobstore "github.com/cloudfoundry/bosh-utils/blobstore/blobstorefakes"
@@ -183,6 +184,19 @@ var _ = Describe("PackageCompiler", func() {
 
 				Expect(runner.RunComplexCommands).To(HaveLen(1))
 				Expect(runner.RunComplexCommands[0]).To(Equal(expectedCmd))
+			})
+
+			It("creates the package install dir accessible only to the owner and group", func() {
+				var installDirMode os.FileMode
+				compressor.CompressFilesInDirCallBack = func() {
+					info, err := fs.Stat(installPath)
+					Expect(err).ToNot(HaveOccurred())
+					installDirMode = info.Mode() & os.ModePerm
+				}
+
+				_, _, err := compiler.Compile(pkg)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(installDirMode).To(Equal(os.FileMode(0750)))
 			})
 
 			It("compresses the compiled package", func() {
