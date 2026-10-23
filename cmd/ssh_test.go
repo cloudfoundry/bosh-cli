@@ -331,7 +331,7 @@ var _ = Describe("SSH", func() {
 						GatewayPrivateKeyPath: "",
 
 						SOCKS5Proxy: "",
-						RawOpts:     []string{"-o", "StrictHostKeyChecking=no"},
+						RawOpts:     []string{"-o", "StrictHostKeyChecking=yes"},
 					}
 					Expect(conn).To(Equal(expectedConn))
 

@@ -91,8 +91,11 @@ func (a SSHArgs) OptsForHost(host boshdir.Host) []string {
 		"-o", "PasswordAuthentication=no",
 		"-o", "IdentitiesOnly=yes",
 		"-o", "IdentityFile=" + a.PrivKeyFile.Name(),
-		"-o", "UserKnownHostsFile=" + a.KnownHostsFile.Name(),
 	}...)
+
+	if host.HostPublicKey != "" {
+		cmdOpts = append(cmdOpts, "-o", "UserKnownHostsFile="+a.KnownHostsFile.Name())
+	}
 
 	gwUsername, gwHost, gwPrivKeyPath := a.gwOpts()
 

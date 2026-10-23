@@ -11,9 +11,11 @@ type ClientOpts struct {
 	Host string
 	Port int
 
-	User       string
-	Password   string
-	PrivateKey string
+	User           string
+	Password       string
+	PrivateKey     string
+	HostPublicKey  string
+	KnownHostsFile string
 
 	DisableSOCKS bool
 }

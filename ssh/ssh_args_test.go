@@ -34,7 +34,7 @@ var _ = Describe("SSHArgs", func() {
 		fs = fakesys.NewFakeFileSystem()
 		privKeyFile = fakesys.NewFakeFile("/tmp/priv-key", fs)
 		knownHostsFile = fakesys.NewFakeFile("/tmp/known-hosts", fs)
-		host = boshdir.Host{Host: "127.0.0.1", Username: "user"}
+		host = boshdir.Host{Host: "127.0.0.1", Username: "user", HostPublicKey: "known-host-key"}
 		connectProxyCmdRunner = fakesys.NewFakeCmdRunner()
 		connectProxyCmdRunner.CommandExistsValue = false
 	})
@@ -67,6 +67,11 @@ var _ = Describe("SSHArgs", func() {
 			}
 			return args.OptsForHost(host)
 		}
+
+		It("uses user known hosts when no agent host key is available", func() {
+			host.HostPublicKey = ""
+			Expect(act()).NotTo(ContainElement("UserKnownHostsFile=/tmp/known-hosts"))
+		})
 
 		It("returns ssh options with correct paths to private key and known hosts", func() {
 			Expect(act()).To(Equal([]string{
@@ -240,7 +245,7 @@ var _ = Describe("SSHArgs", func() {
 		It("returns ssh options with bracketed gateway proxy command if host IP is IPv6", func() {
 			result.GatewayUsername = "gw-user"
 			result.GatewayHost = "gw-host"
-			host = boshdir.Host{Host: "::1", Username: "user"}
+			host = boshdir.Host{Host: "::1", Username: "user", HostPublicKey: "known-host-key"}
 
 			Expect(act()).To(Equal([]string{
 				"-o", "ServerAliveInterval=30",
@@ -271,7 +276,7 @@ var _ = Describe("SSHArgs", func() {
 		It("returns ssh options with bracketed and non-bracketed IPs if host and gateway IP is IPv6", func() {
 			result.GatewayUsername = "gw-user"
 			result.GatewayHost = "::1"
-			host = boshdir.Host{Host: "::2", Username: "user"}
+			host = boshdir.Host{Host: "::2", Username: "user", HostPublicKey: "known-host-key"}
 
 			Expect(act()).To(Equal([]string{
 				"-o", "ServerAliveInterval=30",
@@ -312,7 +317,7 @@ var _ = Describe("SSHArgs", func() {
 		})
 
 		It("returns ssh options non-bracketed if host is IPv6 and SOCKS5Proxy is set", func() {
-			host = boshdir.Host{Host: "::1", Username: "user"}
+			host = boshdir.Host{Host: "::1", Username: "user", HostPublicKey: "known-host-key"}
 			connOpts.SOCKS5Proxy = "socks5://some-proxy"
 
 			Expect(act()).To(Equal([]string{

@@ -97,8 +97,10 @@ func (p PcapRunnerImpl) Run(result boshdir.SSHResult, username string, argv stri
 	for i := 0; i < parallel; i++ {
 		go func() {
 			for host := range workChan {
-				clientOpts.Host = host.Host
-				boshSSHClient := clientFactory.New(clientOpts)
+				hostOpts := clientOpts
+				hostOpts.Host = host.Host
+				hostOpts.HostPublicKey = host.HostPublicKey
+				boshSSHClient := clientFactory.New(hostOpts)
 				var packets <-chan gopacket.Packet
 				packets, err = captureSSH(argv, opts.Filter, host, boshSSHClient, opts.StopTimeout, wg, done, p.ui, ctx, cancel)
 				if err != nil {

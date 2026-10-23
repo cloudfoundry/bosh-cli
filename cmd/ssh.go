@@ -74,8 +74,8 @@ func (c SSHCmd) Run(opts SSHOpts, deploymentFetcher boshssh.DeploymentFetcher) e
 			_ = c.deployment.CleanUpSSH(opts.Args.Slug, sshOpts) //nolint:errcheck
 		}()
 	} else {
-		// no automatic source of host key
-		connOpts.RawOpts = append(connOpts.RawOpts, "-o", "StrictHostKeyChecking=no")
+		// Verify against the user's configured SSH known hosts.
+		connOpts.RawOpts = append(connOpts.RawOpts, "-o", "StrictHostKeyChecking=yes")
 
 		connOpts.PrivateKey = string(opts.PrivateKey.Bytes)
 

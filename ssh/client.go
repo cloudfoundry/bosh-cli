@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -64,10 +65,15 @@ func (s *ClientImpl) Start() error {
 		authMethods = append(authMethods, ssh.Password(s.opts.Password))
 	}
 
+	hostKeyCallback, callbackErr := s.hostKeyCallback()
+	if callbackErr != nil {
+		return callbackErr
+	}
+
 	sshConfig := &ssh.ClientConfig{
 		User:            s.opts.User,
 		Auth:            authMethods,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+		HostKeyCallback: hostKeyCallback,
 	}
 
 	s.logger.Debug(s.logTag, "Dialing remote server at %s:%d", s.opts.Host, s.opts.Port)
@@ -152,6 +158,10 @@ type ClientConnectRetryStrategy struct {
 }
 
 func (s *ClientConnectRetryStrategy) IsRetryable(err error) bool {
+	var verificationErr hostKeyVerificationError
+	if errors.As(err, &verificationErr) {
+		return false
+	}
 	now := s.TimeService.Now()
 
 	if !s.initialized {
