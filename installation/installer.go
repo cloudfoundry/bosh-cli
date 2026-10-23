@@ -60,7 +60,6 @@ func NewInstaller(
 
 func (i *installer) Install(manifest biinstallmanifest.Manifest, stage biui.Stage) (Installation, error) {
 	i.logger.Info(i.logTag, "Installing CPI deployment '%s'", manifest.Name)
-	i.logger.Debug(i.logTag, "Installing CPI deployment '%s' with manifest: %#v", manifest.Name, manifest)
 
 	jobs, err := i.jobResolver.From(manifest)
 	if err != nil {

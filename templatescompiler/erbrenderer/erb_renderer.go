@@ -98,7 +98,7 @@ func (r erbRenderer) writeContext(contextPath string, context TemplateEvaluation
 		return bosherr.WrapError(err, "Marshalling context")
 	}
 
-	err = r.fs.WriteFileString(contextPath, string(contextBytes))
+	err = r.fs.WriteFileQuietly(contextPath, contextBytes)
 	if err != nil {
 		return bosherr.WrapError(err, "Writing context")
 	}

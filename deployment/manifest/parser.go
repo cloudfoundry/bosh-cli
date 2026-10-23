@@ -129,7 +129,7 @@ func (p *parser) Parse(interpolatedTemplate bidepltpl.InterpolatedTemplate, path
 		return Manifest{}, bosherr.WrapError(err, "Unmarshalling BOSH deployment manifest")
 	}
 
-	p.logger.Debug(p.logTag, "Parsed BOSH deployment manifest: %#v", comboManifest)
+	p.logger.Debug(p.logTag, "Parsed BOSH deployment manifest")
 
 	deploymentManifest, err := p.parseDeploymentManifest(comboManifest, path)
 	if err != nil {

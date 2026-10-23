@@ -46,7 +46,7 @@ func (r *jobListRenderer) Render(
 	deploymentName string,
 	address string,
 ) (RenderedJobList, error) {
-	r.logger.Debug(r.logTag, "Rendering job list: deploymentName='%s' jobProperties=%#v globalProperties=%#v", deploymentName, jobProperties, globalProperties)
+	r.logger.Debug(r.logTag, "Rendering job list: deploymentName='%s'", deploymentName)
 	renderedJobList := NewRenderedJobList()
 
 	// render all the jobs' templates

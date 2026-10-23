@@ -1430,7 +1430,7 @@ scopes: openid profile email`
 				BeforeEach(func() {
 					writerErr = errors.New("fake-writer-err")
 					fakeFs.WriteFileStringReturnsOnCall(0, nil)
-					fakeFs.WriteFileStringReturnsOnCall(1, writerErr)
+					fakeFs.WriteFileQuietlyReturns(writerErr)
 				})
 
 				It("returns an error", func() {

@@ -101,14 +101,14 @@ func (ec jobEvaluationContext) MarshalJSON() ([]byte, error) {
 
 	context.ID, err = ec.uuidGen.Generate()
 	if err != nil {
-		return []byte{}, bosherr.WrapErrorf(err, "Setting job eval context's ID to UUID: %#v", context)
+		return []byte{}, bosherr.WrapError(err, "Setting job eval context's ID to UUID")
 	}
 
-	ec.logger.Debug(ec.logTag, "Marshalling context %#v", context)
+	ec.logger.Debug(ec.logTag, "Marshalling context")
 
 	jsonBytes, err := json.Marshal(context)
 	if err != nil {
-		return []byte{}, bosherr.WrapErrorf(err, "Marshalling job eval context: %#v", context)
+		return []byte{}, bosherr.WrapError(err, "Marshalling job eval context")
 	}
 
 	return jsonBytes, nil

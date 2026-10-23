@@ -46,7 +46,7 @@ func (s *ClientImpl) Start() error {
 	if s.opts.PrivateKey != "" {
 		signer, err := ssh.ParsePrivateKey([]byte(s.opts.PrivateKey))
 		if err != nil {
-			return bosherr.WrapErrorf(err, "Parsing private key '%s'", s.opts.PrivateKey)
+			return bosherr.WrapError(err, "Parsing private key")
 		}
 		authMethods = append(authMethods, ssh.PublicKeys(signer))
 	}

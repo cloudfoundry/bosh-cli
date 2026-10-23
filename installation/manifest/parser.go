@@ -67,7 +67,7 @@ func NewParser(fs boshsys.FileSystem, uuidGenerator boshuuid.Generator, logger b
 }
 
 func (p *parser) Parse(path string, vars boshtpl.Variables, op patch.Op, releaseSetManifest birelsetmanifest.Manifest) (Manifest, error) {
-	contents, err := p.fs.ReadFile(path)
+	contents, err := p.fs.ReadFileWithOpts(path, boshsys.ReadOpts{Quiet: true})
 	if err != nil {
 		return Manifest{}, bosherr.WrapErrorf(err, "Reading file %s", path)
 	}
@@ -86,7 +86,7 @@ func (p *parser) Parse(path string, vars boshtpl.Variables, op patch.Op, release
 		return Manifest{}, bosherr.WrapError(err, "Unmarshalling installation manifest")
 	}
 
-	p.logger.Debug(p.logTag, "Parsed installation manifest: %#v", comboManifest)
+	p.logger.Debug(p.logTag, "Parsed installation manifest")
 
 	if comboManifest.CloudProvider.SSHTunnel.PrivateKey != "" {
 		if p.lookForPrivateSshHeader(comboManifest.CloudProvider.SSHTunnel.PrivateKey) {
@@ -101,7 +101,7 @@ func (p *parser) Parse(path string, vars boshtpl.Variables, op patch.Op, release
 			if err != nil {
 				return Manifest{}, bosherr.WrapErrorf(err, "Expanding private_key path")
 			}
-			keyContents, err := p.fs.ReadFile(absolutePath)
+			keyContents, err := p.fs.ReadFileWithOpts(absolutePath, boshsys.ReadOpts{Quiet: true})
 			if err != nil {
 				return Manifest{}, bosherr.WrapErrorf(err, "Reading private key from %s", absolutePath)
 			}
