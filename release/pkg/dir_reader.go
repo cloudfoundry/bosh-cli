@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
@@ -145,6 +146,9 @@ func (r DirReaderImpl) applyFilesPattern(manifest manifest.Manifest) (map[string
 	filesByRelPath := map[string]resource.File{}
 
 	for _, glob := range manifest.Files {
+		if !isLocalPackagePattern(glob) {
+			return nil, bosherr.Error("Invalid package file pattern")
+		}
 		matchingFilesFound := false
 
 		srcDirMatches, err := r.fs.RecursiveGlob(filepath.Join(r.srcDirPath, glob))
@@ -199,6 +203,9 @@ func (r DirReaderImpl) applyExcludedFilesPattern(inputManifest manifest.Manifest
 	var excludedFiles []resource.File
 
 	for _, glob := range inputManifest.ExcludedFiles {
+		if !isLocalPackagePattern(glob) {
+			return nil, bosherr.Error("Invalid package exclusion pattern")
+		}
 		srcDirMatches, err := r.fs.RecursiveGlob(filepath.Join(r.srcDirPath, glob))
 		if err != nil {
 			return []resource.File{}, bosherr.WrapErrorf(err, "Listing package excluded files in src")
@@ -281,4 +288,17 @@ func (r DirReaderImpl) isPackageableFile(path string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// Parent components are not safe in patterns with recursive wildcards.
+func isLocalPackagePattern(pattern string) bool {
+	if !filepath.IsLocal(pattern) || strings.ContainsAny(pattern, ":\x00") {
+		return false
+	}
+	for _, part := range strings.FieldsFunc(pattern, func(r rune) bool { return r == '/' || r == '\\' }) {
+		if part == ".." {
+			return false
+		}
+	}
+	return true
 }

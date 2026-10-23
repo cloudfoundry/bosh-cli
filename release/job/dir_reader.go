@@ -9,6 +9,7 @@ import (
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
+	"github.com/cloudfoundry/bosh-cli/v7/common/util"
 	boshjobman "github.com/cloudfoundry/bosh-cli/v7/release/job/manifest"
 	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
@@ -79,7 +80,10 @@ func (r DirReaderImpl) collectFiles(path string) (boshjobman.Manifest, []resourc
 	}
 
 	for src := range manifest.Templates {
-		srcPath := filepath.Join(path, "templates", src)
+		srcPath, err := util.SafeJoinPath(filepath.Join(path, "templates"), src)
+		if err != nil {
+			return boshjobman.Manifest{}, nil, bosherr.WrapError(err, "Invalid job template source path")
+		}
 		files = append(files, resource.NewFile(srcPath, path))
 	}
 
