@@ -89,8 +89,11 @@ func newSignalableFileLogger(logPath string, level boshlog.LogLevel) boshlog.Log
 	fs := boshsys.NewOsFileSystem(logger)
 
 	// Log file will be closed by process exit
-	// Log file readable by all
-	logfileLogger, _, err := boshlogfile.New(level, logPath, boshlogfile.DefaultLogFileMode, fs)
+	// Restrict log access before any diagnostics are written.
+	logfileLogger, logFile, err := boshlogfile.New(level, logPath, os.FileMode(0600), fs)
+	if err == nil {
+		err = restrictLogFile(logFile, fs)
+	}
 	if err != nil {
 		logger := boshlog.NewLogger(boshlog.LevelError)
 		ui := boshui.NewConsoleUI(logger)
@@ -98,6 +101,19 @@ func newSignalableFileLogger(logPath string, level boshlog.LogLevel) boshlog.Log
 	}
 
 	return newSignalableLogger(logfileLogger)
+}
+
+// restrictLogFile tightens an existing regular log file. Devices, pipes and
+// terminals (for example BOSH_LOG_PATH=/dev/stdout) are left unchanged.
+func restrictLogFile(file boshsys.File, fs boshsys.FileSystem) error {
+	info, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	if !info.Mode().IsRegular() {
+		return nil
+	}
+	return fs.Chmod(file.Name(), 0600)
 }
 
 func handlePanic() {
