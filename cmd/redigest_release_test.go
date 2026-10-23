@@ -70,7 +70,7 @@ var _ = Describe("RedigestRelease", func() {
 		}
 		jobSha128 := boshjob.NewJob(NewResourceWithBuiltArchive("job-resource-1", "job-sha128-fp", job1ResourcePath, fileContentSha1))
 		packageSha128 := boshpkg.NewPackage(NewResourceWithBuiltArchive("pkg-resource-1", "pkg-sha128-fp", pkg1ResourcePath, fileContentSha1), nil)
-		compiledPackageSha128 := boshpkg.NewCompiledPackageWithArchive("compiledpkg-resource-1", "compiledpkg-sha128-fp", "1", compiledPackage1ResourcePath, fileContentSha1, nil)
+		compiledPackageSha128 := boshpkg.NewCompiledPackageWithArchive("compiledpkg-resource-1", "compiledpkg-sha128-fp", "original-compiledpkg-fp", "1", compiledPackage1ResourcePath, fileContentSha1, nil)
 
 		fakeSha128Release.JobsReturns([]*boshjob.Job{jobSha128})
 		fakeSha128Release.PackagesReturns([]*boshpkg.Package{packageSha128})
@@ -137,6 +137,7 @@ var _ = Describe("RedigestRelease", func() {
 
 			Expect(sha2ifyRelease.CompiledPackages()).To(HaveLen(1))
 			Expect(sha2ifyRelease.CompiledPackages()[0].ArchiveDigest()).To(Equal("sha256:compiledpkgsha256"))
+			Expect(sha2ifyRelease.CompiledPackages()[0].OriginalFingerprint()).To(Equal("original-compiledpkg-fp"))
 
 			Expect(fmv.MoveCallCount()).To(Equal(1))
 

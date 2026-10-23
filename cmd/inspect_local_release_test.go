@@ -62,6 +62,7 @@ var _ = Describe("InspectLocalReleaseCmd", func() {
 			compiledPkg := boshpkg.NewCompiledPackageWithoutArchive(
 				"compiled-pkg-name",
 				"compiled-pkg-fp",
+				"",
 				"my-fancy-linux/1.33.7",
 				"compiled-pkg-digest",
 				[]string{"some-package"},

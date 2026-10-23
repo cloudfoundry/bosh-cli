@@ -17,11 +17,12 @@ type release struct {
 	commitHash         string
 	uncommittedChanges bool
 
-	jobs          []*bireljob.Job
-	packages      []*birelpkg.Package
-	compiledPkgs  []*birelpkg.CompiledPackage
-	license       *birellic.License
-	noCompression bool
+	jobs            []*bireljob.Job
+	packages        []*birelpkg.Package
+	compiledPkgs    []*birelpkg.CompiledPackage
+	compileTimePkgs []birelman.CompileTimePackageRef
+	license         *birellic.License
+	noCompression   bool
 
 	extractedPath string
 	fs            boshsys.FileSystem
@@ -120,12 +121,13 @@ func (r *release) Manifest() birelman.Manifest {
 
 	for _, compiledPkg := range r.CompiledPackages() {
 		compiledPkgRefs = append(compiledPkgRefs, birelman.CompiledPackageRef{
-			Name:          compiledPkg.Name(),
-			Version:       compiledPkg.Fingerprint(),
-			Fingerprint:   compiledPkg.Fingerprint(),
-			SHA1:          compiledPkg.ArchiveDigest(),
-			OSVersionSlug: compiledPkg.OSVersionSlug(),
-			Dependencies:  compiledPkg.DependencyNames(),
+			Name:                compiledPkg.Name(),
+			Version:             compiledPkg.Fingerprint(),
+			Fingerprint:         compiledPkg.Fingerprint(),
+			OriginalFingerprint: compiledPkg.OriginalFingerprint(),
+			SHA1:                compiledPkg.ArchiveDigest(),
+			OSVersionSlug:       compiledPkg.OSVersionSlug(),
+			Dependencies:        compiledPkg.DependencyNames(),
 		})
 	}
 
@@ -148,11 +150,12 @@ func (r *release) Manifest() birelman.Manifest {
 		CommitHash:         r.commitHash,
 		UncommittedChanges: r.uncommittedChanges,
 
-		Jobs:          jobRefs,
-		Packages:      packageRefs,
-		CompiledPkgs:  compiledPkgRefs,
-		License:       licenseRef,
-		NoCompression: r.noCompression,
+		Jobs:                jobRefs,
+		Packages:            packageRefs,
+		CompiledPkgs:        compiledPkgRefs,
+		CompileTimePackages: r.compileTimePkgs,
+		License:             licenseRef,
+		NoCompression:       r.noCompression,
 	}
 }
 
@@ -236,11 +239,12 @@ func (r *release) CopyWith(jobs []*bireljob.Job, packages []*birelpkg.Package, l
 		commitHash:         r.commitHash,
 		uncommittedChanges: r.uncommittedChanges,
 
-		jobs:          jobs,
-		packages:      packages,
-		compiledPkgs:  compiledPkgs,
-		license:       license,
-		noCompression: r.noCompression,
+		jobs:            jobs,
+		packages:        packages,
+		compiledPkgs:    compiledPkgs,
+		compileTimePkgs: r.compileTimePkgs,
+		license:         license,
+		noCompression:   r.noCompression,
 
 		extractedPath: r.extractedPath,
 		fs:            r.fs,

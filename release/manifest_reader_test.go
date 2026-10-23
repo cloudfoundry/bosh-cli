@@ -140,9 +140,16 @@ compiled_packages:
 - name: pkg1
   version: pkg1-version
   fingerprint: pkg1-fp
+  original_fingerprint: original-pkg1-fp
   stemcell: pkg1-stemcell
   sha1: pkg1-sha
   dependencies: [pkg2]
+
+compile_time_packages:
+- name: compile-time-pkg
+  version: compile-time-version
+  fingerprint: compile-time-fingerprint
+  dependencies: [pkg1]
 
 license:
   version: lic-version
@@ -158,9 +165,9 @@ license:
 				job2 := boshjob.NewJob(NewExistingResource("job2", "job2-fp", "job2-sha"))
 
 				compiledPkg1 := boshpkg.NewCompiledPackageWithoutArchive(
-					"pkg1", "pkg1-fp", "pkg1-stemcell", "pkg1-sha", []string{"pkg2"})
+					"pkg1", "pkg1-fp", "original-pkg1-fp", "pkg1-stemcell", "pkg1-sha", []string{"pkg2"})
 				compiledPkg2 := boshpkg.NewCompiledPackageWithoutArchive(
-					"pkg2", "pkg2-fp", "pkg2-stemcell", "pkg2-sha", nil)
+					"pkg2", "pkg2-fp", "", "pkg2-stemcell", "pkg2-sha", nil)
 				err = compiledPkg1.AttachDependencies([]*boshpkg.CompiledPackage{compiledPkg2})
 				Expect(err).ToNot(HaveOccurred())
 
@@ -176,6 +183,17 @@ license:
 				Expect(release.Packages()).To(BeEmpty())
 				Expect(release.CompiledPackages()).To(Equal(
 					[]*boshpkg.CompiledPackage{compiledPkg2, compiledPkg1}))
+				Expect(release.Manifest().CompiledPkgs[1].OriginalFingerprint).To(Equal("original-pkg1-fp"))
+				Expect(release.Manifest().CompileTimePackages).To(HaveLen(1))
+				Expect(release.Manifest().CompileTimePackages[0].Name).To(Equal("compile-time-pkg"))
+				rehashedPkg1 := boshpkg.NewCompiledPackageWithoutArchive(
+					compiledPkg1.Name(), compiledPkg1.Fingerprint(), compiledPkg1.OriginalFingerprint(),
+					compiledPkg1.OSVersionSlug(), "sha256:pkg1-sha256", compiledPkg1.DependencyNames())
+				copiedRelease := release.CopyWith(release.Jobs(), release.Packages(), release.License(), []*boshpkg.CompiledPackage{compiledPkg2, rehashedPkg1})
+				copiedManifest := copiedRelease.Manifest()
+				Expect(copiedManifest.CompileTimePackages).To(Equal(release.Manifest().CompileTimePackages))
+				Expect(copiedManifest.CompiledPkgs[1].SHA1).To(Equal("sha256:pkg1-sha256"))
+				Expect(copiedManifest.CompiledPkgs[1].OriginalFingerprint).To(Equal("original-pkg1-fp"))
 				Expect(release.IsCompiled()).To(BeTrue())
 				Expect(release.License()).To(Equal(lic))
 			})
