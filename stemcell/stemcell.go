@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	boshfu "github.com/cloudfoundry/bosh-utils/fileutil"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
@@ -112,7 +113,11 @@ func (s *extractedStemcell) Pack(destinationPath string) error {
 
 	filenames := []string{}
 	for _, p := range paths {
-		filenames = append(filenames, filepath.Base(p))
+		name := filepath.Base(p)
+		if strings.HasPrefix(name, "-") {
+			return fmt.Errorf("stemcell member names must not start with a dash")
+		}
+		filenames = append(filenames, name)
 	}
 
 	intermediateStemcellPath, err := s.compressor.CompressSpecificFilesInDir(s.extractedPath, filenames, boshfu.CompressorOptions{})
