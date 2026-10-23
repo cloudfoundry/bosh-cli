@@ -88,7 +88,7 @@ var _ = Describe("Provider", func() {
 					path, err := provider.Get(source, fakeStage)
 					Expect(err).ToNot(HaveOccurred())
 					shaSum := sha1.Sum([]byte(source.GetURL()))
-					expectedFileName := fmt.Sprintf("%x-da39a3ee5e6b4b0d3255bfef95601890afd80709", string(shaSum[:]))
+					expectedFileName := fmt.Sprintf("%x-07e23ede2756aa3f5f7cc9759117c4910875e032c27b8556a1e20626224f10ec", string(shaSum[:]))
 					Expect(path).To(Equal(filepath.Join("/", "fake-base-path", expectedFileName)))
 				})
 
@@ -146,7 +146,7 @@ var _ = Describe("Provider", func() {
 						path, err := provider.Get(source, fakeStage)
 						Expect(err).ToNot(HaveOccurred())
 						shaSum := sha1.Sum([]byte(source.GetURL()))
-						expectedFileName := fmt.Sprintf("%x-da39a3ee5e6b4b0d3255bfef95601890afd80709", string(shaSum[:]))
+						expectedFileName := fmt.Sprintf("%x-07e23ede2756aa3f5f7cc9759117c4910875e032c27b8556a1e20626224f10ec", string(shaSum[:]))
 						Expect(path).To(Equal(filepath.Join("/", "fake-base-path", expectedFileName)))
 						Expect(server.ReceivedRequests()).To(HaveLen(1))
 					})
