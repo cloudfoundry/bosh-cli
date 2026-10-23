@@ -15,6 +15,11 @@ func NewSCPRunner(comboRunner ComboRunner) SCPRunnerImpl {
 }
 
 func (r SCPRunnerImpl) Run(connOpts ConnectionOpts, result boshdir.SSHResult, scpArgs SCPArgs) error {
+	for _, host := range result.Hosts {
+		if err := scpArgs.validateHost(host); err != nil {
+			return err
+		}
+	}
 	cmdFactory := func(host boshdir.Host, sshArgs SSHArgs) boshsys.Command {
 		return boshsys.Command{
 			Name: "scp",

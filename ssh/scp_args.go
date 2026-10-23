@@ -11,6 +11,7 @@ import (
 )
 
 var windowsDisk = regexp.MustCompile(`^[A-Za-z]:\\`)
+var scpInstanceID = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]*$`)
 
 type SCPArgs struct {
 	raw       []string
@@ -58,4 +59,13 @@ func (a SCPArgs) ForHost(host boshdir.Host) []string {
 	}
 
 	return args
+}
+
+func (a SCPArgs) validateHost(host boshdir.Host) error {
+	for _, argument := range a.raw {
+		if strings.Contains(argument, "((instance_id))") && !scpInstanceID.MatchString(host.IndexOrID) {
+			return bosherr.Error("Invalid SCP instance identifier")
+		}
+	}
+	return nil
 }
