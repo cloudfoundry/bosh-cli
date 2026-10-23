@@ -267,6 +267,9 @@ func (d FSReleaseDir) VendorPackage(pkg *boshpkg.Package, prefix string) error {
 }
 
 func (d FSReleaseDir) collectDependentPackages(pkg *boshpkg.Package, allInterestingPkgs map[*boshpkg.Package]struct{}) {
+	if _, visited := allInterestingPkgs[pkg]; visited {
+		return
+	}
 	allInterestingPkgs[pkg] = struct{}{}
 	for _, pkg2 := range pkg.Dependencies {
 		d.collectDependentPackages(pkg2, allInterestingPkgs)
