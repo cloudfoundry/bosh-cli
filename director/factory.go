@@ -63,6 +63,10 @@ func (f Factory) httpClient(factoryConfig FactoryConfig, taskReporter TaskReport
 			return bosherr.Error("Too many redirects")
 		}
 
+		if req.URL.Scheme != "https" {
+			return bosherr.Error("Director redirects must use HTTPS")
+		}
+
 		// Since redirected requests are not retried,
 		// forcefully adjust auth token as this is the last chance.
 		err := authAdjustment.Adjust(req, true)

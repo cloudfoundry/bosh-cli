@@ -81,6 +81,21 @@ var _ = Describe("Factory", func() {
 				}
 			}
 
+			It("rejects redirects to plain HTTP before sending credentials", func() {
+				factoryConfig, err := NewConfigFromURL(server.URL())
+				Expect(err).NotTo(HaveOccurred())
+				factoryConfig.Client = "username"
+				factoryConfig.ClientSecret = "password"
+				factoryConfig.CACert = validCACert
+				director, err := NewFactory(boshlog.NewLogger(boshlog.LevelNone)).New(factoryConfig, nil, nil)
+				Expect(err).NotTo(HaveOccurred())
+				headers := http.Header{"Location": []string{"http://" + factoryConfig.Host + "/info"}}
+				server.RouteToHandler("GET", "/info", ghttp.RespondWith(http.StatusFound, nil, headers))
+				_, err = director.Info()
+				Expect(err).To(MatchError(ContainSubstring("Director redirects must use HTTPS")))
+				Expect(server.ReceivedRequests()).NotTo(BeEmpty())
+			})
+
 			It("succeeds making requests and follow redirects with basic auth creds", func() {
 				factoryConfig, err := NewConfigFromURL(server.URL())
 				Expect(err).ToNot(HaveOccurred())
