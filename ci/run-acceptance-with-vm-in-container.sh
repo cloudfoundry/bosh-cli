@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
-set -ex
+set -e
 
 echo "Running ci/run-acceptance-with-vm-in-container.sh"
-echo "ENV:"
-env
 
 BOSH_INIT_CLI_DIR=/home/ubuntu/go/src/github.com/cloudfoundry/bosh-cli
 
@@ -13,9 +11,6 @@ BOSH_INIT_PRIVATE_KEY_DIR=/home/ubuntu/private_keys
 PRIVATE_KEY_DIR=$(cd "$(dirname "${BOSH_LITE_PRIVATE_KEY}")" && pwd)
 BOSH_LITE_PRIVATE_KEY_BASENAME=$(basename "${BOSH_LITE_PRIVATE_KEY}")
 BOSH_LITE_PRIVATE_KEY=${BOSH_INIT_PRIVATE_KEY_DIR}/${BOSH_LITE_PRIVATE_KEY_BASENAME}
-
-echo "ENV:"
-env
 
 # Pushing to Docker Hub requires login
 DOCKER_IMAGE=${DOCKER_IMAGE:-ghcr.io/cloudfoundry/bosh/cli}
