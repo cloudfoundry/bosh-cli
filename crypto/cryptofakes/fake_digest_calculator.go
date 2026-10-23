@@ -2,18 +2,18 @@
 package cryptofakes
 
 import (
+	"io"
 	"sync"
 
 	"github.com/cloudfoundry/bosh-cli/v7/crypto"
+	cryptoa "github.com/cloudfoundry/bosh-utils/crypto"
 )
 
 type FakeDigestCalculator struct {
 	CalculateStub        func(string) (string, error)
 	calculateMutex       sync.RWMutex
-	calculateArgsForCall []struct {
-		arg1 string
-	}
-	calculateReturns struct {
+	calculateArgsForCall []FakeDigestCalculatorCalculateArgs
+	calculateReturns     struct {
 		result1 string
 		result2 error
 	}
@@ -23,25 +23,49 @@ type FakeDigestCalculator struct {
 	}
 	CalculateStringStub        func(string) string
 	calculateStringMutex       sync.RWMutex
-	calculateStringArgsForCall []struct {
-		arg1 string
-	}
-	calculateStringReturns struct {
+	calculateStringArgsForCall []FakeDigestCalculatorCalculateStringArgs
+	calculateStringReturns     struct {
 		result1 string
 	}
 	calculateStringReturnsOnCall map[int]struct {
 		result1 string
 	}
+	CalculateVerifiedStub        func(io.Reader, cryptoa.Digest) (string, error)
+	calculateVerifiedMutex       sync.RWMutex
+	calculateVerifiedArgsForCall []FakeDigestCalculatorCalculateVerifiedArgs
+	calculateVerifiedReturns     struct {
+		result1 string
+		result2 error
+	}
+	calculateVerifiedReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	invocations      map[string][][]interface{}
+	callOrder        []string
 	invocationsMutex sync.RWMutex
+}
+
+// FakeDigestCalculatorCalculateArgs holds the arguments of one call to Calculate.
+type FakeDigestCalculatorCalculateArgs struct {
+	Arg1 string
+}
+
+// FakeDigestCalculatorCalculateStringArgs holds the arguments of one call to CalculateString.
+type FakeDigestCalculatorCalculateStringArgs struct {
+	Arg1 string
+}
+
+// FakeDigestCalculatorCalculateVerifiedArgs holds the arguments of one call to CalculateVerified.
+type FakeDigestCalculatorCalculateVerifiedArgs struct {
+	Arg1 io.Reader
+	Arg2 cryptoa.Digest
 }
 
 func (fake *FakeDigestCalculator) Calculate(arg1 string) (string, error) {
 	fake.calculateMutex.Lock()
 	ret, specificReturn := fake.calculateReturnsOnCall[len(fake.calculateArgsForCall)]
-	fake.calculateArgsForCall = append(fake.calculateArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.calculateArgsForCall = append(fake.calculateArgsForCall, FakeDigestCalculatorCalculateArgs{arg1})
 	stub := fake.CalculateStub
 	fakeReturns := fake.calculateReturns
 	fake.recordInvocation("Calculate", []interface{}{arg1})
@@ -71,7 +95,15 @@ func (fake *FakeDigestCalculator) CalculateArgsForCall(i int) string {
 	fake.calculateMutex.RLock()
 	defer fake.calculateMutex.RUnlock()
 	argsForCall := fake.calculateArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeDigestCalculator) CalculateArgs() []FakeDigestCalculatorCalculateArgs {
+	fake.calculateMutex.RLock()
+	defer fake.calculateMutex.RUnlock()
+	args := make([]FakeDigestCalculatorCalculateArgs, len(fake.calculateArgsForCall))
+	copy(args, fake.calculateArgsForCall)
+	return args
 }
 
 func (fake *FakeDigestCalculator) CalculateReturns(result1 string, result2 error) {
@@ -103,9 +135,7 @@ func (fake *FakeDigestCalculator) CalculateReturnsOnCall(i int, result1 string, 
 func (fake *FakeDigestCalculator) CalculateString(arg1 string) string {
 	fake.calculateStringMutex.Lock()
 	ret, specificReturn := fake.calculateStringReturnsOnCall[len(fake.calculateStringArgsForCall)]
-	fake.calculateStringArgsForCall = append(fake.calculateStringArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.calculateStringArgsForCall = append(fake.calculateStringArgsForCall, FakeDigestCalculatorCalculateStringArgs{arg1})
 	stub := fake.CalculateStringStub
 	fakeReturns := fake.calculateStringReturns
 	fake.recordInvocation("CalculateString", []interface{}{arg1})
@@ -135,7 +165,15 @@ func (fake *FakeDigestCalculator) CalculateStringArgsForCall(i int) string {
 	fake.calculateStringMutex.RLock()
 	defer fake.calculateStringMutex.RUnlock()
 	argsForCall := fake.calculateStringArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeDigestCalculator) CalculateStringArgs() []FakeDigestCalculatorCalculateStringArgs {
+	fake.calculateStringMutex.RLock()
+	defer fake.calculateStringMutex.RUnlock()
+	args := make([]FakeDigestCalculatorCalculateStringArgs, len(fake.calculateStringArgsForCall))
+	copy(args, fake.calculateStringArgsForCall)
+	return args
 }
 
 func (fake *FakeDigestCalculator) CalculateStringReturns(result1 string) {
@@ -161,6 +199,76 @@ func (fake *FakeDigestCalculator) CalculateStringReturnsOnCall(i int, result1 st
 	}{result1}
 }
 
+func (fake *FakeDigestCalculator) CalculateVerified(arg1 io.Reader, arg2 cryptoa.Digest) (string, error) {
+	fake.calculateVerifiedMutex.Lock()
+	ret, specificReturn := fake.calculateVerifiedReturnsOnCall[len(fake.calculateVerifiedArgsForCall)]
+	fake.calculateVerifiedArgsForCall = append(fake.calculateVerifiedArgsForCall, FakeDigestCalculatorCalculateVerifiedArgs{arg1, arg2})
+	stub := fake.CalculateVerifiedStub
+	fakeReturns := fake.calculateVerifiedReturns
+	fake.recordInvocation("CalculateVerified", []interface{}{arg1, arg2})
+	fake.calculateVerifiedMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeDigestCalculator) CalculateVerifiedCallCount() int {
+	fake.calculateVerifiedMutex.RLock()
+	defer fake.calculateVerifiedMutex.RUnlock()
+	return len(fake.calculateVerifiedArgsForCall)
+}
+
+func (fake *FakeDigestCalculator) CalculateVerifiedCalls(stub func(io.Reader, cryptoa.Digest) (string, error)) {
+	fake.calculateVerifiedMutex.Lock()
+	defer fake.calculateVerifiedMutex.Unlock()
+	fake.CalculateVerifiedStub = stub
+}
+
+func (fake *FakeDigestCalculator) CalculateVerifiedArgsForCall(i int) (io.Reader, cryptoa.Digest) {
+	fake.calculateVerifiedMutex.RLock()
+	defer fake.calculateVerifiedMutex.RUnlock()
+	argsForCall := fake.calculateVerifiedArgsForCall[i]
+	return argsForCall.Arg1, argsForCall.Arg2
+}
+
+func (fake *FakeDigestCalculator) CalculateVerifiedArgs() []FakeDigestCalculatorCalculateVerifiedArgs {
+	fake.calculateVerifiedMutex.RLock()
+	defer fake.calculateVerifiedMutex.RUnlock()
+	args := make([]FakeDigestCalculatorCalculateVerifiedArgs, len(fake.calculateVerifiedArgsForCall))
+	copy(args, fake.calculateVerifiedArgsForCall)
+	return args
+}
+
+func (fake *FakeDigestCalculator) CalculateVerifiedReturns(result1 string, result2 error) {
+	fake.calculateVerifiedMutex.Lock()
+	defer fake.calculateVerifiedMutex.Unlock()
+	fake.CalculateVerifiedStub = nil
+	fake.calculateVerifiedReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDigestCalculator) CalculateVerifiedReturnsOnCall(i int, result1 string, result2 error) {
+	fake.calculateVerifiedMutex.Lock()
+	defer fake.calculateVerifiedMutex.Unlock()
+	fake.CalculateVerifiedStub = nil
+	if fake.calculateVerifiedReturnsOnCall == nil {
+		fake.calculateVerifiedReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.calculateVerifiedReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeDigestCalculator) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -171,9 +279,18 @@ func (fake *FakeDigestCalculator) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
+func (fake *FakeDigestCalculator) CallOrder() []string {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	order := make([]string, len(fake.callOrder))
+	copy(order, fake.callOrder)
+	return order
+}
+
 func (fake *FakeDigestCalculator) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
+	fake.callOrder = append(fake.callOrder, key)
 	if fake.invocations == nil {
 		fake.invocations = map[string][][]interface{}{}
 	}

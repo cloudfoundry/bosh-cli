@@ -2,9 +2,11 @@ package pkg_test
 
 import (
 	"errors"
-	"fmt"
+	"io"
+	"os"
 	"strings"
 
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	fakecrypto "github.com/cloudfoundry/bosh-utils/crypto/cryptofakes"
 	fakessys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
@@ -112,19 +114,22 @@ var _ = Describe("NewCompiledPackageWithArchive", func() {
 		BeforeEach(func() {
 			fakeDigestCalculator = &cryptofakes.FakeDigestCalculator{}
 			fakeArchiveReader = &fakecrypto.FakeArchiveDigestFilePathReader{}
-			fakeFile = &fakessys.FakeFile{Contents: []byte("hello world")}
+			fileSystem := fakessys.NewFakeFileSystem()
+			Expect(fileSystem.WriteFileString("path", "hello world")).To(Succeed())
+			opened, err := fileSystem.OpenFile("path", os.O_RDONLY, 0)
+			Expect(err).NotTo(HaveOccurred())
+			fakeFile = opened.(*fakessys.FakeFile)
+			fakeDigestCalculator.CalculateVerifiedStub = func(reader io.Reader, expected boshcrypto.Digest) (string, error) { return "", expected.Verify(reader) }
 			fakeFileContentSha1 = "2aae6c35c94fcfb415dbe95f408b9ce91ee846ed"
 		})
 
 		Context("When compiled package can be rehashed", func() {
 			BeforeEach(func() {
-				fakeDigestCalculator.CalculateStub = func(path string) (string, error) {
-					switch path {
-					case "path":
-						return "sha256:compiledpkgsha256", nil
-					default:
-						return "", fmt.Errorf("unexpected input '%s'", path)
+				fakeDigestCalculator.CalculateVerifiedStub = func(reader io.Reader, expected boshcrypto.Digest) (string, error) {
+					if err := expected.Verify(reader); err != nil {
+						return "", err
 					}
+					return "sha256:compiledpkgsha256", nil
 				}
 
 				fakeArchiveReader.OpenFileReturns(fakeFile, nil)
@@ -172,13 +177,11 @@ var _ = Describe("NewCompiledPackageWithArchive", func() {
 
 					fakeArchiveReader.OpenFileReturns(fakeFile, nil)
 
-					fakeDigestCalculator.CalculateStub = func(path string) (string, error) {
-						switch path {
-						case "path":
-							return "", errors.New("fake-digest-calculator-error")
-						default:
-							return "", fmt.Errorf("unexpected input '%s'", path)
+					fakeDigestCalculator.CalculateVerifiedStub = func(reader io.Reader, expected boshcrypto.Digest) (string, error) {
+						if err := expected.Verify(reader); err != nil {
+							return "", err
 						}
+						return "", errors.New("fake-digest-calculator-error")
 					}
 				})
 

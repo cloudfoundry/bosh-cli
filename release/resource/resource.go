@@ -145,13 +145,7 @@ func (r *ResourceImpl) RehashWithCalculator(calculator crypto.DigestCalculator, 
 	if err != nil {
 		return &ResourceImpl{}, err
 	}
-	err = digest.Verify(archiveFile)
-
-	if err != nil {
-		return &ResourceImpl{}, err
-	}
-
-	newSHA, err := calculator.Calculate(r.archivePath)
+	newSHA, err := calculator.CalculateVerified(archiveFile, digest)
 
 	return &ResourceImpl{
 		name:        r.name,

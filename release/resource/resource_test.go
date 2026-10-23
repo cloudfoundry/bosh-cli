@@ -2,7 +2,7 @@ package resource_test
 
 import (
 	"errors"
-	"fmt"
+	"io"
 	"strings"
 
 	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
@@ -451,13 +451,11 @@ var _ = Describe("NewResourceWithBuiltArchive", func() {
 
 			BeforeEach(func() {
 				fakeDigestCalculator = &cryptofakes.FakeDigestCalculator{}
-				fakeDigestCalculator.CalculateStub = func(path string) (string, error) {
-					switch path {
-					case filePathName:
-						return "sha256:new_resource_sha", nil
-					default:
-						return "", fmt.Errorf("unexpected input '%s'", path)
+				fakeDigestCalculator.CalculateVerifiedStub = func(reader io.Reader, expected boshcrypto.Digest) (string, error) {
+					if err := expected.Verify(reader); err != nil {
+						return "", err
 					}
+					return "sha256:new_resource_sha", nil
 				}
 			})
 

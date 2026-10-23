@@ -103,17 +103,13 @@ func (p *CompiledPackage) RehashWithCalculator(digestCalculator crypto.DigestCal
 		return nil, err
 	}
 
+	defer pkgFile.Close() //nolint:errcheck
 	digest, err := crypto2.ParseMultipleDigest(p.archiveDigest)
 	if err != nil {
 		return nil, err
 	}
 
-	err = digest.Verify(pkgFile)
-	if err != nil {
-		return nil, err
-	}
-
-	sha256Archive, err := digestCalculator.Calculate(p.archivePath)
+	sha256Archive, err := digestCalculator.CalculateVerified(pkgFile, digest)
 
 	newP := *p
 	newP.archiveDigest = sha256Archive

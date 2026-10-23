@@ -2,9 +2,12 @@ package cmd_test
 
 import (
 	"fmt"
+	"io"
 
+	boshcrypto "github.com/cloudfoundry/bosh-utils/crypto"
 	"github.com/cloudfoundry/bosh-utils/errors"
 	fakefu "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
+	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	fakes2 "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -106,6 +109,12 @@ var _ = Describe("RedigestRelease", func() {
 			}
 		}
 
+		fakeDigestCalculator.CalculateVerifiedStub = func(reader io.Reader, expected boshcrypto.Digest) (string, error) {
+			if err := expected.Verify(reader); err != nil {
+				return "", err
+			}
+			return fakeDigestCalculator.CalculateStub(reader.(boshsys.File).Name())
+		}
 		releaseReader.ReadReturns(fakeSha128Release, nil)
 		releaseWriterTempDestination = "/some/temp/release_256.tgz"
 		releaseWriter.WriteReturns(releaseWriterTempDestination, nil)
