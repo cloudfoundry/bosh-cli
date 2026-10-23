@@ -350,7 +350,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns an error when save fails", func() {
-			fs.WriteFileError = errors.New("write error")
+			fs.OpenFileErr = errors.New("write error")
 
 			err := config.UpdateConfigWithToken(envAlias, uaa.NewRefreshableAccessToken("next-access-type", "next-access-token", "next-refresh-token"))
 			Expect(err).To(HaveOccurred())
@@ -487,7 +487,7 @@ var _ = Describe("FSConfig", func() {
 		})
 
 		It("returns error if writing file fails", func() {
-			fs.WriteFileError = errors.New("write error")
+			fs.OpenFileErr = errors.New("write error")
 
 			config := readConfig()
 			err := config.Save()

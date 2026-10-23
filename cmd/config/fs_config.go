@@ -1,12 +1,11 @@
 package config
 
 import (
-	"os"
-
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
 
+	"github.com/cloudfoundry/bosh-cli/v7/common/util"
 	"github.com/cloudfoundry/bosh-cli/v7/uaa"
 )
 
@@ -175,13 +174,9 @@ func (c FSConfig) Save() error {
 		return bosherr.WrapError(err, "Marshalling config")
 	}
 
-	err = c.fs.WriteFile(c.path, bytes)
+	err = util.WritePrivateFile(c.fs, c.path, bytes)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Writing config '%s'", c.path)
-	}
-	err = c.fs.Chmod(c.path, os.FileMode(0600))
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Setting config '%s' permissions", c.path)
 	}
 
 	return nil

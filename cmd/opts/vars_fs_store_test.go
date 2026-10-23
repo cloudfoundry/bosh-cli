@@ -87,7 +87,7 @@ var _ = Describe("VarsFSStore", func() {
 			})
 
 			It("returns error if writing file fails", func() {
-				fs.WriteFileError = errors.New("fake-err")
+				fs.OpenFileErr = errors.New("fake-err")
 
 				val, found, err := store.Get(boshtpl.VariableDefinition{Name: "key2", Type: "password"})
 				Expect(val).To(BeNil())

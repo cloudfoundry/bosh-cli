@@ -7,6 +7,7 @@ import (
 	cfgtypes "github.com/cloudfoundry/config-server/types"
 	"gopkg.in/yaml.v2"
 
+	"github.com/cloudfoundry/bosh-cli/v7/common/util"
 	boshtpl "github.com/cloudfoundry/bosh-cli/v7/director/template"
 )
 
@@ -119,7 +120,7 @@ func (s VarsFSStore) save(vars boshtpl.StaticVariables) error {
 		return bosherr.WrapErrorf(err, "Serializing variables")
 	}
 
-	err = s.FS.WriteFile(s.path, bytes)
+	err = util.WritePrivateFile(s.FS, s.path, bytes)
 	if err != nil {
 		return bosherr.WrapErrorf(err, "Writing variables to file store '%s'", s.path)
 	}
