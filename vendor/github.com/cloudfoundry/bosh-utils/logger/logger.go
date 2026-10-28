@@ -165,27 +165,27 @@ func (l *logger) ErrorWithDetails(tag, msg string, args ...interface{}) {
 	l.Error(tag, msg, args...)
 }
 
-func (l *logger) recoverPanic(tag string) (didPanic bool) {
-	if e := recover(); e != nil {
-		var msg string
-		switch obj := e.(type) {
-		case string:
-			msg = obj
-		case fmt.Stringer:
-			msg = obj.String()
-		case error:
-			msg = obj.Error()
-		default:
-			msg = fmt.Sprintf("%#v", obj)
-		}
-		l.ErrorWithDetails(tag, "Panic: %s", msg, debug.Stack())
-		return true
+func (l *logger) logPanic(tag string, e interface{}) {
+	var msg string
+	switch obj := e.(type) {
+	case string:
+		msg = obj
+	case fmt.Stringer:
+		msg = obj.String()
+	case error:
+		msg = obj.Error()
+	default:
+		msg = fmt.Sprintf("%#v", obj)
 	}
-	return false
+	l.ErrorWithDetails(tag, "Panic: %s", msg, debug.Stack())
 }
 
+// HandlePanic must call recover() directly: Go only honours recover() in the
+// function that was deferred, not in any function it calls. Delegating to a
+// helper that calls recover() leaves the panic unhandled.
 func (l *logger) HandlePanic(tag string) {
-	if l.recoverPanic(tag) {
+	if e := recover(); e != nil {
+		l.logPanic(tag, e)
 		os.Exit(2)
 	}
 }
