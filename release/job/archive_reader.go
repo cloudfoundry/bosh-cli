@@ -8,6 +8,7 @@ import (
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
+	biutil "github.com/cloudfoundry/bosh-cli/v7/common/util"
 	boshjobman "github.com/cloudfoundry/bosh-cli/v7/release/job/manifest"
 	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
@@ -44,11 +45,22 @@ func (r ArchiveReaderImpl) Read(ref boshman.JobRef, path string) (*Job, error) {
 		return nil, bosherr.WrapErrorf(err, "Creating temp directory to extract job '%s'", path)
 	}
 
+	succeeded := false
+	defer func() {
+		if !succeeded {
+			r.fs.RemoveAll(extractPath) //nolint:errcheck
+		}
+	}()
+
 	// Used for future clean up
 	job.extractedPath = extractPath
 	job.fs = r.fs
 
-	err = r.compressor.DecompressFileToDir(path, extractPath, boshcmd.CompressorOptions{})
+	options, err := biutil.ArchiveExtractionOptions(extractPath)
+	if err != nil {
+		return nil, err
+	}
+	err = r.compressor.DecompressFileToDir(path, extractPath, options)
 	if err != nil {
 		return nil, bosherr.WrapErrorf(err, "Extracting job archive '%s'", path)
 	}
@@ -80,5 +92,6 @@ func (r ArchiveReaderImpl) Read(ref boshman.JobRef, path string) (*Job, error) {
 
 	job.Properties = properties
 
+	succeeded = true
 	return job, nil
 }

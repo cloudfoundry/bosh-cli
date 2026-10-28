@@ -10,6 +10,7 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 	"gopkg.in/yaml.v2"
 
+	biutil "github.com/cloudfoundry/bosh-cli/v7/common/util"
 	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	boshlic "github.com/cloudfoundry/bosh-cli/v7/release/license"
 	boshpkg "github.com/cloudfoundry/bosh-cli/v7/release/pkg"
@@ -197,7 +198,11 @@ func (w ArchiveWriter) writeLicense(license *boshlic.License, stagingDir string)
 
 	licenseFiles = append(licenseFiles, "license.tgz")
 
-	err = w.compressor.DecompressFileToDir(license.ArchivePath(), stagingDir, boshcmd.CompressorOptions{})
+	options, err := biutil.ArchiveExtractionOptions(stagingDir)
+	if err != nil {
+		return licenseFiles, err
+	}
+	err = w.compressor.DecompressFileToDir(license.ArchivePath(), stagingDir, options)
 	if err != nil {
 		return licenseFiles, bosherr.WrapErrorf(err, "Decompressing license archive into staging dir")
 	}

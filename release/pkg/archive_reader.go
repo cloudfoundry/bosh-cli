@@ -5,6 +5,7 @@ import (
 	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
+	biutil "github.com/cloudfoundry/bosh-cli/v7/common/util"
 	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
 	"github.com/cloudfoundry/bosh-cli/v7/release/resource"
 )
@@ -42,8 +43,14 @@ func (r ArchiveReaderImpl) Read(ref boshman.PackageRef, path string) (*Package, 
 		pkg.extractedPath = extractPath
 		pkg.fs = r.fs
 
-		err = r.compressor.DecompressFileToDir(path, extractPath, boshcmd.CompressorOptions{})
+		options, err := biutil.ArchiveExtractionOptions(extractPath)
 		if err != nil {
+			r.fs.RemoveAll(extractPath) //nolint:errcheck
+			return nil, err
+		}
+		err = r.compressor.DecompressFileToDir(path, extractPath, options)
+		if err != nil {
+			r.fs.RemoveAll(extractPath) //nolint:errcheck
 			return nil, bosherr.WrapErrorf(err, "Extracting package '%s'", ref.Name)
 		}
 	}

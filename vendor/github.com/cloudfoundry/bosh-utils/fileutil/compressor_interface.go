@@ -1,10 +1,14 @@
 package fileutil
 
 type CompressorOptions struct {
-	SameOwner       bool
-	PathInArchive   string
-	StripComponents int
-	NoCompression   bool
+	MaxExpandedBytes  int64
+	MaxArchiveMembers int
+	MaxManifestBytes  int64
+	ArchiveBudget     *ArchiveBudget
+	SameOwner         bool
+	PathInArchive     string
+	StripComponents   int
+	NoCompression     bool
 }
 
 type Compressor interface {

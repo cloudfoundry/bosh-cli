@@ -253,7 +253,7 @@ github.com/cloudfoundry/bosh-gcscli/config
 ## explicit; go 1.26.0
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.669
+# github.com/cloudfoundry/bosh-utils v0.0.670-0.20261028155850-7b28a363ee8a
 ## explicit; go 1.26.10
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/blobstorefakes

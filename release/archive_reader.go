@@ -8,6 +8,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 
+	biutil "github.com/cloudfoundry/bosh-cli/v7/common/util"
 	boshjob "github.com/cloudfoundry/bosh-cli/v7/release/job"
 	boshlic "github.com/cloudfoundry/bosh-cli/v7/release/license"
 	boshman "github.com/cloudfoundry/bosh-cli/v7/release/manifest"
@@ -53,7 +54,12 @@ func (r ArchiveReader) Read(path string) (Release, error) {
 
 	r.logger.Info(r.logTag, "Extracting release tarball '%s' to '%s'", path, extractPath)
 
-	err = r.compressor.DecompressFileToDir(path, extractPath, boshcmd.CompressorOptions{})
+	options, err := biutil.ArchiveExtractionOptions(extractPath)
+	if err != nil {
+		r.cleanUp(extractPath)
+		return nil, err
+	}
+	err = r.compressor.DecompressFileToDir(path, extractPath, options)
 	if err != nil {
 		r.cleanUp(extractPath)
 		return nil, bosherr.WrapError(err, "Extracting release")

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
 	. "github.com/onsi/ginkgo/v2"
@@ -53,7 +52,10 @@ var _ = Describe("ArchiveReaderImpl", func() {
 
 			Expect(compressor.DecompressFileToDirTarballPaths).To(Equal([]string{"archive-path"}))
 			Expect(compressor.DecompressFileToDirDirs).To(Equal([]string{"/extracted/pkg"}))
-			Expect(compressor.DecompressFileToDirOptions).To(Equal([]boshcmd.CompressorOptions{{}}))
+			Expect(compressor.DecompressFileToDirOptions).To(HaveLen(1))
+			Expect(compressor.DecompressFileToDirOptions[0].MaxExpandedBytes).To(BeNumerically(">", 0))
+			Expect(compressor.DecompressFileToDirOptions[0].MaxArchiveMembers).To(BeNumerically(">", 0))
+			Expect(compressor.DecompressFileToDirOptions[0].ArchiveBudget).NotTo(BeNil())
 		})
 
 		It("returns error when the package archive is not a valid tar", func() {

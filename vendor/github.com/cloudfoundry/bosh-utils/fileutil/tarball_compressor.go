@@ -64,6 +64,9 @@ func (c tarballCompressor) CompressSpecificFilesInDir(dir string, files []string
 }
 
 func (c tarballCompressor) DecompressFileToDir(tarballPath string, dir string, options CompressorOptions) error {
+	if options.MaxExpandedBytes != 0 || options.MaxArchiveMembers != 0 {
+		return c.decompressBounded(tarballPath, dir, options)
+	}
 	sameOwnerOption := "--no-same-owner"
 	if options.SameOwner {
 		sameOwnerOption = "--same-owner"

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -74,7 +73,10 @@ properties:
 
 			Expect(compressor.DecompressFileToDirTarballPaths).To(Equal([]string{"archive-path"}))
 			Expect(compressor.DecompressFileToDirDirs).To(Equal([]string{"/extracted/job"}))
-			Expect(compressor.DecompressFileToDirOptions).To(Equal([]boshcmd.CompressorOptions{{}}))
+			Expect(compressor.DecompressFileToDirOptions).To(HaveLen(1))
+			Expect(compressor.DecompressFileToDirOptions[0].MaxExpandedBytes).To(BeNumerically(">", 0))
+			Expect(compressor.DecompressFileToDirOptions[0].MaxArchiveMembers).To(BeNumerically(">", 0))
+			Expect(compressor.DecompressFileToDirOptions[0].ArchiveBudget).NotTo(BeNil())
 		})
 
 		It("returns an error when the job manifest is invalid", func() {

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"path/filepath"
 
-	boshcmd "github.com/cloudfoundry/bosh-utils/fileutil"
 	fakecmd "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
@@ -490,7 +489,10 @@ no_compression: true
 			compressor.DecompressFileToDirCallBack = func() {
 				Expect(compressor.DecompressFileToDirTarballPaths).To(Equal([]string{filepath.Join("/", "tmp", "lic.tgz")}))
 				Expect(compressor.DecompressFileToDirDirs).To(Equal([]string{filepath.Join("/", "staging-release")}))
-				Expect(compressor.DecompressFileToDirOptions).To(Equal([]boshcmd.CompressorOptions{{}}))
+				Expect(compressor.DecompressFileToDirOptions).To(HaveLen(1))
+				Expect(compressor.DecompressFileToDirOptions[0].MaxExpandedBytes).To(BeNumerically(">", 0))
+				Expect(compressor.DecompressFileToDirOptions[0].MaxExpandedBytes).To(BeNumerically("<=", int64(128*1024*1024*1024)))
+				Expect(compressor.DecompressFileToDirOptions[0].MaxArchiveMembers).To(Equal(10000))
 				decompressed = true
 			}
 
