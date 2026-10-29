@@ -251,9 +251,16 @@ compiled_packages:
 - name: pkg1
   version: pkg1-version
   fingerprint: pkg1-fp
+  original_fingerprint: original-pkg1-fp
   stemcell: pkg1-stemcell
   sha1: pkg1-sha
   dependencies: [pkg2]
+
+compile_time_packages:
+- name: compile-time-pkg
+  version: compile-time-version
+  fingerprint: compile-time-fingerprint
+  dependencies: [pkg1]
 
 license:
   version: lic-version
@@ -273,10 +280,10 @@ license:
 					job2 := boshjob.NewJob(NewResource("job2", "job2-fp", nil))
 
 					compiledPkg1 := boshpkg.NewCompiledPackageWithArchive(
-						"pkg1", "pkg1-fp", "pkg1-stemcell",
+						"pkg1", "pkg1-fp", "original-pkg1-fp", "pkg1-stemcell",
 						filepath.Join("/", "extracted", "release", "compiled_packages", "pkg1.tgz"), "pkg1-sha", []string{"pkg2"})
 					compiledPkg2 := boshpkg.NewCompiledPackageWithArchive(
-						"pkg2", "pkg2-fp", "pkg2-stemcell",
+						"pkg2", "pkg2-fp", "", "pkg2-stemcell",
 						filepath.Join("/", "extracted", "release", "compiled_packages", "pkg2.tgz"), "pkg2-sha", nil)
 					err := compiledPkg1.AttachDependencies([]*boshpkg.CompiledPackage{compiledPkg2})
 					Expect(err).ToNot(HaveOccurred())
@@ -318,6 +325,9 @@ license:
 					Expect(release.Packages()).To(BeEmpty())
 					Expect(release.CompiledPackages()).To(Equal(
 						[]*boshpkg.CompiledPackage{compiledPkg2, compiledPkg1}))
+					Expect(release.CompiledPackages()[1].OriginalFingerprint()).To(Equal("original-pkg1-fp"))
+					Expect(release.CopyWith(nil, nil, nil, nil).Manifest().CompileTimePackages).To(HaveLen(1))
+					Expect(release.CopyWith(nil, nil, nil, nil).Manifest().CompileTimePackages[0].Name).To(Equal("compile-time-pkg"))
 					Expect(release.IsCompiled()).To(BeTrue())
 					Expect(release.License()).To(Equal(lic))
 

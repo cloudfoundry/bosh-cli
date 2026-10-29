@@ -98,9 +98,9 @@ var _ = Describe("Job", func() {
 			job := NewJob(NewResource("name", "fp", nil))
 			job.PackageNames = []string{"pkg1", "pkg2"}
 
-			pkg1 := boshpkg.NewCompiledPackageWithArchive("pkg1", "fp", "", "path", "sha1", nil)
-			pkg2 := boshpkg.NewCompiledPackageWithArchive("pkg2", "fp", "", "path", "sha1", nil)
-			unusedPkg := boshpkg.NewCompiledPackageWithArchive("unused", "fp", "", "path", "sha1", nil)
+			pkg1 := boshpkg.NewCompiledPackageWithArchive("pkg1", "fp", "", "", "path", "sha1", nil)
+			pkg2 := boshpkg.NewCompiledPackageWithArchive("pkg2", "fp", "", "", "path", "sha1", nil)
+			unusedPkg := boshpkg.NewCompiledPackageWithArchive("unused", "fp", "", "", "path", "sha1", nil)
 
 			err := job.AttachCompilablePackages([]boshpkg.Compilable{pkg1, unusedPkg, pkg2})
 			Expect(err).ToNot(HaveOccurred())
@@ -112,7 +112,7 @@ var _ = Describe("Job", func() {
 			job := NewJob(NewResource("name", "fp", nil))
 			job.PackageNames = []string{"pkg1"}
 
-			pkg2 := boshpkg.NewCompiledPackageWithArchive("pkg2", "fp", "", "path", "sha1", nil)
+			pkg2 := boshpkg.NewCompiledPackageWithArchive("pkg2", "fp", "", "", "path", "sha1", nil)
 
 			err := job.AttachCompilablePackages([]boshpkg.Compilable{pkg2})
 			Expect(err).To(HaveOccurred())

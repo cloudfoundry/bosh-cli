@@ -363,6 +363,7 @@ var _ = Describe("PackageCompiler", func() {
 				compiledPkg = birelpkg.NewCompiledPackageWithArchive(
 					"compiled-pkg1-name",
 					"compiled-pkg1-fingerprint",
+					"",
 					"compiled-pkg1-os-version-slug",
 					"compiled-pkg1-path",
 					"compiled-pkg1-sha1",
@@ -371,6 +372,7 @@ var _ = Describe("PackageCompiler", func() {
 				dependency1 = birelpkg.NewCompiledPackageWithArchive(
 					"compiled-pkg1-dep1-name",
 					"compiled-pkg1-dep1-fingerprint",
+					"",
 					"compiled-pkg1-dep1-os-version-slug",
 					"compiled-pkg1-dep1-path",
 					"compiled-pkg1-dep1-sha1",
@@ -379,6 +381,7 @@ var _ = Describe("PackageCompiler", func() {
 				dependency2 = birelpkg.NewCompiledPackageWithArchive(
 					"compiled-pkg1-dep2-name",
 					"compiled-pkg1-dep2-fingerprint",
+					"",
 					"compiled-pkg1-dep2-os-version-slug",
 					"compiled-pkg1-dep2-path",
 					"compiled-pkg1-dep2-sha1",
