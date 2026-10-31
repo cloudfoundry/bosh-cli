@@ -72,6 +72,9 @@ func HashURL(raw string) (string, error) {
 	if u.User == nil {
 		return "", errors.New("URL missing userinfo")
 	}
+	if strings.Contains(u.User.Username(), ":") {
+		return "", errors.New("URL username must not contain a colon")
+	}
 	password, hasPassword := u.User.Password()
 	if !hasPassword || password == "" {
 		return "", errors.New("URL missing password")
