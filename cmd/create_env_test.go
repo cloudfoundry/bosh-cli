@@ -825,6 +825,17 @@ var _ = Describe("CreateEnvCmd", func() {
 			Expect(mockStemcellManager.DeleteUnusedCallCount()).To(Equal(1))
 		})
 
+		Context("when SkipDeleteUnusedStemcells is specified", func() {
+			It("does not delete unused stemcells", func() {
+				defaultCreateEnvOpts.SkipDeleteUnusedStemcells = true
+
+				err := command.Run(fakeStage, defaultCreateEnvOpts)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(mockStemcellManager.DeleteUnusedCallCount()).To(Equal(0))
+			})
+		})
+
 		Context("when SkipDrain is specified", func() {
 			BeforeEach(func() {
 				expectedSkipDrain = true

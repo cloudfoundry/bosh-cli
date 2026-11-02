@@ -193,12 +193,13 @@ type CreateEnvOpts struct {
 	Args CreateEnvArgs `positional-args:"true" required:"true"`
 	VarFlags
 	OpsFlags
-	SkipDrain               bool   `long:"skip-drain" description:"Skip running drain and pre-stop scripts"`
-	StatePath               string `long:"state" value-name:"PATH" description:"State file path"`
-	Recreate                bool   `long:"recreate" description:"Recreate VM in deployment"`
-	RecreatePersistentDisks bool   `long:"recreate-persistent-disks" description:"Recreate persistent disks in the deployment"`
-	FixStemcell             bool   `long:"fix-stemcell" description:"Forces re-upload of the stemcell; any existing stemcell image is orphaned and the VM is recreated"`
-	PackageDir              string `long:"package-dir" value-name:"DIR" description:"Package cache location override"`
+	SkipDrain                 bool   `long:"skip-drain" description:"Skip running drain and pre-stop scripts"`
+	StatePath                 string `long:"state" value-name:"PATH" description:"State file path"`
+	Recreate                  bool   `long:"recreate" description:"Recreate VM in deployment"`
+	RecreatePersistentDisks   bool   `long:"recreate-persistent-disks" description:"Recreate persistent disks in the deployment"`
+	FixStemcell               bool   `long:"fix-stemcell" description:"Forces re-upload of the stemcell; any existing stemcell image is orphaned and the VM is recreated"`
+	SkipDeleteUnusedStemcells bool   `long:"skip-delete-unused-stemcells" description:"Keep stemcells that are no longer current; use when another deployment reuses the same stemcell image"`
+	PackageDir                string `long:"package-dir" value-name:"DIR" description:"Package cache location override"`
 	cmd
 }
 

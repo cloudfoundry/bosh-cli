@@ -103,10 +103,11 @@ type DeploymentPreparer struct {
 
 // DeploymentOptions carries the per-run switches for PrepareDeployment.
 type DeploymentOptions struct {
-	Recreate                bool
-	RecreatePersistentDisks bool
-	FixStemcell             bool
-	SkipDrain               bool
+	Recreate                  bool
+	RecreatePersistentDisks   bool
+	FixStemcell               bool
+	SkipDrain                 bool
+	SkipDeleteUnusedStemcells bool
 }
 
 func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, opts DeploymentOptions) (err error) {
@@ -114,6 +115,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, opts Deployment
 	recreatePersistentDisks := opts.RecreatePersistentDisks
 	fix := opts.FixStemcell
 	skipDrain := opts.SkipDrain
+	skipDeleteUnusedStemcells := opts.SkipDeleteUnusedStemcells
 
 	c.ui.BeginLinef("Deployment state: '%s'\n", c.deploymentStateService.Path())
 
@@ -233,6 +235,7 @@ func (c *DeploymentPreparer) PrepareDeployment(stage biui.Stage, opts Deployment
 				manifestSHA,
 				skipDrain,
 				fix,
+				skipDeleteUnusedStemcells,
 				stage,
 				cloud,
 			)
@@ -264,6 +267,7 @@ func (c *DeploymentPreparer) deploy(
 	manifestSHA string,
 	skipDrain bool,
 	fix bool,
+	skipDeleteUnusedStemcells bool,
 	stage biui.Stage,
 	cloud bicloud.Cloud,
 ) (err error) {
@@ -321,6 +325,11 @@ func (c *DeploymentPreparer) deploy(
 	}
 
 	// TODO: cleanup unused disks here?
+
+	if skipDeleteUnusedStemcells {
+		c.ui.BeginLinef("Skipping deletion of unused stemcells\n")
+		return nil
+	}
 
 	err = stemcellManager.DeleteUnused(stage)
 	if err != nil {
