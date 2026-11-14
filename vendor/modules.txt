@@ -243,13 +243,13 @@ github.com/cloudfoundry/bosh-agent/v2/agentclient/applyspec
 github.com/cloudfoundry/bosh-agent/v2/agentclient/fakes
 github.com/cloudfoundry/bosh-agent/v2/agentclient/http
 github.com/cloudfoundry/bosh-agent/v2/agentpassword
-# github.com/cloudfoundry/bosh-davcli v0.0.526
+# github.com/cloudfoundry/bosh-davcli v0.0.527
 ## explicit; go 1.26.10
 github.com/cloudfoundry/bosh-davcli/client
 github.com/cloudfoundry/bosh-davcli/client/fakes
 github.com/cloudfoundry/bosh-davcli/config
 github.com/cloudfoundry/bosh-davcli/signer
-# github.com/cloudfoundry/bosh-gcscli v0.0.437
+# github.com/cloudfoundry/bosh-gcscli v0.0.438
 ## explicit; go 1.26.10
 github.com/cloudfoundry/bosh-gcscli/client
 github.com/cloudfoundry/bosh-gcscli/config
@@ -257,8 +257,8 @@ github.com/cloudfoundry/bosh-gcscli/config
 ## explicit; go 1.26.10
 github.com/cloudfoundry/bosh-s3cli/client
 github.com/cloudfoundry/bosh-s3cli/config
-# github.com/cloudfoundry/bosh-utils v0.0.673
-## explicit; go 1.26.10
+# github.com/cloudfoundry/bosh-utils v0.0.675
+## explicit; go 1.26.11
 github.com/cloudfoundry/bosh-utils/blobstore
 github.com/cloudfoundry/bosh-utils/blobstore/blobstorefakes
 github.com/cloudfoundry/bosh-utils/crypto
@@ -284,7 +284,7 @@ github.com/cloudfoundry/config-server/types/typesfakes
 # github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851
 ## explicit; go 1.21.0
 github.com/cloudfoundry/go-socks5
-# github.com/cloudfoundry/socks5-proxy v0.2.196
+# github.com/cloudfoundry/socks5-proxy v0.2.197
 ## explicit; go 1.26.11
 github.com/cloudfoundry/socks5-proxy
 # github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2
@@ -363,8 +363,6 @@ github.com/fatih/color
 # github.com/felixge/httpsnoop v1.1.0
 ## explicit; go 1.25
 github.com/felixge/httpsnoop
-# github.com/gkampitakis/ciinfo v0.3.5
-## explicit; go 1.20
 # github.com/go-jose/go-jose/v4 v4.1.9
 ## explicit; go 1.24.0
 github.com/go-jose/go-jose/v4
@@ -542,6 +540,8 @@ github.com/spiffe/go-spiffe/v2/internal/jwtutil
 github.com/spiffe/go-spiffe/v2/internal/pemutil
 github.com/spiffe/go-spiffe/v2/internal/x509util
 github.com/spiffe/go-spiffe/v2/spiffeid
+# github.com/tidwall/gjson v1.20.3
+## explicit; go 1.23
 # github.com/vishvananda/netlink v1.3.1
 ## explicit; go 1.12
 # github.com/vito/go-interact v1.0.2
@@ -743,7 +743,7 @@ golang.org/x/tools/internal/stdlib
 golang.org/x/tools/internal/typeparams
 golang.org/x/tools/internal/typesinternal
 golang.org/x/tools/internal/versions
-# google.golang.org/api v0.313.0
+# google.golang.org/api v0.315.0
 ## explicit; go 1.26.0
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
