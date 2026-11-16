@@ -58,7 +58,7 @@ var _ = Describe("finalize-release command", func() {
 						Version     string `yaml:"version"`
 						BlobstoreID string `yaml:"blobstore_id"`
 						Sha1        string `yaml:"sha1"`
-					} `yaml:"7225651667f52a2c600a4b7271c76b7277268730574d55dae509c0e9ad6c89e7"`
+					} `yaml:"acb47df85af90bab14ec6f3d846a0fbf1c2c97704ddc86c8604f0213f767c9ce"`
 				} `yaml:"builds"`
 				FormatVersion string `yaml:"format-version"`
 			}
@@ -66,7 +66,7 @@ var _ = Describe("finalize-release command", func() {
 			err = yaml.Unmarshal([]byte(jobContents), &jobs)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(jobs.Builds.Id.Version).To(Equal("7225651667f52a2c600a4b7271c76b7277268730574d55dae509c0e9ad6c89e7"))
+			Expect(jobs.Builds.Id.Version).To(Equal("acb47df85af90bab14ec6f3d846a0fbf1c2c97704ddc86c8604f0213f767c9ce"))
 			Expect(jobs.Builds.Id.BlobstoreID).NotTo(BeEmpty())
 			Expect(jobs.Builds.Id.Sha1).NotTo(BeEmpty())
 			Expect(jobs.FormatVersion).To(Equal("2"))
@@ -99,7 +99,7 @@ var _ = Describe("finalize-release command", func() {
 		It("prints release summary", func() {
 			createAndExecCommand(cmdFactory, []string{"finalize-release", "--dir", releaseDir, fmt.Sprintf("%s/release.tgz", releaseDir), "--force"})
 			output := strings.Join(ui.Said, " ")
-			Expect(output).To(ContainSubstring("Added job 'job1/7225651667f52a2c600a4b7271c76b7277268730574d55dae509c0e9ad6c89e7'"))
+			Expect(output).To(ContainSubstring("Added job 'job1/acb47df85af90bab14ec6f3d846a0fbf1c2c97704ddc86c8604f0213f767c9ce'"))
 			Expect(output).To(ContainSubstring("Added package 'pkg1/074b9ff2fd95d50d32db373ae16bd8cb5d6e098beb7ff35745ea1b5115264710'"))
 			Expect(output).To(ContainSubstring("Added final release 'test-release/1'"))
 		})

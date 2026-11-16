@@ -100,8 +100,8 @@ commit_hash: non-git
 uncommitted_changes: false
 jobs:
 - name: job1
-  version: f54520d6563c438bf0bc5bb674777db171b78d848a057a3faec0e9b572c3a76c
-  fingerprint: f54520d6563c438bf0bc5bb674777db171b78d848a057a3faec0e9b572c3a76c
+  version: 5543ab9dea4b69b0676a9e1a81e5e88615ff8abfc1d0a7cb2e2d3d52c088b3f5
+  fingerprint: 5543ab9dea4b69b0676a9e1a81e5e88615ff8abfc1d0a7cb2e2d3d52c088b3f5
   sha1: replaced
   packages:
   - pkg1
@@ -162,8 +162,8 @@ commit_hash: non-git
 uncommitted_changes: false
 jobs:
 - name: job1
-  version: f54520d6563c438bf0bc5bb674777db171b78d848a057a3faec0e9b572c3a76c
-  fingerprint: f54520d6563c438bf0bc5bb674777db171b78d848a057a3faec0e9b572c3a76c
+  version: 5543ab9dea4b69b0676a9e1a81e5e88615ff8abfc1d0a7cb2e2d3d52c088b3f5
+  fingerprint: 5543ab9dea4b69b0676a9e1a81e5e88615ff8abfc1d0a7cb2e2d3d52c088b3f5
   sha1: replaced
   packages:
   - pkg1
@@ -332,7 +332,15 @@ var _ = Describe("release creation", func() {
 
 			jobsContents, err := listFilesRecursively(fmt.Sprintf("%s/jobs/", releaseDir))
 			Expect(err).ToNot(HaveOccurred())
-			expectedJobsDir := []string{"job1", "job1/monit", "job1/spec", "job1/templates"}
+			expectedJobsDir := []string{
+				"job1",
+				"job1/monit",
+				"job1/spec",
+				"job1/templates",
+				"job1/templates/bin",
+				"job1/templates/bin/job1",
+				"job1/templates/bpm.yml.erb",
+			}
 			Expect(jobsContents).To(Equal(expectedJobsDir))
 
 			Expect(fs.FileExists(fmt.Sprintf("%s/LICENSE", releaseDir))).To(Equal(true))

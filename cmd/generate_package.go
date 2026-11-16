@@ -14,5 +14,9 @@ func NewGeneratePackageCmd(releaseDir boshreldir.ReleaseDir) GeneratePackageCmd 
 }
 
 func (c GeneratePackageCmd) Run(opts GeneratePackageOpts) error {
-	return c.releaseDir.GeneratePackage(opts.Args.Name)
+	return c.releaseDir.GeneratePackage(boshreldir.GeneratePackageOptions{
+		Name:         opts.Args.Name,
+		Files:        opts.Files,
+		Dependencies: opts.Dependencies,
+	})
 }

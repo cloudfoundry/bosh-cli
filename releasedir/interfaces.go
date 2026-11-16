@@ -19,8 +19,8 @@ type ReleaseDir interface {
 	Init(bool) error
 	Reset() error
 
-	GenerateJob(string) error
-	GeneratePackage(string) error
+	GenerateJob(GenerateJobOptions) error
+	GeneratePackage(GeneratePackageOptions) error
 
 	// DefaultName returns a string for the release.
 	DefaultName() (string, error)
@@ -64,8 +64,8 @@ type Config interface {
 //counterfeiter:generate . Generator
 
 type Generator interface {
-	GenerateJob(string) error
-	GeneratePackage(string) error
+	GenerateJob(GenerateJobOptions) error
+	GeneratePackage(GeneratePackageOptions) error
 }
 
 //counterfeiter:generate . GitRepo
