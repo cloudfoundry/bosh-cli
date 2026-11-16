@@ -44,6 +44,19 @@ type FakeConfig struct {
 	noCompressionReturnsOnCall map[int]struct {
 		result1 bool
 	}
+	SaveBlobstoreStub        func(string, map[string]interface{}, map[string]interface{}) error
+	saveBlobstoreMutex       sync.RWMutex
+	saveBlobstoreArgsForCall []struct {
+		arg1 string
+		arg2 map[string]interface{}
+		arg3 map[string]interface{}
+	}
+	saveBlobstoreReturns struct {
+		result1 error
+	}
+	saveBlobstoreReturnsOnCall map[int]struct {
+		result1 error
+	}
 	SaveNameStub        func(string) error
 	saveNameMutex       sync.RWMutex
 	saveNameArgsForCall []struct {
@@ -224,6 +237,69 @@ func (fake *FakeConfig) NoCompressionReturnsOnCall(i int, result1 bool) {
 	}
 	fake.noCompressionReturnsOnCall[i] = struct {
 		result1 bool
+	}{result1}
+}
+
+func (fake *FakeConfig) SaveBlobstore(arg1 string, arg2 map[string]interface{}, arg3 map[string]interface{}) error {
+	fake.saveBlobstoreMutex.Lock()
+	ret, specificReturn := fake.saveBlobstoreReturnsOnCall[len(fake.saveBlobstoreArgsForCall)]
+	fake.saveBlobstoreArgsForCall = append(fake.saveBlobstoreArgsForCall, struct {
+		arg1 string
+		arg2 map[string]interface{}
+		arg3 map[string]interface{}
+	}{arg1, arg2, arg3})
+	stub := fake.SaveBlobstoreStub
+	fakeReturns := fake.saveBlobstoreReturns
+	fake.recordInvocation("SaveBlobstore", []interface{}{arg1, arg2, arg3})
+	fake.saveBlobstoreMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeConfig) SaveBlobstoreCallCount() int {
+	fake.saveBlobstoreMutex.RLock()
+	defer fake.saveBlobstoreMutex.RUnlock()
+	return len(fake.saveBlobstoreArgsForCall)
+}
+
+func (fake *FakeConfig) SaveBlobstoreCalls(stub func(string, map[string]interface{}, map[string]interface{}) error) {
+	fake.saveBlobstoreMutex.Lock()
+	defer fake.saveBlobstoreMutex.Unlock()
+	fake.SaveBlobstoreStub = stub
+}
+
+func (fake *FakeConfig) SaveBlobstoreArgsForCall(i int) (string, map[string]interface{}, map[string]interface{}) {
+	fake.saveBlobstoreMutex.RLock()
+	defer fake.saveBlobstoreMutex.RUnlock()
+	argsForCall := fake.saveBlobstoreArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeConfig) SaveBlobstoreReturns(result1 error) {
+	fake.saveBlobstoreMutex.Lock()
+	defer fake.saveBlobstoreMutex.Unlock()
+	fake.SaveBlobstoreStub = nil
+	fake.saveBlobstoreReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeConfig) SaveBlobstoreReturnsOnCall(i int, result1 error) {
+	fake.saveBlobstoreMutex.Lock()
+	defer fake.saveBlobstoreMutex.Unlock()
+	fake.SaveBlobstoreStub = nil
+	if fake.saveBlobstoreReturnsOnCall == nil {
+		fake.saveBlobstoreReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.saveBlobstoreReturnsOnCall[i] = struct {
+		result1 error
 	}{result1}
 }
 

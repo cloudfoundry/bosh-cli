@@ -78,7 +78,17 @@ func NewFSReleaseDir(
 	}
 }
 
-func (d FSReleaseDir) Init(git bool) error {
+func (d FSReleaseDir) Init(options InitOptions) error {
+	finalConfigPath := filepath.Join(d.dirPath, "config", "final.yml")
+	blobsConfigPath := filepath.Join(d.dirPath, "config", "blobs.yml")
+
+	if !options.Force {
+		if d.fs.FileExists(finalConfigPath) || d.fs.FileExists(blobsConfigPath) {
+			return bosherr.Errorf(
+				"Release already initialized at '%s'; use --force to reinitialize", d.dirPath)
+		}
+	}
+
 	for _, name := range []string{"jobs", "packages", "src"} {
 		err := d.fs.MkdirAll(filepath.Join(d.dirPath, name), os.ModePerm)
 		if err != nil {
@@ -86,20 +96,68 @@ func (d FSReleaseDir) Init(git bool) error {
 		}
 	}
 
-	name := strings.TrimSuffix(filepath.Base(d.dirPath), "-release")
+	name := options.Name
+	if len(name) == 0 {
+		existingName, err := d.config.Name()
+		if err == nil && len(existingName) > 0 {
+			name = existingName
+		} else {
+			name = strings.TrimSuffix(filepath.Base(d.dirPath), "-release")
+		}
+	}
 
 	err := d.config.SaveName(name)
 	if err != nil {
 		return err
 	}
 
-	err = d.blobsDir.Init()
-	if err != nil {
-		return bosherr.WrapErrorf(err, "Initing blobs")
+	if !d.fs.FileExists(blobsConfigPath) {
+		err = d.blobsDir.Init()
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Initing blobs")
+		}
 	}
 
-	if git {
+	err = d.gitRepo.WriteIgnoreFile()
+	if err != nil {
+		return err
+	}
+
+	if options.Git {
 		err = d.gitRepo.Init()
+		if err != nil {
+			return err
+		}
+	}
+
+	provider := options.BlobstoreProvider
+	publicOptions := options.BlobstoreOptions
+
+	if options.Sample && len(provider) == 0 {
+		// Reinitializing a release must not replace its blobstore; only
+		// default to a local blobstore when the release does not have one yet.
+		existingProvider, _, existingErr := d.config.Blobstore()
+		if existingErr == nil && len(existingProvider) > 0 {
+			provider = existingProvider
+		} else {
+			provider = "local"
+			publicOptions = copyBlobstoreOptions(publicOptions)
+
+			if _, found := publicOptions["blobstore_path"]; !found {
+				publicOptions["blobstore_path"] = ".blobs"
+			}
+		}
+	}
+
+	if len(provider) > 0 {
+		err = d.config.SaveBlobstore(provider, publicOptions, options.BlobstorePrivateOptions)
+		if err != nil {
+			return err
+		}
+	}
+
+	if options.Sample {
+		err = d.generateSample(name)
 		if err != nil {
 			return err
 		}
@@ -114,6 +172,78 @@ func (d FSReleaseDir) GenerateJob(options GenerateJobOptions) error {
 
 func (d FSReleaseDir) GeneratePackage(options GeneratePackageOptions) error {
 	return d.generator.GeneratePackage(options)
+}
+
+func (d FSReleaseDir) generateSample(name string) error {
+	jobName := "sample-job"
+	pkgName := "sample-pkg"
+
+	jobCreated := false
+
+	jobPath := filepath.Join(d.dirPath, "jobs", jobName)
+	if !d.fs.FileExists(jobPath) {
+		err := d.generator.GenerateJob(GenerateJobOptions{
+			Name:     jobName,
+			Packages: []string{pkgName},
+		})
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Generating sample job")
+		}
+
+		jobCreated = true
+	}
+
+	pkgPath := filepath.Join(d.dirPath, "packages", pkgName)
+	if !d.fs.FileExists(pkgPath) {
+		err := d.generator.GeneratePackage(GeneratePackageOptions{
+			Name:  pkgName,
+			Files: []string{pkgName + "/**/*"},
+		})
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Generating sample package")
+		}
+
+		err = d.fs.WriteFileString(filepath.Join(pkgPath, "packaging"), fmt.Sprintf(samplePackagingTemplate, pkgName))
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Creating sample package packaging script")
+		}
+	}
+
+	executablePath := filepath.Join(jobPath, "templates", "bin", jobName)
+	if jobCreated {
+		err := d.fs.WriteFileString(executablePath, fmt.Sprintf(sampleExecutableTemplate, pkgName))
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Creating sample job executable")
+		}
+	}
+
+	srcPath := filepath.Join(d.dirPath, "src", pkgName, "file.txt")
+	if !d.fs.FileExists(srcPath) {
+		err := d.fs.WriteFileString(srcPath, "Hello from "+pkgName+"!\n")
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Creating sample package source file")
+		}
+	}
+
+	readmePath := filepath.Join(d.dirPath, "README.md")
+	if !d.fs.FileExists(readmePath) {
+		err := d.fs.WriteFileString(readmePath, fmt.Sprintf(sampleReadmeTemplate, name))
+		if err != nil {
+			return bosherr.WrapErrorf(err, "Creating README")
+		}
+	}
+
+	return nil
+}
+
+func copyBlobstoreOptions(options map[string]interface{}) map[string]interface{} {
+	result := make(map[string]interface{}, len(options)+1)
+
+	for key, value := range options {
+		result[key] = value
+	}
+
+	return result
 }
 
 func (d FSReleaseDir) Reset() error {
@@ -406,3 +536,40 @@ func (d FSReleaseDir) lastDevOrFinalVersion(name string) (*semver.Version, Relea
 		return nil, nil, nil
 	}
 }
+
+const sampleExecutableTemplate = `#!/bin/bash
+
+set -e
+
+cat /var/vcap/packages/%s/file.txt
+
+# Replace this with the command that starts your process.
+exec sleep 600
+`
+
+const samplePackagingTemplate = `set -eu
+
+cp -a %s/. "${BOSH_INSTALL_TARGET}/"
+`
+
+const sampleReadmeTemplate = `# %s
+
+This release was scaffolded with bosh init-release --sample.
+
+## Build
+
+    bosh create-release --force
+
+## Build a final release
+
+    bosh create-release --final
+
+The sample config/final.yml uses a local blobstore in .blobs/, so a final
+release works without external credentials. Replace it with your production
+blobstore before publishing.
+
+## Deploy
+
+The sample job uses BPM (https://github.com/cloudfoundry/bpm-release), so
+include the BPM release in your deployment manifest.
+`

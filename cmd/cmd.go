@@ -427,7 +427,12 @@ func (c Cmd) Execute() (cmdErr error) {
 		return NewExportReleaseCmd(deployment, downloader).Run(*opts)
 
 	case *InitReleaseOpts:
-		return NewInitReleaseCmd(c.releaseDir(opts.Directory)).Run(*opts)
+		dir, err := initReleaseDir(opts.Directory, opts.Args.Name)
+		if err != nil {
+			return err
+		}
+
+		return NewInitReleaseCmd(c.releaseDir(dir)).Run(*opts)
 
 	case *ResetReleaseOpts:
 		return NewResetReleaseCmd(c.releaseDir(opts.Directory)).Run(*opts)

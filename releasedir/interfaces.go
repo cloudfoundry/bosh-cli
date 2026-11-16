@@ -16,7 +16,7 @@ import (
 //counterfeiter:generate . ReleaseDir
 
 type ReleaseDir interface {
-	Init(bool) error
+	Init(InitOptions) error
 	Reset() error
 
 	GenerateJob(GenerateJobOptions) error
@@ -56,6 +56,7 @@ type ReleaseDir interface {
 type Config interface {
 	Name() (string, error)
 	SaveName(string) error
+	SaveBlobstore(provider string, options, privateOptions map[string]interface{}) error
 
 	Blobstore() (string, map[string]interface{}, error)
 	NoCompression() bool
@@ -72,6 +73,7 @@ type Generator interface {
 
 type GitRepo interface {
 	Init() error
+	WriteIgnoreFile() error
 	LastCommitSHA() (string, error)
 	MustNotBeDirty(force bool) (dirty bool, err error)
 }

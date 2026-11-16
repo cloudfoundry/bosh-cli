@@ -35,6 +35,7 @@ var _ = Describe("GitRepo", func() {
 
 			Expect(fs.ReadFileString("/dir/.gitignore")).To(Equal(`config/private.yml
 blobs
+.blobs
 dev_releases
 releases/*.tgz
 releases/**/*.tgz
@@ -63,6 +64,52 @@ releases/**/*.tgz
 			fs.WriteFileError = errors.New("fake-err")
 
 			err := gitRepo.Init()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+	})
+
+	Describe("WriteIgnoreFile", func() {
+		It("writes the .gitignore file without initializing git", func() {
+			err := gitRepo.WriteIgnoreFile()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(cmdRunner.RunCommands).To(BeEmpty())
+			Expect(fs.ReadFileString("/dir/.gitignore")).To(ContainSubstring(".blobs"))
+			Expect(fs.ReadFileString("/dir/.gitignore")).To(ContainSubstring("config/private.yml"))
+		})
+
+		It("preserves existing entries and appends missing defaults", func() {
+			err := fs.WriteFileString("/dir/.gitignore", "custom_entry\nblobs\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = gitRepo.WriteIgnoreFile()
+			Expect(err).ToNot(HaveOccurred())
+
+			contents, err := fs.ReadFileString("/dir/.gitignore")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(contents).To(HavePrefix("custom_entry\nblobs\n"))
+			Expect(contents).To(ContainSubstring("\n.blobs\n"))
+			Expect(contents).To(ContainSubstring("config/private.yml\n"))
+		})
+
+		It("preserves CRLF line endings when appending defaults", func() {
+			err := fs.WriteFileString("/dir/.gitignore", "custom_entry\r\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = gitRepo.WriteIgnoreFile()
+			Expect(err).ToNot(HaveOccurred())
+
+			contents, err := fs.ReadFileString("/dir/.gitignore")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(contents).To(HavePrefix("custom_entry\r\n"))
+			Expect(contents).To(ContainSubstring(".blobs\r\n"))
+		})
+
+		It("returns error if writing gitignore fails", func() {
+			fs.WriteFileError = errors.New("fake-err")
+
+			err := gitRepo.WriteIgnoreFile()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})

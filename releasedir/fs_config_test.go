@@ -237,32 +237,161 @@ var _ = Describe("FSConfig", func() {
 
 			err = config.SaveName("new-name")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("line 1"))
+			Expect(err.Error()).To(ContainSubstring("expected a mapping"))
 		})
 
-		It("returns error if cannot read private config", func() {
-			err := fs.WriteFileString("/dir/private.yml", "-")
-			Expect(err).ToNot(HaveOccurred())
-			fs.RegisterReadFileError("/dir/private.yml", errors.New("fake-err"))
-
-			err = config.SaveName("new-name")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-err"))
-		})
-
-		It("returns error if cannot unmarshal private config", func() {
-			err := fs.WriteFileString("/dir/private.yml", "-")
+		It("keeps unknown top-level config entries", func() {
+			err := fs.WriteFileString("/dir/public.yml", "name: name\nmin_cli_version: 2.0.0\nno_compression: true")
 			Expect(err).ToNot(HaveOccurred())
 
 			err = config.SaveName("new-name")
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("line 1"))
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/public.yml")).To(Equal(
+				"name: new-name\nmin_cli_version: 2.0.0\nno_compression: true\n"))
 		})
 
 		It("returns error if cannot write public config", func() {
 			fs.WriteFileError = errors.New("fake-err")
 
 			err := config.SaveName("new-name")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+	})
+
+	Describe("SaveBlobstore", func() {
+		It("writes provider and options to public config", func() {
+			err := config.SaveBlobstore("s3", map[string]interface{}{"bucket_name": "bucket"}, nil)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/public.yml")).To(Equal(`blobstore:
+  provider: s3
+  options:
+    bucket_name: bucket
+`))
+		})
+
+		It("keeps existing public config entries", func() {
+			err := fs.WriteFileString("/dir/public.yml", "name: dir\nmin_cli_version: 2.0.0")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = config.SaveBlobstore("local", map[string]interface{}{"blobstore_path": ".blobs"}, nil)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/public.yml")).To(Equal(`name: dir
+min_cli_version: 2.0.0
+blobstore:
+  provider: local
+  options:
+    blobstore_path: .blobs
+`))
+		})
+
+		It("merges new options into existing blobstore options", func() {
+			err := fs.WriteFileString("/dir/public.yml",
+				"blobstore:\n  provider: s3\n  options:\n    bucket_name: old\n    region: us-east-1\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = config.SaveBlobstore("s3", map[string]interface{}{"bucket_name": "new"}, nil)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/public.yml")).To(Equal(`blobstore:
+  provider: s3
+  options:
+    bucket_name: new
+    region: us-east-1
+`))
+		})
+
+		It("replaces options when the provider changes", func() {
+			err := fs.WriteFileString("/dir/public.yml",
+				"blobstore:\n  provider: local\n  options:\n    blobstore_path: .blobs\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = config.SaveBlobstore("s3", map[string]interface{}{"bucket_name": "bucket"}, nil)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/public.yml")).To(Equal(`blobstore:
+  provider: s3
+  options:
+    bucket_name: bucket
+`))
+		})
+
+		It("replaces private options when the provider changes", func() {
+			err := fs.WriteFileString("/dir/public.yml",
+				"blobstore:\n  provider: s3\n  options:\n    bucket_name: old\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString("/dir/private.yml",
+				"blobstore:\n  options:\n    access_key_id: old\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = config.SaveBlobstore("gcs",
+				map[string]interface{}{"bucket_name": "bucket"},
+				map[string]interface{}{"credentials_json": "new"})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/private.yml")).To(Equal(`blobstore:
+  options:
+    credentials_json: new
+`))
+		})
+
+		It("clears private options when the provider changes and no private options are given", func() {
+			err := fs.WriteFileString("/dir/public.yml",
+				"blobstore:\n  provider: s3\n  options:\n    bucket_name: old\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString("/dir/private.yml",
+				"blobstore:\n  options:\n    access_key_id: old\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = config.SaveBlobstore("gcs", map[string]interface{}{"bucket_name": "bucket"}, nil)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/private.yml")).ToNot(ContainSubstring("access_key_id"))
+		})
+
+		It("defaults a local blobstore path when none is given", func() {
+			err := config.SaveBlobstore("local", nil, nil)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/public.yml")).To(Equal(`blobstore:
+  provider: local
+  options:
+    blobstore_path: .blobs
+`))
+		})
+
+		It("keeps an existing local blobstore path", func() {
+			err := fs.WriteFileString("/dir/public.yml",
+				"blobstore:\n  provider: local\n  options:\n    blobstore_path: /custom\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = config.SaveBlobstore("local", nil, nil)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/public.yml")).To(ContainSubstring("blobstore_path: /custom"))
+		})
+
+		It("writes private options to private config", func() {
+			err := config.SaveBlobstore("s3",
+				map[string]interface{}{"bucket_name": "bucket"},
+				map[string]interface{}{"access_key_id": "key"})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/private.yml")).To(Equal(`blobstore:
+  options:
+    access_key_id: key
+`))
+		})
+
+		It("returns error if cannot write public config", func() {
+			fs.WriteFileError = errors.New("fake-err")
+
+			err := config.SaveBlobstore("s3", nil, nil)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})

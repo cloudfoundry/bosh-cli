@@ -91,7 +91,7 @@ var _ = Describe("Factory", func() {
 			Entry("finalize-release", "finalize-release", []string{filePlaceholder}),
 			Entry("generate-job", "generate-job", []string{filePlaceholder}),
 			Entry("generate-package", "generate-package", []string{filePlaceholder}),
-			Entry("init-release", "init-release", []string{}),
+			Entry("init-release", "init-release", []string{"my-release"}),
 			Entry("inspect-release", "inspect-release", []string{"name/version"}),
 			Entry("inspect-local-release", "inspect-local-release", []string{filePlaceholder}),
 			Entry("inspect-local-stemcell", "inspect-local-stemcell", []string{filePlaceholder}),
