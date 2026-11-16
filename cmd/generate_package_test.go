@@ -8,6 +8,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/v7/cmd"
 	"github.com/cloudfoundry/bosh-cli/v7/cmd/opts"
+	boshreldir "github.com/cloudfoundry/bosh-cli/v7/releasedir"
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
 )
 
@@ -38,7 +39,23 @@ var _ = Describe("GeneratePackageCmd", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(releaseDir.GeneratePackageCallCount()).To(Equal(1))
-			Expect(releaseDir.GeneratePackageArgsForCall(0)).To(Equal("pkg"))
+			Expect(releaseDir.GeneratePackageArgsForCall(0)).To(Equal(boshreldir.GeneratePackageOptions{
+				Name: "pkg",
+			}))
+		})
+
+		It("passes files and dependencies through", func() {
+			generatePackageOpts.Files = []string{"pkg/**/*"}
+			generatePackageOpts.Dependencies = []string{"dep1"}
+
+			err := act()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(releaseDir.GeneratePackageArgsForCall(0)).To(Equal(boshreldir.GeneratePackageOptions{
+				Name:         "pkg",
+				Files:        []string{"pkg/**/*"},
+				Dependencies: []string{"dep1"},
+			}))
 		})
 
 		It("returns error if generating package fails", func() {

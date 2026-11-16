@@ -78,10 +78,10 @@ type FakeReleaseDir struct {
 		result1 release.Release
 		result2 error
 	}
-	GenerateJobStub        func(string) error
+	GenerateJobStub        func(releasedir.GenerateJobOptions) error
 	generateJobMutex       sync.RWMutex
 	generateJobArgsForCall []struct {
-		arg1 string
+		arg1 releasedir.GenerateJobOptions
 	}
 	generateJobReturns struct {
 		result1 error
@@ -89,10 +89,10 @@ type FakeReleaseDir struct {
 	generateJobReturnsOnCall map[int]struct {
 		result1 error
 	}
-	GeneratePackageStub        func(string) error
+	GeneratePackageStub        func(releasedir.GeneratePackageOptions) error
 	generatePackageMutex       sync.RWMutex
 	generatePackageArgsForCall []struct {
-		arg1 string
+		arg1 releasedir.GeneratePackageOptions
 	}
 	generatePackageReturns struct {
 		result1 error
@@ -482,11 +482,11 @@ func (fake *FakeReleaseDir) FindReleaseReturnsOnCall(i int, result1 release.Rele
 	}{result1, result2}
 }
 
-func (fake *FakeReleaseDir) GenerateJob(arg1 string) error {
+func (fake *FakeReleaseDir) GenerateJob(arg1 releasedir.GenerateJobOptions) error {
 	fake.generateJobMutex.Lock()
 	ret, specificReturn := fake.generateJobReturnsOnCall[len(fake.generateJobArgsForCall)]
 	fake.generateJobArgsForCall = append(fake.generateJobArgsForCall, struct {
-		arg1 string
+		arg1 releasedir.GenerateJobOptions
 	}{arg1})
 	stub := fake.GenerateJobStub
 	fakeReturns := fake.generateJobReturns
@@ -507,13 +507,13 @@ func (fake *FakeReleaseDir) GenerateJobCallCount() int {
 	return len(fake.generateJobArgsForCall)
 }
 
-func (fake *FakeReleaseDir) GenerateJobCalls(stub func(string) error) {
+func (fake *FakeReleaseDir) GenerateJobCalls(stub func(releasedir.GenerateJobOptions) error) {
 	fake.generateJobMutex.Lock()
 	defer fake.generateJobMutex.Unlock()
 	fake.GenerateJobStub = stub
 }
 
-func (fake *FakeReleaseDir) GenerateJobArgsForCall(i int) string {
+func (fake *FakeReleaseDir) GenerateJobArgsForCall(i int) releasedir.GenerateJobOptions {
 	fake.generateJobMutex.RLock()
 	defer fake.generateJobMutex.RUnlock()
 	argsForCall := fake.generateJobArgsForCall[i]
@@ -543,11 +543,11 @@ func (fake *FakeReleaseDir) GenerateJobReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeReleaseDir) GeneratePackage(arg1 string) error {
+func (fake *FakeReleaseDir) GeneratePackage(arg1 releasedir.GeneratePackageOptions) error {
 	fake.generatePackageMutex.Lock()
 	ret, specificReturn := fake.generatePackageReturnsOnCall[len(fake.generatePackageArgsForCall)]
 	fake.generatePackageArgsForCall = append(fake.generatePackageArgsForCall, struct {
-		arg1 string
+		arg1 releasedir.GeneratePackageOptions
 	}{arg1})
 	stub := fake.GeneratePackageStub
 	fakeReturns := fake.generatePackageReturns
@@ -568,13 +568,13 @@ func (fake *FakeReleaseDir) GeneratePackageCallCount() int {
 	return len(fake.generatePackageArgsForCall)
 }
 
-func (fake *FakeReleaseDir) GeneratePackageCalls(stub func(string) error) {
+func (fake *FakeReleaseDir) GeneratePackageCalls(stub func(releasedir.GeneratePackageOptions) error) {
 	fake.generatePackageMutex.Lock()
 	defer fake.generatePackageMutex.Unlock()
 	fake.GeneratePackageStub = stub
 }
 
-func (fake *FakeReleaseDir) GeneratePackageArgsForCall(i int) string {
+func (fake *FakeReleaseDir) GeneratePackageArgsForCall(i int) releasedir.GeneratePackageOptions {
 	fake.generatePackageMutex.RLock()
 	defer fake.generatePackageMutex.RUnlock()
 	argsForCall := fake.generatePackageArgsForCall[i]

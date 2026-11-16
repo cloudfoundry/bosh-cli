@@ -3071,6 +3071,30 @@ var _ = Describe("Opts", func() {
 				))
 			})
 		})
+
+		Describe("Monit", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Monit", opts)).To(Equal(
+					`long:"monit" description:"Generate a traditional monit-based job instead of a BPM-based job"`,
+				))
+			})
+		})
+
+		Describe("Templates", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Templates", opts)).To(Equal(
+					`long:"template" description:"Template to add as SRC:DEST (repeatable)"`,
+				))
+			})
+		})
+
+		Describe("Packages", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Packages", opts)).To(Equal(
+					`long:"package" description:"Package to include in the job (repeatable)"`,
+				))
+			})
+		})
 	})
 
 	Describe("GenerateJobArgs", func() {
@@ -3106,6 +3130,22 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Directory", opts)).To(Equal(
 					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+				))
+			})
+		})
+
+		Describe("Files", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Files", opts)).To(Equal(
+					`long:"files" description:"File glob to include in the package (repeatable)"`,
+				))
+			})
+		})
+
+		Describe("Dependencies", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Dependencies", opts)).To(Equal(
+					`long:"dependency" description:"Package dependency (repeatable)"`,
 				))
 			})
 		})

@@ -108,12 +108,12 @@ func (d FSReleaseDir) Init(git bool) error {
 	return nil
 }
 
-func (d FSReleaseDir) GenerateJob(name string) error {
-	return d.generator.GenerateJob(name)
+func (d FSReleaseDir) GenerateJob(options GenerateJobOptions) error {
+	return d.generator.GenerateJob(options)
 }
 
-func (d FSReleaseDir) GeneratePackage(name string) error {
-	return d.generator.GeneratePackage(name)
+func (d FSReleaseDir) GeneratePackage(options GeneratePackageOptions) error {
+	return d.generator.GeneratePackage(options)
 }
 
 func (d FSReleaseDir) Reset() error {

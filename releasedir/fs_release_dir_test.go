@@ -164,21 +164,21 @@ var _ = Describe("FSGenerator", func() {
 
 	Describe("GenerateJob", func() {
 		It("delegates to generator", func() {
-			gen.GenerateJobStub = func(name string) error {
-				Expect(name).To(Equal("job1"))
+			gen.GenerateJobStub = func(opts GenerateJobOptions) error {
+				Expect(opts).To(Equal(GenerateJobOptions{Name: "job1", Monit: true}))
 				return errors.New("fake-err")
 			}
-			Expect(releaseDir.GenerateJob("job1")).To(Equal(errors.New("fake-err")))
+			Expect(releaseDir.GenerateJob(GenerateJobOptions{Name: "job1", Monit: true})).To(Equal(errors.New("fake-err")))
 		})
 	})
 
 	Describe("GeneratePackage", func() {
 		It("delegates to generator", func() {
-			gen.GeneratePackageStub = func(name string) error {
-				Expect(name).To(Equal("job1"))
+			gen.GeneratePackageStub = func(opts GeneratePackageOptions) error {
+				Expect(opts).To(Equal(GeneratePackageOptions{Name: "pkg1", Files: []string{"pkg1/**/*"}}))
 				return errors.New("fake-err")
 			}
-			Expect(releaseDir.GeneratePackage("job1")).To(Equal(errors.New("fake-err")))
+			Expect(releaseDir.GeneratePackage(GeneratePackageOptions{Name: "pkg1", Files: []string{"pkg1/**/*"}})).To(Equal(errors.New("fake-err")))
 		})
 	})
 

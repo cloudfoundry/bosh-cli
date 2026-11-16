@@ -1062,6 +1062,10 @@ type GenerateJobOpts struct {
 
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
 
+	Monit     bool     `long:"monit"     description:"Generate a traditional monit-based job instead of a BPM-based job"`
+	Templates []string `long:"template"  description:"Template to add as SRC:DEST (repeatable)"`
+	Packages  []string `long:"package"   description:"Package to include in the job (repeatable)"`
+
 	cmd
 }
 
@@ -1073,6 +1077,9 @@ type GeneratePackageOpts struct {
 	Args GeneratePackageArgs `positional-args:"true" required:"true"`
 
 	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
+
+	Files        []string `long:"files"      description:"File glob to include in the package (repeatable)"`
+	Dependencies []string `long:"dependency" description:"Package dependency (repeatable)"`
 
 	cmd
 }
