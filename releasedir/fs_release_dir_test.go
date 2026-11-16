@@ -31,6 +31,29 @@ func (g failingPackageGenerator) GeneratePackage(GeneratePackageOptions) error {
 	return g.err
 }
 
+type packagingFailureGenerator struct {
+	FSGenerator
+	fs    *fakesys.FakeFileSystem
+	armed bool
+}
+
+func (g *packagingFailureGenerator) GeneratePackage(options GeneratePackageOptions) error {
+	if !g.armed {
+		delete(g.fs.WriteFileErrors, "/dir/packages/sample-pkg/packaging")
+	}
+
+	err := g.FSGenerator.GeneratePackage(options)
+	if err != nil {
+		return err
+	}
+
+	if g.armed {
+		g.fs.WriteFileErrors["/dir/packages/sample-pkg/packaging"] = errors.New("fake-err")
+	}
+
+	return nil
+}
+
 var _ = Describe("FSGenerator", func() {
 	var (
 		config        *fakereldir.FakeConfig
@@ -563,13 +586,19 @@ var _ = Describe("FSGenerator", func() {
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
-		It("removes a partially generated sample when the packaging script cannot be written", func() {
+		It("removes a partially generated sample when the packaging script cannot be rewritten", func() {
+			gen := &packagingFailureGenerator{
+				FSGenerator: NewFSGenerator("/dir", fs),
+				fs:          fs,
+				armed:       true,
+			}
+
 			releaseDir := NewFSReleaseDir(
 				"/dir",
 				config,
 				gitRepo,
 				blobsDir,
-				NewFSGenerator("/dir", fs),
+				gen,
 				devReleases,
 				finalReleases,
 				finalIndicies,
@@ -578,8 +607,6 @@ var _ = Describe("FSGenerator", func() {
 				fs,
 				2,
 			)
-
-			fs.WriteFileErrors["/dir/packages/sample-pkg/packaging"] = errors.New("fake-err")
 
 			err := releaseDir.Init(InitOptions{Sample: true})
 			Expect(err).To(HaveOccurred())
@@ -641,12 +668,18 @@ var _ = Describe("FSGenerator", func() {
 		})
 
 		It("regenerates the sample on retry after a packaging script failure", func() {
+			gen := &packagingFailureGenerator{
+				FSGenerator: NewFSGenerator("/dir", fs),
+				fs:          fs,
+				armed:       true,
+			}
+
 			releaseDir := NewFSReleaseDir(
 				"/dir",
 				config,
 				gitRepo,
 				blobsDir,
-				NewFSGenerator("/dir", fs),
+				gen,
 				devReleases,
 				finalReleases,
 				finalIndicies,
@@ -656,12 +689,10 @@ var _ = Describe("FSGenerator", func() {
 				2,
 			)
 
-			fs.WriteFileErrors["/dir/packages/sample-pkg/packaging"] = errors.New("fake-err")
-
 			err := releaseDir.Init(InitOptions{Sample: true})
 			Expect(err).To(HaveOccurred())
 
-			delete(fs.WriteFileErrors, "/dir/packages/sample-pkg/packaging")
+			gen.armed = false
 
 			err = releaseDir.Init(InitOptions{Sample: true, Force: true})
 			Expect(err).ToNot(HaveOccurred())
