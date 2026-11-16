@@ -354,6 +354,99 @@ blobstore:
 			Expect(fs.ReadFileString("/dir/private.yml")).ToNot(ContainSubstring("access_key_id"))
 		})
 
+		It("does not rewrite the public config when the private config cannot be read", func() {
+			err := fs.WriteFileString("/dir/public.yml",
+				"blobstore:\n  provider: s3\n  options:\n    bucket_name: old\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString("/dir/private.yml",
+				"blobstore:\n  options:\n    access_key_id: old\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			fs.RegisterReadFileError("/dir/private.yml", errors.New("fake-err"))
+
+			err = config.SaveBlobstore("gcs",
+				map[string]interface{}{"bucket_name": "bucket"},
+				map[string]interface{}{"credentials_json": "new"})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+
+			fs.UnregisterReadFileError("/dir/private.yml")
+
+			Expect(fs.ReadFileString("/dir/public.yml")).To(ContainSubstring("provider: s3"))
+			Expect(fs.ReadFileString("/dir/private.yml")).To(ContainSubstring("access_key_id: old"))
+		})
+
+		It("does not rewrite the public config when the private config cannot be written", func() {
+			err := fs.WriteFileString("/dir/private.yml",
+				"blobstore:\n  options:\n    access_key_id: old\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			fs.WriteFileErrors["/dir/private.yml"] = errors.New("fake-err")
+
+			err = config.SaveBlobstore("gcs",
+				map[string]interface{}{"bucket_name": "bucket"},
+				map[string]interface{}{"credentials_json": "new"})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+
+			Expect(fs.FileExists("/dir/public.yml")).To(BeFalse())
+		})
+
+		It("cleans up stale private options when retrying after a private config write failure", func() {
+			err := fs.WriteFileString("/dir/public.yml",
+				"blobstore:\n  provider: s3\n  options:\n    bucket_name: old\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString("/dir/private.yml",
+				"blobstore:\n  options:\n    access_key_id: old\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			fs.WriteFileErrors["/dir/private.yml"] = errors.New("fake-err")
+
+			err = config.SaveBlobstore("gcs", map[string]interface{}{"bucket_name": "bucket"}, nil)
+			Expect(err).To(HaveOccurred())
+
+			delete(fs.WriteFileErrors, "/dir/private.yml")
+
+			err = config.SaveBlobstore("gcs", map[string]interface{}{"bucket_name": "bucket"}, nil)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/public.yml")).To(ContainSubstring("provider: gcs"))
+			Expect(fs.ReadFileString("/dir/private.yml")).ToNot(ContainSubstring("access_key_id"))
+		})
+
+		It("recovers when the public config cannot be written after the private config is updated", func() {
+			err := fs.WriteFileString("/dir/public.yml",
+				"blobstore:\n  provider: s3\n  options:\n    bucket_name: old\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString("/dir/private.yml",
+				"blobstore:\n  options:\n    access_key_id: old\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			fs.WriteFileErrors["/dir/public.yml"] = errors.New("fake-err")
+
+			err = config.SaveBlobstore("gcs",
+				map[string]interface{}{"bucket_name": "bucket"},
+				map[string]interface{}{"credentials_json": "new"})
+			Expect(err).To(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/public.yml")).To(ContainSubstring("provider: s3"))
+			Expect(fs.ReadFileString("/dir/private.yml")).To(ContainSubstring("credentials_json: new"))
+
+			delete(fs.WriteFileErrors, "/dir/public.yml")
+
+			err = config.SaveBlobstore("gcs",
+				map[string]interface{}{"bucket_name": "bucket"},
+				map[string]interface{}{"credentials_json": "new"})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/public.yml")).To(ContainSubstring("provider: gcs"))
+			Expect(fs.ReadFileString("/dir/private.yml")).To(ContainSubstring("credentials_json: new"))
+			Expect(fs.ReadFileString("/dir/private.yml")).ToNot(ContainSubstring("access_key_id"))
+		})
+
 		It("defaults a local blobstore path when none is given", func() {
 			err := config.SaveBlobstore("local", nil, nil)
 			Expect(err).ToNot(HaveOccurred())

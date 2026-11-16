@@ -1,6 +1,7 @@
 package releasedir
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 
@@ -50,6 +51,33 @@ func NewFSConfig(publicPath, privatePath string, fs boshsys.FileSystem) FSConfig
 	return FSConfig{publicPath: publicPath, privatePath: privatePath, fs: fs}
 }
 
+type missingConfigError struct {
+	message string
+}
+
+func (e missingConfigError) Error() string { return e.message }
+
+func isMissingConfigError(err error) bool {
+	var target missingConfigError
+	return errors.As(err, &target)
+}
+
+type ambiguousNameError struct {
+	name    string
+	message string
+}
+
+func (e ambiguousNameError) Error() string { return e.message }
+
+func ambiguousNameFrom(err error) (string, bool) {
+	var target ambiguousNameError
+	if errors.As(err, &target) {
+		return target.name, true
+	}
+
+	return "", false
+}
+
 func (c FSConfig) Name() (string, error) {
 	publicSchema, _, err := c.read()
 	if err != nil {
@@ -58,14 +86,17 @@ func (c FSConfig) Name() (string, error) {
 
 	if len(publicSchema.Name) == 0 {
 		if len(publicSchema.FinalName) == 0 {
-			return "", bosherr.Errorf(
-				"Expected non-empty 'name' in config '%s'", c.publicPath)
+			return "", missingConfigError{message: fmt.Sprintf(
+				"Expected non-empty 'name' in config '%s'", c.publicPath)}
 		}
 
 		return publicSchema.FinalName, nil
 	} else if len(publicSchema.FinalName) > 0 {
-		return "", bosherr.Errorf(
-			"Expected 'name' or 'final_name' but not both in config '%s'", c.publicPath)
+		return "", ambiguousNameError{
+			name: publicSchema.Name,
+			message: fmt.Sprintf(
+				"Expected 'name' or 'final_name' but not both in config '%s'", c.publicPath),
+		}
 	}
 
 	return publicSchema.Name, nil
@@ -113,22 +144,36 @@ func (c FSConfig) SaveBlobstore(provider string, options, privateOptions map[str
 
 	publicSchema = setMapItem(publicSchema, "blobstore", blobstore)
 
-	err = c.writeMap(c.publicPath, publicSchema)
+	privateSchema, writePrivate, err := c.privateBlobstoreSchema(providerChanged, privateOptions)
 	if err != nil {
 		return err
 	}
 
+	if writePrivate {
+		err = c.writeMap(c.privatePath, privateSchema)
+		if err != nil {
+			return err
+		}
+	}
+
+	return c.writeMap(c.publicPath, publicSchema)
+}
+
+func (c FSConfig) privateBlobstoreSchema(
+	providerChanged bool,
+	privateOptions map[string]interface{},
+) (yaml.MapSlice, bool, error) {
 	if len(privateOptions) == 0 && !providerChanged {
-		return nil
+		return nil, false, nil
 	}
 
 	if !c.fs.FileExists(c.privatePath) && len(privateOptions) == 0 {
-		return nil
+		return nil, false, nil
 	}
 
 	privateSchema, err := c.readMap(c.privatePath)
 	if err != nil {
-		return err
+		return nil, false, err
 	}
 
 	privateBlobstore := mapItemMapSlice(privateSchema, "blobstore")
@@ -141,7 +186,7 @@ func (c FSConfig) SaveBlobstore(provider string, options, privateOptions map[str
 	privateBlobstore = setBlobstoreOptions(privateBlobstore, mergeOptions(privateExistingOptions, privateOptions))
 	privateSchema = setMapItem(privateSchema, "blobstore", privateBlobstore)
 
-	return c.writeMap(c.privatePath, privateSchema)
+	return privateSchema, true, nil
 }
 
 func setBlobstoreOptions(blobstore yaml.MapSlice, options map[interface{}]interface{}) yaml.MapSlice {
@@ -303,8 +348,8 @@ func (c FSConfig) Blobstore() (string, map[string]interface{}, error) {
 	}
 
 	if len(publicSchema.Blobstore.Provider) == 0 {
-		return "", nil, bosherr.Errorf(
-			"Expected non-empty 'blobstore.provider' in config '%s'", c.publicPath)
+		return "", nil, missingConfigError{message: fmt.Sprintf(
+			"Expected non-empty 'blobstore.provider' in config '%s'", c.publicPath)}
 	}
 
 	opts := map[string]interface{}{}

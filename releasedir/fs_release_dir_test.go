@@ -22,6 +22,15 @@ import (
 	fakereldir "github.com/cloudfoundry/bosh-cli/v7/releasedir/releasedirfakes"
 )
 
+type failingPackageGenerator struct {
+	FSGenerator
+	err error
+}
+
+func (g failingPackageGenerator) GeneratePackage(GeneratePackageOptions) error {
+	return g.err
+}
+
 var _ = Describe("FSGenerator", func() {
 	var (
 		config        *fakereldir.FakeConfig
@@ -107,6 +116,15 @@ var _ = Describe("FSGenerator", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(config.SaveNameArgsForCall(0)).To(Equal("existing-name"))
+		})
+
+		It("returns error if reading the existing release name fails", func() {
+			config.NameReturns("", errors.New("fake-err"))
+
+			err := releaseDir.Init(InitOptions{Force: true})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+			Expect(config.SaveNameCallCount()).To(Equal(0))
 		})
 
 		It("saves release name to directory base name stripping '-release' suffix from the name", func() {
@@ -246,6 +264,15 @@ var _ = Describe("FSGenerator", func() {
 			Expect(options).To(Equal(map[string]interface{}{"blobstore_path": ".blobs"}))
 		})
 
+		It("returns error if reading the existing blobstore fails when generating a sample", func() {
+			config.BlobstoreReturns("", nil, errors.New("fake-err"))
+
+			err := releaseDir.Init(InitOptions{Sample: true})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+			Expect(config.SaveBlobstoreCallCount()).To(Equal(0))
+		})
+
 		It("keeps an existing blobstore when generating a sample", func() {
 			config.BlobstoreReturns("s3", map[string]interface{}{"bucket_name": "bucket"}, nil)
 
@@ -333,6 +360,156 @@ var _ = Describe("FSGenerator", func() {
 			Expect(blobstoreOptions).To(Equal(map[string]interface{}{"flag": "value"}))
 		})
 
+		It("derives the release name when no config exists", func() {
+			releaseDir := NewFSReleaseDir(
+				"/my-release",
+				NewFSConfig("/my-release/config/final.yml", "/my-release/config/private.yml", fs),
+				gitRepo,
+				blobsDir,
+				gen,
+				devReleases,
+				finalReleases,
+				finalIndicies,
+				reader,
+				timeService,
+				fs,
+				2,
+			)
+
+			err := releaseDir.Init(InitOptions{})
+			Expect(err).ToNot(HaveOccurred())
+
+			finalConfig, err := fs.ReadFileString("/my-release/config/final.yml")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(finalConfig).To(ContainSubstring("name: my"))
+		})
+
+		It("does not overwrite the release name when the private config is malformed", func() {
+			err := fs.WriteFileString("/my-release/config/final.yml", "name: configured\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString("/my-release/config/private.yml", "-")
+			Expect(err).ToNot(HaveOccurred())
+
+			releaseDir := NewFSReleaseDir(
+				"/my-release",
+				NewFSConfig("/my-release/config/final.yml", "/my-release/config/private.yml", fs),
+				gitRepo,
+				blobsDir,
+				gen,
+				devReleases,
+				finalReleases,
+				finalIndicies,
+				reader,
+				timeService,
+				fs,
+				2,
+			)
+
+			err = releaseDir.Init(InitOptions{Force: true})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Unmarshalling config"))
+
+			finalConfig, err := fs.ReadFileString("/my-release/config/final.yml")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(finalConfig).To(ContainSubstring("name: configured"))
+		})
+
+		It("does not fall back to a local blobstore when the private config is malformed", func() {
+			err := fs.WriteFileString("/my-release/config/final.yml",
+				"name: configured\nblobstore:\n  provider: s3\n  options:\n    bucket_name: bucket\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString("/my-release/config/private.yml", "-")
+			Expect(err).ToNot(HaveOccurred())
+
+			releaseDir := NewFSReleaseDir(
+				"/my-release",
+				NewFSConfig("/my-release/config/final.yml", "/my-release/config/private.yml", fs),
+				gitRepo,
+				blobsDir,
+				gen,
+				devReleases,
+				finalReleases,
+				finalIndicies,
+				reader,
+				timeService,
+				fs,
+				2,
+			)
+
+			err = releaseDir.Init(InitOptions{Force: true, Sample: true, Name: "configured"})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Unmarshalling config"))
+
+			finalConfig, err := fs.ReadFileString("/my-release/config/final.yml")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(finalConfig).To(ContainSubstring("provider: s3"))
+			Expect(finalConfig).ToNot(ContainSubstring("provider: local"))
+		})
+
+		It("does not rewrite the config when the private config is malformed and a name is given", func() {
+			err := fs.WriteFileString("/my-release/config/final.yml",
+				"name: configured\nfinal_name: legacy\nblobstore:\n  provider: s3\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString("/my-release/config/private.yml", "-")
+			Expect(err).ToNot(HaveOccurred())
+
+			releaseDir := NewFSReleaseDir(
+				"/my-release",
+				NewFSConfig("/my-release/config/final.yml", "/my-release/config/private.yml", fs),
+				gitRepo,
+				blobsDir,
+				gen,
+				devReleases,
+				finalReleases,
+				finalIndicies,
+				reader,
+				timeService,
+				fs,
+				2,
+			)
+
+			err = releaseDir.Init(InitOptions{Force: true, Sample: true, Name: "configured"})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Unmarshalling config"))
+
+			finalConfig, err := fs.ReadFileString("/my-release/config/final.yml")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(finalConfig).To(ContainSubstring("name: configured"))
+			Expect(finalConfig).To(ContainSubstring("final_name: legacy"))
+		})
+
+		It("repairs a config with both name and final_name when reinitializing", func() {
+			err := fs.WriteFileString("/my-release/config/final.yml",
+				"name: configured\nfinal_name: legacy\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			releaseDir := NewFSReleaseDir(
+				"/my-release",
+				NewFSConfig("/my-release/config/final.yml", "/my-release/config/private.yml", fs),
+				gitRepo,
+				blobsDir,
+				gen,
+				devReleases,
+				finalReleases,
+				finalIndicies,
+				reader,
+				timeService,
+				fs,
+				2,
+			)
+
+			err = releaseDir.Init(InitOptions{Force: true})
+			Expect(err).ToNot(HaveOccurred())
+
+			finalConfig, err := fs.ReadFileString("/my-release/config/final.yml")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(finalConfig).To(ContainSubstring("name: configured"))
+			Expect(finalConfig).ToNot(ContainSubstring("final_name"))
+		})
+
 		It("generates a sample job, package and source file", func() {
 			err := releaseDir.Init(InitOptions{Sample: true})
 			Expect(err).ToNot(HaveOccurred())
@@ -384,6 +561,115 @@ var _ = Describe("FSGenerator", func() {
 			err := releaseDir.Init(InitOptions{Sample: true})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+
+		It("removes a partially generated sample when the packaging script cannot be written", func() {
+			releaseDir := NewFSReleaseDir(
+				"/dir",
+				config,
+				gitRepo,
+				blobsDir,
+				NewFSGenerator("/dir", fs),
+				devReleases,
+				finalReleases,
+				finalIndicies,
+				reader,
+				timeService,
+				fs,
+				2,
+			)
+
+			fs.WriteFileErrors["/dir/packages/sample-pkg/packaging"] = errors.New("fake-err")
+
+			err := releaseDir.Init(InitOptions{Sample: true})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+			Expect(fs.FileExists("/dir/packages/sample-pkg")).To(BeFalse())
+			Expect(fs.FileExists("/dir/jobs/sample-job")).To(BeFalse())
+		})
+
+		It("removes a partially generated sample job when package generation fails", func() {
+			releaseDir := NewFSReleaseDir(
+				"/dir",
+				config,
+				gitRepo,
+				blobsDir,
+				failingPackageGenerator{
+					FSGenerator: NewFSGenerator("/dir", fs),
+					err:         errors.New("fake-err"),
+				},
+				devReleases,
+				finalReleases,
+				finalIndicies,
+				reader,
+				timeService,
+				fs,
+				2,
+			)
+
+			err := releaseDir.Init(InitOptions{Sample: true})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+			Expect(fs.FileExists("/dir/jobs/sample-job")).To(BeFalse())
+		})
+
+		It("keeps a pre-existing sample job when package generation fails", func() {
+			err := fs.MkdirAll("/dir/jobs/sample-job", os.ModePerm)
+			Expect(err).ToNot(HaveOccurred())
+
+			releaseDir := NewFSReleaseDir(
+				"/dir",
+				config,
+				gitRepo,
+				blobsDir,
+				failingPackageGenerator{
+					FSGenerator: NewFSGenerator("/dir", fs),
+					err:         errors.New("fake-err"),
+				},
+				devReleases,
+				finalReleases,
+				finalIndicies,
+				reader,
+				timeService,
+				fs,
+				2,
+			)
+
+			err = releaseDir.Init(InitOptions{Sample: true})
+			Expect(err).To(HaveOccurred())
+			Expect(fs.FileExists("/dir/jobs/sample-job")).To(BeTrue())
+		})
+
+		It("regenerates the sample on retry after a packaging script failure", func() {
+			releaseDir := NewFSReleaseDir(
+				"/dir",
+				config,
+				gitRepo,
+				blobsDir,
+				NewFSGenerator("/dir", fs),
+				devReleases,
+				finalReleases,
+				finalIndicies,
+				reader,
+				timeService,
+				fs,
+				2,
+			)
+
+			fs.WriteFileErrors["/dir/packages/sample-pkg/packaging"] = errors.New("fake-err")
+
+			err := releaseDir.Init(InitOptions{Sample: true})
+			Expect(err).To(HaveOccurred())
+
+			delete(fs.WriteFileErrors, "/dir/packages/sample-pkg/packaging")
+
+			err = releaseDir.Init(InitOptions{Sample: true, Force: true})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/packages/sample-pkg/packaging")).To(Equal(
+				"set -eu\n\ncp -a sample-pkg/. \"${BOSH_INSTALL_TARGET}/\"\n"))
+			Expect(fs.ReadFileString("/dir/jobs/sample-job/templates/bin/sample-job")).To(ContainSubstring(
+				"cat /var/vcap/packages/sample-pkg/file.txt"))
 		})
 	})
 

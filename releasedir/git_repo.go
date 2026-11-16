@@ -81,13 +81,13 @@ func mergeIgnoreFile(existing, template string) string {
 	known := map[string]bool{}
 
 	for _, line := range strings.Split(existing, "\n") {
-		known[strings.TrimSpace(line)] = true
+		known[trimIgnoreRule(line)] = true
 	}
 
 	var missing []string
 
 	for _, line := range strings.Split(template, "\n") {
-		entry := strings.TrimSpace(line)
+		entry := trimIgnoreRule(line)
 		if len(entry) == 0 || known[entry] {
 			continue
 		}
@@ -111,6 +111,10 @@ func mergeIgnoreFile(existing, template string) string {
 	}
 
 	return merged + strings.Join(missing, lineEnding) + lineEnding
+}
+
+func trimIgnoreRule(line string) string {
+	return strings.TrimRight(line, " \r")
 }
 
 func (r FSGitRepo) LastCommitSHA() (string, error) {

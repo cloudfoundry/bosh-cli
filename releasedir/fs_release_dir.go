@@ -99,10 +99,40 @@ func (d FSReleaseDir) Init(options InitOptions) error {
 	name := options.Name
 	if len(name) == 0 {
 		existingName, err := d.config.Name()
-		if err == nil && len(existingName) > 0 {
-			name = existingName
-		} else {
+		if err != nil {
+			resolvedName, ambiguous := ambiguousNameFrom(err)
+			if !isMissingConfigError(err) && !ambiguous {
+				return err
+			}
+			existingName = resolvedName
+		}
+
+		name = existingName
+		if len(name) == 0 {
 			name = strings.TrimSuffix(filepath.Base(d.dirPath), "-release")
+		}
+	}
+
+	provider := options.BlobstoreProvider
+	publicOptions := options.BlobstoreOptions
+
+	if options.Sample && len(provider) == 0 {
+		// Reinitializing a release must not replace its blobstore; only
+		// default to a local blobstore when the release does not have one yet.
+		existingProvider, _, existingErr := d.config.Blobstore()
+		if existingErr != nil && !isMissingConfigError(existingErr) {
+			return existingErr
+		}
+
+		if len(existingProvider) > 0 {
+			provider = existingProvider
+		} else {
+			provider = "local"
+			publicOptions = copyBlobstoreOptions(publicOptions)
+
+			if _, found := publicOptions["blobstore_path"]; !found {
+				publicOptions["blobstore_path"] = ".blobs"
+			}
 		}
 	}
 
@@ -127,25 +157,6 @@ func (d FSReleaseDir) Init(options InitOptions) error {
 		err = d.gitRepo.Init()
 		if err != nil {
 			return err
-		}
-	}
-
-	provider := options.BlobstoreProvider
-	publicOptions := options.BlobstoreOptions
-
-	if options.Sample && len(provider) == 0 {
-		// Reinitializing a release must not replace its blobstore; only
-		// default to a local blobstore when the release does not have one yet.
-		existingProvider, _, existingErr := d.config.Blobstore()
-		if existingErr == nil && len(existingProvider) > 0 {
-			provider = existingProvider
-		} else {
-			provider = "local"
-			publicOptions = copyBlobstoreOptions(publicOptions)
-
-			if _, found := publicOptions["blobstore_path"]; !found {
-				publicOptions["blobstore_path"] = ".blobs"
-			}
 		}
 	}
 
@@ -174,15 +185,32 @@ func (d FSReleaseDir) GeneratePackage(options GeneratePackageOptions) error {
 	return d.generator.GeneratePackage(options)
 }
 
-func (d FSReleaseDir) generateSample(name string) error {
+func (d FSReleaseDir) generateSample(name string) (err error) {
 	jobName := "sample-job"
 	pkgName := "sample-pkg"
 
-	jobCreated := false
-
 	jobPath := filepath.Join(d.dirPath, "jobs", jobName)
+	pkgPath := filepath.Join(d.dirPath, "packages", pkgName)
+
+	jobCreated := false
+	pkgCreated := false
+
+	defer func() {
+		if err == nil {
+			return
+		}
+
+		if pkgCreated {
+			d.fs.RemoveAll(pkgPath) //nolint:errcheck
+		}
+
+		if jobCreated {
+			d.fs.RemoveAll(jobPath) //nolint:errcheck
+		}
+	}()
+
 	if !d.fs.FileExists(jobPath) {
-		err := d.generator.GenerateJob(GenerateJobOptions{
+		err = d.generator.GenerateJob(GenerateJobOptions{
 			Name:     jobName,
 			Packages: []string{pkgName},
 		})
@@ -193,15 +221,16 @@ func (d FSReleaseDir) generateSample(name string) error {
 		jobCreated = true
 	}
 
-	pkgPath := filepath.Join(d.dirPath, "packages", pkgName)
 	if !d.fs.FileExists(pkgPath) {
-		err := d.generator.GeneratePackage(GeneratePackageOptions{
+		err = d.generator.GeneratePackage(GeneratePackageOptions{
 			Name:  pkgName,
 			Files: []string{pkgName + "/**/*"},
 		})
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Generating sample package")
 		}
+
+		pkgCreated = true
 
 		err = d.fs.WriteFileString(filepath.Join(pkgPath, "packaging"), fmt.Sprintf(samplePackagingTemplate, pkgName))
 		if err != nil {
@@ -211,7 +240,7 @@ func (d FSReleaseDir) generateSample(name string) error {
 
 	executablePath := filepath.Join(jobPath, "templates", "bin", jobName)
 	if jobCreated {
-		err := d.fs.WriteFileString(executablePath, fmt.Sprintf(sampleExecutableTemplate, pkgName))
+		err = d.fs.WriteFileString(executablePath, fmt.Sprintf(sampleExecutableTemplate, pkgName))
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Creating sample job executable")
 		}
@@ -219,7 +248,7 @@ func (d FSReleaseDir) generateSample(name string) error {
 
 	srcPath := filepath.Join(d.dirPath, "src", pkgName, "file.txt")
 	if !d.fs.FileExists(srcPath) {
-		err := d.fs.WriteFileString(srcPath, "Hello from "+pkgName+"!\n")
+		err = d.fs.WriteFileString(srcPath, "Hello from "+pkgName+"!\n")
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Creating sample package source file")
 		}
@@ -227,7 +256,7 @@ func (d FSReleaseDir) generateSample(name string) error {
 
 	readmePath := filepath.Join(d.dirPath, "README.md")
 	if !d.fs.FileExists(readmePath) {
-		err := d.fs.WriteFileString(readmePath, fmt.Sprintf(sampleReadmeTemplate, name))
+		err = d.fs.WriteFileString(readmePath, fmt.Sprintf(sampleReadmeTemplate, name))
 		if err != nil {
 			return bosherr.WrapErrorf(err, "Creating README")
 		}
