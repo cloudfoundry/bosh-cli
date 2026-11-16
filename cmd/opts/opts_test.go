@@ -3018,10 +3018,16 @@ var _ = Describe("Opts", func() {
 			opts = &InitReleaseOpts{}
 		})
 
+		Describe("Args", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Args", opts)).To(Equal(`positional-args:"true"`))
+			})
+		})
+
 		Describe("Directory", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Directory", opts)).To(Equal(
-					`long:"dir" description:"Release directory path if not current working directory" default:"."`,
+					`long:"dir" description:"Release directory path if not current working directory"`,
 				))
 			})
 		})
@@ -3030,6 +3036,62 @@ var _ = Describe("Opts", func() {
 			It("contains desired values", func() {
 				Expect(getStructTagForName("Git", opts)).To(Equal(
 					`long:"git" description:"Initialize git repository"`,
+				))
+			})
+		})
+
+		Describe("Sample", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Sample", opts)).To(Equal(
+					`long:"sample" description:"Generate a sample release with a job, package, source files, and a local blobstore"`,
+				))
+			})
+		})
+
+		Describe("Force", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Force", opts)).To(Equal(
+					`long:"force" description:"Reinitialize an existing release"`,
+				))
+			})
+		})
+
+		Describe("Blobstore", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Blobstore", opts)).To(Equal(
+					`long:"blobstore" description:"Blobstore provider (e.g. local, s3, gcs); local defaults to .blobs"`,
+				))
+			})
+		})
+
+		Describe("BlobstoreOptions", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("BlobstoreOptions", opts)).To(Equal(
+					`long:"blobstore-option" description:"Public blobstore option as KEY=VALUE; values are typed, quote to keep a string (repeatable)"`,
+				))
+			})
+		})
+
+		Describe("BlobstorePrivateOptions", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("BlobstorePrivateOptions", opts)).To(Equal(
+					`long:"blobstore-private-option" description:"Private blobstore option as KEY=VALUE; values are typed, quote to keep a string (repeatable)"`,
+				))
+			})
+		})
+	})
+
+	Describe("InitReleaseArgs", func() {
+		var opts *InitReleaseArgs
+
+		BeforeEach(func() {
+			opts = &InitReleaseArgs{}
+		})
+
+		Describe("Name", func() {
+			It("contains desired values", func() {
+				Expect(getStructTagForName("Name", opts)).To(Equal(
+					`positional-arg-name:"NAME"`,
 				))
 			})
 		})

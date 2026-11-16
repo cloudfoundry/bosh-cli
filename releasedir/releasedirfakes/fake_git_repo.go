@@ -43,6 +43,16 @@ type FakeGitRepo struct {
 		result1 bool
 		result2 error
 	}
+	WriteIgnoreFileStub        func() error
+	writeIgnoreFileMutex       sync.RWMutex
+	writeIgnoreFileArgsForCall []struct {
+	}
+	writeIgnoreFileReturns struct {
+		result1 error
+	}
+	writeIgnoreFileReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -218,6 +228,59 @@ func (fake *FakeGitRepo) MustNotBeDirtyReturnsOnCall(i int, result1 bool, result
 		result1 bool
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeGitRepo) WriteIgnoreFile() error {
+	fake.writeIgnoreFileMutex.Lock()
+	ret, specificReturn := fake.writeIgnoreFileReturnsOnCall[len(fake.writeIgnoreFileArgsForCall)]
+	fake.writeIgnoreFileArgsForCall = append(fake.writeIgnoreFileArgsForCall, struct {
+	}{})
+	stub := fake.WriteIgnoreFileStub
+	fakeReturns := fake.writeIgnoreFileReturns
+	fake.recordInvocation("WriteIgnoreFile", []interface{}{})
+	fake.writeIgnoreFileMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeGitRepo) WriteIgnoreFileCallCount() int {
+	fake.writeIgnoreFileMutex.RLock()
+	defer fake.writeIgnoreFileMutex.RUnlock()
+	return len(fake.writeIgnoreFileArgsForCall)
+}
+
+func (fake *FakeGitRepo) WriteIgnoreFileCalls(stub func() error) {
+	fake.writeIgnoreFileMutex.Lock()
+	defer fake.writeIgnoreFileMutex.Unlock()
+	fake.WriteIgnoreFileStub = stub
+}
+
+func (fake *FakeGitRepo) WriteIgnoreFileReturns(result1 error) {
+	fake.writeIgnoreFileMutex.Lock()
+	defer fake.writeIgnoreFileMutex.Unlock()
+	fake.WriteIgnoreFileStub = nil
+	fake.writeIgnoreFileReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeGitRepo) WriteIgnoreFileReturnsOnCall(i int, result1 error) {
+	fake.writeIgnoreFileMutex.Lock()
+	defer fake.writeIgnoreFileMutex.Unlock()
+	fake.WriteIgnoreFileStub = nil
+	if fake.writeIgnoreFileReturnsOnCall == nil {
+		fake.writeIgnoreFileReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.writeIgnoreFileReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeGitRepo) Invocations() map[string][][]interface{} {

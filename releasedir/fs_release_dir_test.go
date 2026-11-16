@@ -68,8 +68,8 @@ var _ = Describe("FSGenerator", func() {
 	})
 
 	Describe("Init", func() {
-		It("creates commont jobs, packages and src directories", func() {
-			err := releaseDir.Init(true)
+		It("creates common jobs, packages and src directories", func() {
+			err := releaseDir.Init(InitOptions{Git: true})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(fs.FileExists("/dir/jobs")).To(BeTrue())
@@ -80,17 +80,33 @@ var _ = Describe("FSGenerator", func() {
 		It("returns error if creating common dirs fails", func() {
 			fs.MkdirAllError = errors.New("fake-err")
 
-			err := releaseDir.Init(true)
+			err := releaseDir.Init(InitOptions{Git: true})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
 		It("saves release name to directory base name", func() {
-			err := releaseDir.Init(true)
+			err := releaseDir.Init(InitOptions{Git: true})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(config.SaveNameCallCount()).To(Equal(1))
 			Expect(config.SaveNameArgsForCall(0)).To(Equal("dir"))
+		})
+
+		It("saves an explicit release name", func() {
+			err := releaseDir.Init(InitOptions{Name: "my-release"})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(config.SaveNameArgsForCall(0)).To(Equal("my-release"))
+		})
+
+		It("keeps an existing release name when reinitializing", func() {
+			config.NameReturns("existing-name", nil)
+
+			err := releaseDir.Init(InitOptions{Force: true})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(config.SaveNameArgsForCall(0)).To(Equal("existing-name"))
 		})
 
 		It("saves release name to directory base name stripping '-release' suffix from the name", func() {
@@ -109,7 +125,7 @@ var _ = Describe("FSGenerator", func() {
 				2,
 			)
 
-			err := releaseDir.Init(true)
+			err := releaseDir.Init(InitOptions{Git: true})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(config.SaveNameCallCount()).To(Equal(1))
@@ -119,44 +135,253 @@ var _ = Describe("FSGenerator", func() {
 		It("returns error if saving final name fails", func() {
 			config.SaveNameReturns(errors.New("fake-err"))
 
-			err := releaseDir.Init(true)
+			err := releaseDir.Init(InitOptions{Git: true})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
-		It("inits blobs", func() {
-			err := releaseDir.Init(true)
+		It("inits blobs when blobs.yml does not exist", func() {
+			err := releaseDir.Init(InitOptions{Git: true})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(blobsDir.InitCallCount()).To(Equal(1))
 		})
 
+		It("does not overwrite an existing blobs.yml when forced", func() {
+			err := fs.WriteFileString("/dir/config/blobs.yml", "--- {}\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = releaseDir.Init(InitOptions{Force: true})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(blobsDir.InitCallCount()).To(Equal(0))
+		})
+
 		It("returns error if initing blobs fails", func() {
 			blobsDir.InitReturns(errors.New("fake-err"))
 
-			err := releaseDir.Init(true)
+			err := releaseDir.Init(InitOptions{Git: true})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
+		It("writes .gitignore even when git is not requested", func() {
+			err := releaseDir.Init(InitOptions{})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(gitRepo.WriteIgnoreFileCallCount()).To(Equal(1))
+			Expect(gitRepo.InitCallCount()).To(Equal(0))
+		})
+
 		It("inits git repo if requested", func() {
-			err := releaseDir.Init(true)
+			err := releaseDir.Init(InitOptions{Git: true})
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(gitRepo.InitCallCount()).To(Equal(1))
 		})
 
-		It("does not init git repo if not requested", func() {
-			err := releaseDir.Init(false)
-			Expect(err).ToNot(HaveOccurred())
+		It("returns error if writing .gitignore fails", func() {
+			gitRepo.WriteIgnoreFileReturns(errors.New("fake-err"))
 
-			Expect(gitRepo.InitCallCount()).To(Equal(0))
+			err := releaseDir.Init(InitOptions{})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})
 
 		It("returns error if initing git repo fails", func() {
 			gitRepo.InitReturns(errors.New("fake-err"))
 
-			err := releaseDir.Init(true)
+			err := releaseDir.Init(InitOptions{Git: true})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+
+		It("refuses to reinitialize an existing release without force", func() {
+			err := fs.WriteFileString("/dir/config/final.yml", "name: dir\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = releaseDir.Init(InitOptions{})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("already initialized"))
+			Expect(err.Error()).To(ContainSubstring("--force"))
+		})
+
+		It("reinitializes an existing release with force", func() {
+			err := fs.WriteFileString("/dir/config/final.yml", "name: dir\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = releaseDir.Init(InitOptions{Force: true})
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("saves a configured blobstore", func() {
+			err := releaseDir.Init(InitOptions{
+				BlobstoreProvider:       "s3",
+				BlobstoreOptions:        map[string]interface{}{"bucket_name": "bucket"},
+				BlobstorePrivateOptions: map[string]interface{}{"access_key_id": "key"},
+			})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(config.SaveBlobstoreCallCount()).To(Equal(1))
+			provider, options, privateOptions := config.SaveBlobstoreArgsForCall(0)
+			Expect(provider).To(Equal("s3"))
+			Expect(options).To(Equal(map[string]interface{}{"bucket_name": "bucket"}))
+			Expect(privateOptions).To(Equal(map[string]interface{}{"access_key_id": "key"}))
+		})
+
+		It("returns error if saving the blobstore fails", func() {
+			config.SaveBlobstoreReturns(errors.New("fake-err"))
+
+			err := releaseDir.Init(InitOptions{BlobstoreProvider: "s3"})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
+		})
+
+		It("defaults a sample release to a local blobstore", func() {
+			err := releaseDir.Init(InitOptions{Sample: true})
+			Expect(err).ToNot(HaveOccurred())
+
+			provider, options, _ := config.SaveBlobstoreArgsForCall(0)
+			Expect(provider).To(Equal("local"))
+			Expect(options).To(Equal(map[string]interface{}{"blobstore_path": ".blobs"}))
+		})
+
+		It("keeps an existing blobstore when generating a sample", func() {
+			config.BlobstoreReturns("s3", map[string]interface{}{"bucket_name": "bucket"}, nil)
+
+			err := releaseDir.Init(InitOptions{Sample: true, Force: true})
+			Expect(err).ToNot(HaveOccurred())
+
+			provider, options, _ := config.SaveBlobstoreArgsForCall(0)
+			Expect(provider).To(Equal("s3"))
+			Expect(options).To(BeNil())
+		})
+
+		It("preserves an existing blobstore when reinitializing a sample", func() {
+			err := fs.WriteFileString("/dir/config/final.yml",
+				"name: dir\nblobstore:\n  provider: s3\n  options:\n    bucket_name: bucket\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = fs.WriteFileString("/dir/config/private.yml",
+				"blobstore:\n  options:\n    access_key_id: secret\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			releaseDir := NewFSReleaseDir(
+				"/dir",
+				NewFSConfig("/dir/config/final.yml", "/dir/config/private.yml", fs),
+				gitRepo,
+				blobsDir,
+				gen,
+				devReleases,
+				finalReleases,
+				finalIndicies,
+				reader,
+				timeService,
+				fs,
+				2,
+			)
+
+			err = releaseDir.Init(InitOptions{Sample: true, Force: true})
+			Expect(err).ToNot(HaveOccurred())
+
+			finalConfig, err := fs.ReadFileString("/dir/config/final.yml")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(finalConfig).To(ContainSubstring("provider: s3"))
+			Expect(finalConfig).To(ContainSubstring("bucket_name: bucket"))
+			Expect(finalConfig).ToNot(ContainSubstring("blobstore_path"))
+
+			privateConfig, err := fs.ReadFileString("/dir/config/private.yml")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(privateConfig).To(ContainSubstring("access_key_id: secret"))
+		})
+
+		It("preserves a custom local blobstore path when reinitializing a sample", func() {
+			err := fs.WriteFileString("/dir/config/final.yml",
+				"name: dir\nblobstore:\n  provider: local\n  options:\n    blobstore_path: /custom\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			releaseDir := NewFSReleaseDir(
+				"/dir",
+				NewFSConfig("/dir/config/final.yml", "/dir/config/private.yml", fs),
+				gitRepo,
+				blobsDir,
+				gen,
+				devReleases,
+				finalReleases,
+				finalIndicies,
+				reader,
+				timeService,
+				fs,
+				2,
+			)
+
+			err = releaseDir.Init(InitOptions{Sample: true, Force: true})
+			Expect(err).ToNot(HaveOccurred())
+
+			finalConfig, err := fs.ReadFileString("/dir/config/final.yml")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(finalConfig).To(ContainSubstring("blobstore_path: /custom"))
+			Expect(finalConfig).ToNot(ContainSubstring("blobstore_path: .blobs"))
+		})
+
+		It("does not mutate the caller's blobstore options", func() {
+			blobstoreOptions := map[string]interface{}{"flag": "value"}
+
+			err := releaseDir.Init(InitOptions{Sample: true, BlobstoreOptions: blobstoreOptions})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(blobstoreOptions).To(Equal(map[string]interface{}{"flag": "value"}))
+		})
+
+		It("generates a sample job, package and source file", func() {
+			err := releaseDir.Init(InitOptions{Sample: true})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(gen.GenerateJobCallCount()).To(Equal(1))
+			Expect(gen.GenerateJobArgsForCall(0)).To(Equal(GenerateJobOptions{
+				Name:     "sample-job",
+				Packages: []string{"sample-pkg"},
+			}))
+
+			Expect(gen.GeneratePackageCallCount()).To(Equal(1))
+			Expect(gen.GeneratePackageArgsForCall(0)).To(Equal(GeneratePackageOptions{
+				Name:  "sample-pkg",
+				Files: []string{"sample-pkg/**/*"},
+			}))
+
+			Expect(fs.ReadFileString("/dir/src/sample-pkg/file.txt")).To(Equal("Hello from sample-pkg!\n"))
+			Expect(fs.ReadFileString("/dir/packages/sample-pkg/packaging")).To(Equal(
+				"set -eu\n\ncp -a sample-pkg/. \"${BOSH_INSTALL_TARGET}/\"\n"))
+			Expect(fs.ReadFileString("/dir/README.md")).To(ContainSubstring("# dir"))
+		})
+
+		It("writes a sample job executable that uses the sample package", func() {
+			releaseDir := NewFSReleaseDir(
+				"/dir",
+				config,
+				gitRepo,
+				blobsDir,
+				NewFSGenerator("/dir", fs),
+				devReleases,
+				finalReleases,
+				finalIndicies,
+				reader,
+				timeService,
+				fs,
+				2,
+			)
+
+			err := releaseDir.Init(InitOptions{Sample: true})
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/jobs/sample-job/templates/bin/sample-job")).To(ContainSubstring(
+				"cat /var/vcap/packages/sample-pkg/file.txt"))
+		})
+
+		It("returns error if generating the sample fails", func() {
+			gen.GenerateJobReturns(errors.New("fake-err"))
+
+			err := releaseDir.Init(InitOptions{Sample: true})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("fake-err"))
 		})

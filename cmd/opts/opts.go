@@ -1044,11 +1044,25 @@ type GatewayFlags struct {
 // Release creation
 
 type InitReleaseOpts struct {
-	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory" default:"."`
+	Args InitReleaseArgs `positional-args:"true"`
 
-	Git bool `long:"git" description:"Initialize git repository"`
+	// No default so that an omitted --dir can be told apart from an explicit
+	// --dir .; NAME only creates a subdirectory when --dir is omitted.
+	Directory DirOrCWDArg `long:"dir" description:"Release directory path if not current working directory"`
+
+	Git    bool `long:"git"    description:"Initialize git repository"`
+	Sample bool `long:"sample" description:"Generate a sample release with a job, package, source files, and a local blobstore"`
+	Force  bool `long:"force"  description:"Reinitialize an existing release"`
+
+	Blobstore               string   `long:"blobstore"                description:"Blobstore provider (e.g. local, s3, gcs); local defaults to .blobs"`
+	BlobstoreOptions        []string `long:"blobstore-option"         description:"Public blobstore option as KEY=VALUE; values are typed, quote to keep a string (repeatable)"`
+	BlobstorePrivateOptions []string `long:"blobstore-private-option" description:"Private blobstore option as KEY=VALUE; values are typed, quote to keep a string (repeatable)"`
 
 	cmd
+}
+
+type InitReleaseArgs struct {
+	Name string `positional-arg-name:"NAME"`
 }
 
 type ResetReleaseOpts struct {

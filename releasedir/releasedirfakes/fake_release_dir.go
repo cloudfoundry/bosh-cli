@@ -100,10 +100,10 @@ type FakeReleaseDir struct {
 	generatePackageReturnsOnCall map[int]struct {
 		result1 error
 	}
-	InitStub        func(bool) error
+	InitStub        func(releasedir.InitOptions) error
 	initMutex       sync.RWMutex
 	initArgsForCall []struct {
-		arg1 bool
+		arg1 releasedir.InitOptions
 	}
 	initReturns struct {
 		result1 error
@@ -604,11 +604,11 @@ func (fake *FakeReleaseDir) GeneratePackageReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeReleaseDir) Init(arg1 bool) error {
+func (fake *FakeReleaseDir) Init(arg1 releasedir.InitOptions) error {
 	fake.initMutex.Lock()
 	ret, specificReturn := fake.initReturnsOnCall[len(fake.initArgsForCall)]
 	fake.initArgsForCall = append(fake.initArgsForCall, struct {
-		arg1 bool
+		arg1 releasedir.InitOptions
 	}{arg1})
 	stub := fake.InitStub
 	fakeReturns := fake.initReturns
@@ -629,13 +629,13 @@ func (fake *FakeReleaseDir) InitCallCount() int {
 	return len(fake.initArgsForCall)
 }
 
-func (fake *FakeReleaseDir) InitCalls(stub func(bool) error) {
+func (fake *FakeReleaseDir) InitCalls(stub func(releasedir.InitOptions) error) {
 	fake.initMutex.Lock()
 	defer fake.initMutex.Unlock()
 	fake.InitStub = stub
 }
 
-func (fake *FakeReleaseDir) InitArgsForCall(i int) bool {
+func (fake *FakeReleaseDir) InitArgsForCall(i int) releasedir.InitOptions {
 	fake.initMutex.RLock()
 	defer fake.initMutex.RUnlock()
 	argsForCall := fake.initArgsForCall[i]

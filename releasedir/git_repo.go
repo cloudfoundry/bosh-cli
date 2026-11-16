@@ -25,8 +25,13 @@ func (r FSGitRepo) Init() error {
 		return bosherr.WrapErrorf(err, "Initing git repo")
 	}
 
+	return r.WriteIgnoreFile()
+}
+
+func (r FSGitRepo) WriteIgnoreFile() error {
 	ignoreTpl := `config/private.yml
 blobs
+.blobs
 dev_releases
 releases/*.tgz
 releases/**/*.tgz
@@ -41,12 +46,71 @@ releases/**/*.tgz
 #*
 `
 
-	err = r.fs.WriteFileString(filepath.Join(r.dirPath, ".gitignore"), ignoreTpl)
+	ignorePath := filepath.Join(r.dirPath, ".gitignore")
+
+	if r.fs.FileExists(ignorePath) {
+		existing, err := r.fs.ReadFileString(ignorePath)
+		if err != nil {
+			return bosherr.WrapError(err, "Reading .gitignore file")
+		}
+
+		merged := mergeIgnoreFile(existing, ignoreTpl)
+		if merged == existing {
+			return nil
+		}
+
+		err = r.fs.WriteFileString(ignorePath, merged)
+		if err != nil {
+			return bosherr.WrapError(err, "Updating .gitignore file")
+		}
+
+		return nil
+	}
+
+	err := r.fs.WriteFileString(ignorePath, ignoreTpl)
 	if err != nil {
 		return bosherr.WrapError(err, "Creating .gitignore file")
 	}
 
 	return nil
+}
+
+// mergeIgnoreFile appends template entries that are missing from the existing
+// file while preserving custom entries.
+func mergeIgnoreFile(existing, template string) string {
+	known := map[string]bool{}
+
+	for _, line := range strings.Split(existing, "\n") {
+		known[strings.TrimSpace(line)] = true
+	}
+
+	var missing []string
+
+	for _, line := range strings.Split(template, "\n") {
+		entry := strings.TrimSpace(line)
+		if len(entry) == 0 || known[entry] {
+			continue
+		}
+
+		missing = append(missing, line)
+		known[entry] = true
+	}
+
+	if len(missing) == 0 {
+		return existing
+	}
+
+	lineEnding := "\n"
+	if strings.Contains(existing, "\r\n") {
+		lineEnding = "\r\n"
+	}
+
+	merged := existing
+	if len(merged) > 0 && !strings.HasSuffix(merged, "\n") {
+		merged += lineEnding
+	}
+
+	return merged + strings.Join(missing, lineEnding) + lineEnding
 }
 
 func (r FSGitRepo) LastCommitSHA() (string, error) {
