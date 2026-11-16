@@ -149,14 +149,49 @@ func (c FSConfig) SaveBlobstore(provider string, options, privateOptions map[str
 		return err
 	}
 
+	var (
+		previousPrivate []byte
+		privateExisted  bool
+	)
+
 	if writePrivate {
+		privateExisted = c.fs.FileExists(c.privatePath)
+		if privateExisted {
+			previousPrivate, err = c.fs.ReadFile(c.privatePath)
+			if err != nil {
+				return bosherr.WrapErrorf(err, "Reading config '%s'", c.privatePath)
+			}
+		}
+
 		err = c.writeMap(c.privatePath, privateSchema)
 		if err != nil {
 			return err
 		}
 	}
 
-	return c.writeMap(c.publicPath, publicSchema)
+	err = c.writeMap(c.publicPath, publicSchema)
+	if err != nil {
+		if writePrivate {
+			restoreErr := c.restoreConfig(c.privatePath, previousPrivate, privateExisted)
+			if restoreErr != nil {
+				return bosherr.WrapErrorf(err,
+					"Restoring config '%s' after failing to write '%s': %s",
+					c.privatePath, c.publicPath, restoreErr)
+			}
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func (c FSConfig) restoreConfig(path string, previous []byte, existed bool) error {
+	if !existed {
+		return c.fs.RemoveAll(path)
+	}
+
+	return c.fs.WriteFile(path, previous)
 }
 
 func (c FSConfig) privateBlobstoreSchema(

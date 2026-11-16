@@ -416,7 +416,7 @@ blobstore:
 			Expect(fs.ReadFileString("/dir/private.yml")).ToNot(ContainSubstring("access_key_id"))
 		})
 
-		It("recovers when the public config cannot be written after the private config is updated", func() {
+		It("restores the previous private config when the public config cannot be written", func() {
 			err := fs.WriteFileString("/dir/public.yml",
 				"blobstore:\n  provider: s3\n  options:\n    bucket_name: old\n")
 			Expect(err).ToNot(HaveOccurred())
@@ -431,9 +431,11 @@ blobstore:
 				map[string]interface{}{"bucket_name": "bucket"},
 				map[string]interface{}{"credentials_json": "new"})
 			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("fake-err"))
 
 			Expect(fs.ReadFileString("/dir/public.yml")).To(ContainSubstring("provider: s3"))
-			Expect(fs.ReadFileString("/dir/private.yml")).To(ContainSubstring("credentials_json: new"))
+			Expect(fs.ReadFileString("/dir/private.yml")).To(ContainSubstring("access_key_id: old"))
+			Expect(fs.ReadFileString("/dir/private.yml")).ToNot(ContainSubstring("credentials_json: new"))
 
 			delete(fs.WriteFileErrors, "/dir/public.yml")
 
@@ -445,6 +447,22 @@ blobstore:
 			Expect(fs.ReadFileString("/dir/public.yml")).To(ContainSubstring("provider: gcs"))
 			Expect(fs.ReadFileString("/dir/private.yml")).To(ContainSubstring("credentials_json: new"))
 			Expect(fs.ReadFileString("/dir/private.yml")).ToNot(ContainSubstring("access_key_id"))
+		})
+
+		It("removes a newly created private config when the public config cannot be written", func() {
+			err := fs.WriteFileString("/dir/public.yml",
+				"blobstore:\n  provider: s3\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			fs.WriteFileErrors["/dir/public.yml"] = errors.New("fake-err")
+
+			err = config.SaveBlobstore("gcs",
+				map[string]interface{}{"bucket_name": "bucket"},
+				map[string]interface{}{"credentials_json": "new"})
+			Expect(err).To(HaveOccurred())
+
+			Expect(fs.ReadFileString("/dir/public.yml")).To(ContainSubstring("provider: s3"))
+			Expect(fs.FileExists("/dir/private.yml")).To(BeFalse())
 		})
 
 		It("defaults a local blobstore path when none is given", func() {
