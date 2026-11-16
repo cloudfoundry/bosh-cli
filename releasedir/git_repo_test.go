@@ -106,6 +106,32 @@ releases/**/*.tgz
 			Expect(contents).To(ContainSubstring(".blobs\r\n"))
 		})
 
+		It("does not treat a pattern with leading whitespace as the default entry", func() {
+			err := fs.WriteFileString("/dir/.gitignore", " config/private.yml\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = gitRepo.WriteIgnoreFile()
+			Expect(err).ToNot(HaveOccurred())
+
+			contents, err := fs.ReadFileString("/dir/.gitignore")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(contents).To(HavePrefix(" config/private.yml\n"))
+			Expect(contents).To(ContainSubstring("\nconfig/private.yml\n"))
+		})
+
+		It("does not treat a pattern with a trailing tab as the default entry", func() {
+			err := fs.WriteFileString("/dir/.gitignore", "config/private.yml\t\n")
+			Expect(err).ToNot(HaveOccurred())
+
+			err = gitRepo.WriteIgnoreFile()
+			Expect(err).ToNot(HaveOccurred())
+
+			contents, err := fs.ReadFileString("/dir/.gitignore")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(contents).To(HavePrefix("config/private.yml\t\n"))
+			Expect(contents).To(ContainSubstring("\nconfig/private.yml\n"))
+		})
+
 		It("returns error if writing gitignore fails", func() {
 			fs.WriteFileError = errors.New("fake-err")
 
