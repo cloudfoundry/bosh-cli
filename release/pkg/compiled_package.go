@@ -11,9 +11,10 @@ import (
 )
 
 type CompiledPackage struct {
-	name          string
-	fingerprint   string
-	osVersionSlug string
+	name                string
+	fingerprint         string
+	originalFingerprint string
+	osVersionSlug       string
 
 	Dependencies    []*CompiledPackage // todo privatize
 	dependencyNames []string
@@ -22,23 +23,25 @@ type CompiledPackage struct {
 	archiveDigest string
 }
 
-func NewCompiledPackageWithoutArchive(name, fp, osVersionSlug, sha1 string, dependencyNames []string) *CompiledPackage {
+func NewCompiledPackageWithoutArchive(name, fp, originalFingerprint, osVersionSlug, sha1 string, dependencyNames []string) *CompiledPackage {
 	return &CompiledPackage{
-		name:          name,
-		fingerprint:   fp,
-		osVersionSlug: osVersionSlug,
-		archiveDigest: sha1,
+		name:                name,
+		fingerprint:         fp,
+		originalFingerprint: originalFingerprint,
+		osVersionSlug:       osVersionSlug,
+		archiveDigest:       sha1,
 
 		Dependencies:    []*CompiledPackage{},
 		dependencyNames: dependencyNames,
 	}
 }
 
-func NewCompiledPackageWithArchive(name, fp, osVersionSlug, path, sha1 string, dependencyNames []string) *CompiledPackage {
+func NewCompiledPackageWithArchive(name, fp, originalFingerprint, osVersionSlug, path, sha1 string, dependencyNames []string) *CompiledPackage {
 	return &CompiledPackage{
-		name:          name,
-		fingerprint:   fp,
-		osVersionSlug: osVersionSlug,
+		name:                name,
+		fingerprint:         fp,
+		originalFingerprint: originalFingerprint,
+		osVersionSlug:       osVersionSlug,
 
 		archivePath:   path,
 		archiveDigest: sha1,
@@ -50,9 +53,10 @@ func NewCompiledPackageWithArchive(name, fp, osVersionSlug, path, sha1 string, d
 
 func (p CompiledPackage) String() string { return p.Name() }
 
-func (p CompiledPackage) Name() string          { return p.name }
-func (p CompiledPackage) Fingerprint() string   { return p.fingerprint }
-func (p CompiledPackage) OSVersionSlug() string { return p.osVersionSlug }
+func (p CompiledPackage) Name() string                { return p.name }
+func (p CompiledPackage) Fingerprint() string         { return p.fingerprint }
+func (p CompiledPackage) OriginalFingerprint() string { return p.originalFingerprint }
+func (p CompiledPackage) OSVersionSlug() string       { return p.osVersionSlug }
 
 func (p CompiledPackage) ArchivePath() string {
 	if len(p.archivePath) == 0 {

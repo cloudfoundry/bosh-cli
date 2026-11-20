@@ -249,8 +249,8 @@ no_compression: true
 			Expect(err).ToNot(HaveOccurred())
 
 			release.CompiledPackagesReturns([]*boshpkg.CompiledPackage{
-				boshpkg.NewCompiledPackageWithArchive("cp1", "", "", filepath.Join("/", "tmp", "cp1.tgz"), "", nil),
-				boshpkg.NewCompiledPackageWithArchive("cp2", "", "", filepath.Join("/", "tmp", "cp2.tgz"), "", nil),
+				boshpkg.NewCompiledPackageWithArchive("cp1", "", "", "", filepath.Join("/", "tmp", "cp1.tgz"), "", nil),
+				boshpkg.NewCompiledPackageWithArchive("cp2", "", "", "", filepath.Join("/", "tmp", "cp2.tgz"), "", nil),
 			})
 
 			err = fs.WriteFileString(filepath.Join("/", "tmp", "lic.tgz"), "license-content")
@@ -417,8 +417,8 @@ no_compression: true
 			Expect(err).ToNot(HaveOccurred())
 
 			release.CompiledPackagesReturns([]*boshpkg.CompiledPackage{
-				boshpkg.NewCompiledPackageWithArchive("cp1", "", "", filepath.Join("/", "tmp", "cp1.tgz"), "", nil),
-				boshpkg.NewCompiledPackageWithArchive("cp2", "", "", filepath.Join("/", "tmp", "cp2.tgz"), "", nil),
+				boshpkg.NewCompiledPackageWithArchive("cp1", "", "", "", filepath.Join("/", "tmp", "cp1.tgz"), "", nil),
+				boshpkg.NewCompiledPackageWithArchive("cp2", "", "", "", filepath.Join("/", "tmp", "cp2.tgz"), "", nil),
 			})
 
 			compressor.CompressSpecificFilesInDirCallBack = func() {
@@ -445,8 +445,8 @@ no_compression: true
 			Expect(err).ToNot(HaveOccurred())
 
 			release.CompiledPackagesReturns([]*boshpkg.CompiledPackage{
-				boshpkg.NewCompiledPackageWithArchive("cp1", "cp1-fp", "", filepath.Join("/", "tmp", "cp1.tgz"), "", nil),
-				boshpkg.NewCompiledPackageWithArchive("cp2", "cp2-fp", "", filepath.Join("/", "tmp", "cp2.tgz"), "", nil),
+				boshpkg.NewCompiledPackageWithArchive("cp1", "cp1-fp", "", "", filepath.Join("/", "tmp", "cp1.tgz"), "", nil),
+				boshpkg.NewCompiledPackageWithArchive("cp2", "cp2-fp", "", "", filepath.Join("/", "tmp", "cp2.tgz"), "", nil),
 			})
 
 			compressor.CompressSpecificFilesInDirCallBack = func() {
@@ -467,7 +467,7 @@ no_compression: true
 			fs.CopyFileError = errors.New("fake-err")
 
 			release.CompiledPackagesReturns([]*boshpkg.CompiledPackage{
-				boshpkg.NewCompiledPackageWithArchive("cp1", "", "", filepath.Join("/", "tmp", "cp1.tgz"), "", nil),
+				boshpkg.NewCompiledPackageWithArchive("cp1", "", "", "", filepath.Join("/", "tmp", "cp1.tgz"), "", nil),
 			})
 
 			_, err := act()

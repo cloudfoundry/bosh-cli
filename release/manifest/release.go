@@ -15,11 +15,12 @@ type Manifest struct {
 	CommitHash         string `yaml:"commit_hash"`
 	UncommittedChanges bool   `yaml:"uncommitted_changes"`
 
-	Jobs          []JobRef             `yaml:"jobs,omitempty"`
-	Packages      []PackageRef         `yaml:"packages,omitempty"`
-	CompiledPkgs  []CompiledPackageRef `yaml:"compiled_packages,omitempty"`
-	License       *LicenseRef          `yaml:"license,omitempty"`
-	NoCompression bool                 `yaml:"no_compression"`
+	Jobs                []JobRef                `yaml:"jobs,omitempty"`
+	Packages            []PackageRef            `yaml:"packages,omitempty"`
+	CompiledPkgs        []CompiledPackageRef    `yaml:"compiled_packages,omitempty"`
+	CompileTimePackages []CompileTimePackageRef `yaml:"compile_time_packages,omitempty"`
+	License             *LicenseRef             `yaml:"license,omitempty"`
+	NoCompression       bool                    `yaml:"no_compression"`
 }
 
 type JobRef struct {
@@ -39,12 +40,20 @@ type PackageRef struct {
 }
 
 type CompiledPackageRef struct {
-	Name          string   `yaml:"name"`
-	Version       string   `yaml:"version"` // todo deprecate
-	Fingerprint   string   `yaml:"fingerprint"`
-	SHA1          string   `yaml:"sha1"`
-	OSVersionSlug string   `yaml:"stemcell"`
-	Dependencies  []string `yaml:"dependencies"`
+	Name                string   `yaml:"name"`
+	Version             string   `yaml:"version"` // todo deprecate
+	Fingerprint         string   `yaml:"fingerprint"`
+	OriginalFingerprint string   `yaml:"original_fingerprint,omitempty"`
+	SHA1                string   `yaml:"sha1"`
+	OSVersionSlug       string   `yaml:"stemcell"`
+	Dependencies        []string `yaml:"dependencies"`
+}
+
+type CompileTimePackageRef struct {
+	Name         string   `yaml:"name"`
+	Version      string   `yaml:"version"`
+	Fingerprint  string   `yaml:"fingerprint"`
+	Dependencies []string `yaml:"dependencies"`
 }
 
 type LicenseRef struct {

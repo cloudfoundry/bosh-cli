@@ -76,7 +76,7 @@ var _ = Describe("Release", func() {
 
 			compiledPkgs := []*boshpkg.CompiledPackage{
 				boshpkg.NewCompiledPackageWithoutArchive(
-					"name", "fp", "os-slug", "sha1", []string{"pkg1", "pkg2"}),
+					"name", "fp", "", "os-slug", "sha1", []string{"pkg1", "pkg2"}),
 			}
 
 			license := boshlic.NewLicense(NewResource("license", "", nil))
@@ -96,7 +96,7 @@ var _ = Describe("Release", func() {
 		It("returns whether or not release has compiled packages", func() {
 			compiledPkgs := []*boshpkg.CompiledPackage{
 				boshpkg.NewCompiledPackageWithoutArchive(
-					"name", "fp", "os-slug", "sha1", []string{"pkg1", "pkg2"}),
+					"name", "fp", "", "os-slug", "sha1", []string{"pkg1", "pkg2"}),
 			}
 
 			release = NewRelease("", "", "", true, nil, nil, compiledPkgs, nil, false, "", fs)
@@ -146,7 +146,7 @@ var _ = Describe("Release", func() {
 
 			compiledPkgs := []*boshpkg.CompiledPackage{
 				boshpkg.NewCompiledPackageWithoutArchive(
-					"cp", "cp-fp", "cp-os-slug", "cp-sha1", []string{"pkg1", "pkg2"}),
+					"cp", "cp-fp", "original-cp-fp", "cp-os-slug", "cp-sha1", []string{"pkg1", "pkg2"}),
 			}
 
 			license := boshlic.NewLicense(NewExistingResource("license", "lic-fp", "lic-sha1"))
@@ -178,12 +178,13 @@ var _ = Describe("Release", func() {
 				},
 				CompiledPkgs: []boshman.CompiledPackageRef{
 					{
-						Name:          "cp",
-						Version:       "cp-fp",
-						Fingerprint:   "cp-fp",
-						SHA1:          "cp-sha1",
-						OSVersionSlug: "cp-os-slug",
-						Dependencies:  []string{"pkg1", "pkg2"},
+						Name:                "cp",
+						Version:             "cp-fp",
+						Fingerprint:         "cp-fp",
+						OriginalFingerprint: "original-cp-fp",
+						SHA1:                "cp-sha1",
+						OSVersionSlug:       "cp-os-slug",
+						Dependencies:        []string{"pkg1", "pkg2"},
 					},
 				},
 				License: &boshman.LicenseRef{

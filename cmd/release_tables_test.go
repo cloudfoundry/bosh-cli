@@ -122,11 +122,11 @@ var _ = Describe("ReleaseTables", func() {
 		Context("when there are compiled packages", func() {
 			BeforeEach(func() {
 				compiledpkg := boshpkg.NewCompiledPackageWithoutArchive(
-					"compiledpkg-name", "compiledpkg-fp", "super-cool-linux/42.0", "compiledpkg-sha1", []string{"pkg1-name"},
+					"compiledpkg-name", "compiledpkg-fp", "", "super-cool-linux/42.0", "compiledpkg-sha1", []string{"pkg1-name"},
 				)
 
 				compiledpkg2 := boshpkg.NewCompiledPackageWithoutArchive(
-					"compiledpkg2-name", "compiledpkg2-fp", "super-cool-linux", "compiledpkg2-sha1", []string{"pkg1-name"},
+					"compiledpkg2-name", "compiledpkg2-fp", "", "super-cool-linux", "compiledpkg2-sha1", []string{"pkg1-name"},
 				)
 
 				release.CompiledPackagesReturns([]*boshpkg.CompiledPackage{compiledpkg, compiledpkg2})

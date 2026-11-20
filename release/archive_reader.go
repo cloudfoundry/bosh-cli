@@ -114,11 +114,12 @@ func (r ArchiveReader) newRelease(manifest boshman.Manifest, extractPath string)
 		commitHash:         manifest.CommitHash,
 		uncommittedChanges: manifest.UncommittedChanges,
 
-		jobs:          jobs,
-		packages:      packages,
-		compiledPkgs:  compiledPkgs,
-		license:       license,
-		noCompression: manifest.NoCompression,
+		jobs:            jobs,
+		packages:        packages,
+		compiledPkgs:    compiledPkgs,
+		compileTimePkgs: manifest.CompileTimePackages,
+		license:         license,
+		noCompression:   manifest.NoCompression,
 
 		extractedPath: extractPath,
 		fs:            r.fs,
@@ -194,7 +195,7 @@ func (r ArchiveReader) newCompiledPackages(refs []boshman.CompiledPackageRef, ex
 		archivePath := filepath.Join(extractPath, "compiled_packages", ref.Name+".tgz")
 
 		compiledPkg := boshpkg.NewCompiledPackageWithArchive(
-			ref.Name, ref.Fingerprint, ref.OSVersionSlug, archivePath, ref.SHA1, ref.Dependencies)
+			ref.Name, ref.Fingerprint, ref.OriginalFingerprint, ref.OSVersionSlug, archivePath, ref.SHA1, ref.Dependencies)
 
 		compiledPkgs = append(compiledPkgs, compiledPkg)
 	}
