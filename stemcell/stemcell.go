@@ -43,6 +43,7 @@ type Manifest struct {
 	AgentFeatures   []string       `yaml:"agent_features,omitempty"`
 	ApiVersion      int            `yaml:"api_version,omitempty"`
 	CloudProperties biproperty.Map `yaml:"cloud_properties"`
+	ExtraFields     map[string]any `yaml:",inline" json:"-"`
 }
 
 // SupportsAgentFeature reports capabilities advertised for the packaged agent.
