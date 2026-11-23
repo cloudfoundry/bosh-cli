@@ -14,6 +14,7 @@ import (
 	boshcmdfakes "github.com/cloudfoundry/bosh-utils/fileutil/fakes"
 	biproperty "github.com/cloudfoundry/bosh-utils/property"
 	fakesys "github.com/cloudfoundry/bosh-utils/system/fakes"
+	"gopkg.in/yaml.v2"
 )
 
 var _ = Describe("Stemcell", func() {
@@ -45,6 +46,27 @@ var _ = Describe("Stemcell", func() {
 	Describe("Manifest", func() {
 		It("returns the manifest", func() {
 			Expect(stemcell.Manifest()).To(Equal(manifest))
+		})
+
+		It("round-trips unrecognized top-level manifest fields", func() {
+			const contents = `
+name: test-stemcell
+version: '1234'
+operating_system: ubuntu-resolute
+sha1: test-checksum
+bosh_protocol: '1'
+cloud_properties: {infrastructure: azure}
+example_metadata:
+  items: [one, two]
+  options: {enabled: false, revision: 3}
+example_null: null
+example_empty: []
+`
+			Expect(yaml.Unmarshal([]byte(contents), &manifest)).To(Succeed())
+
+			encoded, err := yaml.Marshal(manifest)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(encoded).To(MatchYAML(contents))
 		})
 
 		Context("when stemcell.MF contains api_version", func() {
