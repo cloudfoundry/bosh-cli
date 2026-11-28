@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"os"
+	"slices"
 	"sync"
 
 	"github.com/go-jose/go-jose/v4"
@@ -60,13 +62,24 @@ func Read(trustDomain spiffeid.TrustDomain, r io.Reader) (*Bundle, error) {
 
 // Parse parses a bundle from bytes. The data must be a standard RFC 7517 JWKS document.
 func Parse(trustDomain spiffeid.TrustDomain, bundleBytes []byte) (*Bundle, error) {
-	jwks := new(jose.JSONWebKeySet)
+	// Keys are decoded one at a time so that a key of an unsupported type is
+	// ignored rather than failing the whole set.
+	jwks := new(struct {
+		Keys []json.RawMessage `json:"keys"`
+	})
 	if err := json.Unmarshal(bundleBytes, jwks); err != nil {
 		return nil, wrapJwtbundleErr(fmt.Errorf("unable to parse JWKS: %v", err))
 	}
 
 	bundle := New(trustDomain)
-	for i, key := range jwks.Keys {
+	for i, rawKey := range jwks.Keys {
+		key, ok, err := jwtutil.DecodeKey(rawKey)
+		if err != nil {
+			return nil, wrapJwtbundleErr(fmt.Errorf("unable to parse JWKS: %v", err))
+		}
+		if !ok {
+			continue
+		}
 		if err := bundle.AddJWTAuthority(key.KeyID, key.Key); err != nil {
 			return nil, wrapJwtbundleErr(fmt.Errorf("error adding authority %d of JWKS: %v", i, errors.Unwrap(err)))
 		}
@@ -155,7 +168,8 @@ func (b *Bundle) Marshal() ([]byte, error) {
 	defer b.mtx.RUnlock()
 
 	jwks := jose.JSONWebKeySet{Keys: make([]jose.JSONWebKey, 0, len(b.jwtAuthorities))}
-	for keyID, jwtAuthority := range b.jwtAuthorities {
+	for _, keyID := range slices.Sorted(maps.Keys(b.jwtAuthorities)) {
+		jwtAuthority := b.jwtAuthorities[keyID]
 		jwks.Keys = append(jwks.Keys, jose.JSONWebKey{
 			Key:   jwtAuthority,
 			KeyID: keyID,

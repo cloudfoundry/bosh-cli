@@ -39,6 +39,26 @@ type NgReaderOptions struct {
 // DefaultNgReaderOptions provides sane defaults for a pcapng reader.
 var DefaultNgReaderOptions = NgReaderOptions{}
 
+// Limits on what the reader keeps in memory: of a section its interfaces, name
+// records and decryption secrets, of a packet its options. In the file these
+// are small, 20 bytes for an interface and one for an empty name, and in
+// memory many times that, so the file can't be left to decide how many are
+// kept. What is over a limit is read and dropped, which keeps the reader in
+// step with the file. It is not an error: there would be one for every block
+// over the limit, and gopacket.PacketSource sleeps and retries after each.
+const (
+	ngMaxInterfaceBytes = 16 << 20 // interfaces of a section, with their strings
+	ngMaxNameBytes      = 16 << 20 // name records of a section
+	ngMaxSecretBytes    = 16 << 20 // decryption secrets of a section
+	ngMaxPacketOptions  = 1024     // comments of a packet, and so for hashes and verdicts
+
+	// what an entry is charged on top of its strings or payload
+	ngInterfaceSize  = 256 // NgInterface
+	ngNameRecordSize = 96  // NgNameRecord and its address
+	ngNameSize       = 16  // string header of a name
+	ngSecretSize     = 64  // decryptionSecret
+)
+
 // NgReader wraps an underlying bufio.NgReader to read packet data in pcapng.
 type NgReader struct {
 	r                 *bufio.Reader
@@ -58,6 +78,10 @@ type NgReader struct {
 	bigEndian         bool
 	decryptionSecrets []decryptionSecret
 	nameRecords       []NgNameRecord
+	ifaceBytes        int  // charged to ngMaxInterfaceBytes in this section
+	ifacesFull        bool // an interface of this section was dropped
+	nameBytes         int  // charged to ngMaxNameBytes in this section
+	secretBytes       int  // charged to ngMaxSecretBytes in this section
 }
 
 // NewNgReader initializes a new reader, reads the first section header, and if necessary according to the options the first interface.
@@ -146,6 +170,38 @@ func (r *NgReader) discard(length int) error {
 	return nil
 }
 
+// ngBlockTrailerSize is the size of the block total length that ends every block.
+const ngBlockTrailerSize = 4
+
+// checkBlock returns an error if the current block doesn't have n more bytes in front of its trailing block length.
+// Every read inside a block must pass it first, fixed size parts included: the lengths come from the file, and a read
+// past the end of the block consumes the following blocks and wraps the remaining length.
+func (r *NgReader) checkBlock(n uint64) error {
+	if n+ngBlockTrailerSize <= uint64(r.currentBlock.length) {
+		return nil
+	}
+	return r.blockTooShort(n)
+}
+
+// blockTooShort skips what is left of the current block, so that the next read starts at the following block, and
+// returns the error of checkBlock. It is a function of its own to keep checkBlock inlineable.
+func (r *NgReader) blockTooShort(n uint64) error {
+	err := fmt.Errorf("Block of type %#x is too short: %d bytes needed, %d left including the trailing block length", uint32(r.currentBlock.typ), n, r.currentBlock.length)
+	if discardErr := r.discard(int(r.currentBlock.length)); discardErr != nil {
+		return discardErr
+	}
+	return err
+}
+
+// unknownInterface skips what is left of the current block, which names an interface the section doesn't have, and
+// returns the error for it. Returning in mid block would have the reader parse the rest of the block as block headers.
+func (r *NgReader) unknownInterface(id int) error {
+	if err := r.discard(int(r.currentBlock.length)); err != nil {
+		return err
+	}
+	return fmt.Errorf("Interface id %d not present in section (have only %d interfaces)", id, len(r.ifaces))
+}
+
 // The following functions make the binary.* functions inlineable (except for getUint64, which is too big, but not in any hot path anyway)
 // Compared to storing binary.*Endian in a binary.ByteOrder this shaves off about 20% for (ZeroCopy)ReadPacketData, which is caused by the needed itab lookup + indirect go call
 func (r *NgReader) getUint16(buffer []byte) uint16 {
@@ -193,9 +249,17 @@ func (r *NgReader) readBlock() error {
 		} else {
 			return errors.New("Wrong byte order value in Section Header")
 		}
+		// As below, and 4 more for the byteOrderMagic
+		if r.getUint32(r.buf[4:8]) < 16 {
+			return fmt.Errorf("Block total length %d is too short", r.getUint32(r.buf[4:8]))
+		}
 		// Set length to remaining length (length - (type + lengthfield = 8) - 4 for byteOrderMagic)
 		r.currentBlock.length = r.getUint32(r.buf[4:8]) - 8 - 4
 		return nil
+	}
+	// A block has at least its type, its length and the trailing length (12 bytes). Less would wrap the remaining length
+	if r.getUint32(r.buf[4:8]) < 12 {
+		return fmt.Errorf("Block total length %d is too short", r.getUint32(r.buf[4:8]))
 	}
 	// Set length to remaining length (length - (type + lengthfield = 8)
 	r.currentBlock.length = r.getUint32(r.buf[4:8]) - 8
@@ -208,6 +272,9 @@ func (r *NgReader) readOption() error {
 		// no more options
 		r.currentOption.code = ngOptionCodeEndOfOptions
 		return nil
+	}
+	if err := r.checkBlock(4); err != nil {
+		return err
 	}
 	if _, err := r.readBytes(r.buf[:4]); err != nil {
 		return err
@@ -222,6 +289,9 @@ func (r *NgReader) readOption() error {
 		return nil
 	}
 	if length != 0 {
+		if err := r.checkBlock(uint64(length)); err != nil {
+			return err
+		}
 		if length < uint16(cap(r.currentOption.value)) {
 			r.currentOption.value = r.currentOption.value[:length]
 		} else {
@@ -264,14 +334,24 @@ func (r *NgReader) readSectionHeader() error {
 		}
 		r.options.SectionEndCallback(interfaces, r.sectionInfo)
 	}
-	// clear interfaces, decryption secrets and name records
+	// clear interfaces, decryption secrets and name records. Truncating alone
+	// would leave what they hold in the backing arrays, where it stays alive.
+	clear(r.ifaces)
+	clear(r.decryptionSecrets)
+	clear(r.nameRecords)
 	r.ifaces = r.ifaces[:0]
 	r.decryptionSecrets = r.decryptionSecrets[:0]
 	r.nameRecords = r.nameRecords[:0]
+	r.ifaceBytes, r.ifacesFull = 0, false
+	r.nameBytes = 0
+	r.secretBytes = 0
 	r.activeSection = false
 
 RESTART:
 	// read major, minor, section length
+	if err := r.checkBlock(12); err != nil {
+		return err
+	}
 	if _, err := r.readBytes(r.buf[:12]); err != nil {
 		return err
 	}
@@ -395,6 +475,9 @@ func (r *NgReader) firstInterface() error {
 
 // readInterfaceDescriptor parses an interface descriptor, prepares timing calculation, and adds the interface details to the current list
 func (r *NgReader) readInterfaceDescriptor() error {
+	if err := r.checkBlock(8); err != nil {
+		return err
+	}
 	if _, err := r.readBytes(r.buf[:8]); err != nil {
 		return err
 	}
@@ -471,6 +554,15 @@ OPTIONS:
 	} else {
 		intf.scaleDown = intf.secondMask / 1e9
 	}
+	// An interface that does not fit is dropped, and so is every later one of
+	// the section, since the ids of those kept have to stay right. A packet of
+	// a dropped interface fails like any packet whose interface id is unknown.
+	size := ngInterfaceSize + len(intf.Name) + len(intf.Comment) + len(intf.Description) + len(intf.Filter) + len(intf.OS)
+	if r.ifacesFull || r.ifaceBytes+size > ngMaxInterfaceBytes {
+		r.ifacesFull = true
+		return nil
+	}
+	r.ifaceBytes += size
 	r.ifaces = append(r.ifaces, intf)
 	return nil
 }
@@ -483,6 +575,9 @@ func (r *NgReader) convertTime(ifaceID int, ts uint64) (int64, int64) {
 
 // readInterfaceStatistics updates the statistics of the given interface
 func (r *NgReader) readInterfaceStatistics() error {
+	if err := r.checkBlock(12); err != nil {
+		return err
+	}
 	if _, err := r.readBytes(r.buf[:12]); err != nil {
 		return err
 	}
@@ -490,9 +585,10 @@ func (r *NgReader) readInterfaceStatistics() error {
 	ifaceID := int(r.getUint32(r.buf[:4]))
 	ts := uint64(r.getUint32(r.buf[4:8]))<<32 | uint64(r.getUint32(r.buf[8:12]))
 	if int(ifaceID) >= len(r.ifaces) {
-		return fmt.Errorf("Interface id %d not present in section (have only %d interfaces)", ifaceID, len(r.ifaces))
+		return r.unknownInterface(ifaceID)
 	}
 	stats := &r.ifaces[ifaceID].Statistics
+	r.ifaceBytes -= len(stats.Comment)
 	*stats = ngEmptyStatistics
 	stats.LastUpdate = time.Unix(r.convertTime(ifaceID, ts)).UTC()
 
@@ -505,6 +601,12 @@ OPTIONS:
 		case ngOptionCodeEndOfOptions:
 			break OPTIONS
 		case ngOptionCodeComment:
+			// the comment is kept with the interface, and charged like its strings
+			size := len(r.currentOption.value) - len(stats.Comment)
+			if r.ifaceBytes+size > ngMaxInterfaceBytes {
+				continue
+			}
+			r.ifaceBytes += size
 			stats.Comment = string(r.currentOption.value)
 		case ngOptionCodeInterfaceStatisticsStartTime:
 			if r.optionTooShort(8) {
@@ -551,19 +653,25 @@ FIND_PACKET:
 		}
 		switch r.currentBlock.typ {
 		case ngBlockTypeEnhancedPacket:
+			if err := r.checkBlock(20); err != nil {
+				return err
+			}
 			if _, err := r.readBytes(r.buf[:20]); err != nil {
 				return err
 			}
 			r.currentBlock.length -= 20
 			r.ci.InterfaceIndex = int(r.getUint32(r.buf[:4]))
 			if r.ci.InterfaceIndex >= len(r.ifaces) {
-				return fmt.Errorf("Interface id %d not present in section (have only %d interfaces)", r.ci.InterfaceIndex, len(r.ifaces))
+				return r.unknownInterface(r.ci.InterfaceIndex)
 			}
 			r.ci.Timestamp = time.Unix(r.convertTime(r.ci.InterfaceIndex, uint64(r.getUint32(r.buf[4:8]))<<32|uint64(r.getUint32(r.buf[8:12])))).UTC()
 			r.ci.CaptureLength = int(r.getUint32(r.buf[12:16]))
 			r.ci.Length = int(r.getUint32(r.buf[16:20]))
 			break FIND_PACKET
 		case ngBlockTypeSimplePacket:
+			if err := r.checkBlock(4); err != nil {
+				return err
+			}
 			if _, err := r.readBytes(r.buf[:4]); err != nil {
 				return err
 			}
@@ -577,6 +685,13 @@ FIND_PACKET:
 			}
 			if r.ifaces[0].SnapLength != 0 && uint32(r.ci.CaptureLength) > r.ifaces[0].SnapLength {
 				r.ci.CaptureLength = int(r.ifaces[0].SnapLength)
+			}
+			// A Simple Packet Block has no captured length: it is what the
+			// block holds. A writer that cut the packet without stating a
+			// snaplen leaves less than the original length, so stop at the
+			// trailing block length instead of reading into the next block.
+			if held := int(r.currentBlock.length) - ngBlockTrailerSize; r.ci.CaptureLength > held {
+				r.ci.CaptureLength = held
 			}
 			break FIND_PACKET
 		case ngBlockTypeInterfaceDescriptor:
@@ -592,13 +707,16 @@ FIND_PACKET:
 				return err
 			}
 		case ngBlockTypePacket:
+			if err := r.checkBlock(20); err != nil {
+				return err
+			}
 			if _, err := r.readBytes(r.buf[:20]); err != nil {
 				return err
 			}
 			r.currentBlock.length -= 20
 			r.ci.InterfaceIndex = int(r.getUint16(r.buf[0:2]))
 			if r.ci.InterfaceIndex >= len(r.ifaces) {
-				return fmt.Errorf("Interface id %d not present in section (have only %d interfaces)", r.ci.InterfaceIndex, len(r.ifaces))
+				return r.unknownInterface(r.ci.InterfaceIndex)
 			}
 			r.ci.Timestamp = time.Unix(r.convertTime(r.ci.InterfaceIndex, uint64(r.getUint32(r.buf[4:8]))<<32|uint64(r.getUint32(r.buf[8:12])))).UTC()
 			r.ci.CaptureLength = int(r.getUint32(r.buf[12:16]))
@@ -642,6 +760,9 @@ OPTIONS:
 		case ngOptionCodeEndOfOptions:
 			break OPTIONS
 		case ngOptionCodeComment:
+			if len(opts.Comments) >= ngMaxPacketOptions {
+				continue
+			}
 			opts.Comments = append(opts.Comments, string(r.currentOption.value))
 		case ngOptionCodeEpbFlags:
 			if r.optionTooShort(4) {
@@ -651,7 +772,7 @@ OPTIONS:
 			flags.FromUint32(binary.LittleEndian.Uint32(r.currentOption.value))
 			opts.Flags = &flags
 		case ngOptionCodeEpbHash:
-			if r.optionTooShort(1) {
+			if r.optionTooShort(1) || len(opts.Hashes) >= ngMaxPacketOptions {
 				continue
 			}
 			v := make([]byte, len(r.currentOption.value)-1)
@@ -679,7 +800,7 @@ OPTIONS:
 			v := binary.LittleEndian.Uint32(r.currentOption.value)
 			opts.Queue = &v
 		case ngOptionCodeEpbVerdict:
-			if r.optionTooShort(1) {
+			if r.optionTooShort(1) || len(opts.Verdicts) >= ngMaxPacketOptions {
 				continue
 			}
 			v := make([]byte, len(r.currentOption.value)-1)
@@ -710,6 +831,9 @@ func (r *NgReader) ReadPacketDataWithOptions() (data []byte, ci gopacket.Capture
 	if r.options.WantMixedLinkType {
 		ci.AncillaryData = make([]interface{}, 1)
 		ci.AncillaryData[0] = r.ancil[0]
+	}
+	if err = r.checkBlock(uint64(uint32(r.ci.CaptureLength))); err != nil {
+		return
 	}
 	if eagerRead(r.ci.CaptureLength) {
 		data = make([]byte, r.ci.CaptureLength)
@@ -761,6 +885,9 @@ func (r *NgReader) ZeroCopyReadPacketDataWithOptions() (data []byte, ci gopacket
 	ci = r.ci
 	if r.options.WantMixedLinkType {
 		ci.AncillaryData = r.ancil[:]
+	}
+	if err = r.checkBlock(uint64(uint32(r.ci.CaptureLength))); err != nil {
+		return
 	}
 	if eagerRead(ci.CaptureLength) {
 		if cap(r.packetBuf) < ci.CaptureLength {
